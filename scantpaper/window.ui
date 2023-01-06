@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="appwindow" parent="GtkApplicationWindow">
+    <property name="title">ScantPaper</property>
+    <property name="default-height">768</property>
+    <property name="default-width">1024</property>
+    <child>
+      <object class="GtkPaned" id="hpaned">
+        <property name="orientation">horizontal</property>
+        <property name="position">100</property>
+        <child>
+          <object class="GtkScrolledWindow" id="scwin_thumbs">
+            <child>
+              <object class="GtkTreeView" id="page_list">
+                <property name="headers-visible">false</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="image_scrolled_window">
+            <child>
+              <object class="GtkViewport" id="image_viewport">
+                <child>
+                  <object class="GtkImage" id="image_widget">
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <property name="vexpand">True</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

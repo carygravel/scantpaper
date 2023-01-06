@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <menu id="app-menu">
+    <item>
+      <attribute name='label' translatable='yes'>_File</attribute>
+      <link name="submenu">
+        <item>
+          <attribute name='label' translatable='yes'>_New</attribute>
+          <attribute name='action'>app.new</attribute>
+          <attribute name="accel">&lt;Primary&gt;n</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Open</attribute>
+          <attribute name="action">app.open</attribute>
+          <attribute name="accel">&lt;Primary&gt;o</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">S_can</attribute>
+          <attribute name="action">app.scan</attribute>
+          <attribute name="accel">&lt;Primary&gt;g</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Save</attribute>
+          <attribute name="action">app.save</attribute>
+          <attribute name="accel">&lt;Primary&gt;s</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Email as PDF</attribute>
+          <attribute name="action">app.email</attribute>
+          <attribute name="accel">&lt;Primary&gt;e</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Print</attribute>
+          <attribute name="action">app.print</attribute>
+          <attribute name="accel">&lt;Primary&gt;p</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Quit</attribute>
+          <attribute name="action">app.quit</attribute>
+          <attribute name="accel">&lt;Primary&gt;q</attribute>
+         </item>
+      </link>
+    </item>
+    <item>
+      <attribute name='label' translatable='yes'>_Edit</attribute>
+      <link name="submenu">
+        <item>
+          <attribute name='label' translatable='yes'>_Undo</attribute>
+          <attribute name='action'>app.undo</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Redo</attribute>
+          <attribute name='action'>app.redo</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Cu_t</attribute>
+          <attribute name='action'>app.cut</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Copy</attribute>
+          <attribute name='action'>app.copy</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Paste</attribute>
+          <attribute name='action'>app.paste</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Delete</attribute>
+          <attribute name='action'>app.delete</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Renumber</attribute>
+          <attribute name='action'>app.renumber</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Select</attribute>
+          <link name="submenu">
+            <item>
+              <attribute name='label' translatable='yes'>_All</attribute>
+              <attribute name='action'>app.select_all</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_Odd</attribute>
+              <attribute name='action'>app.select_odd</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_Even</attribute>
+              <attribute name='action'>app.select_even</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_Invert</attribute>
+              <attribute name='action'>app.select_invert</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_Blank</attribute>
+              <attribute name='action'>app.select_blank</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_Dark</attribute>
+              <attribute name='action'>app.select_dark</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_Modified</attribute>
+              <attribute name='action'>app.select_modified</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_No OCR</attribute>
+              <attribute name='action'>app.select_no_ocr</attribute>
+            </item>
+            <item>
+              <attribute name='label' translatable='yes'>_Clear OCR</attribute>
+              <attribute name='action'>app.select_clear_ocr</attribute>
+            </item>
+          </link>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Propert_ies</attribute>
+          <attribute name='action'>app.properties</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Prefere_nces</attribute>
+          <attribute name='action'>app.preferences</attribute>
+        </item>
+      </link>
+    </item>
+    <item>
+      <attribute name='label' translatable='yes'>_View</attribute>
+      <link name="submenu">
+        <item>
+          <attribute name='label' translatable='yes'>Zoom _100%</attribute>
+          <attribute name='action'>app.zoom_100</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Zoom to _fit</attribute>
+          <attribute name='action'>app.zoom_to_fit</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Zoom _in</attribute>
+          <attribute name='action'>app.zoom_in</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Zoom _out</attribute>
+          <attribute name='action'>app.zoom_out</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Rotate 90° clockwise</attribute>
+          <attribute name='action'>app.rotate_90_cw</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Rotate 180°</attribute>
+          <attribute name='action'>app.rotate_180</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>Rotate 90° anticlockwise</attribute>
+          <attribute name='action'>app.rotate_90_acw</attribute>
+        </item>
+      </link>
+    </item>
+    <item>
+      <attribute name='label' translatable='yes'>_Tools</attribute>
+      <link name="submenu">
+        <item>
+          <attribute name='label' translatable='yes'>_Threshold</attribute>
+          <attribute name='action'>app.threshold</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Brightness / Contrast</attribute>
+          <attribute name='action'>app.brightness_contrast</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Negate</attribute>
+          <attribute name='action'>app.negate</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Unsharp Mask</attribute>
+          <attribute name='action'>app.unsharp</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Crop</attribute>
+          <attribute name='action'>app.crop</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Clean up</attribute>
+          <attribute name='action'>app.unpaper</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_Split</attribute>
+          <attribute name='action'>app.split</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_OCR</attribute>
+          <attribute name='action'>app.ocr</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>U_ser-defined</attribute>
+          <attribute name='action'>app.user_defined</attribute>
+        </item>
+      </link>
+    </item>
+    <item>
+      <attribute name='label' translatable='yes'>_Help</attribute>
+      <link name="submenu">
+        <item>
+          <attribute name='label' translatable='yes'>_Help</attribute>
+          <attribute name='action'>app.help</attribute>
+        </item>
+        <item>
+          <attribute name='label' translatable='yes'>_About</attribute>
+          <attribute name='action'>app.about</attribute>
+        </item>
+      </link>
+    </item>
+  </menu>
+</interface>
