@@ -1,6 +1,10 @@
 """ main file """
 
 import sys
+import os
+import tempfile
+import sqlite3
+import logging
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -10,6 +14,47 @@ from gi.repository import (  # pylint: disable=wrong-import-position
     Gtk,
     GdkPixbuf,
 )
+
+
+class Document(Gtk.ListStore):
+    """Subclass the model in order to hook in an SQLite DB"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        with tempfile.NamedTemporaryFile(delete=False) as dbf:
+            self.dbf = dbf
+            self.dbcon = sqlite3.connect(self.dbf.name)
+            logging.warning("Document created at %s", self.dbf.name)
+            self.dbcur = self.dbcon.cursor()
+            self.dbcur.execute("CREATE TABLE thumbs(number INT, pixbuf BLOB NOT NULL)")
+            self.dbcur.execute("CREATE TABLE pages(number INT, image BLOB NOT NULL)")
+
+    def append_page(self, filename):
+        """dump the image to the pages table and the pixbuf to the thumbs"""
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename, 100, 100, False)
+        page_num = self.iter_n_children() + 1
+        logging.warning("Inserting page %s", page_num)
+        self.append([page_num, pixbuf])
+
+        with open(filename, "rb") as file:
+            blob = file.read()
+        self.dbcur.execute(
+            "INSERT INTO thumbs (number, pixbuf) VALUES (?, ?)",
+            (page_num, pixbuf.get_pixels()),
+        )
+        self.dbcur.execute(
+            "INSERT INTO pages (number, image) VALUES (?, ?)", (page_num, blob)
+        )
+
+    def get_pixbuf(self, treeiter):
+        """given an iter, return a (fullsize) pixbuf of the page"""
+        page_num = self[treeiter][0]
+        self.dbcur.execute("SELECT image FROM pages WHERE number = ?", (page_num,))
+        blob = self.dbcur.fetchone()[0]
+        loader = GdkPixbuf.PixbufLoader()
+        loader.write(blob)
+        loader.close()
+        return loader.get_pixbuf()
 
 
 @Gtk.Template(filename="scantpaper/window.ui")
@@ -24,7 +69,7 @@ class AppWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.model = Gtk.ListStore(int, GdkPixbuf.Pixbuf)
+        self.document = Document(int, GdkPixbuf.Pixbuf)
         self.page_list.append_column(
             Gtk.TreeViewColumn("#", Gtk.CellRendererText(), text=0)
         )
@@ -32,12 +77,12 @@ class AppWindow(Gtk.ApplicationWindow):
             Gtk.TreeViewColumn("thumb", Gtk.CellRendererPixbuf(), pixbuf=1)
         )
         self.page_list.set_headers_visible(False)
-        self.page_list.set_model(self.model)
+        self.page_list.set_model(self.document)
 
         def on_tree_selection_changed(selection):
             model, treeiter = selection.get_selected()
             if treeiter is not None:
-                self.image_widget.set_from_pixbuf(model[treeiter][1])
+                self.image_widget.set_from_pixbuf(model.get_pixbuf(treeiter))
 
         select = self.page_list.get_selection()
         select.connect("changed", on_tree_selection_changed)
@@ -111,7 +156,6 @@ class Application(Gtk.Application):
     def on_open(self, _action, _param):
         """open"""
         window = self.get_active_window()
-        model = window.model
         dialog = Gtk.FileChooserDialog(
             title="Open image", parent=window, action=Gtk.FileChooserAction.OPEN
         )
@@ -123,10 +167,7 @@ class Application(Gtk.Application):
         )
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                dialog.get_filename(), 100, 100, False
-            )
-            model.append([1, pixbuf])
+            window.document.append_page(dialog.get_filename())
         dialog.destroy()
 
     def on_about(self, _action, _param):
@@ -136,6 +177,10 @@ class Application(Gtk.Application):
 
     def on_quit(self, _action, _param):
         """quit"""
+        window = self.get_active_window()
+        document = window.page_list.get_model()
+        logging.warning("Cleaning up document at %s", document.dbf.name)
+        os.remove(document.dbf.name)
         self.quit()
 
 
