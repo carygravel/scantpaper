@@ -14,6 +14,7 @@ from gi.repository import (  # pylint: disable=wrong-import-position
     Gtk,
     GdkPixbuf,
 )
+from imageview import ImageView, Dragger, Selector, SelectorDragger, Tool
 
 
 class Document(Gtk.ListStore):
@@ -82,7 +83,7 @@ class AppWindow(Gtk.ApplicationWindow):
         def on_tree_selection_changed(selection):
             model, treeiter = selection.get_selected()
             if treeiter is not None:
-                self.image_widget.set_from_pixbuf(model.get_pixbuf(treeiter))
+                self.image_widget.set_pixbuf(model.get_pixbuf(treeiter))
 
         select = self.page_list.get_selection()
         select.connect("changed", on_tree_selection_changed)

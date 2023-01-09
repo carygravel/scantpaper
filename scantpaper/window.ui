@@ -19,18 +19,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkScrolledWindow" id="image_scrolled_window">
-            <child>
-              <object class="GtkViewport" id="image_viewport">
-                <child>
-                  <object class="GtkImage" id="image_widget">
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <property name="vexpand">True</property>
+          <object class="GtkImageView" id="image_widget">
           </object>
         </child>
       </object>
