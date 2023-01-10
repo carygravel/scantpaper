@@ -226,8 +226,13 @@ class Selector(Tool):
         w, h = self.view().to_image_distance(abs(x2 - x), abs(y2 - y))
         x, y = self.view().to_image_coords(min(x, x2), min(y, y2))
         sel = Gdk.Rectangle()
-        sel.x, sel.y, sel.width, sel.height = int(x + 0.5), int(y + 0.5), int(w + 0.5), int(h + 0.5)
-        self.view().set_selection(sel        )
+        sel.x, sel.y, sel.width, sel.height = (
+            int(x + 0.5),
+            int(y + 0.5),
+            int(w + 0.5),
+            int(h + 0.5),
+        )
+        self.view().set_selection(sel)
 
     def cursor_type_at_point(self, x, y):
 
@@ -433,9 +438,7 @@ class ImageView(Gtk.DrawingArea):
         nick="resolution-ratio",
         blurb="Ratio of x-resolution/y-resolution",
     )
-    tool = GObject.Property(
-        type=object, nick="tool", blurb="Active Tool"
-    )
+    tool = GObject.Property(type=object, nick="tool", blurb="Active Tool")
     selection = GObject.Property(
         type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
     )
@@ -636,7 +639,7 @@ class ImageView(Gtk.DrawingArea):
         pixbuf = self.get_pixbuf()
         if pixbuf is not None:
             size = Gdk.Rectangle()
-            size.width, size.height = pixbuf.get_width(),  pixbuf.get_height()
+            size.width, size.height = pixbuf.get_width(), pixbuf.get_height()
             return size
 
     def set_zoom(self, zoom):
@@ -722,7 +725,8 @@ class ImageView(Gtk.DrawingArea):
         sc_factor_h = min(limit, allocation.height / box.height)
         self._set_zoom_with_center(
             min(sc_factor_w, sc_factor_h) * additional_factor * self.get_scale_factor(),
-            (box.x + box.width / 2) / ratio,            box.y + box.height / 2,
+            (box.x + box.width / 2) / ratio,
+            box.y + box.height / 2,
         )
 
     def zoom_to_selection(self, context_factor):
@@ -778,10 +782,12 @@ class ImageView(Gtk.DrawingArea):
         viewport = Gdk.Rectangle()
         if pixbuf is not None:
             viewport.x, viewport.y = self.to_image_coords(0, 0)
-            viewport.w, viewport.h = self.to_image_distance(allocation.width, allocation.height)
+            viewport.width, viewport.height = self.to_image_distance(
+                allocation.width, allocation.height
+            )
 
         else:
-            viewport.w, viewport.h = allocation.width, allocation.height
+            viewport.width, viewport.height = allocation.width, allocation.height
 
         return viewport
 
@@ -800,19 +806,19 @@ class ImageView(Gtk.DrawingArea):
         pixbuf_size = self.get_pixbuf_size()
         if pixbuf_size is None:
             return
-        if selection["x"] < 0:
-            selection["width"] += selection["x"]
-            selection["x"] = 0
+        if selection.x < 0:
+            selection.width += selection.x
+            selection.x = 0
 
-        if selection["y"] < 0:
-            selection["height"] += selection["y"]
-            selection["y"] = 0
+        if selection.y < 0:
+            selection.height += selection.y
+            selection.y = 0
 
-        if selection["x"] + selection["width"] > pixbuf_size["width"]:
-            selection["width"] = pixbuf_size["width"] - selection["x"]
+        if selection.x + selection.width > pixbuf_size.width:
+            selection.width = pixbuf_size.width - selection.x
 
-        if selection["y"] + selection["height"] > pixbuf_size["height"]:
-            selection["height"] = pixbuf_size["height"] - selection["y"]
+        if selection.y + selection.height > pixbuf_size.height:
+            selection.height = pixbuf_size.height - selection.y
 
         self.selection = selection
 
