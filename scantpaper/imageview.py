@@ -42,7 +42,6 @@ class Tool:
 
 
 FLOAT_EPS = 0.01
-RIGHT_BUTTON = 3
 
 
 class Dragger(Tool):
@@ -51,7 +50,7 @@ class Dragger(Tool):
     def button_pressed(self, event):
 
         # Don't block context menu
-        if event.button == RIGHT_BUTTON:
+        if event.button == 3:
             return False
 
         self.drag_start = {"x": event.x, "y": event.y}
@@ -113,7 +112,6 @@ def _approximately(a, b):
 
 
 CURSOR_PIXELS = 5
-RIGHT_BUTTON = 3
 
 
 cursorhash = {
@@ -139,7 +137,7 @@ class Selector(Tool):
     def button_pressed(self, event):
 
         # Don't block context menu
-        if event.button == RIGHT_BUTTON:
+        if event.button == 3:
             return False
 
         self.drag_start = {"x": None, "y": None}
@@ -770,6 +768,8 @@ class ImageView(Gtk.DrawingArea):
         offset_y = _clamp_direction(offset_y, allocation.height, pixbuf_size.height)
         self.offset = Gdk.Rectangle()
         self.offset.x, self.offset.y = offset_x, offset_y
+        self.emit("offset-changed", offset_x, offset_y)
+        self.queue_draw()
 
     def get_offset(self):
 
@@ -796,6 +796,10 @@ class ImageView(Gtk.DrawingArea):
         if not isinstance(tool, Tool):
             raise ValueError("invalid set_tool call")
         self.tool = tool
+        if self.get_selection() is not None:
+            self.queue_draw()
+
+        self.emit("tool-changed", tool)
 
     def get_tool(self):
 
@@ -820,7 +824,10 @@ class ImageView(Gtk.DrawingArea):
         if selection.y + selection.height > pixbuf_size.height:
             selection.height = pixbuf_size.height - selection.y
 
-        self.selection = selection
+        if (newval is not None) ^ (oldval is not None):
+            self.selection = selection
+            self.queue_draw()
+            self.emit("selection-changed", selection)
 
     def get_selection(self):
 
@@ -831,6 +838,7 @@ class ImageView(Gtk.DrawingArea):
         self.resolution_ratio = ratio
         if self.get_zoom_to_fit():
             self.zoom_to_box(self.get_pixbuf_size())
+        self.queue_draw()
 
     def get_resolution_ratio(self):
 
@@ -849,6 +857,7 @@ class ImageView(Gtk.DrawingArea):
     def set_interpolation(self, interpolation):
 
         self.interpolation = interpolation
+        self.queue_draw()
 
     def get_interpolation(self):
 
