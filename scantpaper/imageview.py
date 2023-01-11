@@ -74,8 +74,8 @@ class Dragger(Tool):
         offset = self.view().get_offset()
         zoom = self.view().get_zoom()
         ratio = self.view().get_resolution_ratio()
-        offset_x = offset.x + (event.x - self.drag_start.x) / zoom * ratio
-        offset_y = offset.y + (event.y - self.drag_start.y) / zoom
+        offset_x = offset.x + (event.x - self.drag_start["x"]) / zoom * ratio
+        offset_y = offset.y + (event.y - self.drag_start["y"]) / zoom
         self.drag_start["x"], self.drag_start["y"] = event.x, event.y
         self.view().set_offset(offset_x, offset_y)
         new_offset = self.view().get_offset()
@@ -92,7 +92,7 @@ class Dragger(Tool):
 
         # movement was clamped because of the edge, but did mouse move far enough?
         if self.view().drag_check_threshold(
-            self.dnd_start.x, self.dnd_start.y, event.x, event.y
+            self.dnd_start["x"], self.dnd_start["y"], event.x, event.y
         ) and self.view().emit("dnd-start", event.x, event.y, self.button):
             self.dragging = False
 
@@ -502,7 +502,7 @@ class ImageView(Gtk.DrawingArea):
             zoom = self.get_zoom() / self.get_scale_factor()
             context.scale(zoom / ratio, zoom)
             offset = self.get_offset()
-            context.translate(offset["x"], offset["y"])
+            context.translate(offset.x, offset.y)
             Gdk.cairo_set_source_pixbuf(context, pixbuf, 0, 0)
             context.get_source().set_filter(self.get_interpolation())
 
@@ -514,10 +514,10 @@ class ImageView(Gtk.DrawingArea):
         selection = self.get_selection()
         if (pixbuf is not None) and (selection is not None):
             (x, y, w, h,) = (
-                selection["x"],
-                selection["y"],
-                selection["width"],
-                selection["height"],
+                selection.x,
+                selection.y,
+                selection.width,
+                selection.height,
             )
             if w <= 0 or h <= 0:
                 return True

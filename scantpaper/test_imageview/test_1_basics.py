@@ -1,18 +1,22 @@
+""" Basic tests for imageview """
+
+import tempfile
+import PythonMagick
 import gi
+import pytest
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
-from gi.repository import Gdk, GdkPixbuf, Gtk
-import tempfile
-import PythonMagick
-from imageview import ImageView, Dragger, Selector, SelectorDragger, Tool
-import pytest
-import re
+from gi.repository import Gdk, GdkPixbuf, Gtk  # pylint: disable=wrong-import-position
+from imageview import (  # pylint: disable=wrong-import-position
+    ImageView,
+    Dragger,
+    Selector,
+)
 
 
 def test_1():
-
-    #########################
+    """Basic tests for imageview"""
 
     view = ImageView()
     assert isinstance(view, ImageView)
@@ -23,15 +27,15 @@ def test_1():
     image.write(tmp)
     signal = None
 
-    def anonymous_01(widget, x, y):
+    def on_offset_changed(_widget, offset_x, offset_y):
+        view.disconnect(signal)
+        print(view.get_scale_factor())
+        assert False
+        if view.get_scale_factor() <= 1:
+            assert offset_x == 0, "emitted offset-changed signal x"
+            assert offset_y == 11, "emitted offset-changed signal y"
 
-        view.signal_handler_disconnect(signal)
-        if not (view.scale_factor > 1):
-
-            assert x == 0, "emitted offset-changed signal x"
-            assert y == 11, "emitted offset-changed signal y"
-
-    signal = view.connect("offset-changed", anonymous_01)
+    signal = view.connect("offset-changed", on_offset_changed)
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(tmp), True)
     if view.get_scale_factor() <= 1:
         viewport = view.get_viewport()
@@ -41,7 +45,7 @@ def test_1():
         assert viewport.height == pytest.approx(70, 0.001), "get_viewport height"
 
     if False:
-        assert isinstance(view.get_draw_rect(), Gtk.Gdk.Rectangle)
+        assert isinstance(view.get_draw_rect(), Gdk.Rectangle)
         assert view.get_check_colors(), "get_check_colors()"
 
     assert isinstance(view.get_pixbuf(), GdkPixbuf.Pixbuf), "get_pixbuf()"
@@ -58,23 +62,21 @@ def test_1():
         0.01428 * view.get_scale_factor(), 0.001
     ), "get_zoom()"
 
-    def anonymous_02(widget, zoom):
-
+    def on_zoom_changed(_widget, zoom):
         view.disconnect(signal)
         assert zoom == 1, "emitted zoom-changed signal"
 
-    signal = view.connect("zoom-changed", anonymous_02)
+    signal = view.connect("zoom-changed", on_zoom_changed)
     view.set_zoom(1)
 
-    def anonymous_03(widget, selection):
-
-        view.signal_handler_disconnect(signal)
+    def on_selection_changed(_widget, selection):
+        view.disconnect(signal)
         assert selection.x == 10, "emitted selection-changed signal x"
         assert selection.y == 10, "emitted selection-changed signal y"
         assert selection.width == 10, "emitted selection-changed signal width"
         assert selection.height == 10, "emitted selection-changed signal heigth"
 
-    signal = view.connect("selection-changed", anonymous_03)
+    signal = view.connect("selection-changed", on_selection_changed)
     selection = Gdk.Rectangle()
     selection.x, selection.y, selection.width, selection.height = 10, 10, 10, 10
     view.set_selection(selection)
@@ -84,12 +86,11 @@ def test_1():
     assert selection.width == 10, "get_selection width"
     assert selection.height == 10, "get_selection heigth"
 
-    def anonymous_04(widget, tool):
-
-        view.signal_handler_disconnect(signal)
+    def on_tool_changed(_widget, tool):
+        view.disconnect(signal)
         assert isinstance(tool, Selector), "emitted tool-changed signal"
 
-    signal = view.connect("tool-changed", anonymous_04)
+    signal = view.connect("tool-changed", on_tool_changed)
     view.set_tool(Selector(view))
 
     selection.x, selection.y, selection.width, selection.height = -10, -10, 20, 20
@@ -136,8 +137,7 @@ def test_1():
         view.set_pixbuf(None, False)
 
     if False:
-
-        assert notview.get_draw_rect(), "correctly cleared draw rectangle"
+        assert not view.get_draw_rect(), "correctly cleared draw rectangle"
         allocation = Gdk.Rectangle()
         allocation.x, allocation.y, allocation.width, allocation.height = 0, 0, 100, 100
         view.size_allocate(allocation)
@@ -146,7 +146,7 @@ def test_1():
         assert (
             rect.x == 0 and rect.y == 0 and rect.width == 50 and rect.height == 50
         ), "Ensure that getting the viewport of the view works as expected."
-        can_ok(view, ["get_check_colors"])
+        assert hasattr(view, "get_check_colors") and callable(view.get_check_colors)
         rect = view.get_draw_rect()
         assert (
             rect.x == 25 and rect.y == 25 and rect.width == 50 and rect.height == 50
@@ -158,7 +158,7 @@ def test_1():
         assert (
             rect.x == 0 and rect.y == 0
         ), "Ensure that setting the offset works as expected."
-        view.set_offset(100, 100, True)
+        view.set_offset(100, 100)
         rect = view.get_viewport()
         assert (
             rect.x == 100 and rect.y == 100
@@ -169,6 +169,6 @@ def test_1():
             col1 == 0xFF0000 and col2 == 0xFF0000
         ), "Ensure that setting the views transparency settings works as expected."
         view.set_transp("grid")
-        assert (
-            GObject.TypeModule.list_values("Gtk3::ImageView::Transp") is not None
-        ), "Check GtkImageTransp enum."
+        # assert (
+        #     GObject.TypeModule.list_values("Gtk3::ImageView::Transp") is not None
+        # ), "Check GtkImageTransp enum."
