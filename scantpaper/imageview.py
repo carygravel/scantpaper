@@ -1,54 +1,64 @@
-from gi.repository import Gdk, GdkPixbuf
+""" Image viewer widget that can zoom, pan, select """
+
+import cairo
+from gi.repository import Gdk, GdkPixbuf, Gtk, GObject
 
 
 class Tool:
+    """Base tool class for Dragger, Selector & DraggerSelector"""
+
+    dragging = False
+    drag_start = {"x": None, "y": None}
+
     def __init__(self, view):
         self._view = view
 
     def view(self):
-
+        """Base view() method"""
         return self._view
 
-    def button_pressed(self, event):
-
+    def button_pressed(self, _event):
+        """Base button_pressed() method"""
         return False
 
-    def button_released(self, event):
-
+    def button_released(self, _event):
+        """Base button_released() method"""
         return False
 
-    def motion(self, event):
+    def motion(self, _event):
+        """Base motion() method"""
 
-        return False
-
-    def cursor_at_point(self, x, y):
-
+    def cursor_at_point(self, ptx, pty):
+        """Returns the name of the cursor at the specified coords"""
         display = Gdk.Display.get_default()
-        cursor_type = self.cursor_type_at_point(x, y)
+        cursor_type = (  # pylint: disable=assignment-from-no-return
+            self.cursor_type_at_point(ptx, pty)
+        )
         if cursor_type is not None:
             return Gdk.Cursor.new_from_name(display, cursor_type)
+        return None
 
-    def cursor_type_at_point(self, x, y):
-
-        pass
+    def cursor_type_at_point(self, _x, _y) -> str:
+        """Base cursor_type_at_point() method"""
 
     def connect(self, *args):
-        """compatibility layer"""
+        """Base connect() method"""
         return self.view().connect(*args)
 
     def disconnect(self, *args):
-
+        """Base disconnect() method"""
         return self.view().disconnect(*args)
 
 
-FLOAT_EPS = 0.01
-
-
 class Dragger(Tool):
-    dragging = False
+    """Tool to drag (pan) the image"""
+
+    dnd_start = {"x": None, "y": None}
+    dnd_eligible = False
+    button = 1
 
     def button_pressed(self, event):
-
+        """react to button-press events from the view"""
         # Don't block context menu
         if event.button == 3:
             return False
@@ -62,14 +72,14 @@ class Dragger(Tool):
         return True
 
     def button_released(self, event):
-
+        """react to button-release events from the view"""
         self.dragging = False
         self.view().update_cursor(event.x, event.y)
 
     def motion(self, event):
-
+        """react to motion events from the view"""
         if not self.dragging:
-            return False
+            return
         offset = self.view().get_offset()
         zoom = self.view().get_zoom()
         ratio = self.view().get_resolution_ratio()
@@ -96,19 +106,18 @@ class Dragger(Tool):
             self.dragging = False
 
     def cursor_type_at_point(self, x, y):
+        """given the coordinates, return the cursor type"""
         x, y = self.view().to_image_coords(x, y)
         pixbuf_size = self.view().get_pixbuf_size()
-        if x > 0 and x < pixbuf_size.width and y > 0 and y < pixbuf_size.height:
+        if 0 < x < pixbuf_size.width and 0 < y < pixbuf_size.height:
             if self.dragging:
                 return "grabbing"
+            return "grab"
+        return None
 
-            else:
-                return "grab"
 
-
-def _approximately(a, b):
-
-    return abs(a - b) < FLOAT_EPS
+def _approximately(v_a, v_b):
+    return abs(v_a - v_b) < 0.01
 
 
 CURSOR_PIXELS = 5
@@ -133,9 +142,24 @@ cursorhash = {
 }
 
 
-class Selector(Tool):
-    def button_pressed(self, event):
+def _drag_edge(edge, v1, v2, vevent, vdrag):
+    if edge == "lower":
+        v1 = vevent
+        v2 = vdrag
+    elif edge == "upper":
+        v1 = vdrag
+        v2 = vevent
+    return v1, v2
 
+
+class Selector(Tool):
+    """Tool to draw rubber band boxes"""
+
+    h_edge = None
+    v_edge = None
+
+    def button_pressed(self, event):
+        """react to button-press events from the view"""
         # Don't block context menu
         if event.button == 3:
             return False
@@ -147,19 +171,18 @@ class Selector(Tool):
         return True
 
     def button_released(self, event):
-
+        """react to button_release events from the view"""
         self.dragging = False
         self.view().update_cursor(event.x, event.y)
         self._update_selection(event)
 
     def motion(self, event):
-
+        """react to motion events from the view"""
         if not self.dragging:
-            return False
+            return
         self._update_selection(event)
 
     def _update_selection(self, event):
-
         (x, y, x2, y2, x_old, y_old, x2_old, y2_old) = (
             None,
             None,
@@ -174,21 +197,8 @@ class Selector(Tool):
             self.h_edge = "mid"
         if self.v_edge is None:
             self.v_edge = "mid"
-        if self.h_edge == "lower":
-            x = event.x
-            x2 = self.drag_start["x"]
-
-        elif self.h_edge == "upper":
-            x = self.drag_start["x"]
-            x2 = event.x
-
-        if self.v_edge == "lower":
-            y = event.y
-            y2 = self.drag_start["y"]
-
-        elif self.v_edge == "upper":
-            y = self.drag_start["y"]
-            y2 = event.y
+        x, x2 = _drag_edge(self.h_edge, x, x2, event.x, self.drag_start["x"])
+        y, y2 = _drag_edge(self.v_edge, y, y2, event.y, self.drag_start["y"])
 
         if self.h_edge == "mid" and self.v_edge == "mid":
             x = self.drag_start["x"]
@@ -199,12 +209,12 @@ class Selector(Tool):
         else:
             selection = self.view().get_selection()
             if (x is None) or (y is None):
-                (x_old, y_old) = self.view().to_widget_coords(
+                x_old, y_old = self.view().to_widget_coords(
                     selection["x"], selection["y"]
                 )
 
             if (x2 is None) or (y2 is None):
-                (x2_old, y2_old) = self.view().to_widget_coords(
+                x2_old, y2_old = self.view().to_widget_coords(
                     selection.x + selection.width,
                     selection.y + selection.height,
                 )
@@ -233,7 +243,7 @@ class Selector(Tool):
         self.view().set_selection(sel)
 
     def cursor_type_at_point(self, x, y):
-
+        """given the coordinates, return the cursor type"""
         selection = self.view().get_selection()
         if selection is not None:
             (sx1, sy1) = self.view().to_widget_coords(selection.x, selection.y)
@@ -279,104 +289,88 @@ class Selector(Tool):
         return cursorhash[self.h_edge][self.v_edge]
 
     def _update_dragged_edge(self, direction, s, s1, s2):
-
         edge = ("h" if direction == "x" else "v") + "_edge"
-        if self[edge] == "lower":
+        if getattr(self, edge) == "lower":
             if direction in self.drag_start:
                 if s > self.drag_start[direction]:
-                    self[edge] = "upper"
-
+                    setattr(self, edge, "upper")
                 else:
-                    self[edge] = "lower"
+                    setattr(self, edge, "lower")
 
             else:
                 self.drag_start[direction] = s2
-                self[edge] = "lower"
+                setattr(self, edge, "lower")
 
-        elif self[edge] == "upper":
+        elif getattr(self, edge) == "upper":
             if direction in self.drag_start:
                 if s < self.drag_start[direction]:
-                    self[edge] = "lower"
+                    setattr(self, edge, "lower")
 
                 else:
-                    self[edge] = "upper"
+                    setattr(self, edge, "upper")
 
             else:
                 self.drag_start[direction] = s1
-                self[edge] = "upper"
+                setattr(self, edge, "upper")
 
     def _update_undragged_edge(self, edge, coords):
-
         (x, y, sx1, sy1, sx2, sy2) = coords
-        self[edge] = "mid"
-        if _between(y, sy1, sy2):
-            if _between(x, sx1 - CURSOR_PIXELS, sx1 + CURSOR_PIXELS):
-                self[edge] = "lower"
+        setattr(self, edge, "mid")
+        if sy1 < y < sy2:
+            if sx1 - CURSOR_PIXELS < x < sx1 + CURSOR_PIXELS:
+                setattr(self, edge, "lower")
 
-            elif _between(x, sx2 - CURSOR_PIXELS, sx2 + CURSOR_PIXELS):
-                self[edge] = "upper"
+            elif sx2 - CURSOR_PIXELS < x < sx2 + CURSOR_PIXELS:
+                setattr(self, edge, "upper")
 
     def get_selection(self):
-        """compatibility layer"""
+        """get the selection from the view"""
         return self.view().get_selection()
 
     def set_selection(self, *args):
-
+        """set the selection in the view"""
         self.view().set_selection(*args)
 
 
-def _between(value, lower, upper):
-
-    return value > lower and value < upper
-
-
 class SelectorDragger(Tool):
-    def __init__(self, view):
+    """Select with LMB, drag with MMB"""
 
-        self._selector = Gtk.ImageView.Tool.Selector(view)
-        self._dragger = Gtk.ImageView.Tool.Dragger(view)
+    def __init__(self, view):
+        super().__init__(view)
+        self._selector = Selector(view)
+        self._dragger = Dragger(view)
         self._tool = self._selector
 
     def button_pressed(self, event):
-
+        """react to button-press events from the view"""
         # left mouse button
         if event.button == 1:
             self._tool = self._selector
-
         elif event.button == 2:  # middle mouse button
             self._tool = self._dragger
-
         else:
             return False
-
         return self._tool.button_pressed(event)
 
     def button_released(self, event):
-
+        """react to button-release events from the view"""
         self._tool.button_released(event)
         self._tool = self._selector
 
     def motion(self, event):
-
+        """react to motion events from the view"""
         self._tool.motion(event)
 
     def cursor_type_at_point(self, x, y):
-
+        """given the coordinates, return the cursor type"""
         return self._tool.cursor_type_at_point(x, y)
 
 
-from gi.repository import Gdk, Gtk, GObject
-import gi
-import cairo
-
-gi.require_version("Gtk", "3.0")
-
-
-HALF = 0.5
 MAX_ZOOM = 100
 
 
 class ImageView(Gtk.DrawingArea):
+    """ImageView widget"""
 
     __gtype_name__ = "GtkImageView"
     __gsignals__ = {
@@ -462,12 +456,11 @@ class ImageView(Gtk.DrawingArea):
     )
 
     def do_draw(self, context):
-
+        """respond to the draw signal"""
         allocation = self.get_allocation()
         style = self.get_style_context()
         pixbuf = self.get_pixbuf()
         ratio = self.get_resolution_ratio()
-        viewport = self.get_viewport()
         style.add_class("imageview")
         style.save()
         style.add_class(Gtk.STYLE_CLASS_BACKGROUND)
@@ -528,21 +521,21 @@ class ImageView(Gtk.DrawingArea):
         return True
 
     def do_button_press_event(self, event):
-
+        """respond to the button_press event"""
         return self.get_tool().button_pressed(event)
 
     def do_button_release_event(self, event):
-
+        """respond to the button_release event"""
         self.get_tool().button_released(event)
 
     def do_motion_notify_event(self, event):
-
+        """respond to the motion_notify event"""
         self.update_cursor(event.x, event.y)
         self.get_tool().motion(event)
 
     def do_scroll_event(self, event):
-
-        (center_x, center_y) = self.to_image_coords(event.x, event.y)
+        """respond to the scroll event"""
+        center_x, center_y = self.to_image_coords(event.x, event.y)
         zoom = None
         self.set_zoom_to_fit(False)
         if event.direction == Gdk.ScrollDirection.UP:
@@ -553,9 +546,9 @@ class ImageView(Gtk.DrawingArea):
 
         self._set_zoom_with_center(zoom, center_x, center_y)
 
-    def do_configure_event(self, event):
-
-        if self.get_zoom_to_fit():
+    def do_configure_event(self, _event):
+        """respond to the configure event"""
+        if self.zoom_to_fit:
             self.zoom_to_box(self.get_pixbuf_size())
 
     def __init__(self, *args, **kwargs):
@@ -572,56 +565,8 @@ class ImageView(Gtk.DrawingArea):
         self.set_tool(Dragger(self))
         self.set_redraw_on_allocate(False)
 
-    def SET_PROPERTY(self, pspec, newval):
-
-        name = pspec.get_name()
-        oldval = self.get(name)
-        invalidate = False
-        if (newval is not None) and (oldval is not None) and newval != oldval:
-            if name == "pixbuf":
-                self[name] = newval
-                invalidate = True
-
-            elif name == "zoom":
-                self[name] = newval
-                self.emit("zoom-changed", newval)
-                invalidate = True
-
-            elif name == "offset":
-                if (newval is not None) ^ (oldval is not None):
-                    self[name] = newval
-                    self.emit("offset-changed", newval["x"], newval["y"])
-                    invalidate = True
-
-            elif name == "resolution-ratio":
-                self[name] = newval
-                invalidate = True
-
-            elif name == "interpolation":
-                self[name] = newval
-                invalidate = True
-
-            elif name == "selection":
-                if (newval is not None) ^ (oldval is not None):
-                    self[name] = newval
-                    invalidate = True
-                    self.emit("selection-changed", newval)
-
-            elif name == "tool":
-                self[name] = newval
-                if (self.get_selection is not None)():
-                    invalidate = True
-
-                self.emit("tool-changed", newval)
-
-            else:
-                self[name] = newval
-
-            if invalidate:
-                self.queue_draw()
-
     def set_pixbuf(self, pixbuf, zoom_to_fit=False):
-
+        """set pixbuf, optionally zooming to fit"""
         self.pixbuf = pixbuf
         self.set_zoom_to_fit(zoom_to_fit)
         if not zoom_to_fit:
@@ -629,11 +574,11 @@ class ImageView(Gtk.DrawingArea):
         self.queue_draw()
 
     def get_pixbuf(self):
-
+        """return current pixbuf"""
         return self.pixbuf
 
     def get_pixbuf_size(self):
-
+        """return size of current pixbuf"""
         pixbuf = self.get_pixbuf()
         if pixbuf is not None:
             size = Gdk.Rectangle()
@@ -646,15 +591,13 @@ class ImageView(Gtk.DrawingArea):
         self._set_zoom_no_center(zoom)
 
     def _set_zoom(self, zoom):
-
-        if zoom > MAX_ZOOM:
-            zoom = MAX_ZOOM
+        zoom = min(zoom, MAX_ZOOM)
         self.zoom = zoom
         self.emit("zoom-changed", zoom)
         self.queue_draw()
 
     def get_zoom(self):
-
+        """return current zoom"""
         return self.zoom
 
     def to_widget_coords(self, x, y):
@@ -683,7 +626,6 @@ class ImageView(Gtk.DrawingArea):
         return x * factor / zoom * ratio, y * factor / zoom
 
     def _set_zoom_with_center(self, zoom, center_x, center_y):
-        """set zoom with centre in image coordinates"""
         allocation = self.get_allocation()
         ratio = self.get_resolution_ratio()
         factor = self.get_scale_factor()
@@ -693,7 +635,6 @@ class ImageView(Gtk.DrawingArea):
         self.set_offset(offset_x, offset_y)
 
     def _set_zoom_no_center(self, zoom):
-        """sets zoom, centred on the viewport"""
         allocation = self.get_allocation()
         (center_x, center_y) = self.to_image_coords(
             allocation.width / 2, allocation.height / 2
@@ -701,17 +642,16 @@ class ImageView(Gtk.DrawingArea):
         self._set_zoom_with_center(zoom, center_x, center_y)
 
     def set_zoom_to_fit(self, zoom_to_fit, limit=None):
-
+        """zoom to fit current pixbuf"""
         self.zoom_to_fit = zoom_to_fit
         if limit is not None:
             self.zoom_to_fit_limit = limit
 
-        if not zoom_to_fit:
-            return
-        self.zoom_to_box(self.get_pixbuf_size())
+        if zoom_to_fit:
+            self.zoom_to_box(self.get_pixbuf_size())
 
     def zoom_to_box(self, box, additional_factor=None):
-
+        """zoom to fit given box, with an optional factor for a border"""
         if box is None:
             return
         if additional_factor is None:
@@ -728,33 +668,33 @@ class ImageView(Gtk.DrawingArea):
         )
 
     def zoom_to_selection(self, context_factor):
-
+        """zoom to fit current selection, with an optional factor for a border"""
         self.zoom_to_box(self.get_selection(), context_factor)
 
     def get_zoom_to_fit(self):
-
+        """return value of zoom_to_fit property"""
         return self.zoom_to_fit
 
     def zoom_in(self):
-
+        """zoom in one step"""
         self.set_zoom_to_fit(False)
         self._set_zoom_no_center(self.get_zoom() * self.zoom_step)
 
     def zoom_out(self):
-
+        """zoom out one step"""
         self.set_zoom_to_fit(False)
         self._set_zoom_no_center(self.get_zoom() / self.zoom_step)
 
     def zoom_to_fit(self):
-
+        """set zoom-to-fit property True"""
         self.set_zoom_to_fit(True)
 
     def set_fitting(self, value):
-
-        self.set_zoom_to_fit(value, 1)
+        """set zoom-to-fit property"""
+        self.set_zoom_to_fit(value)
 
     def set_offset(self, offset_x, offset_y):
-
+        """set offset (pan)"""
         if self.get_pixbuf is None:
             return
 
@@ -772,11 +712,11 @@ class ImageView(Gtk.DrawingArea):
         self.queue_draw()
 
     def get_offset(self):
-
+        """get current offset (pan)"""
         return self.offset
 
     def get_viewport(self):
-
+        """get current viewport"""
         allocation = self.get_allocation()
         pixbuf = self.get_pixbuf()
         viewport = Gdk.Rectangle()
@@ -785,28 +725,25 @@ class ImageView(Gtk.DrawingArea):
             viewport.width, viewport.height = self.to_image_distance(
                 allocation.width, allocation.height
             )
-
         else:
             viewport.width, viewport.height = allocation.width, allocation.height
-
         return viewport
 
     def set_tool(self, tool):
-
+        """set tool"""
         if not isinstance(tool, Tool):
             raise ValueError("invalid set_tool call")
         self.tool = tool
         if self.get_selection() is not None:
             self.queue_draw()
-
         self.emit("tool-changed", tool)
 
     def get_tool(self):
-
+        """get current tool"""
         return self.tool
 
     def set_selection(self, selection):
-
+        """set selection"""
         pixbuf_size = self.get_pixbuf_size()
         if pixbuf_size is None:
             return
@@ -824,28 +761,28 @@ class ImageView(Gtk.DrawingArea):
         if selection.y + selection.height > pixbuf_size.height:
             selection.height = pixbuf_size.height - selection.y
 
-        if (newval is not None) ^ (oldval is not None):
+        if (self.selection is not None) ^ (selection is not None):
             self.selection = selection
             self.queue_draw()
             self.emit("selection-changed", selection)
 
     def get_selection(self):
-
+        """get current selection"""
         return self.selection
 
     def set_resolution_ratio(self, ratio):
-
+        """set ratio between x and y resolutions"""
         self.resolution_ratio = ratio
-        if self.get_zoom_to_fit():
+        if self.zoom_to_fit:
             self.zoom_to_box(self.get_pixbuf_size())
         self.queue_draw()
 
     def get_resolution_ratio(self):
-
+        """get ratio between x and y resolutions"""
         return self.resolution_ratio
 
     def update_cursor(self, x, y):
-
+        """update cursor based on given coords"""
         pixbuf_size = self.get_pixbuf_size()
         if pixbuf_size is None:
             return
@@ -855,17 +792,16 @@ class ImageView(Gtk.DrawingArea):
             win.set_cursor(cursor)
 
     def set_interpolation(self, interpolation):
-
+        """set interpolation method"""
         self.interpolation = interpolation
         self.queue_draw()
 
     def get_interpolation(self):
-
+        """get current interpolation method"""
         return self.interpolation
 
 
 def _clamp_direction(offset, allocation, pixbuf_size):
-
     # Centre the image if it is smaller than the widget
     if allocation > pixbuf_size:
         offset = (allocation - pixbuf_size) / 2

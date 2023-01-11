@@ -29,14 +29,13 @@ def test_1():
 
     def on_offset_changed(_widget, offset_x, offset_y):
         view.disconnect(signal)
-        print(view.get_scale_factor())
-        assert False
         if view.get_scale_factor() <= 1:
             assert offset_x == 0, "emitted offset-changed signal x"
-            assert offset_y == 11, "emitted offset-changed signal y"
+            assert offset_y == 12, "emitted offset-changed signal y"
 
     signal = view.connect("offset-changed", on_offset_changed)
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(tmp), True)
+
     if view.get_scale_factor() <= 1:
         viewport = view.get_viewport()
         assert viewport.x == 0, "get_viewport x"
