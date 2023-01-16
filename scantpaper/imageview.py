@@ -606,9 +606,7 @@ class ImageView(Gtk.DrawingArea):
         ratio = self.get_resolution_ratio()
         offset = self.get_offset()
         factor = self.get_scale_factor()
-        return (x + offset["x"]) * zoom / factor / ratio, (
-            y + offset["y"]
-        ) * zoom / factor
+        return (x + offset.x) * zoom / factor / ratio, (y + offset.y) * zoom / factor
 
     def to_image_coords(self, x, y):
         """convert x, y in widget coords to image coords"""
