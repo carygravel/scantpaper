@@ -1,6 +1,10 @@
 """ Image viewer widget that can zoom, pan, select """
 
 import cairo
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
 from gi.repository import Gdk, GdkPixbuf, Gtk, GObject
 
 
@@ -205,29 +209,21 @@ class Selector(Tool):
             y = self.drag_start["y"]
             x2 = event.x
             y2 = event.y
-
         else:
             selection = self.view().get_selection()
             if (x is None) or (y is None):
-                x_old, y_old = self.view().to_widget_coords(
-                    selection["x"], selection["y"]
-                )
-
+                x_old, y_old = self.view().to_widget_coords(selection.x, selection.y)
             if (x2 is None) or (y2 is None):
                 x2_old, y2_old = self.view().to_widget_coords(
                     selection.x + selection.width,
                     selection.y + selection.height,
                 )
-
             if x is None:
                 x = x_old
-
             if x2 is None:
                 x2 = x2_old
-
             if y is None:
                 y = y_old
-
             if y2 is None:
                 y2 = y2_old
 
@@ -275,8 +271,8 @@ class Selector(Tool):
                         self.drag_start["y"] = sy2 if self.h_edge == "lower" else sy1
 
             else:
-                self._update_undragged_edge("h_edge", x, y, sx1, sy1, sx2, sy2)
-                self._update_undragged_edge("v_edge", y, x, sy1, sx1, sy2, sx2)
+                self._update_undragged_edge("h_edge", (x, y, sx1, sy1, sx2, sy2))
+                self._update_undragged_edge("v_edge", (y, x, sy1, sx1, sy2, sx2))
 
         else:
             if self.dragging:
@@ -759,7 +755,7 @@ class ImageView(Gtk.DrawingArea):
         if selection.y + selection.height > pixbuf_size.height:
             selection.height = pixbuf_size.height - selection.y
 
-        if (self.selection is not None) ^ (selection is not None):
+        if (self.selection is not None) or (selection is not None):
             self.selection = selection
             self.queue_draw()
             self.emit("selection-changed", selection)
