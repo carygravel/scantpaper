@@ -448,7 +448,7 @@ class ImageView(Gtk.DrawingArea):
         type=int,
         default=cairo.FILTER_GOOD,
         nick="interpolation",
-        blurb="Interpolation method to use, from cairo.Filter",
+        blurb="Interpolation method to use, from cairo.Filter. See https://www.cairographics.org/documentation/pycairo/3/reference/constants.html#cairo-filter",
     )
 
     def do_draw(self, context):
