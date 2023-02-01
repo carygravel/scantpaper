@@ -1,0 +1,163 @@
+"options from brother backend"
+from scanner.options import Options
+import pytest
+
+
+def test_1():
+    "options from brother backend"
+    filename = "scantpaper/tests/scanners/brother"
+    try:
+        with open(filename, "r", encoding="utf-8") as fhd:
+            output = fhd.read()
+    except IOError:
+        pytest.skip("source tree not found")
+        return
+    options = Options(output)
+    that = [
+        {"index": 0,},
+        {
+            "name": "",
+            "index": 1,
+            "title": "Mode",
+            "cap": "",
+            "type": "TYPE_GROUP",
+            "constraint_type": "CONSTRAINT_NONE",
+            "unit": "UNIT_NONE",
+            "max_values": 0,
+            "desc": "",
+        },
+        {
+            "name": "mode",
+            "title": "Mode",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT",
+            "index": 2,
+            "desc": "Select the scan mode",
+            "val": "24bit Color",
+            "constraint": [
+                "Black & White",
+                "Gray[Error Diffusion]",
+                "True Gray",
+                "24bit Color",
+                "24bit Color[Fast]",
+            ],
+            "type": "TYPE_STRING",
+            "constraint_type": "CONSTRAINT_STRING_LIST",
+            "unit": "UNIT_NONE",
+            "max_values": 1,
+        },
+        {
+            "name": "resolution",
+            "title": "Resolution",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT",
+            "index": 3,
+            "desc": "Sets the resolution of the scanned image.",
+            "val": 200,
+            "constraint": [100, 150, 200, 300, 400, 600, 1200, 2400, 4800, 9600],
+            "type": "TYPE_INT",
+            "constraint_type": "CONSTRAINT_WORD_LIST",
+            "unit": "UNIT_DPI",
+            "max_values": 1,
+        },
+        {
+            "name": "source",
+            "title": "Source",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT",
+            "index": 4,
+            "desc": "Selects the scan source (such as a document-feeder).",
+            "val": "Automatic Document Feeder",
+            "constraint": ["FlatBed", "Automatic Document Feeder"],
+            "type": "TYPE_STRING",
+            "constraint_type": "CONSTRAINT_STRING_LIST",
+            "unit": "UNIT_NONE",
+            "max_values": 1,
+        },
+        {
+            "name": "brightness",
+            "title": "Brightness",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT" + "CAP_INACTIVE",
+            "index": 5,
+            "desc": "Controls the brightness of the acquired image.",
+            "constraint": {"min": -50, "max": 50, "quant": 1,},
+            "type": "TYPE_INT",
+            "constraint_type": "CONSTRAINT_RANGE",
+            "unit": "UNIT_PERCENT",
+            "max_values": 1,
+        },
+        {
+            "name": "contrast",
+            "title": "Contrast",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT" + "CAP_INACTIVE",
+            "index": 6,
+            "desc": "Controls the contrast of the acquired image.",
+            "constraint": {"min": -50, "max": 50, "quant": 1,},
+            "type": "TYPE_INT",
+            "constraint_type": "CONSTRAINT_RANGE",
+            "unit": "UNIT_PERCENT",
+            "max_values": 1,
+        },
+        {
+            "name": "",
+            "index": 7,
+            "title": "Geometry",
+            "cap": "",
+            "type": "TYPE_GROUP",
+            "constraint_type": "CONSTRAINT_NONE",
+            "unit": "UNIT_NONE",
+            "max_values": 0,
+            "desc": "",
+        },
+        {
+            "name": "tl-x",
+            "title": "Top-left x",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT",
+            "index": 8,
+            "desc": "Top-left x position of scan area.",
+            "val": 0.0,
+            "constraint": {"min": 0.0, "max": 210.0, "quant": 0.0999908,},
+            "type": "TYPE_FIXED",
+            "constraint_type": "CONSTRAINT_RANGE",
+            "unit": "UNIT_MM",
+            "max_values": 1,
+        },
+        {
+            "name": "tl-y",
+            "title": "Top-left y",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT",
+            "index": 9,
+            "desc": "Top-left y position of scan area.",
+            "val": 0.0,
+            "constraint": {"min": 0.0, "max": 297.0, "quant": 0.0999908,},
+            "type": "TYPE_FIXED",
+            "constraint_type": "CONSTRAINT_RANGE",
+            "unit": "UNIT_MM",
+            "max_values": 1,
+        },
+        {
+            "name": "br-x",
+            "title": "Bottom-right x",
+            "desc": "Bottom-right x position of scan area.",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT",
+            "index": 10,
+            "val": 209.981,
+            "constraint": {"min": 0.0, "max": 210.0, "quant": 0.0999908,},
+            "type": "TYPE_FIXED",
+            "constraint_type": "CONSTRAINT_RANGE",
+            "unit": "UNIT_MM",
+            "max_values": 1,
+        },
+        {
+            "name": "br-y",
+            "title": "Bottom-right y",
+            "desc": "Bottom-right y position of scan area.",
+            "cap": "CAP_SOFT_DETECT" + "CAP_SOFT_SELECT",
+            "index": 11,
+            "val": 296.973,
+            "constraint": {"min": 0.0, "max": 297.0, "quant": 0.0999908,},
+            "type": "TYPE_FIXED",
+            "constraint_type": "CONSTRAINT_RANGE",
+            "unit": "UNIT_MM",
+            "max_values": 1,
+        },
+    ]
+    assert options.array == that, "brother"
+    assert options.device == "brother2:net1;dev0", "device name"

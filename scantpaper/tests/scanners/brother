@@ -1,0 +1,54 @@
+Usage: scanimage [OPTION]...
+
+Start image acquisition on a scanner device and write PNM image data to standard output.
+
+-d, --device-name=DEVICE   use a given scanner device (e.g. hp:/dev/scanner)
+    --format=pnm|tiff      file format of output file
+-i, --icc-profile=PROFILE  include this ICC profile into TIFF file
+-L, --list-devices         show available scanner devices
+-f, --formatted-device-list=FORMAT similar to -L, but the FORMAT of the output
+                           can be specified: %d (device name), %v (vendor),
+                           %m (model), %t (type), and %i (index number)
+-b, --batch[=FORMAT]       working in batch mode, FORMAT is `out%d.pnm' or
+                           `out%d.tif' by default depending on --format
+    --batch-start=#        page number to start naming files with
+    --batch-count=#        how many pages to scan in batch mode
+    --batch-increment=#    increase number in filename by an amount of #
+    --batch-double         increment page number by two for 2sided originals
+                           being scanned in a single sided scanner
+    --batch-prompt         ask for pressing a key before scanning a page
+    --accept-md5-only      only accept authorization requests using md5
+-p, --progress             print progress messages
+-n, --dont-scan            only set options, don't actually scan
+-T, --test                 test backend thoroughly
+-h, --help                 display this help message and exit
+-v, --verbose              give even more status messages
+-B, --buffer-size          change default input buffersize
+-V, --version              print version information
+
+Options specific to device `brother2:net1;dev0':
+  Mode:
+    --mode Black & White|Gray[Error Diffusion]|True Gray|24bit Color|24bit Color[Fast] [24bit Color]
+        Select the scan mode
+    --resolution 100|150|200|300|400|600|1200|2400|4800|9600dpi [200]
+        Sets the resolution of the scanned image.
+    --source FlatBed|Automatic Document Feeder [Automatic Document Feeder]
+        Selects the scan source (such as a document-feeder).
+    --brightness -50..50% (in steps of 1) [inactive]
+        Controls the brightness of the acquired image.
+    --contrast -50..50% (in steps of 1) [inactive]
+        Controls the contrast of the acquired image.
+  Geometry:
+    -l 0..210mm (in steps of 0.0999908) [0]
+        Top-left x position of scan area.
+    -t 0..297mm (in steps of 0.0999908) [0]
+        Top-left y position of scan area.
+    -x 0..210mm (in steps of 0.0999908) [209.981]
+        Width of scan-area.
+    -y 0..297mm (in steps of 0.0999908) [296.973]
+        Height of scan-area.
+
+Type ``scanimage --help -d DEVICE'' to get list of all options for DEVICE.
+
+List of available devices:
+    brother2:net1;dev0
