@@ -546,7 +546,7 @@ def type2value(option):
             option["val"] = int(option["val"])
         elif option["type"] == "TYPE_FIXED":
             option["val"] = float(option["val"])
-        elif option["type"] == "TYPE_BOOL":
+        elif option["type"] == "TYPE_BOOL" and isinstance(option["val"], str):
             if option["val"] == "yes":
                 option["val"] = True
             else:
