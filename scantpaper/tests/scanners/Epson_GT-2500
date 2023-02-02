@@ -1,0 +1,131 @@
+Usage: scanimage [OPTION]...
+
+Start image acquisition on a scanner device and write PNM image data to
+standard output.
+
+Parameters are separated by a blank from single-character options (e.g.
+-d epson) and by a "=" from multi-character options (e.g. --device-name=epson).
+-d, --device-name=DEVICE   use a given scanner device (e.g. hp:/dev/scanner)
+    --format=pnm|tiff      file format of output file
+-i, --icc-profile=PROFILE  include this ICC profile into TIFF file
+-L, --list-devices         show available scanner devices
+-f, --formatted-device-list=FORMAT similar to -L, but the FORMAT of the output
+                           can be specified: %d (device name), %v (vendor),
+                           %m (model), %t (type), and %i (index number)
+-b, --batch[=FORMAT]       working in batch mode, FORMAT is `out%d.pnm' or
+                           `out%d.tif' by default depending on --format
+    --batch-start=#        page number to start naming files with
+    --batch-count=#        how many pages to scan in batch mode
+    --batch-increment=#    increase number in filename by an amount of #
+    --batch-double         increment page number by two for 2sided originals
+                           being scanned in a single sided scanner
+    --batch-prompt         ask for pressing a key before scanning a page
+    --accept-md5-only      only accept authorization requests using md5
+-p, --progress             print progress messages
+-n, --dont-scan            only set options, don't actually scan
+-T, --test                 test backend thoroughly
+-h, --help                 display this help message and exit
+-v, --verbose              give even more status messages
+-B, --buffer-size          change default input buffersize
+-V, --version              print version information
+
+Options specific to device `epkowa:libusb:006:011':
+  Scan Mode:
+    --mode Binary|Gray|Color [Binary]
+        Selects the scan mode (e.g., lineart,monochrome, or color).
+    --depth 8|16 [inactive]
+        Number of bits per sample, typical values are 1 for "line-art" and 8
+        for multibit scans.
+    --halftoning None|Halftone A (Hard Tone)|Halftone B (Soft Tone)|Halftone C (Net Screen)|Dither A (4x4 Bayer)|Dither B (4x4 Spiral)|Dither C (4x4 Net Screen)|Dither D (8x4 Net Screen)|Text Enhanced Technology|Download pattern A|Download pattern B [None]
+        Selects the halftone.
+    --dropout None|Red|Green|Blue [None]
+        Selects the dropout.
+    --brightness -4..3 [0]
+        Selects the brightness.
+    --sharpness -2..2 [0]
+        
+    --gamma-correction Default|User defined (Gamma=1.0)|User defined (Gamma=1.8)|High density printing|Low density printing|High contrast printing [Default]
+        Selects the gamma correction value from a list of pre-defined devices
+        or the user defined table, which can be downloaded to the scanner
+    --color-correction No Correction|User defined|Impact-dot printers|Thermal printers|Ink-jet printers|CRT monitors [CRT monitors]
+        Sets the color correction table for the selected output device.
+    --resolution 50..2400dpi [300]
+        Sets the resolution of the scanned image.
+    --threshold 0..255 [128]
+        Select minimum-brightness to get a white point
+  Advanced:
+    --mirror[=(yes|no)] [no]
+        Mirror the image.
+    --speed[=(yes|no)] [no]
+        Determines the speed at which the scan proceeds.
+    --auto-area-segmentation[=(yes|no)] [no]
+        
+    --short-resolution[=(yes|no)] [no]
+        Display short resolution list
+    --zoom 50..200 [100]
+        Defines the zoom factor the scanner will use
+    --red-gamma-table 0..255,... [inactive]
+        Gamma-correction table for the red band.
+    --green-gamma-table 0..255,... [inactive]
+        Gamma-correction table for the green band.
+    --blue-gamma-table 0..255,... [inactive]
+        Gamma-correction table for the blue band.
+    --wait-for-button[=(yes|no)] [no]
+        After sending the scan command, wait until the button on the scanner
+        is pressed to actually start the scan process.
+    --monitor-button[=(yes|no)] [no]
+        Indicates whether a button on the scanner has been pressed (read-only
+        option).
+  Color correction coefficients:
+    --cct-1 -2..2 [inactive]
+        Controls red level
+    --cct-2 -2..2 [inactive]
+        Adds to red based on green level
+    --cct-3 -2..2 [inactive]
+        Adds to red based on blue level
+    --cct-4 -2..2 [inactive]
+        Adds to green based on red level
+    --cct-5 -2..2 [inactive]
+        Controls green level
+    --cct-6 -2..2 [inactive]
+        Adds to green based on blue level
+    --cct-7 -2..2 [inactive]
+        Adds to blue based on red level
+    --cct-8 -2..2 [inactive]
+        Adds to blue based on green level
+    --cct-9 -2..2 [inactive]
+        Control blue level
+  Preview:
+    --preview[=(yes|no)] [no]
+        Request a preview-quality scan.
+    --preview-speed[=(yes|no)] [no]
+  Geometry:
+    -l 0..215.9mm [0]
+        Top-left x position of scan area.
+    -t 0..297.18mm [0]
+        Top-left y position of scan area.
+    -x 0..215.9mm [215.9]
+        Width of scan-area.
+    -y 0..297.18mm [297.18]
+        Height of scan-area.
+    --quick-format CD|A5 portrait|A5 landscape|Letter|A4|Max [Max]
+  Optional equipment:
+    --source Flatbed|Automatic Document Feeder [Flatbed]
+        Selects the scan source (such as a document-feeder).
+    --auto-eject[=(yes|no)] [yes]
+        Eject document after scanning
+    --film-type Positive Film|Negative Film [inactive]
+        
+    --focus-position Focus on glass|Focus 2.5mm above glass [inactive]
+        Sets the focus position to either the glass or 2.5mm above the glass
+    --bay  1 | 2 | 3 | 4 | 5 | 6  [inactive]
+        Select bay to scan
+    --eject []
+        Eject the sheet in the ADF
+    --adf_mode Simplex|Duplex [Simplex]
+        Selects the ADF mode (simplex/duplex)
+
+Type ``scanimage --help -d DEVICE'' to get list of all options for DEVICE.
+
+List of available devices:
+    epkowa:libusb:006:011
