@@ -1,0 +1,76 @@
+Usage: scanimage [OPTION]...
+
+Start image acquisition on a scanner device and write PNM image data to standard output.
+
+-d, --device-name=DEVICE   use a given scanner device (e.g. hp:/dev/scanner)
+    --format=pnm|tiff      file format of output file
+-i, --icc-profile=PROFILE  include this ICC profile into TIFF file
+-L, --list-devices         show available scanner devices
+-f, --formatted-device-list=FORMAT similar to -L, but the FORMAT of the output
+                           can be specified: %d (device name), %v (vendor),
+                           %m (model), %t (type), and %i (index number)
+-b, --batch[=FORMAT]       working in batch mode, FORMAT is `out%d.pnm' or
+                           `out%d.tif' by default depending on --format
+    --batch-start=#        page number to start naming files with
+    --batch-count=#        how many pages to scan in batch mode
+    --batch-increment=#    increase number in filename by an amount of #
+    --batch-double         increment page number by two for 2sided originals
+                           being scanned in a single sided scanner
+    --batch-prompt         ask for pressing a key before scanning a page
+    --accept-md5-only      only accept authorization requests using md5
+-p, --progress             print progress messages
+-n, --dont-scan            only set options, don't actually scan
+-T, --test                 test backend thoroughly
+-h, --help                 display this help message and exit
+-v, --verbose              give even more status messages
+-B, --buffer-size          change default input buffersize
+-V, --version              print version information
+
+Options specific to device `hpaio:/usb/officejet_5500_series?serial=MY42QF209H96':
+  Scan mode:
+    --mode Lineart|Grayscale|Color [Color]
+        Selects the scan mode (e.g., lineart, monochrome, or color).
+    --resolution 75..600dpi [75]
+        Sets the resolution of the scanned image.
+  Advanced:
+    --contrast 0..100 [inactive]
+        Controls the contrast of the acquired image.
+    --compression None|JPEG [JPEG]
+        Selects the scanner compression method for faster scans, possibly at
+        the expense of image quality.
+    --jpeg-compression-factor 0..100 [10]
+        Sets the scanner JPEG compression factor.  Larger numbers mean better
+        compression, and smaller numbers mean better image quality.
+    --batch-scan[=(yes|no)] [no]
+        Guarantees that a "no documents" condition will be returned after the
+        last scanned page, to prevent endless flatbed scans after a batch scan.
+         For some models, option changes in the middle of a batch scan don't
+        take effect until after the last page.
+    --source Auto|Flatbed|ADF [Auto]
+        Selects the desired scan source for models with both flatbed and
+        automatic document feeder (ADF) capabilities.  The "Auto" setting means
+        that the ADF will be used if it's loaded, and the flatbed (if present)
+        will be used otherwise.
+    --duplex[=(yes|no)] [inactive]
+        Enables scanning on both sides of the page for models with
+        duplex-capable document feeders.  For pages printed in "book"-style
+        duplex mode, one side will be scanned upside-down.  This feature is
+        experimental.
+  Geometry:
+    --length-measurement Unknown|Approximate|Padded [Padded]
+        Selects how the scanned image length is measured and reported, which
+        is impossible to know in advance for scrollfed scans.
+    -l 0..215.9mm [0]
+        Top-left x position of scan area.
+    -t 0..381mm [0]
+        Top-left y position of scan area.
+    -x 0..215.9mm [215.9]
+        Width of scan-area.
+    -y 0..381mm [381]
+        Height of scan-area.
+
+Type ``scanimage --help -d DEVICE'' to get list of all options for DEVICE.
+
+List of available devices:
+    v4l:/dev/video1 v4l:/dev/video0
+    hpaio:/usb/officejet_5500_series?serial=MY42QF209H96
