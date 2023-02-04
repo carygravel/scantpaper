@@ -1,0 +1,172 @@
+Usage: scanimage [OPTION]...
+
+Start image acquisition on a scanner device and write PNM image data to
+standard output.
+
+Parameters are separated by a blank from single-character options (e.g.
+-d epson) and by a "=" from multi-character options (e.g. --device-name=epson).
+-d, --device-name=DEVICE   use a given scanner device (e.g. hp:/dev/scanner)
+    --format=pnm|tiff      file format of output file
+-i, --icc-profile=PROFILE  include this ICC profile into TIFF file
+-L, --list-devices         show available scanner devices
+-f, --formatted-device-list=FORMAT similar to -L, but the FORMAT of the output
+                           can be specified: %d (device name), %v (vendor),
+                           %m (model), %t (type), and %i (index number)
+-b, --batch[=FORMAT]       working in batch mode, FORMAT is `out%d.pnm' or
+                           `out%d.tif' by default depending on --format
+    --batch-start=#        page number to start naming files with
+    --batch-count=#        how many pages to scan in batch mode
+    --batch-increment=#    increase number in filename by an amount of #
+    --batch-double         increment page number by two for 2sided originals
+                           being scanned in a single sided scanner
+    --batch-prompt         ask for pressing a key before scanning a page
+    --accept-md5-only      only accept authorization requests using md5
+-p, --progress             print progress messages
+-n, --dont-scan            only set options, don't actually scan
+-T, --test                 test backend thoroughly
+-h, --help                 display this help message and exit
+-v, --verbose              give even more status messages
+-B, --buffer-size          change default input buffersize
+-V, --version              print version information
+
+Options specific to device `umax:/dev/sg2':
+  Scan Mode:
+    --mode Lineart|Gray|Color [Color]
+        Selects the scan mode (e.g., lineart, monochrome, or color).
+    --source Flatbed [Flatbed]
+        Selects the scan source (such as a document-feeder).
+    --resolution 5..300dpi (in steps of 5) [100]
+        Sets the resolution of the scanned image.
+    --y-resolution 5..600dpi (in steps of 5) [inactive]
+        Sets the vertical resolution of the scanned image.
+    --resolution-bind[=(yes|no)] [yes]
+        Use same values for X and Y resolution
+    --negative[=(yes|no)] [inactive]
+        Swap black and white
+  Geometry:
+    -l 0..215.9mm [0]
+        Top-left x position of scan area.
+    -t 0..297.18mm [0]
+        Top-left y position of scan area.
+    -x 0..215.9mm [215.9]
+        Width of scan-area.
+    -y 0..297.18mm [297.18]
+        Height of scan-area.
+  Enhancement:
+    --depth 8bit [8]
+        Number of bits per sample, typical values are 1 for "line-art" and 8
+        for multibit scans.
+    --quality-cal[=(yes|no)] [yes]
+        Do a quality white-calibration
+    --double-res[=(yes|no)] [inactive]
+        Use lens that doubles optical resolution
+    --warmup[=(yes|no)] [inactive]
+        Warmup lamp before scanning
+    --rgb-bind[=(yes|no)] [no]
+        In RGB-mode use same values for each color
+    --brightness -100..100% (in steps of 1) [inactive]
+        Controls the brightness of the acquired image.
+    --contrast -100..100% (in steps of 1) [inactive]
+        Controls the contrast of the acquired image.
+    --threshold 0..100% [inactive]
+        Select minimum-brightness to get a white point
+    --highlight 0..100% [inactive]
+        Selects what radiance level should be considered "white".
+    --highlight-r 0..100% [100]
+        Selects what red radiance level should be considered "full red".
+    --highlight-g 0..100% [100]
+        Selects what green radiance level should be considered "full green".
+    --highlight-b 0..100% [100]
+        Selects what blue radiance level should be considered "full blue".
+    --shadow 0..100% [inactive]
+        Selects what radiance level should be considered "black".
+    --shadow-r 0..100% [inactive]
+        Selects what red radiance level should be considered "black".
+    --shadow-g 0..100% [inactive]
+        Selects what green radiance level should be considered "black".
+    --shadow-b 0..100% [inactive]
+        Selects what blue radiance level should be considered "black".
+    --analog-gamma 1..2 (in steps of 0.00999451) [inactive]
+        Analog gamma-correction
+    --analog-gamma-r 1..2 (in steps of 0.00999451) [inactive]
+        Analog gamma-correction for red
+    --analog-gamma-g 1..2 (in steps of 0.00999451) [inactive]
+        Analog gamma-correction for green
+    --analog-gamma-b 1..2 (in steps of 0.00999451) [inactive]
+        Analog gamma-correction for blue
+    --custom-gamma[=(yes|no)] [yes]
+        Determines whether a builtin or a custom gamma-table should be used.
+    --gamma-table 0..255,...
+        Gamma-correction table.  In color mode this option equally affects the
+        red, green, and blue channels simultaneously (i.e., it is an intensity
+        gamma table).
+    --red-gamma-table 0..255,...
+        Gamma-correction table for the red band.
+    --green-gamma-table 0..255,...
+        Gamma-correction table for the green band.
+    --blue-gamma-table 0..255,...
+        Gamma-correction table for the blue band.
+    --halftone-size 2|4|6|8|12pel [inactive]
+        Sets the size of the halftoning (dithering) pattern used when scanning
+        halftoned images.
+    --halftone-pattern 0..255 [inactive]
+        Defines the halftoning (dithering) pattern for scanning halftoned
+        images.
+  Advanced:
+    --cal-exposure-time 0..0us [inactive]
+        Define exposure-time for calibration
+    --cal-exposure-time-r 0..0us [inactive]
+        Define exposure-time for red calibration
+    --cal-exposure-time-g 0..0us [inactive]
+        Define exposure-time for green calibration
+    --cal-exposure-time-b 0..0us [inactive]
+        Define exposure-time for blue calibration
+    --scan-exposure-time 0..0us [inactive]
+        Define exposure-time for scan
+    --scan-exposure-time-r 0..0us [inactive]
+        Define exposure-time for red scan
+    --scan-exposure-time-g 0..0us [inactive]
+        Define exposure-time for green scan
+    --scan-exposure-time-b 0..0us [inactive]
+        Define exposure-time for blue scan
+    --disable-pre-focus[=(yes|no)] [inactive]
+        Do not calibrate focus
+    --manual-pre-focus[=(yes|no)] [inactive]
+        
+    --fix-focus-position[=(yes|no)] [inactive]
+        
+    --lens-calibration-in-doc-position[=(yes|no)] [inactive]
+        Calibrate lens focus in document position
+    --holder-focus-position-0mm[=(yes|no)] [inactive]
+        Use 0mm holder focus position instead of 0.6mm
+    --cal-lamp-density 0..100% [inactive]
+        Define lamp density for calibration
+    --scan-lamp-density 0..100% [inactive]
+        Define lamp density for scan
+    --select-exposure-time[=(yes|no)] [inactive]
+        Enable selection of exposure-time
+    --select-calibration-exposure-time[=(yes|no)] [inactive]
+        Allow different settings for calibration and scan exposure times
+    --select-lamp-density[=(yes|no)] [inactive]
+        Enable selection of lamp density
+    --lamp-on [inactive]
+        Turn on scanner lamp
+    --lamp-off [inactive]
+        Turn off scanner lamp
+    --lamp-off-at-exit[=(yes|no)] [inactive]
+        Turn off lamp when program exits
+    --batch-scan-start[=(yes|no)] [inactive]
+        set for first scan of batch
+    --batch-scan-loop[=(yes|no)] [inactive]
+        set for middle scans of batch
+    --batch-scan-end[=(yes|no)] [inactive]
+        set for last scan of batch
+    --batch-scan-next-tl-y 0..297.18mm [inactive]
+        Set top left Y position for next scan
+    --preview[=(yes|no)] [no]
+        Request a preview-quality scan.
+
+Type ``scanimage --help -d DEVICE'' to get list of all options for DEVICE.
+
+List of available devices:
+    v4l:/dev/video0 umax:/dev/sg2
