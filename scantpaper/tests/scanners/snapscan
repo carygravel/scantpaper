@@ -1,0 +1,117 @@
+Usage: scanimage [OPTION]...
+
+Start image acquisition on a scanner device and write PNM image data to
+standard output.
+
+-d, --device-name=DEVICE   use a given scanner device (e.g. hp:/dev/scanner)
+    --format=pnm|tiff      file format of output file
+-i, --icc-profile=PROFILE  include this ICC profile into TIFF file
+-L, --list-devices         show available scanner devices
+-f, --formatted-device-list=FORMAT similar to -L, but the FORMAT of the output
+                           can be specified: %d (device name), %v (vendor),
+                           %m (model), %t (type), and %i (index number)
+-b, --batch[=FORMAT]       working in batch mode, FORMAT is `out%d.pnm' or
+                           `out%d.tif' by default depending on --format
+    --batch-start=#        page number to start naming files with
+    --batch-count=#        how many pages to scan in batch mode
+    --batch-increment=#    increase number in filename by an amount of #
+    --batch-double         increment page number by two for 2sided originals
+                           being scanned in a single sided scanner
+    --batch-prompt         ask for pressing a key before scanning a page
+    --accept-md5-only      only accept authorization requests using md5
+-p, --progress             print progress messages
+-n, --dont-scan            only set options, don't actually scan
+-T, --test                 test backend thoroughly
+-h, --help                 display this help message and exit
+-v, --verbose              give even more status messages
+-B, --buffer-size          change default input buffersize
+-V, --version              print version information
+
+Options specific to device `snapscan:/dev/uscanner0':
+  Scan Mode:
+    --resolution auto||50|75|100|150|200|300|450|600dpi [300]
+        Sets the resolution of the scanned image.
+    --preview[=(auto|yes|no)] [no]
+        Request a preview-quality scan.
+    --mode auto|Color|Halftone|Gray|Lineart [Color]
+        Selects the scan mode (e.g., lineart, monochrome, or color).
+    --preview-mode auto|Auto|Color|Halftone|Gray|Lineart [Auto]
+        Select the mode for previews. Greyscale previews usually give the best
+        combination of speed and detail.
+    --high-quality[=(auto|yes|no)] [no]
+        Highest quality but lower speed
+    --source auto|Flatbed [inactive]
+        Selects the scan source (such as a document-feeder).
+  Geometry:
+    -l auto|0..216mm [0]
+        Top-left x position of scan area.
+    -t auto|0..297mm [0]
+        Top-left y position of scan area.
+    -x auto|0..216mm [216]
+        Width of scan-area.
+    -y auto|0..297mm [297]
+        Height of scan-area.
+    --predef-window None|6x4 (inch)|8x10 (inch)|8.5x11 (inch) [None]
+        Provides standard scanning areas for photographs, printed pages and
+        the like.
+  Enhancement:
+    --depth 8bit [inactive]
+        Number of bits per sample, typical values are 1 for "line-art" and 8
+        for multibit scans.
+    --quality-cal[=(yes|no)] [yes]
+        Do a quality white-calibration
+    --halftoning[=(yes|no)] [inactive]
+        Selects whether the acquired image should be halftoned (dithered).
+    --halftone-pattern DispersedDot8x8|DispersedDot16x16 [inactive]
+        Defines the halftoning (dithering) pattern for scanning halftoned
+        images.
+    --custom-gamma[=(yes|no)] [no]
+        Determines whether a builtin or a custom gamma-table should be used.
+    --analog-gamma-bind[=(yes|no)] [no]
+        In RGB-mode use same values for each color
+    --analog-gamma 0..4 [inactive]
+        Analog gamma-correction
+    --analog-gamma-r 0..4 [1.79999]
+        Analog gamma-correction for red
+    --analog-gamma-g 0..4 [1.79999]
+        Analog gamma-correction for green
+    --analog-gamma-b 0..4 [1.79999]
+        Analog gamma-correction for blue
+    --gamma-table 0..65535,... (in steps of 1) [inactive]
+        Gamma-correction table.  In color mode this option equally affects the
+        red, green, and blue channels simultaneously (i.e., it is an intensity
+        gamma table).
+    --red-gamma-table 0..65535,... (in steps of 1) [inactive]
+        Gamma-correction table for the red band.
+    --green-gamma-table 0..65535,... (in steps of 1) [inactive]
+        Gamma-correction table for the green band.
+    --blue-gamma-table 0..65535,... (in steps of 1) [inactive]
+        Gamma-correction table for the blue band.
+    --negative[=(auto|yes|no)] [inactive]
+        Swap black and white
+    --threshold 0..100% (in steps of 1) [inactive]
+        Select minimum-brightness to get a white point
+    --brightness -400..400% (in steps of 1) [0]
+        Controls the brightness of the acquired image.
+    --contrast -100..400% (in steps of 1) [0]
+        Controls the contrast of the acquired image.
+  Advanced:
+    --rgb-lpr auto|1..50 (in steps of 1) [4]
+        Number of scan lines to request in a SCSI read. Changing this
+        parameter allows you to tune the speed at which data is read from the
+        scanner during scans. If this is set too low, the scanner will have to
+        stop periodically in the middle of a scan; if it's set too high,
+        X-based frontends may stop responding to X events and your system could
+        bog down.
+    --gs-lpr auto|1..50 (in steps of 1) [inactive]
+        Number of scan lines to request in a SCSI read. Changing this
+        parameter allows you to tune the speed at which data is read from the
+        scanner during scans. If this is set too low, the scanner will have to
+        stop periodically in the middle of a scan; if it's set too high,
+        X-based frontends may stop responding to X events and your system could
+        bog down.
+
+Type ``scanimage --help -d DEVICE'' to get list of all options for DEVICE.
+
+List of available devices:
+    snapscan:/dev/uscanner0
