@@ -45,8 +45,8 @@ def test_1():
             "name": "depth",
             "title": "Depth",
             "index": 3,
-            "desc": 'Number of bits per sample, typical values are 1 for "line-art" "\
-            "and 8 for multibit scans.',
+            "desc": 'Number of bits per sample, typical values are 1 for "line-art" '
+            "and 8 for multibit scans.",
             "val": 8,
             "constraint": [8, 16],
             "unit": "UNIT_NONE",
