@@ -2,9 +2,14 @@
 import threading
 import queue
 import collections
+from enum import Enum
 from gi.repository import GLib
 
-Msg = collections.namedtuple("Msg", ["event", "args"])
+Request = collections.namedtuple("Request", ["event", "args"])
+Response = collections.namedtuple(
+    "Response", ["type", "process", "uuid", "info", "status"]
+)
+ResponseType = Enum("ResponseType", ["FINISHED", "CANCELLED", "ERROR"])
 
 
 class BaseThread(threading.Thread):
@@ -16,9 +21,9 @@ class BaseThread(threading.Thread):
         self.responses = queue.Queue()
 
     def send(self, event, *args, finished_callback=None):
-        "Puts the event and args as a `Msg` on the requests queue"
-        msg = Msg(event, args)
-        self.requests.put(msg)
+        "Puts the event and args as a `Request` on the requests queue"
+        request = Request(event, args)
+        self.requests.put(request)
         GLib.timeout_add(100, self._monitor_thread, finished_callback)
 
     def run(self):
@@ -29,8 +34,8 @@ class BaseThread(threading.Thread):
             handler = getattr(self, f"do_{event}", None)
             if not handler:
                 raise NotImplementedError(f"Process has no handler for [{event}]")
-            msg = handler(*args)
-            self.responses.put(msg)
+            request = handler(*args)
+            self.responses.put(request)
 
     def _monitor_thread(self, finished_callback):
         try:
