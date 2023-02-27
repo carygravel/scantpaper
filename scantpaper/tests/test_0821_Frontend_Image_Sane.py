@@ -1,6 +1,6 @@
 import os
 import gi
-from frontend.image_sane import Image_Sane
+from frontend.image_sane import SaneThread
 import logging
 
 gi.require_version("Gtk", "3.0")
@@ -9,30 +9,31 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 def test_1():
 
-    Glib.set_application_name("gscan2pdf")
+    # Glib.set_application_name("gscan2pdf")
 
-    logger = Log.Log4perl.get_logger
-    Gscan2pdf.Frontend.Image_Sane.setup(logger)
+    # logger = Log.Log4perl.get_logger
+    # SaneThread.setup(logger)
 
     path = None
+    thread = SaneThread()
 
-    def anonymous_01():
-        def anonymous_02(status, path=None):
+    def open_callback():
+        def new_page_callback(status, path=None):
             assert status == 5, "SANE_STATUS_GOOD"
             assert os.path.getsize(path) == 30807, "PNM created with expected size"
 
-        def anonymous_03():
+        def finished_callback():
             Gtk.main_quit()
 
-        Gscan2pdf.Frontend.Image_Sane.scan_pages(
+        thread.scan_pages(
             dir=".",
             npages=1,
-            new_page_callback=anonymous_02,
-            finished_callback=anonymous_03,
+            new_page_callback=new_page_callback,
+            finished_callback=finished_callback,
         )
 
-    Gscan2pdf.Frontend.Image_Sane.open_device(
-        device_name="test", finished_callback=anonymous_01
+    thread.open_device(
+        device_name="test", finished_callback=open_callback
     )
     Gtk.main()
 
@@ -40,17 +41,17 @@ def test_1():
 
     os.remove(path)
 
-    Gscan2pdf.Frontend.Image_Sane.quit()
+    thread.quit()
 
-    assert Gscan2pdf.Frontend.Image_Sane.decode_info(0) == "none", "no info"
+    assert thread.decode_info(0) == "none", "no info"
     assert (
-        Gscan2pdf.Frontend.Image_Sane.decode_info(1) == "SANE_INFO_INEXACT"
+        thread.decode_info(1) == "SANE_INFO_INEXACT"
     ), "SANE_INFO_INEXACT"
     assert (
-        Gscan2pdf.Frontend.Image_Sane.decode_info(3)
+        thread.decode_info(3)
         == "SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
     ), "combination"
     assert (
-        Gscan2pdf.Frontend.Image_Sane.decode_info(11)
+        thread.decode_info(11)
         == "? + SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
     ), "missing"

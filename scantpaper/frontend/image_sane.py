@@ -1,12 +1,6 @@
 import math
 import os
-import threading
-
-import queue
-from Storable import freeze,thaw    # For cloning the options cache
-import Data.Dumper
-Data.Dumper.Sortkeys = 1
-
+from basethread import BaseThread
 import sane
 import uuid
 import tempfile                  # To create temporary files
@@ -50,6 +44,42 @@ class SaneThread(BaseThread):
     def do_set_option( self, key, value ) :
         self.device_handle.__setattr__(key, value)
 
+    def do_scan( self ) :
+        return self.device_handle.scan()
+
+    def do_cancel( self ) :
+        
+        if  self.device_handle is not None :
+            self.device_handle.cancel()
+        # self.return.enqueue(
+        # { "type" : 'cancelled', "uuid" : uuid } )
+
+    def get_devices( self, started_callback=None, running_callback=None, finished_callback=None ) :
+        
+        # uuid = str(uuid_object())
+        # callback[uuid]["started"]  = started_callback
+        # callback[uuid]["running"]  = running_callback
+        # callback[uuid]["finished"] = finished_callback
+        self.send( 'get_devices', started_callback=started_callback, running_callback=running_callback, finished_callback=finished_callback )
+        # _monitor_process( sentinel, uuid )
+
+    def open_device( self, device_name, started_callback=None, running_callback=None, finished_callback=None ) :
+        
+        # uuid = str(uuid_object())
+        # callback[uuid]["started"]  = options["started_callback"]
+        # callback[uuid]["running"]  = options["running_callback"]
+        # def anonymous_02():
+        #     _self["device_name"] = options["device_name"]
+        #     options["finished_callback"]()
+
+
+        # callback[uuid]["finished"] = anonymous_02 
+        # callback[uuid]["error"] = options["error_callback"]
+        # sentinel =       _enqueue_request( 'open',
+        #     { "uuid" : uuid, "device_name" : options["device_name"] } )
+        self.send( 'open_device', device_name, started_callback=started_callback, running_callback=running_callback, finished_callback=finished_callback )
+        # _monitor_process( sentinel, uuid )
+
 
 def setup(  _class, logger=None ) :
     _self     = {}
@@ -62,7 +92,6 @@ def setup(  _class, logger=None ) :
     _self["abort_scan"]=queue.Queue() 
     _self["scan_progress"]=queue.Queue() 
     _self["thread"] = threading.Thread( target=_thread_main,args=(_self,)  )
-    return
 
 
 def _enqueue_request( action, data ) :
@@ -112,7 +141,6 @@ def _monitor_process( sentinel, uuid ) :
         _POLL_INTERVAL,
         anonymous_01 
     )
-    return
 
 
 def quit() :
@@ -122,19 +150,6 @@ def quit() :
         _self["thread"] = None
         sane._exit()    ## no critic (ProtectPrivateSubs)
 
-    return
-
-
-def get_devices( _class, started_callback, running_callback, finished_callback ) :
-    
-    uuid = str(uuid_object())
-    callback[uuid]["started"]  = started_callback
-    callback[uuid]["running"]  = running_callback
-    callback[uuid]["finished"] = finished_callback
-    sentinel = _enqueue_request( 'get-devices', { "uuid" : uuid } )
-    _monitor_process( sentinel, uuid )
-    return
-
 
 def is_connected() :
     return  "device_name"  in _self
@@ -142,24 +157,6 @@ def is_connected() :
 
 def device() :
     return _self["device_name"]
-
-
-def open_device( _class, options ) :
-    
-    uuid = str(uuid_object())
-    callback[uuid]["started"]  = options["started_callback"]
-    callback[uuid]["running"]  = options["running_callback"]
-    def anonymous_02():
-        _self["device_name"] = options["device_name"]
-        options["finished_callback"]()
-
-
-    callback[uuid]["finished"] = anonymous_02 
-    callback[uuid]["error"] = options["error_callback"]
-    sentinel =       _enqueue_request( 'open',
-        { "uuid" : uuid, "device_name" : options["device_name"] } )
-    _monitor_process( sentinel, uuid )
-    return
 
 
 def close_device( _class, options ) :
@@ -177,7 +174,6 @@ def close_device( _class, options ) :
     sentinel =       _enqueue_request( 'close',
         { "uuid" : uuid, "device_name" : options["device_name"] } )
     _monitor_process( sentinel, uuid )
-    return
 
 
 def find_scan_options(
@@ -192,7 +188,6 @@ def find_scan_options(
     callback[uuid]["error"]    = error_callback
     sentinel = _enqueue_request( 'get-options', { "uuid" : uuid } )
     _monitor_process( sentinel, uuid )
-    return
 
 
 def set_option( _class, options ) :
@@ -211,7 +206,6 @@ def set_option( _class, options ) :
         }
     )
     _monitor_process( sentinel, uuid )
-    return
 
 
 def scan_page( _class, options ) :
@@ -226,7 +220,6 @@ def scan_page( _class, options ) :
     sentinel = _enqueue_request( 'scan-page',
         { "uuid" : uuid, "path" : f"{options}{path}" } )
     _monitor_process( sentinel, uuid )
-    return
 
 
 def scan_page_finished_callback( status, path, n_scanned, options ) :
@@ -281,7 +274,6 @@ def scan_page_finished_callback( status, path, n_scanned, options ) :
         error_callback    = options["error_callback"],
         finished_callback = anonymous_05 ,
     )
-    return
 
 
 def scan_pages( _class, options ) :
@@ -310,7 +302,6 @@ def scan_pages( _class, options ) :
         error_callback    = options["error_callback"],
         finished_callback = anonymous_07 ,
     )
-    return
 
 
 def _scanned_enough_pages( status, nrequired, ndone ) :
@@ -345,7 +336,6 @@ def cancel_scan( self, callback ) :
     logger.info('Requesting cancel')
     sentinel = _enqueue_request( 'cancel', { "uuid" : uuid } )
     _monitor_process( sentinel, uuid )
-    return
 
 
 def _thaw_deref(ref) :
@@ -497,8 +487,6 @@ def _thread_main(self) :
 
         request["sentinel"]+=1
 
-    return
-
 
 
 
@@ -510,17 +498,14 @@ def _thread_write_pnm_header( fh, format, width, height, depth ) :
     # to read the image.
 
     if format == "FRAME_RED"        or format == "FRAME_GREEN"        or format == "FRAME_BLUE"        or format == "FRAME_RGB"     :
-        fh.write("P6\n# SANE data follows\n%d %d\n%d\n" % (width,height,MAXVAL_16_BIT if ( depth > _8_BIT )elseMAXVAL_8_BIT))                   
+        fh.write("P6\n# SANE data follows\n%d %d\n%d\n" % (width,height,MAXVAL_16_BIT if ( depth > _8_BIT ) else MAXVAL_8_BIT))                   
  
     else :
         if depth == 1 :
             fh.write("P4\n# SANE data follows\n%d %d\n" % (width,height))    
  
         else :
-            fh.write("P5\n# SANE data follows\n%d %d\n%d\n" % (width,height,MAXVAL_16_BIT if ( depth > _8_BIT )elseMAXVAL_8_BIT))                                     
-
-
-    return
+            fh.write("P5\n# SANE data follows\n%d %d\n%d\n" % (width,height,MAXVAL_16_BIT if ( depth > _8_BIT ) else MAXVAL_8_BIT))                                     
 
 
 def _thread_scan_page_to_fh( device, fh ) :
@@ -543,7 +528,7 @@ def _thread_scan_page_to_fh( device, fh ) :
                 logger.info( f"{prog_name}: sane_start: " + _.error() )
 
             if status != "STATUS_GOOD" :
-                goto CLEANUP
+                cleanup(parm, total_bytes)
 
         try :
             parm = device.get_parameters()
@@ -553,11 +538,11 @@ def _thread_scan_page_to_fh( device, fh ) :
             logger.info( f"{prog_name}: sane_get_parameters: " + _.error() )
 
         if status != "STATUS_GOOD" :
-            goto CLEANUP
+            cleanup(parm, total_bytes)
         _log_frame_info( first_frame, parm, format_name )
         ( must_buffer, offset ) =           _initialise_scan( fh, first_frame, parm )
         hundred_percent = _scan_data_size(parm)
-        while 1 :
+        while True:
 
             # Pick up flag from cancel_scan()
 
@@ -593,8 +578,9 @@ def _thread_scan_page_to_fh( device, fh ) :
                 offset =                   _buffer_scan( offset, parm, image, len, buffer )
  
             else :
-                if not:
-                    goto CLEANUP   fh.write(buffer)  
+                if not data:
+                    cleanup(parm, total_bytes)
+                fh.write(buffer)  
 
 
         first_frame = 0
@@ -602,7 +588,12 @@ def _thread_scan_page_to_fh( device, fh ) :
 
     if must_buffer :
         _write_buffer_to_fh( fh, parm, image )
-    CLEANUP:
+        cleanup(parm, total_bytes)
+
+    return status
+
+
+def cleanup(parm, total_bytes):
     expected_bytes =       parm["bytes_per_line"] * parm["lines"] * _number_frames(parm)
     if parm["lines"] < 0 :
         expected_bytes = 0
@@ -613,10 +604,7 @@ def _thread_scan_page_to_fh( device, fh ) :
                )
  
     else :
-        logger.info( '%s: read %u bytes in total' % (prog_name,total_bytes) 
-              )
-
-    return status
+        logger.info( '%s: read %u bytes in total' % (prog_name,total_bytes) )
 
 
 def _thread_scan_page( self, uuid, path ) :
@@ -639,44 +627,29 @@ def _thread_scan_page( self, uuid, path ) :
 
     if status != "STATUS_GOOD" :
         return
-    fh=None
-    if not fh=open('>',path)    :
-        self.device_handle.cancel()
-        _thread_throw_error( self, uuid, 'scan-page',
+    with open('>',path) as (fh, err):
+        if err:
+            self.device_handle.cancel()
+            _thread_throw_error( self, uuid, 'scan-page',
             "STATUS_ACCESS_DENIED", f"Error writing to {path}" )
-        return
+            return
 
-    status = _thread_scan_page_to_fh( self.device_handle, fh )
-    if not fh.close()  :
-        self.device_handle.cancel()
-        _thread_throw_error( self, uuid, 'scan-page',
-            "STATUS_ACCESS_DENIED", f"Error closing {path}" )
-        return
+        status = _thread_scan_page_to_fh( self.device_handle, fh )
 
     logger.info( 'Scanned page %s. (scanner status = %d)' % (path,status) 
           )
     if status != "STATUS_GOOD" and status != "STATUS_EOF" :
         os.remove(path) 
 
-    self.return.enqueue(
-    {
-            "type"    : 'finished',
-            "process" : 'scan-page',
-            "uuid"    : uuid,
-            "status"  : status,
-            "info"    : freeze( path ),
-        }
-    )
-    return
-
-
-def _thread_cancel( self, uuid ) :
-    
-    if  (self.device_handle is not None) :
-        self.device_handle.cancel()
-    self.return.enqueue(
-    { "type" : 'cancelled', "uuid" : uuid } )
-    return
+    # self.return.enqueue(
+    # {
+    #         "type"    : 'finished',
+    #         "process" : 'scan-page',
+    #         "uuid"    : uuid,
+    #         "status"  : status,
+    #         "info"    : freeze( path ),
+    #     }
+    # )
 
 
 def _log_frame_info( first_frame, parm, format_name ) :
@@ -705,8 +678,6 @@ def _log_frame_info( first_frame, parm, format_name ) :
              
              
         )
-
-    return
 
 
 def _initialise_scan( fh, first_frame, parm ) :
@@ -774,8 +745,8 @@ case, we need to buffer all data before we can write
 the header
 """    
     number_frames = _number_frames(parm)
-    for _ in      range(len-1+1)      :
-        image["data"][ offset + number_frames * _ ] = substr buffer, _, 1
+    for _ in      range(len(buffer))      :
+        image["data"][ offset + number_frames * _ ] = buffer[_]
 
     offset += number_frames * len
     return offset
@@ -793,11 +764,6 @@ def _write_buffer_to_fh( fh, parm, image ) :
     _thread_write_pnm_header( fh, parm["format"], parm["pixels_per_line"],
         image["height"], parm["depth"] )
     for  data in      image["data"]  :
-        if not:
-            goto CLEANUP   fh.write(data)  
-
-    return
-
-
-
-
+        if not data:
+            cleanup(parm, total_bytes)
+        fh.write(data)  
