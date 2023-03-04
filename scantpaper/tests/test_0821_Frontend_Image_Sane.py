@@ -16,26 +16,29 @@ def test_1():
 
     path = None
     thread = SaneThread()
+    thread.start()
 
-    def open_callback():
-        def new_page_callback(status, path=None):
-            assert status == 5, "SANE_STATUS_GOOD"
-            assert os.path.getsize(path) == 30807, "PNM created with expected size"
-
-        def finished_callback():
-            Gtk.main_quit()
+    def new_page_callback(status, path=None):
+        assert status == 5, "SANE_STATUS_GOOD"
+        assert os.path.getsize(path) == 30807, "PNM created with expected size"
+    # def finished_callback(response):
+    #     Gtk.main_quit()
+    def open_callback(response):
+        assert response.process == "open_device", "open_callback"
 
         thread.scan_pages(
             dir=".",
             npages=1,
             new_page_callback=new_page_callback,
-            finished_callback=finished_callback,
+            # finished_callback=finished_callback,
         )
+        assert False, "open_callback"
 
-    thread.open_device(
-        device_name="test", finished_callback=open_callback
-    )
-    Gtk.main()
+    uid = thread.open_device(device_name="test", finished_callback=open_callback)
+    thread.monitor(uid, block=True)  # for started_callback
+    thread.monitor(uid, block=True)  # for finished_callback
+    assert False, "open_callback"
+    # Gtk.main()
 
     #########################
 
@@ -44,14 +47,10 @@ def test_1():
     thread.quit()
 
     assert thread.decode_info(0) == "none", "no info"
+    assert thread.decode_info(1) == "SANE_INFO_INEXACT", "SANE_INFO_INEXACT"
     assert (
-        thread.decode_info(1) == "SANE_INFO_INEXACT"
-    ), "SANE_INFO_INEXACT"
-    assert (
-        thread.decode_info(3)
-        == "SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
+        thread.decode_info(3) == "SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
     ), "combination"
     assert (
-        thread.decode_info(11)
-        == "? + SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
+        thread.decode_info(11) == "? + SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
     ), "missing"
