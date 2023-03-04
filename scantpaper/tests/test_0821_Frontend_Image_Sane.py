@@ -2,6 +2,7 @@ import os
 import gi
 from frontend.image_sane import SaneThread
 import logging
+import PIL
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -18,26 +19,25 @@ def test_1():
     thread = SaneThread()
     thread.start()
 
-    def new_page_callback(status, path=None):
-        assert status == 5, "SANE_STATUS_GOOD"
-        assert os.path.getsize(path) == 30807, "PNM created with expected size"
-    # def finished_callback(response):
-    #     Gtk.main_quit()
+    def finished_callback(response):
+        assert isinstance(response.info, PIL.Image.Image), "scan_page finished_callback returned image"
+        assert response.info.size == (157, 196), "scan_page finished_callback image size"
+
     def open_callback(response):
         assert response.process == "open_device", "open_callback"
-
-        thread.scan_pages(
-            dir=".",
-            npages=1,
-            new_page_callback=new_page_callback,
-            # finished_callback=finished_callback,
+        uid = thread.scan_page(
+            finished_callback=finished_callback,
         )
-        assert False, "open_callback"
+        thread.monitor(uid, block=True)  # for started_callback scan_page
+        thread.monitor(uid, block=True)  # for finished_callback scan_page
 
     uid = thread.open_device(device_name="test", finished_callback=open_callback)
-    thread.monitor(uid, block=True)  # for started_callback
-    thread.monitor(uid, block=True)  # for finished_callback
-    assert False, "open_callback"
+    thread.monitor(uid, block=True)  # for started_callback open_device
+    thread.monitor(uid, block=True)  # for finished_callback open_device
+    assert False, "end"
+
+    #   next test thread.scan_pages
+
     # Gtk.main()
 
     #########################

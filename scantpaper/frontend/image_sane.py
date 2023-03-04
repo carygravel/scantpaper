@@ -50,8 +50,13 @@ class SaneThread(BaseThread):
     def do_set_option(self, key, value):
         self.device_handle.__setattr__(key, value)
 
-    def do_scan(self):
+    def do_scan_page(self):
+        print("in do_scan_page")
+        if self.device_handle is None:
+            raise ValueError("must open device before starting scan")
+        print("before scan")
         return self.device_handle.scan()
+        print("after scan")
 
     def do_cancel(self):
 
@@ -61,7 +66,8 @@ class SaneThread(BaseThread):
         # { "type" : 'cancelled', "uuid" : uuid } )
 
     def get_devices(
-        self, started_callback=None, running_callback=None, finished_callback=None
+        self, started_callback=None, running_callback=None, finished_callback=None,
+        error_callback=None,
     ):
 
         # uuid = str(uuid_object())
@@ -73,6 +79,7 @@ class SaneThread(BaseThread):
             started_callback=started_callback,
             running_callback=running_callback,
             finished_callback=finished_callback,
+            error_callback=error_callback,
         )
         # _monitor_process( sentinel, uuid )
 
@@ -82,6 +89,7 @@ class SaneThread(BaseThread):
         started_callback=None,
         running_callback=None,
         finished_callback=None,
+        error_callback=None,
     ):
         print(f"in open_device {device_name}")
         # uuid = str(uuid_object())
@@ -101,13 +109,29 @@ class SaneThread(BaseThread):
             started_callback=started_callback,
             running_callback=running_callback,
             finished_callback=finished_callback,
+            error_callback=error_callback,
         )
         # _monitor_process( sentinel, uuid )
 
 
-    def scan_pages(self, dir, npages=1, started_callback=None,
+    def scan_page(self, started_callback=None,
+            running_callback=None,
+            error_callback=None,
+            finished_callback=None):
+
+        return self.send(
+            "scan_page",
+            started_callback=started_callback,
+            running_callback=running_callback,
+            finished_callback=finished_callback,
+            error_callback=error_callback,
+        )
+
+
+    def scan_pages(self, npages=1, started_callback=None,
             running_callback=None,
             finished_callback=None,
+            error_callback=None,
             new_page_callback=None,
             ):
 
@@ -123,11 +147,6 @@ class SaneThread(BaseThread):
             num_pages_scanned += 1
 
         self.scan_page(
-            path=tempfile.NamedTemporaryFile(
-                dir=dir,
-                suffix=".pnm",
-                delete=False,
-            ),
             started_callback=started_callback,
             running_callback=scan_pages_running_callback,
             error_callback=error_callback,
@@ -135,70 +154,6 @@ class SaneThread(BaseThread):
         )
 
 
-def setup(_class, logger=None):
-    _self = {}
-    prog_name = Glib.get_application_name
-    _self["requests"] = Thread.Queue()
-    _self["return"] = Thread.Queue()
-
-    # $_self->{device_handle} explicitly not shared
-
-    _self["abort_scan"] = queue.Queue()
-    _self["scan_progress"] = queue.Queue()
-    _self["thread"] = threading.Thread(target=_thread_main, args=(_self,))
-
-
-def _enqueue_request(action, data):
-
-    sentinel: shared = 0
-    _self["requests"].enqueue(
-        {
-            "action": action,
-            "sentinel": sentinel,
-            # (  data if data  else () )
-        }
-    )
-    return sentinel
-
-
-def _monitor_process(sentinel, uuid):
-
-    started = None
-
-    def anonymous_01():
-        if sentinel == 2:
-            if not started:
-                if "started" in callback[uuid]:
-                    callback[uuid]["started"]()
-                    del callback[uuid]["started"]
-
-                started = 1
-
-            check_return_queue()
-            return Glib.SOURCE_REMOVE
-
-        elif sentinel == 1:
-            if not started:
-                if "started" in callback[uuid]:
-                    callback[uuid]["started"]()
-                    del callback[uuid]["started"]
-
-                started = 1
-
-            if "running" in callback[uuid]:
-                callback[uuid]["running"]()
-
-            return Glib.SOURCE_CONTINUE
-
-    Glib.Timeout.add(_POLL_INTERVAL, anonymous_01)
-
-
-def quit():
-    _enqueue_request("quit")
-    if "thread" in _self:
-        _self["thread"].join()
-        _self["thread"] = None
-        sane._exit()  ## no critic (ProtectPrivateSubs)
 
 
 def is_connected():
@@ -255,19 +210,6 @@ def set_option(_class, options):
             "uuid": uuid,
         },
     )
-    _monitor_process(sentinel, uuid)
-
-
-def scan_page(_class, options):
-
-    _self["abort_scan"] = 0
-    _self["scan_progress"] = 0
-    uuid = str(uuid_object())
-    callback[uuid]["started"] = options["started_callback"]
-    callback[uuid]["running"] = options["running_callback"]
-    callback[uuid]["error"] = options["error_callback"]
-    callback[uuid]["finished"] = options["finished_callback"]
-    sentinel = _enqueue_request("scan-page", {"uuid": uuid, "path": f"{options}{path}"})
     _monitor_process(sentinel, uuid)
 
 
@@ -467,10 +409,10 @@ def _thread_main(self):
         if request["action"] == "quit":
             break
         elif request["action"] == "get-devices":
-            _thread_get_devices(self, request["uuid"])
+            do_get_devices(self, request["uuid"])
 
         elif request["action"] == "open":
-            _thread_open_device(self, request["uuid"], request["device_name"])
+            do_open_device(self, request["uuid"], request["device_name"])
 
         elif request["action"] == "close":
             if self.device_handle is not None:
@@ -481,18 +423,18 @@ def _thread_main(self):
                 logger.debug("Ignoring close_device() call - no device open.")
 
         elif request["action"] == "get-options":
-            _thread_get_options(self, request["uuid"])
+            do_get_options(self, request["uuid"])
 
         elif request["action"] == "set-option":
-            _thread_set_option(
+            do_set_option(
                 self, request["uuid"], request["index"], request["value"]
             )
 
         elif request["action"] == "scan-page":
-            _thread_scan_page(self, request["uuid"], request["path"])
+            do_scan_page(self, request["uuid"], request["path"])
 
         elif request["action"] == "cancel":
-            _thread_cancel(self, request["uuid"])
+            do_cancel(self, request["uuid"])
         else:
             logger.info(f"Ignoring unknown request {_}")
             continue
@@ -502,7 +444,7 @@ def _thread_main(self):
         request["sentinel"] += 1
 
 
-def _thread_write_pnm_header(fh, format, width, height, depth):
+def do_write_pnm_header(fh, format, width, height, depth):
 
     # The netpbm-package does not define raw image data with maxval > 255.
     # But writing maxval 65535 for 16bit data gives at least a chance
@@ -530,7 +472,7 @@ def _thread_write_pnm_header(fh, format, width, height, depth):
             )
 
 
-def _thread_scan_page_to_fh(device, fh):
+def do_scan_page_to_fh(device, fh):
 
     first_frame = 1
     offset = 0
@@ -629,60 +571,6 @@ def cleanup(parm, total_bytes):
         logger.info("%s: read %u bytes in total" % (prog_name, total_bytes))
 
 
-def _thread_scan_page(self, uuid, path):
-
-    if self.device_handle is None:
-        _thread_throw_error(
-            self,
-            uuid,
-            "scan-page",
-            "STATUS_ACCESS_DENIED",
-            f"{prog_name}: must open device before starting scan",
-        )
-        return
-
-    status = "STATUS_GOOD"
-    try:
-        self.device_handle.start()
-
-    except:
-        status = _.status()
-        _thread_throw_error(
-            self, uuid, "scan-page", status, f"{prog_name}: sane_start: " + _.error()
-        )
-        os.remove(path)
-
-    if status != "STATUS_GOOD":
-        return
-    with open(">", path) as (fh, err):
-        if err:
-            self.device_handle.cancel()
-            _thread_throw_error(
-                self,
-                uuid,
-                "scan-page",
-                "STATUS_ACCESS_DENIED",
-                f"Error writing to {path}",
-            )
-            return
-
-        status = _thread_scan_page_to_fh(self.device_handle, fh)
-
-    logger.info("Scanned page %s. (scanner status = %d)" % (path, status))
-    if status != "STATUS_GOOD" and status != "STATUS_EOF":
-        os.remove(path)
-
-    # self.return.enqueue(
-    # {
-    #         "type"    : 'finished',
-    #         "process" : 'scan-page',
-    #         "uuid"    : uuid,
-    #         "status"  : status,
-    #         "info"    : freeze( path ),
-    #     }
-    # )
-
-
 def _log_frame_info(first_frame, parm, format_name):
 
     if first_frame:
@@ -745,7 +633,7 @@ def _initialise_scan(fh, first_frame, parm):
                 offset = 0
 
             else:
-                _thread_write_pnm_header(
+                do_write_pnm_header(
                     fh,
                     parm["format"],
                     parm["pixels_per_line"],
@@ -796,7 +684,7 @@ def _write_buffer_to_fh(fh, parm, image):
         image["height"] = len(image["data"]) / parm["bytes_per_line"]
         image["height"] /= _number_frames(parm)
 
-    _thread_write_pnm_header(
+    do_write_pnm_header(
         fh, parm["format"], parm["pixels_per_line"], image["height"], parm["depth"]
     )
     for data in image["data"]:
