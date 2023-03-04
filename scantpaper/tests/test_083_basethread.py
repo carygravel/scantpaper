@@ -11,20 +11,22 @@ class MyThread(BaseThread):
         "test method"
         return arg1 / arg2
 
-    def callback(self, response):
+    def callback(self, response=None):
         "callback"
-        print(
-            f"in callback with response {response} response_counter {self.response_counter}",
-            flush=True,
-        )
-        assert response._replace(uuid="") == EXPECTED[self.response_counter], str(
-            self.response_counter
-        )
+        if response is None:
+            assert response == EXPECTED[self.response_counter], str(
+                self.response_counter
+            )
+        else:
+            assert response._replace(uuid="") == EXPECTED[self.response_counter], str(
+                self.response_counter
+            )
         self.response_counter += 1
 
 
 EXPECTED = [
     Response(type=ResponseType.STARTED, process="div", uuid="", info=None, status=None),
+    None,  # running
     Response(type=ResponseType.FINISHED, process="div", uuid="", info=0.5, status=None),
     Response(
         type=ResponseType.ERROR,
@@ -47,22 +49,27 @@ def test_1():
     "test baseprocess class"
     thread = MyThread()
     thread.start()
-    thread.send(
-        "div", 1, 2, started_callback=thread.callback, finished_callback=thread.callback
+    uid = thread.send(
+        "div",
+        1,
+        2,
+        started_callback=thread.callback,
+        running_callback=thread.callback,
+        finished_callback=thread.callback,
     )
-    thread.monitor(block=True)  # for started_callback
+    thread.monitor(uid, block=True)  # for started_callback
     assert thread.response_counter == 1, "checked all expected responses #1"
-    thread.monitor(block=True)  # for finished_callback
-    assert thread.response_counter == 2, "checked all expected responses #2"
+    thread.monitor(uid, block=True)  # for finished_callback
+    assert thread.response_counter == 3, "checked all expected responses #2"
 
-    thread.send("div", 1, 0, error_callback=thread.callback)
-    thread.monitor(block=True)  # for started_callback
-    thread.monitor(block=True)  # for error_callback
-    assert thread.response_counter == 3, "checked all expected responses #3"
+    uid = thread.send("div", 1, 0, error_callback=thread.callback)
+    thread.monitor(uid, block=True)  # for started_callback
+    thread.monitor(uid, block=True)  # for error_callback
+    assert thread.response_counter == 4, "checked all expected responses #3"
 
-    thread.send("nodiv", 1, 2, error_callback=thread.callback)
-    thread.monitor(block=True)  # for started_callback
-    thread.monitor(block=True)  # for error_callback
-    assert thread.response_counter == 4, "checked all expected responses #4"
+    uid = thread.send("nodiv", 1, 2, error_callback=thread.callback)
+    thread.monitor(uid, block=True)  # for started_callback
+    thread.monitor(uid, block=True)  # for error_callback
+    assert thread.response_counter == 5, "checked all expected responses #4"
 
     thread.send("quit")

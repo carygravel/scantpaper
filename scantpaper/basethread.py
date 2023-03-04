@@ -32,6 +32,7 @@ class BaseThread(threading.Thread):
         event,
         *args,
         started_callback=None,
+        running_callback=None,
         finished_callback=None,
         error_callback=None,
     ):
@@ -39,11 +40,14 @@ class BaseThread(threading.Thread):
         request = Request(event, uuid.uuid1(), args)
         self.callbacks[request.uuid] = {
             "started_callback": started_callback,
+            "started": False,
+            "running_callback": running_callback,
             "finished_callback": finished_callback,
             "error_callback": error_callback,
         }
         self.requests.put(request)
-        GLib.timeout_add(100, self.monitor)
+        GLib.timeout_add(100, self.monitor, request.uuid)
+        return request.uuid
 
     def run(self):
         while True:
@@ -93,27 +97,38 @@ class BaseThread(threading.Thread):
                     )
             self.requests.task_done()
 
-    def monitor(self, block=False):
+    def monitor(self, uid, block=False):
         "monitor the thread, triggering callbacks as required"
         if not block:
             # no point in returning if there are still responses
             while not self.responses.empty():
-                return self._monitor_response(block)
+                return self._monitor_response(uid, block)
         else:
-            return self._monitor_response(block)
+            return self._monitor_response(uid, block)
 
-    def _monitor_response(self, block=False):
+    def _monitor_response(self, uid, block=False):
+        if (
+            self.callbacks[uid]["started"]
+            and "running_callback" in self.callbacks[uid]
+            and self.callbacks[uid]["running_callback"] is not None
+        ):
+            self.callbacks[uid]["running_callback"]()
         try:
             result = self.responses.get(block)
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
         callback = ResponseTypes[result.type.value - 1].lower() + "_callback"
         if (
-            result.uuid in self.callbacks
-            and callback in self.callbacks[result.uuid]
-            and self.callbacks[result.uuid][callback] is not None
+            uid == result.uuid
+            and uid in self.callbacks
+            and callback in self.callbacks[uid]
+            and self.callbacks[uid][callback] is not None
         ):
-            self.callbacks[result.uuid][callback](result)
-            if callback in ["finished_callback", "error_callback"]:
-                del self.callbacks[result.uuid]
-        return GLib.SOURCE_REMOVE
+            self.callbacks[uid][callback](result)
+            if callback == "started_callback":
+                del self.callbacks[uid][callback]
+                self.callbacks[uid]["started"] = True
+            else:  # finished, cancelled, error
+                del self.callbacks[uid]
+                return GLib.SOURCE_REMOVE
+        return GLib.SOURCE_CONTINUE
