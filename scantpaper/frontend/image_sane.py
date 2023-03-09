@@ -66,7 +66,10 @@ class SaneThread(BaseThread):
         # { "type" : 'cancelled', "uuid" : uuid } )
 
     def get_devices(
-        self, started_callback=None, running_callback=None, finished_callback=None,
+        self,
+        started_callback=None,
+        running_callback=None,
+        finished_callback=None,
         error_callback=None,
     ):
 
@@ -113,11 +116,13 @@ class SaneThread(BaseThread):
         )
         # _monitor_process( sentinel, uuid )
 
-
-    def scan_page(self, started_callback=None,
-            running_callback=None,
-            error_callback=None,
-            finished_callback=None):
+    def scan_page(
+        self,
+        started_callback=None,
+        running_callback=None,
+        error_callback=None,
+        finished_callback=None,
+    ):
 
         return self.send(
             "scan_page",
@@ -127,33 +132,61 @@ class SaneThread(BaseThread):
             error_callback=error_callback,
         )
 
+    def scan_pages_callback(
+        self,
+        response,
+        started_callback=None,
+        running_callback=None,
+        finished_callback=None,
+        error_callback=None,
+        new_page_callback=None,
+    ):
 
-    def scan_pages(self, npages=1, started_callback=None,
-            running_callback=None,
-            finished_callback=None,
-            error_callback=None,
-            new_page_callback=None,
-            ):
-
-        num_pages_scanned = 0
-
-        def scan_pages_running_callback():
-            if "running_callback" in options:
-                options["running_callback"](_self["scan_progress"])
-
-        def scan_pages_finished_callback(path, status):
-
-            scan_page_finished_callback(status, path, num_pages_scanned, options)
-            num_pages_scanned += 1
-
+        self.num_pages_scanned += 1
+        if new_page_callback is not None:
+            new_page_callback(response)
+        if self.num_pages is not None and self.num_pages_scanned >= self.num_pages:
+            if finished_callback is not None:
+                finished_callback(response)
+            return
         self.scan_page(
             started_callback=started_callback,
-            running_callback=scan_pages_running_callback,
+            running_callback=running_callback,
             error_callback=error_callback,
-            finished_callback=scan_pages_finished_callback,
+            finished_callback=lambda response: self.scan_pages_callback(
+                response,
+                running_callback=running_callback,
+                finished_callback=finished_callback,
+                error_callback=error_callback,
+                new_page_callback=new_page_callback,
+            ),
         )
 
+    def scan_pages(
+        self,
+        num_pages=1,
+        started_callback=None,
+        running_callback=None,
+        finished_callback=None,
+        error_callback=None,
+        new_page_callback=None,
+    ):
 
+        self.num_pages_scanned = 0
+        self.num_pages = num_pages
+
+        return self.scan_page(
+            started_callback=started_callback,
+            running_callback=running_callback,
+            error_callback=error_callback,
+            finished_callback=lambda response: self.scan_pages_callback(
+                response,
+                running_callback=running_callback,
+                finished_callback=finished_callback,
+                error_callback=error_callback,
+                new_page_callback=new_page_callback,
+            ),
+        )
 
 
 def is_connected():
@@ -211,72 +244,6 @@ def set_option(_class, options):
         },
     )
     _monitor_process(sentinel, uuid)
-
-
-def scan_page_finished_callback(status, path, n_scanned, options):
-
-    if (
-        "new_page_callback" in options
-        and not _self["abort_scan"]
-        and (status == "STATUS_GOOD" or status == "STATUS_EOF")
-    ):
-        options["new_page_callback"](status, path, options["start"])
-
-    # Stop the process unless everything OK and more scans required
-
-    if (
-        _self["abort_scan"]
-        or (options["npages"] and n_scanned >= options["npages"])
-        or (status != "STATUS_GOOD" and status != "STATUS_EOF")
-    ):
-        if _self["abort_scan"]:
-            os.remove(path)
-        _enqueue_request("cancel", {"uuid": str(uuid_object())})
-        if _scanned_enough_pages(status, options["npages"], n_scanned):
-            if "finished_callback" in options:
-                options["finished_callback"]()
-
-        else:
-            if "error_callback" in options:
-                options["error_callback"](sane.strstatus(status))
-
-        return
-
-    elif options["cancel_between_pages"]:
-        _enqueue_request("cancel", {"uuid": str(uuid_object())})
-
-    if "step" not in options:
-        options["step"] = 1
-    options["start"] += options["step"]
-
-    def anonymous_04():
-        options["running_callback"](_self["scan_progress"])
-
-    def anonymous_05(new_path, new_status):
-
-        scan_page_finished_callback(new_status, new_path, n_scanned, options)
-        n_scanned += 1
-
-    Gscan2pdf.Frontend.Image_Sane.scan_page(
-        path=tempfile.NamedTemporaryFile(
-            dir=options["dir"],
-            suffix=".pnm",
-            delete=False,
-        ),
-        started_callback=options["started_callback"],
-        running_callback=anonymous_04,
-        error_callback=options["error_callback"],
-        finished_callback=anonymous_05,
-    )
-
-
-def _scanned_enough_pages(status, nrequired, ndone):
-
-    return (
-        status == "STATUS_GOOD"
-        or status == "STATUS_EOF"
-        or (status == "STATUS_NO_DOCS" and (nrequired == 0 or nrequired < ndone))
-    )
 
 
 def cancel_scan(self, callback):
@@ -426,9 +393,7 @@ def _thread_main(self):
             do_get_options(self, request["uuid"])
 
         elif request["action"] == "set-option":
-            do_set_option(
-                self, request["uuid"], request["index"], request["value"]
-            )
+            do_set_option(self, request["uuid"], request["index"], request["value"])
 
         elif request["action"] == "scan-page":
             do_scan_page(self, request["uuid"], request["path"])

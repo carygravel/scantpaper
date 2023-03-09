@@ -19,14 +19,19 @@ def test_1():
     thread = SaneThread()
     thread.start()
 
-    def finished_callback(response):
-        assert isinstance(response.info, PIL.Image.Image), "scan_page finished_callback returned image"
-        assert response.info.size == (157, 196), "scan_page finished_callback image size"
+    def new_page_callback(response):
+        assert isinstance(
+            response.info, PIL.Image.Image
+        ), "scan_page finished_callback returned image"
+        assert response.info.size == (
+            157,
+            196,
+        ), "scan_page finished_callback image size"
 
     def open_callback(response):
         assert response.process == "open_device", "open_callback"
         uid = thread.scan_page(
-            finished_callback=finished_callback,
+            finished_callback=new_page_callback,
         )
         thread.monitor(uid, block=True)  # for started_callback scan_page
         thread.monitor(uid, block=True)  # for finished_callback scan_page
@@ -34,23 +39,13 @@ def test_1():
     uid = thread.open_device(device_name="test", finished_callback=open_callback)
     thread.monitor(uid, block=True)  # for started_callback open_device
     thread.monitor(uid, block=True)  # for finished_callback open_device
-    assert False, "end"
 
-    #   next test thread.scan_pages
+    def scan_pages_finished_callback(response):
+        assert response.process == "scan_page", "scan_pages_finished_callback"
 
-    # Gtk.main()
-
-    #########################
-
-    os.remove(path)
-
-    thread.quit()
-
-    assert thread.decode_info(0) == "none", "no info"
-    assert thread.decode_info(1) == "SANE_INFO_INEXACT", "SANE_INFO_INEXACT"
-    assert (
-        thread.decode_info(3) == "SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
-    ), "combination"
-    assert (
-        thread.decode_info(11) == "? + SANE_INFO_RELOAD_OPTIONS + SANE_INFO_INEXACT"
-    ), "missing"
+    uid = thread.scan_pages(
+        new_page_callback=new_page_callback,
+        finished_callback=scan_pages_finished_callback,
+    )
+    thread.monitor(uid, block=True)  # for started_callback scan_page
+    thread.monitor(uid, block=True)  # for finished_callback scan_page
