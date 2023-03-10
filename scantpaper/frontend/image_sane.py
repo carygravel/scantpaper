@@ -48,7 +48,7 @@ class SaneThread(BaseThread):
         return self.device_handle.get_options()
 
     def do_set_option(self, key, value):
-        self.device_handle.__setattr__(key, value)
+        return self.device_handle.__setattr__(key, value)
 
     def do_scan_page(self):
         print("in do_scan_page")
@@ -115,6 +115,40 @@ class SaneThread(BaseThread):
             error_callback=error_callback,
         )
         # _monitor_process( sentinel, uuid )
+
+    def get_options(
+        self,
+        started_callback=None,
+        running_callback=None,
+        error_callback=None,
+        finished_callback=None,
+    ):
+        return self.send(
+            "get_options",
+            started_callback=started_callback,
+            running_callback=running_callback,
+            finished_callback=finished_callback,
+            error_callback=error_callback,
+        )
+
+    def set_option(
+        self,
+        name,
+        value,
+        started_callback=None,
+        running_callback=None,
+        error_callback=None,
+        finished_callback=None,
+    ):
+        return self.send(
+            "set_option",
+            name,
+            value,
+            started_callback=started_callback,
+            running_callback=running_callback,
+            finished_callback=finished_callback,
+            error_callback=error_callback,
+        )
 
     def scan_page(
         self,
@@ -211,37 +245,6 @@ def close_device(_class, options):
     callback[uuid]["error"] = options["error_callback"]
     sentinel = _enqueue_request(
         "close", {"uuid": uuid, "device_name": options["device_name"]}
-    )
-    _monitor_process(sentinel, uuid)
-
-
-def find_scan_options(
-    _class, started_callback, running_callback, finished_callback, error_callback
-):
-
-    uuid = str(uuid_object())
-    callback[uuid]["started"] = started_callback
-    callback[uuid]["running"] = running_callback
-    callback[uuid]["finished"] = finished_callback
-    callback[uuid]["error"] = error_callback
-    sentinel = _enqueue_request("get-options", {"uuid": uuid})
-    _monitor_process(sentinel, uuid)
-
-
-def set_option(_class, options):
-
-    uuid = str(uuid_object())
-    callback[uuid]["started"] = options["started_callback"]
-    callback[uuid]["running"] = options["running_callback"]
-    callback[uuid]["finished"] = options["finished_callback"]
-    callback[uuid]["error"] = options["error_callback"]
-    sentinel = _enqueue_request(
-        "set-option",
-        {
-            "index": options["index"],
-            "value": options["value"],
-            "uuid": uuid,
-        },
     )
     _monitor_process(sentinel, uuid)
 

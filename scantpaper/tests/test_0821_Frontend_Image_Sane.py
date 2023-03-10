@@ -74,3 +74,25 @@ def test_1():
     uid = thread.open_device(device_name="test", finished_callback=open_again_callback)
     thread.monitor(uid, block=True)  # for started_callback open_device
     thread.monitor(uid, block=True)  # for finished_callback open_device
+    assert isinstance(thread.device_handle.opt, dict), "opt is a dict of options"
+    assert isinstance(
+        thread.device_handle.optlist, list
+    ), "optlist is a list of option names"
+
+    assert not int(
+        repr(getattr(thread.device_handle, "enable_test_options"))
+    ), "enable_test_options defaults to False"
+    uid = thread.set_option("enable_test_options", True)
+    thread.monitor(uid, block=True)  # for started_callback set_option
+    thread.monitor(uid, block=True)  # for finished_callback set_option
+    assert int(
+        repr(getattr(thread.device_handle, "enable_test_options"))
+    ), "enable_test_options changed to True"
+
+    def get_options_callback(response):
+        assert response.process == "get_options", "get_options"
+        assert isinstance(response.info, list), "get_options return a list of options"
+
+    uid = thread.get_options(finished_callback=get_options_callback)
+    thread.monitor(uid, block=True)  # for started_callback get_options
+    thread.monitor(uid, block=True)  # for finished_callback get_options
