@@ -19,6 +19,16 @@ def test_1():
     thread = SaneThread()
     thread.start()
 
+    def scan_error_callback(response):
+        assert response.process == "scan_page", "scan_page without opening device"
+        assert (
+            response.status == "must open device before starting scan"
+        ), "scan_error_callback status"
+
+    uid = thread.scan_page(error_callback=scan_error_callback)
+    thread.monitor(uid, block=True)  # for started_callback scan_page
+    thread.monitor(uid, block=True)  # for error_callback scan_page
+
     def get_devices_callback(response):
         assert response.process == "get_devices", "get_devices_finished_callback"
         assert isinstance(response.info, list), "get_devices_finished_callback"
