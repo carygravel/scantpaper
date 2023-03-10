@@ -57,3 +57,10 @@ def test_1():
     )
     thread.monitor(uid, block=True)  # for started_callback scan_page
     thread.monitor(uid, block=True)  # for finished_callback scan_page
+
+    def open_again_callback(response):
+        assert response.process == "open_device", "open without closing"
+
+    uid = thread.open_device(device_name="test", finished_callback=open_again_callback)
+    thread.monitor(uid, block=True)  # for started_callback open_device
+    thread.monitor(uid, block=True)  # for finished_callback open_device
