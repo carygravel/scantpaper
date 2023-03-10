@@ -77,7 +77,7 @@ class SaneThread(BaseThread):
         # callback[uuid]["started"]  = started_callback
         # callback[uuid]["running"]  = running_callback
         # callback[uuid]["finished"] = finished_callback
-        self.send(
+        return self.send(
             "get_devices",
             started_callback=started_callback,
             running_callback=running_callback,

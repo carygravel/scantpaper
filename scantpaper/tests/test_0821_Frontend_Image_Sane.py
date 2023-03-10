@@ -19,6 +19,14 @@ def test_1():
     thread = SaneThread()
     thread.start()
 
+    def get_devices_callback(response):
+        assert response.process == "get_devices", "get_devices_finished_callback"
+        assert isinstance(response.info, list), "get_devices_finished_callback"
+
+    uid = thread.get_devices(finished_callback=get_devices_callback)
+    thread.monitor(uid, block=True)  # for started_callback open_device
+    thread.monitor(uid, block=True)  # for finished_callback open_device
+
     def new_page_callback(response):
         assert isinstance(
             response.info, PIL.Image.Image
