@@ -56,6 +56,7 @@ def test_1():
 
     uid = thread.open_device(device_name="test", finished_callback=open_callback)
     thread.monitor(uid, block=True)  # for started_callback open_device
+    thread.monitor(None, block=True)  # for log open_device
     thread.monitor(uid, block=True)  # for finished_callback open_device
 
     def scan_pages_finished_callback(response):
@@ -77,6 +78,7 @@ def test_1():
 
     uid = thread.open_device(device_name="test", finished_callback=open_again_callback)
     thread.monitor(uid, block=True)  # for started_callback open_device
+    thread.monitor(None, block=True)  # for log open_device
     thread.monitor(uid, block=True)  # for finished_callback open_device
     assert isinstance(thread.device_handle.opt, dict), "opt is a dict of options"
     assert isinstance(
@@ -105,6 +107,7 @@ def test_1():
         assert response.process == "close_device", "close_device"
 
     uid = thread.close_device(finished_callback=close_device_callback)
-    thread.monitor(uid, block=True)  # for close_device get_options
-    thread.monitor(uid, block=True)  # for close_device get_options
+    thread.monitor(uid, block=True)  # for started_callback close_device
+    thread.monitor(None, block=True)  # for log close_device
+    thread.monitor(uid, block=True)  # for finished_callback close_device
     assert thread.device_handle is None, "closed device"

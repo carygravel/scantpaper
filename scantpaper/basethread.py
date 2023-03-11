@@ -4,14 +4,17 @@ import queue
 import collections
 from enum import Enum
 import uuid
+import logging
 from gi.repository import GLib
 
 Request = collections.namedtuple("Request", ["event", "uuid", "args"])
 Response = collections.namedtuple(
     "Response", ["type", "process", "uuid", "info", "status"]
 )
-ResponseTypes = ["STARTED", "FINISHED", "CANCELLED", "ERROR"]
+ResponseTypes = ["STARTED", "FINISHED", "CANCELLED", "ERROR", "LOG"]
 ResponseType = Enum("ResponseType", ResponseTypes)
+
+logger = logging.getLogger(__name__)
 
 
 class BaseThread(threading.Thread):
@@ -48,6 +51,17 @@ class BaseThread(threading.Thread):
         self.requests.put(request)
         GLib.timeout_add(100, self.monitor, request.uuid)
         return request.uuid
+
+    def log(self, event="", info="", uid="", status=""):
+        self.responses.put(
+            Response(
+                type=ResponseType.LOG,
+                process=event,
+                info=info,
+                uuid=uid,
+                status=status,
+            )
+        )
 
     def run(self):
         while True:
@@ -117,6 +131,9 @@ class BaseThread(threading.Thread):
         try:
             result = self.responses.get(block)
         except queue.Empty:
+            return GLib.SOURCE_CONTINUE
+        if ResponseTypes[result.type.value - 1] == "LOG":
+            logger.info(f"process {result.process} sent '{result.info}'")
             return GLib.SOURCE_CONTINUE
         callback = ResponseTypes[result.type.value - 1].lower() + "_callback"
         if uid is None:
