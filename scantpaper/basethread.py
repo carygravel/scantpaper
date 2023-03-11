@@ -108,7 +108,8 @@ class BaseThread(threading.Thread):
 
     def _monitor_response(self, uid, block=False):
         if (
-            self.callbacks[uid]["started"]
+            uid is not None
+            and self.callbacks[uid]["started"]
             and "running_callback" in self.callbacks[uid]
             and self.callbacks[uid]["running_callback"] is not None
         ):
@@ -118,6 +119,8 @@ class BaseThread(threading.Thread):
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
         callback = ResponseTypes[result.type.value - 1].lower() + "_callback"
+        if uid is None:
+            uid = result.uuid
         if (
             uid == result.uuid
             and uid in self.callbacks

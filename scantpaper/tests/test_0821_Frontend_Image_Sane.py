@@ -60,13 +60,17 @@ def test_1():
 
     def scan_pages_finished_callback(response):
         assert response.process == "scan_page", "scan_pages_finished_callback"
+        assert thread.num_pages_scanned == 2, "scanned 2 pages"
 
     uid = thread.scan_pages(
+        num_pages=2,
         new_page_callback=new_page_callback,
         finished_callback=scan_pages_finished_callback,
     )
-    thread.monitor(uid, block=True)  # for started_callback scan_page
-    thread.monitor(uid, block=True)  # for finished_callback scan_page
+    thread.monitor(uid, block=True)  # for started_callback scan_page 1
+    thread.monitor(uid, block=True)  # for finished_callback scan_page 1
+    thread.monitor(None, block=True)  # for started_callback scan_page 2
+    thread.monitor(None, block=True)  # for finished_callback scan_page 2
 
     def open_again_callback(response):
         assert response.process == "open_device", "open without closing"
