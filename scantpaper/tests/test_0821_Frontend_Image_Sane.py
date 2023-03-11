@@ -100,3 +100,11 @@ def test_1():
     uid = thread.get_options(finished_callback=get_options_callback)
     thread.monitor(uid, block=True)  # for started_callback get_options
     thread.monitor(uid, block=True)  # for finished_callback get_options
+
+    def close_device_callback(response):
+        assert response.process == "close_device", "close_device"
+
+    uid = thread.close_device(finished_callback=close_device_callback)
+    thread.monitor(uid, block=True)  # for close_device get_options
+    thread.monitor(uid, block=True)  # for close_device get_options
+    assert thread.device_handle is None, "closed device"

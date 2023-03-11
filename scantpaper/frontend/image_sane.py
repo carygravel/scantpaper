@@ -59,11 +59,18 @@ class SaneThread(BaseThread):
         print("after scan")
 
     def do_cancel(self):
-
         if self.device_handle is not None:
             self.device_handle.cancel()
-        # self.return.enqueue(
-        # { "type" : 'cancelled', "uuid" : uuid } )
+
+    def do_close_device(self):
+        if self.device_handle is None:
+            # logger.debug("Ignoring close_device() call - no device open.")
+            pass
+        else:
+            # logger.debug(f"closing device '{self}->{device_name}'")
+            self.device_handle.close()
+            self.device_handle = None
+            self.device_name = None
 
     def get_devices(
         self,
@@ -222,31 +229,20 @@ class SaneThread(BaseThread):
             ),
         )
 
-
-def is_connected():
-    return "device_name" in _self
-
-
-def device():
-    return _self["device_name"]
-
-
-def close_device(_class, options):
-
-    uuid = str(uuid_object())
-    callback[uuid]["started"] = options["started_callback"]
-    callback[uuid]["running"] = options["running_callback"]
-
-    def anonymous_03():
-        _self["device_name"] = options["device_name"]
-        options["finished_callback"]()
-
-    callback[uuid]["finished"] = anonymous_03
-    callback[uuid]["error"] = options["error_callback"]
-    sentinel = _enqueue_request(
-        "close", {"uuid": uuid, "device_name": options["device_name"]}
-    )
-    _monitor_process(sentinel, uuid)
+    def close_device(
+        self,
+        started_callback=None,
+        running_callback=None,
+        error_callback=None,
+        finished_callback=None,
+    ):
+        return self.send(
+            "close_device",
+            started_callback=started_callback,
+            running_callback=running_callback,
+            finished_callback=finished_callback,
+            error_callback=error_callback,
+        )
 
 
 def cancel_scan(self, callback):
