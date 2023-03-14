@@ -9,7 +9,6 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
 def test_1():
-
     # Glib.set_application_name("gscan2pdf")
 
     # logger = Log.Log4perl.get_logger
@@ -102,6 +101,15 @@ def test_1():
     uid = thread.get_options(finished_callback=get_options_callback)
     thread.monitor(uid, block=True)  # for started_callback get_options
     thread.monitor(uid, block=True)  # for finished_callback get_options
+
+    uid = thread.cancel()
+    thread.get_options()  # dummy process
+    assert not thread.requests.empty(), "request queue is not empty"
+    thread.monitor(uid, block=True)  # for started_callback close_device
+    thread.monitor(None, block=True)  # for log empty request queue
+    thread.monitor(None, block=True)  # for log cancel
+    thread.monitor(uid, block=True)  # for finished_callback close_device
+    assert thread.requests.empty(), "request queue is empty"
 
     def close_device_callback(response):
         assert response.process == "close_device", "close_device"

@@ -12,7 +12,6 @@ class SaneThread(BaseThread):
         return sane.get_devices()
 
     def do_open_device(self, device_name):
-
         # close the handle if it is open
         if self.device_handle is not None:
             self.device_handle = None
@@ -56,7 +55,6 @@ class SaneThread(BaseThread):
         finished_callback=None,
         error_callback=None,
     ):
-
         return self.send(
             "get_devices",
             started_callback=started_callback,
@@ -123,7 +121,6 @@ class SaneThread(BaseThread):
         error_callback=None,
         finished_callback=None,
     ):
-
         return self.send(
             "scan_page",
             started_callback=started_callback,
@@ -141,7 +138,6 @@ class SaneThread(BaseThread):
         error_callback=None,
         new_page_callback=None,
     ):
-
         self.num_pages_scanned += 1
         if new_page_callback is not None:
             new_page_callback(response)
@@ -171,7 +167,6 @@ class SaneThread(BaseThread):
         error_callback=None,
         new_page_callback=None,
     ):
-
         self.num_pages_scanned = 0
         self.num_pages = num_pages
 
@@ -203,24 +198,31 @@ class SaneThread(BaseThread):
             error_callback=error_callback,
         )
 
+    def cancel(
+        self,
+        started_callback=None,
+        running_callback=None,
+        error_callback=None,
+        finished_callback=None,
+    ):
+        """Flag the scan routine to abort"""
 
-def cancel_scan(self, callback):
-    """Flag the scan routine to abort"""
+        # empty process queue first to stop any new process from starting
+        self.log(event="cancel", info="emptying process queue")
+        while not self.requests.empty():
+            self.requests.get()
 
-    # "" process queue first to stop any new process from starting
+        # Then send the thread a cancel signal
+        # _self["abort_scan"] = 1
+        # uuid = str(uuid_object())
+        # callback[uuid]["cancelled"] = callback
 
-    # logger.info('""ing process queue')
-    while _self["requests"].dequeue_nb():
-        pass
-
-    # Then send the thread a cancel signal
-
-    _self["abort_scan"] = 1
-    # uuid = str(uuid_object())
-    # callback[uuid]["cancelled"] = callback
-
-    # Add a cancel request to ensure the reply is not blocked
-
-    # logger.info("Requesting cancel")
-    # sentinel = _enqueue_request("cancel", {"uuid": uuid})
-    # _monitor_process(sentinel, uuid)
+        # Add a cancel request to ensure the reply is not blocked
+        self.log(event="cancel", info="Requesting cancel")
+        return self.send(
+            "cancel",
+            started_callback=started_callback,
+            running_callback=running_callback,
+            finished_callback=finished_callback,
+            error_callback=error_callback,
+        )
