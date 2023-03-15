@@ -1,20 +1,16 @@
-import os
-import gi
+"test frontend/image_sane.py"
 from frontend.image_sane import SaneThread
-import logging
 import PIL
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+
+def monitor_multiple(thread, uid_list):
+    "helper function to save calls to monitor()"
+    for uid in uid_list:
+        thread.monitor(uid, block=True)
 
 
 def test_1():
-    # Glib.set_application_name("gscan2pdf")
-
-    # logger = Log.Log4perl.get_logger
-    # SaneThread.setup(logger)
-
-    path = None
+    "test frontend/image_sane.py"
     thread = SaneThread()
     thread.start()
 
@@ -25,16 +21,23 @@ def test_1():
         ), "scan_error_callback status"
 
     uid = thread.scan_page(error_callback=scan_error_callback)
-    thread.monitor(uid, block=True)  # for started_callback scan_page
-    thread.monitor(uid, block=True)  # for error_callback scan_page
+    monitor_multiple(
+        thread, [uid, uid]
+    )  # for scan_page started_callback, error_callback
 
     def get_devices_callback(response):
         assert response.process == "get_devices", "get_devices_finished_callback"
         assert isinstance(response.info, list), "get_devices_finished_callback"
 
     uid = thread.get_devices(finished_callback=get_devices_callback)
-    thread.monitor(uid, block=True)  # for started_callback open_device
-    thread.monitor(uid, block=True)  # for finished_callback open_device
+    # for open_device started_callback, finished_callback
+    monitor_multiple(thread, [uid, uid])
+
+
+def test_2():
+    "test frontend/image_sane.py #2"
+    thread = SaneThread()
+    thread.start()
 
     def new_page_callback(response):
         assert isinstance(
@@ -50,13 +53,12 @@ def test_1():
         uid = thread.scan_page(
             finished_callback=new_page_callback,
         )
-        thread.monitor(uid, block=True)  # for started_callback scan_page
-        thread.monitor(uid, block=True)  # for finished_callback scan_page
+        # for scan_page started_callback, finished_callback
+        monitor_multiple(thread, [uid, uid])
 
     uid = thread.open_device(device_name="test", finished_callback=open_callback)
-    thread.monitor(uid, block=True)  # for started_callback open_device
-    thread.monitor(None, block=True)  # for log open_device
-    thread.monitor(uid, block=True)  # for finished_callback open_device
+    # for open_device started_callback, log, finished_callback
+    monitor_multiple(thread, [uid, None, uid])
 
     def scan_pages_finished_callback(response):
         assert response.process == "scan_page", "scan_pages_finished_callback"
@@ -67,18 +69,15 @@ def test_1():
         new_page_callback=new_page_callback,
         finished_callback=scan_pages_finished_callback,
     )
-    thread.monitor(uid, block=True)  # for started_callback scan_page 1
-    thread.monitor(uid, block=True)  # for finished_callback scan_page 1
-    thread.monitor(None, block=True)  # for started_callback scan_page 2
-    thread.monitor(None, block=True)  # for finished_callback scan_page 2
+    # for scan_page started_callback, finished_callback, page 1 & 2
+    monitor_multiple(thread, [uid, uid, None, None])
 
     def open_again_callback(response):
         assert response.process == "open_device", "open without closing"
 
     uid = thread.open_device(device_name="test", finished_callback=open_again_callback)
-    thread.monitor(uid, block=True)  # for started_callback open_device
-    thread.monitor(None, block=True)  # for log open_device
-    thread.monitor(uid, block=True)  # for finished_callback open_device
+    # for open_device started_callback, log, finished_callback
+    monitor_multiple(thread, [uid, None, uid])
     assert isinstance(thread.device_handle.opt, dict), "opt is a dict of options"
     assert isinstance(
         thread.device_handle.optlist, list
@@ -88,8 +87,8 @@ def test_1():
         repr(getattr(thread.device_handle, "enable_test_options"))
     ), "enable_test_options defaults to False"
     uid = thread.set_option("enable_test_options", True)
-    thread.monitor(uid, block=True)  # for started_callback set_option
-    thread.monitor(uid, block=True)  # for finished_callback set_option
+    # for set_option started_callback, finished_callback
+    monitor_multiple(thread, [uid, uid])
     assert int(
         repr(getattr(thread.device_handle, "enable_test_options"))
     ), "enable_test_options changed to True"
@@ -99,23 +98,20 @@ def test_1():
         assert isinstance(response.info, list), "get_options return a list of options"
 
     uid = thread.get_options(finished_callback=get_options_callback)
-    thread.monitor(uid, block=True)  # for started_callback get_options
-    thread.monitor(uid, block=True)  # for finished_callback get_options
+    # for get_options started_callback, finished_callback
+    monitor_multiple(thread, [uid, uid])
 
     uid = thread.cancel()
     thread.get_options()  # dummy process
     assert not thread.requests.empty(), "request queue is not empty"
-    thread.monitor(uid, block=True)  # for started_callback close_device
-    thread.monitor(None, block=True)  # for log empty request queue
-    thread.monitor(None, block=True)  # for log cancel
-    thread.monitor(uid, block=True)  # for finished_callback close_device
+    # for close_device started_callback, log empty request queue, log, finished_callback
+    monitor_multiple(thread, [uid, None, None, uid])
     assert thread.requests.empty(), "request queue is empty"
 
     def close_device_callback(response):
         assert response.process == "close_device", "close_device"
 
     uid = thread.close_device(finished_callback=close_device_callback)
-    thread.monitor(uid, block=True)  # for started_callback close_device
-    thread.monitor(None, block=True)  # for log close_device
-    thread.monitor(uid, block=True)  # for finished_callback close_device
+    # for close_device started_callback, log, finished_callback
+    monitor_multiple(thread, [uid, None, uid])
     assert thread.device_handle is None, "closed device"
