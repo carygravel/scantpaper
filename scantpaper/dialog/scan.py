@@ -5,8 +5,8 @@ from copy import deepcopy
 # import GooCanvas2
 from comboboxtext import ComboBoxText
 from dialog import Dialog
-import scanner.options
-import scanner.profile
+from scanner.options import Options
+from scanner.profile import Profile
 import gettext  # For translations
 
 # from translation import __
@@ -112,17 +112,17 @@ class Scan(Dialog):
 
         scwin = Gtk.ScrolledWindow()
         _ = gettext.gettext
-        self.notebook.append_page( scwin, Gtk.Label( _('Page Options') ) )
+        self.notebook.append_page( child=scwin, tab_label=Gtk.Label( label=_('Page Options') ) )
         scwin.set_policy( Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC )
         vbox1 = Gtk.VBox()
         # self.vbox = vbox1
         border_width = self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left#._get('content-area-border')
         vbox1.set_border_width(border_width)
-        scwin.add_with_viewport(vbox1)
+        scwin.add(vbox1)
 
     # Frame for # pages
 
-        self.framen = Gtk.Frame( _('# Pages') )
+        self.framen = Gtk.Frame( label=_('# Pages') )
         vbox1.pack_start( self.framen, False, False, 0 )
         vboxn = Gtk.VBox()
         vboxn.set_border_width(border_width)
@@ -135,14 +135,12 @@ class Scan(Dialog):
         bscanall =       Gtk.RadioButton.new_with_label_from_widget( None, _('All') )
         bscanall.set_tooltip_text( _('Scan all pages') )
         vboxn.pack_start( bscanall, True, True, 0 )
-        def anonymous_01():
+        def do_clicked_scan_all(_data):
             if bscanall.get_active() :
                 self.num_pages=0
 
 
-        bscanall.connect(
-        'clicked' , anonymous_01 
-    )
+        bscanall.connect(        'clicked' , do_clicked_scan_all     )
 
     # Entry button
 
@@ -157,15 +155,13 @@ class Scan(Dialog):
         spin_buttonn = Gtk.SpinButton.new_with_range( 1, MAX_PAGES, 1 )
         spin_buttonn.set_tooltip_text( _('Set number of pages to scan') )
         hboxn.pack_end( spin_buttonn, False, False, 0 )
-        def anonymous_02():
+        def do_clicked_scan_number(_data):
             if bscannum.get_active() :
                 self.num_pages=spin_buttonn
 
 
 
-        bscannum.connect(
-        'clicked' , anonymous_02 
-    )
+        bscannum.connect(        'clicked' , do_clicked_scan_number     )
         def anonymous_03( widget, value ):
             
             if value == 0 :
@@ -189,7 +185,7 @@ class Scan(Dialog):
         'changed-num-pages' , anonymous_03 
     )
         self.connect(
-        'changed-scan-option' , _changed_scan_option_callback,
+        'changed-scan-option' , self._changed_scan_option_callback,
         bscannum
     )
 
@@ -211,7 +207,7 @@ class Scan(Dialog):
     # Switch between basic and extended modes
 
         hbox  = Gtk.HBox()
-        label = Gtk.Label( _('Extended page numbering') )
+        label = Gtk.Label( label=_('Extended page numbering') )
         hbox.pack_start( label, False, False, 0 )
         self.checkx = Gtk.Switch()
         hbox.pack_end( self.checkx, False, False, 0 )
@@ -219,7 +215,7 @@ class Scan(Dialog):
 
     # Frame for extended mode
 
-        self.framex = Gtk.Frame( _('Page number') )
+        self.framex = Gtk.Frame( label=_('Page number') )
         self.vboxx.pack_start( self.framex, False, False, 0 )
         vboxx = Gtk.VBox()
         vboxx.set_border_width(border_width)
@@ -229,7 +225,7 @@ class Scan(Dialog):
 
         hboxxs = Gtk.HBox()
         vboxx.pack_start( hboxxs, False, False, 0 )
-        labelxs = Gtk.Label( _('Start') )
+        labelxs = Gtk.Label( label=_('Start') )
         hboxxs.pack_start( labelxs, False, False, 0 )
         spin_buttons = Gtk.SpinButton.new_with_range( 1, MAX_PAGES, 1 )
         hboxxs.pack_end( spin_buttons, False, False, 0 )
@@ -258,7 +254,7 @@ class Scan(Dialog):
 
         hboxi = Gtk.HBox()
         vboxx.pack_start( hboxi, False, False, 0 )
-        labelxi = Gtk.Label( _('Increment') )
+        labelxi = Gtk.Label( label=_('Increment') )
         hboxi.pack_start( labelxi, False, False, 0 )
         spin_buttoni =       Gtk.SpinButton.new_with_range( -MAX_INCREMENT, MAX_INCREMENT, 1 )
         spin_buttoni.set_value( self.page_number_increment )
@@ -304,7 +300,7 @@ class Scan(Dialog):
 
     # Frame for standard mode
 
-        self.frames = Gtk.Frame( _('Source document') )
+        self.frames = Gtk.Frame( label=_('Source document') )
         self.vboxx.pack_start( self.frames, False, False, 0 )
         vboxs = Gtk.VBox()
         vboxs.set_border_width(border_width)
@@ -336,7 +332,7 @@ class Scan(Dialog):
 
         hboxs = Gtk.HBox()
         vboxs.pack_start( hboxs, True, True, 0 )
-        labels = Gtk.Label( _('Side to scan') )
+        labels = Gtk.Label( label=_('Side to scan') )
         hboxs.pack_start( labels, False, False, 0 )
         self.combobs = ComboBoxText()
         for _ in          ( _('Facing'), _('Reverse') ) :
@@ -361,8 +357,7 @@ class Scan(Dialog):
         self.connect(
         'changed-side-to-scan' , anonymous_11 
     )
-        self.combobs.set_tooltip_text(
-        _('Sets which side of a double-sided document is scanned') )
+        self.combobs.set_tooltip_text(_('Sets which side of a double-sided document is scanned') )
         self.combobs.set_active(0)
 
     # Have to do this here because setting the facing combobox switches it
@@ -371,8 +366,7 @@ class Scan(Dialog):
         hboxs.pack_end( self.combobs, False, False, 0 )
 
         def anonymous_12():
-            """    # Have to put the double-sided callback here to reference page side
-"""
+            "Have to put the double-sided callback here to reference page side"
             spin_buttoni.set_value(
                     
                 DOUBLE_INCREMENT if self.combobs.get_active()==0 
@@ -395,13 +389,13 @@ class Scan(Dialog):
 
     # Scan profiles
 
-        self.current_scan_options = Gscan2pdf.Scanner.Profile()
-        framesp = Gtk.Frame( _('Scan profiles') )
+        self.current_scan_options = Profile()
+        framesp = Gtk.Frame( label=_('Scan profiles') )
         vbox1.pack_start( framesp, False, False, 0 )
         vboxsp = Gtk.VBox()
         vboxsp.set_border_width(border_width)
         framesp.add(vboxsp)
-        self.combobsp                = Gscan2pdf.ComboBoxText()
+        self.combobsp                = ComboBoxText()
         def anonymous_13():
             self.num_reloads = 0    # num-reloads is read-only
             self.profile=self
@@ -465,7 +459,7 @@ class Scan(Dialog):
     def _add_device_combobox( self, vbox ) :
     
         self.hboxd = Gtk.HBox()
-        labeld = Gtk.Label( _('Device') )
+        labeld = Gtk.Label( label=_('Device') )
         self.hboxd.pack_start( labeld, False, False, 0 )
         self.combobd = ComboBoxText()
         self.combobd.append_text( _('Rescan for devices') )
@@ -557,7 +551,7 @@ not required, and then to cancel or accept the changes.
         elif _new_val( oldval, newval ) :
             msg=None
             if  (logger is not None) :
-                msg =                 f" setting {name} from "               + Gscan2pdf.Dialog.dump_or_stringify(oldval) + ' to '               + Gscan2pdf.Dialog.dump_or_stringify(newval)
+                msg =                 f" setting {name} from "               + Dialog.dump_or_stringify(oldval) + ' to '               + Dialog.dump_or_stringify(newval)
                 logger.debug(f"Started{msg}")
 
             callback = False
@@ -907,7 +901,7 @@ not required, and then to cancel or accept the changes.
                 elif  opt["unit"] =="UNIT_MICROSECOND":
                     text = _('μs')
 
-                label = Gtk.Label(text)
+                label = Gtk.Label(label=text)
                 hbox.pack_end( label, False, False, 0 )
 
             self.option_widgets[ opt["name"] ] = widget
@@ -953,9 +947,9 @@ re.search(fr"^(?:{SANE_NAME_SCAN_TL_X}|{SANE_NAME_SCAN_TL_Y}|{SANE_NAME_SCAN_BR_
 
         # Paper list
 
-            label = Gtk.Label( _('Paper size') )
+            label = Gtk.Label( label=_('Paper size') )
             hboxp.pack_start( label, False, False, 0 )
-            self.combobp = Gscan2pdf.ComboBoxText()
+            self.combobp = ComboBoxText()
             self.combobp.append_text( _('Manual') )
             self.combobp.append_text( _('Edit') )
             self.combobp           .set_tooltip_text( _('Selects or edits the paper size') )
@@ -1265,7 +1259,7 @@ settings and apply it
 
         formats       = self.paper_formats
         options       = self.available_scan_options
-        paper_profile = Gscan2pdf.Scanner.Profile()
+        paper_profile = Profile()
         if (options.by_name("page-height") is not None)        and not options.by_name("page-height")["cap"] &        "CAP_INACTIVE"        and (options.by_name("page-width") is not None)        and not options.by_name("page-width")["cap"] &        "CAP_INACTIVE"     :
             paper_profile.add_backend_option( "page-height",
             formats[paper]["y"] + formats[paper]["t"],
@@ -1333,7 +1327,7 @@ settings and apply it
         combobp = self.combobp
         options = self.available_scan_options
         formats = self.paper_formats
-        window = Gscan2pdf.Dialog(
+        window = Dialog(
         transient_for = self,
         title           = _('Edit paper size'),
     )
@@ -1625,7 +1619,7 @@ settings and apply it
 
     # Set up the canvas
 
-        window = Gscan2pdf.Dialog(
+        window = Dialog(
         transient_for = self,
         title           = d_sane.get( opt["title"] ),
     )
@@ -1757,7 +1751,7 @@ Set options to profile referenced by hashref
     # reload to get defaults before applying profile
 
         signal=None
-        self.current_scan_options =       Gscan2pdf.Scanner.Profile.new_from_data( deepcopy(profile) )
+        self.current_scan_options =       Profile.new_from_data( deepcopy(profile) )
         def anonymous_43():
             self.disconnect(signal)
             self.add_current_scan_options(profile)
@@ -1834,7 +1828,7 @@ f"Skip setting option '{name}' to '{val}', as previous call set SANE_INFO_INEXAC
 
         # Ignore option if value already within tolerance
 
-            if Gscan2pdf.Scanner.Options.within_tolerance(
+            if Options.within_tolerance(
                 opt, val, OPTION_TOLERANCE
             )         :
                 logger.info(
@@ -1982,9 +1976,9 @@ f"Skip setting option '{name}' to '{val}', as previous call set SANE_INFO_INEXAC
 
 
         if   (x is None) :
-            x = Gscan2pdf.Document.POINTS_PER_INCH
+            x = Document.POINTS_PER_INCH
         if   (y is None) :
-            y = Gscan2pdf.Document.POINTS_PER_INCH
+            y = Document.POINTS_PER_INCH
         return x, y
 
 
@@ -2092,7 +2086,7 @@ def _save_profile_callback( widget, parent ) :
         gtk_cancel = 'cancel'
     )
     hbox  = Gtk.HBox()
-    label = Gtk.Label( _('Name of scan profile') )
+    label = Gtk.Label( label=_('Name of scan profile') )
     hbox.pack_start( label, False, False, 0 )
     entry = Gtk.Entry()
     entry.set_activates_default(True)
@@ -2112,7 +2106,7 @@ def _save_profile_callback( widget, parent ) :
                         gtk_ok     = 'ok',
                         gtk_cancel = 'cancel'
                     )
-                    label = Gtk.Label(warning)
+                    label = Gtk.Label(label=warning)
                     dialog2.get_content_area().add(label)
                     label.show()
                     if dialog2.run() == 'ok' :
@@ -2152,7 +2146,7 @@ def _edit_profile_callback( widget, parent ) :
         gtk_ok     = 'ok',
         gtk_cancel = 'cancel'
     )
-    label = Gtk.Label(msg)
+    label = Gtk.Label(label=msg)
     dialog.get_content_area().pack_start( label, True, True, 0 )
 
     # Clone so that we can cancel the changes, if necessary
@@ -2197,8 +2191,8 @@ def _edit_profile_callback( widget, parent ) :
 
 def _build_profile_table( profile, options, vbox ) :
     
-    frameb = Gtk.Frame( _('Backend options') )
-    framef = Gtk.Frame( _('Frontend options') )
+    frameb = Gtk.Frame( label=_('Backend options') )
+    framef = Gtk.Frame( label=_('Frontend options') )
     vbox.pack_start( frameb, True, True, 0 )
     vbox.pack_start( framef, True, True, 0 )
 
@@ -2213,7 +2207,7 @@ def _build_profile_table( profile, options, vbox ) :
         opt   = options.by_name(name)
         row   = Gtk.ListBoxRow()
         hbox  = Gtk.HBox()
-        label = Gtk.Label( d_sane.get( opt["title"] ) )
+        label = Gtk.Label( label=d_sane.get( opt["title"] ) )
         hbox.pack_start( label, False, True, 0 )
         button = Gtk.Button.new_from_stock('gtk-delete')
         hbox.pack_end( button, False, False, 0 )
@@ -2238,7 +2232,7 @@ def _build_profile_table( profile, options, vbox ) :
     for     name in iter :
         row   = Gtk.ListBoxRow()
         hbox  = Gtk.HBox()
-        label = Gtk.Label(name)
+        label = Gtk.Label(label=name)
         hbox.pack_start( label, False, True, 0 )
         button = Gtk.Button.new_from_stock('gtk-delete')
         hbox.pack_end( button, False, False, 0 )
