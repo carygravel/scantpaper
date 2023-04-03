@@ -335,17 +335,15 @@ class Scan(Dialog):
         labels = Gtk.Label( label=_('Side to scan') )
         hboxs.pack_start( labels, False, False, 0 )
         self.combobs = ComboBoxText()
-        for _ in          ( _('Facing'), _('Reverse') ) :
-            self.combobs.append_text(_)
+        for text in          ( _('Facing'), _('Reverse') ) :
+            self.combobs.append_text(text)
 
         def anonymous_10():
             self.buttond.set_active(True)    # Set the radiobutton active
             self.side_to_scan=self
 
 
-        self.combobs.connect(
-        'changed' , anonymous_10 
-    )
+        self.combobs.connect(        'changed' , anonymous_10     )
         def anonymous_11( widget, value ):
             
             self.page_number_increment=value
@@ -354,9 +352,7 @@ class Scan(Dialog):
 
 
 
-        self.connect(
-        'changed-side-to-scan' , anonymous_11 
-    )
+        self.connect(        'changed-side-to-scan' , anonymous_11     )
         self.combobs.set_tooltip_text(_('Sets which side of a double-sided document is scanned') )
         self.combobs.set_active(0)
 
@@ -439,11 +435,11 @@ class Scan(Dialog):
         def anonymous_16():
             self.hide()
 
-        ( self.scan_button ) = self.add_actions(
+        ( self.scan_button ) = self.add_actions([(
         _('Scan'),
-        anonymous_15 ,
+        anonymous_15) ,(
         'gtk-close',
-        anonymous_16 
+        anonymous_16) ]
     )
 
     # initialise stack of uuids - needed for cases where setting a profile
@@ -453,7 +449,6 @@ class Scan(Dialog):
         self.setting_profile              = []
         self.setting_current_scan_options = []
         self.cursor='default'
-        return self
 
 
     def _add_device_combobox( self, vbox ) :

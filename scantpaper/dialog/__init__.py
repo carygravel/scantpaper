@@ -66,16 +66,15 @@ class Dialog(Gtk.Dialog):
 
     def add_actions(self, button_list):
         "Add buttons and link up their actions"
-        responses = ["ok", "cancel"]
-        (buttons, callbacks) = ([], {})
-        i = 0
-        while i < len(button_list) - 1:
-            _text, callback = button_list
+        responses = [Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL]
+        buttons, callbacks = [], {}
+        for button in button_list:
+            text, callback = button
             response = responses.pop(0)
             if response is None:
                 break
             callbacks[response] = callback
-            buttons.append(self.add_button(text=response))
+            buttons.append(self.add_button(text, response))
 
         self.set_default_response(Gtk.ResponseType.OK)
 
