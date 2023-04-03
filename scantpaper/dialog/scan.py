@@ -75,10 +75,6 @@ class Scan(Dialog):
     max_pages=GObject.Property(type=int,minimum=-1,maximum=MAX_PAGES,default=0,nick='Maximum number of pages',blurb='Maximum number of pages that can be scanned with current page-number-start and page-number-increment')
     page_number_start=GObject.Property(type=int,minimum=1,maximum=MAX_PAGES,default=1,nick='Starting page number',blurb='Page number of first page to be scanned')
     page_number_increment=GObject.Property(type=int,minimum=-MAX_INCREMENT,maximum=MAX_INCREMENT,default=1,nick='Page number increment',blurb='Amount to increment page number when scanning multiple pages')
-    # sided=GObject.Property(type=GObject.GEnum,default='single',nick='Sided',blurb='Either single or double')
-    sided = GObject.Property(
-        type=str, default="single", nick="Sided", blurb="Either single or double"
-    )
     # side_to_scan=GObject.Property(type=GObject.GEnum,default='facing',nick='Side to scan',blurb='Either facing or reverse')
     side_to_scan = GObject.Property(
         type=str, default="facing", nick="Side to scan", blurb="Either facing or reverse"
@@ -94,6 +90,23 @@ class Scan(Dialog):
     document=GObject.Property(type=object,nick='Document',blurb='Gscan2pdf::Document for new scans')
     cursor=GObject.Property(type=object,nick='Cursor',blurb='name of current cursor')
     ignore_duplex_capabilities=GObject.Property(type=bool,default=False,nick='Ignore duplex capabilities',blurb='Ignore duplex capabilities')
+
+    # sided=GObject.Property(type=GObject.GEnum,default='single',nick='Sided',blurb='Either single or double')
+    @GObject.Property(type=str, default="single", nick="Sided", blurb="Either single or double")
+    def sided(self):
+        return self.sided
+
+    @sided.setter
+    def sided(self, newval):
+        self.sided = newval
+        widget = self.buttons
+        if newval == 'double' :
+            widget = self.buttond
+        else :
+            # selecting single-sided also selects facing page.
+            self.side_to_scan='facing'
+        widget.set_active(True)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # self.connect("show",show)
@@ -601,19 +614,6 @@ not required, and then to cancel or accept the changes.
 
             elif name=='side_to_scan':
                 self._set_side_to_scan( name, newval )
-
-            elif name=='sided':
-                self[name] = newval
-                widget = self.buttons
-                if newval == 'double' :
-                    widget = self.buttond
- 
-                else :
-                    # selecting single-sided also selects facing page.
-
-                    self.side_to_scan='facing'
-
-                widget.set_active(True)
 
             elif name=='paper':
                 if  (newval is not None) :

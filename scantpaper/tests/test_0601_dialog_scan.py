@@ -8,17 +8,7 @@ from gi.repository import Gtk
 import logging
 
 
-
-
 def test_1():
-
-    # To get TRUE and FALSE
-             # Could just call init separately
-
-
-
-
-#########################
 
     window = Gtk.Window()
 
