@@ -71,16 +71,17 @@ class Scan(Dialog):
     profile=GObject.Property(type=object,nick='Profile',blurb='Name of current profile')
     paper=GObject.Property(type=str,default="",nick='Paper',blurb='Name of currently selected paper format')
     paper_formats=GObject.Property(type=object,nick='Paper formats',blurb='Hash of arrays defining paper formats, e.g. A4, Letter, etc.')
-    num_pages=GObject.Property(type=int,minimum=0,maximum=MAX_PAGES,default=1,nick='Number of pages',blurb='Number of pages to be scanned')
+    _num_pages=1
     max_pages=GObject.Property(type=int,minimum=-1,maximum=MAX_PAGES,default=0,nick='Maximum number of pages',blurb='Maximum number of pages that can be scanned with current page-number-start and page-number-increment')
     page_number_start=GObject.Property(type=int,minimum=1,maximum=MAX_PAGES,default=1,nick='Starting page number',blurb='Page number of first page to be scanned')
-    page_number_increment=GObject.Property(type=int,minimum=-MAX_INCREMENT,maximum=MAX_INCREMENT,default=1,nick='Page number increment',blurb='Amount to increment page number when scanning multiple pages')
+    _page_number_increment=1
+    _sided="single"
     # side_to_scan=GObject.Property(type=GObject.GEnum,default='facing',nick='Side to scan',blurb='Either facing or reverse')
     side_to_scan = GObject.Property(
         type=str, default="facing", nick="Side to scan", blurb="Either facing or reverse"
     )
     available_scan_options=GObject.Property(type=object,nick='Scan options available',blurb='Scan options currently available, whether active, selected, or not')
-    current_scan_options=GObject.Property(type=object,nick='Current scan options',blurb='Scan options making up current profile')
+    _current_scan_options=Profile()
     visible_scan_options=GObject.Property(type=object,nick='Visible scan options',blurb='Hash of scan options to show or hide from the user')
     progress_pulse_step=GObject.Property(type=float,minimum=0.0,maximum=1.0,default=0.1,nick='Progress pulse step',blurb='Pulse step of progress bar')
     allow_batch_flatbed=GObject.Property(type=bool,default=False,nick='Allow batch scanning from flatbed',blurb='Allow batch scanning from flatbed')
@@ -91,14 +92,37 @@ class Scan(Dialog):
     cursor=GObject.Property(type=object,nick='Cursor',blurb='name of current cursor')
     ignore_duplex_capabilities=GObject.Property(type=bool,default=False,nick='Ignore duplex capabilities',blurb='Ignore duplex capabilities')
 
+    @GObject.Property(type=int,minimum=0,maximum=MAX_PAGES,default=1,nick='Number of pages',blurb='Number of pages to be scanned')
+    def num_pages(self):
+        return self._num_pages
+
+    @num_pages.setter
+    def num_pages(self, newval):
+        options = self.available_scan_options
+        if newval == 1        or self.allow_batch_flatbed        or (     (options is not None)
+            and  "val"  in options["source"]
+            and not options.flatbed_selected() )     :
+            self._num_pages = newval
+            self.current_scan_options.add_frontend_option( "num_pages", newval )
+            self.emit( 'changed-num-pages', newval )
+
+    @GObject.Property(type=int,minimum=-MAX_INCREMENT,maximum=MAX_INCREMENT,default=1,nick='Page number increment',blurb='Amount to increment page number when scanning multiple pages')
+    def page_number_increment(self):
+        return self._page_number_increment
+
+    @page_number_increment.setter
+    def page_number_increment(self, newval):
+        self._page_number_increment = newval
+        self.emit( 'changed-page-number-increment', newval )
+
     # sided=GObject.Property(type=GObject.GEnum,default='single',nick='Sided',blurb='Either single or double')
     @GObject.Property(type=str, default="single", nick="Sided", blurb="Either single or double")
     def sided(self):
-        return self.sided
+        return self._sided
 
     @sided.setter
     def sided(self, newval):
-        self.sided = newval
+        self._sided = newval
         widget = self.buttons
         if newval == 'double' :
             widget = self.buttond
@@ -106,6 +130,14 @@ class Scan(Dialog):
             # selecting single-sided also selects facing page.
             self.side_to_scan='facing'
         widget.set_active(True)
+
+    @GObject.Property(type=object,nick='Current scan options',blurb='Scan options making up current profile')
+    def current_scan_options(self):
+        return self._current_scan_options
+
+    @current_scan_options.setter
+    def current_scan_options(self, newval):
+        self._current_scan_options=newval
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -148,10 +180,10 @@ class Scan(Dialog):
         bscanall =       Gtk.RadioButton.new_with_label_from_widget( None, _('All') )
         bscanall.set_tooltip_text( _('Scan all pages') )
         vboxn.pack_start( bscanall, True, True, 0 )
+
         def do_clicked_scan_all(_data):
             if bscanall.get_active() :
                 self.num_pages=0
-
 
         bscanall.connect(        'clicked' , do_clicked_scan_all     )
 
@@ -168,11 +200,10 @@ class Scan(Dialog):
         spin_buttonn = Gtk.SpinButton.new_with_range( 1, MAX_PAGES, 1 )
         spin_buttonn.set_tooltip_text( _('Set number of pages to scan') )
         hboxn.pack_end( spin_buttonn, False, False, 0 )
+
         def do_clicked_scan_number(_data):
             if bscannum.get_active() :
-                self.num_pages=spin_buttonn
-
-
+                self.num_pages=spin_buttonn.get_value()
 
         bscannum.connect(        'clicked' , do_clicked_scan_number     )
         def anonymous_03( widget, value ):
@@ -272,17 +303,15 @@ class Scan(Dialog):
         spin_buttoni =       Gtk.SpinButton.new_with_range( -MAX_INCREMENT, MAX_INCREMENT, 1 )
         spin_buttoni.set_value( self.page_number_increment )
         hboxi.pack_end( spin_buttoni, False, False, 0 )
-        def anonymous_06():
+
+        def do_spin_buttoni_value_changed(_widget):
             value = spin_buttoni.get_value()
             if value == 0 :
                 value = -self.page_number_increment
             spin_buttoni.set_value(value)
             self.page_number_increment=value
 
-
-        spin_buttoni.connect(
-        'value-changed' , anonymous_06 
-    )
+        spin_buttoni.connect(        'value-changed' , do_spin_buttoni_value_changed     )
         def anonymous_07( widget, value ):
             
             spin_buttoni.set_value(value)
@@ -301,11 +330,9 @@ class Scan(Dialog):
         spin_buttons.set_value( self.page_number_start )
 
         def anonymous_08():
-            """    # Callback on changing number of pages
-"""
+            "Callback on changing number of pages"
             self.num_pages=spin_buttonn
             bscannum.set_active(True)    # Set the radiobutton active
-
 
         spin_buttonn.connect(
         'value-changed' , anonymous_08 
@@ -325,14 +352,12 @@ class Scan(Dialog):
         _('Single sided') )
         self.buttons.set_tooltip_text( _('Source document is single-sided') )
         vboxs.pack_start( self.buttons, True, True, 0 )
-        def anonymous_09():
+
+        def do_buttons_clicked(_widget):
             spin_buttoni.set_value(1)
-            self.sided=self
+            self.sided='single' if self.buttons.get_active == 1 else 'double'
 
-
-        self.buttons.connect(
-        'clicked' , anonymous_09 
-    )
+        self.buttons.connect(        'clicked' , do_buttons_clicked     )
 
     # Double sided button
 
@@ -351,19 +376,16 @@ class Scan(Dialog):
         for text in          ( _('Facing'), _('Reverse') ) :
             self.combobs.append_text(text)
 
-        def anonymous_10():
+        def do_combobs_changed(_widget):
             self.buttond.set_active(True)    # Set the radiobutton active
-            self.side_to_scan=self
+            self.side_to_scan='facing' if self.combobs.get_active == 0 else 'reverse'
 
+        self.combobs.connect(        'changed' , do_combobs_changed     )
 
-        self.combobs.connect(        'changed' , anonymous_10     )
-        def anonymous_11( widget, value ):
-            
+        def anonymous_11( widget, value ):    
             self.page_number_increment=value
             if value == 'facing' :
                 self.num_pages=0
-
-
 
         self.connect(        'changed-side-to-scan' , anonymous_11     )
         self.combobs.set_tooltip_text(_('Sets which side of a double-sided document is scanned') )
@@ -374,18 +396,14 @@ class Scan(Dialog):
         self.buttons.set_active(True)
         hboxs.pack_end( self.combobs, False, False, 0 )
 
-        def anonymous_12():
+        def do_buttond_clicked(_widget):
             "Have to put the double-sided callback here to reference page side"
             spin_buttoni.set_value(
                     
-                DOUBLE_INCREMENT if self.combobs.get_active()==0 
-                else -DOUBLE_INCREMENT
+                DOUBLE_INCREMENT if self.combobs.get_active()==0 else -DOUBLE_INCREMENT
             )
 
-
-        self.buttond.connect(
-        'clicked' , anonymous_12 
-    )
+        self.buttond.connect(        'clicked' , do_buttond_clicked    )
 
     # Have to put the extended pagenumber checkbox here
     # to reference simple controls
@@ -601,16 +619,9 @@ not required, and then to cancel or accept the changes.
                 self[name] = newval
                 self._flatbed_or_duplex_callback()
 
-            elif name=='num_pages':
-                self._set_num_pages( name, newval )
-
             elif name=='page_number_start':
                 self[name] = newval
                 self.emit( 'changed-page-number-start', newval )
-
-            elif name=='page_number_increment':
-                self[name] = newval
-                self.emit( 'changed-page-number-increment', newval )
 
             elif name=='side_to_scan':
                 self._set_side_to_scan( name, newval )
@@ -758,19 +769,6 @@ not required, and then to cancel or accept the changes.
         n = newval.num_options()
         self.reload_recursion_limit = n * ( n + 1 ) / 2
         self.emit('reloaded-scan-options')
-        return
-
-
-    def _set_num_pages( self, name, newval ) :
-    
-        options = self.available_scan_options
-        if newval == 1        or self.allow_batch_flatbed        or (     (options is not None)
-            and  "val"  in options["source"]
-            and not options.flatbed_selected() )     :
-            self[name] = newval
-            self.current_scan_options.add_frontend_option( name, newval )
-            self.emit( 'changed-num-pages', newval )
-
         return
 
 
@@ -1300,7 +1298,7 @@ settings and apply it
                 self.disconnect(signal)
                 self.hide_geometry(options)
                 self.paper = paper
-                self.current_scan_options                   .add_frontend_option( 'paper', paper )
+                self.current_scan_options.add_frontend_option( 'paper', paper )
                 self.emit( 'changed-paper', paper )
 
 
@@ -1747,10 +1745,10 @@ Set options to profile referenced by hashref
 
         signal=None
         self.current_scan_options =       Profile.new_from_data( deepcopy(profile) )
+
         def anonymous_43():
             self.disconnect(signal)
             self.add_current_scan_options(profile)
-
 
         signal = self.connect(
         'reloaded-scan-options' , anonymous_43 
@@ -1761,8 +1759,7 @@ Set options to profile referenced by hashref
 
 
     def add_current_scan_options( self, profile ) :
-        """Apply options referenced by hashref without resetting existing options
-"""    
+        "Apply options referenced by hashref without resetting existing options"    
         if   (profile is None) :
             logger.error('Cannot add undefined profile')
             return
@@ -1979,8 +1976,7 @@ f"Skip setting option '{name}' to '{val}', as previous call set SANE_INFO_INEXAC
 
 
     def update_num_pages(self) :
-        """Update the number of pages to scan spinbutton if necessary
-"""    
+        "Update the number of pages to scan spinbutton if necessary"    
         slist = self.document
         if   (slist is None) :
             return
@@ -2249,38 +2245,32 @@ def _build_profile_table( profile, options, vbox ) :
     return
 
 def _new_val( oldval, newval ) :
-    
     return (
     (  (newval is not None) and  (oldval is not None) and newval != oldval )           or (  (newval is not None) ^  (oldval is not None) )
     )
 
 def _extended_pagenumber_checkbox_callback( widget, param, data ) :
-    
-    ( dialog, spin_buttoni ) = len(data)
+    print(f"in _extended_pagenumber_checkbox_callback with {param} {data}")
+    dialog, spin_buttoni  = data
     if widget.get_active() :
-        dialog["frames"].hide()
-        dialog["framex"].show_all()
- 
+        dialog.frames.hide()
+        dialog.framex.show_all() 
     else :
         if spin_buttoni.get_value() == 1 :
-            dialog["buttons"].set_active(True)
- 
+            dialog.buttons.set_active(True)
         elif spin_buttoni.get_value() > 0 :
-            dialog["buttond"].set_active(True)
-            dialog["combobs"].set_active(False)
- 
+            dialog.buttond.set_active(True)
+            dialog.combobs.set_active(False)
         else :
-            dialog["buttond"].set_active(True)
-            dialog["combobs"].set_active(True)
+            dialog.buttond.set_active(True)
+            dialog.combobs.set_active(True)
 
-        dialog["frames"].show_all()
-        dialog["framex"].hide()
-
-    return
+        dialog.frames.show_all()
+        dialog.framex.hide()
 
 def multiple_values_button_callback( widget, data ) :
     
-    ( dialog, opt )  = len(data)
+    dialog, opt   = data
     if opt["type"] == "TYPE_FIXED"        or opt["type"] == "TYPE_INT"     :
         if opt["constraint_type"] == "CONSTRAINT_NONE" :
             main.show_message_dialog(

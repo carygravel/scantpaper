@@ -33,9 +33,9 @@ def test_1():
     dialog.sided='single'
     assert dialog.side_to_scan== 'facing',   'selecting single sided also selects facing'
 
-    dialog["checkx"].set_active(True)
+    dialog.checkx.set_active(True)
     dialog.page_number_increment=3
-    dialog["checkx"].set_active(False)
+    dialog.checkx.set_active(False)
     assert dialog.page_number_increment== 2,   'turning off extended page numbering resets increment'
 
     assert dialog.allow_batch_flatbed== 0, 'default allow-batch-flatbed'
