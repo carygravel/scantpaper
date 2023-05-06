@@ -1,6 +1,6 @@
 "A simple interface to Gtk's complex MVC list widget"
 from warnings import warn
-from gi.repository import Gtk
+from gi.repository import Gtk, GdkPixbuf
 
 
 def scalar_cell_renderer(_tree_column, cell, model, itr, i):
@@ -37,7 +37,7 @@ column_types = {
         "attr": scalar_cell_renderer,
     },
     "pixbuf": {
-        "type": "Gtk3::Gdk::Pixbuf",
+        "type": GdkPixbuf.Pixbuf,
         "renderer": Gtk.CellRendererPixbuf(),
         "attr": "pixbuf",
     },
@@ -106,7 +106,6 @@ class SimpleList(Gtk.TreeView):
                 )
                 self.append_column(column)
                 if col["attr"] == "active":
-
                     # make boolean columns respond to editing.
                     row = column.get_cells()[0]
                     row.activatable = True

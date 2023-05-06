@@ -1,7 +1,10 @@
 "tests for SimpleList"
-from simplelist import SimpleList
-from gi.repository import Gtk
 import pytest
+import gi
+
+gi.require_version("Gtk", "3.0")
+from simplelist import SimpleList  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
 def test_basic():
@@ -149,3 +152,9 @@ def test_signals():
     cell_renderer = column.get_cells()
     cell_renderer[0].emit("toggled", 0)
     assert not slist.data[0][1], "toggled"
+
+
+def test_pixbuf():
+    "test pixbuf column"
+    slist = SimpleList({"col": "pixbuf"})
+    assert isinstance(slist, SimpleList), "Created simplelist"
