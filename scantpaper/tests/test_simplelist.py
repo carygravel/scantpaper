@@ -60,6 +60,8 @@ def test_basic():
     assert slist.get_selected_indices() == [0], "select with invalid indices"
     slist.unselect([0])
     assert slist.get_selected_indices() == [], "unselect"
+    slist.unselect(0)
+    assert slist.get_selected_indices() == [], "unselect + int"
     slist.unselect([0, 4])
     assert slist.get_selected_indices() == [], "unselect too many indices"
     slist.unselect([4])

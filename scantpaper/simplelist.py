@@ -162,8 +162,8 @@ class SimpleList(Gtk.TreeView):
         _model, indices = selection.get_selected_rows()
         return [x.get_indices()[0] for x in indices]
 
-    def select(self, indices):
-        "select indices"
+    def _modify_selection(self, indices, func):
+        "helper function for select/unselect()"
         selection = self.get_selection()
         if (
             isinstance(indices, list)
@@ -174,23 +174,20 @@ class SimpleList(Gtk.TreeView):
         elif isinstance(indices, int):
             indices = [indices]
         model = self.get_model()
+        func = getattr(selection, func)
         for i in indices:
             itr = model.iter_nth_child(None, i)
             if not itr:
                 continue
-            selection.select_iter(itr)
+            func(itr)
+
+    def select(self, indices):
+        "select indices"
+        self._modify_selection(indices, "select_iter")
 
     def unselect(self, indices):
         "unselect indices"
-        selection = self.get_selection()
-        if len(indices) > 1 and selection.get_mode() != "multiple":
-            indices = [indices[0]]
-        model = self.get_model()
-        for i in indices:
-            itr = model.iter_nth_child(None, i)
-            if not itr:
-                continue
-            selection.unselect_iter(itr)
+        self._modify_selection(indices, "unselect_iter")
 
     def get_row_data_from_path(self, path):
         """get row for given path
