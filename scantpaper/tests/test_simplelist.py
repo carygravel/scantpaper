@@ -52,6 +52,8 @@ def test_basic():
     assert slist.get_selected_indices() == [], "get_selected_indices"
     slist.select([0])
     assert slist.get_selected_indices() == [0], "select"
+    slist.select(0)
+    assert slist.get_selected_indices() == [0], "select + int"
     slist.select([0, 4])
     assert slist.get_selected_indices() == [0], "select too many indices"
     slist.select([4])

@@ -165,8 +165,14 @@ class SimpleList(Gtk.TreeView):
     def select(self, indices):
         "select indices"
         selection = self.get_selection()
-        if len(indices) > 1 and selection.get_mode() != "multiple":
+        if (
+            isinstance(indices, list)
+            and len(indices) > 1
+            and selection.get_mode() != "multiple"
+        ):
             indices = [indices[0]]
+        elif isinstance(indices, int):
+            indices = [indices]
         model = self.get_model()
         for i in indices:
             itr = model.iter_nth_child(None, i)
