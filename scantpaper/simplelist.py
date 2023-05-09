@@ -88,11 +88,7 @@ class SimpleList(Gtk.TreeView):
         for col in column_info:
             if type(col["attr"]).__name__ == "function":
                 self.insert_column_with_data_func(
-                    -1,
-                    col["title"],
-                    col["renderer"],
-                    col["attr"],
-                    i,
+                    -1, col["title"], col["renderer"], col["attr"], i,
                 )
                 i += 1
 
@@ -100,10 +96,7 @@ class SimpleList(Gtk.TreeView):
                 pass
 
             else:
-                column = Gtk.TreeViewColumn(
-                    col["title"],
-                    col["renderer"],
-                )
+                column = Gtk.TreeViewColumn(col["title"], col["renderer"],)
                 self.append_column(column)
                 if col["attr"] == "active":
                     # make boolean columns respond to editing.
@@ -176,6 +169,9 @@ class SimpleList(Gtk.TreeView):
         model = self.get_model()
         func = getattr(selection, func)
         for i in indices:
+            # to avoid TypeError: Argument 3 does not allow None as a value from iter_nth_child()
+            if i is None:
+                continue
             itr = model.iter_nth_child(None, i)
             if not itr:
                 continue

@@ -43,12 +43,6 @@ def test_basic():
     slist.data.insert(0, ["row1"])
     assert model[model.iter_nth_child(None, 0)][0] == "row1", "insert"
 
-    with pytest.raises(ValueError):
-        slist.get_column_editable(1)
-
-    with pytest.raises(ValueError):
-        slist.set_column_editable(1, True)
-
     assert slist.get_selected_indices() == [], "get_selected_indices"
     slist.select([0])
     assert slist.get_selected_indices() == [0], "select"
@@ -58,6 +52,8 @@ def test_basic():
     assert slist.get_selected_indices() == [0], "select too many indices"
     slist.select([4])
     assert slist.get_selected_indices() == [0], "select with invalid indices"
+    slist.select([None])
+    assert slist.get_selected_indices() == [0], "select with invalid indices #2"
     slist.unselect([0])
     assert slist.get_selected_indices() == [], "unselect"
     slist.unselect(0)
@@ -96,6 +92,12 @@ def test_error():
     ), "unknown custom renderers default to str"
 
     slist = SimpleList({"col1": "text"})
+    with pytest.raises(ValueError):
+        slist.get_column_editable(1)
+
+    with pytest.raises(ValueError):
+        slist.set_column_editable(1, True)
+
     with pytest.raises(IndexError):
         slist.data.pop()
 
