@@ -53,6 +53,7 @@ class BaseThread(threading.Thread):
         return request.uuid
 
     def log(self, event="", info="", uid="", status=""):
+        "logger for basethread"
         self.responses.put(
             Response(
                 type=ResponseType.LOG,
@@ -113,11 +114,10 @@ class BaseThread(threading.Thread):
 
     def monitor(self, uid, block=False):
         "monitor the thread, triggering callbacks as required"
-        if not block:
-            # no point in returning if there are still responses
-            while not self.responses.empty():
-                return self._monitor_response(uid, block)
-        else:
+        if block:
+            return self._monitor_response(uid, block)
+        # no point in returning if there are still responses
+        while not self.responses.empty():
             return self._monitor_response(uid, block)
 
     def _monitor_response(self, uid, block=False):
@@ -133,7 +133,7 @@ class BaseThread(threading.Thread):
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
         if ResponseTypes[result.type.value - 1] == "LOG":
-            logger.info(f"process {result.process} sent '{result.info}'")
+            logger.info("process %s sent '%s'", result.process, result.info)
             return GLib.SOURCE_CONTINUE
         callback = ResponseTypes[result.type.value - 1].lower() + "_callback"
         if uid is None:

@@ -50,9 +50,7 @@ def test_2():
 
     def open_callback(response):
         assert response.process == "open_device", "open_callback"
-        uid = thread.scan_page(
-            finished_callback=new_page_callback,
-        )
+        uid = thread.scan_page(finished_callback=new_page_callback,)
         # for scan_page started_callback, finished_callback
         monitor_multiple(thread, [uid, uid])
 
