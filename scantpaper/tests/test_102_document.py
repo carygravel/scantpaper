@@ -29,6 +29,9 @@ def test_1():
     thread = DocThread()
     thread.start()
 
+    with pytest.raises(FileNotFoundError):
+        thread.do_get_file_info("test2.tif")
+
     subprocess.run(["touch","test.tif"])
     with pytest.raises(RuntimeError):
         thread.do_get_file_info("test.tif")
@@ -51,7 +54,7 @@ def test_1():
     print(f"before thread.get_file_info")
     uid = thread.get_file_info("test.tif", finished_callback=get_file_info_callback)
     print(f"before monitor_multiple {uid}")
-    monitor_multiple(thread, [uid, uid])
+    monitor_multiple(thread, [uid, uid, uid, uid])
 
     for fname in ["test.tif"]:
         os.remove(fname)

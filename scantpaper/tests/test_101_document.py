@@ -247,7 +247,7 @@ def test_helpers():
     "test helpers"
     _rcode, stdout, _stderr = exec_command(["fc-list", ":", "family", "style", "file"])
     assert (
-        re.search(br"\w+", stdout) is not None
+        re.search(r"\w+", stdout) is not None
     ), "exec_command produces some output from fc-list"
 
     (_rcode, stdout, _stderr) = exec_command(["perl", "-e", 'print "a" x 65537'])
@@ -269,7 +269,7 @@ def test_helpers():
     assert parse_truetype_fonts(fclist) == {
         "by_family": {"Cairo": {"Light": "/usr/share/fonts/Cairo-Light.ttf"}},
         "by_file": {"/usr/share/fonts/Cairo-Light.ttf": ("Cairo", "Light")},
-    }, "parse_truetype_fonts() only returns fonts for which we have a style"
+        }, "parse_truetype_fonts() only returns fonts for which we have a style"
 
     #########################
 

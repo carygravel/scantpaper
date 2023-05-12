@@ -109,17 +109,11 @@ class DocThread(BaseThread):
 
     def do_get_file_info(self, path, password=None, **options):
         "get file info"
+        _ = gettext.gettext
         if "info" not in options:
             options["info"] = {}
         if not pathlib.Path(path).exists():
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Open file",
-                _("File %s not found") % (path,),
-            )
-            return
+            raise FileNotFoundError(_("File %s not found") % (path,))
 
         logger.info(f"Getting info for {path}")
         _returncode, fformat, _stderr = exec_command(["file", "-Lb", path])
@@ -127,7 +121,6 @@ class DocThread(BaseThread):
         logger.info(f"Format: '{fformat}'")
         print(f"Format: '{fformat}'")
         if fformat in ["very short file (no magic)", "empty"]:
-            _ = gettext.gettext
             raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
 
         elif re.search(r"gzip[ ]compressed[ ]data", fformat):
