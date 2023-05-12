@@ -13,6 +13,7 @@ import gettext  # For translations
 import tempfile
 import uuid
 import logging
+from basethread import BaseThread
 
 # from scanner.options import Options
 import gi
@@ -89,7 +90,7 @@ EXPORT_OK = []
 ISODATE_REGEX = r"(\d{4})-(\d\d)-(\d\d)"
 TIME_REGEX = r"(\d\d):(\d\d):(\d\d)"
 TZ_REGEX = r"([+-]\d\d):(\d\d)"
-(_self, paper_sizes, callback) = (None, None, {})
+_self, paper_sizes, callback = None, None, {}
 
 image_format = {
     "pnm": "Portable anymap",
@@ -99,6 +100,250 @@ image_format = {
 }
 
 SimpleList.add_column_type(hstring={"type": object, "attr": "hidden"})
+
+
+class DocThread(BaseThread):
+    "subclass basethread for document"
+
+    cancel = False
+
+    def do_get_file_info(self, path, password=None, **options):
+        "get file info"
+        if "info" not in options:
+            options["info"] = {}
+        if not pathlib.Path(path).exists():
+            _thread_throw_error(
+                self,
+                options["uuid"],
+                options["page"]["uuid"],
+                "Open file",
+                _("File %s not found") % (path,),
+            )
+            return
+
+        logger.info(f"Getting info for {path}")
+        _returncode, fformat, _stderr = exec_command(["file", "-Lb", path])
+        fformat = fformat.rstrip()
+        logger.info(f"Format: '{fformat}'")
+        print(f"Format: '{fformat}'")
+        if fformat in ["very short file (no magic)", "empty"]:
+            _ = gettext.gettext
+            raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
+
+        elif re.search(r"gzip[ ]compressed[ ]data", fformat):
+            options["info"]["path"] = path
+            options["info"]["format"] = "session file"
+            self.return_queue.enqueue(
+                {"type": "file-info", "uuid": options["uuid"], "info": options["info"]}
+            )
+            return
+
+        elif re.search(r"DjVu", fformat):
+            # Dig out the number of pages
+            _, info, err = exec_command(
+                ["djvudump", path], options["pidfile"]
+            )
+            if re.search(
+                r"command[ ]not[ ]found", err, re.MULTILINE | re.DOTALL | re.VERBOSE
+            ):
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Open file",
+                    _("Please install djvulibre-bin in order to open DjVu files."),
+                )
+                return
+
+            logger.info(info)
+            if _self["cancel"]:
+                return
+            pages = 1
+            regex = re.search(
+                r"\s(\d+)\s+page", info, re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
+            if regex:
+                pages = regex.group(1)
+
+            # Dig out the size and resolution of each page
+
+            (width, height, ppi) = ([], [], [])
+            options["info"]["format"] = "DJVU"
+            regex = re.search(
+                r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi(.*)",
+                info,
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            while regex:
+                width.append(regex.group(1))
+                height.append(regex.group(2))
+                ppi.append(regex.group(3))
+                info = regex.group(4)
+                logger.info(
+                    f"Page $#ppi is {width}[$#width]x{height}[$#height], {ppi}[$#ppi] ppi"
+                )
+
+            if pages != ppi:
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Open file",
+                    _("Unknown DjVu file structure. Please contact the author."),
+                )
+                return
+
+            options["info"]["width"] = width
+            options["info"]["height"] = height
+            options["info"]["ppi"] = ppi
+            options["info"]["pages"] = pages
+            options["info"]["path"] = path
+            # Dig out the metadata
+            (_, info) = exec_command(
+                ["djvused", path, "-e", "print-meta"], options["pidfile"]
+            )
+            logger.info(info)
+            if _self["cancel"]:
+                return
+
+            # extract the metadata from the file
+
+            _add_metadata_to_info(options["info"], info, r'\s+"([^"]+)')
+            self.return_queue.enqueue(
+                {"type": "file-info", "uuid": options["uuid"], "info": options["info"]}
+            )
+            return
+
+        elif re.search(r"PDF[ ]document", fformat):
+            fformat = "Portable Document Format"
+            args = ["pdfinfo", "-isodates", path]
+            if "password" in options:
+                args = [
+                    "pdfinfo",
+                    "-isodates",
+                    "-upw",
+                    options["password"],
+                    path,
+                ]
+
+            (_, info, error) = exec_command(args, options["pidfile"])
+            if _self["cancel"]:
+                return
+            logger.info(f"stdout: {info}")
+            logger.info(f"stderr: {error}")
+            if (error is not None) and re.search(
+                r"Incorrect[ ]password", error, re.MULTILINE | re.DOTALL | re.VERBOSE
+            ):
+                options["info"]["encrypted"] = True
+
+            else:
+                options["info"]["pages"] = 1
+                regex = re.search(
+                    r"Pages:\s+(\d+)", info, re.MULTILINE | re.DOTALL | re.VERBOSE
+                )
+                if regex:
+                    options["info"]["pages"] = regex.group(1)
+
+                logger.info(f"{options}{info}{pages} pages")
+                float = r"\d+(?:[.]\d*)?"
+                regex = re.search(
+                    fr"Page\ssize:\s+({float})\s+x\s+({float})\s+(\w+)",
+                    info,
+                    re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
+                if regex:
+                    options["info"]["page_size"] = [
+                        regex.group(1),
+                        regex.group(2),
+                        regex.group(3),
+                    ]
+                    logger.info(
+                        f"Page size: {regex.group(1)} x {regex.group(2)} {regex.group(3)}"
+                    )
+
+                # extract the metadata from the file
+
+                _add_metadata_to_info(options["info"], info, r":\s+([^\n]+)")
+
+        elif re.search(r"^TIFF[ ]image[ ]data", fformat):
+            fformat = "Tagged Image File Format"
+            _, info, _stderr = exec_command(                ["tiffinfo", path]            )
+            if self.cancel:
+                return
+            logger.info(info)
+
+            # Count number of pages
+
+            options["info"]["pages"] = len(
+                re.findall(
+                    r"TIFF[ ]Directory[ ]at[ ]offset",
+                    info,
+                    re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
+            )
+            logger.info(f"{options['info']['pages']} pages")
+
+            # Dig out the size of each page
+            width, height = [], []
+            regex = re.findall(
+                r"Image\sWidth:\s(\d+)\sImage\sLength:\s(\d+)",
+                info,
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            for w, h in regex:
+                width.append(w)
+                height.append(h)
+                self.log(event="get_file_info", info=f"Page {len(width)} is {width[-1]}x{height[-1]}")
+
+            options["info"]["width"] = width
+            options["info"]["height"] = height
+
+        else:
+
+            # Get file type
+
+            image = PythonMagick.Image()
+            e = image.Read(path)
+            if f"{e}":
+                logger.error(e)
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Open file",
+                    _("%s is not a recognised image type") % (path),
+                )
+                return
+
+            if _self["cancel"]:
+                return
+            fformat = image.Get("format")
+            if fformat is None:
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Open file",
+                    _("%s is not a recognised image type") % (path),
+                )
+                return
+
+            logger.info(f"Format {fformat}")
+            options["info"]["width"] = image.Get("width")
+            options["info"]["height"] = image.Get("height")
+            options["info"]["xresolution"] = image.Get("xresolution")
+            options["info"]["yresolution"] = image.Get("yresolution")
+            options["info"]["pages"] = 1
+
+        options["info"]["format"] = fformat
+        options["info"]["path"] = path
+        print(f'returning {options["info"]}')
+        # self.log(event="get_file_info", info=options["info"])
+        return            options["info"]
+
+    def get_file_info(self, path, **kwargs):
+        "get file info"
+        return self.send("get_file_info", path, **kwargs)
 
 
 class Document(SimpleList):
@@ -281,51 +526,47 @@ class Document(SimpleList):
         return self._monitor_process(sentinel=sentinel, uuid=uuid)
 
     def create_pidfile(self, options):
-
         pidfile = None
         try:
             pidfile = tempfile.TemporaryFile(dir=self.dir, suffix=".pid")
-
-        except:
-            logger.error(f"Caught error writing to {self}->{dir}: {_}")
-            if options["error_callback"]:
+        except Exception as e:
+            logger.error(f"Caught error writing to {self.dir}: {e}")
+            if "error_callback" in options:
                 options["error_callback"](
                     options["page"],
                     "create PID file",
-                    f"Error: unable to write to {self}->{dir}.",
+                    f"Error: unable to write to {self.dir}.",
                 )
 
         return pidfile
 
-    def import_files(self, options):
+    def import_files(self, **options):
         """To avoid race condtions importing multiple files,
         run get_file_info on all files first before checking for errors and importing"""
         info = []
         options["passwords"] = []
-        for i in range(len(options["paths"]) - 1 + 1):
+        for i in range(len(options["paths"])):
             self._get_file_info_finished_callback1(i, info, options)
 
     def _get_file_info_finished_callback1(self, i, infolist, options):
-
         path = options["paths"][i]
+        print(f"in _get_file_info_finished_callback1 with {i} {infolist} {options} {path}")
+        assert False
 
         # File in which to store the process ID
         # so that it can be killed if necessary
-
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
         uuid = self._note_callbacks(options)
 
         def anonymous_04(info):
-
             if info["encrypted"] and options["password_callback"]:
                 options["passwords"][i] = options["password_callback"](path)
                 if (options["passwords"][i] is not None) and options["passwords"][
                     i
                 ] != EMPTY:
                     self._get_file_info_finished_callback1(i, infolist, options)
-
                 return
 
             infolist[i] = info
@@ -2199,247 +2440,6 @@ class Document(SimpleList):
                 "process": process,
                 "message": message,
             }
-        )
-
-    def _thread_get_file_info(self, options):
-
-        if not pathlib.Path(options["filename"]).exists():
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Open file",
-                _("File %s not found") % (options["filename"]),
-            )
-            return
-
-        logger.info(f"Getting info for {options}{filename}")
-        (_, format) = exec_command(["file", "-Lb", options["filename"]])
-        format = format.rstrip()
-        logger.info(f"Format: '{format}'")
-        if format == "very short file (no magic)":
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Open file",
-                _("Error importing zero-length file %s.") % (options["filename"]),
-            )
-            return
-
-        elif re.search(r"gzip[ ]compressed[ ]data", format):
-            options["info"]["path"] = options["filename"]
-            options["info"]["format"] = "session file"
-            self.return_queue.enqueue(
-                {"type": "file-info", "uuid": options["uuid"], "info": options["info"]}
-            )
-            return
-
-        elif re.search(r"DjVu", format):
-            # Dig out the number of pages
-            (_, info, err) = exec_command(
-                ["djvudump", options["filename"]], options["pidfile"]
-            )
-            if re.search(
-                r"command[ ]not[ ]found", err, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ):
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("Please install djvulibre-bin in order to open DjVu files."),
-                )
-                return
-
-            logger.info(info)
-            if _self["cancel"]:
-                return
-            pages = 1
-            regex = re.search(
-                r"\s(\d+)\s+page", info, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            if regex:
-                pages = regex.group(1)
-
-            # Dig out the size and resolution of each page
-
-            (width, height, ppi) = ([], [], [])
-            options["info"]["format"] = "DJVU"
-            regex = re.search(
-                r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi(.*)",
-                info,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            while regex:
-                width.append(regex.group(1))
-                height.append(regex.group(2))
-                ppi.append(regex.group(3))
-                info = regex.group(4)
-                logger.info(
-                    f"Page $#ppi is {width}[$#width]x{height}[$#height], {ppi}[$#ppi] ppi"
-                )
-
-            if pages != ppi:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("Unknown DjVu file structure. Please contact the author."),
-                )
-                return
-
-            options["info"]["width"] = width
-            options["info"]["height"] = height
-            options["info"]["ppi"] = ppi
-            options["info"]["pages"] = pages
-            options["info"]["path"] = options["filename"]
-            # Dig out the metadata
-            (_, info) = exec_command(
-                ["djvused", options["filename"], "-e", "print-meta"], options["pidfile"]
-            )
-            logger.info(info)
-            if _self["cancel"]:
-                return
-
-            # extract the metadata from the file
-
-            _add_metadata_to_info(options["info"], info, r'\s+"([^"]+)')
-            self.return_queue.enqueue(
-                {"type": "file-info", "uuid": options["uuid"], "info": options["info"]}
-            )
-            return
-
-        elif re.search(r"PDF[ ]document", format):
-            format = "Portable Document Format"
-            args = ["pdfinfo", "-isodates", options["filename"]]
-            if "password" in options:
-                args = [
-                    "pdfinfo",
-                    "-isodates",
-                    "-upw",
-                    options["password"],
-                    options["filename"],
-                ]
-
-            (_, info, error) = exec_command(args, options["pidfile"])
-            if _self["cancel"]:
-                return
-            logger.info(f"stdout: {info}")
-            logger.info(f"stderr: {error}")
-            if (error is not None) and re.search(
-                r"Incorrect[ ]password", error, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ):
-                options["info"]["encrypted"] = True
-
-            else:
-                options["info"]["pages"] = 1
-                regex = re.search(
-                    r"Pages:\s+(\d+)", info, re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                if regex:
-                    options["info"]["pages"] = regex.group(1)
-
-                logger.info(f"{options}{info}{pages} pages")
-                float = r"\d+(?:[.]\d*)?"
-                regex = re.search(
-                    fr"Page\ssize:\s+({float})\s+x\s+({float})\s+(\w+)",
-                    info,
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-                if regex:
-                    options["info"]["page_size"] = [
-                        regex.group(1),
-                        regex.group(2),
-                        regex.group(3),
-                    ]
-                    logger.info(
-                        f"Page size: {regex.group(1)} x {regex.group(2)} {regex.group(3)}"
-                    )
-
-                # extract the metadata from the file
-
-                _add_metadata_to_info(options["info"], info, r":\s+([^\n]+)")
-
-        elif re.search(r"^TIFF[ ]image[ ]data", format):
-            format = "Tagged Image File Format"
-            (_, info) = exec_command(
-                ["tiffinfo", options["filename"]], options["pidfile"]
-            )
-            if _self["cancel"]:
-                return
-            logger.info(info)
-
-            # Count number of pages
-
-            options["info"]["pages"] = len(
-                re.findall(
-                    r"TIFF[ ]Directory[ ]at[ ]offset",
-                    info,
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-            )
-            logger.info(f"{options}{info}{pages} pages")
-
-            # Dig out the size of each page
-
-            (width, height) = ([], [])
-            regex = re.search(
-                r"Image\sWidth:\s(\d+)\sImage\sLength:\s(\d+)(.*)",
-                info,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            while regex:
-                width.append(regex.group(1))
-                height.append(regex.group(2))
-                info = regex.group(3)
-                logger.info(f"Page $#width is {width}[$#width]x{height}[$#height]")
-
-            options["info"]["width"] = width
-            options["info"]["height"] = height
-
-        else:
-
-            # Get file type
-
-            image = PythonMagick.Image()
-            e = image.Read(options["filename"])
-            if f"{e}":
-                logger.error(e)
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("%s is not a recognised image type") % (options["filename"]),
-                )
-                return
-
-            if _self["cancel"]:
-                return
-            format = image.Get("format")
-            if format is None:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("%s is not a recognised image type") % (options["filename"]),
-                )
-                return
-
-            logger.info(f"Format {format}")
-            options["info"]["width"] = image.Get("width")
-            options["info"]["height"] = image.Get("height")
-            options["info"]["xresolution"] = image.Get("xresolution")
-            options["info"]["yresolution"] = image.Get("yresolution")
-            options["info"]["pages"] = 1
-
-        options["info"]["format"] = format
-        options["info"]["path"] = options["filename"]
-        self.return_queue.enqueue(
-            {"type": "file-info", "uuid": options["uuid"], "info": options["info"]}
         )
 
     PNG = r"Portable[ ]Network[ ]Graphics"
@@ -5473,7 +5473,7 @@ def exec_command(cmd, pidfile=None):
         logger.info(SPACE.join(cmd))
 
     try:
-        sbp = subprocess.run(cmd, capture_output=True, check=True)
+        sbp = subprocess.run(cmd, capture_output=True, check=True, text=True)
     except FileNotFoundError as e:
         return -1, None, str(e)
 
