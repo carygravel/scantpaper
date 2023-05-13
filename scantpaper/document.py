@@ -129,58 +129,40 @@ class DocThread(BaseThread):
 
         elif re.search(r"DjVu", fformat):
             # Dig out the number of pages
-            _, stdout, stderr = exec_command(
-                ["djvudump", path], options["pidfile"]
-            )
+            _, stdout, stderr = exec_command(                ["djvudump", path]            )
             if re.search(
                 r"command[ ]not[ ]found", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("Please install djvulibre-bin in order to open DjVu files."),
-                )
-                return
+                raise RuntimeError(_("Please install djvulibre-bin in order to open DjVu files."))
 
             logger.info(stdout)
-            if _self["cancel"]:
+            if self.cancel:
                 return
             pages = 1
             regex = re.search(
-                r"\s(\d+)\s+page", info, re.MULTILINE | re.DOTALL | re.VERBOSE
+                r"\s(\d+)\s+page", stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
             )
             if regex:
-                pages = regex.group(1)
+                pages = int(regex.group(1))
 
             # Dig out the size and resolution of each page
-
-            (width, height, ppi) = ([], [], [])
+            width, height, ppi = [], [], []
             info["format"] = "DJVU"
-            regex = re.search(
-                r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi(.*)",
+            regex = re.findall(
+                r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi",
                 stdout,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            while regex:
-                width.append(regex.group(1))
-                height.append(regex.group(2))
-                ppi.append(regex.group(3))
-                info = regex.group(4)
+            for w, h, p in regex:
+                width.append(int(w))
+                height.append(int(h))
+                ppi.append(int(p))
                 logger.info(
                     f"Page $#ppi is {width}[$#width]x{height}[$#height], {ppi}[$#ppi] ppi"
                 )
 
-            if pages != ppi:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("Unknown DjVu file structure. Please contact the author."),
-                )
-                return
+            if pages != len(ppi):
+                raise RuntimeError(_("Unknown DjVu file structure. Please contact the author."))
 
             info["width"] = width
             info["height"] = height
@@ -188,19 +170,14 @@ class DocThread(BaseThread):
             info["pages"] = pages
             info["path"] = path
             # Dig out the metadata
-            _, stdout, _stderr = exec_command(
-                ["djvused", path, "-e", "print-meta"], options["pidfile"]
-            )
+            _, stdout, _stderr = exec_command(                ["djvused", path, "-e", "print-meta"]            )
             logger.info(stdout)
-            if _self["cancel"]:
+            if self.cancel:
                 return
 
             # extract the metadata from the file
             _add_metadata_to_info(info, stdout, r'\s+"([^"]+)')
-            self.return_queue.enqueue(
-                {"type": "file-info", "uuid": options["uuid"], "info": info}
-            )
-            return
+            return info
 
         elif re.search(r"PDF[ ]document", fformat):
             fformat = "Portable Document Format"
@@ -278,8 +255,8 @@ class DocThread(BaseThread):
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             for w, h in regex:
-                width.append(w)
-                height.append(h)
+                width.append(int(w))
+                height.append(int(h))
                 self.log(event="get_file_info", info=f"Page {len(width)} is {width[-1]}x{height[-1]}")
 
             info["width"] = width

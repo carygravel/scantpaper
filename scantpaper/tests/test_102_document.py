@@ -42,10 +42,20 @@ def test_1():
     subprocess.run(["tar","cfz",tgz,tiff])# Create test tarball
     assert thread.do_get_file_info(tgz) == {"format": "session file", "path": "test.tgz"}, "do_get_file_info + tgz"
 
+    pbm = "test.pbm"
+    cjb2 = "test.cjb2"
+    djvu = "test.djvu"
+    subprocess.run(["convert","rose:",pbm])# Create test image
+    subprocess.run(["cjb2",pbm,cjb2])
+    subprocess.run(["djvm","-c",djvu,cjb2,cjb2])
+    assert thread.do_get_file_info(djvu) == {"format": "DJVU", "path": "test.djvu", 'width': [70,70],
+        'height': [46,46], "ppi":[300,300],
+        'pages': 2}, "do_get_file_info + djvu"
+
     info = {
         'format': 'Tagged Image File Format',
-        'width': ['70'],
-        'height': ['46'],
+        'width': [70],
+        'height': [46],
         'pages': 1,
         'path': 'test.tif',
         }
@@ -61,7 +71,7 @@ def test_1():
     print(f"before monitor_multiple {uid}")
     monitor_multiple(thread, [uid, uid, uid, uid])
 
-    for fname in [tiff, tgz]:
+    for fname in [cjb2, djvu, pbm, tgz, tiff]:
         os.remove(fname)
 #     assert False
 
