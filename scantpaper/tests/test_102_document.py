@@ -32,11 +32,16 @@ def test_1():
     with pytest.raises(FileNotFoundError):
         thread.do_get_file_info("test2.tif")
 
-    subprocess.run(["touch","test.tif"])
+    tiff = "test.tif"
+    subprocess.run(["touch",tiff])
     with pytest.raises(RuntimeError):
-        thread.do_get_file_info("test.tif")
+        thread.do_get_file_info(tiff)
 
-    subprocess.run(["convert","rose:","test.tif"])# Create test image
+    subprocess.run(["convert","rose:",tiff])# Create test image
+    tgz = "test.tgz"
+    subprocess.run(["tar","cfz",tgz,tiff])# Create test tarball
+    assert thread.do_get_file_info(tgz) == {"format": "session file", "path": "test.tgz"}, "do_get_file_info + tgz"
+
     info = {
         'format': 'Tagged Image File Format',
         'width': ['70'],
@@ -44,7 +49,7 @@ def test_1():
         'pages': 1,
         'path': 'test.tif',
         }
-    assert thread.do_get_file_info("test.tif") == info, "do_get_file_info"
+    assert thread.do_get_file_info(tiff) == info, "do_get_file_info + tiff"
 
     def get_file_info_callback(response):
         assert response.process == "get_file_info", "get_file_info_finished_callback"
@@ -52,11 +57,11 @@ def test_1():
         assert response.info == info, "get_file_info"
 
     print(f"before thread.get_file_info")
-    uid = thread.get_file_info("test.tif", finished_callback=get_file_info_callback)
+    uid = thread.get_file_info(tiff, finished_callback=get_file_info_callback)
     print(f"before monitor_multiple {uid}")
     monitor_multiple(thread, [uid, uid, uid, uid])
 
-    for fname in ["test.tif"]:
+    for fname in [tiff]:
         os.remove(fname)
 #     assert False
 

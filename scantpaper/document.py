@@ -125,10 +125,7 @@ class DocThread(BaseThread):
         elif re.search(r"gzip[ ]compressed[ ]data", fformat):
             info["path"] = path
             info["format"] = "session file"
-            self.return_queue.enqueue(
-                {"type": "file-info", "uuid": options["uuid"], "info": info}
-            )
-            return
+            return info
 
         elif re.search(r"DjVu", fformat):
             # Dig out the number of pages
