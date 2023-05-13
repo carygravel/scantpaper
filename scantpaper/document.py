@@ -110,8 +110,7 @@ class DocThread(BaseThread):
     def do_get_file_info(self, path, password=None, **options):
         "get file info"
         _ = gettext.gettext
-        if "info" not in options:
-            options["info"] = {}
+        info = {}
         if not pathlib.Path(path).exists():
             raise FileNotFoundError(_("File %s not found") % (path,))
 
@@ -124,20 +123,20 @@ class DocThread(BaseThread):
             raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
 
         elif re.search(r"gzip[ ]compressed[ ]data", fformat):
-            options["info"]["path"] = path
-            options["info"]["format"] = "session file"
+            info["path"] = path
+            info["format"] = "session file"
             self.return_queue.enqueue(
-                {"type": "file-info", "uuid": options["uuid"], "info": options["info"]}
+                {"type": "file-info", "uuid": options["uuid"], "info": info}
             )
             return
 
         elif re.search(r"DjVu", fformat):
             # Dig out the number of pages
-            _, info, err = exec_command(
+            _, stdout, stderr = exec_command(
                 ["djvudump", path], options["pidfile"]
             )
             if re.search(
-                r"command[ ]not[ ]found", err, re.MULTILINE | re.DOTALL | re.VERBOSE
+                r"command[ ]not[ ]found", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
                 _thread_throw_error(
                     self,
@@ -148,7 +147,7 @@ class DocThread(BaseThread):
                 )
                 return
 
-            logger.info(info)
+            logger.info(stdout)
             if _self["cancel"]:
                 return
             pages = 1
@@ -161,10 +160,10 @@ class DocThread(BaseThread):
             # Dig out the size and resolution of each page
 
             (width, height, ppi) = ([], [], [])
-            options["info"]["format"] = "DJVU"
+            info["format"] = "DJVU"
             regex = re.search(
                 r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi(.*)",
-                info,
+                stdout,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             while regex:
@@ -186,24 +185,23 @@ class DocThread(BaseThread):
                 )
                 return
 
-            options["info"]["width"] = width
-            options["info"]["height"] = height
-            options["info"]["ppi"] = ppi
-            options["info"]["pages"] = pages
-            options["info"]["path"] = path
+            info["width"] = width
+            info["height"] = height
+            info["ppi"] = ppi
+            info["pages"] = pages
+            info["path"] = path
             # Dig out the metadata
-            (_, info) = exec_command(
+            _, stdout, _stderr = exec_command(
                 ["djvused", path, "-e", "print-meta"], options["pidfile"]
             )
-            logger.info(info)
+            logger.info(stdout)
             if _self["cancel"]:
                 return
 
             # extract the metadata from the file
-
-            _add_metadata_to_info(options["info"], info, r'\s+"([^"]+)')
+            _add_metadata_to_info(info, stdout, r'\s+"([^"]+)')
             self.return_queue.enqueue(
-                {"type": "file-info", "uuid": options["uuid"], "info": options["info"]}
+                {"type": "file-info", "uuid": options["uuid"], "info": info}
             )
             return
 
@@ -219,23 +217,23 @@ class DocThread(BaseThread):
                     path,
                 ]
 
-            (_, info, error) = exec_command(args, options["pidfile"])
+            _, stdout, stderr = exec_command(args, options["pidfile"])
             if _self["cancel"]:
                 return
-            logger.info(f"stdout: {info}")
-            logger.info(f"stderr: {error}")
+            logger.info(f"stdout: {stdout}")
+            logger.info(f"stderr: {stderr}")
             if (error is not None) and re.search(
                 r"Incorrect[ ]password", error, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
-                options["info"]["encrypted"] = True
+                info["encrypted"] = True
 
             else:
-                options["info"]["pages"] = 1
+                info["pages"] = 1
                 regex = re.search(
                     r"Pages:\s+(\d+)", info, re.MULTILINE | re.DOTALL | re.VERBOSE
                 )
                 if regex:
-                    options["info"]["pages"] = regex.group(1)
+                    info["pages"] = regex.group(1)
 
                 logger.info(f"{options}{info}{pages} pages")
                 float = r"\d+(?:[.]\d*)?"
@@ -245,7 +243,7 @@ class DocThread(BaseThread):
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
                 if regex:
-                    options["info"]["page_size"] = [
+                    info["page_size"] = [
                         regex.group(1),
                         regex.group(2),
                         regex.group(3),
@@ -255,32 +253,31 @@ class DocThread(BaseThread):
                     )
 
                 # extract the metadata from the file
-
-                _add_metadata_to_info(options["info"], info, r":\s+([^\n]+)")
+                _add_metadata_to_info(info, stdout, r":\s+([^\n]+)")
 
         elif re.search(r"^TIFF[ ]image[ ]data", fformat):
             fformat = "Tagged Image File Format"
-            _, info, _stderr = exec_command(                ["tiffinfo", path]            )
+            _, stdout, _stderr = exec_command(                ["tiffinfo", path]            )
             if self.cancel:
                 return
             logger.info(info)
 
             # Count number of pages
 
-            options["info"]["pages"] = len(
+            info["pages"] = len(
                 re.findall(
                     r"TIFF[ ]Directory[ ]at[ ]offset",
-                    info,
+                    stdout,
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
             )
-            logger.info(f"{options['info']['pages']} pages")
+            logger.info(f"{info['pages']} pages")
 
             # Dig out the size of each page
             width, height = [], []
             regex = re.findall(
                 r"Image\sWidth:\s(\d+)\sImage\sLength:\s(\d+)",
-                info,
+                stdout,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             for w, h in regex:
@@ -288,13 +285,12 @@ class DocThread(BaseThread):
                 height.append(h)
                 self.log(event="get_file_info", info=f"Page {len(width)} is {width[-1]}x{height[-1]}")
 
-            options["info"]["width"] = width
-            options["info"]["height"] = height
+            info["width"] = width
+            info["height"] = height
 
         else:
 
             # Get file type
-
             image = PythonMagick.Image()
             e = image.Read(path)
             if f"{e}":
@@ -322,17 +318,17 @@ class DocThread(BaseThread):
                 return
 
             logger.info(f"Format {fformat}")
-            options["info"]["width"] = image.Get("width")
-            options["info"]["height"] = image.Get("height")
-            options["info"]["xresolution"] = image.Get("xresolution")
-            options["info"]["yresolution"] = image.Get("yresolution")
-            options["info"]["pages"] = 1
+            info["width"] = image.Get("width")
+            info["height"] = image.Get("height")
+            info["xresolution"] = image.Get("xresolution")
+            info["yresolution"] = image.Get("yresolution")
+            info["pages"] = 1
 
-        options["info"]["format"] = fformat
-        options["info"]["path"] = path
-        print(f'returning {options["info"]}')
-        # self.log(event="get_file_info", info=options["info"])
-        return            options["info"]
+        info["format"] = fformat
+        info["path"] = path
+        print(f'returning {info}')
+        # self.log(event="get_file_info", info=info)
+        return            info
 
     def get_file_info(self, path, **kwargs):
         "get file info"
