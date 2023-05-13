@@ -61,7 +61,7 @@ def test_1():
     print(f"before monitor_multiple {uid}")
     monitor_multiple(thread, [uid, uid, uid, uid])
 
-    for fname in [tiff]:
+    for fname in [tiff, tgz]:
         os.remove(fname)
 #     assert False
 
