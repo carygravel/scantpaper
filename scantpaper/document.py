@@ -191,35 +191,35 @@ class DocThread(BaseThread):
                     path,
                 ]
 
-            _, stdout, stderr = exec_command(args, options["pidfile"])
-            if _self["cancel"]:
+            _, stdout, stderr = exec_command(args)
+            if self.cancel:
                 return
             logger.info(f"stdout: {stdout}")
             logger.info(f"stderr: {stderr}")
-            if (error is not None) and re.search(
-                r"Incorrect[ ]password", error, re.MULTILINE | re.DOTALL | re.VERBOSE
+            if (stderr is not None) and re.search(
+                r"Incorrect[ ]password", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
                 info["encrypted"] = True
 
             else:
                 info["pages"] = 1
                 regex = re.search(
-                    r"Pages:\s+(\d+)", info, re.MULTILINE | re.DOTALL | re.VERBOSE
+                    r"Pages:\s+(\d+)", stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
                 )
                 if regex:
-                    info["pages"] = regex.group(1)
+                    info["pages"] = int(regex.group(1))
 
-                logger.info(f"{options}{info}{pages} pages")
-                float = r"\d+(?:[.]\d*)?"
+                logger.info(f"{info['pages']} pages")
+                floatr = r"\d+(?:[.]\d*)?"
                 regex = re.search(
-                    fr"Page\ssize:\s+({float})\s+x\s+({float})\s+(\w+)",
-                    info,
+                    fr"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
+                    stdout,
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
                 if regex:
                     info["page_size"] = [
-                        regex.group(1),
-                        regex.group(2),
+                        float(regex.group(1)),
+                        float(regex.group(2)),
                         regex.group(3),
                     ]
                     logger.info(

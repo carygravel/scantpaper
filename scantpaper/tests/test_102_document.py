@@ -52,6 +52,11 @@ def test_1():
         'height': [46,46], "ppi":[300,300],
         'pages': 2}, "do_get_file_info + djvu"
 
+    pdf = "test.pdf"
+    subprocess.run(["tiff2pdf","-o",pdf,tiff])
+    assert thread.do_get_file_info(pdf) == {"format": "Portable Document Format", "path": "test.pdf", 'page_size': [16.8,11.04,'pts'],
+        'pages': 1}, "do_get_file_info + pdf"
+
     info = {
         'format': 'Tagged Image File Format',
         'width': [70],
@@ -71,7 +76,7 @@ def test_1():
     print(f"before monitor_multiple {uid}")
     monitor_multiple(thread, [uid, uid, uid, uid])
 
-    for fname in [cjb2, djvu, pbm, tgz, tiff]:
+    for fname in [cjb2, djvu, pbm, pdf, tgz, tiff]:
         os.remove(fname)
 #     assert False
 
