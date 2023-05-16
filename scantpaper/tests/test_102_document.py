@@ -66,6 +66,12 @@ def test_1():
         }
     assert thread.do_get_file_info(tiff) == info, "do_get_file_info + tiff"
 
+    png = "test.png"
+    subprocess.run(["convert","rose:",png])# Create test image
+    assert thread.do_get_file_info(png) == {"format": "PNG", "path": "test.png", 'width': [70],
+        'height': [46],
+        'pages': 1}, "do_get_file_info + png"
+
     def get_file_info_callback(response):
         assert response.process == "get_file_info", "get_file_info_finished_callback"
         print(f"get_file_info_callback {response}")
@@ -76,7 +82,7 @@ def test_1():
     print(f"before monitor_multiple {uid}")
     monitor_multiple(thread, [uid, uid, uid, uid])
 
-    for fname in [cjb2, djvu, pbm, pdf, tgz, tiff]:
+    for fname in [cjb2, djvu, pbm, pdf, png, tgz, tiff]:
         os.remove(fname)
 #     assert False
 

@@ -265,37 +265,19 @@ class DocThread(BaseThread):
         else:
 
             # Get file type
-            image = PythonMagick.Image()
-            e = image.Read(path)
-            if f"{e}":
-                logger.error(e)
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("%s is not a recognised image type") % (path),
-                )
-                return
+            image = PythonMagick.Image(path)
 
-            if _self["cancel"]:
+            if self.cancel:
                 return
-            fformat = image.Get("format")
-            if fformat is None:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _("%s is not a recognised image type") % (path),
-                )
-                return
+            fformat = image.magick()
 
             logger.info(f"Format {fformat}")
-            info["width"] = image.Get("width")
-            info["height"] = image.Get("height")
-            info["xresolution"] = image.Get("xresolution")
-            info["yresolution"] = image.Get("yresolution")
+            info["width"] = [image.size().width()]
+            info["height"] = [image.size().height()]
+            if image.xResolution() > 0.:
+                info["xresolution"] = [image.xResolution()]
+            if image.yResolution() > 0.:
+                info["yresolution"] = [image.yResolution()]
             info["pages"] = 1
 
         info["format"] = fformat
