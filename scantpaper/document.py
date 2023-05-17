@@ -21,7 +21,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from simplelist import SimpleList
 
-# from page import Page
+from page import Page
 import netpbm
 
 # import Gscan2pdf.Tesseract
@@ -52,7 +52,6 @@ from gi.repository import Gtk, Gdk
 EMPTY = ""
 SPACE = " "
 PERCENT = "%"
-POINTS_PER_INCH = 72
 STRING_FORMAT = 8
 _POLL_INTERVAL = 100  # ms
 THUMBNAIL = 100  # pixels
@@ -78,7 +77,6 @@ MIN_YEAR_FOR_DATECALC = 1970
 LAST_ELEMENT = -1
 _90_DEGREES = 90
 _270_DEGREES = 270
-ANNOTATION_COLOR = "cccf00"
 LEFT = 0
 TOP = 1
 RIGHT = 2
@@ -90,6 +88,9 @@ EXPORT_OK = []
 ISODATE_REGEX = r"(\d{4})-(\d\d)-(\d\d)"
 TIME_REGEX = r"(\d\d):(\d\d):(\d\d)"
 TZ_REGEX = r"([+-]\d\d):(\d\d)"
+PNG = r"Portable[ ]Network[ ]Graphics"
+JPG = r"Joint[ ]Photographic[ ]Experts[ ]Group[ ]JFIF[ ]format"
+GIF = r"CompuServe[ ]graphics[ ]interchange[ ]format"
 _self, paper_sizes, callback = None, None, {}
 
 image_format = {
@@ -118,7 +119,6 @@ class DocThread(BaseThread):
         _returncode, fformat, _stderr = exec_command(["file", "-Lb", path])
         fformat = fformat.rstrip()
         logger.info(f"Format: '{fformat}'")
-        print(f"Format: '{fformat}'")
         if fformat in ["very short file (no magic)", "empty"]:
             raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
 
@@ -282,13 +282,276 @@ class DocThread(BaseThread):
 
         info["format"] = fformat
         info["path"] = path
-        print(f'returning {info}')
         # self.log(event="get_file_info", info=info)
         return            info
+
+    def do_import_file(self, info, *options):
+        password, first, last, dirname, pidfile = options
+        if info["format"] == "DJVU":
+
+            # Extract images from DjVu
+            if last >= options["first"] and options["first"] > 0:
+                for i in range(options["first"], last + 1):
+                    self.progress = (i - 1) / (last - options["first"] + 1)
+                    self.message = _("Importing page %i of %i") % (
+                        i,
+                        last - options["first"] + 1,
+                    )
+                    tif, txt, ann, error = None, None, None, None
+                    try:
+                        tif = tempfile.NamedTemporaryFile(
+                            dir=options["dir"], suffix=".tif", delete=False
+                        )
+                        exec_command(
+                            [
+                                "ddjvu",
+                                "-format=tiff",
+                                f"-page={i}",
+                                info["path"],
+                                tif,
+                            ],
+                            options["pidfile"],
+                        )
+                        (_, txt) = exec_command(
+                            [
+                                "djvused",
+                                info["path"],
+                                "-e",
+                                f"select {i}; print-txt",
+                            ],
+                            options["pidfile"],
+                        )
+                        (_, ann) = exec_command(
+                            [
+                                "djvused",
+                                info["path"],
+                                "-e",
+                                f"select {i}; print-ant",
+                            ],
+                            options["pidfile"],
+                        )
+
+                    except:
+                        if tif is not None:
+                            logger.error(f"Caught error creating {tif}: {_}")
+                            _thread_throw_error(
+                                self,
+                                options["uuid"],
+                                options["page"]["uuid"],
+                                "Open file",
+                                f"Error: unable to write to {tif}.",
+                            )
+
+                        else:
+                            logger.error(f"Caught error writing to {options}{dir}: {_}")
+                            _thread_throw_error(
+                                self,
+                                options["uuid"],
+                                options["page"]["uuid"],
+                                "Open file",
+                                f"Error: unable to write to {options}{dir}.",
+                            )
+
+                        error = True
+
+                    if _self["cancel"] or error:
+                        return
+                    page = Gscan2pdf.Page(
+                        filename=tif,
+                        dir=options["dir"],
+                        delete=True,
+                        format="Tagged Image File Format",
+                        xresolution=info["ppi"][i - 1],
+                        yresolution=info["ppi"][i - 1],
+                        width=info["width"][i - 1],
+                        height=info["height"][i - 1],
+                    )
+                    try:
+                        page.import_djvu_txt(txt)
+
+                    except:
+                        logger.error(f"Caught error parsing DjVU text layer: {_}")
+                        _thread_throw_error(
+                            self,
+                            options["uuid"],
+                            options["page"]["uuid"],
+                            "Open file",
+                            "Error: parsing DjVU text layer",
+                        )
+
+                    try:
+                        page.import_djvu_ann(ann)
+
+                    except:
+                        logger.error(f"Caught error parsing DjVU annotation layer: {_}")
+                        _thread_throw_error(
+                            self,
+                            options["uuid"],
+                            options["page"]["uuid"],
+                            "Open file",
+                            "Error: parsing DjVU annotation layer",
+                        )
+
+                    self.return_queue.enqueue(
+                        {"type": "page", "uuid": options["uuid"], "page": page}
+                    )
+
+        elif info["format"] == "Portable Document Format":
+            _thread_import_pdf(self, options)
+
+        elif info["format"] == "Tagged Image File Format":
+
+            # Only one page, so skip tiffcp in case it gives us problems
+            if last == 1:
+#                self.progress = 1
+#                self.message = _("Importing page %i of %i") % (1, 1)
+                return Page(
+                    filename=info["path"],
+                    dir=dirname,
+                    delete=False,
+                    format=info["format"],
+                    width=info["width"][0],
+                    height=info["height"][0],
+                )
+            # Split the tiff into its pages and import them individually
+            elif last >= options["first"] and options["first"] > 0:
+                for i in range(options["first"] - 1, last - 1 + 1):
+                    self.progress = i / (last - options["first"] + 1)
+                    self.message = _("Importing page %i of %i") % (
+                        i,
+                        last - options["first"] + 1,
+                    )
+                    (tif, error) = (None, None)
+                    try:
+                        tif = tempfile.NamedTemporaryFile(
+                            dir=options["dir"], suffix=".tif", delete=False
+                        )
+                        (status, out, err) = exec_command(
+                            ["tiffcp", f"{options}{info}{path},{i}", tif],
+                            options["pidfile"],
+                        )
+                        if (err is not None) and err != EMPTY:
+                            logger.error(
+                                f"Caught error extracting page {i} from {options}{info}{path}: {err}"
+                            )
+                            _thread_throw_error(
+                                self,
+                                options["uuid"],
+                                options["page"]["uuid"],
+                                "Open file",
+                                f"Caught error extracting page {i} from {options}{info}{path}: {err}",
+                            )
+
+                    except:
+                        if tif is not None:
+                            logger.error(f"Caught error creating {tif}: {_}")
+                            _thread_throw_error(
+                                self,
+                                options["uuid"],
+                                options["page"]["uuid"],
+                                "Open file",
+                                f"Error: unable to write to {tif}.",
+                            )
+
+                        else:
+                            logger.error(f"Caught error writing to {options}{dir}: {_}")
+                            _thread_throw_error(
+                                self,
+                                options["uuid"],
+                                options["page"]["uuid"],
+                                "Open file",
+                                f"Error: unable to write to {options}{dir}.",
+                            )
+
+                        error = True
+
+                    if _self["cancel"] or error:
+                        return
+                    page = Gscan2pdf.Page(
+                        filename=tif,
+                        dir=options["dir"],
+                        delete=True,
+                        format=info["format"],
+                        width=info["width"][i - 1],
+                        height=info["height"][i - 1],
+                    )
+                    self.return_queue.enqueue(
+                        {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
+                    )
+
+        elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", info["format"]):
+            try:
+                page = Gscan2pdf.Page(
+                    filename=info["path"],
+                    dir=options["dir"],
+                    format=info["format"],
+                    width=info["width"],
+                    height=info["height"],
+                    xresolution=info["xresolution"],
+                    yresolution=info["yresolution"],
+                )
+                self.return_queue.enqueue(
+                    {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
+                )
+
+            except:
+                logger.error(f"Caught error writing to {options}{dir}: {_}")
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Open file",
+                    f"Error: unable to write to {options}{dir}.",
+                )
+
+        else:
+            try:
+                page = Gscan2pdf.Page(
+                    filename=info["path"],
+                    dir=options["dir"],
+                    format=info["format"],
+                    width=info["width"],
+                    height=info["height"],
+                )
+                self.return_queue.enqueue(
+                    {
+                        "type": "page",
+                        "uuid": options["uuid"],
+                        "page": page.to_png(paper_sizes).freeze(),
+                    }
+                )
+
+            except:
+                logger.error(f"Caught error writing to {options}{dir}: {_}")
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Open file",
+                    f"Error: unable to write to {options}{dir}.",
+                )
+
+        self.return_queue.enqueue(
+            {
+                "type": "finished",
+                "process": "import-file",
+                "uuid": options["uuid"],
+            }
+        )
 
     def get_file_info(self, path, **kwargs):
         "get file info"
         return self.send("get_file_info", path, **kwargs)
+
+    def import_file(self, password=None, first=1, last=1, **kwargs):
+        "import_file"
+        info = kwargs["info"]
+        del kwargs["info"]
+        dirname = kwargs["dir"] if "dir" in kwargs else None
+        del kwargs["dir"]
+        pidfile = kwargs["pidfile"] if "pidfile" in kwargs else None
+        del kwargs["pidfile"]
+        return self.send("import_file", info, password, first, last, dirname, pidfile, **kwargs)
 
 
 class Document(SimpleList):
@@ -315,6 +578,7 @@ class Document(SimpleList):
     # Default thumbnail sizes
     heightt = THUMBNAIL
     widtht = THUMBNAIL
+    selection_changed_signal = None
 
     def setup(_class, logger=None):
         _self = {}
@@ -331,7 +595,6 @@ class Document(SimpleList):
 
     def on_row_changed(self, path, iter, data):
         "Set-up the callback when the page number has been edited."
-
         # Note uuids for selected pages
         selection = self.get_selected_indices()
         uuids = []
@@ -357,6 +620,8 @@ class Document(SimpleList):
         super().__init__(
             {"#": "int", _("Thumbnails"): "pixbuf", "Page Data": "hstring"}
         )
+        self.thread = DocThread()
+        self.thread.start()
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
         self.set_reorderable(True)
@@ -407,7 +672,6 @@ class Document(SimpleList):
         self.connect("drag-drop", anonymous_02)
 
         # Set the page number to be editable
-
         self.set_column_editable(0, True)
         self.row_changed_signal = self.get_model().connect(
             "row-changed", self.on_row_changed
@@ -423,7 +687,6 @@ class Document(SimpleList):
         lock(_self["pages"])  # unlocks automatically when out of scope
 
         # Empty process queue first to stop any new process from starting
-
         logger.info("Emptying process queue")
         while _self["requests"].pending():
             _self["requests"].dequeue()
@@ -432,17 +695,14 @@ class Document(SimpleList):
         jobs_total = 0
 
         # Empty pages queue
-
         while _self["pages"].pending():
             _self["pages"].dequeue()
 
         # Then send the thread a cancel signal
         # to stop it going beyond the next break point
-
         _self["cancel"] = True
 
         # Kill all running processes in the thread
-
         for pidfile in self.running_pids.keys():
             pid = slurp(pidfile)
             SIG["CHLD"] = "IGNORE"
@@ -461,12 +721,10 @@ class Document(SimpleList):
         callback[uuid]["cancelled"] = cancel_callback
 
         # Add a cancel request to ensure the reply is not blocked
-
         logger.info("Requesting cancel")
         sentinel = _enqueue_request("cancel", {"uuid": uuid})
 
         # Send a dummy page to the pages queue in case the thread is waiting there
-
         _self["pages"].enqueue({"page": "cancel"})
         return self._monitor_process(sentinel=sentinel, uuid=uuid)
 
@@ -495,18 +753,16 @@ class Document(SimpleList):
 
     def _get_file_info_finished_callback1(self, i, infolist, options):
         path = options["paths"][i]
-        print(f"in _get_file_info_finished_callback1 with {i} {infolist} {options} {path}")
-        assert False
 
         # File in which to store the process ID
         # so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
-        uuid = self._note_callbacks(options)
+        # uid = self._note_callbacks(options)
 
-        def anonymous_04(info):
-            if info["encrypted"] and options["password_callback"]:
+        def _select_next_finished_callback(response):
+            if "encrypted" in response.info and response.info["encrypted"] and "password_callback" in options:
                 options["passwords"][i] = options["password_callback"](path)
                 if (options["passwords"][i] is not None) and options["passwords"][
                     i
@@ -514,35 +770,27 @@ class Document(SimpleList):
                     self._get_file_info_finished_callback1(i, infolist, options)
                 return
 
-            infolist[i] = info
+            infolist.append( response.info)
             if i == len(options["paths"]) - 1:
-                self._get_file_info_finished_callback2(infolist, uuid, options)
+                self._get_file_info_finished_callback2(infolist, options)
 
-        callback[uuid]["finished"] = anonymous_04
-        sentinel = _enqueue_request(
-            "get-file-info",
-            {
-                "path": path,
-                "pidfile": f"{pidfile}",
-                "uuid": uuid,
-                "password": options["passwords"][i],
-            },
-        )
-        self._monitor_process(
-            sentinel=sentinel,
-            pidfile=pidfile,
-            info=True,
-            uuid=uuid,
+        return self.thread.get_file_info(
+            path,
+            # "pidfile": f"{pidfile}",
+            # # "uuid": uid,
+            # "password": options["passwords"][i] if i < len(options["passwords"]) else None,
+            started_callback=options["started_callback"] if "started_callback" in options else None,
+            running_callback=options["running_callback"] if "running_callback" in options else None,
+            finished_callback=_select_next_finished_callback,
         )
 
     def _get_file_info_finished_callback2(self, info, options):
-
-        if info > 1:
-            for _ in info:
-                if _ is None:
+        if len(info) > 1:
+            for i in info:
+                if i is None:
                     continue
 
-                if _["format"] == "session file":
+                if i["format"] == "session file":
                     logger.error(
                         "Cannot open a session file at the same time as another file."
                     )
@@ -557,7 +805,7 @@ class Document(SimpleList):
 
                     return
 
-                elif _["pages"] > 1:
+                elif i["pages"] > 1:
                     logger.error(
                         "Cannot import a multipage file at the same time as another file."
                     )
@@ -576,7 +824,7 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"]
             del options["paths"]
             del options["finished_callback"]
-            for i in range(len(info) - 1 + 1):
+            for i in range(len(info)):
                 if options["metadata_callback"]:
                     options["metadata_callback"](_extract_metadata(info[i]))
 
@@ -589,20 +837,20 @@ class Document(SimpleList):
             self.open_session_file(info=info[0]["path"], **options)
 
         else:
-            if options["metadata_callback"]:
+            if "metadata_callback" in options and options["metadata_callback"]:
                 options["metadata_callback"](_extract_metadata(info[0]))
 
             first_page = 1
             last_page = info[0]["pages"]
-            if options["pagerange_callback"] and last_page > 1:
-                (first_page, last_page) = options["pagerange_callback"](info[0])
+            if "pagerange_callback" in options and options["pagerange_callback"] and last_page > 1:
+                first_page, last_page = options["pagerange_callback"](info[0])
                 if (first_page is None) or (last_page is None):
                     return
 
-            password = options["passwords"][0]
-            del options["paths"]
-            del options["passwords"]
-            del options["password_callback"]
+            password = options["passwords"][0] if "passwords" in options and options["passwords"] else None
+            for key in ["paths", "passwords", "password_callback"]:
+                if key in options:
+                    del options[key]
             self.import_file(
                 info=info[0],
                 password=password,
@@ -614,15 +862,12 @@ class Document(SimpleList):
     def _note_callbacks(self, options):
         """Because the finished, error and cancelled callbacks are triggered by the
         return queue, note them here for the return queue to use."""
-        uuid = str(uuid_object())
-        callback[uuid]["queued"] = options["queued_callback"]
-        callback[uuid]["started"] = options["started_callback"]
-        callback[uuid]["running"] = options["running_callback"]
-        callback[uuid]["finished"] = options["finished_callback"]
-        callback[uuid]["error"] = options["error_callback"]
-        callback[uuid]["cancelled"] = options["cancelled_callback"]
-        callback[uuid]["display"] = options["display_callback"]
-        if options["mark_saved"]:
+        uid = uuid.uuid1()
+        callback[uid] = {}
+        for cb in ["queued_callback", "started_callback", "running_callback", "finished_callback", "error_callback", "cancelled_callback", "display_callback"]:
+            if cb in options:
+                callback[uid][cb[:-9]] = options[cb]
+        if "mark_saved" in options and options["mark_saved"]:
 
             def anonymous_05():
 
@@ -633,38 +878,35 @@ class Document(SimpleList):
                     page = self.find_page_by_uuid(_)
                     self.data[page][2]["saved"] = True
 
-            callback[uuid]["mark_saved"] = anonymous_05
+            callback[uid]["mark_saved"] = anonymous_05
 
-        return uuid
+        return uid
 
-    def import_file(self, options):
-
+    def import_file(self, password=None, first=1, last=1, **options):
         # File in which to store the process ID
         # so that it can be killed if necessary
-
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
         dirname = EMPTY
         if self.dir is not None:
-            dirname = f"{self}->{dir}"
-        uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "import-file",
-            {
-                "info": options["info"],
-                "password": options["password"],
-                "first": options["first"],
-                "break": options["last"],
-                "dir": dirname,
-                "pidfile": f"{pidfile}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
-            pidfile=pidfile,
-            uuid=uuid,
+            dirname = self.dir
+        # uuid = self._note_callbacks(options)
+
+        def _import_file_finished_callback(result):
+            self.add_page(None, result, None)
+            if "finished_callback" in options:
+                options["finished_callback"]()
+
+        uid = self.thread.import_file(
+            info= options["info"],
+            password= password,
+            first= first,
+            last= last,
+            dir= dirname,
+            pidfile= pidfile,
+            # uuid= uuid,
+            finished_callback = _import_file_finished_callback,
         )
 
     def _post_process_scan(self, page, options):
@@ -1039,83 +1281,81 @@ class Document(SimpleList):
             return i
         return
 
-    def add_page(self, process_uuid, page, ref):
+    def add_page(self, process_uuid, response, ref):
         """Add a new page to the document"""
-        (i, pagenum, new, page) = (None, None, None, [])
+        i, pagenum = None, None
+        new_page = response.info
 
         # This is really hacky to allow import_scan() to specify the page number
-
-        if type(ref) != "HASH":
+        if isinstance(ref, dict):
             pagenum = ref
             ref = None
 
-        for uuid in (ref["replace"], ref["insert-after"]):
-            if uuid is not None:
-                i = self.find_page_by_uuid(uuid)
-                if i is None:
-                    logger.error(f"Requested page {uuid} does not exist.")
-                    return NOT_FOUND
-
-                break
+        if ref is not None:
+            for uid in (ref["replace"], ref["insert-after"]):
+                if uid is not None:
+                    i = self.find_page_by_uuid(uid)
+                    if i is None:
+                        logger.error(f"Requested page {uid} does not exist.")
+                        return NOT_FOUND
+                    break
 
         # Move the temp file from the thread to a temp object that will be
         # automatically cleared up
+        # if type(page["filename"]) == "File::Temp":
+        #     new = page
+        # else:
+        #     try:
+        #         new = page.thaw()
+        #     except:
+        #         _throw_error(
+        #             process_uuid,
+        #             page["uuid"],
+        #             EMPTY,
+        #             f"Caught error writing to {self}->{dir}: {_}",
+        #         )
 
-        if type(page["filename"]) == "File::Temp":
-            new = page
-
-        else:
-            try:
-                new = page.thaw()
-
-            except:
-                _throw_error(
-                    process_uuid,
-                    page["uuid"],
-                    EMPTY,
-                    f"Caught error writing to {self}->{dir}: {_}",
-                )
-
-            if new is None:
-                return
+        #     if new is None:
+        #         return
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
 
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
-        (xresolution, yresolution) = new.get_resolution(paper_sizes)
-        thumb = new.get_pixbuf_at_scale(self.heightt, self.widtht)
-        if i is not None:
+        xresolution, yresolution, units = new_page.get_resolution(paper_sizes)
+        thumb = new_page.get_pixbuf_at_scale(self.heightt, self.widtht)
+
+        # Add to the page list
+        if i is None:
+            if pagenum is None:
+                pagenum = len(self.data) + 1
+            self.data.append([pagenum, thumb, new_page])
+            model = self.get_model()
+            row = model[model.iter_nth_child(None, 0)]
+            logger.info(
+                f"Added {new_page.filename} ({new_page.uuid}) at page {pagenum} with resolution {xresolution},{yresolution}"
+            )
+
+        else:
             if "replace" in ref:
                 pagenum = self.data[i][0]
                 logger.info(
-                    f"Replaced {self}->{data}[{i}][2]->{filename} ({self}->{data}[{i}][2]->{uuid}) at page {pagenum} with {new}->{filename} ({new}->{uuid}), resolution {xresolution},{yresolution}"
+                    f"Replaced {self}->{data}[{i}][2]->{filename} ({self}->{data}[{i}][2]->{uid}) at page {pagenum} with {new_page}->{filename} ({new_page}->{uid}), resolution {xresolution},{yresolution}"
                 )
                 self.data[i][1] = thumb
-                self.data[i][2] = new
+                self.data[i][2] = new_page
 
             elif "insert-after" in ref:
                 pagenum = self.data[i][0] + 1
                 del self.data[i + 1]
-                self.data.insert(i + 1, [pagenum, thumb, new])
+                self.data.insert(i + 1, [pagenum, thumb, new_page])
                 logger.info(
-                    f"Inserted {new}->{filename} ({new}->{uuid}) at page {pagenum} with resolution {xresolution},{yresolution}"
+                    f"Inserted {new_page}->{filename} ({new_page}->{uid}) at page {pagenum} with resolution {xresolution},{yresolution},{units}"
                 )
-
-        else:
-            # Add to the page list
-
-            if pagenum is None:
-                pagenum = len(self.data) - 1 + 2
-            self.data.append([pagenum, thumb, new])
-            logger.info(
-                f"Added {page}->{filename} ({new}->{uuid}) at page {pagenum} with resolution {xresolution},{yresolution}"
-            )
 
         # Block selection_changed_signal
         # to prevent its firing changing pagerange to all
-
         if self.selection_changed_signal is not None:
             self.get_selection().handler_block(self.selection_changed_signal)
 
@@ -1128,20 +1368,18 @@ class Document(SimpleList):
             self.get_model().handler_unblock(self.row_changed_signal)
 
         # Due to the sort, must search for new page
-
-        page[0] = 0
+        page_selection = [0]
 
         # $page[0] < $#{$self -> {data}} needed to prevent infinite loop in case of
         # error importing.
+        while page_selection[0] < len(self.data) - 1 and self.data[page_selection[0]][0] != pagenum:
+            page_selection[0] += 1
 
-        while page[0] < len(self.data) - 1 and self.data[page[0]][0] != pagenum:
-            page[0] += 1
+        self.select(page_selection)
+        # if "display" in callback[process_uuid]:
+        #     callback[process_uuid]["display"](self.data[i][2])
 
-        self.select(page)
-        if "display" in callback[process_uuid]:
-            callback[process_uuid]["display"](self.data[i][2])
-
-        return page[0]
+        return page_selection[0]
 
     def remove_corrupted_pages(self):
 
@@ -1173,7 +1411,7 @@ class Document(SimpleList):
 
         # Deep copy the tied data so we can sort it.
         # Otherwise, very bad things happen.
-        data = [x for x in self.data]
+        data = [list(x) for x in self.data.model]
         data = sorted(data, key=lambda row: row[sortcol])
         self.data = data
 
@@ -1198,12 +1436,10 @@ class Document(SimpleList):
         )
         return data
 
-    def paste_selection(self, data, path, how, select_new_pages):
-        """Paste the selection"""
-
+    def paste_selection(self, data, path, how, select_new_pages=False):
+        "Paste the selection"
         # Block row-changed signal so that the list can be updated before the sort
         # takes over.
-
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
@@ -1211,17 +1447,14 @@ class Document(SimpleList):
         if path is not None:
             if how == "after" or how == "into-or-after":
                 path += 1
-
-            del self.data[path]
-            self.data.insert(path, len(data))
+            self.data.insert(path, data)
             dest = path
 
         else:
-            dest = len(self.data) - 1 + 1
-            self.data.append(len(data))
+            dest = len(self.data)
+            self.data.append(data)
 
         # Renumber the newly pasted rows
-
         start = None
         if dest == 0:
             start = 1
@@ -1229,22 +1462,20 @@ class Document(SimpleList):
         else:
             start = self.data[dest - 1][0] + 1
 
-        for _ in range(dest, dest + len(data) + 1):
-            self.data[_][0] = start
+        for i in range(dest, dest + len(data)-2):
+            self.data[i][0] = start
             start += 1
 
         # Update the start spinbutton if necessary
-
         self.renumber()
         self.get_model().emit(
             "row-changed", Gtk.TreePath(), self.get_model().get_iter_first()
         )
 
         # Select the new pages
-
         if select_new_pages:
             selection = []
-            for _ in range(dest, dest + len(data) - 1 + 1):
+            for _ in range(dest, dest + len(data)):
                 selection.append(_)
 
             self.get_selection().unselect_all()
@@ -1253,16 +1484,15 @@ class Document(SimpleList):
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
 
-        self.save_session()
-        logger.info("Pasted ", len(data) - 1 + 1, f" pages at position {dest}")
+        # self.save_session()
+        logger.info("Pasted ", len(data), f" pages at position {dest}")
 
-    def delete_selection(self, context):
+    def delete_selection(self, context=None):
         """Delete the selected scans"""
 
         # The drag-data-delete callback seems to be fired twice. Therefore, create
         # a hash of the context hashes and ignore the second drop. There must be a
         # less hacky way of solving this. FIXME
-
         if context is not None:
             if context in self.context:
                 del self.context
@@ -1271,20 +1501,18 @@ class Document(SimpleList):
             else:
                 self.context[context] = 1
 
-        (paths, model) = self.get_selection().get_selected_rows()
+        model, paths = self.get_selection().get_selected_rows()
 
         # Reverse the rows in order not to invalid the iters
-
         if paths:
             for path in reversed(paths):
                 iter = model.get_iter(path)
                 model.remove(iter)
 
     def delete_selection_extra(self):
-
         page = self.get_selected_indices()
-        npages = len(page) - 1 + 1
-        uuids = map(lambda x: self["data"][x][2]["uuid"], page)
+        npages = len(page)
+        uuids = map(lambda x: str(self.data[x][2].uuid), page)
         logger.info("Deleting ", " ".join(uuids))
         if self.selection_changed_signal is not None:
             self.get_selection().handler_block(self.selection_changed_signal)
@@ -1294,12 +1522,10 @@ class Document(SimpleList):
             self.get_selection().handler_unblock(self.selection_changed_signal)
 
         # Select nearest page to last current page
-
         if self.data and page:
             old_selection = page[0]
 
             # Select just the first one
-
             page = [page[0]]
             if page[0] > len(self.data) - 1:
                 page[0] = len(self.data) - 1
@@ -1309,19 +1535,18 @@ class Document(SimpleList):
             # If the index hasn't changed, the signal won't have emitted, so do it
             # manually. Even if the index has changed, if it has the focus, the
             # signal is still not fired (is this a bug in gtk+-3?), so do it here.
-
             if old_selection == page[0] or self.has_focus():
                 self.get_selection().emit("changed")
 
         elif self.data:
             self.get_selection().unselect_all()
+
         # No pages left, and having blocked the selection_changed_signal,
         # we've got to clear the image
-
         else:
             self.get_selection().emit("changed")
 
-        self.save_session()
+        # self.save_session()
         logger.info(f"Deleted {npages} pages")
 
     def save_pdf(self, options):
@@ -1746,18 +1971,18 @@ class Document(SimpleList):
             uuid=uuid,
         )
 
-    def save_session(self, filename, version):
+    def save_session(self, filename=None, version=None):
         """Dump $self to a file.
         If a filename is given, zip it up as a session file
         Pass version to allow us to mock different session version and to be able to
         test opening old sessions."""
         self.remove_corrupted_pages()
-        (session, filenamelist) = ({}, [])
-        for i in range(len(self.data) - 1 + 1):
-            session[self.data[i][0]]["filename"] = self.data[i][2][
-                "filename"
-            ].filename()
-            filenamelist.append(self.data[i][2]["filename"].filename())
+        session, filenamelist = {}, []
+        for i in range(len(self.data)):
+            if self.data[i][0] not in session:
+                session[self.data[i][0]] = {}
+            session[self.data[i][0]]["filename"] = self.data[i][2].filename
+            filenamelist.append(self.data[i][2].filename)
             for key in self.data[i][2].keys():
                 if key != "filename":
                     session[self.data[i][0]][key] = self.data[i][2][key]
@@ -2387,272 +2612,6 @@ class Document(SimpleList):
             }
         )
 
-    PNG = r"Portable[ ]Network[ ]Graphics"
-    JPG = r"Joint[ ]Photographic[ ]Experts[ ]Group[ ]JFIF[ ]format"
-    GIF = r"CompuServe[ ]graphics[ ]interchange[ ]format"
-
-    def _thread_import_file(self, options):
-
-        if "info" not in options:
-            return
-
-        if options["info"]["format"] == "DJVU":
-
-            # Extract images from DjVu
-
-            if options["last"] >= options["first"] and options["first"] > 0:
-                for i in range(options["first"], options["last"] + 1):
-                    self.progress = (i - 1) / (options["last"] - options["first"] + 1)
-                    self.message = _("Importing page %i of %i") % (
-                        i,
-                        options["last"] - options["first"] + 1,
-                    )
-                    (tif, txt, ann, error) = (None, None, None, None)
-                    try:
-                        tif = tempfile.NamedTemporaryFile(
-                            dir=options["dir"], suffix=".tif", delete=False
-                        )
-                        exec_command(
-                            [
-                                "ddjvu",
-                                "-format=tiff",
-                                f"-page={i}",
-                                options["info"]["path"],
-                                tif,
-                            ],
-                            options["pidfile"],
-                        )
-                        (_, txt) = exec_command(
-                            [
-                                "djvused",
-                                options["info"]["path"],
-                                "-e",
-                                f"select {i}; print-txt",
-                            ],
-                            options["pidfile"],
-                        )
-                        (_, ann) = exec_command(
-                            [
-                                "djvused",
-                                options["info"]["path"],
-                                "-e",
-                                f"select {i}; print-ant",
-                            ],
-                            options["pidfile"],
-                        )
-
-                    except:
-                        if tif is not None:
-                            logger.error(f"Caught error creating {tif}: {_}")
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Error: unable to write to {tif}.",
-                            )
-
-                        else:
-                            logger.error(f"Caught error writing to {options}{dir}: {_}")
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Error: unable to write to {options}{dir}.",
-                            )
-
-                        error = True
-
-                    if _self["cancel"] or error:
-                        return
-                    page = Gscan2pdf.Page(
-                        filename=tif,
-                        dir=options["dir"],
-                        delete=True,
-                        format="Tagged Image File Format",
-                        xresolution=options["info"]["ppi"][i - 1],
-                        yresolution=options["info"]["ppi"][i - 1],
-                        width=options["info"]["width"][i - 1],
-                        height=options["info"]["height"][i - 1],
-                    )
-                    try:
-                        page.import_djvu_txt(txt)
-
-                    except:
-                        logger.error(f"Caught error parsing DjVU text layer: {_}")
-                        _thread_throw_error(
-                            self,
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "Open file",
-                            "Error: parsing DjVU text layer",
-                        )
-
-                    try:
-                        page.import_djvu_ann(ann)
-
-                    except:
-                        logger.error(f"Caught error parsing DjVU annotation layer: {_}")
-                        _thread_throw_error(
-                            self,
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "Open file",
-                            "Error: parsing DjVU annotation layer",
-                        )
-
-                    self.return_queue.enqueue(
-                        {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
-                    )
-
-        elif options["info"]["format"] == "Portable Document Format":
-            _thread_import_pdf(self, options)
-
-        elif options["info"]["format"] == "Tagged Image File Format":
-
-            # Only one page, so skip tiffcp in case it gives us problems
-
-            if options["last"] == 1:
-                self.progress = 1
-                self.message = _("Importing page %i of %i") % (1, 1)
-                page = Gscan2pdf.Page(
-                    filename=options["info"]["path"],
-                    dir=options["dir"],
-                    delete=False,
-                    format=options["info"]["format"],
-                    width=options["info"]["width"][0],
-                    height=options["info"]["height"][0],
-                )
-                self.return_queue.enqueue(
-                    {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
-                )
-            # Split the tiff into its pages and import them individually
-
-            elif options["last"] >= options["first"] and options["first"] > 0:
-                for i in range(options["first"] - 1, options["last"] - 1 + 1):
-                    self.progress = i / (options["last"] - options["first"] + 1)
-                    self.message = _("Importing page %i of %i") % (
-                        i,
-                        options["last"] - options["first"] + 1,
-                    )
-                    (tif, error) = (None, None)
-                    try:
-                        tif = tempfile.NamedTemporaryFile(
-                            dir=options["dir"], suffix=".tif", delete=False
-                        )
-                        (status, out, err) = exec_command(
-                            ["tiffcp", f"{options}{info}{path},{i}", tif],
-                            options["pidfile"],
-                        )
-                        if (err is not None) and err != EMPTY:
-                            logger.error(
-                                f"Caught error extracting page {i} from {options}{info}{path}: {err}"
-                            )
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Caught error extracting page {i} from {options}{info}{path}: {err}",
-                            )
-
-                    except:
-                        if tif is not None:
-                            logger.error(f"Caught error creating {tif}: {_}")
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Error: unable to write to {tif}.",
-                            )
-
-                        else:
-                            logger.error(f"Caught error writing to {options}{dir}: {_}")
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Error: unable to write to {options}{dir}.",
-                            )
-
-                        error = True
-
-                    if _self["cancel"] or error:
-                        return
-                    page = Gscan2pdf.Page(
-                        filename=tif,
-                        dir=options["dir"],
-                        delete=True,
-                        format=options["info"]["format"],
-                        width=options["info"]["width"][i - 1],
-                        height=options["info"]["height"][i - 1],
-                    )
-                    self.return_queue.enqueue(
-                        {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
-                    )
-
-        elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", options["info"]["format"]):
-            try:
-                page = Gscan2pdf.Page(
-                    filename=options["info"]["path"],
-                    dir=options["dir"],
-                    format=options["info"]["format"],
-                    width=options["info"]["width"],
-                    height=options["info"]["height"],
-                    xresolution=options["info"]["xresolution"],
-                    yresolution=options["info"]["yresolution"],
-                )
-                self.return_queue.enqueue(
-                    {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
-                )
-
-            except:
-                logger.error(f"Caught error writing to {options}{dir}: {_}")
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    f"Error: unable to write to {options}{dir}.",
-                )
-
-        else:
-            try:
-                page = Gscan2pdf.Page(
-                    filename=options["info"]["path"],
-                    dir=options["dir"],
-                    format=options["info"]["format"],
-                    width=options["info"]["width"],
-                    height=options["info"]["height"],
-                )
-                self.return_queue.enqueue(
-                    {
-                        "type": "page",
-                        "uuid": options["uuid"],
-                        "page": page.to_png(paper_sizes).freeze(),
-                    }
-                )
-
-            except:
-                logger.error(f"Caught error writing to {options}{dir}: {_}")
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    f"Error: unable to write to {options}{dir}.",
-                )
-
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "import-file",
-                "uuid": options["uuid"],
-            }
-        )
 
     def _thread_import_pdf(self, options):
 
@@ -3785,7 +3744,6 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 compression.append(["-r", "16"])
 
         # Create the tiff
-
         self.progress = 1
         self.message = _("Concatenating TIFFs")
         cmd = ["tiffcp", compression, filelist, options["path"]]
@@ -5576,7 +5534,6 @@ def expand_metadata_pattern(**kwargs):
         result = datetime.datetime(dyear, dmonth, dday, dhour, dmin, dsec).strftime(
             template
         )
-        # print(f"replacing code {regex.group(1)}->")
         kwargs["template"] = re.sub(
             fr"%D{code}",
             result,
