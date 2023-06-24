@@ -281,6 +281,9 @@ class TiedList(list):
     def __len__(self):
         return len(self.model)
 
+    def __str__(self):
+        return str([list(x) for x in self.model])
+
     def __eq__(self, other):
         return [list(x) for x in self.model] == other
 

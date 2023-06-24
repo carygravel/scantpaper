@@ -16,6 +16,7 @@ def test_basic():
     slist.data.append(["row1"])
     model = slist.get_model()
     assert model[model.iter_nth_child(None, 0)][0] == "row1", "append"
+    assert f"{slist.data}" == "[['row1']]", "stringify"
 
     slist.data.append(["row2"])
     assert len(slist.data) == 2, "len"
