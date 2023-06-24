@@ -14,6 +14,7 @@ import tempfile
 import uuid
 import logging
 from basethread import BaseThread
+from const import POINTS_PER_INCH
 
 # from scanner.options import Options
 import gi
