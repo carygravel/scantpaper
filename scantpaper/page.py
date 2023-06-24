@@ -10,7 +10,7 @@ import gettext
 import subprocess
 import copy
 import PythonMagick
-import document
+from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
 from bboxtree import Bboxtree
 import gi
 
@@ -18,9 +18,6 @@ gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-position
 
 
-CM_PER_INCH = 2.54
-MM_PER_CM = 10
-MM_PER_INCH = CM_PER_INCH * MM_PER_CM
 PAGE_TOLERANCE = 0.02
 VERSION = "2.13.2"
 logger = logging.getLogger(__name__)
@@ -254,13 +251,12 @@ class Page:
             width, height = self.get_size()
             logger.debug("PDF size %sx%s %s", self.size[0], self.size[1], self.size[2])
             logger.debug("image size %s %s", width, height)
-            scale = document.POINTS_PER_INCH
             if self.size[2] != "pts":
                 raise ValueError(f"Error: unknown units '{self.size[2]}'")
 
             self.resolution = (
-                width / self.size[0] * scale,
-                height / self.size[1] * scale,
+                width / self.size[0] * POINTS_PER_INCH,
+                height / self.size[1] * POINTS_PER_INCH,
                 "PixelsPerInch",
             )
             logger.debug("resolution %s %s", self.resolution[0], self.resolution[1])
@@ -315,7 +311,7 @@ class Page:
             return self.resolution
 
         # Default to 72
-        self.resolution = (document.POINTS_PER_INCH, document.POINTS_PER_INCH, units)
+        self.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, units)
         return self.resolution
 
     def matching_paper_sizes(self, paper_sizes):
