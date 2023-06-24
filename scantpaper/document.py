@@ -1031,20 +1031,18 @@ class Document(SimpleList):
         if options["finished_callback"]:
             options["finished_callback"]()
 
-    def import_scan(self, options):
+    def import_scan(self, **options):
         """Take new scan, pad it if necessary, display it,
         and set off any post-processing chains"""
 
         # Interface to frontend
-
         try:
             fh = open(options["filename"], mode="r")  ## no critic (RequireBriefOpen)
 
-        except:
-            raise f"can't open {options}{filename}: {ERRNO}\n"
+        except Exception as err:
+            raise OSError(f"can't open {options['filename']}: {err}")
 
         # Read without blocking
-
         size = 0
 
         def anonymous_11(fileno, condition):
