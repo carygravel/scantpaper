@@ -170,7 +170,7 @@ def test_basics():
     slist.get_model().handler_unblock(slist.row_changed_signal)
     slist.data[0][0] = 3
     assert (
-        slist.get_selected_indices() == []
+        slist.get_selected_indices() == [1]
     ), "correctly selected page after manual renumber"
 
     # Gscan2pdf.Document.quit()
