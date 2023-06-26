@@ -20,6 +20,7 @@ from const import POINTS_PER_INCH
 import gi
 
 gi.require_version("Gtk", "3.0")
+from gi.repository import GLib
 from simplelist import SimpleList
 
 from page import Page
@@ -653,15 +654,15 @@ class Document(SimpleList):
             Gdk.DragAction.COPY | Gdk.DragAction.MOVE,
         )
 
-        def anonymous_01(tree, context, sel):
+        def drag_data_get_callback(tree, context, sel):
             # set dummy data which we'll ignore and use selected rows
             setattr(sel, sel.get_target(), [])
 
-        self.connect("drag-data-get", anonymous_01)
+        self.connect("drag-data-get", drag_data_get_callback)
         self.connect("drag-data-delete", self.delete_selection)
         self.connect("drag-data-received", drag_data_received_callback)
 
-        def anonymous_02(tree, context, x, y, when):
+        def drag_drop_callback(tree, context, x, y, when):
             """# Callback for dropped signal."""
             targets = tree.drag_dest_get_target_list()
             if target in tree.drag_dest_find_target(context, targets):
@@ -670,7 +671,7 @@ class Document(SimpleList):
 
             return False
 
-        self.connect("drag-drop", anonymous_02)
+        self.connect("drag-drop", drag_drop_callback)
 
         # Set the page number to be editable
         self.set_column_editable(0, True)
@@ -870,16 +871,15 @@ class Document(SimpleList):
                 callback[uid][cb[:-9]] = options[cb]
         if "mark_saved" in options and options["mark_saved"]:
 
-            def anonymous_05():
+            def mark_saved_callback():
 
                 # list_of_pages is frozen,
                 # so find the original pages from their uuids
-
                 for _ in options["list_of_pages"]:
                     page = self.find_page_by_uuid(_)
                     self.data[page][2]["saved"] = True
 
-            callback[uid]["mark_saved"] = anonymous_05
+            callback[uid]["mark_saved"] = mark_saved_callback
 
         return uid
 
@@ -924,7 +924,7 @@ class Document(SimpleList):
             and options["to_png"]
         ):
 
-            def anonymous_06():
+            def to_png_finished_callback():
                 finished_page = self.find_page_by_uuid(page["uuid"])
                 if finished_page is None:
                     self._post_process_scan(None, options)  # to fire finished_callback
@@ -936,14 +936,14 @@ class Document(SimpleList):
                 page=page["uuid"],
                 queued_callback=options["queued_callback"],
                 started_callback=options["started_callback"],
-                finished_callback=anonymous_06,
+                finished_callback=to_png_finished_callback,
                 error_callback=options["error_callback"],
                 display_callback=options["display_callback"],
             )
 
         if options["rotate"]:
 
-            def anonymous_07():
+            def rotate_finished_callback():
                 del options["rotate"]
                 finished_page = self.find_page_by_uuid(page["uuid"])
                 if finished_page is None:
@@ -957,14 +957,14 @@ class Document(SimpleList):
                 page=page["uuid"],
                 queued_callback=options["queued_callback"],
                 started_callback=options["started_callback"],
-                finished_callback=anonymous_07,
+                finished_callback=rotate_finished_callback,
                 error_callback=options["error_callback"],
                 display_callback=options["display_callback"],
             )
 
         if options["unpaper"]:
 
-            def anonymous_08():
+            def unpaper_finished_callback():
                 del options["unpaper"]
                 finished_page = self.find_page_by_uuid(page["uuid"])
                 if finished_page is None:
@@ -981,7 +981,7 @@ class Document(SimpleList):
                 },
                 queued_callback=options["queued_callback"],
                 started_callback=options["started_callback"],
-                finished_callback=anonymous_08,
+                finished_callback=unpaper_finished_callback,
                 error_callback=options["error_callback"],
                 display_callback=options["display_callback"],
             )
@@ -989,7 +989,7 @@ class Document(SimpleList):
 
         if options["udt"]:
 
-            def anonymous_09():
+            def udt_finished_callback():
                 del options["udt"]
                 finished_page = self.find_page_by_uuid(page["uuid"])
                 if finished_page is None:
@@ -1003,7 +1003,7 @@ class Document(SimpleList):
                 command=options["udt"],
                 queued_callback=options["queued_callback"],
                 started_callback=options["started_callback"],
-                finished_callback=anonymous_09,
+                finished_callback=udt_finished_callback,
                 error_callback=options["error_callback"],
                 display_callback=options["display_callback"],
             )
@@ -1011,7 +1011,7 @@ class Document(SimpleList):
 
         if options["ocr"]:
 
-            def anonymous_10():
+            def ocr_finished_callback():
                 del options["ocr"]
                 self._post_process_scan(None, options)  # to fire finished_callback
 
@@ -1022,7 +1022,7 @@ class Document(SimpleList):
                 language=options["language"],
                 queued_callback=options["queued_callback"],
                 started_callback=options["started_callback"],
-                finished_callback=anonymous_10,
+                finished_callback=ocr_finished_callback,
                 error_callback=options["error_callback"],
                 display_callback=options["display_callback"],
             )
@@ -1045,7 +1045,7 @@ class Document(SimpleList):
         # Read without blocking
         size = 0
 
-        def anonymous_11(fileno, condition):
+        def file_changed_callback(fileno, condition):
 
             if condition & "in":  # bit field operation. >= would also work
                 (width, height) = (None, None)
@@ -1107,7 +1107,8 @@ class Document(SimpleList):
 
             return Glib.SOURCE_CONTINUE
 
-        Glib.IO.add_watch(fileno(fh), ["in", "hup"], anonymous_11)
+        GLib.io_add_watch(fh, GLib.PRIORITY_DEFAULT,
+                         GLib.IO_IN | GLib.IO_HUP, file_changed_callback)
 
     def check_return_queue(self):
 
