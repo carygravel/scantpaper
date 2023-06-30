@@ -1046,6 +1046,8 @@ class Document(SimpleList):
         size = 0
 
         def file_changed_callback(fileno, condition):
+            print(f"in file_changed_callback {fileno, condition}")
+            return Glib.SOURCE_REMOVE
 
             if condition & "in":  # bit field operation. >= would also work
                 (width, height) = (None, None)
@@ -1107,8 +1109,7 @@ class Document(SimpleList):
 
             return Glib.SOURCE_CONTINUE
 
-        GLib.io_add_watch(fh, GLib.PRIORITY_DEFAULT,
-                         GLib.IO_IN | GLib.IO_HUP, file_changed_callback)
+        GLib.io_add_watch(fh, GLib.IOCondition.IN | GLib.IOCondition.HUP, file_changed_callback, GLib.PRIORITY_DEFAULT)
 
     def check_return_queue(self):
 
