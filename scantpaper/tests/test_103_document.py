@@ -35,12 +35,14 @@ def test_1():
     with open("test.pnm", "wb") as image_file:
         image_file.write(output)
 
-
+    asserts = 0
     def _finished_callback():
         assert False
         subprocess.run([ 'convert', str(slist.data[0][2].filename), 'test2.ppm' ])
         assert subprocess.capture( ["identify","-format"], '%m %G %g %z-bit %r', 'test2.ppm' )==             old,             'padded pnm imported correctly (as PNG)'
+        asserts+=1
         assert os.path.getsize('test2.ppm') == os.path.getsize('test.ppm') , 'padded pnm correct size'
+        asserts+=1
         ml.quit()
 
     slist.import_scan(
@@ -53,6 +55,7 @@ def test_1():
     ml = GLib.MainLoop()
     GLib.timeout_add(2000, ml.quit) # to prevent it hanging
     ml.run()
+    assert asserts == 2, "all tests run"
 
 #########################
 

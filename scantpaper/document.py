@@ -1036,62 +1036,45 @@ class Document(SimpleList):
         and set off any post-processing chains"""
 
         # Interface to frontend
-        try:
-            fh = open(options["filename"], mode="r")  ## no critic (RequireBriefOpen)
-
-        except Exception as err:
-            raise OSError(f"can't open {options['filename']}: {err}")
+        fh = open(options["filename"], mode="r")  ## no critic (RequireBriefOpen)
 
         # Read without blocking
         size = 0
 
-        def file_changed_callback(fileno, condition):
-            print(f"in file_changed_callback {fileno, condition}")
-            return Glib.SOURCE_REMOVE
+        def file_changed_callback(fileno, condition, *data):
+            print(f"in file_changed_callback {fileno, condition, data}")
+            nonlocal size, fh
 
-            if condition & "in":  # bit field operation. >= would also work
-                (width, height) = (None, None)
+            if condition & GLib.IOCondition.IN:
+                width, height = None, None
                 if size == 0:
                     size, width, height = netpbm.file_size_from_header(
                         options["filename"]
                     )
                     logger.info(f"Header suggests {size}")
                     if size == 0:
-                        return Glib.SOURCE_CONTINUE
-                    fh.close() or logger.warn(
-                        f"Error closing {options}{filename}: {ERRNO}"
-                    )
+                        return GLib.SOURCE_CONTINUE
+                    fh.close()
 
                 filesize = os.path.getsize(options["filename"])
                 logger.info(f"Expecting {size}, found {filesize}")
                 if size > filesize:
                     pad = size - filesize
-                    try:
-                        fh = open(">>", options["filename"])
-
-                    except:
-                        raise f"cannot open >> {options}{filename}: {ERRNO}\n"
-                    data = EMPTY
-                    for _ in range(1, pad * BITS_PER_BYTE + 1):
-                        data += "1"
-
-                    fh.write(struct.pack("b%d" % (len(data))), data) or logger.warn(
-                        f"Error writing to {options}{filename}: {ERRNO}"
-                    )
-                    fh.close() or logger.warn(
-                        f"Error closing {options}{filename}: {ERRNO}"
-                    )
+                    fh = open(options["filename"], mode="ab")
+                    data = [1] * (pad * BITS_PER_BYTE + 1)
+                    fh.write(struct.pack("%db" % (len(data)), *data))
+                    fh.close()
                     logger.info(f"Padded {pad} bytes")
 
-                page = Gscan2pdf.Page(
+                page = Page(
                     filename=options["filename"],
-                    xresolution=options["xresolution"],
-                    yresolution=options["yresolution"],
+                    xresolution=options["xresolution"] if "xresolution" in options else None,
+                    yresolution=options["yresolution"] if "yresolution" in options else None,
                     width=width,
                     height=height,
                     format="Portable anymap",
                     delete=options["delete"],
-                    dir=options["dir"],
+                    dir=options["dir"].name,
                 )
                 index = self.add_page("none", page, options["page"])
                 if index == NOT_FOUND and options["error_callback"]:
@@ -1105,9 +1088,9 @@ class Document(SimpleList):
 
                     self._post_process_scan(page, options)
 
-                return Glib.SOURCE_REMOVE
+                return GLib.SOURCE_REMOVE
 
-            return Glib.SOURCE_CONTINUE
+            return GLib.SOURCE_CONTINUE
 
         GLib.io_add_watch(fh, GLib.IOCondition.IN | GLib.IOCondition.HUP, file_changed_callback, GLib.PRIORITY_DEFAULT)
 
