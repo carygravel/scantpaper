@@ -154,5 +154,5 @@ def test_document():
         # TODO/FIXME: test drag-and-drop callbacks for copy
 
     slist.import_files(paths=[tiff], finished_callback=finished_callback)
-    monitor_multiple(slist.thread, [None, None, None, None, None])
+    monitor_multiple(slist.thread, [None, None, None, None, None]) # FIXME: implement GLib.MainLoop() as per test 103
     os.remove(tiff)
