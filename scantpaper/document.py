@@ -895,7 +895,7 @@ class Document(SimpleList):
         # uuid = self._note_callbacks(options)
 
         def _import_file_finished_callback(result):
-            self.add_page(None, result, None)
+            self.add_page(None, result.info, None)
             if "finished_callback" in options:
                 options["finished_callback"]()
 
@@ -913,15 +913,14 @@ class Document(SimpleList):
     def _post_process_scan(self, page, options):
 
         # tesseract can't extract resolution from pnm, so convert to png
-
         if (
             (page is not None)
             and re.search(
                 r"Portable[ ](any|pix|gray|bit)map",
-                page["format"],
+                page.format,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            and options["to_png"]
+            and "to_png" in options and options["to_png"]
         ):
 
             def to_png_finished_callback():
@@ -941,7 +940,7 @@ class Document(SimpleList):
                 display_callback=options["display_callback"],
             )
 
-        if options["rotate"]:
+        if "rotate" in options and options["rotate"]:
 
             def rotate_finished_callback():
                 del options["rotate"]
@@ -962,7 +961,7 @@ class Document(SimpleList):
                 display_callback=options["display_callback"],
             )
 
-        if options["unpaper"]:
+        if "unpaper" in options and options["unpaper"]:
 
             def unpaper_finished_callback():
                 del options["unpaper"]
@@ -987,7 +986,7 @@ class Document(SimpleList):
             )
             return
 
-        if options["udt"]:
+        if "udt" in options and options["udt"]:
 
             def udt_finished_callback():
                 del options["udt"]
@@ -1009,7 +1008,7 @@ class Document(SimpleList):
             )
             return
 
-        if options["ocr"]:
+        if "ocr" in options and options["ocr"]:
 
             def ocr_finished_callback():
                 del options["ocr"]
@@ -1042,7 +1041,6 @@ class Document(SimpleList):
         size = 0
 
         def file_changed_callback(fileno, condition, *data):
-            print(f"in file_changed_callback {fileno, condition, data}")
             nonlocal size, fh
 
             if condition & GLib.IOCondition.IN:
@@ -1083,7 +1081,7 @@ class Document(SimpleList):
                     )
 
                 else:
-                    if options["display_callback"]:
+                    if "display_callback" in options:
                         options["display_callback"]()
 
                     self._post_process_scan(page, options)
@@ -1092,7 +1090,7 @@ class Document(SimpleList):
 
             return GLib.SOURCE_CONTINUE
 
-        GLib.io_add_watch(fh, GLib.IOCondition.IN | GLib.IOCondition.HUP, file_changed_callback, GLib.PRIORITY_DEFAULT)
+        GLib.io_add_watch(fh, GLib.PRIORITY_DEFAULT, GLib.IOCondition.IN | GLib.IOCondition.HUP, file_changed_callback)
 
     def check_return_queue(self):
 
@@ -1265,13 +1263,12 @@ class Document(SimpleList):
             return i
         return
 
-    def add_page(self, process_uuid, response, ref):
+    def add_page(self, process_uuid, new_page, ref):
         """Add a new page to the document"""
         i, pagenum = None, None
-        new_page = response.info
 
-        # This is really hacky to allow import_scan() to specify the page number
-        if isinstance(ref, dict):
+        # FIXME: This is really hacky to allow import_scan() to specify the page number
+        if not isinstance(ref, dict):
             pagenum = ref
             ref = None
 
