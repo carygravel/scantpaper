@@ -1027,7 +1027,7 @@ class Document(SimpleList):
             )
             return
 
-        if options["finished_callback"]:
+        if "finished_callback" in options and options["finished_callback"]:
             options["finished_callback"]()
 
     def import_scan(self, **options):
@@ -1071,7 +1071,7 @@ class Document(SimpleList):
                     width=width,
                     height=height,
                     format="Portable anymap",
-                    delete=options["delete"],
+                    delete=options["delete"] if "delete" in options else False,
                     dir=options["dir"].name,
                 )
                 index = self.add_page("none", page, options["page"])
@@ -1300,7 +1300,6 @@ class Document(SimpleList):
         #         return
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
-
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
@@ -1419,6 +1418,7 @@ class Document(SimpleList):
 
     def paste_selection(self, data, path, how, select_new_pages=False):
         "Paste the selection"
+
         # Block row-changed signal so that the list can be updated before the sort
         # takes over.
         if self.row_changed_signal is not None:
@@ -2049,7 +2049,6 @@ class Document(SimpleList):
         session = sessionref
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
-
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
