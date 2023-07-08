@@ -48,7 +48,7 @@ class ComboBoxText(Gtk.ComboBoxText):
                 self.set_active(i)
 
     def get_active_index(self):
-        """Set the current active item of a combobox
+        """Get the current active item of a combobox
         based on the index column of the array"""
         return self.data[self.get_active()][self.index_column]
 
