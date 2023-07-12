@@ -116,6 +116,9 @@ class SimpleList(Gtk.TreeView):
                     col["renderer"].column = i
                     i += 1
 
+    def __iter__(self, *args, **kwargs):
+        return iter(self.get_model(), *args, **kwargs)
+
     @property
     def data(self):
         "getter for data property"
@@ -289,6 +292,9 @@ class TiedList(list):
 
     def append(self, values):
         self.model.append(values)
+
+    def __iter__(self):
+        return iter(self.model)
 
     def extend(self, values):
         for row in values:

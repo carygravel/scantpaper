@@ -75,6 +75,22 @@ def test_basic():
     assert model[model.iter_nth_child(None, 0)][0] == "new data", "set data"
 
 
+def test_iterators():
+    "test iterators in SimpleList"
+
+    slist = SimpleList({"col1": "text"})
+    slist.data = [["new data"]]
+    flag = False
+    for _row in slist.data:
+        flag = True
+    assert flag, "iterated over data"
+
+    flag = False
+    for _row in slist:
+        flag = True
+    assert flag, "iterated over slist"
+
+
 def test_error():
     "test error handling in SimpleList"
 
