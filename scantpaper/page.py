@@ -61,6 +61,7 @@ class Page:
             "Portable graymap format (gray scale)": ".pgm",
             "Portable bitmap format (black and white)": ".pbm",
             "PBM": ".pbm",
+            "PPM": ".ppm",
             "CompuServe graphics interchange format": ".gif",
         }
         self.filename = (
