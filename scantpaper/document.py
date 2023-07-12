@@ -288,6 +288,7 @@ class DocThread(BaseThread):
         return            info
 
     def do_import_file(self, info, *options):
+        print(f"do_import_file {info} {options}")
         password, first, last, dirname, pidfile = options
         if info["format"] == "DJVU":
 
@@ -358,7 +359,7 @@ class DocThread(BaseThread):
 
                     if _self["cancel"] or error:
                         return
-                    page = Gscan2pdf.Page(
+                    page = Page(
                         filename=tif,
                         dir=options["dir"],
                         delete=True,
@@ -469,7 +470,7 @@ class DocThread(BaseThread):
 
                     if _self["cancel"] or error:
                         return
-                    page = Gscan2pdf.Page(
+                    page = Page(
                         filename=tif,
                         dir=options["dir"],
                         delete=True,
@@ -483,9 +484,9 @@ class DocThread(BaseThread):
 
         elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", info["format"]):
             try:
-                page = Gscan2pdf.Page(
+                page = Page(
                     filename=info["path"],
-                    dir=options["dir"],
+                    dir=dirname,
                     format=info["format"],
                     width=info["width"],
                     height=info["height"],
@@ -507,31 +508,13 @@ class DocThread(BaseThread):
                 )
 
         else:
-            try:
-                page = Gscan2pdf.Page(
-                    filename=info["path"],
-                    dir=options["dir"],
-                    format=info["format"],
-                    width=info["width"],
-                    height=info["height"],
-                )
-                self.return_queue.enqueue(
-                    {
-                        "type": "page",
-                        "uuid": options["uuid"],
-                        "page": page.to_png(paper_sizes).freeze(),
-                    }
-                )
-
-            except:
-                logger.error(f"Caught error writing to {options}{dir}: {_}")
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    f"Error: unable to write to {options}{dir}.",
-                )
+            return Page(
+                filename=info["path"],
+                dir=dirname,
+                format=info["format"],
+                width=info["width"][0],
+                height=info["height"][0],
+            )
 
         self.return_queue.enqueue(
             {
@@ -1653,11 +1636,12 @@ class Document(SimpleList):
         )
 
     def scans_saved(self):
-        """Check that all pages have been saved"""
-        for _ in self.data:
-            if not _[2]["saved"]:
+        "Check that all pages have been saved"
+        print(f"scans_saved {self.data}")
+        for row in self.data.model:
+            print(f"row {row}")
+            if "saved" not in row[2] or not row[2]["saved"]:
                 return False
-
         return True
 
     def save_text(self, options):
@@ -1978,7 +1962,7 @@ class Document(SimpleList):
             tar = Archive.Tar()
             tar.add_files(filenamelist)
             tar.write(filename, True, EMPTY)
-            for i in range(len(self.data) - 1 + 1):
+            for i in range(len(self.data)):
                 self.data[i][2]["saved"] = True
 
     def open_session_file(self, options):
@@ -2029,7 +2013,7 @@ class Document(SimpleList):
             logger.info("Restoring pre-2.8.1 session file.")
             for key in sessionref.keys():
                 if type(sessionref[key]) == "HASH" and "hocr" in sessionref[key]:
-                    tree = Gscan2pdf.Bboxtree()
+                    tree = Bboxtree()
                     if re.search(
                         r"<body>[\s\S]*<\/body>",
                         sessionref[key]["hocr"],
@@ -2073,7 +2057,7 @@ class Document(SimpleList):
             # Populate the SimpleList
 
             try:
-                page = Gscan2pdf.Page(session[pagenum])
+                page = Page(session[pagenum])
 
                 # At some point the main window widget was being stored on the
                 # Page object. Restoring this and dumping it via Dumper segfaults.
@@ -2112,7 +2096,7 @@ class Document(SimpleList):
                 selection = self.get_selected_indices()
 
             else:
-                selection = range(len(self.data) - 1 + 1)
+                selection = range(len(self.data))
 
             for _ in selection:
                 logger.info(f"Renumbering page {self.data[_][0]}->{start}")
@@ -2123,7 +2107,7 @@ class Document(SimpleList):
         # ascending.
 
         else:
-            for _ in range(1, len(self.data) - 1 + 1):
+            for _ in range(1, len(self.data)):
                 if self.data[_][0] <= self.data[_ - 1][0]:
                     new = self.data[_ - 1][0] + 1
                     logger.info(f"Renumbering page {self}->{data}[{_}][0]->{new}")
@@ -2671,7 +2655,7 @@ class Document(SimpleList):
                         r"([^.]+)$", _, re.MULTILINE | re.DOTALL | re.VERBOSE
                     )
                     try:
-                        page = Gscan2pdf.Page(
+                        page = Page(
                             filename=_,
                             dir=options["dir"],
                             delete=True,
@@ -3159,7 +3143,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             offset = w * POINTS_PER_INCH
 
         text = pdf_page.text()
-        iter = Gscan2pdf.Bboxtree(gs_page["text_layer"]).get_bbox_iter()
+        iter = Bboxtree(gs_page["text_layer"]).get_bbox_iter()
         for box in iter:
             (x1, y1, x2, y2) = box["bbox"]
             txt = box["text"]
@@ -3242,7 +3226,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         xresolution = gs_page["xresolution"]
         yresolution = gs_page["yresolution"]
         h = px2pt(gs_page["height"], yresolution)
-        iter = Gscan2pdf.Bboxtree(gs_page["annotations"]).get_bbox_iter()
+        iter = Bboxtree(gs_page["annotations"]).get_bbox_iter()
         for box in iter:
             if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
                 continue
@@ -4452,7 +4436,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         options["page"]["height"] = options["h"]
         options["page"]["dirty_time"] = timestamp()  # flag as dirty
         if options["page"]["text_layer"]:
-            bboxtree = Gscan2pdf.Bboxtree(options["page"]["text_layer"])
+            bboxtree = Bboxtree(options["page"]["text_layer"])
             options["page"]["text_layer"] = bboxtree.crop(
                 options["x"], options["y"], options["w"], options["h"]
             ).json()
@@ -4569,15 +4553,15 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         options["page"]["width"] = image.Get("width")
         options["page"]["height"] = image.Get("height")
         options["page"]["dirty_time"] = timestamp()  # flag as dirty
-        new2 = Gscan2pdf.Page(
+        new2 = Page(
             filename=filename2,
             dir=options["dir"],
             delete=True,
             format=image2.Get("format"),
         )
         if options["page"]["text_layer"]:
-            bboxtree = Gscan2pdf.Bboxtree(options["page"]["text_layer"])
-            bboxtree2 = Gscan2pdf.Bboxtree(options["page"]["text_layer"])
+            bboxtree = Bboxtree(options["page"]["text_layer"])
+            bboxtree2 = Bboxtree(options["page"]["text_layer"])
             options["page"]["text_layer"] = bboxtree.crop(0, 0, w, h).json()
             new2["text_layer"] = bboxtree2.crop(x2, y2, w2, h2).json()
 
@@ -4654,7 +4638,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
         (error, stdout, stderr) = (None, None, None)
         try:
-            (stdout, stderr) = Gscan2pdf.Tesseract.hocr(
+            (stdout, stderr) = Tesseract.hocr(
                 file=options["page"]["filename"],
                 language=options["language"],
                 logger=logger,
@@ -4706,7 +4690,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             return
 
         options["page"].import_hocr(
-            Gscan2pdf.Cuneiform.hocr(
+            Cuneiform.hocr(
                 file=options["page"]["filename"],
                 language=options["language"],
                 logger=logger,
@@ -4915,7 +4899,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             ):
                 (out, out2) = (out2, out)
 
-            new = Gscan2pdf.Page(
+            new = Page(
                 filename=out,
                 dir=options["dir"],
                 delete=True,
@@ -4941,7 +4925,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 }
             )
             if out2 != EMPTY:
-                new2 = Gscan2pdf.Page(
+                new2 = Page(
                     filename=out2,
                     dir=options["dir"],
                     delete=True,
@@ -5068,7 +5052,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 )
                 return
 
-            new = Gscan2pdf.Page(
+            new = Page(
                 filename=out,
                 dir=options["dir"],
                 delete=True,
