@@ -57,6 +57,7 @@ def test_1():
         running_callback=thread.callback,
         finished_callback=thread.callback,
     )
+    # FIXME: implement GLib.MainLoop() as per test 103
     thread.monitor(uid, block=True)  # for started_callback
     assert thread.response_counter == 1, "checked all expected responses #1"
     thread.monitor(uid, block=True)  # for finished_callback
