@@ -58,22 +58,21 @@ def test_1():
 
 
     slist.save_pdf(
-    path             = 'test.pdf',
-    list_of_pages    = [
-    slist.data[0][2]["uuid"] ],
-    started_callback = save_pdf_started_cb ,
-    options = {
-        "post_save_hook"         : 'pdftoppm %i test',
-        "post_save_hook_options" : 'fg',
-    },
-    finished_callback = save_pdf_finished_cb 
-)
+        path             = 'test.pdf',
+        list_of_pages    = [  slist.data[0][2] ],
+        started_callback = save_pdf_started_cb ,
+        options = {
+            "post_save_hook"         : ['pdftoppm', '%i', 'test'],
+            "post_save_hook_options" : 'fg',
+        },
+        finished_callback = save_pdf_finished_cb 
+    )
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["identify","test-1.ppm"])
-    assert re.search(r"test-1.ppm PPM 146x96 146x96\+0\+0 8-bit sRGB",capture) is not None,     'ran post-save hook on pdf'
+    capture = subprocess.check_output(["identify","test-1.ppm"], text=True)
+    assert re.search(r"test-1.ppm PPM 146x96 146x96\+0\+0 8-bit sRGB",capture),     'ran post-save hook on pdf'
 
 #########################
 
