@@ -34,6 +34,7 @@ class Page:
     text_layer = None
     annotations = None
     dir = None
+    saved = False
 
     def __init__(self, **kwargs):
         if "filename" not in kwargs:
