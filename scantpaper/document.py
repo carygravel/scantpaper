@@ -240,7 +240,6 @@ class DocThread(BaseThread):
             logger.info(info)
 
             # Count number of pages
-
             info["pages"] = len(
                 re.findall(
                     r"TIFF[ ]Directory[ ]at[ ]offset",
@@ -530,7 +529,7 @@ class DocThread(BaseThread):
         return self.send("get_file_info", path, **kwargs)
 
     def import_file(self, password=None, first=1, last=1, **kwargs):
-        "import_file"
+        "import file"
         info = kwargs["info"]
         del kwargs["info"]
         dirname = kwargs["dir"] if "dir" in kwargs else None
@@ -539,7 +538,13 @@ class DocThread(BaseThread):
         del kwargs["pidfile"]
         return self.send("import_file", info, password, first, last, dirname, pidfile, **kwargs)
 
-    def save_pdf(self, **options):
+    def save_pdf(self, **kwargs):
+        "save pdf"
+        return self.send("save_pdf", kwargs)
+
+    def do_save_pdf(self, *options):
+        options = options[0]
+        print(f"in do_save_pdf with {options}")
         _ = gettext.gettext
         pagenr = 0
         cache, pdf, error, message = None, None, None, None
@@ -645,6 +650,8 @@ class DocThread(BaseThread):
         xres, yres, units = pagedata.get_resolution()
         w = width / xres * POINTS_PER_INCH
         h = height / yres * POINTS_PER_INCH
+
+        pdf.setPageSize((w,h))
 
         # Automatic mode
         ctype = None
@@ -1907,6 +1914,8 @@ class Document(SimpleList):
             dir=self.dir,
             pidfile=pidfile,
             uuid=uuid,
+            started_callback = options["started_callback"],
+            finished_callback = options["finished_callback"],
         )
 
     def save_djvu(self, options):
@@ -1925,8 +1934,8 @@ class Document(SimpleList):
                 "list_of_pages": options["list_of_pages"],
                 "metadata": options["metadata"],
                 "options": options["options"],
-                "dir": f"{self}->{dir}",
-                "pidfile": f"{pidfile}",
+                "dir": self.dir,
+                "pidfile": pidfile,
                 "uuid": uuid,
             },
         )
