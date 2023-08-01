@@ -42,6 +42,9 @@ EXPECTED = [
         info=None,
         status="no handler for [nodiv]",
     ),
+    Response(
+        type=ResponseType.FINISHED, process="div", uuid="", info=0.5, status=None
+    ),  # after_finished
 ]
 
 
@@ -72,5 +75,11 @@ def test_1():
     thread.monitor(uid, block=True)  # for started_callback
     thread.monitor(uid, block=True)  # for error_callback
     assert thread.response_counter == 5, "checked all expected responses #4"
+
+    thread.register_callback("after_finished", "after", "finished")
+    uid = thread.send("div", 1, 2, after_finished_callback=thread.callback)
+    thread.monitor(uid, block=True)  # for started_callback
+    thread.monitor(uid, block=True)  # for after_finished_callback
+    assert thread.response_counter == 6, "checked all expected responses #4"
 
     thread.send("quit")
