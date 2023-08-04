@@ -181,11 +181,12 @@ class BaseThread(threading.Thread):
         stage = ResponseTypes[result.type.value - 1].lower()
         callback = stage + "_callback"
         self._run_callbacks(uid, stage, result)
-        if callback == "started_callback":
-            del self.callbacks[uid][callback]
-            self.callbacks[uid]["started"] = True
-        else:  # finished, cancelled, error
-            if uid in self.callbacks:
+        if uid in self.callbacks:
+            if callback == "started_callback":
+                if callback in self.callbacks[uid]:
+                    del self.callbacks[uid][callback]
+                self.callbacks[uid]["started"] = True
+            else:  # finished, cancelled, error
                 del self.callbacks[uid]
-            return GLib.SOURCE_REMOVE
+                return GLib.SOURCE_REMOVE
         return GLib.SOURCE_CONTINUE
