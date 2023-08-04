@@ -3,7 +3,9 @@ import re
 import os
 import datetime
 import subprocess
+import tempfile
 import pytest
+from page import Page
 from document import (
     Document,
     exec_command,
@@ -133,6 +135,11 @@ def test_basics():
 
     #########################
 
+
+def test_indexing():
+    "test indexing"
+
+    slist = Document()
     slist.data = [[1, None, None], [6, None, None], [7, None, None], [8, None, None]]
     assert (
         slist.pages_possible(2, 1) == 4
@@ -140,17 +147,21 @@ def test_basics():
 
     #########################
 
+    png = "test.png"
+    subprocess.run(["convert", "rose:", png], check=True)  # Create test image
+    tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    page = Page(filename=png, format="Portable Network Graphics", dir=tempdir.name)
     slist.data = [
-        [1, None, {}],
-        [3, None, {}],
-        [5, None, {}],
-        [7, None, {}],
-        [9, None, {}],
-        [11, None, {}],
-        [13, None, {}],
-        [15, None, {}],
-        [17, None, {}],
-        [19, None, {}],
+        [1, None, page],
+        [3, None, page.clone()],
+        [5, None, page.clone()],
+        [7, None, page.clone()],
+        [9, None, page.clone()],
+        [11, None, page.clone()],
+        [13, None, page.clone()],
+        [15, None, page.clone()],
+        [17, None, page.clone()],
+        [19, None, page.clone()],
     ]
     assert (
         slist.index_for_page(12, 0, 11, 1) == -1
@@ -165,13 +176,14 @@ def test_basics():
 
     #########################
 
-    slist.data = [[1, None, {"uuid": "aa"}], [2, None, {"uuid": "ab"}]]
+    slist.data = [[1, None, page], [2, None, page.clone()]]
     slist.select(0)
     slist.get_model().handler_unblock(slist.row_changed_signal)
     slist.data[0][0] = 3
-    assert (
-        slist.get_selected_indices() == [1]
-    ), "correctly selected page after manual renumber"
+    assert slist.get_selected_indices() == [
+        1
+    ], "correctly selected page after manual renumber"
+    os.remove(png)
 
     # Gscan2pdf.Document.quit()
 
@@ -188,18 +200,19 @@ def test_file_dates():
             "datetime": [2016, 2, 10, 0, 0, 0],
         },
     }
-    slist._set_timestamp(options)  # pylint: disable=protected-access
+    slist.thread._set_timestamp(options)  # pylint: disable=protected-access
     stb = os.stat(filename)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 10, 0, 0, 0
     ), "timestamp no timezone"
 
     options["metadata"]["tz"] = [None, None, None, 14, 0, None, None]
-    slist._set_timestamp(options)  # pylint: disable=protected-access
+    slist.thread._set_timestamp(options)  # pylint: disable=protected-access
     stb = os.stat(filename)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 9, 10, 0, 0
     ), "timestamp with timezone"
+    os.remove(filename)
 
 
 def test_date_conversions():
@@ -228,7 +241,6 @@ def test_date_conversions():
     assert tz_delta == [0, 0, 0, -1, 0, 0, -1], "Delta_Timezone"
 
     # can't test exact result, as depends on timezone of test machine
-
     assert (
         len(delta_timezone_to_current([2016, 1, 1, 2, 2, 2])) == 7
     ), "delta_timezone_to_current()"
@@ -269,7 +281,7 @@ def test_helpers():
     assert parse_truetype_fonts(fclist) == {
         "by_family": {"Cairo": {"Light": "/usr/share/fonts/Cairo-Light.ttf"}},
         "by_file": {"/usr/share/fonts/Cairo-Light.ttf": ("Cairo", "Light")},
-        }, "parse_truetype_fonts() only returns fonts for which we have a style"
+    }, "parse_truetype_fonts() only returns fonts for which we have a style"
 
     #########################
 
@@ -461,18 +473,12 @@ def test_helpers():
         "tz": [None, None, None, 14, 0, None, None],
     }, "_extract_metadata GMT+14"
 
-    assert (
-        _extract_metadata(
-            {"format": "Portable Document Format", "datetime": "non-parsable date"}
-        )
-        == {}
+    assert not _extract_metadata(
+        {"format": "Portable Document Format", "datetime": "non-parsable date"}
     ), "_extract_metadata on error"
 
-    assert (
-        _extract_metadata(
-            {"format": "Portable Document Format", "datetime": "non-parsable-string"}
-        )
-        == {}
+    assert not _extract_metadata(
+        {"format": "Portable Document Format", "datetime": "non-parsable-string"}
     ), "_extract_metadata on error 2"
 
     #########################

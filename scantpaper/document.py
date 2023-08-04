@@ -288,7 +288,6 @@ class DocThread(BaseThread):
         return            info
 
     def do_import_file(self, info, *options):
-        print(f"do_import_file {info} {options}")
         password, first, last, dirname, pidfile = options
         if info["format"] == "DJVU":
 
@@ -540,27 +539,38 @@ class DocThread(BaseThread):
 
     def save_pdf(self, **kwargs):
         "save pdf"
-        return self.send("save_pdf", kwargs)
+        path = kwargs["path"]
+        del kwargs["path"]
+        list_of_pages = kwargs["list_of_pages"]
+        del kwargs["list_of_pages"]
+        metadata = kwargs["metadata"]
+        del kwargs["metadata"]
+        options = kwargs["options"]
+        del kwargs["options"]
+        dirname = kwargs["dir"] if "dir" in kwargs else None
+        del kwargs["dir"]
+        pidfile = kwargs["pidfile"] if "pidfile" in kwargs else None
+        del kwargs["pidfile"]
+        del kwargs["uuid"]
+        return self.send("save_pdf", path, list_of_pages, dirname, pidfile, metadata, options, **kwargs)
 
     def do_save_pdf(self, *options):
-        options = options[0]
-        print(f"in do_save_pdf with {options}")
         _ = gettext.gettext
         pagenr = 0
         cache, pdf, error, message = None, None, None, None
 
         # Create PDF with PDF::Builder
         self.message = _("Setting up PDF")
-        filename = options["path"]
+        filename, list_of_pages, dirname, pidfile, metadata, options = options
         if _need_temp_pdf(options):
-            filename = tempfile.TemporaryFile(dir=options["dir"], suffix=".pdf")
+            filename = tempfile.TemporaryFile(dir=dirname, suffix=".pdf")
 
         pdf = canvas.Canvas(filename)
 
         if error:
             return 1
-        if "metadata" in options and "ps" not in options["options"]:
-            metadata = prepare_output_metadata("PDF", options["metadata"])
+        if metadata is not None and "ps" not in options:
+            metadata = prepare_output_metadata("PDF", metadata)
             if "Author" in metadata:
                 pdf.setAuthor(metadata["Author"])
             if "Title" in metadata:
@@ -573,14 +583,14 @@ class DocThread(BaseThread):
 
         #cache["core"] = pdf.corefont("Times-Roman")
         pdf.setFont('Times-Roman', 12)
-        if "font" in options["options"]:
+        if "font" in options:
             message = _("Unable to find font '%s'. Defaulting to core font.") % (
-                options["options"]["font"]
+                options["font"]
             )
-            if os.path.isfile(options["options"]["font"]):
+            if os.path.isfile(options["font"]):
                 try:
-                    cache["ttf"] = pdf.ttfont(options["options"]["font"], unicodemap=1)
-                    logger.info(f"Using {options}{options}{font} for non-ASCII text")
+                    cache["ttf"] = pdf.ttfont(options["font"], unicodemap=1)
+                    logger.info(f"Using {options['font']} for non-ASCII text")
 
                 except:
                     _thread_throw_error(
@@ -596,13 +606,10 @@ class DocThread(BaseThread):
                     self, options["uuid"], options["page"]["uuid"], "Save file", message
                 )
 
-        for pagedata in options["list_of_pages"]:
+        for pagedata in list_of_pages:
             pagenr += 1
-            self.progress = pagenr / (len(options["list_of_pages"]) + 1)
-            self.message = _("Saving page %i of %i") % (
-                pagenr,
-                len(options["list_of_pages"]) - 1 + 1,
-            )
+            self.progress = pagenr / (len(list_of_pages) + 1)
+            self.message = _("Saving page %i of %i") % (pagenr, len(list_of_pages))
             status = self._add_page_to_pdf(pdf, pagedata, cache, options)
             # if status or _self["cancel"]:
             #     return
@@ -610,19 +617,19 @@ class DocThread(BaseThread):
         self.message = _("Closing PDF")
         logger.info("Closing PDF")
         pdf.save()
-        if "prepend" in options["options"] or "append" in options["options"]:
+        if "prepend" in options or "append" in options:
             if _append_pdf(self, filename, options):
                 return
 
-        if "user-password" in options["options"]:
+        if "user-password" in options:
             if _encrypt_pdf(self, filename, options):
                 return
 
         self._set_timestamp(options)
-        if "ps" in options["options"]:
+        if "ps" in options:
             self.message = _("Converting to PS")
-            cmd = [options["options"]["pstool"], filename, options["options"]["ps"]]
-            (status, _, error) = exec_command(cmd, options["pidfile"])
+            cmd = [options["pstool"], filename, options["ps"]]
+            status, _, error = exec_command(cmd, pidfile)
             if status or error:
                 logger.info(error)
                 _thread_throw_error(
@@ -634,13 +641,13 @@ class DocThread(BaseThread):
                 )
                 return
 
-            _post_save_hook(options["options"]["ps"], options["options"])
+            _post_save_hook(options["ps"], options)
 
         else:
-            _post_save_hook(filename, options["options"])
+            print(f"before _post_save_hook({filename}, {options})")
+            _post_save_hook(filename, options)
 
     def _add_page_to_pdf(self, pdf, pagedata, cache, options):
-        print(f"_add_page_to_pdf {pdf}, {pagedata}, {cache}, {options}")
         filename = pagedata.filename
         image = PythonMagick.Image(filename)
 
@@ -656,8 +663,8 @@ class DocThread(BaseThread):
         # Automatic mode
         ctype = None
         if (
-            "compression" not in options["options"]
-            or options["options"]["compression"] == "auto"
+            "compression" not in options
+            or options["compression"] == "auto"
         ):
             pagedata.depth = image.depth()
             logger.info(f"Depth of {filename} is {pagedata.depth}")
@@ -666,7 +673,6 @@ class DocThread(BaseThread):
 
             else:
                 ctype = image.format()
-                print(f"format {ctype}")
                 logger.info(f"Type of {filename} is {ctype}")
                 if re.search(r"TrueColor", ctype, re.MULTILINE | re.DOTALL | re.VERBOSE):
                     pagedata.compression = "jpg"
@@ -677,7 +683,7 @@ class DocThread(BaseThread):
             logger.info(f"Selecting {pagedata.compression} compression")
 
         else:
-            pagedata.compression = options["options"]["compression"]
+            pagedata.compression = options["compression"]
 
         filename, fmt, output_xresolution, output_yresolution = self._convert_image_for_pdf(
             pagedata, image, options
@@ -685,8 +691,8 @@ class DocThread(BaseThread):
 
 #        pdf.drawString(1 * cm, 29.7 * cm - 1 * cm, "Hello")
         if (
-            "text_position" in options["options"]
-            and options["options"]["text_position"] == "right"
+            "text_position" in options
+            and options["text_position"] == "right"
         ):
             logger.info("Embedding OCR output right of image")
             logger.info("Defining page at ", w * 2, f" pt x {h} pt")
@@ -700,7 +706,6 @@ class DocThread(BaseThread):
             self._add_text_to_pdf(pdf, pagedata, cache, options)
 
         # Add scan
-        print(f"before drawImage {filename}")
         pdf.drawImage(filename, 0, 0)
 
         if pagedata.annotations is not None:
@@ -725,7 +730,7 @@ class DocThread(BaseThread):
             fmt = regex.group(1)
 
         if _must_convert_image_for_pdf(
-            compression, fmt, options["options"]["downsample"] if "downsample" in options["options"] else None
+            compression, fmt, options["downsample"] if "downsample" in options else None
         ):
             if (
                 not re.search(
@@ -734,7 +739,7 @@ class DocThread(BaseThread):
                 and fmt != "tif"
             ):
                 ofn = filename
-                filename = tempfile.TemporaryFile(dir=options["dir"], suffix=".tif")
+                filename = tempfile.TemporaryFile(dir=dirname, suffix=".tif")
                 logger.info(f"Converting {ofn} to {filename}")
 
             elif re.search(
@@ -742,17 +747,17 @@ class DocThread(BaseThread):
             ):
                 ofn = filename
                 filename = tempfile.TemporaryFile(
-                    dir=options["dir"], suffix=f".{compression}"
+                    dir=dirname, suffix=f".{compression}"
                 )
                 msg = f"Converting {ofn} to {filename}"
-                if "quality" in options["options"] and compression == "jpg":
-                    msg += f" with quality={options}{options}{quality}"
+                if "quality" in options and compression == "jpg":
+                    msg += f" with quality={options['quality']}"
 
                 logger.info(msg)
 
-            if "downsample" in options["options"]:
-                output_xresolution = options["options"]["downsample dpi"]
-                output_yresolution = options["options"]["downsample dpi"]
+            if "downsample" in options:
+                output_xresolution = options["downsample dpi"]
+                output_yresolution = options["downsample dpi"]
                 w_pixels = (
                     pagedata["width"] * output_xresolution / pagedata["xresolution"]
                 )
@@ -764,22 +769,22 @@ class DocThread(BaseThread):
                 if f"{status}":
                     logger.warn(status)
 
-            if "quality" in options["options"] and compression == "jpg":
-                status = image.Set(quality=options["options"]["quality"])
+            if "quality" in options and compression == "jpg":
+                status = image.Set(quality=options["quality"])
                 if f"{status}":
                     logger.warn(status)
 
             fmt = _write_image_object(
-                image, filename, fmt, pagedata, options["options"]["downsample"] if "downsample" in options["options"] else None
+                image, filename, fmt, pagedata, options["downsample"] if "downsample" in options else None
             )
             if not re.search(
                 r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
-                filename2 = tempfile.TemporaryFile(dir=options["dir"], suffix=".tif")
-                error = tempfile.TemporaryFile(dir=options["dir"], suffix=".txt")
+                filename2 = tempfile.TemporaryFile(dir=dirname, suffix=".tif")
+                error = tempfile.TemporaryFile(dir=dirname, suffix=".txt")
                 (status, _, error) = exec_command(
                     ["tiffcp", "-r", "-1", "-c", compression, filename, filename2],
-                    options["pidfile"],
+                    pidfile,
                 )
                 if _self["cancel"]:
                     return
@@ -890,18 +895,18 @@ class DocThread(BaseThread):
                 _wrap_text_to_page(txt, size, text, h, w)
 
     def _set_timestamp(self, options):
-
         if (
-            "set_timestamp" not in options["options"]
+            "options" not in options or "set_timestamp" not in options["options"]
             or not options["options"]["set_timestamp"]
-            or "ps" in options["options"]
+            or "ps" in options
         ):
             return
 
-        adatetime = options["metadata"]["datetime"]
+        metadata = options["metadata"]
+        adatetime = metadata["datetime"]
         adatetime = datetime.datetime(*adatetime)
-        if "tz" in options["metadata"]:
-            tz = options["metadata"]["tz"]
+        if "tz" in metadata:
+            tz = metadata["tz"]
             tz = [0 if x is None else x for x in tz]
             tz = datetime.timedelta(
                 days=tz[2], hours=tz[3], minutes=tz[4], seconds=tz[5]
@@ -969,7 +974,7 @@ class Document(SimpleList):
         selection = self.get_selected_indices()
         uuids = []
         for i in selection:
-            uuids.append(self.data[i][2]["uuid"])
+            uuids.append(self.data[i][2].uuid)
 
         self.get_model().handler_block(self.row_changed_signal)
 
@@ -991,6 +996,7 @@ class Document(SimpleList):
             {"#": "int", _("Thumbnails"): "pixbuf", "Page Data": "hstring"}
         )
         self.thread = DocThread()
+        self.thread.register_callback("mark_saved", "before", "finished")
         self.thread.start()
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
@@ -1239,15 +1245,14 @@ class Document(SimpleList):
                 callback[uid][cb[:-9]] = options[cb]
         if "mark_saved" in options and options["mark_saved"]:
 
-            def mark_saved_callback():
+            def mark_saved_callback(_data):
 
                 # list_of_pages is frozen,
                 # so find the original pages from their uuids
-                for _ in options["list_of_pages"]:
-                    page = self.find_page_by_uuid(_)
-                    self.data[page][2]["saved"] = True
+                for page in options["list_of_pages"]:
+                    page.saved = True
 
-            callback[uid]["mark_saved"] = mark_saved_callback
+            options["mark_saved_callback"] = mark_saved_callback
 
         return uid
 
@@ -1622,12 +1627,11 @@ class Document(SimpleList):
             return
 
         i = 0
-        while i <= len(self.data) - 1 and (
-            "uuid" not in self.data[i][2] or self.data[i][2]["uuid"] != uuid
-        ):
+        print(f"in find_page_by_uuid with {self.data} {uuid}")
+        while i < len(self.data) and self.data[i][2].uuid != uuid:
             i += 1
 
-        if i <= len(self.data) - 1:
+        if i < len(self.data):
             return i
         return
 
@@ -1915,6 +1919,7 @@ class Document(SimpleList):
             pidfile=pidfile,
             uuid=uuid,
             started_callback = options["started_callback"],
+            mark_saved_callback = options["mark_saved_callback"],
             finished_callback = options["finished_callback"],
         )
 
@@ -2015,9 +2020,7 @@ class Document(SimpleList):
 
     def scans_saved(self):
         "Check that all pages have been saved"
-        print(f"scans_saved {self.data}")
         for row in self:
-            print(f"row {row}")
             if not row[2].saved:
                 return False
         return True
@@ -2341,7 +2344,7 @@ class Document(SimpleList):
             tar.add_files(filenamelist)
             tar.write(filename, True, EMPTY)
             for i in range(len(self.data)):
-                self.data[i][2]["saved"] = True
+                self.data[i][2].saved = True
 
     def open_session_file(self, options):
 
@@ -5515,11 +5518,12 @@ def prepare_output_metadata(ftype, metadata):
             if ftype == "PDF"
             else "%4i-%02i-%02i %02i:%02i:%02i%1s%02i:%02i"
         )
-        print(f"metadata {metadata}")
-        year, month, day, hour, mns, sec = metadata["datetime"] if "datetime" in metadata and metadata["datetime"] is not None else 0, 0, 0, 0, 0, 0
+        year, month, day, hour, mns, sec = 0, 0, 0, 0, 0, 0
+        if "datetime" in metadata and metadata["datetime"] is not None:
+            year, month, day, hour, mns, sec = metadata["datetime"]
         sign, dh, dm = "+", 0, 0
         if "tz" in metadata:
-            (_, _, _, dh, dm, _, _) = metadata["tz"]
+            _, _, _, dh, dm, _, _ = metadata["tz"]
             if dh * MINUTES_PER_HOUR + dm < 0:
                 sign = "-"
             dh = abs(dh)
@@ -5580,10 +5584,10 @@ def font_can_char(font, char):
 def _need_temp_pdf(options):
 
     return (
-        "prepend" in options["options"]
-        or "append" in options["options"]
-        or "ps" in options["options"]
-        or "user-password" in options["options"]
+        "prepend" in options
+        or "append" in options
+        or "ps" in options
+        or "user-password" in options
     )
 
 

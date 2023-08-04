@@ -10,7 +10,7 @@ from page import Page
 from dialog.scan import Scan
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
 def monitor_multiple(thread, uid_list):
@@ -117,7 +117,11 @@ def test_document():
     tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
     slist.set_dir(tempdir.name)
 
+    ran_callback = False
+
     def finished_callback():
+        nonlocal ran_callback
+        ran_callback = True
         clipboard = slist.copy_selection(True)
         slist.paste_selection(clipboard[0], 0, "after", True)  # copy-paste page 1->2
         assert (
@@ -154,5 +158,8 @@ def test_document():
         # TODO/FIXME: test drag-and-drop callbacks for copy
 
     slist.import_files(paths=[tiff], finished_callback=finished_callback)
-    monitor_multiple(slist.thread, [None, None, None, None, None]) # FIXME: implement GLib.MainLoop() as per test 103
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert ran_callback, "ran finished callback"
     os.remove(tiff)
