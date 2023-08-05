@@ -21,6 +21,7 @@ def test_1():
     slist.set_dir(dirname.name)
 
     asserts = 0
+    # FIXME: add support from completed, total vars
     #    def import_files_started_cb( thread, process, completed, total ):
     def import_files_started_cb(response):
         nonlocal asserts
@@ -45,6 +46,7 @@ def test_1():
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
+    # FIXME: add support from completed, total vars
     #    def save_pdf_started_cb( result, completed, total ):
     def save_pdf_started_cb(result):
         nonlocal asserts

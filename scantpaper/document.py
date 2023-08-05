@@ -583,7 +583,7 @@ class DocThread(BaseThread):
 
         #cache["core"] = pdf.corefont("Times-Roman")
         pdf.setFont('Times-Roman', 12)
-        if "font" in options:
+        if options is not None and "font" in options:
             message = _("Unable to find font '%s'. Defaulting to core font.") % (
                 options["font"]
             )
@@ -617,16 +617,16 @@ class DocThread(BaseThread):
         self.message = _("Closing PDF")
         logger.info("Closing PDF")
         pdf.save()
-        if "prepend" in options or "append" in options:
+        if options is not None and ("prepend" in options or "append" in options):
             if _append_pdf(self, filename, options):
                 return
 
-        if "user-password" in options:
+        if options is not None and "user-password" in options:
             if _encrypt_pdf(self, filename, options):
                 return
 
         self._set_timestamp(options)
-        if "ps" in options:
+        if options is not None and "ps" in options:
             self.message = _("Converting to PS")
             cmd = [options["pstool"], filename, options["ps"]]
             status, _, error = exec_command(cmd, pidfile)
@@ -662,7 +662,7 @@ class DocThread(BaseThread):
 
         # Automatic mode
         ctype = None
-        if (
+        if ( options is None or
             "compression" not in options
             or options["compression"] == "auto"
         ):
@@ -690,7 +690,7 @@ class DocThread(BaseThread):
         )
 
 #        pdf.drawString(1 * cm, 29.7 * cm - 1 * cm, "Hello")
-        if (
+        if ( options is not None and 
             "text_position" in options
             and options["text_position"] == "right"
         ):
@@ -896,7 +896,7 @@ class DocThread(BaseThread):
 
     def _set_timestamp(self, options):
         if (
-            "options" not in options or "set_timestamp" not in options["options"]
+            options is None or "options" not in options or "set_timestamp" not in options["options"]
             or not options["options"]["set_timestamp"]
             or "ps" in options
         ):
@@ -1914,13 +1914,13 @@ class Document(SimpleList):
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             metadata=options["metadata"] if "metadata" in options else None,
-            options=options["options"],
+            options=options["options"] if "options" in options else None,
             dir=self.dir,
             pidfile=pidfile,
             uuid=uuid,
-            started_callback = options["started_callback"],
-            mark_saved_callback = options["mark_saved_callback"],
-            finished_callback = options["finished_callback"],
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def save_djvu(self, options):
@@ -5584,10 +5584,11 @@ def font_can_char(font, char):
 def _need_temp_pdf(options):
 
     return (
+        options is not None and (
         "prepend" in options
         or "append" in options
         or "ps" in options
-        or "user-password" in options
+        or "user-password" in options)
     )
 
 
@@ -5686,7 +5687,7 @@ def _bbox2markup(xresolution, yresolution, h, bbox):
 
 def _post_save_hook(filename, options):
 
-    if "post_save_hook" in options:
+    if options is not None and "post_save_hook" in options:
         command = options["post_save_hook"]
         if isinstance(command, list):
             for i, e in enumerate(command):
