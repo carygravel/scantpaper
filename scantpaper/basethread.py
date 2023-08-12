@@ -11,7 +11,7 @@ Request = collections.namedtuple("Request", ["event", "uuid", "args"])
 Response = collections.namedtuple(
     "Response", ["type", "process", "uuid", "info", "status"]
 )
-ResponseTypes = ["STARTED", "FINISHED", "CANCELLED", "ERROR", "LOG"]
+ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "LOG"]
 ResponseType = Enum("ResponseType", ResponseTypes)
 
 logger = logging.getLogger(__name__)
@@ -28,12 +28,14 @@ class BaseThread(threading.Thread):
         self.callbacks = {}
         self.additional_callbacks = {}
         self.before = {
+            "queued": set(),
             "started": set(),
             "running": set(),
             "finished": set(),
             "error": set(),
         }
         self.after = {
+            "queued": set(),
             "started": set(),
             "running": set(),
             "finished": set(),
@@ -48,9 +50,9 @@ class BaseThread(threading.Thread):
         should be triggered before or after the reference callback"""
         if when not in ["before", "after"]:
             raise ValueError("when can only be 'before' or 'after'")
-        if reference_cb not in ["started", "running", "finished"]:
+        if reference_cb not in ["queued", "started", "running", "finished"]:
             raise ValueError(
-                "reference_cb can only be 'started', 'running', or 'finished'"
+                "reference_cb can only be 'queued', 'started', 'running', or 'finished'"
             )
         getattr(self, when)[reference_cb].add(name)
         self.additional_callbacks[name] = when, reference_cb
@@ -59,6 +61,7 @@ class BaseThread(threading.Thread):
         self,
         event,
         *args,
+        queued_callback=None,
         started_callback=None,
         running_callback=None,
         finished_callback=None,
@@ -68,6 +71,7 @@ class BaseThread(threading.Thread):
         "Puts the event and args as a `Request` on the requests queue"
         request = Request(event, uuid.uuid1(), args)
         callbacks = {
+            "queued_callback": queued_callback,
             "started_callback": started_callback,
             "started": False,
             "running_callback": running_callback,
@@ -79,6 +83,15 @@ class BaseThread(threading.Thread):
                 callbacks[k] = val
         self.callbacks[request.uuid] = callbacks
         self.requests.put(request)
+        self.responses.put(
+            Response(
+                type=ResponseType.QUEUED,
+                process=event,
+                info=None,
+                uuid=request.uuid,
+                status=None,
+            )
+        )
         GLib.timeout_add(100, self.monitor, request.uuid)
         return request.uuid
 
@@ -182,10 +195,11 @@ class BaseThread(threading.Thread):
         callback = stage + "_callback"
         self._run_callbacks(uid, stage, result)
         if uid in self.callbacks:
-            if callback == "started_callback":
+            if callback in ["queued_callback", "started_callback"]:
                 if callback in self.callbacks[uid]:
                     del self.callbacks[uid][callback]
-                self.callbacks[uid]["started"] = True
+                if callback == "started_callback":
+                    self.callbacks[uid]["started"] = True
             else:  # finished, cancelled, error
                 del self.callbacks[uid]
                 return GLib.SOURCE_REMOVE
