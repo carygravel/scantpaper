@@ -644,7 +644,6 @@ class DocThread(BaseThread):
             _post_save_hook(options["ps"], options)
 
         else:
-            print(f"before _post_save_hook({filename}, {options})")
             _post_save_hook(filename, options)
 
     def _add_page_to_pdf(self, pdf, pagedata, cache, options):
@@ -1112,7 +1111,7 @@ class Document(SimpleList):
             logger.error(f"Caught error writing to {self.dir}: {e}")
             if "error_callback" in options:
                 options["error_callback"](
-                    options["page"],
+                    options["page"] if "page" in options else None,
                     "create PID file",
                     f"Error: unable to write to {self.dir}.",
                 )
@@ -1236,13 +1235,7 @@ class Document(SimpleList):
             )
 
     def _note_callbacks(self, options):
-        """Because the finished, error and cancelled callbacks are triggered by the
-        return queue, note them here for the return queue to use."""
-        uid = uuid.uuid1()
-        callback[uid] = {}
-        for cb in ["queued_callback", "started_callback", "running_callback", "finished_callback", "error_callback", "cancelled_callback", "display_callback"]:
-            if cb in options:
-                callback[uid][cb[:-9]] = options[cb]
+        "create the mark_saved callback if necessary"
         if "mark_saved" in options and options["mark_saved"]:
 
             def mark_saved_callback(_data):
@@ -1253,8 +1246,6 @@ class Document(SimpleList):
                     page.saved = True
 
             options["mark_saved_callback"] = mark_saved_callback
-
-        return uid
 
     def import_file(self, password=None, first=1, last=1, **options):
         # File in which to store the process ID
@@ -1918,6 +1909,7 @@ class Document(SimpleList):
             dir=self.dir,
             pidfile=pidfile,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
             started_callback = options["started_callback"] if "started_callback" in options else None,
             mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,

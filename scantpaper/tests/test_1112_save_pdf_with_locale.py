@@ -9,7 +9,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(import_in_mainloop):
     "Test with non-English locale"
     locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 
@@ -22,10 +22,7 @@ def test_1():
     dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
     slist.set_dir(dirname.name)
 
-    mlp = GLib.MainLoop()
-    slist.import_files(paths=["test.pnm"], finished_callback=mlp.quit)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+    import_in_mainloop(slist, ["test.pnm"])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
