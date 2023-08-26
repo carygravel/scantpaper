@@ -63,6 +63,7 @@ class Page:
             "Portable bitmap format (black and white)": ".pbm",
             "PBM": ".pbm",
             "PPM": ".ppm",
+            "PNG": ".png",
             "CompuServe graphics interchange format": ".gif",
         }
         self.filename = (
