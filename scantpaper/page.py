@@ -64,6 +64,7 @@ class Page:
             "PBM": ".pbm",
             "PPM": ".ppm",
             "PNG": ".png",
+            "JPEG": ".jpg",
             "CompuServe graphics interchange format": ".gif",
         }
         self.filename = (
@@ -301,8 +302,9 @@ class Page:
                 logger.warning("Unknown units: '%s'.", units)
                 logger.warning("The resolution and page size will probably be wrong.")
 
-            self.resolution = (xresolution, yresolution, units)
-            return self.resolution
+            if xresolution != 0 and yresolution != 0:
+                self.resolution = (xresolution, yresolution, units)
+                return self.resolution
 
         units = "PixelsPerInch"
 
