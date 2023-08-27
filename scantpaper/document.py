@@ -563,7 +563,8 @@ class DocThread(BaseThread):
         self.message = _("Setting up PDF")
         filename, list_of_pages, dirname, pidfile, metadata, options = options
         if _need_temp_pdf(options):
-            filename = tempfile.TemporaryFile(dir=dirname, suffix=".pdf")
+            options["path"] = filename
+            filename = tempfile.NamedTemporaryFile(dir=dirname, suffix=".pdf")
 
         pdf = canvas.Canvas(filename)
 
@@ -622,7 +623,7 @@ class DocThread(BaseThread):
                 return
 
         if options is not None and "user-password" in options:
-            if _encrypt_pdf(self, filename, options):
+            if self._encrypt_pdf(filename, options):
                 return
 
         self._set_timestamp(options)
@@ -926,6 +927,23 @@ class DocThread(BaseThread):
                 "Set timestamp",
                 _("Unable to set file timestamp for dates prior to 1970"),
             )
+
+    def _encrypt_pdf(self, filename, options):
+        cmd = ["pdftk", filename.name, "output", options["path"]]
+        if "user-password" in options:
+            cmd += ["user_pw", options["user-password"]]
+
+        spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
+        if spo.returncode != 0:
+            logger.info(spo.stderr)
+            _thread_throw_error(
+                self,
+                options["uuid"],
+                options["page"]["uuid"],
+                "Save file",
+                _("Error encrypting PDF: %s") % (spo.stderr),
+            )
+            return status
 
 
 class Document(SimpleList):
@@ -3109,24 +3127,6 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 options["page"]["uuid"],
                 "Save file",
                 message % (error),
-            )
-            return status
-
-    def _encrypt_pdf(self, filename, options):
-
-        cmd = ["pdftk", filename, "output", options["path"]]
-        if "user-password" in options["options"]:
-            cmd.append("user_pw", options["options"]["user-password"])
-
-        (status, _, error) = exec_command(cmd, options["pidfile"])
-        if status or error:
-            logger.info(error)
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                _("Error encrypting PDF: %s") % (error),
             )
             return status
 
