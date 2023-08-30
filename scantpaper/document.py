@@ -15,6 +15,7 @@ import uuid
 import logging
 from basethread import BaseThread
 from const import POINTS_PER_INCH
+from bboxtree import Bboxtree
 
 # from scanner.options import Options
 import gi
@@ -689,7 +690,6 @@ class DocThread(BaseThread):
             pagedata, image, options
         )
 
-#        pdf.drawString(1 * cm, 29.7 * cm - 1 * cm, "Hello")
         if ( options is not None and 
             "text_position" in options
             and options["text_position"] == "right"
@@ -805,22 +805,20 @@ class DocThread(BaseThread):
 
     def _add_text_to_pdf(self, pdf_page, gs_page, cache, options):
         """Add OCR as text behind the scan"""
-        xresolution = gs_page["xresolution"]
-        yresolution = gs_page["yresolution"]
-        w = gs_page["width"] / gs_page["xresolution"]
-        h = gs_page["height"] / gs_page["yresolution"]
+        xresolution, yresolution, units = gs_page.get_resolution()
+        w = gs_page.width / xresolution
+        h = gs_page.height / yresolution
         font = None
         offset = 0
         if (
-            "text_position" in options["options"]
+            options and "text_position" in options["options"]
             and options["options"]["text_position"] == "right"
         ):
             offset = w * POINTS_PER_INCH
 
-        text = pdf_page.text()
-        iter = Bboxtree(gs_page["text_layer"]).get_bbox_iter()
-        for box in iter:
-            (x1, y1, x2, y2) = box["bbox"]
+        textobject = pdf_page.beginText()
+        for box in Bboxtree(gs_page.text_layer).get_bbox_iter():
+            x1, y1, x2, y2 = box["bbox"]
             txt = box["text"]
             if txt is None:
                 continue
@@ -865,9 +863,9 @@ class DocThread(BaseThread):
                         )
 
             if font is None:
-                font = cache["core"]
+                font = 'Times-Roman'
             if x1 == 0 and y1 == 0 and (x2 is None):
-                (x2, y2) = (w * xresolution, h * yresolution)
+                x2, y2 = w * xresolution, h * yresolution
 
             if (
                 abs(h * yresolution - y2 + y1) > BOX_TOLERANCE
@@ -880,19 +878,19 @@ class DocThread(BaseThread):
                 # y coordinate (since the PDF coordinates are bottom to top
                 # instead of top to bottom) and subtract $size, since the text
                 # will end up above the given point instead of below.
-
                 size = px2pt(y2 - y1, yresolution)
-                text.font(font, size)
-                text.translate(
+                textobject.translate(
                     offset + px2pt(x1, xresolution),
                     (h - (y1 / yresolution)) * POINTS_PER_INCH - size,
                 )
-                text.text(txt, utf8=1)
+                textobject.text(txt, utf8=1)
+                pdf_page.drawString(1 * cm, 29.7 * cm - 1 * cm, txt)
 
             else:
                 size = 1
-                text.font(font, size)
-                _wrap_text_to_page(txt, size, text, h, w)
+                pdf_page.setFont(font, size)
+                _wrap_text_to_page(txt, size, textobject, h, w)
+        pdf_page.drawText(textobject)
 
     def _set_timestamp(self, options):
         if (
@@ -5639,24 +5637,24 @@ def px2pt(px, resolution):
 
 
 def _wrap_text_to_page(txt, size, text_box, h, w):
-
     y = h * POINTS_PER_INCH - size
+    text_box.setTextOrigin(0, y)
     for line in re.split(r"\n", txt):
-        x = 0
+        text_box.textLine(text=line)
+        # x = 0
 
-        # Add a word at a time in order to linewrap
+        # # Add a word at a time in order to linewrap
+        # for word in line.split(SPACE):
+        #     if len(word) * size + x > w * POINTS_PER_INCH:
+        #         x = 0
+        #         y -= size
 
-        for word in split(SPACE, line):
-            if len(word) * size + x > w * POINTS_PER_INCH:
-                x = 0
-                y -= size
+        #     text_box.translate(x, y)
+        #     if x > 0:
+        #         word = SPACE + word
+        #     x += text_box.text(word, utf8=1)
 
-            text_box.translate(x, y)
-            if x > 0:
-                word = SPACE + word
-            x += text_box.text(word, utf8=1)
-
-        y -= size
+        # y -= size
 
 
 def _bbox2markup(xresolution, yresolution, h, bbox):
