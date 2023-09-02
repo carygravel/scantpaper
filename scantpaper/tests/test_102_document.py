@@ -8,6 +8,7 @@ import pytest
 from document import DocThread, Document
 from page import Page
 from dialog.scan import Scan
+from basethread import Request
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
@@ -29,17 +30,20 @@ def test_docthread():
     thread.start()
 
     with pytest.raises(FileNotFoundError):
-        thread.do_get_file_info("test2.tif")
+        request = Request("get_file_info", ("test2.tif", None), thread.responses)
+        thread.do_get_file_info(request)
 
     tiff = "test.tif"
     subprocess.run(["touch", tiff], check=True)
     with pytest.raises(RuntimeError):
-        thread.do_get_file_info(tiff)
+        request = Request("get_file_info", (tiff, None), thread.responses)
+        thread.do_get_file_info(request)
 
     subprocess.run(["convert", "rose:", tiff], check=True)  # Create test image
     tgz = "test.tgz"
     subprocess.run(["tar", "cfz", tgz, tiff], check=True)  # Create test tarball
-    assert thread.do_get_file_info(tgz) == {
+    request = Request("get_file_info", (tgz, None), thread.responses)
+    assert thread.do_get_file_info(request) == {
         "format": "session file",
         "path": "test.tgz",
     }, "do_get_file_info + tgz"
@@ -50,7 +54,8 @@ def test_docthread():
     subprocess.run(["convert", "rose:", pbm], check=True)  # Create test image
     subprocess.run(["cjb2", pbm, cjb2], check=True)
     subprocess.run(["djvm", "-c", djvu, cjb2, cjb2], check=True)
-    assert thread.do_get_file_info(djvu) == {
+    request = Request("get_file_info", (djvu, None), thread.responses)
+    assert thread.do_get_file_info(request) == {
         "format": "DJVU",
         "path": "test.djvu",
         "width": [70, 70],
@@ -61,7 +66,8 @@ def test_docthread():
 
     pdf = "test.pdf"
     subprocess.run(["tiff2pdf", "-o", pdf, tiff], check=True)
-    assert thread.do_get_file_info(pdf) == {
+    request = Request("get_file_info", (pdf, None), thread.responses)
+    assert thread.do_get_file_info(request) == {
         "format": "Portable Document Format",
         "path": "test.pdf",
         "page_size": [16.8, 11.04, "pts"],
@@ -75,14 +81,15 @@ def test_docthread():
         "pages": 1,
         "path": "test.tif",
     }
-    assert thread.do_get_file_info(tiff) == info, "do_get_file_info + tiff"
-    assert isinstance(
-        thread.do_import_file(info, None, 1, 1, None, None), Page
-    ), "do_import_file + tiff"
+    request = Request("get_file_info", (tiff, None), thread.responses)
+    assert thread.do_get_file_info(request) == info, "do_get_file_info + tiff"
+    request = Request("import_file", (info, None, 1, 1, None, None), thread.responses)
+    assert isinstance(thread.do_import_file(request), Page), "do_import_file + tiff"
 
     png = "test.png"
     subprocess.run(["convert", "rose:", png], check=True)  # Create test image
-    assert thread.do_get_file_info(png) == {
+    request = Request("get_file_info", (png, None), thread.responses)
+    assert thread.do_get_file_info(request) == {
         "format": "PNG",
         "path": "test.png",
         "width": [70],
@@ -91,10 +98,12 @@ def test_docthread():
     }, "do_get_file_info + png"
 
     def get_file_info_callback(response):
-        assert response.process == "get_file_info", "get_file_info_finished_callback"
+        assert (
+            response.request.process == "get_file_info"
+        ), "get_file_info_finished_callback"
         assert response.info == info, "get_file_info"
 
-    uid = thread.get_file_info(tiff, finished_callback=get_file_info_callback)
+    uid = thread.get_file_info(tiff, None, finished_callback=get_file_info_callback)
     monitor_multiple(thread, [uid, uid, uid, uid])
 
     for fname in [cjb2, djvu, pbm, pdf, png, tgz, tiff]:

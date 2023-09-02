@@ -13,8 +13,11 @@ import gettext  # For translations
 import tempfile
 import uuid
 import logging
-from basethread import BaseThread
-from const import POINTS_PER_INCH
+import zlib
+import base64
+import io
+from basethread import BaseThread, Response, ResponseType
+from const import POINTS_PER_INCH, ANNOTATION_COLOR
 from bboxtree import Bboxtree
 
 # from scanner.options import Options
@@ -44,8 +47,10 @@ import PythonMagick
 # from IPC.Open3 import open3
 # import Symbol
 # from intspan import intspan
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm
+from reportlab.lib.units import mm, inch
 
 # import version
 
@@ -112,8 +117,9 @@ class DocThread(BaseThread):
 
     cancel = False
 
-    def do_get_file_info(self, path, password=None, **options):
+    def do_get_file_info(self, request):
         "get file info"
+        path, password = request.args
         _ = gettext.gettext
         info = {}
         if not pathlib.Path(path).exists():
@@ -186,12 +192,12 @@ class DocThread(BaseThread):
         elif re.search(r"PDF[ ]document", fformat):
             fformat = "Portable Document Format"
             args = ["pdfinfo", "-isodates", path]
-            if "password" in options:
+            if password is not None:
                 args = [
                     "pdfinfo",
                     "-isodates",
                     "-upw",
-                    options["password"],
+                    password,
                     path,
                 ]
 
@@ -260,7 +266,7 @@ class DocThread(BaseThread):
             for w, h in regex:
                 width.append(int(w))
                 height.append(int(h))
-                self.log(event="get_file_info", info=f"Page {len(width)} is {width[-1]}x{height[-1]}")
+                request.log(f"Page {len(width)} is {width[-1]}x{height[-1]}")
 
             info["width"] = width
             info["height"] = height
@@ -285,11 +291,10 @@ class DocThread(BaseThread):
 
         info["format"] = fformat
         info["path"] = path
-        # self.log(event="get_file_info", info=info)
         return            info
 
-    def do_import_file(self, info, *options):
-        password, first, last, dirname, pidfile = options
+    def do_import_file(self, request):
+        info, password, first, last, dirname, pidfile = request.args
         if info["format"] == "DJVU":
 
             # Extract images from DjVu
@@ -400,7 +405,7 @@ class DocThread(BaseThread):
                     )
 
         elif info["format"] == "Portable Document Format":
-            _thread_import_pdf(self, options)
+            self._thread_import_pdf(request)
 
         elif info["format"] == "Tagged Image File Format":
 
@@ -508,25 +513,18 @@ class DocThread(BaseThread):
                 )
 
         else:
-            return Page(
+            page = Page(
                 filename=info["path"],
                 dir=dirname,
                 format=info["format"],
                 width=info["width"][0],
                 height=info["height"][0],
             )
+            request.log(page)
 
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "import-file",
-                "uuid": options["uuid"],
-            }
-        )
-
-    def get_file_info(self, path, **kwargs):
+    def get_file_info(self, path, password, **kwargs):
         "get file info"
-        return self.send("get_file_info", path, **kwargs)
+        return self.send("get_file_info", path, password, **kwargs)
 
     def import_file(self, password=None, first=1, last=1, **kwargs):
         "import file"
@@ -555,12 +553,12 @@ class DocThread(BaseThread):
         del kwargs["uuid"]
         return self.send("save_pdf", path, list_of_pages, dirname, pidfile, metadata, options, **kwargs)
 
-    def do_save_pdf(self, *options):
+    def do_save_pdf(self, request):
+        options = request.args
         _ = gettext.gettext
         pagenr = 0
         cache, pdf, error, message = None, None, None, None
 
-        # Create PDF with PDF::Builder
         self.message = _("Setting up PDF")
         filename, list_of_pages, dirname, pidfile, metadata, options = options
         if _need_temp_pdf(options):
@@ -656,8 +654,8 @@ class DocThread(BaseThread):
         # and height are in pixels.
         width, height = pagedata.get_size()
         xres, yres, units = pagedata.get_resolution()
-        w = width / xres * POINTS_PER_INCH
-        h = height / yres * POINTS_PER_INCH
+        w = width / xres *inch
+        h = height / yres*inch
 
         pdf.setPageSize((w,h))
 
@@ -706,13 +704,14 @@ class DocThread(BaseThread):
             self._add_text_to_pdf(pdf, pagedata, cache, options)
 
         # Add scan
-        pdf.drawImage(filename, 0, 0)
+        pdf.drawImage(filename, 0, 0, w, h)
 
         if pagedata.annotations is not None:
             logger.info("Adding annotations")
-            _add_annotations_to_pdf(self, page, pagedata)
+            self._add_annotations_to_pdf(pdf, pagedata)
 
         logger.info(f"Added {filename} at {output_xresolution}x{output_yresolution} PPI")
+        # pdf.showPage()
 
     def _convert_image_for_pdf(self, pagedata, image, options):
         """Convert file if necessary"""
@@ -806,8 +805,8 @@ class DocThread(BaseThread):
     def _add_text_to_pdf(self, pdf_page, gs_page, cache, options):
         """Add OCR as text behind the scan"""
         xresolution, yresolution, units = gs_page.get_resolution()
-        w = gs_page.width / xresolution
-        h = gs_page.height / yresolution
+        w = gs_page.width / xresolution*inch
+        h = gs_page.height / yresolution*inch
         font = None
         offset = 0
         if (
@@ -816,51 +815,58 @@ class DocThread(BaseThread):
         ):
             offset = w * POINTS_PER_INCH
 
+        load_invisible_font()
         textobject = pdf_page.beginText()
+        baseline = [0,0]
+        linebox = [0,0,0,0]
         for box in Bboxtree(gs_page.text_layer).get_bbox_iter():
             x1, y1, x2, y2 = box["bbox"]
-            txt = box["text"]
-            if txt is None:
+            if "baseline" in box:
+                baseline = box["baseline"]
+            if "type" in box and box["type"] == "line":
+                linebox = box["bbox"]
+            if "text" not in box:
                 continue
-            regex = re.search(
-                r"([[:^ascii:]]+)", txt, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            if regex:
-                if not font_can_char(cache["core"], regex.group(1)):
-                    if "ttf" not in cache:
-                        message = _(
-                            "Core font '%s' cannot encode character '%s', and no TTF font defined."
-                        ) % (cache["core"].fontname(), regex.group(1))
-                        logger.error(encode("UTF-8", message))
-                        _thread_throw_error(
-                            self,
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "Save file",
-                            message,
-                        )
+            txt = box["text"]
+            # regex = re.search(
+            #     r"([[:^ascii:]]+)", txt, re.MULTILINE | re.DOTALL | re.VERBOSE
+            # )
+            # if regex:
+            #     if not font_can_char(cache["core"], regex.group(1)):
+            #         if "ttf" not in cache:
+            #             message = _(
+            #                 "Core font '%s' cannot encode character '%s', and no TTF font defined."
+            #             ) % (cache["core"].fontname(), regex.group(1))
+            #             logger.error(encode("UTF-8", message))
+            #             _thread_throw_error(
+            #                 self,
+            #                 options["uuid"],
+            #                 options["page"]["uuid"],
+            #                 "Save file",
+            #                 message,
+            #             )
 
-                    elif font_can_char(cache["ttf"], regex.group(1)):
-                        logger.debug(encode("UTF-8", f"Using TTF for '{1}' in '{txt}'"))
-                        font = cache["ttf"]
+            #         elif font_can_char(cache["ttf"], regex.group(1)):
+            #             logger.debug(encode("UTF-8", f"Using TTF for '{1}' in '{txt}'"))
+            #             font = cache["ttf"]
 
-                    else:
-                        message = _(
-                            "Neither '%s' nor '%s' can encode character '%s' in '%s'"
-                        ) % (
-                            cache["core"].fontname(),
-                            cache["ttf"].fontname(),
-                            regex.group(1),
-                            txt,
-                        )
-                        logger.error(encode("UTF-8", message))
-                        _thread_throw_error(
-                            self,
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "Save file",
-                            message,
-                        )
+            #         else:
+            #             message = _(
+            #                 "Neither '%s' nor '%s' can encode character '%s' in '%s'"
+            #             ) % (
+            #                 cache["core"].fontname(),
+            #                 cache["ttf"].fontname(),
+            #                 regex.group(1),
+            #                 txt,
+            #             )
+            #             logger.error(encode("UTF-8", message))
+            #             _thread_throw_error(
+            #                 self,
+            #                 options["uuid"],
+            #                 options["page"]["uuid"],
+            #                 "Save file",
+            #                 message,
+            #             )
 
             if font is None:
                 font = 'Times-Roman'
@@ -878,19 +884,175 @@ class DocThread(BaseThread):
                 # y coordinate (since the PDF coordinates are bottom to top
                 # instead of top to bottom) and subtract $size, since the text
                 # will end up above the given point instead of below.
-                size = px2pt(y2 - y1, yresolution)
-                textobject.translate(
-                    offset + px2pt(x1, xresolution),
-                    (h - (y1 / yresolution)) * POINTS_PER_INCH - size,
-                )
-                textobject.text(txt, utf8=1)
-                pdf_page.drawString(1 * cm, 29.7 * cm - 1 * cm, txt)
+
+                # https://github.com/dinosauria123/makepdf/blob/f76a82c1c57bb37c717a2cd6274897c1dcf91e44/hocr-pdf.py#L32
+#                font_width = pdf_page.stringWidth(txt, 'invisible', 8)
+
+                # Scale the font size to match the box height
+                font_size = 8
+                face = pdfmetrics.getFont(font).face
+                string_height = (face.ascent - face.descent) / 1000 * font_size
+                font_size = (y2 - y1)/ yresolution*inch/string_height*font_size
+
+                # Use the baseline data from HOCR to set the text origin
+                b = polyval(baseline, (x1 + x2) / 2 - linebox[0]) + linebox[3]
+                # textobject.setTextRenderMode(3)  # double invisible
+                # textobject.setFont('invisible', font_size)
+                textobject.setFont(font, font_size)
+                textobject.setTextOrigin(x1 / xresolution*inch, h- b / yresolution*inch)
+
+                # # setTextOrigin specifies the baseline, so use face.descent to calculate it
+                # face = pdfmetrics.getFont(font).face
+                # textobject.setFont(font, font_size)
+                # textobject.setTextOrigin(x1 / xresolution*inch, y1 / yresolution*inch-face.descent/ 1000)
+
+                # Scale the text object to match the box width
+                font_width = pdf_page.stringWidth(txt, font, font_size)
+                if font_width <= 0:
+                    continue
+                box_width = (x2 - x1)/ xresolution*inch
+                textobject.setHorizScale(100.0 * box_width / font_width)
+                textobject.textLine(txt)
 
             else:
                 size = 1
                 pdf_page.setFont(font, size)
                 _wrap_text_to_page(txt, size, textobject, h, w)
         pdf_page.drawText(textobject)
+
+    def _add_annotations_to_pdf(self, page, gs_page):
+        """Box is the same size as the page. We don't know the text position.
+        Start at the top of the page (PDF coordinate system starts
+        at the bottom left of the page)"""
+        xresolution, yresolution, units = gs_page.get_resolution()
+        h = px2pt(gs_page.height, yresolution)
+        for box in Bboxtree(gs_page.annotations).get_bbox_iter():
+            if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
+                continue
+
+            rgb = []
+            for i in range(3):
+                rgb.append(hex(ANNOTATION_COLOR[i : i + 2, 2]) / int("0xff", 0))
+
+            annot = page.annotation()
+            annot.markup(
+                box["text"],
+                _bbox2markup(xresolution, yresolution, h, len(box["bbox"])),
+                "Highlight",
+                color=rgb,
+                opacity=0.5,
+            )
+
+    def _thread_import_pdf(self, request):
+        info, password, first, last, dirname, pidfile = request.args
+        warning_flag, xresolution, yresolution = None, None, None
+
+        # Extract images from PDF
+        if last >= first and first > 0:
+            for i in range(first, last + 1):
+                args = ["pdfimages", "-f", str(i), "-l", str(i), "-list", info["path"]]
+                if password is not None:
+                    del (args[1], options["password"])
+                    args.insert(1, "-upw")
+
+                spo = subprocess.run(args,check=True,capture_output=True,text=True,)
+                for line in re.split(r"\n", spo.stdout):
+                    xresolution, yresolution = line[70:75], line[76:81]
+                    if re.search(
+                        r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE
+                    ):
+                        xresolution, yresolution = float(xresolution), float(yresolution)
+                        break
+
+                args = ["pdfimages", "-f", str(i), "-l", str(i), info["path"], "x"]
+                if password is not None:
+                    del (args[1], options["password"])
+                    args.insert(1, "-upw")
+
+                spo = subprocess.run(args,check=True,capture_output=True,text=True,)
+                # if _self["cancel"]:
+                #     return
+                if spo.returncode != 0:
+                    _thread_throw_error(
+                        self,
+                        options["uuid"],
+                        options["page"]["uuid"],
+                        "Open file",
+                        _("Error extracting images from PDF"),
+                    )
+
+                html = tempfile.NamedTemporaryFile(dir=dirname, suffix=".html")
+                args = [
+                    "pdftotext",
+                    "-bbox",
+                    "-f",
+                    str(i),
+                    "-l",
+                    str(i),
+                    info["path"],
+                    html.name,
+                ]
+                if password is not None:
+                    args.insert(1, options["password"])
+                    args.insert(1, "-upw")
+
+                spo = subprocess.run(args,check=True,capture_output=True,text=True,)
+                # if _self["cancel"]:
+                #     return
+                if spo.returncode != 0:
+                    _thread_throw_error(
+                        self,
+                        options["uuid"],
+                        options["page"]["uuid"],
+                        "Open file",
+                        _("Error extracting text layer from PDF"),
+                    )
+
+                # Import each image
+                images = glob.glob("x-??*.???")
+                if len(images) != 1:
+                    warning_flag = True
+                for fname in images:
+                    regex = re.search(
+                        r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE
+                    )
+                    if regex:
+                        ext = regex.group(1)
+                    try:
+                        page = Page(
+                            filename=fname,
+                            dir=dirname,
+                            delete=True,
+                            format=image_format[ext],
+                            resolution=(xresolution,yresolution,"PixelsPerInch"),
+                        )
+                        with open(html.name, 'r') as fd:
+                            page.import_pdftotext(fd.read())
+                        request.log(page.to_png(paper_sizes))
+
+                    except:
+                        logger.error(f"Caught error importing PDF: {_}")
+                        _thread_throw_error(
+                            self,
+                            options["uuid"],
+                            options["page"]["uuid"],
+                            "Open file",
+                            _("Error importing PDF"),
+                        )
+
+            if warning_flag:
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Open file",
+                    _(
+                        """Warning: gscan2pdf expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.
+
+If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.
+"""
+                    ),
+                )
 
     def _set_timestamp(self, options):
         if (
@@ -1169,7 +1331,7 @@ class Document(SimpleList):
             path,
             # "pidfile": f"{pidfile}",
             # # "uuid": uid,
-            # "password": options["passwords"][i] if i < len(options["passwords"]) else None,
+            options["passwords"][i] if i < len(options["passwords"]) else None,
             started_callback=options["started_callback"] if "started_callback" in options else None,
             running_callback=options["running_callback"] if "running_callback" in options else None,
             finished_callback=_select_next_finished_callback,
@@ -1272,10 +1434,11 @@ class Document(SimpleList):
         dirname = EMPTY
         if self.dir is not None:
             dirname = self.dir
-        # uuid = self._note_callbacks(options)
+
+        def _import_file_new_page_callback(result):
+            self.add_page(None, result.info, None)
 
         def _import_file_finished_callback(result):
-            self.add_page(None, result.info, None)
             if "finished_callback" in options:
                 options["finished_callback"]()
 
@@ -1286,7 +1449,7 @@ class Document(SimpleList):
             last= last,
             dir= dirname,
             pidfile= pidfile,
-            # uuid= uuid,
+            logged_callback = _import_file_new_page_callback,
             finished_callback = _import_file_finished_callback,
         )
 
@@ -1444,7 +1607,7 @@ class Document(SimpleList):
                     fh.close()
                     logger.info(f"Padded {pad} bytes")
 
-                page = Page(
+                page = Page( # FIXME: Page() uses attribute resolution, not xresolution
                     filename=options["filename"],
                     xresolution=options["xresolution"] if "xresolution" in options else None,
                     yresolution=options["yresolution"] if "yresolution" in options else None,
@@ -1634,7 +1797,6 @@ class Document(SimpleList):
             return
 
         i = 0
-        print(f"in find_page_by_uuid with {self.data} {uuid}")
         while i < len(self.data) and self.data[i][2].uuid != uuid:
             i += 1
 
@@ -2966,125 +3128,6 @@ class Document(SimpleList):
         )
 
 
-    def _thread_import_pdf(self, options):
-
-        (warning_flag, xresolution, yresolution) = (None, None, None)
-
-        # Extract images from PDF
-
-        if options["last"] >= options["first"] and options["first"] > 0:
-            pdfobj = PDF.Builder.open(options["info"]["path"])
-            for i in range(options["first"], options["last"] + 1):
-                args = ["pdfimages", "-f", i, "-l", i, "-list", options["info"]["path"]]
-                if "password" in options:
-                    del (args[1], options["password"])
-                    args.insert(1, "-upw")
-
-                (status, out, err) = exec_command(args, options["pidfile"])
-                for _ in re.split(r"\n", out):
-                    (xresolution, yresolution) = struct.unpack("x69A6xA6", _)
-                    if re.search(
-                        r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE
-                    ):
-                        break
-
-                args = ["pdfimages", "-f", i, "-l", i, options["info"]["path"], "x"]
-                if "password" in options:
-                    del (args[1], options["password"])
-                    args.insert(1, "-upw")
-
-                (status, out, err) = exec_command(args, options["pidfile"])
-                if _self["cancel"]:
-                    return
-                if status:
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Open file",
-                        _("Error extracting images from PDF"),
-                    )
-
-                html = tempfile.TemporaryFile(dir=options["dir"], suffix=".html")
-                args = [
-                    "pdftotext",
-                    "-bbox",
-                    "-f",
-                    i,
-                    "-l",
-                    i,
-                    options["info"]["path"],
-                    html,
-                ]
-                if "password" in options:
-                    del (args[1], options["password"])
-                    args.insert(1, "-upw")
-
-                (status, out, err) = exec_command(args, options["pidfile"])
-                if _self["cancel"]:
-                    return
-                if status:
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Open file",
-                        _("Error extracting text layer from PDF"),
-                    )
-
-                pageobj = pdfobj.openpage(i)
-
-                # Import each image
-
-                images = glob.glob("x-??*.???")
-                if len(images) != 1:
-                    warning_flag = True
-                for _ in images:
-                    (ext) = re.search(
-                        r"([^.]+)$", _, re.MULTILINE | re.DOTALL | re.VERBOSE
-                    )
-                    try:
-                        page = Page(
-                            filename=_,
-                            dir=options["dir"],
-                            delete=True,
-                            format=image_format[ext],
-                            xresolution=xresolution,
-                            yresolution=yresolution,
-                        )
-                        page.import_pdftotext(slurp(html))
-                        self.return_queue.enqueue(
-                            {
-                                "type": "page",
-                                "uuid": options["uuid"],
-                                "page": page.to_png(paper_sizes).freeze(),
-                            }
-                        )
-
-                    except:
-                        logger.error(f"Caught error importing PDF: {_}")
-                        _thread_throw_error(
-                            self,
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "Open file",
-                            _("Error importing PDF"),
-                        )
-
-            if warning_flag:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
-                    _(
-                        """Warning: gscan2pdf expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.
-
-If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.
-"""
-                    ),
-                )
-
     def _append_pdf(self, filename, options):
 
         (bak, file1, file2, out, message) = (None, None, None, None, None)
@@ -3127,31 +3170,6 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 message % (error),
             )
             return status
-
-    def _add_annotations_to_pdf(self, page, gs_page):
-        """Box is the same size as the page. We don't know the text position.
-        Start at the top of the page (PDF coordinate system starts
-        at the bottom left of the page)"""
-        xresolution = gs_page["xresolution"]
-        yresolution = gs_page["yresolution"]
-        h = px2pt(gs_page["height"], yresolution)
-        iter = Bboxtree(gs_page["annotations"]).get_bbox_iter()
-        for box in iter:
-            if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
-                continue
-
-            rgb = []
-            for i in range(2 + 1):
-                rgb.append(hex(ANNOTATION_COLOR[i : i + 2, 2]) / int("0xff", 0))
-
-            annot = page.annotation()
-            annot.markup(
-                box["text"],
-                _bbox2markup(xresolution, yresolution, h, len(box["bbox"])),
-                "Highlight",
-                color=rgb,
-                opacity=0.5,
-            )
 
     def _thread_save_djvu(self, options):
 
@@ -5015,6 +5033,46 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def _thread_paper_sizes():
         pass
+
+
+
+
+def polyval(poly, x):
+    return x * poly[0] + poly[1]
+
+
+# Glyphless variation of vedaal's invisible font retrieved from
+# http://www.angelfire.com/pr/pgpf/if.html, which says:
+# 'Invisible font' is unrestricted freeware. Enjoy, Improve, Distribute freely
+def load_invisible_font():
+    font = """
+eJzdlk1sG0UUx/+zs3btNEmrUKpCPxikSqRS4jpfFURUagmkEQQoiRXgAl07Y3vL2mvt2ml8APXG
+hQPiUEGEVDhWVHyIC1REPSAhBOWA+BCgSoULUqsKcWhVBKjhzfPU+VCi3Flrdn7vzZv33ryZ3TUE
+gC6chsTx8fHck1ONd98D0jnS7jn26GPjyMIleZhk9fT0wcHFl1/9GRDPkTxTqHg1dMkzJH9CbbTk
+xbWlJfKEdB+Np0pBswi+nH/Nvay92VtfJp4nvEztUJkUHXsdksUOkveXK/X5FNuLD838ICx4dv4N
+I1e8+ZqbxwCNP2jyqXoV/fmhy+WW/2SqFsb1pX68SfEpZ/TCrI3aHzcP//jitodvYmvL+6Xcr5mV
+vb1ScCzRnPRPfz+LsRSWNasuwRrZlh1sx0E8AriddyzEDfE6EkglFhJDJO5u9fJbFJ0etEMB78D5
+4Djm/7kjT0wqhSNURyS+u/2MGJKRu+0ExNkrt1pJti9p2x6b3TBJgmUXuzgnDmI8UWMbkVxeinCw
+Mo311/l/v3rF7+01D+OkZYE0PrbsYAu+sSyxU0jLLtIiYzmBrFiwnCT9FcsdOOK8ZHbFleSn0znP
+nDCnxbnAnGT9JeYtrP+FOcV8nTlNnsoc3bBAD85adtCNRcsSffjBsoseca/lBE7Q09LiJOm/ttyB
+0+IqcwfncJt5q4krO5k7jV7uY+5m7mPebuLKUea7iHvk48w72OYF5rvZT8C8k/WvMN/Dc19j3s02
+bzPvZZv3me9j/ox5P9t/xdzPzPVJcc7yGnPL/1+GO1lPVTXM+VNWOTRRg0YRHgrUK5yj1kvaEA1E
+xAWiCtl4qJL2ADKkG6Q3XxYjzEcR0E9hCj5KtBd1xCxp6jV5mKP7LJBr1nTRK2h1TvU2w0akCmGl
+5lWbBzJqMJsdyaijQaCm/FK5HqspHetoTtMsn4LO0T2mlqcwmlTVOT/28wGhCVKiNANKLiJRlxqB
+F603axQznIzRhDSq6EWZ4UUs+xud0VHsh1U1kMlmNwu9kTuFaRqpURU0VS3PVmZ0iE7gct0MG/8+
+2fmUvKlfRLYmisd1w8pk1LSu1XUlryM1MNTH9epTftWv+16gIh1oL9abJZyjrfF5a4qccp3oFAcz
+Wxxx4DpvlaKKxuytRDzeth5rW4W8qBFesvEX8RFRmLBHoB+TpCmRVCCb1gFCruzHqhhW6+qUF6tC
+pL26nlWN2K+W1LhRjxlVGKmRTFYVo7CiJug09E+GJb+QocMCPMWBK1wvEOfRFF2U0klK8CppqqvG
+pylRc2Zn+XDQWZIL8iO5KC9S+1RekOex1uOyZGR/w/Hf1lhzqVfFsxE39B/ws7Rm3N3nDrhPuMfc
+w3R/aE28KsfY2J+RPNp+j+KaOoCey4h+Dd48b9O5G0v2K7j0AM6s+5WQ/E0wVoK+pA6/3bup7bJf
+CMGjwvxTsr74/f/F95m3TH9x8o0/TU//N+7/D/ScVcA=
+""".encode('latin1')
+    uncompressed = bytearray(zlib.decompress(base64.b64decode(font)))
+    ttf = io.BytesIO(uncompressed)
+    setattr(ttf, "name", "(invisible.ttf)")
+    pdfmetrics.registerFont(TTFont('invisible', ttf))
+
+
 
 
 # Build a look-up table of all true-type fonts installed

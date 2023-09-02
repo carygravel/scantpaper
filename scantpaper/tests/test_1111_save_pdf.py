@@ -28,7 +28,7 @@ def test_1():
         # FIXME: add support for completed/total
         # assert completed== 0, 'completed counter starts at 0'
         # assert total==     2, 'total counter starts at 2'
-        assert response.process == "get_file_info"
+        assert response.request.process == "get_file_info"
         asserts += 1
 
     def import_files_finished_cb():
@@ -50,7 +50,7 @@ def test_1():
     #    def save_pdf_started_cb( result, completed, total ):
     def save_pdf_started_cb(result):
         nonlocal asserts
-        assert result.process == "save_pdf", "save_pdf"
+        assert result.request.process == "save_pdf", "save_pdf"
         # FIXME: add support for completed/total
         # assert completed== 0, 'completed counter re-initialised'
         # assert total==     1, 'total counter re-initialised'
