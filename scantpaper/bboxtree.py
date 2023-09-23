@@ -481,14 +481,14 @@ def _escape_text(txt):
 class PDFTextParser(HTMLParser):
     "parser for HTML string for PDF text layer"
 
-    def __init__(self, xresolution, yresolution, imagew, imageh, *args, **kwargs):
+    def __init__(self, resolution, image_size, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.boxes = []
         self.stack = []
         self.data = {}
-        self.resolution = (xresolution, yresolution)
-        self.image_size = (imagew, imageh)
-        self.offset = 0
+        self.resolution = resolution
+        self.image_size = image_size
+        self.x_offset = 0
 
     def handle_starttag(self, tag, attrs):
         token = dict(attrs)
@@ -501,9 +501,12 @@ class PDFTextParser(HTMLParser):
                 # if we have a double-width page, assume the image is on the
                 # left and the text on the right.
                 if width == 2 * self.image_size[0] and height == self.image_size[1]:
-                    self.offset = self.image_size[0]
+                    self.x_offset = self.image_size[0]
 
-                self.data["bbox"] = [0, 0, width - self.offset, height]
+                self.data["bbox"] = [0, 0, width - self.x_offset, height]
+
+                if "text" in self.data and self.data["text"] == "untitled":
+                    del self.data["text"]
 
                 self.boxes.append(self.data)
 
@@ -511,9 +514,9 @@ class PDFTextParser(HTMLParser):
             self.data = {}
             self.data["type"] = tag
             self.data["bbox"] = [
-                scale(float(token["xmin"]), self.resolution[0]) - self.offset,
+                scale(float(token["xmin"]), self.resolution[0]) - self.x_offset,
                 scale(float(token["ymin"]), self.resolution[1]),
-                scale(float(token["xmax"]), self.resolution[0]) - self.offset,
+                scale(float(token["xmax"]), self.resolution[0]) - self.x_offset,
                 scale(float(token["ymax"]), self.resolution[1]),
             ]
 
@@ -539,9 +542,7 @@ class PDFTextParser(HTMLParser):
 
 
 def _pdftotext2boxes(html, resolution, image_size):
-    xresolution, yresolution = resolution
-    imagew, imageh = image_size
-    parser = PDFTextParser(xresolution, yresolution, imagew, imageh)
+    parser = PDFTextParser(resolution, image_size)
     parser.feed(html)
     return parser.boxes
 
@@ -576,7 +577,8 @@ def _bbox_to_hocr(bbox, prev_depth, tags):
         tag = "p"
 
     string += " " * (2 + bbox["depth"]) + f"<{tag} class='{bbox_type}'"
-    string += f" id='{bbox['id']}'"
+    if "id" in bbox:
+        string += f" id='{bbox['id']}'"
     string += f" title='bbox {x_1} {y_1} {x_2} {y_2}"
     if "baseline" in bbox:
         string += "; baseline " + " ".join([str(x) for x in bbox["baseline"]])

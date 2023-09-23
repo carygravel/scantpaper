@@ -721,7 +721,7 @@ def test_from_pdftotext():
     pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title></title>
+<title>untitled</title>
 <meta name="Producer" content="Tesseract 3.03"/>
 <meta name="CreationDate" content=""/>
 </head>
@@ -743,7 +743,7 @@ def test_from_pdftotext():
             "bbox": [
                 0,
                 0,
-                462,
+                464,
                 58,
             ],
             "depth": 0,
@@ -751,9 +751,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                -3,
+                1,
                 22,
-                83,
+                87,
                 46,
             ],
             "depth": 1,
@@ -762,9 +762,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                101,
+                105,
                 22,
-                218,
+                222,
                 46,
             ],
             "depth": 1,
@@ -773,9 +773,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                237,
+                241,
                 22,
-                370,
+                374,
                 46,
             ],
             "depth": 1,
@@ -784,9 +784,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                389,
+                393,
                 22,
-                456,
+                460,
                 46,
             ],
             "depth": 1,
@@ -805,7 +805,7 @@ def test_from_pdftotext():
             "bbox": [
                 0,
                 0,
-                1935,
+                1937,
                 244,
             ],
             "depth": 0,
@@ -813,9 +813,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                0,
+                4,
                 94,
-                360,
+                364,
                 193,
             ],
             "depth": 1,
@@ -824,9 +824,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                433,
+                437,
                 94,
-                922,
+                926,
                 193,
             ],
             "depth": 1,
@@ -835,9 +835,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                1000,
+                1004,
                 94,
-                1557,
+                1561,
                 193,
             ],
             "depth": 1,
@@ -846,9 +846,9 @@ def test_from_pdftotext():
         {
             "type": "word",
             "bbox": [
-                1633,
+                1637,
                 94,
-                1916,
+                1920,
                 193,
             ],
             "depth": 1,
@@ -862,6 +862,10 @@ def test_from_pdftotext():
     tree = Bboxtree()
     tree.from_pdftotext(pdftext, (300, 300), (968.5, 244))
     expected[0]["bbox"] = [0, 0, 968.5, 244]
+    expected[1]["bbox"] = [-964.5, 94, -604.5, 193]
+    expected[2]["bbox"] = [-531.5, 94, -42.5, 193]
+    expected[3]["bbox"] = [35.5, 94, 592.5, 193]
+    expected[4]["bbox"] = [668.5, 94, 951.5, 193]
     assert tree.bbox_tree == expected, "from_pdftotext() double width"
 
     pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"

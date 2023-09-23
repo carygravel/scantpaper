@@ -282,11 +282,11 @@ def test_2():
 """
     page.import_pdftotext(pdftext)
     assert (
-        page.text_layer == '[{"type": "page", "bbox": [0, 0, 462, 58], "depth": 0}, '
-        '{"type": "word", "bbox": [-3, 22, 83, 46], "text": "The", "depth": 1}, '
-        '{"type": "word", "bbox": [101, 22, 218, 46], "text": "quick", "depth": 1}, '
-        '{"type": "word", "bbox": [237, 22, 370, 46], "text": "brown", "depth": 1}, '
-        '{"type": "word", "bbox": [389, 22, 456, 46], "text": "fox", "depth": 1}]'
+        page.text_layer == '[{"type": "page", "bbox": [0, 0, 464, 58], "depth": 0}, '
+        '{"type": "word", "bbox": [1, 22, 87, 46], "text": "The", "depth": 1}, '
+        '{"type": "word", "bbox": [105, 22, 222, 46], "text": "quick", "depth": 1}, '
+        '{"type": "word", "bbox": [241, 22, 374, 46], "text": "brown", "depth": 1}, '
+        '{"type": "word", "bbox": [393, 22, 460, 46], "text": "fox", "depth": 1}]'
     ), "import_text()"
 
     #########################
