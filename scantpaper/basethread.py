@@ -7,14 +7,53 @@ import uuid
 import logging
 from gi.repository import GLib
 
-Request = collections.namedtuple("Request", ["event", "uuid", "args"])
-Response = collections.namedtuple(
-    "Response", ["type", "process", "uuid", "info", "status"]
-)
+Response = collections.namedtuple("Response", ["type", "request", "info", "status"])
 ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "LOG"]
 ResponseType = Enum("ResponseType", ResponseTypes)
 
 logger = logging.getLogger(__name__)
+
+
+class Request:
+    "Attributes and methods around requests"
+
+    def __init__(self, process_name, process_args, return_queue, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.process = process_name
+        self.uuid = uuid.uuid1()
+        self.args = process_args
+        self.return_queue = return_queue
+
+    def put(self, info, rtype=ResponseType.FINISHED, status=None):
+        "put a response on the return queue"
+        self.return_queue.put(
+            Response(
+                type=rtype,
+                request=self,
+                info=info,
+                status=status,
+            )
+        )
+
+    def queued(self, info=None, status=None):
+        "queued notification"
+        self.put(info, ResponseType.QUEUED, status)
+
+    def started(self, info=None, status=None):
+        "started notification"
+        self.put(info, ResponseType.STARTED, status)
+
+    def finished(self, info=None, status=None):
+        "finished notification"
+        self.put(info, ResponseType.FINISHED, status)
+
+    def error(self, info=None, status=None):
+        "error notification"
+        self.put(info, ResponseType.ERROR, status)
+
+    def log(self, info, status=None):
+        "logger for basethread"
+        self.put(info, ResponseType.LOG, status)
 
 
 class BaseThread(threading.Thread):
@@ -31,6 +70,7 @@ class BaseThread(threading.Thread):
             "queued": set(),
             "started": set(),
             "running": set(),
+            "logged": set(),
             "finished": set(),
             "error": set(),
         }
@@ -38,6 +78,7 @@ class BaseThread(threading.Thread):
             "queued": set(),
             "started": set(),
             "running": set(),
+            "logged": set(),
             "finished": set(),
             "error": set(),
         }
@@ -59,22 +100,24 @@ class BaseThread(threading.Thread):
 
     def send(
         self,
-        event,
+        process,
         *args,
         queued_callback=None,
         started_callback=None,
         running_callback=None,
+        logged_callback=None,
         finished_callback=None,
         error_callback=None,
         **kwargs,
     ):
-        "Puts the event and args as a `Request` on the requests queue"
-        request = Request(event, uuid.uuid1(), args)
+        "Puts the process and args as a `Request` on the requests queue"
+        request = Request(process, args, self.responses)
         callbacks = {
             "queued_callback": queued_callback,
             "started_callback": started_callback,
             "started": False,
             "running_callback": running_callback,
+            "logged_callback": logged_callback,
             "finished_callback": finished_callback,
             "error_callback": error_callback,
         }
@@ -83,76 +126,24 @@ class BaseThread(threading.Thread):
                 callbacks[k] = val
         self.callbacks[request.uuid] = callbacks
         self.requests.put(request)
-        self.responses.put(
-            Response(
-                type=ResponseType.QUEUED,
-                process=event,
-                info=None,
-                uuid=request.uuid,
-                status=None,
-            )
-        )
+        request.queued()
         GLib.timeout_add(100, self.monitor, request.uuid)
         return request.uuid
 
-    def log(self, event="", info="", uid="", status=""):
-        "logger for basethread"
-        self.responses.put(
-            Response(
-                type=ResponseType.LOG,
-                process=event,
-                info=info,
-                uuid=uid,
-                status=status,
-            )
-        )
-
     def run(self):
         while True:
-            event, uid, args = self.requests.get()
-            self.responses.put(
-                Response(
-                    type=ResponseType.STARTED,
-                    process=event,
-                    info=None,
-                    uuid=uid,
-                    status=None,
-                )
-            )
-            handler = getattr(self, f"do_{event}", None)
+            request = self.requests.get()
+            request.started()
+            handler = getattr(self, f"do_{request.process}", None)
             if handler is None:
-                self.responses.put(
-                    Response(
-                        type=ResponseType.ERROR,
-                        process=event,
-                        info=None,
-                        uuid=uid,
-                        status=f"no handler for [{event}]",
-                    )
-                )
+                request.error(None, f"no handler for [{request.process}]")
             else:
                 try:
-                    self.responses.put(
-                        Response(
-                            type=ResponseType.FINISHED,
-                            process=event,
-                            info=handler(*args),
-                            uuid=uid,
-                            status=None,
-                        )
-                    )
-                    if event == "quit":
+                    request.finished(handler(request))
+                    if request.process == "quit":
                         break
                 except Exception as err:  # pylint: disable=broad-except
-                    self.responses.put(
-                        Response(
-                            type=ResponseType.ERROR,
-                            process=event,
-                            info=None,
-                            uuid=uid,
-                            status=str(err),
-                        )
-                    )
+                    request.error(None, str(err))
             self.requests.task_done()
 
     def monitor(self, uid, block=False):
@@ -188,18 +179,21 @@ class BaseThread(threading.Thread):
             result = self.responses.get(block)
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
-        if ResponseTypes[result.type.value - 1] == "LOG":
-            logger.info("process %s sent '%s'", result.process, result.info)
-            return GLib.SOURCE_CONTINUE
         stage = ResponseTypes[result.type.value - 1].lower()
+        if stage == "log":
+            stage = "logged"
         callback = stage + "_callback"
         self._run_callbacks(uid, stage, result)
         if uid in self.callbacks:
-            if callback in ["queued_callback", "started_callback"]:
+            if callback in ["queued_callback", "started_callback", "logged_callback"]:
                 if callback in self.callbacks[uid]:
                     del self.callbacks[uid][callback]
                 if callback == "started_callback":
                     self.callbacks[uid]["started"] = True
+                elif callback == "logged_callback":
+                    logger.info(
+                        "process %s sent '%s'", result.request.process, result.info
+                    )
             else:  # finished, cancelled, error
                 del self.callbacks[uid]
                 return GLib.SOURCE_REMOVE
