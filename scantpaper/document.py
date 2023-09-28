@@ -16,6 +16,7 @@ import logging
 import zlib
 import base64
 import io
+import unicodedata
 from basethread import BaseThread, Response, ResponseType
 from const import POINTS_PER_INCH, ANNOTATION_COLOR
 from bboxtree import Bboxtree
@@ -557,7 +558,7 @@ class DocThread(BaseThread):
         options = request.args
         _ = gettext.gettext
         pagenr = 0
-        cache, pdf, error, message = None, None, None, None
+        pdf, error, message = None, None, None
 
         self.message = _("Setting up PDF")
         filename, list_of_pages, dirname, pidfile, metadata, options = options
@@ -581,16 +582,16 @@ class DocThread(BaseThread):
                 pdf.setKeywords(metadata["Keywords"])
             pdf.setCreator(f"scantpaper v{VERSION}")
 
-        #cache["core"] = pdf.corefont("Times-Roman")
-        pdf.setFont('Times-Roman', 12)
-        if options is not None and "font" in options:
+        cache = {"core": pdfmetrics.getFont("Times-Roman")}
+        if options is not None and "options" in options and "font" in options["options"]:
             message = _("Unable to find font '%s'. Defaulting to core font.") % (
-                options["font"]
+                options["options"]["font"]
             )
-            if os.path.isfile(options["font"]):
+            if os.path.isfile(options["options"]["font"]):
                 try:
-                    cache["ttf"] = pdf.ttfont(options["font"], unicodemap=1)
-                    logger.info(f"Using {options['font']} for non-ASCII text")
+                    cache["ttf"] = TTFont(options["options"]["font"], options["options"]["font"])
+                    pdfmetrics.registerFont(cache["ttf"])
+                    logger.info(f"Using {options['options']['font']} for non-ASCII text")
 
                 except:
                     _thread_throw_error(
@@ -807,7 +808,10 @@ class DocThread(BaseThread):
         xresolution, yresolution, units = gs_page.get_resolution()
         w = gs_page.width / xresolution*inch
         h = gs_page.height / yresolution*inch
-        font = None
+        if options is not None and "options" in options and "font" in options["options"]:
+            font = options["options"]["font"]
+        else:
+            font = 'Times-Roman'
         offset = 0
         if (
             options and "text_position" in options["options"]
@@ -815,7 +819,6 @@ class DocThread(BaseThread):
         ):
             offset = w * POINTS_PER_INCH
 
-        load_invisible_font()
         textobject = pdf_page.beginText()
         baseline = [0,0]
         linebox = [0,0,0,0]
@@ -828,48 +831,44 @@ class DocThread(BaseThread):
             if "text" not in box:
                 continue
             txt = box["text"]
-            # regex = re.search(
-            #     r"([[:^ascii:]]+)", txt, re.MULTILINE | re.DOTALL | re.VERBOSE
-            # )
-            # if regex:
-            #     if not font_can_char(cache["core"], regex.group(1)):
-            #         if "ttf" not in cache:
-            #             message = _(
-            #                 "Core font '%s' cannot encode character '%s', and no TTF font defined."
-            #             ) % (cache["core"].fontname(), regex.group(1))
-            #             logger.error(encode("UTF-8", message))
-            #             _thread_throw_error(
-            #                 self,
-            #                 options["uuid"],
-            #                 options["page"]["uuid"],
-            #                 "Save file",
-            #                 message,
-            #             )
+            regex = re.search(r"([^ -~]+)", txt            ) # ~ is the last ASCII char
+            if regex:
+                if not font_can_char(cache["core"], regex.group(1)):
+                    if "ttf" not in cache:
+                        message = _(
+                            "Core font '%s' cannot encode '%s', and no TTF font defined."
+                        ) % (cache["core"].fontName, regex.group(1))
+                        logger.error(message)
+                        # _thread_throw_error(
+                        #     self,
+                        #     options["uuid"],
+                        #     options["page"]["uuid"],
+                        #     "Save file",
+                        #     message,
+                        # )
 
-            #         elif font_can_char(cache["ttf"], regex.group(1)):
-            #             logger.debug(encode("UTF-8", f"Using TTF for '{1}' in '{txt}'"))
-            #             font = cache["ttf"]
+                    elif font_can_char(cache["ttf"], regex.group(1)):
+                        logger.debug(f"Using TTF for '{regex.group(1)}' in '{txt}'")
+                        font = cache["ttf"].fontName
 
-            #         else:
-            #             message = _(
-            #                 "Neither '%s' nor '%s' can encode character '%s' in '%s'"
-            #             ) % (
-            #                 cache["core"].fontname(),
-            #                 cache["ttf"].fontname(),
-            #                 regex.group(1),
-            #                 txt,
-            #             )
-            #             logger.error(encode("UTF-8", message))
-            #             _thread_throw_error(
-            #                 self,
-            #                 options["uuid"],
-            #                 options["page"]["uuid"],
-            #                 "Save file",
-            #                 message,
-            #             )
+                    else:
+                        message = _(
+                            "Neither '%s' nor '%s' can encode character '%s' in '%s'"
+                        ) % (
+                            cache["core"].fontName,
+                            cache["ttf"].fontName,
+                            regex.group(1),
+                            txt,
+                        )
+                        logger.error(message)
+                        _thread_throw_error(
+                            self,
+                            options["uuid"],
+                            options["page"]["uuid"],
+                            "Save file",
+                            message,
+                        )
 
-            if font is None:
-                font = 'Times-Roman'
             if x1 == 0 and y1 == 0 and (x2 is None):
                 x2, y2 = w * xresolution, h * yresolution
 
@@ -886,7 +885,6 @@ class DocThread(BaseThread):
                 # will end up above the given point instead of below.
 
                 # https://github.com/dinosauria123/makepdf/blob/f76a82c1c57bb37c717a2cd6274897c1dcf91e44/hocr-pdf.py#L32
-#                font_width = pdf_page.stringWidth(txt, 'invisible', 8)
 
                 # Scale the font size to match the box height
                 font_size = 8
@@ -5624,9 +5622,18 @@ def _add_metadata_to_info(info, string, regex):
             info[value] = regex.group(1)
 
 
-def font_can_char(font, char):
-    "return if the given PDF::Builder font can encode the given character"
-    return font.glyphByUni(ord(char)) != ".notdef"
+def font_can_char(font, chars):
+    "return if the given font can encode the given characters"
+    chars = ''.join(r'\u{:04X}'.format(ord(chr)) for chr in chars)
+    for char in chars:
+        name = unicodedata.name(char, "")
+        if char in font.face.glyphWidths or name in font.face.glyphWidths:
+            pass
+        elif hasattr(font.face, 'charToGlyph') and ord(char) in font.face.charToGlyph:
+            pass
+        else:
+            return False
+    return True
 
 
 def _need_temp_pdf(options):
