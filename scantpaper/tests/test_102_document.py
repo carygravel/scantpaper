@@ -91,7 +91,7 @@ def test_docthread():
     request = Request("get_file_info", (png, None), thread.responses)
     assert thread.do_get_file_info(request) == {
         "format": "PNG",
-        "path": "test.png",
+        "path": png,
         "width": [70],
         "height": [46],
         "pages": 1,
