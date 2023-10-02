@@ -705,6 +705,7 @@ class DocThread(BaseThread):
             self._add_text_to_pdf(pdf, pagedata, cache, options)
 
         # Add scan
+        # https://py-pdf.github.io/fpdf2/Images.html#image-compression
         pdf.drawImage(filename, 0, 0, w, h)
 
         if pagedata.annotations is not None:
@@ -918,6 +919,7 @@ class DocThread(BaseThread):
                 _wrap_text_to_page(txt, size, textobject, h, w)
         pdf_page.drawText(textobject)
 
+    # https://py-pdf.github.io/fpdf2/Annotations.html
     def _add_annotations_to_pdf(self, page, gs_page):
         """Box is the same size as the page. We don't know the text position.
         Start at the top of the page (PDF coordinate system starts
