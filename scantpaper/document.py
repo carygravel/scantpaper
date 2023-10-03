@@ -594,18 +594,20 @@ class DocThread(BaseThread):
                     logger.info(f"Using {options['options']['font']} for non-ASCII text")
 
                 except:
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
+                    logger.error(message)
+                    request.error(
                         "Save file",
                         message,
                     )
+                    del options["options"]["font"]
 
             else:
-                _thread_throw_error(
-                    self, options["uuid"], options["page"]["uuid"], "Save file", message
+                logger.error(message)
+                request.error(
+                    "Save file",
+                    message,
                 )
+                del options["options"]["font"]
 
         for pagedata in list_of_pages:
             pagenr += 1
@@ -814,10 +816,7 @@ class DocThread(BaseThread):
         else:
             font = 'Times-Roman'
         offset = 0
-        if (
-            options and "text_position" in options["options"]
-            and options["options"]["text_position"] == "right"
-        ):
+        if options is not None and "options" in options and "text_position" in options["options"] and options["options"]["text_position"] == "right":
             offset = w * POINTS_PER_INCH
 
         textobject = pdf_page.beginText()
@@ -2090,6 +2089,7 @@ class Document(SimpleList):
             queued_callback = options["queued_callback"] if "queued_callback" in options else None,
             started_callback = options["started_callback"] if "started_callback" in options else None,
             mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
