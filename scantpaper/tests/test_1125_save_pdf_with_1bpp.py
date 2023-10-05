@@ -27,28 +27,18 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["test.pbm"])
 
-    asserts = 0
-
-    def finished_callback(_result):
-        nonlocal asserts
-        subprocess.run(["pdfimages", "test.pdf", "x"], check=True)
-        out = subprocess.check_output(["identify", "x-000.p*m"], text=True)
-        assert (
-            re.search(r"1-bit Bilevel Gray", out) is not None
-        ), "PDF with 1bpp created"
-        asserts += 1
-        mlp.quit()
-
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
         list_of_pages=[slist.data[0][2]],
-        finished_callback=finished_callback,
+        finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert asserts == 1, "ran all callbacks"
+    subprocess.run(["pdfimages", "test.pdf", "x"], check=True)
+    out = subprocess.check_output(["identify", "x-000.p*m"], text=True)
+    assert re.search(r"1-bit Bilevel Gray", out) is not None, "PDF with 1bpp created"
 
     #########################
 
