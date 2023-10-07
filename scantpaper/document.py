@@ -718,12 +718,11 @@ class DocThread(BaseThread):
         # pdf.showPage()
 
     def _convert_image_for_pdf(self, pagedata, image, options):
-        """Convert file if necessary"""
+        "Convert file if necessary"
 
         # The output resolution is normally the same as the input
         # resolution.
         output_xresolution, output_yresolution, units = pagedata.get_resolution()
-        return pagedata.filename, None, output_xresolution, output_yresolution
 
         filename = pagedata.filename
         compression = pagedata.compression
@@ -733,7 +732,7 @@ class DocThread(BaseThread):
             fmt = regex.group(1)
 
         if _must_convert_image_for_pdf(
-            compression, fmt, options["downsample"] if "downsample" in options else None
+            compression, fmt, options["downsample"] if options is not None and "downsample" in options else None
         ):
             if (
                 not re.search(
@@ -742,48 +741,48 @@ class DocThread(BaseThread):
                 and fmt != "tif"
             ):
                 ofn = filename
-                filename = tempfile.TemporaryFile(dir=dirname, suffix=".tif")
-                logger.info(f"Converting {ofn} to {filename}")
+                filename = tempfile.NamedTemporaryFile(dir=pagedata.dir, suffix=".tif", delete=False)
+                logger.info(f"Converting {ofn} to {filename.name}")
 
             elif re.search(
                 r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
                 ofn = filename
-                filename = tempfile.TemporaryFile(
-                    dir=dirname, suffix=f".{compression}"
+                filename = tempfile.NamedTemporaryFile(
+                    dir=pagedata.dir, suffix=f".{compression}", delete=False
                 )
-                msg = f"Converting {ofn} to {filename}"
-                if "quality" in options and compression == "jpg":
+                msg = f"Converting {ofn} to {filename.name}"
+                if options is not None and "quality" in options and compression == "jpg":
                     msg += f" with quality={options['quality']}"
 
                 logger.info(msg)
 
-            if "downsample" in options:
+            if options is not None and "downsample" in options and options["downsample"]:
                 output_xresolution = options["downsample dpi"]
                 output_yresolution = options["downsample dpi"]
                 w_pixels = (
-                    pagedata["width"] * output_xresolution / pagedata["xresolution"]
+                    pagedata.width * output_xresolution / pagedata.resolution[0]
                 )
                 h_pixels = (
-                    pagedata["height"] * output_yresolution / pagedata["yresolution"]
+                    pagedata.height * output_yresolution / pagedata.resolution[1]
                 )
-                logger.info(f"Resizing {filename} to {w_pixels} x {h_pixels}")
-                status = image.Sample(width=w_pixels, height=h_pixels)
-                if f"{status}":
+                logger.info(f"Resizing {filename.name} to {w_pixels} x {h_pixels}")
+                status = image.sample(PythonMagick.Geometry(int(w_pixels), int(h_pixels)))
+                if status:
                     logger.warn(status)
 
-            if "quality" in options and compression == "jpg":
+            if options is not None and "quality" in options and compression == "jpg":
                 status = image.Set(quality=options["quality"])
                 if f"{status}":
                     logger.warn(status)
 
             fmt = _write_image_object(
-                image, filename, fmt, pagedata, options["downsample"] if "downsample" in options else None
+                image, filename, fmt, pagedata, options["downsample"] if options is not None and "downsample" in options else None
             )
             if not re.search(
                 r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
-                filename2 = tempfile.TemporaryFile(dir=dirname, suffix=".tif")
+                filename2 = tempfile.NamedTemporaryFile(dir=dirname, suffix=".tif", delete=False)
                 error = tempfile.TemporaryFile(dir=dirname, suffix=".txt")
                 (status, _, error) = exec_command(
                     ["tiffcp", "-r", "-1", "-c", compression, filename, filename2],
@@ -803,8 +802,9 @@ class DocThread(BaseThread):
                     return
 
                 filename = filename2
+            filename = filename.name
 
-        return filename.name, fmt, output_xresolution, output_yresolution
+        return filename, fmt, output_xresolution, output_yresolution
 
     def _add_text_to_pdf(self, pdf_page, gs_page, cache, options):
         """Add OCR as text behind the scan"""
@@ -5650,7 +5650,6 @@ def _need_temp_pdf(options):
 
 
 def _must_convert_image_for_pdf(compression, format, downsample):
-
     return (
         (compression != "none" and compression != format)
         or downsample
@@ -5659,12 +5658,11 @@ def _must_convert_image_for_pdf(compression, format, downsample):
 
 
 def _write_image_object(image, filename, format, pagedata, downsample):
-
     compression = pagedata.compression
     if (
         not re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE)
         and format != "tif"
-    ):
+    ) or re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE) or downsample:
         logger.info(f"Writing temporary image {filename}")
 
         # Perlmagick doesn't reliably convert to 1-bit, so using convert
@@ -5684,14 +5682,13 @@ def _write_image_object(image, filename, format, pagedata, downsample):
 
         # Reset depth because of ImageMagick bug
         # <https://github.com/ImageMagick/ImageMagick/issues/277>
-
-        image.Set("depth", image.Get("depth"))
-        status = image.Write(filename=filename)
-        if _self["cancel"]:
-            return
-        if f"{status}":
+        image.depth = image.depth
+        status = image.write(filename.name)
+        # if _self["cancel"]:
+        #     return
+        if status:
             logger.warn(status)
-        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
+        regex = re.search(r"[.](\w*)$", filename.name, re.MULTILINE | re.DOTALL | re.VERBOSE)
         if regex:
             format = regex.group(1)
 
