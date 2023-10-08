@@ -70,7 +70,7 @@ def test_1():
         path="test.pdf",
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": ["pdftoppm", "%i", "test"],
+            "post_save_hook": "pdftoppm %i test",
             "post_save_hook_options": "fg",
         },
         started_callback=save_pdf_started_cb,

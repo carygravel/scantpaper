@@ -1104,6 +1104,71 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             )
             return status
 
+    def save_image(self, **options):
+        callbacks = {}
+        for callback in [            "queued",            "started",            "running","logged",            "finished",            "error",  "mark_saved"       ]:
+            name = callback+  "_callback"
+            if name in options:
+                callbacks[name] = options[name]
+                del options[name]
+        return self.send("save_image", options, **callbacks)
+
+    def do_save_image(self, request):
+        options = request.args[0]
+
+        if len(options["list_of_pages"]) == 1:
+            status, _stdout, _stderr = exec_command(
+                [
+                    "convert",
+                    options["list_of_pages"][0].filename,
+                    "-density",
+                    f'{options["list_of_pages"][0].resolution[0]}x{options["list_of_pages"][0].resolution[1]}',
+                    options["path"],
+                ],
+                options["pidfile"],
+            )
+            # if _self["cancel"]:
+            #     return
+            if status:
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Save file",
+                    _("Error saving image"),
+                )
+
+            _post_save_hook(options["list_of_pages"][0].filename, options["options"])
+
+        else:
+            current_filename = None
+            i = 1
+            for _ in options["list_of_pages"]:
+                current_filename = options["path"] % (i)
+                i += 1
+                status = exec_command(
+                    [
+                        "convert",
+                        _["filename"],
+                        "-density",
+                        _["xresolution"] + "x" + _["yresolution"],
+                        current_filename,
+                    ],
+                    options["pidfile"],
+                )
+                if _self["cancel"]:
+                    return
+                if status:
+                    _thread_throw_error(
+                        self,
+                        options["uuid"],
+                        options["page"]["uuid"],
+                        "Save file",
+                        _("Error saving image"),
+                    )
+
+                _post_save_hook(_["filename"], options["options"])
+
 
 class Document(SimpleList):
     "a Document is a simple list of pages"
@@ -2163,7 +2228,7 @@ class Document(SimpleList):
             uuid=uuid,
         )
 
-    def save_image(self, options):
+    def save_image(self, **options):
 
         # File in which to store the process ID so that it can be killed if necessary
 
@@ -2172,20 +2237,17 @@ class Document(SimpleList):
             return
         options["mark_saved"] = True
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "save-image",
-            {
-                "path": options["path"],
-                "list_of_pages": options["list_of_pages"],
-                "options": options["options"],
-                "pidfile": f"{pidfile}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.save_image(
+            path=options["path"],
+            list_of_pages=options["list_of_pages"],
+            options=options["options"] if "options" in options else None,
             pidfile=pidfile,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def scans_saved(self):
@@ -3760,71 +3822,6 @@ class Document(SimpleList):
                 "type": "finished",
                 "process": "rotate",
                 "uuid": uuid,
-            }
-        )
-
-    def _thread_save_image(self, options):
-
-        if options["list_of_pages"] == 1:
-            status = exec_command(
-                [
-                    "convert",
-                    options["list_of_pages"][0]["filename"],
-                    "-density",
-                    options["list_of_pages"][0]["xresolution"]
-                    + "x"
-                    + options["list_of_pages"][0]["yresolution"],
-                    options["path"],
-                ],
-                options["pidfile"],
-            )
-            if _self["cancel"]:
-                return
-            if status:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error saving image"),
-                )
-
-            _post_save_hook(options["list_of_pages"][0]["filename"], options["options"])
-
-        else:
-            current_filename = None
-            i = 1
-            for _ in options["list_of_pages"]:
-                current_filename = options["path"] % (i)
-                i += 1
-                status = exec_command(
-                    [
-                        "convert",
-                        _["filename"],
-                        "-density",
-                        _["xresolution"] + "x" + _["yresolution"],
-                        current_filename,
-                    ],
-                    options["pidfile"],
-                )
-                if _self["cancel"]:
-                    return
-                if status:
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        _("Error saving image"),
-                    )
-
-                _post_save_hook(_["filename"], options["options"])
-
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "save-image",
-                "uuid": options["uuid"],
             }
         )
 
@@ -5742,20 +5739,17 @@ def _bbox2markup(xresolution, yresolution, h, bbox):
 def _post_save_hook(filename, options):
 
     if options is not None and "post_save_hook" in options:
-        command = options["post_save_hook"]
-        if isinstance(command, list):
-            for i, e in enumerate(command):
-                command[i] = re.sub("%i", filename, e, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
-        elif isinstance(command, str):
-            command = re.sub("%i", filename, command, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
+        args = options["post_save_hook"].split(" ")
+        for i, e in enumerate(args):
+            args[i] = re.sub("%i", filename, e, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
         if (
             "post_save_hook_options" not in options
             or options["post_save_hook_options"] != "fg"
         ):
-            command += " &"
+            args += " &"
 
-        logger.info(command)
-        subprocess.run(command)
+        logger.info(args)
+        subprocess.run(args, check=True)
 
 
 def parse_truetype_fonts(fclist):
