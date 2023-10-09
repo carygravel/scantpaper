@@ -118,6 +118,11 @@ class DocThread(BaseThread):
 
     cancel = False
 
+    def __init__(self):
+        BaseThread.__init__(self)
+        self.lock = threading.Lock()
+        self.running_pids = []
+
     def do_get_file_info(self, request):
         "get file info"
         path, password = request.args
@@ -1168,6 +1173,9 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                     )
 
                 _post_save_hook(_["filename"], options["options"])
+    
+    def do_cancel(self, _request):
+        pass
 
 
 class Document(SimpleList):
@@ -1298,52 +1306,48 @@ class Document(SimpleList):
         """Set the paper sizes in the manager and worker threads"""
         _enqueue_request("paper_sizes", {"paper_sizes": paper_sizes})
 
-    def cancel(self, cancel_callback, process_callback):
-        """Kill all running processes"""
-        lock(_self["requests"])  # unlocks automatically when out of scope
-        lock(_self["pages"])  # unlocks automatically when out of scope
+    def cancel(self, cancel_callback, process_callback=None):
+        "Kill all running processes"
+        with self.thread.lock:
 
-        # Empty process queue first to stop any new process from starting
-        logger.info("Emptying process queue")
-        while _self["requests"].pending():
-            _self["requests"].dequeue()
+            # Empty process queue first to stop any new process from starting
+            logger.info("Emptying process queue")
+            try:
+                while self.thread.requests.get(False):
+                    pass
+            except queue.Empty:
+                pass
+            try:
+                while self.thread.responses.get(False):
+                    pass
+            except queue.Empty:
+                pass
 
-        jobs_completed = 0
-        jobs_total = 0
+            jobs_completed = 0
+            jobs_total = 0
 
-        # Empty pages queue
-        while _self["pages"].pending():
-            _self["pages"].dequeue()
+            # Then send the thread a cancel signal
+            # to stop it going beyond the next break point
+            self.thread.cancel = True
 
-        # Then send the thread a cancel signal
-        # to stop it going beyond the next break point
-        _self["cancel"] = True
+            # Kill all running processes in the thread
+            for pidfile in self.thread.running_pids:
+                pid = slurp(pidfile)
+                SIG["CHLD"] = "IGNORE"
+                if pid != EMPTY:
+                    if pid == 1:
+                        continue
+                    if process_callback is not None:
+                        process_callback(pid)
 
-        # Kill all running processes in the thread
-        for pidfile in self.running_pids.keys():
-            pid = slurp(pidfile)
-            SIG["CHLD"] = "IGNORE"
-            if pid != EMPTY:
-                if pid == 1:
-                    continue
-                if process_callback is not None:
-                    process_callback(pid)
+                    logger.info(f"Killing PID {pid}")
 
-                logger.info(f"Killing PID {pid}")
-
-                os.killpg(os.getpgid(pid), signal.SIGKILL)
-                del self.running_pids[pidfile]
-
-        uuid = str(uuid_object())
-        callback[uuid]["cancelled"] = cancel_callback
+                    os.killpg(os.getpgid(pid), signal.SIGKILL)
+                    del self.running_pids[pidfile]
 
         # Add a cancel request to ensure the reply is not blocked
         logger.info("Requesting cancel")
-        sentinel = _enqueue_request("cancel", {"uuid": uuid})
-
-        # Send a dummy page to the pages queue in case the thread is waiting there
-        _self["pages"].enqueue({"page": "cancel"})
-        return self._monitor_process(sentinel=sentinel, uuid=uuid)
+        return self.thread.send("cancel", finished_callback=cancel_callback)
 
     def create_pidfile(self, options):
         pidfile = None
