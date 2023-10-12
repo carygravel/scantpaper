@@ -544,39 +544,26 @@ class DocThread(BaseThread):
 
     def save_pdf(self, **kwargs):
         "save pdf"
-        path = kwargs["path"]
-        del kwargs["path"]
-        list_of_pages = kwargs["list_of_pages"]
-        del kwargs["list_of_pages"]
-        metadata = kwargs["metadata"]
-        del kwargs["metadata"]
-        options = kwargs["options"]
-        del kwargs["options"]
-        dirname = kwargs["dir"] if "dir" in kwargs else None
-        del kwargs["dir"]
-        pidfile = kwargs["pidfile"] if "pidfile" in kwargs else None
-        del kwargs["pidfile"]
-        del kwargs["uuid"]
-        return self.send("save_pdf", path, list_of_pages, dirname, pidfile, metadata, options, **kwargs)
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("save_pdf", kwargs, **callbacks)
 
     def do_save_pdf(self, request):
-        options = request.args
+        options = request.args[0]
         _ = gettext.gettext
         pagenr = 0
         pdf, error, message = None, None, None
 
         self.message = _("Setting up PDF")
-        filename, list_of_pages, dirname, pidfile, metadata, options = options
-        if _need_temp_pdf(options):
-            options["path"] = filename
-            filename = tempfile.NamedTemporaryFile(dir=dirname, suffix=".pdf")
+        filename = options["path"]
+        if _need_temp_pdf(options["options"]):
+            filename = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".pdf")
 
         pdf = canvas.Canvas(filename)
 
         if error:
             return 1
-        if metadata is not None and "ps" not in options:
-            metadata = prepare_output_metadata("PDF", metadata)
+        if "metadata" in options and "ps" not in options:
+            metadata = prepare_output_metadata("PDF", options["metadata"])
             if "Author" in metadata:
                 pdf.setAuthor(metadata["Author"])
             if "Title" in metadata:
@@ -587,16 +574,21 @@ class DocThread(BaseThread):
                 pdf.setKeywords(metadata["Keywords"])
             pdf.setCreator(f"scantpaper v{VERSION}")
 
+            # If whichever library we end up has no support for has no support
+            # for setting /CreationDate and /ModDate, we can directly modify
+            # the PDF (test 1151):
+            # https://stackoverflow.com/questions/52358853/reportlab-metadata-creationdate-and-modificationdate
+
         cache = {"core": pdfmetrics.getFont("Times-Roman")}
-        if options is not None and "options" in options and "font" in options["options"]:
+        if options is not None and "options" in options and options["options"] is not None and "options" in options["options"] and "font" in options["options"]["options"]:
             message = _("Unable to find font '%s'. Defaulting to core font.") % (
-                options["options"]["font"]
+                options["options"]["options"]["font"]
             )
-            if os.path.isfile(options["options"]["font"]):
+            if os.path.isfile(options["options"]["options"]["font"]):
                 try:
-                    cache["ttf"] = TTFont(options["options"]["font"], options["options"]["font"])
+                    cache["ttf"] = TTFont(options["options"]["options"]["font"], options["options"]["options"]["font"])
                     pdfmetrics.registerFont(cache["ttf"])
-                    logger.info(f"Using {options['options']['font']} for non-ASCII text")
+                    logger.info(f"Using {options['options']['options']['font']} for non-ASCII text")
 
                 except:
                     logger.error(message)
@@ -604,7 +596,7 @@ class DocThread(BaseThread):
                         "Save file",
                         message,
                     )
-                    del options["options"]["font"]
+                    del options["options"]["options"]["font"]
 
             else:
                 logger.error(message)
@@ -612,12 +604,12 @@ class DocThread(BaseThread):
                     "Save file",
                     message,
                 )
-                del options["options"]["font"]
+                del options["options"]["options"]["font"]
 
-        for pagedata in list_of_pages:
+        for pagedata in options["list_of_pages"]:
             pagenr += 1
-            self.progress = pagenr / (len(list_of_pages) + 1)
-            self.message = _("Saving page %i of %i") % (pagenr, len(list_of_pages))
+            self.progress = pagenr / (len(options["list_of_pages"]) + 1)
+            self.message = _("Saving page %i of %i") % (pagenr, len(options["list_of_pages"]))
             status = self._add_page_to_pdf(pdf, pagedata, cache, options)
             # if status or _self["cancel"]:
             #     return
@@ -629,7 +621,7 @@ class DocThread(BaseThread):
             if _append_pdf(self, filename, options):
                 return
 
-        if options is not None and "user-password" in options:
+        if options is not None and "options" in options and options["options"] is not None and "user-password" in options["options"]:
             if self._encrypt_pdf(filename, options):
                 return
 
@@ -649,10 +641,10 @@ class DocThread(BaseThread):
                 )
                 return
 
-            _post_save_hook(options["ps"], options)
+            _post_save_hook(options["ps"], options["options"])
 
         else:
-            _post_save_hook(filename, options)
+            _post_save_hook(filename, options["options"])
 
     def _add_page_to_pdf(self, pdf, pagedata, cache, options):
         filename = pagedata.filename
@@ -816,12 +808,12 @@ class DocThread(BaseThread):
         xresolution, yresolution, units = gs_page.get_resolution()
         w = gs_page.width / xresolution*inch
         h = gs_page.height / yresolution*inch
-        if options is not None and "options" in options and "font" in options["options"]:
+        if options is not None and "options" in options and options["options"] is not None and "font" in options["options"]:
             font = options["options"]["font"]
         else:
             font = 'Times-Roman'
         offset = 0
-        if options is not None and "options" in options and "text_position" in options["options"] and options["options"]["text_position"] == "right":
+        if options is not None and "options" in options and options["options"] is not None and "text_position" in options["options"] and options["options"]["text_position"] == "right":
             offset = w * POINTS_PER_INCH
 
         textobject = pdf_page.beginText()
@@ -1060,7 +1052,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def _set_timestamp(self, options):
         if (
-            options is None or "options" not in options or "set_timestamp" not in options["options"]
+            options is None or "options" not in options or options["options"] is None or "set_timestamp" not in options["options"]
             or not options["options"]["set_timestamp"]
             or "ps" in options
         ):
@@ -1094,8 +1086,8 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def _encrypt_pdf(self, filename, options):
         cmd = ["pdftk", filename.name, "output", options["path"]]
-        if "user-password" in options:
-            cmd += ["user_pw", options["user-password"]]
+        if "user-password" in options["options"]:
+            cmd += ["user_pw", options["options"]["user-password"]]
 
         spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
         if spo.returncode != 0:
@@ -1109,14 +1101,9 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             )
             return status
 
-    def save_image(self, **options):
-        callbacks = {}
-        for callback in [            "queued",            "started",            "running","logged",            "finished",            "error",  "mark_saved"       ]:
-            name = callback+  "_callback"
-            if name in options:
-                callbacks[name] = options[name]
-                del options[name]
-        return self.send("save_image", options, **callbacks)
+    def save_image(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("save_image", kwargs, **callbacks)
 
     def do_save_image(self, request):
         options = request.args[0]
@@ -5809,3 +5796,12 @@ def get_tmp_dir(directory, pattern):
         directory = os.path.dirname(directory)
 
     return directory
+
+def _note_callbacks2(kwargs):
+    callbacks = {}
+    for callback in [            "queued",            "started",            "running","logged",            "finished",            "error",  "mark_saved"       ]:
+        name = callback+  "_callback"
+        if name in kwargs:
+            callbacks[name] = kwargs[name]
+            del kwargs[name]
+    return callbacks
