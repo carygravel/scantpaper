@@ -55,7 +55,7 @@ def test_1():
     "test baseprocess class"
     thread = MyThread()
     thread.start()
-    uid = thread.send(
+    thread.send(
         "div",
         1,
         2,
@@ -66,32 +66,32 @@ def test_1():
         finished_callback=thread.callback,
     )
     # FIXME: implement GLib.MainLoop() as per test 103
-    thread.monitor(uid, block=True)  # for queued_callback
+    thread.monitor(block=True)  # for queued_callback
     assert thread.response_counter == 1, "checked all expected responses #1"
-    thread.monitor(uid, block=True)  # for started_callback
+    thread.monitor(block=True)  # for started_callback
     assert thread.response_counter == 2, "checked all expected responses #2"
-    thread.monitor(uid, block=True)  # for logged_callback
+    thread.monitor(block=True)  # for logged_callback
     assert thread.response_counter == 4, "checked all expected responses #3"
-    thread.monitor(uid, block=True)  # for finished_callback
+    thread.monitor(block=True)  # for finished_callback
     assert thread.response_counter == 6, "checked all expected responses #3"
 
-    uid = thread.send("div", 1, 0, error_callback=thread.callback)
-    thread.monitor(uid, block=True)  # for queued_callback
-    thread.monitor(uid, block=True)  # for started_callback
-    thread.monitor(uid, block=True)  # for error_callback
+    thread.send("div", 1, 0, error_callback=thread.callback)
+    thread.monitor(block=True)  # for queued_callback
+    thread.monitor(block=True)  # for started_callback
+    thread.monitor(block=True)  # for error_callback
     assert thread.response_counter == 6, "checked all expected responses #4"
 
-    uid = thread.send("nodiv", 1, 2, error_callback=thread.callback)
-    thread.monitor(uid, block=True)  # for queued_callback
-    thread.monitor(uid, block=True)  # for started_callback
-    thread.monitor(uid, block=True)  # for error_callback
+    thread.send("nodiv", 1, 2, error_callback=thread.callback)
+    thread.monitor(block=True)  # for queued_callback
+    thread.monitor(block=True)  # for started_callback
+    thread.monitor(block=True)  # for error_callback
     assert thread.response_counter == 7, "checked all expected responses #5"
 
     thread.register_callback("after_finished", "after", "finished")
-    uid = thread.send("div", 1, 2, after_finished_callback=thread.callback)
-    thread.monitor(uid, block=True)  # for queued_callback
-    thread.monitor(uid, block=True)  # for started_callback
-    thread.monitor(uid, block=True)  # for after_finished_callback
-    assert thread.response_counter == 7, "checked all expected responses #6"
+    thread.send("div", 1, 2, after_finished_callback=thread.callback)
+    thread.monitor(block=True)  # for queued_callback
+    thread.monitor(block=True)  # for started_callback
+    thread.monitor(block=True)  # for after_finished_callback
+    assert thread.response_counter == 8, "checked all expected responses #6"
 
     thread.send("quit")

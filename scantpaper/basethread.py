@@ -146,20 +146,26 @@ class BaseThread(threading.Thread):
                     request.error(None, str(err))
             self.requests.task_done()
 
-    def monitor(self, uid, block=False):
+    def monitor(self, block=False):
         "monitor the thread, triggering callbacks as required"
         if block:
-            return self._monitor_response(uid, block)
+            return self._monitor_response(block)
         # no point in returning if there are still responses
         while not self.responses.empty():
-            return self._monitor_response(uid, block)
+            return self._monitor_response(block)
 
-    def _run_callbacks(self, uid, stage, data=None):
+    def _run_callbacks(self, stage, result):
         """helper method to run the callbacks associated with each stage
         (started, running, finished)"""
-        if uid is None or uid not in self.callbacks:
-            return
-        if stage == "running" and not self.callbacks[uid]["started"]:
+        if stage == "running":
+            for uid, callbacks in self.callbacks.items():
+                if callbacks["started"]:
+                    self._run_callback(stage, uid, result)
+        else:
+            self._run_callback(stage, result.request.uuid, result)
+
+    def _run_callback(self, stage, uid, data):
+        if uid not in self.callbacks:
             return
         for callback in getattr(self, "before")[stage]:
             if callback + "_callback" in self.callbacks[uid]:
@@ -173,8 +179,8 @@ class BaseThread(threading.Thread):
             if callback + "_callback" in self.callbacks[uid]:
                 self.callbacks[uid][callback + "_callback"](data)
 
-    def _monitor_response(self, uid, block=False):
-        self._run_callbacks(uid, "running")
+    def _monitor_response(self, block=False):
+        self._run_callbacks("running", None)
         try:
             result = self.responses.get(block)
         except queue.Empty:
@@ -183,7 +189,8 @@ class BaseThread(threading.Thread):
         if stage == "log":
             stage = "logged"
         callback = stage + "_callback"
-        self._run_callbacks(uid, stage, result)
+        self._run_callbacks(stage, result)
+        uid = result.request.uuid
         if uid in self.callbacks:
             if callback in ["queued_callback", "started_callback", "logged_callback"]:
                 if callback in self.callbacks[uid]:
