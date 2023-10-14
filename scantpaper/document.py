@@ -300,21 +300,21 @@ class DocThread(BaseThread):
         return            info
 
     def do_import_file(self, request):
-        info, password, first, last, dirname, pidfile = request.args
-        if info["format"] == "DJVU":
+        args = request.args[0]
+        if args["info"]["format"] == "DJVU":
 
             # Extract images from DjVu
-            if last >= options["first"] and options["first"] > 0:
-                for i in range(options["first"], last + 1):
-                    self.progress = (i - 1) / (last - options["first"] + 1)
+            if args["last"] >= args["first"] and args["first"] > 0:
+                for i in range(args["first"], last + 1):
+                    self.progress = (i - 1) / (last - args["first"] + 1)
                     self.message = _("Importing page %i of %i") % (
                         i,
-                        last - options["first"] + 1,
+                        last - args["first"] + 1,
                     )
                     tif, txt, ann, error = None, None, None, None
                     try:
                         tif = tempfile.NamedTemporaryFile(
-                            dir=options["dir"], suffix=".tif", delete=False
+                            dir=args["dir"], suffix=".tif", delete=False
                         )
                         exec_command(
                             [
@@ -324,7 +324,7 @@ class DocThread(BaseThread):
                                 info["path"],
                                 tif,
                             ],
-                            options["pidfile"],
+                            args["pidfile"],
                         )
                         (_, txt) = exec_command(
                             [
@@ -333,7 +333,7 @@ class DocThread(BaseThread):
                                 "-e",
                                 f"select {i}; print-txt",
                             ],
-                            options["pidfile"],
+                            args["pidfile"],
                         )
                         (_, ann) = exec_command(
                             [
@@ -342,7 +342,7 @@ class DocThread(BaseThread):
                                 "-e",
                                 f"select {i}; print-ant",
                             ],
-                            options["pidfile"],
+                            args["pidfile"],
                         )
 
                     except:
@@ -350,20 +350,20 @@ class DocThread(BaseThread):
                             logger.error(f"Caught error creating {tif}: {_}")
                             _thread_throw_error(
                                 self,
-                                options["uuid"],
-                                options["page"]["uuid"],
+                                args["uuid"],
+                                args["page"]["uuid"],
                                 "Open file",
                                 f"Error: unable to write to {tif}.",
                             )
 
                         else:
-                            logger.error(f"Caught error writing to {options}{dir}: {_}")
+                            logger.error(f"Caught error writing to {args}{dir}: {_}")
                             _thread_throw_error(
                                 self,
-                                options["uuid"],
-                                options["page"]["uuid"],
+                                args["uuid"],
+                                args["page"]["uuid"],
                                 "Open file",
-                                f"Error: unable to write to {options}{dir}.",
+                                f"Error: unable to write to {args}{dir}.",
                             )
 
                         error = True
@@ -410,30 +410,30 @@ class DocThread(BaseThread):
                         {"type": "page", "uuid": options["uuid"], "page": page}
                     )
 
-        elif info["format"] == "Portable Document Format":
+        elif args["info"]["format"] == "Portable Document Format":
             self._thread_import_pdf(request)
 
-        elif info["format"] == "Tagged Image File Format":
+        elif args["info"]["format"] == "Tagged Image File Format":
 
             # Only one page, so skip tiffcp in case it gives us problems
-            if last == 1:
+            if args["last"] == 1:
 #                self.progress = 1
 #                self.message = _("Importing page %i of %i") % (1, 1)
                 return Page(
-                    filename=info["path"],
-                    dir=dirname,
+                    filename=args["info"]["path"],
+                    dir=args["dir"],
                     delete=False,
-                    format=info["format"],
-                    width=info["width"][0],
-                    height=info["height"][0],
+                    format=args["info"]["format"],
+                    width=args["info"]["width"][0],
+                    height=args["info"]["height"][0],
                 )
             # Split the tiff into its pages and import them individually
-            elif last >= options["first"] and options["first"] > 0:
-                for i in range(options["first"] - 1, last - 1 + 1):
-                    self.progress = i / (last - options["first"] + 1)
+            elif args["last"] >= options["first"] and options["first"] > 0:
+                for i in range(options["first"] - 1, args["last"] - 1 + 1):
+                    self.progress = i / (args["last"] - options["first"] + 1)
                     self.message = _("Importing page %i of %i") % (
                         i,
-                        last - options["first"] + 1,
+                        args["last"] - options["first"] + 1,
                     )
                     (tif, error) = (None, None)
                     try:
@@ -493,7 +493,7 @@ class DocThread(BaseThread):
                         {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
                     )
 
-        elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", info["format"]):
+        elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
             try:
                 page = Page(
                     filename=info["path"],
@@ -520,11 +520,11 @@ class DocThread(BaseThread):
 
         else:
             page = Page(
-                filename=info["path"],
-                dir=dirname,
-                format=info["format"],
-                width=info["width"][0],
-                height=info["height"][0],
+                filename=args["info"]["path"],
+                dir=args["dir"],
+                format=args["info"]["format"],
+                width=args["info"]["width"][0],
+                height=args["info"]["height"][0],
             )
             request.log(page)
 
@@ -532,15 +532,10 @@ class DocThread(BaseThread):
         "get file info"
         return self.send("get_file_info", path, password, **kwargs)
 
-    def import_file(self, password=None, first=1, last=1, **kwargs):
+    def import_file(self, **kwargs):
         "import file"
-        info = kwargs["info"]
-        del kwargs["info"]
-        dirname = kwargs["dir"] if "dir" in kwargs else None
-        del kwargs["dir"]
-        pidfile = kwargs["pidfile"] if "pidfile" in kwargs else None
-        del kwargs["pidfile"]
-        return self.send("import_file", info, password, first, last, dirname, pidfile, **kwargs)
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("import_file", kwargs, **callbacks)
 
     def save_pdf(self, **kwargs):
         "save pdf"
@@ -940,18 +935,18 @@ class DocThread(BaseThread):
             )
 
     def _thread_import_pdf(self, request):
-        info, password, first, last, dirname, pidfile = request.args
+        args = request.args[0]
         warning_flag, xresolution, yresolution = None, None, None
 
         # Extract images from PDF
-        if last >= first and first > 0:
-            for i in range(first, last + 1):
-                args = ["pdfimages", "-f", str(i), "-l", str(i), "-list", info["path"]]
-                if password is not None:
-                    del (args[1], options["password"])
-                    args.insert(1, "-upw")
+        if args["last"] >= args["first"] and args["first"] > 0:
+            for i in range(args["first"], args["last"] + 1):
+                cmd = ["pdfimages", "-f", str(i), "-l", str(i), "-list", args["info"]["path"]]
+                if args["password"] is not None:
+                    del (cmd[1], args["password"])
+                    cmd.insert(1, "-upw")
 
-                spo = subprocess.run(args,check=True,capture_output=True,text=True,)
+                spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
                 for line in re.split(r"\n", spo.stdout):
                     xresolution, yresolution = line[70:75], line[76:81]
                     if re.search(
@@ -960,12 +955,12 @@ class DocThread(BaseThread):
                         xresolution, yresolution = float(xresolution), float(yresolution)
                         break
 
-                args = ["pdfimages", "-f", str(i), "-l", str(i), info["path"], "x"]
-                if password is not None:
-                    del (args[1], options["password"])
-                    args.insert(1, "-upw")
+                cmd = ["pdfimages", "-f", str(i), "-l", str(i), args["info"]["path"], "x"]
+                if args["password"] is not None:
+                    del (cmd[1], args["password"])
+                    cmd.insert(1, "-upw")
 
-                spo = subprocess.run(args,check=True,capture_output=True,text=True,)
+                spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
                 # if _self["cancel"]:
                 #     return
                 if spo.returncode != 0:
@@ -977,22 +972,22 @@ class DocThread(BaseThread):
                         _("Error extracting images from PDF"),
                     )
 
-                html = tempfile.NamedTemporaryFile(dir=dirname, suffix=".html")
-                args = [
+                html = tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".html")
+                cmd = [
                     "pdftotext",
                     "-bbox",
                     "-f",
                     str(i),
                     "-l",
                     str(i),
-                    info["path"],
+                    args["info"]["path"],
                     html.name,
                 ]
-                if password is not None:
-                    args.insert(1, options["password"])
-                    args.insert(1, "-upw")
+                if args["password"] is not None:
+                    cmd.insert(1, args["password"])
+                    cmd.insert(1, "-upw")
 
-                spo = subprocess.run(args,check=True,capture_output=True,text=True,)
+                spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
                 # if _self["cancel"]:
                 #     return
                 if spo.returncode != 0:
@@ -1017,7 +1012,7 @@ class DocThread(BaseThread):
                     try:
                         page = Page(
                             filename=fname,
-                            dir=dirname,
+                            dir=args["dir"],
                             delete=True,
                             format=image_format[ext],
                             resolution=(xresolution,yresolution,"PixelsPerInch"),
@@ -1395,9 +1390,6 @@ class Document(SimpleList):
     def _get_file_info_finished_callback2(self, info, options):
         if len(info) > 1:
             for i in info:
-                if i is None:
-                    continue
-
                 if i["format"] == "session file":
                     logger.error(
                         "Cannot open a session file at the same time as another file."
@@ -1428,12 +1420,11 @@ class Document(SimpleList):
 
                     return
 
-            main_uuid = options["uuid"]
             finished_callback = options["finished_callback"]
             del options["paths"]
             del options["finished_callback"]
             for i in range(len(info)):
-                if options["metadata_callback"]:
+                if "metadata_callback" in options:
                     options["metadata_callback"](_extract_metadata(info[i]))
 
                 if i == len(info) - 1:
@@ -1495,7 +1486,7 @@ class Document(SimpleList):
 
         def _import_file_finished_callback(result):
             if "finished_callback" in options:
-                options["finished_callback"]()
+                options["finished_callback"](result)
 
         uid = self.thread.import_file(
             info= options["info"],

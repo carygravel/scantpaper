@@ -21,7 +21,7 @@ def test_1():
     slist.set_dir(dirname.name)
 
     asserts = 0
-    # FIXME: add support from completed, total vars
+    # FIXME: add support for completed, total vars
     #    def import_files_started_cb( thread, process, completed, total ):
     def import_files_started_cb(response):
         nonlocal asserts
@@ -31,7 +31,7 @@ def test_1():
         assert response.request.process == "get_file_info"
         asserts += 1
 
-    def import_files_finished_cb():
+    def import_files_finished_cb(response):
         nonlocal asserts
         assert not slist.scans_saved(), "pages not tagged as saved"
         asserts += 1
@@ -46,7 +46,7 @@ def test_1():
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    # FIXME: add support from completed, total vars
+    # FIXME: add support for completed, total vars
     #    def save_pdf_started_cb( result, completed, total ):
     def save_pdf_started_cb(result):
         nonlocal asserts

@@ -14,12 +14,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
-def monitor_multiple(thread, uid_list):
-    "helper function to save calls to monitor()"
-    for uid in uid_list:
-        thread.monitor(uid, block=True)
-
-
 def test_docthread():
     "tests for DocThread"
     # Gscan2pdf.Translation.set_domain('gscan2pdf')
@@ -83,7 +77,11 @@ def test_docthread():
     }
     request = Request("get_file_info", (tiff, None), thread.responses)
     assert thread.do_get_file_info(request) == info, "do_get_file_info + tiff"
-    request = Request("import_file", (info, None, 1, 1, None, None), thread.responses)
+    request = Request(
+        "import_file",
+        ({"info": info, "first": 1, "last": 1, "dir": None},),
+        thread.responses,
+    )
     assert isinstance(thread.do_import_file(request), Page), "do_import_file + tiff"
 
     png = "test.png"
@@ -103,8 +101,9 @@ def test_docthread():
         ), "get_file_info_finished_callback"
         assert response.info == info, "get_file_info"
 
-    uid = thread.get_file_info(tiff, None, finished_callback=get_file_info_callback)
-    monitor_multiple(thread, [uid, uid, uid, uid])
+    thread.get_file_info(tiff, None, finished_callback=get_file_info_callback)
+    for _ in range(4):
+        thread.monitor(block=True)
 
     for fname in [cjb2, djvu, pbm, pdf, png, tgz, tiff]:
         os.remove(fname)
@@ -128,7 +127,7 @@ def test_document():
 
     ran_callback = False
 
-    def finished_callback():
+    def finished_callback(_result):
         nonlocal ran_callback
         ran_callback = True
         clipboard = slist.copy_selection(True)
