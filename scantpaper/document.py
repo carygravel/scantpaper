@@ -621,10 +621,10 @@ class DocThread(BaseThread):
                 return
 
         self._set_timestamp(options)
-        if options is not None and "ps" in options:
+        if options is not None and "options" in options and options["options"] is not None and "ps" in options["options"]:
             self.message = _("Converting to PS")
-            cmd = [options["pstool"], filename, options["ps"]]
-            status, _, error = exec_command(cmd, pidfile)
+            cmd = [options["options"]["pstool"], filename.name, options["options"]["ps"]]
+            status, _, error = exec_command(cmd, options["pidfile"])
             if status or error:
                 logger.info(error)
                 _thread_throw_error(
@@ -636,7 +636,7 @@ class DocThread(BaseThread):
                 )
                 return
 
-            _post_save_hook(options["ps"], options["options"])
+            _post_save_hook(options["options"]["ps"], options["options"])
 
         else:
             _post_save_hook(filename, options["options"])
@@ -1049,7 +1049,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         if (
             options is None or "options" not in options or options["options"] is None or "set_timestamp" not in options["options"]
             or not options["options"]["set_timestamp"]
-            or "ps" in options
+            or "ps" in options["options"]
         ):
             return
 
