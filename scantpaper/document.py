@@ -612,8 +612,9 @@ class DocThread(BaseThread):
         self.message = _("Closing PDF")
         logger.info("Closing PDF")
         pdf.save()
-        if options is not None and ("prepend" in options or "append" in options):
-            if _append_pdf(self, filename, options):
+        print(f"before prepend {options}")
+        if options is not None and ("prepend" in options["options"] or "append" in options["options"]):
+            if self._append_pdf(filename, options):
                 return
 
         if options is not None and "options" in options and options["options"] is not None and "user-password" in options["options"]:
@@ -933,6 +934,50 @@ class DocThread(BaseThread):
                 color=rgb,
                 opacity=0.5,
             )
+
+    def _append_pdf(self, filename, options):
+
+        if "prepend" in options["options"]:
+            file1 = filename
+            file2 = options["options"]["prepend"]+".bak"
+            bak = file2
+            out = options["options"]["prepend"]
+            # message = _("Error prepending PDF: %s")
+            logger.info("Prepending PDF")
+
+        else:
+            file2 = filename
+            file1 = f"{options}{options}{append}.bak"
+            bak = file1
+            out = options["options"]["append"]
+            # message = _("Error appending PDF: %s")
+            logger.info("Appending PDF")
+
+        try:
+            os.rename(out, bak)
+        except ValueError:
+            _thread_throw_error(
+                self,
+                options["uuid"],
+                options["page"]["uuid"],
+                "Save file",
+                _("Error creating backup of PDF"),
+            )
+            return
+
+        (status, _, error) = exec_command(
+            ["pdfunite", file1.name, file2, out], options["pidfile"]
+        )
+        if status:
+            logger.info(error)
+            _thread_throw_error(
+                self,
+                options["uuid"],
+                options["page"]["uuid"],
+                "Save file",
+                message % (error),
+            )
+            return status
 
     def _thread_import_pdf(self, request):
         args = request.args[0]
@@ -3171,49 +3216,6 @@ class Document(SimpleList):
             }
         )
 
-
-    def _append_pdf(self, filename, options):
-
-        (bak, file1, file2, out, message) = (None, None, None, None, None)
-        if "prepend" in options["options"]:
-            file1 = filename
-            file2 = f"{options}{options}{prepend}.bak"
-            bak = file2
-            out = options["options"]["prepend"]
-            message = _("Error prepending PDF: %s")
-            logger.info("Prepending PDF")
-
-        else:
-            file2 = filename
-            file1 = f"{options}{options}{append}.bak"
-            bak = file1
-            out = options["options"]["append"]
-            message = _("Error appending PDF: %s")
-            logger.info("Appending PDF")
-
-        if not os.rename(out, bak):
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                _("Error creating backup of PDF"),
-            )
-            return
-
-        (status, _, error) = exec_command(
-            ["pdfunite", file1, file2, out], options["pidfile"]
-        )
-        if status:
-            logger.info(error)
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                message % (error),
-            )
-            return status
 
     def _thread_save_djvu(self, options):
 
