@@ -612,7 +612,6 @@ class DocThread(BaseThread):
         self.message = _("Closing PDF")
         logger.info("Closing PDF")
         pdf.save()
-        print(f"before prepend {options}")
         if options is not None and ("prepend" in options["options"] or "append" in options["options"]):
             if self._append_pdf(filename, options):
                 return
@@ -938,7 +937,7 @@ class DocThread(BaseThread):
     def _append_pdf(self, filename, options):
 
         if "prepend" in options["options"]:
-            file1 = filename
+            file1 = filename.name
             file2 = options["options"]["prepend"]+".bak"
             bak = file2
             out = options["options"]["prepend"]
@@ -946,8 +945,8 @@ class DocThread(BaseThread):
             logger.info("Prepending PDF")
 
         else:
-            file2 = filename
-            file1 = f"{options}{options}{append}.bak"
+            file2 = filename.name
+            file1 = options["options"]["append"]+".bak"
             bak = file1
             out = options["options"]["append"]
             # message = _("Error appending PDF: %s")
@@ -966,7 +965,7 @@ class DocThread(BaseThread):
             return
 
         (status, _, error) = exec_command(
-            ["pdfunite", file1.name, file2, out], options["pidfile"]
+            ["pdfunite", file1, file2, out], options["pidfile"]
         )
         if status:
             logger.info(error)
