@@ -978,6 +978,353 @@ class DocThread(BaseThread):
             )
             return status
 
+    def save_djvu(self, **kwargs):
+        "save pdf"
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("save_djvu", kwargs, **callbacks)
+
+    def do_save_djvu(self, request):
+        args = request.args[0]
+        print(f"do_save_djvu {args}")
+        page = 0
+        filelist = []
+        for pagedata in args["list_of_pages"]:
+            page += 1
+            self.progress = page / (len(args["list_of_pages"]) - 1 + 2)
+            self.message = _("Writing page %i of %i") % (
+                page,
+                len(args["list_of_pages"]) - 1 + 1,
+            )
+            (djvu, error) = (None, None)
+            try:
+                djvu = tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".djvu")
+
+            except:
+                logger.error(f"Caught error writing DjVu: {_}")
+                _thread_throw_error(
+                    self,
+                    args["uuid"],
+                    args["page"]["uuid"],
+                    "Save file",
+                    f"Caught error writing DjVu: {_}.",
+                )
+                error = True
+
+            if error:
+                return
+            (compression, filename, resolution) = self._convert_image_for_djvu(                pagedata, page, args            )
+
+            # Create the djvu
+            status, _stdout, _stderr = exec_command(
+                [compression, "-dpi", str(int(resolution)), filename, djvu.name],
+                args["pidfile"],
+            )
+            size = os.path.getsize(djvu.name)
+            if self.cancel:
+                return
+            if status != 0 or size == 0:
+                logger.error(
+                    f"Error writing image for page {page} of DjVu (process returned {status}, image size {size})"
+                )
+                _thread_throw_error(
+                    self,
+                    args["uuid"],
+                    args["page"]["uuid"],
+                    "Save file",
+                    _("Error writing DjVu"),
+                )
+                return
+
+            filelist.append(djvu.name)
+            self._add_txt_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
+            self._add_ann_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
+
+        self.progress = 1
+        self.message = _("Merging DjVu")
+        status, out, err = exec_command(
+            ["djvm", "-c", args["path"], *filelist], args["pidfile"]
+        )
+        if self.cancel:
+            return
+        if status:
+            logger.error("Error merging DjVu")
+            _thread_throw_error(
+                self,
+                args["uuid"],
+                args["page"]["uuid"],
+                "Save file",
+                _("Error merging DjVu"),
+            )
+
+        self._add_metadata_to_djvu(args)
+        self._set_timestamp(args)
+        _post_save_hook(args["path"], args["options"])
+
+    def _convert_image_for_djvu(self, pagedata, page, options):
+
+        filename = pagedata.filename
+        print(f"_convert_image_for_djvu {filename}")
+
+        # Check the image depth to decide what sort of compression to use
+
+        image = PythonMagick.Image(filename)
+        # if f"{e}":
+        #     logger.error(e)
+        #     _thread_throw_error(
+        #         self,
+        #         options["uuid"],
+        #         options["page"]["uuid"],
+        #         "Save file",
+        #         f"Error reading {filename}: {e}.",
+        #     )
+        #     return
+
+        depth = image.depth()
+        _class = image.classType
+        (compression, resolution, upsample) = (None, None, None)
+
+        # c44 and cjb2 do not support different resolutions in the x and y
+        # directions, so resample
+        xresolution, yresolution, units = pagedata.get_resolution()
+        width, height = pagedata.width, pagedata.height
+        if xresolution != yresolution:
+            resolution =                 xresolution                if xresolution > yresolution                else yresolution
+            width *= resolution / xresolution
+            height *= resolution / yresolution
+            logger.info(f"Upsampling to {resolution}x{resolution}")
+            image.Sample(width=width, height=height)
+            upsample = True
+
+        else:
+            resolution = xresolution
+
+        # c44 can only use pnm and jpg
+        fformat = None
+        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
+        if regex:
+            fformat = regex.group(1)
+
+        if depth > 1:
+            compression = "c44"
+            if (
+                not re.search(
+                    r"(?:pnm|jpg)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
+                )
+                or upsample
+            ):
+                pnm = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".pnm", delete=False)
+                image.write(pnm.name)
+                # if f"{e}":
+                #     logger.error(e)
+                #     _thread_throw_error(
+                #         self,
+                #         options["uuid"],
+                #         options["page"]["uuid"],
+                #         "Save file",
+                #         f"Error writing {pnm}: {e}.",
+                #     )
+                #     return
+
+                filename = pnm.name
+
+        # cjb2 can only use pnm and tif
+
+        else:
+            compression = "cjb2"
+            if (
+                not re.search(
+                    r"(?:pnm|tif)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
+                )
+                or (fformat == "pnm" and _class != "PseudoClass")
+                or upsample
+            ):
+                pbm = tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm")
+                e = image.Write(filename=pbm)
+                if f"{e}":
+                    logger.error(e)
+                    _thread_throw_error(
+                        self,
+                        options["uuid"],
+                        options["page"]["uuid"],
+                        "Save file",
+                        f"Error writing {pbm}: {e}.",
+                    )
+                    return
+
+                filename = pbm
+
+        return compression, filename, resolution
+
+    def _add_txt_to_djvu(self, djvu, dir, pagedata, uuid):
+
+        if pagedata.text_layer is not None:
+            txt = pagedata.export_djvu_txt()
+            if txt == EMPTY:
+                return
+
+            # Write djvusedtxtfile
+            djvusedtxtfile = tempfile.TemporaryFile(dir=dir, suffix=".txt")
+            logger.debug(txt)
+            try:
+                fh = open(">:encoding(UTF8)", djvusedtxtfile)
+
+            except:
+                raise (_("Can't open file: %s") % (djvusedtxtfile))
+            try:
+                _write_file(self, fh, djvusedtxtfile, txt, uuid)
+            except:
+                return
+            try:
+                fh.close()
+
+            except:
+                raise (_("Can't close file: %s") % (djvusedtxtfile))
+
+            # Run djvusedtxtfile
+            cmd = [
+                "djvused",
+                djvu,
+                "-e",
+                f"select 1; set-txt {djvusedtxtfile}",
+                "-s",
+            ]
+            (status) = exec_command(cmd, pagedata["pidfile"])
+            if _self["cancel"]:
+                return
+            if status:
+                logger.error(
+                    f"Error adding text layer to DjVu page {pagedata}->{page_number}"
+                )
+                _thread_throw_error(
+                    self,
+                    uuid,
+                    pagedata["uuid"],
+                    "Save file",
+                    _("Error adding text layer to DjVu"),
+                )
+
+    def _add_ann_to_djvu(self, djvu, dir, pagedata, uuid):
+        """FIXME - refactor this together with _add_txt_to_djvu"""
+        if pagedata.annotations is not None:
+            ann = pagedata.export_djvu_ann()
+            if ann == EMPTY:
+                return
+
+            # Write djvusedtxtfile
+
+            djvusedtxtfile = tempfile.TemporaryFile(dir=dir, suffix=".txt")
+            logger.debug(ann)
+            try:
+                fh = open(">:encoding(UTF8)", djvusedtxtfile)
+
+            except:
+                raise (_("Can't open file: %s") % (djvusedtxtfile))
+            try:
+                _write_file(self, fh, djvusedtxtfile, ann, uuid)
+            except:
+                return
+            try:
+                fh.close()
+
+            except:
+                raise (_("Can't close file: %s") % (djvusedtxtfile))
+
+            # Run djvusedtxtfile
+
+            cmd = [
+                "djvused",
+                djvu,
+                "-e",
+                f"select 1; set-ant {djvusedtxtfile}",
+                "-s",
+            ]
+            (status) = exec_command(cmd, pagedata["pidfile"])
+            if _self["cancel"]:
+                return
+            if status:
+                logger.error(
+                    f"Error adding annotations to DjVu page {pagedata}->{page_number}"
+                )
+                _thread_throw_error(
+                    self,
+                    uuid,
+                    pagedata["uuid"],
+                    "Save file",
+                    _("Error adding annotations to DjVu"),
+                )
+
+    def _add_metadata_to_djvu(self, options):
+
+        if options["metadata"] and options["metadata"]:
+
+            # Open djvusedmetafile
+
+            djvusedmetafile = tempfile.TemporaryFile(dir=options["dir"], suffix=".txt")
+            try:
+                fh = open(
+                    ">:encoding(UTF8)", djvusedmetafile
+                )  ## no critic (RequireBriefOpen)
+
+            except:
+                raise (_("Can't open file: %s") % (djvusedmetafile))
+            try:
+                _write_file(self, fh, djvusedmetafile, "(metadata\n", options["uuid"])
+            except:
+                return
+
+            # Write the metadata
+
+            metadata = prepare_output_metadata("DjVu", options["metadata"])
+            for key in metadata.keys():
+                val = metadata[key]
+
+                # backslash-escape any double quotes and bashslashes
+
+                val = re.sub(
+                    r"\\", r"\\\\", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+                )
+                val = re.sub(
+                    r"\"", r"\\\"", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+                )
+                try:
+                    _write_file(
+                        self, fh, djvusedmetafile, f'{key} "{val}"\n', options["uuid"]
+                    )
+                except:
+                    return
+
+            try:
+                _write_file(self, fh, djvusedmetafile, ")", options["uuid"])
+            except:
+                return
+            try:
+                fh.close()
+
+            except:
+                raise (_("Can't close file: %s") % (djvusedmetafile))
+
+            # Write djvusedmetafile
+
+            cmd = [
+                "djvused",
+                options["path"],
+                "-e",
+                f"set-meta {djvusedmetafile}",
+                "-s",
+            ]
+            (status) = exec_command(cmd, options["pidfile"])
+            if _self["cancel"]:
+                return
+            if status:
+                logger.error("Error adding metadata info to DjVu file")
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Save file",
+                    _("Error adding metadata to DjVu"),
+                )
+
     def _thread_import_pdf(self, request):
         args = request.args[0]
         warning_flag, xresolution, yresolution = None, None, None
@@ -2184,7 +2531,7 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def save_djvu(self, options):
+    def save_djvu(self, **options):
 
         # File in which to store the process ID so that it can be killed if necessary
 
@@ -2193,22 +2540,19 @@ class Document(SimpleList):
             return
         options["mark_saved"] = True
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "save-djvu",
-            {
-                "path": options["path"],
-                "list_of_pages": options["list_of_pages"],
-                "metadata": options["metadata"],
-                "options": options["options"],
-                "dir": self.dir,
-                "pidfile": pidfile,
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
-            pidfile=pidfile,
-            uuid=uuid,
+        return self.thread.save_djvu(
+            path= options["path"],
+            list_of_pages= options["list_of_pages"],
+            metadata= options["metadata"] if "metadata" in options else None,
+            options= options["options"],
+            dir= self.dir,
+            pidfile= pidfile,
+            uuid= uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def save_tiff(self, options):
@@ -3216,200 +3560,6 @@ class Document(SimpleList):
         )
 
 
-    def _thread_save_djvu(self, options):
-
-        page = 0
-        filelist = []
-        for pagedata in options["list_of_pages"]:
-            page += 1
-            self.progress = page / (len(options["list_of_pages"]) - 1 + 2)
-            self.message = _("Writing page %i of %i") % (
-                page,
-                len(options["list_of_pages"]) - 1 + 1,
-            )
-            (djvu, error) = (None, None)
-            try:
-                djvu = tempfile.TemporaryFile(dir=options["dir"], suffix=".djvu")
-
-            except:
-                logger.error(f"Caught error writing DjVu: {_}")
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    f"Caught error writing DjVu: {_}.",
-                )
-                error = True
-
-            if error:
-                return
-            (compression, filename, resolution) = _convert_image_for_djvu(
-                self, pagedata, page, options
-            )
-
-            # Create the djvu
-
-            (status) = exec_command(
-                [compression, "-dpi", int(resolution), filename, djvu],
-                options["pidfile"],
-            )
-            size = os.path.getsize(
-                f"{djvu}"
-            )  # quotes needed to prevent -s clobbering File::Temp object
-            if _self["cancel"]:
-                return
-            if status != 0 or not size:
-                logger.error(
-                    f"Error writing image for page {page} of DjVu (process returned {status}, image size {size})"
-                )
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error writing DjVu"),
-                )
-                return
-
-            filelist.append(djvu)
-            _add_txt_to_djvu(self, djvu, options["dir"], pagedata, options["uuid"])
-            _add_ann_to_djvu(self, djvu, options["dir"], pagedata, options["uuid"])
-
-        self.progress = 1
-        self.message = _("Merging DjVu")
-        (status, out, err) = exec_command(
-            ["djvm", "-c", options["path"], filelist], options["pidfile"]
-        )
-        if _self["cancel"]:
-            return
-        if status:
-            logger.error("Error merging DjVu")
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                _("Error merging DjVu"),
-            )
-
-        _add_metadata_to_djvu(self, options)
-        _set_timestamp(self, options)
-        _post_save_hook(options["path"], options["options"])
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "save-djvu",
-                "uuid": options["uuid"],
-            }
-        )
-
-    def _convert_image_for_djvu(self, pagedata, page, options):
-
-        filename = pagedata["filename"]
-
-        # Check the image depth to decide what sort of compression to use
-
-        image = PythonMagick.Image()
-        e = image.Read(filename)
-        if f"{e}":
-            logger.error(e)
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                f"Error reading {filename}: {e}.",
-            )
-            return
-
-        depth = image.Get("depth")
-        _class = image.Get("class")
-        (compression, resolution, upsample) = (None, None, None)
-
-        # Get the size
-
-        pagedata["w"] = image.Get("width")
-        pagedata["h"] = image.Get("height")
-        pagedata["pidfile"] = options["pidfile"]
-        pagedata["page_number"] = page
-
-        # c44 and cjb2 do not support different resolutions in the x and y
-        # directions, so resample
-
-        if pagedata["xresolution"] != pagedata["yresolution"]:
-            resolution = (
-                pagedata["xresolution"]
-                if pagedata["xresolution"] > pagedata["yresolution"]
-                else pagedata["yresolution"]
-            )
-            pagedata["w"] *= resolution / pagedata["xresolution"]
-            pagedata["h"] *= resolution / pagedata["yresolution"]
-            logger.info(f"Upsampling to {resolution}" + f"x{resolution}")
-            image.Sample(width=pagedata["w"], height=pagedata["h"])
-            upsample = True
-
-        else:
-            resolution = pagedata["xresolution"]
-
-        # c44 can only use pnm and jpg
-
-        format = None
-        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            format = regex.group(1)
-
-        if depth > 1:
-            compression = "c44"
-            if (
-                not re.search(
-                    r"(?:pnm|jpg)", format, re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                or upsample
-            ):
-                pnm = tempfile.TemporaryFile(dir=options["dir"], suffix=".pnm")
-                e = image.Write(filename=pnm)
-                if f"{e}":
-                    logger.error(e)
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        f"Error writing {pnm}: {e}.",
-                    )
-                    return
-
-                filename = pnm
-
-        # cjb2 can only use pnm and tif
-
-        else:
-            compression = "cjb2"
-            if (
-                not re.search(
-                    r"(?:pnm|tif)", format, re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                or (format == "pnm" and _class != "PseudoClass")
-                or upsample
-            ):
-                pbm = tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm")
-                e = image.Write(filename=pbm)
-                if f"{e}":
-                    logger.error(e)
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        f"Error writing {pbm}: {e}.",
-                    )
-                    return
-
-                filename = pbm
-
-        return compression, filename, resolution
-
     def _write_file(self, fh, filename, data, uuid):
 
         if not fh.write(data):
@@ -3419,178 +3569,6 @@ class Document(SimpleList):
             return False
 
         return True
-
-    def _add_txt_to_djvu(self, djvu, dir, pagedata, uuid):
-
-        if "text_layer" in pagedata:
-            txt = pagedata.export_djvu_txt()
-            if txt == EMPTY:
-                return
-
-            # Write djvusedtxtfile
-
-            djvusedtxtfile = tempfile.TemporaryFile(dir=dir, suffix=".txt")
-            logger.debug(txt)
-            try:
-                fh = open(">:encoding(UTF8)", djvusedtxtfile)
-
-            except:
-                raise (_("Can't open file: %s") % (djvusedtxtfile))
-            try:
-                _write_file(self, fh, djvusedtxtfile, txt, uuid)
-            except:
-                return
-            try:
-                fh.close()
-
-            except:
-                raise (_("Can't close file: %s") % (djvusedtxtfile))
-
-            # Run djvusedtxtfile
-
-            cmd = [
-                "djvused",
-                djvu,
-                "-e",
-                f"select 1; set-txt {djvusedtxtfile}",
-                "-s",
-            ]
-            (status) = exec_command(cmd, pagedata["pidfile"])
-            if _self["cancel"]:
-                return
-            if status:
-                logger.error(
-                    f"Error adding text layer to DjVu page {pagedata}->{page_number}"
-                )
-                _thread_throw_error(
-                    self,
-                    uuid,
-                    pagedata["uuid"],
-                    "Save file",
-                    _("Error adding text layer to DjVu"),
-                )
-
-    def _add_ann_to_djvu(self, djvu, dir, pagedata, uuid):
-        """FIXME - refactor this together with _add_txt_to_djvu"""
-        if "annotations" in pagedata:
-            ann = pagedata.export_djvu_ann()
-            if ann == EMPTY:
-                return
-
-            # Write djvusedtxtfile
-
-            djvusedtxtfile = tempfile.TemporaryFile(dir=dir, suffix=".txt")
-            logger.debug(ann)
-            try:
-                fh = open(">:encoding(UTF8)", djvusedtxtfile)
-
-            except:
-                raise (_("Can't open file: %s") % (djvusedtxtfile))
-            try:
-                _write_file(self, fh, djvusedtxtfile, ann, uuid)
-            except:
-                return
-            try:
-                fh.close()
-
-            except:
-                raise (_("Can't close file: %s") % (djvusedtxtfile))
-
-            # Run djvusedtxtfile
-
-            cmd = [
-                "djvused",
-                djvu,
-                "-e",
-                f"select 1; set-ant {djvusedtxtfile}",
-                "-s",
-            ]
-            (status) = exec_command(cmd, pagedata["pidfile"])
-            if _self["cancel"]:
-                return
-            if status:
-                logger.error(
-                    f"Error adding annotations to DjVu page {pagedata}->{page_number}"
-                )
-                _thread_throw_error(
-                    self,
-                    uuid,
-                    pagedata["uuid"],
-                    "Save file",
-                    _("Error adding annotations to DjVu"),
-                )
-
-    def _add_metadata_to_djvu(self, options):
-
-        if options["metadata"] and options["metadata"]:
-
-            # Open djvusedmetafile
-
-            djvusedmetafile = tempfile.TemporaryFile(dir=options["dir"], suffix=".txt")
-            try:
-                fh = open(
-                    ">:encoding(UTF8)", djvusedmetafile
-                )  ## no critic (RequireBriefOpen)
-
-            except:
-                raise (_("Can't open file: %s") % (djvusedmetafile))
-            try:
-                _write_file(self, fh, djvusedmetafile, "(metadata\n", options["uuid"])
-            except:
-                return
-
-            # Write the metadata
-
-            metadata = prepare_output_metadata("DjVu", options["metadata"])
-            for key in metadata.keys():
-                val = metadata[key]
-
-                # backslash-escape any double quotes and bashslashes
-
-                val = re.sub(
-                    r"\\", r"\\\\", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                val = re.sub(
-                    r"\"", r"\\\"", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                try:
-                    _write_file(
-                        self, fh, djvusedmetafile, f'{key} "{val}"\n', options["uuid"]
-                    )
-                except:
-                    return
-
-            try:
-                _write_file(self, fh, djvusedmetafile, ")", options["uuid"])
-            except:
-                return
-            try:
-                fh.close()
-
-            except:
-                raise (_("Can't close file: %s") % (djvusedmetafile))
-
-            # Write djvusedmetafile
-
-            cmd = [
-                "djvused",
-                options["path"],
-                "-e",
-                f"set-meta {djvusedmetafile}",
-                "-s",
-            ]
-            (status) = exec_command(cmd, options["pidfile"])
-            if _self["cancel"]:
-                return
-            if status:
-                logger.error("Error adding metadata info to DjVu file")
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error adding metadata to DjVu"),
-                )
 
     def _thread_save_tiff(self, options):
 
