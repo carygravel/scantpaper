@@ -1,4 +1,4 @@
-"Test prepending a page to a PDF"
+"Test appending a page to a PDF"
 
 import os
 import re
@@ -9,7 +9,7 @@ from document import Document
 
 
 def test_1(import_in_mainloop):
-    "Test prepending a page to a PDF"
+    "Test appending a page to a PDF"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
