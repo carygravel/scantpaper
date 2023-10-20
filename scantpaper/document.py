@@ -985,7 +985,6 @@ class DocThread(BaseThread):
 
     def do_save_djvu(self, request):
         args = request.args[0]
-        print(f"do_save_djvu {args}")
         page = 0
         filelist = []
         for pagedata in args["list_of_pages"]:
@@ -1063,10 +1062,8 @@ class DocThread(BaseThread):
     def _convert_image_for_djvu(self, pagedata, page, options):
 
         filename = pagedata.filename
-        print(f"_convert_image_for_djvu {filename}")
 
         # Check the image depth to decide what sort of compression to use
-
         image = PythonMagick.Image(filename)
         # if f"{e}":
         #     logger.error(e)
@@ -1161,37 +1158,25 @@ class DocThread(BaseThread):
             txt = pagedata.export_djvu_txt()
             if txt == EMPTY:
                 return
+            logger.debug(txt)
 
             # Write djvusedtxtfile
-            djvusedtxtfile = tempfile.TemporaryFile(dir=dir, suffix=".txt")
-            logger.debug(txt)
-            try:
-                fh = open(">:encoding(UTF8)", djvusedtxtfile)
-
-            except:
-                raise (_("Can't open file: %s") % (djvusedtxtfile))
-            try:
-                _write_file(self, fh, djvusedtxtfile, txt, uuid)
-            except:
-                return
-            try:
-                fh.close()
-
-            except:
-                raise (_("Can't close file: %s") % (djvusedtxtfile))
+            with tempfile.NamedTemporaryFile(mode='w', dir=dir, suffix=".txt", delete=False) as fh:
+                djvusedtxtfile = fh.name
+                fh.write(txt)
 
             # Run djvusedtxtfile
             cmd = [
                 "djvused",
-                djvu,
+                djvu.name,
                 "-e",
                 f"select 1; set-txt {djvusedtxtfile}",
                 "-s",
             ]
-            (status) = exec_command(cmd, pagedata["pidfile"])
-            if _self["cancel"]:
-                return
-            if status:
+            logger.info(cmd)
+            try:
+                subprocess.run(cmd, check=True)
+            except ValueError:
                 logger.error(
                     f"Error adding text layer to DjVu page {pagedata}->{page_number}"
                 )
@@ -1202,6 +1187,8 @@ class DocThread(BaseThread):
                     "Save file",
                     _("Error adding text layer to DjVu"),
                 )
+            if self.cancel:
+                return
 
     def _add_ann_to_djvu(self, djvu, dir, pagedata, uuid):
         """FIXME - refactor this together with _add_txt_to_djvu"""
@@ -2544,7 +2531,7 @@ class Document(SimpleList):
             path= options["path"],
             list_of_pages= options["list_of_pages"],
             metadata= options["metadata"] if "metadata" in options else None,
-            options= options["options"],
+            options= options["options"] if "options" in options else None,
             dir= self.dir,
             pidfile= pidfile,
             uuid= uuid,
