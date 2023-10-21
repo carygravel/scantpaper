@@ -440,7 +440,8 @@ class HOCRParser(HTMLParser):
                     self.boxes.append(self.data)
 
     def handle_endtag(self, tag):
-        self.data = self.stack.pop()
+        if len(self.stack):
+            self.data = self.stack.pop()
 
     def handle_data(self, data):
         data = data.rstrip()

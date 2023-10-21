@@ -1187,8 +1187,6 @@ class DocThread(BaseThread):
                     "Save file",
                     _("Error adding text layer to DjVu"),
                 )
-            if self.cancel:
-                return
 
     def _add_ann_to_djvu(self, djvu, dir, pagedata, uuid):
         """FIXME - refactor this together with _add_txt_to_djvu"""
@@ -1196,39 +1194,25 @@ class DocThread(BaseThread):
             ann = pagedata.export_djvu_ann()
             if ann == EMPTY:
                 return
+            logger.debug(ann)
 
             # Write djvusedtxtfile
-
-            djvusedtxtfile = tempfile.TemporaryFile(dir=dir, suffix=".txt")
-            logger.debug(ann)
-            try:
-                fh = open(">:encoding(UTF8)", djvusedtxtfile)
-
-            except:
-                raise (_("Can't open file: %s") % (djvusedtxtfile))
-            try:
-                _write_file(self, fh, djvusedtxtfile, ann, uuid)
-            except:
-                return
-            try:
-                fh.close()
-
-            except:
-                raise (_("Can't close file: %s") % (djvusedtxtfile))
+            with tempfile.NamedTemporaryFile(mode='w', dir=dir, suffix=".txt", delete=False) as fh:
+                djvusedtxtfile = fh.name
+                fh.write(ann)
 
             # Run djvusedtxtfile
-
             cmd = [
                 "djvused",
-                djvu,
+                djvu.name,
                 "-e",
                 f"select 1; set-ant {djvusedtxtfile}",
                 "-s",
             ]
-            (status) = exec_command(cmd, pagedata["pidfile"])
-            if _self["cancel"]:
-                return
-            if status:
+            logger.info(cmd)
+            try:
+                subprocess.run(cmd, check=True)
+            except ValueError:
                 logger.error(
                     f"Error adding annotations to DjVu page {pagedata}->{page_number}"
                 )
@@ -5213,18 +5197,7 @@ def slurp(file):
 def unescape_utf8(text):
 
     if text is not None:
-
-        def anonymous_12(match):
-            return chr(oct(match[1])) if (match[1] is not None) else match[2]
-
-        text = re.sub(
-            r"\\(?:([0-7]{1,3})|(.))",
-            anonymous_12,
-            text,
-            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-
-    return decode("UTF-8", text)
+        return codecs.escape_decode(text)[0].decode("utf-8")
 
 
 def exec_command(cmd, pidfile=None):
