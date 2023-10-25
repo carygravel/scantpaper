@@ -1226,75 +1226,51 @@ class DocThread(BaseThread):
 
     def _add_metadata_to_djvu(self, options):
 
-        if options["metadata"] and options["metadata"]:
-
-            # Open djvusedmetafile
-
-            djvusedmetafile = tempfile.TemporaryFile(dir=options["dir"], suffix=".txt")
-            try:
-                fh = open(
-                    ">:encoding(UTF8)", djvusedmetafile
-                )  ## no critic (RequireBriefOpen)
-
-            except:
-                raise (_("Can't open file: %s") % (djvusedmetafile))
-            try:
-                _write_file(self, fh, djvusedmetafile, "(metadata\n", options["uuid"])
-            except:
-                return
-
-            # Write the metadata
+        if "metadata" in options and options["metadata"] is not None:
 
             metadata = prepare_output_metadata("DjVu", options["metadata"])
-            for key in metadata.keys():
-                val = metadata[key]
-
-                # backslash-escape any double quotes and bashslashes
-
-                val = re.sub(
-                    r"\\", r"\\\\", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                val = re.sub(
-                    r"\"", r"\\\"", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                try:
-                    _write_file(
-                        self, fh, djvusedmetafile, f'{key} "{val}"\n', options["uuid"]
-                    )
-                except:
-                    return
-
-            try:
-                _write_file(self, fh, djvusedmetafile, ")", options["uuid"])
-            except:
-                return
-            try:
-                fh.close()
-
-            except:
-                raise (_("Can't close file: %s") % (djvusedmetafile))
 
             # Write djvusedmetafile
+            # with tempfile.NamedTemporaryFile(mode='w', dir=options["dir"], suffix=".txt", delete=False) as fh:
+            with tempfile.NamedTemporaryFile(mode='w', suffix=".txt", delete=False) as fh:
+                djvusedmetafile = fh.name
+                fh.write("(metadata\n")
 
+                # Write the metadata
+                for key in metadata.keys():
+                    val = metadata[key]
+
+                    # backslash-escape any double quotes and bashslashes
+                    val = re.sub(
+                        r"\\", r"\\\\", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+                    )
+                    val = re.sub(
+                        r"\"", r"\\\"", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+                    )
+                    fh.write(f'{key} "{val}"\n')
+
+                fh.write(")\n")
+
+            # Write djvusedmetafile
             cmd = [
                 "djvused",
-                options["path"],
                 "-e",
-                f"set-meta {djvusedmetafile}",
+                f'"set-meta" {djvusedmetafile}',
+                options["path"],
                 "-s",
             ]
-            (status) = exec_command(cmd, options["pidfile"])
-            if _self["cancel"]:
+            subprocess.run(cmd,check=True)
+            if self.cancel:
                 return
-            if status:
-                logger.error("Error adding metadata info to DjVu file")
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error adding metadata to DjVu"),
-                )
+            # if status:
+            #     logger.error("Error adding metadata info to DjVu file")
+            #     _thread_throw_error(
+            #         self,
+            #         options["uuid"],
+            #         options["page"]["uuid"],
+            #         "Save file",
+            #         _("Error adding metadata to DjVu"),
+            #     )
 
     def _thread_import_pdf(self, request):
         args = request.args[0]
