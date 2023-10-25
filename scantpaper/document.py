@@ -1402,20 +1402,11 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             )
             adatetime -= tz
 
-        try:
-            epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
-            adatetime = (adatetime - epoch).total_seconds()
-            os.utime(options["path"], (adatetime, adatetime))
-
-        except:
-            logger.error("Unable to set file timestamp for dates prior to 1970")
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                None,
-                "Set timestamp",
-                _("Unable to set file timestamp for dates prior to 1970"),
-            )
+        epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        adatetime = (adatetime - epoch).total_seconds()
+        if adatetime < 0:
+            raise ValueError("Unable to set file timestamp for dates prior to 1970")
+        os.utime(options["path"], (adatetime, adatetime))
 
     def _encrypt_pdf(self, filename, options):
         cmd = ["pdftk", filename.name, "output", options["path"]]

@@ -30,8 +30,11 @@ def test_1(import_in_mainloop):
 
     metadata = {"datetime": [1966, 2, 10, 0, 0, 0], "title": "metadata title"}
 
-    def error_callback():
-        assert True, "caught errors setting timestamp"
+    called = False
+
+    def error_callback(_result):
+        nonlocal called
+        called = True
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -44,6 +47,8 @@ def test_1(import_in_mainloop):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
+
+    assert called, "caught errors setting timestamp"
 
     # FIXME: If whichever library we end up has no support for has no support
     # for setting /CreationDate and /ModDate, we can directly modify
