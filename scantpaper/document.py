@@ -41,6 +41,7 @@ _ = gettext.gettext
 # import Socket
 # import FileHandle
 import PythonMagick
+from PIL import Image
 
 # import File.Basename
 # from Storable import store,retrieve
@@ -1011,7 +1012,7 @@ class DocThread(BaseThread):
 
             if error:
                 return
-            (compression, filename, resolution) = self._convert_image_for_djvu(                pagedata, page, args            )
+            compression, filename, resolution = self._convert_image_for_djvu(                pagedata, page, args            )
 
             # Create the djvu
             status, _stdout, _stderr = exec_command(
@@ -1064,7 +1065,7 @@ class DocThread(BaseThread):
         filename = pagedata.filename
 
         # Check the image depth to decide what sort of compression to use
-        image = PythonMagick.Image(filename)
+        image = Image.open(filename)
         # if f"{e}":
         #     logger.error(e)
         #     _thread_throw_error(
@@ -1076,20 +1077,19 @@ class DocThread(BaseThread):
         #     )
         #     return
 
-        depth = image.depth()
-        _class = image.classType
-        (compression, resolution, upsample) = (None, None, None)
+        mode = image.mode
+        compression, resolution, upsample = None, None, None
 
         # c44 and cjb2 do not support different resolutions in the x and y
         # directions, so resample
         xresolution, yresolution, units = pagedata.get_resolution()
         width, height = pagedata.width, pagedata.height
         if xresolution != yresolution:
-            resolution =                 xresolution                if xresolution > yresolution                else yresolution
+            resolution = max(xresolution, yresolution)
             width *= resolution / xresolution
             height *= resolution / yresolution
             logger.info(f"Upsampling to {resolution}x{resolution}")
-            image.Sample(width=width, height=height)
+            image = image.resize((int(width),int(height)), resample=Image.BOX)
             upsample = True
 
         else:
@@ -1101,7 +1101,7 @@ class DocThread(BaseThread):
         if regex:
             fformat = regex.group(1)
 
-        if depth > 1:
+        if mode != "1":
             compression = "c44"
             if (
                 not re.search(
@@ -1110,7 +1110,7 @@ class DocThread(BaseThread):
                 or upsample
             ):
                 pnm = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".pnm", delete=False)
-                image.write(pnm.name)
+                image.save(pnm.name)
                 # if f"{e}":
                 #     logger.error(e)
                 #     _thread_throw_error(

@@ -4,6 +4,7 @@ import os
 import subprocess
 import tempfile
 import shutil
+import re
 import pytest
 from gi.repository import GLib
 from document import Document
@@ -15,7 +16,7 @@ def test_1(import_in_mainloop):
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.png"], check=True)
+    subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
 
     slist = Document()
 
@@ -23,18 +24,24 @@ def test_1(import_in_mainloop):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.png"])
-    slist.data[0][2].resolution = 299.72, 299.72, "ppi"
+
+    def error_callback(result):
+        print(result)
 
     slist.save_djvu(
         path="test.djvu",
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
+        error_callback=error_callback,
     )
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert os.path.getsize("test.djvu") == 1054, "DjVu created with expected size"
+    capture = subprocess.check_output(["djvudump", "test.djvu"], text=True)
+    assert re.search(
+        r"DjVu 140x46, v24, 200 dpi, gamma=2.2", capture
+    ), "created djvu with expect size and resolution"
 
     #########################
 
