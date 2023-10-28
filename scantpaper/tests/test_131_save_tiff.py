@@ -50,6 +50,6 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm','test.tif','test2.png"]:
+    for fname in ["test.pnm", "test.tif", "test2.png"]:
         if os.path.isfile(fname):
             os.remove(fname)

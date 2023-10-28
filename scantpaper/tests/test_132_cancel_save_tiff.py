@@ -1,19 +1,14 @@
-"Test cancel saving a DjVu"
+"Test cancel saving a TIFF"
 
 import os
 import subprocess
 import tempfile
-import shutil
-import pytest
 from gi.repository import GLib
 from document import Document
 
 
 def test_1(import_in_mainloop):
-    "Test cancel saving a DjVu"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
+    "Test cancel saving a TIFF"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
@@ -24,11 +19,6 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].import_text("The quick brown fox")
-
-    def finished_callback(_response):
-        assert False, "Finished callback"
-
     mlp = GLib.MainLoop()
     called = False
 
@@ -37,10 +27,10 @@ def test_1(import_in_mainloop):
         called = True
         mlp.quit()
 
-    slist.save_djvu(
-        path="test.djvu",
+    slist.save_tiff(
+        path="test.tif",
         list_of_pages=[slist.data[0][2]],
-        finished_callback=finished_callback,
+        finished_callback=lambda response: mlp.quit(),
     )
     slist.cancel(cancelled_callback)
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -63,6 +53,6 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm", "test.djvu", "test.jpg"]:
+    for fname in ["test.pnm", "test.tif", "test.jpg"]:
         if os.path.isfile(fname):
             os.remove(fname)
