@@ -1,4 +1,4 @@
-"Test writing image"
+"Test writing TIFF"
 
 import re
 import os
@@ -9,7 +9,7 @@ from document import Document
 
 
 def test_1(import_in_mainloop):
-    "Test writing image"
+    "Test writing TIFF"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
@@ -21,8 +21,8 @@ def test_1(import_in_mainloop):
     import_in_mainloop(slist, ["test.pnm"])
 
     mlp = GLib.MainLoop()
-    slist.save_image(
-        path="test.jpg",
+    slist.save_tiff(
+        path="test.tif",
         list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "convert %i test2.png",
@@ -33,10 +33,11 @@ def test_1(import_in_mainloop):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["identify", "test.jpg"], text=True)
+    example = subprocess.check_output(["identify", "test.tif"], text=True)
     assert (
-        re.search(r"test.jpg JPEG 70x46 70x46\+0\+0 8-bit sRGB", example) is not None
-    ), "valid JPG created"
+        re.search(r"test.tif TIFF 70x46 70x46\+0\+0 8-bit sRGB [7|9][.\d]+K?B", example)
+        is not None
+    ), "valid TIFF created"
 
     example = subprocess.check_output(["identify", "test2.png"], text=True)
     assert (
@@ -49,6 +50,6 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm','test.jpg','test2.png"]:
+    for fname in ["test.pnm','test.tif','test2.png"]:
         if os.path.isfile(fname):
             os.remove(fname)

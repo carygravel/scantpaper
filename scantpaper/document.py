@@ -1425,6 +1425,135 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             )
             return status
 
+    def save_tiff(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("save_tiff", kwargs, **callbacks)
+
+    def do_save_tiff(self, request):
+        options = request.args[0]
+
+        page = 0
+        filelist = []
+        for pagedata in options["list_of_pages"]:
+            page += 1
+            self.progress = (page - 1) / (len(options["list_of_pages"]) + 1)
+            # self.message = _("Converting image %i of %i to TIFF") % (
+            #     page,
+            #     len(options["list_of_pages"]) - 1 + 1,
+            # )
+            filename = pagedata.filename
+            if not re.search(
+                r"[.]tif", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
+            ) or (
+                "compression" in options["options"]
+                and options["options"]["compression"] == "jpeg"
+            ):
+                (tif, error) = (None, None)
+                try:
+                    tif = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".tif", delete=False)
+
+                except:
+                    logger.error(f"Error writing TIFF: {_}")
+                    _thread_throw_error(
+                        self,
+                        options["uuid"],
+                        options["page"]["uuid"],
+                        "Save file",
+                        f"Error writing TIFF: {_}.",
+                    )
+                    error = True
+
+                if error:
+                    return
+                xresolution, yresolution, units = pagedata.resolution
+
+                # Convert to tiff
+
+                depth = []
+                if "compression" in options["options"]:
+                    if options["options"]["compression"] == "jpeg":
+                        depth = ["-depth", "8"]
+
+                    elif re.search(
+                        r"g[34]",
+                        options["options"]["compression"],
+                        re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    ):
+                        depth = ["-threshold", "40%", "-depth", "1"]
+
+                cmd = [
+                    "convert",
+                    filename,
+                    "-units",
+                    "PixelsPerInch",
+                    "-density",
+                    f"{xresolution}x{yresolution}",
+                    *depth,
+                    tif.name,
+                ]
+                subprocess.run(cmd, check=True)
+                if self.cancel:
+                    return
+                # if status:
+                #     logger.error("Error writing TIFF")
+                #     _thread_throw_error(
+                #         self,
+                #         options["uuid"],
+                #         options["page"]["uuid"],
+                #         "Save file",
+                #         _("Error writing TIFF"),
+                #     )
+                #     return
+
+                filename = tif.name
+
+            filelist.append(filename)
+
+        compression = []
+        if "compression" in options["options"]:
+            compression = ["-c", f"{options}{options}{compression}"]
+            if options["options"]["compression"] == "jpeg":
+                compression[1] += f":{options}{options}{quality}"
+                compression.append(["-r", "16"])
+
+        # Create the tiff
+        self.progress = 1
+        # self.message = _("Concatenating TIFFs")
+        cmd = ["tiffcp", *compression, *filelist, options["path"]]
+        subprocess.run(cmd, check=True)
+        if self.cancel:
+            return
+        # if status or error != EMPTY:
+        #     logger.info(error)
+        #     _thread_throw_error(
+        #         self,
+        #         options["uuid"],
+        #         options["page"]["uuid"],
+        #         "Save file",
+        #         _("Error compressing image: %s") % (error),
+        #     )
+        #     return
+
+        if "ps" in options["options"]:
+            self.message = _("Converting to PS")
+            cmd = ["tiff2ps", "-3", options["path"], "-O", options["options"]["ps"]]
+            (status, _, error) = exec_command(cmd, options["pidfile"])
+            if status or error:
+                logger.info(error)
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "Save file",
+                    _("Error converting TIFF to PS: %s") % (error),
+                )
+                return
+
+            _post_save_hook(options["options"]["ps"], options["options"])
+
+        else:
+            _post_save_hook(options["path"], options["options"])
+
     def save_image(self, **kwargs):
         callbacks = _note_callbacks2(kwargs)
         return self.send("save_image", kwargs, **callbacks)
@@ -2493,7 +2622,7 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def save_tiff(self, options):
+    def save_tiff(self, **options):
 
         # File in which to store the process ID so that it can be killed if necessary
 
@@ -2502,21 +2631,18 @@ class Document(SimpleList):
             return
         options["mark_saved"] = True
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "save-tiff",
-            {
-                "path": options["path"],
-                "list_of_pages": options["list_of_pages"],
-                "options": options["options"],
-                "dir": f"{self}->{dir}",
-                "pidfile": f"{pidfile}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
-            pidfile=pidfile,
-            uuid=uuid,
+        return self.thread.save_tiff(
+            path= options["path"],
+            list_of_pages= options["list_of_pages"],
+            options= options["options"] if "options" in options else None,
+            dir= self.dir,
+            pidfile= pidfile,
+            uuid= uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def rotate(self, options):
@@ -3507,139 +3633,6 @@ class Document(SimpleList):
             return False
 
         return True
-
-    def _thread_save_tiff(self, options):
-
-        page = 0
-        filelist = []
-        for pagedata in options["list_of_pages"]:
-            page += 1
-            self.progress = (page - 1) / (len(options["list_of_pages"]) - 1 + 2)
-            self.message = _("Converting image %i of %i to TIFF") % (
-                page,
-                len(options["list_of_pages"]) - 1 + 1,
-            )
-            filename = pagedata["filename"]
-            if not re.search(
-                r"[.]tif", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ) or (
-                "compression" in options["options"]
-                and options["options"]["compression"] == "jpeg"
-            ):
-                (tif, error) = (None, None)
-                try:
-                    tif = tempfile.TemporaryFile(dir=options["dir"], suffix=".tif")
-
-                except:
-                    logger.error(f"Error writing TIFF: {_}")
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        f"Error writing TIFF: {_}.",
-                    )
-                    error = True
-
-                if error:
-                    return
-                xresolution = pagedata["xresolution"]
-                yresolution = pagedata["yresolution"]
-
-                # Convert to tiff
-
-                depth = []
-                if "compression" in options["options"]:
-                    if options["options"]["compression"] == "jpeg":
-                        depth = ["-depth", "8"]
-
-                    elif re.search(
-                        r"g[34]",
-                        options["options"]["compression"],
-                        re.MULTILINE | re.DOTALL | re.VERBOSE,
-                    ):
-                        depth = ["-threshold", "40%", "-depth", "1"]
-
-                cmd = [
-                    "convert",
-                    filename,
-                    "-units",
-                    "PixelsPerInch",
-                    "-density",
-                    xresolution + "x" + yresolution,
-                    depth,
-                    tif,
-                ]
-                (status) = exec_command(cmd, options["pidfile"])
-                if _self["cancel"]:
-                    return
-                if status:
-                    logger.error("Error writing TIFF")
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        _("Error writing TIFF"),
-                    )
-                    return
-
-                filename = tif
-
-            filelist.append(filename)
-
-        compression = []
-        if "compression" in options["options"]:
-            compression = ["-c", f"{options}{options}{compression}"]
-            if options["options"]["compression"] == "jpeg":
-                compression[1] += f":{options}{options}{quality}"
-                compression.append(["-r", "16"])
-
-        # Create the tiff
-        self.progress = 1
-        self.message = _("Concatenating TIFFs")
-        cmd = ["tiffcp", compression, filelist, options["path"]]
-        (status, _, error) = exec_command(cmd, options["pidfile"])
-        if _self["cancel"]:
-            return
-        if status or error != EMPTY:
-            logger.info(error)
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                _("Error compressing image: %s") % (error),
-            )
-            return
-
-        if "ps" in options["options"]:
-            self.message = _("Converting to PS")
-            cmd = ["tiff2ps", "-3", options["path"], "-O", options["options"]["ps"]]
-            (status, _, error) = exec_command(cmd, options["pidfile"])
-            if status or error:
-                logger.info(error)
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error converting TIFF to PS: %s") % (error),
-                )
-                return
-
-            _post_save_hook(options["options"]["ps"], options["options"])
-
-        else:
-            _post_save_hook(options["path"], options["options"])
-
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "save-tiff",
-                "uuid": options["uuid"],
-            }
-        )
 
     def _thread_no_filename(self, process, uuid, page):
 

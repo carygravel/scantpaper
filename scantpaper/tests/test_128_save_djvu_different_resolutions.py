@@ -25,14 +25,10 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["test.png"])
 
-    def error_callback(result):
-        print(result)
-
     slist.save_djvu(
         path="test.djvu",
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
-        error_callback=error_callback,
     )
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
