@@ -1,4 +1,4 @@
-"Test writing TIFF"
+"Test writing TIFF and postscript"
 
 import re
 import os
@@ -9,7 +9,7 @@ from document import Document
 
 
 def test_1(import_in_mainloop):
-    "Test writing TIFF"
+    "Test writing TIFF and postscript"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
