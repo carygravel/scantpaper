@@ -1535,7 +1535,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         #     return
 
         if "ps" in options["options"]:
-            self.message = _("Converting to PS")
+            # self.message = _("Converting to PS")
             cmd = ["tiff2ps", "-3", options["path"], "-O", options["options"]["ps"]]
             (status, _, error) = exec_command(cmd, options["pidfile"])
             if status or error:
