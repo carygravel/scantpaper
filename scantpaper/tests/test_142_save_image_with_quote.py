@@ -20,35 +20,24 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["test.pnm"])
 
+    os.mkdir("te'st")
+
     mlp = GLib.MainLoop()
     slist.save_image(
-        path="test.jpg",
+        path="te'st/test.jpg",
         list_of_pages=[slist.data[0][2]],
-        options={
-            "post_save_hook": "convert %i test2.png",
-            "post_save_hook_options": "fg",
-        },
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["identify", "test.jpg"], text=True)
+    example = subprocess.check_output(["identify", "te'st/test.jpg"], text=True)
     assert (
         re.search(r"test.jpg JPEG 70x46 70x46\+0\+0 8-bit sRGB", example) is not None
     ), "valid JPG created"
 
-    example = subprocess.check_output(["identify", "test2.png"], text=True)
-    assert (
-        re.search(
-            r"test2\.png PNG 70x46 70x46\+0\+0 8-bit sRGB \d+\.?\d*K?B 0\.\d+u 0:00\.\d+\b",
-            example,
-        )
-        is not None
-    ), "ran post-save hook"
-
     #########################
 
-    for fname in ["test.pnm", "test.jpg", "test2.png"]:
+    for fname in ["test.pnm", "te'st/test.jpg"]:
         if os.path.isfile(fname):
             os.remove(fname)
