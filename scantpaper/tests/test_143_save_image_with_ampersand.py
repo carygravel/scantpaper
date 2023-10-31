@@ -20,25 +20,24 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    os.mkdir("te'st")
+    path = "sed & awk.png"
 
     mlp = GLib.MainLoop()
     slist.save_image(
-        path="te'st/test.jpg",
+        path=path,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["identify", "te'st/test.jpg"], text=True)
+    example = subprocess.check_output(["identify", path], text=True)
     assert (
-        re.search(r"test.jpg JPEG 70x46 70x46\+0\+0 8-bit sRGB", example) is not None
+        re.search(rf"{path} PNG 70x46 70x46\+0\+0 8-bit sRGB", example) is not None
     ), "valid JPG created"
 
     #########################
 
-    for fname in ["test.pnm", "te'st/test.jpg"]:
+    for fname in ["test.pnm", path]:
         if os.path.isfile(fname):
             os.remove(fname)
-    os.rmdir("te'st")
