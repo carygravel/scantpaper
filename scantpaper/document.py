@@ -1511,7 +1511,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
         compression = []
         if "compression" in options["options"]:
-            compression = ["-c", f"{options}{options}{compression}"]
+            compression = ["-c", options["options"]["compression"]]
             if options["options"]["compression"] == "jpeg":
                 compression[1] += f":{options}{options}{quality}"
                 compression.append(["-r", "16"])
