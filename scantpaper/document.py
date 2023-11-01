@@ -1613,6 +1613,25 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                     )
 
                 _post_save_hook(_["filename"], options["options"])
+
+    def save_text(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("save_text", kwargs, **callbacks)
+
+    def do_save_text(self, request):
+        options = request.args[0]
+
+        fh = None
+        string = EMPTY
+        for page in options["list_of_pages"]:
+            string += page.export_text()
+            if self.cancel:
+                return
+
+        with open(options["path"], 'w') as fh:
+            fh.write(string)
+
+        _post_save_hook(options["path"], options["options"])
     
     def do_cancel(self, _request):
         pass
@@ -2691,21 +2710,19 @@ class Document(SimpleList):
                 return False
         return True
 
-    def save_text(self, options):
+    def save_text(self, **options):
 
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "save-text",
-            {
-                "path": options["path"],
-                "list_of_pages": options["list_of_pages"],
-                "options": options["options"],
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.save_text(
+            path=options["path"],
+            list_of_pages=options["list_of_pages"],
+            options=options["options"] if "options" in options else None,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def save_hocr(self, options):
@@ -3713,41 +3730,6 @@ class Document(SimpleList):
             {
                 "type": "finished",
                 "process": "rotate",
-                "uuid": uuid,
-            }
-        )
-
-    def _thread_save_text(self, path, list_of_pages, options, uuid):
-
-        fh = None
-        string = EMPTY
-        for page in list_of_pages:
-            string += page.export_text()
-            if _self["cancel"]:
-                return
-
-        try:
-            fh = open(">", path)
-        except:
-            _thread_throw_error(
-                self, uuid, None, "Save file", _("Can't open file: %s") % (path)
-            )
-            return
-
-        try:
-            _write_file(self, fh, path, string, uuid)
-        except:
-            return
-        if not fh.close():
-            _thread_throw_error(
-                self, uuid, None, "Save file", _("Can't close file: %s") % (path)
-            )
-
-        _post_save_hook(path, options)
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "save-text",
                 "uuid": uuid,
             }
         )
