@@ -7,9 +7,8 @@ import tempfile
 import uuid
 import logging
 import gettext
-import subprocess
 import copy
-import PythonMagick
+from PIL import Image
 from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
 from bboxtree import Bboxtree
 import gi
@@ -29,7 +28,7 @@ class Page:
     "Class of data and methods for handling page objects"
     width = None
     height = None
-    size = None
+    size = (None, None, None)
     resolution = None
     text_layer = None
     annotations = None
@@ -79,37 +78,6 @@ class Page:
         else:
             shutil.copy2(kwargs["filename"], self.filename)
 
-        # Add units if not defined
-        if not re.search(
-            r"^[.]p.m$", suffix[kwargs["format"]], re.MULTILINE | re.DOTALL | re.VERBOSE
-        ):
-            # FIXME: when there a way to call resolutionUnits() without throwing an error
-            # image = self.im_object()
-            # units = image.resolutionUnits()
-            resolution = self.get_resolution()
-            if resolution[2] == "Undefined":
-                # xresolution, yresolution  = self.get_resolution()
-                # FIXME: when there a way to call resolutionUnits() without throwing an error
-                # image = self.im_object()
-                # image.resolutionUnits("PixelsPerInch")
-                # image.write(
-                #     units    = 'PixelsPerInch',
-                #     density  = f"{xresolution}x{yresolution}",
-                #     filename = self.filename
-                # )
-                subprocess.run(
-                    [
-                        "convert",
-                        self.filename,
-                        "-units",
-                        "PixelsPerInch",
-                        "-density",
-                        f"{resolution[0]}x{resolution[1]}",
-                        self.filename,
-                    ],
-                    check=True,
-                )
-
         logger.info("New page written as %s (%s)", self.filename, self.uuid)
 
     def clone(self, copy_image=False):
@@ -141,9 +109,7 @@ class Page:
 
     def export_hocr(self):
         "export hocr"
-        if self.text_layer is not None:
-            return Bboxtree(self.text_layer).to_hocr()
-        return None
+        return Bboxtree(self.text_layer).to_hocr()
 
     def import_djvu_txt(self, djvu):
         "import djvu text"
@@ -153,24 +119,15 @@ class Page:
 
     def export_djvu_txt(self):
         "export djvu text"
-        if self.text_layer is not None:
-            return Bboxtree(self.text_layer).to_djvu_txt()
-        return None
-
-    def import_text(self, text):
-        "import simple text"
-        if self.width is None:
-            self.get_size()
-
-        tree = Bboxtree()
-        tree.from_text(text, self.width, self.height)
-        self.text_layer = tree.json()
+        if self.text_layer is None:
+            return None
+        return Bboxtree(self.text_layer).to_djvu_txt()
 
     def export_text(self):
         "export simple text"
-        if self.text_layer is not None:
-            return Bboxtree(self.text_layer).to_text()
-        return None
+        if self.text_layer is None:
+            return None
+        return Bboxtree(self.text_layer).to_text()
 
     def import_pdftotext(self, html):
         "import text layer from PDF"
@@ -194,40 +151,22 @@ class Page:
 
     def export_djvu_ann(self):
         "export annotation for djvu"
-        if self.annotations is not None:
-            return Bboxtree(self.annotations).to_djvu_ann()
-        return None
+        if self.annotations is None:
+            return None
+        return Bboxtree(self.annotations).to_djvu_ann()
 
     def to_png(self, page_sizes=None):
         "Convert the image format to PNG"
         png = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
             dir=self.dir, suffix=".png", delete=False
         ).name
-        resolution = self.get_resolution(page_sizes)
-
-        # FIXME: when there a way to call resolutionUnits() without throwing an error
-        #     self.im_object().write(
-        #     units    = 'PixelsPerInch',
-        #     density  = f"{xresolution}x{yresolution}",
-        #     filename = png
-        # )
-        subprocess.run(
-            [
-                "convert",
-                self.filename,
-                "-units",
-                "PixelsPerInch",
-                "-density",
-                f"{resolution[0]}x{resolution[1]}",
-                png,
-            ],
-            check=True,
-        )
+        image = self.im_object()
+        image.save(png)
         new = Page(
             filename=png,
             format="Portable Network Graphics",
             dir=self.dir,
-            resolution=resolution,
+            resolution=self.get_resolution(page_sizes),
             width=self.width,
             height=self.height,
         )
@@ -240,8 +179,8 @@ class Page:
         "get the image size"
         if self.width is None or self.height is None:
             image = self.im_object()
-            self.width = image.size().width()
-            self.height = image.size().height()
+            self.width = image.width
+            self.height = image.height
 
         return self.width, self.height
 
@@ -251,7 +190,7 @@ class Page:
             return self.resolution
 
         locale.setlocale(locale.LC_NUMERIC, "C")
-        if self.size is not None:
+        if self.size != (None, None, None):
             width, height = self.get_size()
             logger.debug("PDF size %sx%s %s", self.size[0], self.size[1], self.size[2])
             logger.debug("image size %s %s", width, height)
@@ -266,57 +205,33 @@ class Page:
             logger.debug("resolution %s %s", self.resolution[0], self.resolution[1])
             return self.resolution
 
-        # Imagemagick always reports PNMs as 72ppi
-        # Some versions of imagemagick report colour PNM as Portable pixmap (PPM)
-        # B&W are Portable anymap
         image = self.im_object()
-        image_format = image.magick()
-        if not re.search(r"^P.M$", image_format, re.MULTILINE | re.DOTALL | re.VERBOSE):
-            xresolution = image.xResolution()
-            yresolution = image.yResolution()
-            units = None
+        image_format = image.format
+        units = "PixelsPerInch"
+        if re.search(r"^P.M$", image_format, re.MULTILINE | re.DOTALL | re.VERBOSE):
 
-            # FIXME: replace the following when there a way to call resolutionUnits()
-            # without throwing an error
-            spo = subprocess.run(
-                ["identify", "-verbose", self.filename],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            for line in spo.stdout.splitlines():
-                values = line.split(":")
-                if len(values) == 2:
-                    key, value = values
-                    if key.strip() == "Units":
-                        units = value.strip()
-
-            if units == "PixelsPerCentimeter":
-                xresolution *= CM_PER_INCH
-                yresolution *= CM_PER_INCH
-
-            elif units == "PixelsPerInch":
-                pass
-
-            else:
-                logger.warning("Unknown units: '%s'.", units)
-                logger.warning("The resolution and page size will probably be wrong.")
-
-            if xresolution != 0 and yresolution != 0:
+            # Return the first match based on the format
+            for value in self.matching_paper_sizes(paper_sizes).values():
+                xresolution = value
+                yresolution = value
                 self.resolution = (xresolution, yresolution, units)
                 return self.resolution
 
-        units = "PixelsPerInch"
-
-        # Return the first match based on the format
-        for value in self.matching_paper_sizes(paper_sizes).values():
-            xresolution = value
-            yresolution = value
-            self.resolution = (xresolution, yresolution, units)
+            # Default to 72
+            self.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, units)
             return self.resolution
 
-        # Default to 72
-        self.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, units)
+        xresolution, yresolution = 72, 72
+        for key in ["dpi", "aspect", "jfif_density"]:
+            if key in image.info:
+                xresolution, yresolution = image.info[key]
+
+        if "jfif_unit" in image.info and image.info["jfif_unit"] == 2:
+            units = "PixelsPerCentimeter"
+            xresolution *= CM_PER_INCH
+            yresolution *= CM_PER_INCH
+
+        self.resolution = (xresolution, yresolution, units)
         return self.resolution
 
     def matching_paper_sizes(self, paper_sizes):
@@ -344,8 +259,8 @@ class Page:
         return matching
 
     def im_object(self):
-        "returns Image::Magick object"
-        return PythonMagick.Image(self.filename)
+        "returns PIL object"
+        return Image.open(self.filename)
 
     def get_pixbuf_at_scale(self, max_width, max_height):
         """logic taken from at_scale_size_prepared_cb() in
@@ -353,8 +268,6 @@ class Page:
 
         Returns the pixbuf scaled to fit in the given box"""
         xresolution, yresolution, _units = self.get_resolution()
-        if xresolution == 0 or yresolution == 0:
-            xresolution, yresolution = 1, 1
         width, height = self.get_size()
         width, height = _prepare_scale(
             width, height, xresolution / yresolution, max_width, max_height

@@ -128,7 +128,11 @@ def test_1():
         format="Joint Photographic Experts Group JFIF format",
         dir=tempfile.mkdtemp(),
     )
-    assert page.get_resolution(paper_sizes) == (300.0, 300.0, "Undefined"), "undefined"
+    assert page.get_resolution(paper_sizes) == (
+        300.0,
+        300.0,
+        "PixelsPerInch",
+    ), "undefined"
     os.remove("test.jpg")
 
     #########################
@@ -141,7 +145,6 @@ def test_1():
 
     #########################
 
-    assert page.export_hocr() is None, "export_hocr() without bboxes"
     assert page.export_djvu_txt() is None, "export_djvu_txt() without bboxes"
     assert page.export_text() is None, "export_text() without bboxes"
     assert page.export_djvu_ann() is None, "export_djvu_ann() without bboxes"
@@ -150,6 +153,16 @@ def test_1():
 def test_2():
     "Tests for Page class"
     subprocess.run(["convert", "-size", "210x297", "xc:white", "test.pnm"], check=True)
+
+    with pytest.raises(ValueError):
+        page = Page(
+            filename="test.pnm",
+            format="PBM",
+            dir=tempfile.mkdtemp(),
+            size=[105, 148, "elephants"],
+        )
+        page.get_resolution()
+
     page = Page(
         filename="test.pnm",
         format="PBM",
@@ -168,15 +181,6 @@ def test_2():
         dir=tempfile.mkdtemp(),
     )
     assert page.get_resolution() == (72, 72, "PixelsPerInch"), "default to 72"
-
-    with pytest.raises(ValueError):
-        page = Page(
-            filename="test.pnm",
-            format="PBM",
-            dir=tempfile.mkdtemp(),
-            size=[105, 148, "elephants"],
-        )
-        page.get_resolution()
 
     #########################
 
@@ -241,23 +245,7 @@ def test_2():
 
     #########################
 
-    text = "The quick brown fox"
-    page.import_text(text)
-    assert (
-        page.text_layer
-        == '[{"type": "page", "bbox": [0, 0, 210, 297], "text": "The quick brown fox", "depth": 0}]'
-    ), "import_text()"
-    page = Page(
-        filename="test.pnm",
-        format="PBM",
-        dir=tempfile.mkdtemp(),
-    )
-    page.import_text(text)
-    assert (
-        page.text_layer
-        == '[{"type": "page", "bbox": [0, 0, 210, 297], "text": "The quick brown fox", "depth": 0}]'
-    ), "import_text() no size"
-    assert page.export_text() == text, "export_text()"
+    assert page.export_text() == "The quick brown fox", "export_text()"
 
     #########################
 
@@ -287,7 +275,7 @@ def test_2():
         '{"type": "word", "bbox": [105, 22, 222, 46], "text": "quick", "depth": 1}, '
         '{"type": "word", "bbox": [241, 22, 374, 46], "text": "brown", "depth": 1}, '
         '{"type": "word", "bbox": [393, 22, 460, 46], "text": "fox", "depth": 1}]'
-    ), "import_text()"
+    ), "import_pdftotext()"
 
     #########################
 
