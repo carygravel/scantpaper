@@ -44,11 +44,7 @@ def test_1(import_in_mainloop):
 
     assert re.search(r"NONE", info) is None, "don't add blank metadata"
 
-    # FIXME: If whichever library we end up has no support for has no support
-    # for setting /CreationDate and /ModDate, we can directly modify
-    # the PDF:
-    # https://stackoverflow.com/questions/52358853/reportlab-metadata-creationdate-and-modificationdate
-    # assert re.search(r"2016-02-10T00:00:00Z",info) is not None     ,'metadata ModDate in PDF'
+    assert re.search(r"2016-02-10T00:00:00Z", info), "metadata ModDate in PDF"
     stb = os.stat(pdf)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 10, 0, 0, 0

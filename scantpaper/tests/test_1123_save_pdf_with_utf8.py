@@ -4,10 +4,12 @@ import os
 import re
 import subprocess
 import tempfile
+import pytest
 from gi.repository import GLib
 from document import Document
 
 
+@pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_1(import_in_mainloop):
     "Test writing PDF with utf8 in text layer"
 
@@ -37,7 +39,13 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].import_text("пени способствовала сохранению")
+    slist.data[0][2].text_layer = (
+        '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
+        '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
+        '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": '
+        '"пени способствовала сохранению", "depth": 3}]'
+    )
 
     mlp = GLib.MainLoop()
     slist.save_pdf(

@@ -17,6 +17,10 @@ import zlib
 import base64
 import io
 import unicodedata
+from pathlib import Path
+import img2pdf
+img2pdf.default_dpi = 72.0
+import ocrmypdf
 from basethread import BaseThread, Response, ResponseType
 from const import POINTS_PER_INCH, ANNOTATION_COLOR
 from bboxtree import Bboxtree
@@ -40,7 +44,6 @@ _ = gettext.gettext
 
 # import Socket
 # import FileHandle
-import PythonMagick
 from PIL import Image
 
 # import File.Basename
@@ -281,19 +284,20 @@ class DocThread(BaseThread):
         else:
 
             # Get file type
-            image = PythonMagick.Image(path)
+            image = Image.open(path)
 
             if self.cancel:
                 return
-            fformat = image.magick()
+            fformat = image.format
 
             logger.info(f"Format {fformat}")
-            info["width"] = [image.size().width()]
-            info["height"] = [image.size().height()]
-            if image.xResolution() > 0.:
-                info["xresolution"] = [image.xResolution()]
-            if image.yResolution() > 0.:
-                info["yresolution"] = [image.yResolution()]
+            info["width"] = [image.width]
+            info["height"] = [image.height]
+            dpi = image.info.get('dpi')
+            if dpi is None:
+                info["xresolution"],info["yresolution"] = img2pdf.default_dpi, img2pdf.default_dpi
+            else:
+                xresolution, yresolution = dpi
             info["pages"] = 1
 
         info["format"] = fformat
@@ -415,12 +419,11 @@ class DocThread(BaseThread):
             self._thread_import_pdf(request)
 
         elif args["info"]["format"] == "Tagged Image File Format":
-
             # Only one page, so skip tiffcp in case it gives us problems
             if args["last"] == 1:
 #                self.progress = 1
 #                self.message = _("Importing page %i of %i") % (1, 1)
-                return Page(
+                page = Page(
                     filename=args["info"]["path"],
                     dir=args["dir"],
                     delete=False,
@@ -428,6 +431,8 @@ class DocThread(BaseThread):
                     width=args["info"]["width"][0],
                     height=args["info"]["height"][0],
                 )
+                request.log(page.to_png(paper_sizes))
+
             # Split the tiff into its pages and import them individually
             elif args["last"] >= options["first"] and options["first"] > 0:
                 for i in range(options["first"] - 1, args["last"] - 1 + 1):
@@ -550,70 +555,39 @@ class DocThread(BaseThread):
         pdf, error, message = None, None, None
 
         self.message = _("Setting up PDF")
+        outdir = Path(options["dir"])
         filename = options["path"]
         if _need_temp_pdf(options["options"]):
-            filename = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".pdf")
+            filename = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".pdf", delete=False).name
 
-        pdf = canvas.Canvas(filename)
-
-        if error:
-            return 1
+        metadata = {}
         if "metadata" in options and "ps" not in options:
             metadata = prepare_output_metadata("PDF", options["metadata"])
-            if "Author" in metadata:
-                pdf.setAuthor(metadata["Author"])
-            if "Title" in metadata:
-                pdf.setTitle(metadata["Title"])
-            if "Subject" in metadata:
-                pdf.setSubject(metadata["Subject"])
-            if "Keywords" in metadata:
-                pdf.setKeywords(metadata["Keywords"])
-            pdf.setCreator(f"scantpaper v{VERSION}")
 
-            # If whichever library we end up has no support for has no support
-            # for setting /CreationDate and /ModDate, we can directly modify
-            # the PDF (test 1151):
-            # https://stackoverflow.com/questions/52358853/reportlab-metadata-creationdate-and-modificationdate
-
-        cache = {"core": pdfmetrics.getFont("Times-Roman")}
-        if options is not None and "options" in options and options["options"] is not None and "options" in options["options"] and "font" in options["options"]["options"]:
-            message = _("Unable to find font '%s'. Defaulting to core font.") % (
-                options["options"]["options"]["font"]
-            )
-            if os.path.isfile(options["options"]["options"]["font"]):
-                try:
-                    cache["ttf"] = TTFont(options["options"]["options"]["font"], options["options"]["options"]["font"])
-                    pdfmetrics.registerFont(cache["ttf"])
-                    logger.info(f"Using {options['options']['options']['font']} for non-ASCII text")
-
-                except:
-                    logger.error(message)
-                    request.error(
-                        "Save file",
-                        message,
-                    )
-                    del options["options"]["options"]["font"]
-
-            else:
-                logger.error(message)
-                request.error(
-                    "Save file",
-                    message,
-                )
-                del options["options"]["options"]["font"]
-
+        with open(outdir / "origin_pre.pdf","wb") as f:
+            filenames = []
+            for page in options["list_of_pages"]:
+                filenames.append(_write_image_object(page, options))
+            f.write(img2pdf.convert(filenames, **metadata))
+        ocrmypdf.api._pdf_to_hocr(
+            outdir / "origin_pre.pdf",
+            outdir,
+            language='eng',
+            skip_text=True,
+        )
         for pagedata in options["list_of_pages"]:
             pagenr += 1
-            self.progress = pagenr / (len(options["list_of_pages"]) + 1)
-            self.message = _("Saving page %i of %i") % (pagenr, len(options["list_of_pages"]))
-            status = self._add_page_to_pdf(pdf, pagedata, cache, options)
-            # if status or _self["cancel"]:
-            #     return
+            if pagedata.text_layer:
+                with open(outdir / f"{pagenr:-06}__ocr_hocr.hocr","w") as pfh:
+                    pfh.write(pagedata.export_hocr())
+        #     self.progress = pagenr / (len(options["list_of_pages"]) + 1)
+        #     self.message = _("Saving page %i of %i") % (pagenr, len(options["list_of_pages"]))
+        #     # if status or _self["cancel"]:
+        #     #     return
 
-        self.message = _("Closing PDF")
-        logger.info("Closing PDF")
-        pdf.save()
-        if options is not None and ("prepend" in options["options"] or "append" in options["options"]):
+        ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
+
+        if options is not None and "options" in options and options["options"] is not None and ("prepend" in options["options"] or "append" in options["options"]):
             if self._append_pdf(filename, options):
                 return
 
@@ -624,7 +598,7 @@ class DocThread(BaseThread):
         self._set_timestamp(options)
         if options is not None and "options" in options and options["options"] is not None and "ps" in options["options"]:
             self.message = _("Converting to PS")
-            cmd = [options["options"]["pstool"], filename.name, options["options"]["ps"]]
+            cmd = [options["options"]["pstool"], filename, options["options"]["ps"]]
             status, _, error = exec_command(cmd, options["pidfile"])
             if status or error:
                 logger.info(error)
@@ -641,275 +615,6 @@ class DocThread(BaseThread):
 
         else:
             _post_save_hook(filename, options["options"])
-
-    def _add_page_to_pdf(self, pdf, pagedata, cache, options):
-        filename = pagedata.filename
-        image = PythonMagick.Image(filename)
-
-        # Get the size and resolution. Resolution is pixels per inch, width
-        # and height are in pixels.
-        width, height = pagedata.get_size()
-        xres, yres, units = pagedata.get_resolution()
-        w = width / xres *inch
-        h = height / yres*inch
-
-        pdf.setPageSize((w,h))
-
-        # Automatic mode
-        ctype = None
-        if ( options is None or
-            "compression" not in options
-            or options["compression"] == "auto"
-        ):
-            pagedata.depth = image.depth()
-            logger.info(f"Depth of {filename} is {pagedata.depth}")
-            if pagedata.depth == 1:
-                pagedata.compression = "png"
-
-            else:
-                ctype = image.format()
-                logger.info(f"Type of {filename} is {ctype}")
-                if re.search(r"TrueColor", ctype, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                    pagedata.compression = "jpg"
-
-                else:
-                    pagedata.compression = "png"
-
-            logger.info(f"Selecting {pagedata.compression} compression")
-
-        else:
-            pagedata.compression = options["compression"]
-
-        filename, fmt, output_xresolution, output_yresolution = self._convert_image_for_pdf(
-            pagedata, image, options
-        )
-
-        if ( options is not None and 
-            "text_position" in options
-            and options["text_position"] == "right"
-        ):
-            logger.info("Embedding OCR output right of image")
-            logger.info("Defining page at ", w * 2, f" pt x {h} pt")
-
-        else:
-            logger.info("Embedding OCR output behind image")
-            logger.info(f"Defining page at {w} pt x {h} pt")
-
-        if pagedata.text_layer is not None:
-            logger.info("Embedding text layer behind image")
-            self._add_text_to_pdf(pdf, pagedata, cache, options)
-
-        # Add scan
-        # https://py-pdf.github.io/fpdf2/Images.html#image-compression
-        pdf.drawImage(filename, 0, 0, w, h)
-
-        if pagedata.annotations is not None:
-            logger.info("Adding annotations")
-            self._add_annotations_to_pdf(pdf, pagedata)
-
-        logger.info(f"Added {filename} at {output_xresolution}x{output_yresolution} PPI")
-        # pdf.showPage()
-
-    def _convert_image_for_pdf(self, pagedata, image, options):
-        "Convert file if necessary"
-
-        # The output resolution is normally the same as the input
-        # resolution.
-        output_xresolution, output_yresolution, units = pagedata.get_resolution()
-
-        filename = pagedata.filename
-        compression = pagedata.compression
-        fmt = None
-        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            fmt = regex.group(1)
-
-        if _must_convert_image_for_pdf(
-            compression, fmt, options["downsample"] if options is not None and "downsample" in options else None
-        ):
-            if (
-                not re.search(
-                    r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                and fmt != "tif"
-            ):
-                ofn = filename
-                filename = tempfile.NamedTemporaryFile(dir=pagedata.dir, suffix=".tif", delete=False)
-                logger.info(f"Converting {ofn} to {filename.name}")
-
-            elif re.search(
-                r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ):
-                ofn = filename
-                filename = tempfile.NamedTemporaryFile(
-                    dir=pagedata.dir, suffix=f".{compression}", delete=False
-                )
-                msg = f"Converting {ofn} to {filename.name}"
-                if options is not None and "quality" in options and compression == "jpg":
-                    msg += f" with quality={options['quality']}"
-
-                logger.info(msg)
-
-            if options is not None and "downsample" in options and options["downsample"]:
-                output_xresolution = options["downsample dpi"]
-                output_yresolution = options["downsample dpi"]
-                w_pixels = (
-                    pagedata.width * output_xresolution / pagedata.resolution[0]
-                )
-                h_pixels = (
-                    pagedata.height * output_yresolution / pagedata.resolution[1]
-                )
-                logger.info(f"Resizing {filename.name} to {w_pixels} x {h_pixels}")
-                status = image.sample(PythonMagick.Geometry(int(w_pixels), int(h_pixels)))
-                if status:
-                    logger.warn(status)
-
-            if options is not None and "quality" in options and compression == "jpg":
-                status = image.Set(quality=options["quality"])
-                if f"{status}":
-                    logger.warn(status)
-
-            fmt = _write_image_object(
-                image, filename, fmt, pagedata, options["downsample"] if options is not None and "downsample" in options else None
-            )
-            if not re.search(
-                r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ):
-                filename2 = tempfile.NamedTemporaryFile(dir=dirname, suffix=".tif", delete=False)
-                error = tempfile.TemporaryFile(dir=dirname, suffix=".txt")
-                (status, _, error) = exec_command(
-                    ["tiffcp", "-r", "-1", "-c", compression, filename, filename2],
-                    pidfile,
-                )
-                if _self["cancel"]:
-                    return
-                if status:
-                    logger.info(error)
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        _("Error compressing image: %s") % (error),
-                    )
-                    return
-
-                filename = filename2
-            filename = filename.name
-
-        return filename, fmt, output_xresolution, output_yresolution
-
-    def _add_text_to_pdf(self, pdf_page, gs_page, cache, options):
-        """Add OCR as text behind the scan"""
-        xresolution, yresolution, units = gs_page.get_resolution()
-        w = gs_page.width / xresolution*inch
-        h = gs_page.height / yresolution*inch
-        if options is not None and "options" in options and options["options"] is not None and "font" in options["options"]:
-            font = options["options"]["font"]
-        else:
-            font = 'Times-Roman'
-        offset = 0
-        if options is not None and "options" in options and options["options"] is not None and "text_position" in options["options"] and options["options"]["text_position"] == "right":
-            offset = w * POINTS_PER_INCH
-
-        textobject = pdf_page.beginText()
-        baseline = [0,0]
-        linebox = [0,0,0,0]
-        for box in Bboxtree(gs_page.text_layer).get_bbox_iter():
-            x1, y1, x2, y2 = box["bbox"]
-            if "baseline" in box:
-                baseline = box["baseline"]
-            if "type" in box and box["type"] == "line":
-                linebox = box["bbox"]
-            if "text" not in box:
-                continue
-            txt = box["text"]
-            regex = re.search(r"([^ -~]+)", txt            ) # ~ is the last ASCII char
-            if regex:
-                if not font_can_char(cache["core"], regex.group(1)):
-                    if "ttf" not in cache:
-                        message = _(
-                            "Core font '%s' cannot encode '%s', and no TTF font defined."
-                        ) % (cache["core"].fontName, regex.group(1))
-                        logger.error(message)
-                        # _thread_throw_error(
-                        #     self,
-                        #     options["uuid"],
-                        #     options["page"]["uuid"],
-                        #     "Save file",
-                        #     message,
-                        # )
-
-                    elif font_can_char(cache["ttf"], regex.group(1)):
-                        logger.debug(f"Using TTF for '{regex.group(1)}' in '{txt}'")
-                        font = cache["ttf"].fontName
-
-                    else:
-                        message = _(
-                            "Neither '%s' nor '%s' can encode character '%s' in '%s'"
-                        ) % (
-                            cache["core"].fontName,
-                            cache["ttf"].fontName,
-                            regex.group(1),
-                            txt,
-                        )
-                        logger.error(message)
-                        _thread_throw_error(
-                            self,
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "Save file",
-                            message,
-                        )
-
-            if x1 == 0 and y1 == 0 and (x2 is None):
-                x2, y2 = w * xresolution, h * yresolution
-
-            if (
-                abs(h * yresolution - y2 + y1) > BOX_TOLERANCE
-                and abs(w * xresolution - x2 + x1) > BOX_TOLERANCE
-            ):
-
-                # Box is smaller than the page. We know the text position.
-                # Set the text position.
-                # Translate x1 and y1 to inches and then to points. Invert the
-                # y coordinate (since the PDF coordinates are bottom to top
-                # instead of top to bottom) and subtract $size, since the text
-                # will end up above the given point instead of below.
-
-                # https://github.com/dinosauria123/makepdf/blob/f76a82c1c57bb37c717a2cd6274897c1dcf91e44/hocr-pdf.py#L32
-
-                # Scale the font size to match the box height
-                font_size = 8
-                face = pdfmetrics.getFont(font).face
-                string_height = (face.ascent - face.descent) / 1000 * font_size
-                font_size = (y2 - y1)/ yresolution*inch/string_height*font_size
-
-                # Use the baseline data from HOCR to set the text origin
-                b = polyval(baseline, (x1 + x2) / 2 - linebox[0]) + linebox[3]
-                # textobject.setTextRenderMode(3)  # double invisible
-                # textobject.setFont('invisible', font_size)
-                textobject.setFont(font, font_size)
-                textobject.setTextOrigin(x1 / xresolution*inch, h- b / yresolution*inch)
-
-                # # setTextOrigin specifies the baseline, so use face.descent to calculate it
-                # face = pdfmetrics.getFont(font).face
-                # textobject.setFont(font, font_size)
-                # textobject.setTextOrigin(x1 / xresolution*inch, y1 / yresolution*inch-face.descent/ 1000)
-
-                # Scale the text object to match the box width
-                font_width = pdf_page.stringWidth(txt, font, font_size)
-                if font_width <= 0:
-                    continue
-                box_width = (x2 - x1)/ xresolution*inch
-                textobject.setHorizScale(100.0 * box_width / font_width)
-                textobject.textLine(txt)
-
-            else:
-                size = 1
-                pdf_page.setFont(font, size)
-                _wrap_text_to_page(txt, size, textobject, h, w)
-        pdf_page.drawText(textobject)
 
     # https://py-pdf.github.io/fpdf2/Annotations.html
     def _add_annotations_to_pdf(self, page, gs_page):
@@ -938,7 +643,7 @@ class DocThread(BaseThread):
     def _append_pdf(self, filename, options):
 
         if "prepend" in options["options"]:
-            file1 = filename.name
+            file1 = filename
             file2 = options["options"]["prepend"]+".bak"
             bak = file2
             out = options["options"]["prepend"]
@@ -946,7 +651,7 @@ class DocThread(BaseThread):
             logger.info("Prepending PDF")
 
         else:
-            file2 = filename.name
+            file2 = filename
             file1 = options["options"]["append"]+".bak"
             bak = file1
             out = options["options"]["append"]
@@ -1409,7 +1114,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         os.utime(options["path"], (adatetime, adatetime))
 
     def _encrypt_pdf(self, filename, options):
-        cmd = ["pdftk", filename.name, "output", options["path"]]
+        cmd = ["pdftk", filename, "output", options["path"]]
         if "user-password" in options["options"]:
             cmd += ["user_pw", options["options"]["user-password"]]
 
@@ -2618,7 +2323,6 @@ class Document(SimpleList):
         )
 
     def save_djvu(self, **options):
-
         # File in which to store the process ID so that it can be killed if necessary
 
         pidfile = self.create_pidfile(options)
@@ -4518,82 +4222,6 @@ class Document(SimpleList):
             }
         )
 
-    def _thread_gocr(self, page, threshold, pidfile, uuid):
-
-        if _thread_no_filename(self, "gocr", uuid, page):
-            return
-        pnm = None
-        if not re.search(
-            r"[.]pnm$", page["filename"], re.MULTILINE | re.DOTALL | re.VERBOSE
-        ):
-
-            # Temporary filename for new file
-
-            pnm = tempfile.TemporaryFile(suffix=".pnm")
-            cmd = []
-            if (threshold is not None) and threshold:
-                logger.info(f"thresholding at {threshold} to {pnm}")
-                cmd = [
-                    "convert",
-                    page["filename"],
-                    "+dither",
-                    "-threshold",
-                    f"{threshold}%",
-                    "-depth",
-                    1,
-                    pnm,
-                ]
-
-            else:
-                logger.info(f"writing temporary image {pnm}")
-                cmd = [
-                    "convert",
-                    page["filename"],
-                    pnm,
-                ]
-
-            (status, stdout, stderr) = exec_command(cmd)
-            if status != 0:
-                logger.error(stderr)
-                _thread_throw_error(self, uuid, page["uuid"], "Threshold", stderr)
-                return
-
-            if _self["cancel"]:
-                return
-
-        else:
-            pnm = page["filename"]
-
-        # Temporary filename for output
-
-        txt = tempfile.TemporaryFile(suffix=".txt")
-
-        # Using temporary txt file, as perl munges charset encoding
-        # if text is passed by stdin/stdout
-
-        exec_command(["gocr", pnm, "-o", txt], pidfile)
-        (stdout, _) = slurp(txt)
-        page.import_text(stdout)
-        if _self["cancel"]:
-            return
-        page["ocr_flag"] = 1  # FlagOCR
-        page["ocr_time"] = timestamp()  # remember when we ran OCR on this page
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": uuid,
-                "page": page,
-                "info": {"replace": page["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "gocr",
-                "uuid": uuid,
-            }
-        )
-
     def _thread_unpaper(self, options):
 
         if _thread_no_filename(self, "unpaper", options["uuid"], options["page"]):
@@ -5421,40 +5049,43 @@ def prepare_output_metadata(ftype, metadata):
 
     h = {}
     if metadata is not None and ftype in ["PDF", "DjVu"]:
-        dateformat = (
-            "D:%4i%02i%02i%02i%02i%02i%1s%02i'%02i'"
-            if ftype == "PDF"
-            else "%4i-%02i-%02i %02i:%02i:%02i%1s%02i:%02i"
-        )
         year, month, day, hour, mns, sec = 0, 0, 0, 0, 0, 0
         if "datetime" in metadata and metadata["datetime"] is not None:
             year, month, day, hour, mns, sec = metadata["datetime"]
         sign, dh, dm = "+", 0, 0
         if "tz" in metadata:
             _, _, _, dh, dm, _, _ = metadata["tz"]
-            if dh * MINUTES_PER_HOUR + dm < 0:
-                sign = "-"
-            dh = abs(dh)
-            dm = abs(dm)
-
-        h["CreationDate"] = dateformat % (
-            year,
-            month,
-            day,
-            hour,
-            mns,
-            sec,
-            sign,
-            dh,
-            dm,
-        )
-        h["ModDate"] = h["CreationDate"]
-        h["Creator"] = f"gscan2pdf v{VERSION}"
+        if year > 0:
+            if ftype == "PDF":
+                h["creationdate"] = datetime.datetime(
+                    year,
+                    month,
+                    day,
+                    hour,
+                    mns,
+                    sec,
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=dh, minutes=dm))
+                )
+            else:
+                dateformat = "%4i-%02i-%02i %02i:%02i:%02i%1s%02i:%02i"
+                h["creationdate"] = dateformat % (
+                    year,
+                    month,
+                    day,
+                    hour,
+                    mns,
+                    sec,
+                    sign,
+                    dh,
+                    dm,
+                )
+            h["moddate"] = h["creationdate"]
+        h["creator"] = f"gscan2pdf v{VERSION}"
         if ftype == "DjVu":
-            h["Producer"] = "djvulibre"
+            h["producer"] = "djvulibre"
         for key in ["author", "title", "subject", "keywords"]:
             if key in metadata and metadata[key] != "":
-                h[key.capitalize()] = metadata[key]
+                h[key] = metadata[key]
 
     return h
 
@@ -5501,7 +5132,7 @@ def font_can_char(font, chars):
 def _need_temp_pdf(options):
 
     return (
-        options is not None and (
+        options and (
         "prepend" in options
         or "append" in options
         or "ps" in options
@@ -5517,7 +5148,37 @@ def _must_convert_image_for_pdf(compression, format, downsample):
     )
 
 
-def _write_image_object(image, filename, format, pagedata, downsample):
+def _write_image_object(page, options):
+    filename = page.filename
+    save = False
+    image = None
+    if options and "options" in options and options["options"] and "downsample" in options["options"] and options["options"]["downsample"]:
+        if options['options']['downsample dpi'] < min(page.resolution[0], page.resolution[1]):
+            save = True
+            image = page.im_object()
+            w = page.width*options['options']['downsample dpi']//page.resolution[0]
+            h = page.height*options['options']['downsample dpi']//page.resolution[1]
+            image = image.resize((w,h))
+    if options and "options" in options and options["options"] and "compression" in options["options"] and "g" in options["options"]["compression"]:
+        save = True
+        if image is None:
+            image = page.im_object()
+        # Grayscale
+        image = image.convert('L')
+        # Threshold
+        threshold = .4 * 255
+        image = image.point( lambda p: 255 if p > threshold else 0 )
+        # To mono
+        image = image.convert('1')
+    if save:
+        regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
+        suffix = regex.group(1)
+        filename = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=regex.group(1)).name
+        image.save(filename)
+    return filename
+
+
+
     compression = pagedata.compression
     if (
         not re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE)

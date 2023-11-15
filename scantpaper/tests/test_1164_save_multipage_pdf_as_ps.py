@@ -37,8 +37,8 @@ def test_1(import_in_mainloop):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert os.path.getsize("te st.ps") > 17500, "non-empty postscript created"
-    assert os.path.getsize("test2.ps") > 17500, "ran post-save hook"
+    assert os.path.getsize("te st.ps") > 15500, "non-empty postscript created"
+    assert os.path.getsize("test2.ps") > 15500, "ran post-save hook"
 
     #########################
 

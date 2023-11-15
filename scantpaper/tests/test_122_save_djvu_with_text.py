@@ -25,8 +25,12 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].import_text("The quick brown fox")
-
+    slist.data[0][2].text_layer = (
+        '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
+        '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
+        '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]'
+    )
     slist.save_djvu(
         path="test.djvu",
         list_of_pages=[slist.data[0][2]],

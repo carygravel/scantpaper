@@ -5,16 +5,10 @@ import re
 import subprocess
 import tempfile
 import glob
-import pytest
 from gi.repository import GLib
 from document import Document
 
 
-@pytest.mark.skip(
-    reason="until we move to fpdf or OCRmyPDF, or solve "
-    "https://stackoverflow.com/questions/77202653/"
-    "embed-1bpp-image-in-pdf-using-python-and-reportlab"
-)
 def test_1(import_in_mainloop):
     "Test writing PDF with group 4 compression"
 

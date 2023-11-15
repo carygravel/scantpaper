@@ -6,7 +6,6 @@ import tempfile
 import gi
 import pytest
 from document import DocThread, Document
-from page import Page
 from dialog.scan import Scan
 from basethread import Request
 
@@ -77,12 +76,14 @@ def test_docthread():
     }
     request = Request("get_file_info", (tiff, None), thread.responses)
     assert thread.do_get_file_info(request) == info, "do_get_file_info + tiff"
-    request = Request(
-        "import_file",
-        ({"info": info, "first": 1, "last": 1, "dir": None},),
-        thread.responses,
-    )
-    assert isinstance(thread.do_import_file(request), Page), "do_import_file + tiff"
+    # do_import_file() no longer returns a page object, as it can return
+    # multiple pages, which are passed via the log queue
+    # request = Request(
+    #     "import_file",
+    #     ({"info": info, "first": 1, "last": 1, "dir": None},),
+    #     thread.responses,
+    # )
+    # assert isinstance(thread.do_import_file(request), Page), "do_import_file + tiff"
 
     png = "test.png"
     subprocess.run(["convert", "rose:", png], check=True)  # Create test image
@@ -93,6 +94,8 @@ def test_docthread():
         "width": [70],
         "height": [46],
         "pages": 1,
+        "xresolution": 72.0,
+        "yresolution": 72.0,
     }, "do_get_file_info + png"
 
     def get_file_info_callback(response):

@@ -4,16 +4,10 @@ import re
 import os
 import subprocess
 import tempfile
-import pytest
 from gi.repository import GLib
 from document import Document
 
 
-@pytest.mark.skip(
-    reason="reportlab has no support for has no support for setting /CreationDate and /ModDate"
-    "https://stackoverflow.com/questions/52358853/"
-    "reportlab-metadata-creationdate-and-modificationdate"
-)
 def test_1(import_in_mainloop):
     "Test writing PDF with old metadata"
 
@@ -50,10 +44,6 @@ def test_1(import_in_mainloop):
 
     assert called, "caught errors setting timestamp"
 
-    # FIXME: If whichever library we end up has no support for has no support
-    # for setting /CreationDate and /ModDate, we can directly modify
-    # the PDF:
-    # https://stackoverflow.com/questions/52358853/reportlab-metadata-creationdate-and-modificationdate
     info = subprocess.check_output(["pdfinfo", "-isodates", pdf], text=True)
     assert (
         re.search(r"1966-02-10T00:00:00Z", info) is not None

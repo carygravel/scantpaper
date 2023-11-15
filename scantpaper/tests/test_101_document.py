@@ -348,13 +348,15 @@ def test_helpers():
             "keywords": "keywords",
         },
     ) == {
-        "ModDate": "D:20160210000000+00'00'",
-        "Creator": f"gscan2pdf v{VERSION}",
-        "Author": "a.n.other",
-        "Title": "title",
-        "Subject": "subject",
-        "Keywords": "keywords",
-        "CreationDate": "D:20160210000000+00'00'",
+        "moddate": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "creator": f"gscan2pdf v{VERSION}",
+        "author": "a.n.other",
+        "title": "title",
+        "subject": "subject",
+        "keywords": "keywords",
+        "creationdate": datetime.datetime(
+            2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc
+        ),
     }, "prepare_output_metadata"
 
     assert prepare_output_metadata(
@@ -368,13 +370,17 @@ def test_helpers():
             "keywords": "keywords",
         },
     ) == {
-        "ModDate": "D:20160210000000+01'00'",
-        "Creator": f"gscan2pdf v{VERSION}",
-        "Author": "a.n.other",
-        "Title": "title",
-        "Subject": "subject",
-        "Keywords": "keywords",
-        "CreationDate": "D:20160210000000+01'00'",
+        "moddate": datetime.datetime(
+            2016, 2, 10, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        ),
+        "creator": f"gscan2pdf v{VERSION}",
+        "author": "a.n.other",
+        "title": "title",
+        "subject": "subject",
+        "keywords": "keywords",
+        "creationdate": datetime.datetime(
+            2016, 2, 10, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        ),
     }, "prepare_output_metadata with tz"
 
     assert prepare_output_metadata(
@@ -388,13 +394,29 @@ def test_helpers():
             "keywords": "keywords",
         },
     ) == {
-        "ModDate": "D:20160210195905+01'00'",
-        "Creator": f"gscan2pdf v{VERSION}",
-        "Author": "a.n.other",
-        "Title": "title",
-        "Subject": "subject",
-        "Keywords": "keywords",
-        "CreationDate": "D:20160210195905+01'00'",
+        "moddate": datetime.datetime(
+            2016,
+            2,
+            10,
+            19,
+            59,
+            5,
+            tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
+        ),
+        "creator": f"gscan2pdf v{VERSION}",
+        "author": "a.n.other",
+        "title": "title",
+        "subject": "subject",
+        "keywords": "keywords",
+        "creationdate": datetime.datetime(
+            2016,
+            2,
+            10,
+            19,
+            59,
+            5,
+            tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
+        ),
     }, "prepare_output_metadata with time"
 
     #########################

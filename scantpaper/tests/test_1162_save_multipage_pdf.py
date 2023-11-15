@@ -1,6 +1,5 @@
 "Test writing multipage PDF with utf8"
 
-import re
 import os
 import subprocess
 import tempfile
@@ -9,7 +8,7 @@ from document import Document
 
 
 def test_1(import_in_mainloop):
-    "Test writing multipage PDF with utf8"
+    "Test writing multipage PDF"
 
     num = 3  # number of pages
     files = []
@@ -27,7 +26,12 @@ def test_1(import_in_mainloop):
 
     pages = []
     for i in range(num):
-        slist.data[i][2].import_text("hello world")
+        slist.data[i][2].text_layer = (
+            '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
+            '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
+            '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
+            '{"bbox": [1, 14, 77, 48], "type": "word", "text": "hello world", "depth": 3}]'
+        )
         pages.append(slist.data[i][2])
 
     mlp = GLib.MainLoop()
@@ -40,14 +44,9 @@ def test_1(import_in_mainloop):
     mlp.run()
 
     assert (
-        len(
-            re.findall(
-                "Times-Roman",
-                subprocess.check_output(["pdffonts", "test.pdf"], text=True),
-            )
-        )
-        == 1
-    ), "font embedded once in multipage PDF"
+        len(subprocess.check_output(["pdffonts", "test.pdf"], text=True).splitlines())
+        < 3
+    ), "no fonts embedded in multipage PDF"
 
     #########################
 

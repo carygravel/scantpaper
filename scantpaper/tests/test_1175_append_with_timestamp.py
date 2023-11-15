@@ -38,7 +38,7 @@ def test_1(import_in_mainloop):
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
-    assert re.search(r"Pages:\s+2", capture) is not None, "PDF appended"
+    assert re.search(r"Pages:\s+2", capture), "PDF appended"
     assert os.path.isfile("test.pdf.bak"), "Backed up original"
     stb = os.stat("test.pdf")
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
