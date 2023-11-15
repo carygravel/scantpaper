@@ -12,6 +12,23 @@ def test_1():
 
     #########################
 
+    expected = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='gscan2pdf {VERSION}' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
+ </head>
+ <body>
+ </body>
+</html>
+"""
+    assert tree.to_hocr() == expected, "to_hocr empty tree"
+
+    #########################
+
     hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD
 HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>

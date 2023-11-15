@@ -36,7 +36,7 @@ class Bboxtree:
     def __init__(self, json_string=None):
         self.bbox_tree = []
         if json_string is not None:
-            self.bbox_tree = json.loads(json_string)
+            self.bbox_tree = json.loads(json_string, strict=False)
 
     def valid(self):
         "return whether the bboxes are valid"
@@ -268,12 +268,13 @@ class Bboxtree:
     def to_hocr(self):
         "write the bboxtree as an HOCR string"
         string = HOCR_HEADER + "\n"
-        prev_depth, tags = None, []
+        prev_depth, tags = -1, []
         for bbox in self.get_bbox_iter():
             sub_string, prev_depth = _bbox_to_hocr(bbox, prev_depth, tags)
             string += sub_string
 
-        string += "</" + (tags.pop() if tags else "") + ">\n"
+        if self.bbox_tree:
+            string += "</" + (tags.pop() if tags else "") + ">\n"
         prev_depth -= 1
         while prev_depth >= 0:
             string += (
@@ -440,7 +441,7 @@ class HOCRParser(HTMLParser):
                     self.boxes.append(self.data)
 
     def handle_endtag(self, tag):
-        if len(self.stack):
+        if self.stack:
             self.data = self.stack.pop()
 
     def handle_data(self, data):
@@ -556,12 +557,11 @@ def scale(value, resolution):
 def _bbox_to_hocr(bbox, prev_depth, tags):
 
     string = ""
-    if prev_depth is not None:
-        if prev_depth >= bbox["depth"]:
-            string += "</" + tags.pop() + ">\n"
-            prev_depth -= 1
-        else:
-            string += "\n"
+    if prev_depth >= bbox["depth"]:
+        string += "</" + tags.pop() + ">\n"
+        prev_depth -= 1
+    elif prev_depth > -1:
+        string += "\n"
 
     x_1, y_1, x_2, y_2 = bbox["bbox"]
     bbox_type = "ocr_" + bbox["type"]
