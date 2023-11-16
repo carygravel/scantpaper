@@ -1,11 +1,9 @@
 "test pagerange widget"
 from pagerange import PageRange
-from translation import set_domain
 
 
 def test_1():
     "test pagerange widget"
-    set_domain("gscan2pdf")
     prg = PageRange()
     assert isinstance(prg, PageRange), "Created PageRange widget"
     assert prg.active == "selected", "selected"
