@@ -4,12 +4,10 @@ import os
 import re
 import subprocess
 import tempfile
-import pytest
 from gi.repository import GLib
 from document import Document
 
 
-@pytest.mark.skip(reason="https://gitlab.mister-muffin.de/josch/img2pdf/issues/181")
 def test_1(import_in_mainloop):
     "test saving a PDF with different resolutions in the height and width directions"
 
