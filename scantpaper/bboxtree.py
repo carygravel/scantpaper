@@ -1,5 +1,6 @@
 "Classes and methods for reading and writing the bounding box trees from HOCR files"
 import re
+import html
 from html.parser import HTMLParser
 import json
 from const import ANNOTATION_COLOR, POINTS_PER_INCH
@@ -254,13 +255,13 @@ class Bboxtree:
             else:
                 raise ValueError(f"Error parsing djvu line '{line}'")
 
-    def from_pdftotext(self, html, resolution, image_size):
+    def from_pdftotext(self, text, resolution, image_size):
         "create bboxtree from PDF text layer"
         if not re.search(
-            r"<body>[\s\S]*<\/body>", html, re.MULTILINE | re.DOTALL | re.VERBOSE
+            r"<body>[\s\S]*<\/body>", text, re.MULTILINE | re.DOTALL | re.VERBOSE
         ):
             return
-        box_tree = _pdftotext2boxes(html, resolution, image_size)
+        box_tree = _pdftotext2boxes(text, resolution, image_size)
         _prune_empty_branches(box_tree)
         if box_tree:
             self._walk_bboxes(box_tree[0])
@@ -543,9 +544,9 @@ class PDFTextParser(HTMLParser):
             self.data["text"] = data
 
 
-def _pdftotext2boxes(html, resolution, image_size):
+def _pdftotext2boxes(text, resolution, image_size):
     parser = PDFTextParser(resolution, image_size)
-    parser.feed(html)
+    parser.feed(text)
     return parser.boxes
 
 
@@ -603,7 +604,7 @@ def _text2hocr(bbox):
             for style in bbox["style"]:
                 string += f"<{style}>"
 
-        string += bbox["text"]
+        string += html.escape(bbox["text"])
 
         if "style" in bbox:
             for style in reversed(bbox["style"]):
