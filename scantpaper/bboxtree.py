@@ -558,10 +558,12 @@ def scale(value, resolution):
 def _bbox_to_hocr(bbox, prev_depth, tags):
 
     string = ""
-    if prev_depth >= bbox["depth"]:
+    while prev_depth >= bbox["depth"] and len(tags):
+        if string:
+            string += " " * (2 + prev_depth)
         string += "</" + tags.pop() + ">\n"
         prev_depth -= 1
-    elif prev_depth > -1:
+    if prev_depth > -1 and not (string and string[-1] == "\n"):
         string += "\n"
 
     x_1, y_1, x_2, y_2 = bbox["bbox"]
