@@ -60,7 +60,9 @@ def test_docthread():
     pdf = "test.pdf"
     subprocess.run(["tiff2pdf", "-o", pdf, tiff], check=True)
     request = Request("get_file_info", (pdf, None), thread.responses)
-    assert thread.do_get_file_info(request) == {
+    info = thread.do_get_file_info(request)
+    del info["datetime"]
+    assert info == {
         "format": "Portable Document Format",
         "path": "test.pdf",
         "page_size": [16.8, 11.04, "pts"],

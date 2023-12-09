@@ -233,7 +233,6 @@ class Page:
 
         # if no units for resolution, rewrite the resolution, which forces units
         # tested by test_1114_save_pdf_different_resolutions.py
-        print(f"image.format {image.format} image.info {image.info}")
         if (
             xresolution != yresolution
             and "density_unit" not in image.info

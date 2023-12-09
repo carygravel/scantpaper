@@ -3,6 +3,7 @@ import re
 import html
 from html.parser import HTMLParser
 import json
+import codecs
 from const import ANNOTATION_COLOR, POINTS_PER_INCH
 
 DOUBLE_QUOTES = '"'
@@ -20,6 +21,11 @@ HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
  </head>
  <body>"""
+
+
+def unescape_utf8(text):
+    "convert escaped utf8, e.g. F\303\274\303\237\342\200\224 -> Füß—"
+    return codecs.escape_decode(text)[0].decode("utf-8")
 
 
 def flatten_tree(oldbox, newtree):
@@ -248,7 +254,7 @@ class Bboxtree:
                     r'^\s*"(.*)"\s*\Z', text, re.MULTILINE | re.DOTALL | re.VERBOSE
                 )
                 if regex:
-                    bbox["text"] = regex.group(1)
+                    bbox["text"] = unescape_utf8(regex.group(1))
 
                 self.bbox_tree.append(bbox)
 

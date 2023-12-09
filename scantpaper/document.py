@@ -23,7 +23,7 @@ img2pdf.default_dpi = 72.0
 import ocrmypdf
 from basethread import BaseThread, Response, ResponseType
 from const import POINTS_PER_INCH, ANNOTATION_COLOR
-from bboxtree import Bboxtree
+from bboxtree import Bboxtree, unescape_utf8
 
 # from scanner.options import Options
 import gi
@@ -310,44 +310,41 @@ class DocThread(BaseThread):
 
             # Extract images from DjVu
             if args["last"] >= args["first"] and args["first"] > 0:
-                for i in range(args["first"], last + 1):
-                    self.progress = (i - 1) / (last - args["first"] + 1)
-                    self.message = _("Importing page %i of %i") % (
-                        i,
-                        last - args["first"] + 1,
-                    )
+                for i in range(args["first"], args["last"] + 1):
+                    self.progress = (i - 1) / (args["last"] - args["first"] + 1)
+                    # self.message = _("Importing page %i of %i") % (
+                    #     i,
+                    #     args["last"] - args["first"] + 1,
+                    # )
                     tif, txt, ann, error = None, None, None, None
                     try:
                         tif = tempfile.NamedTemporaryFile(
                             dir=args["dir"], suffix=".tif", delete=False
                         )
-                        exec_command(
+                        subprocess.run(
                             [
                                 "ddjvu",
                                 "-format=tiff",
                                 f"-page={i}",
-                                info["path"],
-                                tif,
-                            ],
-                            args["pidfile"],
+                                args["info"]["path"],
+                                tif.name,
+                            ], check=True
                         )
-                        (_, txt) = exec_command(
+                        txt = subprocess.check_output(
                             [
                                 "djvused",
-                                info["path"],
+                                args["info"]["path"],
                                 "-e",
                                 f"select {i}; print-txt",
-                            ],
-                            args["pidfile"],
+                            ],text=True
                         )
-                        (_, ann) = exec_command(
+                        ann = subprocess.check_output(
                             [
                                 "djvused",
-                                info["path"],
+                                args["info"]["path"],
                                 "-e",
                                 f"select {i}; print-ant",
-                            ],
-                            args["pidfile"],
+                            ],text=True
                         )
 
                     except:
@@ -373,17 +370,16 @@ class DocThread(BaseThread):
 
                         error = True
 
-                    if _self["cancel"] or error:
+                    if self.cancel or error:
                         return
                     page = Page(
-                        filename=tif,
-                        dir=options["dir"],
+                        filename=tif.name,
+                        dir=args["dir"],
                         delete=True,
                         format="Tagged Image File Format",
-                        xresolution=info["ppi"][i - 1],
-                        yresolution=info["ppi"][i - 1],
-                        width=info["width"][i - 1],
-                        height=info["height"][i - 1],
+                        resolution=(args["info"]["ppi"][i - 1],args["info"]["ppi"][i - 1],"PixelsPerInch"),
+                        width=args["info"]["width"][i - 1],
+                        height=args["info"]["height"][i - 1],
                     )
                     try:
                         page.import_djvu_txt(txt)
@@ -392,8 +388,8 @@ class DocThread(BaseThread):
                         logger.error(f"Caught error parsing DjVU text layer: {_}")
                         _thread_throw_error(
                             self,
-                            options["uuid"],
-                            options["page"]["uuid"],
+                            args["uuid"],
+                            args["page"]["uuid"],
                             "Open file",
                             "Error: parsing DjVU text layer",
                         )
@@ -411,9 +407,7 @@ class DocThread(BaseThread):
                             "Error: parsing DjVU annotation layer",
                         )
 
-                    self.return_queue.enqueue(
-                        {"type": "page", "uuid": options["uuid"], "page": page}
-                    )
+                    request.log(page)
 
         elif args["info"]["format"] == "Portable Document Format":
             self._thread_import_pdf(request)
@@ -4575,9 +4569,9 @@ def _extract_metadata(info):
             )
             and info[key] != "NONE"
         ):
-            metadata[key] = info[key]
+            metadata[key] = unescape_utf8(info[key])
 
-    if info["datetime"]:
+    if "datetime" in info:
         if info["format"] == "Portable Document Format":
             regex = re.search(
                 r"^(.{19})((?:[+-]\d+)|Z)?$",
@@ -4610,21 +4604,7 @@ def _extract_metadata(info):
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             if regex:
-                metadata["datetime"] = [
-                    int(
-                        regex.group(1),
-                        int(
-                            regex.group(2),
-                            int(
-                                regex.group(3),
-                                int(
-                                    regex.group(4),
-                                    int(regex.group(5), int(regex.group(6))),
-                                ),
-                            ),
-                        ),
-                    )
-                ]
+                metadata["datetime"] = [int(regex.group(x)) for x in range(1,7)]
                 metadata["tz"] = [
                     None,
                     None,
@@ -4735,12 +4715,6 @@ def slurp(file):
             raise f"Error: cannot close {file}\n"
 
     return text
-
-
-def unescape_utf8(text):
-
-    if text is not None:
-        return codecs.escape_decode(text)[0].decode("utf-8")
 
 
 def exec_command(cmd, pidfile=None):
@@ -5080,12 +5054,12 @@ def _add_metadata_to_info(info, string, regex):
         "Author": "author",
         "CreationDate": "datetime",
     }
-    for (key, value) in kw_lookup.items():
-        regex = re.search(
+    for key, value in kw_lookup.items():
+        match = re.search(
             fr"{key}{regex}", string, re.MULTILINE | re.DOTALL | re.VERBOSE
         )
-        if regex:
-            info[value] = regex.group(1)
+        if match:
+            info[value] = match.group(1)
 
 
 def font_can_char(font, chars):
