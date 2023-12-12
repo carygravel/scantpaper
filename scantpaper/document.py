@@ -1591,8 +1591,10 @@ class Document(SimpleList):
             # "pidfile": f"{pidfile}",
             # # "uuid": uid,
             options["passwords"][i] if i < len(options["passwords"]) else None,
+            queued_callback=options["queued_callback"] if "queued_callback" in options else None,
             started_callback=options["started_callback"] if "started_callback" in options else None,
             running_callback=options["running_callback"] if "running_callback" in options else None,
+            error_callback=options["error_callback"] if "error_callback" in options else None,
             finished_callback=_select_next_finished_callback,
         )
 
