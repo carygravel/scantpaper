@@ -209,7 +209,6 @@ class Page:
         image_format = image.format
         units = "PixelsPerInch"
         if re.search(r"^P.M$", image_format, re.MULTILINE | re.DOTALL | re.VERBOSE):
-
             # Return the first match based on the format
             for value in self.matching_paper_sizes(paper_sizes).values():
                 xresolution = value
@@ -223,7 +222,7 @@ class Page:
 
         xresolution, yresolution = 72, 72
         for key in ["dpi", "aspect", "jfif_density"]:
-            if key in image.info:
+            if key in image.info and image.info[key][0] > 0:
                 xresolution, yresolution = image.info[key]
 
         if "jfif_unit" in image.info and image.info["jfif_unit"] == 2:

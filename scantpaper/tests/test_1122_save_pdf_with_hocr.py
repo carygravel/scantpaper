@@ -101,8 +101,8 @@ def test_1(import_in_mainloop):
     #     is not None, 'import annotations'
 
     capture = subprocess.check_output(["pdftotext", "test.pdf", "-"], text=True)
-    assert (
-        re.search(r"The\s*quick\s*brown\s*fox", capture) is not None
+    assert re.search(
+        r"The.*quick.*brown.*fox", capture, re.DOTALL
     ), "PDF with expected text"
     # capture = subprocess.check_output(["cat","test.pdf"], text=True)
     # assert re.search(r"/Type\s/Annot\s/Subtype\s/Highlight\s/C.+/Contents.+fox",

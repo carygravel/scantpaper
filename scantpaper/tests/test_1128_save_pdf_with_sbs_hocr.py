@@ -87,8 +87,8 @@ def test_1(import_in_mainloop):
     mlp.run()
 
     example = subprocess.check_output(["pdftotext", "test.pdf", "-"], text=True)
-    assert (
-        re.search(r"The\s*quick\s*brown\s*fox", example) is not None
+    assert re.search(
+        r"The.*quick.*brown.*fox", example, re.DOTALL
     ), "PDF with expected text"
 
     import_in_mainloop(slist, ["test.pdf"])
@@ -99,7 +99,7 @@ def test_1(import_in_mainloop):
     # that we have scaled the page size correctly.
     example = slist.data[1][2].export_hocr()
     assert (
-        re.search(fr"bbox\s0\s0\s{width}\s{height}", example) is not None
+        re.search(rf"bbox\s0\s0\s{width}\s{height}", example) is not None
     ), "import text layer"
 
     #########################

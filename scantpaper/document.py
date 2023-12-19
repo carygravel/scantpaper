@@ -276,7 +276,7 @@ class DocThread(BaseThread):
             for w, h in regex:
                 width.append(int(w))
                 height.append(int(h))
-                request.log(f"Page {len(width)} is {width[-1]}x{height[-1]}")
+                request.data(f"Page {len(width)} is {width[-1]}x{height[-1]}")
 
             info["width"] = width
             info["height"] = height
@@ -385,14 +385,7 @@ class DocThread(BaseThread):
                         page.import_djvu_txt(txt)
 
                     except:
-                        logger.error(f"Caught error parsing DjVU text layer: {_}")
-                        _thread_throw_error(
-                            self,
-                            args["uuid"],
-                            args["page"]["uuid"],
-                            "Open file",
-                            "Error: parsing DjVU text layer",
-                        )
+                        request.data(None, f"Caught error parsing DjVU text layer: {_}")
 
                     try:
                         page.import_djvu_ann(ann)
@@ -407,7 +400,7 @@ class DocThread(BaseThread):
                             "Error: parsing DjVU annotation layer",
                         )
 
-                    request.log(page)
+                    request.data(page)
 
         elif args["info"]["format"] == "Portable Document Format":
             self._thread_import_pdf(request)
@@ -425,7 +418,7 @@ class DocThread(BaseThread):
                     width=args["info"]["width"][0],
                     height=args["info"]["height"][0],
                 )
-                request.log(page.to_png(paper_sizes))
+                request.data(page.to_png(paper_sizes))
 
             # Split the tiff into its pages and import them individually
             elif args["last"] >= options["first"] and options["first"] > 0:
@@ -526,7 +519,7 @@ class DocThread(BaseThread):
                 width=args["info"]["width"][0],
                 height=args["info"]["height"][0],
             )
-            request.log(page)
+            request.data(page)
 
     def get_file_info(self, path, password, **kwargs):
         "get file info"
@@ -1056,7 +1049,7 @@ class DocThread(BaseThread):
                         )
                         with open(html.name, 'r') as fd:
                             page.import_pdftotext(fd.read())
-                        request.log(page.to_png(paper_sizes))
+                        request.data(page.to_png(paper_sizes))
 
                     except:
                         logger.error(f"Caught error importing PDF: {_}")
@@ -1692,8 +1685,12 @@ class Document(SimpleList):
         if self.dir is not None:
             dirname = self.dir
 
-        def _import_file_new_page_callback(result):
-            self.add_page(None, result.info, None)
+        def _import_file_data_callback(result):
+            try:
+                self.add_page(None, result.info, None)
+            except AttributeError:
+                if "logger_callback" in options:
+                    options["logger_callback"](None, "import-file", result.status)
 
         def _import_file_finished_callback(result):
             if "finished_callback" in options:
@@ -1706,7 +1703,7 @@ class Document(SimpleList):
             last= last,
             dir= dirname,
             pidfile= pidfile,
-            logged_callback = _import_file_new_page_callback,
+            data_callback = _import_file_data_callback,
             finished_callback = _import_file_finished_callback,
         )
 
@@ -5281,7 +5278,7 @@ def get_tmp_dir(directory, pattern):
 
 def _note_callbacks2(kwargs):
     callbacks = {}
-    for callback in [            "queued",            "started",            "running","logged",            "finished",            "error",  "mark_saved"       ]:
+    for callback in [            "queued",            "started",            "running","data",            "finished",            "error",  "mark_saved"       ]:
         name = callback+  "_callback"
         if name in kwargs:
             callbacks[name] = kwargs[name]
