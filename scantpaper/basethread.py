@@ -8,7 +8,7 @@ import logging
 from gi.repository import GLib
 
 Response = collections.namedtuple("Response", ["type", "request", "info", "status"])
-ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "LOG"]
+ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "DATA"]
 ResponseType = Enum("ResponseType", ResponseTypes)
 
 logger = logging.getLogger(__name__)
@@ -51,9 +51,9 @@ class Request:
         "error notification"
         self.put(info, ResponseType.ERROR, status)
 
-    def log(self, info, status=None):
-        "logger for basethread"
-        self.put(info, ResponseType.LOG, status)
+    def data(self, info, status=None):
+        "pass data back to main thread"
+        self.put(info, ResponseType.DATA, status)
 
 
 class BaseThread(threading.Thread):
@@ -70,7 +70,7 @@ class BaseThread(threading.Thread):
             "queued": set(),
             "started": set(),
             "running": set(),
-            "logged": set(),
+            "data": set(),
             "finished": set(),
             "error": set(),
         }
@@ -78,7 +78,7 @@ class BaseThread(threading.Thread):
             "queued": set(),
             "started": set(),
             "running": set(),
-            "logged": set(),
+            "data": set(),
             "finished": set(),
             "error": set(),
         }
@@ -105,7 +105,7 @@ class BaseThread(threading.Thread):
         queued_callback=None,
         started_callback=None,
         running_callback=None,
-        logged_callback=None,
+        data_callback=None,
         finished_callback=None,
         error_callback=None,
         **kwargs,
@@ -117,7 +117,7 @@ class BaseThread(threading.Thread):
             "started_callback": started_callback,
             "started": False,
             "running_callback": running_callback,
-            "logged_callback": logged_callback,
+            "data_callback": data_callback,
             "finished_callback": finished_callback,
             "error_callback": error_callback,
         }
@@ -186,18 +186,16 @@ class BaseThread(threading.Thread):
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
         stage = ResponseTypes[result.type.value - 1].lower()
-        if stage == "log":
-            stage = "logged"
         callback = stage + "_callback"
         self._run_callbacks(stage, result)
         uid = result.request.uuid
         if uid in self.callbacks:
-            if callback in ["queued_callback", "started_callback", "logged_callback"]:
-                if callback in self.callbacks[uid]:
+            if callback in ["queued_callback", "started_callback", "data_callback"]:
+                if callback in self.callbacks[uid] and callback != "data_callback":
                     del self.callbacks[uid][callback]
                 if callback == "started_callback":
                     self.callbacks[uid]["started"] = True
-                elif callback == "logged_callback":
+                elif callback == "data_callback":
                     logger.info(
                         "process %s sent '%s'", result.request.process, result.info
                     )

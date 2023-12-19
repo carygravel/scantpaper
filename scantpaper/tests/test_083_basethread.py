@@ -10,7 +10,7 @@ class MyThread(BaseThread):
     def do_div(self, request):  # pylint: disable=no-self-use
         "test method"
         arg1, arg2 = request.args
-        request.log("arg1 / arg2")
+        request.data("arg1 / arg2")
         return arg1 / arg2
 
     def callback(self, response=None):
@@ -30,7 +30,7 @@ EXPECTED = [
     Response(type=ResponseType.QUEUED, request="", info=None, status=None),
     Response(type=ResponseType.STARTED, request="", info=None, status=None),
     None,  # running
-    Response(type=ResponseType.LOG, request="", info="arg1 / arg2", status=None),
+    Response(type=ResponseType.DATA, request="", info="arg1 / arg2", status=None),
     None,  # running
     Response(type=ResponseType.FINISHED, request="", info=0.5, status=None),
     Response(
@@ -62,7 +62,7 @@ def test_1():
         queued_callback=thread.callback,
         started_callback=thread.callback,
         running_callback=thread.callback,
-        logged_callback=thread.callback,
+        data_callback=thread.callback,
         finished_callback=thread.callback,
     )
     # FIXME: implement GLib.MainLoop() as per test 103
@@ -70,7 +70,7 @@ def test_1():
     assert thread.response_counter == 1, "checked all expected responses #1"
     thread.monitor(block=True)  # for started_callback
     assert thread.response_counter == 2, "checked all expected responses #2"
-    thread.monitor(block=True)  # for logged_callback
+    thread.monitor(block=True)  # for data_callback
     assert thread.response_counter == 4, "checked all expected responses #3"
     thread.monitor(block=True)  # for finished_callback
     assert thread.response_counter == 6, "checked all expected responses #3"
