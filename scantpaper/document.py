@@ -421,70 +421,52 @@ class DocThread(BaseThread):
                 request.data(page)
 
             # Split the tiff into its pages and import them individually
-            elif args["last"] >= options["first"] and options["first"] > 0:
-                for i in range(options["first"] - 1, args["last"] - 1 + 1):
-                    self.progress = i / (args["last"] - options["first"] + 1)
+            elif args["last"] >= args["first"] and args["first"] > 0:
+                for i in range(args["first"] - 1, args["last"] - 1 + 1):
+                    self.progress = i / (args["last"] - args["first"] + 1)
                     self.message = _("Importing page %i of %i") % (
                         i,
-                        args["last"] - options["first"] + 1,
+                        args["last"] - args["first"] + 1,
                     )
                     (tif, error) = (None, None)
                     try:
                         tif = tempfile.NamedTemporaryFile(
-                            dir=options["dir"], suffix=".tif", delete=False
+                            dir=args["dir"], suffix=".tif", delete=False
                         )
-                        (status, out, err) = exec_command(
-                            ["tiffcp", f"{options}{info}{path},{i}", tif],
-                            options["pidfile"],
-                        )
-                        if (err is not None) and err != EMPTY:
-                            logger.error(
-                                f"Caught error extracting page {i} from {options}{info}{path}: {err}"
-                            )
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Caught error extracting page {i} from {options}{info}{path}: {err}",
-                            )
-
                     except:
-                        if tif is not None:
-                            logger.error(f"Caught error creating {tif}: {_}")
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Error: unable to write to {tif}.",
-                            )
+                        logger.error(f"Caught error creating {tif}: {_}")
+                        _thread_throw_error(
+                            self,
+                            options["uuid"],
+                            options["page"]["uuid"],
+                            "Open file",
+                            f"Error: unable to write to {tif}.",
+                        )
+                    try:
+                        subprocess.run(["tiffcp", f"{args['info']['path']},{i}", tif.name], check=True)
+                    except:
+                        logger.error(
+                            f"Caught error extracting page {i} from {args['info']['path']}: {err}"
+                        )
+                        _thread_throw_error(
+                            self,
+                            args["uuid"],
+                            args["page"]["uuid"],
+                            "Open file",
+                            f"Caught error extracting page {i} from {args['info']['path']}: {err}",
+                        )
 
-                        else:
-                            logger.error(f"Caught error writing to {options}{dir}: {_}")
-                            _thread_throw_error(
-                                self,
-                                options["uuid"],
-                                options["page"]["uuid"],
-                                "Open file",
-                                f"Error: unable to write to {options}{dir}.",
-                            )
-
-                        error = True
-
-                    if _self["cancel"] or error:
+                    if self.cancel:
                         return
                     page = Page(
-                        filename=tif,
-                        dir=options["dir"],
+                        filename=tif.name,
+                        dir=args["dir"],
                         delete=True,
-                        format=info["format"],
-                        width=info["width"][i - 1],
-                        height=info["height"][i - 1],
+                        format=args["info"]["format"],
+                        width=args["info"]["width"][i - 1],
+                        height=args["info"]["height"][i - 1],
                     )
-                    self.return_queue.enqueue(
-                        {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
-                    )
+                    request.data(page)
 
         elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
             try:
