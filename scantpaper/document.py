@@ -1675,7 +1675,7 @@ class Document(SimpleList):
 
             options["mark_saved_callback"] = mark_saved_callback
 
-    def import_file(self, password=None, first=1, last=1, **options):
+    def import_file(self, password=None, **options):
         # File in which to store the process ID
         # so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -1699,8 +1699,8 @@ class Document(SimpleList):
         uid = self.thread.import_file(
             info= options["info"],
             password= password,
-            first= first,
-            last= last,
+            first= options["first_page"],
+            last= options["last_page"],
             dir= dirname,
             pidfile= pidfile,
             data_callback = _import_file_data_callback,
