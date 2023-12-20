@@ -1044,11 +1044,11 @@ class DocThread(BaseThread):
                         )
 
             if warning_flag:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Open file",
+                request.data(
+                    None,
+#                    request.uuid,
+#                    args["page"]["uuid"],
+#                    "Open file",
                     _(
                         """Warning: gscan2pdf expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.
 
