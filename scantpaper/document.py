@@ -203,28 +203,27 @@ class DocThread(BaseThread):
             fformat = "Portable Document Format"
             args = ["pdfinfo", "-isodates", path]
             if password is not None:
-                args = [
-                    "pdfinfo",
-                    "-isodates",
-                    "-upw",
-                    password,
-                    path,
-                ]
+                args.insert(2, "-upw")
+                args.insert(3, password)
 
-            _, stdout, stderr = exec_command(args)
+            process = subprocess.run(args, capture_output=True, text=True)
             if self.cancel:
                 return
-            logger.info(f"stdout: {stdout}")
-            logger.info(f"stderr: {stderr}")
-            if (stderr is not None) and re.search(
-                r"Incorrect[ ]password", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ):
-                info["encrypted"] = True
+            if process.returncode != 0:
+                logger.info(f"stdout: {process.stdout}")
+                logger.info(f"stderr: {process.stderr}")
+                if (process.stderr is not None) and re.search(
+                    r"Incorrect[ ]password", process.stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
+                ):
+                    info["encrypted"] = True
+                else:
+                    request.error(process.stderr)
+                    return
 
             else:
                 info["pages"] = 1
                 regex = re.search(
-                    r"Pages:\s+(\d+)", stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
+                    r"Pages:\s+(\d+)", process.stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
                 )
                 if regex:
                     info["pages"] = int(regex.group(1))
@@ -233,7 +232,7 @@ class DocThread(BaseThread):
                 floatr = r"\d+(?:[.]\d*)?"
                 regex = re.search(
                     fr"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
-                    stdout,
+                    process.stdout,
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
                 if regex:
@@ -247,7 +246,7 @@ class DocThread(BaseThread):
                     )
 
                 # extract the metadata from the file
-                _add_metadata_to_info(info, stdout, r":\s+([^\n]+)")
+                _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
 
         elif re.search(r"^TIFF[ ]image[ ]data", fformat):
             fformat = "Tagged Image File Format"
@@ -955,11 +954,11 @@ class DocThread(BaseThread):
             for i in range(args["first"], args["last"] + 1):
                 cmd = ["pdfimages", "-f", str(i), "-l", str(i), "-list", args["info"]["path"]]
                 if args["password"] is not None:
-                    del (cmd[1], args["password"])
                     cmd.insert(1, "-upw")
+                    cmd.insert(2, args["password"])
 
-                spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
-                for line in re.split(r"\n", spo.stdout):
+                out = subprocess.check_output(cmd,text=True)
+                for line in re.split(r"\n", out):
                     xresolution, yresolution = line[70:75], line[76:81]
                     if re.search(
                         r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE
@@ -969,13 +968,12 @@ class DocThread(BaseThread):
 
                 cmd = ["pdfimages", "-f", str(i), "-l", str(i), args["info"]["path"], "x"]
                 if args["password"] is not None:
-                    del (cmd[1], args["password"])
                     cmd.insert(1, "-upw")
+                    cmd.insert(2, args["password"])
 
-                spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
-                # if _self["cancel"]:
-                #     return
-                if spo.returncode != 0:
+                try:
+                    subprocess.run(cmd,check=True)
+                except:
                     _thread_throw_error(
                         self,
                         options["uuid"],
@@ -983,6 +981,8 @@ class DocThread(BaseThread):
                         "Open file",
                         _("Error extracting images from PDF"),
                     )
+                if self.cancel:
+                    return
 
                 html = tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".html")
                 cmd = [
@@ -996,12 +996,12 @@ class DocThread(BaseThread):
                     html.name,
                 ]
                 if args["password"] is not None:
-                    cmd.insert(1, args["password"])
                     cmd.insert(1, "-upw")
+                    cmd.insert(2, args["password"])
 
                 spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
-                # if _self["cancel"]:
-                #     return
+                if self.cancel:
+                    return
                 if spo.returncode != 0:
                     _thread_throw_error(
                         self,
@@ -1550,7 +1550,7 @@ class Document(SimpleList):
 
         def _select_next_finished_callback(response):
             if "encrypted" in response.info and response.info["encrypted"] and "password_callback" in options:
-                options["passwords"][i] = options["password_callback"](path)
+                options["passwords"].append( options["password_callback"](path))
                 if (options["passwords"][i] is not None) and options["passwords"][
                     i
                 ] != EMPTY:
