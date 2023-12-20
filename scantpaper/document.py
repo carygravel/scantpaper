@@ -418,7 +418,7 @@ class DocThread(BaseThread):
                     width=args["info"]["width"][0],
                     height=args["info"]["height"][0],
                 )
-                request.data(page.to_png(paper_sizes))
+                request.data(page)
 
             # Split the tiff into its pages and import them individually
             elif args["last"] >= options["first"] and options["first"] > 0:
