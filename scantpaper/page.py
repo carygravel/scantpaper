@@ -157,10 +157,12 @@ class Page:
 
     def to_png(self, page_sizes=None):
         "Convert the image format to PNG"
+        image = self.im_object()
+        if image.format == "PNG":
+            return self
         png = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
             dir=self.dir, suffix=".png", delete=False
         ).name
-        image = self.im_object()
         image.save(png)
         new = Page(
             filename=png,

@@ -500,7 +500,7 @@ class DocThread(BaseThread):
                 width=args["info"]["width"][0],
                 height=args["info"]["height"][0],
             )
-            request.data(page)
+            request.data(page.to_png(paper_sizes))
 
     def get_file_info(self, path, password, **kwargs):
         "get file info"
