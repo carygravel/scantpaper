@@ -1341,7 +1341,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         _post_save_hook(options["path"], options["options"])
 
     def do_cancel(self, _request):
-        pass
+        self.cancel = False
 
 
 class Document(SimpleList):
@@ -1474,7 +1474,7 @@ class Document(SimpleList):
 
     def cancel(self, cancel_callback, process_callback=None):
         "Kill all running processes"
-        with self.thread.lock:
+        with self.thread.lock:# FIXME: move most of this to basethread.py
 
             # Empty process queue first to stop any new process from starting
             logger.info("Emptying process queue")
