@@ -103,7 +103,7 @@ ISODATE_REGEX = r"(\d{4})-(\d\d)-(\d\d)"
 TIME_REGEX = r"(\d\d):(\d\d):(\d\d)"
 TZ_REGEX = r"([+-]\d\d):(\d\d)"
 PNG = r"Portable[ ]Network[ ]Graphics"
-JPG = r"Joint[ ]Photographic[ ]Experts[ ]Group[ ]JFIF[ ]format"
+JPG = r"JPEG"
 GIF = r"CompuServe[ ]graphics[ ]interchange[ ]format"
 _self, paper_sizes, callback = None, None, {}
 
@@ -470,17 +470,14 @@ class DocThread(BaseThread):
         elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
             try:
                 page = Page(
-                    filename=info["path"],
-                    dir=dirname,
-                    format=info["format"],
-                    width=info["width"],
-                    height=info["height"],
-                    xresolution=info["xresolution"],
-                    yresolution=info["yresolution"],
+                    filename=args["info"]["path"],
+                    dir=args["dir"],
+                    format=args["info"]["format"],
+                    width=args["info"]["width"][0],
+                    height=args["info"]["height"][0],
+                    resolution=(args["info"]["xresolution"],args["info"]["yresolution"],"PixelsPerInch")
                 )
-                self.return_queue.enqueue(
-                    {"type": "page", "uuid": options["uuid"], "page": page.freeze()}
-                )
+                request.data(page)
 
             except:
                 logger.error(f"Caught error writing to {options}{dir}: {_}")
@@ -1340,8 +1337,50 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
         _post_save_hook(options["path"], options["options"])
 
+    def rotate(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("rotate", kwargs, **callbacks)
+
+    def do_rotate(self, request):
+        options = request.args[0]
+        angle, page, uuid, dir = options['angle'], options["page"], options["uuid"], options["dir"]
+
+        if self._page_gone("rotate", uuid, page):
+            return
+        filename = page.filename
+        logger.info(f"Rotating {filename} by {angle} degrees")
+        image = page.im_object().rotate(angle)
+
+        if self.cancel:
+            return
+        regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
+        if regex:
+            suffix = regex.group(1)
+
+        fnm = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
+            dir=dir, suffix=suffix, delete=False
+        )
+        image.save(fnm.name)
+
+        if self.cancel:
+            return
+        page.filename = fnm.name
+        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.saved = False
+        if angle == _90_DEGREES or angle == _270_DEGREES:
+            page.width, page.height = page.height, page.width
+            page.resolution = (page.resolution[1], page.resolution[0], page.resolution[2])
+        return page
+
     def do_cancel(self, _request):
         self.cancel = False
+
+    def _page_gone(self, process, uuid, page):
+        if not os.path.isfile(page.filename):  # in case file was deleted after process started
+            e = f"Page for process {uuid} no longer exists. Cannot {process}."
+            logger.error(e)
+            _thread_throw_error(self, uuid, page["uuid"], process, e)
+            return True
 
 
 class Document(SimpleList):
@@ -1412,6 +1451,7 @@ class Document(SimpleList):
         )
         self.thread = DocThread()
         self.thread.register_callback("mark_saved", "before", "finished")
+        self.thread.register_callback("display", "before", "finished")
         self.thread.start()
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
@@ -2356,7 +2396,6 @@ class Document(SimpleList):
     def save_tiff(self, **options):
 
         # File in which to store the process ID so that it can be killed if necessary
-
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
@@ -2376,21 +2415,22 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def rotate(self, options):
-
+    def rotate(self, **options):
+        pidfile = self.create_pidfile(options)
+        if pidfile is None:
+            return
+        options["mark_saved"] = True
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "rotate",
-            {
-                "angle": options["angle"],
-                "page": options["page"],
-                "dir": f"{self}->{dir}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.rotate(
+            angle=options["angle"],
+            page=options["page"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def save_image(self, **options):
@@ -3361,89 +3401,6 @@ class Document(SimpleList):
 
         return True
 
-    def _thread_no_filename(self, process, uuid, page):
-
-        if "filename" not in page:  # in case file was deleted after process started
-            e = f"Page for process {uuid} no longer exists. Cannot {process}."
-            logger.error(e)
-            _thread_throw_error(self, uuid, page["uuid"], process, e)
-            return True
-
-    def _thread_rotate(self, angle, page, dir, uuid):
-
-        if _thread_no_filename(self, "rotate", uuid, page):
-            return
-        filename = page["filename"]
-        logger.info(f"Rotating {filename} by {angle} degrees")
-
-        # Rotate with imagemagick
-
-        image = PythonMagick.Image()
-        e = image.Read(filename)
-        if _self["cancel"]:
-            return
-        if f"{e}":
-            logger.warn(e)
-
-        # workaround for those versions of imagemagick that produce 16bit output
-        # with rotate
-
-        depth = image.Get("depth")
-        e = image.Rotate(angle)
-        if f"{e}":
-            logger.error(e)
-            _thread_throw_error(self, uuid, page["uuid"], "Rotate", e)
-            return
-
-        if _self["cancel"]:
-            return
-        (suffix, error) = (None, None)
-        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            suffix = regex.group(1)
-
-        try:
-            filename = tempfile.NamedTemporaryFile(
-                dir=dir, suffix=f".{suffix}", delete=False
-            )
-            e = image.Write(filename=filename, depth=depth)
-
-        except:
-            logger.error(f"Error rotating: {_}")
-            _thread_throw_error(self, uuid, page["uuid"], "Rotate", _)
-            error = True
-
-        if error:
-            return
-        if _self["cancel"]:
-            return
-        if f"{e}":
-            logger.warn(e)
-        page["filename"] = filename.filename()
-        page["dirty_time"] = timestamp()  # flag as dirty
-        if angle == _90_DEGREES or angle == _270_DEGREES:
-            (page["width"], page["height"]) = (page["height"], page["width"])
-            (page["xresolution"], page["yresolution"]) = (
-                page["yresolution"],
-                page["xresolution"],
-            )
-
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": uuid,
-                "page": page,
-                "info": {"replace": page["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "rotate",
-                "uuid": uuid,
-            }
-        )
-
     def _thread_analyse(self, list_of_pages, uuid):
 
         i = 1
@@ -3513,7 +3470,7 @@ class Document(SimpleList):
 
     def _thread_threshold(self, threshold, page, dir, uuid):
 
-        if _thread_no_filename(self, "threshold", uuid, page):
+        if _page_gone(self, "threshold", uuid, page):
             return
         filename = page["filename"]
         image = PythonMagick.Image()
@@ -3571,7 +3528,7 @@ class Document(SimpleList):
 
     def _thread_brightness_contrast(self, options):
 
-        if _thread_no_filename(
+        if _page_gone(
             self, "brightness-contrast", options["uuid"], options["page"]
         ):
             return
@@ -3652,7 +3609,7 @@ class Document(SimpleList):
 
     def _thread_negate(self, page, dir, uuid):
 
-        if _thread_no_filename(self, "negate", uuid, page):
+        if _page_gone(self, "negate", uuid, page):
             return
         filename = page["filename"]
         image = PythonMagick.Image()
@@ -3719,7 +3676,7 @@ class Document(SimpleList):
 
     def _thread_unsharp(self, options):
 
-        if _thread_no_filename(self, "unsharp", options["uuid"], options["page"]):
+        if _page_gone(self, "unsharp", options["uuid"], options["page"]):
             return
 
         filename = options["page"]["filename"]
@@ -3823,7 +3780,7 @@ class Document(SimpleList):
 
     def _thread_crop(self, options):
 
-        if _thread_no_filename(self, "crop", options["uuid"], options["page"]):
+        if _page_gone(self, "crop", options["uuid"], options["page"]):
             return
 
         filename = options["page"]["filename"]
@@ -3909,7 +3866,7 @@ class Document(SimpleList):
 
     def _thread_split(self, options):
 
-        if _thread_no_filename(self, "split", options["uuid"], options["page"]):
+        if _page_gone(self, "split", options["uuid"], options["page"]):
             return
 
         filename = options["page"]["filename"]
@@ -4048,7 +4005,7 @@ class Document(SimpleList):
 
     def _thread_to_png(self, page, dir, uuid):
 
-        if _thread_no_filename(self, "to_png", uuid, page):
+        if _page_gone(self, "to_png", uuid, page):
             return
         (new, error) = (None, None)
         try:
@@ -4083,7 +4040,7 @@ class Document(SimpleList):
 
     def _thread_tesseract(self, options):
 
-        if _thread_no_filename(self, "tesseract", options["uuid"], options["page"]):
+        if _page_gone(self, "tesseract", options["uuid"], options["page"]):
             return
 
         (error, stdout, stderr) = (None, None, None)
@@ -4136,7 +4093,7 @@ class Document(SimpleList):
 
     def _thread_cuneiform(self, options):
 
-        if _thread_no_filename(self, "cuneiform", options["uuid"], options["page"]):
+        if _page_gone(self, "cuneiform", options["uuid"], options["page"]):
             return
 
         options["page"].import_hocr(
@@ -4172,7 +4129,7 @@ class Document(SimpleList):
 
     def _thread_unpaper(self, options):
 
-        if _thread_no_filename(self, "unpaper", options["uuid"], options["page"]):
+        if _page_gone(self, "unpaper", options["uuid"], options["page"]):
             return
 
         filename = options["page"]["filename"]
@@ -4342,7 +4299,7 @@ class Document(SimpleList):
 
     def _thread_user_defined(self, options):
 
-        if _thread_no_filename(self, "user-defined", options["uuid"], options["page"]):
+        if _page_gone(self, "user-defined", options["uuid"], options["page"]):
             return
 
         infile = options["page"]["filename"]
@@ -5260,7 +5217,12 @@ def get_tmp_dir(directory, pattern):
 
 def _note_callbacks2(kwargs):
     callbacks = {}
-    for callback in [            "queued",            "started",            "running","data",            "finished",            "error",  "mark_saved"       ]:
+    for callback in [
+        "queued",
+        "started",
+        "running",
+        "data",
+        "finished",            "error",  "mark_saved", "display"       ]:
         name = callback+  "_callback"
         if name in kwargs:
             callbacks[name] = kwargs[name]
