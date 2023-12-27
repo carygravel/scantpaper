@@ -21,6 +21,7 @@ from pathlib import Path
 import img2pdf
 img2pdf.default_dpi = 72.0
 import ocrmypdf
+from PIL import ImageStat
 from basethread import BaseThread, Response, ResponseType
 from const import POINTS_PER_INCH, ANNOTATION_COLOR
 from bboxtree import Bboxtree, unescape_utf8
@@ -105,7 +106,7 @@ TZ_REGEX = r"([+-]\d\d):(\d\d)"
 PNG = r"Portable[ ]Network[ ]Graphics"
 JPG = r"JPEG"
 GIF = r"CompuServe[ ]graphics[ ]interchange[ ]format"
-_self, paper_sizes, callback = None, None, {}
+_self, callback = None, {}
 
 image_format = {
     "pnm": "Portable anymap",
@@ -121,6 +122,7 @@ class DocThread(BaseThread):
     "subclass basethread for document"
 
     cancel = False
+    paper_sizes = {}
 
     def __init__(self):
         BaseThread.__init__(self)
@@ -497,7 +499,7 @@ class DocThread(BaseThread):
                 width=args["info"]["width"][0],
                 height=args["info"]["height"][0],
             )
-            request.data(page.to_png(paper_sizes))
+            request.data(page.to_png(self.paper_sizes))
 
     def get_file_info(self, path, password, **kwargs):
         "get file info"
@@ -1028,7 +1030,7 @@ class DocThread(BaseThread):
                         )
                         with open(html.name, 'r') as fd:
                             page.import_pdftotext(fd.read())
-                        request.data(page.to_png(paper_sizes))
+                        request.data(page.to_png(self.paper_sizes))
 
                     except:
                         logger.error(f"Caught error importing PDF: {_}")
@@ -1382,6 +1384,174 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             _thread_throw_error(self, uuid, page["uuid"], process, e)
             return True
 
+    def set_paper_sizes(self, paper_sizes):
+        self.paper_sizes = paper_sizes
+        return self.send("paper_sizes", paper_sizes)
+
+    def do_set_paper_sizes(self, request):
+        paper_sizes = request.args[0]
+        self.paper_sizes = paper_sizes
+
+    def user_defined(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("user_defined", kwargs, **callbacks)
+
+    def do_user_defined(self, request):
+        options = request.args[0]
+
+        if self._page_gone( "user-defined", options["uuid"], options["page"]):
+            return
+
+        infile = options["page"].filename
+        suffix = None
+        regex = re.search(r"([.]\w*)$", infile, re.MULTILINE | re.DOTALL | re.VERBOSE)
+        if regex:
+            suffix = regex.group(1)
+
+        try:
+            out = tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=suffix, delete=False
+            )
+            options["command"] = re.sub(
+                r"%o",
+                out.name,
+                options["command"],
+                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            if options["command"]:
+                options["command"] = re.sub(
+                    r"%i",
+                    infile,
+                    options["command"],
+                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
+
+            else:
+                if not shutil.copy2(infile, out):
+                    _thread_throw_error(
+                        self,
+                        options["uuid"],
+                        options["page"]["uuid"],
+                        "user-defined",
+                        _("Error copying page"),
+                    )
+                    return
+
+                options["command"] = re.sub(
+                    r"%i",
+                    out,
+                    options["command"],
+                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
+
+            options["command"] = re.sub(
+                r"%r",
+                fr"{options['page'].resolution[0]}",
+                options["command"],
+                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            (_, info, error) = exec_command([options["command"]], options["pidfile"])
+            if self.cancel:
+                return
+            logger.info(f"stdout: {info}")
+            logger.info(f"stderr: {error}")
+
+            # don't return in here, just in case we can ignore the error -
+            # e.g. theming errors from gimp
+            if error != EMPTY:
+                request.error(
+                    options["uuid"],
+                    options["page"].uuid,
+                    "user-defined",
+                    error,
+                )
+
+            # Get file type
+            image = PythonMagick.Image()
+            e = image.Read(out)
+            if f"{e}":
+                logger.error(e)
+                _thread_throw_error(
+                    self,
+                    options["uuid"],
+                    options["page"]["uuid"],
+                    "user-defined",
+                    f"Error reading {out}: {e}.",
+                )
+                return
+
+            new = Page(
+                filename=out,
+                dir=options["dir"],
+                delete=True,
+                format=image.Get("format"),
+            )
+
+            # No way to tell what resolution a pnm is,
+            # so assume it hasn't changed
+            if re.search(
+                r"Portable\s(:?any|bit|gray|pix)map",
+                new["format"],
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
+            ):
+                new["xresolution"] = options["page"]["xresolution"]
+                new["yresolution"] = options["page"]["yresolution"]
+
+            # Copy the OCR output
+            new["bboxtree"] = options["page"]["bboxtree"]
+
+            # reuse uuid so that the process chain can find it again
+            new["uuid"] = options["page"]["uuid"]
+            self.return_queue.enqueue(
+                {
+                    "type": "page",
+                    "uuid": options["uuid"],
+                    "page": new.freeze(),
+                    "info": {"replace": options["page"]["uuid"]},
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Error creating file in {options}{dir}: {e}")
+            request.error(
+                f"Error creating file in {options}{dir}: {e}.",
+            )
+
+    def analyse(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("analyse", kwargs, **callbacks)
+
+    def do_analyse(self, request):
+        options = request.args[0]
+        list_of_pages, uuid = options["list_of_pages"], options["uuid"]
+
+        i = 1
+        total = len(list_of_pages)
+        for page in list_of_pages:
+            self.progress = (i - 1) / total
+            self.message = _("Analysing page %i of %i") % (i, total)
+            i += 1
+
+            image = page.im_object()
+
+            if self.cancel:
+                return
+            stat = ImageStat.Stat(image)
+            mean, stddev = stat.mean, stat.stddev
+            logger.info(f"std dev: {stddev} mean: {mean}")
+            if self.cancel:
+                return
+
+            # TODO add any other useful image analysis here e.g. is the page mis-oriented?
+            #  detect mis-orientation possible algorithm:
+            #   blur or low-pass filter the image (so words look like ovals)
+            #   look at few vertical narrow slices of the image and get the Standard Deviation
+            #   if most of the Std Dev are high, then it might be portrait
+            page.mean = mean
+            page.std_dev = stddev
+            page.analyse_time = datetime.datetime.now()
+            request.data(page)
+
 
 class Document(SimpleList):
     "a Document is a simple list of pages"
@@ -1408,6 +1578,7 @@ class Document(SimpleList):
     heightt = THUMBNAIL
     widtht = THUMBNAIL
     selection_changed_signal = None
+    paper_sizes = {}
 
     def setup(_class, logger=None):
         _self = {}
@@ -1508,9 +1679,10 @@ class Document(SimpleList):
             "row-changed", self.on_row_changed
         )
 
-    def set_paper_sizes(_class, paper_sizes=None):
+    def set_paper_sizes(self, paper_sizes=None):
         """Set the paper sizes in the manager and worker threads"""
-        _enqueue_request("paper_sizes", {"paper_sizes": paper_sizes})
+        self.paper_sizes = paper_sizes
+        return self.thread.send("set_paper_sizes", paper_sizes)
 
     def cancel(self, cancel_callback, process_callback=None):
         "Kill all running processes"
@@ -2120,7 +2292,7 @@ class Document(SimpleList):
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
-        xresolution, yresolution, units = new_page.get_resolution(paper_sizes)
+        xresolution, yresolution, units = new_page.get_resolution(self.paper_sizes)
         thumb = new_page.get_pixbuf_at_scale(self.heightt, self.widtht)
 
         # Add to the page list
@@ -2492,15 +2664,16 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def analyse(self, options):
+    def analyse(self, **options):
 
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "analyse", {"list_of_pages": options["list_of_pages"], "uuid": uuid}
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.analyse(
+            list_of_pages=options["list_of_pages"],
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def threshold(self, options):
@@ -2726,7 +2899,7 @@ class Document(SimpleList):
             uuid=uuid,
         )
 
-    def user_defined(self, options):
+    def user_defined(self, **options):
 
         # File in which to store the process ID so that it can be killed if necessary
 
@@ -2734,20 +2907,16 @@ class Document(SimpleList):
         if pidfile is None:
             return
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "user-defined",
-            {
-                "page": options["page"],
-                "command": options["command"],
-                "dir": f"{self}->{dir}",
-                "pidfile": f"{pidfile}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
-            pidfile=pidfile,
+        return self.thread.user_defined(
+            page=options["page"],
+            command=options["command"],
+            dir=self.dir,
             uuid=uuid,
+            pidfile=pidfile,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def save_session(self, filename=None, version=None):
@@ -3401,73 +3570,6 @@ class Document(SimpleList):
 
         return True
 
-    def _thread_analyse(self, list_of_pages, uuid):
-
-        i = 1
-        total = list_of_pages
-        for page in list_of_pages:
-            self.progress = (i - 1) / total
-            self.message = _("Analysing page %i of %i") % (i, total)
-            i += 1
-
-            # Identify with imagemagick
-
-            image = PythonMagick.Image()
-            e = image.Read(page["filename"])
-            if f"{e}":
-                logger.error(e)
-                _thread_throw_error(
-                    self,
-                    uuid,
-                    page["uuid"],
-                    "Analyse",
-                    f"Error reading {page}->{filename}: {e}.",
-                )
-                return
-
-            if _self["cancel"]:
-                return
-            (depth, min, max, mean, stddev) = image.Statistics()
-            if depth is None:
-                logger.warn("image->Statistics() failed")
-
-            logger.info(f"std dev: {stddev} mean: {mean}")
-            if _self["cancel"]:
-                return
-            maxq = (1 << depth) - 1
-            mean = mean / maxq if maxq else 0
-            if re.search(r"^[-]nan$", stddev, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                stddev = 0
-
-            # my $quantum_depth = $image->QuantumDepth;
-            # warn "image->QuantumDepth failed" unless defined $quantum_depth;
-            # TODO add any other useful image analysis here e.g. is the page mis-oriented?
-            #  detect mis-orientation possible algorithm:
-            #   blur or low-pass filter the image (so words look like ovals)
-            #   look at few vertical narrow slices of the image and get the Standard Deviation
-            #   if most of the Std Dev are high, then it might be portrait
-            # TODO may need to send quantumdepth
-
-            page["mean"] = mean
-            page["std_dev"] = stddev
-            page["analyse_time"] = timestamp()
-            self.return_queue.enqueue(
-                {
-                    "type": "page",
-                    "uuid": uuid,
-                    "page": page,
-                    "info": {"replace": page["uuid"]},
-                }
-            )
-
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "analyse",
-                "uuid": uuid,
-            }
-        )
-
     def _thread_threshold(self, threshold, page, dir, uuid):
 
         if _page_gone(self, "threshold", uuid, page):
@@ -4009,7 +4111,7 @@ class Document(SimpleList):
             return
         (new, error) = (None, None)
         try:
-            new = page.to_png(paper_sizes)
+            new = page.to_png(self.paper_sizes)
             new["uuid"] = page["uuid"]
 
         except:
@@ -4296,149 +4398,6 @@ class Document(SimpleList):
                 "uuid": options["uuid"],
             }
         )
-
-    def _thread_user_defined(self, options):
-
-        if _page_gone(self, "user-defined", options["uuid"], options["page"]):
-            return
-
-        infile = options["page"]["filename"]
-        suffix = None
-        regex = re.search(r"([.]\w*)$", infile, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            suffix = regex.group(1)
-
-        try:
-            out = tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=suffix, delete=False
-            )
-            options["command"] = re.sub(
-                r"%o",
-                out,
-                options["command"],
-                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if options["command"]:
-                options["command"] = re.sub(
-                    r"%i",
-                    infile,
-                    options["command"],
-                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-
-            else:
-                if not shutil.copy2(infile, out):
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "user-defined",
-                        _("Error copying page"),
-                    )
-                    return
-
-                options["command"] = re.sub(
-                    r"%i",
-                    out,
-                    options["command"],
-                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-
-            options["command"] = re.sub(
-                r"%r",
-                fr"{options}{{page}}{xresolution}",
-                options["command"],
-                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            (_, info, error) = exec_command([options["command"]], options["pidfile"])
-            if _self["cancel"]:
-                return
-            logger.info(f"stdout: {info}")
-            logger.info(f"stderr: {error}")
-
-            # don't return in here, just in case we can ignore the error -
-            # e.g. theming errors from gimp
-
-            if error != EMPTY:
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "user-defined",
-                    error,
-                )
-
-            # Get file type
-
-            image = PythonMagick.Image()
-            e = image.Read(out)
-            if f"{e}":
-                logger.error(e)
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "user-defined",
-                    f"Error reading {out}: {e}.",
-                )
-                return
-
-            new = Page(
-                filename=out,
-                dir=options["dir"],
-                delete=True,
-                format=image.Get("format"),
-            )
-
-            # No way to tell what resolution a pnm is,
-            # so assume it hasn't changed
-
-            if re.search(
-                r"Portable\s(:?any|bit|gray|pix)map",
-                new["format"],
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                new["xresolution"] = options["page"]["xresolution"]
-                new["yresolution"] = options["page"]["yresolution"]
-
-            # Copy the OCR output
-
-            new["bboxtree"] = options["page"]["bboxtree"]
-
-            # reuse uuid so that the process chain can find it again
-
-            new["uuid"] = options["page"]["uuid"]
-            self.return_queue.enqueue(
-                {
-                    "type": "page",
-                    "uuid": options["uuid"],
-                    "page": new.freeze(),
-                    "info": {"replace": options["page"]["uuid"]},
-                }
-            )
-
-        except:
-            logger.error(f"Error creating file in {options}{dir}: {_}")
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "user-defined",
-                f"Error creating file in {options}{dir}: {_}.",
-            )
-
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "user-defined",
-                "uuid": options["uuid"],
-            }
-        )
-
-    def _thread_paper_sizes():
-        pass
-
-
 
 
 def polyval(poly, x):

@@ -19,6 +19,19 @@ from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-positi
 
 PAGE_TOLERANCE = 0.02
 VERSION = "2.13.2"
+MODE2DEPTH = {
+    "1": 1,
+    "L": 8,
+    "P": 8,
+    "RGB": 24,
+    "RGBA": 32,
+    "CMYK": 32,
+    "YCbCr": 24,
+    "LAB": 24,
+    "HSV": 24,
+    "I": 32,
+    "F": 32,
+}
 logger = logging.getLogger(__name__)
 # easier to extract strings with xgettext
 _ = gettext.gettext
@@ -290,6 +303,10 @@ class Page:
         except (GLib.Error, TypeError) as exc:
             logger.warning("Caught error getting pixbuf: %s", exc)
         return pixbuf
+
+    def depth(self):
+        "return image depth based on mode provided by PIL"
+        return MODE2DEPTH[self.im_object().mode]
 
 
 def _prepare_scale(image_width, image_height, res_ratio, max_width, max_height):
