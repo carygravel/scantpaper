@@ -533,8 +533,14 @@ class DocThread(BaseThread):
 
         with open(outdir / "origin_pre.pdf","wb") as f:
             filenames = []
+            sizes = []
             for page in options["list_of_pages"]:
                 filenames.append(_write_image_object(page, options))
+                sizes+=list(page.matching_paper_sizes(self.paper_sizes).keys())
+            sizes = list(set(sizes)) # make the keys unique
+            if sizes:
+                size = self.paper_sizes[sizes[0]]
+                metadata["layout_fun"] = img2pdf.get_layout_fun((img2pdf.mm_to_pt(size["x"]), img2pdf.mm_to_pt(size["y"])))
             f.write(img2pdf.convert(filenames, **metadata))
         ocrmypdf.api._pdf_to_hocr(
             outdir / "origin_pre.pdf",
@@ -1512,9 +1518,9 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             )
 
         except Exception as e:
-            logger.error(f"Error creating file in {options}{dir}: {e}")
+            logger.error(f"Error creating file in {options['dir']}: {e}")
             request.error(
-                f"Error creating file in {options}{dir}: {e}.",
+                f"Error creating file in {options['dir']}: {e}.",
             )
 
     def analyse(self, **kwargs):
