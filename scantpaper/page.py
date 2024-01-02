@@ -176,12 +176,13 @@ class Page:
         png = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
             dir=self.dir, suffix=".png", delete=False
         ).name
-        image.save(png)
+        resolution = self.get_resolution(page_sizes)
+        image.save(png, dpi=(resolution[0], resolution[1]))
         new = Page(
             filename=png,
             format="Portable Network Graphics",
             dir=self.dir,
-            resolution=self.get_resolution(page_sizes),
+            resolution=resolution,
             width=self.width,
             height=self.height,
         )

@@ -1,6 +1,7 @@
 "Test user-defined tools"
 
 import os
+import re
 import subprocess
 import tempfile
 from gi.repository import GLib
@@ -19,10 +20,19 @@ def test_1(import_in_mainloop):
 
     import_in_mainloop(slist, ["white.pnm"])
 
+    asserts = 0
+
+    def logger_cb(response):
+        nonlocal asserts
+        asserts += 1
+        print(f"logger_cb {response}")
+        assert re.search(r"error", response.info["info"]), "error_cb"
+
     mlp = GLib.MainLoop()
     slist.user_defined(
         page=slist.data[0][2],
-        command="convert %i -negate %i",
+        command="echo error > /dev/stderr;convert %i -negate %i",
+        logger_callback=logger_cb,
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -36,7 +46,8 @@ def test_1(import_in_mainloop):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert slist.data[0][2].mean == [0], "User-defined with %i"
+    assert asserts == 1, "all callbacks run"
+    assert slist.data[0][2].mean == [0], "User-defined after error"
 
     #########################
 

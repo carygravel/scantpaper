@@ -1418,13 +1418,13 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             out = tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=suffix, delete=False
             )
-            options["command"] = re.sub(
-                r"%o",
-                out.name,
-                options["command"],
-                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if options["command"]:
+            if re.search("%o", options["command"]):
+                options["command"] = re.sub(
+                    r"%o",
+                    out.name,
+                    options["command"],
+                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
                 options["command"] = re.sub(
                     r"%i",
                     infile,
@@ -1433,7 +1433,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 )
 
             else:
-                if not shutil.copy2(infile, out):
+                if not shutil.copy2(infile, out.name):
                     _thread_throw_error(
                         self,
                         options["uuid"],
@@ -1445,7 +1445,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
                 options["command"] = re.sub(
                     r"%i",
-                    out,
+                    out.name,
                     options["command"],
                     flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
@@ -1456,66 +1456,48 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 options["command"],
                 flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            (_, info, error) = exec_command([options["command"]], options["pidfile"])
+            # options["command"] = options["command"].split(" ")
+            sbp = subprocess.run(options['command'], capture_output=True, check=True, text=True, shell=True)
             if self.cancel:
                 return
-            logger.info(f"stdout: {info}")
-            logger.info(f"stderr: {error}")
+            logger.info(f"stdout: {sbp.stdout}")
+            logger.info(f"stderr: {sbp.stderr}")
 
             # don't return in here, just in case we can ignore the error -
             # e.g. theming errors from gimp
-            if error != EMPTY:
-                request.error(
-                    options["uuid"],
-                    options["page"].uuid,
-                    "user-defined",
-                    error,
+            if sbp.stderr != EMPTY:
+                request.data({"type": "message", "info": sbp.stderr}
+                    # options["uuid"],
+                    # options["page"].uuid,
+                    # "user-defined",
                 )
 
             # Get file type
-            image = PythonMagick.Image()
-            e = image.Read(out)
-            if f"{e}":
-                logger.error(e)
-                _thread_throw_error(
-                    self,
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "user-defined",
-                    f"Error reading {out}: {e}.",
-                )
-                return
+            image = Image.open(out.name)
 
+            # assume the resolution hasn't changed
             new = Page(
-                filename=out,
+                filename=out.name,
                 dir=options["dir"],
                 delete=True,
-                format=image.Get("format"),
+                format=image.format,
+                resolution=options["page"].resolution,
             )
-
-            # No way to tell what resolution a pnm is,
-            # so assume it hasn't changed
-            if re.search(
-                r"Portable\s(:?any|bit|gray|pix)map",
-                new["format"],
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                new["xresolution"] = options["page"]["xresolution"]
-                new["yresolution"] = options["page"]["yresolution"]
 
             # Copy the OCR output
-            new["bboxtree"] = options["page"]["bboxtree"]
+            try:
+                new.bboxtree = options["page"].bboxtree
+            except AttributeError:
+                pass
 
             # reuse uuid so that the process chain can find it again
-            new["uuid"] = options["page"]["uuid"]
-            self.return_queue.enqueue(
-                {
-                    "type": "page",
-                    "uuid": options["uuid"],
-                    "page": new.freeze(),
-                    "info": {"replace": options["page"]["uuid"]},
-                }
-            )
+            new.uuid = options["page"].uuid
+            request.data({
+                "type": "page",
+                "uuid": options["uuid"],
+                "page": new,
+                "info": {"replace": new.uuid},
+            })
 
         except Exception as e:
             logger.error(f"Error creating file in {options['dir']}: {e}")
@@ -1885,16 +1867,16 @@ class Document(SimpleList):
         if self.dir is not None:
             dirname = self.dir
 
-        def _import_file_data_callback(result):
+        def _import_file_data_callback(response):
             try:
-                self.add_page(None, result.info, None)
+                self.add_page(None, response.info, None)
             except AttributeError:
                 if "logger_callback" in options:
-                    options["logger_callback"](None, "import-file", result.status)
+                    options["logger_callback"](response)
 
-        def _import_file_finished_callback(result):
+        def _import_file_finished_callback(response):
             if "finished_callback" in options:
-                options["finished_callback"](result)
+                options["finished_callback"](response)
 
         uid = self.thread.import_file(
             info= options["info"],
@@ -2268,8 +2250,9 @@ class Document(SimpleList):
             ref = None
 
         if ref is not None:
-            for uid in (ref["replace"], ref["insert-after"]):
-                if uid is not None:
+            for key in ["replace", "insert-after"]:
+                if key in ref and ref[key] is not None:
+                    uid = ref[key]
                     i = self.find_page_by_uuid(uid)
                     if i is None:
                         logger.error(f"Requested page {uid} does not exist.")
@@ -2316,7 +2299,7 @@ class Document(SimpleList):
             if "replace" in ref:
                 pagenum = self.data[i][0]
                 logger.info(
-                    f"Replaced {self}->{data}[{i}][2]->{filename} ({self}->{data}[{i}][2]->{uid}) at page {pagenum} with {new_page}->{filename} ({new_page}->{uid}), resolution {xresolution},{yresolution}"
+                    f"Replaced {self.data[i][2].filename} ({self.data[i][2].uuid}) at page {pagenum} with {new_page.filename} ({new_page.uuid}), resolution {xresolution},{yresolution}"
                 )
                 self.data[i][1] = thumb
                 self.data[i][2] = new_page
@@ -2326,7 +2309,7 @@ class Document(SimpleList):
                 del self.data[i + 1]
                 self.data.insert(i + 1, [pagenum, thumb, new_page])
                 logger.info(
-                    f"Inserted {new_page}->{filename} ({new_page}->{uid}) at page {pagenum} with resolution {xresolution},{yresolution},{units}"
+                    f"Inserted {new_page.filename} ({new_page.uuid}) at page {pagenum} with resolution {xresolution},{yresolution},{units}"
                 )
 
         # Block selection_changed_signal
@@ -2908,11 +2891,19 @@ class Document(SimpleList):
     def user_defined(self, **options):
 
         # File in which to store the process ID so that it can be killed if necessary
-
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
         uuid = self._note_callbacks(options)
+
+        # FIXME: duplicate to _import_file_data_callback()
+        def _user_defined_data_callback(response):
+            if response.info["type"] == "page":
+                self.add_page(None, response.info["page"], response.info["info"])
+            else:
+                if "logger_callback" in options:
+                    options["logger_callback"](response)
+
         return self.thread.user_defined(
             page=options["page"],
             command=options["command"],
@@ -2922,6 +2913,7 @@ class Document(SimpleList):
             queued_callback = options["queued_callback"] if "queued_callback" in options else None,
             started_callback = options["started_callback"] if "started_callback" in options else None,
             error_callback = options["error_callback"] if "error_callback" in options else None,
+            data_callback = _user_defined_data_callback,
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 

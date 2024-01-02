@@ -37,10 +37,10 @@ def test_1(monkeypatch):
 
     asserts = 0
 
-    def logger_cb(_page, _process, message):
+    def logger_cb(response):
         nonlocal asserts
         asserts += 1
-        assert re.search(r"error", message), "error_cb"
+        assert re.search(r"error", response.status), "error_cb"
 
     slist.import_files(
         paths=["test.djvu"],
