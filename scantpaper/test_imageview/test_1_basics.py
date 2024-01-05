@@ -1,7 +1,7 @@
 """ Basic tests for imageview """
 
 import tempfile
-import PythonMagick
+import subprocess
 import gi
 import pytest
 
@@ -22,19 +22,16 @@ def test_1():
     assert isinstance(view, ImageView)
     assert isinstance(view.get_tool(), Dragger), "get_tool() defaults to dragger"
 
-    tmp = tempfile.NamedTemporaryFile(suffix=".png").name
-    image = PythonMagick.Image("rose:")
-    image.write(tmp)
-    signal = None
-
     def on_offset_changed(_widget, offset_x, offset_y):
         view.disconnect(signal)
         if view.get_scale_factor() <= 1:
             assert offset_x == 0, "emitted offset-changed signal x"
             assert offset_y == 12, "emitted offset-changed signal y"
 
-    signal = view.connect("offset-changed", on_offset_changed)
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(tmp), True)
+    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+        subprocess.run(["convert", "rose:", tmp.name], check=True)
+        signal = view.connect("offset-changed", on_offset_changed)
+        view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(tmp.name), True)
 
     if view.get_scale_factor() <= 1:
         viewport = view.get_viewport()
