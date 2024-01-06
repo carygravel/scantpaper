@@ -1,0 +1,21 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        sudo apt-get install imagemagick libtiff-tools djvulibre-bin img2pdf python3-gi python3-gi-cairo gobject-introspection gir1.2-gtk-3.0 python3-sane \
+                             python3-pytest-cov python3-pytest-timeout python3-pytest-xvfb python3-pytest-pylint
+        python -m pip install --upgrade pip
+        pip install ocrmypdf pytest-black
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    - name: Test
+      run: pytest-3 --timeout=5
