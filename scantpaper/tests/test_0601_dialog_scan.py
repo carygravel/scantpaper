@@ -6,8 +6,10 @@ from dialog.scan import Scan
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 import logging
+import pytest
 
 
+@pytest.mark.skip(reason="This can't work until Document() is finished")
 def test_1():
 
     window = Gtk.Window()

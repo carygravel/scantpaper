@@ -2250,15 +2250,18 @@ def _new_val( oldval, newval ) :
     )
 
 def _extended_pagenumber_checkbox_callback( widget, param, data ) :
-    print(f"in _extended_pagenumber_checkbox_callback with {param} {data}")
     dialog, spin_buttoni  = data
+    print(f"in _extended_pagenumber_checkbox_callback with {widget} {param} {dialog} {spin_buttoni}")
     if widget.get_active() :
+        print("active")
         dialog.frames.hide()
         dialog.framex.show_all() 
     else :
-        if spin_buttoni.get_value() == 1 :
+        inc = spin_buttoni.get_value()
+        print(f"not active {inc}")
+        if inc == 1 :
             dialog.buttons.set_active(True)
-        elif spin_buttoni.get_value() > 0 :
+        elif inc > 0 :
             dialog.buttond.set_active(True)
             dialog.combobs.set_active(False)
         else :
