@@ -36,9 +36,7 @@ def test_import_scan():
     asserts = 0
 
     def _finished_callback():
-        subprocess.run(
-            ["convert", str(slist.data[0][2].filename), "test2.ppm"], check=True
-        )
+        subprocess.run(["convert", slist.data[0][2].filename, "test2.ppm"], check=True)
         assert (
             subprocess.check_output(
                 ["identify", "-format", "%m %G %g %z-bit %r", "test2.ppm"]
