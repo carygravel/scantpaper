@@ -23,12 +23,14 @@ class SaneThread(BaseThread):
     num_pages_scanned = 0
     num_pages = 0
 
-    def do_get_devices(self):
+    @classmethod
+    def do_get_devices(cls, _request):
         "get devices"
         return sane.get_devices()
 
-    def do_open_device(self, device_name):
+    def do_open_device(self, request):
         "open device"
+        device_name = request.args[0]
         # close the handle if it is open
         if self.device_handle is not None:
             self.device_handle = None
@@ -36,43 +38,42 @@ class SaneThread(BaseThread):
 
         self.device_handle = sane.open(device_name)
         self.device_name = device_name
-        self.log(event="open_device", info=f"opened device '{self.device_name}'")
+        request.data(f"opened device '{self.device_name}'")
 
-    def do_get_options(self):
+    def do_get_option(self, request):
+        "get options"
+        name = request.args[0]
+        return getattr(self.device_handle, name.replace("-", "_"))
+
+    def do_get_options(self, _request):
         "get options"
         return self.device_handle.get_options()
 
-    def do_set_option(self, key, value):
+    def do_set_option(self, request):
         "set option"
-        return (
-            self.device_handle.__setattr__(  # pylint: disable=unnecessary-dunder-call
-                key, value
-            )
-        )
+        name, value = request.args
+        return setattr(self.device_handle, name.replace("-", "_"), value)
 
-    def do_scan_page(self):
+    def do_scan_page(self, _request):
         "scan page"
         if self.device_handle is None:
             raise ValueError("must open device before starting scan")
         return self.device_handle.scan()
 
-    def do_cancel(self):
+    def do_cancel(self, _request):
         "cancel"
         if self.device_handle is not None:
             self.device_handle.cancel()
 
-    def do_close_device(self):
+    def do_close_device(self, request):
         "close device"
         if self.device_handle is None:
-            self.log(
-                event="close_device",
-                info="Ignoring close_device() call - no device open.",
-            )
+            request.data("Ignoring close_device() call - no device open.")
         else:
             self.device_handle.close()
             self.device_handle = None
+            request.data(f"closing device '{self.device_name}'")
             self.device_name = None
-            self.log(event="close_device", info=f"closed device '{self.device_name}'")
 
     def get_devices(self, **kwargs):
         "get devices"
@@ -85,6 +86,10 @@ class SaneThread(BaseThread):
     def get_options(self, **kwargs):
         "get options"
         return self.send("get_options", **kwargs)
+
+    def get_option(self, name, **kwargs):
+        "get option"
+        return self.send("get_option", name, **kwargs)
 
     def set_option(self, name, value, **kwargs):
         "set option"
@@ -142,7 +147,6 @@ class SaneThread(BaseThread):
         "Flag the scan routine to abort"
 
         # empty process queue first to stop any new process from starting
-        self.log(event="cancel", info="emptying process queue")
         while not self.requests.empty():
             self.requests.get()
 
@@ -152,5 +156,4 @@ class SaneThread(BaseThread):
         # callback[uuid]["cancelled"] = callback
 
         # Add a cancel request to ensure the reply is not blocked
-        self.log(event="cancel", info="Requesting cancel")
         return self.send("cancel", **kwargs)
