@@ -1,29 +1,16 @@
 "test basethread class"
 from basethread import BaseThread, Response, ResponseType
+from gi.repository import GLib
 
 
 class MyThread(BaseThread):
     "test thread class"
-
-    response_counter = 0
 
     def do_div(self, request):  # pylint: disable=no-self-use
         "test method"
         arg1, arg2 = request.args
         request.data("arg1 / arg2")
         return arg1 / arg2
-
-    def callback(self, response=None):
-        "callback"
-        if response is None:
-            assert response == EXPECTED[self.response_counter], str(
-                self.response_counter
-            )
-        else:
-            assert (
-                response._replace(request="") == EXPECTED[self.response_counter]
-            ), str(self.response_counter)
-        self.response_counter += 1
 
 
 EXPECTED = [
@@ -53,45 +40,64 @@ EXPECTED = [
 
 def test_1():
     "test baseprocess class"
+
+    n_callbacks = 0
+
+    def callback(response=None):
+        "callback"
+        nonlocal n_callbacks
+        if response is None:
+            assert response == EXPECTED[n_callbacks], str(n_callbacks)
+        else:
+            assert response._replace(request="") == EXPECTED[n_callbacks], str(
+                n_callbacks
+            )
+        n_callbacks += 1
+        if response is not None and response.type == ResponseType.FINISHED:
+            mlp.quit()
+
     thread = MyThread()
     thread.start()
     thread.send(
         "div",
         1,
         2,
-        queued_callback=thread.callback,
-        started_callback=thread.callback,
-        running_callback=thread.callback,
-        data_callback=thread.callback,
-        finished_callback=thread.callback,
+        queued_callback=callback,
+        started_callback=callback,
+        running_callback=callback,
+        data_callback=callback,
+        finished_callback=callback,
     )
-    # FIXME: implement GLib.MainLoop() as per test 103
-    thread.monitor(block=True)  # for queued_callback
-    assert thread.response_counter == 1, "checked all expected responses #1"
-    thread.monitor(block=True)  # for started_callback
-    assert thread.response_counter == 2, "checked all expected responses #2"
-    thread.monitor(block=True)  # for data_callback
-    assert thread.response_counter == 4, "checked all expected responses #3"
-    thread.monitor(block=True)  # for finished_callback
-    assert thread.response_counter == 6, "checked all expected responses #3"
 
-    thread.send("div", 1, 0, error_callback=thread.callback)
-    thread.monitor(block=True)  # for queued_callback
-    thread.monitor(block=True)  # for started_callback
-    thread.monitor(block=True)  # for error_callback
-    assert thread.response_counter == 6, "checked all expected responses #4"
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert n_callbacks == 6, "checked all expected responses #1"
 
-    thread.send("nodiv", 1, 2, error_callback=thread.callback)
-    thread.monitor(block=True)  # for queued_callback
-    thread.monitor(block=True)  # for started_callback
-    thread.monitor(block=True)  # for error_callback
-    assert thread.response_counter == 7, "checked all expected responses #5"
+    thread.send("div", 1, 0, error_callback=callback)
+
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert n_callbacks == 7, "checked all expected responses #2"
+
+    thread.send("nodiv", 1, 2, error_callback=callback)
+
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert n_callbacks == 8, "checked all expected responses #5"
 
     thread.register_callback("after_finished", "after", "finished")
-    thread.send("div", 1, 2, after_finished_callback=thread.callback)
-    thread.monitor(block=True)  # for queued_callback
-    thread.monitor(block=True)  # for started_callback
-    thread.monitor(block=True)  # for after_finished_callback
-    assert thread.response_counter == 8, "checked all expected responses #6"
+    thread.send("div", 1, 2, after_finished_callback=callback)
+
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert n_callbacks == 9, "checked all expected responses #6"
 
     thread.send("quit")
+
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()

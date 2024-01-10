@@ -23,6 +23,11 @@ class SaneThread(BaseThread):
     num_pages_scanned = 0
     num_pages = 0
 
+    def do_quit(self, _request):
+        "exit"
+        self.device_handle = None
+        sane.exit()
+
     @classmethod
     def do_get_devices(cls, _request):
         "get devices"

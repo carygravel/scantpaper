@@ -83,7 +83,7 @@ class BaseThread(threading.Thread):
             "error": set(),
         }
 
-    def do_quit(self):
+    def do_quit(self, _request):
         "quit function does nothing"
 
     def register_callback(self, name, when, reference_cb):
