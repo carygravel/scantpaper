@@ -18,6 +18,9 @@ jobs:
           python3-pytest-pylint
         python -m pip install --upgrade pip
         pip install ocrmypdf pytest-black
+
+        # add locale, needed for a couple of tests
+        sudo locale-gen de_DE.UTF-8
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
     - name: Test
