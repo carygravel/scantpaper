@@ -119,6 +119,6 @@ startxref
 
     #########################
 
-    for fname in ["page1.tif", "page1.pdf", "test2.pdf", "test.pdf"]:
+    for fname in ["page1.tif", "page1.pdf", "page2.pdf", "test.pdf"]:
         if os.path.isfile(fname):
             os.remove(fname)

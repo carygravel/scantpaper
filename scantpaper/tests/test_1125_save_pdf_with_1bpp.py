@@ -36,6 +36,6 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm", "test.pdf"] + glob.glob("x-000.p*m"):
+    for fname in ["test.pbm", "test.pdf"] + glob.glob("x-000.p*m"):
         if os.path.isfile(fname):
             os.remove(fname)
