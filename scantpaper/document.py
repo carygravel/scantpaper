@@ -1535,6 +1535,44 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             page.analyse_time = datetime.datetime.now()
             request.data(page)
 
+    def threshold(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("threshold", kwargs, **callbacks)
+
+    def do_threshold(self, request):
+        options = request.args[0]
+        threshold, page, uuid, dir = options['threshold'], options["page"], options["uuid"], options["dir"]
+
+        if self._page_gone("threshold", uuid, page):
+            return
+        if self.cancel:
+            return
+        filename = page.filename
+        logger.info(f"Theshold {filename} with {threshold}")
+        image = page.im_object()
+
+        # To grayscale
+        image = image.convert('L')
+        # Threshold
+        image = image.point( lambda p: 255 if p > threshold else 0 )
+        # To mono
+        image = image.convert('1')
+
+        if self.cancel:
+            return
+
+        fnm = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
+            dir=dir, suffix=".png", delete=False
+        )
+        image.save(fnm.name)
+
+        if self.cancel:
+            return
+        page.filename = fnm.name
+        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.saved = False
+        return page
+
 
 class Document(SimpleList):
     "a Document is a simple list of pages"
@@ -2660,21 +2698,22 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def threshold(self, options):
-
+    def threshold(self, **options):
+        pidfile = self.create_pidfile(options)
+        if pidfile is None:
+            return
+        options["mark_saved"] = True
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "threshold",
-            {
-                "threshold": options["threshold"],
-                "page": options["page"],
-                "dir": f"{self}->{dir}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.threshold(
+            threshold=options["threshold"],
+            page=options["page"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def brightness_contrast(self, options):
@@ -3562,64 +3601,6 @@ class Document(SimpleList):
             return False
 
         return True
-
-    def _thread_threshold(self, threshold, page, dir, uuid):
-
-        if _page_gone(self, "threshold", uuid, page):
-            return
-        filename = page["filename"]
-        image = PythonMagick.Image()
-        e = image.Read(filename)
-        if _self["cancel"]:
-            return
-        if f"{e}":
-            logger.warn(e)
-
-        # Using imagemagick, as Perlmagick has performance problems.
-        # See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=968918
-
-        out = None
-        try:
-            out = tempfile.NamedTemporaryFile(dir=dir, suffix=".pbm", delete=False)
-
-        except:
-            logger.error(_)
-            _thread_throw_error(self, uuid, page["uuid"], "Threshold", _)
-            return
-
-        cmd = [
-            "convert",
-            filename,
-            "+dither",
-            "-threshold",
-            f"{threshold}%",
-            out,
-        ]
-        (status, stdout, stderr) = exec_command(cmd)
-        if status != 0:
-            logger.error(stderr)
-            _thread_throw_error(self, uuid, page["uuid"], "Threshold", stderr)
-            return
-
-        if _self["cancel"]:
-            return
-        page["filename"] = out.filename()
-        page["dirty_time"] = timestamp()  # flag as dirty
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": uuid,
-                "page": page,
-                "info": {"replace": page["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "theshold",
-                "uuid": uuid,
-            }
-        )
 
     def _thread_brightness_contrast(self, options):
 
