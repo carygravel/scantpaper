@@ -45,7 +45,7 @@ _ = gettext.gettext
 
 # import Socket
 # import FileHandle
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 # import File.Basename
 # from Storable import store,retrieve
@@ -1573,6 +1573,34 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         page.saved = False
         return page
 
+    def brightness_contrast(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("brightness_contrast", kwargs, **callbacks)
+
+    def do_brightness_contrast(self, request):
+        options = request.args[0]
+        brightness, contrast, page, uuid, dir = options['brightness'], options['contrast'], options["page"], options["uuid"], options["dir"]
+
+        if self._page_gone("brightness-contrast", options["uuid"], options["page"]):
+            return
+
+        filename = page.filename
+        logger.info(f"Enhance {filename} with brightness {brightness}, contrast {contrast}")
+        image = page.im_object()
+        if self.cancel:
+            return
+
+        image = ImageEnhance.Brightness(image).enhance(brightness)
+        image = ImageEnhance.Contrast(image).enhance(contrast)
+
+        if self.cancel:
+            return
+
+        image.save(filename)
+        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.saved = False
+        return page
+
 
 class Document(SimpleList):
     "a Document is a simple list of pages"
@@ -2716,22 +2744,23 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def brightness_contrast(self, options):
-
+    def brightness_contrast(self, **options):
+        pidfile = self.create_pidfile(options)
+        if pidfile is None:
+            return
+        options["mark_saved"] = True
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "brightness-contrast",
-            {
-                "page": options["page"],
-                "brightness": options["brightness"],
-                "contrast": options["contrast"],
-                "dir": f"{self}->{dir}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.brightness_contrast(
+            brightness=options["brightness"],
+            contrast=options["contrast"],
+            page=options["page"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def negate(self, options):
@@ -3601,87 +3630,6 @@ class Document(SimpleList):
             return False
 
         return True
-
-    def _thread_brightness_contrast(self, options):
-
-        if _page_gone(
-            self, "brightness-contrast", options["uuid"], options["page"]
-        ):
-            return
-
-        filename = options["page"]["filename"]
-        image = PythonMagick.Image()
-        e = image.Read(filename)
-        if _self["cancel"]:
-            return
-        if f"{e}":
-            logger.warn(e)
-        depth = image.Get("depth")
-
-        # BrightnessContrast the image
-
-        image.BrightnessContrast(
-            brightness=2 * options["brightness"] - _100PERCENT,
-            contrast=2 * options["contrast"] - _100PERCENT,
-        )
-        if f"{e}":
-            logger.error(e)
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "Brightness-contrast", e
-            )
-            return
-
-        if _self["cancel"]:
-            return
-
-        # Write it
-
-        error = None
-        try:
-            suffix = None
-            regex = re.search(
-                r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            if regex:
-                suffix = regex.group(1)
-            filename = tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=suffix, delete=False
-            )
-            e = image.Write(depth=depth, filename=filename)
-            if f"{e}":
-                logger.warn(e)
-
-        except:
-            logger.error(f"Error changing brightness / contrast: {_}")
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "Brightness-contrast", _
-            )
-            error = True
-
-        if error:
-            return
-        if _self["cancel"]:
-            return
-        logger.info(
-            f"Wrote {filename} with brightness / contrast changed to {options}{brightness} / {options}{contrast}"
-        )
-        options["page"]["filename"] = filename.filename()
-        options["page"]["dirty_time"] = timestamp()  # flag as dirty
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": options["page"],
-                "info": {"replace": options["page"]["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "brightness-contrast",
-                "uuid": options["uuid"],
-            }
-        )
 
     def _thread_negate(self, page, dir, uuid):
 
