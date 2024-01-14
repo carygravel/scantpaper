@@ -45,7 +45,7 @@ _ = gettext.gettext
 
 # import Socket
 # import FileHandle
-from PIL import Image, ImageEnhance, ImageOps
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
 # import File.Basename
 # from Storable import store,retrieve
@@ -1625,6 +1625,32 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         page.saved = False
         return page
 
+    def unsharp(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("unsharp", kwargs, **callbacks)
+
+    def do_unsharp(self, request):
+        options = request.args[0]
+        page, uuid, dir = options["page"], options["uuid"], options["dir"]
+        radius=options["radius"]
+        percent=options["percent"]
+        threshold=options["threshold"]
+
+        if self._page_gone( "unsharp", uuid, page):
+            return
+
+        filename = page.filename
+        logger.info(f"Unsharp mask {filename} radius {radius} percent {percent} threshold {threshold}")
+        image = page.im_object()
+        image = image.filter(ImageFilter.UnsharpMask(radius = radius, percent = percent, threshold = threshold))
+
+        if self.cancel:
+            return
+
+        image.save(filename)
+        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.saved = False
+        return page
 
 class Document(SimpleList):
     "a Document is a simple list of pages"
@@ -2791,24 +2817,20 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def unsharp(self, options):
-
+    def unsharp(self, **options):
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "unsharp",
-            {
-                "page": options["page"],
-                "radius": options["radius"],
-                "sigma": options["sigma"],
-                "gain": options["gain"],
-                "threshold": options["threshold"],
-                "dir": f"{self}->{dir}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.unsharp(
+            radius=options["radius"],
+            percent=options["percent"],
+            threshold=options["threshold"],
+            page=options["page"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def crop(self, options):
@@ -3647,110 +3669,6 @@ class Document(SimpleList):
             return False
 
         return True
-
-    def _thread_unsharp(self, options):
-
-        if _page_gone(self, "unsharp", options["uuid"], options["page"]):
-            return
-
-        filename = options["page"]["filename"]
-        version = None
-        image = PythonMagick.Image()
-        regex = re.search(
-            r"ImageMagick\s([\d.]+)",
-            image.Get("version"),
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-        if regex:
-            version = regex.group(1)
-
-        logger.debug(f"Image::Magick->version {version}")
-        e = image.Read(filename)
-        if _self["cancel"]:
-            return
-        if f"{e}":
-            logger.warn(e)
-
-        # Unsharp the image
-
-        if version.parse(f"v{version}") >= version.parse("v7.0.0"):
-            e = image.UnsharpMask(
-                radius=options["radius"],
-                sigma=options["sigma"],
-                gain=options["gain"],
-                threshold=options["threshold"],
-            )
-
-        else:
-            e = image.UnsharpMask(
-                radius=options["radius"],
-                sigma=options["sigma"],
-                amount=options["gain"],
-                threshold=options["threshold"],
-            )
-
-        if f"{e}":
-            logger.error(e)
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "Unsharp", e
-            )
-            return
-
-        if _self["cancel"]:
-            return
-
-        # Write it
-
-        error = None
-        try:
-            suffix = None
-            regex = re.search(
-                r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            if regex:
-                suffix = regex.group(1)
-            filename = tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=f".{suffix}", delete=False
-            )
-            e = image.Write(filename=filename)
-            if f"{e}":
-                logger.warn(e)
-
-        except:
-            logger.error(f"Error writing image with unsharp mask: {_}")
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "Unsharp",
-                f"Error writing image with unsharp mask: {_}.",
-            )
-            error = True
-
-        if error:
-            return
-        if _self["cancel"]:
-            return
-        logger.info(
-            f"Wrote {filename} with unsharp mask: radius={options}{radius}, sigma={options}{sigma}, gain={options}{gain}, threshold={options}{threshold}"
-        )
-        options["page"]["filename"] = filename.filename()
-        options["page"]["dirty_time"] = timestamp()  # flag as dirty
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": options["page"],
-                "info": {"replace": options["page"]["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "unsharp",
-                "uuid": options["uuid"],
-            }
-        )
 
     def _thread_crop(self, options):
 
