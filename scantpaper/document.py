@@ -1652,6 +1652,42 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         page.saved = False
         return page
 
+    def crop(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("crop", kwargs, **callbacks)
+
+    def do_crop(self, request):
+        options = request.args[0]
+        page, uuid, dir = options["page"], options["uuid"], options["dir"]
+        x=options["x"]
+        y=options["y"]
+        w=options["w"]
+        h=options["h"]
+
+        if self._page_gone( "crop", options["uuid"], options["page"]):
+            return
+
+        filename = page.filename
+        logger.info(f"Crop {filename} x {x} y {y} w {w} h {h}")
+        image = page.im_object()
+
+        image = image.crop((x, y, x+w, y+h))
+
+        if self.cancel:
+            return
+
+        page.width =image.width
+        page.height =image.height
+
+        if page.text_layer is not None:
+            bboxtree = Bboxtree(page.text_layer)
+            page.text_layer = bboxtree.crop(    x, y, w, h       ).json()
+
+        image.save(filename)
+        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.saved = False
+        return page
+
 class Document(SimpleList):
     "a Document is a simple list of pages"
     # easier to extract strings with xgettext
@@ -2833,24 +2869,21 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def crop(self, options):
-
+    def crop(self, **options):
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "crop",
-            {
-                "page": options["page"],
-                "x": options["x"],
-                "y": options["y"],
-                "w": options["w"],
-                "h": options["h"],
-                "dir": f"{self}->{dir}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+        return self.thread.crop(
+            x=options["x"],
+            y=options["y"],
+            w=options["w"],
+            h=options["h"],
+            page=options["page"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def split_page(self, options):
@@ -3669,92 +3702,6 @@ class Document(SimpleList):
             return False
 
         return True
-
-    def _thread_crop(self, options):
-
-        if _page_gone(self, "crop", options["uuid"], options["page"]):
-            return
-
-        filename = options["page"]["filename"]
-        image = PythonMagick.Image()
-        e = image.Read(filename)
-        if _self["cancel"]:
-            return
-        if f"{e}":
-            logger.warn(e)
-
-        # Crop the image
-
-        e = image.Crop(
-            width=options["w"], height=options["h"], x=options["x"], y=options["y"]
-        )
-        if f"{e}":
-            logger.error(e)
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "crop", e
-            )
-            return
-
-        image.Set(page="0x0+0+0")
-        if _self["cancel"]:
-            return
-
-        # Write it
-
-        error = None
-        try:
-            suffix = None
-            regex = re.search(
-                r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            if regex:
-                suffix = regex.group(1)
-            filename = tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=f".{suffix}", delete=False
-            )
-            e = image.Write(filename=filename)
-            if f"{e}":
-                logger.warn(e)
-
-        except:
-            logger.error(f"Error cropping: {_}")
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "crop", _
-            )
-            error = True
-
-        if error:
-            return
-        logger.info(
-            f"Cropping {options}{w} x {options}{h} + {options}{x} + {options}{y} to {filename}"
-        )
-        if _self["cancel"]:
-            return
-        options["page"]["filename"] = filename.filename()
-        options["page"]["width"] = options["w"]
-        options["page"]["height"] = options["h"]
-        options["page"]["dirty_time"] = timestamp()  # flag as dirty
-        if options["page"]["text_layer"]:
-            bboxtree = Bboxtree(options["page"]["text_layer"])
-            options["page"]["text_layer"] = bboxtree.crop(
-                options["x"], options["y"], options["w"], options["h"]
-            ).json()
-
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": options["page"],
-                "info": {"replace": options["page"]["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "crop",
-                "uuid": options["uuid"],
-            }
-        )
 
     def _thread_split(self, options):
 

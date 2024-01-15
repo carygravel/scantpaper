@@ -78,6 +78,7 @@ class Page:
             "PNG": ".png",
             "JPEG": ".jpg",
             "CompuServe graphics interchange format": ".gif",
+            "GIF": ".gif",
         }
         self.filename = (
             tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
