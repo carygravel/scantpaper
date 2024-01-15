@@ -168,7 +168,10 @@ class BaseThread(threading.Thread):
         if uid not in self.callbacks:
             return
         for callback in getattr(self, "before")[stage]:
-            if callback + "_callback" in self.callbacks[uid]:
+            if (
+                callback + "_callback" in self.callbacks[uid]
+                and self.callbacks[uid][callback + "_callback"] is not None
+            ):
                 self.callbacks[uid][callback + "_callback"](data)
         if (
             stage + "_callback" in self.callbacks[uid]
@@ -176,7 +179,10 @@ class BaseThread(threading.Thread):
         ):
             self.callbacks[uid][stage + "_callback"](data)
         for callback in getattr(self, "after")[stage]:
-            if callback + "_callback" in self.callbacks[uid]:
+            if (
+                callback + "_callback" in self.callbacks[uid]
+                and self.callbacks[uid][callback + "_callback"] is not None
+            ):
                 self.callbacks[uid][callback + "_callback"](data)
 
     def _monitor_response(self, block=False):
