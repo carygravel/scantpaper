@@ -1688,6 +1688,98 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         page.saved = False
         return page
 
+    def split_page(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("split_page", kwargs, **callbacks)
+
+    def do_split_page(self, request):
+        options = request.args[0]
+        page, uuid, dir = options["page"], options["uuid"], options["dir"]
+
+        if self._page_gone( "split", options["uuid"], options["page"]):
+            return
+
+        filename = page.filename
+        filename2 = filename
+        image = page.im_object()
+        image2 = image.copy()
+
+        # split the image
+        (w, h, x2, y2, w2, h2) = (None, None, None, None, None, None)
+        if options["direction"] == "v":
+            w = options["position"]
+            h = image.height
+            x2 = w
+            y2 = 0
+            w2 = image.width - w
+            h2 = h
+        else:
+            w = image.width
+            h = options["position"]
+            x2 = 0
+            y2 = h
+            w2 = w
+            h2 = image.height - h
+
+        image = image.crop((0, 0, w, h))
+        image2 = image2.crop((x2, y2, x2+w2, y2+h2))
+
+        if self.cancel:
+            return
+
+        # Write them
+        suffix = None
+        regex = re.search(
+            r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
+        )
+        if regex:
+            suffix = regex.group(1)
+            filename = tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=f".{suffix}", delete=False
+            )
+            image.save(filename)
+
+            filename2 = tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=f".{suffix}", delete=False
+            )
+            image2.save(filename2)
+
+        logger.info(
+            f"Splitting in direction {options['direction']} @ {options['position']} -> {filename} + {filename2}"
+        )
+        if self.cancel:
+            return
+        page.filename = filename.name
+        page.width = image.width
+        page.height = image.height
+        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        new2 = Page(
+            filename=filename2.name,
+            dir=options["dir"],
+            delete=True,
+            format=page.format,
+            resolution=page.resolution,# split doesn't change the resolution, so we can safely copy it
+            dirty_time=page.dirty_time,
+        )
+        if page.text_layer:
+            bboxtree = Bboxtree(page.text_layer)
+            bboxtree2 = Bboxtree(page.text_layer)
+            page.text_layer = bboxtree.crop(0, 0, w, h).json()
+            new2.text_layer = bboxtree2.crop(x2, y2, w2, h2).json()
+
+        request.data({
+            "type": "page",
+            "uuid": options["uuid"],
+            "page": page,
+            "info": {"replace": page.uuid},
+        })
+        request.data(            {
+            "type": "page",
+            "uuid": options["uuid"],
+            "page": new2,
+            "info": {"insert-after": page.uuid},
+        })
+
 class Document(SimpleList):
     "a Document is a simple list of pages"
     # easier to extract strings with xgettext
@@ -2453,7 +2545,6 @@ class Document(SimpleList):
 
             elif "insert-after" in ref:
                 pagenum = self.data[i][0] + 1
-                del self.data[i + 1]
                 self.data.insert(i + 1, [pagenum, thumb, new_page])
                 logger.info(
                     f"Inserted {new_page.filename} ({new_page.uuid}) at page {pagenum} with resolution {xresolution},{yresolution},{units}"
@@ -2886,22 +2977,29 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
-    def split_page(self, options):
-
+    def split_page(self, **options):
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "split",
-            {
-                "page": options["page"],
-                "direction": options["direction"],
-                "position": options["position"],
-                "dir": f"{self}->{dir}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
+
+        # FIXME: duplicate to _import_file_data_callback()
+        def _split_page_data_callback(response):
+            if response.info["type"] == "page":
+                self.add_page(None, response.info["page"], response.info["info"])
+            else:
+                if "logger_callback" in options:
+                    options["logger_callback"](response)
+
+        return self.thread.split_page(
+            direction=options["direction"],
+            position=options["position"],
+            page=options["page"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            data_callback = _split_page_data_callback,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def to_png(self, options):
@@ -3702,145 +3800,6 @@ class Document(SimpleList):
             return False
 
         return True
-
-    def _thread_split(self, options):
-
-        if _page_gone(self, "split", options["uuid"], options["page"]):
-            return
-
-        filename = options["page"]["filename"]
-        filename2 = filename
-        image = PythonMagick.Image()
-        e = image.Read(filename)
-        if _self["cancel"]:
-            return
-        if f"{e}":
-            logger.warn(e)
-        image2 = image.Clone()
-
-        # split the image
-
-        (w, h, x2, y2, w2, h2) = (None, None, None, None, None, None)
-        if options["direction"] == "v":
-            w = options["position"]
-            h = image.Get("height")
-            x2 = w
-            y2 = 0
-            w2 = image.Get("width") - w
-            h2 = h
-
-        else:
-            w = image.Get("width")
-            h = options["position"]
-            x2 = 0
-            y2 = h
-            w2 = w
-            h2 = image.Get("height") - h
-
-        e = image.Crop(w + f"x{h}+0+0")
-        if f"{e}":
-            logger.error(e)
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "crop", e
-            )
-            return
-
-        image.Set(page="0x0+0+0")
-        e = image2.Crop(w2 + f"x{h2}+{x2}+{y2}")
-        if f"{e}":
-            logger.error(e)
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "crop", e
-            )
-            return
-
-        image2.Set(page="0x0+0+0")
-        if _self["cancel"]:
-            return
-
-        # Write it
-
-        error = None
-        try:
-            suffix = None
-            regex = re.search(
-                r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            if regex:
-                suffix = regex.group(1)
-            filename = tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=f".{suffix}", delete=False
-            )
-            e = image.Write(filename=filename)
-            if f"{e}":
-                logger.warn(e)
-            filename2 = tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=f".{suffix}", delete=False
-            )
-            e = image2.Write(filename=filename2)
-            if f"{e}":
-                logger.warn(e)
-
-        except:
-            logger.error(f"Error cropping: {_}")
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "crop", _
-            )
-            error = True
-
-        if error:
-            return
-        logger.info(
-            f"Splitting in direction {options}{direction} @ {options}{position} -> {filename} + {filename2}"
-        )
-        if _self["cancel"]:
-            return
-        options["page"]["filename"] = filename.filename()
-        options["page"]["width"] = image.Get("width")
-        options["page"]["height"] = image.Get("height")
-        options["page"]["dirty_time"] = timestamp()  # flag as dirty
-        new2 = Page(
-            filename=filename2,
-            dir=options["dir"],
-            delete=True,
-            format=image2.Get("format"),
-        )
-        if options["page"]["text_layer"]:
-            bboxtree = Bboxtree(options["page"]["text_layer"])
-            bboxtree2 = Bboxtree(options["page"]["text_layer"])
-            options["page"]["text_layer"] = bboxtree.crop(0, 0, w, h).json()
-            new2["text_layer"] = bboxtree2.crop(x2, y2, w2, h2).json()
-
-        # crop doesn't change the resolution, so we can safely copy it
-
-        if "xresolution" in options["page"]:
-            new2["xresolution"] = options["page"]["xresolution"]
-            new2["yresolution"] = options["page"]["yresolution"]
-
-        new2["dirty_time"] = timestamp()  # flag as dirty
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": new2.freeze(),
-                "info": {"insert-after": options["page"]["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": options["page"],
-                "info": {"replace": options["page"]["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "crop",
-                "uuid": options["uuid"],
-            }
-        )
 
     def _thread_to_png(self, page, dir, uuid):
 
