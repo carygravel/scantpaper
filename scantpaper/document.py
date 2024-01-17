@@ -36,7 +36,7 @@ from simplelist import SimpleList
 from page import Page
 import netpbm
 
-# import Gscan2pdf.Tesseract
+import tesserocr
 # import Gscan2pdf.Cuneiform
 
 # easier to extract strings with xgettext
@@ -1780,6 +1780,40 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             "info": {"insert-after": page.uuid},
         })
 
+    def tesseract(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("tesseract", kwargs, **callbacks)
+
+    def do_tesseract(self, request):
+        options = request.args[0]
+        page, language, uuid, dir = options["page"], options["language"], options["uuid"], options["dir"]
+
+        if self._page_gone( "split", options["uuid"], options["page"]):
+            return
+
+        if self.cancel:
+            return
+
+        with tesserocr.PyTessBaseAPI(lang=language, path="/usr/share/tesseract-ocr/4.00/tessdata") as api:
+            output='image_out'
+
+            api.SetVariable("tessedit_create_hocr", "T")
+            pp=api.ProcessPages(output,page.filename)
+            
+            # Unnecessary filesystem write/read
+            path_hocr=Path(output).with_suffix('.hocr')
+            hocr=path_hocr.read_text()
+            path_hocr.unlink()
+            
+            page.import_hocr(hocr)
+            page.ocr_flag = True
+            page.ocr_time = datetime.datetime.now()
+
+        if self.cancel:
+            return
+
+        return page
+
 class Document(SimpleList):
     "a Document is a simple list of pages"
     # easier to extract strings with xgettext
@@ -3013,28 +3047,18 @@ class Document(SimpleList):
             uuid=uuid,
         )
 
-    def tesseract(self, options):
-
-        # File in which to store the process ID so that it can be killed if necessary
-
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
+    def tesseract(self, **options):
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "tesseract",
-            {
-                "page": options["page"],
-                "language": options["language"],
-                "threshold": options["threshold"],
-                "pidfile": f"{pidfile}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
-            pidfile=pidfile,
+        return self.thread.tesseract(
+            language=options["language"],
+            page=options["page"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def cuneiform(self, options):
@@ -3833,59 +3857,6 @@ class Document(SimpleList):
                 "type": "finished",
                 "process": "to-png",
                 "uuid": uuid,
-            }
-        )
-
-    def _thread_tesseract(self, options):
-
-        if _page_gone(self, "tesseract", options["uuid"], options["page"]):
-            return
-
-        (error, stdout, stderr) = (None, None, None)
-        try:
-            (stdout, stderr) = Tesseract.hocr(
-                file=options["page"]["filename"],
-                language=options["language"],
-                logger=logger,
-                threshold=options["threshold"],
-                dpi=options["page"]["xresolution"],
-                pidfile=options["pidfile"],
-            )
-            options["page"].import_hocr(stdout)
-
-        except:
-            logger.error(f"Error processing with tesseract: {_}")
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "tesseract", _
-            )
-            error = True
-
-        if error:
-            return
-        if _self["cancel"]:
-            return
-        if (stderr is not None) and stderr != EMPTY:
-            _thread_throw_error(
-                self, options["uuid"], options["page"]["uuid"], "tesseract", stderr
-            )
-
-        options["page"]["ocr_flag"] = 1  # FlagOCR
-        options["page"][
-            "ocr_time"
-        ] = timestamp()  # remember when we ran OCR on this page
-        self.return_queue.enqueue(
-            {
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": options["page"],
-                "info": {"replace": options["page"]["uuid"]},
-            }
-        )
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "tesseract",
-                "uuid": options["uuid"],
             }
         )
 
