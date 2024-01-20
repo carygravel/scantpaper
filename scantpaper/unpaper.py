@@ -630,9 +630,15 @@ def count_active_children(frame):
 
 def program_version(stream, regex, cmd):
     "return program version"
-    return _program_version(
-        stream, regex, subprocess.run(cmd, check=True, capture_output=True, text=True)
-    )
+    try:
+        version = _program_version(
+            stream,
+            regex,
+            subprocess.run(cmd, check=True, capture_output=True, text=True),
+        )
+    except FileNotFoundError:
+        version = None
+    return version
 
 
 def _program_version(stream, regex, output):
