@@ -1,16 +1,24 @@
 "Test unpaper dialog"
 
+import shutil
 from unpaper import Unpaper
+import pytest
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
+@pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
+def test_version():
+    "Test unpaper version"
+    unpaper = Unpaper()
+    assert unpaper.program_version() is not None, "version"
+
+
 def test_1():
     "Test unpaper dialog"
     unpaper = Unpaper()
-    assert unpaper.program_version() is not None, "version"
 
     assert unpaper.get_option("direction") == "ltr", "default direction"
 
