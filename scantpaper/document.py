@@ -1814,6 +1814,131 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
         return page
 
+    def unpaper(self, **kwargs):
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("unpaper", kwargs, **callbacks)
+
+    def do_unpaper(self, request):
+        options = request.args[0]
+
+        if self._page_gone("unpaper", options["uuid"], options["page"]):
+            return
+
+        filename = options["page"].filename
+        infile = None
+        try:
+            if not re.search(
+                r"[.]pnm$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
+            ):
+                image = options["page"].im_object()
+                depth = options["page"].get_depth()
+
+                suffix = ".pbm"
+                if depth > 1:
+                    suffix = ".pnm"
+
+                # Temporary filename for new file
+                infile = tempfile.NamedTemporaryFile(
+                    dir=options["dir"],
+                    suffix=suffix,
+                    delete=False,
+                ).name
+
+                logger.debug(f"Converting {filename} -> {infile} for unpaper")
+                image.save(infile)
+
+            else:
+                infile = filename
+            options["options"]["command"][-3] = infile
+
+            out = tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".pnm", delete=False
+            ).name
+            options["options"]["command"][-2] = out
+
+            out2 = EMPTY
+            index = options["options"]["command"].index("--output-pages")
+            if options["options"]["command"][index+1] == "2":
+                out2 = tempfile.NamedTemporaryFile(
+                    dir=options["dir"], suffix=".pnm", delete=False
+                ).name
+                options["options"]["command"][-1] = out2
+            else:
+                del options["options"]["command"][-1]
+
+            spo = subprocess.run(options["options"]["command"], check=True, capture_output=True, text=True)
+            logger.info(spo.stdout)
+            if spo.stderr:
+                logger.error(spo.stderr)
+                # _thread_throw_error(
+                #     self, options["uuid"], options["page"]["uuid"], "unpaper", stderr
+                # )
+                if not os.path.getsize(out):
+                    return
+
+            if self.cancel:
+                return
+            spo.stdout = re.sub(
+                r"Processing[ ]sheet.*[.]pnm\n",
+                r"",
+                spo.stdout,
+                count=1,
+                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            if spo.stdout:
+                logger.warn(spo.stdout)
+                _thread_throw_error(
+                    self, options["uuid"], options["page"]["uuid"], "unpaper", stdout
+                )
+                if not os.path.getsize(out):
+                    return
+
+            if options["options"]["command"][index+1] == "2" and "direction" in options["options"] and options["options"]["direction"] == "rtl":
+                out, out2 = out2, out
+
+            # unpaper doesn't change the resolution, so we can safely copy it
+            # reuse uuid so that the process chain can find it again
+            new = Page(
+                filename=out,
+                dir=options["dir"],
+                delete=True,
+                format="Portable anymap",
+                resolution=options["page"].resolution,
+                uuid=options["page"].uuid,
+                dirty_time=datetime.datetime.now(),  # flag as dirty
+            )
+            request.data({
+                "type": "page",
+                "uuid": options["uuid"],
+                "page": new,
+                "info": {"replace": new.uuid},
+            })
+            if out2:
+                new2 = Page(
+                    filename=out2,
+                    dir=options["dir"],
+                    delete=True,
+                    format="Portable anymap",
+                    resolution=options["page"].resolution,
+                    dirty_time=datetime.datetime.now(),  # flag as dirty
+                )
+                request.data({
+                    "type": "page",
+                    "uuid": options["uuid"],
+                    "page": new2,
+                    "info": {"insert-after": new.uuid},
+                })
+
+        except Exception as e:
+            logger.error(f"Error creating file in {options}{dir}: {e}")
+            _thread_throw_error(
+                self,
+                options["uuid"],
+                options["page"]["uuid"],
+                "unpaper",
+                f"Error creating file in {options}{dir}: {e}.",
+            )
+
 class Document(SimpleList):
     "a Document is a simple list of pages"
     # easier to extract strings with xgettext
@@ -3121,28 +3246,18 @@ class Document(SimpleList):
             else:  # cuneiform
                 self.cuneiform(options)
 
-    def unpaper(self, options):
-
-        # File in which to store the process ID so that it can be killed if necessary
-
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
+    def unpaper(self, **options):
         uuid = self._note_callbacks(options)
-        sentinel = _enqueue_request(
-            "unpaper",
-            {
-                "page": options["page"],
-                "options": options["options"],
-                "pidfile": f"{pidfile}",
-                "dir": f"{self}->{dir}",
-                "uuid": uuid,
-            },
-        )
-        return self._monitor_process(
-            sentinel=sentinel,
-            pidfile=pidfile,
+        return self.thread.unpaper(
+            page=options["page"],
+            options=options["options"],
+            dir=self.dir,
             uuid=uuid,
+            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
+            started_callback = options["started_callback"] if "started_callback" in options else None,
+            display_callback = options["display_callback"] if "display_callback" in options else None,
+            error_callback = options["error_callback"] if "error_callback" in options else None,
+            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
     def user_defined(self, **options):
@@ -3892,176 +4007,6 @@ class Document(SimpleList):
             {
                 "type": "finished",
                 "process": "cuneiform",
-                "uuid": options["uuid"],
-            }
-        )
-
-    def _thread_unpaper(self, options):
-
-        if _page_gone(self, "unpaper", options["uuid"], options["page"]):
-            return
-
-        filename = options["page"]["filename"]
-        infile = None
-        try:
-            if not re.search(
-                r"[.]pnm$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ):
-                image = PythonMagick.Image()
-                e = image.Read(filename)
-                if f"{e}":
-                    logger.error(e)
-                    _thread_throw_error(
-                        self,
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "unpaper",
-                        f"Error reading {filename}: {e}.",
-                    )
-                    return
-
-                depth = image.Get("depth")
-
-                # Unfortunately, -depth doesn't seem to work here,
-                # so forcing depth=1 using pbm extension.
-
-                suffix = ".pbm"
-                if depth > 1:
-                    suffix = ".pnm"
-
-                # Temporary filename for new file
-
-                infile = tempfile.TemporaryFile(
-                    dir=options["dir"],
-                    suffix=suffix,
-                )
-
-                # FIXME: need to -compress Zip from perlmagick
-                # "convert -compress Zip $self->{data}[$pagenum][2]{filename} $infile;";
-
-                logger.debug(f"Converting {filename} -> {infile} for unpaper")
-                image.Write(filename=infile)
-
-            else:
-                infile = filename
-
-            out = tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".pnm", delete=False
-            )
-            out2 = EMPTY
-            if re.search(
-                r"--output-pages[ ]2[ ]",
-                options["options"]["command"],
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                out2 = tempfile.NamedTemporaryFile(
-                    dir=options["dir"], suffix=".pnm", delete=False
-                )
-
-            # --overwrite needed because $out exists with 0 size
-
-            cmd = split(SPACE, f"{options}{options}{command}" % (infile, out, out2))
-            (_, stdout, stderr) = exec_command(cmd, options["pidfile"])
-            logger.info(stdout)
-            if stderr:
-                logger.error(stderr)
-                _thread_throw_error(
-                    self, options["uuid"], options["page"]["uuid"], "unpaper", stderr
-                )
-                if not os.path.getsize(out):
-                    return
-
-            if _self["cancel"]:
-                return
-            stdout = re.sub(
-                r"Processing[ ]sheet.*[.]pnm\n",
-                r"",
-                stdout,
-                count=1,
-                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if stdout:
-                logger.warn(stdout)
-                _thread_throw_error(
-                    self, options["uuid"], options["page"]["uuid"], "unpaper", stdout
-                )
-                if not os.path.getsize(out):
-                    return
-
-            if (
-                re.search(
-                    r"--output-pages[ ]2[ ]",
-                    options["options"]["command"],
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-                and "direction" in options["options"]
-                and options["options"]["direction"] == "rtl"
-            ):
-                (out, out2) = (out2, out)
-
-            new = Page(
-                filename=out,
-                dir=options["dir"],
-                delete=True,
-                format="Portable anymap",
-            )
-
-            # unpaper doesn't change the resolution, so we can safely copy it
-
-            if "xresolution" in options["page"]:
-                new["xresolution"] = options["page"]["xresolution"]
-                new["yresolution"] = options["page"]["yresolution"]
-
-            # reuse uuid so that the process chain can find it again
-
-            new["uuid"] = options["page"]["uuid"]
-            new["dirty_time"] = timestamp()  # flag as dirty
-            self.return_queue.enqueue(
-                {
-                    "type": "page",
-                    "uuid": options["uuid"],
-                    "page": new.freeze(),
-                    "info": {"replace": options["page"]["uuid"]},
-                }
-            )
-            if out2 != EMPTY:
-                new2 = Page(
-                    filename=out2,
-                    dir=options["dir"],
-                    delete=True,
-                    format="Portable anymap",
-                )
-
-                # unpaper doesn't change the resolution, so we can safely copy it
-
-                if "xresolution" in options["page"]:
-                    new2["xresolution"] = options["page"]["xresolution"]
-                    new2["yresolution"] = options["page"]["yresolution"]
-
-                new2["dirty_time"] = timestamp()  # flag as dirty
-                self.return_queue.enqueue(
-                    {
-                        "type": "page",
-                        "uuid": options["uuid"],
-                        "page": new2.freeze(),
-                        "info": {"insert-after": new["uuid"]},
-                    }
-                )
-
-        except:
-            logger.error(f"Error creating file in {options}{dir}: {_}")
-            _thread_throw_error(
-                self,
-                options["uuid"],
-                options["page"]["uuid"],
-                "unpaper",
-                f"Error creating file in {options}{dir}: {_}.",
-            )
-
-        self.return_queue.enqueue(
-            {
-                "type": "finished",
-                "process": "unpaper",
                 "uuid": options["uuid"],
             }
         )
