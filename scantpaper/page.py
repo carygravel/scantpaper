@@ -44,6 +44,7 @@ class Page:
     annotations = None
     dir = None
     saved = False
+    _depth = None
 
     def __init__(self, **kwargs):
         if "filename" not in kwargs:
@@ -303,9 +304,11 @@ class Page:
             logger.warning("Caught error getting pixbuf: %s", exc)
         return pixbuf
 
-    def depth(self):
+    def get_depth(self):
         "return image depth based on mode provided by PIL"
-        return MODE2DEPTH[self.im_object().mode]
+        if self._depth is None:
+            self._depth = MODE2DEPTH[self.im_object().mode]
+        return self._depth
 
 
 def _prepare_scale(image_width, image_height, res_ratio, max_width, max_height):
