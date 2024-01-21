@@ -6,7 +6,6 @@ import os
 import tempfile
 import uuid
 import logging
-import gettext
 import copy
 from PIL import Image
 from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
@@ -33,8 +32,6 @@ MODE2DEPTH = {
     "F": 32,
 }
 logger = logging.getLogger(__name__)
-# easier to extract strings with xgettext
-_ = gettext.gettext
 
 
 class Page:
