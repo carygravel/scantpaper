@@ -1897,7 +1897,6 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 out, out2 = out2, out
 
             # unpaper doesn't change the resolution, so we can safely copy it
-            # reuse uuid so that the process chain can find it again
             new = Page(
                 filename=out,
                 dir=options["dir"],
@@ -1911,7 +1910,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 "type": "page",
                 "uuid": options["uuid"],
                 "page": new,
-                "info": {"replace": new.uuid},
+                "info": {"replace": options['page'].uuid},
             })
             if out2:
                 new2 = Page(
@@ -2630,13 +2629,9 @@ class Document(SimpleList):
             logger.error(longmess("find_page_by_uuid() called with undef"))
             return
 
-        i = 0
-        while i < len(self.data) and self.data[i][2].uuid != uuid:
-            i += 1
-
-        if i < len(self.data):
-            return i
-        return
+        for i, row in enumerate(self.data):
+            if str(uuid) == str(row[2].uuid):
+                return i
 
     def add_page(self, process_uuid, new_page, ref):
         """Add a new page to the document"""
@@ -3248,6 +3243,15 @@ class Document(SimpleList):
 
     def unpaper(self, **options):
         uuid = self._note_callbacks(options)
+
+        # FIXME: duplicate to _import_file_data_callback()
+        def _unpaper_data_callback(response):
+            if response.info["type"] == "page":
+                self.add_page(None, response.info["page"], response.info["info"])
+            else:
+                if "logger_callback" in options:
+                    options["logger_callback"](response)
+
         return self.thread.unpaper(
             page=options["page"],
             options=options["options"],
@@ -3257,6 +3261,7 @@ class Document(SimpleList):
             started_callback = options["started_callback"] if "started_callback" in options else None,
             display_callback = options["display_callback"] if "display_callback" in options else None,
             error_callback = options["error_callback"] if "error_callback" in options else None,
+            data_callback = _unpaper_data_callback,
             finished_callback = options["finished_callback"] if "finished_callback" in options else None,
         )
 
