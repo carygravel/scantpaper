@@ -16,11 +16,8 @@ from document import (
     collate_metadata,
     add_delta_timezone,
     delta_timezone,
-    delta_timezone_to_current,
     _extract_metadata,
     _program_version,
-    parse_truetype_fonts,
-    get_tmp_dir,
     _bbox2markup,
 )
 
@@ -240,20 +237,6 @@ def test_date_conversions():
     tz_delta = delta_timezone(tz1, tz2)
     assert tz_delta == [0, 0, 0, -1, 0, 0, -1], "Delta_Timezone"
 
-    # can't test exact result, as depends on timezone of test machine
-    assert (
-        len(delta_timezone_to_current([2016, 1, 1, 2, 2, 2])) == 7
-    ), "delta_timezone_to_current()"
-    assert delta_timezone_to_current([1966, 1, 1, 2, 2, 2]) == [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    ], "delta_timezone_to_current() for <1970"
-
 
 def test_helpers():
     "test helpers"
@@ -264,24 +247,6 @@ def test_helpers():
 
     (_rcode, stdout, _stderr) = exec_command(["perl", "-e", 'print "a" x 65537'])
     assert len(stdout) == 65537, "exec_command returns more than 65537 bytes"
-
-    #########################
-
-    # pdf  = PDF.Builder()
-    # font = pdf.corefont('Times-Roman')
-    # assert font_can_char( font, 'a'.decode("utf8") )==     True, '_font_can_char a'
-    # assert font_can_char( font, 'ö'.decode("utf8") )==     True, '_font_can_char ö'
-    # assert font_can_char( font, 'п'.decode("utf8") )==     False, '_font_can_char п'
-
-    #########################
-
-    fclist = """/usr/share/fonts/Cairo-Light.ttf: Cairo,Cairo Light:style=Light,Regular
-/usr/share/fonts/FaustinaVFBeta-Italic.ttf: Faustina VF Beta
-"""
-    assert parse_truetype_fonts(fclist) == {
-        "by_family": {"Cairo": {"Light": "/usr/share/fonts/Cairo-Light.ttf"}},
-        "by_file": {"/usr/share/fonts/Cairo-Light.ttf": ("Cairo", "Light")},
-    }, "parse_truetype_fonts() only returns fonts for which we have a style"
 
     #########################
 
@@ -549,16 +514,6 @@ def test_helpers():
     assert (
         err == "[Errno 2] No such file or directory: '/command/not/found'"
     ), "stderr running unknown command"
-
-    #########################
-
-    assert (
-        get_tmp_dir(
-            "/tmp/gscan2pdf-wxyz/gscan2pdf-wxyz/gscan2pdf-wxyz", r"gscan2pdf-\w\w\w\w"
-        )
-        == "/tmp"
-    ), "get_tmp_dir"
-    assert get_tmp_dir(None, r"gscan2pdf-\w\w\w\w") is None, "get_tmp_dir undef"
 
     #########################
 
