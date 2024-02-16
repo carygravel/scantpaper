@@ -20,6 +20,7 @@ import io
 import unicodedata
 from pathlib import Path
 import img2pdf
+
 img2pdf.default_dpi = 72.0
 import ocrmypdf
 from PIL import ImageStat
@@ -27,6 +28,7 @@ from basethread import BaseThread
 from const import POINTS_PER_INCH, ANNOTATION_COLOR
 from bboxtree import Bboxtree, unescape_utf8
 from i18n import _
+
 # from scanner.options import Options
 import gi
 
@@ -130,7 +132,7 @@ class DocThread(BaseThread):
 
         if "page" in args[0]:
             self.page_requests.put(args[0]["page"])
-            page_request = self.pages.get()# blocking get requested page
+            page_request = self.pages.get()  # blocking get requested page
             if page_request == "cancel":
                 return
             args[0]["page"] = page_request
@@ -138,7 +140,7 @@ class DocThread(BaseThread):
         elif "list_of_pages" in args[0]:
             for i, page in enumerate(args[0]["list_of_pages"]):
                 self.page_requests.put(page)
-                page_request = self.pages.get()# blocking get requested page
+                page_request = self.pages.get()  # blocking get requested page
                 if page_request == "cancel":
                     return
 
@@ -167,11 +169,13 @@ class DocThread(BaseThread):
 
         elif re.search(r"DjVu", fformat):
             # Dig out the number of pages
-            _exit_code, stdout, stderr = exec_command(                ["djvudump", path]            )
+            _exit_code, stdout, stderr = exec_command(["djvudump", path])
             if re.search(
                 r"command[ ]not[ ]found", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
             ):
-                raise RuntimeError(_("Please install djvulibre-bin in order to open DjVu files."))
+                raise RuntimeError(
+                    _("Please install djvulibre-bin in order to open DjVu files.")
+                )
 
             logger.info(stdout)
             if self.cancel:
@@ -200,7 +204,9 @@ class DocThread(BaseThread):
                 )
 
             if pages != len(ppi):
-                raise RuntimeError(_("Unknown DjVu file structure. Please contact the author."))
+                raise RuntimeError(
+                    _("Unknown DjVu file structure. Please contact the author.")
+                )
 
             info["width"] = width
             info["height"] = height
@@ -208,7 +214,9 @@ class DocThread(BaseThread):
             info["pages"] = pages
             info["path"] = path
             # Dig out the metadata
-            _exit_code, stdout, _stderr = exec_command(                ["djvused", path, "-e", "print-meta"]            )
+            _exit_code, stdout, _stderr = exec_command(
+                ["djvused", path, "-e", "print-meta"]
+            )
             logger.info(stdout)
             if self.cancel:
                 return
@@ -231,7 +239,9 @@ class DocThread(BaseThread):
                 logger.info(f"stdout: {process.stdout}")
                 logger.info(f"stderr: {process.stderr}")
                 if (process.stderr is not None) and re.search(
-                    r"Incorrect[ ]password", process.stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
+                    r"Incorrect[ ]password",
+                    process.stderr,
+                    re.MULTILINE | re.DOTALL | re.VERBOSE,
                 ):
                     info["encrypted"] = True
                 else:
@@ -241,7 +251,9 @@ class DocThread(BaseThread):
             else:
                 info["pages"] = 1
                 regex = re.search(
-                    r"Pages:\s+(\d+)", process.stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
+                    r"Pages:\s+(\d+)",
+                    process.stdout,
+                    re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
                 if regex:
                     info["pages"] = int(regex.group(1))
@@ -268,7 +280,7 @@ class DocThread(BaseThread):
 
         elif re.search(r"^TIFF[ ]image[ ]data", fformat):
             fformat = "Tagged Image File Format"
-            _exit_code, stdout, _stderr = exec_command(                ["tiffinfo", path]            )
+            _exit_code, stdout, _stderr = exec_command(["tiffinfo", path])
             if self.cancel:
                 return
             logger.info(info)
@@ -310,16 +322,19 @@ class DocThread(BaseThread):
             logger.info(f"Format {fformat}")
             info["width"] = [image.width]
             info["height"] = [image.height]
-            dpi = image.info.get('dpi')
+            dpi = image.info.get("dpi")
             if dpi is None:
-                info["xresolution"],info["yresolution"] = img2pdf.default_dpi, img2pdf.default_dpi
+                info["xresolution"], info["yresolution"] = (
+                    img2pdf.default_dpi,
+                    img2pdf.default_dpi,
+                )
             else:
                 xresolution, yresolution = dpi
             info["pages"] = 1
 
         info["format"] = fformat
         info["path"] = path
-        return            info
+        return info
 
     def do_import_file(self, request):
         args = request.args[0]
@@ -345,7 +360,8 @@ class DocThread(BaseThread):
                                 f"-page={i}",
                                 args["info"]["path"],
                                 tif.name,
-                            ], check=True
+                            ],
+                            check=True,
                         )
                         txt = subprocess.check_output(
                             [
@@ -353,7 +369,8 @@ class DocThread(BaseThread):
                                 args["info"]["path"],
                                 "-e",
                                 f"select {i}; print-txt",
-                            ],text=True
+                            ],
+                            text=True,
                         )
                         ann = subprocess.check_output(
                             [
@@ -361,7 +378,8 @@ class DocThread(BaseThread):
                                 args["info"]["path"],
                                 "-e",
                                 f"select {i}; print-ant",
-                            ],text=True
+                            ],
+                            text=True,
                         )
 
                     except:
@@ -394,7 +412,11 @@ class DocThread(BaseThread):
                         dir=args["dir"],
                         delete=True,
                         format="Tagged Image File Format",
-                        resolution=(args["info"]["ppi"][i - 1],args["info"]["ppi"][i - 1],"PixelsPerInch"),
+                        resolution=(
+                            args["info"]["ppi"][i - 1],
+                            args["info"]["ppi"][i - 1],
+                            "PixelsPerInch",
+                        ),
                         width=args["info"]["width"][i - 1],
                         height=args["info"]["height"][i - 1],
                     )
@@ -425,8 +447,8 @@ class DocThread(BaseThread):
         elif args["info"]["format"] == "Tagged Image File Format":
             # Only one page, so skip tiffcp in case it gives us problems
             if args["last"] == 1:
-#                self.progress = 1
-#                self.message = _("Importing page %i of %i") % (1, 1)
+                #                self.progress = 1
+                #                self.message = _("Importing page %i of %i") % (1, 1)
                 page = Page(
                     filename=args["info"]["path"],
                     dir=args["dir"],
@@ -460,7 +482,10 @@ class DocThread(BaseThread):
                             f"Error: unable to write to {tif}.",
                         )
                     try:
-                        subprocess.run(["tiffcp", f"{args['info']['path']},{i}", tif.name], check=True)
+                        subprocess.run(
+                            ["tiffcp", f"{args['info']['path']},{i}", tif.name],
+                            check=True,
+                        )
                     except:
                         logger.error(
                             f"Caught error extracting page {i} from {args['info']['path']}: {err}"
@@ -493,7 +518,11 @@ class DocThread(BaseThread):
                     format=args["info"]["format"],
                     width=args["info"]["width"][0],
                     height=args["info"]["height"][0],
-                    resolution=(args["info"]["xresolution"],args["info"]["yresolution"],"PixelsPerInch")
+                    resolution=(
+                        args["info"]["xresolution"],
+                        args["info"]["yresolution"],
+                        "PixelsPerInch",
+                    ),
                 )
                 request.data(page)
 
@@ -541,33 +570,37 @@ class DocThread(BaseThread):
         outdir = Path(options["dir"])
         filename = options["path"]
         if _need_temp_pdf(options["options"]):
-            filename = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".pdf", delete=False).name
+            filename = tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".pdf", delete=False
+            ).name
 
         metadata = {}
         if "metadata" in options and "ps" not in options:
             metadata = prepare_output_metadata("PDF", options["metadata"])
 
-        with open(outdir / "origin_pre.pdf","wb") as f:
+        with open(outdir / "origin_pre.pdf", "wb") as f:
             filenames = []
             sizes = []
             for page in options["list_of_pages"]:
                 filenames.append(_write_image_object(page, options))
-                sizes+=list(page.matching_paper_sizes(self.paper_sizes).keys())
-            sizes = list(set(sizes)) # make the keys unique
+                sizes += list(page.matching_paper_sizes(self.paper_sizes).keys())
+            sizes = list(set(sizes))  # make the keys unique
             if sizes:
                 size = self.paper_sizes[sizes[0]]
-                metadata["layout_fun"] = img2pdf.get_layout_fun((img2pdf.mm_to_pt(size["x"]), img2pdf.mm_to_pt(size["y"])))
+                metadata["layout_fun"] = img2pdf.get_layout_fun(
+                    (img2pdf.mm_to_pt(size["x"]), img2pdf.mm_to_pt(size["y"]))
+                )
             f.write(img2pdf.convert(filenames, **metadata))
         ocrmypdf.api._pdf_to_hocr(
             outdir / "origin_pre.pdf",
             outdir,
-            language='eng',
+            language="eng",
             skip_text=True,
         )
         for pagedata in options["list_of_pages"]:
             pagenr += 1
             if pagedata.text_layer:
-                with open(outdir / f"{pagenr:-06}__ocr_hocr.hocr","w") as pfh:
+                with open(outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w") as pfh:
                     pfh.write(pagedata.export_hocr())
         #     self.progress = pagenr / (len(options["list_of_pages"]) + 1)
         #     self.message = _("Saving page %i of %i") % (pagenr, len(options["list_of_pages"]))
@@ -576,16 +609,31 @@ class DocThread(BaseThread):
 
         ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
 
-        if options is not None and "options" in options and options["options"] is not None and ("prepend" in options["options"] or "append" in options["options"]):
+        if (
+            options is not None
+            and "options" in options
+            and options["options"] is not None
+            and ("prepend" in options["options"] or "append" in options["options"])
+        ):
             if self._append_pdf(filename, options):
                 return
 
-        if options is not None and "options" in options and options["options"] is not None and "user-password" in options["options"]:
+        if (
+            options is not None
+            and "options" in options
+            and options["options"] is not None
+            and "user-password" in options["options"]
+        ):
             if self._encrypt_pdf(filename, options):
                 return
 
         self._set_timestamp(options)
-        if options is not None and "options" in options and options["options"] is not None and "ps" in options["options"]:
+        if (
+            options is not None
+            and "options" in options
+            and options["options"] is not None
+            and "ps" in options["options"]
+        ):
             self.message = _("Converting to PS")
             cmd = [options["options"]["pstool"], filename, options["options"]["ps"]]
             status, _stdout, error = exec_command(cmd, options["pidfile"])
@@ -633,7 +681,7 @@ class DocThread(BaseThread):
 
         if "prepend" in options["options"]:
             file1 = filename
-            file2 = options["options"]["prepend"]+".bak"
+            file2 = options["options"]["prepend"] + ".bak"
             bak = file2
             out = options["options"]["prepend"]
             # message = _("Error prepending PDF: %s")
@@ -641,7 +689,7 @@ class DocThread(BaseThread):
 
         else:
             file2 = filename
-            file1 = options["options"]["append"]+".bak"
+            file1 = options["options"]["append"] + ".bak"
             bak = file1
             out = options["options"]["append"]
             # message = _("Error appending PDF: %s")
@@ -706,7 +754,9 @@ class DocThread(BaseThread):
 
             if error:
                 return
-            compression, filename, resolution = self._convert_image_for_djvu(                pagedata, page, args            )
+            compression, filename, resolution = self._convert_image_for_djvu(
+                pagedata, page, args
+            )
 
             # Create the djvu
             status, _stdout, _stderr = exec_command(
@@ -783,7 +833,7 @@ class DocThread(BaseThread):
             width *= resolution / xresolution
             height *= resolution / yresolution
             logger.info(f"Upsampling to {resolution}x{resolution}")
-            image = image.resize((int(width),int(height)), resample=Image.BOX)
+            image = image.resize((int(width), int(height)), resample=Image.BOX)
             upsample = True
 
         else:
@@ -803,7 +853,9 @@ class DocThread(BaseThread):
                 )
                 or upsample
             ):
-                pnm = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".pnm", delete=False)
+                pnm = tempfile.NamedTemporaryFile(
+                    dir=options["dir"], suffix=".pnm", delete=False
+                )
                 image.save(pnm.name)
                 # if f"{e}":
                 #     logger.error(e)
@@ -855,7 +907,9 @@ class DocThread(BaseThread):
             logger.debug(txt)
 
             # Write djvusedtxtfile
-            with tempfile.NamedTemporaryFile(mode='w', dir=dir, suffix=".txt", delete=False) as fh:
+            with tempfile.NamedTemporaryFile(
+                mode="w", dir=dir, suffix=".txt", delete=False
+            ) as fh:
                 djvusedtxtfile = fh.name
                 fh.write(txt)
 
@@ -891,7 +945,9 @@ class DocThread(BaseThread):
             logger.debug(ann)
 
             # Write djvusedtxtfile
-            with tempfile.NamedTemporaryFile(mode='w', dir=dir, suffix=".txt", delete=False) as fh:
+            with tempfile.NamedTemporaryFile(
+                mode="w", dir=dir, suffix=".txt", delete=False
+            ) as fh:
                 djvusedtxtfile = fh.name
                 fh.write(ann)
 
@@ -926,7 +982,9 @@ class DocThread(BaseThread):
 
             # Write djvusedmetafile
             # with tempfile.NamedTemporaryFile(mode='w', dir=options["dir"], suffix=".txt", delete=False) as fh:
-            with tempfile.NamedTemporaryFile(mode='w', suffix=".txt", delete=False) as fh:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".txt", delete=False
+            ) as fh:
                 djvusedmetafile = fh.name
                 fh.write("(metadata\n")
 
@@ -953,7 +1011,7 @@ class DocThread(BaseThread):
                 options["path"],
                 "-s",
             ]
-            subprocess.run(cmd,check=True)
+            subprocess.run(cmd, check=True)
             if self.cancel:
                 return
             # if status:
@@ -973,27 +1031,45 @@ class DocThread(BaseThread):
         # Extract images from PDF
         if args["last"] >= args["first"] and args["first"] > 0:
             for i in range(args["first"], args["last"] + 1):
-                cmd = ["pdfimages", "-f", str(i), "-l", str(i), "-list", args["info"]["path"]]
+                cmd = [
+                    "pdfimages",
+                    "-f",
+                    str(i),
+                    "-l",
+                    str(i),
+                    "-list",
+                    args["info"]["path"],
+                ]
                 if args["password"] is not None:
                     cmd.insert(1, "-upw")
                     cmd.insert(2, args["password"])
 
-                out = subprocess.check_output(cmd,text=True)
+                out = subprocess.check_output(cmd, text=True)
                 for line in re.split(r"\n", out):
                     xresolution, yresolution = line[70:75], line[76:81]
                     if re.search(
                         r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE
                     ):
-                        xresolution, yresolution = float(xresolution), float(yresolution)
+                        xresolution, yresolution = float(xresolution), float(
+                            yresolution
+                        )
                         break
 
-                cmd = ["pdfimages", "-f", str(i), "-l", str(i), args["info"]["path"], "x"]
+                cmd = [
+                    "pdfimages",
+                    "-f",
+                    str(i),
+                    "-l",
+                    str(i),
+                    args["info"]["path"],
+                    "x",
+                ]
                 if args["password"] is not None:
                     cmd.insert(1, "-upw")
                     cmd.insert(2, args["password"])
 
                 try:
-                    subprocess.run(cmd,check=True)
+                    subprocess.run(cmd, check=True)
                 except:
                     _thread_throw_error(
                         self,
@@ -1020,7 +1096,12 @@ class DocThread(BaseThread):
                     cmd.insert(1, "-upw")
                     cmd.insert(2, args["password"])
 
-                spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
+                spo = subprocess.run(
+                    cmd,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
                 if self.cancel:
                     return
                 if spo.returncode != 0:
@@ -1048,9 +1129,9 @@ class DocThread(BaseThread):
                             dir=args["dir"],
                             delete=True,
                             format=image_format[ext],
-                            resolution=(xresolution,yresolution,"PixelsPerInch"),
+                            resolution=(xresolution, yresolution, "PixelsPerInch"),
                         )
-                        with open(html.name, 'r') as fd:
+                        with open(html.name, "r") as fd:
                             page.import_pdftotext(fd.read())
                         request.data(page.to_png(self.paper_sizes))
 
@@ -1067,9 +1148,9 @@ class DocThread(BaseThread):
             if warning_flag:
                 request.data(
                     None,
-#                    request.uuid,
-#                    args["page"]["uuid"],
-#                    "Open file",
+                    #                    request.uuid,
+                    #                    args["page"]["uuid"],
+                    #                    "Open file",
                     _(
                         """Warning: gscan2pdf expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.
 
@@ -1080,7 +1161,10 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def _set_timestamp(self, options):
         if (
-            options is None or "options" not in options or options["options"] is None or "set_timestamp" not in options["options"]
+            options is None
+            or "options" not in options
+            or options["options"] is None
+            or "set_timestamp" not in options["options"]
             or not options["options"]["set_timestamp"]
             or "ps" in options["options"]
         ):
@@ -1108,7 +1192,12 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         if "user-password" in options["options"]:
             cmd += ["user_pw", options["options"]["user-password"]]
 
-        spo = subprocess.run(cmd,check=True,capture_output=True,text=True,)
+        spo = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
         if spo.returncode != 0:
             logger.info(spo.stderr)
             _thread_throw_error(
@@ -1145,7 +1234,9 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             ):
                 (tif, error) = (None, None)
                 try:
-                    tif = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".tif", delete=False)
+                    tif = tempfile.NamedTemporaryFile(
+                        dir=options["dir"], suffix=".tif", delete=False
+                    )
 
                 except:
                     logger.error(f"Error writing TIFF: {_}")
@@ -1323,7 +1414,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             if self.cancel:
                 return
 
-        with open(options["path"], 'w') as fh:
+        with open(options["path"], "w") as fh:
             fh.write(string)
 
         _post_save_hook(options["path"], options["options"])
@@ -1335,7 +1426,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
     def do_save_hocr(self, request):
         options = request.args[0]
 
-        with open(options["path"], 'w') as fh:
+        with open(options["path"], "w") as fh:
 
             written_header = False
             for page in options["list_of_pages"]:
@@ -1367,7 +1458,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def do_rotate(self, request):
         options = request.args[0]
-        angle, page, uuid = options['angle'], options["page"], options["uuid"]
+        angle, page, uuid = options["angle"], options["page"], options["uuid"]
 
         if self._page_gone("rotate", uuid, page):
             return
@@ -1393,14 +1484,20 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         page.saved = False
         if angle == _90_DEGREES or angle == _270_DEGREES:
             page.width, page.height = page.height, page.width
-            page.resolution = (page.resolution[1], page.resolution[0], page.resolution[2])
+            page.resolution = (
+                page.resolution[1],
+                page.resolution[0],
+                page.resolution[2],
+            )
         return page
 
     def do_cancel(self, _request):
         self.cancel = False
 
     def _page_gone(self, process, uuid, page):
-        if not os.path.isfile(page.filename):  # in case file was deleted after process started
+        if not os.path.isfile(
+            page.filename
+        ):  # in case file was deleted after process started
             e = f"Page for process {uuid} no longer exists. Cannot {process}."
             logger.error(e)
             _thread_throw_error(self, uuid, page["uuid"], process, e)
@@ -1422,7 +1519,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
     def do_user_defined(self, request):
         options = request.args[0]
 
-        if self._page_gone( "user-defined", options["uuid"], options["page"]):
+        if self._page_gone("user-defined", options["uuid"], options["page"]):
             return
 
         infile = options["page"].filename
@@ -1474,7 +1571,13 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             # options["command"] = options["command"].split(" ")
-            sbp = subprocess.run(options['command'], capture_output=True, check=True, text=True, shell=True)
+            sbp = subprocess.run(
+                options["command"],
+                capture_output=True,
+                check=True,
+                text=True,
+                shell=True,
+            )
             if self.cancel:
                 return
             logger.info(f"stdout: {sbp.stdout}")
@@ -1483,7 +1586,8 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             # don't return in here, just in case we can ignore the error -
             # e.g. theming errors from gimp
             if sbp.stderr != EMPTY:
-                request.data({"type": "message", "info": sbp.stderr}
+                request.data(
+                    {"type": "message", "info": sbp.stderr}
                     # options["uuid"],
                     # options["page"].uuid,
                     # "user-defined",
@@ -1509,12 +1613,14 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
             # reuse uuid so that the process chain can find it again
             new.uuid = options["page"].uuid
-            request.data({
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": new,
-                "info": {"replace": new.uuid},
-            })
+            request.data(
+                {
+                    "type": "page",
+                    "uuid": options["uuid"],
+                    "page": new,
+                    "info": {"replace": new.uuid},
+                }
+            )
 
         except Exception as e:
             logger.error(f"Error creating file in {options['dir']}: {e}")
@@ -1563,7 +1669,12 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def do_threshold(self, request):
         options = request.args[0]
-        threshold, page, uuid, dir = options['threshold'], options["page"], options["uuid"], options["dir"]
+        threshold, page, uuid, dir = (
+            options["threshold"],
+            options["page"],
+            options["uuid"],
+            options["dir"],
+        )
 
         if self._page_gone("threshold", uuid, page):
             return
@@ -1574,11 +1685,11 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         image = page.im_object()
 
         # To grayscale
-        image = image.convert('L')
+        image = image.convert("L")
         # Threshold
-        image = image.point( lambda p: 255 if p > threshold else 0 )
+        image = image.point(lambda p: 255 if p > threshold else 0)
         # To mono
-        image = image.convert('1')
+        image = image.convert("1")
 
         if self.cancel:
             return
@@ -1601,13 +1712,21 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def do_brightness_contrast(self, request):
         options = request.args[0]
-        brightness, contrast, page, uuid, dir = options['brightness'], options['contrast'], options["page"], options["uuid"], options["dir"]
+        brightness, contrast, page, uuid, dir = (
+            options["brightness"],
+            options["contrast"],
+            options["page"],
+            options["uuid"],
+            options["dir"],
+        )
 
         if self._page_gone("brightness-contrast", options["uuid"], options["page"]):
             return
 
         filename = page.filename
-        logger.info(f"Enhance {filename} with brightness {brightness}, contrast {contrast}")
+        logger.info(
+            f"Enhance {filename} with brightness {brightness}, contrast {contrast}"
+        )
         image = page.im_object()
         if self.cancel:
             return
@@ -1631,7 +1750,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
 
-        if self._page_gone( "negate", uuid, page):
+        if self._page_gone("negate", uuid, page):
             return
 
         filename = page.filename
@@ -1654,17 +1773,21 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
     def do_unsharp(self, request):
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
-        radius=options["radius"]
-        percent=options["percent"]
-        threshold=options["threshold"]
+        radius = options["radius"]
+        percent = options["percent"]
+        threshold = options["threshold"]
 
-        if self._page_gone( "unsharp", uuid, page):
+        if self._page_gone("unsharp", uuid, page):
             return
 
         filename = page.filename
-        logger.info(f"Unsharp mask {filename} radius {radius} percent {percent} threshold {threshold}")
+        logger.info(
+            f"Unsharp mask {filename} radius {radius} percent {percent} threshold {threshold}"
+        )
         image = page.im_object()
-        image = image.filter(ImageFilter.UnsharpMask(radius = radius, percent = percent, threshold = threshold))
+        image = image.filter(
+            ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=threshold)
+        )
 
         if self.cancel:
             return
@@ -1681,29 +1804,29 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
     def do_crop(self, request):
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
-        x=options["x"]
-        y=options["y"]
-        w=options["w"]
-        h=options["h"]
+        x = options["x"]
+        y = options["y"]
+        w = options["w"]
+        h = options["h"]
 
-        if self._page_gone( "crop", options["uuid"], options["page"]):
+        if self._page_gone("crop", options["uuid"], options["page"]):
             return
 
         filename = page.filename
         logger.info(f"Crop {filename} x {x} y {y} w {w} h {h}")
         image = page.im_object()
 
-        image = image.crop((x, y, x+w, y+h))
+        image = image.crop((x, y, x + w, y + h))
 
         if self.cancel:
             return
 
-        page.width =image.width
-        page.height =image.height
+        page.width = image.width
+        page.height = image.height
 
         if page.text_layer is not None:
             bboxtree = Bboxtree(page.text_layer)
-            page.text_layer = bboxtree.crop(    x, y, w, h       ).json()
+            page.text_layer = bboxtree.crop(x, y, w, h).json()
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1718,7 +1841,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
 
-        if self._page_gone( "split", options["uuid"], options["page"]):
+        if self._page_gone("split", options["uuid"], options["page"]):
             return
 
         filename = page.filename
@@ -1744,16 +1867,14 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             h2 = image.height - h
 
         image = image.crop((0, 0, w, h))
-        image2 = image2.crop((x2, y2, x2+w2, y2+h2))
+        image2 = image2.crop((x2, y2, x2 + w2, y2 + h2))
 
         if self.cancel:
             return
 
         # Write them
         suffix = None
-        regex = re.search(
-            r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-        )
+        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
         if regex:
             suffix = regex.group(1)
             filename = tempfile.NamedTemporaryFile(
@@ -1780,7 +1901,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             dir=options["dir"],
             delete=True,
             format=page.format,
-            resolution=page.resolution,# split doesn't change the resolution, so we can safely copy it
+            resolution=page.resolution,  # split doesn't change the resolution, so we can safely copy it
             dirty_time=page.dirty_time,
         )
         if page.text_layer:
@@ -1789,18 +1910,22 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             page.text_layer = bboxtree.crop(0, 0, w, h).json()
             new2.text_layer = bboxtree2.crop(x2, y2, w2, h2).json()
 
-        request.data({
-            "type": "page",
-            "uuid": options["uuid"],
-            "page": page,
-            "info": {"replace": page.uuid},
-        })
-        request.data(            {
-            "type": "page",
-            "uuid": options["uuid"],
-            "page": new2,
-            "info": {"insert-after": page.uuid},
-        })
+        request.data(
+            {
+                "type": "page",
+                "uuid": options["uuid"],
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
+        request.data(
+            {
+                "type": "page",
+                "uuid": options["uuid"],
+                "page": new2,
+                "info": {"insert-after": page.uuid},
+            }
+        )
 
     def tesseract(self, **kwargs):
         callbacks = _note_callbacks2(kwargs)
@@ -1808,25 +1933,32 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
     def do_tesseract(self, request):
         options = request.args[0]
-        page, language, uuid, dir = options["page"], options["language"], options["uuid"], options["dir"]
+        page, language, uuid, dir = (
+            options["page"],
+            options["language"],
+            options["uuid"],
+            options["dir"],
+        )
 
-        if self._page_gone( "tesseract", options["uuid"], options["page"]):
+        if self._page_gone("tesseract", options["uuid"], options["page"]):
             return
 
         if self.cancel:
             return
 
-        with tesserocr.PyTessBaseAPI(lang=language, path="/usr/share/tesseract-ocr/4.00/tessdata") as api:
-            output='image_out'
+        with tesserocr.PyTessBaseAPI(
+            lang=language, path="/usr/share/tesseract-ocr/4.00/tessdata"
+        ) as api:
+            output = "image_out"
 
             api.SetVariable("tessedit_create_hocr", "T")
-            pp=api.ProcessPages(output,page.filename)
-            
+            pp = api.ProcessPages(output, page.filename)
+
             # Unnecessary filesystem write/read
-            path_hocr=Path(output).with_suffix('.hocr')
-            hocr=path_hocr.read_text()
+            path_hocr = Path(output).with_suffix(".hocr")
+            hocr = path_hocr.read_text()
             path_hocr.unlink()
-            
+
             page.import_hocr(hocr)
             page.ocr_flag = True
             page.ocr_time = datetime.datetime.now()
@@ -1880,7 +2012,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
 
             out2 = EMPTY
             index = options["options"]["command"].index("--output-pages")
-            if options["options"]["command"][index+1] == "2":
+            if options["options"]["command"][index + 1] == "2":
                 out2 = tempfile.NamedTemporaryFile(
                     dir=options["dir"], suffix=".pnm", delete=False
                 ).name
@@ -1888,7 +2020,12 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             else:
                 del options["options"]["command"][-1]
 
-            spo = subprocess.run(options["options"]["command"], check=True, capture_output=True, text=True)
+            spo = subprocess.run(
+                options["options"]["command"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             logger.info(spo.stdout)
             if spo.stderr:
                 logger.error(spo.stderr)
@@ -1917,7 +2054,11 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 if not os.path.getsize(out):
                     return
 
-            if options["options"]["command"][index+1] == "2" and "direction" in options["options"] and options["options"]["direction"] == "rtl":
+            if (
+                options["options"]["command"][index + 1] == "2"
+                and "direction" in options["options"]
+                and options["options"]["direction"] == "rtl"
+            ):
                 out, out2 = out2, out
 
             # unpaper doesn't change the resolution, so we can safely copy it
@@ -1930,12 +2071,14 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 uuid=options["page"].uuid,
                 dirty_time=datetime.datetime.now(),  # flag as dirty
             )
-            request.data({
-                "type": "page",
-                "uuid": options["uuid"],
-                "page": new,
-                "info": {"replace": options['page'].uuid},
-            })
+            request.data(
+                {
+                    "type": "page",
+                    "uuid": options["uuid"],
+                    "page": new,
+                    "info": {"replace": options["page"].uuid},
+                }
+            )
             if out2:
                 new2 = Page(
                     filename=out2,
@@ -1945,12 +2088,14 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                     resolution=options["page"].resolution,
                     dirty_time=datetime.datetime.now(),  # flag as dirty
                 )
-                request.data({
-                    "type": "page",
-                    "uuid": options["uuid"],
-                    "page": new2,
-                    "info": {"insert-after": new.uuid},
-                })
+                request.data(
+                    {
+                        "type": "page",
+                        "uuid": options["uuid"],
+                        "page": new2,
+                        "info": {"insert-after": new.uuid},
+                    }
+                )
 
         except Exception as e:
             logger.error(f"Error creating file in {options['dir']}: {e}")
@@ -1961,6 +2106,7 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                 "unpaper",
                 f"Error creating file in {options}{dir}: {e}.",
             )
+
 
 class Document(SimpleList):
     "a Document is a simple list of pages"
@@ -2109,7 +2255,7 @@ class Document(SimpleList):
 
     def cancel(self, cancel_callback, process_callback=None):
         "Kill all running processes"
-        with self.thread.lock:# FIXME: move most of this to basethread.py
+        with self.thread.lock:  # FIXME: move most of this to basethread.py
 
             # Empty process queue first to stop any new process from starting
             logger.info("Emptying process queue")
@@ -2195,15 +2341,19 @@ class Document(SimpleList):
         # uid = self._note_callbacks(options)
 
         def _select_next_finished_callback(response):
-            if "encrypted" in response.info and response.info["encrypted"] and "password_callback" in options:
-                options["passwords"].append( options["password_callback"](path))
+            if (
+                "encrypted" in response.info
+                and response.info["encrypted"]
+                and "password_callback" in options
+            ):
+                options["passwords"].append(options["password_callback"](path))
                 if (options["passwords"][i] is not None) and options["passwords"][
                     i
                 ] != EMPTY:
                     self._get_file_info_finished_callback1(i, infolist, options)
                 return
 
-            infolist.append( response.info)
+            infolist.append(response.info)
             if i == len(options["paths"]) - 1:
                 self._get_file_info_finished_callback2(infolist, options)
 
@@ -2212,10 +2362,18 @@ class Document(SimpleList):
             # "pidfile": f"{pidfile}",
             # # "uuid": uid,
             options["passwords"][i] if i < len(options["passwords"]) else None,
-            queued_callback=options["queued_callback"] if "queued_callback" in options else None,
-            started_callback=options["started_callback"] if "started_callback" in options else None,
-            running_callback=options["running_callback"] if "running_callback" in options else None,
-            error_callback=options["error_callback"] if "error_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            running_callback=options["running_callback"]
+            if "running_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
             finished_callback=_select_next_finished_callback,
         )
 
@@ -2273,12 +2431,20 @@ class Document(SimpleList):
 
             first_page = 1
             last_page = info[0]["pages"]
-            if "pagerange_callback" in options and options["pagerange_callback"] and last_page > 1:
+            if (
+                "pagerange_callback" in options
+                and options["pagerange_callback"]
+                and last_page > 1
+            ):
                 first_page, last_page = options["pagerange_callback"](info[0])
                 if (first_page is None) or (last_page is None):
                     return
 
-            password = options["passwords"][0] if "passwords" in options and options["passwords"] else None
+            password = (
+                options["passwords"][0]
+                if "passwords" in options and options["passwords"]
+                else None
+            )
             for key in ["paths", "passwords", "password_callback"]:
                 if key in options:
                     del options[key]
@@ -2325,14 +2491,14 @@ class Document(SimpleList):
                 options["finished_callback"](response)
 
         uid = self.thread.import_file(
-            info= options["info"],
-            password= password,
-            first= options["first_page"],
-            last= options["last_page"],
-            dir= dirname,
-            pidfile= pidfile,
-            data_callback = _import_file_data_callback,
-            finished_callback = _import_file_finished_callback,
+            info=options["info"],
+            password=password,
+            first=options["first_page"],
+            last=options["last_page"],
+            dir=dirname,
+            pidfile=pidfile,
+            data_callback=_import_file_data_callback,
+            finished_callback=_import_file_finished_callback,
         )
 
     def _post_process_scan(self, page, options):
@@ -2346,7 +2512,8 @@ class Document(SimpleList):
                 page.format,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            and "to_png" in options and options["to_png"]
+            and "to_png" in options
+            and options["to_png"]
         ):
 
             def to_png_finished_callback(response):
@@ -2377,9 +2544,9 @@ class Document(SimpleList):
                 self._post_process_scan(self.data[finished_page][2], options)
 
             rotate_options = options
-            rotate_options["angle"]=options["rotate"]
-            rotate_options["page"]=page.uuid
-            rotate_options["finished_callback"]=rotate_finished_callback
+            rotate_options["angle"] = options["rotate"]
+            rotate_options["page"] = page.uuid
+            rotate_options["finished_callback"] = rotate_finished_callback
             del rotate_options["rotate"]
             self.rotate(**rotate_options)
             return
@@ -2391,17 +2558,19 @@ class Document(SimpleList):
                     del options["unpaper"]
                     finished_page = self.find_page_by_uuid(page.uuid)
                     if finished_page is None:
-                        self._post_process_scan(None, options)  # to fire finished_callback
+                        self._post_process_scan(
+                            None, options
+                        )  # to fire finished_callback
                         return
                     self._post_process_scan(self.data[finished_page][2], options)
 
             unpaper_options = options
-            unpaper_options["options"]={
-                    "command": options["unpaper"].get_cmdline(),
-                    "direction": options["unpaper"].get_option("direction"),
-                }
-            unpaper_options["page"]=page.uuid
-            unpaper_options["updated_page_callback"]=updated_page_callback
+            unpaper_options["options"] = {
+                "command": options["unpaper"].get_cmdline(),
+                "direction": options["unpaper"].get_option("direction"),
+            }
+            unpaper_options["page"] = page.uuid
+            unpaper_options["updated_page_callback"] = updated_page_callback
             del unpaper_options["finished_callback"]
             self.unpaper(**unpaper_options)
             return
@@ -2486,7 +2655,11 @@ class Document(SimpleList):
 
                 page = Page(
                     filename=options["filename"],
-                    resolution=(options["resolution"], options["resolution"], "PixelsPerInch"),
+                    resolution=(
+                        options["resolution"],
+                        options["resolution"],
+                        "PixelsPerInch",
+                    ),
                     width=width,
                     height=height,
                     format="Portable anymap",
@@ -2509,7 +2682,12 @@ class Document(SimpleList):
 
             return GLib.SOURCE_CONTINUE
 
-        GLib.io_add_watch(fh, GLib.PRIORITY_DEFAULT, GLib.IOCondition.IN | GLib.IOCondition.HUP, file_changed_callback)
+        GLib.io_add_watch(
+            fh,
+            GLib.PRIORITY_DEFAULT,
+            GLib.IOCondition.IN | GLib.IOCondition.HUP,
+            file_changed_callback,
+        )
 
     def check_return_queue(self):
 
@@ -2765,7 +2943,10 @@ class Document(SimpleList):
 
         # $page[0] < $#{$self -> {data}} needed to prevent infinite loop in case of
         # error importing.
-        while page_selection[0] < len(self.data) - 1 and self.data[page_selection[0]][0] != pagenum:
+        while (
+            page_selection[0] < len(self.data) - 1
+            and self.data[page_selection[0]][0] != pagenum
+        ):
             page_selection[0] += 1
 
         self.select(page_selection)
@@ -2856,7 +3037,7 @@ class Document(SimpleList):
         else:
             start = self.data[dest - 1][0] + 1
 
-        for i in range(dest, dest + len(data)-2):
+        for i in range(dest, dest + len(data) - 2):
             self.data[i][0] = start
             start += 1
 
@@ -2959,11 +3140,21 @@ class Document(SimpleList):
             dir=self.dir,
             pidfile=pidfile,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            mark_saved_callback=options["mark_saved_callback"]
+            if "mark_saved_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def save_djvu(self, **options):
@@ -2975,18 +3166,28 @@ class Document(SimpleList):
         options["mark_saved"] = True
         uuid = self._note_callbacks(options)
         return self.thread.save_djvu(
-            path= options["path"],
-            list_of_pages= options["list_of_pages"],
-            metadata= options["metadata"] if "metadata" in options else None,
-            options= options["options"] if "options" in options else None,
-            dir= self.dir,
-            pidfile= pidfile,
-            uuid= uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            path=options["path"],
+            list_of_pages=options["list_of_pages"],
+            metadata=options["metadata"] if "metadata" in options else None,
+            options=options["options"] if "options" in options else None,
+            dir=self.dir,
+            pidfile=pidfile,
+            uuid=uuid,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            mark_saved_callback=options["mark_saved_callback"]
+            if "mark_saved_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def save_tiff(self, **options):
@@ -2998,17 +3199,27 @@ class Document(SimpleList):
         options["mark_saved"] = True
         uuid = self._note_callbacks(options)
         return self.thread.save_tiff(
-            path= options["path"],
-            list_of_pages= options["list_of_pages"],
-            options= options["options"] if "options" in options else None,
-            dir= self.dir,
-            pidfile= pidfile,
-            uuid= uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            path=options["path"],
+            list_of_pages=options["list_of_pages"],
+            options=options["options"] if "options" in options else None,
+            dir=self.dir,
+            pidfile=pidfile,
+            uuid=uuid,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            mark_saved_callback=options["mark_saved_callback"]
+            if "mark_saved_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def rotate(self, **options):
@@ -3021,11 +3232,21 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def save_image(self, **options):
@@ -3043,11 +3264,21 @@ class Document(SimpleList):
             options=options["options"] if "options" in options else None,
             pidfile=pidfile,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            mark_saved_callback=options["mark_saved_callback"]
+            if "mark_saved_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def scans_saved(self):
@@ -3065,11 +3296,21 @@ class Document(SimpleList):
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            mark_saved_callback=options["mark_saved_callback"]
+            if "mark_saved_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def save_hocr(self, **options):
@@ -3080,11 +3321,21 @@ class Document(SimpleList):
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            mark_saved_callback = options["mark_saved_callback"] if "mark_saved_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            mark_saved_callback=options["mark_saved_callback"]
+            if "mark_saved_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def analyse(self, **options):
@@ -3093,10 +3344,18 @@ class Document(SimpleList):
         return self.thread.analyse(
             list_of_pages=options["list_of_pages"],
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def threshold(self, **options):
@@ -3106,11 +3365,21 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def brightness_contrast(self, **options):
@@ -3121,11 +3390,21 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def negate(self, **options):
@@ -3134,11 +3413,21 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def unsharp(self, **options):
@@ -3150,11 +3439,21 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def crop(self, **options):
@@ -3167,11 +3466,21 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def split_page(self, **options):
@@ -3191,12 +3500,22 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            data_callback = _split_page_data_callback,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            data_callback=_split_page_data_callback,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def to_png(self, options):
@@ -3217,11 +3536,21 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            display_callback = options["display_callback"] if "display_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            display_callback=options["display_callback"]
+            if "display_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def ocr_pages(self, **options):
@@ -3248,13 +3577,13 @@ class Document(SimpleList):
             options=options["options"],
             dir=self.dir,
             uuid=uuid,
-            queued_callback = options.get("queued_callback"),
-            started_callback = options.get("started_callback"),
-            display_callback = options.get("display_callback"),
-            error_callback = options.get("error_callback"),
-            data_callback = _unpaper_data_callback,
-            updated_page_callback = options.get("updated_page_callback"),
-            finished_callback = options.get("finished_callback"),
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            data_callback=_unpaper_data_callback,
+            updated_page_callback=options.get("updated_page_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def user_defined(self, **options):
@@ -3279,11 +3608,19 @@ class Document(SimpleList):
             dir=self.dir,
             uuid=uuid,
             pidfile=pidfile,
-            queued_callback = options["queued_callback"] if "queued_callback" in options else None,
-            started_callback = options["started_callback"] if "started_callback" in options else None,
-            error_callback = options["error_callback"] if "error_callback" in options else None,
-            data_callback = _user_defined_data_callback,
-            finished_callback = options["finished_callback"] if "finished_callback" in options else None,
+            queued_callback=options["queued_callback"]
+            if "queued_callback" in options
+            else None,
+            started_callback=options["started_callback"]
+            if "started_callback" in options
+            else None,
+            error_callback=options["error_callback"]
+            if "error_callback" in options
+            else None,
+            data_callback=_user_defined_data_callback,
+            finished_callback=options["finished_callback"]
+            if "finished_callback" in options
+            else None,
         )
 
     def save_session(self, filename=None, version=None):
@@ -3926,7 +4263,6 @@ class Document(SimpleList):
             }
         )
 
-
     def _write_file(self, fh, filename, data, uuid):
 
         if not fh.write(data):
@@ -3981,7 +4317,6 @@ def polyval(poly, x):
 
 
 # If user selects session dir as tmp dir, return parent dir
-
 
 
 # define hidden string column for page data
@@ -4040,7 +4375,7 @@ def _extract_metadata(info):
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             if regex:
-                metadata["datetime"] = [int(regex.group(x)) for x in range(1,7)]
+                metadata["datetime"] = [int(regex.group(x)) for x in range(1, 7)]
                 metadata["tz"] = [
                     None,
                     None,
@@ -4104,7 +4439,9 @@ def drag_data_received_callback(
     if info == ID_URI:
         uris = data.get_uris()
         for uri in uris:
-            uri = re.sub(r"^file://", r"", uri, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
+            uri = re.sub(
+                r"^file://", r"", uri, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
 
         tree.import_files(paths=uris)
         Gtk.drag_finish(context, True, False, time)
@@ -4447,7 +4784,7 @@ def prepare_output_metadata(ftype, metadata):
                     hour,
                     mns,
                     sec,
-                    tzinfo=datetime.timezone(datetime.timedelta(hours=dh, minutes=dm))
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=dh, minutes=dm)),
                 )
             else:
                 dateformat = "%4i-%02i-%02i %02i:%02i:%02i%1s%02i:%02i"
@@ -4500,12 +4837,12 @@ def _add_metadata_to_info(info, string, regex):
 
 def font_can_char(font, chars):
     "return if the given font can encode the given characters"
-    chars = ''.join(r'\u{:04X}'.format(ord(chr)) for chr in chars)
+    chars = "".join(r"\u{:04X}".format(ord(chr)) for chr in chars)
     for char in chars:
         name = unicodedata.name(char, "")
         if char in font.face.glyphWidths or name in font.face.glyphWidths:
             pass
-        elif hasattr(font.face, 'charToGlyph') and ord(char) in font.face.charToGlyph:
+        elif hasattr(font.face, "charToGlyph") and ord(char) in font.face.charToGlyph:
             pass
         else:
             return False
@@ -4514,12 +4851,11 @@ def font_can_char(font, chars):
 
 def _need_temp_pdf(options):
 
-    return (
-        options and (
+    return options and (
         "prepend" in options
         or "append" in options
         or "ps" in options
-        or "user-password" in options)
+        or "user-password" in options
     )
 
 
@@ -4535,38 +4871,58 @@ def _write_image_object(page, options):
     filename = page.filename
     save = False
     image = None
-    if options and "options" in options and options["options"] and "downsample" in options["options"] and options["options"]["downsample"]:
-        if options['options']['downsample dpi'] < min(page.resolution[0], page.resolution[1]):
+    if (
+        options
+        and "options" in options
+        and options["options"]
+        and "downsample" in options["options"]
+        and options["options"]["downsample"]
+    ):
+        if options["options"]["downsample dpi"] < min(
+            page.resolution[0], page.resolution[1]
+        ):
             save = True
             image = page.im_object()
-            w = page.width*options['options']['downsample dpi']//page.resolution[0]
-            h = page.height*options['options']['downsample dpi']//page.resolution[1]
-            image = image.resize((w,h))
-    if options and "options" in options and options["options"] and "compression" in options["options"] and "g" in options["options"]["compression"]:
+            w = page.width * options["options"]["downsample dpi"] // page.resolution[0]
+            h = page.height * options["options"]["downsample dpi"] // page.resolution[1]
+            image = image.resize((w, h))
+    if (
+        options
+        and "options" in options
+        and options["options"]
+        and "compression" in options["options"]
+        and "g" in options["options"]["compression"]
+    ):
         save = True
         if image is None:
             image = page.im_object()
         # Grayscale
-        image = image.convert('L')
+        image = image.convert("L")
         # Threshold
-        threshold = .4 * 255
-        image = image.point( lambda p: 255 if p > threshold else 0 )
+        threshold = 0.4 * 255
+        image = image.point(lambda p: 255 if p > threshold else 0)
         # To mono
-        image = image.convert('1')
+        image = image.convert("1")
     if save:
         regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
         suffix = regex.group(1)
-        filename = tempfile.NamedTemporaryFile(dir=options["dir"], suffix=regex.group(1)).name
+        filename = tempfile.NamedTemporaryFile(
+            dir=options["dir"], suffix=regex.group(1)
+        ).name
         image.save(filename)
     return filename
 
-
-
     compression = pagedata.compression
     if (
-        not re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        and format != "tif"
-    ) or re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE) or downsample:
+        (
+            not re.search(
+                r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
+            and format != "tif"
+        )
+        or re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE)
+        or downsample
+    ):
         logger.info(f"Writing temporary image {filename}")
 
         # Perlmagick doesn't reliably convert to 1-bit, so using convert
@@ -4592,7 +4948,9 @@ def _write_image_object(page, options):
         #     return
         if status:
             logger.warning(status)
-        regex = re.search(r"[.](\w*)$", filename.name, re.MULTILINE | re.DOTALL | re.VERBOSE)
+        regex = re.search(
+            r"[.](\w*)$", filename.name, re.MULTILINE | re.DOTALL | re.VERBOSE
+        )
         if regex:
             format = regex.group(1)
 
@@ -4648,7 +5006,9 @@ def _post_save_hook(filename, options):
     if options is not None and "post_save_hook" in options:
         args = options["post_save_hook"].split(" ")
         for i, e in enumerate(args):
-            args[i] = re.sub("%i", filename, e, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
+            args[i] = re.sub(
+                "%i", filename, e, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
         if (
             "post_save_hook_options" not in options
             or options["post_save_hook_options"] != "fg"
@@ -4713,6 +5073,7 @@ def get_tmp_dir(directory, pattern):
 
     return directory
 
+
 def _note_callbacks2(kwargs):
     callbacks = {}
     for callback in [
@@ -4720,8 +5081,13 @@ def _note_callbacks2(kwargs):
         "started",
         "running",
         "data",
-        "finished",            "error",  "mark_saved", "display", "updated_page"       ]:
-        name = callback+  "_callback"
+        "finished",
+        "error",
+        "mark_saved",
+        "display",
+        "updated_page",
+    ]:
+        name = callback + "_callback"
         if name in kwargs:
             callbacks[name] = kwargs[name]
             del kwargs[name]
