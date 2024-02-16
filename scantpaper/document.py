@@ -768,7 +768,8 @@ class DocThread(BaseThread):
                 return
             if status != 0 or size == 0:
                 logger.error(
-                    f"Error writing image for page {page} of DjVu (process returned {status}, image size {size})"
+                    f"Error writing image for page {page} of DjVu (process "
+                    f"returned {status}, image size {size})"
                 )
                 _thread_throw_error(
                     self,
@@ -981,9 +982,8 @@ class DocThread(BaseThread):
             metadata = prepare_output_metadata("DjVu", options["metadata"])
 
             # Write djvusedmetafile
-            # with tempfile.NamedTemporaryFile(mode='w', dir=options["dir"], suffix=".txt", delete=False) as fh:
             with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".txt", delete=False
+                mode="w", dir=options["dir"], suffix=".txt", delete=False
             ) as fh:
                 djvusedmetafile = fh.name
                 fh.write("(metadata\n")
@@ -1152,10 +1152,11 @@ class DocThread(BaseThread):
                     #                    args["page"]["uuid"],
                     #                    "Open file",
                     _(
-                        """Warning: gscan2pdf expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.
-
-If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.
-"""
+                        "Warning: gscan2pdf expects one image per page, but "
+                        "this was not satisfied. It is probable that the PDF "
+                        "has not been correctly imported. If you wish to add "
+                        "scans to an existing PDF, use the prepend/append to "
+                        "PDF options in the Save dialogue."
                     ),
                 )
 
@@ -1353,7 +1354,8 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
                     "convert",
                     options["list_of_pages"][0].filename,
                     "-density",
-                    f'{options["list_of_pages"][0].resolution[0]}x{options["list_of_pages"][0].resolution[1]}',
+                    str(options["list_of_pages"][0].resolution[0])
+                    + f'x{options["list_of_pages"][0].resolution[1]}',
                     options["path"],
                 ],
                 options["pidfile"],
@@ -1888,7 +1890,8 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
             image2.save(filename2)
 
         logger.info(
-            f"Splitting in direction {options['direction']} @ {options['position']} -> {filename} + {filename2}"
+            f"Splitting in direction {options['direction']} @ "
+            f"{options['position']} -> {filename} + {filename2}"
         )
         if self.cancel:
             return
@@ -1896,12 +1899,13 @@ If you wish to add scans to an existing PDF, use the prepend/append to PDF optio
         page.width = image.width
         page.height = image.height
         page.dirty_time = datetime.datetime.now()  # flag as dirty
+        # split doesn't change the resolution, so we can safely copy it
         new2 = Page(
             filename=filename2.name,
             dir=options["dir"],
             delete=True,
             format=page.format,
-            resolution=page.resolution,  # split doesn't change the resolution, so we can safely copy it
+            resolution=page.resolution,
             dirty_time=page.dirty_time,
         )
         if page.text_layer:
@@ -2389,7 +2393,8 @@ class Document(SimpleList):
                             None,
                             "Open file",
                             _(
-                                "Error: cannot open a session file at the same time as another file."
+                                "Error: cannot open a session file at the same "
+                                "time as another file."
                             ),
                         )
 
@@ -2404,7 +2409,8 @@ class Document(SimpleList):
                             None,
                             "Open file",
                             _(
-                                "Error: importing a multipage file at the same time as another file."
+                                "Error: importing a multipage file at the same "
+                                "time as another file."
                             ),
                         )
 
@@ -2906,14 +2912,17 @@ class Document(SimpleList):
             model = self.get_model()
             row = model[model.iter_nth_child(None, 0)]
             logger.info(
-                f"Added {new_page.filename} ({new_page.uuid}) at page {pagenum} with resolution {xresolution},{yresolution}"
+                f"Added {new_page.filename} ({new_page.uuid}) at page {pagenum} "
+                f"with resolution {xresolution},{yresolution}"
             )
 
         else:
             if "replace" in ref:
                 pagenum = self.data[i][0]
                 logger.info(
-                    f"Replaced {self.data[i][2].filename} ({self.data[i][2].uuid}) at page {pagenum} with {new_page.filename} ({new_page.uuid}), resolution {xresolution},{yresolution}"
+                    f"Replaced {self.data[i][2].filename} ({self.data[i][2].uuid}) "
+                    f"at page {pagenum} with {new_page.filename} ({new_page.uuid}), "
+                    f"resolution {xresolution},{yresolution}"
                 )
                 self.data[i][1] = thumb
                 self.data[i][2] = new_page
@@ -2922,7 +2931,8 @@ class Document(SimpleList):
                 pagenum = self.data[i][0] + 1
                 self.data.insert(i + 1, [pagenum, thumb, new_page])
                 logger.info(
-                    f"Inserted {new_page.filename} ({new_page.uuid}) at page {pagenum} with resolution {xresolution},{yresolution},{units}"
+                    f"Inserted {new_page.filename} ({new_page.uuid}) at page "
+                    f"{pagenum} with resolution {xresolution},{yresolution},{units}"
                 )
 
         # Block selection_changed_signal
