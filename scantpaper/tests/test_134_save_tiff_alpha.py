@@ -40,7 +40,7 @@ def test_1(import_in_mainloop):
     mlp = GLib.MainLoop()
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         options={
             "compression": "lzw",
         },

@@ -50,7 +50,7 @@ def test_1(import_in_mainloop):
     slist.data[0][2].import_annotations(hocr)
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()

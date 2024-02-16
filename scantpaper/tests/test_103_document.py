@@ -35,7 +35,7 @@ def test_import_scan():
 
     asserts = 0
 
-    def _finished_callback():
+    def _finished_callback(_response):
         subprocess.run(["convert", slist.data[0][2].filename, "test2.ppm"], check=True)
         assert (
             subprocess.check_output(
@@ -55,7 +55,8 @@ def test_import_scan():
         filename="test.pnm",
         page=1,
         delete=1,
-        dir=tempdir,
+        resolution=70,
+        dir=tempdir.name,
         finished_callback=_finished_callback,
     )
     mlp = GLib.MainLoop()

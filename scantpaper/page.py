@@ -57,10 +57,15 @@ class Page:
         logger.info(
             "New page filename %s, format %s", kwargs["filename"], kwargs["format"]
         )
+
+        # set this before setting attributes from kwargs in order to reuse uuid
+        # if necessary. Therefore, the uuid tracks the page through import,
+        # threshold, rotate, unpaper, etc. steps but still allows the page
+        # number to change.
+        self.uuid = uuid.uuid1()
+
         for key, value in kwargs.items():
             setattr(self, key, value)
-
-        self.uuid = uuid.uuid1()
 
         # copy or move image to session directory
         suffix = {

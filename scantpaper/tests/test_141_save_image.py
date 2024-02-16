@@ -23,7 +23,7 @@ def test_1(import_in_mainloop):
     mlp = GLib.MainLoop()
     slist.save_image(
         path="test.jpg",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         options={
             "post_save_hook": "convert %i test2.png",
             "post_save_hook_options": "fg",

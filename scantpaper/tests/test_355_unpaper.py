@@ -77,7 +77,7 @@ def test_1(import_in_mainloop):
 
     mlp = GLib.MainLoop()
     slist.unpaper(
-        page=slist.data[0][2],
+        page=slist.data[0][2].uuid,
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),

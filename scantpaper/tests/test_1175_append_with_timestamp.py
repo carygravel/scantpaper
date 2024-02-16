@@ -25,7 +25,7 @@ def test_1(import_in_mainloop):
 
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         metadata={"datetime": [2016, 2, 10, 0, 0, 0], "title": "metadata title"},
         options={
             "append": "test.pdf",

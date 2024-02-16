@@ -22,7 +22,7 @@ def test_1(import_in_mainloop):
 
     mlp = GLib.MainLoop()
     slist.user_defined(
-        page=slist.data[0][2],
+        page=slist.data[0][2].uuid,
         command="convert %i tmp.ppm;mv tmp.ppm %i",
         finished_callback=lambda response: mlp.quit(),
     )

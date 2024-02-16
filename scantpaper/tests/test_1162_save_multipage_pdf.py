@@ -32,7 +32,7 @@ def test_1(import_in_mainloop):
             '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
             '{"bbox": [1, 14, 77, 48], "type": "word", "text": "hello world", "depth": 3}]'
         )
-        pages.append(slist.data[i][2])
+        pages.append(slist.data[i][2].uuid)
 
     mlp = GLib.MainLoop()
     slist.save_pdf(

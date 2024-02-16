@@ -38,7 +38,7 @@ def test_1(import_in_mainloop):
 
     mlp = GLib.MainLoop()
     slist.tesseract(
-        page=slist.data[0][2],
+        page=slist.data[0][2].uuid,
         language="eng",
         finished_callback=lambda response: mlp.quit(),
     )

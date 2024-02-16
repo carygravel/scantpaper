@@ -29,7 +29,7 @@ def test_1(import_in_mainloop):
 
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=lambda response: mlp.quit(),
     )
     slist.cancel(cancelled_callback)
@@ -40,7 +40,7 @@ def test_1(import_in_mainloop):
 
     slist.save_image(
         path="test.jpg",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()

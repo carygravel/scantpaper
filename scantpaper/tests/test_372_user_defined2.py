@@ -21,7 +21,7 @@ def test_1(import_in_mainloop):
 
     mlp = GLib.MainLoop()
     slist.user_defined(
-        page=slist.data[0][2],
+        page=slist.data[0][2].uuid,
         command="convert %i -negate %i",
         finished_callback=lambda response: mlp.quit(),
     )
@@ -30,7 +30,7 @@ def test_1(import_in_mainloop):
 
     mlp = GLib.MainLoop()
     slist.analyse(
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging

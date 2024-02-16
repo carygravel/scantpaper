@@ -29,7 +29,7 @@ def test_1(import_in_mainloop):
     mlp = GLib.MainLoop()
     slist.save_text(
         path="test.txt",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         options={
             "post_save_hook": "cp %i test2.txt",
             "post_save_hook_options": "fg",

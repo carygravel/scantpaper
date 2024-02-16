@@ -27,7 +27,7 @@ def test_1(import_in_mainloop):
 
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         options={
             "post_save_hook": "convert %i test2.png",
             "post_save_hook_options": "fg",

@@ -36,7 +36,7 @@ def test_1(import_in_mainloop):
     metadata = {"datetime": [1966, 2, 10, 0, 0, 0], "title": "metadata title"}
     slist.save_djvu(
         path=djvu,
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         metadata=metadata,
         options={"set_timestamp": True},
         finished_callback=lambda response: mlp.quit(),

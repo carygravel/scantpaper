@@ -83,6 +83,10 @@ class BaseThread(threading.Thread):
             "error": set(),
         }
 
+    def input_handler(self, request):  # pylint: disable=no-self-use
+        "dummy input handler to be overridden as required"
+        return request.args
+
     def do_quit(self, _request):
         "quit function does nothing"
 
@@ -91,9 +95,9 @@ class BaseThread(threading.Thread):
         should be triggered before or after the reference callback"""
         if when not in ["before", "after"]:
             raise ValueError("when can only be 'before' or 'after'")
-        if reference_cb not in ["queued", "started", "running", "finished"]:
+        if reference_cb not in ["queued", "started", "running", "data", "finished"]:
             raise ValueError(
-                "reference_cb can only be 'queued', 'started', 'running', or 'finished'"
+                "reference_cb can only be 'queued', 'started', 'running', 'data', or 'finished'"
             )
         getattr(self, when)[reference_cb].add(name)
         self.additional_callbacks[name] = when, reference_cb
@@ -127,13 +131,15 @@ class BaseThread(threading.Thread):
         self.callbacks[request.uuid] = callbacks
         self.requests.put(request)
         request.queued()
-        GLib.timeout_add(100, self.monitor, request.uuid)
+        GLib.timeout_add(100, self.monitor)
         return request.uuid
 
     def run(self):
+        "override the run() method of threading. Not called directly here"
         while True:
             request = self.requests.get()
             request.started()
+            request.args = self.input_handler(request)
             handler = getattr(self, f"do_{request.process}", None)
             if handler is None:
                 request.error(None, f"no handler for [{request.process}]")
@@ -153,6 +159,7 @@ class BaseThread(threading.Thread):
         # no point in returning if there are still responses
         while not self.responses.empty():
             return self._monitor_response(block)
+        return GLib.SOURCE_CONTINUE
 
     def _run_callbacks(self, stage, result):
         """helper method to run the callbacks associated with each stage
@@ -191,7 +198,7 @@ class BaseThread(threading.Thread):
             result = self.responses.get(block)
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
-        stage = ResponseTypes[result.type.value - 1].lower()
+        stage = result.type.name.lower()
         callback = stage + "_callback"
         self._run_callbacks(stage, result)
         uid = result.request.uuid

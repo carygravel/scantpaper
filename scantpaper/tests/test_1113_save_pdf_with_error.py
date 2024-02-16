@@ -51,7 +51,7 @@ def test_1(import_in_mainloop):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         error_callback=error_callback2,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging

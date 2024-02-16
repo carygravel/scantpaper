@@ -23,7 +23,7 @@ def test_1(import_in_mainloop):
     mlp = GLib.MainLoop()
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2], slist.data[1][2]],
+        list_of_pages=[slist.data[0][2].uuid, slist.data[1][2].uuid],
         options={
             "ps": "te st.ps",
             "post_save_hook": "ps2pdf %i test.pdf",

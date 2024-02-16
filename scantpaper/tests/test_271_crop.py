@@ -52,7 +52,7 @@ def test_1(import_in_mainloop):
         y=10,
         w=10,
         h=10,
-        page=slist.data[0][2],
+        page=slist.data[0][2].uuid,
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging

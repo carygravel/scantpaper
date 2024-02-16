@@ -24,7 +24,7 @@ def test_1(import_in_mainloop):
 
     slist.save_pdf(
         path="te st.pdf",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         options={
             "prepend": "te st.pdf",
         },

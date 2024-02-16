@@ -21,7 +21,7 @@ def test_1(import_in_mainloop):
 
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2], slist.data[1][2]],
+        list_of_pages=[slist.data[0][2].uuid, slist.data[1][2].uuid],
         # metadata and timestamp should be ignored: debian #962151
         metadata={},
         options={

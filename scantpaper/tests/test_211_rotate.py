@@ -30,7 +30,7 @@ def test_1(import_in_mainloop):
     mlp = GLib.MainLoop()
     slist.rotate(
         angle=90,
-        page=slist.data[0][2],
+        page=slist.data[0][2].uuid,
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
@@ -42,7 +42,7 @@ def test_1(import_in_mainloop):
         ["identify", "-format", "%m %G %g %z-bit %r", slist.data[0][2].filename],
         text=True,
     )
-    assert new == "JPEG 70x46 70x46+0+0 8-bit DirectClass sRGB ", "valid JPG created"
+    assert new == "JPEG 46x70 46x70+0+0 8-bit DirectClass sRGB ", "valid JPG created"
     assert (
         os.path.dirname(slist.data[0][2].filename) == dirname.name
     ), "using session directory"

@@ -44,7 +44,7 @@ def test_1(import_in_mainloop):
 
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=finished_callback,
     )
     slist.cancel(cancelled_callback)
@@ -55,7 +55,7 @@ def test_1(import_in_mainloop):
 
     slist.save_image(
         path="test.jpg",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()

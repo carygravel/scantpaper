@@ -68,7 +68,7 @@ def test_1():
 
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         options={
             "post_save_hook": "pdftoppm %i test",
             "post_save_hook_options": "fg",

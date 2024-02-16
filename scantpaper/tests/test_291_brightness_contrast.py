@@ -28,7 +28,7 @@ def test_1(import_in_mainloop):
 
     mlp = GLib.MainLoop()
     slist.analyse(
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -43,7 +43,7 @@ def test_1(import_in_mainloop):
     slist.brightness_contrast(
         brightness=65,
         contrast=65,
-        page=slist.data[0][2],
+        page=slist.data[0][2].uuid,
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -51,7 +51,7 @@ def test_1(import_in_mainloop):
 
     mlp = GLib.MainLoop()
     slist.analyse(
-        list_of_pages=[slist.data[0][2]],
+        list_of_pages=[slist.data[0][2].uuid],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
