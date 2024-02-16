@@ -14,47 +14,27 @@ import gettext  # For translations
 import tempfile
 import uuid
 import logging
-import zlib
-import base64
-import io
 import unicodedata
 from pathlib import Path
 import img2pdf
-
-img2pdf.default_dpi = 72.0
 import ocrmypdf
-from PIL import ImageStat
+from PIL import ImageStat, Image, ImageEnhance, ImageOps, ImageFilter
 from basethread import BaseThread
 from const import POINTS_PER_INCH, ANNOTATION_COLOR
 from bboxtree import Bboxtree, unescape_utf8
 from i18n import _
-
-# from scanner.options import Options
 import gi
-
-gi.require_version("Gtk", "3.0")
-from gi.repository import GLib
 from simplelist import SimpleList
-
 from page import Page
 import netpbm
-
 import tesserocr
 
-# import Socket
-# import FileHandle
-from PIL import Image, ImageEnhance, ImageOps, ImageFilter
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib, Gtk, Gdk  # pylint: disable=wrong-import-position
 
-# import File.Basename
-# from Storable import store,retrieve
-# import Archive.Tar
-# from IPC.Open3 import open3
-# import Symbol
-# from intspan import intspan
-# import version
+img2pdf.default_dpi = 72.0
 
 logger = logging.getLogger(__name__)
-from gi.repository import Gtk, Gdk
 
 VERSION = "1"
 EMPTY = ""
