@@ -4319,25 +4319,6 @@ class Document(SimpleList):
         )
 
 
-def polyval(poly, x):
-    return x * poly[0] + poly[1]
-
-
-# Build a look-up table of all true-type fonts installed
-
-
-# If user selects session dir as tmp dir, return parent dir
-
-
-# define hidden string column for page data
-
-
-def quit():
-    _enqueue_request("quit")
-    _self["thread"].join()
-    _self["thread"] = None
-
-
 def _extract_metadata(info):
 
     metadata = {}
