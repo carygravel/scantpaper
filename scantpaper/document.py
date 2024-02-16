@@ -105,6 +105,7 @@ class DocThread(BaseThread):
         self.running_pids = []
 
     def input_handler(self, request):
+        "handle page requests"
         if not request.args:
             return request.args
 
@@ -317,6 +318,7 @@ class DocThread(BaseThread):
         return info
 
     def do_import_file(self, request):
+        "import file in thread"
         args = request.args[0]
         if args["info"]["format"] == "DJVU":
 
@@ -541,6 +543,7 @@ class DocThread(BaseThread):
         return self.send("save_pdf", kwargs, **callbacks)
 
     def do_save_pdf(self, request):
+        "save PDF in thread"
         options = request.args[0]
         _ = gettext.gettext
         pagenr = 0
@@ -702,11 +705,12 @@ class DocThread(BaseThread):
             return status
 
     def save_djvu(self, **kwargs):
-        "save pdf"
+        "save DjvU"
         callbacks = _note_callbacks2(kwargs)
         return self.send("save_djvu", kwargs, **callbacks)
 
     def do_save_djvu(self, request):
+        "save DjvU in thread"
         args = request.args[0]
         page = 0
         filelist = []
@@ -1191,10 +1195,12 @@ class DocThread(BaseThread):
             return status
 
     def save_tiff(self, **kwargs):
+        "save TIFF"
         callbacks = _note_callbacks2(kwargs)
         return self.send("save_tiff", kwargs, **callbacks)
 
     def do_save_tiff(self, request):
+        "save TIFF in thread"
         options = request.args[0]
 
         page = 0
@@ -1322,10 +1328,12 @@ class DocThread(BaseThread):
             _post_save_hook(options["path"], options["options"])
 
     def save_image(self, **kwargs):
+        "save pages as image files"
         callbacks = _note_callbacks2(kwargs)
         return self.send("save_image", kwargs, **callbacks)
 
     def do_save_image(self, request):
+        "save pages as image files in thread"
         options = request.args[0]
 
         if len(options["list_of_pages"]) == 1:
@@ -1383,10 +1391,12 @@ class DocThread(BaseThread):
                 _post_save_hook(_["filename"], options["options"])
 
     def save_text(self, **kwargs):
+        "save text file"
         callbacks = _note_callbacks2(kwargs)
         return self.send("save_text", kwargs, **callbacks)
 
     def do_save_text(self, request):
+        "save text file in thread"
         options = request.args[0]
 
         fh = None
@@ -1402,10 +1412,12 @@ class DocThread(BaseThread):
         _post_save_hook(options["path"], options["options"])
 
     def save_hocr(self, **kwargs):
+        "save hocr file"
         callbacks = _note_callbacks2(kwargs)
         return self.send("save_hocr", kwargs, **callbacks)
 
     def do_save_hocr(self, request):
+        "save hocr file in thread"
         options = request.args[0]
 
         with open(options["path"], "w") as fh:
@@ -1435,10 +1447,12 @@ class DocThread(BaseThread):
         _post_save_hook(options["path"], options["options"])
 
     def rotate(self, **kwargs):
+        "rotate page"
         callbacks = _note_callbacks2(kwargs)
         return self.send("rotate", kwargs, **callbacks)
 
     def do_rotate(self, request):
+        "rotate page in thread"
         options = request.args[0]
         angle, page, uuid = options["angle"], options["page"], options["uuid"]
 
@@ -1474,6 +1488,7 @@ class DocThread(BaseThread):
         return page
 
     def do_cancel(self, _request):
+        "cancel running tasks"
         self.cancel = False
 
     def _page_gone(self, process, uuid, page):
@@ -1487,18 +1502,22 @@ class DocThread(BaseThread):
         return False
 
     def set_paper_sizes(self, paper_sizes):
+        "set paper sizes"
         self.paper_sizes = paper_sizes
         return self.send("paper_sizes", paper_sizes)
 
     def do_set_paper_sizes(self, request):
+        "set paper sizes in thread"
         paper_sizes = request.args[0]
         self.paper_sizes = paper_sizes
 
     def user_defined(self, **kwargs):
+        "run user defined command on page"
         callbacks = _note_callbacks2(kwargs)
         return self.send("user_defined", kwargs, **callbacks)
 
     def do_user_defined(self, request):
+        "run user defined command on page in thread"
         options = request.args[0]
 
         if self._page_gone("user-defined", options["uuid"], options["page"]):
@@ -1611,10 +1630,12 @@ class DocThread(BaseThread):
             )
 
     def analyse(self, **kwargs):
+        "analyse page"
         callbacks = _note_callbacks2(kwargs)
         return self.send("analyse", kwargs, **callbacks)
 
     def do_analyse(self, request):
+        "analyse page in thread"
         options = request.args[0]
         list_of_pages, uuid = options["list_of_pages"], options["uuid"]
 
@@ -1646,10 +1667,12 @@ class DocThread(BaseThread):
             request.data(page)
 
     def threshold(self, **kwargs):
+        "threshold page"
         callbacks = _note_callbacks2(kwargs)
         return self.send("threshold", kwargs, **callbacks)
 
     def do_threshold(self, request):
+        "threshold page in thread"
         options = request.args[0]
         threshold, page, uuid, dir = (
             options["threshold"],
@@ -1689,10 +1712,12 @@ class DocThread(BaseThread):
         return page
 
     def brightness_contrast(self, **kwargs):
+        "adjust brightness and contrast"
         callbacks = _note_callbacks2(kwargs)
         return self.send("brightness_contrast", kwargs, **callbacks)
 
     def do_brightness_contrast(self, request):
+        "adjust brightness and contrast in thread"
         options = request.args[0]
         brightness, contrast, page, uuid, dir = (
             options["brightness"],
@@ -1725,10 +1750,12 @@ class DocThread(BaseThread):
         return page
 
     def negate(self, **kwargs):
+        "negate page"
         callbacks = _note_callbacks2(kwargs)
         return self.send("negate", kwargs, **callbacks)
 
     def do_negate(self, request):
+        "negate page in thread"
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
 
@@ -1749,10 +1776,12 @@ class DocThread(BaseThread):
         return page
 
     def unsharp(self, **kwargs):
+        "run unsharp mask"
         callbacks = _note_callbacks2(kwargs)
         return self.send("unsharp", kwargs, **callbacks)
 
     def do_unsharp(self, request):
+        "run unsharp mask in thread"
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
         radius = options["radius"]
@@ -1780,10 +1809,12 @@ class DocThread(BaseThread):
         return page
 
     def crop(self, **kwargs):
+        "crop page"
         callbacks = _note_callbacks2(kwargs)
         return self.send("crop", kwargs, **callbacks)
 
     def do_crop(self, request):
+        "crop page in thread"
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
         x = options["x"]
@@ -1816,10 +1847,12 @@ class DocThread(BaseThread):
         return page
 
     def split_page(self, **kwargs):
+        "split page"
         callbacks = _note_callbacks2(kwargs)
         return self.send("split_page", kwargs, **callbacks)
 
     def do_split_page(self, request):
+        "split page in thread"
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
 
@@ -1912,10 +1945,12 @@ class DocThread(BaseThread):
         )
 
     def tesseract(self, **kwargs):
+        "run tesseract"
         callbacks = _note_callbacks2(kwargs)
         return self.send("tesseract", kwargs, **callbacks)
 
     def do_tesseract(self, request):
+        "run tesseract in thread"
         options = request.args[0]
         page, language, uuid, dir = (
             options["page"],
@@ -1953,10 +1988,12 @@ class DocThread(BaseThread):
         return page
 
     def unpaper(self, **kwargs):
+        "run unpaper"
         callbacks = _note_callbacks2(kwargs)
         return self.send("unpaper", kwargs, **callbacks)
 
     def do_unpaper(self, request):
+        "run unpaper in thread"
         options = request.args[0]
 
         if self._page_gone("unpaper", options["uuid"], options["page"]):
@@ -2222,6 +2259,7 @@ class Document(SimpleList):
         GLib.timeout_add(100, self.page_request_handler)
 
     def page_request_handler(self):
+        "handle page requests"
         if not self.thread.page_requests.empty():
             uuid = self.thread.page_requests.get()
 
@@ -2233,7 +2271,7 @@ class Document(SimpleList):
         return GLib.SOURCE_CONTINUE
 
     def set_paper_sizes(self, paper_sizes=None):
-        """Set the paper sizes in the manager and worker threads"""
+        "Set the paper sizes in the manager and worker threads"
         self.paper_sizes = paper_sizes
         return self.thread.send("set_paper_sizes", paper_sizes)
 
@@ -2292,6 +2330,7 @@ class Document(SimpleList):
         return self.thread.send("cancel", finished_callback=cancel_callback)
 
     def create_pidfile(self, options):
+        "create file in which to store the PID"
         pidfile = None
         try:
             pidfile = tempfile.TemporaryFile(dir=self.dir, suffix=".pid")
@@ -2456,6 +2495,7 @@ class Document(SimpleList):
             options["mark_saved_callback"] = mark_saved_callback
 
     def import_file(self, password=None, **options):
+        "import file"
         # File in which to store the process ID
         # so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -2831,7 +2871,7 @@ class Document(SimpleList):
             n += 1
 
     def find_page_by_uuid(self, uuid):
-
+        "return page index given uuid"
         if uuid is None:
             logger.error(longmess("find_page_by_uuid() called with undef"))
             return
@@ -2841,7 +2881,7 @@ class Document(SimpleList):
                 return i
 
     def add_page(self, process_uuid, new_page, ref):
-        """Add a new page to the document"""
+        "Add a new page to the document"
         i, pagenum = None, None
 
         # FIXME: This is really hacky to allow import_scan() to specify the page number
@@ -2946,7 +2986,7 @@ class Document(SimpleList):
         return page_selection[0]
 
     def remove_corrupted_pages(self):
-
+        "remove corrupt pages"
         i = 0
         while i < len(self.data):
             if self.data[i][2] is None:
@@ -2980,13 +3020,13 @@ class Document(SimpleList):
         self.data = data
 
     def cut_selection(self):
-        """Cut the selection"""
+        "Cut the selection"
         data = self.copy_selection(False)
         self.delete_selection_extra()
         return data
 
     def copy_selection(self, clone):
-        """Copy the selection"""
+        "Copy the selection"
         selection = self.get_selected_indices()
         if selection == []:
             return
@@ -3053,7 +3093,7 @@ class Document(SimpleList):
         logger.info("Pasted ", len(data), f" pages at position {dest}")
 
     def delete_selection(self, context=None):
-        """Delete the selected scans"""
+        "Delete the selected pages"
 
         # The drag-data-delete callback seems to be fired twice. Therefore, create
         # a hash of the context hashes and ignore the second drop. There must be a
@@ -3075,6 +3115,7 @@ class Document(SimpleList):
                 model.remove(iter)
 
     def delete_selection_extra(self):
+        "wrapper for delete_selection()"
         page = self.get_selected_indices()
         npages = len(page)
         uuids = map(lambda x: str(self.data[x][2].uuid), page)
@@ -3115,6 +3156,7 @@ class Document(SimpleList):
         logger.info(f"Deleted {npages} pages")
 
     def save_pdf(self, **options):
+        "save the given pages as PDF"
 
         # File in which to store the process ID so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -3148,6 +3190,8 @@ class Document(SimpleList):
         )
 
     def save_djvu(self, **options):
+        "save the given pages as DjVu"
+
         # File in which to store the process ID so that it can be killed if necessary
 
         pidfile = self.create_pidfile(options)
@@ -3181,6 +3225,7 @@ class Document(SimpleList):
         )
 
     def save_tiff(self, **options):
+        "save the given pages as TIFF"
 
         # File in which to store the process ID so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -3213,6 +3258,7 @@ class Document(SimpleList):
         )
 
     def rotate(self, **options):
+        "rotate given page"
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
@@ -3240,9 +3286,9 @@ class Document(SimpleList):
         )
 
     def save_image(self, **options):
+        "save the given pages as image files"
 
         # File in which to store the process ID so that it can be killed if necessary
-
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
@@ -3279,7 +3325,7 @@ class Document(SimpleList):
         return True
 
     def save_text(self, **options):
-
+        "save a text file from the given pages"
         uuid = self._note_callbacks(options)
         return self.thread.save_text(
             path=options["path"],
@@ -3304,7 +3350,7 @@ class Document(SimpleList):
         )
 
     def save_hocr(self, **options):
-
+        "save an hocr file from the given pages"
         uuid = self._note_callbacks(options)
         return self.thread.save_hocr(
             path=options["path"],
@@ -3329,7 +3375,7 @@ class Document(SimpleList):
         )
 
     def analyse(self, **options):
-
+        "analyse given page"
         uuid = self._note_callbacks(options)
         return self.thread.analyse(
             list_of_pages=options["list_of_pages"],
@@ -3349,6 +3395,7 @@ class Document(SimpleList):
         )
 
     def threshold(self, **options):
+        "threshold given page"
         uuid = self._note_callbacks(options)
         return self.thread.threshold(
             threshold=options["threshold"],
@@ -3373,6 +3420,7 @@ class Document(SimpleList):
         )
 
     def brightness_contrast(self, **options):
+        "adjust brightness & contrast of given page"
         uuid = self._note_callbacks(options)
         return self.thread.brightness_contrast(
             brightness=options["brightness"],
@@ -3398,6 +3446,7 @@ class Document(SimpleList):
         )
 
     def negate(self, **options):
+        "negate given page"
         uuid = self._note_callbacks(options)
         return self.thread.negate(
             page=options["page"],
@@ -3421,6 +3470,7 @@ class Document(SimpleList):
         )
 
     def unsharp(self, **options):
+        "run unsharp mask on given page"
         uuid = self._note_callbacks(options)
         return self.thread.unsharp(
             radius=options["radius"],
@@ -3447,6 +3497,7 @@ class Document(SimpleList):
         )
 
     def crop(self, **options):
+        "crop page"
         uuid = self._note_callbacks(options)
         return self.thread.crop(
             x=options["x"],
@@ -3474,6 +3525,8 @@ class Document(SimpleList):
         )
 
     def split_page(self, **options):
+        """split the given page either vertically or horizontally, creating an
+        additional page"""
         uuid = self._note_callbacks(options)
 
         # FIXME: duplicate to _import_file_data_callback()
@@ -3509,7 +3562,7 @@ class Document(SimpleList):
         )
 
     def to_png(self, options):
-
+        "convert the given page to png"
         uuid = self._note_callbacks(options)
         sentinel = _enqueue_request(
             "to-png", {"page": options["page"], "dir": f"{self}->{dir}", "uuid": uuid}
@@ -3520,6 +3573,7 @@ class Document(SimpleList):
         )
 
     def tesseract(self, **options):
+        "run tesseract on the given page"
         uuid = self._note_callbacks(options)
         return self.thread.tesseract(
             language=options["language"],
@@ -3544,13 +3598,14 @@ class Document(SimpleList):
         )
 
     def ocr_pages(self, **options):
-        """Wrapper for the various ocr engines"""
+        "Wrapper for the various ocr engines"
         for page in options["pages"]:
             options["page"] = page
             if options["engine"] == "tesseract":
                 self.tesseract(**options)
 
     def unpaper(self, **options):
+        "run unpaper on the given page"
         options = defaultdict(None, **options)
         uuid = self._note_callbacks(options)
 
@@ -3577,7 +3632,7 @@ class Document(SimpleList):
         )
 
     def user_defined(self, **options):
-
+        "run a user-defined command on a page"
         # File in which to store the process ID so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
         if pidfile is None:
@@ -3643,7 +3698,7 @@ class Document(SimpleList):
                 self.data[i][2].saved = True
 
     def open_session_file(self, options):
-
+        "open session file"
         if "info" not in options:
             if options["error_callback"]:
                 options["error_callback"](
@@ -3664,7 +3719,7 @@ class Document(SimpleList):
             options["finished_callback"]()
 
     def open_session(self, options):
-
+        "open session file"
         if "dir" not in options:
             if options["error_callback"]:
                 options["error_callback"](
@@ -4376,18 +4431,8 @@ def _throw_error(uuid, page_uuid, process, message):
         del callback[uuid]["error"]
 
 
-def compare_numeric_col():  ## no critic (RequireArgUnpacking, RequireFinalReturn)
-    return -1 if _[0] < _[1] else 0 if _[0] == _[1] else 1
-
-
-def compare_text_col():  ## no critic (RequireArgUnpacking, RequireFinalReturn)
-    return -1 if _[0] < _[1] else 0 if _[0] == _[1] else 1
-
-
-def drag_data_received_callback(
-    tree, context, x, y, data, info, time
-):  ## no critic (ProhibitManyArgs)
-
+def drag_data_received_callback(tree, context, x, y, data, info, time):
+    "callback to receive DnD data"
     delete = bool(
         context.get_actions == "move"
     )  ## no critic (ProhibitMismatchedOperators)
@@ -4440,7 +4485,7 @@ INPUT_RECORD_SEPARATOR = None
 
 
 def slurp(file):
-
+    "slurp file"
     (text) = None
     if type(file) == "GLOB":
         text = file
@@ -4461,8 +4506,8 @@ def slurp(file):
     return text
 
 
-def exec_command(cmd, pidfile=None):
-
+def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
+    "wrapper for subprocess.run()"
     # remove empty arguments in cmd
     # i = 0
     # while i <= len(cmd)-1 :
@@ -4513,7 +4558,7 @@ def exec_command(cmd, pidfile=None):
 
 
 def program_version(stream, regex, cmd):
-
+    "run command and parse version string from output"
     return _program_version(stream, regex, exec_command(cmd))
 
 
@@ -4547,22 +4592,8 @@ def _program_version(stream, regex, output):
     logger.info(f"Unable to parse version string from: '{output}'")
 
 
-def check_command(cmd):
-
-    _exit_code, exe = exec_command(["which", cmd])
-    return (exe is not None) and exe != EMPTY
-
-
-def timestamp():
-    time = localtime
-
-    # return a time which can be string-wise compared
-
-    return "%04d%02d%02d%02d%02d%02d" % (reversed(time[range(YEAR + 1)]))
-
-
 def text_to_datetime(text, thisyear=None, thismonth=None, thisday=None):
-
+    "convert string to datetime"
     (year, month, day, hour, minute, sec) = (None, None, None, None, None, None)
     regex = re.search(
         r"^(\d+)?-?(\d+)?-?(\d+)?(?:\s(\d+)?:?(\d+)?:?(\d+)?)?$",
@@ -4604,7 +4635,7 @@ def text_to_datetime(text, thisyear=None, thismonth=None, thisday=None):
 
 
 def expand_metadata_pattern(**kwargs):
-
+    "expand metadata template"
     dhour, dmin, dsec, thour, tmin, tsec = 0, 0, 0, 0, 0, 0
     if len(kwargs["docdate"]) > 3:
         dyear, dmonth, dday, dhour, dmin, dsec = kwargs["docdate"]
@@ -4664,7 +4695,7 @@ def expand_metadata_pattern(**kwargs):
 
 
 def collate_metadata(settings, today_and_now, timezone):
-
+    "collect metadata from settings dictionary"
     metadata = {}
     for key in ["author", "title", "subject", "keywords"]:
         if key in settings:
@@ -4702,42 +4733,17 @@ def collate_metadata(settings, today_and_now, timezone):
 
 
 def add_delta_timezone(timezone, timezone_offset):
+    "add an offset to a timezone"
     return [timezone[i] + timezone_offset[i] for i in range(len(timezone))]
 
 
 def delta_timezone(tz1, tz2):
+    "returns difference between two timezones"
     return [tz2[i] - tz1[i] for i in range(len(tz1))]
 
 
-def delta_timezone_to_current(adatetime):
-    if adatetime[0] < MIN_YEAR_FOR_DATECALC:
-        return [0, 0, 0, 0, 0, 0, 0]
-
-    current = datetime.datetime.now().astimezone().utcoffset()
-    current = [
-        0,
-        0,
-        0,
-        current.days,
-        current.seconds // 3600,
-        (current.seconds // 60) % 60,
-        current.seconds % 60,
-    ]
-    adatetime = datetime.datetime(*adatetime).astimezone().utcoffset()
-    adatetime = [
-        0,
-        0,
-        0,
-        adatetime.days,
-        adatetime.seconds // 3600,
-        (adatetime.seconds // 60) % 60,
-        adatetime.seconds % 60,
-    ]
-    return delta_timezone(current, adatetime)
-
-
 def prepare_output_metadata(ftype, metadata):
-
+    "format metadata for PDF or DjVu"
     h = {}
     if metadata is not None and ftype in ["PDF", "DjVu"]:
         year, month, day, hour, mns, sec = 0, 0, 0, 0, 0, 0
@@ -4929,7 +4935,8 @@ def _write_image_object(page, options):
 
 
 def px2pt(px, resolution):
-
+    """helper function to return length in points given a number of pixels
+    and the resolution"""
     return px / resolution * POINTS_PER_INCH
 
 
