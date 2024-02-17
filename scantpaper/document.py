@@ -14,7 +14,6 @@ import gettext  # For translations
 import tempfile
 import uuid
 import logging
-import unicodedata
 from pathlib import Path
 import img2pdf
 import ocrmypdf
@@ -176,12 +175,12 @@ class DocThread(BaseThread):
                 stdout,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            for w, h, p in regex:
-                width.append(int(w))
-                height.append(int(h))
-                ppi.append(int(p))
+            for _w, _h, _p in regex:
+                width.append(int(_w))
+                height.append(int(_h))
+                ppi.append(int(_p))
                 logger.info(
-                    f"Page $#ppi is {width}[$#width]x{height}[$#height], {ppi}[$#ppi] ppi"
+                    f"Page {len(ppi)} is {width[-1]}x{height[-1]}, {ppi[-1]} ppi"
                 )
 
             if pages != len(ppi):
@@ -283,9 +282,9 @@ class DocThread(BaseThread):
                 stdout,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            for w, h in regex:
-                width.append(int(w))
-                height.append(int(h))
+            for _w, _h in regex:
+                width.append(int(_w))
+                height.append(int(_h))
                 request.data(f"Page {len(width)} is {width[-1]}x{height[-1]}")
 
             info["width"] = width
@@ -561,7 +560,7 @@ class DocThread(BaseThread):
         if "metadata" in options and "ps" not in options:
             metadata = prepare_output_metadata("PDF", options["metadata"])
 
-        with open(outdir / "origin_pre.pdf", "wb") as f:
+        with open(outdir / "origin_pre.pdf", "wb") as fhd:
             filenames = []
             sizes = []
             for page in options["list_of_pages"]:
@@ -573,7 +572,7 @@ class DocThread(BaseThread):
                 metadata["layout_fun"] = img2pdf.get_layout_fun(
                     (img2pdf.mm_to_pt(size["x"]), img2pdf.mm_to_pt(size["y"]))
                 )
-            f.write(img2pdf.convert(filenames, **metadata))
+            fhd.write(img2pdf.convert(filenames, **metadata))
         ocrmypdf.api._pdf_to_hocr(
             outdir / "origin_pre.pdf",
             outdir,
@@ -642,7 +641,7 @@ class DocThread(BaseThread):
         Start at the top of the page (PDF coordinate system starts
         at the bottom left of the page)"""
         xresolution, yresolution, units = gs_page.get_resolution()
-        h = px2pt(gs_page.height, yresolution)
+        height = px2pt(gs_page.height, yresolution)
         for box in Bboxtree(gs_page.annotations).get_bbox_iter():
             if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
                 continue
@@ -654,7 +653,7 @@ class DocThread(BaseThread):
             annot = page.annotation()
             annot.markup(
                 box["text"],
-                _bbox2markup(xresolution, yresolution, h, len(box["bbox"])),
+                _bbox2markup(xresolution, yresolution, height, len(box["bbox"])),
                 "Highlight",
                 color=rgb,
                 opacity=0.5,
@@ -856,7 +855,6 @@ class DocThread(BaseThread):
                 filename = pnm.name
 
         # cjb2 can only use pnm and tif
-
         else:
             compression = "cjb2"
             if (
@@ -867,15 +865,15 @@ class DocThread(BaseThread):
                 or upsample
             ):
                 pbm = tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm")
-                e = image.Write(filename=pbm)
-                if f"{e}":
-                    logger.error(e)
+                err = image.Write(filename=pbm)
+                if f"{err}":
+                    logger.error(err)
                     _thread_throw_error(
                         self,
                         options["uuid"],
                         options["page"]["uuid"],
                         "Save file",
-                        f"Error writing {pbm}: {e}.",
+                        f"Error writing {pbm}: {err}.",
                     )
                     return
 
@@ -894,9 +892,9 @@ class DocThread(BaseThread):
             # Write djvusedtxtfile
             with tempfile.NamedTemporaryFile(
                 mode="w", dir=dir, suffix=".txt", delete=False
-            ) as fh:
-                djvusedtxtfile = fh.name
-                fh.write(txt)
+            ) as fhd:
+                djvusedtxtfile = fhd.name
+                fhd.write(txt)
 
             # Run djvusedtxtfile
             cmd = [
@@ -932,9 +930,9 @@ class DocThread(BaseThread):
             # Write djvusedtxtfile
             with tempfile.NamedTemporaryFile(
                 mode="w", dir=dir, suffix=".txt", delete=False
-            ) as fh:
-                djvusedtxtfile = fh.name
-                fh.write(ann)
+            ) as fhd:
+                djvusedtxtfile = fhd.name
+                fhd.write(ann)
 
             # Run djvusedtxtfile
             cmd = [
@@ -968,9 +966,9 @@ class DocThread(BaseThread):
             # Write djvusedmetafile
             with tempfile.NamedTemporaryFile(
                 mode="w", dir=options["dir"], suffix=".txt", delete=False
-            ) as fh:
-                djvusedmetafile = fh.name
-                fh.write("(metadata\n")
+            ) as fhd:
+                djvusedmetafile = fhd.name
+                fhd.write("(metadata\n")
 
                 # Write the metadata
                 for key in metadata.keys():
@@ -983,9 +981,9 @@ class DocThread(BaseThread):
                     val = re.sub(
                         r"\"", r"\\\"", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
                     )
-                    fh.write(f'{key} "{val}"\n')
+                    fhd.write(f'{key} "{val}"\n')
 
-                fh.write(")\n")
+                fhd.write(")\n")
 
             # Write djvusedmetafile
             cmd = [
@@ -1115,8 +1113,8 @@ class DocThread(BaseThread):
                             format=image_format[ext],
                             resolution=(xresolution, yresolution, "PixelsPerInch"),
                         )
-                        with open(html.name, "r") as fd:
-                            page.import_pdftotext(fd.read())
+                        with open(html.name, "r") as fhd:
+                            page.import_pdftotext(fhd.read())
                         request.data(page.to_png(self.paper_sizes))
 
                     except:
@@ -1159,12 +1157,12 @@ class DocThread(BaseThread):
         adatetime = metadata["datetime"]
         adatetime = datetime.datetime(*adatetime)
         if "tz" in metadata:
-            tz = metadata["tz"]
-            tz = [0 if x is None else x for x in tz]
-            tz = datetime.timedelta(
-                days=tz[2], hours=tz[3], minutes=tz[4], seconds=tz[5]
+            tzn = metadata["tz"]
+            tzn = [0 if x is None else x for x in tzn]
+            tzn = datetime.timedelta(
+                days=tzn[2], hours=tzn[3], minutes=tzn[4], seconds=tzn[5]
             )
-            adatetime -= tz
+            adatetime -= tzn
 
         epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
         adatetime = (adatetime - epoch).total_seconds()
@@ -1399,15 +1397,14 @@ class DocThread(BaseThread):
         "save text file in thread"
         options = request.args[0]
 
-        fh = None
         string = EMPTY
         for page in options["list_of_pages"]:
             string += page.export_text()
             if self.cancel:
                 return
 
-        with open(options["path"], "w") as fh:
-            fh.write(string)
+        with open(options["path"], "w") as fhd:
+            fhd.write(string)
 
         _post_save_hook(options["path"], options["options"])
 
@@ -1420,7 +1417,7 @@ class DocThread(BaseThread):
         "save hocr file in thread"
         options = request.args[0]
 
-        with open(options["path"], "w") as fh:
+        with open(options["path"], "w") as fhd:
 
             written_header = False
             for page in options["list_of_pages"]:
@@ -1434,15 +1431,15 @@ class DocThread(BaseThread):
                     header = regex.group(1)
                     hocr_page = regex.group(2)
                     if not written_header:
-                        fh.write(header)
+                        fhd.write(header)
                         written_header = True
 
-                    fh.write(hocr_page)
+                    fhd.write(hocr_page)
                     if self.cancel:
                         return
 
             if written_header:
-                fh.write("</body>\n</html>\n")
+                fhd.write("</body>\n</html>\n")
 
         _post_save_hook(options["path"], options["options"])
 
@@ -1495,9 +1492,9 @@ class DocThread(BaseThread):
         if not os.path.isfile(
             page.filename
         ):  # in case file was deleted after process started
-            e = f"Page for process {uuid} no longer exists. Cannot {process}."
+            err = f"Page for process {uuid} no longer exists. Cannot {process}."
             logger.error(e)
-            _thread_throw_error(self, uuid, page["uuid"], process, e)
+            _thread_throw_error(self, uuid, page["uuid"], process, err)
             return True
         return False
 
@@ -1623,10 +1620,10 @@ class DocThread(BaseThread):
                 }
             )
 
-        except Exception as e:
-            logger.error(f"Error creating file in {options['dir']}: {e}")
+        except Exception as err:
+            logger.error(f"Error creating file in {options['dir']}: {err}")
             request.error(
-                f"Error creating file in {options['dir']}: {e}.",
+                f"Error creating file in {options['dir']}: {err}.",
             )
 
     def analyse(self, **kwargs):
@@ -1817,19 +1814,19 @@ class DocThread(BaseThread):
         "crop page in thread"
         options = request.args[0]
         page, uuid, dir = options["page"], options["uuid"], options["dir"]
-        x = options["x"]
-        y = options["y"]
-        w = options["w"]
-        h = options["h"]
+        left = options["x"]
+        top = options["y"]
+        width = options["w"]
+        height = options["h"]
 
         if self._page_gone("crop", options["uuid"], options["page"]):
             return
 
         filename = page.filename
-        logger.info(f"Crop {filename} x {x} y {y} w {w} h {h}")
+        logger.info(f"Crop {filename} x {left} y {top} w {width} h {height}")
         image = page.im_object()
 
-        image = image.crop((x, y, x + w, y + h))
+        image = image.crop((left, top, left + width, top + height))
 
         if self.cancel:
             return
@@ -1839,7 +1836,7 @@ class DocThread(BaseThread):
 
         if page.text_layer is not None:
             bboxtree = Bboxtree(page.text_layer)
-            page.text_layer = bboxtree.crop(x, y, w, h).json()
+            page.text_layer = bboxtree.crop(left, top, width, height).json()
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1865,24 +1862,23 @@ class DocThread(BaseThread):
         image2 = image.copy()
 
         # split the image
-        (w, h, x2, y2, w2, h2) = (None, None, None, None, None, None)
         if options["direction"] == "v":
-            w = options["position"]
-            h = image.height
-            x2 = w
-            y2 = 0
-            w2 = image.width - w
-            h2 = h
+            width = options["position"]
+            height = image.height
+            right = width
+            bottom = 0
+            width2 = image.width - width
+            height2 = height
         else:
-            w = image.width
-            h = options["position"]
-            x2 = 0
-            y2 = h
-            w2 = w
-            h2 = image.height - h
+            width = image.width
+            height = options["position"]
+            right = 0
+            bottom = height
+            width2 = width
+            height2 = image.height - height
 
-        image = image.crop((0, 0, w, h))
-        image2 = image2.crop((x2, y2, x2 + w2, y2 + h2))
+        image = image.crop((0, 0, width, height))
+        image2 = image2.crop((right, bottom, right + width2, bottom + height2))
 
         if self.cancel:
             return
@@ -1924,8 +1920,8 @@ class DocThread(BaseThread):
         if page.text_layer:
             bboxtree = Bboxtree(page.text_layer)
             bboxtree2 = Bboxtree(page.text_layer)
-            page.text_layer = bboxtree.crop(0, 0, w, h).json()
-            new2.text_layer = bboxtree2.crop(x2, y2, w2, h2).json()
+            page.text_layer = bboxtree.crop(0, 0, width, height).json()
+            new2.text_layer = bboxtree2.crop(right, bottom, width2, height2).json()
 
         request.data(
             {
@@ -1971,7 +1967,7 @@ class DocThread(BaseThread):
             output = "image_out"
 
             api.SetVariable("tessedit_create_hocr", "T")
-            pp = api.ProcessPages(output, page.filename)
+            _pp = api.ProcessPages(output, page.filename)
 
             # Unnecessary filesystem write/read
             path_hocr = Path(output).with_suffix(".hocr")
@@ -2118,14 +2114,14 @@ class DocThread(BaseThread):
                     }
                 )
 
-        except Exception as e:
-            logger.error(f"Error creating file in {options['dir']}: {e}")
+        except Exception as err:
+            logger.error(f"Error creating file in {options['dir']}: {err}")
             _thread_throw_error(
                 self,
                 options["uuid"],
                 options["page"]["uuid"],
                 "unpaper",
-                f"Error creating file in {options}{dir}: {e}.",
+                f"Error creating file in {options}{dir}: {err}.",
             )
 
 
@@ -2225,7 +2221,7 @@ class Document(SimpleList):
         self.connect("drag-data-delete", self.delete_selection)
         self.connect("drag-data-received", drag_data_received_callback)
 
-        def drag_drop_callback(tree, context, x, y, when):
+        def drag_drop_callback(tree, context, _x, _y, when):
             """# Callback for dropped signal."""
             targets = tree.drag_dest_get_target_list()
             if target in tree.drag_dest_find_target(context, targets):
@@ -2320,8 +2316,8 @@ class Document(SimpleList):
         pidfile = None
         try:
             pidfile = tempfile.TemporaryFile(dir=self.dir, suffix=".pid")
-        except Exception as e:
-            logger.error(f"Caught error writing to {self.dir}: {e}")
+        except Exception as err:
+            logger.error(f"Caught error writing to {self.dir}: {err}")
             if "error_callback" in options:
                 options["error_callback"](
                     options["page"] if "page" in options else None,
@@ -2636,13 +2632,13 @@ class Document(SimpleList):
         and set off any post-processing chains"""
 
         # Interface to frontend
-        fh = open(options["filename"], mode="r")  ## no critic (RequireBriefOpen)
+        fhd = open(options["filename"], mode="r")
 
         # Read without blocking
         size = 0
 
         def file_changed_callback(fileno, condition, *data):
-            nonlocal size, fh
+            nonlocal size, fhd
 
             if condition & GLib.IOCondition.IN:
                 width, height = None, None
@@ -2653,16 +2649,16 @@ class Document(SimpleList):
                     logger.info(f"Header suggests {size}")
                     if size == 0:
                         return GLib.SOURCE_CONTINUE
-                    fh.close()
+                    fhd.close()
 
                 filesize = os.path.getsize(options["filename"])
                 logger.info(f"Expecting {size}, found {filesize}")
                 if size > filesize:
                     pad = size - filesize
-                    fh = open(options["filename"], mode="ab")
+                    fhd = open(options["filename"], mode="ab")
                     data = [1] * (pad * BITS_PER_BYTE + 1)
-                    fh.write(struct.pack("%db" % (len(data)), *data))
-                    fh.close()
+                    fhd.write(struct.pack("%db" % (len(data)), *data))
+                    fhd.close()
                     logger.info(f"Padded {pad} bytes")
 
                 page = Page(
@@ -2695,13 +2691,13 @@ class Document(SimpleList):
             return GLib.SOURCE_CONTINUE
 
         GLib.io_add_watch(
-            fh,
+            fhd,
             GLib.PRIORITY_DEFAULT,
             GLib.IOCondition.IN | GLib.IOCondition.HUP,
             file_changed_callback,
         )
 
-    def index_for_page(self, n, min, max, direction):
+    def index_for_page(self, num, min, max, direction):
         "does the given page exist?"
         if len(self.data) - 1 < 0:
             return INFINITE
@@ -2709,21 +2705,21 @@ class Document(SimpleList):
             min = 0
 
         if max is None:
-            max = n - 1
+            max = num - 1
 
-        s = min
-        e = max + 1
+        start = min
+        end = max + 1
         step = 1
         if direction < 0:
             step = -step
-            s = max
-            if s > len(self.data) - 1:
-                s = len(self.data) - 1
-            e = min - 1
+            start = max
+            if start > len(self.data) - 1:
+                start = len(self.data) - 1
+            end = min - 1
 
-        i = s
-        while (i <= e and i < len(self.data)) if step > 0 else i > e:
-            if self.data[i][0] == n:
+        i = start
+        while (i <= end and i < len(self.data)) if step > 0 else i > end:
+            if self.data[i][0] == num:
                 return i
 
             i += step
@@ -2736,32 +2732,32 @@ class Document(SimpleList):
 
         # Empty document and negative step
         if i < 0 and step < 0:
-            n = -start / step
-            return n if n == int(n) else int(n) + 1
+            num = -start / step
+            return num if num == int(num) else int(num) + 1
 
         # Empty document, or start page after end of document, allow infinite pages
         elif i < 0 or (step > 0 and self.data[i][0] < start):
             return INFINITE
 
         # scan in appropriate direction, looking for position for last page
-        n = 0
+        num = 0
         max_page_number = self.data[i][0]
         while True:
 
             # fallen off top of index
-            if step > 0 and start + n * step > max_page_number:
+            if step > 0 and start + num * step > max_page_number:
                 return INFINITE
 
             # fallen off bottom of index
-            if step < 0 and start + n * step < 1:
-                return n
+            if step < 0 and start + num * step < 1:
+                return num
 
             # Found page
-            i = self.index_for_page(start + n * step, 0, start - 1, step)
+            i = self.index_for_page(start + num * step, 0, start - 1, step)
             if i > INFINITE:
-                return n
+                return num
 
-            n += 1
+            num += 1
 
     def find_page_by_uuid(self, uuid):
         "return page index given uuid"
@@ -3909,9 +3905,9 @@ class Document(SimpleList):
             }
         )
 
-    def _write_file(self, fh, filename, data, uuid):
+    def _write_file(self, fhd, filename, data, uuid):
 
-        if not fh.write(data):
+        if not fhd.write(data):
             _thread_throw_error(
                 self, uuid, None, "Save file", _("Can't write to file: %s") % (filename)
             )
@@ -3978,20 +3974,22 @@ def _extract_metadata(info):
             )
             if regex:
                 try:
-                    t = datetime.datetime.strptime(regex.group(1), "%Y-%m-%dT%H:%M:%S")
-                    tz = regex.group(2)
+                    dtm = datetime.datetime.strptime(
+                        regex.group(1), "%Y-%m-%dT%H:%M:%S"
+                    )
+                    tzn = regex.group(2)
                     metadata["datetime"] = [
-                        t.year,
-                        t.month,
-                        t.day,
-                        t.hour,
-                        t.minute,
-                        t.second,
+                        dtm.year,
+                        dtm.month,
+                        dtm.day,
+                        dtm.hour,
+                        dtm.minute,
+                        dtm.second,
                     ]
-                    if (tz is None) or tz == "Z":
-                        tz = 0
+                    if (tzn is None) or tzn == "Z":
+                        tzn = 0
 
-                    metadata["tz"] = [None, None, None, int(tz), 0, None, None]
+                    metadata["tz"] = [None, None, None, int(tzn), 0, None, None]
                 except ValueError:
                     pass
 
@@ -4032,11 +4030,9 @@ def _throw_error(uuid, page_uuid, process, message):
         del callback[uuid]["error"]
 
 
-def drag_data_received_callback(tree, context, x, y, data, info, time):
+def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
     "callback to receive DnD data"
-    delete = bool(
-        context.get_actions == "move"
-    )  ## no critic (ProhibitMismatchedOperators)
+    delete = bool(context.get_actions == "move")
 
     # This callback is fired twice, seemingly once for the drop flag,
     # and once for the copy flag. If the drop flag is disabled, the URI
@@ -4064,7 +4060,7 @@ def drag_data_received_callback(tree, context, x, y, data, info, time):
         Gtk.drag_finish(context, True, False, time)
 
     elif info == ID_PAGE:
-        (path, how) = tree.get_dest_row_at_pos(x, y)
+        path, how = tree.get_dest_row_at_pos(xpos, ypos)
         if path is not None:
             path = path.to_string()
         rows = tree.get_selected_indices()
@@ -4082,9 +4078,6 @@ def drag_data_received_callback(tree, context, x, y, data, info, time):
         context.abort()
 
 
-INPUT_RECORD_SEPARATOR = None
-
-
 def slurp(file):
     "slurp file"
     (text) = None
@@ -4093,13 +4086,13 @@ def slurp(file):
 
     else:
         try:
-            fh = open("<:encoding(UTF8)", file)
+            fhd = open("<:encoding(UTF8)", file)
 
         except:
             raise f"Error: cannot open {file}\n"
-        text = fh
+        text = fhd
         try:
-            fh.close()
+            fhd.close()
 
         except:
             raise f"Error: cannot close {file}\n"
@@ -4123,8 +4116,8 @@ def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
 
     try:
         sbp = subprocess.run(cmd, capture_output=True, check=True, text=True)
-    except FileNotFoundError as e:
-        return -1, None, str(e)
+    except FileNotFoundError as err:
+        return -1, None, str(err)
 
     # if pid == 0 :
     #     return PROCESS_FAILED, None,           SPACE.join(  cmd ) + ': command not found'
@@ -4345,28 +4338,30 @@ def delta_timezone(tz1, tz2):
 
 def prepare_output_metadata(ftype, metadata):
     "format metadata for PDF or DjVu"
-    h = {}
+    out = {}
     if metadata is not None and ftype in ["PDF", "DjVu"]:
         year, month, day, hour, mns, sec = 0, 0, 0, 0, 0, 0
         if "datetime" in metadata and metadata["datetime"] is not None:
             year, month, day, hour, mns, sec = metadata["datetime"]
-        sign, dh, dm = "+", 0, 0
+        sign, dhr, dmin = "+", 0, 0
         if "tz" in metadata:
-            _year, _month, _day, dh, dm, _sec, _dst = metadata["tz"]
+            _year, _month, _day, dhr, dmin, _sec, _dst = metadata["tz"]
         if year > 0:
             if ftype == "PDF":
-                h["creationdate"] = datetime.datetime(
+                out["creationdate"] = datetime.datetime(
                     year,
                     month,
                     day,
                     hour,
                     mns,
                     sec,
-                    tzinfo=datetime.timezone(datetime.timedelta(hours=dh, minutes=dm)),
+                    tzinfo=datetime.timezone(
+                        datetime.timedelta(hours=dhr, minutes=dmin)
+                    ),
                 )
             else:
                 dateformat = "%4i-%02i-%02i %02i:%02i:%02i%1s%02i:%02i"
-                h["creationdate"] = dateformat % (
+                out["creationdate"] = dateformat % (
                     year,
                     month,
                     day,
@@ -4374,18 +4369,18 @@ def prepare_output_metadata(ftype, metadata):
                     mns,
                     sec,
                     sign,
-                    dh,
-                    dm,
+                    dhr,
+                    dmin,
                 )
-            h["moddate"] = h["creationdate"]
-        h["creator"] = f"gscan2pdf v{VERSION}"
+            out["moddate"] = out["creationdate"]
+        out["creator"] = f"gscan2pdf v{VERSION}"
         if ftype == "DjVu":
-            h["producer"] = "djvulibre"
+            out["producer"] = "djvulibre"
         for key in ["author", "title", "subject", "keywords"]:
             if key in metadata and metadata[key] != "":
-                h[key] = metadata[key]
+                out[key] = metadata[key]
 
-    return h
+    return out
 
 
 def _enqueue_request(action, data):
@@ -4447,9 +4442,13 @@ def _write_image_object(page, options):
         ):
             save = True
             image = page.im_object()
-            w = page.width * options["options"]["downsample dpi"] // page.resolution[0]
-            h = page.height * options["options"]["downsample dpi"] // page.resolution[1]
-            image = image.resize((w, h))
+            width = (
+                page.width * options["options"]["downsample dpi"] // page.resolution[0]
+            )
+            height = (
+                page.height * options["options"]["downsample dpi"] // page.resolution[1]
+            )
+            image = image.resize((width, height))
     if (
         options
         and "options" in options
@@ -4469,7 +4468,6 @@ def _write_image_object(page, options):
         image = image.convert("1")
     if save:
         regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        suffix = regex.group(1)
         filename = tempfile.NamedTemporaryFile(
             dir=options["dir"], suffix=regex.group(1)
         ).name
@@ -4521,38 +4519,17 @@ def _write_image_object(page, options):
     return format
 
 
-def px2pt(px, resolution):
+def px2pt(pixels, resolution):
     """helper function to return length in points given a number of pixels
     and the resolution"""
-    return px / resolution * POINTS_PER_INCH
+    return pixels / resolution * POINTS_PER_INCH
 
 
-def _wrap_text_to_page(txt, size, text_box, h, w):
-    y = h * POINTS_PER_INCH - size
-    text_box.setTextOrigin(0, y)
-    for line in re.split(r"\n", txt):
-        text_box.textLine(text=line)
-        # x = 0
-
-        # # Add a word at a time in order to linewrap
-        # for word in line.split(SPACE):
-        #     if len(word) * size + x > w * POINTS_PER_INCH:
-        #         x = 0
-        #         y -= size
-
-        #     text_box.translate(x, y)
-        #     if x > 0:
-        #         word = SPACE + word
-        #     x += text_box.text(word, utf8=1)
-
-        # y -= size
-
-
-def _bbox2markup(xresolution, yresolution, h, bbox):
+def _bbox2markup(xresolution, yresolution, height, bbox):
 
     for i in (0, 2):
         bbox[i] = px2pt(bbox[i], xresolution)
-        bbox[i + 1] = h - px2pt(bbox[i + 1], yresolution)
+        bbox[i + 1] = height - px2pt(bbox[i + 1], yresolution)
 
     return [
         bbox[LEFT],
@@ -4570,9 +4547,9 @@ def _post_save_hook(filename, options):
 
     if options is not None and "post_save_hook" in options:
         args = options["post_save_hook"].split(" ")
-        for i, e in enumerate(args):
+        for i, arg in enumerate(args):
             args[i] = re.sub(
-                "%i", filename, e, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+                "%i", filename, arg, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
             )
         if (
             "post_save_hook_options" not in options
