@@ -135,10 +135,10 @@ class DocThread(BaseThread):
         if not pathlib.Path(path).exists():
             raise FileNotFoundError(_("File %s not found") % (path,))
 
-        logger.info(f"Getting info for {path}")
+        logger.info("Getting info for %s", path)
         _returncode, fformat, _stderr = exec_command(["file", "-Lb", path])
         fformat = fformat.rstrip()
-        logger.info(f"Format: '{fformat}'")
+        logger.info("Format: '%s'", fformat)
         if fformat in ["very short file (no magic)", "empty"]:
             raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
 
@@ -180,7 +180,7 @@ class DocThread(BaseThread):
                 height.append(int(_h))
                 ppi.append(int(_p))
                 logger.info(
-                    f"Page {len(ppi)} is {width[-1]}x{height[-1]}, {ppi[-1]} ppi"
+                    "Page %s is %sx%s, %s ppi", len(ppi), width[-1], height[-1], ppi[-1]
                 )
 
             if pages != len(ppi):
@@ -216,8 +216,8 @@ class DocThread(BaseThread):
             if self.cancel:
                 return
             if process.returncode != 0:
-                logger.info(f"stdout: {process.stdout}")
-                logger.info(f"stderr: {process.stderr}")
+                logger.info("stdout: %s", process.stdout)
+                logger.info("stderr: %s", process.stderr)
                 if (process.stderr is not None) and re.search(
                     r"Incorrect[ ]password",
                     process.stderr,
@@ -238,10 +238,10 @@ class DocThread(BaseThread):
                 if regex:
                     info["pages"] = int(regex.group(1))
 
-                logger.info(f"{info['pages']} pages")
+                logger.info("%s pages", info["pages"])
                 floatr = r"\d+(?:[.]\d*)?"
                 regex = re.search(
-                    fr"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
+                    rf"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
                     process.stdout,
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
@@ -252,7 +252,10 @@ class DocThread(BaseThread):
                         regex.group(3),
                     ]
                     logger.info(
-                        f"Page size: {regex.group(1)} x {regex.group(2)} {regex.group(3)}"
+                        "Page size: %s x %s %s",
+                        regex.group(1),
+                        regex.group(2),
+                        regex.group(3),
                     )
 
                 # extract the metadata from the file
@@ -273,7 +276,7 @@ class DocThread(BaseThread):
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
             )
-            logger.info(f"{info['pages']} pages")
+            logger.info("%s pages", info["pages"])
 
             # Dig out the size of each page
             width, height = [], []
@@ -291,7 +294,6 @@ class DocThread(BaseThread):
             info["height"] = height
 
         else:
-
             # Get file type
             image = Image.open(path)
 
@@ -299,7 +301,7 @@ class DocThread(BaseThread):
                 return
             fformat = image.format
 
-            logger.info(f"Format {fformat}")
+            logger.info("Format %s", fformat)
             info["width"] = [image.width]
             info["height"] = [image.height]
             dpi = image.info.get("dpi")
@@ -320,7 +322,6 @@ class DocThread(BaseThread):
         "import file in thread"
         args = request.args[0]
         if args["info"]["format"] == "DJVU":
-
             # Extract images from DjVu
             if args["last"] >= args["first"] and args["first"] > 0:
                 for i in range(args["first"], args["last"] + 1):
@@ -363,9 +364,9 @@ class DocThread(BaseThread):
                             text=True,
                         )
 
-                    except:
+                    except Exception as err:
                         if tif is not None:
-                            logger.error(f"Caught error creating {tif}: {_}")
+                            logger.error("Caught error creating %s: %s", tif, err)
                             _thread_throw_error(
                                 self,
                                 args["uuid"],
@@ -375,13 +376,15 @@ class DocThread(BaseThread):
                             )
 
                         else:
-                            logger.error(f"Caught error writing to {args}{dir}: {_}")
+                            logger.error(
+                                "Caught error writing to %s: %s", args.dir, err
+                            )
                             _thread_throw_error(
                                 self,
                                 args["uuid"],
                                 args["page"]["uuid"],
                                 "Open file",
-                                f"Error: unable to write to {args}{dir}.",
+                                f"Error: unable to write to {args.dir}.",
                             )
 
                         error = True
@@ -403,15 +406,18 @@ class DocThread(BaseThread):
                     )
                     try:
                         page.import_djvu_txt(txt)
-
-                    except:
-                        request.data(None, f"Caught error parsing DjVU text layer: {_}")
+                    except Exception as err:
+                        request.data(
+                            None, f"Caught error parsing DjVU text layer: {err}"
+                        )
 
                     try:
                         page.import_djvu_ann(ann)
 
-                    except:
-                        logger.error(f"Caught error parsing DjVU annotation layer: {_}")
+                    except Exception as err:
+                        logger.error(
+                            "Caught error parsing DjVU annotation layer: %s", err
+                        )
                         _thread_throw_error(
                             self,
                             options["uuid"],
@@ -453,8 +459,8 @@ class DocThread(BaseThread):
                         tif = tempfile.NamedTemporaryFile(
                             dir=args["dir"], suffix=".tif", delete=False
                         )
-                    except:
-                        logger.error(f"Caught error creating {tif}: {_}")
+                    except Exception as err:
+                        logger.error("Caught error creating %s: %s", tif, err)
                         _thread_throw_error(
                             self,
                             options["uuid"],
@@ -467,9 +473,12 @@ class DocThread(BaseThread):
                             ["tiffcp", f"{args['info']['path']},{i}", tif.name],
                             check=True,
                         )
-                    except:
+                    except Exception as err:
                         logger.error(
-                            f"Caught error extracting page {i} from {args['info']['path']}: {err}"
+                            "Caught error extracting page %s from %s: %s",
+                            i,
+                            args["info"]["path"],
+                            err,
                         )
                         _thread_throw_error(
                             self,
@@ -491,7 +500,7 @@ class DocThread(BaseThread):
                     )
                     request.data(page)
 
-        elif re.search(fr"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
+        elif re.search(rf"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
             try:
                 page = Page(
                     filename=args["info"]["path"],
@@ -506,9 +515,8 @@ class DocThread(BaseThread):
                     ),
                 )
                 request.data(page)
-
-            except:
-                logger.error(f"Caught error writing to {options}{dir}: {_}")
+            except Exception as err:
+                logger.error("Caught error writing to %s: %s", options["dir"], err)
                 _thread_throw_error(
                     self,
                     options["uuid"],
@@ -660,7 +668,6 @@ class DocThread(BaseThread):
             )
 
     def _append_pdf(self, filename, options):
-
         if "prepend" in options["options"]:
             file1 = filename
             file2 = options["options"]["prepend"] + ".bak"
@@ -724,8 +731,8 @@ class DocThread(BaseThread):
             try:
                 djvu = tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".djvu")
 
-            except:
-                logger.error(f"Caught error writing DjVu: {_}")
+            except Exception as err:
+                logger.error("Caught error writing DjVu: %s", err)
                 _thread_throw_error(
                     self,
                     args["uuid"],
@@ -751,8 +758,11 @@ class DocThread(BaseThread):
                 return
             if status != 0 or size == 0:
                 logger.error(
-                    f"Error writing image for page {page} of DjVu (process "
-                    f"returned {status}, image size {size})"
+                    "Error writing image for page %s of DjVu (process "
+                    "returned %s, image size %s)",
+                    page,
+                    status,
+                    size,
                 )
                 _thread_throw_error(
                     self,
@@ -789,7 +799,6 @@ class DocThread(BaseThread):
         _post_save_hook(args["path"], args["options"])
 
     def _convert_image_for_djvu(self, pagedata, page, options):
-
         filename = pagedata.filename
 
         # Check the image depth to decide what sort of compression to use
@@ -816,7 +825,7 @@ class DocThread(BaseThread):
             resolution = max(xresolution, yresolution)
             width *= resolution / xresolution
             height *= resolution / yresolution
-            logger.info(f"Upsampling to {resolution}x{resolution}")
+            logger.info("Upsampling to %sx%s", resolution, resolution)
             image = image.resize((int(width), int(height)), resample=Image.BOX)
             upsample = True
 
@@ -882,7 +891,6 @@ class DocThread(BaseThread):
         return compression, filename, resolution
 
     def _add_txt_to_djvu(self, djvu, dir, pagedata, uuid):
-
         if pagedata.text_layer is not None:
             txt = pagedata.export_djvu_txt()
             if txt == EMPTY:
@@ -909,7 +917,7 @@ class DocThread(BaseThread):
                 subprocess.run(cmd, check=True)
             except ValueError:
                 logger.error(
-                    f"Error adding text layer to DjVu page {pagedata}->{page_number}"
+                    "Error adding text layer to DjVu page %s->%s", pagedata, page_number
                 )
                 _thread_throw_error(
                     self,
@@ -947,7 +955,9 @@ class DocThread(BaseThread):
                 subprocess.run(cmd, check=True)
             except ValueError:
                 logger.error(
-                    f"Error adding annotations to DjVu page {pagedata}->{page_number}"
+                    "Error adding annotations to DjVu page %s->%s",
+                    pagedata,
+                    page_number,
                 )
                 _thread_throw_error(
                     self,
@@ -958,9 +968,7 @@ class DocThread(BaseThread):
                 )
 
     def _add_metadata_to_djvu(self, options):
-
         if "metadata" in options and options["metadata"] is not None:
-
             metadata = prepare_output_metadata("DjVu", options["metadata"])
 
             # Write djvusedmetafile
@@ -1116,9 +1124,8 @@ class DocThread(BaseThread):
                         with open(html.name, "r") as fhd:
                             page.import_pdftotext(fhd.read())
                         request.data(page.to_png(self.paper_sizes))
-
-                    except:
-                        logger.error(f"Caught error importing PDF: {_}")
+                    except Exception as err:
+                        logger.error("Caught error importing PDF: %s", err)
                         _thread_throw_error(
                             self,
                             options["uuid"],
@@ -1222,9 +1229,8 @@ class DocThread(BaseThread):
                     tif = tempfile.NamedTemporaryFile(
                         dir=options["dir"], suffix=".tif", delete=False
                     )
-
-                except:
-                    logger.error(f"Error writing TIFF: {_}")
+                except Exception as err:
+                    logger.error("Error writing TIFF: %s", err)
                     _thread_throw_error(
                         self,
                         options["uuid"],
@@ -1418,7 +1424,6 @@ class DocThread(BaseThread):
         options = request.args[0]
 
         with open(options["path"], "w") as fhd:
-
             written_header = False
             for page in options["list_of_pages"]:
                 hocr = page.export_hocr()
@@ -1456,7 +1461,7 @@ class DocThread(BaseThread):
         if self._page_gone("rotate", uuid, page):
             return
         filename = page.filename
-        logger.info(f"Rotating {filename} by {angle} degrees")
+        logger.info("Rotating %s by %s degrees", filename, angle)
         image = page.im_object().rotate(angle, expand=True)
 
         if self.cancel:
@@ -1564,7 +1569,7 @@ class DocThread(BaseThread):
 
             options["command"] = re.sub(
                 r"%r",
-                fr"{options['page'].resolution[0]}",
+                rf"{options['page'].resolution[0]}",
                 options["command"],
                 flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
@@ -1578,8 +1583,8 @@ class DocThread(BaseThread):
             )
             if self.cancel:
                 return
-            logger.info(f"stdout: {sbp.stdout}")
-            logger.info(f"stderr: {sbp.stderr}")
+            logger.info("stdout: %s", sbp.stdout)
+            logger.info("stderr: %s", sbp.stderr)
 
             # don't return in here, just in case we can ignore the error -
             # e.g. theming errors from gimp
@@ -1621,7 +1626,7 @@ class DocThread(BaseThread):
             )
 
         except Exception as err:
-            logger.error(f"Error creating file in {options['dir']}: {err}")
+            logger.error("Error creating file in %s: %s", options["dir"], err)
             request.error(
                 f"Error creating file in {options['dir']}: {err}.",
             )
@@ -1649,7 +1654,7 @@ class DocThread(BaseThread):
                 return
             stat = ImageStat.Stat(image)
             mean, stddev = stat.mean, stat.stddev
-            logger.info(f"std dev: {stddev} mean: {mean}")
+            logger.info("std dev: %s mean: %s", stddev, mean)
             if self.cancel:
                 return
 
@@ -1683,7 +1688,7 @@ class DocThread(BaseThread):
         if self.cancel:
             return
         filename = page.filename
-        logger.info(f"Theshold {filename} with {threshold}")
+        logger.info("Threshold %s with %s", filename, threshold)
         image = page.im_object()
 
         # To grayscale
@@ -1729,7 +1734,7 @@ class DocThread(BaseThread):
 
         filename = page.filename
         logger.info(
-            f"Enhance {filename} with brightness {brightness}, contrast {contrast}"
+            "Enhance %s with brightness %s, contrast %s", filename, brightness, contrast
         )
         image = page.im_object()
         if self.cancel:
@@ -1760,7 +1765,7 @@ class DocThread(BaseThread):
             return
 
         filename = page.filename
-        logger.info(f"Invert {filename}")
+        logger.info("Invert %s", filename)
         image = page.im_object()
         image = ImageOps.invert(image)
 
@@ -1790,7 +1795,11 @@ class DocThread(BaseThread):
 
         filename = page.filename
         logger.info(
-            f"Unsharp mask {filename} radius {radius} percent {percent} threshold {threshold}"
+            "Unsharp mask %s radius %s percent %s threshold %s",
+            filename,
+            radius,
+            percent,
+            threshold,
         )
         image = page.im_object()
         image = image.filter(
@@ -1823,7 +1832,7 @@ class DocThread(BaseThread):
             return
 
         filename = page.filename
-        logger.info(f"Crop {filename} x {left} y {top} w {width} h {height}")
+        logger.info("Crop %s x %s y %s w %s h %s", filename, left, top, width, height)
         image = page.im_object()
 
         image = image.crop((left, top, left + width, top + height))
@@ -1899,8 +1908,11 @@ class DocThread(BaseThread):
             image2.save(filename2)
 
         logger.info(
-            f"Splitting in direction {options['direction']} @ "
-            f"{options['position']} -> {filename} + {filename2}"
+            "Splitting in direction %s @ %s -> %s + %s",
+            options["direction"],
+            options["position"],
+            filename,
+            filename2,
         )
         if self.cancel:
             return
@@ -2015,7 +2027,7 @@ class DocThread(BaseThread):
                     delete=False,
                 ).name
 
-                logger.debug(f"Converting {filename} -> {infile} for unpaper")
+                logger.debug("Converting %s -> %s for unpaper", filename, infile)
                 image.save(infile)
 
             else:
@@ -2115,7 +2127,7 @@ class DocThread(BaseThread):
                 )
 
         except Exception as err:
-            logger.error(f"Error creating file in {options['dir']}: {err}")
+            logger.error("Error creating file in %s: %s", options["dir"], err)
             _thread_throw_error(
                 self,
                 options["uuid"],
@@ -2260,7 +2272,6 @@ class Document(SimpleList):
     def cancel(self, cancel_callback, process_callback=None):
         "Kill all running processes"
         with self.thread.lock:  # FIXME: move most of this to basethread.py
-
             # Empty process queue first to stop any new process from starting
             logger.info("Emptying process queue")
             try:
@@ -2302,7 +2313,7 @@ class Document(SimpleList):
                     if process_callback is not None:
                         process_callback(pid)
 
-                    logger.info(f"Killing PID {pid}")
+                    logger.info("Killing PID %s", pid)
 
                     os.killpg(os.getpgid(pid), signal.SIGKILL)
                     del self.running_pids[pidfile]
@@ -2317,7 +2328,7 @@ class Document(SimpleList):
         try:
             pidfile = tempfile.TemporaryFile(dir=self.dir, suffix=".pid")
         except Exception as err:
-            logger.error(f"Caught error writing to {self.dir}: {err}")
+            logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
                 options["error_callback"](
                     options["page"] if "page" in options else None,
@@ -2468,7 +2479,6 @@ class Document(SimpleList):
         if "mark_saved" in options and options["mark_saved"]:
 
             def mark_saved_callback(_data):
-
                 # list_of_pages is frozen,
                 # so find the original pages from their uuids
                 for page in options["list_of_pages"]:
@@ -2646,20 +2656,20 @@ class Document(SimpleList):
                     size, width, height = netpbm.file_size_from_header(
                         options["filename"]
                     )
-                    logger.info(f"Header suggests {size}")
+                    logger.info("Header suggests %s", size)
                     if size == 0:
                         return GLib.SOURCE_CONTINUE
                     fhd.close()
 
                 filesize = os.path.getsize(options["filename"])
-                logger.info(f"Expecting {size}, found {filesize}")
+                logger.info("Expecting %s, found %s", size, filesize)
                 if size > filesize:
                     pad = size - filesize
                     fhd = open(options["filename"], mode="ab")
                     data = [1] * (pad * BITS_PER_BYTE + 1)
                     fhd.write(struct.pack("%db" % (len(data)), *data))
                     fhd.close()
-                    logger.info(f"Padded {pad} bytes")
+                    logger.info("Padded %s bytes", pad)
 
                 page = Page(
                     filename=options["filename"],
@@ -2743,7 +2753,6 @@ class Document(SimpleList):
         num = 0
         max_page_number = self.data[i][0]
         while True:
-
             # fallen off top of index
             if step > 0 and start + num * step > max_page_number:
                 return INFINITE
@@ -2762,7 +2771,7 @@ class Document(SimpleList):
     def find_page_by_uuid(self, uuid):
         "return page index given uuid"
         if uuid is None:
-            logger.error(longmess("find_page_by_uuid() called with undef"))
+            logger.error("find_page_by_uuid() called with None")
             return
 
         for i, row in enumerate(self.data):
@@ -2784,7 +2793,7 @@ class Document(SimpleList):
                     uid = ref[key]
                     i = self.find_page_by_uuid(uid)
                     if i is None:
-                        logger.error(f"Requested page {uid} does not exist.")
+                        logger.error("Requested page %s does not exist.", uid)
                         return NOT_FOUND
                     break
 
@@ -2821,17 +2830,26 @@ class Document(SimpleList):
             model = self.get_model()
             row = model[model.iter_nth_child(None, 0)]
             logger.info(
-                f"Added {new_page.filename} ({new_page.uuid}) at page {pagenum} "
-                f"with resolution {xresolution},{yresolution}"
+                "Added %s (%s) at page %s with resolution %s,%s",
+                new_page.filename,
+                new_page.uuid,
+                pagenum,
+                xresolution,
+                yresolution,
             )
 
         else:
             if "replace" in ref:
                 pagenum = self.data[i][0]
                 logger.info(
-                    f"Replaced {self.data[i][2].filename} ({self.data[i][2].uuid}) "
-                    f"at page {pagenum} with {new_page.filename} ({new_page.uuid}), "
-                    f"resolution {xresolution},{yresolution}"
+                    "Replaced %s (%s) at page %s with %s (%s), resolution %s,%s",
+                    self.data[i][2].filename,
+                    self.data[i][2].uuid,
+                    pagenum,
+                    new_page.filename,
+                    new_page.uuid,
+                    xresolution,
+                    yresolution,
                 )
                 self.data[i][1] = thumb
                 self.data[i][2] = new_page
@@ -2840,8 +2858,13 @@ class Document(SimpleList):
                 pagenum = self.data[i][0] + 1
                 self.data.insert(i + 1, [pagenum, thumb, new_page])
                 logger.info(
-                    f"Inserted {new_page.filename} ({new_page.uuid}) at page "
-                    f"{pagenum} with resolution {xresolution},{yresolution},{units}"
+                    "Inserted %s (%s) at page %s with resolution %s,%s,%s",
+                    new_page.filename,
+                    new_page.uuid,
+                    pagenum,
+                    xresolution,
+                    yresolution,
+                    units,
                 )
 
         # Block selection_changed_signal
@@ -2924,9 +2947,7 @@ class Document(SimpleList):
             page = self.data[index]
             data.append([page[0], page[1], page[2].clone(clone)])
 
-        logger.info(
-            "Copied ", "and cloned " if clone else EMPTY, len(data) - 1 + 1, " pages"
-        )
+        logger.info("Copied %s%s pages", "and cloned " if clone else EMPTY, len(data))
         return data
 
     def paste_selection(self, data, path, how, select_new_pages=False):
@@ -2979,7 +3000,7 @@ class Document(SimpleList):
             self.get_model().handler_unblock(self.row_changed_signal)
 
         # self.save_session()
-        logger.info("Pasted ", len(data), f" pages at position {dest}")
+        logger.info("Pasted %s pages at position %s", len(data), dest)
 
     def delete_selection(self, context=None):
         "Delete the selected pages"
@@ -3008,7 +3029,7 @@ class Document(SimpleList):
         page = self.get_selected_indices()
         npages = len(page)
         uuids = map(lambda x: str(self.data[x][2].uuid), page)
-        logger.info("Deleting ", " ".join(uuids))
+        logger.info("Deleting %s", " ".join(uuids))
         if self.selection_changed_signal is not None:
             self.get_selection().handler_block(self.selection_changed_signal)
 
@@ -3042,7 +3063,7 @@ class Document(SimpleList):
             self.get_selection().emit("changed")
 
         # self.save_session()
-        logger.info(f"Deleted {npages} pages")
+        logger.info("Deleted %s pages", npages)
 
     def save_pdf(self, **options):
         "save the given pages as PDF"
@@ -3649,7 +3670,7 @@ class Document(SimpleList):
                     del sessionref[key]["hocr"]
 
         else:
-            logger.info(f"Restoring v{sessionref}->{version} session file.")
+            logger.info("Restoring v%s->%s session file.", sessionref, version)
 
         session = sessionref
 
@@ -3662,7 +3683,6 @@ class Document(SimpleList):
         if "version" in session:
             del session["version"]
         for pagenum in sorted(session.keys()):
-
             # don't reuse session directory
 
             session[pagenum]["dir"] = self.dir
@@ -3720,7 +3740,7 @@ class Document(SimpleList):
                 selection = range(len(self.data))
 
             for _ in selection:
-                logger.info(f"Renumbering page {self.data[_][0]}->{start}")
+                logger.info("Renumbering page %s->%s", self.data[_][0], start)
                 self.data[_][0] = start
                 start += step
 
@@ -3728,11 +3748,11 @@ class Document(SimpleList):
         # ascending.
 
         else:
-            for _ in range(1, len(self.data)):
-                if self.data[_][0] <= self.data[_ - 1][0]:
-                    new = self.data[_ - 1][0] + 1
-                    logger.info(f"Renumbering page {self}->{data}[{_}][0]->{new}")
-                    self.data[_][0] = new
+            for i in range(1, len(self.data)):
+                if self.data[i][0] <= self.data[i - 1][0]:
+                    new = self.data[i - 1][0] + 1
+                    logger.info("Renumbering page %s->%s", self.data[i][0], new)
+                    self.data[i][0] = new
 
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
@@ -3740,7 +3760,10 @@ class Document(SimpleList):
     def valid_renumber(self, start, step, selection):
         "Check if $start and $step give duplicate page numbers"
         logger.debug(
-            f"Checking renumber validity of: start {start}, step {step}, selection {selection}"
+            "Checking renumber validity of: start %s, step %s, selection %s",
+            start,
+            step,
+            selection,
         )
         if step == 0 or start < 1:
             return False
@@ -3761,11 +3784,11 @@ class Document(SimpleList):
         selected = set(selected)
         all = set(all)
         not_selected = all - selected
-        logger.debug(f"Page numbers not selected: {not_selected}")
+        logger.debug("Page numbers not selected: %s", not_selected)
 
         # Create a set from the current settings
         current = {start + step * i for i in range(len(selected))}
-        logger.debug(f"Current setting would create page numbers: {current}")
+        logger.debug("Current setting would create page numbers: %s", current)
 
         # Are any of the new page numbers the same as those not selected?
         if len(current.intersection(not_selected)):
@@ -3844,7 +3867,6 @@ class Document(SimpleList):
         self.dir = dir
 
     def _monitor_process(self, options):
-
         if "pidfile" in options:
             self.running_pids[f"{options}{pidfile}"] = f"{options}{pidfile}"
 
@@ -3870,7 +3892,6 @@ class Document(SimpleList):
         return options["pidfile"]
 
     def _monitor_process_running_callback(self, options):
-
         if _self["cancel"]:
             return
         if callback[options["uuid"]]["started"]:
@@ -3894,7 +3915,6 @@ class Document(SimpleList):
             )
 
     def _thread_throw_error(self, uuid, page_uuid, process, message):
-
         self.return_queue.enqueue(
             {
                 "type": "error",
@@ -3906,7 +3926,6 @@ class Document(SimpleList):
         )
 
     def _write_file(self, fhd, filename, data, uuid):
-
         if not fhd.write(data):
             _thread_throw_error(
                 self, uuid, None, "Save file", _("Can't write to file: %s") % (filename)
@@ -3916,24 +3935,22 @@ class Document(SimpleList):
         return True
 
     def _thread_to_png(self, page, dir, uuid):
-
         if _page_gone(self, "to_png", uuid, page):
             return
         (new, error) = (None, None)
         try:
             new = page.to_png(self.paper_sizes)
             new["uuid"] = page["uuid"]
-
-        except:
-            logger.error(f"Error converting to png: {_}")
-            _thread_throw_error(self, uuid, page["uuid"], "to-PNG", _)
+        except Exception as err:
+            logger.error("Error converting to png: %s", err)
+            _thread_throw_error(self, uuid, page["uuid"], "to-PNG", err)
             error = True
 
         if error:
             return
         if _self["cancel"]:
             return
-        logger.info(f"Converted {page}->{filename} to {new}->{filename}")
+        logger.info("Converted %s->%s to %s->%s", page, filename, new, filename)
         self.return_queue.enqueue(
             {
                 "type": "page",
@@ -3952,7 +3969,6 @@ class Document(SimpleList):
 
 
 def _extract_metadata(info):
-
     metadata = {}
     for key in info.keys():
         if (
@@ -3995,7 +4011,7 @@ def _extract_metadata(info):
 
         elif info["format"] == "DJVU":
             regex = re.search(
-                fr"^{ISODATE_REGEX}\s{TIME_REGEX}{TZ_REGEX}",
+                rf"^{ISODATE_REGEX}\s{TIME_REGEX}{TZ_REGEX}",
                 info["datetime"],
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
@@ -4015,7 +4031,6 @@ def _extract_metadata(info):
 
 
 def _throw_error(uuid, page_uuid, process, message):
-
     if (uuid is not None) and "started" in callback[uuid]:
         callback[uuid]["started"](
             None, process, jobs_completed, jobs_total, message, None
@@ -4157,7 +4172,6 @@ def program_version(stream, regex, cmd):
 
 
 def _program_version(stream, regex, output):
-
     status, out, err = output
     if out is None:
         out = ""
@@ -4174,7 +4188,7 @@ def _program_version(stream, regex, output):
         output = out + err
 
     else:
-        logger.error(f"Unknown stream: '{stream}'")
+        logger.error("Unknown stream: '%s'", (stream,))
 
     regex2 = re.search(regex, output)
     if regex2:
@@ -4183,7 +4197,7 @@ def _program_version(stream, regex, output):
         logger.info(err)
         return PROCESS_FAILED
 
-    logger.info(f"Unable to parse version string from: '{output}'")
+    logger.info("Unable to parse version string from: '%s'", output)
 
 
 def text_to_datetime(text, thisyear=None, thismonth=None, thisday=None):
@@ -4260,7 +4274,7 @@ def expand_metadata_pattern(**kwargs):
             template
         )
         kwargs["template"] = re.sub(
-            fr"%D{code}",
+            rf"%D{code}",
             result,
             kwargs["template"],
             flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
@@ -4312,7 +4326,6 @@ def collate_metadata(settings, today_and_now, timezone):
         today_plus_offset.second,
     ]
     if "use_time" not in settings:
-
         # Set time to zero
         time = [0, 0, 0]
         del metadata["datetime"][
@@ -4384,7 +4397,6 @@ def prepare_output_metadata(ftype, metadata):
 
 
 def _enqueue_request(action, data):
-
     sentinel: shared = 0
     _self["requests"].enqueue({"action": action, "sentinel": sentinel, "data": data})
     jobs_total += 1
@@ -4392,7 +4404,6 @@ def _enqueue_request(action, data):
 
 
 def _add_metadata_to_info(info, string, regex):
-
     kw_lookup = {
         "Title": "title",
         "Subject": "subject",
@@ -4402,14 +4413,13 @@ def _add_metadata_to_info(info, string, regex):
     }
     for key, value in kw_lookup.items():
         match = re.search(
-            fr"{key}{regex}", string, re.MULTILINE | re.DOTALL | re.VERBOSE
+            rf"{key}{regex}", string, re.MULTILINE | re.DOTALL | re.VERBOSE
         )
         if match:
             info[value] = match.group(1)
 
 
 def _need_temp_pdf(options):
-
     return options and (
         "prepend" in options
         or "append" in options
@@ -4485,7 +4495,7 @@ def _write_image_object(page, options):
         or re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE)
         or downsample
     ):
-        logger.info(f"Writing temporary image {filename}")
+        logger.info("Writing temporary image %s", (filename,))
 
         # Perlmagick doesn't reliably convert to 1-bit, so using convert
 
@@ -4526,7 +4536,6 @@ def px2pt(pixels, resolution):
 
 
 def _bbox2markup(xresolution, yresolution, height, bbox):
-
     for i in (0, 2):
         bbox[i] = px2pt(bbox[i], xresolution)
         bbox[i + 1] = height - px2pt(bbox[i + 1], yresolution)
@@ -4544,7 +4553,6 @@ def _bbox2markup(xresolution, yresolution, height, bbox):
 
 
 def _post_save_hook(filename, options):
-
     if options is not None and "post_save_hook" in options:
         args = options["post_save_hook"].split(" ")
         for i, arg in enumerate(args):
