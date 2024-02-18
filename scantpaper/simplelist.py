@@ -1,6 +1,9 @@
 "A simple interface to Gtk's complex MVC list widget"
 from warnings import warn
-from gi.repository import Gtk, GdkPixbuf
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, GdkPixbuf  # pylint: disable=wrong-import-position
 
 
 def scalar_cell_renderer(_tree_column, cell, model, itr, i):
