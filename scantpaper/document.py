@@ -1946,9 +1946,10 @@ class DocThread(BaseThread):
         if self.cancel:
             return
 
-        with tesserocr.PyTessBaseAPI(
-            lang=language, path="/usr/share/tesseract-ocr/4.00/tessdata"
-        ) as api:
+        paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
+        if not paths:
+            request.error(_("tessdata directory not found"))
+        with tesserocr.PyTessBaseAPI(lang=language, path=paths[-1]) as api:
             output = "image_out"
 
             api.SetVariable("tessedit_create_hocr", "T")
