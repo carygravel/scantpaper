@@ -878,7 +878,7 @@ class DocThread(BaseThread):
 
         return compression, filename, resolution
 
-    def _add_txt_to_djvu(self, djvu, dir, pagedata, uuid):
+    def _add_txt_to_djvu(self, djvu, dirname, pagedata, uuid):
         if pagedata.text_layer is not None:
             txt = pagedata.export_djvu_txt()
             if txt == EMPTY:
@@ -887,7 +887,7 @@ class DocThread(BaseThread):
 
             # Write djvusedtxtfile
             with tempfile.NamedTemporaryFile(
-                mode="w", dir=dir, suffix=".txt", delete=False
+                mode="w", dir=dirname, suffix=".txt", delete=False
             ) as fhd:
                 djvusedtxtfile = fhd.name
                 fhd.write(txt)
@@ -914,7 +914,7 @@ class DocThread(BaseThread):
                     _("Error adding text layer to DjVu"),
                 )
 
-    def _add_ann_to_djvu(self, djvu, dir, pagedata, uuid):
+    def _add_ann_to_djvu(self, djvu, dirname, pagedata, uuid):
         """FIXME - refactor this together with _add_txt_to_djvu"""
         if pagedata.annotations is not None:
             ann = pagedata.export_djvu_ann()
@@ -924,7 +924,7 @@ class DocThread(BaseThread):
 
             # Write djvusedtxtfile
             with tempfile.NamedTemporaryFile(
-                mode="w", dir=dir, suffix=".txt", delete=False
+                mode="w", dir=dirname, suffix=".txt", delete=False
             ) as fhd:
                 djvusedtxtfile = fhd.name
                 fhd.write(ann)
@@ -1649,11 +1649,10 @@ class DocThread(BaseThread):
     def do_threshold(self, request):
         "threshold page in thread"
         options = request.args[0]
-        threshold, page, uuid, dir = (
+        threshold, page, uuid = (
             options["threshold"],
             options["page"],
             options["uuid"],
-            options["dir"],
         )
 
         if self._page_gone("threshold", uuid, page):
@@ -1675,7 +1674,7 @@ class DocThread(BaseThread):
             return
 
         fnm = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
-            dir=dir, suffix=".png", delete=False
+            dir=options["dir"], suffix=".png", delete=False
         )
         image.save(fnm.name)
 
@@ -1694,12 +1693,11 @@ class DocThread(BaseThread):
     def do_brightness_contrast(self, request):
         "adjust brightness and contrast in thread"
         options = request.args[0]
-        brightness, contrast, page, uuid, dir = (
+        brightness, contrast, page, uuid = (
             options["brightness"],
             options["contrast"],
             options["page"],
             options["uuid"],
-            options["dir"],
         )
 
         if self._page_gone("brightness-contrast", options["uuid"], options["page"]):
@@ -1732,7 +1730,7 @@ class DocThread(BaseThread):
     def do_negate(self, request):
         "negate page in thread"
         options = request.args[0]
-        page, uuid, dir = options["page"], options["uuid"], options["dir"]
+        page, uuid = options["page"], options["uuid"]
 
         if self._page_gone("negate", uuid, page):
             return
@@ -1758,7 +1756,7 @@ class DocThread(BaseThread):
     def do_unsharp(self, request):
         "run unsharp mask in thread"
         options = request.args[0]
-        page, uuid, dir = options["page"], options["uuid"], options["dir"]
+        page, uuid = options["page"], options["uuid"]
         radius = options["radius"]
         percent = options["percent"]
         threshold = options["threshold"]
@@ -1795,7 +1793,7 @@ class DocThread(BaseThread):
     def do_crop(self, request):
         "crop page in thread"
         options = request.args[0]
-        page, uuid, dir = options["page"], options["uuid"], options["dir"]
+        page, uuid = options["page"], options["uuid"]
         left = options["x"]
         top = options["y"]
         width = options["w"]
@@ -1833,7 +1831,7 @@ class DocThread(BaseThread):
     def do_split_page(self, request):
         "split page in thread"
         options = request.args[0]
-        page, uuid, dir = options["page"], options["uuid"], options["dir"]
+        page, uuid = options["page"], options["uuid"]
 
         if self._page_gone("split", options["uuid"], options["page"]):
             return
@@ -1933,11 +1931,10 @@ class DocThread(BaseThread):
     def do_tesseract(self, request):
         "run tesseract in thread"
         options = request.args[0]
-        page, language, uuid, dir = (
+        page, language, uuid = (
             options["page"],
             options["language"],
             options["uuid"],
-            options["dir"],
         )
 
         if self._page_gone("tesseract", options["uuid"], options["page"]):
@@ -2137,7 +2134,7 @@ class Document(SimpleList):
     selection_changed_signal = None
     paper_sizes = {}
 
-    def on_row_changed(self, path, iter, data):
+    def on_row_changed(self, path, _iter, data):
         "Set-up the callback when the page number has been edited."
         # Note uuids for selected pages
         selection = self.get_selected_indices()
@@ -2680,25 +2677,25 @@ class Document(SimpleList):
             file_changed_callback,
         )
 
-    def index_for_page(self, num, min, max, direction):
+    def index_for_page(self, num, min_page=None, max_page=None, direction=1):
         "does the given page exist?"
-        if len(self.data) - 1 < 0:
+        if len(self.data) < 1:
             return INFINITE
-        if min is None:
-            min = 0
+        if min_page is None:
+            min_page = 0
 
-        if max is None:
-            max = num - 1
+        if max_page is None:
+            max_page = num - 1
 
-        start = min
-        end = max + 1
+        start = min_page
+        end = max_page + 1
         step = 1
         if direction < 0:
             step = -step
-            start = max
+            start = max_page
             if start > len(self.data) - 1:
                 start = len(self.data) - 1
-            end = min - 1
+            end = min_page - 1
 
         i = start
         while (i <= end and i < len(self.data)) if step > 0 else i > end:
@@ -2994,8 +2991,8 @@ class Document(SimpleList):
         # Reverse the rows in order not to invalid the iters
         if paths:
             for path in reversed(paths):
-                iter = model.get_iter(path)
-                model.remove(iter)
+                itr = model.get_iter(path)
+                model.remove(itr)
 
     def delete_selection_extra(self):
         "wrapper for delete_selection()"
@@ -3748,23 +3745,23 @@ class Document(SimpleList):
             return True
 
         # Get list of pages not in selection
-        selected = self.get_selected_indices()
-        all = list(range(len(self.data)))
+        selected_pages = self.get_selected_indices()
+        all_pages = list(range(len(self.data)))
 
         # Convert the indices to sets of page numbers
-        selected = self.index2page_number(selected)
-        all = self.index2page_number(all)
-        selected = set(selected)
-        all = set(all)
-        not_selected = all - selected
-        logger.debug("Page numbers not selected: %s", not_selected)
+        selected_pages = self.index2page_number(selected_pages)
+        all_pages = self.index2page_number(all_pages)
+        selected_pages = set(selected_pages)
+        all_pages = set(all_pages)
+        not_selected_pages = all_pages - selected_pages
+        logger.debug("Page numbers not selected: %s", not_selected_pages)
 
         # Create a set from the current settings
-        current = {start + step * i for i in range(len(selected))}
+        current = {start + step * i for i in range(len(selected_pages))}
         logger.debug("Current setting would create page numbers: %s", current)
 
         # Are any of the new page numbers the same as those not selected?
-        if len(current.intersection(not_selected)):
+        if len(current.intersection(not_selected_pages)):
             return False
         return True
 
@@ -3786,58 +3783,9 @@ class Document(SimpleList):
                 error_callback(None, "Get page", _("No pages selected"))
         return index
 
-    def set_dir(self, dir):
-        """Have to roll my own slurp sub to support utf8
-
-
-
-
-
-
-
-        wrapper for _program_version below
-
-
-
-        Check exec_command output for version number
-        Don't call exec_command directly to allow us to test output we can't reproduce.
-
-
-
-        Check that a command exists
-
-
-
-        Compute a timestamp
-
-
-
-
-
-
-
-        Normally, it would be more sensible to put this in main::, but in order to
-        run unit tests on the sub, it has been moved here.
-
-
-
-        calculate delta between two timezones - mostly to spot differences between
-        DST.
-
-
-
-        apply timezone delta
-
-
-
-        delta timezone to current. Putting here to be able to test it for dates before 1970.
-
-
-
-
-
-        Set session dir"""
-        self.dir = dir
+    def set_dir(self, dirname):
+        "Set session dir"
+        self.dir = dirname
 
     def _thread_throw_error(self, uuid, page_uuid, process, message):
         self.return_queue.enqueue(
@@ -4217,12 +4165,12 @@ def collate_metadata(settings, today_and_now, timezone):
 
 
 def add_delta_timezone(timezone, timezone_offset):
-    "add an offset to a timezone"
+    "apply timezone delta"
     return [timezone[i] + timezone_offset[i] for i in range(len(timezone))]
 
 
 def delta_timezone(tz1, tz2):
-    "returns difference between two timezones"
+    "calculate delta between two timezones - mostly to spot differences between DST"
     return [tz2[i] - tz1[i] for i in range(len(tz1))]
 
 
@@ -4298,9 +4246,9 @@ def _need_temp_pdf(options):
     )
 
 
-def _must_convert_image_for_pdf(compression, format, downsample):
+def _must_convert_image_for_pdf(compression, fformat, downsample):
     return (
-        (compression != "none" and compression != format)
+        (compression != "none" and compression != fformat)
         or downsample
         or compression == "jpg"
     )
@@ -4394,9 +4342,7 @@ def _write_image_object(page, options):
             r"[.](\w*)$", filename.name, re.MULTILINE | re.DOTALL | re.VERBOSE
         )
         if regex:
-            format = regex.group(1)
-
-    return format
+            return regex.group(1)
 
 
 def px2pt(pixels, resolution):
