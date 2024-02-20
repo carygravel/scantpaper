@@ -80,7 +80,6 @@ TZ_REGEX = r"([+-]\d\d):(\d\d)"
 PNG = r"Portable[ ]Network[ ]Graphics"
 JPG = r"JPEG"
 GIF = r"CompuServe[ ]graphics[ ]interchange[ ]format"
-_self, callback = None, {}
 
 image_format = {
     "pnm": "Portable anymap",
@@ -878,7 +877,7 @@ class DocThread(BaseThread):
 
         return compression, filename, resolution
 
-    def _add_txt_to_djvu(self, djvu, dirname, pagedata, uuid):
+    def _add_txt_to_djvu(self, djvu, dirname, pagedata, uid):
         if pagedata.text_layer is not None:
             txt = pagedata.export_djvu_txt()
             if txt == EMPTY:
@@ -908,13 +907,13 @@ class DocThread(BaseThread):
                     "Error adding text layer to DjVu page %s", pagedata["page_number"]
                 )
                 self._thread_throw_error(
-                    uuid,
+                    uid,
                     pagedata["uuid"],
                     "Save file",
                     _("Error adding text layer to DjVu"),
                 )
 
-    def _add_ann_to_djvu(self, djvu, dirname, pagedata, uuid):
+    def _add_ann_to_djvu(self, djvu, dirname, pagedata, uid):
         """FIXME - refactor this together with _add_txt_to_djvu"""
         if pagedata.annotations is not None:
             ann = pagedata.export_djvu_ann()
@@ -946,7 +945,7 @@ class DocThread(BaseThread):
                     pagedata["page_number"],
                 )
                 self._thread_throw_error(
-                    uuid,
+                    uid,
                     pagedata["uuid"],
                     "Save file",
                     _("Error adding annotations to DjVu"),
@@ -1430,9 +1429,9 @@ class DocThread(BaseThread):
     def do_rotate(self, request):
         "rotate page in thread"
         options = request.args[0]
-        angle, page, uuid = options["angle"], options["page"], options["uuid"]
+        angle, page = options["angle"], options["page"]
 
-        if self._page_gone("rotate", uuid, page):
+        if self._page_gone("rotate", options["uuid"], page):
             return
         filename = page.filename
         logger.info("Rotating %s by %s degrees", filename, angle)
@@ -1467,13 +1466,13 @@ class DocThread(BaseThread):
         "cancel running tasks"
         self.cancel = False
 
-    def _page_gone(self, process, uuid, page):
+    def _page_gone(self, process, uid, page):
         if not os.path.isfile(
             page.filename
         ):  # in case file was deleted after process started
-            err = f"Page for process {uuid} no longer exists. Cannot {process}."
+            err = f"Page for process {uid} no longer exists. Cannot {process}."
             logger.error(err)
-            self._thread_throw_error(uuid, page["uuid"], process, err)
+            self._thread_throw_error(uid, page["uuid"], process, err)
             return True
         return False
 
@@ -1612,7 +1611,7 @@ class DocThread(BaseThread):
     def do_analyse(self, request):
         "analyse page in thread"
         options = request.args[0]
-        list_of_pages, uuid = options["list_of_pages"], options["uuid"]
+        list_of_pages = options["list_of_pages"]
 
         i = 1
         total = len(list_of_pages)
@@ -1649,13 +1648,9 @@ class DocThread(BaseThread):
     def do_threshold(self, request):
         "threshold page in thread"
         options = request.args[0]
-        threshold, page, uuid = (
-            options["threshold"],
-            options["page"],
-            options["uuid"],
-        )
+        threshold, page = (options["threshold"], options["page"])
 
-        if self._page_gone("threshold", uuid, page):
+        if self._page_gone("threshold", options["uuid"], page):
             return
         if self.cancel:
             return
@@ -1693,11 +1688,10 @@ class DocThread(BaseThread):
     def do_brightness_contrast(self, request):
         "adjust brightness and contrast in thread"
         options = request.args[0]
-        brightness, contrast, page, uuid = (
+        brightness, contrast, page = (
             options["brightness"],
             options["contrast"],
             options["page"],
-            options["uuid"],
         )
 
         if self._page_gone("brightness-contrast", options["uuid"], options["page"]):
@@ -1730,9 +1724,9 @@ class DocThread(BaseThread):
     def do_negate(self, request):
         "negate page in thread"
         options = request.args[0]
-        page, uuid = options["page"], options["uuid"]
+        page = options["page"]
 
-        if self._page_gone("negate", uuid, page):
+        if self._page_gone("negate", options["uuid"], page):
             return
 
         filename = page.filename
@@ -1756,12 +1750,12 @@ class DocThread(BaseThread):
     def do_unsharp(self, request):
         "run unsharp mask in thread"
         options = request.args[0]
-        page, uuid = options["page"], options["uuid"]
+        page = options["page"]
         radius = options["radius"]
         percent = options["percent"]
         threshold = options["threshold"]
 
-        if self._page_gone("unsharp", uuid, page):
+        if self._page_gone("unsharp", options["uuid"], page):
             return
 
         filename = page.filename
@@ -1793,7 +1787,7 @@ class DocThread(BaseThread):
     def do_crop(self, request):
         "crop page in thread"
         options = request.args[0]
-        page, uuid = options["page"], options["uuid"]
+        page = options["page"]
         left = options["x"]
         top = options["y"]
         width = options["w"]
@@ -1831,7 +1825,7 @@ class DocThread(BaseThread):
     def do_split_page(self, request):
         "split page in thread"
         options = request.args[0]
-        page, uuid = options["page"], options["uuid"]
+        page = options["page"]
 
         if self._page_gone("split", options["uuid"], options["page"]):
             return
@@ -1931,11 +1925,7 @@ class DocThread(BaseThread):
     def do_tesseract(self, request):
         "run tesseract in thread"
         options = request.args[0]
-        page, language, uuid = (
-            options["page"],
-            options["language"],
-            options["uuid"],
-        )
+        page, language = (options["page"], options["language"])
 
         if self._page_gone("tesseract", options["uuid"], options["page"]):
             return
@@ -2226,12 +2216,12 @@ class Document(SimpleList):
     def page_request_handler(self):
         "handle page requests"
         if not self.thread.page_requests.empty():
-            uuid = self.thread.page_requests.get()
+            uid = self.thread.page_requests.get()
 
-            if uuid == "cancel":
+            if uid == "cancel":
                 return GLib.SOURCE_CONTINUE
 
-            page = self.find_page_by_uuid(uuid)
+            page = self.find_page_by_uuid(uid)
             self.thread.pages.put(self.data[page][2])
         return GLib.SOURCE_CONTINUE
 
@@ -2738,14 +2728,14 @@ class Document(SimpleList):
 
             num += 1
 
-    def find_page_by_uuid(self, uuid):
+    def find_page_by_uuid(self, uid):
         "return page index given uuid"
-        if uuid is None:
+        if uid is None:
             logger.error("find_page_by_uuid() called with None")
             return
 
         for i, row in enumerate(self.data):
-            if str(uuid) == str(row[2].uuid):
+            if str(uid) == str(row[2].uuid):
                 return i
 
     def add_page(self, process_uuid, new_page, ref):
@@ -3043,7 +3033,6 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        uuid = self._note_callbacks(options)
         return self.thread.save_pdf(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
@@ -3051,7 +3040,7 @@ class Document(SimpleList):
             options=options["options"] if "options" in options else None,
             dir=self.dir,
             pidfile=pidfile,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3078,7 +3067,6 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        uuid = self._note_callbacks(options)
         return self.thread.save_djvu(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
@@ -3086,7 +3074,7 @@ class Document(SimpleList):
             options=options["options"] if "options" in options else None,
             dir=self.dir,
             pidfile=pidfile,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3112,14 +3100,13 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        uuid = self._note_callbacks(options)
         return self.thread.save_tiff(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
             dir=self.dir,
             pidfile=pidfile,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3142,12 +3129,11 @@ class Document(SimpleList):
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
-        uuid = self._note_callbacks(options)
         return self.thread.rotate(
             angle=options["angle"],
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3173,13 +3159,12 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        uuid = self._note_callbacks(options)
         return self.thread.save_image(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
             pidfile=pidfile,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3206,12 +3191,11 @@ class Document(SimpleList):
 
     def save_text(self, **options):
         "save a text file from the given pages"
-        uuid = self._note_callbacks(options)
         return self.thread.save_text(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3231,12 +3215,11 @@ class Document(SimpleList):
 
     def save_hocr(self, **options):
         "save an hocr file from the given pages"
-        uuid = self._note_callbacks(options)
         return self.thread.save_hocr(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3256,10 +3239,9 @@ class Document(SimpleList):
 
     def analyse(self, **options):
         "analyse given page"
-        uuid = self._note_callbacks(options)
         return self.thread.analyse(
             list_of_pages=options["list_of_pages"],
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3276,12 +3258,11 @@ class Document(SimpleList):
 
     def threshold(self, **options):
         "threshold given page"
-        uuid = self._note_callbacks(options)
         return self.thread.threshold(
             threshold=options["threshold"],
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3301,13 +3282,12 @@ class Document(SimpleList):
 
     def brightness_contrast(self, **options):
         "adjust brightness & contrast of given page"
-        uuid = self._note_callbacks(options)
         return self.thread.brightness_contrast(
             brightness=options["brightness"],
             contrast=options["contrast"],
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3327,11 +3307,10 @@ class Document(SimpleList):
 
     def negate(self, **options):
         "negate given page"
-        uuid = self._note_callbacks(options)
         return self.thread.negate(
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3351,14 +3330,13 @@ class Document(SimpleList):
 
     def unsharp(self, **options):
         "run unsharp mask on given page"
-        uuid = self._note_callbacks(options)
         return self.thread.unsharp(
             radius=options["radius"],
             percent=options["percent"],
             threshold=options["threshold"],
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3378,7 +3356,6 @@ class Document(SimpleList):
 
     def crop(self, **options):
         "crop page"
-        uuid = self._note_callbacks(options)
         return self.thread.crop(
             x=options["x"],
             y=options["y"],
@@ -3386,7 +3363,7 @@ class Document(SimpleList):
             h=options["h"],
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3407,7 +3384,6 @@ class Document(SimpleList):
     def split_page(self, **options):
         """split the given page either vertically or horizontally, creating an
         additional page"""
-        uuid = self._note_callbacks(options)
 
         # FIXME: duplicate to _import_file_data_callback()
         def _split_page_data_callback(response):
@@ -3422,7 +3398,7 @@ class Document(SimpleList):
             position=options["position"],
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3443,21 +3419,19 @@ class Document(SimpleList):
 
     def to_png(self, options):
         "convert the given page to png"
-        uuid = self._note_callbacks(options)
         return self.thread.to_png(
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
         )
 
     def tesseract(self, **options):
         "run tesseract on the given page"
-        uuid = self._note_callbacks(options)
         return self.thread.tesseract(
             language=options["language"],
             page=options["page"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3485,7 +3459,6 @@ class Document(SimpleList):
     def unpaper(self, **options):
         "run unpaper on the given page"
         options = defaultdict(None, **options)
-        uuid = self._note_callbacks(options)
 
         # FIXME: duplicate to _import_file_data_callback()
         def _unpaper_data_callback(response):
@@ -3499,7 +3472,7 @@ class Document(SimpleList):
             page=options["page"],
             options=options["options"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             queued_callback=options.get("queued_callback"),
             started_callback=options.get("started_callback"),
             display_callback=options.get("display_callback"),
@@ -3515,7 +3488,6 @@ class Document(SimpleList):
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
-        uuid = self._note_callbacks(options)
 
         # FIXME: duplicate to _import_file_data_callback()
         def _user_defined_data_callback(response):
@@ -3529,7 +3501,7 @@ class Document(SimpleList):
             page=options["page"],
             command=options["command"],
             dir=self.dir,
-            uuid=uuid,
+            uuid=self._note_callbacks(options),
             pidfile=pidfile,
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
@@ -3787,21 +3759,21 @@ class Document(SimpleList):
         "Set session dir"
         self.dir = dirname
 
-    def _thread_throw_error(self, uuid, page_uuid, process, message):
+    def _thread_throw_error(self, uid, page_uuid, process, message):
         self.return_queue.enqueue(
             {
                 "type": "error",
-                "uuid": uuid,
+                "uuid": uid,
                 "page": page_uuid,
                 "process": process,
                 "message": message,
             }
         )
 
-    def _write_file(self, fhd, filename, data, uuid):
+    def _write_file(self, fhd, filename, data, uid):
         if not fhd.write(data):
             self._thread_throw_error(
-                uuid, None, "Save file", _("Can't write to file: %s") % (filename)
+                uid, None, "Save file", _("Can't write to file: %s") % (filename)
             )
             return False
 
