@@ -4274,48 +4274,6 @@ def _write_image_object(page, options):
         image.save(filename)
     return filename
 
-    compression = options["options"]["compression"]
-    if (
-        (
-            not re.search(
-                r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            and format != "tif"
-        )
-        or re.search(r"(?:jpg|png)", compression, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        or options["options"]["downsample"]
-    ):
-        logger.info("Writing temporary image %s", (filename,))
-
-        # Perlmagick doesn't reliably convert to 1-bit, so using convert
-
-        if re.search(r"g[34]", compression, re.MULTILINE | re.DOTALL | re.VERBOSE):
-            cmd = [
-                "convert",
-                image.Get("filename"),
-                "-threshold",
-                "40%",
-                "-depth",
-                "1",
-                filename,
-            ]
-            (status) = exec_command(cmd)
-            return "tif"
-
-        # Reset depth because of ImageMagick bug
-        # <https://github.com/ImageMagick/ImageMagick/issues/277>
-        image.depth = image.depth
-        status = image.write(filename.name)
-        # if _self["cancel"]:
-        #     return
-        if status:
-            logger.warning(status)
-        regex = re.search(
-            r"[.](\w*)$", filename.name, re.MULTILINE | re.DOTALL | re.VERBOSE
-        )
-        if regex:
-            return regex.group(1)
-
 
 def px2pt(pixels, resolution):
     """helper function to return length in points given a number of pixels
