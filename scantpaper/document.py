@@ -1436,7 +1436,7 @@ class DocThread(BaseThread):
         page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        if angle == _90_DEGREES or angle == _270_DEGREES:
+        if angle in (_90_DEGREES, _270_DEGREES):
             page.width, page.height = page.height, page.width
             page.resolution = (
                 page.resolution[1],
@@ -2891,7 +2891,7 @@ class Document(SimpleList):
 
         dest = None
         if path is not None:
-            if how == "after" or how == "into-or-after":
+            if how in ("after", "into-or-after"):
                 path += 1
             self.data.insert(path, data)
             dest = path
@@ -4175,14 +4175,6 @@ def _need_temp_pdf(options):
         or "append" in options
         or "ps" in options
         or "user-password" in options
-    )
-
-
-def _must_convert_image_for_pdf(compression, fformat, downsample):
-    return (
-        (compression != "none" and compression != fformat)
-        or downsample
-        or compression == "jpg"
     )
 
 
