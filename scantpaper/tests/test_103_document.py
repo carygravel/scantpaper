@@ -34,6 +34,7 @@ def test_import_scan():
             image_file.write(output)
 
     asserts = 0
+    mlp = GLib.MainLoop()
 
     def _finished_callback(_response):
         subprocess.run(["convert", slist.data[0][2].filename, "test2.ppm"], check=True)
@@ -59,7 +60,6 @@ def test_import_scan():
         dir=tempdir.name,
         finished_callback=_finished_callback,
     )
-    mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 2, "all tests run"

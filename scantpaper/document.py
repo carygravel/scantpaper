@@ -331,11 +331,9 @@ class DocThread(BaseThread):
                     #     i,
                     #     args["last"] - args["first"] + 1,
                     # )
-                    tif, txt, ann, error = None, None, None, None
-                    try:
-                        tif = tempfile.NamedTemporaryFile(
-                            dir=args["dir"], suffix=".tif", delete=False
-                        )
+                    with tempfile.NamedTemporaryFile(
+                        dir=args["dir"], suffix=".tif", delete=False
+                    ) as tif:
                         subprocess.run(
                             [
                                 "ddjvu",
@@ -365,66 +363,66 @@ class DocThread(BaseThread):
                             text=True,
                         )
 
-                    except Exception as err:
-                        if tif is not None:
-                            logger.error("Caught error creating %s: %s", tif, err)
-                            self._thread_throw_error(
-                                args["uuid"],
-                                args["page"]["uuid"],
-                                "Open file",
-                                f"Error: unable to write to {tif}.",
+                        # except Exception as err:
+                        #     if tif is not None:
+                        #         logger.error("Caught error creating %s: %s", tif, err)
+                        #         self._thread_throw_error(
+                        #             args["uuid"],
+                        #             args["page"]["uuid"],
+                        #             "Open file",
+                        #             f"Error: unable to write to {tif}.",
+                        #         )
+
+                        #     else:
+                        #         logger.error(
+                        #             "Caught error writing to %s: %s", args.dir, err
+                        #         )
+                        #         self._thread_throw_error(
+                        #             args["uuid"],
+                        #             args["page"]["uuid"],
+                        #             "Open file",
+                        #             f"Error: unable to write to {args.dir}.",
+                        #         )
+
+                        #     error = True
+
+                        if self.cancel:
+                            return
+                        page = Page(
+                            filename=tif.name,
+                            dir=args["dir"],
+                            delete=True,
+                            format="Tagged Image File Format",
+                            resolution=(
+                                args["info"]["ppi"][i - 1],
+                                args["info"]["ppi"][i - 1],
+                                "PixelsPerInch",
+                            ),
+                            width=args["info"]["width"][i - 1],
+                            height=args["info"]["height"][i - 1],
+                        )
+                        try:
+                            page.import_djvu_txt(txt)
+                        except Exception as err:
+                            request.data(
+                                None, f"Caught error parsing DjVU text layer: {err}"
                             )
 
-                        else:
+                        try:
+                            page.import_djvu_ann(ann)
+
+                        except Exception as err:
                             logger.error(
-                                "Caught error writing to %s: %s", args.dir, err
+                                "Caught error parsing DjVU annotation layer: %s", err
                             )
                             self._thread_throw_error(
                                 args["uuid"],
                                 args["page"]["uuid"],
                                 "Open file",
-                                f"Error: unable to write to {args.dir}.",
+                                "Error: parsing DjVU annotation layer",
                             )
 
-                        error = True
-
-                    if self.cancel or error:
-                        return
-                    page = Page(
-                        filename=tif.name,
-                        dir=args["dir"],
-                        delete=True,
-                        format="Tagged Image File Format",
-                        resolution=(
-                            args["info"]["ppi"][i - 1],
-                            args["info"]["ppi"][i - 1],
-                            "PixelsPerInch",
-                        ),
-                        width=args["info"]["width"][i - 1],
-                        height=args["info"]["height"][i - 1],
-                    )
-                    try:
-                        page.import_djvu_txt(txt)
-                    except Exception as err:
-                        request.data(
-                            None, f"Caught error parsing DjVU text layer: {err}"
-                        )
-
-                    try:
-                        page.import_djvu_ann(ann)
-
-                    except Exception as err:
-                        logger.error(
-                            "Caught error parsing DjVU annotation layer: %s", err
-                        )
-                        self._thread_throw_error(
-                            args["uuid"],
-                            args["page"]["uuid"],
-                            "Open file",
-                            "Error: parsing DjVU annotation layer",
-                        )
-
-                    request.data(page)
+                        request.data(page)
 
         elif args["info"]["format"] == "Portable Document Format":
             self._thread_import_pdf(request)
@@ -453,48 +451,47 @@ class DocThread(BaseThread):
                         args["last"] - args["first"] + 1,
                     )
                     (tif, error) = (None, None)
-                    try:
-                        tif = tempfile.NamedTemporaryFile(
-                            dir=args["dir"], suffix=".tif", delete=False
-                        )
-                    except Exception as err:
-                        logger.error("Caught error creating %s: %s", tif, err)
-                        self._thread_throw_error(
-                            args["uuid"],
-                            args["page"]["uuid"],
-                            "Open file",
-                            f"Error: unable to write to {tif}.",
-                        )
-                    try:
+                    with tempfile.NamedTemporaryFile(
+                        dir=args["dir"], suffix=".tif", delete=False
+                    ) as tif:
+                        # except Exception as err:
+                        #     logger.error("Caught error creating %s: %s", tif.name, err)
+                        #     self._thread_throw_error(
+                        #         args["uuid"],
+                        #         args["page"]["uuid"],
+                        #         "Open file",
+                        #         f"Error: unable to write to {tif.name}.",
+                        #     )
+                        # try:
                         subprocess.run(
                             ["tiffcp", f"{args['info']['path']},{i}", tif.name],
                             check=True,
                         )
-                    except Exception as err:
-                        logger.error(
-                            "Caught error extracting page %s from %s: %s",
-                            i,
-                            args["info"]["path"],
-                            err,
-                        )
-                        self._thread_throw_error(
-                            args["uuid"],
-                            args["page"]["uuid"],
-                            "Open file",
-                            f"Caught error extracting page {i} from {args['info']['path']}: {err}",
-                        )
+                        # except Exception as err:
+                        #     logger.error(
+                        #         "Caught error extracting page %s from %s: %s",
+                        #         i,
+                        #         args["info"]["path"],
+                        #         err,
+                        #     )
+                        #     self._thread_throw_error(
+                        #         args["uuid"],
+                        #         args["page"]["uuid"],
+                        #         "Open file",
+                        #         f"Caught error extracting page {i} from {args['info']['path']}: {err}",
+                        #     )
 
-                    if self.cancel:
-                        return
-                    page = Page(
-                        filename=tif.name,
-                        dir=args["dir"],
-                        delete=True,
-                        format=args["info"]["format"],
-                        width=args["info"]["width"][i - 1],
-                        height=args["info"]["height"][i - 1],
-                    )
-                    request.data(page)
+                        if self.cancel:
+                            return
+                        page = Page(
+                            filename=tif.name,
+                            dir=args["dir"],
+                            delete=True,
+                            format=args["info"]["format"],
+                            width=args["info"]["width"][i - 1],
+                            height=args["info"]["height"][i - 1],
+                        )
+                        request.data(page)
 
         elif re.search(rf"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
             try:
@@ -555,9 +552,10 @@ class DocThread(BaseThread):
         outdir = Path(options["dir"])
         filename = options["path"]
         if _need_temp_pdf(options["options"]):
-            filename = tempfile.NamedTemporaryFile(
+            with tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=".pdf", delete=False
-            ).name
+            ) as temp:
+                filename = temp.name
 
         metadata = {}
         if "metadata" in options and "ps" not in options:
@@ -719,53 +717,52 @@ class DocThread(BaseThread):
                 page,
                 len(args["list_of_pages"]) - 1 + 1,
             )
-            (djvu, error) = (None, None)
-            try:
-                djvu = tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".djvu")
+            with tempfile.NamedTemporaryFile(
+                dir=args["dir"], suffix=".djvu", delete=False
+            ) as djvu:
 
-            except Exception as err:
-                logger.error("Caught error writing DjVu: %s", err)
-                self._thread_throw_error(
-                    args["uuid"],
-                    args["page"]["uuid"],
-                    "Save file",
-                    f"Caught error writing DjVu: {_}.",
+                # logger.error("Caught error writing DjVu: %s", err)
+                # self._thread_throw_error(
+                #     args["uuid"],
+                #     args["page"]["uuid"],
+                #     "Save file",
+                #     f"Caught error writing DjVu: {_}.",
+                # )
+                # error = True
+
+                # if error:
+                #     return
+                compression, filename, resolution = self._convert_image_for_djvu(
+                    pagedata, page, args
                 )
-                error = True
 
-            if error:
-                return
-            compression, filename, resolution = self._convert_image_for_djvu(
-                pagedata, page, args
-            )
-
-            # Create the djvu
-            status, _stdout, _stderr = exec_command(
-                [compression, "-dpi", str(int(resolution)), filename, djvu.name],
-                args["pidfile"],
-            )
-            size = os.path.getsize(djvu.name)
-            if self.cancel:
-                return
-            if status != 0 or size == 0:
-                logger.error(
-                    "Error writing image for page %s of DjVu (process "
-                    "returned %s, image size %s)",
-                    page,
-                    status,
-                    size,
+                # Create the djvu
+                status, _stdout, _stderr = exec_command(
+                    [compression, "-dpi", str(int(resolution)), filename, djvu.name],
+                    args["pidfile"],
                 )
-                self._thread_throw_error(
-                    args["uuid"],
-                    args["page"]["uuid"],
-                    "Save file",
-                    _("Error writing DjVu"),
-                )
-                return
+                size = os.path.getsize(djvu.name)
+                if self.cancel:
+                    return
+                if status != 0 or size == 0:
+                    logger.error(
+                        "Error writing image for page %s of DjVu (process "
+                        "returned %s, image size %s)",
+                        page,
+                        status,
+                        size,
+                    )
+                    self._thread_throw_error(
+                        args["uuid"],
+                        args["page"]["uuid"],
+                        "Save file",
+                        _("Error writing DjVu"),
+                    )
+                    return
 
-            filelist.append(djvu.name)
-            self._add_txt_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
-            self._add_ann_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
+                filelist.append(djvu.name)
+                self._add_txt_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
+                self._add_ann_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
 
         self.progress = 1
         self.message = _("Merging DjVu")
@@ -834,10 +831,11 @@ class DocThread(BaseThread):
                 )
                 or upsample
             ):
-                pnm = tempfile.NamedTemporaryFile(
+                with tempfile.NamedTemporaryFile(
                     dir=options["dir"], suffix=".pnm", delete=False
-                )
-                image.save(pnm.name)
+                ) as pnm:
+                    image.save(pnm.name)
+                    filename = pnm.name
                 # if f"{e}":
                 #     logger.error(e)
                 #     _thread_throw_error(
@@ -849,8 +847,6 @@ class DocThread(BaseThread):
                 #     )
                 #     return
 
-                filename = pnm.name
-
         # cjb2 can only use pnm and tif
         else:
             compression = "cjb2"
@@ -861,19 +857,19 @@ class DocThread(BaseThread):
                 or (fformat == "pnm" and mode != "PseudoClass")
                 or upsample
             ):
-                pbm = tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm")
-                err = image.Write(filename=pbm)
-                if f"{err}":
-                    logger.error(err)
-                    self._thread_throw_error(
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        f"Error writing {pbm}: {err}.",
-                    )
-                    return
+                with tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm") as pbm:
+                    err = image.Write(filename=pbm)
+                    if f"{err}":
+                        logger.error(err)
+                        self._thread_throw_error(
+                            options["uuid"],
+                            options["page"]["uuid"],
+                            "Save file",
+                            f"Error writing {pbm}: {err}.",
+                        )
+                        return
 
-                filename = pbm
+                    filename = pbm
 
         return compression, filename, resolution
 
@@ -1053,66 +1049,67 @@ class DocThread(BaseThread):
                 if self.cancel:
                     return
 
-                html = tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".html")
-                cmd = [
-                    "pdftotext",
-                    "-bbox",
-                    "-f",
-                    str(i),
-                    "-l",
-                    str(i),
-                    args["info"]["path"],
-                    html.name,
-                ]
-                if args["password"] is not None:
-                    cmd.insert(1, "-upw")
-                    cmd.insert(2, args["password"])
+                with tempfile.NamedTemporaryFile(
+                    mode="w+t", dir=args["dir"], suffix=".html"
+                ) as html:
+                    cmd = [
+                        "pdftotext",
+                        "-bbox",
+                        "-f",
+                        str(i),
+                        "-l",
+                        str(i),
+                        args["info"]["path"],
+                        html.name,
+                    ]
+                    if args["password"] is not None:
+                        cmd.insert(1, "-upw")
+                        cmd.insert(2, args["password"])
 
-                spo = subprocess.run(
-                    cmd,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                if self.cancel:
-                    return
-                if spo.returncode != 0:
-                    self._thread_throw_error(
-                        args["uuid"],
-                        args["page"]["uuid"],
-                        "Open file",
-                        _("Error extracting text layer from PDF"),
+                    spo = subprocess.run(
+                        cmd,
+                        check=True,
+                        capture_output=True,
+                        text=True,
                     )
-
-                # Import each image
-                images = glob.glob("x-??*.???")
-                if len(images) != 1:
-                    warning_flag = True
-                for fname in images:
-                    regex = re.search(
-                        r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE
-                    )
-                    if regex:
-                        ext = regex.group(1)
-                    try:
-                        page = Page(
-                            filename=fname,
-                            dir=args["dir"],
-                            delete=True,
-                            format=image_format[ext],
-                            resolution=(xresolution, yresolution, "PixelsPerInch"),
-                        )
-                        with open(html.name, "r") as fhd:
-                            page.import_pdftotext(fhd.read())
-                        request.data(page.to_png(self.paper_sizes))
-                    except Exception as err:
-                        logger.error("Caught error importing PDF: %s", err)
+                    if self.cancel:
+                        return
+                    if spo.returncode != 0:
                         self._thread_throw_error(
                             args["uuid"],
                             args["page"]["uuid"],
                             "Open file",
-                            _("Error importing PDF"),
+                            _("Error extracting text layer from PDF"),
                         )
+
+                    # Import each image
+                    images = glob.glob("x-??*.???")
+                    if len(images) != 1:
+                        warning_flag = True
+                    for fname in images:
+                        regex = re.search(
+                            r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE
+                        )
+                        if regex:
+                            ext = regex.group(1)
+                        try:
+                            page = Page(
+                                filename=fname,
+                                dir=args["dir"],
+                                delete=True,
+                                format=image_format[ext],
+                                resolution=(xresolution, yresolution, "PixelsPerInch"),
+                            )
+                            page.import_pdftotext(html.read())
+                            request.data(page.to_png(self.paper_sizes))
+                        except Exception as err:
+                            logger.error("Caught error importing PDF: %s", err)
+                            self._thread_throw_error(
+                                args["uuid"],
+                                args["page"]["uuid"],
+                                "Open file",
+                                _("Error importing PDF"),
+                            )
 
             if warning_flag:
                 request.data(
@@ -1203,63 +1200,49 @@ class DocThread(BaseThread):
                 "compression" in options["options"]
                 and options["options"]["compression"] == "jpeg"
             ):
-                (tif, error) = (None, None)
-                try:
-                    tif = tempfile.NamedTemporaryFile(
-                        dir=options["dir"], suffix=".tif", delete=False
-                    )
-                except Exception as err:
-                    logger.error("Error writing TIFF: %s", err)
-                    self._thread_throw_error(
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        f"Error writing TIFF: {_}.",
-                    )
-                    error = True
+                with tempfile.NamedTemporaryFile(
+                    dir=options["dir"], suffix=".tif", delete=False
+                ) as tif:
+                    xresolution, yresolution, units = pagedata.resolution
 
-                if error:
-                    return
-                xresolution, yresolution, units = pagedata.resolution
+                    # Convert to tiff
 
-                # Convert to tiff
+                    depth = []
+                    if "compression" in options["options"]:
+                        if options["options"]["compression"] == "jpeg":
+                            depth = ["-depth", "8"]
 
-                depth = []
-                if "compression" in options["options"]:
-                    if options["options"]["compression"] == "jpeg":
-                        depth = ["-depth", "8"]
+                        elif re.search(
+                            r"g[34]",
+                            options["options"]["compression"],
+                            re.MULTILINE | re.DOTALL | re.VERBOSE,
+                        ):
+                            depth = ["-threshold", "40%", "-depth", "1"]
 
-                    elif re.search(
-                        r"g[34]",
-                        options["options"]["compression"],
-                        re.MULTILINE | re.DOTALL | re.VERBOSE,
-                    ):
-                        depth = ["-threshold", "40%", "-depth", "1"]
+                    cmd = [
+                        "convert",
+                        filename,
+                        "-units",
+                        "PixelsPerInch",
+                        "-density",
+                        f"{xresolution}x{yresolution}",
+                        *depth,
+                        tif.name,
+                    ]
+                    subprocess.run(cmd, check=True)
+                    if self.cancel:
+                        return
+                    # if status:
+                    #     logger.error("Error writing TIFF")
+                    #     self._thread_throw_error(
+                    #         options["uuid"],
+                    #         options["page"]["uuid"],
+                    #         "Save file",
+                    #         _("Error writing TIFF"),
+                    #     )
+                    #     return
 
-                cmd = [
-                    "convert",
-                    filename,
-                    "-units",
-                    "PixelsPerInch",
-                    "-density",
-                    f"{xresolution}x{yresolution}",
-                    *depth,
-                    tif.name,
-                ]
-                subprocess.run(cmd, check=True)
-                if self.cancel:
-                    return
-                # if status:
-                #     logger.error("Error writing TIFF")
-                #     self._thread_throw_error(
-                #         options["uuid"],
-                #         options["page"]["uuid"],
-                #         "Save file",
-                #         _("Error writing TIFF"),
-                #     )
-                #     return
-
-                filename = tif.name
+                    filename = tif.name
 
             filelist.append(filename)
 
@@ -1505,97 +1488,97 @@ class DocThread(BaseThread):
             suffix = regex.group(1)
 
         try:
-            out = tempfile.NamedTemporaryFile(
+            with tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=suffix, delete=False
-            )
-            if re.search("%o", options["command"]):
-                options["command"] = re.sub(
-                    r"%o",
-                    out.name,
-                    options["command"],
-                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-                options["command"] = re.sub(
-                    r"%i",
-                    infile,
-                    options["command"],
-                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-
-            else:
-                if not shutil.copy2(infile, out.name):
-                    self._thread_throw_error(
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "user-defined",
-                        _("Error copying page"),
+            ) as out:
+                if re.search("%o", options["command"]):
+                    options["command"] = re.sub(
+                        r"%o",
+                        out.name,
+                        options["command"],
+                        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                     )
-                    return
+                    options["command"] = re.sub(
+                        r"%i",
+                        infile,
+                        options["command"],
+                        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    )
+
+                else:
+                    if not shutil.copy2(infile, out.name):
+                        self._thread_throw_error(
+                            options["uuid"],
+                            options["page"]["uuid"],
+                            "user-defined",
+                            _("Error copying page"),
+                        )
+                        return
+
+                    options["command"] = re.sub(
+                        r"%i",
+                        out.name,
+                        options["command"],
+                        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    )
 
                 options["command"] = re.sub(
-                    r"%i",
-                    out.name,
+                    r"%r",
+                    rf"{options['page'].resolution[0]}",
                     options["command"],
                     flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
+                # options["command"] = options["command"].split(" ")
+                sbp = subprocess.run(
+                    options["command"],
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                    shell=True,
+                )
+                if self.cancel:
+                    return
+                logger.info("stdout: %s", sbp.stdout)
+                logger.info("stderr: %s", sbp.stderr)
 
-            options["command"] = re.sub(
-                r"%r",
-                rf"{options['page'].resolution[0]}",
-                options["command"],
-                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            # options["command"] = options["command"].split(" ")
-            sbp = subprocess.run(
-                options["command"],
-                capture_output=True,
-                check=True,
-                text=True,
-                shell=True,
-            )
-            if self.cancel:
-                return
-            logger.info("stdout: %s", sbp.stdout)
-            logger.info("stderr: %s", sbp.stderr)
+                # don't return in here, just in case we can ignore the error -
+                # e.g. theming errors from gimp
+                if sbp.stderr != EMPTY:
+                    request.data(
+                        {"type": "message", "info": sbp.stderr}
+                        # options["uuid"],
+                        # options["page"].uuid,
+                        # "user-defined",
+                    )
 
-            # don't return in here, just in case we can ignore the error -
-            # e.g. theming errors from gimp
-            if sbp.stderr != EMPTY:
-                request.data(
-                    {"type": "message", "info": sbp.stderr}
-                    # options["uuid"],
-                    # options["page"].uuid,
-                    # "user-defined",
+                # Get file type
+                image = Image.open(out.name)
+
+                # assume the resolution hasn't changed
+                new = Page(
+                    filename=out.name,
+                    dir=options["dir"],
+                    delete=True,
+                    format=image.format,
+                    resolution=options["page"].resolution,
                 )
 
-            # Get file type
-            image = Image.open(out.name)
+                # Copy the OCR output
+                try:
+                    new.bboxtree = options["page"].bboxtree
+                except AttributeError:
+                    pass
 
-            # assume the resolution hasn't changed
-            new = Page(
-                filename=out.name,
-                dir=options["dir"],
-                delete=True,
-                format=image.format,
-                resolution=options["page"].resolution,
-            )
-
-            # Copy the OCR output
-            try:
-                new.bboxtree = options["page"].bboxtree
-            except AttributeError:
-                pass
-
-            # reuse uuid so that the process chain can find it again
-            new.uuid = options["page"].uuid
-            request.data(
-                {
-                    "type": "page",
-                    "uuid": options["uuid"],
-                    "page": new,
-                    "info": {"replace": new.uuid},
-                }
-            )
+                # reuse uuid so that the process chain can find it again
+                new.uuid = options["page"].uuid
+                request.data(
+                    {
+                        "type": "page",
+                        "uuid": options["uuid"],
+                        "page": new,
+                        "info": {"replace": new.uuid},
+                    }
+                )
 
         except Exception as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
@@ -1862,38 +1845,36 @@ class DocThread(BaseThread):
         regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
         if regex:
             suffix = regex.group(1)
-            filename = tempfile.NamedTemporaryFile(
+            with tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=f".{suffix}", delete=False
-            )
-            image.save(filename)
-
-            filename2 = tempfile.NamedTemporaryFile(
+            ) as filename, tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=f".{suffix}", delete=False
-            )
-            image2.save(filename2)
+            ) as filename2:
+                image.save(filename)
+                image2.save(filename2)
 
-        logger.info(
-            "Splitting in direction %s @ %s -> %s + %s",
-            options["direction"],
-            options["position"],
-            filename,
-            filename2,
-        )
-        if self.cancel:
-            return
-        page.filename = filename.name
-        page.width = image.width
-        page.height = image.height
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
-        # split doesn't change the resolution, so we can safely copy it
-        new2 = Page(
-            filename=filename2.name,
-            dir=options["dir"],
-            delete=True,
-            format=page.format,
-            resolution=page.resolution,
-            dirty_time=page.dirty_time,
-        )
+            logger.info(
+                "Splitting in direction %s @ %s -> %s + %s",
+                options["direction"],
+                options["position"],
+                filename,
+                filename2,
+            )
+            if self.cancel:
+                return
+            page.filename = filename.name
+            page.width = image.width
+            page.height = image.height
+            page.dirty_time = datetime.datetime.now()  # flag as dirty
+            # split doesn't change the resolution, so we can safely copy it
+            new2 = Page(
+                filename=filename2.name,
+                dir=options["dir"],
+                delete=True,
+                format=page.format,
+                resolution=page.resolution,
+                dirty_time=page.dirty_time,
+            )
         if page.text_layer:
             bboxtree = Bboxtree(page.text_layer)
             bboxtree2 = Bboxtree(page.text_layer)
@@ -1969,7 +1950,6 @@ class DocThread(BaseThread):
             return
 
         filename = options["page"].filename
-        infile = None
         try:
             if not re.search(
                 r"[.]pnm$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
@@ -1982,110 +1962,106 @@ class DocThread(BaseThread):
                     suffix = ".pnm"
 
                 # Temporary filename for new file
-                infile = tempfile.NamedTemporaryFile(
-                    dir=options["dir"],
-                    suffix=suffix,
-                    delete=False,
-                ).name
-
-                logger.debug("Converting %s -> %s for unpaper", filename, infile)
-                image.save(infile)
+                with tempfile.NamedTemporaryFile(
+                    dir=options["dir"], suffix=suffix, delete=False
+                ) as temp:
+                    infile = temp.name
+                    logger.debug("Converting %s -> %s for unpaper", filename, infile)
+                    image.save(infile)
 
             else:
                 infile = filename
             options["options"]["command"][-3] = infile
 
-            out = tempfile.NamedTemporaryFile(
+            with tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=".pnm", delete=False
-            ).name
-            options["options"]["command"][-2] = out
+            ) as out, tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".pnm", delete=False
+            ) as out2:
+                options["options"]["command"][-2] = out.name
 
-            out2 = EMPTY
-            index = options["options"]["command"].index("--output-pages")
-            if options["options"]["command"][index + 1] == "2":
-                out2 = tempfile.NamedTemporaryFile(
-                    dir=options["dir"], suffix=".pnm", delete=False
-                ).name
-                options["options"]["command"][-1] = out2
-            else:
-                del options["options"]["command"][-1]
+                index = options["options"]["command"].index("--output-pages")
+                if options["options"]["command"][index + 1] == "2":
+                    options["options"]["command"][-1] = out2.name
+                else:
+                    del options["options"]["command"][-1]
 
-            spo = subprocess.run(
-                options["options"]["command"],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            logger.info(spo.stdout)
-            if spo.stderr:
-                logger.error(spo.stderr)
-                request.data(spo.stderr)
-                # self._thread_throw_error(
-                #     options["uuid"], options["page"]["uuid"], "unpaper", stderr
-                # )
-                if not os.path.getsize(out):
+                spo = subprocess.run(
+                    options["options"]["command"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                logger.info(spo.stdout)
+                if spo.stderr:
+                    logger.error(spo.stderr)
+                    request.data(spo.stderr)
+                    # self._thread_throw_error(
+                    #     options["uuid"], options["page"]["uuid"], "unpaper", stderr
+                    # )
+                    if not os.path.getsize(out.name):
+                        return
+
+                if self.cancel:
                     return
+                spo.stdout = re.sub(
+                    r"Processing[ ]sheet.*[.]pnm\n",
+                    r"",
+                    spo.stdout,
+                    count=1,
+                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
+                if spo.stdout:
+                    logger.warning(spo.stdout)
+                    request.data(spo.stdout)
+                    # self._thread_throw_error(
+                    #     options["uuid"], options["page"]["uuid"], "unpaper", stdout
+                    # )
+                    if not os.path.getsize(out.name):
+                        return
 
-            if self.cancel:
-                return
-            spo.stdout = re.sub(
-                r"Processing[ ]sheet.*[.]pnm\n",
-                r"",
-                spo.stdout,
-                count=1,
-                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if spo.stdout:
-                logger.warning(spo.stdout)
-                request.data(spo.stdout)
-                # self._thread_throw_error(
-                #     options["uuid"], options["page"]["uuid"], "unpaper", stdout
-                # )
-                if not os.path.getsize(out):
-                    return
+                if (
+                    options["options"]["command"][index + 1] == "2"
+                    and "direction" in options["options"]
+                    and options["options"]["direction"] == "rtl"
+                ):
+                    out, out2 = out2, out
 
-            if (
-                options["options"]["command"][index + 1] == "2"
-                and "direction" in options["options"]
-                and options["options"]["direction"] == "rtl"
-            ):
-                out, out2 = out2, out
-
-            # unpaper doesn't change the resolution, so we can safely copy it
-            new = Page(
-                filename=out,
-                dir=options["dir"],
-                delete=True,
-                format="Portable anymap",
-                resolution=options["page"].resolution,
-                uuid=options["page"].uuid,
-                dirty_time=datetime.datetime.now(),  # flag as dirty
-            )
-            request.data(
-                {
-                    "type": "page",
-                    "uuid": options["uuid"],
-                    "page": new,
-                    "info": {"replace": options["page"].uuid},
-                }
-            )
-            if out2:
-                new2 = Page(
-                    filename=out2,
+                # unpaper doesn't change the resolution, so we can safely copy it
+                new = Page(
+                    filename=out.name,
                     dir=options["dir"],
                     delete=True,
                     format="Portable anymap",
                     resolution=options["page"].resolution,
+                    uuid=options["page"].uuid,
                     dirty_time=datetime.datetime.now(),  # flag as dirty
                 )
                 request.data(
                     {
                         "type": "page",
                         "uuid": options["uuid"],
-                        "page": new2,
-                        "info": {"insert-after": new.uuid},
+                        "page": new,
+                        "info": {"replace": options["page"].uuid},
                     }
                 )
+                if options["options"]["command"][index + 1] == "2":
+                    new2 = Page(
+                        filename=out2.name,
+                        dir=options["dir"],
+                        delete=True,
+                        format="Portable anymap",
+                        resolution=options["page"].resolution,
+                        dirty_time=datetime.datetime.now(),  # flag as dirty
+                    )
+                    request.data(
+                        {
+                            "type": "page",
+                            "uuid": options["uuid"],
+                            "page": new2,
+                            "info": {"insert-after": new.uuid},
+                        }
+                    )
 
         except Exception as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
@@ -2284,9 +2260,9 @@ class Document(SimpleList):
 
     def create_pidfile(self, options):
         "create file in which to store the PID"
-        pidfile = None
         try:
-            pidfile = tempfile.TemporaryFile(dir=self.dir, suffix=".pid")
+            with tempfile.TemporaryFile(dir=self.dir, suffix=".pid") as pidfile:
+                return pidfile
         except Exception as err:
             logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
@@ -2295,8 +2271,6 @@ class Document(SimpleList):
                     "create PID file",
                     f"Error: unable to write to {self.dir}.",
                 )
-
-        return pidfile
 
     def import_files(self, **options):
         """To avoid race condtions importing multiple files,
@@ -2509,11 +2483,8 @@ class Document(SimpleList):
             )
 
         if "rotate" in options and options["rotate"]:
-            # self.data[0][2].im_object().save("before_rotate.png")
 
             def rotate_finished_callback(response):
-                # self.data[0][2].im_object().save("after_rotate.png")
-                # del options["rotate"]
                 finished_page = self.find_page_by_uuid(page.uuid)
                 if finished_page is None:
                     self._post_process_scan(None, options)  # to fire finished_callback
@@ -2601,8 +2572,9 @@ class Document(SimpleList):
         """Take new scan, pad it if necessary, display it,
         and set off any post-processing chains"""
 
-        # Interface to frontend
-        fhd = open(options["filename"], mode="r")
+        # TODO: pass size and options as data, rather than via scope
+        # opening inside with didn't work in initial tests for unknown reasons
+        fhd = open(options["filename"], mode="r")  # pylint: disable=consider-using-with
 
         # Read without blocking
         size = 0
@@ -2625,10 +2597,9 @@ class Document(SimpleList):
                 logger.info("Expecting %s, found %s", size, filesize)
                 if size > filesize:
                     pad = size - filesize
-                    fhd = open(options["filename"], mode="ab")
-                    data = [1] * (pad * BITS_PER_BYTE + 1)
-                    fhd.write(struct.pack("%db" % (len(data)), *data))
-                    fhd.close()
+                    with open(options["filename"], mode="ab") as fhd:
+                        data = [1] * (pad * BITS_PER_BYTE + 1)
+                        fhd.write(struct.pack("%db" % (len(data)), *data))
                     logger.info("Padded %s bytes", pad)
 
                 page = Page(
@@ -3541,9 +3512,9 @@ class Document(SimpleList):
             session["version"] = version
         # store(session, os.path.join(self.dir, "session"))
         if filename is not None:
-            tar = tarfile.TarFile()
-            tar.add_files(filenamelist)
-            tar.write(filename, True, EMPTY)
+            with tarfile.TarFile() as tar:
+                tar.add_files(filenamelist)
+                tar.write(filename, True, EMPTY)
             for i in range(len(self.data)):
                 self.data[i][2].saved = True
 
@@ -3557,12 +3528,14 @@ class Document(SimpleList):
 
             return
 
-        tar = tarfile.open(options["info"], True)
-        filenamelist = tar.list_files()
-        sessionfile = [x for x in filenamelist if re.search(r"\/session$", x)]
-        sesdir = os.path.join(self.dir, os.path.dirname(sessionfile[0]))
-        for filename in filenamelist:
-            tar.extract_file(filename, os.path.join(sesdir, os.path.basename(filename)))
+        with tarfile.open(options["info"], True) as tar:
+            filenamelist = tar.list_files()
+            sessionfile = [x for x in filenamelist if re.search(r"\/session$", x)]
+            sesdir = os.path.join(self.dir, os.path.dirname(sessionfile[0]))
+            for filename in filenamelist:
+                tar.extract_file(
+                    filename, os.path.join(sesdir, os.path.basename(filename))
+                )
 
         self.open_session(dir=sesdir, delete=True, **options)
         if options["finished_callback"]:
@@ -3892,24 +3865,11 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
 
 def slurp(file):
     "slurp file"
-    (text) = None
     if type(file) == "GLOB":
-        text = file
+        return file
 
-    else:
-        try:
-            fhd = open("<:encoding(UTF8)", file)
-
-        except:
-            raise f"Error: cannot open {file}\n"
-        text = fhd
-        try:
-            fhd.close()
-
-        except:
-            raise f"Error: cannot close {file}\n"
-
-    return text
+    with open(file, "r") as fhd:
+        return fhd.read()
 
 
 def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
@@ -4268,10 +4228,11 @@ def _write_image_object(page, options):
         image = image.convert("1")
     if save:
         regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        filename = tempfile.NamedTemporaryFile(
-            dir=options["dir"], suffix=regex.group(1)
-        ).name
-        image.save(filename)
+        with tempfile.NamedTemporaryFile(
+            dir=options["dir"], suffix=regex.group(1), delete=False
+        ) as tmp:
+            filename = tmp.name
+            image.save(filename)
     return filename
 
 
