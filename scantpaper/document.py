@@ -733,7 +733,7 @@ class DocThread(BaseThread):
                 # if error:
                 #     return
                 compression, filename, resolution = self._convert_image_for_djvu(
-                    pagedata, page, args
+                    pagedata, args
                 )
 
                 # Create the djvu
@@ -784,7 +784,7 @@ class DocThread(BaseThread):
         self._set_timestamp(args)
         _post_save_hook(args["path"], args["options"])
 
-    def _convert_image_for_djvu(self, pagedata, page, options):
+    def _convert_image_for_djvu(self, pagedata, options):
         filename = pagedata.filename
 
         # Check the image depth to decide what sort of compression to use
@@ -2100,7 +2100,7 @@ class Document(SimpleList):
     selection_changed_signal = None
     paper_sizes = {}
 
-    def on_row_changed(self, path, _iter, data):
+    def on_row_changed(self, _path, _iter, _data):
         "Set-up the callback when the page number has been edited."
         # Note uuids for selected pages
         selection = self.get_selected_indices()
@@ -2161,7 +2161,7 @@ class Document(SimpleList):
             Gdk.DragAction.COPY | Gdk.DragAction.MOVE,
         )
 
-        def drag_data_get_callback(tree, context, sel):
+        def drag_data_get_callback(_tree, _context, sel):
             # set dummy data which we'll ignore and use selected rows
             setattr(sel, sel.get_target(), [])
 
@@ -2261,8 +2261,10 @@ class Document(SimpleList):
     def create_pidfile(self, options):
         "create file in which to store the PID"
         try:
-            with tempfile.TemporaryFile(dir=self.dir, suffix=".pid") as pidfile:
-                return pidfile
+            with tempfile.NamedTemporaryFile(
+                dir=self.dir, suffix=".pid", delete=False
+            ) as pidfile:
+                return pidfile.name
         except Exception as err:
             logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
@@ -2433,7 +2435,7 @@ class Document(SimpleList):
 
         def _import_file_data_callback(response):
             try:
-                self.add_page(None, response.info, None)
+                self.add_page(response.info, None)
             except AttributeError:
                 if "logger_callback" in options:
                     options["logger_callback"](response)
@@ -2468,7 +2470,7 @@ class Document(SimpleList):
             and options["to_png"]
         ):
 
-            def to_png_finished_callback(response):
+            def to_png_finished_callback(_response):
                 finished_page = self.find_page_by_uuid(page.uuid)
                 if finished_page is None:
                     self._post_process_scan(None, options)  # to fire finished_callback
@@ -2484,7 +2486,7 @@ class Document(SimpleList):
 
         if "rotate" in options and options["rotate"]:
 
-            def rotate_finished_callback(response):
+            def rotate_finished_callback(_response):
                 finished_page = self.find_page_by_uuid(page.uuid)
                 if finished_page is None:
                     self._post_process_scan(None, options)  # to fire finished_callback
@@ -2526,7 +2528,7 @@ class Document(SimpleList):
 
         if "udt" in options and options["udt"]:
 
-            def udt_finished_callback(response):
+            def udt_finished_callback(_response):
                 del options["udt"]
                 finished_page = self.find_page_by_uuid(page.uuid)
                 if finished_page is None:
@@ -2548,7 +2550,7 @@ class Document(SimpleList):
 
         if "ocr" in options and options["ocr"]:
 
-            def ocr_finished_callback(response):
+            def ocr_finished_callback(_response):
                 del options["ocr"]
                 self._post_process_scan(None, options)  # to fire finished_callback
 
@@ -2579,7 +2581,7 @@ class Document(SimpleList):
         # Read without blocking
         size = 0
 
-        def file_changed_callback(fileno, condition, *data):
+        def file_changed_callback(_fileno, condition, *data):
             nonlocal size, fhd
 
             if condition & GLib.IOCondition.IN:
@@ -2615,7 +2617,7 @@ class Document(SimpleList):
                     delete=options["delete"] if "delete" in options else False,
                     dir=options["dir"],
                 )
-                index = self.add_page("none", page, options["page"])
+                index = self.add_page(page, options["page"])
                 if index == NOT_FOUND and options["error_callback"]:
                     options["error_callback"](
                         None, "Import scan", _("Unable to load image")
@@ -2709,7 +2711,7 @@ class Document(SimpleList):
             if str(uid) == str(row[2].uuid):
                 return i
 
-    def add_page(self, process_uuid, new_page, ref):
+    def add_page(self, new_page, ref):
         "Add a new page to the document"
         i, pagenum = None, None
 
@@ -2727,24 +2729,6 @@ class Document(SimpleList):
                         logger.error("Requested page %s does not exist.", uid)
                         return NOT_FOUND
                     break
-
-        # Move the temp file from the thread to a temp object that will be
-        # automatically cleared up
-        # if type(page["filename"]) == "File::Temp":
-        #     new = page
-        # else:
-        #     try:
-        #         new = page.thaw()
-        #     except:
-        #         _throw_error(
-        #             process_uuid,
-        #             page["uuid"],
-        #             EMPTY,
-        #             f"Caught error writing to {self}->{dir}: {_}",
-        #         )
-
-        #     if new is None:
-        #         return
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal is not None:
@@ -3359,7 +3343,7 @@ class Document(SimpleList):
         # FIXME: duplicate to _import_file_data_callback()
         def _split_page_data_callback(response):
             if response.info["type"] == "page":
-                self.add_page(None, response.info["page"], response.info["info"])
+                self.add_page(response.info["page"], response.info["info"])
             else:
                 if "logger_callback" in options:
                     options["logger_callback"](response)
@@ -3434,7 +3418,7 @@ class Document(SimpleList):
         # FIXME: duplicate to _import_file_data_callback()
         def _unpaper_data_callback(response):
             if isinstance(response.info, dict) and "page" in response.info:
-                self.add_page(None, response.info["page"], response.info["info"])
+                self.add_page(response.info["page"], response.info["info"])
             else:
                 if "logger_callback" in options:
                     options["logger_callback"](response)
@@ -3463,7 +3447,7 @@ class Document(SimpleList):
         # FIXME: duplicate to _import_file_data_callback()
         def _user_defined_data_callback(response):
             if response.info["type"] == "page":
-                self.add_page(None, response.info["page"], response.info["info"])
+                self.add_page(response.info["page"], response.info["info"])
             else:
                 if "logger_callback" in options:
                     options["logger_callback"](response)
@@ -3873,54 +3857,22 @@ def slurp(file):
 
 
 def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
-    "wrapper for subprocess.run()"
-    # remove empty arguments in cmd
-    # i = 0
-    # while i <= len(cmd)-1 :
-    #     if   (i in cmd is None) and cmd[i] == EMPTY :
-    #         del(cmd[i])
+    "wrapper for subprocess.Popen()"
 
-    #     else :
-    #         i+=1
-
-    if logger is not None:
-        logger.info(SPACE.join(cmd))
-
+    logger.info(SPACE.join(cmd))
     try:
-        sbp = subprocess.run(cmd, capture_output=True, check=True, text=True)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
     except FileNotFoundError as err:
         return -1, None, str(err)
 
-    # if pid == 0 :
-    #     return PROCESS_FAILED, None,           SPACE.join(  cmd ) + ': command not found'
-
-    # if  logger is not None :
-    #     logger.info(f"Spawned PID {pid}")
-    # if  pidfile is not None :
-    #     try:
-    #         fh=open('>',pidfile)
-
-    #     except:
-    #         return PROCESS_FAILED
-    #     fh.print(pid)
-    #     try:
-    #         fh.close()
-
-    #     except:
-    #         return PROCESS_FAILED
-
-    # slurping these before waitpid, as if the output is larger than 65535,
-    # waitpid hangs forever.
-
-    # reader = unescape_utf8( slurp(reader) )
-    # err    = unescape_utf8( slurp(err) )
-
-    # Using 0 for flags, rather than WNOHANG to ensure that we wait for the
-    # process to finish and not leave a zombie
-
-    # os.waitpid(pid,0)
-    # child_exit_status = CHILD_ERROR >> BITS_PER_BYTE
-    return sbp.returncode, sbp.stdout, sbp.stderr
+    logger.info(f"Spawned PID {proc.pid}")
+    if pidfile is not None:
+        with open(pidfile, "wt") as fhd:
+            fhd.write(str(proc.pid))
+    stdout_data, stderr_data = proc.communicate()
+    return proc.returncode, stdout_data, stderr_data
 
 
 def program_version(stream, regex, cmd):
