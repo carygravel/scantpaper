@@ -2369,14 +2369,14 @@ class Document(SimpleList):
             finished_callback = options["finished_callback"]
             del options["paths"]
             del options["finished_callback"]
-            for i in range(len(info)):
+            for i, item in enumerate(info):
                 if "metadata_callback" in options:
-                    options["metadata_callback"](_extract_metadata(info[i]))
+                    options["metadata_callback"](_extract_metadata(item))
 
                 if i == len(info) - 1:
                     options["finished_callback"] = finished_callback
 
-                self.import_file(info=info[i], first_page=1, last_page=1, **options)
+                self.import_file(info=item, first_page=1, last_page=1, **options)
 
         elif info[0]["format"] == "session file":
             self.open_session_file(info=info[0]["path"], **options)
@@ -3484,14 +3484,14 @@ class Document(SimpleList):
         test opening old sessions."""
         self.remove_corrupted_pages()
         session, filenamelist = {}, []
-        for i in range(len(self.data)):
-            if self.data[i][0] not in session:
-                session[self.data[i][0]] = {}
-            session[self.data[i][0]]["filename"] = self.data[i][2].filename
-            filenamelist.append(self.data[i][2].filename)
-            for key in self.data[i][2].keys():
+        for row in self.data:
+            if row[0] not in session:
+                session[row[0]] = {}
+            session[row[0]]["filename"] = row[2].filename
+            filenamelist.append(row[2].filename)
+            for key in row[2].keys():
                 if key != "filename":
-                    session[self.data[i][0]][key] = self.data[i][2][key]
+                    session[row[0]][key] = row[2][key]
 
         filenamelist.append(os.path.join(self.dir, "session"))
         selection = self.get_selected_indices()
@@ -3503,8 +3503,8 @@ class Document(SimpleList):
             with tarfile.TarFile() as tar:
                 tar.add_files(filenamelist)
                 tar.write(filename, True, EMPTY)
-            for i in range(len(self.data)):
-                self.data[i][2].saved = True
+            for row in self.data:
+                row[2].saved = True
 
     def open_session_file(self, options):
         "open session file"
