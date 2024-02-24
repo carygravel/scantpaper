@@ -3861,18 +3861,19 @@ def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
 
     logger.info(SPACE.join(cmd))
     try:
-        proc = subprocess.Popen(
+        with subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
+        ) as proc:
+            logger.info(f"Spawned PID {proc.pid}")
+            if pidfile is not None:
+                with open(pidfile, "wt") as fhd:
+                    fhd.write(str(proc.pid))
+            stdout_data, stderr_data = proc.communicate()
+            returncode = proc.returncode
     except FileNotFoundError as err:
-        return -1, None, str(err)
+        returncode, stdout_data, stderr_data = -1, None, str(err)
 
-    logger.info(f"Spawned PID {proc.pid}")
-    if pidfile is not None:
-        with open(pidfile, "wt") as fhd:
-            fhd.write(str(proc.pid))
-    stdout_data, stderr_data = proc.communicate()
-    return proc.returncode, stdout_data, stderr_data
+    return returncode, stdout_data, stderr_data
 
 
 def program_version(stream, regex, cmd):
