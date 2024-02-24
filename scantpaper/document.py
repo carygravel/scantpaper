@@ -2604,7 +2604,7 @@ class Document(SimpleList):
                     pad = size - filesize
                     with open(options["filename"], mode="ab") as fhd:
                         data = [1] * (pad * BITS_PER_BYTE + 1)
-                        fhd.write(struct.pack("%db" % (len(data)), *data))
+                        fhd.write(struct.pack(f"{len(data)}b", *data))
                     logger.info("Padded %s bytes", pad)
 
                 page = Page(
