@@ -3864,7 +3864,7 @@ def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
         with subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         ) as proc:
-            logger.info(f"Spawned PID {proc.pid}")
+            logger.info("Spawned PID %s", proc.pid)
             if pidfile is not None:
                 with open(pidfile, "wt") as fhd:
                     fhd.write(str(proc.pid))
