@@ -961,8 +961,7 @@ class DocThread(BaseThread):
                 fhd.write("(metadata\n")
 
                 # Write the metadata
-                for key in metadata.keys():
-                    val = metadata[key]
+                for key, val in metadata.items():
 
                     # backslash-escape any double quotes and bashslashes
                     val = re.sub(
@@ -2137,8 +2136,8 @@ class Document(SimpleList):
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
         self.set_reorderable(True)
-        for prop in options.keys():
-            setattr(self, prop, options[prop])
+        for key, val in options.items():
+            setattr(self, key, val)
 
         dnd_source = Gtk.TargetEntry.new(
             "Glib::Scalar",  # some string representing the drag type
