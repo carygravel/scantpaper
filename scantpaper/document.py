@@ -311,8 +311,6 @@ class DocThread(BaseThread):
                     img2pdf.default_dpi,
                     img2pdf.default_dpi,
                 )
-            else:
-                xresolution, yresolution = dpi
             info["pages"] = 1
 
         info["format"] = fformat
@@ -450,7 +448,7 @@ class DocThread(BaseThread):
                         i,
                         args["last"] - args["first"] + 1,
                     )
-                    (tif, error) = (None, None)
+                    tif = None
                     with tempfile.NamedTemporaryFile(
                         dir=args["dir"], suffix=".tif", delete=False
                     ) as tif:
@@ -546,7 +544,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         _ = gettext.gettext
         pagenr = 0
-        pdf, error, message = None, None, None
+        error = None
 
         self.message = _("Setting up PDF")
         outdir = Path(options["dir"])
@@ -642,7 +640,7 @@ class DocThread(BaseThread):
         """Box is the same size as the page. We don't know the text position.
         Start at the top of the page (PDF coordinate system starts
         at the bottom left of the page)"""
-        xresolution, yresolution, units = gs_page.get_resolution()
+        xresolution, yresolution, _units = gs_page.get_resolution()
         height = px2pt(gs_page.height, yresolution)
         for box in Bboxtree(gs_page.annotations).get_bbox_iter():
             if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
@@ -768,7 +766,7 @@ class DocThread(BaseThread):
 
         self.progress = 1
         self.message = _("Merging DjVu")
-        status, out, err = exec_command(
+        status, _out, _err = exec_command(
             ["djvm", "-c", args["path"], *filelist], args["pidfile"]
         )
         if self.cancel:
@@ -812,7 +810,7 @@ class DocThread(BaseThread):
             resolution = max(xresolution, yresolution)
             width *= resolution / xresolution
             height *= resolution / yresolution
-            logger.info("Upsampling to %sx%s", resolution, resolution)
+            logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
             image = image.resize((int(width), int(height)), resample=Image.BOX)
             upsample = True
 
@@ -1224,7 +1222,7 @@ class DocThread(BaseThread):
                         "convert",
                         filename,
                         "-units",
-                        "PixelsPerInch",
+                        units,
                         "-density",
                         f"{xresolution}x{yresolution}",
                         *depth,
@@ -2234,8 +2232,8 @@ class Document(SimpleList):
                 pass
             self.thread.page_requests.put("cancel")
 
-            jobs_completed = 0
-            jobs_total = 0
+            # jobs_completed = 0
+            # jobs_total = 0
 
             # Then send the thread a cancel signal
             # to stop it going beyond the next break point
@@ -2445,7 +2443,7 @@ class Document(SimpleList):
             if "finished_callback" in options:
                 options["finished_callback"](response)
 
-        uid = self.thread.import_file(
+        self.thread.import_file(
             info=options["info"],
             password=password,
             first=options["first_page"],
@@ -2745,8 +2743,6 @@ class Document(SimpleList):
             if pagenum is None:
                 pagenum = len(self.data) + 1
             self.data.append([pagenum, thumb, new_page])
-            model = self.get_model()
-            row = model[model.iter_nth_child(None, 0)]
             logger.info(
                 "Added %s (%s) at page %s with resolution %s,%s",
                 new_page.filename,
