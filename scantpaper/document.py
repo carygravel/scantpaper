@@ -583,7 +583,9 @@ class DocThread(BaseThread):
         for pagedata in options["list_of_pages"]:
             pagenr += 1
             if pagedata.text_layer:
-                with open(outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w") as pfh:
+                with open(
+                    outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w", encoding="utf-8"
+                ) as pfh:
                     pfh.write(pagedata.export_hocr())
         #     self.progress = pagenr / (len(options["list_of_pages"]) + 1)
         #     self.message = _("Saving page %i of %i") % (pagenr, len(options["list_of_pages"]))
@@ -1365,7 +1367,7 @@ class DocThread(BaseThread):
             if self.cancel:
                 return
 
-        with open(options["path"], "w") as fhd:
+        with open(options["path"], "w", encoding="utf-8") as fhd:
             fhd.write(string)
 
         _post_save_hook(options["path"], options["options"])
@@ -1379,7 +1381,7 @@ class DocThread(BaseThread):
         "save hocr file in thread"
         options = request.args[0]
 
-        with open(options["path"], "w") as fhd:
+        with open(options["path"], "w", encoding="utf-8") as fhd:
             written_header = False
             for page in options["list_of_pages"]:
                 hocr = page.export_hocr()
@@ -1925,7 +1927,7 @@ class DocThread(BaseThread):
 
             # Unnecessary filesystem write/read
             path_hocr = Path(output).with_suffix(".hocr")
-            hocr = path_hocr.read_text()
+            hocr = path_hocr.read_text(encoding="utf-8")
             path_hocr.unlink()
 
             page.import_hocr(hocr)
@@ -2576,7 +2578,9 @@ class Document(SimpleList):
 
         # TODO: pass size and options as data, rather than via scope
         # opening inside with didn't work in initial tests for unknown reasons
-        fhd = open(options["filename"], mode="r")  # pylint: disable=consider-using-with
+        fhd = open(  # pylint: disable=consider-using-with
+            options["filename"], mode="r", encoding="utf-8"
+        )
 
         # Read without blocking
         size = 0
@@ -3852,7 +3856,7 @@ def slurp(file):
     if type(file) == "GLOB":
         return file
 
-    with open(file, "r") as fhd:
+    with open(file, "r", encoding="utf-8") as fhd:
         return fhd.read()
 
 
@@ -3866,7 +3870,7 @@ def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
         ) as proc:
             logger.info("Spawned PID %s", proc.pid)
             if pidfile is not None:
-                with open(pidfile, "wt") as fhd:
+                with open(pidfile, "wt", encoding="utf-8") as fhd:
                     fhd.write(str(proc.pid))
             stdout_data, stderr_data = proc.communicate()
             returncode = proc.returncode
