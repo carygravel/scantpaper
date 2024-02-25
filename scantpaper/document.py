@@ -3550,7 +3550,7 @@ class Document(SimpleList):
         if "version" not in sessionref:
             logger.info("Restoring pre-2.8.1 session file.")
             for key in sessionref.keys():
-                if type(sessionref[key]) == "HASH" and "hocr" in sessionref[key]:
+                if isinstance(sessionref[key], dict) and "hocr" in sessionref[key]:
                     tree = Bboxtree()
                     if re.search(
                         r"<body>[\s\S]*<\/body>",
@@ -3848,9 +3848,6 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
 
 def slurp(file):
     "slurp file"
-    if type(file) == "GLOB":
-        return file
-
     with open(file, "r", encoding="utf-8") as fhd:
         return fhd.read()
 
