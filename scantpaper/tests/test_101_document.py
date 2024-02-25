@@ -19,6 +19,7 @@ from document import (
     _extract_metadata,
     _program_version,
     _bbox2markup,
+    _set_timestamp,
 )
 
 
@@ -197,14 +198,14 @@ def test_file_dates():
             "datetime": [2016, 2, 10, 0, 0, 0],
         },
     }
-    slist.thread._set_timestamp(options)  # pylint: disable=protected-access
+    _set_timestamp(options)  # pylint: disable=protected-access
     stb = os.stat(filename)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 10, 0, 0, 0
     ), "timestamp no timezone"
 
     options["metadata"]["tz"] = [None, None, None, 14, 0, None, None]
-    slist.thread._set_timestamp(options)  # pylint: disable=protected-access
+    _set_timestamp(options)  # pylint: disable=protected-access
     stb = os.stat(filename)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 9, 10, 0, 0

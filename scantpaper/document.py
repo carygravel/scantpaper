@@ -590,7 +590,7 @@ class DocThread(BaseThread):
             and options["options"] is not None
             and ("prepend" in options["options"] or "append" in options["options"])
         ):
-            if self._append_pdf(filename, options, request):
+            if _append_pdf(filename, options, request):
                 return
 
         if (
@@ -599,10 +599,10 @@ class DocThread(BaseThread):
             and options["options"] is not None
             and "user-password" in options["options"]
         ):
-            if self._encrypt_pdf(filename, options, request):
+            if _encrypt_pdf(filename, options, request):
                 return
 
-        self._set_timestamp(options)
+        _set_timestamp(options)
         if (
             options is not None
             and "options" in options
@@ -621,61 +621,6 @@ class DocThread(BaseThread):
 
         else:
             _post_save_hook(filename, options["options"])
-
-    # https://py-pdf.github.io/fpdf2/Annotations.html
-    def _add_annotations_to_pdf(self, page, gs_page):
-        """Box is the same size as the page. We don't know the text position.
-        Start at the top of the page (PDF coordinate system starts
-        at the bottom left of the page)"""
-        xresolution, yresolution, _units = gs_page.get_resolution()
-        height = px2pt(gs_page.height, yresolution)
-        for box in Bboxtree(gs_page.annotations).get_bbox_iter():
-            if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
-                continue
-
-            rgb = []
-            for i in range(3):
-                rgb.append(hex(ANNOTATION_COLOR[i : i + 2]) / 255)
-
-            annot = page.annotation()
-            annot.markup(
-                box["text"],
-                _bbox2markup(xresolution, yresolution, height, len(box["bbox"])),
-                "Highlight",
-                color=rgb,
-                opacity=0.5,
-            )
-
-    def _append_pdf(self, filename, options, request):
-        if "prepend" in options["options"]:
-            file1 = filename
-            file2 = options["options"]["prepend"] + ".bak"
-            bak = file2
-            out = options["options"]["prepend"]
-            message = _("Error prepending PDF: %s")
-            logger.info("Prepending PDF")
-
-        else:
-            file2 = filename
-            file1 = options["options"]["append"] + ".bak"
-            bak = file1
-            out = options["options"]["append"]
-            message = _("Error appending PDF: %s")
-            logger.info("Appending PDF")
-
-        try:
-            os.rename(out, bak)
-        except ValueError:
-            request.error(_("Error creating backup of PDF"))
-            return None
-
-        status, _stdout, error = exec_command(
-            ["pdfunite", file1, file2, out], options["pidfile"]
-        )
-        if status:
-            logger.info(error)
-            request.error(message % (error))
-        return status
 
     def save_djvu(self, **kwargs):
         "save DjvU"
@@ -709,7 +654,7 @@ class DocThread(BaseThread):
 
                 # if error:
                 #     return
-                compression, filename, resolution = self._convert_image_for_djvu(
+                compression, filename, resolution = _convert_image_for_djvu(
                     pagedata, args, request
                 )
 
@@ -733,8 +678,8 @@ class DocThread(BaseThread):
                     return
 
                 filelist.append(djvu.name)
-                self._add_txt_to_djvu(djvu, args["dir"], pagedata, request)
-                self._add_ann_to_djvu(djvu, args["dir"], pagedata, request)
+                _add_txt_to_djvu(djvu, args["dir"], pagedata, request)
+                _add_ann_to_djvu(djvu, args["dir"], pagedata, request)
 
         self.progress = 1
         self.message = _("Merging DjVu")
@@ -748,156 +693,8 @@ class DocThread(BaseThread):
             request.error(_("Error merging DjVu"))
 
         self._add_metadata_to_djvu(args)
-        self._set_timestamp(args)
+        _set_timestamp(args)
         _post_save_hook(args["path"], args["options"])
-
-    def _convert_image_for_djvu(self, pagedata, options, request):
-        filename = pagedata.filename
-
-        # Check the image depth to decide what sort of compression to use
-        image = Image.open(filename)
-        # if f"{e}":
-        #     logger.error(e)
-        #     self._thread_throw_error(
-        #         options["uuid"],
-        #         options["page"]["uuid"],
-        #         "Save file",
-        #         f"Error reading {filename}: {e}.",
-        #     )
-        #     return
-
-        mode = image.mode
-        compression, resolution, upsample = None, None, None
-
-        # c44 and cjb2 do not support different resolutions in the x and y
-        # directions, so resample
-        xresolution, yresolution, units = pagedata.get_resolution()
-        width, height = pagedata.width, pagedata.height
-        if xresolution != yresolution:
-            resolution = max(xresolution, yresolution)
-            width *= resolution / xresolution
-            height *= resolution / yresolution
-            logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
-            image = image.resize((int(width), int(height)), resample=Image.BOX)
-            upsample = True
-
-        else:
-            resolution = xresolution
-
-        # c44 can only use pnm and jpg
-        fformat = None
-        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            fformat = regex.group(1)
-
-        if mode != "1":
-            compression = "c44"
-            if (
-                not re.search(
-                    r"(?:pnm|jpg)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                or upsample
-            ):
-                with tempfile.NamedTemporaryFile(
-                    dir=options["dir"], suffix=".pnm", delete=False
-                ) as pnm:
-                    image.save(pnm.name)
-                    filename = pnm.name
-                # if f"{e}":
-                #     logger.error(e)
-                #     _thread_throw_error(
-                #         self,
-                #         options["uuid"],
-                #         options["page"]["uuid"],
-                #         "Save file",
-                #         f"Error writing {pnm}: {e}.",
-                #     )
-                #     return
-
-        # cjb2 can only use pnm and tif
-        else:
-            compression = "cjb2"
-            if (
-                not re.search(
-                    r"(?:pnm|tif)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                or (fformat == "pnm" and mode != "PseudoClass")
-                or upsample
-            ):
-                with tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm") as pbm:
-                    err = image.Write(filename=pbm)
-                    if f"{err}":
-                        logger.error(err)
-                        request.error(f"Error writing {pbm}: {err}.")
-                        return None
-
-                    filename = pbm
-
-        return compression, filename, resolution
-
-    def _add_txt_to_djvu(self, djvu, dirname, pagedata, request):
-        if pagedata.text_layer is not None:
-            txt = pagedata.export_djvu_txt()
-            if txt == EMPTY:
-                return
-            logger.debug(txt)
-
-            # Write djvusedtxtfile
-            with tempfile.NamedTemporaryFile(
-                mode="w", dir=dirname, suffix=".txt", delete=False
-            ) as fhd:
-                djvusedtxtfile = fhd.name
-                fhd.write(txt)
-
-            # Run djvusedtxtfile
-            cmd = [
-                "djvused",
-                djvu.name,
-                "-e",
-                f"select 1; set-txt {djvusedtxtfile}",
-                "-s",
-            ]
-            logger.info(cmd)
-            try:
-                subprocess.run(cmd, check=True)
-            except ValueError:
-                logger.error(
-                    "Error adding text layer to DjVu page %s", pagedata["page_number"]
-                )
-                request.error(_("Error adding text layer to DjVu"))
-
-    def _add_ann_to_djvu(self, djvu, dirname, pagedata, request):
-        """FIXME - refactor this together with _add_txt_to_djvu"""
-        if pagedata.annotations is not None:
-            ann = pagedata.export_djvu_ann()
-            if ann == EMPTY:
-                return
-            logger.debug(ann)
-
-            # Write djvusedtxtfile
-            with tempfile.NamedTemporaryFile(
-                mode="w", dir=dirname, suffix=".txt", delete=False
-            ) as fhd:
-                djvusedtxtfile = fhd.name
-                fhd.write(ann)
-
-            # Run djvusedtxtfile
-            cmd = [
-                "djvused",
-                djvu.name,
-                "-e",
-                f"select 1; set-ant {djvusedtxtfile}",
-                "-s",
-            ]
-            logger.info(cmd)
-            try:
-                subprocess.run(cmd, check=True)
-            except ValueError:
-                logger.error(
-                    "Error adding annotations to DjVu page %s",
-                    pagedata["page_number"],
-                )
-                request.error(_("Error adding annotations to DjVu"))
 
     def _add_metadata_to_djvu(self, options):
         if "metadata" in options and options["metadata"] is not None:
@@ -1061,50 +858,6 @@ class DocThread(BaseThread):
                         "PDF options in the Save dialogue."
                     ),
                 )
-
-    def _set_timestamp(self, options):
-        if (
-            options is None
-            or "options" not in options
-            or options["options"] is None
-            or "set_timestamp" not in options["options"]
-            or not options["options"]["set_timestamp"]
-            or "ps" in options["options"]
-        ):
-            return
-
-        metadata = options["metadata"]
-        adatetime = metadata["datetime"]
-        adatetime = datetime.datetime(*adatetime)
-        if "tz" in metadata:
-            tzn = metadata["tz"]
-            tzn = [0 if x is None else x for x in tzn]
-            tzn = datetime.timedelta(
-                days=tzn[2], hours=tzn[3], minutes=tzn[4], seconds=tzn[5]
-            )
-            adatetime -= tzn
-
-        epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
-        adatetime = (adatetime - epoch).total_seconds()
-        if adatetime < 0:
-            raise ValueError("Unable to set file timestamp for dates prior to 1970")
-        os.utime(options["path"], (adatetime, adatetime))
-
-    def _encrypt_pdf(self, filename, options, request):
-        cmd = ["pdftk", filename, "output", options["path"]]
-        if "user-password" in options["options"]:
-            cmd += ["user_pw", options["options"]["user-password"]]
-
-        spo = subprocess.run(
-            cmd,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        if spo.returncode != 0:
-            logger.info(spo.stderr)
-            request.error(_("Error encrypting PDF: %s") % (spo.stderr))
-        return spo.returncode
 
     def save_tiff(self, **kwargs):
         "save TIFF"
@@ -1330,7 +1083,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         angle, page = options["angle"], options["page"]
 
-        if self._page_gone("rotate", options["uuid"], page, request):
+        if _page_gone("rotate", options["uuid"], page, request):
             return None
         filename = page.filename
         logger.info("Rotating %s by %s degrees", filename, angle)
@@ -1365,16 +1118,6 @@ class DocThread(BaseThread):
         "cancel running tasks"
         self.cancel = False
 
-    def _page_gone(self, process, uid, page, request):
-        if not os.path.isfile(
-            page.filename
-        ):  # in case file was deleted after process started
-            err = f"Page for process {uid} no longer exists. Cannot {process}."
-            logger.error(err)
-            request.error(err)
-            return True
-        return False
-
     def set_paper_sizes(self, paper_sizes):
         "set paper sizes"
         self.paper_sizes = paper_sizes
@@ -1404,7 +1147,7 @@ class DocThread(BaseThread):
         "run user defined command on page in thread"
         options = request.args[0]
 
-        if self._page_gone("user-defined", options["uuid"], options["page"], request):
+        if _page_gone("user-defined", options["uuid"], options["page"], request):
             return
 
         infile = options["page"].filename
@@ -1554,7 +1297,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         threshold, page = (options["threshold"], options["page"])
 
-        if self._page_gone("threshold", options["uuid"], page, request):
+        if _page_gone("threshold", options["uuid"], page, request):
             return None
         if self.cancel:
             return None
@@ -1598,9 +1341,7 @@ class DocThread(BaseThread):
             options["page"],
         )
 
-        if self._page_gone(
-            "brightness-contrast", options["uuid"], options["page"], request
-        ):
+        if _page_gone("brightness-contrast", options["uuid"], options["page"], request):
             return None
 
         filename = page.filename
@@ -1632,7 +1373,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page = options["page"]
 
-        if self._page_gone("negate", options["uuid"], page, request):
+        if _page_gone("negate", options["uuid"], page, request):
             return None
 
         filename = page.filename
@@ -1661,7 +1402,7 @@ class DocThread(BaseThread):
         percent = options["percent"]
         threshold = options["threshold"]
 
-        if self._page_gone("unsharp", options["uuid"], page, request):
+        if _page_gone("unsharp", options["uuid"], page, request):
             return None
 
         filename = page.filename
@@ -1699,7 +1440,7 @@ class DocThread(BaseThread):
         width = options["w"]
         height = options["h"]
 
-        if self._page_gone("crop", options["uuid"], options["page"], request):
+        if _page_gone("crop", options["uuid"], options["page"], request):
             return None
 
         filename = page.filename
@@ -1733,7 +1474,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page = options["page"]
 
-        if self._page_gone("split", options["uuid"], options["page"], request):
+        if _page_gone("split", options["uuid"], options["page"], request):
             return
 
         filename = page.filename
@@ -1831,7 +1572,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page, language = (options["page"], options["language"])
 
-        if self._page_gone("tesseract", options["uuid"], options["page"], request):
+        if _page_gone("tesseract", options["uuid"], options["page"], request):
             return None
 
         if self.cancel:
@@ -1869,7 +1610,7 @@ class DocThread(BaseThread):
         "run unpaper in thread"
         options = request.args[0]
 
-        if self._page_gone("unpaper", options["uuid"], options["page"], request):
+        if _page_gone("unpaper", options["uuid"], options["page"], request):
             return
 
         filename = options["page"].filename
@@ -2204,7 +1945,7 @@ class Document(SimpleList):
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
-        # uid = self._note_callbacks(options)
+        # uid = _note_callbacks(options)
 
         def _select_next_finished_callback(response):
             if (
@@ -2323,18 +2064,6 @@ class Document(SimpleList):
                 last_page=last_page,
                 **options,
             )
-
-    def _note_callbacks(self, options):
-        "create the mark_saved callback if necessary"
-        if "mark_saved" in options and options["mark_saved"]:
-
-            def mark_saved_callback(_data):
-                # list_of_pages is frozen,
-                # so find the original pages from their uuids
-                for page in options["list_of_pages"]:
-                    page.saved = True
-
-            options["mark_saved_callback"] = mark_saved_callback
 
     def import_file(self, password=None, **options):
         "import file"
@@ -2909,7 +2638,7 @@ class Document(SimpleList):
             options=options["options"] if "options" in options else None,
             dir=self.dir,
             pidfile=pidfile,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -2943,7 +2672,7 @@ class Document(SimpleList):
             options=options["options"] if "options" in options else None,
             dir=self.dir,
             pidfile=pidfile,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -2975,7 +2704,7 @@ class Document(SimpleList):
             options=options["options"] if "options" in options else None,
             dir=self.dir,
             pidfile=pidfile,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3002,7 +2731,7 @@ class Document(SimpleList):
             angle=options["angle"],
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3033,7 +2762,7 @@ class Document(SimpleList):
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
             pidfile=pidfile,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3064,7 +2793,7 @@ class Document(SimpleList):
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3088,7 +2817,7 @@ class Document(SimpleList):
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3110,7 +2839,7 @@ class Document(SimpleList):
         "analyse given page"
         self.thread.analyse(
             list_of_pages=options["list_of_pages"],
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3131,7 +2860,7 @@ class Document(SimpleList):
             threshold=options["threshold"],
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3156,7 +2885,7 @@ class Document(SimpleList):
             contrast=options["contrast"],
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3179,7 +2908,7 @@ class Document(SimpleList):
         self.thread.negate(
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3205,7 +2934,7 @@ class Document(SimpleList):
             threshold=options["threshold"],
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3232,7 +2961,7 @@ class Document(SimpleList):
             h=options["h"],
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3267,7 +2996,7 @@ class Document(SimpleList):
             position=options["position"],
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3291,7 +3020,7 @@ class Document(SimpleList):
         self.thread.to_png(
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
         )
 
     def tesseract(self, **options):
@@ -3300,7 +3029,7 @@ class Document(SimpleList):
             language=options["language"],
             page=options["page"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
             else None,
@@ -3341,7 +3070,7 @@ class Document(SimpleList):
             page=options["page"],
             options=options["options"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             queued_callback=options.get("queued_callback"),
             started_callback=options.get("started_callback"),
             display_callback=options.get("display_callback"),
@@ -3370,7 +3099,7 @@ class Document(SimpleList):
             page=options["page"],
             command=options["command"],
             dir=self.dir,
-            uuid=self._note_callbacks(options),
+            uuid=_note_callbacks(options),
             pidfile=pidfile,
             queued_callback=options["queued_callback"]
             if "queued_callback" in options
@@ -4094,6 +3823,19 @@ def _post_save_hook(filename, options):
         subprocess.run(args, check=True)
 
 
+def _note_callbacks(options):
+    "create the mark_saved callback if necessary"
+    if "mark_saved" in options and options["mark_saved"]:
+
+        def mark_saved_callback(_data):
+            # list_of_pages is frozen,
+            # so find the original pages from their uuids
+            for page in options["list_of_pages"]:
+                page.saved = True
+
+        options["mark_saved_callback"] = mark_saved_callback
+
+
 def _note_callbacks2(kwargs):
     callbacks = {}
     for callback in [
@@ -4112,3 +3854,268 @@ def _note_callbacks2(kwargs):
             callbacks[name] = kwargs[name]
             del kwargs[name]
     return callbacks
+
+
+def _page_gone(process, uid, page, request):
+    if not os.path.isfile(
+        page.filename
+    ):  # in case file was deleted after process started
+        err = f"Page for process {uid} no longer exists. Cannot {process}."
+        logger.error(err)
+        request.error(err)
+        return True
+    return False
+
+
+def _encrypt_pdf(filename, options, request):
+    cmd = ["pdftk", filename, "output", options["path"]]
+    if "user-password" in options["options"]:
+        cmd += ["user_pw", options["options"]["user-password"]]
+
+    spo = subprocess.run(
+        cmd,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    if spo.returncode != 0:
+        logger.info(spo.stderr)
+        request.error(_("Error encrypting PDF: %s") % (spo.stderr))
+    return spo.returncode
+
+
+def _set_timestamp(options):
+    if (
+        options is None
+        or "options" not in options
+        or options["options"] is None
+        or "set_timestamp" not in options["options"]
+        or not options["options"]["set_timestamp"]
+        or "ps" in options["options"]
+    ):
+        return
+
+    metadata = options["metadata"]
+    adatetime = metadata["datetime"]
+    adatetime = datetime.datetime(*adatetime)
+    if "tz" in metadata:
+        tzn = metadata["tz"]
+        tzn = [0 if x is None else x for x in tzn]
+        tzn = datetime.timedelta(
+            days=tzn[2], hours=tzn[3], minutes=tzn[4], seconds=tzn[5]
+        )
+        adatetime -= tzn
+
+    epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
+    adatetime = (adatetime - epoch).total_seconds()
+    if adatetime < 0:
+        raise ValueError("Unable to set file timestamp for dates prior to 1970")
+    os.utime(options["path"], (adatetime, adatetime))
+
+
+def _add_txt_to_djvu(djvu, dirname, pagedata, request):
+    if pagedata.text_layer is not None:
+        txt = pagedata.export_djvu_txt()
+        if txt == EMPTY:
+            return
+        logger.debug(txt)
+
+        # Write djvusedtxtfile
+        with tempfile.NamedTemporaryFile(
+            mode="w", dir=dirname, suffix=".txt", delete=False
+        ) as fhd:
+            djvusedtxtfile = fhd.name
+            fhd.write(txt)
+
+        # Run djvusedtxtfile
+        cmd = [
+            "djvused",
+            djvu.name,
+            "-e",
+            f"select 1; set-txt {djvusedtxtfile}",
+            "-s",
+        ]
+        logger.info(cmd)
+        try:
+            subprocess.run(cmd, check=True)
+        except ValueError:
+            logger.error(
+                "Error adding text layer to DjVu page %s", pagedata["page_number"]
+            )
+            request.error(_("Error adding text layer to DjVu"))
+
+
+def _add_ann_to_djvu(djvu, dirname, pagedata, request):
+    """FIXME - refactor this together with _add_txt_to_djvu"""
+    if pagedata.annotations is not None:
+        ann = pagedata.export_djvu_ann()
+        if ann == EMPTY:
+            return
+        logger.debug(ann)
+
+        # Write djvusedtxtfile
+        with tempfile.NamedTemporaryFile(
+            mode="w", dir=dirname, suffix=".txt", delete=False
+        ) as fhd:
+            djvusedtxtfile = fhd.name
+            fhd.write(ann)
+
+        # Run djvusedtxtfile
+        cmd = [
+            "djvused",
+            djvu.name,
+            "-e",
+            f"select 1; set-ant {djvusedtxtfile}",
+            "-s",
+        ]
+        logger.info(cmd)
+        try:
+            subprocess.run(cmd, check=True)
+        except ValueError:
+            logger.error(
+                "Error adding annotations to DjVu page %s",
+                pagedata["page_number"],
+            )
+            request.error(_("Error adding annotations to DjVu"))
+
+
+def _convert_image_for_djvu(pagedata, options, request):
+    filename = pagedata.filename
+
+    # Check the image depth to decide what sort of compression to use
+    image = Image.open(filename)
+    # if f"{e}":
+    #     logger.error(e)
+    #     self._thread_throw_error(
+    #         options["uuid"],
+    #         options["page"]["uuid"],
+    #         "Save file",
+    #         f"Error reading {filename}: {e}.",
+    #     )
+    #     return
+
+    mode = image.mode
+    compression, resolution, upsample = None, None, None
+
+    # c44 and cjb2 do not support different resolutions in the x and y
+    # directions, so resample
+    xresolution, yresolution, units = pagedata.get_resolution()
+    width, height = pagedata.width, pagedata.height
+    if xresolution != yresolution:
+        resolution = max(xresolution, yresolution)
+        width *= resolution / xresolution
+        height *= resolution / yresolution
+        logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
+        image = image.resize((int(width), int(height)), resample=Image.BOX)
+        upsample = True
+
+    else:
+        resolution = xresolution
+
+    # c44 can only use pnm and jpg
+    fformat = None
+    regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
+    if regex:
+        fformat = regex.group(1)
+
+    if mode != "1":
+        compression = "c44"
+        if (
+            not re.search(
+                r"(?:pnm|jpg)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
+            or upsample
+        ):
+            with tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".pnm", delete=False
+            ) as pnm:
+                image.save(pnm.name)
+                filename = pnm.name
+            # if f"{e}":
+            #     logger.error(e)
+            #     _thread_throw_error(
+            #         self,
+            #         options["uuid"],
+            #         options["page"]["uuid"],
+            #         "Save file",
+            #         f"Error writing {pnm}: {e}.",
+            #     )
+            #     return
+
+    # cjb2 can only use pnm and tif
+    else:
+        compression = "cjb2"
+        if (
+            not re.search(
+                r"(?:pnm|tif)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
+            or (fformat == "pnm" and mode != "PseudoClass")
+            or upsample
+        ):
+            with tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm") as pbm:
+                err = image.Write(filename=pbm)
+                if f"{err}":
+                    logger.error(err)
+                    request.error(f"Error writing {pbm}: {err}.")
+                    return None
+
+                filename = pbm
+
+    return compression, filename, resolution
+
+
+def _append_pdf(filename, options, request):
+    if "prepend" in options["options"]:
+        file1 = filename
+        file2 = options["options"]["prepend"] + ".bak"
+        bak = file2
+        out = options["options"]["prepend"]
+        message = _("Error prepending PDF: %s")
+        logger.info("Prepending PDF")
+
+    else:
+        file2 = filename
+        file1 = options["options"]["append"] + ".bak"
+        bak = file1
+        out = options["options"]["append"]
+        message = _("Error appending PDF: %s")
+        logger.info("Appending PDF")
+
+    try:
+        os.rename(out, bak)
+    except ValueError:
+        request.error(_("Error creating backup of PDF"))
+        return None
+
+    status, _stdout, error = exec_command(
+        ["pdfunite", file1, file2, out], options["pidfile"]
+    )
+    if status:
+        logger.info(error)
+        request.error(message % (error))
+    return status
+
+
+# https://py-pdf.github.io/fpdf2/Annotations.html
+def _add_annotations_to_pdf(page, gs_page):
+    """Box is the same size as the page. We don't know the text position.
+    Start at the top of the page (PDF coordinate system starts
+    at the bottom left of the page)"""
+    xresolution, yresolution, _units = gs_page.get_resolution()
+    height = px2pt(gs_page.height, yresolution)
+    for box in Bboxtree(gs_page.annotations).get_bbox_iter():
+        if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
+            continue
+
+        rgb = []
+        for i in range(3):
+            rgb.append(hex(ANNOTATION_COLOR[i : i + 2]) / 255)
+
+        annot = page.annotation()
+        annot.markup(
+            box["text"],
+            _bbox2markup(xresolution, yresolution, height, len(box["bbox"])),
+            "Highlight",
+            color=rgb,
+            opacity=0.5,
+        )
