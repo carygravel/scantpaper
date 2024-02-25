@@ -2347,7 +2347,7 @@ class Document(SimpleList):
 
                     return
 
-                elif i["pages"] > 1:
+                if i["pages"] > 1:
                     logger.error(
                         "Cannot import a multipage file at the same time as another file."
                     )
@@ -2680,7 +2680,7 @@ class Document(SimpleList):
             return num if num == int(num) else int(num) + 1
 
         # Empty document, or start page after end of document, allow infinite pages
-        elif i < 0 or (step > 0 and self.data[i][0] < start):
+        if i < 0 or (step > 0 and self.data[i][0] < start):
             return INFINITE
 
         # scan in appropriate direction, looking for position for last page
@@ -2927,8 +2927,7 @@ class Document(SimpleList):
                 del self.context
                 return
 
-            else:
-                self.context[context] = 1
+            self.context[context] = 1
 
         model, paths = self.get_selection().get_selected_rows()
 
@@ -3703,8 +3702,7 @@ class Document(SimpleList):
         if page_range == "all":
             if self.data:
                 return list(range(len(self.data)))
-            else:
-                error_callback(None, "Get page", _("No pages to process"))
+            error_callback(None, "Get page", _("No pages to process"))
         elif page_range == "selected":
             index = self.get_selected_indices()
             if len(index) == 0:
@@ -3814,8 +3812,7 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
             Gtk.drag_finish(context, True, delete, time)
             return
 
-        else:
-            tree["drops"][time] = 1
+        tree["drops"][time] = 1
 
     if info == ID_URI:
         uris = data.get_uris()
