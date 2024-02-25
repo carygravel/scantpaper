@@ -787,7 +787,7 @@ class DocThread(BaseThread):
 
                 try:
                     subprocess.run(cmd, check=True)
-                except subprocess.CalledProcessError as err:
+                except subprocess.CalledProcessError:
                     request.error(_("Error extracting images from PDF"))
                 if self.cancel:
                     return
