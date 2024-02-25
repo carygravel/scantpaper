@@ -991,7 +991,7 @@ class DocThread(BaseThread):
 
                 try:
                     subprocess.run(cmd, check=True)
-                except:
+                except subprocess.CalledProcessError as err:
                     request.error(_("Error extracting images from PDF"))
                 if self.cancel:
                     return
@@ -3510,18 +3510,9 @@ class Document(SimpleList):
                 )
 
             # Populate the SimpleList
-
-            try:
-                page = Page(session[pagenum])
-                thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
-                self.data.append([pagenum, thumb, page])
-            except:
-                if options["error_callback"]:
-                    options["error_callback"](
-                        None,
-                        "Open file",
-                        _("Error importing page %d. Ignoring.") % (pagenum),
-                    )
+            page = Page(session[pagenum])
+            thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
+            self.data.append([pagenum, thumb, page])
 
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
