@@ -635,7 +635,7 @@ class DocThread(BaseThread):
 
             rgb = []
             for i in range(3):
-                rgb.append(hex(ANNOTATION_COLOR[i : i + 2, 2]) / int("0xff", 0))
+                rgb.append(hex(ANNOTATION_COLOR[i : i + 2]) / 255)
 
             annot = page.annotation()
             annot.markup(
