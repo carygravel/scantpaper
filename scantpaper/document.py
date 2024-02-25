@@ -115,7 +115,7 @@ class DocThread(BaseThread):
             self.page_requests.put(args[0]["page"])
             page_request = self.pages.get()  # blocking get requested page
             if page_request == "cancel":
-                return
+                return None
             args[0]["page"] = page_request
 
         elif "list_of_pages" in args[0]:
@@ -123,7 +123,7 @@ class DocThread(BaseThread):
                 self.page_requests.put(page)
                 page_request = self.pages.get()  # blocking get requested page
                 if page_request == "cancel":
-                    return
+                    return None
 
                 args[0]["list_of_pages"][i] = page_request
         request.args = tuple(args)
@@ -160,7 +160,7 @@ class DocThread(BaseThread):
 
             logger.info(stdout)
             if self.cancel:
-                return
+                return None
             pages = 1
             regex = re.search(
                 r"\s(\d+)\s+page", stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
@@ -200,7 +200,7 @@ class DocThread(BaseThread):
             )
             logger.info(stdout)
             if self.cancel:
-                return
+                return None
 
             # extract the metadata from the file
             _add_metadata_to_info(info, stdout, r'\s+"([^"]+)')
@@ -215,7 +215,7 @@ class DocThread(BaseThread):
 
             process = subprocess.run(args, capture_output=True, text=True)
             if self.cancel:
-                return
+                return None
             if process.returncode != 0:
                 logger.info("stdout: %s", process.stdout)
                 logger.info("stderr: %s", process.stderr)
@@ -227,7 +227,7 @@ class DocThread(BaseThread):
                     info["encrypted"] = True
                 else:
                     request.error(process.stderr)
-                    return
+                    return None
 
             else:
                 info["pages"] = 1
@@ -266,7 +266,7 @@ class DocThread(BaseThread):
             fformat = "Tagged Image File Format"
             _exit_code, stdout, _stderr = exec_command(["tiffinfo", path])
             if self.cancel:
-                return
+                return None
             logger.info(info)
 
             # Count number of pages
@@ -299,7 +299,7 @@ class DocThread(BaseThread):
             image = Image.open(path)
 
             if self.cancel:
-                return
+                return None
             fformat = image.format
 
             logger.info("Format %s", fformat)
@@ -665,7 +665,7 @@ class DocThread(BaseThread):
             os.rename(out, bak)
         except ValueError:
             request.error(_("Error creating backup of PDF"))
-            return
+            return None
 
         status, _stdout, error = exec_command(
             ["pdfunite", file1, file2, out], options["pidfile"]
@@ -673,7 +673,7 @@ class DocThread(BaseThread):
         if status:
             logger.info(error)
             request.error(message % (error))
-            return status
+        return status
 
     def save_djvu(self, **kwargs):
         "save DjvU"
@@ -831,7 +831,7 @@ class DocThread(BaseThread):
                     if f"{err}":
                         logger.error(err)
                         request.error(f"Error writing {pbm}: {err}.")
-                        return
+                        return None
 
                     filename = pbm
 
@@ -1106,7 +1106,7 @@ class DocThread(BaseThread):
         if spo.returncode != 0:
             logger.info(spo.stderr)
             request.error(_("Error encrypting PDF: %s") % (spo.stderr))
-            return spo.returncode
+        return spo.returncode
 
     def save_tiff(self, **kwargs):
         "save TIFF"
@@ -1333,13 +1333,13 @@ class DocThread(BaseThread):
         angle, page = options["angle"], options["page"]
 
         if self._page_gone("rotate", options["uuid"], page, request):
-            return
+            return None
         filename = page.filename
         logger.info("Rotating %s by %s degrees", filename, angle)
         image = page.im_object().rotate(angle, expand=True)
 
         if self.cancel:
-            return
+            return None
         regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
         if regex:
             suffix = regex.group(1)
@@ -1350,7 +1350,7 @@ class DocThread(BaseThread):
         image.save(fnm.name)
 
         if self.cancel:
-            return
+            return None
         page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -1557,9 +1557,9 @@ class DocThread(BaseThread):
         threshold, page = (options["threshold"], options["page"])
 
         if self._page_gone("threshold", options["uuid"], page, request):
-            return
+            return None
         if self.cancel:
-            return
+            return None
         filename = page.filename
         logger.info("Threshold %s with %s", filename, threshold)
         image = page.im_object()
@@ -1572,7 +1572,7 @@ class DocThread(BaseThread):
         image = image.convert("1")
 
         if self.cancel:
-            return
+            return None
 
         fnm = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
             dir=options["dir"], suffix=".png", delete=False
@@ -1580,7 +1580,7 @@ class DocThread(BaseThread):
         image.save(fnm.name)
 
         if self.cancel:
-            return
+            return None
         page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -1603,7 +1603,7 @@ class DocThread(BaseThread):
         if self._page_gone(
             "brightness-contrast", options["uuid"], options["page"], request
         ):
-            return
+            return None
 
         filename = page.filename
         logger.info(
@@ -1611,13 +1611,13 @@ class DocThread(BaseThread):
         )
         image = page.im_object()
         if self.cancel:
-            return
+            return None
 
         image = ImageEnhance.Brightness(image).enhance(brightness)
         image = ImageEnhance.Contrast(image).enhance(contrast)
 
         if self.cancel:
-            return
+            return None
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1635,7 +1635,7 @@ class DocThread(BaseThread):
         page = options["page"]
 
         if self._page_gone("negate", options["uuid"], page, request):
-            return
+            return None
 
         filename = page.filename
         logger.info("Invert %s", filename)
@@ -1643,7 +1643,7 @@ class DocThread(BaseThread):
         image = ImageOps.invert(image)
 
         if self.cancel:
-            return
+            return None
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1664,7 +1664,7 @@ class DocThread(BaseThread):
         threshold = options["threshold"]
 
         if self._page_gone("unsharp", options["uuid"], page, request):
-            return
+            return None
 
         filename = page.filename
         logger.info(
@@ -1680,7 +1680,7 @@ class DocThread(BaseThread):
         )
 
         if self.cancel:
-            return
+            return None
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1702,7 +1702,7 @@ class DocThread(BaseThread):
         height = options["h"]
 
         if self._page_gone("crop", options["uuid"], options["page"], request):
-            return
+            return None
 
         filename = page.filename
         logger.info("Crop %s x %s y %s w %s h %s", filename, left, top, width, height)
@@ -1711,7 +1711,7 @@ class DocThread(BaseThread):
         image = image.crop((left, top, left + width, top + height))
 
         if self.cancel:
-            return
+            return None
 
         page.width = image.width
         page.height = image.height
@@ -1834,10 +1834,10 @@ class DocThread(BaseThread):
         page, language = (options["page"], options["language"])
 
         if self._page_gone("tesseract", options["uuid"], options["page"], request):
-            return
+            return None
 
         if self.cancel:
-            return
+            return None
 
         paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
         if not paths:
@@ -1858,7 +1858,7 @@ class DocThread(BaseThread):
             page.ocr_time = datetime.datetime.now()
 
         if self.cancel:
-            return
+            return None
 
         return page
 
@@ -2118,7 +2118,7 @@ class Document(SimpleList):
     def set_paper_sizes(self, paper_sizes=None):
         "Set the paper sizes in the manager and worker threads"
         self.paper_sizes = paper_sizes
-        return self.thread.send("set_paper_sizes", paper_sizes)
+        self.thread.send("set_paper_sizes", paper_sizes)
 
     def cancel(self, cancel_callback, process_callback=None):
         "Kill all running processes"
@@ -2170,7 +2170,7 @@ class Document(SimpleList):
 
         # Add a cancel request to ensure the reply is not blocked
         logger.info("Requesting cancel")
-        return self.thread.send("cancel", finished_callback=cancel_callback)
+        self.thread.send("cancel", finished_callback=cancel_callback)
 
     def create_pidfile(self, options):
         "create file in which to store the PID"
@@ -2187,6 +2187,7 @@ class Document(SimpleList):
                     "create PID file",
                     f"Error: unable to write to {self.dir}.",
                 )
+        return None
 
     def import_files(self, **options):
         """To avoid race condtions importing multiple files,
@@ -2223,7 +2224,7 @@ class Document(SimpleList):
             if i == len(options["paths"]) - 1:
                 self._get_file_info_finished_callback2(infolist, options)
 
-        return self.thread.get_file_info(
+        self.thread.get_file_info(
             path,
             # "pidfile": f"{pidfile}",
             # # "uuid": uid,
@@ -2621,11 +2622,12 @@ class Document(SimpleList):
         "return page index given uuid"
         if uid is None:
             logger.error("find_page_by_uuid() called with None")
-            return
+            return None
 
         for i, row in enumerate(self.data):
             if str(uid) == str(row[2].uuid):
                 return i
+        return None
 
     def add_page(self, new_page, ref):
         "Add a new page to the document"
@@ -2770,7 +2772,7 @@ class Document(SimpleList):
         "Copy the selection"
         selection = self.get_selected_indices()
         if selection == []:
-            return
+            return None
         data = []
         for index in selection:
             page = self.data[index]
@@ -2901,7 +2903,7 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        return self.thread.save_pdf(
+        self.thread.save_pdf(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             metadata=options["metadata"] if "metadata" in options else None,
@@ -2935,7 +2937,7 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        return self.thread.save_djvu(
+        self.thread.save_djvu(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             metadata=options["metadata"] if "metadata" in options else None,
@@ -2968,7 +2970,7 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        return self.thread.save_tiff(
+        self.thread.save_tiff(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
@@ -2997,7 +2999,7 @@ class Document(SimpleList):
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
-        return self.thread.rotate(
+        self.thread.rotate(
             angle=options["angle"],
             page=options["page"],
             dir=self.dir,
@@ -3027,7 +3029,7 @@ class Document(SimpleList):
         if pidfile is None:
             return
         options["mark_saved"] = True
-        return self.thread.save_image(
+        self.thread.save_image(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
@@ -3059,7 +3061,7 @@ class Document(SimpleList):
 
     def save_text(self, **options):
         "save a text file from the given pages"
-        return self.thread.save_text(
+        self.thread.save_text(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
@@ -3083,7 +3085,7 @@ class Document(SimpleList):
 
     def save_hocr(self, **options):
         "save an hocr file from the given pages"
-        return self.thread.save_hocr(
+        self.thread.save_hocr(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
             options=options["options"] if "options" in options else None,
@@ -3107,7 +3109,7 @@ class Document(SimpleList):
 
     def analyse(self, **options):
         "analyse given page"
-        return self.thread.analyse(
+        self.thread.analyse(
             list_of_pages=options["list_of_pages"],
             uuid=self._note_callbacks(options),
             queued_callback=options["queued_callback"]
@@ -3126,7 +3128,7 @@ class Document(SimpleList):
 
     def threshold(self, **options):
         "threshold given page"
-        return self.thread.threshold(
+        self.thread.threshold(
             threshold=options["threshold"],
             page=options["page"],
             dir=self.dir,
@@ -3150,7 +3152,7 @@ class Document(SimpleList):
 
     def brightness_contrast(self, **options):
         "adjust brightness & contrast of given page"
-        return self.thread.brightness_contrast(
+        self.thread.brightness_contrast(
             brightness=options["brightness"],
             contrast=options["contrast"],
             page=options["page"],
@@ -3175,7 +3177,7 @@ class Document(SimpleList):
 
     def negate(self, **options):
         "negate given page"
-        return self.thread.negate(
+        self.thread.negate(
             page=options["page"],
             dir=self.dir,
             uuid=self._note_callbacks(options),
@@ -3198,7 +3200,7 @@ class Document(SimpleList):
 
     def unsharp(self, **options):
         "run unsharp mask on given page"
-        return self.thread.unsharp(
+        self.thread.unsharp(
             radius=options["radius"],
             percent=options["percent"],
             threshold=options["threshold"],
@@ -3224,7 +3226,7 @@ class Document(SimpleList):
 
     def crop(self, **options):
         "crop page"
-        return self.thread.crop(
+        self.thread.crop(
             x=options["x"],
             y=options["y"],
             w=options["w"],
@@ -3261,7 +3263,7 @@ class Document(SimpleList):
                 if "logger_callback" in options:
                     options["logger_callback"](response)
 
-        return self.thread.split_page(
+        self.thread.split_page(
             direction=options["direction"],
             position=options["position"],
             page=options["page"],
@@ -3287,7 +3289,7 @@ class Document(SimpleList):
 
     def to_png(self, options):
         "convert the given page to png"
-        return self.thread.to_png(
+        self.thread.to_png(
             page=options["page"],
             dir=self.dir,
             uuid=self._note_callbacks(options),
@@ -3295,7 +3297,7 @@ class Document(SimpleList):
 
     def tesseract(self, **options):
         "run tesseract on the given page"
-        return self.thread.tesseract(
+        self.thread.tesseract(
             language=options["language"],
             page=options["page"],
             dir=self.dir,
@@ -3336,7 +3338,7 @@ class Document(SimpleList):
                 if "logger_callback" in options:
                     options["logger_callback"](response)
 
-        return self.thread.unpaper(
+        self.thread.unpaper(
             page=options["page"],
             options=options["options"],
             dir=self.dir,
@@ -3365,7 +3367,7 @@ class Document(SimpleList):
                 if "logger_callback" in options:
                     options["logger_callback"](response)
 
-        return self.thread.user_defined(
+        self.thread.user_defined(
             page=options["page"],
             command=options["command"],
             dir=self.dir,
@@ -3788,6 +3790,7 @@ def _program_version(stream, regex, output):
         return PROCESS_FAILED
 
     logger.info("Unable to parse version string from: '%s'", output)
+    return None
 
 
 def text_to_datetime(text, thisyear=None, thismonth=None, thisday=None):
