@@ -3596,16 +3596,8 @@ class Document(SimpleList):
 
             try:
                 page = Page(session[pagenum])
-
-                # At some point the main window widget was being stored on the
-                # Page object. Restoring this and dumping it via Dumper segfaults.
-                # This is tested in t/175_open_session2.t
-
-                if "window" in page:
-                    del page["window"]
                 thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
                 self.data.append([pagenum, thumb, page])
-
             except:
                 if options["error_callback"]:
                     options["error_callback"](
