@@ -215,54 +215,55 @@ class DocThread(BaseThread):
                 args.insert(2, "-upw")
                 args.insert(3, password)
 
-            process = subprocess.run(args, capture_output=True, text=True)
-            if self.cancel:
-                return None
-            if process.returncode != 0:
-                logger.info("stdout: %s", process.stdout)
-                logger.info("stderr: %s", process.stderr)
-                if (process.stderr is not None) and re.search(
+            try:
+                process = subprocess.run(
+                    args, capture_output=True, text=True, check=True
+                )
+            except subprocess.CalledProcessError as err:
+                logger.info("stdout: %s", err.stdout)
+                logger.info("stderr: %s", err.stderr)
+                if (err.stderr is not None) and re.search(
                     r"Incorrect[ ]password",
-                    process.stderr,
+                    err.stderr,
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 ):
                     info["encrypted"] = True
+                    return info
                 else:
-                    request.error(process.stderr)
+                    request.error(err.stderr)
                     return None
 
-            else:
-                info["pages"] = 1
-                regex = re.search(
-                    r"Pages:\s+(\d+)",
-                    process.stdout,
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-                if regex:
-                    info["pages"] = int(regex.group(1))
+            info["pages"] = 1
+            regex = re.search(
+                r"Pages:\s+(\d+)",
+                process.stdout,
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            if regex:
+                info["pages"] = int(regex.group(1))
 
-                logger.info("%s pages", info["pages"])
-                floatr = r"\d+(?:[.]\d*)?"
-                regex = re.search(
-                    rf"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
-                    process.stdout,
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
+            logger.info("%s pages", info["pages"])
+            floatr = r"\d+(?:[.]\d*)?"
+            regex = re.search(
+                rf"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
+                process.stdout,
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            if regex:
+                info["page_size"] = [
+                    float(regex.group(1)),
+                    float(regex.group(2)),
+                    regex.group(3),
+                ]
+                logger.info(
+                    "Page size: %s x %s %s",
+                    regex.group(1),
+                    regex.group(2),
+                    regex.group(3),
                 )
-                if regex:
-                    info["page_size"] = [
-                        float(regex.group(1)),
-                        float(regex.group(2)),
-                        regex.group(3),
-                    ]
-                    logger.info(
-                        "Page size: %s x %s %s",
-                        regex.group(1),
-                        regex.group(2),
-                        regex.group(3),
-                    )
 
-                # extract the metadata from the file
-                _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
+            # extract the metadata from the file
+            _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
 
         elif re.search(r"^TIFF[ ]image[ ]data", fformat):
             fformat = "Tagged Image File Format"
