@@ -1236,8 +1236,8 @@ class DocThread(BaseThread):
                 ],
                 options["pidfile"],
             )
-            # if _self["cancel"]:
-            #     return
+            if self.cancel:
+                return
             if status:
                 request.error(_("Error saving image"))
 
@@ -1246,15 +1246,15 @@ class DocThread(BaseThread):
         else:
             current_filename = None
             i = 1
-            for _ in options["list_of_pages"]:
+            for page in options["list_of_pages"]:
                 current_filename = options["path"] % (i)
                 i += 1
                 status = exec_command(
                     [
                         "convert",
-                        _["filename"],
+                        page.filename,
                         "-density",
-                        _["xresolution"] + "x" + _["yresolution"],
+                        page.xresolution + "x" + page.yresolution,
                         current_filename,
                     ],
                     options["pidfile"],
@@ -1264,7 +1264,7 @@ class DocThread(BaseThread):
                 if status:
                     request.error(_("Error saving image"))
 
-                _post_save_hook(_["filename"], options["options"])
+                _post_save_hook(page.filename, options["options"])
 
     def save_text(self, **kwargs):
         "save text file"
@@ -3461,6 +3461,8 @@ class Document(SimpleList):
         # sessionref = retrieve(sessionfile)
         sessionref = sessionfile  # until we've figured out how this is going to work
 
+        session = sessionref
+
         # hocr -> bboxtree
         if "version" not in sessionref:
             logger.info("Restoring pre-2.8.1 session file.")
@@ -3484,8 +3486,6 @@ class Document(SimpleList):
             logger.info(
                 "Restoring v%s->%s session file.", sessionref, session["version"]
             )
-
-        session = sessionref
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal is not None:
