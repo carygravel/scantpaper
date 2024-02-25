@@ -103,6 +103,8 @@ class DocThread(BaseThread):
         self.page_requests = queue.Queue()
         self.pages = queue.Queue()
         self.running_pids = []
+        self.message = None
+        self.progress = None
 
     def input_handler(self, request):
         "handle page requests"
@@ -2045,6 +2047,7 @@ class Document(SimpleList):
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
         self.set_reorderable(True)
+        self.dir = None
         for key, val in options.items():
             setattr(self, key, val)
 
