@@ -404,7 +404,7 @@ class DocThread(BaseThread):
                         )
                         try:
                             page.import_djvu_txt(txt)
-                        except Exception as err:
+                        except (PermissionError, IOError, ValueError) as err:
                             request.data(
                                 None, f"Caught error parsing DjVU text layer: {err}"
                             )
@@ -412,7 +412,7 @@ class DocThread(BaseThread):
                         try:
                             page.import_djvu_ann(ann)
 
-                        except Exception as err:
+                        except (PermissionError, IOError) as err:
                             logger.error(
                                 "Caught error parsing DjVU annotation layer: %s", err
                             )
@@ -504,7 +504,7 @@ class DocThread(BaseThread):
                     ),
                 )
                 request.data(page)
-            except Exception as err:
+            except (PermissionError, IOError) as err:
                 logger.error("Caught error writing to %s: %s", args["dir"], err)
                 request.error(f"Error: unable to write to {args['dir']}.")
 
@@ -1044,7 +1044,7 @@ class DocThread(BaseThread):
                             )
                             page.import_pdftotext(html.read())
                             request.data(page.to_png(self.paper_sizes))
-                        except Exception as err:
+                        except (PermissionError, IOError) as err:
                             logger.error("Caught error importing PDF: %s", err)
                             request.error(_("Error importing PDF"))
 
@@ -1502,7 +1502,7 @@ class DocThread(BaseThread):
                     }
                 )
 
-        except Exception as err:
+        except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
             request.error(
                 f"Error creating file in {options['dir']}: {err}.",
@@ -1981,7 +1981,7 @@ class DocThread(BaseThread):
                         }
                     )
 
-        except Exception as err:
+        except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
             request.error(f"Error creating file in {options['dir']}: {err}.")
 
@@ -2179,7 +2179,7 @@ class Document(SimpleList):
                 dir=self.dir, suffix=".pid", delete=False
             ) as pidfile:
                 return pidfile.name
-        except Exception as err:
+        except (PermissionError, IOError) as err:
             logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
                 options["error_callback"](
