@@ -413,12 +413,7 @@ class DocThread(BaseThread):
                             logger.error(
                                 "Caught error parsing DjVU annotation layer: %s", err
                             )
-                            self._thread_throw_error(
-                                args["uuid"],
-                                args["page"]["uuid"],
-                                "Open file",
-                                "Error: parsing DjVU annotation layer",
-                            )
+                            request.error("Error: parsing DjVU annotation layer")
 
                         request.data(page)
 
@@ -508,12 +503,7 @@ class DocThread(BaseThread):
                 request.data(page)
             except Exception as err:
                 logger.error("Caught error writing to %s: %s", args["dir"], err)
-                self._thread_throw_error(
-                    args["uuid"],
-                    args["page"]["uuid"],
-                    "Open file",
-                    f"Error: unable to write to {args}{dir}.",
-                )
+                request.error(f"Error: unable to write to {args['dir']}.")
 
         else:
             page = Page(
@@ -622,12 +612,7 @@ class DocThread(BaseThread):
             status, _stdout, error = exec_command(cmd, options["pidfile"])
             if status or error:
                 logger.info(error)
-                self._thread_throw_error(
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error converting PDF to PS: %s") % (error),
-                )
+                request.error(_("Error converting PDF to PS: %s") % (error))
                 return
 
             _post_save_hook(options["options"]["ps"], options["options"])
@@ -679,25 +664,15 @@ class DocThread(BaseThread):
         try:
             os.rename(out, bak)
         except ValueError:
-            self._thread_throw_error(
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                _("Error creating backup of PDF"),
-            )
+            request.error(_("Error creating backup of PDF"))
             return
 
-        (status, _stdout, error) = exec_command(
+        status, _stdout, error = exec_command(
             ["pdfunite", file1, file2, out], options["pidfile"]
         )
         if status:
             logger.info(error)
-            self._thread_throw_error(
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                message % (error),
-            )
+            request.error(message % (error))
             return status
 
     def save_djvu(self, **kwargs):
@@ -752,12 +727,7 @@ class DocThread(BaseThread):
                         status,
                         size,
                     )
-                    self._thread_throw_error(
-                        args["uuid"],
-                        args["page"]["uuid"],
-                        "Save file",
-                        _("Error writing DjVu"),
-                    )
+                    request.error(_("Error writing DjVu"))
                     return
 
                 filelist.append(djvu.name)
@@ -773,12 +743,7 @@ class DocThread(BaseThread):
             return
         if status:
             logger.error("Error merging DjVu")
-            self._thread_throw_error(
-                args["uuid"],
-                args["page"]["uuid"],
-                "Save file",
-                _("Error merging DjVu"),
-            )
+            request.error(_("Error merging DjVu"))
 
         self._add_metadata_to_djvu(args)
         self._set_timestamp(args)
@@ -861,12 +826,7 @@ class DocThread(BaseThread):
                     err = image.Write(filename=pbm)
                     if f"{err}":
                         logger.error(err)
-                        self._thread_throw_error(
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "Save file",
-                            f"Error writing {pbm}: {err}.",
-                        )
+                        request.error(f"Error writing {pbm}: {err}.")
                         return
 
                     filename = pbm
@@ -902,12 +862,7 @@ class DocThread(BaseThread):
                 logger.error(
                     "Error adding text layer to DjVu page %s", pagedata["page_number"]
                 )
-                self._thread_throw_error(
-                    uid,
-                    pagedata["uuid"],
-                    "Save file",
-                    _("Error adding text layer to DjVu"),
-                )
+                request.error(_("Error adding text layer to DjVu"))
 
     def _add_ann_to_djvu(self, djvu, dirname, pagedata, uid):
         """FIXME - refactor this together with _add_txt_to_djvu"""
@@ -940,12 +895,7 @@ class DocThread(BaseThread):
                     "Error adding annotations to DjVu page %s",
                     pagedata["page_number"],
                 )
-                self._thread_throw_error(
-                    uid,
-                    pagedata["uuid"],
-                    "Save file",
-                    _("Error adding annotations to DjVu"),
-                )
+                request.error(_("Error adding annotations to DjVu"))
 
     def _add_metadata_to_djvu(self, options):
         if "metadata" in options and options["metadata"] is not None:
@@ -1039,12 +989,7 @@ class DocThread(BaseThread):
                 try:
                     subprocess.run(cmd, check=True)
                 except:
-                    self._thread_throw_error(
-                        args["uuid"],
-                        args["page"]["uuid"],
-                        "Open file",
-                        _("Error extracting images from PDF"),
-                    )
+                    request.error(_("Error extracting images from PDF"))
                 if self.cancel:
                     return
 
@@ -1074,12 +1019,7 @@ class DocThread(BaseThread):
                     if self.cancel:
                         return
                     if spo.returncode != 0:
-                        self._thread_throw_error(
-                            args["uuid"],
-                            args["page"]["uuid"],
-                            "Open file",
-                            _("Error extracting text layer from PDF"),
-                        )
+                        request.error(_("Error extracting text layer from PDF"))
 
                     # Import each image
                     images = glob.glob("x-??*.???")
@@ -1103,12 +1043,7 @@ class DocThread(BaseThread):
                             request.data(page.to_png(self.paper_sizes))
                         except Exception as err:
                             logger.error("Caught error importing PDF: %s", err)
-                            self._thread_throw_error(
-                                args["uuid"],
-                                args["page"]["uuid"],
-                                "Open file",
-                                _("Error importing PDF"),
-                            )
+                            request.error(_("Error importing PDF"))
 
             if warning_flag:
                 request.data(
@@ -1166,12 +1101,7 @@ class DocThread(BaseThread):
         )
         if spo.returncode != 0:
             logger.info(spo.stderr)
-            self._thread_throw_error(
-                options["uuid"],
-                options["page"]["uuid"],
-                "Save file",
-                _("Error encrypting PDF: %s") % (spo.stderr),
-            )
+            request.error(_("Error encrypting PDF: %s") % (spo.stderr))
             return spo.returncode
 
     def save_tiff(self, **kwargs):
@@ -1275,12 +1205,7 @@ class DocThread(BaseThread):
             status, _stdout, error = exec_command(cmd, options["pidfile"])
             if status or error:
                 logger.info(error)
-                self._thread_throw_error(
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error converting TIFF to PS: %s") % (error),
-                )
+                request.error(_("Error converting TIFF to PS: %s") % (error))
                 return
 
             _post_save_hook(options["options"]["ps"], options["options"])
@@ -1312,12 +1237,7 @@ class DocThread(BaseThread):
             # if _self["cancel"]:
             #     return
             if status:
-                self._thread_throw_error(
-                    options["uuid"],
-                    options["page"]["uuid"],
-                    "Save file",
-                    _("Error saving image"),
-                )
+                request.error(_("Error saving image"))
 
             _post_save_hook(options["list_of_pages"][0].filename, options["options"])
 
@@ -1340,12 +1260,7 @@ class DocThread(BaseThread):
                 if _self["cancel"]:
                     return
                 if status:
-                    self._thread_throw_error(
-                        options["uuid"],
-                        options["page"]["uuid"],
-                        "Save file",
-                        _("Error saving image"),
-                    )
+                    request.error(_("Error saving image"))
 
                 _post_save_hook(_["filename"], options["options"])
 
@@ -1454,7 +1369,7 @@ class DocThread(BaseThread):
         ):  # in case file was deleted after process started
             err = f"Page for process {uid} no longer exists. Cannot {process}."
             logger.error(err)
-            self._thread_throw_error(uid, page["uuid"], process, err)
+            request.error(err)
             return True
         return False
 
@@ -1467,6 +1382,16 @@ class DocThread(BaseThread):
         "set paper sizes in thread"
         paper_sizes = request.args[0]
         self.paper_sizes = paper_sizes
+
+    def to_png(self):
+        "convert to PNG"
+        callbacks = _note_callbacks2(kwargs)
+        return self.send("to_png", kwargs, **callbacks)
+
+    def do_to_png(self, request):
+        "convert to PNG in thread"
+        page = request.args[0]
+        return page.to_png(self.paper_sizes)
 
     def user_defined(self, **kwargs):
         "run user defined command on page"
@@ -1506,12 +1431,7 @@ class DocThread(BaseThread):
 
                 else:
                     if not shutil.copy2(infile, out.name):
-                        self._thread_throw_error(
-                            options["uuid"],
-                            options["page"]["uuid"],
-                            "user-defined",
-                            _("Error copying page"),
-                        )
+                        request.error(_("Error copying page"))
                         return
 
                     options["command"] = re.sub(
@@ -1995,9 +1915,6 @@ class DocThread(BaseThread):
                 if spo.stderr:
                     logger.error(spo.stderr)
                     request.data(spo.stderr)
-                    # self._thread_throw_error(
-                    #     options["uuid"], options["page"]["uuid"], "unpaper", stderr
-                    # )
                     if not os.path.getsize(out.name):
                         return
 
@@ -2013,9 +1930,6 @@ class DocThread(BaseThread):
                 if spo.stdout:
                     logger.warning(spo.stdout)
                     request.data(spo.stdout)
-                    # self._thread_throw_error(
-                    #     options["uuid"], options["page"]["uuid"], "unpaper", stdout
-                    # )
                     if not os.path.getsize(out.name):
                         return
 
@@ -2064,12 +1978,7 @@ class DocThread(BaseThread):
 
         except Exception as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
-            self._thread_throw_error(
-                options["uuid"],
-                options["page"]["uuid"],
-                "unpaper",
-                f"Error creating file in {options}{dir}: {err}.",
-            )
+            request.error(f"Error creating file in {options['dir']}: {err}.")
 
 
 class Document(SimpleList):
@@ -2251,7 +2160,7 @@ class Document(SimpleList):
                     logger.info("Killing PID %s", pid)
 
                     os.killpg(os.getpgid(pid), signal.SIGKILL)
-                    del self.running_pids[pidfile]
+                    del self.thread.running_pids[pidfile]
 
         # Add a cancel request to ensure the reply is not blocked
         logger.info("Requesting cancel")
@@ -2916,18 +2825,18 @@ class Document(SimpleList):
         # self.save_session()
         logger.info("Pasted %s pages at position %s", len(data), dest)
 
-    def delete_selection(self, context=None):
+    def delete_selection(self, _context=None):
         "Delete the selected pages"
 
         # The drag-data-delete callback seems to be fired twice. Therefore, create
         # a hash of the context hashes and ignore the second drop. There must be a
         # less hacky way of solving this. FIXME
-        if context is not None:
-            if context in self.context:
-                del self.context
-                return
+        # if context is not None:
+        #     if context in self.context:
+        #         del self.context
+        #         return
 
-            self.context[context] = 1
+        #     self.context[context] = 1
 
         model, paths = self.get_selection().get_selected_rows()
 
@@ -3494,9 +3403,9 @@ class Document(SimpleList):
             session["version"] = version
         # store(session, os.path.join(self.dir, "session"))
         if filename is not None:
-            with tarfile.TarFile() as tar:
-                tar.add_files(filenamelist)
-                tar.write(filename, True, EMPTY)
+            with tarfile.TarFile(filename, "w") as tar:
+                for file in filenamelist:
+                    tar.add(file)
             for row in self.data:
                 row[2].saved = True
 
@@ -3704,26 +3613,6 @@ class Document(SimpleList):
     def set_dir(self, dirname):
         "Set session dir"
         self.dir = dirname
-
-    def _thread_throw_error(self, uid, page_uuid, process, message):
-        self.return_queue.enqueue(
-            {
-                "type": "error",
-                "uuid": uid,
-                "page": page_uuid,
-                "process": process,
-                "message": message,
-            }
-        )
-
-    def _write_file(self, fhd, filename, data, uid):
-        if not fhd.write(data):
-            self._thread_throw_error(
-                uid, None, "Save file", _("Can't write to file: %s") % (filename)
-            )
-            return False
-
-        return True
 
 
 def _extract_metadata(info):
