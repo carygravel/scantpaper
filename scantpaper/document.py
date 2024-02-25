@@ -588,7 +588,7 @@ class DocThread(BaseThread):
             and options["options"] is not None
             and ("prepend" in options["options"] or "append" in options["options"])
         ):
-            if self._append_pdf(filename, options):
+            if self._append_pdf(filename, options, request):
                 return
 
         if (
@@ -597,7 +597,7 @@ class DocThread(BaseThread):
             and options["options"] is not None
             and "user-password" in options["options"]
         ):
-            if self._encrypt_pdf(filename, options):
+            if self._encrypt_pdf(filename, options, request):
                 return
 
         self._set_timestamp(options)
@@ -644,7 +644,7 @@ class DocThread(BaseThread):
                 opacity=0.5,
             )
 
-    def _append_pdf(self, filename, options):
+    def _append_pdf(self, filename, options, request):
         if "prepend" in options["options"]:
             file1 = filename
             file2 = options["options"]["prepend"] + ".bak"
@@ -708,7 +708,7 @@ class DocThread(BaseThread):
                 # if error:
                 #     return
                 compression, filename, resolution = self._convert_image_for_djvu(
-                    pagedata, args
+                    pagedata, args, request
                 )
 
                 # Create the djvu
@@ -731,8 +731,12 @@ class DocThread(BaseThread):
                     return
 
                 filelist.append(djvu.name)
-                self._add_txt_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
-                self._add_ann_to_djvu(djvu, args["dir"], pagedata, args["uuid"])
+                self._add_txt_to_djvu(
+                    djvu, args["dir"], pagedata, args["uuid"], request
+                )
+                self._add_ann_to_djvu(
+                    djvu, args["dir"], pagedata, args["uuid"], request
+                )
 
         self.progress = 1
         self.message = _("Merging DjVu")
@@ -749,7 +753,7 @@ class DocThread(BaseThread):
         self._set_timestamp(args)
         _post_save_hook(args["path"], args["options"])
 
-    def _convert_image_for_djvu(self, pagedata, options):
+    def _convert_image_for_djvu(self, pagedata, options, request):
         filename = pagedata.filename
 
         # Check the image depth to decide what sort of compression to use
@@ -833,7 +837,7 @@ class DocThread(BaseThread):
 
         return compression, filename, resolution
 
-    def _add_txt_to_djvu(self, djvu, dirname, pagedata, uid):
+    def _add_txt_to_djvu(self, djvu, dirname, pagedata, uid, request):
         if pagedata.text_layer is not None:
             txt = pagedata.export_djvu_txt()
             if txt == EMPTY:
@@ -864,7 +868,7 @@ class DocThread(BaseThread):
                 )
                 request.error(_("Error adding text layer to DjVu"))
 
-    def _add_ann_to_djvu(self, djvu, dirname, pagedata, uid):
+    def _add_ann_to_djvu(self, djvu, dirname, pagedata, uid, request):
         """FIXME - refactor this together with _add_txt_to_djvu"""
         if pagedata.annotations is not None:
             ann = pagedata.export_djvu_ann()
@@ -1088,7 +1092,7 @@ class DocThread(BaseThread):
             raise ValueError("Unable to set file timestamp for dates prior to 1970")
         os.utime(options["path"], (adatetime, adatetime))
 
-    def _encrypt_pdf(self, filename, options):
+    def _encrypt_pdf(self, filename, options, request):
         cmd = ["pdftk", filename, "output", options["path"]]
         if "user-password" in options["options"]:
             cmd += ["user_pw", options["options"]["user-password"]]
@@ -1257,7 +1261,7 @@ class DocThread(BaseThread):
                     ],
                     options["pidfile"],
                 )
-                if _self["cancel"]:
+                if self.cancel:
                     return
                 if status:
                     request.error(_("Error saving image"))
@@ -1328,7 +1332,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         angle, page = options["angle"], options["page"]
 
-        if self._page_gone("rotate", options["uuid"], page):
+        if self._page_gone("rotate", options["uuid"], page, request):
             return
         filename = page.filename
         logger.info("Rotating %s by %s degrees", filename, angle)
@@ -1363,7 +1367,7 @@ class DocThread(BaseThread):
         "cancel running tasks"
         self.cancel = False
 
-    def _page_gone(self, process, uid, page):
+    def _page_gone(self, process, uid, page, request):
         if not os.path.isfile(
             page.filename
         ):  # in case file was deleted after process started
@@ -1383,7 +1387,7 @@ class DocThread(BaseThread):
         paper_sizes = request.args[0]
         self.paper_sizes = paper_sizes
 
-    def to_png(self):
+    def to_png(self, **kwargs):
         "convert to PNG"
         callbacks = _note_callbacks2(kwargs)
         return self.send("to_png", kwargs, **callbacks)
@@ -1402,7 +1406,7 @@ class DocThread(BaseThread):
         "run user defined command on page in thread"
         options = request.args[0]
 
-        if self._page_gone("user-defined", options["uuid"], options["page"]):
+        if self._page_gone("user-defined", options["uuid"], options["page"], request):
             return
 
         infile = options["page"].filename
@@ -1552,7 +1556,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         threshold, page = (options["threshold"], options["page"])
 
-        if self._page_gone("threshold", options["uuid"], page):
+        if self._page_gone("threshold", options["uuid"], page, request):
             return
         if self.cancel:
             return
@@ -1596,7 +1600,9 @@ class DocThread(BaseThread):
             options["page"],
         )
 
-        if self._page_gone("brightness-contrast", options["uuid"], options["page"]):
+        if self._page_gone(
+            "brightness-contrast", options["uuid"], options["page"], request
+        ):
             return
 
         filename = page.filename
@@ -1628,7 +1634,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page = options["page"]
 
-        if self._page_gone("negate", options["uuid"], page):
+        if self._page_gone("negate", options["uuid"], page, request):
             return
 
         filename = page.filename
@@ -1657,7 +1663,7 @@ class DocThread(BaseThread):
         percent = options["percent"]
         threshold = options["threshold"]
 
-        if self._page_gone("unsharp", options["uuid"], page):
+        if self._page_gone("unsharp", options["uuid"], page, request):
             return
 
         filename = page.filename
@@ -1695,7 +1701,7 @@ class DocThread(BaseThread):
         width = options["w"]
         height = options["h"]
 
-        if self._page_gone("crop", options["uuid"], options["page"]):
+        if self._page_gone("crop", options["uuid"], options["page"], request):
             return
 
         filename = page.filename
@@ -1729,7 +1735,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page = options["page"]
 
-        if self._page_gone("split", options["uuid"], options["page"]):
+        if self._page_gone("split", options["uuid"], options["page"], request):
             return
 
         filename = page.filename
@@ -1827,7 +1833,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page, language = (options["page"], options["language"])
 
-        if self._page_gone("tesseract", options["uuid"], options["page"]):
+        if self._page_gone("tesseract", options["uuid"], options["page"], request):
             return
 
         if self.cancel:
@@ -1865,7 +1871,7 @@ class DocThread(BaseThread):
         "run unpaper in thread"
         options = request.args[0]
 
-        if self._page_gone("unpaper", options["uuid"], options["page"]):
+        if self._page_gone("unpaper", options["uuid"], options["page"], request):
             return
 
         filename = options["page"].filename
