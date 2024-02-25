@@ -145,12 +145,12 @@ class DocThread(BaseThread):
         if fformat in ["very short file (no magic)", "empty"]:
             raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
 
-        elif re.search(r"gzip[ ]compressed[ ]data", fformat):
+        if re.search(r"gzip[ ]compressed[ ]data", fformat):
             info["path"] = path
             info["format"] = "session file"
             return info
 
-        elif re.search(r"DjVu", fformat):
+        if re.search(r"DjVu", fformat):
             # Dig out the number of pages
             _exit_code, stdout, stderr = exec_command(["djvudump", path])
             if re.search(
@@ -208,7 +208,7 @@ class DocThread(BaseThread):
             _add_metadata_to_info(info, stdout, r'\s+"([^"]+)')
             return info
 
-        elif re.search(r"PDF[ ]document", fformat):
+        if re.search(r"PDF[ ]document", fformat):
             fformat = "Portable Document Format"
             args = ["pdfinfo", "-isodates", path]
             if password is not None:
@@ -229,9 +229,8 @@ class DocThread(BaseThread):
                 ):
                     info["encrypted"] = True
                     return info
-                else:
-                    request.error(err.stderr)
-                    return None
+                request.error(err.stderr)
+                return None
 
             info["pages"] = 1
             regex = re.search(
