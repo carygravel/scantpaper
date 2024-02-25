@@ -731,12 +731,8 @@ class DocThread(BaseThread):
                     return
 
                 filelist.append(djvu.name)
-                self._add_txt_to_djvu(
-                    djvu, args["dir"], pagedata, args["uuid"], request
-                )
-                self._add_ann_to_djvu(
-                    djvu, args["dir"], pagedata, args["uuid"], request
-                )
+                self._add_txt_to_djvu(djvu, args["dir"], pagedata, request)
+                self._add_ann_to_djvu(djvu, args["dir"], pagedata, request)
 
         self.progress = 1
         self.message = _("Merging DjVu")
@@ -837,7 +833,7 @@ class DocThread(BaseThread):
 
         return compression, filename, resolution
 
-    def _add_txt_to_djvu(self, djvu, dirname, pagedata, uid, request):
+    def _add_txt_to_djvu(self, djvu, dirname, pagedata, request):
         if pagedata.text_layer is not None:
             txt = pagedata.export_djvu_txt()
             if txt == EMPTY:
@@ -868,7 +864,7 @@ class DocThread(BaseThread):
                 )
                 request.error(_("Error adding text layer to DjVu"))
 
-    def _add_ann_to_djvu(self, djvu, dirname, pagedata, uid, request):
+    def _add_ann_to_djvu(self, djvu, dirname, pagedata, request):
         """FIXME - refactor this together with _add_txt_to_djvu"""
         if pagedata.annotations is not None:
             ann = pagedata.export_djvu_ann()
