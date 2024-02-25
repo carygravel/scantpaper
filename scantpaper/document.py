@@ -3471,8 +3471,8 @@ class Document(SimpleList):
                     ):
                         tree.from_hocr(sessionref[key]["hocr"])
 
-                    else:
-                        tree.from_text(sessionref[key]["hocr"])
+                    # else:
+                    #     tree.from_text(sessionref[key]["hocr"])
 
                     sessionref[key]["text_layer"] = tree.json()
                     del sessionref[key]["hocr"]
