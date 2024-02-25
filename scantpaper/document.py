@@ -449,33 +449,10 @@ class DocThread(BaseThread):
                     with tempfile.NamedTemporaryFile(
                         dir=args["dir"], suffix=".tif", delete=False
                     ) as tif:
-                        # except Exception as err:
-                        #     logger.error("Caught error creating %s: %s", tif.name, err)
-                        #     self._thread_throw_error(
-                        #         args["uuid"],
-                        #         args["page"]["uuid"],
-                        #         "Open file",
-                        #         f"Error: unable to write to {tif.name}.",
-                        #     )
-                        # try:
                         subprocess.run(
                             ["tiffcp", f"{args['info']['path']},{i}", tif.name],
                             check=True,
                         )
-                        # except Exception as err:
-                        #     logger.error(
-                        #         "Caught error extracting page %s from %s: %s",
-                        #         i,
-                        #         args["info"]["path"],
-                        #         err,
-                        #     )
-                        #     self._thread_throw_error(
-                        #         args["uuid"],
-                        #         args["page"]["uuid"],
-                        #         "Open file",
-                        #         f"Caught error extracting page {i} from {args['info']['path']}: {err}",
-                        #     )
-
                         if self.cancel:
                             return
                         page = Page(
