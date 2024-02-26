@@ -91,6 +91,10 @@ image_format = {
 SimpleList.add_column_type(hstring={"type": object, "attr": "hidden"})
 
 
+class CancelledError(RuntimeError):
+    "Raised when a job is cancelled"
+
+
 class DocThread(BaseThread):
     "subclass basethread for document"
 
@@ -148,163 +152,25 @@ class DocThread(BaseThread):
         if re.search(r"gzip[ ]compressed[ ]data", fformat):
             info["path"] = path
             info["format"] = "session file"
-            return info
 
-        if re.search(r"DjVu", fformat):
-            # Dig out the number of pages
-            _exit_code, stdout, stderr = exec_command(["djvudump", path])
-            if re.search(
-                r"command[ ]not[ ]found", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ):
-                raise RuntimeError(
-                    _("Please install djvulibre-bin in order to open DjVu files.")
-                )
+        elif re.search(r"DjVu", fformat):
+            self._get_djvu_info(info, path)
 
-            logger.info(stdout)
-            if self.cancel:
-                return None
-            pages = 1
-            regex = re.search(
-                r"\s(\d+)\s+page", stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            if regex:
-                pages = int(regex.group(1))
-
-            # Dig out the size and resolution of each page
-            width, height, ppi = [], [], []
-            info["format"] = "DJVU"
-            regex = re.findall(
-                r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi",
-                stdout,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            for _w, _h, _p in regex:
-                width.append(int(_w))
-                height.append(int(_h))
-                ppi.append(int(_p))
-                logger.info(
-                    "Page %s is %sx%s, %s ppi", len(ppi), width[-1], height[-1], ppi[-1]
-                )
-
-            if pages != len(ppi):
-                raise RuntimeError(
-                    _("Unknown DjVu file structure. Please contact the author.")
-                )
-
-            info["width"] = width
-            info["height"] = height
-            info["ppi"] = ppi
-            info["pages"] = pages
-            info["path"] = path
-            # Dig out the metadata
-            _exit_code, stdout, _stderr = exec_command(
-                ["djvused", path, "-e", "print-meta"]
-            )
-            logger.info(stdout)
-            if self.cancel:
-                return None
-
-            # extract the metadata from the file
-            _add_metadata_to_info(info, stdout, r'\s+"([^"]+)')
-            return info
-
-        if re.search(r"PDF[ ]document", fformat):
-            fformat = "Portable Document Format"
-            args = ["pdfinfo", "-isodates", path]
-            if password is not None:
-                args.insert(2, "-upw")
-                args.insert(3, password)
-
-            try:
-                process = subprocess.run(
-                    args, capture_output=True, text=True, check=True
-                )
-            except subprocess.CalledProcessError as err:
-                logger.info("stdout: %s", err.stdout)
-                logger.info("stderr: %s", err.stderr)
-                if (err.stderr is not None) and re.search(
-                    r"Incorrect[ ]password",
-                    err.stderr,
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                ):
-                    info["encrypted"] = True
-                    return info
-                request.error(err.stderr)
-                return None
-
-            info["pages"] = 1
-            regex = re.search(
-                r"Pages:\s+(\d+)",
-                process.stdout,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if regex:
-                info["pages"] = int(regex.group(1))
-
-            logger.info("%s pages", info["pages"])
-            floatr = r"\d+(?:[.]\d*)?"
-            regex = re.search(
-                rf"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
-                process.stdout,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if regex:
-                info["page_size"] = [
-                    float(regex.group(1)),
-                    float(regex.group(2)),
-                    regex.group(3),
-                ]
-                logger.info(
-                    "Page size: %s x %s %s",
-                    regex.group(1),
-                    regex.group(2),
-                    regex.group(3),
-                )
-
-            # extract the metadata from the file
-            _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
+        elif re.search(r"PDF[ ]document", fformat):
+            self._get_pdf_info(info, path, password, request)
 
         elif re.search(r"^TIFF[ ]image[ ]data", fformat):
-            fformat = "Tagged Image File Format"
-            _exit_code, stdout, _stderr = exec_command(["tiffinfo", path])
-            if self.cancel:
-                return None
-            logger.info(info)
-
-            # Count number of pages
-            info["pages"] = len(
-                re.findall(
-                    r"TIFF[ ]Directory[ ]at[ ]offset",
-                    stdout,
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-            )
-            logger.info("%s pages", info["pages"])
-
-            # Dig out the size of each page
-            width, height = [], []
-            regex = re.findall(
-                r"Image\sWidth:\s(\d+)\sImage\sLength:\s(\d+)",
-                stdout,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            for _w, _h in regex:
-                width.append(int(_w))
-                height.append(int(_h))
-                request.data(f"Page {len(width)} is {width[-1]}x{height[-1]}")
-
-            info["width"] = width
-            info["height"] = height
+            self._get_tif_info(info, path, request)
 
         else:
             # Get file type
             image = Image.open(path)
 
             if self.cancel:
-                return None
-            fformat = image.format
+                raise CancelledError()
+            info["format"] = image.format
 
-            logger.info("Format %s", fformat)
+            logger.info("Format %s", info["format"])
             info["width"] = [image.width]
             info["height"] = [image.height]
             dpi = image.info.get("dpi")
@@ -315,9 +181,154 @@ class DocThread(BaseThread):
                 )
             info["pages"] = 1
 
-        info["format"] = fformat
         info["path"] = path
         return info
+
+    def _get_djvu_info(self, info, path):
+        "get DjVu info"
+        # Dig out the number of pages
+        _exit_code, stdout, stderr = exec_command(["djvudump", path])
+        if re.search(
+            r"command[ ]not[ ]found", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
+        ):
+            raise RuntimeError(
+                _("Please install djvulibre-bin in order to open DjVu files.")
+            )
+
+        logger.info(stdout)
+        if self.cancel:
+            raise CancelledError()
+        pages = 1
+        regex = re.search(
+            r"\s(\d+)\s+page", stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
+        )
+        if regex:
+            pages = int(regex.group(1))
+
+        # Dig out the size and resolution of each page
+        width, height, ppi = [], [], []
+        info["format"] = "DJVU"
+        regex = re.findall(
+            r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi",
+            stdout,
+            re.MULTILINE | re.DOTALL | re.VERBOSE,
+        )
+        for _w, _h, _p in regex:
+            width.append(int(_w))
+            height.append(int(_h))
+            ppi.append(int(_p))
+            logger.info(
+                "Page %s is %sx%s, %s ppi", len(ppi), width[-1], height[-1], ppi[-1]
+            )
+
+        if pages != len(ppi):
+            raise RuntimeError(
+                _("Unknown DjVu file structure. Please contact the author.")
+            )
+
+        info["width"] = width
+        info["height"] = height
+        info["ppi"] = ppi
+        info["pages"] = pages
+        info["path"] = path
+        # Dig out the metadata
+        _exit_code, stdout, _stderr = exec_command(
+            ["djvused", path, "-e", "print-meta"]
+        )
+        logger.info(stdout)
+        if self.cancel:
+            raise CancelledError()
+
+        # extract the metadata from the file
+        _add_metadata_to_info(info, stdout, r'\s+"([^"]+)')
+
+    def _get_pdf_info(self, info, path, password, request):
+        "get PDF info"
+        info["format"] = "Portable Document Format"
+        args = ["pdfinfo", "-isodates", path]
+        if password is not None:
+            args.insert(2, "-upw")
+            args.insert(3, password)
+
+        try:
+            process = subprocess.run(args, capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError as err:
+            logger.info("stdout: %s", err.stdout)
+            logger.info("stderr: %s", err.stderr)
+            if (err.stderr is not None) and re.search(
+                r"Incorrect[ ]password",
+                err.stderr,
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
+            ):
+                info["encrypted"] = True
+                return
+            request.error(err.stderr)
+            return
+
+        info["pages"] = 1
+        regex = re.search(
+            r"Pages:\s+(\d+)",
+            process.stdout,
+            re.MULTILINE | re.DOTALL | re.VERBOSE,
+        )
+        if regex:
+            info["pages"] = int(regex.group(1))
+
+        logger.info("%s pages", info["pages"])
+        floatr = r"\d+(?:[.]\d*)?"
+        regex = re.search(
+            rf"Page\ssize:\s+({floatr})\s+x\s+({floatr})\s+(\w+)",
+            process.stdout,
+            re.MULTILINE | re.DOTALL | re.VERBOSE,
+        )
+        if regex:
+            info["page_size"] = [
+                float(regex.group(1)),
+                float(regex.group(2)),
+                regex.group(3),
+            ]
+            logger.info(
+                "Page size: %s x %s %s",
+                regex.group(1),
+                regex.group(2),
+                regex.group(3),
+            )
+
+        # extract the metadata from the file
+        _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
+
+    def _get_tif_info(self, info, path, request):
+        "get TIFF info"
+        info["format"] = "Tagged Image File Format"
+        _exit_code, stdout, _stderr = exec_command(["tiffinfo", path])
+        if self.cancel:
+            raise CancelledError()
+        logger.info(info)
+
+        # Count number of pages
+        info["pages"] = len(
+            re.findall(
+                r"TIFF[ ]Directory[ ]at[ ]offset",
+                stdout,
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+        )
+        logger.info("%s pages", info["pages"])
+
+        # Dig out the size of each page
+        width, height = [], []
+        regex = re.findall(
+            r"Image\sWidth:\s(\d+)\sImage\sLength:\s(\d+)",
+            stdout,
+            re.MULTILINE | re.DOTALL | re.VERBOSE,
+        )
+        for _w, _h in regex:
+            width.append(int(_w))
+            height.append(int(_h))
+            request.data(f"Page {len(width)} is {width[-1]}x{height[-1]}")
+
+        info["width"] = width
+        info["height"] = height
 
     def do_import_file(self, request):
         "import file in thread"
