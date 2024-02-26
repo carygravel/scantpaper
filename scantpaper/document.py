@@ -293,6 +293,9 @@ class DocThread(BaseThread):
                 regex.group(3),
             )
 
+        if self.cancel:
+            raise CancelledError()
+
         # extract the metadata from the file
         _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
 
@@ -337,10 +340,10 @@ class DocThread(BaseThread):
             if args["last"] >= args["first"] and args["first"] > 0:
                 for i in range(args["first"], args["last"] + 1):
                     self.progress = (i - 1) / (args["last"] - args["first"] + 1)
-                    # self.message = _("Importing page %i of %i") % (
-                    #     i,
-                    #     args["last"] - args["first"] + 1,
-                    # )
+                    self.message = _("Importing page %i of %i") % (
+                        i,
+                        args["last"] - args["first"] + 1,
+                    )
                     with tempfile.NamedTemporaryFile(
                         dir=args["dir"], suffix=".tif", delete=False
                     ) as tif:
@@ -372,32 +375,8 @@ class DocThread(BaseThread):
                             ],
                             text=True,
                         )
-
-                        # except Exception as err:
-                        #     if tif is not None:
-                        #         logger.error("Caught error creating %s: %s", tif, err)
-                        #         self._thread_throw_error(
-                        #             args["uuid"],
-                        #             args["page"]["uuid"],
-                        #             "Open file",
-                        #             f"Error: unable to write to {tif}.",
-                        #         )
-
-                        #     else:
-                        #         logger.error(
-                        #             "Caught error writing to %s: %s", args.dir, err
-                        #         )
-                        #         self._thread_throw_error(
-                        #             args["uuid"],
-                        #             args["page"]["uuid"],
-                        #             "Open file",
-                        #             f"Error: unable to write to {args.dir}.",
-                        #         )
-
-                        #     error = True
-
                         if self.cancel:
-                            return
+                            raise CancelledError()
                         page = Page(
                             filename=tif.name,
                             dir=args["dir"],
@@ -464,7 +443,7 @@ class DocThread(BaseThread):
                             check=True,
                         )
                         if self.cancel:
-                            return
+                            raise CancelledError()
                         page = Page(
                             filename=tif.name,
                             dir=args["dir"],
@@ -652,7 +631,7 @@ class DocThread(BaseThread):
                 )
                 size = os.path.getsize(djvu.name)
                 if self.cancel:
-                    return
+                    raise CancelledError()
                 if status != 0 or size == 0:
                     logger.error(
                         "Error writing image for page %s of DjVu (process "
@@ -674,7 +653,7 @@ class DocThread(BaseThread):
             ["djvm", "-c", args["path"], *filelist], args["pidfile"]
         )
         if self.cancel:
-            return
+            raise CancelledError()
         if status:
             logger.error("Error merging DjVu")
             request.error(_("Error merging DjVu"))
@@ -718,7 +697,7 @@ class DocThread(BaseThread):
             ]
             subprocess.run(cmd, check=True)
             if self.cancel:
-                return
+                raise CancelledError()
             # if status:
             #     logger.error("Error adding metadata info to DjVu file")
             #     self._thread_throw_error(
@@ -777,7 +756,7 @@ class DocThread(BaseThread):
                 except subprocess.CalledProcessError:
                     request.error(_("Error extracting images from PDF"))
                 if self.cancel:
-                    return
+                    raise CancelledError()
 
                 with tempfile.NamedTemporaryFile(
                     mode="w+t", dir=args["dir"], suffix=".html"
@@ -803,7 +782,7 @@ class DocThread(BaseThread):
                         text=True,
                     )
                     if self.cancel:
-                        return
+                        raise CancelledError()
                     if spo.returncode != 0:
                         request.error(_("Error extracting text layer from PDF"))
 
@@ -902,7 +881,7 @@ class DocThread(BaseThread):
                     ]
                     subprocess.run(cmd, check=True)
                     if self.cancel:
-                        return
+                        raise CancelledError()
                     # if status:
                     #     logger.error("Error writing TIFF")
                     #     self._thread_throw_error(
@@ -930,7 +909,7 @@ class DocThread(BaseThread):
         cmd = ["tiffcp", *compression, *filelist, options["path"]]
         subprocess.run(cmd, check=True)
         if self.cancel:
-            return
+            raise CancelledError()
         # if status or error != EMPTY:
         #     logger.info(error)
         #     self._thread_throw_error(
@@ -977,7 +956,7 @@ class DocThread(BaseThread):
                 options["pidfile"],
             )
             if self.cancel:
-                return
+                raise CancelledError()
             if status:
                 request.error(_("Error saving image"))
 
@@ -1000,7 +979,7 @@ class DocThread(BaseThread):
                     options["pidfile"],
                 )
                 if self.cancel:
-                    return
+                    raise CancelledError()
                 if status:
                     request.error(_("Error saving image"))
 
@@ -1019,7 +998,7 @@ class DocThread(BaseThread):
         for page in options["list_of_pages"]:
             string += page.export_text()
             if self.cancel:
-                return
+                raise CancelledError()
 
         with open(options["path"], "w", encoding="utf-8") as fhd:
             fhd.write(string)
@@ -1053,7 +1032,7 @@ class DocThread(BaseThread):
 
                     fhd.write(hocr_page)
                     if self.cancel:
-                        return
+                        raise CancelledError()
 
             if written_header:
                 fhd.write("</body>\n</html>\n")
@@ -1077,7 +1056,7 @@ class DocThread(BaseThread):
         image = page.im_object().rotate(angle, expand=True)
 
         if self.cancel:
-            return None
+            raise CancelledError()
         regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
         if regex:
             suffix = regex.group(1)
@@ -1088,7 +1067,7 @@ class DocThread(BaseThread):
         image.save(fnm.name)
 
         if self.cancel:
-            return None
+            raise CancelledError()
         page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -1188,7 +1167,7 @@ class DocThread(BaseThread):
                     shell=True,
                 )
                 if self.cancel:
-                    return
+                    raise CancelledError()
                 logger.info("stdout: %s", sbp.stdout)
                 logger.info("stderr: %s", sbp.stderr)
 
@@ -1257,12 +1236,12 @@ class DocThread(BaseThread):
             image = page.im_object()
 
             if self.cancel:
-                return
+                raise CancelledError()
             stat = ImageStat.Stat(image)
             mean, stddev = stat.mean, stat.stddev
             logger.info("std dev: %s mean: %s", stddev, mean)
             if self.cancel:
-                return
+                raise CancelledError()
 
             # TODO add any other useful image analysis here e.g. is the page mis-oriented?
             #  detect mis-orientation possible algorithm:
@@ -1287,7 +1266,7 @@ class DocThread(BaseThread):
         if _page_gone("threshold", options["uuid"], page, request):
             return None
         if self.cancel:
-            return None
+            raise CancelledError()
         filename = page.filename
         logger.info("Threshold %s with %s", filename, threshold)
         image = page.im_object()
@@ -1300,7 +1279,7 @@ class DocThread(BaseThread):
         image = image.convert("1")
 
         if self.cancel:
-            return None
+            raise CancelledError()
 
         fnm = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
             dir=options["dir"], suffix=".png", delete=False
@@ -1308,7 +1287,7 @@ class DocThread(BaseThread):
         image.save(fnm.name)
 
         if self.cancel:
-            return None
+            raise CancelledError()
         page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -1337,13 +1316,13 @@ class DocThread(BaseThread):
         )
         image = page.im_object()
         if self.cancel:
-            return None
+            raise CancelledError()
 
         image = ImageEnhance.Brightness(image).enhance(brightness)
         image = ImageEnhance.Contrast(image).enhance(contrast)
 
         if self.cancel:
-            return None
+            raise CancelledError()
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1369,7 +1348,7 @@ class DocThread(BaseThread):
         image = ImageOps.invert(image)
 
         if self.cancel:
-            return None
+            raise CancelledError()
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1406,7 +1385,7 @@ class DocThread(BaseThread):
         )
 
         if self.cancel:
-            return None
+            raise CancelledError()
 
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
@@ -1437,7 +1416,7 @@ class DocThread(BaseThread):
         image = image.crop((left, top, left + width, top + height))
 
         if self.cancel:
-            return None
+            raise CancelledError()
 
         page.width = image.width
         page.height = image.height
@@ -1489,7 +1468,7 @@ class DocThread(BaseThread):
         image2 = image2.crop((right, bottom, right + width2, bottom + height2))
 
         if self.cancel:
-            return
+            raise CancelledError()
 
         # Write them
         suffix = None
@@ -1512,7 +1491,7 @@ class DocThread(BaseThread):
                 filename2,
             )
             if self.cancel:
-                return
+                raise CancelledError()
             page.filename = filename.name
             page.width = image.width
             page.height = image.height
@@ -1563,7 +1542,7 @@ class DocThread(BaseThread):
             return None
 
         if self.cancel:
-            return None
+            raise CancelledError()
 
         paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
         if not paths:
@@ -1584,7 +1563,7 @@ class DocThread(BaseThread):
             page.ocr_time = datetime.datetime.now()
 
         if self.cancel:
-            return None
+            raise CancelledError()
 
         return page
 
@@ -1651,7 +1630,7 @@ class DocThread(BaseThread):
                         return
 
                 if self.cancel:
-                    return
+                    raise CancelledError()
                 spo.stdout = re.sub(
                     r"Processing[ ]sheet.*[.]pnm\n",
                     r"",
