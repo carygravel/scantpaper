@@ -98,9 +98,6 @@ class CancelledError(RuntimeError):
 class DocThread(BaseThread):
     "subclass basethread for document"
 
-    cancel = False
-    paper_sizes = {}
-
     def __init__(self):
         BaseThread.__init__(self)
         self.lock = threading.Lock()
@@ -109,6 +106,8 @@ class DocThread(BaseThread):
         self.running_pids = []
         self.message = None
         self.progress = None
+        self.cancel = False
+        self.paper_sizes = {}
 
     def input_handler(self, request):
         "handle page requests"
