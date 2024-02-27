@@ -20,6 +20,7 @@ from document import (
     _program_version,
     _bbox2markup,
     _set_timestamp,
+    Proc,
 )
 
 
@@ -241,13 +242,13 @@ def test_date_conversions():
 
 def test_helpers():
     "test helpers"
-    _rcode, stdout, _stderr = exec_command(["fc-list", ":", "family", "style", "file"])
+    proc = exec_command(["fc-list", ":", "family", "style", "file"])
     assert (
-        re.search(r"\w+", stdout) is not None
+        re.search(r"\w+", proc.stdout) is not None
     ), "exec_command produces some output from fc-list"
 
-    (_rcode, stdout, _stderr) = exec_command(["perl", "-e", 'print "a" x 65537'])
-    assert len(stdout) == 65537, "exec_command returns more than 65537 bytes"
+    proc = exec_command(["perl", "-e", 'print "a" x 65537'])
+    assert len(proc.stdout) == 65537, "exec_command returns more than 65537 bytes"
 
     #########################
 
@@ -473,7 +474,7 @@ def test_helpers():
 
     assert (
         _program_version(
-            "stdout", r"file-(\d+\.\d+)", (0, "file-5.22\nmagic file from", None)
+            "stdout", r"file-(\d+\.\d+)", Proc(0, "file-5.22\nmagic file from", None)
         )
         == "5.22"
     ), "file version"
@@ -481,7 +482,7 @@ def test_helpers():
         _program_version(
             "stdout",
             r"Version:\sImageMagick\s([\d.-]+)",
-            (0, "Version: ImageMagick 6.9.0-3 Q16", None),
+            Proc(0, "Version: ImageMagick 6.9.0-3 Q16", None),
         )
         == "6.9.0-3"
     ), "imagemagick version"
@@ -489,7 +490,7 @@ def test_helpers():
         _program_version(
             "stdout",
             r"Version:\sImageMagick\s([\d.-]+)",
-            (0, "Version:ImageMagick 6.9.0-3 Q16", None),
+            Proc(0, "Version:ImageMagick 6.9.0-3 Q16", None),
         )
         is None
     ), "unable to parse version"
@@ -497,7 +498,7 @@ def test_helpers():
         _program_version(
             "stdout",
             r"Version:\sImageMagick\s([\d.-]+)",
-            (-1, "", "convert: command not found"),
+            Proc(-1, "", "convert: command not found"),
         )
         == -1
     ), "command not found"
@@ -505,15 +506,15 @@ def test_helpers():
         _program_version(
             "stdout",
             r"Version:\sImageMagick\s([\d.-]+)",
-            (-1, None, "convert: command not found"),
+            Proc(-1, None, "convert: command not found"),
         )
         == -1
     ), "catch undefined stdout"
 
-    status, _out, err = exec_command(["/command/not/found"])
-    assert status == -1, "status open3 running unknown command"
+    proc = exec_command(["/command/not/found"])
+    assert proc.returncode == -1, "status open3 running unknown command"
     assert (
-        err == "[Errno 2] No such file or directory: '/command/not/found'"
+        proc.stderr == "[Errno 2] No such file or directory: '/command/not/found'"
     ), "stderr running unknown command"
 
     #########################

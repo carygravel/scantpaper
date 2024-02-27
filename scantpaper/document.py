@@ -10,13 +10,13 @@ import re
 import os
 import threading
 import queue
-import gettext  # For translations
 import tempfile
 import uuid
 import logging
 from pathlib import Path
 import signal
 import tarfile
+from dataclasses import dataclass
 import img2pdf
 import ocrmypdf
 from PIL import ImageStat, Image, ImageEnhance, ImageOps, ImageFilter
@@ -142,23 +142,23 @@ class DocThread(BaseThread):
             raise FileNotFoundError(_("File %s not found") % (path,))
 
         logger.info("Getting info for %s", path)
-        _returncode, fformat, _stderr = exec_command(["file", "-Lb", path])
-        fformat = fformat.rstrip()
-        logger.info("Format: '%s'", fformat)
-        if fformat in ["very short file (no magic)", "empty"]:
+        proc = exec_command(["file", "-Lb", path])
+        proc.stdout = proc.stdout.rstrip()
+        logger.info("Format: '%s'", proc.stdout)
+        if proc.stdout in ["very short file (no magic)", "empty"]:
             raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
 
-        if re.search(r"gzip[ ]compressed[ ]data", fformat):
+        if re.search(r"gzip[ ]compressed[ ]data", proc.stdout):
             info["path"] = path
             info["format"] = "session file"
 
-        elif re.search(r"DjVu", fformat):
+        elif re.search(r"DjVu", proc.stdout):
             self._get_djvu_info(info, path)
 
-        elif re.search(r"PDF[ ]document", fformat):
+        elif re.search(r"PDF[ ]document", proc.stdout):
             self._get_pdf_info(info, path, password, request)
 
-        elif re.search(r"^TIFF[ ]image[ ]data", fformat):
+        elif re.search(r"^TIFF[ ]image[ ]data", proc.stdout):
             self._get_tif_info(info, path, request)
 
         else:
@@ -186,20 +186,20 @@ class DocThread(BaseThread):
     def _get_djvu_info(self, info, path):
         "get DjVu info"
         # Dig out the number of pages
-        _exit_code, stdout, stderr = exec_command(["djvudump", path])
+        proc = exec_command(["djvudump", path])
         if re.search(
-            r"command[ ]not[ ]found", stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
+            r"command[ ]not[ ]found", proc.stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
         ):
             raise RuntimeError(
                 _("Please install djvulibre-bin in order to open DjVu files.")
             )
 
-        logger.info(stdout)
+        logger.info(proc.stdout)
         if self.cancel:
             raise CancelledError()
         pages = 1
         regex = re.search(
-            r"\s(\d+)\s+page", stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
+            r"\s(\d+)\s+page", proc.stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
         )
         if regex:
             pages = int(regex.group(1))
@@ -209,7 +209,7 @@ class DocThread(BaseThread):
         info["format"] = "DJVU"
         regex = re.findall(
             r"DjVu\s(\d+)x(\d+).+?\s+(\d+)\s+dpi",
-            stdout,
+            proc.stdout,
             re.MULTILINE | re.DOTALL | re.VERBOSE,
         )
         for _w, _h, _p in regex:
@@ -231,15 +231,13 @@ class DocThread(BaseThread):
         info["pages"] = pages
         info["path"] = path
         # Dig out the metadata
-        _exit_code, stdout, _stderr = exec_command(
-            ["djvused", path, "-e", "print-meta"]
-        )
-        logger.info(stdout)
+        proc = exec_command(["djvused", path, "-e", "print-meta"])
+        logger.info(proc.stdout)
         if self.cancel:
             raise CancelledError()
 
         # extract the metadata from the file
-        _add_metadata_to_info(info, stdout, r'\s+"([^"]+)')
+        _add_metadata_to_info(info, proc.stdout, r'\s+"([^"]+)')
 
     def _get_pdf_info(self, info, path, password, request):
         "get PDF info"
@@ -302,7 +300,7 @@ class DocThread(BaseThread):
     def _get_tif_info(self, info, path, request):
         "get TIFF info"
         info["format"] = "Tagged Image File Format"
-        _exit_code, stdout, _stderr = exec_command(["tiffinfo", path])
+        proc = exec_command(["tiffinfo", path])
         if self.cancel:
             raise CancelledError()
         logger.info(info)
@@ -311,7 +309,7 @@ class DocThread(BaseThread):
         info["pages"] = len(
             re.findall(
                 r"TIFF[ ]Directory[ ]at[ ]offset",
-                stdout,
+                proc.stdout,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
         )
@@ -321,7 +319,7 @@ class DocThread(BaseThread):
         width, height = [], []
         regex = re.findall(
             r"Image\sWidth:\s(\d+)\sImage\sLength:\s(\d+)",
-            stdout,
+            proc.stdout,
             re.MULTILINE | re.DOTALL | re.VERBOSE,
         )
         for _w, _h in regex:
@@ -500,9 +498,6 @@ class DocThread(BaseThread):
     def do_save_pdf(self, request):
         "save PDF in thread"
         options = request.args[0]
-        _ = gettext.gettext
-        pagenr = 0
-        error = None
 
         self.message = _("Setting up PDF")
         outdir = Path(options["dir"])
@@ -536,28 +531,23 @@ class DocThread(BaseThread):
             language="eng",
             skip_text=True,
         )
-        for pagedata in options["list_of_pages"]:
-            pagenr += 1
+        for pagenr, pagedata in enumerate(options["list_of_pages"]):
             if pagedata.text_layer:
                 with open(
                     outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w", encoding="utf-8"
-                ) as pfh:
-                    pfh.write(pagedata.export_hocr())
-        #     self.progress = pagenr / (len(options["list_of_pages"]) + 1)
-        #     self.message = _("Saving page %i of %i") % (pagenr, len(options["list_of_pages"]))
-        #     # if status or _self["cancel"]:
-        #     #     return
+                ) as fhd:
+                    fhd.write(pagedata.export_hocr())
+            self.progress = pagenr / (len(options["list_of_pages"]) + 1)
+            self.message = _("Saving page %i of %i") % (
+                pagenr,
+                len(options["list_of_pages"]),
+            )
+            if self.cancel:
+                raise CancelledError()
 
         ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
 
-        if (
-            options is not None
-            and "options" in options
-            and options["options"] is not None
-            and ("prepend" in options["options"] or "append" in options["options"])
-        ):
-            if _append_pdf(filename, options, request):
-                return
+        _append_pdf(filename, options, request)
 
         if (
             options is not None
@@ -576,11 +566,13 @@ class DocThread(BaseThread):
             and "ps" in options["options"]
         ):
             self.message = _("Converting to PS")
-            cmd = [options["options"]["pstool"], filename, options["options"]["ps"]]
-            status, _stdout, error = exec_command(cmd, options["pidfile"])
-            if status or error:
-                logger.info(error)
-                request.error(_("Error converting PDF to PS: %s") % (error))
+            proc = exec_command(
+                [options["options"]["pstool"], filename, options["options"]["ps"]],
+                options["pidfile"],
+            )
+            if proc.returncode or proc.stderr:
+                logger.info(proc.stderr)
+                request.error(_("Error converting PDF to PS: %s") % (proc.stderr))
                 return
 
             _post_save_hook(options["options"]["ps"], options["options"])
@@ -625,19 +617,19 @@ class DocThread(BaseThread):
                 )
 
                 # Create the djvu
-                status, _stdout, _stderr = exec_command(
+                proc = exec_command(
                     [compression, "-dpi", str(int(resolution)), filename, djvu.name],
                     args["pidfile"],
                 )
                 size = os.path.getsize(djvu.name)
                 if self.cancel:
                     raise CancelledError()
-                if status != 0 or size == 0:
+                if proc.returncode != 0 or size == 0:
                     logger.error(
                         "Error writing image for page %s of DjVu (process "
                         "returned %s, image size %s)",
                         page,
-                        status,
+                        proc.returncode,
                         size,
                     )
                     request.error(_("Error writing DjVu"))
@@ -649,12 +641,10 @@ class DocThread(BaseThread):
 
         self.progress = 1
         self.message = _("Merging DjVu")
-        status, _out, _err = exec_command(
-            ["djvm", "-c", args["path"], *filelist], args["pidfile"]
-        )
+        proc = exec_command(["djvm", "-c", args["path"], *filelist], args["pidfile"])
         if self.cancel:
             raise CancelledError()
-        if status:
+        if proc.returncode:
             logger.error("Error merging DjVu")
             request.error(_("Error merging DjVu"))
 
@@ -923,10 +913,10 @@ class DocThread(BaseThread):
         if "ps" in options["options"]:
             # self.message = _("Converting to PS")
             cmd = ["tiff2ps", "-3", options["path"], "-O", options["options"]["ps"]]
-            status, _stdout, error = exec_command(cmd, options["pidfile"])
-            if status or error:
-                logger.info(error)
-                request.error(_("Error converting TIFF to PS: %s") % (error))
+            proc = exec_command(cmd, options["pidfile"])
+            if proc.returncode or proc.stderr:
+                logger.info(proc.stderr)
+                request.error(_("Error converting TIFF to PS: %s") % (proc.stderr))
                 return
 
             _post_save_hook(options["options"]["ps"], options["options"])
@@ -944,7 +934,7 @@ class DocThread(BaseThread):
         options = request.args[0]
 
         if len(options["list_of_pages"]) == 1:
-            status, _stdout, _stderr = exec_command(
+            proc = exec_command(
                 [
                     "convert",
                     options["list_of_pages"][0].filename,
@@ -957,7 +947,7 @@ class DocThread(BaseThread):
             )
             if self.cancel:
                 raise CancelledError()
-            if status:
+            if proc.returncode:
                 request.error(_("Error saving image"))
 
             _post_save_hook(options["list_of_pages"][0].filename, options["options"])
@@ -968,7 +958,7 @@ class DocThread(BaseThread):
             for page in options["list_of_pages"]:
                 current_filename = options["path"] % (i)
                 i += 1
-                status = exec_command(
+                proc = exec_command(
                     [
                         "convert",
                         page.filename,
@@ -980,7 +970,7 @@ class DocThread(BaseThread):
                 )
                 if self.cancel:
                     raise CancelledError()
-                if status:
+                if proc.returncode:
                     request.error(_("Error saving image"))
 
                 _post_save_hook(page.filename, options["options"])
@@ -3423,7 +3413,16 @@ def slurp(file):
         return fhd.read()
 
 
-def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
+@dataclass
+class Proc:
+    """Class for passing returncode, stdout & stderr."""
+
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+def exec_command(cmd, pidfile=None):
     "wrapper for subprocess.Popen()"
 
     logger.info(SPACE.join(cmd))
@@ -3440,7 +3439,7 @@ def exec_command(cmd, pidfile=None):  # FIXME: no need for this wrapper
     except FileNotFoundError as err:
         returncode, stdout_data, stderr_data = -1, None, str(err)
 
-    return returncode, stdout_data, stderr_data
+    return Proc(returncode, stdout_data, stderr_data)
 
 
 def program_version(stream, regex, cmd):
@@ -3448,21 +3447,20 @@ def program_version(stream, regex, cmd):
     return _program_version(stream, regex, exec_command(cmd))
 
 
-def _program_version(stream, regex, output):
-    status, out, err = output
-    if out is None:
-        out = ""
-    if err is None:
-        err = ""
+def _program_version(stream, regex, proc):
+    if proc.stdout is None:
+        proc.stdout = ""
+    if proc.stderr is None:
+        proc.stderr = ""
     output = None
     if stream == "stdout":
-        output = out
+        output = proc.stdout
 
     elif stream == "stderr":
-        output = err
+        output = proc.srderr
 
     elif stream == "both":
-        output = out + err
+        output = proc.stdout + proc.stderr
 
     else:
         logger.error("Unknown stream: '%s'", (stream,))
@@ -3470,8 +3468,8 @@ def _program_version(stream, regex, output):
     regex2 = re.search(regex, output)
     if regex2:
         return regex2.group(1)
-    if status == PROCESS_FAILED:
-        logger.info(err)
+    if proc.returncode == PROCESS_FAILED:
+        logger.info(proc.stderr)
         return PROCESS_FAILED
 
     logger.info("Unable to parse version string from: '%s'", output)
@@ -4031,6 +4029,8 @@ def _convert_image_for_djvu(pagedata, options, request):
 
 
 def _append_pdf(filename, options, request):
+    if options is None or "options" not in options or options["options"] is None:
+        return None
     if "prepend" in options["options"]:
         file1 = filename
         file2 = options["options"]["prepend"] + ".bak"
@@ -4039,7 +4039,7 @@ def _append_pdf(filename, options, request):
         message = _("Error prepending PDF: %s")
         logger.info("Prepending PDF")
 
-    else:
+    elif "append" in options["options"]:
         file2 = filename
         file1 = options["options"]["append"] + ".bak"
         bak = file1
@@ -4047,19 +4047,20 @@ def _append_pdf(filename, options, request):
         message = _("Error appending PDF: %s")
         logger.info("Appending PDF")
 
+    else:
+        return None
+
     try:
         os.rename(out, bak)
     except ValueError:
         request.error(_("Error creating backup of PDF"))
         return None
 
-    status, _stdout, error = exec_command(
-        ["pdfunite", file1, file2, out], options["pidfile"]
-    )
-    if status:
-        logger.info(error)
-        request.error(message % (error))
-    return status
+    proc = exec_command(["pdfunite", file1, file2, out], options["pidfile"])
+    if proc.returncode:
+        logger.info(proc.stderr)
+        request.error(message % (proc.stderr))
+    return proc.returncode
 
 
 # https://py-pdf.github.io/fpdf2/Annotations.html
