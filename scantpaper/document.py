@@ -334,80 +334,10 @@ class DocThread(BaseThread):
         "import file in thread"
         args = request.args[0]
         if args["info"]["format"] == "DJVU":
-            # Extract images from DjVu
-            if args["last"] >= args["first"] and args["first"] > 0:
-                for i in range(args["first"], args["last"] + 1):
-                    self.progress = (i - 1) / (args["last"] - args["first"] + 1)
-                    self.message = _("Importing page %i of %i") % (
-                        i,
-                        args["last"] - args["first"] + 1,
-                    )
-                    with tempfile.NamedTemporaryFile(
-                        dir=args["dir"], suffix=".tif", delete=False
-                    ) as tif:
-                        subprocess.run(
-                            [
-                                "ddjvu",
-                                "-format=tiff",
-                                f"-page={i}",
-                                args["info"]["path"],
-                                tif.name,
-                            ],
-                            check=True,
-                        )
-                        txt = subprocess.check_output(
-                            [
-                                "djvused",
-                                args["info"]["path"],
-                                "-e",
-                                f"select {i}; print-txt",
-                            ],
-                            text=True,
-                        )
-                        ann = subprocess.check_output(
-                            [
-                                "djvused",
-                                args["info"]["path"],
-                                "-e",
-                                f"select {i}; print-ant",
-                            ],
-                            text=True,
-                        )
-                        if self.cancel:
-                            raise CancelledError()
-                        page = Page(
-                            filename=tif.name,
-                            dir=args["dir"],
-                            delete=True,
-                            format="Tagged Image File Format",
-                            resolution=(
-                                args["info"]["ppi"][i - 1],
-                                args["info"]["ppi"][i - 1],
-                                "PixelsPerInch",
-                            ),
-                            width=args["info"]["width"][i - 1],
-                            height=args["info"]["height"][i - 1],
-                        )
-                        try:
-                            page.import_djvu_txt(txt)
-                        except (PermissionError, IOError, ValueError) as err:
-                            request.data(
-                                None, f"Caught error parsing DjVU text layer: {err}"
-                            )
-
-                        try:
-                            page.import_djvu_ann(ann)
-
-                        except (PermissionError, IOError) as err:
-                            logger.error(
-                                "Caught error parsing DjVU annotation layer: %s", err
-                            )
-                            request.error("Error: parsing DjVU annotation layer")
-
-                        request.data(page)
+            self._do_import_djvu(request)
 
         elif args["info"]["format"] == "Portable Document Format":
-            self._thread_import_pdf(request)
+            self._do_import_pdf(request)
 
         elif args["info"]["format"] == "Tagged Image File Format":
             # Only one page, so skip tiffcp in case it gives us problems
@@ -697,7 +627,81 @@ class DocThread(BaseThread):
             #         _("Error adding metadata to DjVu"),
             #     )
 
-    def _thread_import_pdf(self, request):
+    def _do_import_djvu(self, request):
+        args = request.args[0]
+        # Extract images from DjVu
+        if args["last"] >= args["first"] and args["first"] > 0:
+            for i in range(args["first"], args["last"] + 1):
+                self.progress = (i - 1) / (args["last"] - args["first"] + 1)
+                self.message = _("Importing page %i of %i") % (
+                    i,
+                    args["last"] - args["first"] + 1,
+                )
+                with tempfile.NamedTemporaryFile(
+                    dir=args["dir"], suffix=".tif", delete=False
+                ) as tif:
+                    subprocess.run(
+                        [
+                            "ddjvu",
+                            "-format=tiff",
+                            f"-page={i}",
+                            args["info"]["path"],
+                            tif.name,
+                        ],
+                        check=True,
+                    )
+                    txt = subprocess.check_output(
+                        [
+                            "djvused",
+                            args["info"]["path"],
+                            "-e",
+                            f"select {i}; print-txt",
+                        ],
+                        text=True,
+                    )
+                    ann = subprocess.check_output(
+                        [
+                            "djvused",
+                            args["info"]["path"],
+                            "-e",
+                            f"select {i}; print-ant",
+                        ],
+                        text=True,
+                    )
+                    if self.cancel:
+                        raise CancelledError()
+                    page = Page(
+                        filename=tif.name,
+                        dir=args["dir"],
+                        delete=True,
+                        format="Tagged Image File Format",
+                        resolution=(
+                            args["info"]["ppi"][i - 1],
+                            args["info"]["ppi"][i - 1],
+                            "PixelsPerInch",
+                        ),
+                        width=args["info"]["width"][i - 1],
+                        height=args["info"]["height"][i - 1],
+                    )
+                    try:
+                        page.import_djvu_txt(txt)
+                    except (PermissionError, IOError, ValueError) as err:
+                        request.data(
+                            None, f"Caught error parsing DjVU text layer: {err}"
+                        )
+
+                    try:
+                        page.import_djvu_ann(ann)
+
+                    except (PermissionError, IOError) as err:
+                        logger.error(
+                            "Caught error parsing DjVU annotation layer: %s", err
+                        )
+                        request.error("Error: parsing DjVU annotation layer")
+
+                    request.data(page)
+
+    def _do_import_pdf(self, request):
         args = request.args[0]
         warning_flag, xresolution, yresolution = None, None, None
 
