@@ -10,7 +10,6 @@ from page import Page
 from document import (
     Document,
     exec_command,
-    text_to_datetime,
     expand_metadata_pattern,
     prepare_output_metadata,
     VERSION,
@@ -190,7 +189,6 @@ def test_indexing():
 
 def test_file_dates():
     "test file dates"
-    slist = Document()
     filename = "test.txt"
     subprocess.run(["touch", filename], check=True)
     options = defaultdict(
@@ -199,17 +197,17 @@ def test_file_dates():
             "path": filename,
             "options": {"set_timestamp": True},
             "metadata": {
-                "datetime": [2016, 2, 10, 0, 0, 0],
+                "datetime": datetime.datetime(
+                    2016,
+                    2,
+                    10,
+                    0,
+                    0,
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=14)),
+                ),
             },
         },
     )
-    _set_timestamp(options)  # pylint: disable=protected-access
-    stb = os.stat(filename)
-    assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
-        2016, 2, 10, 0, 0, 0
-    ), "timestamp no timezone"
-
-    options["metadata"]["tz"] = [None, None, None, 14, 0, None, None]
     _set_timestamp(options)  # pylint: disable=protected-access
     stb = os.stat(filename)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
@@ -220,20 +218,6 @@ def test_file_dates():
 
 def test_date_conversions():
     "test conversions"
-
-    date = text_to_datetime("2016-02-01")
-    assert date == (2016, 2, 1, 0, 0, 0), "text_to_datetime just date"
-
-    date = text_to_datetime("2016-02-01 10:11:12")
-    assert date == (2016, 2, 1, 10, 11, 12), "text_to_datetime"
-
-    date = text_to_datetime("", 2016, 2, 1)
-    assert date == (2016, 2, 1, 0, 0, 0), "text_to_datetime empty string"
-
-    date = text_to_datetime("0000-00-00", 2016, 2, 1)
-    assert date == (2016, 2, 1, 0, 0, 0), "text_to_datetime invalid date"
-
-    #########################
 
     tz1 = [0, 0, 0, 2, 0, 0, 1]
     tz_delta = [0, 0, 0, -1, 0, 0, -1]
@@ -312,7 +296,9 @@ def test_helpers():
     assert prepare_output_metadata(
         "PDF",
         {
-            "datetime": [2016, 2, 10, 0, 0, 0],
+            "datetime": datetime.datetime(
+                2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc
+            ),
             "author": "a.n.other",
             "title": "title",
             "subject": "subject",
@@ -333,8 +319,9 @@ def test_helpers():
     assert prepare_output_metadata(
         "PDF",
         {
-            "datetime": [2016, 2, 10, 0, 0, 0],
-            "tz": [0, 0, 0, 1, 0, 0, 0],
+            "datetime": datetime.datetime(
+                2016, 2, 10, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+            ),
             "author": "a.n.other",
             "title": "title",
             "subject": "subject",
@@ -357,8 +344,15 @@ def test_helpers():
     assert prepare_output_metadata(
         "PDF",
         {
-            "datetime": [2016, 2, 10, 19, 59, 5],
-            "tz": [0, 0, 0, 1, 0, 0, 0],
+            "datetime": datetime.datetime(
+                2016,
+                2,
+                10,
+                19,
+                59,
+                5,
+                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
+            ),
             "author": "a.n.other",
             "title": "title",
             "subject": "subject",

@@ -5,6 +5,7 @@ import re
 import subprocess
 import tempfile
 import shutil
+import datetime
 import pytest
 from gi.repository import GLib
 from document import Document
@@ -33,7 +34,10 @@ def test_1(import_in_mainloop):
         nonlocal called
         called = True
 
-    metadata = {"datetime": [1966, 2, 10, 0, 0, 0], "title": "metadata title"}
+    metadata = {
+        "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "title": "metadata title",
+    }
     slist.save_djvu(
         path=djvu,
         list_of_pages=[slist.data[0][2].uuid],

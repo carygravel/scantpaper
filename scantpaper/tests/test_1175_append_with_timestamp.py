@@ -26,7 +26,12 @@ def test_1(import_in_mainloop):
     slist.save_pdf(
         path="test.pdf",
         list_of_pages=[slist.data[0][2].uuid],
-        metadata={"datetime": [2016, 2, 10, 0, 0, 0], "title": "metadata title"},
+        metadata={
+            "datetime": datetime.datetime(
+                2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc
+            ),
+            "title": "metadata title",
+        },
         options={
             "append": "test.pdf",
             "set_timestamp": True,

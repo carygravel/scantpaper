@@ -24,7 +24,7 @@ def test_1(import_in_mainloop):
     import_in_mainloop(slist, [pnm])
 
     metadata = {
-        "datetime": [2016, 2, 10, 0, 0, 0],
+        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
         "title": "metadata title",
         "subject": "",
     }

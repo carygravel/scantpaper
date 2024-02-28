@@ -479,12 +479,12 @@ class DocThread(BaseThread):
 
         _append_pdf(filename, options, request)
 
-        if options["options"].get("user-password"):
+        if options["options"] and options["options"].get("user-password"):
             if _encrypt_pdf(filename, options, request):
                 return
 
         _set_timestamp(options)
-        if options["options"].get("ps"):
+        if options["options"] and options["options"].get("ps"):
             self.message = _("Converting to PS")
             proc = exec_command(
                 [options["options"]["pstool"], filename, options["options"]["ps"]],
@@ -3465,48 +3465,6 @@ def _program_version(stream, regex, proc):
     return None
 
 
-def text_to_datetime(text, thisyear=None, thismonth=None, thisday=None):
-    "convert string to datetime"
-    (year, month, day, hour, minute, sec) = (None, None, None, None, None, None)
-    regex = re.search(
-        r"^(\d+)?-?(\d+)?-?(\d+)?(?:\s(\d+)?:?(\d+)?:?(\d+)?)?$",
-        text,
-        re.MULTILINE | re.DOTALL | re.VERBOSE,
-    )
-    if (text is not None) and regex:
-        if regex.group(1) is not None:
-            year = int(regex.group(1))
-        if regex.group(2) is not None:
-            month = int(regex.group(2))
-        if regex.group(3) is not None:
-            day = int(regex.group(3))
-        if regex.group(4) is not None:
-            hour = int(regex.group(4))
-        if regex.group(5) is not None:
-            minute = int(regex.group(5))
-        if regex.group(6) is not None:
-            sec = int(regex.group(6))
-
-    if (year is None) or year == 0:
-        year = thisyear
-    if (month is None) or month < 1 or month > MONTHS_PER_YEAR:
-        month = thismonth
-
-    if (day is None) or day < 1 or day > DAYS_PER_MONTH:
-        day = thisday
-
-    if (hour is None) or hour > HOURS_PER_DAY - 1:
-        hour = 0
-
-    if (minute is None) or minute > MINUTES_PER_HOUR - 1:
-        minute = 0
-
-    if (sec is None) or sec > SECONDS_PER_MINUTE - 1:
-        sec = 0
-
-    return year, month, day, hour, minute, sec
-
-
 def expand_metadata_pattern(**kwargs):
     "expand metadata template"
     dhour, dmin, dsec, thour, tmin, tsec = 0, 0, 0, 0, 0, 0
@@ -3617,40 +3575,12 @@ def delta_timezone(tz1, tz2):
 def prepare_output_metadata(ftype, metadata):
     "format metadata for PDF or DjVu"
     out = {}
-    if metadata is not None and ftype in ["PDF", "DjVu"]:
-        year, month, day, hour, mns, sec = 0, 0, 0, 0, 0, 0
-        if "datetime" in metadata and metadata["datetime"] is not None:
-            year, month, day, hour, mns, sec = metadata["datetime"]
-        sign, dhr, dmin = "+", 0, 0
-        if "tz" in metadata:
-            _year, _month, _day, dhr, dmin, _sec, _dst = metadata["tz"]
-        if year > 0:
-            if ftype == "PDF":
-                out["creationdate"] = datetime.datetime(
-                    year,
-                    month,
-                    day,
-                    hour,
-                    mns,
-                    sec,
-                    tzinfo=datetime.timezone(
-                        datetime.timedelta(hours=dhr, minutes=dmin)
-                    ),
-                )
-            else:
-                dateformat = "%4i-%02i-%02i %02i:%02i:%02i%1s%02i:%02i"
-                out["creationdate"] = dateformat % (
-                    year,
-                    month,
-                    day,
-                    hour,
-                    mns,
-                    sec,
-                    sign,
-                    dhr,
-                    dmin,
-                )
-            out["moddate"] = out["creationdate"]
+    if metadata and ftype in ["PDF", "DjVu"]:
+        if ftype == "PDF":
+            out["creationdate"] = metadata["datetime"]
+        else:
+            out["creationdate"] = metadata["datetime"].isoformat()
+        out["moddate"] = out["creationdate"]
         out["creator"] = f"gscan2pdf v{VERSION}"
         if ftype == "DjVu":
             out["producer"] = "djvulibre"
@@ -3838,21 +3768,16 @@ def _encrypt_pdf(filename, options, request):
 
 
 def _set_timestamp(options):
-    if options["options"].get("set_timestamp") is None or options["options"].get("ps"):
+    if (
+        not options["options"]
+        or options["options"].get("set_timestamp") is None
+        or options["options"].get("ps")
+    ):
         return
 
     metadata = options["metadata"]
     adatetime = metadata["datetime"]
-    adatetime = datetime.datetime(*adatetime)
-    if "tz" in metadata:
-        tzn = metadata["tz"]
-        tzn = [0 if x is None else x for x in tzn]
-        tzn = datetime.timedelta(
-            days=tzn[2], hours=tzn[3], minutes=tzn[4], seconds=tzn[5]
-        )
-        adatetime -= tzn
-
-    epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
+    epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
     adatetime = (adatetime - epoch).total_seconds()
     if adatetime < 0:
         raise ValueError("Unable to set file timestamp for dates prior to 1970")
