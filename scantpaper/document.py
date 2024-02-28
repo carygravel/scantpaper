@@ -3467,15 +3467,6 @@ def _program_version(stream, regex, proc):
 
 def expand_metadata_pattern(**kwargs):
     "expand metadata template"
-    dhour, dmin, dsec, thour, tmin, tsec = 0, 0, 0, 0, 0, 0
-    if len(kwargs["docdate"]) > 3:
-        dyear, dmonth, dday, dhour, dmin, dsec = kwargs["docdate"]
-    else:
-        dyear, dmonth, dday = kwargs["docdate"]
-    if len(kwargs["today_and_now"]) > 3:
-        tyear, tmonth, tday, thour, tmin, tsec = kwargs["today_and_now"]
-    else:
-        tyear, tmonth, tday = kwargs["today_and_now"]
 
     # Expand author, title and extension
     for key in ["author", "title", "subject", "keywords", "extension"]:
@@ -3493,9 +3484,7 @@ def expand_metadata_pattern(**kwargs):
     while regex:
         code = regex.group(1)
         template = f"{PERCENT}{code}"
-        result = datetime.datetime(dyear, dmonth, dday, dhour, dmin, dsec).strftime(
-            template
-        )
+        result = kwargs["docdate"].strftime(template)
         kwargs["template"] = re.sub(
             rf"%D{code}",
             result,
@@ -3507,14 +3496,7 @@ def expand_metadata_pattern(**kwargs):
         )
 
     # Expand basic strftime codes
-    kwargs["template"] = datetime.datetime(
-        tyear,
-        tmonth,
-        tday,
-        thour,
-        tmin,
-        tsec,
-    ).strftime(kwargs["template"])
+    kwargs["template"] = kwargs["today_and_now"].strftime(kwargs["template"])
 
     # avoid leading and trailing whitespace in expanded filename template
     kwargs["template"] = kwargs["template"].strip()

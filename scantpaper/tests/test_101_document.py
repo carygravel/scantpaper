@@ -247,8 +247,21 @@ def test_helpers():
             title="title",
             subject="subject",
             keywords="keywords",
-            docdate=[2016, 2, 1],
-            today_and_now=[1970, 1, 12, 14, 46, 39],
+            docdate=datetime.datetime(
+                2016,
+                2,
+                1,
+                tzinfo=datetime.timezone.utc,
+            ),
+            today_and_now=datetime.datetime(
+                1970,
+                1,
+                12,
+                14,
+                46,
+                39,
+                tzinfo=datetime.timezone.utc,
+            ),
             extension="png",
         )
         == "a.n.other title subject keywords 2016 1970 02 01 01 12 14 46 39.png"
@@ -259,8 +272,24 @@ def test_helpers():
             template="%Da %Dt %DY %Y %Dm %m %Dd %d %H %M %S %DH %DM %DS.%De",
             author="a.n.other",
             title="title",
-            docdate=[2016, 2, 1, 10, 11, 12],
-            today_and_now=[1970, 1, 12, 14, 46, 39],
+            docdate=datetime.datetime(
+                2016,
+                2,
+                1,
+                10,
+                11,
+                12,
+                tzinfo=datetime.timezone.utc,
+            ),
+            today_and_now=datetime.datetime(
+                1970,
+                1,
+                12,
+                14,
+                46,
+                39,
+                tzinfo=datetime.timezone.utc,
+            ),
             extension="tif",
         )
         == "a.n.other title 2016 1970 02 01 01 12 14 46 39 10 11 12.tif"
@@ -271,8 +300,21 @@ def test_helpers():
             template="%Da %Dt %DY %Y %Dm %m %Dd %d %H %M %S.%De",
             author="a.n.other",
             title="title",
-            docdate=[1816, 2, 1],
-            today_and_now=[1970, 1, 12, 14, 46, 39],
+            docdate=datetime.datetime(
+                1816,
+                2,
+                1,
+                tzinfo=datetime.timezone.utc,
+            ),
+            today_and_now=datetime.datetime(
+                1970,
+                1,
+                12,
+                14,
+                46,
+                39,
+                tzinfo=datetime.timezone.utc,
+            ),
             extension="djvu",
         )
         == "a.n.other title 1816 1970 02 01 01 12 14 46 39.djvu"
@@ -284,8 +326,21 @@ def test_helpers():
             convert_whitespace=True,
             author="a.n.other",
             title="title",
-            docdate=[2016, 2, 1],
-            today_and_now=[1970, 1, 12, 14, 46, 39],
+            docdate=datetime.datetime(
+                2016,
+                2,
+                1,
+                tzinfo=datetime.timezone.utc,
+            ),
+            today_and_now=datetime.datetime(
+                1970,
+                1,
+                12,
+                14,
+                46,
+                39,
+                tzinfo=datetime.timezone.utc,
+            ),
             extension="pdf",
         )
         == "a.n.other_title_2016_1970_02_01_01_12_14_46_39.pdf"
