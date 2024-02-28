@@ -1929,76 +1929,71 @@ class Document(SimpleList):
             finished_callback=_select_next_finished_callback,
         )
 
+    def _get_file_info_finished_callback2_multiple_files(self, info, options):
+        for i in info:
+            if i["format"] == "session file":
+                logger.error(
+                    "Cannot open a session file at the same time as another file."
+                )
+                if options["error_callback"]:
+                    options["error_callback"](
+                        None,
+                        "Open file",
+                        _(
+                            "Error: cannot open a session file at the same "
+                            "time as another file."
+                        ),
+                    )
+
+                return
+
+            if i["pages"] > 1:
+                logger.error(
+                    "Cannot import a multipage file at the same time as another file."
+                )
+                if options["error_callback"]:
+                    options["error_callback"](
+                        None,
+                        "Open file",
+                        _(
+                            "Error: importing a multipage file at the same "
+                            "time as another file."
+                        ),
+                    )
+
+                return
+
+        finished_callback = options["finished_callback"]
+        del options["paths"]
+        del options["finished_callback"]
+        for i, item in enumerate(info):
+            if "metadata_callback" in options:
+                options["metadata_callback"](_extract_metadata(item))
+
+            if i == len(info) - 1:
+                options["finished_callback"] = finished_callback
+
+            self.import_file(info=item, first_page=1, last_page=1, **options)
+
     def _get_file_info_finished_callback2(self, info, options):
         if len(info) > 1:
-            for i in info:
-                if i["format"] == "session file":
-                    logger.error(
-                        "Cannot open a session file at the same time as another file."
-                    )
-                    if options["error_callback"]:
-                        options["error_callback"](
-                            None,
-                            "Open file",
-                            _(
-                                "Error: cannot open a session file at the same "
-                                "time as another file."
-                            ),
-                        )
-
-                    return
-
-                if i["pages"] > 1:
-                    logger.error(
-                        "Cannot import a multipage file at the same time as another file."
-                    )
-                    if options["error_callback"]:
-                        options["error_callback"](
-                            None,
-                            "Open file",
-                            _(
-                                "Error: importing a multipage file at the same "
-                                "time as another file."
-                            ),
-                        )
-
-                    return
-
-            finished_callback = options["finished_callback"]
-            del options["paths"]
-            del options["finished_callback"]
-            for i, item in enumerate(info):
-                if "metadata_callback" in options:
-                    options["metadata_callback"](_extract_metadata(item))
-
-                if i == len(info) - 1:
-                    options["finished_callback"] = finished_callback
-
-                self.import_file(info=item, first_page=1, last_page=1, **options)
+            self._get_file_info_finished_callback2_multiple_files(info, options)
 
         elif info[0]["format"] == "session file":
             self.open_session_file(info=info[0]["path"], **options)
 
         else:
-            if "metadata_callback" in options and options["metadata_callback"]:
+            if options.get("metadata_callback"):
                 options["metadata_callback"](_extract_metadata(info[0]))
 
             first_page = 1
             last_page = info[0]["pages"]
-            if (
-                "pagerange_callback" in options
-                and options["pagerange_callback"]
-                and last_page > 1
-            ):
+            if options.get("pagerange_callback") and last_page > 1:
                 first_page, last_page = options["pagerange_callback"](info[0])
                 if (first_page is None) or (last_page is None):
                     return
 
-            password = (
-                options["passwords"][0]
-                if "passwords" in options and options["passwords"]
-                else None
-            )
+            password = options["passwords"][0] if options.get("passwords") else None
             for key in ["paths", "passwords", "password_callback"]:
                 if key in options:
                     del options[key]
