@@ -703,59 +703,96 @@ class DocThread(BaseThread):
 
     def _do_import_pdf(self, request):
         args = request.args[0]
-        warning_flag, xresolution, yresolution = None, None, None
 
         # Extract images from PDF
-        if args["last"] >= args["first"] and args["first"] > 0:
-            for i in range(args["first"], args["last"] + 1):
-                cmd = [
-                    "pdfimages",
-                    "-f",
-                    str(i),
-                    "-l",
-                    str(i),
-                    "-list",
-                    args["info"]["path"],
-                ]
-                if args["password"] is not None:
-                    cmd.insert(1, "-upw")
-                    cmd.insert(2, args["password"])
+        warning_flag, xresolution, yresolution = False, None, None
+        for i in range(args["first"], args["last"] + 1):
+            out = subprocess.check_output(
+                _pdf_cmd_with_password(
+                    [
+                        "pdfimages",
+                        "-f",
+                        str(i),
+                        "-l",
+                        str(i),
+                        "-list",
+                        args["info"]["path"],
+                    ],
+                    args["password"],
+                ),
+                text=True,
+            )
+            for line in re.split(r"\n", out):
+                xresolution, yresolution = line[70:75], line[76:81]
+                if re.search(r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE):
+                    xresolution, yresolution = float(xresolution), float(yresolution)
+                    break
 
-                out = subprocess.check_output(cmd, text=True)
-                for line in re.split(r"\n", out):
-                    xresolution, yresolution = line[70:75], line[76:81]
-                    if re.search(
-                        r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE
-                    ):
-                        xresolution, yresolution = float(xresolution), float(
-                            yresolution
-                        )
-                        break
+            try:
+                subprocess.run(
+                    _pdf_cmd_with_password(
+                        [
+                            "pdfimages",
+                            "-f",
+                            str(i),
+                            "-l",
+                            str(i),
+                            args["info"]["path"],
+                            "x",
+                        ],
+                        args["password"],
+                    ),
+                    check=True,
+                )
+            except subprocess.CalledProcessError:
+                request.error(_("Error extracting images from PDF"))
+            if self.cancel:
+                raise CancelledError()
 
-                cmd = [
-                    "pdfimages",
-                    "-f",
-                    str(i),
-                    "-l",
-                    str(i),
-                    args["info"]["path"],
-                    "x",
-                ]
-                if args["password"] is not None:
-                    cmd.insert(1, "-upw")
-                    cmd.insert(2, args["password"])
-
+            # Import each image
+            images = glob.glob("x-??*.???")
+            if len(images) != 1:
+                warning_flag = True
+            for fname in images:
+                regex = re.search(
+                    r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE
+                )
+                if regex:
+                    ext = regex.group(1)
                 try:
-                    subprocess.run(cmd, check=True)
-                except subprocess.CalledProcessError:
-                    request.error(_("Error extracting images from PDF"))
-                if self.cancel:
-                    raise CancelledError()
+                    page = Page(
+                        filename=fname,
+                        dir=args["dir"],
+                        delete=True,
+                        format=image_format[ext],
+                        resolution=(xresolution, yresolution, "PixelsPerInch"),
+                    )
+                    page.import_pdftotext(self._extract_text_from_pdf(request, i))
+                    request.data(page.to_png(self.paper_sizes))
+                except (PermissionError, IOError) as err:
+                    logger.error("Caught error importing PDF: %s", err)
+                    request.error(_("Error importing PDF"))
 
-                with tempfile.NamedTemporaryFile(
-                    mode="w+t", dir=args["dir"], suffix=".html"
-                ) as html:
-                    cmd = [
+        if warning_flag:
+            request.data(
+                None,
+                _(
+                    "Warning: gscan2pdf expects one image per page, but "
+                    "this was not satisfied. It is probable that the PDF "
+                    "has not been correctly imported. If you wish to add "
+                    "scans to an existing PDF, use the prepend/append to "
+                    "PDF options in the Save dialogue."
+                ),
+            )
+
+    def _extract_text_from_pdf(self, request, i):
+        args = request.args[0]
+        with tempfile.NamedTemporaryFile(
+            mode="w+t", dir=args["dir"], suffix=".html"
+        ) as html:
+            spo = subprocess.run(
+                _pdf_cmd_with_password(
+                    [
                         "pdftotext",
                         "-bbox",
                         "-f",
@@ -764,60 +801,18 @@ class DocThread(BaseThread):
                         str(i),
                         args["info"]["path"],
                         html.name,
-                    ]
-                    if args["password"] is not None:
-                        cmd.insert(1, "-upw")
-                        cmd.insert(2, args["password"])
-
-                    spo = subprocess.run(
-                        cmd,
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-                    if self.cancel:
-                        raise CancelledError()
-                    if spo.returncode != 0:
-                        request.error(_("Error extracting text layer from PDF"))
-
-                    # Import each image
-                    images = glob.glob("x-??*.???")
-                    if len(images) != 1:
-                        warning_flag = True
-                    for fname in images:
-                        regex = re.search(
-                            r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE
-                        )
-                        if regex:
-                            ext = regex.group(1)
-                        try:
-                            page = Page(
-                                filename=fname,
-                                dir=args["dir"],
-                                delete=True,
-                                format=image_format[ext],
-                                resolution=(xresolution, yresolution, "PixelsPerInch"),
-                            )
-                            page.import_pdftotext(html.read())
-                            request.data(page.to_png(self.paper_sizes))
-                        except (PermissionError, IOError) as err:
-                            logger.error("Caught error importing PDF: %s", err)
-                            request.error(_("Error importing PDF"))
-
-            if warning_flag:
-                request.data(
-                    None,
-                    #                    request.uuid,
-                    #                    args["page"]["uuid"],
-                    #                    "Open file",
-                    _(
-                        "Warning: gscan2pdf expects one image per page, but "
-                        "this was not satisfied. It is probable that the PDF "
-                        "has not been correctly imported. If you wish to add "
-                        "scans to an existing PDF, use the prepend/append to "
-                        "PDF options in the Save dialogue."
-                    ),
-                )
+                    ],
+                    args["password"],
+                ),
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            if self.cancel:
+                raise CancelledError()
+            if spo.returncode != 0:
+                request.error(_("Error extracting text layer from PDF"))
+            return html.read()
 
     def save_tiff(self, **kwargs):
         "save TIFF"
@@ -4090,3 +4085,10 @@ def _add_annotations_to_pdf(page, gs_page):
             color=rgb,
             opacity=0.5,
         )
+
+
+def _pdf_cmd_with_password(cmd, password):
+    if password is not None:
+        cmd.insert(1, "-upw")
+        cmd.insert(2, password)
+    return cmd
