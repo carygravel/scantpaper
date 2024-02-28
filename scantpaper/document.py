@@ -2302,27 +2302,31 @@ class Document(SimpleList):
                 return i
         return None
 
+    def _find_page_by_ref(self, ref):
+        if ref:
+            for key in ["replace", "insert-after"]:
+                if key in ref and ref[key]:
+                    uid = ref[key]
+                    i = self.find_page_by_uuid(uid)
+                    if i is None:
+                        logger.error("Requested page %s does not exist.", uid)
+                        return None
+                    return i
+        return None
+
     def add_page(self, new_page, ref):
         "Add a new page to the document"
-        i, pagenum = None, None
+        pagenum = None
 
         # FIXME: This is really hacky to allow import_scan() to specify the page number
         if not isinstance(ref, dict):
             pagenum = ref
             ref = None
 
-        if ref is not None:
-            for key in ["replace", "insert-after"]:
-                if key in ref and ref[key] is not None:
-                    uid = ref[key]
-                    i = self.find_page_by_uuid(uid)
-                    if i is None:
-                        logger.error("Requested page %s does not exist.", uid)
-                        return NOT_FOUND
-                    break
+        i = self._find_page_by_ref(ref)
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
-        if self.row_changed_signal is not None:
+        if self.row_changed_signal:
             self.get_model().handler_block(self.row_changed_signal)
 
         xresolution, yresolution, units = new_page.get_resolution(self.paper_sizes)
@@ -2373,21 +2377,22 @@ class Document(SimpleList):
 
         # Block selection_changed_signal
         # to prevent its firing changing pagerange to all
-        if self.selection_changed_signal is not None:
+        if self.selection_changed_signal:
             self.get_selection().handler_block(self.selection_changed_signal)
 
         self.get_selection().unselect_all()
         self.manual_sort_by_column(0)
-        if self.selection_changed_signal is not None:
+
+        if self.selection_changed_signal:
             self.get_selection().handler_unblock(self.selection_changed_signal)
 
-        if self.row_changed_signal is not None:
+        if self.row_changed_signal:
             self.get_model().handler_unblock(self.row_changed_signal)
 
         # Due to the sort, must search for new page
         page_selection = [0]
 
-        # $page[0] < $#{$self -> {data}} needed to prevent infinite loop in case of
+        # page_selection[0] < len(self.data) - 1 needed to prevent infinite loop in case of
         # error importing.
         while (
             page_selection[0] < len(self.data) - 1
