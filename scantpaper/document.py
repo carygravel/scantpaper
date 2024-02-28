@@ -427,7 +427,7 @@ class DocThread(BaseThread):
 
     def do_save_pdf(self, request):
         "save PDF in thread"
-        options = request.args[0]
+        options = defaultdict(None, request.args[0])
 
         self.message = _("Setting up PDF")
         outdir = Path(options["dir"])
@@ -479,22 +479,12 @@ class DocThread(BaseThread):
 
         _append_pdf(filename, options, request)
 
-        if (
-            options is not None
-            and "options" in options
-            and options["options"] is not None
-            and "user-password" in options["options"]
-        ):
+        if options["options"].get("user-password"):
             if _encrypt_pdf(filename, options, request):
                 return
 
         _set_timestamp(options)
-        if (
-            options is not None
-            and "options" in options
-            and options["options"] is not None
-            and "ps" in options["options"]
-        ):
+        if options["options"].get("ps"):
             self.message = _("Converting to PS")
             proc = exec_command(
                 [options["options"]["pstool"], filename, options["options"]["ps"]],
@@ -3848,14 +3838,7 @@ def _encrypt_pdf(filename, options, request):
 
 
 def _set_timestamp(options):
-    if (
-        options is None
-        or "options" not in options
-        or options["options"] is None
-        or "set_timestamp" not in options["options"]
-        or not options["options"]["set_timestamp"]
-        or "ps" in options["options"]
-    ):
+    if options["options"].get("set_timestamp") is None or options["options"].get("ps"):
         return
 
     metadata = options["metadata"]

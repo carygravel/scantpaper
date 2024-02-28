@@ -1,4 +1,5 @@
 "Tests for document.py"
+from collections import defaultdict
 import re
 import os
 import datetime
@@ -192,13 +193,16 @@ def test_file_dates():
     slist = Document()
     filename = "test.txt"
     subprocess.run(["touch", filename], check=True)
-    options = {
-        "path": filename,
-        "options": {"set_timestamp": True},
-        "metadata": {
-            "datetime": [2016, 2, 10, 0, 0, 0],
+    options = defaultdict(
+        None,
+        {
+            "path": filename,
+            "options": {"set_timestamp": True},
+            "metadata": {
+                "datetime": [2016, 2, 10, 0, 0, 0],
+            },
         },
-    }
+    )
     _set_timestamp(options)  # pylint: disable=protected-access
     stb = os.stat(filename)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
