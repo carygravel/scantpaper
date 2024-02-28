@@ -3929,34 +3929,16 @@ def _convert_image_for_djvu(pagedata, options, request):
     filename = pagedata.filename
 
     # Check the image depth to decide what sort of compression to use
-    image = Image.open(filename)
-    # if f"{e}":
-    #     logger.error(e)
-    #     self._thread_throw_error(
-    #         options["uuid"],
-    #         options["page"]["uuid"],
-    #         "Save file",
-    #         f"Error reading {filename}: {e}.",
-    #     )
-    #     return
-
-    mode = image.mode
-    compression, resolution, upsample = None, None, None
+    compression = None
 
     # c44 and cjb2 do not support different resolutions in the x and y
     # directions, so resample
-    xresolution, yresolution, units = pagedata.get_resolution()
-    width, height = pagedata.width, pagedata.height
-    if xresolution != yresolution:
-        resolution = max(xresolution, yresolution)
-        width *= resolution / xresolution
-        height *= resolution / yresolution
-        logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
-        image = image.resize((int(width), int(height)), resample=Image.BOX)
+    resolution, image = pagedata.equalize_resolution()
+    if image:
         upsample = True
-
     else:
-        resolution = xresolution
+        upsample = False
+        image = Image.open(filename)
 
     # c44 can only use pnm and jpg
     fformat = None
@@ -3964,6 +3946,7 @@ def _convert_image_for_djvu(pagedata, options, request):
     if regex:
         fformat = regex.group(1)
 
+    mode = image.mode
     if mode != "1":
         compression = "c44"
         if (
@@ -3977,16 +3960,6 @@ def _convert_image_for_djvu(pagedata, options, request):
             ) as pnm:
                 image.save(pnm.name)
                 filename = pnm.name
-            # if f"{e}":
-            #     logger.error(e)
-            #     _thread_throw_error(
-            #         self,
-            #         options["uuid"],
-            #         options["page"]["uuid"],
-            #         "Save file",
-            #         f"Error writing {pnm}: {e}.",
-            #     )
-            #     return
 
     # cjb2 can only use pnm and tif
     else:

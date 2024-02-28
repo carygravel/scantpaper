@@ -315,6 +315,21 @@ class Page:
             self._depth = MODE2DEPTH[self.im_object().mode]
         return self._depth
 
+    def equalize_resolution(self):
+        "c44 and cjb2 do not support different resolutions in the x and y directions, so resample"
+        xresolution, yresolution, units = self.get_resolution()
+        width, height = self.width, self.height
+        if xresolution != yresolution:
+            image = self.im_object()
+            resolution = max(xresolution, yresolution)
+            width *= resolution / xresolution
+            height *= resolution / yresolution
+            logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
+            return resolution, image.resize(
+                (int(width), int(height)), resample=Image.BOX
+            )
+        return xresolution, None
+
 
 def _prepare_scale(image_width, image_height, res_ratio, max_width, max_height):
     if image_width <= 0 or image_height <= 0 or max_width <= 0 or max_height <= 0:
