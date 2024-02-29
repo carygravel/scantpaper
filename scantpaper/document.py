@@ -237,6 +237,7 @@ class Document(SimpleList):
 
     def create_pidfile(self, options):
         "create file in which to store the PID"
+        options = defaultdict(None, options)
         try:
             with tempfile.NamedTemporaryFile(
                 dir=self.dir, suffix=".pid", delete=False
@@ -246,7 +247,7 @@ class Document(SimpleList):
             logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
                 options["error_callback"](
-                    options["page"] if "page" in options else None,
+                    options.get("page"),
                     "create PID file",
                     f"Error: unable to write to {self.dir}.",
                 )
@@ -261,6 +262,7 @@ class Document(SimpleList):
             self._get_file_info_finished_callback1(i, info, options)
 
     def _get_file_info_finished_callback1(self, i, infolist, options):
+        options = defaultdict(None, options)
         path = options["paths"][i]
 
         # File in which to store the process ID
@@ -292,18 +294,10 @@ class Document(SimpleList):
             # "pidfile": f"{pidfile}",
             # # "uuid": uid,
             options["passwords"][i] if i < len(options["passwords"]) else None,
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            running_callback=options["running_callback"]
-            if "running_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            running_callback=options.get("running_callback"),
+            error_callback=options.get("error_callback"),
             finished_callback=_select_next_finished_callback,
         )
 
@@ -948,6 +942,7 @@ class Document(SimpleList):
 
     def save_pdf(self, **options):
         "save the given pages as PDF"
+        options = defaultdict(None, options)
 
         # File in which to store the process ID so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -957,33 +952,23 @@ class Document(SimpleList):
         self.thread.save_pdf(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
-            metadata=options["metadata"] if "metadata" in options else None,
-            options=options["options"] if "options" in options else None,
+            metadata=options.get("metadata"),
+            options=options.get("options"),
             dir=self.dir,
             pidfile=pidfile,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            mark_saved_callback=options["mark_saved_callback"]
-            if "mark_saved_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            mark_saved_callback=options.get("mark_saved_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def save_djvu(self, **options):
         "save the given pages as DjVu"
+        options = defaultdict(None, options)
 
         # File in which to store the process ID so that it can be killed if necessary
-
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
@@ -991,30 +976,21 @@ class Document(SimpleList):
         self.thread.save_djvu(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
-            metadata=options["metadata"] if "metadata" in options else None,
-            options=options["options"] if "options" in options else None,
+            metadata=options.get("metadata"),
+            options=options.get("options"),
             dir=self.dir,
             pidfile=pidfile,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            mark_saved_callback=options["mark_saved_callback"]
-            if "mark_saved_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            mark_saved_callback=options.get("mark_saved_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def save_tiff(self, **options):
         "save the given pages as TIFF"
+        options = defaultdict(None, options)
 
         # File in which to store the process ID so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -1024,29 +1000,20 @@ class Document(SimpleList):
         self.thread.save_tiff(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
-            options=options["options"] if "options" in options else None,
+            options=options.get("options"),
             dir=self.dir,
             pidfile=pidfile,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            mark_saved_callback=options["mark_saved_callback"]
-            if "mark_saved_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            mark_saved_callback=options.get("mark_saved_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def rotate(self, **options):
         "rotate given page"
+        options = defaultdict(None, options)
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
@@ -1055,25 +1022,16 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def save_image(self, **options):
         "save the given pages as image files"
+        options = defaultdict(None, options)
 
         # File in which to store the process ID so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -1083,24 +1041,14 @@ class Document(SimpleList):
         self.thread.save_image(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
-            options=options["options"] if "options" in options else None,
+            options=options.get("options"),
             pidfile=pidfile,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            mark_saved_callback=options["mark_saved_callback"]
-            if "mark_saved_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            mark_saved_callback=options.get("mark_saved_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def scans_saved(self):
@@ -1112,145 +1060,94 @@ class Document(SimpleList):
 
     def save_text(self, **options):
         "save a text file from the given pages"
+        options = defaultdict(None, options)
         self.thread.save_text(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
-            options=options["options"] if "options" in options else None,
+            options=options.get("options"),
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            mark_saved_callback=options["mark_saved_callback"]
-            if "mark_saved_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            mark_saved_callback=options.get("mark_saved_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def save_hocr(self, **options):
         "save an hocr file from the given pages"
+        options = defaultdict(None, options)
         self.thread.save_hocr(
             path=options["path"],
             list_of_pages=options["list_of_pages"],
-            options=options["options"] if "options" in options else None,
+            options=options.get("options"),
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            mark_saved_callback=options["mark_saved_callback"]
-            if "mark_saved_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            mark_saved_callback=options.get("mark_saved_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def analyse(self, **options):
         "analyse given page"
+        options = defaultdict(None, options)
         self.thread.analyse(
             list_of_pages=options["list_of_pages"],
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def threshold(self, **options):
         "threshold given page"
+        options = defaultdict(None, options)
         self.thread.threshold(
             threshold=options["threshold"],
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def brightness_contrast(self, **options):
         "adjust brightness & contrast of given page"
+        options = defaultdict(None, options)
         self.thread.brightness_contrast(
             brightness=options["brightness"],
             contrast=options["contrast"],
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def negate(self, **options):
         "negate given page"
+        options = defaultdict(None, options)
         self.thread.negate(
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def unsharp(self, **options):
         "run unsharp mask on given page"
+        options = defaultdict(None, options)
         self.thread.unsharp(
             radius=options["radius"],
             percent=options["percent"],
@@ -1258,25 +1155,16 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def crop(self, **options):
         "crop page"
+        options = defaultdict(None, options)
         self.thread.crop(
             x=options["x"],
             y=options["y"],
@@ -1285,26 +1173,17 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def split_page(self, **options):
         """split the given page either vertically or horizontally, creating an
         additional page"""
+        options = defaultdict(None, options)
 
         # FIXME: duplicate to _import_file_data_callback()
         def _split_page_data_callback(response):
@@ -1320,22 +1199,12 @@ class Document(SimpleList):
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
             data_callback=_split_page_data_callback,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            finished_callback=options.get("finished_callback"),
         )
 
     def to_png(self, options):
@@ -1348,26 +1217,17 @@ class Document(SimpleList):
 
     def tesseract(self, **options):
         "run tesseract on the given page"
+        options = defaultdict(None, options)
         self.thread.tesseract(
             language=options["language"],
             page=options["page"],
             dir=self.dir,
             uuid=_note_callbacks(options),
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            display_callback=options["display_callback"]
-            if "display_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            display_callback=options.get("display_callback"),
+            error_callback=options.get("error_callback"),
+            finished_callback=options.get("finished_callback"),
         )
 
     def ocr_pages(self, **options):
@@ -1405,6 +1265,7 @@ class Document(SimpleList):
 
     def user_defined(self, **options):
         "run a user-defined command on a page"
+        options = defaultdict(None, options)
         # File in which to store the process ID so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
         if pidfile is None:
@@ -1424,19 +1285,11 @@ class Document(SimpleList):
             dir=self.dir,
             uuid=_note_callbacks(options),
             pidfile=pidfile,
-            queued_callback=options["queued_callback"]
-            if "queued_callback" in options
-            else None,
-            started_callback=options["started_callback"]
-            if "started_callback" in options
-            else None,
-            error_callback=options["error_callback"]
-            if "error_callback" in options
-            else None,
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            error_callback=options.get("error_callback"),
             data_callback=_user_defined_data_callback,
-            finished_callback=options["finished_callback"]
-            if "finished_callback" in options
-            else None,
+            finished_callback=options.get("finished_callback"),
         )
 
     def save_session(self, filename=None, version=None):
