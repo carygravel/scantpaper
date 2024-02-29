@@ -940,116 +940,34 @@ class Document(SimpleList):
         # self.save_session()
         logger.info("Deleted %s pages", npages)
 
-    def save_pdf(self, **options):
+    def save_pdf(self, **kwargs):
         "save the given pages as PDF"
-        options = defaultdict(None, options)
+        kwargs["mark_saved"] = True
+        self._note_callbacks(kwargs)
+        self.thread.save_pdf(**kwargs)
 
-        # File in which to store the process ID so that it can be killed if necessary
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
-        options["mark_saved"] = True
-        self.thread.save_pdf(
-            path=options["path"],
-            list_of_pages=options["list_of_pages"],
-            metadata=options.get("metadata"),
-            options=options.get("options"),
-            dir=self.dir,
-            pidfile=pidfile,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            mark_saved_callback=options.get("mark_saved_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
-
-    def save_djvu(self, **options):
+    def save_djvu(self, **kwargs):
         "save the given pages as DjVu"
-        options = defaultdict(None, options)
+        kwargs["mark_saved"] = True
+        self._note_callbacks(kwargs)
+        self.thread.save_djvu(**kwargs)
 
-        # File in which to store the process ID so that it can be killed if necessary
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
-        options["mark_saved"] = True
-        self.thread.save_djvu(
-            path=options["path"],
-            list_of_pages=options["list_of_pages"],
-            metadata=options.get("metadata"),
-            options=options.get("options"),
-            dir=self.dir,
-            pidfile=pidfile,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            mark_saved_callback=options.get("mark_saved_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
-
-    def save_tiff(self, **options):
+    def save_tiff(self, **kwargs):
         "save the given pages as TIFF"
-        options = defaultdict(None, options)
+        kwargs["mark_saved"] = True
+        self._note_callbacks(kwargs)
+        self.thread.save_tiff(**kwargs)
 
-        # File in which to store the process ID so that it can be killed if necessary
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
-        options["mark_saved"] = True
-        self.thread.save_tiff(
-            path=options["path"],
-            list_of_pages=options["list_of_pages"],
-            options=options.get("options"),
-            dir=self.dir,
-            pidfile=pidfile,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            mark_saved_callback=options.get("mark_saved_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
-
-    def rotate(self, **options):
+    def rotate(self, **kwargs):
         "rotate given page"
-        options = defaultdict(None, options)
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
-        self.thread.rotate(
-            angle=options["angle"],
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.rotate(**kwargs)
 
-    def save_image(self, **options):
+    def save_image(self, **kwargs):
         "save the given pages as image files"
-        options = defaultdict(None, options)
-
-        # File in which to store the process ID so that it can be killed if necessary
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
-        options["mark_saved"] = True
-        self.thread.save_image(
-            path=options["path"],
-            list_of_pages=options["list_of_pages"],
-            options=options.get("options"),
-            pidfile=pidfile,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            mark_saved_callback=options.get("mark_saved_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        kwargs["mark_saved"] = True
+        self._note_callbacks(kwargs)
+        self.thread.save_image(**kwargs)
 
     def scans_saved(self):
         "Check that all pages have been saved"
@@ -1058,239 +976,108 @@ class Document(SimpleList):
                 return False
         return True
 
-    def save_text(self, **options):
+    def save_text(self, **kwargs):
         "save a text file from the given pages"
-        options = defaultdict(None, options)
-        self.thread.save_text(
-            path=options["path"],
-            list_of_pages=options["list_of_pages"],
-            options=options.get("options"),
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            mark_saved_callback=options.get("mark_saved_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.save_text(**kwargs)
 
-    def save_hocr(self, **options):
+    def save_hocr(self, **kwargs):
         "save an hocr file from the given pages"
-        options = defaultdict(None, options)
-        self.thread.save_hocr(
-            path=options["path"],
-            list_of_pages=options["list_of_pages"],
-            options=options.get("options"),
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            mark_saved_callback=options.get("mark_saved_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.save_hocr(**kwargs)
 
-    def analyse(self, **options):
+    def analyse(self, **kwargs):
         "analyse given page"
-        options = defaultdict(None, options)
-        self.thread.analyse(
-            list_of_pages=options["list_of_pages"],
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.analyse(**kwargs)
 
-    def threshold(self, **options):
+    def threshold(self, **kwargs):
         "threshold given page"
-        options = defaultdict(None, options)
-        self.thread.threshold(
-            threshold=options["threshold"],
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.threshold(**kwargs)
 
-    def brightness_contrast(self, **options):
+    def brightness_contrast(self, **kwargs):
         "adjust brightness & contrast of given page"
-        options = defaultdict(None, options)
-        self.thread.brightness_contrast(
-            brightness=options["brightness"],
-            contrast=options["contrast"],
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.brightness_contrast(**kwargs)
 
-    def negate(self, **options):
+    def negate(self, **kwargs):
         "negate given page"
-        options = defaultdict(None, options)
-        self.thread.negate(
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.negate(**kwargs)
 
-    def unsharp(self, **options):
+    def unsharp(self, **kwargs):
         "run unsharp mask on given page"
-        options = defaultdict(None, options)
-        self.thread.unsharp(
-            radius=options["radius"],
-            percent=options["percent"],
-            threshold=options["threshold"],
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.unsharp(**kwargs)
 
-    def crop(self, **options):
+    def crop(self, **kwargs):
         "crop page"
-        options = defaultdict(None, options)
-        self.thread.crop(
-            x=options["x"],
-            y=options["y"],
-            w=options["w"],
-            h=options["h"],
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.crop(**kwargs)
 
-    def split_page(self, **options):
+    def split_page(self, **kwargs):
         """split the given page either vertically or horizontally, creating an
         additional page"""
-        options = defaultdict(None, options)
 
         # FIXME: duplicate to _import_file_data_callback()
         def _split_page_data_callback(response):
             if response.info["type"] == "page":
                 self.add_page(response.info["page"], response.info["info"])
             else:
-                if "logger_callback" in options:
-                    options["logger_callback"](response)
+                if "logger_callback" in kwargs:
+                    kwargs["logger_callback"](response)
 
-        self.thread.split_page(
-            direction=options["direction"],
-            position=options["position"],
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            data_callback=_split_page_data_callback,
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        kwargs["data_callback"] = _split_page_data_callback
+        self.thread.split_page(**kwargs)
 
-    def to_png(self, options):
+    def to_png(self, kwargs):
         "convert the given page to png"
-        self.thread.to_png(
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.to_png(**kwargs)
 
-    def tesseract(self, **options):
+    def tesseract(self, **kwargs):
         "run tesseract on the given page"
-        options = defaultdict(None, options)
-        self.thread.tesseract(
-            language=options["language"],
-            page=options["page"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        self.thread.tesseract(**kwargs)
 
-    def ocr_pages(self, **options):
+    def ocr_pages(self, **kwargs):
         "Wrapper for the various ocr engines"
-        for page in options["pages"]:
-            options["page"] = page
-            if options["engine"] == "tesseract":
-                self.tesseract(**options)
+        for page in kwargs["pages"]:
+            kwargs["page"] = page
+            if kwargs["engine"] == "tesseract":
+                self.tesseract(**kwargs)
 
-    def unpaper(self, **options):
+    def unpaper(self, **kwargs):
         "run unpaper on the given page"
-        options = defaultdict(None, options)
 
         # FIXME: duplicate to _import_file_data_callback()
         def _unpaper_data_callback(response):
             if isinstance(response.info, dict) and "page" in response.info:
                 self.add_page(response.info["page"], response.info["info"])
             else:
-                if "logger_callback" in options:
-                    options["logger_callback"](response)
+                if "logger_callback" in kwargs:
+                    kwargs["logger_callback"](response)
 
-        self.thread.unpaper(
-            page=options["page"],
-            options=options["options"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            display_callback=options.get("display_callback"),
-            error_callback=options.get("error_callback"),
-            data_callback=_unpaper_data_callback,
-            updated_page_callback=options.get("updated_page_callback"),
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        kwargs["data_callback"] = _unpaper_data_callback
+        self.thread.unpaper(**kwargs)
 
-    def user_defined(self, **options):
+    def user_defined(self, **kwargs):
         "run a user-defined command on a page"
-        options = defaultdict(None, options)
-        # File in which to store the process ID so that it can be killed if necessary
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
 
         # FIXME: duplicate to _import_file_data_callback()
         def _user_defined_data_callback(response):
             if response.info["type"] == "page":
                 self.add_page(response.info["page"], response.info["info"])
             else:
-                if "logger_callback" in options:
-                    options["logger_callback"](response)
+                if "logger_callback" in kwargs:
+                    kwargs["logger_callback"](response)
 
-        self.thread.user_defined(
-            page=options["page"],
-            command=options["command"],
-            dir=self.dir,
-            uuid=_note_callbacks(options),
-            pidfile=pidfile,
-            queued_callback=options.get("queued_callback"),
-            started_callback=options.get("started_callback"),
-            error_callback=options.get("error_callback"),
-            data_callback=_user_defined_data_callback,
-            finished_callback=options.get("finished_callback"),
-        )
+        self._note_callbacks(kwargs)
+        kwargs["data_callback"] = _user_defined_data_callback
+        self.thread.user_defined(**kwargs)
 
     def save_session(self, filename=None, version=None):
         """Dump $self to a file.
@@ -1516,6 +1303,21 @@ class Document(SimpleList):
     def set_dir(self, dirname):
         "Set session dir"
         self.dir = dirname
+
+    def _note_callbacks(self, kwargs):
+        "create the mark_saved callback if necessary"
+        # File in which to store the process ID so that it can be killed if necessary
+        kwargs["pidfile"] = self.create_pidfile(kwargs)
+        kwargs["dir"] = self.dir
+        if "mark_saved" in kwargs and kwargs["mark_saved"]:
+
+            def mark_saved_callback(_data):
+                # list_of_pages is frozen,
+                # so find the original pages from their uuids
+                for page in kwargs["list_of_pages"]:
+                    page.saved = True
+
+            kwargs["mark_saved_callback"] = mark_saved_callback
 
 
 def _extract_metadata(info):
@@ -1743,19 +1545,6 @@ def _bbox2markup(xresolution, yresolution, height, bbox):
         bbox[RIGHT],
         bbox[TOP],
     ]
-
-
-def _note_callbacks(options):
-    "create the mark_saved callback if necessary"
-    if "mark_saved" in options and options["mark_saved"]:
-
-        def mark_saved_callback(_data):
-            # list_of_pages is frozen,
-            # so find the original pages from their uuids
-            for page in options["list_of_pages"]:
-                page.saved = True
-
-        options["mark_saved_callback"] = mark_saved_callback
 
 
 # https://py-pdf.github.io/fpdf2/Annotations.html

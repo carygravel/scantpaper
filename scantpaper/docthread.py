@@ -380,7 +380,7 @@ class DocThread(BaseThread):
         self.message = _("Setting up PDF")
         outdir = pathlib.Path(options["dir"])
         filename = options["path"]
-        if _need_temp_pdf(options["options"]):
+        if _need_temp_pdf(options.get("options")):
             with tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=".pdf", delete=False
             ) as temp:
@@ -427,12 +427,12 @@ class DocThread(BaseThread):
 
         _append_pdf(filename, options, request)
 
-        if options["options"] and options["options"].get("user-password"):
+        if options.get("options") and options["options"].get("user-password"):
             if _encrypt_pdf(filename, options, request):
                 return
 
         _set_timestamp(options)
-        if options["options"] and options["options"].get("ps"):
+        if options.get("options") and options["options"].get("ps"):
             self.message = _("Converting to PS")
             proc = exec_command(
                 [options["options"]["pstool"], filename, options["options"]["ps"]],
@@ -446,7 +446,7 @@ class DocThread(BaseThread):
             _post_save_hook(options["options"]["ps"], options["options"])
 
         else:
-            _post_save_hook(filename, options["options"])
+            _post_save_hook(filename, options.get("options"))
 
     def save_djvu(self, **kwargs):
         "save DjvU"
@@ -976,7 +976,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         angle, page = options["angle"], options["page"]
 
-        if _page_gone("rotate", options["uuid"], page, request):
+        if _page_gone("rotate", page, request):
             return None
         filename = page.filename
         logger.info("Rotating %s by %s degrees", filename, angle)
@@ -1040,7 +1040,7 @@ class DocThread(BaseThread):
         "run user defined command on page in thread"
         options = request.args[0]
 
-        if _page_gone("user-defined", options["uuid"], options["page"], request):
+        if _page_gone("user-defined", options["page"], request):
             return
 
         infile = options["page"].filename
@@ -1131,7 +1131,6 @@ class DocThread(BaseThread):
                 request.data(
                     {
                         "type": "page",
-                        "uuid": options["uuid"],
                         "page": new,
                         "info": {"replace": new.uuid},
                     }
@@ -1190,7 +1189,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         threshold, page = (options["threshold"], options["page"])
 
-        if _page_gone("threshold", options["uuid"], page, request):
+        if _page_gone("threshold", page, request):
             return None
         if self.cancel:
             raise CancelledError()
@@ -1234,7 +1233,7 @@ class DocThread(BaseThread):
             options["page"],
         )
 
-        if _page_gone("brightness-contrast", options["uuid"], options["page"], request):
+        if _page_gone("brightness-contrast", options["page"], request):
             return None
 
         filename = page.filename
@@ -1266,7 +1265,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page = options["page"]
 
-        if _page_gone("negate", options["uuid"], page, request):
+        if _page_gone("negate", page, request):
             return None
 
         filename = page.filename
@@ -1295,7 +1294,7 @@ class DocThread(BaseThread):
         percent = options["percent"]
         threshold = options["threshold"]
 
-        if _page_gone("unsharp", options["uuid"], page, request):
+        if _page_gone("unsharp", page, request):
             return None
 
         filename = page.filename
@@ -1333,7 +1332,7 @@ class DocThread(BaseThread):
         width = options["w"]
         height = options["h"]
 
-        if _page_gone("crop", options["uuid"], options["page"], request):
+        if _page_gone("crop", options["page"], request):
             return None
 
         filename = page.filename
@@ -1367,7 +1366,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page = options["page"]
 
-        if _page_gone("split", options["uuid"], options["page"], request):
+        if _page_gone("split", options["page"], request):
             return
 
         filename = page.filename
@@ -1441,7 +1440,6 @@ class DocThread(BaseThread):
         request.data(
             {
                 "type": "page",
-                "uuid": options["uuid"],
                 "page": page,
                 "info": {"replace": page.uuid},
             }
@@ -1449,7 +1447,6 @@ class DocThread(BaseThread):
         request.data(
             {
                 "type": "page",
-                "uuid": options["uuid"],
                 "page": new2,
                 "info": {"insert-after": page.uuid},
             }
@@ -1465,7 +1462,7 @@ class DocThread(BaseThread):
         options = request.args[0]
         page, language = (options["page"], options["language"])
 
-        if _page_gone("tesseract", options["uuid"], options["page"], request):
+        if _page_gone("tesseract", options["page"], request):
             return None
 
         if self.cancel:
@@ -1554,7 +1551,7 @@ class DocThread(BaseThread):
         "run unpaper in thread"
         options = request.args[0]
 
-        if _page_gone("unpaper", options["uuid"], options["page"], request):
+        if _page_gone("unpaper", options["page"], request):
             return
 
         try:
@@ -1601,7 +1598,6 @@ class DocThread(BaseThread):
             request.data(
                 {
                     "type": "page",
-                    "uuid": options["uuid"],
                     "page": new,
                     "info": {"replace": options["page"].uuid},
                 }
@@ -1618,7 +1614,6 @@ class DocThread(BaseThread):
                 request.data(
                     {
                         "type": "page",
-                        "uuid": options["uuid"],
                         "page": new2,
                         "info": {"insert-after": new.uuid},
                     }
@@ -1780,7 +1775,7 @@ def _append_pdf(filename, options, request):
 
 def _set_timestamp(options):
     if (
-        not options["options"]
+        not options.get("options")
         or options["options"].get("set_timestamp") is None
         or options["options"].get("ps")
     ):
@@ -1943,11 +1938,11 @@ def _add_ann_to_djvu(djvu, dirname, pagedata, request):
             request.error(_("Error adding annotations to DjVu"))
 
 
-def _page_gone(process, uid, page, request):
+def _page_gone(process, page, request):
     if not os.path.isfile(
         page.filename
     ):  # in case file was deleted after process started
-        err = f"Page for process {uid} no longer exists. Cannot {process}."
+        err = f"Page for process {request.uuid} no longer exists. Cannot {process}."
         logger.error(err)
         request.error(err)
         return True
