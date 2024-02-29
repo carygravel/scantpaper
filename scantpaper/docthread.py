@@ -1964,3 +1964,28 @@ def _encrypt_pdf(filename, options, request):
         logger.info(spo.stderr)
         request.error(_("Error encrypting PDF: %s") % (spo.stderr))
     return spo.returncode
+
+
+# https://py-pdf.github.io/fpdf2/Annotations.html
+def _add_annotations_to_pdf(page, gs_page):
+    """Box is the same size as the page. We don't know the text position.
+    Start at the top of the page (PDF coordinate system starts
+    at the bottom left of the page)"""
+    xresolution, yresolution, _units = gs_page.get_resolution()
+    height = px2pt(gs_page.height, yresolution)
+    for box in Bboxtree(gs_page.annotations).get_bbox_iter():
+        if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
+            continue
+
+        rgb = []
+        for i in range(3):
+            rgb.append(hex(ANNOTATION_COLOR[i : i + 2]) / 255)
+
+        annot = page.annotation()
+        annot.markup(
+            box["text"],
+            _bbox2markup(xresolution, yresolution, height, len(box["bbox"])),
+            "Highlight",
+            color=rgb,
+            opacity=0.5,
+        )
