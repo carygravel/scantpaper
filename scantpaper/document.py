@@ -67,22 +67,6 @@ SimpleList.add_column_type(hstring={"type": object, "attr": "hidden"})
 
 class Document(SimpleList):
     "a Document is a simple list of pages"
-    # easier to extract strings with xgettext
-    # To get TRUE and FALSE. 1.210 necessary for Glib::SOURCE_REMOVE and Glib::SOURCE_CONTINUE
-
-    # To create temporary files
-    # Split filename into dir, file, ext
-
-    # For session files
-
-    # for gensym
-    # For size method for page numbering issues
-
-    # for $PROCESS_ID, $INPUT_RECORD_SEPARATOR
-    # $CHILD_ERROR
-
-    # to deal with utf8 in filenames
-
     jobs_completed = 0
     jobs_total = 0
     uuid_object = uuid.uuid1()
@@ -433,7 +417,7 @@ class Document(SimpleList):
         )
 
     def _post_process_scan(self, page, options):
-        options = defaultdict(None, **options)
+        options = defaultdict(None, options)
 
         # tesseract can't extract resolution from pnm, so convert to png
         if (
@@ -1395,7 +1379,7 @@ class Document(SimpleList):
 
     def unpaper(self, **options):
         "run unpaper on the given page"
-        options = defaultdict(None, **options)
+        options = defaultdict(None, options)
 
         # FIXME: duplicate to _import_file_data_callback()
         def _unpaper_data_callback(response):
