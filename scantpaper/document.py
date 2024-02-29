@@ -10,7 +10,6 @@ import uuid
 import logging
 import signal
 import tarfile
-from const import POINTS_PER_INCH, ANNOTATION_COLOR
 from bboxtree import Bboxtree, unescape_utf8
 from docthread import DocThread
 from i18n import _
@@ -50,10 +49,6 @@ STRFTIME_YEAR_OFFSET = -1900
 STRFTIME_MONTH_OFFSET = -1
 MIN_YEAR_FOR_DATECALC = 1970
 LAST_ELEMENT = -1
-LEFT = 0
-TOP = 1
-RIGHT = 2
-BOTTOM = 3
 
 
 EXPORT_OK = []
@@ -1433,115 +1428,3 @@ def slurp(file):
     "slurp file"
     with open(file, "r", encoding="utf-8") as fhd:
         return fhd.read()
-
-
-def expand_metadata_pattern(**kwargs):
-    "expand metadata template"
-
-    # Expand author, title and extension
-    for key in ["author", "title", "subject", "keywords", "extension"]:
-        if key not in kwargs:
-            kwargs[key] = ""
-        regex = r"%D" + key[0]
-        kwargs["template"] = re.sub(
-            regex, kwargs[key], kwargs["template"], flags=re.MULTILINE | re.DOTALL
-        )
-
-    # Expand convert %Dx code to %x, convert using strftime and replace
-    regex = re.search(
-        r"%D([A-Za-z])", kwargs["template"], re.MULTILINE | re.DOTALL | re.VERBOSE
-    )
-    while regex:
-        code = regex.group(1)
-        template = f"{PERCENT}{code}"
-        result = kwargs["docdate"].strftime(template)
-        kwargs["template"] = re.sub(
-            rf"%D{code}",
-            result,
-            kwargs["template"],
-            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-        regex = re.search(
-            r"%D([A-Za-z])", kwargs["template"], re.MULTILINE | re.DOTALL | re.VERBOSE
-        )
-
-    # Expand basic strftime codes
-    kwargs["template"] = kwargs["today_and_now"].strftime(kwargs["template"])
-
-    # avoid leading and trailing whitespace in expanded filename template
-    kwargs["template"] = kwargs["template"].strip()
-    if "convert_whitespace" in kwargs and kwargs["convert_whitespace"]:
-        kwargs["template"] = re.sub(
-            r"\s", r"_", kwargs["template"], flags=re.MULTILINE | re.DOTALL
-        )
-    return kwargs["template"]
-
-
-def collate_metadata(settings, today_and_now, timezone):
-    "collect metadata from settings dictionary"
-    metadata = {}
-    for key in ["author", "title", "subject", "keywords"]:
-        if key in settings:
-            metadata[key] = settings[key]
-
-    today_and_now = datetime.datetime(*today_and_now)
-    offset = datetime.timedelta(
-        days=settings["datetime offset"][0],
-        hours=settings["datetime offset"][1],
-        minutes=settings["datetime offset"][2],
-        seconds=settings["datetime offset"][3],
-    )
-    today_plus_offset = today_and_now + offset
-    metadata["datetime"] = [
-        today_plus_offset.year,
-        today_plus_offset.month,
-        today_plus_offset.day,
-        today_plus_offset.hour,
-        today_plus_offset.minute,
-        today_plus_offset.second,
-    ]
-    if "use_time" not in settings:
-        # Set time to zero
-        time = [0, 0, 0]
-        del metadata["datetime"][
-            len(metadata["datetime"]) - len(time) : len(metadata["datetime"])
-        ]
-        metadata["datetime"] += time
-
-    if "use_timezone" in settings:
-        metadata["tz"] = add_delta_timezone(timezone, settings["timezone offset"])
-
-    return metadata
-
-
-def add_delta_timezone(timezone, timezone_offset):
-    "apply timezone delta"
-    return [timezone[i] + timezone_offset[i] for i in range(len(timezone))]
-
-
-def delta_timezone(tz1, tz2):
-    "calculate delta between two timezones - mostly to spot differences between DST"
-    return [tz2[i] - tz1[i] for i in range(len(tz1))]
-
-
-def px2pt(pixels, resolution):
-    """helper function to return length in points given a number of pixels
-    and the resolution"""
-    return pixels / resolution * POINTS_PER_INCH
-
-
-def _bbox2markup(xresolution, yresolution, height, bbox):
-    for i in (0, 2):
-        bbox[i] = px2pt(bbox[i], xresolution)
-        bbox[i + 1] = height - px2pt(bbox[i + 1], yresolution)
-
-    return [
-        bbox[LEFT],
-        bbox[BOTTOM],
-        bbox[RIGHT],
-        bbox[BOTTOM],
-        bbox[LEFT],
-        bbox[TOP],
-        bbox[RIGHT],
-        bbox[TOP],
-    ]

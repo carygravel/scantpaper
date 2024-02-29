@@ -9,16 +9,12 @@ import pytest
 from page import Page
 from document import (
     Document,
-    expand_metadata_pattern,
     VERSION,
-    collate_metadata,
-    add_delta_timezone,
-    delta_timezone,
     _extract_metadata,
-    _bbox2markup,
 )
-from docthread import prepare_output_metadata, _set_timestamp
-from helpers import exec_command, _program_version, Proc
+from docthread import prepare_output_metadata, _set_timestamp, _bbox2markup
+from helpers import exec_command, _program_version, Proc,     expand_metadata_pattern,collate_metadata
+
 
 
 def get_page_index_all_callback(_uuid, _process, _message):
@@ -211,18 +207,6 @@ def test_file_dates():
         2016, 2, 9, 10, 0, 0
     ), "timestamp with timezone"
     os.remove(filename)
-
-
-def test_date_conversions():
-    "test conversions"
-
-    tz1 = [0, 0, 0, 2, 0, 0, 1]
-    tz_delta = [0, 0, 0, -1, 0, 0, -1]
-    tz2 = add_delta_timezone(tz1, tz_delta)
-    assert tz2 == [0, 0, 0, 1, 0, 0, 0], "Add_Delta_Timezone"
-
-    tz_delta = delta_timezone(tz1, tz2)
-    assert tz_delta == [0, 0, 0, -1, 0, 0, -1], "Delta_Timezone"
 
 
 def test_helpers():
@@ -443,13 +427,12 @@ def test_helpers():
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
-        "datetime offset": [2, 0, 59, 59],
-        "timezone offset": [0, 0, 0, 0, 0, 0, 0],
+        "datetime offset": datetime.timedelta(days=2, hours=0, minutes=59, seconds=59),
+        "timezone offset": datetime.timedelta(hours=0),
     }
-    today_and_now = [2016, 2, 10, 1, 2, 3]
-    timezone = [0, 0, 0, 1, 0, 0, 0]
-    assert collate_metadata(settings, today_and_now, timezone) == {
-        "datetime": [2016, 2, 12, 0, 0, 0],
+    today_and_now = datetime.datetime(2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1)))
+    assert collate_metadata(settings, today_and_now) == {
+        "datetime": datetime.datetime(2016, 2, 12, tzinfo=datetime.timezone.utc),
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
@@ -457,9 +440,8 @@ def test_helpers():
     }, "collate basic metadata"
 
     settings["use_timezone"] = True
-    assert collate_metadata(settings, today_and_now, timezone) == {
-        "datetime": [2016, 2, 12, 0, 0, 0],
-        "tz": [0, 0, 0, 1, 0, 0, 0],
+    assert collate_metadata(settings, today_and_now) == {
+        "datetime": datetime.datetime(2016, 2, 12, tzinfo=datetime.timezone(datetime.timedelta(hours=1))),
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
@@ -467,27 +449,13 @@ def test_helpers():
     }, "collate timezone"
 
     settings["use_time"] = True
-    assert collate_metadata(settings, today_and_now, timezone) == {
-        "datetime": [2016, 2, 12, 2, 2, 2],
-        "tz": [0, 0, 0, 1, 0, 0, 0],
+    assert collate_metadata(settings, today_and_now) == {
+        "datetime": datetime.datetime(2016, 2, 12, 2, 2, 2, tzinfo=datetime.timezone(datetime.timedelta(hours=1))),
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
     }, "collate time"
-
-    today_and_now = [2016, 6, 10, 1, 2, 3]
-    timezone = [0, 0, 0, 2, 0, 0, 1]
-    settings["datetime offset"] = [-119, 0, 59, 59]
-    settings["timezone offset"] = [0, 0, 0, -1, 0, 0, -1]
-    assert collate_metadata(settings, today_and_now, timezone) == {
-        "datetime": [2016, 2, 12, 2, 2, 2],
-        "tz": [0, 0, 0, 1, 0, 0, 0],
-        "author": "a.n.other",
-        "title": "title",
-        "subject": "subject",
-        "keywords": "keywords",
-    }, "collate dst at time of docdate"
 
     #########################
 

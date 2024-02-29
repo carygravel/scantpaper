@@ -20,6 +20,7 @@ from i18n import _
 from helpers import exec_command
 from page import Page
 from bboxtree import Bboxtree
+from const import POINTS_PER_INCH, ANNOTATION_COLOR
 import tesserocr
 
 img2pdf.default_dpi = 72.0
@@ -27,6 +28,11 @@ img2pdf.default_dpi = 72.0
 logger = logging.getLogger(__name__)
 
 VERSION = "1"
+LEFT = 0
+TOP = 1
+RIGHT = 2
+BOTTOM = 3
+
 PNG = r"Portable[ ]Network[ ]Graphics"
 JPG = r"JPEG"
 GIF = r"CompuServe[ ]graphics[ ]interchange[ ]format"
@@ -1966,6 +1972,29 @@ def _encrypt_pdf(filename, options, request):
     return spo.returncode
 
 
+def px2pt(pixels, resolution):
+    """helper function to return length in points given a number of pixels
+    and the resolution"""
+    return pixels / resolution * POINTS_PER_INCH
+
+
+def _bbox2markup(xresolution, yresolution, height, bbox):
+    for i in (0, 2):
+        bbox[i] = px2pt(bbox[i], xresolution)
+        bbox[i + 1] = height - px2pt(bbox[i + 1], yresolution)
+
+    return [
+        bbox[LEFT],
+        bbox[BOTTOM],
+        bbox[RIGHT],
+        bbox[BOTTOM],
+        bbox[LEFT],
+        bbox[TOP],
+        bbox[RIGHT],
+        bbox[TOP],
+    ]
+
+
 # https://py-pdf.github.io/fpdf2/Annotations.html
 def _add_annotations_to_pdf(page, gs_page):
     """Box is the same size as the page. We don't know the text position.
@@ -1974,7 +2003,7 @@ def _add_annotations_to_pdf(page, gs_page):
     xresolution, yresolution, _units = gs_page.get_resolution()
     height = px2pt(gs_page.height, yresolution)
     for box in Bboxtree(gs_page.annotations).get_bbox_iter():
-        if box["type"] == "page" or "text" not in box or box["text"] == EMPTY:
+        if box["type"] == "page" or "text" not in box or box["text"] == "":
             continue
 
         rgb = []
