@@ -1551,6 +1551,57 @@ class DocThread(BaseThread):
         callbacks = _note_callbacks2(kwargs)
         return self.send("unpaper", kwargs, **callbacks)
 
+    def _run_unpaper_cmd(self, request):
+        options = request.args[0]
+        with tempfile.NamedTemporaryFile(
+            dir=options["dir"], suffix=".pnm", delete=False
+        ) as out, tempfile.NamedTemporaryFile(
+            dir=options["dir"], suffix=".pnm", delete=False
+        ) as out2:
+            options["options"]["command"][-2] = out.name
+
+            index = options["options"]["command"].index("--output-pages")
+            if options["options"]["command"][index + 1] == "2":
+                options["options"]["command"][-1] = out2.name
+            else:
+                del options["options"]["command"][-1]
+                out2 = None
+
+            spo = subprocess.run(
+                options["options"]["command"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            logger.info(spo.stdout)
+            if spo.stderr:
+                logger.error(spo.stderr)
+                request.data(spo.stderr)
+                if not os.path.getsize(out.name):
+                    raise subprocess.CalledProcessError
+
+            if self.cancel:
+                raise CancelledError()
+            spo.stdout = re.sub(
+                r"Processing[ ]sheet.*[.]pnm\n",
+                r"",
+                spo.stdout,
+                count=1,
+                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            if spo.stdout:
+                logger.warning(spo.stdout)
+                request.data(spo.stdout)
+                if not os.path.getsize(out.name):
+                    raise subprocess.CalledProcessError
+
+            if (
+                options["options"]["command"][index + 1] == "2"
+                and options["options"].get("direction") == "rtl"
+            ):
+                out, out2 = out2, out
+            return out, out2
+
     def do_unpaper(self, request):
         "run unpaper in thread"
         options = request.args[0]
@@ -1558,11 +1609,14 @@ class DocThread(BaseThread):
         if _page_gone("unpaper", options["uuid"], options["page"], request):
             return
 
-        filename = options["page"].filename
         try:
-            if not re.search(
-                r"[.]pnm$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
+            if re.search(
+                r"[.]pnm$",
+                options["page"].filename,
+                re.MULTILINE | re.DOTALL | re.VERBOSE,
             ):
+                infile = options["page"].filename
+            else:
                 image = options["page"].im_object()
                 depth = options["page"].get_depth()
 
@@ -1575,96 +1629,52 @@ class DocThread(BaseThread):
                     dir=options["dir"], suffix=suffix, delete=False
                 ) as temp:
                     infile = temp.name
-                    logger.debug("Converting %s -> %s for unpaper", filename, infile)
+                    logger.debug(
+                        "Converting %s -> %s for unpaper",
+                        options["page"].filename,
+                        infile,
+                    )
                     image.save(infile)
 
-            else:
-                infile = filename
             options["options"]["command"][-3] = infile
 
-            with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".pnm", delete=False
-            ) as out, tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".pnm", delete=False
-            ) as out2:
-                options["options"]["command"][-2] = out.name
+            out, out2 = self._run_unpaper_cmd(request)
 
-                index = options["options"]["command"].index("--output-pages")
-                if options["options"]["command"][index + 1] == "2":
-                    options["options"]["command"][-1] = out2.name
-                else:
-                    del options["options"]["command"][-1]
-
-                spo = subprocess.run(
-                    options["options"]["command"],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                logger.info(spo.stdout)
-                if spo.stderr:
-                    logger.error(spo.stderr)
-                    request.data(spo.stderr)
-                    if not os.path.getsize(out.name):
-                        return
-
-                if self.cancel:
-                    raise CancelledError()
-                spo.stdout = re.sub(
-                    r"Processing[ ]sheet.*[.]pnm\n",
-                    r"",
-                    spo.stdout,
-                    count=1,
-                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-                if spo.stdout:
-                    logger.warning(spo.stdout)
-                    request.data(spo.stdout)
-                    if not os.path.getsize(out.name):
-                        return
-
-                if (
-                    options["options"]["command"][index + 1] == "2"
-                    and "direction" in options["options"]
-                    and options["options"]["direction"] == "rtl"
-                ):
-                    out, out2 = out2, out
-
-                # unpaper doesn't change the resolution, so we can safely copy it
-                new = Page(
-                    filename=out.name,
+            # unpaper doesn't change the resolution, so we can safely copy it
+            new = Page(
+                filename=out.name,
+                dir=options["dir"],
+                delete=True,
+                format="Portable anymap",
+                resolution=options["page"].resolution,
+                uuid=options["page"].uuid,
+                dirty_time=datetime.datetime.now(),  # flag as dirty
+            )
+            request.data(
+                {
+                    "type": "page",
+                    "uuid": options["uuid"],
+                    "page": new,
+                    "info": {"replace": options["page"].uuid},
+                }
+            )
+            if out2:
+                new2 = Page(
+                    filename=out2.name,
                     dir=options["dir"],
                     delete=True,
                     format="Portable anymap",
                     resolution=options["page"].resolution,
-                    uuid=options["page"].uuid,
                     dirty_time=datetime.datetime.now(),  # flag as dirty
                 )
                 request.data(
                     {
                         "type": "page",
                         "uuid": options["uuid"],
-                        "page": new,
-                        "info": {"replace": options["page"].uuid},
+                        "page": new2,
+                        "info": {"insert-after": new.uuid},
                     }
                 )
-                if options["options"]["command"][index + 1] == "2":
-                    new2 = Page(
-                        filename=out2.name,
-                        dir=options["dir"],
-                        delete=True,
-                        format="Portable anymap",
-                        resolution=options["page"].resolution,
-                        dirty_time=datetime.datetime.now(),  # flag as dirty
-                    )
-                    request.data(
-                        {
-                            "type": "page",
-                            "uuid": options["uuid"],
-                            "page": new2,
-                            "info": {"insert-after": new.uuid},
-                        }
-                    )
 
         except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
