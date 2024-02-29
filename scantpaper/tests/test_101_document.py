@@ -9,19 +9,16 @@ import pytest
 from page import Page
 from document import (
     Document,
-    exec_command,
     expand_metadata_pattern,
-    prepare_output_metadata,
     VERSION,
     collate_metadata,
     add_delta_timezone,
     delta_timezone,
     _extract_metadata,
-    _program_version,
     _bbox2markup,
-    _set_timestamp,
-    Proc,
 )
+from docthread import prepare_output_metadata, _set_timestamp
+from helpers import exec_command, _program_version, Proc
 
 
 def get_page_index_all_callback(_uuid, _process, _message):
