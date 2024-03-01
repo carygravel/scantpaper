@@ -5,7 +5,8 @@ import subprocess
 import tempfile
 import gi
 import pytest
-from document import DocThread, Document
+from document import Document
+from docthread import DocThread
 from dialog.scan import Scan
 from basethread import Request
 

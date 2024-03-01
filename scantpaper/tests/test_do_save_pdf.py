@@ -5,7 +5,7 @@ import re
 import subprocess
 import tempfile
 import queue
-from document import DocThread
+from docthread import DocThread
 from basethread import Request
 from page import Page
 
