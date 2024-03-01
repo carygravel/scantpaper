@@ -939,7 +939,9 @@ class BaseDocument(SimpleList):
             kwargs["mark_saved_callback"] = mark_saved_callback
 
 
-def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
+def drag_data_received_callback(
+    tree, context, xpos, ypos, data, info, time
+):  # pylint: disable=too-many-arguments
     "callback to receive DnD data"
     delete = bool(context.get_actions == "move")
 
