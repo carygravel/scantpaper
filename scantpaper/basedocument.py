@@ -39,7 +39,7 @@ class BaseDocument(SimpleList):
     selection_changed_signal = None
     paper_sizes = {}
 
-    def on_row_changed(self, _path, _iter, _data):
+    def _on_row_changed(self, _path, _iter, _data):
         "Set-up the callback when the page number has been edited."
         # Note uuids for selected pages
         selection = self.get_selected_indices()
@@ -50,7 +50,7 @@ class BaseDocument(SimpleList):
         self.get_model().handler_block(self.row_changed_signal)
 
         # Sort pages
-        self.manual_sort_by_column(0)
+        self._manual_sort_by_column(0)
 
         # And make sure there are no duplicates
         self.renumber()
@@ -124,12 +124,12 @@ class BaseDocument(SimpleList):
         # Set the page number to be editable
         self.set_column_editable(0, True)
         self.row_changed_signal = self.get_model().connect(
-            "row-changed", self.on_row_changed
+            "row-changed", self._on_row_changed
         )
 
-        GLib.timeout_add(100, self.page_request_handler)
+        GLib.timeout_add(100, self._page_request_handler)
 
-    def page_request_handler(self):
+    def _page_request_handler(self):
         "handle page requests"
         if not self.thread.page_requests.empty():
             uid = self.thread.page_requests.get()
@@ -367,7 +367,7 @@ class BaseDocument(SimpleList):
             self.get_selection().handler_block(self.selection_changed_signal)
 
         self.get_selection().unselect_all()
-        self.manual_sort_by_column(0)
+        self._manual_sort_by_column(0)
 
         if self.selection_changed_signal:
             self.get_selection().handler_unblock(self.selection_changed_signal)
@@ -392,7 +392,7 @@ class BaseDocument(SimpleList):
 
         return page_selection[0]
 
-    def remove_corrupted_pages(self):
+    def _remove_corrupted_pages(self):
         "remove corrupt pages"
         i = 0
         while i < len(self.data):
@@ -402,11 +402,11 @@ class BaseDocument(SimpleList):
             else:
                 i += 1
 
-    def manual_sort_by_column(self, sortcol):
+    def _manual_sort_by_column(self, sortcol):
         """Helpers:
 
         Manual one-time sorting of the simplelist's data"""
-        self.remove_corrupted_pages()
+        self._remove_corrupted_pages()
 
         # The sort function depends on the column type
         #     sortfuncs = {
@@ -429,7 +429,7 @@ class BaseDocument(SimpleList):
     def cut_selection(self):
         "Cut the selection"
         data = self.copy_selection(False)
-        self.delete_selection_extra()
+        self._delete_selection_extra()
         return data
 
     def copy_selection(self, clone):
@@ -518,7 +518,7 @@ class BaseDocument(SimpleList):
                 itr = model.get_iter(path)
                 model.remove(itr)
 
-    def delete_selection_extra(self):
+    def _delete_selection_extra(self):
         "wrapper for delete_selection()"
         page = self.get_selected_indices()
         npages = len(page)
@@ -559,35 +559,6 @@ class BaseDocument(SimpleList):
         # self.save_session()
         logger.info("Deleted %s pages", npages)
 
-    def save_pdf(self, **kwargs):
-        "save the given pages as PDF"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_pdf(**kwargs)
-
-    def save_djvu(self, **kwargs):
-        "save the given pages as DjVu"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_djvu(**kwargs)
-
-    def save_tiff(self, **kwargs):
-        "save the given pages as TIFF"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_tiff(**kwargs)
-
-    def rotate(self, **kwargs):
-        "rotate given page"
-        self._note_callbacks(kwargs)
-        self.thread.rotate(**kwargs)
-
-    def save_image(self, **kwargs):
-        "save the given pages as image files"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_image(**kwargs)
-
     def scans_saved(self):
         "Check that all pages have been saved"
         for row in self:
@@ -595,115 +566,17 @@ class BaseDocument(SimpleList):
                 return False
         return True
 
-    def save_text(self, **kwargs):
-        "save a text file from the given pages"
-        self._note_callbacks(kwargs)
-        self.thread.save_text(**kwargs)
-
-    def save_hocr(self, **kwargs):
-        "save an hocr file from the given pages"
-        self._note_callbacks(kwargs)
-        self.thread.save_hocr(**kwargs)
-
-    def analyse(self, **kwargs):
-        "analyse given page"
-        self._note_callbacks(kwargs)
-        self.thread.analyse(**kwargs)
-
-    def threshold(self, **kwargs):
-        "threshold given page"
-        self._note_callbacks(kwargs)
-        self.thread.threshold(**kwargs)
-
-    def brightness_contrast(self, **kwargs):
-        "adjust brightness & contrast of given page"
-        self._note_callbacks(kwargs)
-        self.thread.brightness_contrast(**kwargs)
-
-    def negate(self, **kwargs):
-        "negate given page"
-        self._note_callbacks(kwargs)
-        self.thread.negate(**kwargs)
-
-    def unsharp(self, **kwargs):
-        "run unsharp mask on given page"
-        self._note_callbacks(kwargs)
-        self.thread.unsharp(**kwargs)
-
-    def crop(self, **kwargs):
-        "crop page"
-        self._note_callbacks(kwargs)
-        self.thread.crop(**kwargs)
-
-    def split_page(self, **kwargs):
-        """split the given page either vertically or horizontally, creating an
-        additional page"""
-
-        # FIXME: duplicate to _import_file_data_callback()
-        def _split_page_data_callback(response):
-            if response.info["type"] == "page":
-                self.add_page(response.info["page"], response.info["info"])
-            else:
-                if "logger_callback" in kwargs:
-                    kwargs["logger_callback"](response)
-
-        self._note_callbacks(kwargs)
-        kwargs["data_callback"] = _split_page_data_callback
-        self.thread.split_page(**kwargs)
-
-    def to_png(self, kwargs):
+    def _to_png(self, kwargs):
         "convert the given page to png"
         self._note_callbacks(kwargs)
         self.thread.to_png(**kwargs)
-
-    def tesseract(self, **kwargs):
-        "run tesseract on the given page"
-        self._note_callbacks(kwargs)
-        self.thread.tesseract(**kwargs)
-
-    def ocr_pages(self, **kwargs):
-        "Wrapper for the various ocr engines"
-        for page in kwargs["pages"]:
-            kwargs["page"] = page
-            if kwargs["engine"] == "tesseract":
-                self.tesseract(**kwargs)
-
-    def unpaper(self, **kwargs):
-        "run unpaper on the given page"
-
-        # FIXME: duplicate to _import_file_data_callback()
-        def _unpaper_data_callback(response):
-            if isinstance(response.info, dict) and "page" in response.info:
-                self.add_page(response.info["page"], response.info["info"])
-            else:
-                if "logger_callback" in kwargs:
-                    kwargs["logger_callback"](response)
-
-        self._note_callbacks(kwargs)
-        kwargs["data_callback"] = _unpaper_data_callback
-        self.thread.unpaper(**kwargs)
-
-    def user_defined(self, **kwargs):
-        "run a user-defined command on a page"
-
-        # FIXME: duplicate to _import_file_data_callback()
-        def _user_defined_data_callback(response):
-            if response.info["type"] == "page":
-                self.add_page(response.info["page"], response.info["info"])
-            else:
-                if "logger_callback" in kwargs:
-                    kwargs["logger_callback"](response)
-
-        self._note_callbacks(kwargs)
-        kwargs["data_callback"] = _user_defined_data_callback
-        self.thread.user_defined(**kwargs)
 
     def save_session(self, filename=None, version=None):
         """Dump $self to a file.
         If a filename is given, zip it up as a session file
         Pass version to allow us to mock different session version and to be able to
         test opening old sessions."""
-        self.remove_corrupted_pages()
+        self._remove_corrupted_pages()
         session, filenamelist = {}, []
         for row in self.data:
             if row[0] not in session:
@@ -886,8 +759,8 @@ class BaseDocument(SimpleList):
         all_pages = list(range(len(self.data)))
 
         # Convert the indices to sets of page numbers
-        selected_pages = self.index2page_number(selected_pages)
-        all_pages = self.index2page_number(all_pages)
+        selected_pages = self._index2page_number(selected_pages)
+        all_pages = self._index2page_number(all_pages)
         selected_pages = set(selected_pages)
         all_pages = set(all_pages)
         not_selected_pages = all_pages - selected_pages
@@ -902,7 +775,7 @@ class BaseDocument(SimpleList):
             return False
         return True
 
-    def index2page_number(self, index):
+    def _index2page_number(self, index):
         "helper function to return an array of page numbers given an array of page indices"
         return [self.data[i][0] for i in index]
 
