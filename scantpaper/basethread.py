@@ -13,6 +13,8 @@ ResponseType = Enum("ResponseType", ResponseTypes)
 
 logger = logging.getLogger(__name__)
 
+CALLBACKS = ["queued", "started", "running", "data", "finished", "error"]
+
 
 class Request:
     "Attributes and methods around requests"
@@ -66,22 +68,11 @@ class BaseThread(threading.Thread):
         self.responses = queue.Queue()
         self.callbacks = {}
         self.additional_callbacks = {}
-        self.before = {
-            "queued": set(),
-            "started": set(),
-            "running": set(),
-            "data": set(),
-            "finished": set(),
-            "error": set(),
-        }
-        self.after = {
-            "queued": set(),
-            "started": set(),
-            "running": set(),
-            "data": set(),
-            "finished": set(),
-            "error": set(),
-        }
+        self.before = {}
+        self.after = {}
+        for callback in CALLBACKS:
+            self.before[callback] = set()
+            self.after[callback] = set()
 
     def input_handler(self, request):  # pylint: disable=no-self-use
         "dummy input handler to be overridden as required"
@@ -106,25 +97,15 @@ class BaseThread(threading.Thread):
         self,
         process,
         *args,
-        queued_callback=None,
-        started_callback=None,
-        running_callback=None,
-        data_callback=None,
-        finished_callback=None,
-        error_callback=None,
         **kwargs,
     ):
         "Puts the process and args as a `Request` on the requests queue"
         request = Request(process, args, self.responses)
-        callbacks = {
-            "queued_callback": queued_callback,
-            "started_callback": started_callback,
-            "started": False,
-            "running_callback": running_callback,
-            "data_callback": data_callback,
-            "finished_callback": finished_callback,
-            "error_callback": error_callback,
-        }
+        callbacks = {"started": False}
+        for callback in CALLBACKS:
+            name = callback + "_callback"
+            if name in kwargs:
+                callbacks[name] = kwargs[name]
         for k, val in kwargs.items():
             if k[:-9] in self.additional_callbacks:
                 callbacks[k] = val
