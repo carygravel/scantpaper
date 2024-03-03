@@ -230,7 +230,7 @@ class Document(BaseDocument):
 
                 self._post_process_scan(self.data[finished_page][2], options)
 
-            self._to_png(
+            self.to_png(  # pylint: disable=no-member
                 page=page.uuid,
                 finished_callback=to_png_finished_callback,
                 **options,
@@ -446,36 +446,6 @@ class Document(BaseDocument):
         self._note_callbacks(kwargs)
         kwargs["data_callback"] = _user_defined_data_callback
         self.thread.user_defined(**kwargs)
-
-
-def _method_generator(method_name):
-    def _generic_method(self, _method_name, **kwargs):
-        if _method_name in ["save_pdf", "save_djvu", "save_tiff", "save_image"]:
-            kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        method = getattr(self.thread, _method_name)
-        method(**kwargs)
-
-    return lambda self, **kwargs: _generic_method(self, method_name, **kwargs)
-
-
-for method_name_ in [
-    "save_pdf",
-    "save_djvu",
-    "save_tiff",
-    "save_image",
-    "rotate",
-    "save_text",
-    "save_hocr",
-    "analyse",
-    "threshold",
-    "brightness_contrast",
-    "negate",
-    "unsharp",
-    "crop",
-    "tesseract",
-]:
-    setattr(Document, method_name_, _method_generator(method_name_))
 
 
 def _extract_metadata(info):

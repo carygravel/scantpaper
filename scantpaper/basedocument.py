@@ -566,11 +566,6 @@ class BaseDocument(SimpleList):
                 return False
         return True
 
-    def _to_png(self, kwargs):
-        "convert the given page to png"
-        self._note_callbacks(kwargs)
-        self.thread.to_png(**kwargs)
-
     def save_session(self, filename=None, version=None):
         """Dump $self to a file.
         If a filename is given, zip it up as a session file
@@ -810,6 +805,37 @@ class BaseDocument(SimpleList):
                     page.saved = True
 
             kwargs["mark_saved_callback"] = mark_saved_callback
+
+
+def _method_generator(method_name):
+    def _generic_method(self, _method_name, **kwargs):
+        if _method_name in ["save_pdf", "save_djvu", "save_tiff", "save_image"]:
+            kwargs["mark_saved"] = True
+        self._note_callbacks(kwargs)  # pylint: disable=protected-access
+        method = getattr(self.thread, _method_name)
+        method(**kwargs)
+
+    return lambda self, **kwargs: _generic_method(self, method_name, **kwargs)
+
+
+for method_name_ in [
+    "save_pdf",
+    "save_djvu",
+    "save_tiff",
+    "save_image",
+    "rotate",
+    "save_text",
+    "save_hocr",
+    "analyse",
+    "threshold",
+    "brightness_contrast",
+    "negate",
+    "unsharp",
+    "crop",
+    "to_png",
+    "tesseract",
+]:
+    setattr(BaseDocument, method_name_, _method_generator(method_name_))
 
 
 def drag_data_received_callback(
