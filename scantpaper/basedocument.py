@@ -62,7 +62,7 @@ class BaseDocument(SimpleList):
             selection.append(self.find_page_by_uuid(i))
         self.select(selection)
 
-    def __init__(self, **options):
+    def __init__(self, **kwargs):
         super().__init__(
             {"#": "int", _("Thumbnails"): "pixbuf", "Page Data": "hstring"}
         )
@@ -75,7 +75,7 @@ class BaseDocument(SimpleList):
         self.set_headers_visible(False)
         self.set_reorderable(True)
         self.dir = None
-        for key, val in options.items():
+        for key, val in kwargs.items():
             setattr(self, key, val)
 
         dnd_source = Gtk.TargetEntry.new(

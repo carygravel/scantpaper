@@ -48,7 +48,7 @@ TZ_REGEX = r"([+-]\d\d):(\d\d)"
 
 
 class Document(BaseDocument):
-    "Import methods"
+    "More methods"
 
     def import_files(self, **options):
         """To avoid race condtions importing multiple files,
@@ -251,7 +251,7 @@ class Document(BaseDocument):
             rotate_options["page"] = page.uuid
             rotate_options["finished_callback"] = rotate_finished_callback
             del rotate_options["rotate"]
-            self.rotate(**rotate_options)
+            self.rotate(**rotate_options)  # pylint: disable=no-member
             return
 
         if "unpaper" in options and options["unpaper"]:
@@ -394,75 +394,6 @@ class Document(BaseDocument):
             file_changed_callback,
         )
 
-    def save_pdf(self, **kwargs):
-        "save the given pages as PDF"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_pdf(**kwargs)
-
-    def save_djvu(self, **kwargs):
-        "save the given pages as DjVu"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_djvu(**kwargs)
-
-    def save_tiff(self, **kwargs):
-        "save the given pages as TIFF"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_tiff(**kwargs)
-
-    def rotate(self, **kwargs):
-        "rotate given page"
-        self._note_callbacks(kwargs)
-        self.thread.rotate(**kwargs)
-
-    def save_image(self, **kwargs):
-        "save the given pages as image files"
-        kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
-        self.thread.save_image(**kwargs)
-
-    def save_text(self, **kwargs):
-        "save a text file from the given pages"
-        self._note_callbacks(kwargs)
-        self.thread.save_text(**kwargs)
-
-    def save_hocr(self, **kwargs):
-        "save an hocr file from the given pages"
-        self._note_callbacks(kwargs)
-        self.thread.save_hocr(**kwargs)
-
-    def analyse(self, **kwargs):
-        "analyse given page"
-        self._note_callbacks(kwargs)
-        self.thread.analyse(**kwargs)
-
-    def threshold(self, **kwargs):
-        "threshold given page"
-        self._note_callbacks(kwargs)
-        self.thread.threshold(**kwargs)
-
-    def brightness_contrast(self, **kwargs):
-        "adjust brightness & contrast of given page"
-        self._note_callbacks(kwargs)
-        self.thread.brightness_contrast(**kwargs)
-
-    def negate(self, **kwargs):
-        "negate given page"
-        self._note_callbacks(kwargs)
-        self.thread.negate(**kwargs)
-
-    def unsharp(self, **kwargs):
-        "run unsharp mask on given page"
-        self._note_callbacks(kwargs)
-        self.thread.unsharp(**kwargs)
-
-    def crop(self, **kwargs):
-        "crop page"
-        self._note_callbacks(kwargs)
-        self.thread.crop(**kwargs)
-
     def split_page(self, **kwargs):
         """split the given page either vertically or horizontally, creating an
         additional page"""
@@ -479,17 +410,12 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _split_page_data_callback
         self.thread.split_page(**kwargs)
 
-    def tesseract(self, **kwargs):
-        "run tesseract on the given page"
-        self._note_callbacks(kwargs)
-        self.thread.tesseract(**kwargs)
-
     def ocr_pages(self, **kwargs):
         "Wrapper for the various ocr engines"
         for page in kwargs["pages"]:
             kwargs["page"] = page
             if kwargs["engine"] == "tesseract":
-                self.tesseract(**kwargs)
+                self.tesseract(**kwargs)  # pylint: disable=no-member
 
     def unpaper(self, **kwargs):
         "run unpaper on the given page"
@@ -520,6 +446,36 @@ class Document(BaseDocument):
         self._note_callbacks(kwargs)
         kwargs["data_callback"] = _user_defined_data_callback
         self.thread.user_defined(**kwargs)
+
+
+def _method_generator(method_name):
+    def _generic_method(self, _method_name, **kwargs):
+        if _method_name in ["save_pdf", "save_djvu", "save_tiff", "save_image"]:
+            kwargs["mark_saved"] = True
+        self._note_callbacks(kwargs)
+        method = getattr(self.thread, _method_name)
+        method(**kwargs)
+
+    return lambda self, **kwargs: _generic_method(self, method_name, **kwargs)
+
+
+for method_name_ in [
+    "save_pdf",
+    "save_djvu",
+    "save_tiff",
+    "save_image",
+    "rotate",
+    "save_text",
+    "save_hocr",
+    "analyse",
+    "threshold",
+    "brightness_contrast",
+    "negate",
+    "unsharp",
+    "crop",
+    "tesseract",
+]:
+    setattr(Document, method_name_, _method_generator(method_name_))
 
 
 def _extract_metadata(info):
