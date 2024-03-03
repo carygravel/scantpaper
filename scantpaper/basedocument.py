@@ -12,7 +12,6 @@ import gi
 from simplelist import SimpleList
 from i18n import _
 from docthread import DocThread
-from bboxtree import Bboxtree
 from page import Page
 
 gi.require_version("Gtk", "3.0")
@@ -639,32 +638,8 @@ class BaseDocument(SimpleList):
 
         # sessionref = retrieve(sessionfile)
         sessionref = sessionfile  # until we've figured out how this is going to work
-
         session = sessionref
-
-        # hocr -> bboxtree
-        if "version" not in sessionref:
-            logger.info("Restoring pre-2.8.1 session file.")
-            for key in sessionref.keys():
-                if isinstance(sessionref[key], dict) and "hocr" in sessionref[key]:
-                    tree = Bboxtree()
-                    if re.search(
-                        r"<body>[\s\S]*<\/body>",
-                        sessionref[key]["hocr"],
-                        re.MULTILINE | re.DOTALL | re.VERBOSE,
-                    ):
-                        tree.from_hocr(sessionref[key]["hocr"])
-
-                    # else:
-                    #     tree.from_text(sessionref[key]["hocr"])
-
-                    sessionref[key]["text_layer"] = tree.json()
-                    del sessionref[key]["hocr"]
-
-        else:
-            logger.info(
-                "Restoring v%s->%s session file.", sessionref, session["version"]
-            )
+        logger.info("Restoring v%s->%s session file.", sessionref, session["version"])
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal is not None:
