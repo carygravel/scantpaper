@@ -663,7 +663,8 @@ class BaseDocument(SimpleList):
                 )
 
             # Populate the SimpleList
-            page = Page(session[pagenum])
+            # page = Page(session[pagenum])
+            page = Page()
             thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
             self.data.append([pagenum, thumb, page])
 
