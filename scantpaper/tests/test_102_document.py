@@ -107,6 +107,7 @@ def test_docthread():
             assert (
                 response.request.process == "get_file_info"
             ), "get_file_info_finished_callback"
+            del response.info["path"]
             assert response.info == info, "get_file_info"
 
         thread.get_file_info(tif.name, None, finished_callback=get_file_info_callback)

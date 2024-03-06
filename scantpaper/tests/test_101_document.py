@@ -7,14 +7,19 @@ import subprocess
 import tempfile
 import pytest
 from page import Page
+from const import VERSION
 from document import (
     Document,
-    VERSION,
     _extract_metadata,
 )
-from docthread import prepare_output_metadata, _set_timestamp, _bbox2markup
-from helpers import exec_command, _program_version, Proc,     expand_metadata_pattern,collate_metadata
-
+from savethread import prepare_output_metadata, _set_timestamp, _bbox2markup
+from helpers import (
+    exec_command,
+    _program_version,
+    Proc,
+    expand_metadata_pattern,
+    collate_metadata,
+)
 
 
 def get_page_index_all_callback(_uuid, _process, _message):
@@ -430,7 +435,9 @@ def test_helpers():
         "datetime offset": datetime.timedelta(days=2, hours=0, minutes=59, seconds=59),
         "timezone offset": datetime.timedelta(hours=0),
     }
-    today_and_now = datetime.datetime(2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1)))
+    today_and_now = datetime.datetime(
+        2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+    )
     assert collate_metadata(settings, today_and_now) == {
         "datetime": datetime.datetime(2016, 2, 12, tzinfo=datetime.timezone.utc),
         "author": "a.n.other",
@@ -441,7 +448,9 @@ def test_helpers():
 
     settings["use_timezone"] = True
     assert collate_metadata(settings, today_and_now) == {
-        "datetime": datetime.datetime(2016, 2, 12, tzinfo=datetime.timezone(datetime.timedelta(hours=1))),
+        "datetime": datetime.datetime(
+            2016, 2, 12, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        ),
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
@@ -450,7 +459,9 @@ def test_helpers():
 
     settings["use_time"] = True
     assert collate_metadata(settings, today_and_now) == {
-        "datetime": datetime.datetime(2016, 2, 12, 2, 2, 2, tzinfo=datetime.timezone(datetime.timedelta(hours=1))),
+        "datetime": datetime.datetime(
+            2016, 2, 12, 2, 2, 2, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        ),
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",

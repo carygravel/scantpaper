@@ -14,7 +14,6 @@ from gi.repository import GLib
 
 logger = logging.getLogger(__name__)
 
-VERSION = "1"
 EMPTY = ""
 SPACE = " "
 PERCENT = "%"
