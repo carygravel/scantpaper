@@ -7,11 +7,7 @@ from comboboxtext import ComboBoxText
 from dialog import Dialog
 from scanner.options import Options
 from scanner.profile import Profile
-import gettext  # For translations
-
-# from translation import __
-# easier to extract strings with xgettext
-_ = gettext.gettext
+from i18n import _
 
 SANE_NAME_SCAN_TL_X   = "tl-x"
 SANE_NAME_SCAN_TL_Y   = "tl-y"
@@ -144,7 +140,6 @@ class Scan(Dialog):
         # self.connect("show",show)
 
         vbox = self.get_content_area()
-        # d_sane = gettext.translation('sane-backends')
         self._add_device_combobox(vbox)
 
     # Notebook to collate options
@@ -156,7 +151,6 @@ class Scan(Dialog):
     # Notebook page 1
 
         scwin = Gtk.ScrolledWindow()
-        _ = gettext.gettext
         self.notebook.append_page( child=scwin, tab_label=Gtk.Label( label=_('Page Options') ) )
         scwin.set_policy( Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC )
         vbox1 = Gtk.VBox()
@@ -206,7 +200,7 @@ class Scan(Dialog):
                 self.num_pages=spin_buttonn.get_value()
 
         bscannum.connect(        'clicked' , do_clicked_scan_number     )
-        def anonymous_03( widget, value ):
+        def do_changed_num_pages( widget, value ):
             
             if value == 0 :
                 bscanall.set_active(True)
@@ -226,7 +220,7 @@ class Scan(Dialog):
 
 
         self.connect(
-        'changed-num-pages' , anonymous_03 
+        'changed-num-pages' , do_changed_num_pages 
     )
         self.connect(
         'changed-scan-option' , self._changed_scan_option_callback,
@@ -266,22 +260,21 @@ class Scan(Dialog):
         self.framex.add(vboxx)
 
     # SpinButton for starting page number
-
         hboxxs = Gtk.HBox()
         vboxx.pack_start( hboxxs, False, False, 0 )
         labelxs = Gtk.Label( label=_('Start') )
         hboxxs.pack_start( labelxs, False, False, 0 )
         spin_buttons = Gtk.SpinButton.new_with_range( 1, MAX_PAGES, 1 )
         hboxxs.pack_end( spin_buttons, False, False, 0 )
-        def anonymous_04():
+        def do_start_page_changed():
             self.page_number_start=spin_buttons
             self.update_start_page()
 
 
         spin_buttons.connect(
-        'value-changed' , anonymous_04 
+        'value-changed' , do_start_page_changed
     )
-        def anonymous_05( widget, value ):
+        def do_changed_page_number_start( widget, value ):
             
             spin_buttons.set_value(value)
             slist = self.document
@@ -291,7 +284,7 @@ class Scan(Dialog):
 
 
         self.connect(
-        'changed-page-number-start' , anonymous_05 
+        'changed-page-number-start' , do_changed_page_number_start 
     )
 
     # SpinButton for page number increment
@@ -312,7 +305,7 @@ class Scan(Dialog):
             self.page_number_increment=value
 
         spin_buttoni.connect(        'value-changed' , do_spin_buttoni_value_changed     )
-        def anonymous_07( widget, value ):
+        def do_changed_page_number_increment( widget, value ):
             
             spin_buttoni.set_value(value)
             slist = self.document
@@ -322,20 +315,19 @@ class Scan(Dialog):
 
 
         self.connect(
-        'changed-page-number-increment' , anonymous_07 
+        'changed-page-number-increment' , do_changed_page_number_increment 
     )
 
     # Setting this here to fire callback running update_start
-
         spin_buttons.set_value( self.page_number_start )
 
-        def anonymous_08():
+        def do_num_pages_changed():
             "Callback on changing number of pages"
             self.num_pages=spin_buttonn
             bscannum.set_active(True)    # Set the radiobutton active
 
         spin_buttonn.connect(
-        'value-changed' , anonymous_08 
+        'value-changed' , do_num_pages_changed 
     )
 
     # Frame for standard mode
@@ -355,7 +347,7 @@ class Scan(Dialog):
 
         def do_buttons_clicked(_widget):
             spin_buttoni.set_value(1)
-            self.sided='single' if self.buttons.get_active == 1 else 'double'
+            self.sided='single' if self.buttons.get_active() == 1 else 'double'
 
         self.buttons.connect(        'clicked' , do_buttons_clicked     )
 
@@ -376,18 +368,19 @@ class Scan(Dialog):
         for text in          ( _('Facing'), _('Reverse') ) :
             self.combobs.append_text(text)
 
-        def do_combobs_changed(_widget):
+        def do_side_to_scan_changed(_widget):
+            print(f"in do_side_to_scan_changed")
             self.buttond.set_active(True)    # Set the radiobutton active
-            self.side_to_scan='facing' if self.combobs.get_active == 0 else 'reverse'
+            self.side_to_scan='facing' if self.combobs.get_active() == 0 else 'reverse'
 
-        self.combobs.connect(        'changed' , do_combobs_changed     )
+        self.combobs.connect(        'changed' , do_side_to_scan_changed     )
 
-        def anonymous_11( widget, value ):    
+        def do_side_to_scan_changed( widget, value ):    
             self.page_number_increment=value
             if value == 'facing' :
                 self.num_pages=0
 
-        self.connect(        'changed-side-to-scan' , anonymous_11     )
+        self.connect(        'changed-side-to-scan' , do_side_to_scan_changed     )
         self.combobs.set_tooltip_text(_('Sets which side of a double-sided document is scanned') )
         self.combobs.set_active(0)
 
@@ -415,7 +408,6 @@ class Scan(Dialog):
     )
 
     # Scan profiles
-
         self.current_scan_options = Profile()
         framesp = Gtk.Frame( label=_('Scan profiles') )
         vbox1.pack_start( framesp, False, False, 0 )
@@ -423,13 +415,13 @@ class Scan(Dialog):
         vboxsp.set_border_width(border_width)
         framesp.add(vboxsp)
         self.combobsp                = ComboBoxText()
-        def anonymous_13():
+        def do_profile_changed():
             self.num_reloads = 0    # num-reloads is read-only
             self.profile=self
 
 
         self.combobsp_changed_signal = self.combobsp.connect(
-        'changed' , anonymous_13 
+        'changed' , do_profile_changed 
     )
         vboxsp.pack_start( self.combobsp, False, False, 0 )
         hboxsp = Gtk.HBox()
@@ -448,35 +440,32 @@ class Scan(Dialog):
         hboxsp.pack_start( ebutton, False, False, 0 )
 
     # Delete button
-
         dbutton = Gtk.Button.new_from_stock('gtk-delete')
-        def anonymous_14():
+        def do_profile_delete():
             self.remove_profile( self.combobsp.get_active_text() )
 
 
         dbutton.connect(
-        'clicked' , anonymous_14 
+        'clicked' , do_profile_delete 
     )
         hboxsp.pack_start( dbutton, False, False, 0 )
-        def anonymous_15():
+        def do_scan():
             self.emit('clicked-scan-button')
             self.scan()
 
-
-        def anonymous_16():
+        def do_close_window():
             self.hide()
 
-        ( self.scan_button ) = self.add_actions([(
+        self.scan_button  = self.add_actions([(
         _('Scan'),
-        anonymous_15) ,(
+        do_scan) ,(
         'gtk-close',
-        anonymous_16) ]
+        do_close_window) ]
     )
 
     # initialise stack of uuids - needed for cases where setting a profile
     # requires several reloads, and therefore reapplying the same profile
     # several times. Tested by t/06198_Dialog_Scan_Image_Sane.t
-
         self.setting_profile              = []
         self.setting_current_scan_options = []
         self.cursor='default'
@@ -489,7 +478,7 @@ class Scan(Dialog):
         self.hboxd.pack_start( labeld, False, False, 0 )
         self.combobd = ComboBoxText()
         self.combobd.append_text( _('Rescan for devices') )
-        def anonymous_17():
+        def do_device_dropdown_changed():
             index       = self.combobd.get_active()
             device_list = self.device_list
             if index > len(device_list)-1 :
@@ -504,9 +493,9 @@ class Scan(Dialog):
 
 
         self.combobd_changed_signal = self.combobd.connect(
-        'changed' , anonymous_17 
+        'changed' , do_device_dropdown_changed 
     )
-        def anonymous_18( self, device ):
+        def do_changed_device( self, device ):
             
             device_list = self.device_list
             if  (device is not None) and device != "" :
@@ -516,15 +505,11 @@ class Scan(Dialog):
                         self.scan_options(device)
                         return
 
-
- 
             else :
                 self.combobd.set_active(NO_INDEX)
 
-
-
         self.connect(
-        'changed-device' , anonymous_18 
+        'changed-device' , do_changed_device 
     )
         self.combobd       .set_tooltip_text( _('Sets the device to be used for the scan') )
         self.hboxd.pack_end( self.combobd, False, False, 0 )
@@ -605,14 +590,10 @@ not required, and then to cancel or accept the changes.
                 self[name] = newval
 
                 # Update the start spinbutton if the page number is been edited.
-
                 slist = self.document
-                if  (slist is not None) :
-                    def anonymous_22():
-                        self.update_start_page()
-
+                if  slist  :
                     slist.get_model().connect(
-                        'row-changed' , anonymous_22  )
+                        'row-changed' , lambda x: self.update_start_page()  )
 
 
             elif name=='ignore_duplex_capabilities':
@@ -641,7 +622,7 @@ not required, and then to cancel or accept the changes.
 
                 callback = True
                 signal=None
-                def anonymous_23():
+                def do_changed_paper():
                     self.disconnect(signal)
                     paper =   newval if (newval is not None)  else _('Manual')
                     retval =                           self.combobp.set_active_by_text(paper)
@@ -653,7 +634,7 @@ not required, and then to cancel or accept the changes.
 
 
                 signal = self.connect(
-                    'changed-paper' , anonymous_23 
+                    'changed-paper' , do_changed_paper 
                 )
                 self.set_paper(newval)
 
@@ -665,7 +646,7 @@ not required, and then to cancel or accept the changes.
             elif name=='profile':
                 callback = True
                 signal=None
-                def anonymous_24():
+                def do_changed_profile():
                     self.disconnect(signal)
                     self.combobsp.set_active_by_text(newval)
                     if  (logger is not None) :
@@ -674,7 +655,7 @@ not required, and then to cancel or accept the changes.
 
 
                 signal = self.connect(
-                    'changed-profile' , anonymous_24 
+                    'changed-profile' , do_changed_profile 
                 )
                 self.set_profile(newval)
 
@@ -790,7 +771,7 @@ not required, and then to cancel or accept the changes.
             o=None
             device_list = self.device_list
             if  (device_list is not None) :
-                for _ in                  range(len(device_list)-1+1)    :
+                for _ in                  range(len(device_list))    :
                     if device == device_list[_]["name"] :
                         o = _
 
@@ -860,7 +841,7 @@ not required, and then to cancel or accept the changes.
 
     # read the model names into the combobox
 
-        for _ in          range(len(device_list)-1+1)    :
+        for _ in          range(len(device_list))    :
             self.combobd.insert_text( _, device_list[_]["label"] )
 
         self.combobd.signal_handler_unblock( self.combobd_changed_signal )
@@ -948,7 +929,7 @@ re.search(fr"^(?:{SANE_NAME_SCAN_TL_X}|{SANE_NAME_SCAN_TL_Y}|{SANE_NAME_SCAN_BR_
             self.combobp           .set_tooltip_text( _('Selects or edits the paper size') )
             hboxp.pack_end( self.combobp, False, False, 0 )
             self.combobp.set_active(0)
-            def anonymous_25():
+            def do_paper_size_changed():
                 if   (self.combobp.get_active_text is None)() :
                     return
                 if self.combobp.get_active_text() == _('Edit') :
@@ -972,26 +953,25 @@ re.search(fr"^(?:{SANE_NAME_SCAN_TL_X}|{SANE_NAME_SCAN_TL_Y}|{SANE_NAME_SCAN_BR_
 
 
             self.combobp.connect(
-            'changed' , anonymous_25 
+            'changed' , do_paper_size_changed 
         )
 
         # If the geometry is changed, unset the paper size,
         # if we are not setting a profile
-
             for _ in                        ( "tl-x", "tl-y",
                 "br-x",   "br-y",
                 "page-height", "page-width"
             )         :
                 if  (options.by_name(_) is not None) :
                     widget = self.option_widgets[_]
-                    def anonymous_26():
+                    def do_paper_dimension_changed():
                         if not len( self.setting_current_scan_options )                            and   (self.paper is not None)                        :
                             self.paper=None
 
 
 
                     widget.connect(
-                    'changed' , anonymous_26 
+                    'changed' , do_paper_dimension_changed 
                 )
 
 
@@ -1072,7 +1052,7 @@ the new options
 
         num_dev_options = new_options.num_options()
         options         = self.available_scan_options
-        for _ in          range(1,num_dev_options-1+1)      :
+        for _ in          range(1,num_dev_options)      :
             if self._update_option(
                 options.by_index(_),
                 new_options.by_index(_)
@@ -1175,7 +1155,7 @@ the new options
                 "CONSTRAINT_STRING_LIST", "CONSTRAINT_WORD_LIST" ]:
                     widget.get_model().clear()
                     index = 0
-                    for _ in                      range(len( opt["constraint"] )-1+1)    :
+                    for _ in                      range(len( opt["constraint"] ))    :
                         widget.append_text(
                             d_sane.get( opt["constraint"][_] ) )
                         if  (value is not None)                            and opt["constraint"][_] == value                         :
@@ -1292,7 +1272,7 @@ settings and apply it
             return
 
         signal=None
-        def anonymous_27( dialog, profile, uuid ):
+        def do_changed_current_scan_options( dialog, profile, uuid ):
             
             if paper_profile["uuid"] == uuid :
                 self.disconnect(signal)
@@ -1301,10 +1281,8 @@ settings and apply it
                 self.current_scan_options.add_frontend_option( 'paper', paper )
                 self.emit( 'changed-paper', paper )
 
-
-
         signal = self.connect(
-        'changed-current-scan-options' , anonymous_27 
+        'changed-current-scan-options' , do_changed_current_scan_options 
     )
 
     # Don't trigger the changed-paper signal
@@ -1338,8 +1316,7 @@ settings and apply it
         vboxb.pack_end( rbutton, True, False, 0 )
 
     # Set up a SimpleList
-
-        slist = Gtk.SimpleList({
+        slist = SimpleList({
         _('Name')   : 'text',
         _('Width')  : 'int',
         _('Height') : 'int',
@@ -1348,7 +1325,7 @@ settings and apply it
         _('Units')  : 'text',
     })
         for _ in          formats.keys()   :
-            slist["data"].append([
+            slist.data.append([
             _,                formats[_]["x"], formats[_]["y"],             formats[_]["l"], formats[_]["t"], 'mm',
           ])            
 
@@ -1356,22 +1333,21 @@ settings and apply it
     # Set everything to be editable except the units
 
         columns = slist.get_columns()
-        for _ in          range(len(columns)-1-1+1)      :
+        for _ in          range(len(columns)-1)      :
             slist.set_column_editable( _, True )
 
         slist.get_column(0).set_sort_column_id(0)
 
-        def anonymous_28():
-            """    # Add button callback
-"""
+        def do_add_paper_clicked():
+            "Add button callback"
             rows = slist.get_selected_indices()
             if not rows :
                 rows[0] = 0
-            name    = slist["data"][ rows[0] ][0]
+            name    = slist.data[ rows[0] ][0]
             version = 2
             i       = 0
-            while i < len( slist["data"] ) :
-                if slist["data"][i][0] == f"{name} ({version})" :
+            while i < len( slist.data ) :
+                if slist.data[i][0] == f"{name} ({version})" :
                     version+=1
                     i = 0
  
@@ -1381,22 +1357,21 @@ settings and apply it
 
             line = [f"{name} ({version})"]
             columns = slist.get_columns()
-            for _ in              range(1,len(columns)-1+1)    :
-                line.append(slist["data"][ rows[0] ][_])  
+            for _ in              range(1,len(columns))    :
+                line.append(slist.data[ rows[0] ][_])  
 
-            del(slist["data"][rows[0]+1])      
-            slist["data"].insert(rows[0]+1,line)
+            del(slist.data[rows[0]+1])      
+            slist.data.insert(rows[0]+1,line)
 
 
         dbutton.connect(
-        'clicked' , anonymous_28 
+        'clicked' , do_add_paper_clicked 
     )
 
-        def anonymous_29():
-            """    # Remove button callback
-"""
+        def do_remove_paper_clicked():
+            "Remove button callback"
             rows = slist.get_selected_indices()
-            if len(rows)-1 == len( slist["data"] )-1 :
+            if len(rows) == len( slist.data ) :
                 main.show_message_dialog(
                     parent  = window,
                     type    = 'error',
@@ -1406,21 +1381,20 @@ settings and apply it
  
             else :
                 while rows :
-                    del(slist["data"][(rows).pop(0)])   
+                    del(slist.data[(rows).pop(0)])   
 
 
 
 
         rbutton.connect(
-        'clicked' , anonymous_29 
+        'clicked' , do_remove_paper_clicked 
     )
 
-        def anonymous_30( model, path, iter ):
-            """    # Set-up the callback to check that no two Names are the same
-"""            
-            for _ in              range(len( slist["data"] )-1+1)    :
-                if _ != path.to_string()                    and slist["data"][ path.to_string() ][0] ==                    slist["data"][_][0]                 :
-                    name    = slist["data"][ path.to_string() ][0]
+        def do_paper_sizes_row_changed( model, path, iter ):
+            "Set-up the callback to check that no two Names are the same"            
+            for _row in              range(len( slist.data ))    :
+                if _row != path.to_string()                    and slist.data[ path.to_string() ][0] ==                    slist.data[_][0]                 :
+                    name    = slist.data[ path.to_string() ][0]
                     version = 2
                     regex=re.search(r"""
                      (.*) # name
@@ -1432,34 +1406,30 @@ settings and apply it
                         name    = regex.group(1)
                         version = regex.group(2) + 1
 
-                    slist["data"][ path.to_string() ][0] =                       f"{name} ({version})"
+                    slist.data[ path.to_string() ][0] =                       f"{name} ({version})"
                     return
 
 
 
 
         slist.get_model().connect(
-        'row-changed' , anonymous_30 
+        'row-changed' , do_paper_sizes_row_changed 
     )
         hboxl.pack_end( slist, False, False, 0 )
 
     # Buttons
-
         hboxb = Gtk.HBox()
         vbox.pack_start( hboxb, False, False, 0 )
         abutton = Gtk.Button.new_from_stock('gtk-apply')
-        def anonymous_31():
+        def do_apply_paper_sizes():
             formats={}
-            for  i in              range(len( slist["data"] )-1+1)    :
+            for  i in              range(len( slist.data ))    :
                 j = 0
-                for _ in                 ["x","y","l","t"] :
+                for _side in                 ["x","y","l","t"] :
                     j+=1
-                    formats[ slist["data"][i][0] ][_] =                       slist["data"][i][ j ]
-
-
+                    formats[ slist.data[i][0] ][_side] =                       slist.data[i][ j ]
 
             # Add new definitions
-
             self.paper_formats=formats
             if self.ignored_paper_formats                and len( self.ignored_paper_formats )             :
                 main.show_message_dialog(
@@ -1477,20 +1447,19 @@ settings and apply it
 
 
         abutton.connect(
-        'clicked' , anonymous_31 
+        'clicked' , do_apply_paper_sizes 
     )
         hboxb.pack_start( abutton, True, False, 0 )
         cbutton = Gtk.Button.new_from_stock('gtk-cancel')
-        def anonymous_32():
+        def do_cancel_paper_sizes():
 
             # Set the combobox back from Edit to the previous value
-
             combobp.set_active_by_text( self.paper )
             window.destroy()
 
 
         cbutton.connect(
-        'clicked' , anonymous_32 
+        'clicked' , do_cancel_paper_sizes 
     )
         hboxb.pack_end( cbutton, True, False, 0 )
         window.show_all()
@@ -1546,7 +1515,7 @@ settings and apply it
         # Only emit the changed-profile signal when the GUI has caught up
 
             signal=None
-            def anonymous_33( _1, _2, uuid_found ):
+            def do_changed_current_scan_options( _1, _2, uuid_found ):
                 
                 uuid = self.setting_profile[0]
 
@@ -1566,7 +1535,7 @@ settings and apply it
 
 
 
-            signal = self.connect(            'changed-current-scan-options' , anonymous_33         )
+            signal = self.connect(            'changed-current-scan-options' , do_changed_current_scan_options         )
 
         # Add UUID to the stack and therefore don't unset the profile name
 
@@ -1607,11 +1576,9 @@ settings and apply it
 
 
     def set_options( self, opt ) :
-        """display Goo::Canvas with graph
-"""    
+        "display Goo::Canvas with graph"    
 
     # Set up the canvas
-
         window = Dialog(
         transient_for = self,
         title           = d_sane.get( opt["title"] ),
@@ -1621,13 +1588,13 @@ settings and apply it
         canvas["border"] = CANVAS_BORDER
         window.get_content_area().add(canvas)
         root = canvas.get_root_item()
-        def anonymous_34( widget, event ):
+        def do_canvas_button_press( widget, event ):
             
             if  "selected"  in widget :
                 widget["selected"].fill_color='black'
                 widget["selected"]=None
 
-            if ( len( widget["val"] )-1 + 1 >= opt["max_values"]                or widget["on_val"] ):
+            if ( len( widget["val"] ) >= opt["max_values"]                or widget["on_val"] ):
                 return False                
             fleur = Gdk.Cursor('fleur')
             ( x, y ) = to_graph( widget, event.x(), event.y() )
@@ -1645,11 +1612,10 @@ settings and apply it
             update_graph(widget)
             return True
 
-
         canvas.connect(
-        'button-press-event' , anonymous_34 
+        'button-press-event' , do_canvas_button_press 
     )
-        def anonymous_35( widget, event ):
+        def do_canvas_key_press( widget, event ):
             
             if event.keyval == Gdk.KEY_Delete                and  "selected"  in widget             :
                 item = widget["selected"]
@@ -1667,7 +1633,7 @@ settings and apply it
 
         canvas.connect_after(
         'key-press-event',
-        anonymous_35 
+        do_canvas_key_press 
     )
         canvas.grab_focus(root)
         canvas["opt"] = opt
@@ -1678,7 +1644,7 @@ settings and apply it
         if opt["constraint_type"] == "CONSTRAINT_WORD_LIST" :
             opt["constraint"] =           sorted(opt["constraint"])  
 
-        def anonymous_36():
+        def do_canvas_apply():
             self.set_option( opt, canvas["val"] )
 
  # when INFO_INEXACT is implemented, so that the value is reloaded, check for it
@@ -1687,13 +1653,12 @@ settings and apply it
             opt["val"] = canvas["val"]
             window.destroy()
 
-
-        def anonymous_37():
+        def do_canvas_cancel():
             window.destroy()
 
         window.add_actions(
-        gtk_apply = anonymous_36 ,
-        gtk_cancel = anonymous_37 
+        gtk_apply = do_canvas_apply ,
+        gtk_cancel = do_canvas_cancel 
     )
 
 # Have to show the window before updating it otherwise is doesn't know how big it is
@@ -1746,12 +1711,12 @@ Set options to profile referenced by hashref
         signal=None
         self.current_scan_options =       Profile.new_from_data( deepcopy(profile) )
 
-        def anonymous_43():
+        def do_reloaded_scan_options():
             self.disconnect(signal)
             self.add_current_scan_options(profile)
 
         signal = self.connect(
-        'reloaded-scan-options' , anonymous_43 
+        'reloaded-scan-options' , do_reloaded_scan_options 
     )
         self.scan_options( self.device )
         return
@@ -1837,7 +1802,7 @@ f"Skip setting option '{name}' to '{val}', as previous call set SANE_INFO_INEXAC
               )
         )
             signal=None
-            def anonymous_44( widget, optname, optval, uuid ):
+            def do_changed_scan_option( widget, optname, optval, uuid ):
                 
 
                 # With multiple reloads, this can get called several times,
@@ -1850,7 +1815,7 @@ f"Skip setting option '{name}' to '{val}', as previous call set SANE_INFO_INEXAC
 
 
             signal = self.connect(
-            'changed-scan-option' , anonymous_44 
+            'changed-scan-option' , do_changed_scan_option 
         )
             self.set_option( opt, val, profile["uuid"] )
  
@@ -2025,10 +1990,10 @@ or row-changed signal of simplelist
         slist = self.document
         if   (slist is None) :
             return
-        if len( slist["data"] )-1 > NO_INDEX :
+        if len( slist.data )-1 > NO_INDEX :
             start_page = self.page_number_start
             step       = self.page_number_increment
-            if start_page > slist["data"][ len( slist["data"] )-1 ][0] + step :
+            if start_page > slist.data[ len( slist.data )-1 ][0] + step :
                 self.page_number_start=slist
 
  
@@ -2141,7 +2106,6 @@ def _edit_profile_callback( widget, parent ) :
     dialog.get_content_area().pack_start( label, True, True, 0 )
 
     # Clone so that we can cancel the changes, if necessary
-
     profile = deepcopy(profile)
     _build_profile_table( profile, parent.available_scan_options,
         dialog.get_content_area() )
@@ -2149,30 +2113,27 @@ def _edit_profile_callback( widget, parent ) :
     dialog.show_all()
 
     # save the profile and reload
-
     if dialog.run() == 'ok' :
         if   (name is None) or name == "" :
             parent.set_current_scan_options(profile)
  
         else :
-            parent["profiles"][name] = profile
+            parent.profiles[name] = profile
 
             # unset profile to allow us to set it again on reload
-
-            parent["profile"] = None
+            parent.profile = None
 
             # emit signal to update settings
-
             parent.emit( 'added-profile', name,
                 parent["profiles"][name] )
             signal=None
-            def anonymous_19():
+            def do_parent_reloaded_scan_options():
                 parent.disconnect(signal)
                 parent.set_profile(name)
 
 
             signal = parent.connect(
-                'reloaded-scan-options' , anonymous_19 
+                'reloaded-scan-options' , do_parent_reloaded_scan_options 
             )
             parent.scan_options( parent.device )
 
@@ -2188,7 +2149,6 @@ def _build_profile_table( profile, options, vbox ) :
     vbox.pack_start( framef, True, True, 0 )
 
     # listbox to align widgets
-
     listbox = Gtk.ListBox()
     listbox.set_selection_mode('none')
     frameb.add(listbox)
@@ -2202,7 +2162,7 @@ def _build_profile_table( profile, options, vbox ) :
         hbox.pack_start( label, False, True, 0 )
         button = Gtk.Button.new_from_stock('gtk-delete')
         hbox.pack_end( button, False, False, 0 )
-        def anonymous_20():
+        def do_delete_profile_backend_item():
             logger.debug(f"removing option '{name}' from profile")
             profile.remove_backend_option_by_index(i)
             frameb.destroy()
@@ -2211,7 +2171,7 @@ def _build_profile_table( profile, options, vbox ) :
 
 
         button.connect(
-            'clicked' , anonymous_20 
+            'clicked' , do_delete_profile_item 
         )
         row.add(hbox)
         listbox.add(row)
@@ -2219,15 +2179,15 @@ def _build_profile_table( profile, options, vbox ) :
     listbox = Gtk.ListBox()
     listbox.set_selection_mode('none')
     framef.add(listbox)
-    iter = profile.each_frontend_option()
-    for     name in iter :
+
+    for     name in profile.each_frontend_option() :
         row   = Gtk.ListBoxRow()
         hbox  = Gtk.HBox()
         label = Gtk.Label(label=name)
         hbox.pack_start( label, False, True, 0 )
         button = Gtk.Button.new_from_stock('gtk-delete')
         hbox.pack_end( button, False, False, 0 )
-        def anonymous_21():
+        def do_delete_profile_frontend_item():
             logger.debug(f"removing option '{name}' from profile")
             profile.remove_frontend_option(name)
             frameb.destroy()
@@ -2236,7 +2196,7 @@ def _build_profile_table( profile, options, vbox ) :
 
 
         button.connect(
-            'clicked' , anonymous_21 
+            'clicked' , do_delete_profile_frontend_item 
         )
         row.add(hbox)
         listbox.add(row)
@@ -2262,11 +2222,13 @@ def _extended_pagenumber_checkbox_callback( widget, param, data ) :
         if inc == 1 :
             dialog.buttons.set_active(True)
         elif inc > 0 :
+            print(f"{inc} > 0")
             dialog.buttond.set_active(True)
-            dialog.combobs.set_active(False)
+            print(f"before dialog.combobs.set_active(0)")
+            dialog.combobs.set_active(0)
         else :
             dialog.buttond.set_active(True)
-            dialog.combobs.set_active(True)
+            dialog.combobs.set_active(1)
 
         dialog.frames.show_all()
         dialog.framex.hide()
@@ -2312,23 +2274,21 @@ def add_value( root, canvas ) :
         fill_color = 'black',
         line_width = 0,
     )
-    def anonymous_38():
+    def do_enter_canvas():
         canvas["on_val"] = True
         return True
 
-
     item.connect(
-        'enter-notify-event' , anonymous_38 
+        'enter-notify-event' , do_enter_canvas 
     )
-    def anonymous_39():
+    def do_leave_canvas():
         canvas["on_val"] = False
         return True
 
-
     item.connect(
-        'leave-notify-event' , anonymous_39 
+        'leave-notify-event' , do_leave_canvas 
     )
-    def anonymous_40( widget, target, ev ):
+    def do_canvas_button_press2( widget, target, ev ):
             
         canvas["selected"] = item
         item.fill_color='red'
@@ -2341,19 +2301,19 @@ def add_value( root, canvas ) :
 
 
     item.connect(
-        'button-press-event' , anonymous_40 
+        'button-press-event' , do_canvas_button_press2
     )
-    def anonymous_41( widget, target, ev ):
+    def do_canvas_button_release( widget, target, ev ):
             
         widget.get_canvas().pointer_ungrab( widget, ev.time() )
         return True
 
 
     item.connect(
-        'button-release-event' , anonymous_41 
+        'button-release-event' , do_canvas_button_release 
     )
     opt = canvas["opt"]
-    def anonymous_42( widget, target, event ):
+    def do_motion_notify( widget, target, event ):
             
         if not(
                     event.state() >=  ## no critic (ProhibitMismatchedOperators)
@@ -2374,16 +2334,16 @@ def add_value( root, canvas ) :
  
         elif opt["constraint_type"] == "CONSTRAINT_WORD_LIST" :
             ( xgr, ygr ) = to_graph( canvas, 0, y )
-            for _ in              range(1,len( opt["constraint"] )-1+1)    :
+            for _row in              range(1,len( opt["constraint"] ))    :
                 if ygr < (
-                            opt["constraint"][_] +
-                              opt["constraint"][ _ - 1 ]
+                            opt["constraint"][_row] +
+                              opt["constraint"][ _row - 1 ]
                         ) / 2                     :
-                    ygr = opt["constraint"][ _ - 1 ]
+                    ygr = opt["constraint"][ _row - 1 ]
                     break
  
-                elif _ == len( opt["constraint"] )-1 :
-                    ygr = opt["constraint"][_]
+                elif _row == len( opt["constraint"] )-1 :
+                    ygr = opt["constraint"][_row]
 
 
 
@@ -2394,7 +2354,7 @@ def add_value( root, canvas ) :
 
 
     item.connect(
-        'motion-notify-event' , anonymous_42 
+        'motion-notify-event' , do_motion_notify 
     )
     return item
 
@@ -2453,7 +2413,7 @@ def update_graph(canvas) :
 
     # Update canvas
 
-    for _ in      range(len( canvas["items"] )-1+1)    :
+    for _ in      range(len( canvas["items"] ))    :
         item = canvas["items"][_]
         item["index"] = _
         ( xc, yc ) = to_canvas( canvas, _, canvas["val"][_] )

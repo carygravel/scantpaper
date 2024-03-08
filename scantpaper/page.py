@@ -206,6 +206,7 @@ class Page:
 
     def get_resolution(self, paper_sizes=None):
         "get the resolution"
+        print(f"in get_resolution {self.resolution}")
         if self.resolution is not None:
             return self.resolution
 
@@ -296,6 +297,7 @@ class Page:
 
         Returns the pixbuf scaled to fit in the given box"""
         xresolution, yresolution, _units = self.get_resolution()
+        print(f"get_pixbuf_at_scale resolution {xresolution}, {yresolution}, {_units}")
         width, height = self.get_size()
         width, height = _prepare_scale(
             width, height, xresolution / yresolution, max_width, max_height
