@@ -296,23 +296,9 @@ class DocThread(SaveThread):
         image2 = image.copy()
 
         # split the image
-        if options["direction"] == "v":
-            width = options["position"]
-            height = image.height
-            right = width
-            bottom = 0
-            width2 = image.width - width
-            height2 = height
-        else:
-            width = image.width
-            height = options["position"]
-            right = 0
-            bottom = height
-            width2 = width
-            height2 = image.height - height
-
-        image = image.crop((0, 0, width, height))
-        image2 = image2.crop((right, bottom, right + width2, bottom + height2))
+        boxes = _calculate_crop_tuples(options, image)
+        image = image.crop(boxes[0])
+        image2 = image2.crop(boxes[1])
 
         if self.cancel:
             raise CancelledError()
@@ -355,8 +341,8 @@ class DocThread(SaveThread):
         if page.text_layer:
             bboxtree = Bboxtree(page.text_layer)
             bboxtree2 = Bboxtree(page.text_layer)
-            page.text_layer = bboxtree.crop(0, 0, width, height).json()
-            new2.text_layer = bboxtree2.crop(right, bottom, width2, height2).json()
+            page.text_layer = bboxtree.crop(*boxes[0]).json()
+            new2.text_layer = bboxtree2.crop(*boxes[2]).json()
 
         request.data(
             {
@@ -543,3 +529,27 @@ class DocThread(SaveThread):
         except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
             request.error(f"Error creating file in {options['dir']}: {err}.")
+
+
+def _calculate_crop_tuples(options, image):
+
+    if options["direction"] == "v":
+        width = options["position"]
+        height = image.height
+        right = width
+        bottom = 0
+        width2 = image.width - width
+        height2 = height
+    else:
+        width = image.width
+        height = options["position"]
+        right = 0
+        bottom = height
+        width2 = width
+        height2 = image.height - height
+
+    return (
+        (0, 0, width, height),
+        (right, bottom, right + width2, bottom + height2),
+        (right, bottom, width2, height2),
+    )
