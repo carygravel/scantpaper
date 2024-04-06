@@ -149,7 +149,7 @@ class Application(Gtk.Application):
 
         if "test" in options:
             # This is printed on the main instance
-            print(f"Test argument recieved: {options['test']}")
+            print(f"Test argument received: {options['test']}")
 
         self.activate()
         return 0
