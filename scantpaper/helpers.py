@@ -131,3 +131,24 @@ def expand_metadata_pattern(**kwargs):
             r"\s", r"_", kwargs["template"], flags=re.MULTILINE | re.DOTALL
         )
     return kwargs["template"]
+
+def show_message_dialog(**options):
+    global message_dialog, SETTING
+    if not message_dialog:
+        message_dialog = MultipleMessage( title           =_('Messages'),
+            transient_for = options["parent"]
+        )
+        message_dialog.set_default_size( SETTING["message_window_width"],
+            SETTING["message_window_height"] )
+
+    options["responses"] = SETTING["message"]
+    message_dialog.add_message(options)
+
+    if message_dialog.grid_rows > 1:
+        message_dialog.show_all()
+        response = message_dialog.run()
+
+    if  message_dialog:    # could be undefined for multiple calls
+        message_dialog.store_responses( response, SETTING["message"])
+        SETTING["message_window_width"], SETTING["message_window_height"] = message_dialog.get_size()
+        message_dialog.destroy()
