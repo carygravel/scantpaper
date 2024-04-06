@@ -361,18 +361,23 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         vboxsp.pack_end(hboxsp, False, False, 0)
 
         # Save button
-        vbutton = Gtk.Button.new_from_stock("gtk-save")
+        icon = Gtk.Image.new_from_icon_name("document-save", Gtk.IconSize.BUTTON)
+        vbutton = Gtk.Button()
+        vbutton.set_image(icon)
         vbutton.connect("clicked", _save_profile_callback, self)
         hboxsp.pack_start(vbutton, True, True, 0)
 
         # Edit button
-        ebutton = Gtk.Button.new_from_stock("gtk-edit")
+        icon = Gtk.Image.new_from_icon_name("document-edit", Gtk.IconSize.BUTTON)
+        ebutton = Gtk.Button()
+        ebutton.set_image(icon)
         ebutton.connect("clicked", _edit_profile_callback, self)
         hboxsp.pack_start(ebutton, False, False, 0)
 
         # Delete button
-        dbutton = Gtk.Button.new_from_stock("gtk-delete")
-
+        icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
+        dbutton = Gtk.Button()
+        dbutton.set_image(icon)
         dbutton.connect(
             "clicked", lambda x: self._remove_profile(self.combobsp.get_active_text())
         )
@@ -915,9 +920,13 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         vbox.pack_start(hboxl, False, False, 0)
         vboxb = Gtk.VBox()
         hboxl.pack_start(vboxb, False, False, 0)
-        dbutton = Gtk.Button.new_from_stock("gtk-add")
+        icon = Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
+        dbutton = Gtk.Button()
+        dbutton.set_image(icon)
         vboxb.pack_start(dbutton, True, False, 0)
-        rbutton = Gtk.Button.new_from_stock("gtk-remove")
+        icon = Gtk.Image.new_from_icon_name("list-remove", Gtk.IconSize.BUTTON)
+        rbutton = Gtk.Button()
+        rbutton.set_image(icon)
         vboxb.pack_end(rbutton, True, False, 0)
 
         slist = PaperList(self.paper_formats)
@@ -930,7 +939,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # Buttons
         hboxb = Gtk.HBox()
         vbox.pack_start(hboxb, False, False, 0)
-        abutton = Gtk.Button.new_from_stock("gtk-apply")
+        abutton = Gtk.Button.new_with_label(_("Apply"))
 
         def do_apply_paper_sizes():
             formats = {}
@@ -959,7 +968,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         abutton.connect("clicked", do_apply_paper_sizes)
         hboxb.pack_start(abutton, True, False, 0)
-        cbutton = Gtk.Button.new_from_stock("gtk-cancel")
+        cbutton = Gtk.Button.new_with_label(_("Cancel"))
 
         def do_cancel_paper_sizes():
 
@@ -1455,7 +1464,9 @@ def _build_profile_table(profile, options, vbox):
         hbox = Gtk.HBox()
         label = Gtk.Label(label=d_sane.get(opt["title"]))
         hbox.pack_start(label, False, True, 0)
-        button = Gtk.Button.new_from_stock("gtk-delete")
+        icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
+        button = Gtk.Button()
+        button.set_image(icon)
         hbox.pack_end(button, False, False, 0)
 
         button.connect(
@@ -1475,7 +1486,9 @@ def _build_profile_table(profile, options, vbox):
         hbox = Gtk.HBox()
         label = Gtk.Label(label=name)
         hbox.pack_start(label, False, True, 0)
-        button = Gtk.Button.new_from_stock("gtk-delete")
+        icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
+        button = Gtk.Button()
+        button.set_image(icon)
         hbox.pack_end(button, False, False, 0)
 
         def do_delete_profile_frontend_item(_name):
