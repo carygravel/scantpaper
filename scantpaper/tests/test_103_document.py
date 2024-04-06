@@ -55,7 +55,7 @@ def test_import_scan():
     slist.import_scan(
         filename="test.pnm",
         page=1,
-        delete=1,
+        delete=True,
         resolution=70,
         dir=tempdir.name,
         finished_callback=_finished_callback,
