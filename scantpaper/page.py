@@ -67,6 +67,9 @@ class Page:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        if self.resolution and not isinstance(self.resolution, tuple):
+            self.resolution = (self.resolution, self.resolution, "PixelsPerInch")
+
         # copy or move image to session directory
         suffix = {
             "Portable Network Graphics": ".png",

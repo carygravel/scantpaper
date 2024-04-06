@@ -334,14 +334,6 @@ class Document(BaseDocument):
         # Read without blocking
         size = 0
 
-        if "resolution" in options and options["resolution"]:
-            if not isinstance(options["resolution"], tuple):
-                options["resolution"]=(
-                    options["resolution"],
-                    options["resolution"],
-                    "PixelsPerInch",
-                ),
-
         def file_changed_callback(_fileno, condition, *data):
             nonlocal size, fhd
 
