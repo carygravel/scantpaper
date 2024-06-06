@@ -3,6 +3,7 @@
 from copy import deepcopy
 import uuid
 from gi.repository import GObject
+import sane
 
 
 class Profile(GObject.Object):
@@ -12,7 +13,7 @@ class Profile(GObject.Object):
     frontend = None
     backend = None
 
-    def __init__(self, frontend=None, backend=None):
+    def __init__(self, frontend=None, backend=None, uid=None):
         super().__init__()
         if frontend is None:
             self.frontend = {}
@@ -25,7 +26,16 @@ class Profile(GObject.Object):
             self.map_from_cli()
 
         # add uuid to identify later which callback has finished
-        self.uuid = str(uuid.uuid1())
+        self.uuid = str(uuid.uuid1()) if uid is None else uid
+
+    def __copy__(self):
+        return Profile(frontend=self.frontend, backend=self.backend, uid=self.uuid)
+
+    def __str__(self):
+        return f"Profile(frontend={self.frontend}, backend={self.backend}, uuid={self.uuid})"
+
+    def __eq__(self, other):
+        return self.frontend == other.frontend and self.backend == other.backend
 
     def add_backend_option(self, name, val, oldval=None):
         """the oldval option is a hack to allow us not to apply geometry options
@@ -33,7 +43,7 @@ class Profile(GObject.Object):
         if name is None or name == "":
             raise ValueError("Error: no option name")
 
-        if (oldval is not None) and val == oldval:
+        if oldval is not None and val == oldval:
             return
         self.backend.append((name, val))
 
@@ -63,7 +73,7 @@ class Profile(GObject.Object):
         "remove_backend_option_by_name"
         i = None
         for i in self.each_backend_option():
-            (key, _val) = self.get_backend_option_by_index(i)
+            key, _val = self.get_backend_option_by_index(i)
             if key == name:
                 break
 
@@ -73,7 +83,7 @@ class Profile(GObject.Object):
         self.uuid = str(uuid.uuid1())
 
     def each_backend_option(self, backwards=False):
-        """an iterator for backend options"""
+        "an iterator for backend options"
         i = len(self.backend) - 1 if backwards else 0
         while -1 < i < len(self.backend):
             yield i
@@ -93,8 +103,7 @@ class Profile(GObject.Object):
 
     def each_frontend_option(self):
         "an iterator for frontend options"
-        for key in self.frontend.keys():
-            yield key
+        yield from self.frontend.keys()
 
     def get_frontend_option(self, name):
         "get_frontend_option"
@@ -102,7 +111,8 @@ class Profile(GObject.Object):
 
     def remove_frontend_option(self, name):
         "remove_frontend_option"
-        del self.frontend[name]
+        if name in self.frontend:
+            del self.frontend[name]
 
     def get(self):
         "return a dict of frontend and backend options"
@@ -112,7 +122,7 @@ class Profile(GObject.Object):
         """Map scanimage and scanadf (CLI) geometry options to the backend geometry names"""
         new = Profile()
         for i in self.each_backend_option():
-            (name, val) = self.get_backend_option_by_index(i)
+            name, val = self.get_backend_option_by_index(i)
             if name == "l":
                 new.add_backend_option("tl-x", val)
 
@@ -169,7 +179,7 @@ class Profile(GObject.Object):
             else:
                 if options is not None:
                     opt = options.by_name(name)
-                    if "type" in opt and opt["type"] == "TYPE_BOOL":
+                    if "type" in opt and opt["type"] == sane._sane.TYPE_BOOL:
                         val = "yes" if val else "no"
 
                 new.add_backend_option(name, val)

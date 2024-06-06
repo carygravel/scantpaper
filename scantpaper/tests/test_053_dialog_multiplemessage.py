@@ -44,7 +44,7 @@ def test_1():
             "store_response": True,
         }
     )
-    assert dialog.cbn.get_inconsistent() is True, "inconsistent if states different"
+    assert dialog.cbn.get_inconsistent(), "inconsistent if states different"
     dialog.cbn.set_active(False)
     dialog.cbn.set_active(True)
     assert dialog.list_messages_to_ignore("ok") == [
@@ -79,7 +79,7 @@ def test_1():
     )
     assert dialog.grid_rows == 3, "add_message added 2 messages"
     dialog.grid.get_child_at(4, 1).set_active(True)
-    assert dialog.cbn.get_inconsistent() is True, "inconsistent if states different"
+    assert dialog.cbn.get_inconsistent(), "inconsistent if states different"
 
     dialog.grid.get_child_at(4, 2).set_active(True)
     dialog.store_responses("ok", responses)
@@ -102,33 +102,27 @@ def test_1():
     )
     assert dialog.grid_rows == 1, "add_message added no messages"
 
-    assert (
-        munge_message(
-            "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
-            """'GeglConfig' has no property named 'cache-size'
+    assert munge_message(
+        "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
+        """'GeglConfig' has no property named 'cache-size'
 (gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of operation class """
-            '0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
-        )
-        == [
-            "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
-            "'GeglConfig' has no property named 'cache-size'",
-            "(gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of "
-            'operation class 0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
-        ]
-    ), "split gimp messages"
+        '0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
+    ) == [
+        "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
+        "'GeglConfig' has no property named 'cache-size'",
+        "(gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of "
+        'operation class 0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
+    ], "split gimp messages"
 
-    assert (
-        munge_message(
-            "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
-            """muxers is deprecated, use AVStream.codecpar instead.
+    assert munge_message(
+        "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
+        """muxers is deprecated, use AVStream.codecpar instead.
 [image2 @ 0x1338180] Encoder did not produce proper pts, making some up.""",
-        )
-        == [
-            "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
-            "muxers is deprecated, use AVStream.codecpar instead.",
-            "[image2 @ 0x1338180] Encoder did not produce proper pts, making some up.",
-        ]
-    ), "split unpaper messages"
+    ) == [
+        "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
+        "muxers is deprecated, use AVStream.codecpar instead.",
+        "[image2 @ 0x1338180] Encoder did not produce proper pts, making some up.",
+    ], "split unpaper messages"
 
     expected = (
         """Exception 400: memory allocation failed

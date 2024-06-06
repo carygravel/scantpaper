@@ -1,15 +1,18 @@
 "Scan dialog"  # pylint: disable=too-many-lines
 
 import re
-from copy import deepcopy
+from copy import copy, deepcopy
+import gettext
+import logging
 from gi.repository import Gdk, Gtk, GObject
 from comboboxtext import ComboBoxText
 from dialog.paperlist import PaperList
-from dialog.pagecontrols import PageControls, MAX_INCREMENT
+from dialog.pagecontrols import PageControls, MAX_PAGES
 from scanner.profile import Profile
-from scanner.options import Options
+from scanner.options import Options, within_tolerance
 from i18n import _
 from const import POINTS_PER_INCH
+import sane
 
 PAPER_TOLERANCE = 1
 OPTION_TOLERANCE = 0.001
@@ -19,7 +22,8 @@ CANVAS_POINT_SIZE = 10
 CANVAS_MIN_WIDTH = 1
 NO_INDEX = -1
 
-d_sane, logger = None, None
+d_sane = gettext.translation("sane-backends", fallback=True).gettext
+logger = logging.getLogger(__name__)
 
 
 class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
@@ -105,7 +109,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     def profile(self, newval):
         signal = None
 
-        def do_changed_profile():
+        def do_changed_profile(_arg1, _arg2):
             self.disconnect(signal)
             self.combobsp.set_active_by_text(newval)
 
@@ -129,15 +133,15 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         if newval is not None:
             for fmt in self.ignored_paper_formats:
                 if fmt == newval:
-                    logger.info(f"Ignoring unsupported paper {newval}")
+                    logger.info("Ignoring unsupported paper %s", newval)
                     return
 
         signal = None
 
-        def do_changed_paper():
+        def do_changed_paper(_arg1, _arg2):
             nonlocal signal
             self.disconnect(signal)
-            paper = newval if (newval is not None) else _("Manual")
+            paper = _("Manual") if newval is None else newval
             self.combobp.set_active_by_text(paper)
 
         signal = self.connect("changed-paper", do_changed_paper)
@@ -160,7 +164,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self._set_paper_formats(newval)
         self.emit("changed-paper-formats", newval)
 
-    _available_scan_options = {}
+    _available_scan_options = Options([])
     _current_scan_options = Profile()
     _visible_scan_options = {}
 
@@ -190,7 +194,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     reload_recursion_limit = GObject.Property(
         type=int,
         minimum=0,
-        maximum=MAX_INCREMENT,
+        maximum=MAX_PAGES,
         default=0,
         nick="Reload recursion limit",
         blurb="More reloads than this are considered infinite loop",
@@ -198,7 +202,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     num_reloads = GObject.Property(
         type=int,
         minimum=0,
-        maximum=MAX_INCREMENT,
+        maximum=MAX_PAGES,
         default=0,
         nick="Number of reloads",
         blurb="To compare against reload-recursion-limit",
@@ -247,7 +251,9 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             self.framen.set_sensitive(True)
         else:
             options = self.available_scan_options
-            if (options is not None) and options.flatbed_selected():
+            if options is not None and options.flatbed_selected(
+                self.thread.device_handle.source
+            ):
                 self.framen.set_sensitive(False)
 
                 # emits changed-num-pages signal, allowing us to test
@@ -261,7 +267,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         blurb="Ignore duplex capabilities",
     )
     def ignore_duplex_capabilities(self):
-        "getter for allow_batch_flatbed attribute"
+        "getter for ignore_duplex_capabilities attribute"
         return self._ignore_duplex_capabilities
 
     @ignore_duplex_capabilities.setter
@@ -281,11 +287,12 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     @available_scan_options.setter
     def available_scan_options(self, newval):
         self._available_scan_options = newval
-        if not self.allow_batch_flatbed and newval.flatbed_selected():
+        if not self.allow_batch_flatbed and newval.flatbed_selected(
+            self.thread.device_handle.source
+        ):
             if self.num_pages != 1:
                 self.num_pages = 1
             self.framen.set_sensitive(False)
-
         else:
             self.framen.set_sensitive(True)
 
@@ -294,7 +301,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # reload-recursion-limit is read-only
         # Triangular number n + n-1 + n-2 + ... + 1 = n*(n+1)/2
         num = newval.num_options()
-        self.reload_recursion_limit = num * (num + 1) / 2
+        self.reload_recursion_limit = num * (num + 1) // 2
         self.emit("reloaded-scan-options")
 
     @GObject.Property(type=object, nick="Cursor", blurb="name of current cursor")
@@ -438,17 +445,17 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.emit("clicked-scan-button")
         self.scan()
 
-    def _do_profile_changed(self):
+    def _do_profile_changed(self, _data):
         self.num_reloads = 0  # num-reloads is read-only
-        self.profile = self
+        self.profile = self.combobsp.get_active_text()
 
     def show(self, *args, **kwargs):
         self.signal_chain_from_overridden()  # don't know what the python equivalent is
         self.framex.hide()
         self._flatbed_or_duplex_callback()
         if (
-            (self.combobp is not None)
-            and (self.combobp.get_active_text is not None)()
+            self.combobp is not None
+            and self.combobp.get_active_text() is not None
             and self.combobp.get_active_text() != _("Manual")
         ):
             self._hide_geometry(self.available_scan_options)
@@ -527,47 +534,46 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         if widget is not None:
 
             # Add label for units
-            if opt["unit"] != "UNIT_NONE":
+            if opt.unit != sane._sane.UNIT_NONE:
                 text = None
-                if opt["unit"] == "UNIT_PIXEL":
+                if opt.unit == sane._sane.UNIT_PIXEL:
                     text = _("pel")
 
-                elif opt["unit"] == "UNIT_BIT":
+                elif opt.unit == sane._sane.UNIT_BIT:
                     text = _("bit")
 
-                elif opt["unit"] == "UNIT_MM":
+                elif opt.unit == sane._sane.UNIT_MM:
                     text = _("mm")
 
-                elif opt["unit"] == "UNIT_DPI":
+                elif opt.unit == sane._sane.UNIT_DPI:
                     text = _("ppi")
 
-                elif opt["unit"] == "UNIT_PERCENT":
+                elif opt.unit == sane._sane.UNIT_PERCENT:
                     text = _("%")
 
-                elif opt["unit"] == "UNIT_MICROSECOND":
+                elif opt.unit == sane._sane.UNIT_MICROSECOND:
                     text = _("μs")
 
                 label = Gtk.Label(label=text)
                 hbox.pack_end(label, False, False, 0)
 
-            self.option_widgets[opt["name"]] = widget
-            if opt["type"] == "TYPE_BUTTON" or opt["max_values"] > 1:
+            self.option_widgets[opt.name] = widget
+            if opt.type == sane._sane.TYPE_BUTTON:
                 hbox.pack_end(widget, True, True, 0)
 
             else:
                 hbox.pack_end(widget, False, False, 0)
 
-            widget.set_tooltip_text(d_sane.get(opt["desc"]))
+            widget.set_tooltip_text(d_sane(opt.desc))
 
             # Look-up to hide/show the box if necessary
-
             if _geometry_option(opt):
-                self._geometry_boxes[opt["name"]] = hbox
+                self._geometry_boxes[opt.name] = hbox
 
             self._create_paper_widget(options, hboxp)
 
         else:
-            logger.warn(f"Unknown type {opt['type']}")
+            logger.warning("Unknown type %s", opt.type)
 
     def _create_paper_widget(self, options, hboxp):
         "create the paper widget"
@@ -579,7 +585,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 (options.by_name(key) is None or key in self._geometry_boxes)
                 for key in ["page-height", "page-width"]
             )
-            and (self.combobp is None)
+            and (not hasattr(self, "combobp") or self.combobp is None)
+            and hboxp is not None
         ):
 
             # Paper list
@@ -592,7 +599,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             hboxp.pack_end(self.combobp, False, False, 0)
             self.combobp.set_active(0)
 
-            def do_paper_size_changed():
+            def do_paper_size_changed(_arg):
                 if not self.combobp.get_active_text:
                     return
                 if self.combobp.get_active_text() == _("Edit"):
@@ -610,21 +617,21 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                         if option in self._geometry_boxes:
                             self._geometry_boxes[option].show_all()
 
-                    self.paper = None
+                    self._paper = None
 
                 else:
                     paper = self.combobp.get_active_text()
-                    self.paper = paper
+                    self._paper = paper
 
             self.combobp.connect("changed", do_paper_size_changed)
 
             # If the geometry is changed, unset the paper size,
             # if we are not setting a profile
             for option in ("tl-x", "tl-y", "br-x", "br-y", "page-height", "page-width"):
-                if options.by_name(option) is not None:
+                if option in self.option_widgets:
                     widget = self.option_widgets[option]
 
-                    def do_paper_dimension_changed():
+                    def do_paper_dimension_changed(_data):
                         if not self.setting_current_scan_options and (
                             self.paper is not None
                         ):
@@ -664,13 +671,13 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     def _update_options(self, new_options):
         """If setting an option triggers a reload, the widgets must be updated to reflect
         the new options"""
-        logger.debug(f"Sane->get_option_descriptor returned: {new_options}")
+        logger.debug("Sane.get_option_descriptor() returned: %s", new_options)
         loops = self.num_reloads
         loops += 1
         self.num_reloads = loops  # num-reloads is read-only
         limit = self.reload_recursion_limit
         if self.num_reloads > limit:
-            logger.error(f"reload-recursion-limit ({limit}) exceeded.")
+            logger.error("reload-recursion-limit (%s) exceeded.", limit)
             self.emit(
                 "process-error",
                 "update_options",
@@ -704,7 +711,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         for i in current_scan_options.each_backend_option():
             name, _val = current_scan_options.get_backend_option_by_index(i)
             opt = options.by_name(name)
-            if "type" in opt and opt["type"] == "TYPE_BUTTON":
+            if "type" in opt and opt["type"] == sane._sane.TYPE_BUTTON:
                 buttons.append(name)
 
         for button in buttons:
@@ -723,7 +730,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         value = opt["val"]
 
         # Switch
-        if opt["type"] == "TYPE_BOOL":
+        if opt["type"] == sane._sane.TYPE_BOOL:
             if _value_for_active_option(value, opt):
                 widget.set_active(value)
 
@@ -762,11 +769,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # could be undefined for !($new_opt->{cap} & SANE_CAP_SOFT_DETECT)
         # or where $opt->{name} is not defined
         # e.g. $opt->{type} == SANE_TYPE_GROUP
-        if (
-            opt["type"] == "TYPE_GROUP"
-            or "name" not in opt
-            or opt["name"] not in self.option_widgets
-        ):
+        if opt.type == sane._sane.TYPE_GROUP or opt.name not in self.option_widgets:
             return False
 
         widget = self.option_widgets[opt["name"]]
@@ -784,22 +787,23 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         # Block the signal handler for the widget to prevent infinite
         # loops of the widget updating the option, updating the widget, etc.
-        widget.handler_block(widget["signal"])
+        widget.handler_block(widget.signal)
         opt = new_opt
 
         # HBox for option
         hbox = widget.get_parent()
         hbox.set_sensitive(
-            (not opt["cap"] & "CAP_INACTIVE") and opt["cap"] & "CAP_SOFT_SELECT"
+            (not opt.cap & sane._sane.CAP_INACTIVE)
+            and opt.cap & sane._sane.CAP_SOFT_SELECT
         )
         if opt["max_values"] < 2:
             self._update_single_option(opt)
 
-        widget.handler_unblock(widget["signal"])
+        widget.handler_unblock(widget.signal)
         return False
 
     def _set_paper_formats(self, formats):
-        """Add paper size to combobox if scanner large enough"""
+        "Add paper size to combobox if scanner large enough"
         combobp = self.combobp
         if combobp is not None:
 
@@ -812,11 +816,11 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             options = self.available_scan_options
             for fmt in formats:
                 if options.supports_paper(formats[fmt], PAPER_TOLERANCE):
-                    logger.debug(f"Options support paper size '{fmt}'.")
+                    logger.debug("Options support paper size '%s'.", fmt)
                     combobp.prepend_text(fmt)
 
                 else:
-                    logger.debug(f"Options do not support paper size '{fmt}'.")
+                    logger.debug("Options do not support paper size '%s'.", fmt)
                     self.ignored_paper_formats.append(fmt)
 
             # Set the combobox back from Edit to the previous value
@@ -829,7 +833,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         """Treat a paper size as a profile, so build up the required profile of geometry
         settings and apply it"""
         if paper is None:
-            self.paper = paper
+            self._paper = paper
             self.current_scan_options.remove_frontend_option("paper")
             self.emit("changed-paper", paper)
             return
@@ -837,7 +841,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         for name in self.ignored_paper_formats:
             if name == paper:
                 if logger is not None:
-                    logger.info(f"Ignoring unsupported paper {paper}")
+                    logger.info("Ignoring unsupported paper %s", paper)
                 return
 
         formats = self.paper_formats
@@ -845,36 +849,36 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         paper_profile = Profile()
         if (
             (options.by_name("page-height") is not None)
-            and not options.by_name("page-height")["cap"] & "CAP_INACTIVE"
+            and not options.by_name("page-height").cap & sane._sane.CAP_INACTIVE
             and (options.by_name("page-width") is not None)
-            and not options.by_name("page-width")["cap"] & "CAP_INACTIVE"
+            and not options.by_name("page-width").cap & sane._sane.CAP_INACTIVE
         ):
             paper_profile.add_backend_option(
                 "page-height",
                 formats[paper]["y"] + formats[paper]["t"],
-                options.by_name("page-height")["val"],
+                self.thread.device_handle.page_height,
             )
             paper_profile.add_backend_option(
                 "page-width",
                 formats[paper]["x"] + formats[paper]["l"],
-                options.by_name("page-width")["val"],
+                self.thread.device_handle.page_width,
             )
 
         paper_profile.add_backend_option(
-            "tl-x", formats[paper]["l"], options.by_name("tl-x")["val"]
+            "tl-x", formats[paper]["l"], self.thread.device_handle.tl_x
         )
         paper_profile.add_backend_option(
-            "tl-y", formats[paper]["t"], options.by_name("tl-y")["val"]
+            "tl-y", formats[paper]["t"], self.thread.device_handle.tl_y
         )
         paper_profile.add_backend_option(
             "br-x",
             formats[paper]["x"] + formats[paper]["l"],
-            options.by_name("br-x")["val"],
+            self.thread.device_handle.br_x,
         )
         paper_profile.add_backend_option(
             "br-y",
             formats[paper]["y"] + formats[paper]["t"],
-            options.by_name("br-y")["val"],
+            self.thread.device_handle.br_y,
         )
 
         # forget the previous option info calls, as these are only interesting
@@ -882,7 +886,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self._option_info = {}
         if not paper_profile.num_backend_options():
             self._hide_geometry(options)
-            self.paper = paper
+            self._paper = paper
             self.current_scan_options.add_frontend_option("paper", paper)
             self.emit("changed-paper", paper)
             return
@@ -890,7 +894,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         signal = None
 
         def do_changed_current_scan_options(_dialog, _profile, uuid):
-
             if paper_profile.uuid == uuid:
                 self.disconnect(signal)
                 self._hide_geometry(options)
@@ -904,7 +907,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         # Don't trigger the changed-paper signal
         # until we have finished setting the profile
-
         self._add_current_scan_options(paper_profile)
 
     def _edit_paper(self):
@@ -985,11 +987,10 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self._add_profile(name, self.current_scan_options)
 
         # Block signal or else we fire another round of profile loads
-
         self.combobsp.handler_block(self.combobsp_changed_signal)
         self.combobsp.set_active(self.combobsp.get_num_rows() - 1)
         self.combobsp.handler_unblock(self.combobsp_changed_signal)
-        self.profile = name
+        self._profile = name
 
     def _add_profile(self, name, profile):
         "apply the given profile without resetting the current one"
@@ -1002,21 +1003,21 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             return
 
         if not isinstance(profile, Profile):
-            logger.error(type(profile) + " is not a Profile object")
+            logger.error("%s is not a Profile object", type(profile))
             return
 
         # if we don't clone the profile,
         # we get strange action-at-a-distance problems
-        self.profiles[name] = deepcopy(profile)
+        self.profiles[name] = copy(profile)
         self.combobsp.remove_item_by_text(name)
         self.combobsp.append_text(name)
-        logger.debug(f"Saved profile '{name}': {self.profiles[name].get_data()}")
+        logger.debug("Saved profile '%s': %s", name, self.profiles[name])
         self.emit("added-profile", name, self.profiles[name])
 
-    def set_option(self, name, value, uuid):
+    def set_option(self, option, value, uuid=None):
         "placeholder to be overrided by subclass"
 
-    def scan_options(self, device):
+    def scan_options(self, device=None):
         "placeholder to be overrided by subclass"
 
     def get_devices(self):
@@ -1027,7 +1028,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def set_profile(self, name):
         "apply the give profile"
-        if (name is not None) and name != "":
+        if name is not None and name != "":
 
             # Only emit the changed-profile signal when the GUI has caught up
             signal = None
@@ -1045,7 +1046,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
                     # set property before emitting signal to ensure callbacks
                     # receive correct value
-                    self.profile = name
+                    self._profile = name
                     self.emit("changed-profile", name)
 
             signal = self.connect(
@@ -1053,15 +1054,14 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             )
 
             # Add UUID to the stack and therefore don't unset the profile name
-            self.setting_profile.append(self.profiles[name]["uuid"])
+            self.setting_profile.append(self.profiles[name].uuid)
             self.set_current_scan_options(self.profiles[name])
 
         # no need to wait - nothing to do
         else:
             # set property before emitting signal to ensure callbacks
             # receive correct value
-
-            self.profile = name
+            self._profile = name
             self.emit("changed-profile", name)
 
     def _remove_profile(self, name):
@@ -1072,13 +1072,13 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             del self.profiles[name]
 
     def set_current_scan_options(self, profile):
-        """Set options to profile referenced by hashref"""
+        "Set options to profile referenced by hashref"
         if profile is None:
             logger.error("Cannot add undefined profile")
             return
 
         if not isinstance(profile, Profile):
-            logger.error(type(profile) + " is not a Profile object")
+            logger.error("%s is not a Profile object", type(profile))
             return
 
         # forget the previous option info calls, as these are only interesting
@@ -1092,15 +1092,15 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         # reload to get defaults before applying profile
         signal = None
-        self.current_scan_options = Profile(deepcopy(profile))
+        self.current_scan_options = copy(profile)
 
-        def do_reloaded_scan_options():
+        def do_reloaded_scan_options(_widget):
+            nonlocal signal
             self.disconnect(signal)
             self._add_current_scan_options(profile)
 
         signal = self.connect("reloaded-scan-options", do_reloaded_scan_options)
         self.scan_options(self.device)
-        return
 
     def _add_current_scan_options(self, profile):
         "Apply options referenced by hashref without resetting existing options"
@@ -1109,85 +1109,81 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             return
 
         if not isinstance(profile, Profile):
-            logger.error(type(profile) + " is not a Profile object")
+            logger.error("%s is not a Profile object", type(profile))
             return
 
         # First clone the profile, as otherwise it would be self-modifying
-
-        clone = deepcopy(profile)
-        self.setting_current_scan_options.append(clone["uuid"])
+        clone = copy(profile)
+        self.setting_current_scan_options.append(clone.uuid)
 
         # Give the GUI a chance to catch up between settings,
         # in case they have to be reloaded.
         # Use the callback to trigger the next loop
-        self._set_option_profile(clone, clone.each_backend_option())
+        self._set_option_profile(clone, profile.each_backend_option())
 
-    def _set_option_profile(self, profile, next_option, step=1):
-
+    def _set_option_profile(self, profile, itr):
         self.cursor = "wait"
-        i = next_option(step)
-        if i:
+        try:
+            i = next(itr)
             name, val = profile.get_backend_option_by_index(i)
             options = self.available_scan_options
             opt = options.by_name(name)
-            if (opt is None) or opt["cap"] & "CAP_INACTIVE":
-                logger.warn(f"Ignoring inactive option '{name}'.")
-                self._set_option_profile(profile, next_option)
-                return
+            if opt is None or opt.cap & sane._sane.CAP_INACTIVE:
+                logger.warning("Ignoring inactive option '%s'.", name)
+                self._set_option_profile(profile, itr)
 
             # Don't try to set invalid option
-            if opt["constraint"] and isinstance(opt["constraint"], list):
-                index = opt["constraint"].index(val)
-                if index == NO_INDEX:
-                    logger.warn(
-                        f"Ignoring invalid argument '{val}' for option '{name}'."
+            if isinstance(opt.constraint, list):
+                if val not in opt.constraint:
+                    logger.warning(
+                        "Ignoring invalid argument '%s' for option '%s'.", val, name
                     )
-                    self._set_option_profile(profile, next_option)
-                    return
+                    self._set_option_profile(profile, itr)
 
             # Ignore option if info from previous set_option() reported SANE_INFO_INEXACT
             if (
-                opt["name"] in self._option_info
-                and self._option_info[opt["name"]] & "INFO_INEXACT"
+                opt.name in self._option_info
+                and self._option_info[opt.name] & sane._sane.INFO_INEXACT
             ):
-                logger.warn(
-                    f"Skip setting option '{name}' to '{val}', as previous call"
-                    " set SANE_INFO_INEXACT"
+                logger.warning(
+                    "Skip setting option '%s' to '%s', as previous call"
+                    " set SANE_INFO_INEXACT",
+                    name,
+                    val,
                 )
-                self._set_option_profile(profile, next_option)
-                return
+                self._set_option_profile(profile, itr)
 
             # Ignore option if value already within tolerance
-            if opt.within_tolerance(val, OPTION_TOLERANCE):
+            curval = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
+            if within_tolerance(opt, curval, val, OPTION_TOLERANCE):
                 logger.info(
-                    f"No need to set option '{name}': already within tolerance."
+                    "No need to set option '%s': already within tolerance.", name
                 )
-                self._set_option_profile(profile, next_option)
-                return
-
-            logger.debug(
-                f"Setting option '{name}'"
-                + (
-                    ""
-                    if opt["type"] == "TYPE_BUTTON"
-                    else f" from '{opt['val']}' to '{val}'."
+                self._set_option_profile(profile, itr)
+            else:
+                logger.debug(
+                    f"Setting option '{name}'"
+                    + (
+                        ""
+                        if opt.type == sane._sane.TYPE_BUTTON
+                        else f" from '{curval}' to '{val}'."
+                    )
                 )
-            )
-            signal = None
+                signal = None
 
-            def do_changed_scan_option(_widget, _optname, _optval, uuid):
+                def do_changed_scan_option(_widget, _optname, _optval, uuid):
 
-                # With multiple reloads, this can get called several times,
-                # so only react to signal from the correct profile
-                if (uuid is not None) and uuid == profile["uuid"]:
-                    self.disconnect(signal)
-                    self._set_option_profile(profile, next_option)
+                    # With multiple reloads, this can get called several times,
+                    # so only react to signal from the correct profile
+                    if uuid == profile.uuid:
+                        self.disconnect(signal)
+                        self._set_option_profile(profile, itr)
 
-            signal = self.connect("changed-scan-option", do_changed_scan_option)
+                signal = self.connect("changed-scan-option", do_changed_scan_option)
 
-            self.set_option(opt, val, profile["uuid"])
+                self.set_option(opt, val, profile.uuid)
 
-        else:
+        except StopIteration:
 
             # Having set all backend options, set the frontend options
             # Set paper formats first to make sure that any paper required is
@@ -1199,47 +1195,48 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             if not self.setting_profile:
                 self.profile = None
 
-            self.setting_current_scan_options.pop()
+            if self.setting_current_scan_options:
+                self.setting_current_scan_options.pop()
             self.emit(
                 "changed-current-scan-options",
                 self.current_scan_options,
-                profile["uuid"],
+                profile.uuid,
             )
             self.cursor = "default"
 
     def _update_widget_value(self, opt, val):
         "update widget with value"
-        widget = self.option_widgets[opt["name"]]
-        if widget is not None:
+        if opt.name in self.option_widgets:
+            widget = self.option_widgets[opt.name]
             logger.debug(
-                f"Setting widget '{opt['name']}'"
-                + ("" if opt["type"] == "TYPE_BUTTON" else f" to '{val}'.")
+                f"Setting widget '{opt.name}'"
+                + ("" if opt.type == sane._sane.TYPE_BUTTON else f" to '{val}'.")
             )
-            widget.handler_block(widget["signal"])
-            if issubclass(widget, Gtk.CheckButton) or issubclass(widget, Gtk.Switch):
+            widget.handler_block(widget.signal)
+            if isinstance(widget, (Gtk.CheckButton, Gtk.Switch)):
                 if val == "":
                     val = 0
                 if widget.get_active() != val:
                     widget.set_active(val)
 
-            elif issubclass(widget, Gtk.SpinButton):
+            elif isinstance(widget, Gtk.SpinButton):
                 if widget.get_value() != val:
                     widget.set_value(val)
 
-            elif issubclass(widget, Gtk.ComboBox):
-                if opt["constraint"][widget.get_active()] != val:
-                    index = opt["constraint"].index(val)
+            elif isinstance(widget, Gtk.ComboBox):
+                if opt.constraint[widget.get_active()] != val:
+                    index = opt.constraint.index(val)
                     if index > NO_INDEX:
                         widget.set_active(index)
 
-            elif issubclass(widget, Gtk.Entry):
+            elif isinstance(widget, Gtk.Entry):
                 if widget.get_text() != val:
                     widget.set_text(val)
 
-            widget.handler_unblock(widget["signal"])
+            widget.handler_unblock(widget.signal)
 
         else:
-            logger.warn(f"Widget for option '{opt['name']}' undefined.")
+            logger.warning("Widget for option '%s' undefined.", opt.name)
 
     def _get_xy_resolution(self):
         "return x and y values for resolution"
@@ -1315,21 +1312,15 @@ def _remove_paper_callback(slist, _window):
 def _geometry_option(opt):
     "Return true if we have a valid geometry option"
     return (
-        (opt["type"] == "TYPE_FIXED" or opt["type"] == "TYPE_INT")
-        and (opt["unit"] == "UNIT_MM" or opt["unit"] == "UNIT_PIXEL")
-        and (
-            re.search(
-                r"^(?:tl-x|tl-y|br-x|br-y|page-height|page-width)$",
-                opt["name"],
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-        )
+        opt.type in [sane._sane.TYPE_FIXED, sane._sane.TYPE_INT]
+        and opt.unit in [sane._sane.UNIT_MM, sane._sane.UNIT_PIXEL]
+        and opt.name in ["tl-x", "tl-y", "br-x", "br-y", "page-height", "page-width"]
     )
 
 
 def _value_for_active_option(value, opt):
     "return if the value is defined and the option is active"
-    return not value and not opt["cap"] & "CAP_INACTIVE"
+    return not value and not opt.cap & sane._sane.CAP_INACTIVE
 
 
 def _save_profile_callback(_widget, parent):
@@ -1402,7 +1393,7 @@ def _edit_profile_callback(_widget, parent):
     dialog.get_content_area().pack_start(label, True, True, 0)
 
     # Clone so that we can cancel the changes, if necessary
-    profile = deepcopy(profile)
+    profile = copy(profile)
     _build_profile_table(
         profile, parent.available_scan_options, dialog.get_content_area()
     )
@@ -1439,7 +1430,7 @@ def _edit_profile_callback(_widget, parent):
 def do_delete_profile_backend_item(data):
     "callback for delete profile button click"
     profile, options, vbox, frameb, framef, name, i = data
-    logger.debug(f"removing option '{name}' from profile")
+    logger.debug("removing option '%s' from profile", name)
     profile.remove_backend_option_by_index(i)
     frameb.destroy()
     framef.destroy()
@@ -1492,7 +1483,7 @@ def _build_profile_table(profile, options, vbox):
         hbox.pack_end(button, False, False, 0)
 
         def do_delete_profile_frontend_item(_name):
-            logger.debug(f"removing option '{_name}' from profile")
+            logger.debug("removing option '%s' from profile", _name)
             profile.remove_frontend_option(_name)
             frameb.destroy()
             framef.destroy()
