@@ -65,7 +65,13 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
     @num_pages.setter
     def num_pages(self, newval):
         options = self.available_scan_options
-        if newval == 1 or self.allow_batch_flatbed or not options.flatbed_selected():
+        if (
+            newval == 1
+            or self.allow_batch_flatbed
+            or not hasattr(self, "thread")
+            or self.thread.device_handle is None
+            or not options.flatbed_selected(self.thread.device_handle.source)
+        ):
             self._num_pages = newval
             self.current_scan_options.add_frontend_option("num_pages", newval)
             self.emit("changed-num-pages", newval)
@@ -458,10 +464,12 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         else:
             self.page_number_start = 1
 
-    def _changed_scan_option_callback(self, name, value, _uuid, bscannum):
+    def _changed_scan_option_callback(self, _dialog, name, value, _uuid, bscannum):
         options = self.available_scan_options
-        if name == options.by_name("source")["name"]:
-            if self.allow_batch_flatbed or not options.flatbed_selected():
+        if name == options.by_name("source").name:
+            if self.allow_batch_flatbed or not options.flatbed_selected(
+                self.thread.device_handle.source
+            ):
                 self.framen.set_sensitive(True)
             else:
                 bscannum.set_active(True)
@@ -482,7 +490,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
         options = self.available_scan_options
         if options is not None:
-            if options.flatbed_selected() or (
+            if options.flatbed_selected(self.thread.device_handle.source) or (
                 options.can_duplex() and not self.ignore_duplex_capabilities
             ):
                 self._vboxx.hide()

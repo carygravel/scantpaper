@@ -65,12 +65,15 @@ class ComboBoxText(Gtk.ComboBoxText):
     def set_active_by_text(self, text):
         "set row by the item text"
         index = self.get_row_by_text(text)
-        if index > -1 or text is None:
+        if index > -1 or text is not None:
             self.set_active(index)
 
     def get_num_rows(self):
         "return number of rows"
-        return len(self.get_model())
+        model = self.get_model()
+        if model is None:
+            return 0
+        return len(model)
 
     def remove_item_by_text(self, text):
         "remove row by the item text"
