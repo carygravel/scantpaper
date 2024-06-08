@@ -40,14 +40,14 @@ class SaneScanDialog(Scan):
         self.option_info = {}
 
     def get_devices(self):
-        "Run Sane->get_devices"
+        "Run Sane.get_devices()"
         self.cursor = "wait"
         pbar = None
         hboxd = self.hboxd
 
         def started_callback(_data):
-
-            # Set up ProgressBar
+            "Set up ProgressBar"
+            nonlocal pbar
             pbar = Gtk.ProgressBar()
             pbar.set_show_text(True)
             pbar.set_pulse_step(self.progress_pulse_step)
@@ -58,13 +58,15 @@ class SaneScanDialog(Scan):
             pbar.show()
 
         def running_callback(_data):
+            nonlocal pbar
             pbar.pulse()
 
-        def finished_callback(data):
+        def finished_callback(response):
             nonlocal self
+            nonlocal pbar
             pbar.destroy()
-            device_list = data
-            logger.info("Sane->get_devices returned: %s", device_list)
+            device_list = response.info
+            logger.info("Sane.get_devices() returned: %s", device_list)
             self.device_list = device_list
             if len(device_list) == 0:
                 self.emit("process-error", "get_devices", _("No devices found"))
@@ -124,12 +126,11 @@ class SaneScanDialog(Scan):
                 self._set_paper_formats(self.paper_formats)
                 self.cursor = "default"
 
-            def error_callback(message):
-
+            def error_callback(response):
                 self.emit(
                     "process-error",
                     "find_scan_options",
-                    _("Error retrieving scanner options: " + message),
+                    _("Error retrieving scanner options: " + response.status),
                 )
                 self.cursor = "default"
 

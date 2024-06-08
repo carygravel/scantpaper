@@ -408,7 +408,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.combobd = ComboBoxText()
         self.combobd.append_text(_("Rescan for devices"))
 
-        def do_device_dropdown_changed():
+        def do_device_dropdown_changed(_arg):
             index = self.combobd.get_active()
             device_list = self.device_list
             if index > len(device_list) - 1:
@@ -429,8 +429,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             device_list = self.device_list
             if (device is not None) and device != "":
                 for dev in device_list:
-                    if dev["name"] == device:
-                        self.combobd.set_active_by_text(dev["label"])
+                    if dev.name == device:
+                        self.combobd.set_active_by_text(dev.label)
                         self.scan_options(device)
                         return
             else:
@@ -463,12 +463,12 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def set_device(self, device):
         "set the active device"
-        if (device is not None) and device != "":
+        if device not in [None, ""]:
             idev = None
             device_list = self.device_list
             if len(device_list):
                 for i, dev in enumerate(device_list):
-                    if device == dev["name"]:
+                    if device == dev.name:
                         idev = i
 
                 # Set the device dependent options after the number of pages
@@ -491,8 +491,10 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         seen = {}
         i = 0
         while i < len(device_list):
-            seen[device_list[i]["name"]] += 1
-            if seen[device_list[i]["name"]] > 1:
+            if device_list[i].name not in seen:
+                seen[device_list[i].name] = 0
+            seen[device_list[i].name] += 1
+            if seen[device_list[i].name] > 1:
                 del device_list[i]
 
             else:
@@ -501,18 +503,20 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # Note any duplicate model names and add the device if necessary
         seen = {}
         for dev in device_list:
-            if "model" not in dev:
-                dev["model"] = dev["name"]
-            seen[dev["model"]] += 1
+            if dev.model in [None, ""]:
+                dev.model = dev.name
+            if dev.model not in seen:
+                seen[dev.model] = 0
+            seen[dev.model] += 1
 
         for dev in device_list:
-            if "vendor" in dev:
-                dev["label"] = f"{dev['vendor']} {dev['model']}"
+            if dev.vendor in [None, ""]:
+                dev.label = dev.model
             else:
-                dev["label"] = dev["model"]
+                dev.label = f"{dev.vendor} {dev.model}"
 
-            if seen[dev["model"]] > 1:
-                dev["label"] += f" on {dev['name']}"
+            if seen[dev.model] > 1:
+                dev.label += f" on {dev.name}"
 
         self.combobd.handler_block(self.combobd_changed_signal)
 
@@ -523,8 +527,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             self.combobd.remove(0)
 
         # read the model names into the combobox
-        for i in range(len(device_list)):
-            self.combobd.insert_text(i, device_list[_]["label"])
+        for i, dev in enumerate(device_list):
+            self.combobd.insert_text(i, dev.label)
 
         self.combobd.handler_unblock(self.combobd_changed_signal)
 
