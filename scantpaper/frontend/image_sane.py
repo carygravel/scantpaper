@@ -1,4 +1,5 @@
 "subclass basethread for SANE"
+from types import SimpleNamespace
 from basethread import BaseThread
 import sane
 
@@ -31,7 +32,10 @@ class SaneThread(BaseThread):
     @classmethod
     def do_get_devices(cls, _request):
         "get devices"
-        return sane.get_devices()
+        return [
+            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
+            for x in sane.get_devices()
+        ]
 
     def do_open_device(self, request):
         "open device"
