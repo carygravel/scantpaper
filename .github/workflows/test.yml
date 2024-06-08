@@ -17,7 +17,7 @@ jobs:
           gobject-introspection gir1.2-gtk-3.0 python3-sane unpaper \
           tesseract-ocr-eng tesseract-ocr-deu python3-tesserocr \
           python3-pytest-cov python3-pytest-timeout python3-pytest-xvfb \
-          python3-pytest-pylint
+          python3-pytest-pylint python3-pytest-mock
         python -m pip install --upgrade pip
         pip install ocrmypdf pytest-black
 
