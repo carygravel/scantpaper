@@ -217,9 +217,10 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     @device.setter
     def device(self, newval):
-        self._device = newval
-        self.set_device(newval)
-        self.emit("changed-device", newval)
+        if self._device != newval:
+            self._device = newval
+            self.set_device(newval)
+            self.emit("changed-device", newval)
 
     @GObject.Property(
         type=object, nick="Device list", blurb="Array of hashes of available devices"
@@ -418,7 +419,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 self.get_devices()
 
             elif index > NO_INDEX:
-                self.device = device_list
+                self.device = device_list[index].name
 
         self.combobd_changed_signal = self.combobd.connect(
             "changed", do_device_dropdown_changed

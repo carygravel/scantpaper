@@ -186,7 +186,7 @@ class Options(GObject.Object):
     def flatbed_selected(self, val):
         "returns whether the flatbed is selected"
         return (
-            self.source is not None
+            val is not None
             and re.search(
                 r"(flatbed|Document[ ]Table)",
                 val,
