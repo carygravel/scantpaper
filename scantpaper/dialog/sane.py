@@ -497,7 +497,7 @@ class SaneScanDialog(Scan):
             cancel_between_pages=(
                 self.cancel_between_pages
                 and self.available_scan_options.flatbed_selected(
-                    self.thread.device_handle.source
+                    self.thread.device_handle
                 )
             ),
             started_callback=started_callback,

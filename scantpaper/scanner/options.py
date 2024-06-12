@@ -51,13 +51,12 @@ class Options(GObject.Object):
                 self.hash[option.name] = option
 
         # find source option
-        self.source = {}
+        self.source = None
         if self.by_name("source") is not None:
             self.source = self.by_name("source")
-
         else:
             for option in self.array:
-                if "name" in option and re.search(
+                if re.search(
                     r"source", option.name, re.MULTILINE | re.DOTALL | re.VERBOSE
                 ):
                     self.source = option
@@ -183,8 +182,9 @@ class Options(GObject.Object):
 
         return False
 
-    def flatbed_selected(self, val):
+    def flatbed_selected(self, device_handle):
         "returns whether the flatbed is selected"
+        val = getattr(device_handle, self.source.name.replace("-", "_"))
         return (
             val is not None
             and re.search(
