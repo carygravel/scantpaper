@@ -253,7 +253,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         else:
             options = self.available_scan_options
             if options is not None and options.flatbed_selected(
-                self.thread.device_handle.source
+                self.thread.device_handle
             ):
                 self.framen.set_sensitive(False)
 
@@ -289,7 +289,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     def available_scan_options(self, newval):
         self._available_scan_options = newval
         if not self.allow_batch_flatbed and newval.flatbed_selected(
-            self.thread.device_handle.source
+            self.thread.device_handle
         ):
             if self.num_pages != 1:
                 self.num_pages = 1
@@ -426,7 +426,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         )
 
         def do_changed_device(self, device):
-
             device_list = self.device_list
             if (device is not None) and device != "":
                 for dev in device_list:

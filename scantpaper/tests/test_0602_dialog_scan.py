@@ -106,7 +106,7 @@ def test_1():
     dialog.num_pages = 2
     assert dialog.num_pages == 1, "allow-batch-flatbed should force num-pages2"
     assert options.flatbed_selected(
-        dialog.thread.device_handle.source
+        dialog.thread.device_handle
     ), "flatbed_selected() via value"
     assert not dialog._vboxx.get_visible(), "flatbed, so hide vbox for page numbering"
 
@@ -148,7 +148,7 @@ def asserts_2(dialog, asserts):
                 dialog.num_pages == 0
             ), "adf-defaults-scan-all-pages should force num-pages"
             assert not options.flatbed_selected(
-                dialog.thread.device_handle.source
+                dialog.thread.device_handle
             ), "not flatbed_selected() via value"
             asserts += 1
             loop.quit()
