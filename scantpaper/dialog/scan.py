@@ -754,8 +754,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 widget.get_model().clear()
                 index = 0
                 for i, entry in enumerate(opt.constraint):
-                    widget.append_text(d_sane(entry))
-                    if value is not None and entry == value:
+                    widget.append_text(d_sane(str(entry)))
+                    if entry == value:
                         index = i
 
                 if index is not None:
