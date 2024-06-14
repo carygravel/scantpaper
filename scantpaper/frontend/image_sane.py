@@ -59,9 +59,36 @@ class SaneThread(BaseThread):
         return self.device_handle.get_options()
 
     def do_set_option(self, request):
-        "set option"
-        name, value = request.args
-        return setattr(self.device_handle, name.replace("-", "_"), value)
+        """Until sane.__setattr__() returns the INFO, put its functionality
+        here to return it ourselves"""
+        key, value = request.args
+        key = key.replace("-", "_")
+        d = self.device_handle.__dict__
+        if key in ("dev", "optlist", "area", "sane_signature", "scanner_model"):
+            raise AttributeError("Read-only attribute: " + key)
+
+        if key not in self.device_handle.opt:
+            d[key] = value
+            return 0
+
+        opt = d["opt"][key]
+        if opt.type == sane._sane.TYPE_BUTTON:
+            raise AttributeError("Buttons don't have values: " + key)
+        if opt.type == sane._sane.TYPE_GROUP:
+            raise AttributeError("Groups don't have values: " + key)
+        if not sane._sane.OPTION_IS_ACTIVE(opt.cap):
+            raise AttributeError("Inactive option: " + key)
+        if not sane._sane.OPTION_IS_SETTABLE(opt.cap):
+            raise AttributeError("Option can't be set by software: " + key)
+        if isinstance(value, int) and opt.type == sane._sane.TYPE_FIXED:
+            # avoid annoying errors of backend if int is given instead float:
+            value = float(value)
+        result = d["dev"].set_option(opt.index, value)
+        # do binary AND to find if we have to reload options:
+        if result & sane._sane.INFO_RELOAD_OPTIONS:
+            self.device_handle.__load_option_dict()
+
+        return result
 
     def do_scan_page(self, _request):
         "scan page"

@@ -260,7 +260,7 @@ class SaneScanDialog(Scan):
 
     def _create_widget_spinbutton(self, opt, val):
         step = 1
-        if len(opt.constraint) == 3:
+        if opt.constraint[2] != 0:
             step = opt.constraint[2]
 
         widget = Gtk.SpinButton.new_with_range(
@@ -390,7 +390,7 @@ class SaneScanDialog(Scan):
                 self.current_scan_options.add_backend_option(option.name, value)
 
             self.option_info[option.name] = response.info
-            if response.info is not None and response.info & "INFO_RELOAD_OPTIONS":
+            if response.info & sane._sane.INFO_RELOAD_OPTIONS:
 
                 def started_callback(_data):
                     self.emit("started-process", _("Retrieving options"))
@@ -399,14 +399,15 @@ class SaneScanDialog(Scan):
                     self.emit("changed-progress", None, None)
 
                 def finished_callback(data):
-                    self._update_options(Options(data))
+                    self._update_options(Options(data.info))
                     self._post_set_option_hook(option, value, uuid)
 
                 def error_callback(message):  # error callback
                     self.emit(
                         "process-error",
                         "find_scan_options",
-                        _("Error retrieving scanner options: " + message),
+                        _("Error retrieving scanner options: %s"),
+                        message,
                     )
 
                 self.thread.get_options(
