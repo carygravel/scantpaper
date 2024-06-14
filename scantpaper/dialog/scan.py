@@ -1,7 +1,7 @@
 "Scan dialog"  # pylint: disable=too-many-lines
 
 import re
-from copy import copy, deepcopy
+from copy import copy
 import gettext
 import logging
 from gi.repository import Gdk, Gtk, GObject
@@ -696,7 +696,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # Clone the current scan options in case they are changed by the reload,
         # so that we can reapply it afterwards to ensure the same values are still
         # set.
-        current_scan_options = deepcopy(self.current_scan_options)
+        current_scan_options = copy(self.current_scan_options)
 
         # walk the widget tree and update them from the hash
         num_dev_options = new_options.num_options()
@@ -715,7 +715,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         for i in current_scan_options.each_backend_option():
             name, _val = current_scan_options.get_backend_option_by_index(i)
             opt = options.by_name(name)
-            if "type" in opt and opt["type"] == sane._sane.TYPE_BUTTON:
+            if opt.type == sane._sane.TYPE_BUTTON:
                 buttons.append(name)
 
         for button in buttons:
@@ -730,41 +730,38 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self._set_paper_formats(self.paper_formats)
 
     def _update_single_option(self, opt):
-        widget = self.option_widgets[opt["name"]]
-        value = opt["val"]
+        widget = self.option_widgets[opt.name]
+        value = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
 
         # Switch
-        if opt["type"] == sane._sane.TYPE_BOOL:
+        if opt.type == sane._sane.TYPE_BOOL:
             if _value_for_active_option(value, opt):
                 widget.set_active(value)
 
         else:
-            if opt["constraint_type"] == "CONSTRAINT_RANGE":
+            if isinstance(opt.constraint, tuple):
                 step, page = widget.get_increments()
                 step = 1
-                if opt["constraint"]["quant"]:
-                    step = opt["constraint"]["quant"]
+                if opt.constraint[2] != 0:
+                    step = opt.constraint[2]
 
-                widget.set_range(opt["constraint"]["min"], opt["constraint"]["max"])
+                widget.set_range(opt.constraint[0], opt.constraint[1])
                 widget.set_increments(step, page)
                 if _value_for_active_option(value, opt):
                     widget.set_value(value)
 
-            elif opt["constraint_type"] in [
-                "CONSTRAINT_STRING_LIST",
-                "CONSTRAINT_WORD_LIST",
-            ]:
+            elif isinstance(opt.constraint, list):
                 widget.get_model().clear()
                 index = 0
-                for i in range(len(opt["constraint"])):
-                    widget.append_text(d_sane.get(opt["constraint"][i]))
-                    if (value is not None) and opt["constraint"][i] == value:
+                for i, entry in enumerate(opt.constraint):
+                    widget.append_text(d_sane(entry))
+                    if value is not None and entry == value:
                         index = i
 
                 if index is not None:
                     widget.set_active(index)
 
-            elif opt["constraint_type"] == "CONSTRAINT_NONE":
+            elif opt.constraint is None:
                 if _value_for_active_option(value, opt):
                     widget.set_text(value)
 
@@ -776,14 +773,14 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         if opt.type == sane._sane.TYPE_GROUP or opt.name not in self.option_widgets:
             return False
 
-        widget = self.option_widgets[opt["name"]]
-        if new_opt["name"] != opt["name"]:
+        widget = self.option_widgets[opt.name]
+        if new_opt.name != opt.name:
             logger.error(
                 "Error updating options: reloaded options are numbered differently"
             )
             return True
 
-        if opt["type"] != new_opt["type"]:
+        if opt.type != new_opt.type:
             logger.error(
                 "Error updating options: reloaded options have different types"
             )
@@ -800,7 +797,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             (not opt.cap & sane._sane.CAP_INACTIVE)
             and opt.cap & sane._sane.CAP_SOFT_SELECT
         )
-        if opt["max_values"] < 2:
+        if opt.size < 2:
             self._update_single_option(opt)
 
         widget.handler_unblock(widget.signal)
@@ -1457,7 +1454,7 @@ def _build_profile_table(profile, options, vbox):
         opt = options.by_name(name)
         row = Gtk.ListBoxRow()
         hbox = Gtk.HBox()
-        label = Gtk.Label(label=d_sane.get(opt["title"]))
+        label = Gtk.Label(label=d_sane(opt.title))
         hbox.pack_start(label, False, True, 0)
         icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
         button = Gtk.Button()

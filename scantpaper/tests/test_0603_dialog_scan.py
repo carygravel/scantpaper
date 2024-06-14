@@ -82,6 +82,13 @@ def test_1(mocker):
 
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
+    def mocked_do_set_option(self, _request):
+        key, value = _request.args
+        setattr(self.device_handle, key.replace("-", "_"), value)
+        return 0
+
+    mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
+
     dlg = SaneScanDialog(
         title="title",
         transient_for=Gtk.Window(),
