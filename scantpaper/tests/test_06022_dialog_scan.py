@@ -4,7 +4,6 @@ from types import SimpleNamespace
 import gi
 from dialog.sane import SaneScanDialog
 from scanner.options import Option
-from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
@@ -36,11 +35,10 @@ def test_1(mocker):
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
-    def mocked_do_get_options(self, _request):
-        """A Samsung CLX-4190 has a doc-source options instead of source, meaning that
-        the property allow-batch-flatbed had to be enabled to scan more than one
-        page from the ADF. Override enough to test for this."""
-        self.device_handle.doc_source = "Auto"
+    def mocked_do_get_options(_self, _request):
+        """An Acer flatbed scanner using a snapscan backend had no default for the source
+        option, and as it only had one possibility, which was never set, the source
+        option never had a value. Check that the number of pages frame is ghosted."""
         return [
             Option(
                 index=0,
@@ -55,14 +53,14 @@ def test_1(mocker):
             ),
             Option(
                 index=1,
-                name="doc-source",
-                title="Doc source",
-                desc="Selects source of the document to be scanned",
+                name="source",
+                title="Scan source",
+                desc="Selects the scan source (such as a document-feeder).",
                 type=3,
                 unit=0,
                 size=1,
-                cap=5,
-                constraint=["Auto", "Flatbed", "ADF Simplex"],
+                cap=53,
+                constraint=["Flatbed"],
             ),
         ]
 
@@ -89,20 +87,18 @@ def test_1(mocker):
         nonlocal asserts
         asserts += 1
 
-        def changed_current_scan_options_cb(_arg1, _arg2, _arg3):
-            nonlocal asserts
-            asserts += 1
-            dlg.disconnect(dlg.signal)
-            assert dlg.num_pages == 0, "num-pages"
-            loop.quit()
-
-        dlg.signal = dlg.connect(
-            "changed-current-scan-options", changed_current_scan_options_cb
-        )
-        dlg.set_current_scan_options(Profile(frontend={"num_pages": 0}))
+        options = dlg.available_scan_options()
+        assert options.flatbed_selected(), "flatbed_selected() without value"
+        assert not dlg.framen.is_sensitive(), "num-page gui ghosted"
+        dlg.num_pages = 2
+        assert dlg.num_pages == 1, "allow-batch-flatbed should force num-pages"
+        dlg.allow_batch_flatbed = True
+        dlg.num_pages = 2
+        assert dlg.num_pages == 2, "num-pages"
+        assert dlg.framen.is_sensitive(), "num-page gui not ghosted"
 
     dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
     dlg.get_devices()
 
     loop.run()
-    assert asserts == 4, "all callbacks runs"
+    assert asserts == 3, "all callbacks runs"
