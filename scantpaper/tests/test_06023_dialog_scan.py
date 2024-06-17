@@ -51,7 +51,7 @@ def test_1():
         nonlocal asserts
         asserts += 1
         dlg.disconnect(dlg.signal)
-        assert dlg.current_scan_options.get_data() == Profile(
+        assert dlg.current_scan_options == Profile(
             backend=[("resolution", 100)]
         ), "reset before applying profile"
         loop.quit()
@@ -61,3 +61,4 @@ def test_1():
     loop.run()
 
     assert asserts == 1, "all callbacks ran"
+    dlg.thread.quit()

@@ -742,7 +742,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             if isinstance(opt.constraint, tuple):
                 step, page = widget.get_increments()
                 step = 1
-                if opt.constraint[2] != 0:
+                if opt.constraint[2] > 0:
                     step = opt.constraint[2]
 
                 widget.set_range(opt.constraint[0], opt.constraint[1])

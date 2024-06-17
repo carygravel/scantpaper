@@ -69,8 +69,7 @@ def test_1():
 
     options = dialog.available_scan_options
 
-    # v1.3.7 had the bug that profiles were not being saved properly,
-    # due to the profiles not being cloned in the set and get routines
+    # Check that profiles are being saved properly,
     assert set_option_in_mainloop(dialog, options.by_name("tl-x"), 10)
     assert set_option_in_mainloop(dialog, options.by_name("tl-y"), 10)
     dialog.save_current_profile("profile 1")

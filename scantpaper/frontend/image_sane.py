@@ -179,6 +179,10 @@ class SaneThread(BaseThread):
         "close device"
         return self.send("close_device", **kwargs)
 
+    def quit(self, **kwargs):
+        "quit"
+        return self.send("quit", **kwargs)
+
     def cancel(self, **kwargs):
         "Flag the scan routine to abort"
 

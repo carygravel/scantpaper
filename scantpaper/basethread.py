@@ -5,6 +5,7 @@ import collections
 from enum import Enum
 import uuid
 import logging
+import weakref
 from gi.repository import GLib
 
 Response = collections.namedtuple("Response", ["type", "request", "info", "status"])
@@ -70,9 +71,14 @@ class BaseThread(threading.Thread):
         self.additional_callbacks = {}
         self.before = {}
         self.after = {}
+        self._finalizer = weakref.finalize(self, self.quit)
         for callback in CALLBACKS:
             self.before[callback] = set()
             self.after[callback] = set()
+
+    def quit(self):
+        "called automatically by weakref.finalize() when thread is destroyed"
+        return self.send("quit")
 
     def input_handler(self, request):  # pylint: disable=no-self-use
         "dummy input handler to be overridden as required"
