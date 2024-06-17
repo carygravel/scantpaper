@@ -41,7 +41,6 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
     _document = None
     available_scan_options = Options([])
     allow_batch_flatbed = False
-    current_scan_options = Profile()
     ignore_duplex_capabilities = False
     adf_defaults_scan_all_pages = GObject.Property(
         type=bool,
@@ -179,6 +178,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.current_scan_options = Profile()
 
         # Notebook to collate options
         self.notebook = Gtk.Notebook()

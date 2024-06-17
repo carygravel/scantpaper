@@ -130,7 +130,7 @@ class SaneScanDialog(Scan):
                 self.emit(
                     "process-error",
                     "find_scan_options",
-                    _("Error retrieving scanner options: " + response.status),
+                    _("Error retrieving scanner options: ") + response.status,
                 )
                 self.cursor = "default"
 
@@ -141,10 +141,11 @@ class SaneScanDialog(Scan):
                 error_callback=error_callback,
             )
 
-        def error_callback(message):
-
+        def error_callback(response):
             self.emit(
-                "process-error", "open_device", _("Error opening device: " + message)
+                "process-error",
+                "open_device",
+                _("Error opening device: ") + response.status,
             )
             self.cursor = "default"
 
@@ -260,7 +261,7 @@ class SaneScanDialog(Scan):
 
     def _create_widget_spinbutton(self, opt, val):
         step = 1
-        if opt.constraint[2] != 0:
+        if opt.constraint[2] > 0:
             step = opt.constraint[2]
 
         widget = Gtk.SpinButton.new_with_range(
@@ -402,12 +403,11 @@ class SaneScanDialog(Scan):
                     self._update_options(Options(data.info))
                     self._post_set_option_hook(option, value, uuid)
 
-                def error_callback(message):  # error callback
+                def error_callback(response):
                     self.emit(
                         "process-error",
                         "find_scan_options",
-                        _("Error retrieving scanner options: %s"),
-                        message,
+                        _("Error retrieving scanner options: ") + response.status,
                     )
 
                 self.thread.get_options(
@@ -486,8 +486,8 @@ class SaneScanDialog(Scan):
             )
             i += 1
 
-        def error_callback(msg):
-            self.emit("process-error", "scan_pages", msg)
+        def error_callback(response):
+            self.emit("process-error", "scan_pages: " + response.status)
             self.cursor = "default"
 
         self.thread.scan_pages(
