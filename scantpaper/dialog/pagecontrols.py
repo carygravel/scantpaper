@@ -467,7 +467,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
     def _changed_scan_option_callback(self, _dialog, name, value, _uuid, bscannum):
         options = self.available_scan_options
-        if name == options.by_name("source").name:
+        opt = options.by_name("source")
+        if opt is not None and name == opt.name:
             if self.allow_batch_flatbed or not options.flatbed_selected(
                 self.thread.device_handle
             ):

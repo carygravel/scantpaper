@@ -761,7 +761,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 if index is not None:
                     widget.set_active(index)
 
-            elif opt.constraint is None:
+            elif opt.constraint is None and opt.type != sane._sane.TYPE_BUTTON:  # entry
                 if _value_for_active_option(value, opt):
                     widget.set_text(value)
 
@@ -1132,6 +1132,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             if opt is None or opt.cap & sane._sane.CAP_INACTIVE:
                 logger.warning("Ignoring inactive option '%s'.", name)
                 self._set_option_profile(profile, itr)
+                return
 
             # Don't try to set invalid option
             if isinstance(opt.constraint, list):

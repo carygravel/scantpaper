@@ -185,9 +185,10 @@ class Options(GObject.Object):
     def flatbed_selected(self, device_handle):
         "returns whether the flatbed is selected"
         val = None
-        name = self.source.name.replace("-", "_")
-        if hasattr(device_handle, name):
-            val = getattr(device_handle, name)
+        if self.source is not None:
+            name = self.source.name.replace("-", "_")
+            if hasattr(device_handle, name):
+                val = getattr(device_handle, name)
         return (
             val is not None
             and re.search(
