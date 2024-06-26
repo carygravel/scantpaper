@@ -107,6 +107,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     @profile.setter
     def profile(self, newval):
+        if newval == self._profile:
+            return
         signal = None
 
         def do_changed_profile(_arg1, _arg2):
@@ -342,7 +344,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.ignored_paper_formats = []
         self.combobp = None
         self.option_widgets = {}
-        self._option_info = {}
         self._geometry_boxes = {}
 
         self.connect("show", self.show)
@@ -1141,6 +1142,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                         "Ignoring invalid argument '%s' for option '%s'.", val, name
                     )
                     self._set_option_profile(profile, itr)
+                    return
 
             # Ignore option if info from previous set_option() reported SANE_INFO_INEXACT
             if (
@@ -1154,6 +1156,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                     val,
                 )
                 self._set_option_profile(profile, itr)
+                return
 
             # Ignore option if value already within tolerance
             curval = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
@@ -1162,28 +1165,29 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                     "No need to set option '%s': already within tolerance.", name
                 )
                 self._set_option_profile(profile, itr)
-            else:
-                logger.debug(
-                    f"Setting option '{name}'"
-                    + (
-                        ""
-                        if opt.type == sane._sane.TYPE_BUTTON
-                        else f" from '{curval}' to '{val}'."
-                    )
+                return
+
+            logger.debug(
+                f"Setting option '{name}'"
+                + (
+                    ""
+                    if opt.type == sane._sane.TYPE_BUTTON
+                    else f" from '{curval}' to '{val}'."
                 )
-                signal = None
+            )
+            signal = None
 
-                def do_changed_scan_option(_widget, _optname, _optval, uuid):
+            def do_changed_scan_option(_widget, _optname, _optval, uuid):
 
-                    # With multiple reloads, this can get called several times,
-                    # so only react to signal from the correct profile
-                    if uuid == profile.uuid:
-                        self.disconnect(signal)
-                        self._set_option_profile(profile, itr)
+                # With multiple reloads, this can get called several times,
+                # so only react to signal from the correct profile
+                if uuid == profile.uuid:
+                    self.disconnect(signal)
+                    self._set_option_profile(profile, itr)
 
-                signal = self.connect("changed-scan-option", do_changed_scan_option)
+            signal = self.connect("changed-scan-option", do_changed_scan_option)
 
-                self.set_option(opt, val, profile.uuid)
+            self.set_option(opt, val, profile.uuid)
 
         except StopIteration:
 
