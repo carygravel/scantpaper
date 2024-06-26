@@ -1,7 +1,11 @@
 "subclass basethread for SANE"
+import math
+import logging
 from types import SimpleNamespace
 from basethread import BaseThread
 import sane
+
+logger = logging.getLogger(__name__)
 
 
 def _set_default_callbacks(kwargs):
@@ -63,15 +67,15 @@ class SaneThread(BaseThread):
         here to return it ourselves"""
         key, value = request.args
         key = key.replace("-", "_")
-        d = self.device_handle.__dict__
+        dic = self.device_handle.__dict__
         if key in ("dev", "optlist", "area", "sane_signature", "scanner_model"):
             raise AttributeError("Read-only attribute: " + key)
 
         if key not in self.device_handle.opt:
-            d[key] = value
+            dic[key] = value
             return 0
 
-        opt = d["opt"][key]
+        opt = dic["opt"][key]
         if opt.type == sane._sane.TYPE_BUTTON:
             raise AttributeError("Buttons don't have values: " + key)
         if opt.type == sane._sane.TYPE_GROUP:
@@ -83,12 +87,22 @@ class SaneThread(BaseThread):
         if isinstance(value, int) and opt.type == sane._sane.TYPE_FIXED:
             # avoid annoying errors of backend if int is given instead float:
             value = float(value)
-        result = d["dev"].set_option(opt.index, value)
-        # do binary AND to find if we have to reload options:
-        if result & sane._sane.INFO_RELOAD_OPTIONS:
+        info = dic["dev"].set_option(opt.index, value)
+
+        # binary AND to find if we have to reload options:
+        if info & sane._sane.INFO_RELOAD_OPTIONS:
             self.device_handle.__load_option_dict()
 
-        return result
+        logger.info(
+            f"sane_set_option {opt.index} ({opt.name})"
+            + ("" if opt.type == sane._sane.TYPE_BUTTON else f" to {value}")
+            + " returned info "
+            + f"{info} ({decode_info(info)})"
+            if (info is not None)
+            else "undefined"
+        )
+
+        return info
 
     def do_scan_page(self, _request):
         "scan page"
@@ -197,3 +211,30 @@ class SaneThread(BaseThread):
 
         # Add a cancel request to ensure the reply is not blocked
         return self.send("cancel", **kwargs)
+
+
+def decode_info(info):
+    "decode the info binary mask for logs that are easier to read"
+    if info == 0:
+        return "none"
+    opts = ["INEXACT", "RELOAD_OPTIONS", "RELOAD_PARAMS"]
+    this = []
+
+    # number of binary digits required
+    num = math.log2(info)
+    num = int(num) + (1 if num > int(num) else 0)
+
+    i = len(opts)
+    while num > i:
+        if info >= 2 ** (num - 1):
+            this.append("?")
+            info -= 2 ** (num - 1)
+        num -= 1
+
+    while num > -1:
+        if info >= 2 ** num:
+            this.append(opts[num])
+            info -= 2 ** num
+        num -= 1
+
+    return " + ".join(this)

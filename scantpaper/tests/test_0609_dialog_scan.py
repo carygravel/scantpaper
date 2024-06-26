@@ -165,7 +165,7 @@ def test_1(mocker):
             asserts += 1
             dlg.disconnect(dlg.signal)
             assert profile == "my profile", "changed-profile"
-            assert dlg.current_scan_options.get_data() == Profile(
+            assert dlg.current_scan_options == Profile(
                 backend=[("resolution", 100), ("source", "Flatbed")]
             ), "current-scan-options with profile"
             loop.quit()

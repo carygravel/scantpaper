@@ -37,7 +37,7 @@ class SaneScanDialog(Scan):
         self.thread = SaneThread()
         self.thread.start()
         self.geometry_boxes = None
-        self.option_info = {}
+        self._option_info = {}
 
     def get_devices(self):
         "Run Sane.get_devices()"
@@ -94,7 +94,7 @@ class SaneScanDialog(Scan):
         # Remove lookups to geometry boxes and option widgets
         self.geometry_boxes = None
         self.option_widgets = {}
-        self.option_info = {}
+        self._option_info = {}
 
         def started_callback(_data):
             self.cursor = "wait"
@@ -390,7 +390,7 @@ class SaneScanDialog(Scan):
             if response.status != "STATUS_INVAL":
                 self.current_scan_options.add_backend_option(option.name, value)
 
-            self.option_info[option.name] = response.info
+            self._option_info[option.name] = response.info
             if response.info & sane._sane.INFO_RELOAD_OPTIONS:
 
                 def started_callback(_data):
@@ -476,9 +476,9 @@ class SaneScanDialog(Scan):
                 signal = self.connect("reloaded-scan-options", reloaded_scan_options_cb)
                 self.scan_options(self.device)
 
-        def new_page_callback(_status, path, n):
+        def new_page_callback(_status, path, num):
             nonlocal i
-            self.emit("new-scan", path, n, xresolution, yresolution)
+            self.emit("new-scan", path, num, xresolution, yresolution)
             self.emit(
                 "changed-progress",
                 0,
