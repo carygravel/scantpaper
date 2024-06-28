@@ -3,7 +3,7 @@
 import logging
 import gettext
 from gi.repository import GObject, Gtk
-import sane
+from frontend import enums
 from dialog.scan import Scan, _geometry_option, make_progress_string
 from frontend.image_sane import SaneThread
 from scanner.options import Options
@@ -171,14 +171,14 @@ class SaneScanDialog(Scan):
             opt = options.by_index(i)
 
             # Notebook page for group
-            if opt.type == sane._sane.TYPE_GROUP or vbox is None:
+            if opt.type == enums.TYPE_GROUP or vbox is None:
                 vbox = Gtk.VBox()
                 # vbox.set_border_width( self.get_style_context().get_property(
                 #                                                 'content-area-border') )
                 text = (
                     d_sane(opt.title)
                     if (
-                        opt.type == sane._sane.TYPE_GROUP
+                        opt.type == enums.TYPE_GROUP
                         # A brother scanner used an empty string as a group title,
                         # which then results in a tab with no title, which is
                         # confusing and can be missed, so set to the default.
@@ -190,10 +190,10 @@ class SaneScanDialog(Scan):
                 self.notebook.append_page(scwin, Gtk.Label(label=text))
                 scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
                 scwin.add(vbox)
-                if opt.type == sane._sane.TYPE_GROUP:
+                if opt.type == enums.TYPE_GROUP:
                     continue
 
-            if not opt.cap & sane._sane.CAP_SOFT_DETECT:
+            if not opt.cap & enums.CAP_SOFT_DETECT:
                 continue
 
             # Widget
@@ -212,10 +212,7 @@ class SaneScanDialog(Scan):
             # HBox for option
             hbox = Gtk.HBox()
             vbox.pack_start(hbox, False, True, 0)
-            if (
-                opt.cap & sane._sane.CAP_INACTIVE
-                or not opt.cap & sane._sane.CAP_SOFT_SELECT
-            ):
+            if opt.cap & enums.CAP_INACTIVE or not opt.cap & enums.CAP_SOFT_SELECT:
                 hbox.set_sensitive(False)
 
             if isinstance(val, list):  # $opt->{max_values} > 1
@@ -269,7 +266,7 @@ class SaneScanDialog(Scan):
         )
 
         # Set the default
-        if val is not None and not opt.cap & sane._sane.CAP_INACTIVE:
+        if val is not None and not opt.cap & enums.CAP_INACTIVE:
             widget.set_value(val)
 
         def value_changed_spinbutton_cb():
@@ -310,7 +307,7 @@ class SaneScanDialog(Scan):
 
         # Set the default
 
-        if (val is not None) and not opt.cap & sane._sane.CAP_INACTIVE:
+        if (val is not None) and not opt.cap & enums.CAP_INACTIVE:
             widget.set_text(val)
 
         def activate_entry_cb():
@@ -324,7 +321,7 @@ class SaneScanDialog(Scan):
     def _create_widget(self, opt, val, hbox):
 
         # Label
-        if opt.type != sane._sane.TYPE_BUTTON:
+        if opt.type != enums.TYPE_BUTTON:
             text = opt.title
             if text is None or text == EMPTY:
                 text = opt.name
@@ -332,9 +329,9 @@ class SaneScanDialog(Scan):
             label = Gtk.Label(label=d_sane(text))
             hbox.pack_start(label, False, False, 0)
 
-        if opt.type == sane._sane.TYPE_BOOL:
+        if opt.type == enums.TYPE_BOOL:
             widget = self._create_widget_switch(opt, val)
-        elif opt.type == sane._sane.TYPE_BUTTON:
+        elif opt.type == enums.TYPE_BUTTON:
             widget = self._create_widget_button(opt)
         elif isinstance(opt.constraint, tuple):
             widget = self._create_widget_spinbutton(opt, val)
@@ -350,7 +347,7 @@ class SaneScanDialog(Scan):
         self.emit(
             "finished-process",
             f"set_option {option.name}"
-            + (EMPTY if option.type == sane._sane.TYPE_BUTTON else f" to {val}"),
+            + (EMPTY if option.type == enums.TYPE_BUTTON else f" to {val}"),
         )
 
         # Unset the profile unless we are actively setting it
@@ -391,7 +388,7 @@ class SaneScanDialog(Scan):
                 self.current_scan_options.add_backend_option(option.name, value)
 
             self._option_info[option.name] = response.info
-            if response.info & sane._sane.INFO_RELOAD_OPTIONS:
+            if response.info & enums.INFO_RELOAD_OPTIONS:
 
                 def started_callback(_data):
                     self.emit("started-process", _("Retrieving options"))

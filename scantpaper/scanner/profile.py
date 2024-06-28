@@ -3,7 +3,7 @@
 from copy import deepcopy
 import uuid
 from gi.repository import GObject
-import sane
+from frontend import enums
 
 
 class Profile(GObject.Object):
@@ -179,7 +179,7 @@ class Profile(GObject.Object):
             else:
                 if options is not None:
                     opt = options.by_name(name)
-                    if "type" in opt and opt["type"] == sane._sane.TYPE_BOOL:
+                    if "type" in opt and opt["type"] == enums.TYPE_BOOL:
                         val = "yes" if val else "no"
 
                 new.add_backend_option(name, val)

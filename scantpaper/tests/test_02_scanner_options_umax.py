@@ -1,7 +1,7 @@
 "options from umax backend"
 from scanner.options import Options, Option
 import pytest
-import sane
+from frontend import enums
 
 
 def test_1():
@@ -32,9 +32,9 @@ def test_1():
             cap=0,
             size=0,
             name="",
-            unit=sane._sane.UNIT_NONE,
+            unit=enums.UNIT_NONE,
             desc="",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -43,9 +43,9 @@ def test_1():
             index=2,
             desc="Selects the scan mode (e.g., lineart, monochrome, or color).",
             constraint=["Lineart", "Gray", "Color"],
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_STRING,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_STRING,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -54,9 +54,9 @@ def test_1():
             index=3,
             desc="Selects the scan source (such as a document-feeder).",
             constraint=["Flatbed"],
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_STRING,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_STRING,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -65,9 +65,9 @@ def test_1():
             index=4,
             desc="Sets the resolution of the scanned image.",
             constraint=(5, 300, 5),
-            unit=sane._sane.UNIT_DPI,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_DPI,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -76,11 +76,9 @@ def test_1():
             index=5,
             desc="Sets the vertical resolution of the scanned image.",
             constraint=(5, 600, 5),
-            unit=sane._sane.UNIT_DPI,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_DPI,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -89,9 +87,9 @@ def test_1():
             index=6,
             desc="Use same values for X and Y resolution",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -100,11 +98,9 @@ def test_1():
             index=7,
             desc="Swap black and white",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -113,9 +109,9 @@ def test_1():
             cap=0,
             size=0,
             name="",
-            unit=sane._sane.UNIT_NONE,
+            unit=enums.UNIT_NONE,
             desc="",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -124,9 +120,9 @@ def test_1():
             index=9,
             desc="Top-left x position of scan area.",
             constraint=(0.0, 215.9, 0.0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -135,9 +131,9 @@ def test_1():
             index=10,
             desc="Top-left y position of scan area.",
             constraint=(0.0, 297.18, 0.0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -146,9 +142,9 @@ def test_1():
             desc="Bottom-right x position of scan area.",
             index=11,
             constraint=(0.0, 215.9, 0.0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -157,9 +153,9 @@ def test_1():
             desc="Bottom-right y position of scan area.",
             index=12,
             constraint=(0.0, 297.18, 0.0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -168,9 +164,9 @@ def test_1():
             cap=0,
             size=0,
             name="",
-            unit=sane._sane.UNIT_NONE,
+            unit=enums.UNIT_NONE,
             desc="",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -180,9 +176,9 @@ def test_1():
             desc='Number of bits per sample, typical values are 1 for "line-art" '
             "and 8 for multibit scans.",
             constraint=[8],
-            unit=sane._sane.UNIT_BIT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_BIT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -191,9 +187,9 @@ def test_1():
             index=15,
             desc="Do a quality white-calibration",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -202,11 +198,9 @@ def test_1():
             index=16,
             desc="Use lens that doubles optical resolution",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -215,11 +209,9 @@ def test_1():
             index=17,
             desc="Warmup lamp before scanning",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -228,9 +220,9 @@ def test_1():
             index=18,
             desc="In RGB-mode use same values for each color",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -239,11 +231,9 @@ def test_1():
             index=19,
             desc="Controls the brightness of the acquired image.",
             constraint=(-100, 100, 1),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -252,11 +242,9 @@ def test_1():
             index=20,
             desc="Controls the contrast of the acquired image.",
             constraint=(-100, 100, 1),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -265,11 +253,9 @@ def test_1():
             index=21,
             desc="Select minimum-brightness to get a white point",
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -278,11 +264,9 @@ def test_1():
             index=22,
             desc='Selects what radiance level should be considered "white".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -291,9 +275,9 @@ def test_1():
             index=23,
             desc='Selects what red radiance level should be considered "full red".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -302,9 +286,9 @@ def test_1():
             index=24,
             desc='Selects what green radiance level should be considered "full green".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -313,9 +297,9 @@ def test_1():
             index=25,
             desc='Selects what blue radiance level should be considered "full blue".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -324,11 +308,9 @@ def test_1():
             index=26,
             desc='Selects what radiance level should be considered "black".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -337,11 +319,9 @@ def test_1():
             index=27,
             desc='Selects what red radiance level should be considered "black".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -350,11 +330,9 @@ def test_1():
             index=28,
             desc='Selects what green radiance level should be considered "black".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -363,11 +341,9 @@ def test_1():
             index=29,
             desc='Selects what blue radiance level should be considered "black".',
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -376,11 +352,9 @@ def test_1():
             index=30,
             desc="Analog gamma-correction",
             constraint=(1.0, 2.0, 0.00999451),
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -389,11 +363,9 @@ def test_1():
             index=31,
             desc="Analog gamma-correction for red",
             constraint=(1.0, 2.0, 0.00999451),
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -402,11 +374,9 @@ def test_1():
             index=32,
             desc="Analog gamma-correction for green",
             constraint=(1.0, 2.0, 0.00999451),
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -415,11 +385,9 @@ def test_1():
             index=33,
             desc="Analog gamma-correction for blue",
             constraint=(1.0, 2.0, 0.00999451),
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -428,9 +396,9 @@ def test_1():
             index=34,
             desc="Determines whether a builtin or a custom gamma-table should be used.",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -441,9 +409,9 @@ def test_1():
             desc="Gamma-correction table.  In color mode this option equally "
             "affects the red, green, and blue channels simultaneously (i.e., it "
             "is an intensity gamma table).",
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=255,
         ),
         Option(
@@ -452,9 +420,9 @@ def test_1():
             index=36,
             constraint=(0, 255, 0),
             desc="Gamma-correction table for the red band.",
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=255,
         ),
         Option(
@@ -463,9 +431,9 @@ def test_1():
             index=37,
             constraint=(0, 255, 0),
             desc="Gamma-correction table for the green band.",
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=255,
         ),
         Option(
@@ -474,9 +442,9 @@ def test_1():
             index=38,
             constraint=(0, 255, 0),
             desc="Gamma-correction table for the blue band.",
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=255,
         ),
         Option(
@@ -486,11 +454,9 @@ def test_1():
             desc="Sets the size of the halftoning (dithering) pattern used when "
             "scanning halftoned images.",
             constraint=[2, 4, 6, 8, 12],
-            unit=sane._sane.UNIT_PIXEL,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PIXEL,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -499,11 +465,9 @@ def test_1():
             index=40,
             desc="Defines the halftoning (dithering) pattern for scanning halftoned images.",
             constraint=(0, 255, 0),
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -512,9 +476,9 @@ def test_1():
             cap=0,
             size=0,
             name="",
-            unit=sane._sane.UNIT_NONE,
+            unit=enums.UNIT_NONE,
             desc="",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -523,11 +487,9 @@ def test_1():
             index=42,
             desc="Define exposure-time for calibration",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -536,11 +498,9 @@ def test_1():
             index=43,
             desc="Define exposure-time for red calibration",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -549,11 +509,9 @@ def test_1():
             index=44,
             desc="Define exposure-time for green calibration",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -562,11 +520,9 @@ def test_1():
             index=45,
             desc="Define exposure-time for blue calibration",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -575,11 +531,9 @@ def test_1():
             index=46,
             desc="Define exposure-time for scan",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -588,11 +542,9 @@ def test_1():
             index=47,
             desc="Define exposure-time for red scan",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -601,11 +553,9 @@ def test_1():
             index=48,
             desc="Define exposure-time for green scan",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -614,11 +564,9 @@ def test_1():
             index=49,
             desc="Define exposure-time for blue scan",
             constraint=(0, 0, 0),
-            unit=sane._sane.UNIT_MICROSECOND,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MICROSECOND,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -627,11 +575,9 @@ def test_1():
             index=50,
             desc="Do not calibrate focus",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -640,11 +586,9 @@ def test_1():
             index=51,
             desc="",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -653,11 +597,9 @@ def test_1():
             index=52,
             desc="",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -666,11 +608,9 @@ def test_1():
             index=53,
             desc="Calibrate lens focus in document position",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -679,11 +619,9 @@ def test_1():
             index=54,
             desc="Use 0mm holder focus position instead of 0.6mm",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -692,11 +630,9 @@ def test_1():
             index=55,
             desc="Define lamp density for calibration",
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -705,11 +641,9 @@ def test_1():
             index=56,
             desc="Define lamp density for scan",
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_PERCENT,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_PERCENT,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -718,11 +652,9 @@ def test_1():
             index=57,
             desc="Enable selection of exposure-time",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -731,11 +663,9 @@ def test_1():
             index=58,
             desc="Allow different settings for calibration and scan exposure times",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -744,11 +674,9 @@ def test_1():
             index=59,
             desc="Enable selection of lamp density",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -757,11 +685,9 @@ def test_1():
             index=60,
             desc="Turn on scanner lamp",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BUTTON,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BUTTON,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=0,
         ),
         Option(
@@ -770,11 +696,9 @@ def test_1():
             index=61,
             desc="Turn off scanner lamp",
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BUTTON,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BUTTON,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=0,
         ),
         Option(
@@ -782,12 +706,10 @@ def test_1():
             title="Lamp off at exit",
             index=62,
             desc="Turn off lamp when program exits",
-            type=sane._sane.TYPE_BOOL,
+            type=enums.TYPE_BOOL,
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -795,12 +717,10 @@ def test_1():
             title="Batch scan start",
             index=63,
             desc="set for first scan of batch",
-            type=sane._sane.TYPE_BOOL,
+            type=enums.TYPE_BOOL,
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -808,12 +728,10 @@ def test_1():
             title="Batch scan loop",
             index=64,
             desc="set for middle scans of batch",
-            type=sane._sane.TYPE_BOOL,
+            type=enums.TYPE_BOOL,
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -821,12 +739,10 @@ def test_1():
             title="Batch scan end",
             index=65,
             desc="set for last scan of batch",
-            type=sane._sane.TYPE_BOOL,
+            type=enums.TYPE_BOOL,
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -835,11 +751,9 @@ def test_1():
             index=66,
             desc="Set top left Y position for next scan",
             constraint=(0.0, 297.18, 0.0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -847,10 +761,10 @@ def test_1():
             title="Preview",
             index=67,
             desc="Request a preview-quality scan.",
-            type=sane._sane.TYPE_BOOL,
+            type=enums.TYPE_BOOL,
             constraint=None,
-            unit=sane._sane.UNIT_NONE,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
     ]

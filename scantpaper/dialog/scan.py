@@ -12,7 +12,7 @@ from scanner.profile import Profile
 from scanner.options import Options, within_tolerance
 from i18n import _
 from const import POINTS_PER_INCH
-import sane
+from frontend import enums
 
 PAPER_TOLERANCE = 1
 OPTION_TOLERANCE = 0.001
@@ -539,31 +539,31 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         if widget is not None:
 
             # Add label for units
-            if opt.unit != sane._sane.UNIT_NONE:
+            if opt.unit != enums.UNIT_NONE:
                 text = None
-                if opt.unit == sane._sane.UNIT_PIXEL:
+                if opt.unit == enums.UNIT_PIXEL:
                     text = _("pel")
 
-                elif opt.unit == sane._sane.UNIT_BIT:
+                elif opt.unit == enums.UNIT_BIT:
                     text = _("bit")
 
-                elif opt.unit == sane._sane.UNIT_MM:
+                elif opt.unit == enums.UNIT_MM:
                     text = _("mm")
 
-                elif opt.unit == sane._sane.UNIT_DPI:
+                elif opt.unit == enums.UNIT_DPI:
                     text = _("ppi")
 
-                elif opt.unit == sane._sane.UNIT_PERCENT:
+                elif opt.unit == enums.UNIT_PERCENT:
                     text = _("%")
 
-                elif opt.unit == sane._sane.UNIT_MICROSECOND:
+                elif opt.unit == enums.UNIT_MICROSECOND:
                     text = _("μs")
 
                 label = Gtk.Label(label=text)
                 hbox.pack_end(label, False, False, 0)
 
             self.option_widgets[opt.name] = widget
-            if opt.type == sane._sane.TYPE_BUTTON:
+            if opt.type == enums.TYPE_BUTTON:
                 hbox.pack_end(widget, True, True, 0)
 
             else:
@@ -716,7 +716,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         for i in current_scan_options.each_backend_option():
             name, _val = current_scan_options.get_backend_option_by_index(i)
             opt = options.by_name(name)
-            if opt.type == sane._sane.TYPE_BUTTON:
+            if opt.type == enums.TYPE_BUTTON:
                 buttons.append(name)
 
         for button in buttons:
@@ -735,7 +735,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         value = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
 
         # Switch
-        if opt.type == sane._sane.TYPE_BOOL:
+        if opt.type == enums.TYPE_BOOL:
             if _value_for_active_option(value, opt):
                 widget.set_active(value)
 
@@ -762,7 +762,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 if index is not None:
                     widget.set_active(index)
 
-            elif opt.constraint is None and opt.type != sane._sane.TYPE_BUTTON:  # entry
+            elif opt.constraint is None and opt.type != enums.TYPE_BUTTON:  # entry
                 if _value_for_active_option(value, opt):
                     widget.set_text(value)
 
@@ -771,7 +771,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # could be undefined for !($new_opt->{cap} & SANE_CAP_SOFT_DETECT)
         # or where $opt->{name} is not defined
         # e.g. $opt->{type} == SANE_TYPE_GROUP
-        if opt.type == sane._sane.TYPE_GROUP or opt.name not in self.option_widgets:
+        if opt.type == enums.TYPE_GROUP or opt.name not in self.option_widgets:
             return False
 
         widget = self.option_widgets[opt.name]
@@ -795,8 +795,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # HBox for option
         hbox = widget.get_parent()
         hbox.set_sensitive(
-            (not opt.cap & sane._sane.CAP_INACTIVE)
-            and opt.cap & sane._sane.CAP_SOFT_SELECT
+            (not opt.cap & enums.CAP_INACTIVE) and opt.cap & enums.CAP_SOFT_SELECT
         )
         if opt.size < 2:
             self._update_single_option(opt)
@@ -851,9 +850,9 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         paper_profile = Profile()
         if (
             (options.by_name("page-height") is not None)
-            and not options.by_name("page-height").cap & sane._sane.CAP_INACTIVE
+            and not options.by_name("page-height").cap & enums.CAP_INACTIVE
             and (options.by_name("page-width") is not None)
-            and not options.by_name("page-width").cap & sane._sane.CAP_INACTIVE
+            and not options.by_name("page-width").cap & enums.CAP_INACTIVE
         ):
             paper_profile.add_backend_option(
                 "page-height",
@@ -1130,7 +1129,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             name, val = profile.get_backend_option_by_index(i)
             options = self.available_scan_options
             opt = options.by_name(name)
-            if opt is None or opt.cap & sane._sane.CAP_INACTIVE:
+            if opt is None or opt.cap & enums.CAP_INACTIVE:
                 logger.warning("Ignoring inactive option '%s'.", name)
                 self._set_option_profile(profile, itr)
                 return
@@ -1147,7 +1146,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             # Ignore option if info from previous set_option() reported SANE_INFO_INEXACT
             if (
                 opt.name in self._option_info
-                and self._option_info[opt.name] & sane._sane.INFO_INEXACT
+                and self._option_info[opt.name] & enums.INFO_INEXACT
             ):
                 logger.warning(
                     "Skip setting option '%s' to '%s', as previous call"
@@ -1171,7 +1170,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 f"Setting option '{name}'"
                 + (
                     ""
-                    if opt.type == sane._sane.TYPE_BUTTON
+                    if opt.type == enums.TYPE_BUTTON
                     else f" from '{curval}' to '{val}'."
                 )
             )
@@ -1216,7 +1215,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             widget = self.option_widgets[opt.name]
             logger.debug(
                 f"Setting widget '{opt.name}'"
-                + ("" if opt.type == sane._sane.TYPE_BUTTON else f" to '{val}'.")
+                + ("" if opt.type == enums.TYPE_BUTTON else f" to '{val}'.")
             )
             widget.handler_block(widget.signal)
             if isinstance(widget, (Gtk.CheckButton, Gtk.Switch)):
@@ -1318,15 +1317,15 @@ def _remove_paper_callback(slist, _window):
 def _geometry_option(opt):
     "Return true if we have a valid geometry option"
     return (
-        opt.type in [sane._sane.TYPE_FIXED, sane._sane.TYPE_INT]
-        and opt.unit in [sane._sane.UNIT_MM, sane._sane.UNIT_PIXEL]
+        opt.type in [enums.TYPE_FIXED, enums.TYPE_INT]
+        and opt.unit in [enums.UNIT_MM, enums.UNIT_PIXEL]
         and opt.name in ["tl-x", "tl-y", "br-x", "br-y", "page-height", "page-width"]
     )
 
 
 def _value_for_active_option(value, opt):
     "return if the value is defined and the option is active"
-    return not value and not opt.cap & sane._sane.CAP_INACTIVE
+    return not value and not opt.cap & enums.CAP_INACTIVE
 
 
 def _save_profile_callback(_widget, parent):

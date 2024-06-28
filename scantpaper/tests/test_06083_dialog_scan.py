@@ -5,7 +5,7 @@ import gi
 from dialog.sane import SaneScanDialog
 from scanner.options import Option
 from scanner.profile import Profile
-import sane
+from frontend import enums
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
@@ -137,7 +137,7 @@ def test_1(mocker):
                 break
         info = 0
         if key == "clear-calibration":
-            info = sane._sane.INFO_RELOAD_OPTIONS
+            info = enums.INFO_RELOAD_OPTIONS
         else:
             setattr(self.device_handle, key.replace("-", "_"), value)
         return info
