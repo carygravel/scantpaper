@@ -1,6 +1,6 @@
 "options from data"
 from scanner.options import Options, Option
-import sane
+from frontend import enums
 
 
 def test_1():
@@ -25,7 +25,7 @@ def test_1():
             desc="",
             name="",
             title="Geometry",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -117,7 +117,7 @@ def test_1():
             desc="",
             name="",
             title="Geometry",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(

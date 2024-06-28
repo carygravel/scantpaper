@@ -1,7 +1,7 @@
 "options from brother backend"
 from scanner.options import Options, Option
 import pytest
-import sane
+from frontend import enums
 
 
 def test_1():
@@ -27,18 +27,16 @@ def test_1():
             4,
             None,
         ),
-        Option(
-            1, "", "Mode", "", sane._sane.TYPE_GROUP, sane._sane.UNIT_NONE, 0, 0, None
-        ),
+        Option(1, "", "Mode", "", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None),
         Option(
             2,
             "mode",
             "Mode",
             "Select the scan mode",
-            sane._sane.TYPE_STRING,
-            sane._sane.UNIT_NONE,
+            enums.TYPE_STRING,
+            enums.UNIT_NONE,
             1,
-            sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             [
                 "Black & White",
                 "Gray[Error Diffusion]",
@@ -52,10 +50,10 @@ def test_1():
             "resolution",
             "Resolution",
             "Sets the resolution of the scanned image.",
-            sane._sane.TYPE_INT,
-            sane._sane.UNIT_DPI,
+            enums.TYPE_INT,
+            enums.UNIT_DPI,
             1,
-            sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             [100, 150, 200, 300, 400, 600, 1200, 2400, 4800, 9600],
         ),
         Option(
@@ -63,10 +61,10 @@ def test_1():
             "source",
             "Source",
             "Selects the scan source (such as a document-feeder).",
-            sane._sane.TYPE_STRING,
-            sane._sane.UNIT_NONE,
+            enums.TYPE_STRING,
+            enums.UNIT_NONE,
             1,
-            sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             ["FlatBed", "Automatic Document Feeder"],
         ),
         Option(
@@ -74,12 +72,10 @@ def test_1():
             "brightness",
             "Brightness",
             "Controls the brightness of the acquired image.",
-            sane._sane.TYPE_INT,
-            sane._sane.UNIT_PERCENT,
+            enums.TYPE_INT,
+            enums.UNIT_PERCENT,
             1,
-            sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             (-50, 50, 1),
         ),
         Option(
@@ -87,12 +83,10 @@ def test_1():
             "contrast",
             "Contrast",
             "Controls the contrast of the acquired image.",
-            sane._sane.TYPE_INT,
-            sane._sane.UNIT_PERCENT,
+            enums.TYPE_INT,
+            enums.UNIT_PERCENT,
             1,
-            sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             (-50, 50, 1),
         ),
         Option(
@@ -100,8 +94,8 @@ def test_1():
             "",
             "Geometry",
             "",
-            sane._sane.TYPE_GROUP,
-            sane._sane.UNIT_NONE,
+            enums.TYPE_GROUP,
+            enums.UNIT_NONE,
             0,
             0,
             None,
@@ -111,10 +105,10 @@ def test_1():
             "tl-x",
             "Top-left x",
             "Top-left x position of scan area.",
-            sane._sane.TYPE_FIXED,
-            sane._sane.UNIT_MM,
+            enums.TYPE_FIXED,
+            enums.UNIT_MM,
             1,
-            sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             (0.0, 210.0, 0.0999908),
         ),
         Option(
@@ -122,10 +116,10 @@ def test_1():
             "tl-y",
             "Top-left y",
             "Top-left y position of scan area.",
-            sane._sane.TYPE_FIXED,
-            sane._sane.UNIT_MM,
+            enums.TYPE_FIXED,
+            enums.UNIT_MM,
             1,
-            sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             (0.0, 297.0, 0.0999908),
         ),
         Option(
@@ -133,10 +127,10 @@ def test_1():
             "br-x",
             "Bottom-right x",
             "Bottom-right x position of scan area.",
-            sane._sane.TYPE_FIXED,
-            sane._sane.UNIT_MM,
+            enums.TYPE_FIXED,
+            enums.UNIT_MM,
             1,
-            sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             (0.0, 210.0, 0.0999908),
         ),
         Option(
@@ -144,10 +138,10 @@ def test_1():
             "br-y",
             "Bottom-right y",
             "Bottom-right y position of scan area.",
-            sane._sane.TYPE_FIXED,
-            sane._sane.UNIT_MM,
+            enums.TYPE_FIXED,
+            enums.UNIT_MM,
             1,
-            sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             (0.0, 297.0, 0.0999908),
         ),
     ]

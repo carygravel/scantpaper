@@ -1,7 +1,7 @@
 "options from officejet_5500 backend"
 from scanner.options import Options, Option
 import pytest
-import sane
+from frontend import enums
 
 
 def test_1():
@@ -32,9 +32,9 @@ def test_1():
             cap=0,
             size=0,
             name="",
-            unit=sane._sane.UNIT_NONE,
+            unit=enums.UNIT_NONE,
             desc="",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -43,9 +43,9 @@ def test_1():
             index=2,
             desc="Selects the scan mode (e.g., lineart, monochrome, or color).",
             constraint=["Lineart", "Grayscale", "Color"],
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_STRING,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_STRING,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -54,9 +54,9 @@ def test_1():
             index=3,
             desc="Sets the resolution of the scanned image.",
             constraint=(75, 600, 0),
-            unit=sane._sane.UNIT_DPI,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_DPI,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -65,9 +65,9 @@ def test_1():
             cap=0,
             size=0,
             name="",
-            unit=sane._sane.UNIT_NONE,
+            unit=enums.UNIT_NONE,
             desc="",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -76,11 +76,9 @@ def test_1():
             index=5,
             desc="Controls the contrast of the acquired image.",
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -90,9 +88,9 @@ def test_1():
             desc="Selects the scanner compression method for faster scans, "
             "possibly at the expense of image quality.",
             constraint=["None", "JPEG"],
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_STRING,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_STRING,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -102,9 +100,9 @@ def test_1():
             desc="Sets the scanner JPEG compression factor.  Larger numbers "
             "mean better compression, and smaller numbers mean better image quality.",
             constraint=(0, 100, 0),
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -115,10 +113,10 @@ def test_1():
             "after the last scanned page, to prevent endless flatbed scans after "
             "a batch scan. For some models, option changes in the middle of a "
             "batch scan don't take effect until after the last page.",
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
             constraint=None,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -130,9 +128,9 @@ def test_1():
             "means that the ADF will be used if it's loaded, and the flatbed (if "
             "present) will be used otherwise.",
             constraint=["Auto", "Flatbed", "ADF"],
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_STRING,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_STRING,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -142,12 +140,10 @@ def test_1():
             desc="Enables scanning on both sides of the page for models with "
             'duplex-capable document feeders.  For pages printed in "book"-style '
             "duplex mode, one side will be scanned upside-down.  This feature is experimental.",
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_BOOL,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_BOOL,
             constraint=None,
-            cap=sane._sane.CAP_SOFT_DETECT
-            + sane._sane.CAP_SOFT_SELECT
-            + sane._sane.CAP_INACTIVE,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT + enums.CAP_INACTIVE,
             size=1,
         ),
         Option(
@@ -156,9 +152,9 @@ def test_1():
             cap=0,
             size=0,
             name="",
-            unit=sane._sane.UNIT_NONE,
+            unit=enums.UNIT_NONE,
             desc="",
-            type=sane._sane.TYPE_GROUP,
+            type=enums.TYPE_GROUP,
             constraint=None,
         ),
         Option(
@@ -168,9 +164,9 @@ def test_1():
             desc="Selects how the scanned image length is measured and reported, "
             "which is impossible to know in advance for scrollfed scans.",
             constraint=["Unknown", "Approximate", "Padded"],
-            unit=sane._sane.UNIT_NONE,
-            type=sane._sane.TYPE_STRING,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_NONE,
+            type=enums.TYPE_STRING,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -179,9 +175,9 @@ def test_1():
             index=13,
             desc="Top-left x position of scan area.",
             constraint=(0.0, 215.9, 0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -190,9 +186,9 @@ def test_1():
             index=14,
             desc="Top-left y position of scan area.",
             constraint=(0, 381, 0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -201,9 +197,9 @@ def test_1():
             desc="Bottom-right x position of scan area.",
             index=15,
             constraint=(0.0, 215.9, 0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_FIXED,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_FIXED,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
         Option(
@@ -212,9 +208,9 @@ def test_1():
             desc="Bottom-right y position of scan area.",
             index=16,
             constraint=(0, 381, 0),
-            unit=sane._sane.UNIT_MM,
-            type=sane._sane.TYPE_INT,
-            cap=sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT,
+            unit=enums.UNIT_MM,
+            type=enums.TYPE_INT,
+            cap=enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT,
             size=1,
         ),
     ]

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import gi
 from dialog.sane import SaneScanDialog
 from scanner.options import Option
-import sane
+from frontend import enums
 import pytest
 
 gi.require_version("Gtk", "3.0")
@@ -128,13 +128,13 @@ def test_get_invalid_option(mocker):
             unit=3,
         ),
         Option(
-            cap=sane._sane.CAP_SOFT_SELECT + sane._sane.CAP_SOFT_DETECT,
+            cap=enums.CAP_SOFT_SELECT + enums.CAP_SOFT_DETECT,
             name=None,  # "select-detect"
             title=None,
             desc=None,
             constraint=None,
             size=1,
-            type=sane._sane.TYPE_BOOL,
+            type=enums.TYPE_BOOL,
             unit=None,
             index=7,
         ),
@@ -152,7 +152,7 @@ def test_get_invalid_option(mocker):
         the profile dropdown being set to None"""
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return sane._sane.INFO_RELOAD_OPTIONS
+        return enums.INFO_RELOAD_OPTIONS
 
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
@@ -189,7 +189,7 @@ def test_get_invalid_option(mocker):
         desc=None,
         constraint=None,
         size=1,
-        type=sane._sane.TYPE_BOOL,
+        type=enums.TYPE_BOOL,
         unit=None,
         index=7,
     ), "make options that throw an error undetectable and unselectable"

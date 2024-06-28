@@ -7,7 +7,7 @@ from dialog.sane import SaneScanDialog
 from scanner.options import Option
 from scanner.profile import Profile
 from frontend.image_sane import decode_info
-import sane
+from frontend import enums
 
 logger = logging.getLogger(__name__)
 
@@ -393,9 +393,9 @@ def test_1(mocker):
             value = 215.899993896484 if key == "br-x" else 279.399993896484
             info = (
                 21936
-                + sane._sane.INFO_RELOAD_PARAMS
-                + sane._sane.INFO_RELOAD_OPTIONS
-                + sane._sane.INFO_INEXACT
+                + enums.INFO_RELOAD_PARAMS
+                + enums.INFO_RELOAD_OPTIONS
+                + enums.INFO_INEXACT
             )
             logger.info(
                 f"sane_set_option {opt.index} ({opt.name})"

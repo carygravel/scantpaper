@@ -5,7 +5,7 @@ import gi
 from dialog.sane import SaneScanDialog
 from scanner.options import Option
 from scanner.profile import Profile
-import sane
+from frontend import enums
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
@@ -150,7 +150,7 @@ def test_1(mocker):
         info = 0
         if isinstance(opt.constraint, tuple) and opt.constraint[2] > 0:
             value = int(value / opt.constraint[2] + 0.5) * opt.constraint[2]
-            info = sane._sane.INFO_RELOAD_OPTIONS
+            info = enums.INFO_RELOAD_OPTIONS
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 

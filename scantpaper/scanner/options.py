@@ -3,7 +3,7 @@ import re
 from collections import defaultdict, namedtuple
 from types import SimpleNamespace
 from gi.repository import GObject
-import sane
+from frontend import enums
 
 EMPTY = ""
 EMPTY_ARRAY = -1
@@ -12,12 +12,12 @@ UNITS = r"(pel|bit|mm|dpi|%|us)"
 UNIT2ENUM = defaultdict(
     dict,
     {
-        "pel": sane._sane.UNIT_PIXEL,
-        "bit": sane._sane.UNIT_BIT,
-        "mm": sane._sane.UNIT_MM,
-        "dpi": sane._sane.UNIT_DPI,
-        "%": sane._sane.UNIT_PERCENT,
-        "us": sane._sane.UNIT_MICROSECOND,
+        "pel": enums.UNIT_PIXEL,
+        "bit": enums.UNIT_BIT,
+        "mm": enums.UNIT_MM,
+        "dpi": enums.UNIT_DPI,
+        "%": enums.UNIT_PERCENT,
+        "us": enums.UNIT_MICROSECOND,
     },
 )
 Option = namedtuple(
@@ -160,7 +160,7 @@ class Options(GObject.Object):
         selected. Alternatively expressed, return FALSE if the scanner is not capable
         of duplex scanner, or if the capability is inactive."""
         for option in self.array:
-            if not sane._sane.CAP_INACTIVE & option.cap:
+            if not enums.CAP_INACTIVE & option.cap:
                 if re.search(
                     r"duplex",
                     option.name,
@@ -170,7 +170,7 @@ class Options(GObject.Object):
 
                 if (
                     isinstance(option.constraint, list)
-                    and option.type == sane._sane.TYPE_STRING
+                    and option.type == enums.TYPE_STRING
                 ):
                     for item in option.constraint:
                         if re.search(
@@ -229,7 +229,7 @@ class Options(GObject.Object):
         options = []
         while True:
             option = SimpleNamespace()
-            option.unit = sane._sane.UNIT_NONE
+            option.unit = enums.UNIT_NONE
             option.constraint_type = "CONSTRAINT_NONE"
             option.constraint = None
             option.val = None
@@ -263,7 +263,7 @@ class Options(GObject.Object):
             )
             if regex:
                 option.title = regex.group(1)
-                option.type = sane._sane.TYPE_GROUP
+                option.type = enums.TYPE_GROUP
                 option.cap = 0
                 option.max_values = 0
                 option.name = EMPTY
@@ -301,8 +301,8 @@ class Options(GObject.Object):
                     "",
                     "Number of options",
                     "Read-only option that specifies how many options a specific device supports.",
-                    sane._sane.TYPE_INT,
-                    sane._sane.UNIT_NONE,
+                    enums.TYPE_INT,
+                    enums.UNIT_NONE,
                     4,
                     4,
                     None,
@@ -314,11 +314,11 @@ class Options(GObject.Object):
 def _parse_option(regex, option):
     # scanimage & scanadf only display options
     # if SANE_CAP_SOFT_DETECT is set
-    option.cap = sane._sane.CAP_SOFT_DETECT + sane._sane.CAP_SOFT_SELECT
+    option.cap = enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT
     option.name = regex.group(1)
     if regex.group(3) is not None:
         if regex.group(3) == "inactive":
-            option.cap += sane._sane.CAP_INACTIVE
+            option.cap += enums.CAP_INACTIVE
 
         else:
             option.val = regex.group(3)
@@ -326,7 +326,7 @@ def _parse_option(regex, option):
         option.max_values = 1
 
     else:
-        option.type = sane._sane.TYPE_BUTTON
+        option.type = enums.TYPE_BUTTON
         option.max_values = 0
 
     # parse the constraint after the current value
@@ -416,12 +416,12 @@ def within_tolerance(option, current_value, new_value, tolerance=0):
             )
 
     if isinstance(option.constraint, list) or option.type in [
-        sane._sane.TYPE_BOOL,
-        sane._sane.TYPE_STRING,
+        enums.TYPE_BOOL,
+        enums.TYPE_STRING,
     ]:
         return new_value == current_value
 
-    if option.type in [sane._sane.TYPE_INT, sane._sane.TYPE_FIXED]:
+    if option.type in [enums.TYPE_INT, enums.TYPE_FIXED]:
         return abs(new_value - current_value) <= tolerance
 
     return False
@@ -429,15 +429,15 @@ def within_tolerance(option, current_value, new_value, tolerance=0):
 
 def parse_constraint(option, values):
     "parse out range, step and units from the values string"
-    option.type = sane._sane.TYPE_INT
+    option.type = enums.TYPE_INT
     if option.val is not None and re.search(
         r"[.]", option.val, re.MULTILINE | re.DOTALL | re.VERBOSE
     ):
-        option.type = sane._sane.TYPE_FIXED
+        option.type = enums.TYPE_FIXED
 
     # if we haven't got a boolean, and there is no constraint, we have a button
     if values is None:
-        option.type = sane._sane.TYPE_BUTTON
+        option.type = enums.TYPE_BUTTON
         option.max_values = 0
         return
 
@@ -460,10 +460,10 @@ def parse_constraint(option, values):
 
     elif regex2:
         if regex2.group(1) == "float":
-            option.type = sane._sane.TYPE_FIXED
+            option.type = enums.TYPE_FIXED
 
         elif regex2.group(1) == "string":
-            option.type = sane._sane.TYPE_STRING
+            option.type = enums.TYPE_STRING
 
         if regex2.group(2) is not None:
             option.max_values = MAX_VALUES
@@ -512,7 +512,7 @@ def parse_range_constraint(option, values, regex):
             re.MULTILINE | re.DOTALL | re.VERBOSE,
         )
     ):
-        option.type = sane._sane.TYPE_FIXED
+        option.type = enums.TYPE_FIXED
         option.constraint = (float(mini), float(maxi), float(quant))
     else:
         option.constraint = (int(mini), int(maxi), int(quant))
@@ -533,11 +533,11 @@ def parse_list_constraint(option, values):
     array = re.split(r"[|]+", values)
     if array:
         if array[0] == "auto":
-            option.cap += sane._sane.CAP_AUTOMATIC
+            option.cap += enums.CAP_AUTOMATIC
             array.pop(0)
 
         if len(array) == 2 and array[0] == "yes" and array[1] == "no":
-            option.type = sane._sane.TYPE_BOOL
+            option.type = enums.TYPE_BOOL
             type2value(option)
 
         else:
@@ -545,17 +545,17 @@ def parse_list_constraint(option, values):
             # Can't check before because 'auto' would mess things up
             for i, val in enumerate(array):
                 if re.search(r"[A-Za-z]", val, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                    option.type = sane._sane.TYPE_STRING
+                    option.type = enums.TYPE_STRING
 
                 elif re.search(r"[.]", val, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                    option.type = sane._sane.TYPE_FIXED
+                    option.type = enums.TYPE_FIXED
 
-                if option.type == sane._sane.TYPE_INT:
+                if option.type == enums.TYPE_INT:
                     array[i] = int(val)
             option.constraint = array
             option.constraint_type = (
                 "CONSTRAINT_STRING_LIST"
-                if option.type == sane._sane.TYPE_STRING
+                if option.type == enums.TYPE_STRING
                 else "CONSTRAINT_WORD_LIST"
             )
 
@@ -563,11 +563,11 @@ def parse_list_constraint(option, values):
 def type2value(option):
     "typify the value of the option"
     if option.val is not None:
-        if option.type == sane._sane.TYPE_INT:
+        if option.type == enums.TYPE_INT:
             option.val = int(option.val)
-        elif option.type == sane._sane.TYPE_FIXED:
+        elif option.type == enums.TYPE_FIXED:
             option.val = float(option.val)
-        elif option.type == sane._sane.TYPE_BOOL and isinstance(option.val, str):
+        elif option.type == enums.TYPE_BOOL and isinstance(option.val, str):
             if option.val == "yes":
                 option.val = True
             else:

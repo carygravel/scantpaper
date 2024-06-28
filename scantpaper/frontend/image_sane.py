@@ -4,6 +4,7 @@ import logging
 from types import SimpleNamespace
 from basethread import BaseThread
 import sane
+from frontend import enums
 
 logger = logging.getLogger(__name__)
 
@@ -76,26 +77,26 @@ class SaneThread(BaseThread):
             return 0
 
         opt = dic["opt"][key]
-        if opt.type == sane._sane.TYPE_BUTTON:
+        if opt.type == enums.TYPE_BUTTON:
             raise AttributeError("Buttons don't have values: " + key)
-        if opt.type == sane._sane.TYPE_GROUP:
+        if opt.type == enums.TYPE_GROUP:
             raise AttributeError("Groups don't have values: " + key)
-        if not sane._sane.OPTION_IS_ACTIVE(opt.cap):
+        if not enums.OPTION_IS_ACTIVE(opt.cap):
             raise AttributeError("Inactive option: " + key)
-        if not sane._sane.OPTION_IS_SETTABLE(opt.cap):
+        if not enums.OPTION_IS_SETTABLE(opt.cap):
             raise AttributeError("Option can't be set by software: " + key)
-        if isinstance(value, int) and opt.type == sane._sane.TYPE_FIXED:
+        if isinstance(value, int) and opt.type == enums.TYPE_FIXED:
             # avoid annoying errors of backend if int is given instead float:
             value = float(value)
         info = dic["dev"].set_option(opt.index, value)
 
         # binary AND to find if we have to reload options:
-        if info & sane._sane.INFO_RELOAD_OPTIONS:
+        if info & enums.INFO_RELOAD_OPTIONS:
             self.device_handle.__load_option_dict()
 
         logger.info(
             f"sane_set_option {opt.index} ({opt.name})"
-            + ("" if opt.type == sane._sane.TYPE_BUTTON else f" to {value}")
+            + ("" if opt.type == enums.TYPE_BUTTON else f" to {value}")
             + " returned info "
             + f"{info} ({decode_info(info)})"
             if (info is not None)

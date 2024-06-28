@@ -5,7 +5,7 @@ import gi
 from dialog.sane import SaneScanDialog
 from scanner.options import Option
 from scanner.profile import Profile
-import sane
+from frontend import enums
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
@@ -133,7 +133,7 @@ def test_1(mocker):
         that the reload-recursion-limit is respected."""
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return sane._sane.INFO_RELOAD_OPTIONS
+        return enums.INFO_RELOAD_OPTIONS
 
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
