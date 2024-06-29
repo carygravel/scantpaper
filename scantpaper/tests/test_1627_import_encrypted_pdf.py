@@ -41,8 +41,8 @@ def test_1():
 
     def password_cb(path):
         nonlocal asserts
-        asserts += 1
         assert path == "output.pdf"
+        asserts += 1
         return "s3cr3t"
 
     slist.import_files(

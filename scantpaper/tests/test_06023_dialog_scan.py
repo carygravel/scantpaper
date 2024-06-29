@@ -49,11 +49,11 @@ def test_1():
 
     def changed_profile_cb(widget, profile):
         nonlocal asserts
-        asserts += 1
         dlg.disconnect(dlg.signal)
         assert dlg.current_scan_options == Profile(
             backend=[("resolution", 100)]
         ), "reset before applying profile"
+        asserts += 1
         loop.quit()
 
     dlg.signal = dlg.connect("changed-profile", changed_profile_cb)

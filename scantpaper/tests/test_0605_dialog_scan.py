@@ -91,9 +91,9 @@ def test_1(mocker):
 
         def changed_current_scan_options_cb(_arg1, _arg2, _arg3):
             nonlocal asserts
-            asserts += 1
             dlg.disconnect(dlg.signal)
             assert dlg.num_pages == 0, "num-pages"
+            asserts += 1
             loop.quit()
 
         dlg.signal = dlg.connect(

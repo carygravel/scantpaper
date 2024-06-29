@@ -27,8 +27,8 @@ def test_1():
 
     def error_cb(_page, _process, message):
         nonlocal asserts
-        asserts += 1
         assert re.search(r"^Error", message), "error_cb"
+        asserts += 1
 
         # inject error during import file
         os.chmod(dirname.name, 0o700)  # allow write access
@@ -43,8 +43,8 @@ def test_1():
 
     def queued_cb(response):
         nonlocal asserts
-        asserts += 1
         assert response.request.process == "get_file_info", "queued_cb"
+        asserts += 1
 
         # inject error during import file
         os.chmod(dirname.name, 0o500)  # no write access

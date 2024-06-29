@@ -284,9 +284,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         spin_buttoni = spinbutton_in_hbox(
             vboxx, _("Increment"), -MAX_INCREMENT, MAX_INCREMENT, 1
         )
-        spin_buttoni.connect(
-            "value-changed", self._do_spin_buttoni_value_changed, spin_buttoni
-        )
+        spin_buttoni.connect("value-changed", self._do_spin_buttoni_value_changed)
         self.connect(
             "changed-page-number-increment",
             self._do_changed_page_number_increment,
@@ -362,11 +360,12 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         if slist is not None:
             self.max_pages = slist.pages_possible(value, self.page_number_increment)
 
-    def _do_spin_buttoni_value_changed(self, _self, spin_buttoni):
+    def _do_spin_buttoni_value_changed(self, spin_buttoni):
         value = spin_buttoni.get_value()
         if value == 0:
             value = -self.page_number_increment
-        spin_buttoni.set_value(value)
+            spin_buttoni.set_value(value)
+            return
         self.page_number_increment = value
 
     def _do_changed_page_number_increment(self, _self, value, spin_buttoni):
@@ -406,6 +405,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self.side_to_scan = "facing" if combobs.get_active() == 0 else "reverse"
 
     def _do_side_to_scan_changed(self, _self, value):
+        if self.sided != "double":
+            return
         self.page_number_increment = (
             DOUBLE_INCREMENT if value == "facing" else -DOUBLE_INCREMENT
         )
@@ -424,7 +425,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         if slist is None:
             return
         num = slist.pages_possible(self.page_number_start, self.page_number_increment)
-        if 0 < num < self.num_pages:
+        if 0 <= num <= self.max_pages:
             self.num_pages = num
 
     def _update_start_page(self):
@@ -444,7 +445,6 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
             if value < 1:
                 value = 1
                 step = 1
-
             else:
                 value += step
 

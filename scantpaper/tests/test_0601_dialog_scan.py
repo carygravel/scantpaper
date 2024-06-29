@@ -85,11 +85,11 @@ def test_2():
 
         def finished_callback(_response):
             nonlocal asserts
-            asserts += 1
             assert (
                 dialog.page_number_start == 3
             ), "adding pages should update page-number-start"
             assert dialog.num_pages == 1, "adding pages should update num-pages"
+            asserts += 1
             mlp.quit()
 
         options["finished_callback"] = finished_callback

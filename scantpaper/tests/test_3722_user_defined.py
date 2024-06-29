@@ -24,8 +24,8 @@ def test_1(import_in_mainloop):
 
     def logger_cb(response):
         nonlocal asserts
-        asserts += 1
         assert re.search(r"error", response.info["info"]), "error_cb"
+        asserts += 1
 
     mlp = GLib.MainLoop()
     slist.user_defined(

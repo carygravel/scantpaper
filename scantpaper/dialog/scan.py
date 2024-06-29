@@ -640,7 +640,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                         if not self.setting_current_scan_options and (
                             self.paper is not None
                         ):
-                            self.paper = None
+                            self._paper = None
 
                     widget.connect("changed", do_paper_dimension_changed)
 
@@ -727,7 +727,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         # In case the geometry values have changed,
         # update the available paper formats
-
         self._set_paper_formats(self.paper_formats)
 
     def _update_single_option(self, opt):
@@ -898,7 +897,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             if paper_profile.uuid == uuid:
                 self.disconnect(signal)
                 self._hide_geometry(options)
-                self.paper = paper
+                self._paper = paper
                 self.current_scan_options.add_frontend_option("paper", paper)
                 self.emit("changed-paper", paper)
 
@@ -1073,7 +1072,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             del self.profiles[name]
 
     def set_current_scan_options(self, profile):
-        "Set options to profile referenced by hashref"
+        "Set options to given profile"
         if profile is None:
             logger.error("Cannot add undefined profile")
             return
