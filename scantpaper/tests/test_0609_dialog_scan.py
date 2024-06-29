@@ -162,12 +162,13 @@ def test_1(mocker):
 
         def changed_profile_cb(_widget, profile):
             nonlocal asserts
-            asserts += 1
             dlg.disconnect(dlg.signal)
             assert profile == "my profile", "changed-profile"
             assert dlg.current_scan_options == Profile(
-                backend=[("resolution", 100), ("source", "Flatbed")]
+                frontend={"num_pages": 1},
+                backend=[("resolution", 100), ("source", "Flatbed")],
             ), "current-scan-options with profile"
+            asserts += 1
             loop.quit()
 
         dlg.signal = dlg.connect("changed-profile", changed_profile_cb)

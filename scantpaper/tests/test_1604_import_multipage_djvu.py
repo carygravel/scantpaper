@@ -30,8 +30,8 @@ def test_1():
 
     def started_cb(response):
         nonlocal asserts
-        asserts += 1
         assert response.request.process == "get_file_info"
+        asserts += 1
 
     def error_cb(response):
         assert False, "error thrown importing multipage djvu"

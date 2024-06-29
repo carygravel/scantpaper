@@ -68,8 +68,8 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     def started_cb(response):
         nonlocal asserts
-        asserts += 1
         assert response.request.process == "get_file_info"
+        asserts += 1
 
     def metadata_cb(response):
         assert response["datetime"] == [2018, 12, 31, 13, 0, 0], "datetime"

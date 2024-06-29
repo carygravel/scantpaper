@@ -101,10 +101,10 @@ startxref
 
     def logger_cb(response):
         nonlocal asserts
-        asserts += 1
         assert re.search(
             r"one image per page", response.status
         ), "one image per page warning"
+        asserts += 1
 
     slist.import_files(
         paths=["test.pdf"],

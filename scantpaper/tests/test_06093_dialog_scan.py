@@ -443,17 +443,18 @@ def test_1(mocker):
         def changed_profile_cb(_widget, profile):
             dlg.disconnect(dlg.signal)
             nonlocal asserts
-            asserts += 1
             assert profile == "my profile", "changed-profile"
             assert dlg.current_scan_options == Profile(
+                frontend={"num_pages": 1},
                 backend=[
                     ("scan-area", "Letter/Portrait"),
                     ("br-x", 215.899993896484),
                     ("br-y", 279.0),
-                ]
+                ],
             ), "current-scan-options with profile"
             assert dlg.thread.device_handle.br_x == 215.899993896484, "br-x value"
             assert dlg.thread.device_handle.br_y == 279.399993896484, "br-y value"
+            asserts += 1
             loop.quit()
 
         dlg.signal = dlg.connect("changed-profile", changed_profile_cb)
