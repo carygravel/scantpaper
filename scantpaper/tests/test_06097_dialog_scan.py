@@ -196,7 +196,7 @@ def test_1(mocker):
             loop.quit()
 
         dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
-        dlg.set_current_scan_options(Profile(frontend={"paper": "US Letter"}))
+        dlg.paper = "US Letter"
         asserts += 1
 
     dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
@@ -214,13 +214,13 @@ def test_1(mocker):
                 ("br-x", 216.0),
                 ("br-y", 356.0),
             ],
-            frontend={"paper": "US Legal"},
+            frontend={"num_pages": 1, "paper": "US Legal"},
         ), "set second paper after SANE_INFO_INEXACT"
         asserts += 1
         loop.quit()
 
     dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
-    dlg.set_current_scan_options(Profile(frontend={"paper": "US Legal"}))
+    dlg.paper = "US Legal"
     loop.run()
 
     assert asserts == 3, "all callbacks ran"
