@@ -1296,7 +1296,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         widget = self.option_widgets[name]
         hbox = widget.get_parent()
         for child in hbox.get_children():
-            if issubclass(child, Gtk.Label):
+            if isinstance(child, Gtk.Label):
                 return child.get_text()
         return None
 

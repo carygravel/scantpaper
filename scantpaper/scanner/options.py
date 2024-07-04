@@ -196,14 +196,14 @@ class Options(GObject.Object):
                 val,
                 re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            or (
-                isinstance(self.source, list)
-                and len(self.source.constraint) == 1
-                and re.search(
-                    r"flatbed",
-                    self.source.constraint[0],
-                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
+        ) or (
+            self.source is not None
+            and isinstance(self.source.constraint, list)
+            and len(self.source.constraint) == 1
+            and re.search(
+                r"flatbed",
+                self.source.constraint[0],
+                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
         )
 

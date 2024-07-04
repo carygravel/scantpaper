@@ -7,7 +7,6 @@ from dialog.sane import SaneScanDialog
 from scanner.options import Option
 from scanner.profile import Profile
 from frontend.image_sane import decode_info
-from frontend import enums
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +38,7 @@ def test_1(mocker):
             tl_y=0,
             br_x=215.899993896484,
             br_y=297.179992675781,
+            cct_1=1.07818603515625,
         )
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
@@ -81,7 +81,7 @@ def test_1(mocker):
         ),
         Option(
             cap=5,
-            constraint=(0, 356.0, 0),
+            constraint=(0, 215.899993896484, 0),
             desc="Bottom Right X",
             index=11,
             size=1,
@@ -92,7 +92,7 @@ def test_1(mocker):
         ),
         Option(
             cap=5,
-            constraint=(0, 356.0, 0),
+            constraint=(0, 297.179992675781, 0),
             desc="Bottom Right Y",
             index=12,
             size=1,
@@ -123,6 +123,17 @@ def test_1(mocker):
             type=2,
             unit=3,
         ),
+        Option(
+            cap=69,
+            constraint=None,
+            desc="",
+            index=15,
+            size=1,
+            name="cct-1",
+            title="",
+            type=2,
+            unit=0,
+        ),
     ]
 
     def mocked_do_get_options(_self, _request):
@@ -133,8 +144,9 @@ def test_1(mocker):
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
     def mocked_do_set_option(self, _request):
-        """A fujitsu:fi-4220C2dj was ignoring paper change requests because setting
-        initial geometry set INFO_INEXACT"""
+        """An EPSON DS-1660W was setting tl-y=0.99 instead of 1, but not
+        setting SANE_INFO_INEXACT, which was hitting the
+        reload-recursion-limit."""
         key, value = _request.args
         for opt in raw_options:
             if opt.name == key:
@@ -142,8 +154,9 @@ def test_1(mocker):
 
         info = 0
         if key in ["br-x", "br-y", "tl-x", "tl-y"]:
-            info = enums.INFO_RELOAD_PARAMS + enums.INFO_INEXACT
-            value -= 0.5
+            info = 21870
+            if value == 1:
+                value = 0.999984741210938
             logger.info(
                 f"sane_set_option {opt.index} ({opt.name})"
                 + f" to {value} returned info "
@@ -160,10 +173,7 @@ def test_1(mocker):
         transient_for=Gtk.Window(),
     )
 
-    dlg.paper_formats = {
-        "US Legal": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 356.0},
-        "US Letter": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 279.0},
-    }
+    dlg.paper_formats = {"new": {"l": 0.0, "t": 1.0, "x": 10.0, "y": 10.0}}
 
     def changed_device_list_cb(_arg1, arg2):
         dlg.disconnect(dlg.signal)
@@ -185,42 +195,31 @@ def test_1(mocker):
             nonlocal asserts
             assert dlg.current_scan_options == Profile(
                 backend=[
-                    ("br-x", 216.0),
-                    ("br-y", 279.0),
+                    ("tl-y", 1.0),
+                    ("br-x", 10.0),
+                    ("br-y", 11.0),
                 ],
-                frontend={"num_pages": 1, "paper": "US Letter"},
-            ), "set first paper"
-            assert dlg.thread.device_handle.br_x == 215.5, "br-x value"
-            assert dlg.thread.device_handle.br_y == 278.5, "br-y value"
+                frontend={"num_pages": 1, "paper": "new"},
+            ), "set inexact paper without SANE_INFO_INEXACT"
             asserts += 1
             loop.quit()
 
         dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
-        dlg.set_current_scan_options(Profile(frontend={"paper": "US Letter"}))
-        asserts += 1
+        dlg.set_current_scan_options(Profile(frontend={"paper": "new"}))
 
     dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
     dlg.get_devices()
     loop.run()
 
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    assert asserts == 1, "all callbacks ran"
 
-    def changed_paper_cb(_widget, paper):
-        dlg.disconnect(dlg.signal)
-        nonlocal asserts
-        assert dlg.current_scan_options == Profile(
-            backend=[
-                ("br-x", 216.0),
-                ("br-y", 356.0),
-            ],
-            frontend={"paper": "US Legal"},
-        ), "set second paper after SANE_INFO_INEXACT"
-        asserts += 1
-        loop.quit()
+    # EPSON DS-1660W calls the flatbed a document table
+    options = dlg.available_scan_options
+    assert options.flatbed_selected(
+        dlg.thread.device_handle
+    ), "Document Table means flatbed"
 
-    dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
-    dlg.set_current_scan_options(Profile(frontend={"paper": "US Legal"}))
-    loop.run()
-
-    assert asserts == 3, "all callbacks ran"
+    # as cct-1 does not have a title, test for label text
+    assert (
+        dlg._get_label_for_option("cct-1") == "cct-1"
+    ), "text for option with no title"
