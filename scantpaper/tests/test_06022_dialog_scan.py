@@ -85,10 +85,11 @@ def test_1(mocker):
     def reloaded_scan_options_cb(_arg):
         dlg.disconnect(dlg.reloaded_signal)
         nonlocal asserts
-        asserts += 1
 
-        options = dlg.available_scan_options()
-        assert options.flatbed_selected(), "flatbed_selected() without value"
+        options = dlg.available_scan_options
+        assert options.flatbed_selected(
+            dlg.thread.device_handle
+        ), "flatbed_selected() without value"
         assert not dlg.framen.is_sensitive(), "num-page gui ghosted"
         dlg.num_pages = 2
         assert dlg.num_pages == 1, "allow-batch-flatbed should force num-pages"
@@ -96,6 +97,7 @@ def test_1(mocker):
         dlg.num_pages = 2
         assert dlg.num_pages == 2, "num-pages"
         assert dlg.framen.is_sensitive(), "num-page gui not ghosted"
+        asserts += 1
 
     dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
     dlg.get_devices()
