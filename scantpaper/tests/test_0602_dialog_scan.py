@@ -289,3 +289,4 @@ def asserts_3(dialog, asserts):
     ), "available paper reapplied after setting/changing device"
     assert dialog.combobp.get_active_text() == "Manual", "paper combobox has a value"
     assert asserts == 3, "call callbacks run"
+    dialog.thread.quit()

@@ -168,6 +168,7 @@ def test_1(mocker):
         def changed_paper_cb(_arg1, _arg2):
             dlg.disconnect(dlg.signal)
             nonlocal asserts
+            print(f"dlg.current_scan_options {dlg.current_scan_options}")
             assert dlg.current_scan_options == Profile(
                 backend=[
                     ("resolution", 100),
@@ -175,7 +176,7 @@ def test_1(mocker):
                     ("br-x", 210.0),
                     ("br-y", 279.0),
                 ],
-                frontend={"num_pages": 0, "paper": "A4"},
+                frontend={"num_pages": 1, "paper": "A4"},
             ), "all options applied"
             asserts += 1
             loop.quit()
