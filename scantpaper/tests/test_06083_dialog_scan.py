@@ -175,7 +175,7 @@ def test_1(mocker):
                     ("br-x", 210.0),
                     ("br-y", 279.0),
                 ],
-                frontend={"num_pages": 0, "paper": "A4"},
+                frontend={"num_pages": 1, "paper": "A4"},
             ), "all options applied"
             asserts += 1
             loop.quit()

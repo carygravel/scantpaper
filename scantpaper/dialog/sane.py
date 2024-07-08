@@ -4,8 +4,8 @@ import logging
 import gettext
 from gi.repository import GObject, Gtk
 from frontend import enums
-from dialog.scan import Scan, _geometry_option, make_progress_string
 from frontend.image_sane import SaneThread
+from dialog.scan import Scan, _geometry_option, make_progress_string
 from scanner.options import Options
 from i18n import _
 
@@ -450,6 +450,7 @@ class SaneScanDialog(Scan):
 
         def started_callback(_data):
             nonlocal i
+            nonlocal npages
             if npages == 0 and self.max_pages > 0:
                 npages = self.max_pages
 
@@ -473,9 +474,11 @@ class SaneScanDialog(Scan):
                 signal = self.connect("reloaded-scan-options", reloaded_scan_options_cb)
                 self.scan_options(self.device)
 
-        def new_page_callback(_status, path, num):
+        def new_page_callback(image_ob, pagenumber):
             nonlocal i
-            self.emit("new-scan", path, num, xresolution, yresolution)
+            nonlocal xresolution
+            nonlocal yresolution
+            self.emit("new-scan", image_ob, pagenumber, xresolution, yresolution)
             self.emit(
                 "changed-progress",
                 0,

@@ -145,8 +145,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         if newval not in ["facing", "reverse"]:
             raise ValueError(f"Invalid value for side-to-scan: {newval}")
         self._side_to_scan = newval
-        self.emit("changed-side-to-scan", newval)
         self.combobs.set_active(0 if newval == "facing" else 1)
+        self.emit("changed-side-to-scan", newval)
         slist = self.document
         if slist and slist.data:
             possible = slist.pages_possible(
@@ -334,6 +334,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
         # Have to do this here because setting the facing combobox switches it
         self.buttons.set_active(True)
+        self.num_pages = 1
         hboxs.pack_end(self.combobs, False, False, 0)
 
         self.buttond.connect("clicked", self._do_buttond_clicked, spin_buttoni)

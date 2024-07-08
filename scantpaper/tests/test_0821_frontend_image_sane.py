@@ -90,13 +90,13 @@ def test_3():
     mlp.run()
     assert asserts == 2, "checked all expected responses #4"
 
-    def new_page_callback(response):
+    def new_page_callback(image, pagenumber):
         nonlocal asserts
         assert isinstance(
-            response.info, PIL.Image.Image
+            image, PIL.Image.Image
         ), "scan_page finished_callback returned image"
-        assert response.info.size[0] > 0, "scan_page finished_callback image width"
-        assert response.info.size[1] > 0, "scan_page finished_callback image height"
+        assert image.size[0] > 0, "scan_page finished_callback image width"
+        assert image.size[1] > 0, "scan_page finished_callback image height"
         asserts += 1
 
     mlp = GLib.MainLoop()

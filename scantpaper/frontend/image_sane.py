@@ -86,13 +86,16 @@ class SaneThread(BaseThread):
         if not enums.OPTION_IS_SETTABLE(opt.cap):
             raise AttributeError("Option can't be set by software: " + key)
         if isinstance(value, int) and opt.type == enums.TYPE_FIXED:
-            # avoid annoying errors of backend if int is given instead float:
+            # avoid annoying errors from backend if int is given instead float:
             value = float(value)
         info = dic["dev"].set_option(opt.index, value)
 
         # binary AND to find if we have to reload options:
         if info & enums.INFO_RELOAD_OPTIONS:
-            self.device_handle.__load_option_dict()
+            if hasattr(self.device_handle, "__load_option_dict"):
+                self.device_handle.__load_option_dict()
+            elif hasattr(self.device_handle, "_SaneDev__load_option_dict"):
+                self.device_handle._SaneDev__load_option_dict()
 
         logger.info(
             f"sane_set_option {opt.index} ({opt.name})"
@@ -154,7 +157,7 @@ class SaneThread(BaseThread):
         self.num_pages_scanned += 1
         _set_default_callbacks(kwargs)
         if kwargs["new_page_callback"] is not None:
-            kwargs["new_page_callback"](response)
+            kwargs["new_page_callback"](response.info, self.num_pages_scanned)
         if self.num_pages is not None and self.num_pages_scanned >= self.num_pages:
             if kwargs["finished_callback"] is not None:
                 kwargs["finished_callback"](response)
