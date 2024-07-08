@@ -34,10 +34,10 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             GObject.SignalFlags.RUN_FIRST,
             None,
             (
-                str,
-                int,
-                float,
-                float,
+                object,  # Image object
+                int,  # page number
+                float,  # x-resolution
+                float,  # y-resolution
             ),
         ),
         "changed-device": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
@@ -214,7 +214,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     @GObject.Property(type=str, default="", nick="Device", blurb="Device name")
     def device(self):
-        "getter for devcie attribute"
+        "getter for device attribute"
         return self._device
 
     @device.setter
@@ -428,7 +428,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         def do_changed_device(self, device):
             device_list = self.device_list
-            if (device is not None) and device != "":
+            if device not in [None, ""]:
                 for dev in device_list:
                     if dev.name == device:
                         self.combobd.set_active_by_text(dev.label)
@@ -731,7 +731,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def _update_single_option(self, opt):
         widget = self.option_widgets[opt.name]
-        value = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
+        if opt.type != enums.TYPE_BUTTON:
+            value = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
 
         # Switch
         if opt.type == enums.TYPE_BOOL:
@@ -1249,11 +1250,11 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             return None, None
         resolutions = []
         for name in ["resolution", "x-resolution", "y-resolution"]:
-            option = options.by_name(name)
-            if option:
-                option = option["val"]
-            resolutions.append(option)
-        (  # pylint: disable=unbalanced-tuple-unpacking
+            try:
+                resolutions.append(options.val(name, self.thread.device_handle))
+            except AttributeError:
+                resolutions.append(0)
+        (
             resolution,
             xres,
             yres,

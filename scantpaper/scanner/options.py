@@ -67,6 +67,10 @@ class Options(GObject.Object):
     def __str__(self):
         return f"Options({self.array})"
 
+    def val(self, name, device_handle):
+        "return option value by name"
+        return getattr(device_handle, name.replace("-", "_"))
+
     def by_index(self, i):
         "return option by index"
         return self.array[i]
@@ -186,24 +190,28 @@ class Options(GObject.Object):
         "returns whether the flatbed is selected"
         val = None
         if self.source is not None:
-            name = self.source.name.replace("-", "_")
-            if hasattr(device_handle, name):
-                val = getattr(device_handle, name)
-        return (
-            val is not None
-            and re.search(
-                r"(flatbed|Document[ ]Table)",
-                val,
-                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+            try:
+                val = self.val(self.source.name, device_handle)
+            except AttributeError:
+                pass
+        return bool(
+            (
+                val is not None
+                and re.search(
+                    r"(flatbed|Document[ ]Table)",
+                    val,
+                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
             )
-        ) or (
-            self.source is not None
-            and isinstance(self.source.constraint, list)
-            and len(self.source.constraint) == 1
-            and re.search(
-                r"flatbed",
-                self.source.constraint[0],
-                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+            or (
+                self.source is not None
+                and isinstance(self.source.constraint, list)
+                and len(self.source.constraint) == 1
+                and re.search(
+                    r"flatbed",
+                    self.source.constraint[0],
+                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
             )
         )
 
