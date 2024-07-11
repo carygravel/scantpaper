@@ -168,7 +168,6 @@ def test_1(mocker):
         def changed_paper_cb(_arg1, _arg2):
             dlg.disconnect(dlg.signal)
             nonlocal asserts
-            print(f"dlg.current_scan_options {dlg.current_scan_options}")
             assert dlg.current_scan_options == Profile(
                 backend=[
                     ("resolution", 100),
