@@ -1,48 +1,15 @@
 "test scan dialog"
 
 from types import SimpleNamespace
-import gi
 from dialog.sane import SaneScanDialog
 from scanner.options import Options
 from scanner.profile import Profile
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
 
-TIMEOUT = 10000
-
-
-def mainloop_with_timeout():
-    "helper function to start a mainloop with a timeout"
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
-    return loop
-
-
-def set_device_wait_reload(dialog, device):
-    "helpker function to set the device and wait for the options to load"
-    loop = mainloop_with_timeout()
-    signal = None
-
-    def reloaded_scan_options_cb(_arg):
-        dialog.disconnect(signal)
-        loop.quit()
-
-    signal = dialog.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dialog.device_list = [
-        SimpleNamespace(name=device, vendor="", model="", label=""),
-    ]
-    dialog.device = device
-    loop.run()
-
-
-def test_1():
+def test_1(sane_scan_dialog):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
+    dialog = sane_scan_dialog
     assert isinstance(dialog, SaneScanDialog), "Created SaneScanDialog"
     assert dialog.device == "", "device"
     assert dialog.device_list == [], "device-list"
@@ -102,14 +69,10 @@ def test_1():
     assert callbacks == 4, "all callbacks executed"
 
 
-def test_2():
+def test_2(sane_scan_dialog, mainloop_with_timeout):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
-
+    dialog = sane_scan_dialog
     callbacks = 0
     loop = mainloop_with_timeout()
 
@@ -180,14 +143,10 @@ def test_2():
     dialog.thread.quit()
 
 
-def test_3():
+def test_3(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
-
+    dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     loop = mainloop_with_timeout()
     callbacks = 0
@@ -231,14 +190,10 @@ def test_3():
     dialog.thread.quit()
 
 
-def test_4():
+def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
-
+    dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     dialog._add_profile(
         "my profile", Profile(backend=[("resolution", 52), ("mode", "Color")])
@@ -325,13 +280,10 @@ def test_4():
     dialog.thread.quit()
 
 
-def test_5():
+def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
+    dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     loop = mainloop_with_timeout()
     callbacks = 0
@@ -372,13 +324,10 @@ def test_5():
     dialog.thread.quit()
 
 
-def test_6():
+def test_6(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
+    dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
 
@@ -412,13 +361,10 @@ def test_6():
     dialog.thread.quit()
 
 
-def test_7():
+def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
+    dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
 
@@ -474,13 +420,10 @@ def test_7():
     dialog.thread.quit()
 
 
-def test_8():
+def test_8(sane_scan_dialog, mainloop_with_timeout):
     "test basic functionality of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
+    dialog = sane_scan_dialog
     loop = mainloop_with_timeout()
     signal = None
 
@@ -552,14 +495,10 @@ def test_8():
     dialog.thread.quit()
 
 
-def test_error_handling():
+def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
     "test error handling of scan dialog with sane backend"
 
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
-
+    dialog = sane_scan_dialog
     callbacks = 0
     loop = mainloop_with_timeout()
 

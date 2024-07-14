@@ -1,17 +1,10 @@
 "test scan dialog"
 
 from types import SimpleNamespace
-import gi
-from dialog.sane import SaneScanDialog
 from scanner.options import Option
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
 
-TIMEOUT = 10000
-
-
-def test_1(mocker):
+def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
     asserts = 0
 
@@ -66,10 +59,7 @@ def test_1(mocker):
 
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
-    dlg = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
+    dlg = sane_scan_dialog
 
     def changed_device_list_cb(_arg1, arg2):
         nonlocal asserts
@@ -78,9 +68,7 @@ def test_1(mocker):
         dlg.device = "mock_name"
 
     dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
-
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
 
     def reloaded_scan_options_cb(_arg):
         dlg.disconnect(dlg.reloaded_signal)

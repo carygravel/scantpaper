@@ -1,45 +1,13 @@
 "test scan dialog"
 
-import gi
-from dialog.sane import SaneScanDialog
+from gi.repository import GLib
 from scanner.profile import Profile
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
 
-TIMEOUT = 10000
-
-
-def set_option_in_mainloop(dialog, option, value):
-    "set the given open, and wait for it to finish"
-
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
-    callback_ran = False
-
-    def callback(_arg1, _arg2, _arg3, _arg4):
-        nonlocal loop
-        nonlocal signal
-        nonlocal callback_ran
-        callback_ran = True
-        dialog.disconnect(signal)
-        loop.quit()
-
-    signal = dialog.connect("changed-scan-option", callback)
-    dialog.set_option(option, value)
-    loop.run()
-    return callback_ran
-
-
-def test_1():
+def test_1(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
     "first test with test backend"
 
-    window = Gtk.Window()
-
-    dialog = SaneScanDialog(
-        title="title",
-        transient_for=window,
-    )
+    dialog = sane_scan_dialog
     dialog.paper_formats = {
         "new": {
             "l": 0.0,
@@ -62,8 +30,7 @@ def test_1():
 
     dialog.device = "test"
     dialog.scan_options()
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
     signal = dialog.connect("reloaded-scan-options", reloaded_scan_options_cb)
     loop.run()
 
@@ -109,11 +76,11 @@ def test_1():
     ), "flatbed_selected() via value"
     assert not dialog._vboxx.get_visible(), "flatbed, so hide vbox for page numbering"
 
-    asserts = asserts_2(dialog, asserts)
-    asserts_3(dialog, asserts)
+    asserts = asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts)
+    asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts)
 
 
-def asserts_2(dialog, asserts):
+def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     "splitting test_1 up into chunks"
     options = dialog.available_scan_options
 
@@ -130,9 +97,7 @@ def asserts_2(dialog, asserts):
 
     signal = dialog.connect("changed-num-pages", changed_num_pages_cb)
     dialog.allow_batch_flatbed = False
-
-    loop = GLib.MainLoop()  # need a new main loop to avoid nesting
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
     assert (
         dialog.adf_defaults_scan_all_pages == 1
     ), "default adf-defaults-scan-all-pages"
@@ -159,8 +124,7 @@ def asserts_2(dialog, asserts):
     assert set_option_in_mainloop(dialog, options.by_name("source"), "Flatbed")
     dialog.num_pages = 1
 
-    loop = GLib.MainLoop()  # need a new main loop to avoid nesting
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
 
     def changed_scan_option_cb3(_widget, _option, _value, _data):
         nonlocal signal
@@ -187,12 +151,11 @@ def asserts_2(dialog, asserts):
     return asserts
 
 
-def asserts_3(dialog, asserts):
+def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     "splitting test_1 up into chunks"
     options = dialog.available_scan_options
 
-    loop = GLib.MainLoop()  # need a new main loop to avoid nesting
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
 
     def changed_scan_option_cb4(_widget, _option, _value, _data):
         nonlocal signal
@@ -230,8 +193,7 @@ def asserts_3(dialog, asserts):
 
     # bug in 2.5.3 where setting paper via default options only
     # set combobox without setting options
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
 
     def changed_paper_cb(_arg1, _arg2):
         nonlocal asserts
@@ -269,8 +231,7 @@ def asserts_3(dialog, asserts):
     assert dialog.sided == "single", "selecting flatbed forces single sided"
 
     assert set_option_in_mainloop(dialog, options.by_name("br-y"), 9.0)
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
     dialog.connect("changed-paper", lambda x, y: loop.quit)
     dialog.paper = None
     loop.run()
