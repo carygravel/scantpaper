@@ -1,20 +1,13 @@
 "test scan dialog"
 
 from types import SimpleNamespace
-import gi
-from dialog.sane import SaneScanDialog
 from scanner.options import Option
 from frontend import enums
 import pytest
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
-
-TIMEOUT = 10000
-
 
 @pytest.mark.skip("not sure how to mock the backend behaviour")
-def test_get_invalid_option(mocker):
+def test_get_invalid_option(mocker, sane_scan_dialog, mainloop_with_timeout):
     """test getting an invalid option (gscan2pdf bug #313).
     scanimage was segfaulting when retrieving the options from a Brother
     ADS-2800W via --help. xsane and simplescan worked.
@@ -156,20 +149,14 @@ def test_get_invalid_option(mocker):
 
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
-    dlg = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
+    dlg = sane_scan_dialog
 
     def changed_device_list_cb(_arg1, arg2):
         dlg.disconnect(dlg.signal)
         dlg.device = "mock_name"
 
     dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
-
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
-
+    loop = mainloop_with_timeout()
     asserts = 0
 
     def reloaded_scan_options_cb(_arg):

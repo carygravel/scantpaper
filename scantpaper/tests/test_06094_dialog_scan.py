@@ -2,19 +2,12 @@
 
 from types import SimpleNamespace
 import logging
-import gi
-from dialog.sane import SaneScanDialog
 from scanner.options import Option
 from scanner.profile import Profile
 from frontend.image_sane import decode_info
 from frontend import enums
 
 logger = logging.getLogger(__name__)
-
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
-
-TIMEOUT = 10000
 
 raw_options = [
     Option(
@@ -147,7 +140,7 @@ def mocked_do_set_option(self, _request):
     return info
 
 
-def test_1(mocker):
+def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
@@ -155,11 +148,7 @@ def test_1(mocker):
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
-    dlg = SaneScanDialog(
-        title="title",
-        transient_for=Gtk.Window(),
-    )
-
+    dlg = sane_scan_dialog
     dlg.paper_formats = {
         "US Legal": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 356.0},
         "US Letter": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 279.0},
@@ -170,10 +159,7 @@ def test_1(mocker):
         dlg.device = "mock_name"
 
     dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
-
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
-
+    loop = mainloop_with_timeout()
     asserts = 0
 
     def reloaded_scan_options_cb(_arg):
@@ -203,8 +189,7 @@ def test_1(mocker):
     dlg.get_devices()
     loop.run()
 
-    loop = GLib.MainLoop()
-    GLib.timeout_add(TIMEOUT, loop.quit)  # to prevent it hanging
+    loop = mainloop_with_timeout()
 
     def changed_paper_cb(_widget, paper):
         dlg.disconnect(dlg.signal)
