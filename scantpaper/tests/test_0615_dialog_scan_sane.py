@@ -3,7 +3,7 @@ from scanner.profile import Profile
 
 
 def test_1(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
-    """There are some backends where the paper-width and -height options are
+    """ There are some backends where the paper-width and -height options are
     only valid when the ADF is active. Therefore, changing the paper size
     when the flatbed is active tries to set these options, causing an
     "invalid argument" error, which is normally not possible, as the
@@ -12,7 +12,7 @@ def test_1(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     and then a valid option. Check that:
     a. no error message is produced
     b. the rest of the profile is correctly applied
-    c. the appropriate signals are still emitted."""
+    c. the appropriate signals are still emitted. """
 
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
@@ -30,7 +30,7 @@ def test_1(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
         dialog.disconnect(dialog.profile_signal)
         assert dialog.current_scan_options == Profile(
             frontend={"num_pages": 1}, backend=[("mode", "Color")]
-        )
+        ), "correctly set rest of profile"
         nonlocal callbacks
         callbacks += 1
         loop.quit()
