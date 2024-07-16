@@ -77,8 +77,6 @@ class SaneThread(BaseThread):
             return 0
 
         opt = dic["opt"][key]
-        if opt.type == enums.TYPE_BUTTON:
-            raise AttributeError("Buttons don't have values: " + key)
         if opt.type == enums.TYPE_GROUP:
             raise AttributeError("Groups don't have values: " + key)
         if not enums.OPTION_IS_ACTIVE(opt.cap):
