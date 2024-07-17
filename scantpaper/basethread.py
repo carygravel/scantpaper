@@ -131,13 +131,19 @@ class BaseThread(threading.Thread):
             if handler is None:
                 request.error(None, f"no handler for [{request.process}]")
             else:
-                try:
-                    request.finished(handler(request))
-                    if request.process == "quit":
-                        break
-                except Exception as err:  # pylint: disable=broad-except
-                    request.error(None, str(err))
+                if not self.handler_wrapper(request, handler):
+                    break
             self.requests.task_done()
+
+    def handler_wrapper(self, request, handler):
+        "separate the handler wrapper logic so that it can be overriden by subclasses"
+        try:
+            request.finished(handler(request))
+            if request.process == "quit":
+                return False
+        except Exception as err:  # pylint: disable=broad-except
+            request.error(None, str(err))
+        return True
 
     def monitor(self, block=False):
         "monitor the thread, triggering callbacks as required"

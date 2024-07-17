@@ -1507,8 +1507,8 @@ def _new_val(oldval, newval):
     )
 
 
-def make_progress_string(i, npages):
+def make_progress_string(i, num_pages):
     "return a progress string"
-    if npages > 0:
-        return _("Scanning page %d of %d") % (i, npages)
+    if num_pages > 0:
+        return _("Scanning page %d of %d") % (i, num_pages)
     return _("Scanning page %d") % (i)
