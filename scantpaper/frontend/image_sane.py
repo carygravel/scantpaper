@@ -29,6 +29,22 @@ class SaneThread(BaseThread):
     num_pages_scanned = 0
     num_pages = 0
 
+    def handler_wrapper(self, request, handler):
+        "override the handler wrapper logic to deal with SANE_STATUS_NO_DOCS"
+        try:
+            request.finished(handler(request))
+            if request.process == "quit":
+                return False
+        except Exception as err:  # pylint: disable=broad-except
+            if (
+                request.process == "scan_page"
+                and str(err) == "Document feeder out of documents"
+            ):
+                request.finished(None, str(err))
+            else:
+                request.error(None, str(err))
+        return True
+
     def do_quit(self, _request):
         "exit"
         self.device_handle = None
@@ -151,12 +167,15 @@ class SaneThread(BaseThread):
         "scan page"
         return self.send("scan_page", **kwargs)
 
-    def _scan_pages_callback(self, response, **kwargs):
-        self.num_pages_scanned += 1
+    def _scan_pages_finished_callback(self, response, **kwargs):
         _set_default_callbacks(kwargs)
+        if response.info is not None:
+            self.num_pages_scanned += 1
         if kwargs["new_page_callback"] is not None:
             kwargs["new_page_callback"](response.info, self.num_pages_scanned)
-        if self.num_pages is not None and self.num_pages_scanned >= self.num_pages:
+        if response.status == "Document feeder out of documents" or (
+            self.num_pages != 0 and self.num_pages_scanned >= self.num_pages
+        ):
             if kwargs["finished_callback"] is not None:
                 kwargs["finished_callback"](response)
             return
@@ -164,7 +183,7 @@ class SaneThread(BaseThread):
             started_callback=kwargs["started_callback"],
             running_callback=kwargs["running_callback"],
             error_callback=kwargs["error_callback"],
-            finished_callback=lambda response: self._scan_pages_callback(
+            finished_callback=lambda response: self._scan_pages_finished_callback(
                 response,
                 running_callback=kwargs["running_callback"],
                 finished_callback=kwargs["finished_callback"],
@@ -173,16 +192,16 @@ class SaneThread(BaseThread):
             ),
         )
 
-    def scan_pages(self, num_pages=1, **kwargs):
+    def scan_pages(self, **kwargs):
         "scan pages"
         self.num_pages_scanned = 0
-        self.num_pages = num_pages
+        self.num_pages = kwargs["num_pages"]
         _set_default_callbacks(kwargs)
         return self.scan_page(
             started_callback=kwargs["started_callback"],
             running_callback=kwargs["running_callback"],
             error_callback=kwargs["error_callback"],
-            finished_callback=lambda response: self._scan_pages_callback(
+            finished_callback=lambda response: self._scan_pages_finished_callback(
                 response,
                 running_callback=kwargs["running_callback"],
                 finished_callback=kwargs["finished_callback"],

@@ -4,7 +4,7 @@ import PIL
 from gi.repository import GLib
 
 
-def test_1():
+def test_error_handling():
     "test frontend/image_sane.py"
     thread = SaneThread()
     thread.start()
@@ -90,7 +90,7 @@ def test_3():
     mlp.run()
     assert asserts == 2, "checked all expected responses #4"
 
-    def new_page_callback(image, pagenumber):
+    def new_page_callback(image, _pagenumber):
         nonlocal asserts
         assert isinstance(
             image, PIL.Image.Image

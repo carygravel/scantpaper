@@ -437,11 +437,11 @@ class SaneScanDialog(Scan):
         self.cursor = "progress"
 
         # Get selected number of pages
-        npages = self.num_pages
+        num_pages = self.num_pages
         start = self.page_number_start
         step = self.page_number_increment
-        if step < 0 < npages:
-            npages = self.max_pages
+        if step < 0 < num_pages:
+            num_pages = self.max_pages
         if start == 1 and step < 0:
             self.emit("process-error", "scan", _("Must scan facing pages first"))
 
@@ -450,12 +450,14 @@ class SaneScanDialog(Scan):
 
         def started_callback(_data):
             nonlocal i
-            nonlocal npages
-            if npages == 0 and self.max_pages > 0:
-                npages = self.max_pages
+            nonlocal num_pages
+            if num_pages == 0 and self.max_pages > 0:
+                num_pages = self.max_pages
 
-            logger.info("Scanning %s pages from %s with step %s", npages, start, step)
-            self.emit("started-process", make_progress_string(i, npages))
+            logger.info(
+                "Scanning %s pages from %s with step %s", num_pages, start, step
+            )
+            self.emit("started-process", make_progress_string(i, num_pages))
 
         def running_callback(progress):
             self.emit("changed-progress", progress, None)
@@ -482,17 +484,17 @@ class SaneScanDialog(Scan):
             self.emit(
                 "changed-progress",
                 0,
-                make_progress_string(i, npages),
+                make_progress_string(i, num_pages),
             )
             i += 1
 
         def error_callback(response):
-            self.emit("process-error", "scan_pages: " + response.status)
+            self.emit("process-error", "scan_pages", response.status)
             self.cursor = "default"
 
         self.thread.scan_pages(
             dir=self.dir,
-            npages=npages,
+            num_pages=num_pages,
             start=start,
             step=step,
             cancel_between_pages=(
