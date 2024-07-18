@@ -1,8 +1,10 @@
 "test scan dialog"
 
 
-# TODO: combine this with 0618
-def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
+# TODO: combine this with 0617
+def test_scan_reverse_pages(
+    sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
     """The test backend conveniently gives us
     Source = Automatic Document Feeder,
     which returns SANE_STATUS_NO_DOCS after the 10th scan.
@@ -26,21 +28,31 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
             callbacks = 0
             loop.quit()
 
+    def changed_scan_option_cb(widget, option, value, _data):
+        dialog.num_pages = 0
+        dialog.page_number_increment = -2
+        dialog.scan()
+        nonlocal callbacks
+        callbacks += 1
+
     def finished_process_cb(_widget, process):
         if process == "scan_pages":
             assert n == 10, "new-scan emitted 10 times"
             nonlocal callbacks
             callbacks += 1
 
-    def changed_scan_option_cb(widget, option, value, _data):
-        dialog.num_pages = 0
-        dialog.scan()
+    def error_process_cb(_widget, process):
         nonlocal callbacks
-        callbacks += 1
+        callbacks = 0
+        assert False, "Should not throw error"
 
     dialog.connect("new-scan", new_scan_cb)
     dialog.connect("finished-process", finished_process_cb)
+    dialog.connect("process-error", error_process_cb)
     dialog.connect("changed-scan-option", changed_scan_option_cb)
+    dialog.side_to_scan = "reverse"
+    dialog.page_number_start = 20
+    dialog.max_pages = 10
     dialog.set_option(
         dialog.available_scan_options.by_name("source"), "Automatic Document Feeder"
     )
