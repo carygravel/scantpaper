@@ -224,6 +224,8 @@ class SaneScanDialog(Scan):
                 # )
             else:
                 widget = self._create_widget(opt, val, hbox)
+                if widget is None:
+                    continue
 
             self._pack_widget(widget, [options, opt, hbox, hboxp])
 
@@ -257,6 +259,14 @@ class SaneScanDialog(Scan):
         return widget
 
     def _create_widget_spinbutton(self, opt, val):
+        if opt.constraint[0] > opt.constraint[1]:
+            logger.error(
+                _("Ignoring scan option '%s', minimum range (%s) > maximum (%s)"),
+                opt.name,
+                opt.constraint[0],
+                opt.constraint[1],
+            )
+            return None
         step = 1
         if opt.constraint[2] > 0:
             step = opt.constraint[2]
