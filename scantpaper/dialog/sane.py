@@ -479,7 +479,7 @@ class SaneScanDialog(Scan):
                 current = self.current_scan_options
                 signal = None
 
-                def reloaded_scan_options_cb():
+                def reloaded_scan_options_cb(_widget):
                     self.disconnect(signal)
                     self.set_current_scan_options(current)
 

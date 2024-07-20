@@ -37,8 +37,8 @@ def test_1(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
     options = dialog.available_scan_options
 
     # Check that profiles are being saved properly,
-    assert set_option_in_mainloop(dialog, options.by_name("tl-x"), 10)
-    assert set_option_in_mainloop(dialog, options.by_name("tl-y"), 10)
+    assert set_option_in_mainloop(dialog, "tl-x", 10)
+    assert set_option_in_mainloop(dialog, "tl-y", 10)
     dialog.save_current_profile("profile 1")
     assert dialog.profiles["profile 1"] == Profile(
         frontend={"num_pages": 1},
@@ -49,8 +49,8 @@ def test_1(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
     ), "applied 1st profile"
     assert dialog.profile == "profile 1", "saving current profile sets profile"
 
-    assert set_option_in_mainloop(dialog, options.by_name("tl-x"), 20)
-    assert set_option_in_mainloop(dialog, options.by_name("tl-y"), 20)
+    assert set_option_in_mainloop(dialog, "tl-x", 20)
+    assert set_option_in_mainloop(dialog, "tl-y", 20)
     dialog.save_current_profile("profile 2")
     assert dialog.profiles["profile 2"] == Profile(
         frontend={"num_pages": 1}, backend=[("tl-x", 20), ("tl-y", 20)]
@@ -121,7 +121,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     dialog.set_option(options.by_name("source"), "Automatic Document Feeder")
     loop.run()
 
-    assert set_option_in_mainloop(dialog, options.by_name("source"), "Flatbed")
+    assert set_option_in_mainloop(dialog, "source", "Flatbed")
     dialog.num_pages = 1
 
     loop = mainloop_with_timeout()
@@ -153,8 +153,6 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 
 def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     "splitting test_1 up into chunks"
-    options = dialog.available_scan_options
-
     loop = mainloop_with_timeout()
 
     def changed_scan_option_cb4(_widget, _option, _value, _data):
@@ -185,9 +183,7 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     loop.run()
 
     dialog.adf_defaults_scan_all_pages = 0
-    assert set_option_in_mainloop(
-        dialog, options.by_name("source"), "Automatic Document Feeder"
-    )
+    assert set_option_in_mainloop(dialog, "source", "Automatic Document Feeder")
     assert dialog.num_pages == 1, "adf-defaults-scan-all-pages should force num-pages 2"
     assert dialog._vboxx.get_visible(), "simplex ADF, so show vbox for page numbering"
 
@@ -227,10 +223,9 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     # reverse, and then switched from ADF to flatbed, clicking scan produced
     # the error message that the facing pages should be scanned first
     dialog.side_to_scan = "reverse"
-    assert set_option_in_mainloop(dialog, options.by_name("source"), "Flatbed")
+    assert set_option_in_mainloop(dialog, "source", "Flatbed")
     assert dialog.sided == "single", "selecting flatbed forces single sided"
-
-    assert set_option_in_mainloop(dialog, options.by_name("br-y"), 9.0)
+    assert set_option_in_mainloop(dialog, "br-y", 9.0)
     loop = mainloop_with_timeout()
     dialog.connect("changed-paper", lambda x, y: loop.quit)
     dialog.paper = None
