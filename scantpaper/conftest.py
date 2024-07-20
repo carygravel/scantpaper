@@ -77,7 +77,7 @@ def set_device_wait_reload(mainloop_with_timeout):
 def set_option_in_mainloop(mainloop_with_timeout):
     "set the given option, and wait for it to finish"
 
-    def anonymous(dialog, option, value):
+    def anonymous(dialog, name, value):
         loop = mainloop_with_timeout()
         callback_ran = False
 
@@ -90,7 +90,8 @@ def set_option_in_mainloop(mainloop_with_timeout):
             loop.quit()
 
         signal = dialog.connect("changed-scan-option", callback)
-        dialog.set_option(option, value)
+        options = dialog.available_scan_options
+        dialog.set_option(options.by_name(name), value)
         loop.run()
         return callback_ran
 
