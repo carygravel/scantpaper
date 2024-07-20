@@ -165,24 +165,6 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     def reloaded_scan_options_cb(_arg):
         dlg.disconnect(dlg.reloaded_signal)
         nonlocal asserts
-
-        def changed_paper_cb(_widget, paper):
-            dlg.disconnect(dlg.signal)
-            nonlocal asserts
-            assert dlg.current_scan_options == Profile(
-                backend=[
-                    ("br-x", 216.0),
-                    ("br-y", 279.0),
-                ],
-                frontend={"num_pages": 1, "paper": "US Letter"},
-            ), "set first paper"
-            assert dlg.thread.device_handle.br_x == 215.5, "br-x value"
-            assert dlg.thread.device_handle.br_y == 278.5, "br-y value"
-            asserts += 1
-            loop.quit()
-
-        dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
-        dlg.paper = "US Letter"
         asserts += 1
 
     dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
@@ -197,6 +179,27 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
         assert dlg.current_scan_options == Profile(
             backend=[
                 ("br-x", 216.0),
+                ("br-y", 279.0),
+            ],
+            frontend={"num_pages": 1, "paper": "US Letter"},
+        ), "set first paper"
+        assert dlg.thread.device_handle.br_x == 215.5, "br-x value"
+        assert dlg.thread.device_handle.br_y == 278.5, "br-y value"
+        asserts += 1
+        loop.quit()
+
+    dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
+    dlg.paper = "US Letter"
+    loop.run()
+
+    loop = mainloop_with_timeout()
+
+    def changed_paper_cb2(_widget, _paper):
+        dlg.disconnect(dlg.signal)
+        nonlocal asserts
+        assert dlg.current_scan_options == Profile(
+            backend=[
+                ("br-x", 216.0),
                 ("br-y", 356.0),
             ],
             frontend={"num_pages": 1, "paper": "US Legal"},
@@ -204,7 +207,7 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
         asserts += 1
         loop.quit()
 
-    dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
+    dlg.signal = dlg.connect("changed-paper", changed_paper_cb2)
     dlg.paper = "US Legal"
     loop.run()
 

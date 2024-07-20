@@ -132,6 +132,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     @paper.setter
     def paper(self, newval):
+        if newval == self._paper:
+            return
         if newval is not None:
             for fmt in self.ignored_paper_formats:
                 if fmt == newval:
@@ -605,12 +607,12 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             self.combobp.set_active(0)
 
             def do_paper_size_changed(_arg):
-                if not self.combobp.get_active_text:
+                combobp_active_text = self.combobp.get_active_text()
+                if not combobp_active_text:
                     return
-                if self.combobp.get_active_text() == _("Edit"):
+                if combobp_active_text == _("Edit"):
                     self._edit_paper()
-
-                elif self.combobp.get_active_text() == _("Manual"):
+                elif combobp_active_text == _("Manual"):
                     for option in (
                         "tl-x",
                         "tl-y",
@@ -622,25 +624,23 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                         if option in self._geometry_boxes:
                             self._geometry_boxes[option].show_all()
 
-                    self._paper = None
-
+                    self.paper = None
                 else:
-                    paper = self.combobp.get_active_text()
-                    self._paper = paper
+                    self.paper = combobp_active_text
 
             self.combobp.connect("changed", do_paper_size_changed)
 
-            # If the geometry is changed, unset the paper size,
-            # if we are not setting a profile
+            # If the geometry is changed and we are not setting a profile,
+            # unset the paper size,
             for option in ("tl-x", "tl-y", "br-x", "br-y", "page-height", "page-width"):
                 if option in self.option_widgets:
                     widget = self.option_widgets[option]
 
                     def do_paper_dimension_changed(_data):
-                        if not self.setting_current_scan_options and (
-                            self.paper is not None
+                        if not (
+                            self.setting_current_scan_options or self.paper is None
                         ):
-                            self._paper = None
+                            self.paper = None
 
                     widget.connect("changed", do_paper_dimension_changed)
 
@@ -657,12 +657,12 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             return None
         options = self.available_scan_options
         current = {
-            "l": options.by_name("tl-x")["val"],
-            "t": options.by_name("tl-y")["val"],
+            "l": options.val("tl-x", self.thread.device_handle),
+            "t": options.val("tl-y", self.thread.device_handle),
         }
-        current["x"] = current["l"] + options.by_name("br-x")["val"]
-        current["y"] = current["t"] + options.by_name("br-y")["val"]
-        for fmt in formats.items():
+        current["x"] = current["l"] + options.val("br-x", self.thread.device_handle)
+        current["y"] = current["t"] + options.val("br-y", self.thread.device_handle)
+        for fmt in formats:
             match = True
             for edge in ["l", "t", "x", "y"]:
                 if formats[fmt][edge] != current[edge]:
@@ -831,8 +831,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             combobp.set_active_by_text(paper)
 
     def _set_paper(self, paper):
-        """Treat a paper size as a profile, so build up the required profile of geometry
-        settings and apply it"""
+        """Treat a paper size as a profile, so build up the required profile of
+        geometry settings and apply it"""
         if paper is None:
             self._paper = paper
             self.current_scan_options.remove_frontend_option("paper")

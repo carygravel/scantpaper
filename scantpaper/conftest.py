@@ -75,7 +75,7 @@ def set_device_wait_reload(mainloop_with_timeout):
 
 @pytest.fixture
 def set_option_in_mainloop(mainloop_with_timeout):
-    "set the given open, and wait for it to finish"
+    "set the given option, and wait for it to finish"
 
     def anonymous(dialog, option, value):
         loop = mainloop_with_timeout()
@@ -91,6 +91,30 @@ def set_option_in_mainloop(mainloop_with_timeout):
 
         signal = dialog.connect("changed-scan-option", callback)
         dialog.set_option(option, value)
+        loop.run()
+        return callback_ran
+
+    return anonymous
+
+
+@pytest.fixture
+def set_paper_in_mainloop(mainloop_with_timeout):
+    "set the given paper, and wait for it to finish"
+
+    def anonymous(dialog, paper):
+        loop = mainloop_with_timeout()
+        callback_ran = False
+
+        def changed_paper(_widget, _paper):
+            nonlocal loop
+            nonlocal signal
+            nonlocal callback_ran
+            callback_ran = True
+            dialog.disconnect(signal)
+            loop.quit()
+
+        signal = dialog.connect("changed-paper", changed_paper)
+        dialog.paper = paper
         loop.run()
         return callback_ran
 
