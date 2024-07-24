@@ -161,7 +161,7 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
                     ("br-x", 210.0),
                     ("br-y", 279.0),
                 ],
-                frontend={"num_pages": 1, "paper": "A4"},
+                frontend={"paper": "A4"},
             ), "all options applied"
             asserts += 1
             loop.quit()

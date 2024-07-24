@@ -15,7 +15,7 @@ def test_1(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     def changed_scan_option_cb(_widget, option, value, uuid):
         dialog.disconnect(dialog.option_signal)
         assert dialog.current_scan_options == Profile(
-            frontend={"num_pages": 1}, backend=[("resolution", 52)]
+            backend=[("resolution", 52)]
         ), "current-scan-options"
         nonlocal callbacks
         callbacks += 1

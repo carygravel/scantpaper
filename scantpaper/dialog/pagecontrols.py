@@ -63,13 +63,17 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
     @num_pages.setter
     def num_pages(self, newval):
+        if newval == self._num_pages:
+            return
         options = self.available_scan_options
         if (
             newval == 1
             or self.allow_batch_flatbed
-            or not hasattr(self, "thread")
-            or self.thread.device_handle is None
-            or not options.flatbed_selected(self.thread.device_handle)
+            or (
+                hasattr(self, "thread")  # in __init__(), thread may not yet exist
+                and self.thread.device_handle is not None
+                and not options.flatbed_selected(self.thread.device_handle)
+            )
         ):
             self._num_pages = newval
             self.current_scan_options.add_frontend_option("num_pages", newval)

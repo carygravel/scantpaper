@@ -18,7 +18,7 @@ def test_1(
 
     assert set_option_in_mainloop(dialog, "resolution", 51), "set resolution"
     assert dialog.current_scan_options == Profile(
-        frontend={"num_pages": 1}, backend=[("resolution", 51)]
+        backend=[("resolution", 51)]
     ), "set resolution before scan"
 
     def finished_process_cb(_widget, process):
@@ -28,10 +28,9 @@ def test_1(
             callbacks += 1
 
     def changed_scan_option_cb(self, option, value, uuid):
-        print(f"changed_scan_option_cb {option, value, uuid}")
         dialog.disconnect(dialog.option_signal)
         assert dialog.current_scan_options == Profile(
-            frontend={"num_pages": 1}, backend=[("resolution", 51)]
+            backend=[("resolution", 51)]
         ), "set resolution after scan"
         assert (
             dialog.option_widgets["resolution"] is not None

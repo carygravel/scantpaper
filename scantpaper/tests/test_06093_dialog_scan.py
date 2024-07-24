@@ -432,7 +432,6 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
             nonlocal asserts
             assert profile == "my profile", "changed-profile"
             assert dlg.current_scan_options == Profile(
-                frontend={"num_pages": 1},
                 backend=[
                     ("scan-area", "Letter/Portrait"),
                     ("br-x", 215.899993896484),
