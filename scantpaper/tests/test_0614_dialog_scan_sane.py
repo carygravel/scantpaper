@@ -18,7 +18,7 @@ def test_button(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout)
         nonlocal callbacks
         dialog.disconnect(dialog.signal)
         assert dialog.current_scan_options == Profile(
-            frontend={"num_pages": 1}, backend=[("enable-test-options", True)]
+            backend=[("enable-test-options", True)]
         ), "enabled test options"
         callbacks += 1
         loop.quit()
@@ -34,7 +34,6 @@ def test_button(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout)
         nonlocal callbacks
         dialog.disconnect(dialog.signal)
         assert dialog.current_scan_options == Profile(
-            frontend={"num_pages": 1},
             backend=[("enable-test-options", True), ("button", None)],
         ), "enabled test options"
         callbacks += 1

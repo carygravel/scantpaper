@@ -13,7 +13,7 @@ def test_1(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
         nonlocal callbacks
         dialog.disconnect(dialog.signal)
         assert profile == Profile(
-            frontend={"num_pages": 1}, backend=[("resolution", 51)]
+            backend=[("resolution", 51)]
         ), "emitted changed-current-scan-options"
         callbacks += 1
         loop.quit()

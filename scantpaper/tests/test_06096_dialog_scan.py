@@ -185,7 +185,7 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
                     ("br-x", 10.0),
                     ("br-y", 11.0),
                 ],
-                frontend={"num_pages": 1, "paper": "new"},
+                frontend={"paper": "new"},
             ), "set inexact paper without SANE_INFO_INEXACT"
             asserts += 1
             loop.quit()

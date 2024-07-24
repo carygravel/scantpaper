@@ -181,7 +181,7 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
                 ("br-x", 216.0),
                 ("br-y", 279.0),
             ],
-            frontend={"num_pages": 1, "paper": "US Letter"},
+            frontend={"paper": "US Letter"},
         ), "set first paper"
         assert dlg.thread.device_handle.br_x == 215.5, "br-x value"
         assert dlg.thread.device_handle.br_y == 278.5, "br-y value"
@@ -202,7 +202,7 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
                 ("br-x", 216.0),
                 ("br-y", 356.0),
             ],
-            frontend={"num_pages": 1, "paper": "US Legal"},
+            frontend={"paper": "US Legal"},
         ), "set second paper after SANE_INFO_INEXACT"
         asserts += 1
         loop.quit()

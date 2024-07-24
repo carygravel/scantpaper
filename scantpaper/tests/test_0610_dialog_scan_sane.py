@@ -158,7 +158,6 @@ def test_3(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
         dialog.disconnect(dialog.signal)
         assert profile == "my profile", "changed-profile"
         assert dialog.current_scan_options == Profile(
-            frontend={"num_pages": 1},
             backend=[("resolution", 52), ("mode", "Color")],
         ), "current-scan-options with profile"
         nonlocal callbacks
@@ -208,7 +207,7 @@ def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
             dialog.profile is None
         ), "changing an option deselects the current profile"
         assert dialog.current_scan_options == Profile(
-            frontend={"num_pages": 1}, backend=[("resolution", 51)]
+            backend=[("resolution", 51)]
         ), "current-scan-options without profile"
         nonlocal callbacks
         callbacks += 1
@@ -310,7 +309,7 @@ def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
         # so doesn't appear in current-scan-options
         # ( resolution, 50 )
         assert dialog.current_scan_options == Profile(
-            frontend={"num_pages": 1}, backend=backend
+            backend=backend
         ), "CLI geometry option names"
         nonlocal callbacks
         callbacks += 1
@@ -530,8 +529,8 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
     ]
     dialog.device = "test:0"
     loop.run()
-    assert dialog.current_scan_options == Profile(
-        frontend={"num_pages": 1}, backend=[]
+    assert (
+        dialog.current_scan_options == Profile()
     ), "current-scan-options unchanged if invalid option requested"
     assert callbacks == 1, "all callbacks executed"
     dialog.thread.quit()

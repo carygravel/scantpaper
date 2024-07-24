@@ -151,7 +151,6 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
             dlg.disconnect(dlg.signal)
             assert profile == "my profile", "changed-profile"
             assert dlg.current_scan_options == Profile(
-                frontend={"num_pages": 1},
                 backend=[("resolution", 100), ("source", "Flatbed")],
             ), "current-scan-options with profile"
             asserts += 1

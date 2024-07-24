@@ -41,7 +41,6 @@ def test_1(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
     assert set_option_in_mainloop(dialog, "tl-y", 10)
     dialog.save_current_profile("profile 1")
     assert dialog.profiles["profile 1"] == Profile(
-        frontend={"num_pages": 1},
         backend=[
             ("tl-x", 10),
             ("tl-y", 10),
@@ -53,10 +52,9 @@ def test_1(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
     assert set_option_in_mainloop(dialog, "tl-y", 20)
     dialog.save_current_profile("profile 2")
     assert dialog.profiles["profile 2"] == Profile(
-        frontend={"num_pages": 1}, backend=[("tl-x", 20), ("tl-y", 20)]
+        backend=[("tl-x", 20), ("tl-y", 20)]
     ), "applied 2nd profile"
     assert dialog.profiles["profile 1"] == Profile(
-        frontend={"num_pages": 1},
         backend=[
             ("tl-x", 10),
             ("tl-y", 10),
@@ -64,7 +62,7 @@ def test_1(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
     ), "applied 2nd profile without affecting 1st"
     dialog._remove_profile("profile 1")
     assert dialog.profiles["profile 2"] == Profile(
-        frontend={"num_pages": 1}, backend=[("tl-x", 20), ("tl-y", 20)]
+        backend=[("tl-x", 20), ("tl-y", 20)]
     ), "remove_profile()"
     assert dialog.thread.device_handle.source == "Flatbed", "source defaults to Flatbed"
     assert dialog.num_pages == 1, "allow-batch-flatbed should force num-pages"
@@ -231,7 +229,6 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     dialog.paper = None
     loop.run()
     assert dialog.current_scan_options == Profile(
-        frontend={"num_pages": 1},
         backend=[
             ("tl-x", 0.0),
             ("tl-y", 0.0),

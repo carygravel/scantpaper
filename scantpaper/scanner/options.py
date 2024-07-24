@@ -188,20 +188,18 @@ class Options(GObject.Object):
 
     def flatbed_selected(self, device_handle):
         "returns whether the flatbed is selected"
-        val = None
+        source = None
         if self.source is not None:
             try:
-                val = self.val(self.source.name, device_handle)
+                source = self.val(self.source.name, device_handle)
             except AttributeError:
                 pass
         return bool(
-            (
-                val is not None
-                and re.search(
-                    r"(flatbed|Document[ ]Table)",
-                    val,
-                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
+            source is None
+            or re.search(
+                r"(flatbed|Document[ ]Table)",
+                source,
+                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             or (
                 self.source is not None
