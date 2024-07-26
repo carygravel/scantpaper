@@ -768,9 +768,9 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def _update_option(self, opt, new_opt):
 
-        # could be undefined for !($new_opt->{cap} & SANE_CAP_SOFT_DETECT)
-        # or where $opt->{name} is not defined
-        # e.g. $opt->{type} == SANE_TYPE_GROUP
+        # could be undefined for !(new_opt.cap & SANE_CAP_SOFT_DETECT)
+        # or where opt.name is not defined
+        # e.g. opt.type == SANE_TYPE_GROUP
         if opt.type == enums.TYPE_GROUP or opt.name not in self.option_widgets:
             return False
 
@@ -797,6 +797,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         hbox.set_sensitive(
             (not opt.cap & enums.CAP_INACTIVE) and opt.cap & enums.CAP_SOFT_SELECT
         )
+
+        # TODO: test options with multiple values in more detail
         if opt.size < 2:
             self._update_single_option(opt)
 

@@ -299,12 +299,12 @@ class SaneScanDialog(Scan):
         if index is not None:
             widget.set_active(index)
 
-        def changed_combobox_cb():
+        def changed_combobox_cb(_arg):
             self.num_reloads = 0  # num-reloads is read-only
             i = widget.get_active()
 
             # refetch options in case they have changed.
-            # tested by t/06197_Dialog_Scan_Image_Sane.t
+            # tested by 06197_Dialog_Scan_Image_Sane
             options = self.available_scan_options
             updated_opt = options.by_name(opt.name)
             self.set_option(updated_opt, updated_opt.constraint[i])
@@ -380,10 +380,11 @@ class SaneScanDialog(Scan):
         and walking the options tree, update the widgets"""
         if option is None:
             return
+
+        # ensure value is within max-min range of constraint
         if isinstance(option.constraint, tuple):
             if value < option.constraint[0]:
                 value = option.constraint[0]
-
             elif value > option.constraint[1]:
                 value = option.constraint[1]
 

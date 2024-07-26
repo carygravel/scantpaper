@@ -96,7 +96,7 @@ def mocked_do_set_option(_self, _request):
     return 0
 
 
-def test_scanner_with_no_source(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_hiding_geometry(mocker, sane_scan_dialog, mainloop_with_timeout):
     "test behavour with scanner without source option"
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
