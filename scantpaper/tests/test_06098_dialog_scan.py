@@ -726,7 +726,7 @@ def mocked_do_set_option(self, _request):
     return info
 
 
-def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_1(mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
@@ -735,32 +735,22 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
-
-    def changed_device_list_cb(_arg1, arg2):
-        dlg.disconnect(dlg.signal)
-        dlg.device = "mock_name"
-
-    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
+    set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def reloaded_scan_options_cb(_arg):
-        dlg.disconnect(dlg.reloaded_signal)
+    def changed_scan_option_cb(self, option, value, uuid):
+        dlg.disconnect(dlg.signal)
+        nonlocal asserts
+        widget = dlg.option_widgets[option]
+        assert widget.get_active() == value, "SANE_TYPE_BOOL"
+        asserts += 1
+        loop.quit()
 
-        def changed_scan_option_cb(self, option, value, uuid):
-            dlg.disconnect(dlg.signal)
-            nonlocal asserts
-            widget = dlg.option_widgets[option]
-            assert widget.get_active() == value, "SANE_TYPE_BOOL"
-            asserts += 1
-            loop.quit()
+    dlg.signal = dlg.connect("changed-scan-option", changed_scan_option_cb)
+    options = dlg.available_scan_options
+    dlg.set_option(options.by_name("hand-scanner"), True)
 
-        dlg.signal = dlg.connect("changed-scan-option", changed_scan_option_cb)
-        options = dlg.available_scan_options
-        dlg.set_option(options.by_name("hand-scanner"), True)
-
-    dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dlg.get_devices()
     loop.run()
 
     assert asserts == 1, "all callbacks ran"

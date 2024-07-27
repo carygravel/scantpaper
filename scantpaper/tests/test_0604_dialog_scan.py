@@ -4,13 +4,11 @@ from types import SimpleNamespace
 from scanner.options import Option
 
 
-def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_1(mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
     asserts = 0
 
     def mocked_do_get_devices(_cls, _request):
-        nonlocal asserts
-        asserts += 1
         devices = [("mock_name", "", "", "")]
         return [
             SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
@@ -21,8 +19,6 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
 
     def mocked_do_open_device(self, request):
         "open device"
-        nonlocal asserts
-        asserts += 1
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -83,32 +79,17 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
-
-    def changed_device_list_cb(_arg1, arg2):
-        nonlocal asserts
-        asserts += 1
-        dlg.disconnect(dlg.signal)
-        dlg.device = "mock_name"
-
-    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
+    set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
 
-    def reloaded_scan_options_cb(_arg):
-        dlg.disconnect(dlg.reloaded_signal)
+    def changed_scan_option_cb(_widget, _option, _value, _uuid):
         nonlocal asserts
         asserts += 1
+        loop.quit()
 
-        def changed_scan_option_cb(_widget, _option, _value, _uuid):
-            nonlocal asserts
-            asserts += 1
-            loop.quit()
-
-        dlg.signal = dlg.connect("changed-scan-option", changed_scan_option_cb)
-        options = dlg.available_scan_options
-        dlg.set_option(options.by_name("source"), "Flatbed")
-
-    dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dlg.get_devices()
+    dlg.signal = dlg.connect("changed-scan-option", changed_scan_option_cb)
+    options = dlg.available_scan_options
+    dlg.set_option(options.by_name("source"), "Flatbed")
 
     loop.run()
-    assert asserts == 6, "all callbacks runs"
+    assert asserts == 2, "all callbacks runs"

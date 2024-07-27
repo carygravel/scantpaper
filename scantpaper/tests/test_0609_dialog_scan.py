@@ -6,7 +6,7 @@ from scanner.profile import Profile
 from frontend import enums
 
 
-def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_1(mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
 
     def mocked_do_get_devices(_cls, _request):
@@ -134,33 +134,22 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     dlg._add_profile(
         "my profile", Profile(backend=[("resolution", 100), ("source", "Flatbed")])
     )
-
-    def changed_device_list_cb(_arg1, arg2):
-        dlg.disconnect(dlg.signal)
-        dlg.device = "mock_name"
-
-    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
+    set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def reloaded_scan_options_cb(_arg):
-        dlg.disconnect(dlg.reloaded_signal)
+    def changed_profile_cb(_widget, profile):
+        nonlocal asserts
+        dlg.disconnect(dlg.signal)
+        assert profile == "my profile", "changed-profile"
+        assert dlg.current_scan_options == Profile(
+            backend=[("resolution", 100), ("source", "Flatbed")],
+        ), "current-scan-options with profile"
+        asserts += 1
+        loop.quit()
 
-        def changed_profile_cb(_widget, profile):
-            nonlocal asserts
-            dlg.disconnect(dlg.signal)
-            assert profile == "my profile", "changed-profile"
-            assert dlg.current_scan_options == Profile(
-                backend=[("resolution", 100), ("source", "Flatbed")],
-            ), "current-scan-options with profile"
-            asserts += 1
-            loop.quit()
-
-        dlg.signal = dlg.connect("changed-profile", changed_profile_cb)
-        dlg.profile = "my profile"
-
-    dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dlg.get_devices()
+    dlg.signal = dlg.connect("changed-profile", changed_profile_cb)
+    dlg.profile = "my profile"
 
     loop.run()
 

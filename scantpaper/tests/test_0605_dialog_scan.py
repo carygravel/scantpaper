@@ -5,13 +5,11 @@ from scanner.options import Option
 from scanner.profile import Profile
 
 
-def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_1(mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
     asserts = 0
 
     def mocked_do_get_devices(_cls, _request):
-        nonlocal asserts
-        asserts += 1
         devices = [("mock_name", "", "", "")]
         return [
             SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
@@ -62,35 +60,20 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
     dlg = sane_scan_dialog
-
-    def changed_device_list_cb(_arg1, arg2):
-        nonlocal asserts
-        asserts += 1
-        dlg.disconnect(dlg.signal)
-        dlg.device = "mock_name"
-
-    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
+    set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
 
-    def reloaded_scan_options_cb(_arg):
-        dlg.disconnect(dlg.reloaded_signal)
+    def changed_current_scan_options_cb(_arg1, _arg2, _arg3):
         nonlocal asserts
+        dlg.disconnect(dlg.signal)
+        assert dlg.num_pages == 0, "num-pages"
         asserts += 1
+        loop.quit()
 
-        def changed_current_scan_options_cb(_arg1, _arg2, _arg3):
-            nonlocal asserts
-            dlg.disconnect(dlg.signal)
-            assert dlg.num_pages == 0, "num-pages"
-            asserts += 1
-            loop.quit()
-
-        dlg.signal = dlg.connect(
-            "changed-current-scan-options", changed_current_scan_options_cb
-        )
-        dlg.set_current_scan_options(Profile(frontend={"num_pages": 0}))
-
-    dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dlg.get_devices()
+    dlg.signal = dlg.connect(
+        "changed-current-scan-options", changed_current_scan_options_cb
+    )
+    dlg.set_current_scan_options(Profile(frontend={"num_pages": 0}))
 
     loop.run()
-    assert asserts == 4, "all callbacks runs"
+    assert asserts == 1, "all callbacks runs"

@@ -4,13 +4,10 @@ from types import SimpleNamespace
 from scanner.options import Option
 
 
-def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_1(mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-    asserts = 0
 
     def mocked_do_get_devices(_cls, _request):
-        nonlocal asserts
-        asserts += 1
         devices = [("mock_name", "", "", "")]
         return [
             SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
@@ -60,35 +57,19 @@ def test_1(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
     dlg = sane_scan_dialog
-
-    def changed_device_list_cb(_arg1, arg2):
-        nonlocal asserts
-        asserts += 1
-        dlg.disconnect(dlg.signal)
-        dlg.device = "mock_name"
-
-    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
+    set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
 
-    def reloaded_scan_options_cb(_arg):
-        dlg.disconnect(dlg.reloaded_signal)
-        nonlocal asserts
-
-        options = dlg.available_scan_options
-        assert options.flatbed_selected(
-            dlg.thread.device_handle
-        ), "flatbed_selected() without value"
-        assert not dlg.framen.is_sensitive(), "num-page gui ghosted"
-        dlg.num_pages = 2
-        assert dlg.num_pages == 1, "allow-batch-flatbed should force num-pages"
-        dlg.allow_batch_flatbed = True
-        dlg.num_pages = 2
-        assert dlg.num_pages == 2, "num-pages"
-        assert dlg.framen.is_sensitive(), "num-page gui not ghosted"
-        asserts += 1
-
-    dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dlg.get_devices()
+    options = dlg.available_scan_options
+    assert options.flatbed_selected(
+        dlg.thread.device_handle
+    ), "flatbed_selected() without value"
+    assert not dlg.framen.is_sensitive(), "num-page gui ghosted"
+    dlg.num_pages = 2
+    assert dlg.num_pages == 1, "allow-batch-flatbed should force num-pages"
+    dlg.allow_batch_flatbed = True
+    dlg.num_pages = 2
+    assert dlg.num_pages == 2, "num-pages"
+    assert dlg.framen.is_sensitive(), "num-page gui not ghosted"
 
     loop.run()
-    assert asserts == 3, "all callbacks runs"

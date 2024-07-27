@@ -7,7 +7,7 @@ import pytest
 
 
 @pytest.mark.skip("not sure how to mock the backend behaviour")
-def test_get_invalid_option(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_get_invalid_option(mocker, sane_scan_dialog, set_device_wait_reload):
     """test getting an invalid option (gscan2pdf bug #313).
     scanimage was segfaulting when retrieving the options from a Brother
     ADS-2800W via --help. xsane and simplescan worked.
@@ -150,24 +150,7 @@ def test_get_invalid_option(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
-
-    def changed_device_list_cb(_arg1, arg2):
-        dlg.disconnect(dlg.signal)
-        dlg.device = "mock_name"
-
-    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
-    loop = mainloop_with_timeout()
-    asserts = 0
-
-    def reloaded_scan_options_cb(_arg):
-        dlg.disconnect(dlg.reloaded_signal)
-        nonlocal asserts
-        asserts += 1
-        loop.quit()
-
-    dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dlg.get_devices()
-    loop.run()
+    set_device_wait_reload(dlg, "mock_name")
 
     assert dlg.available_scan_options.by_index(7) == Option(
         cap=0,
@@ -180,4 +163,3 @@ def test_get_invalid_option(mocker, sane_scan_dialog, mainloop_with_timeout):
         unit=None,
         index=7,
     ), "make options that throw an error undetectable and unselectable"
-    assert asserts == 1, "all callbacks ran"

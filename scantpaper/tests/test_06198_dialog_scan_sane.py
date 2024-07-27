@@ -213,7 +213,9 @@ def mocked_do_set_option(self, _request):
     return info
 
 
-def test_reloads_in_profile(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_reloads_in_profile(
+    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
     """Given a profile of scan options that trigger multiple reloads, check
     the changed-profile signal is only emitted once"""
 
@@ -222,28 +224,7 @@ def test_reloads_in_profile(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
     dialog = sane_scan_dialog
-    callbacks = 0
-    loop = mainloop_with_timeout()
-
-    def changed_device_list_cb(_arg1, arg2):
-        dialog.disconnect(dialog.signal)
-        dialog.device = "mock_name"
-        nonlocal callbacks
-        callbacks += 1
-
-    def reloaded_scan_options_cb(_arg):
-        dialog.disconnect(dialog.reloaded_signal)
-        loop.quit()
-        nonlocal callbacks
-        callbacks += 1
-
-    dialog.signal = dialog.connect("changed-device-list", changed_device_list_cb)
-    dialog.reloaded_signal = dialog.connect(
-        "reloaded-scan-options", reloaded_scan_options_cb
-    )
-    dialog.get_devices()
-    loop.run()
-    assert callbacks == 2, "mocked open device"
+    set_device_wait_reload(dialog, "mock_name")
     callbacks = 0
     loop = mainloop_with_timeout()
 
