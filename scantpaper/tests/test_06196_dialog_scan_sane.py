@@ -96,7 +96,9 @@ def mocked_do_set_option(_self, _request):
     return 0
 
 
-def test_hiding_geometry(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_hiding_geometry(
+    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
     "test behavour with scanner without source option"
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
@@ -104,20 +106,9 @@ def test_hiding_geometry(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
     dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
     callbacks = 0
     loop = mainloop_with_timeout()
-
-    def changed_device_list_cb(_arg1, arg2):
-        dialog.disconnect(dialog.signal)
-        dialog.device = "mock_name"
-        nonlocal callbacks
-        callbacks += 1
-
-    def reloaded_scan_options_cb(_arg):
-        dialog.disconnect(dialog.reloaded_signal)
-        dialog.paper = "US Letter"
-        nonlocal callbacks
-        callbacks += 1
 
     def changed_paper_formats(_widget, _formats):
         nonlocal callbacks
@@ -133,7 +124,6 @@ def test_hiding_geometry(mocker, sane_scan_dialog, mainloop_with_timeout):
         nonlocal callbacks
         callbacks += 1
 
-    dialog.signal = dialog.connect("changed-device-list", changed_device_list_cb)
     dialog.connect("changed-paper-formats", changed_paper_formats)
     dialog.paper_formats = {
         "US Letter": {
@@ -144,10 +134,7 @@ def test_hiding_geometry(mocker, sane_scan_dialog, mainloop_with_timeout):
         },
     }
     dialog.connect("changed-paper", changed_paper)
-    dialog.reloaded_signal = dialog.connect(
-        "reloaded-scan-options", reloaded_scan_options_cb
-    )
-    dialog.get_devices()
+    dialog.paper = "US Letter"
     loop.run()
 
-    assert callbacks == 4, "all callbacks ran"
+    assert callbacks == 2, "all callbacks ran"

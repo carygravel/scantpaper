@@ -132,7 +132,9 @@ def mocked_do_set_option(_self, _request):
     return 0
 
 
-def test_scanner_with_no_source(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_scanner_with_no_source(
+    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
     "test behavour with scanner without source option"
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
@@ -141,34 +143,22 @@ def test_scanner_with_no_source(mocker, sane_scan_dialog, mainloop_with_timeout)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
-
-    def changed_device_list_cb(_arg1, arg2):
-        dlg.disconnect(dlg.signal)
-        dlg.device = "mock_name"
-
-    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
+    set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def reloaded_scan_options_cb(_arg):
-        dlg.disconnect(dlg.reloaded_signal)
+    def changed_scan_option_cb(self, option, value, uuid):
+        dlg.disconnect(dlg.signal)
         nonlocal asserts
-
-        def changed_scan_option_cb(self, option, value, uuid):
-            dlg.disconnect(dlg.signal)
-            nonlocal asserts
-            assert dlg.num_pages == 1, "num-pages reset to 1 because no source option"
-            asserts += 1
-            loop.quit()
-
-        dlg.signal = dlg.connect("changed-scan-option", changed_scan_option_cb)
-        options = dlg.available_scan_options
-        dlg.num_pages = 2
-        dlg.set_option(options.by_name("ScanMode"), "Duplex")
+        assert dlg.num_pages == 1, "num-pages reset to 1 because no source option"
         asserts += 1
+        loop.quit()
 
-    dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
-    dlg.get_devices()
+    dlg.signal = dlg.connect("changed-scan-option", changed_scan_option_cb)
+    options = dlg.available_scan_options
+    dlg.num_pages = 2
+    dlg.set_option(options.by_name("ScanMode"), "Duplex")
+
     loop.run()
 
-    assert asserts == 2, "all callbacks ran"
+    assert asserts == 1, "all callbacks ran"

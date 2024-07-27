@@ -81,7 +81,9 @@ def mocked_do_set_option(self, _request):
     return info
 
 
-def test_combobox_on_reload(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_combobox_on_reload(
+    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
     """Check the scan options in a combobox are updated if necessary, if
     values are changed by a reload"""
 
@@ -90,28 +92,9 @@ def test_combobox_on_reload(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
     dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+
     callbacks = 0
-    loop = mainloop_with_timeout()
-
-    def changed_device_list_cb(_arg1, arg2):
-        dialog.disconnect(dialog.signal)
-        dialog.device = "mock_name"
-        nonlocal callbacks
-        callbacks += 1
-
-    def reloaded_scan_options_cb(_arg):
-        dialog.disconnect(dialog.reloaded_signal)
-        loop.quit()
-        nonlocal callbacks
-        callbacks += 1
-
-    dialog.signal = dialog.connect("changed-device-list", changed_device_list_cb)
-    dialog.reloaded_signal = dialog.connect(
-        "reloaded-scan-options", reloaded_scan_options_cb
-    )
-    dialog.get_devices()
-    loop.run()
-
     loop = mainloop_with_timeout()
 
     def changed_scan_option_cb(self, option, value, uuid):
@@ -153,4 +136,4 @@ def test_combobox_on_reload(mocker, sane_scan_dialog, mainloop_with_timeout):
     widget.set_active(4)
     loop.run()
 
-    assert callbacks == 4, "all callbacks ran"
+    assert callbacks == 2, "all callbacks ran"
