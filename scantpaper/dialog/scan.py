@@ -1256,11 +1256,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 resolutions.append(options.val(name, self.thread.device_handle))
             except AttributeError:
                 resolutions.append(0)
-        (
-            resolution,
-            xres,
-            yres,
-        ) = resolutions
+        resolution, xres, yres = resolutions
 
         # Potentially, a scanner could offer all three options, but then unset
         # resolution once the other two have been set.
@@ -1271,26 +1267,22 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             # However, if none of them are in current-scan-options, they still have
             # their default setting, and which of those gets priority is certainly
             # scanner specific.
-            if not (xres and yres):
-                current_scan_options = self.current_scan_options
-                for i in current_scan_options.each_backend_option():
-                    name, val = current_scan_options.get_backend_option_by_index(i)
-                    if name == "resolution":
-                        xres = val
-                        yres = val
-
-                    elif name == "x-resolution":
-                        xres = val
-
-                    elif name == "y-resolution":
-                        yres = val
-
-            else:
+            if xres == 0 and yres == 0:
                 return resolution, resolution
+            current_scan_options = self.current_scan_options
+            for i in current_scan_options.each_backend_option():
+                name, val = current_scan_options.get_backend_option_by_index(i)
+                if name == "resolution":
+                    xres = val
+                    yres = val
+                elif name == "x-resolution":
+                    xres = val
+                elif name == "y-resolution":
+                    yres = val
 
-        if xres is None:
+        if xres == 0:
             xres = POINTS_PER_INCH
-        if yres is None:
+        if yres == 0:
             yres = POINTS_PER_INCH
         return xres, yres
 
