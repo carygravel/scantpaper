@@ -191,7 +191,7 @@ class Profile(GObject.Object):
     def get_option_by_name(self, name):
         """Extract a option value from a profile"""
         for i in self.each_backend_option():
-            (key, val) = self.get_backend_option_by_index(i)
+            key, val = self.get_backend_option_by_index(i)
             if key == name:
                 return val
 

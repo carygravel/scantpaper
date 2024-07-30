@@ -893,7 +893,7 @@ def _add_annotations_to_pdf(page, gs_page):
     at the bottom left of the page)"""
     xresolution, yresolution, _units = gs_page.get_resolution()
     height = px2pt(gs_page.height, yresolution)
-    for box in Bboxtree(gs_page.annotations).get_bbox_iter():
+    for box in Bboxtree(gs_page.annotations).each_bbox():
         if box["type"] == "page" or "text" not in box or box["text"] == "":
             continue
 

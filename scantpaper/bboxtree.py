@@ -47,7 +47,7 @@ class Bboxtree:
 
     def valid(self):
         "return whether the bboxes are valid"
-        for bbox in self.get_bbox_iter():
+        for bbox in self.each_bbox():
             _x_1, _y_1, x_2, y_2 = bbox["bbox"]
             if bbox["type"] == "page":
                 if x_2 == 0 or y_2 == 0:
@@ -82,19 +82,17 @@ class Bboxtree:
             }
         )
 
-    def get_bbox_iter(self):
+    def each_bbox(self):
         """an iterator for parsing bboxes
         iterator returns bbox
-        my $iter = $self->get_bbox_iter();
-        while (my $bbox = $iter->()) {}"""
-        for bbox in self.bbox_tree:
-            yield bbox
+        for bbox in self.each_bbox(): ..."""
+        yield from self.bbox_tree
 
     def to_djvu_txt(self):
         "write bboxtree to string for djvu text"
         string = ""
         prev_depth, height = None, None
-        for bbox in self.get_bbox_iter():
+        for bbox in self.each_bbox():
             if prev_depth is not None:
                 while prev_depth >= bbox["depth"]:
                     prev_depth -= 1
@@ -148,7 +146,7 @@ class Bboxtree:
         "write bboxtree as string for djvu annotation layer"
         string = ""
         height = None
-        for bbox in self.get_bbox_iter():
+        for bbox in self.each_bbox():
             if bbox["type"] == "page":
                 height = bbox["bbox"][-1]
             if "text" in bbox:
@@ -208,7 +206,7 @@ class Bboxtree:
     def to_text(self):
         "Escape backslashes and inverted commas, return as plain text"
         string = ""
-        for bbox in self.get_bbox_iter():
+        for bbox in self.each_bbox():
             if string != "":
                 if bbox["type"] == "para":
                     string += "\n\n"
@@ -276,7 +274,7 @@ class Bboxtree:
         "write the bboxtree as an HOCR string"
         string = HOCR_HEADER + "\n"
         prev_depth, tags = -1, []
-        for bbox in self.get_bbox_iter():
+        for bbox in self.each_bbox():
             sub_string, prev_depth = _bbox_to_hocr(bbox, prev_depth, tags)
             string += sub_string
 

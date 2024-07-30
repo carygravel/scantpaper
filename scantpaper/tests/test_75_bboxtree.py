@@ -59,7 +59,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 """
     tree = Bboxtree()
     tree.from_hocr(hocr)
-    bbox_iter = tree.get_bbox_iter()
+    bbox_iter = tree.each_bbox()
     assert next(bbox_iter) == {
         "type": "page",
         "id": "page_1",
@@ -146,7 +146,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
     tree = Bboxtree()
     tree.from_text("The quick brown fox", 422, 61)
-    bbox_iter = tree.get_bbox_iter()
+    bbox_iter = tree.each_bbox()
     simple_box = {
         "type": "page",
         "bbox": [0, 0, 422, 61],
