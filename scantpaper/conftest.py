@@ -120,3 +120,15 @@ def set_paper_in_mainloop(mainloop_with_timeout):
         return callback_ran
 
     return anonymous
+
+
+# pylint: disable=line-too-long
+HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<meta name='ocr-system' content='tesseract'>
+</head>
+"""
+# pylint: enable=line-too-long
