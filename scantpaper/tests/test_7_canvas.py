@@ -3,6 +3,7 @@
 import os
 import subprocess
 import tempfile
+import pytest
 import gi
 from page import Page
 from canvas import Canvas, Bbox, Rectangle
@@ -10,14 +11,12 @@ from canvas import HOCR_HEADER as HOCR_OUT_HEADER
 from conftest import HOCR_HEADER
 
 gi.require_version("GooCanvas", "2.0")
-gi.require_version("Gdk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-module
-    Gdk,
     GooCanvas,
 )
 
 
-def test_basic():
+def test_canvas_basics():
     "Basic tests"
 
     # Create test image
@@ -59,21 +58,76 @@ def test_basic():
 
     canvas = Canvas()
     canvas.sort_by_confidence()
-    canvas.set_text(page, "text_layer", None, False)
+    canvas.set_text(page=page, layer="text_layer", idle=False)
 
     bbox = canvas.get_first_bbox()
     assert bbox.text == "The—", "get_first_bbox"
-    assert canvas.set_index_by_bbox(bbox) == 0, "set_index_by_bbox 1"
+    canvas.set_index_by_bbox(bbox)
     bbox = canvas.get_next_bbox()
     assert bbox.text == "fox", "get_next_bbox"
-    assert canvas.set_index_by_bbox(bbox) == 1, "set_index_by_bbox 2"
     assert canvas.get_previous_bbox().text == "The—", "get_previous_text"
     bbox = canvas.get_last_bbox()
     assert bbox.text == "brown", "get_last_text"
-    assert canvas.set_index_by_bbox(bbox) == 3, "set_index_by_bbox 3"
 
     bbox.delete_box()
     assert canvas.get_last_bbox().text == "quick", "get_last_bbox after deletion"
+
+    #########################
+
+    assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds"
+    assert canvas.get_scale() == 1, "get_scale"
+    canvas._set_zoom_with_center(2, 35, 26)
+    assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds after zoom"
+    assert canvas.convert_from_pixels(0, 0) == (0, 0), "convert_from_pixels"
+    width, height = page.get_size()
+    canvas.set_bounds(-10, -10, width + 10, height + 10)
+    assert canvas.get_bounds() == (-10, -10, 80, 56), "get_bounds after set"
+    assert canvas.convert_from_pixels(0, 0) == (-10, -10), "convert_from_pixels2"
+
+
+def test_canvas_basics2():
+    "Basic tests"
+
+    # Create test image
+    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+
+    page = Page(
+        filename="test.pnm",
+        format="Portable anymap",
+        resolution=72,
+        dir=tempfile.mkdtemp(),
+    )
+    page.import_hocr(
+        HOCR_HEADER
+        + """ <body>
+  <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 422 61'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 1 14 420 59">
+    <p class='ocr_par'>
+     <span class='ocr_line' id='line_1_1' title="bbox 1 14 420 59">
+      <span class='ocr_word' id='word_1_1' title="bbox 1 14 77 48">
+       <span class='xocr_word' id='xword_1_1' title="x_wconf 3">The—</span>
+      </span>
+      <span class='ocr_word' id='word_1_2' title="bbox 92 14 202 48">
+       <span class='xocr_word' id='xword_1_2' title="x_wconf 74">quick</span>
+      </span>
+      <span class='ocr_word' id='word_1_3' title="bbox 214 14 341 48">
+       <span class='xocr_word' id='xword_1_3' title="x_wconf 75">brown</span>
+      </span>
+      <span class='ocr_word' id='word_1_4' title="bbox 250 14 420 48">
+       <span class='xocr_word' id='xword_1_4' title="x_wconf 71">fox</span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+    )
+
+    canvas = Canvas()
+    canvas.sort_by_confidence()
+    canvas.set_text(page=page, layer="text_layer", idle=False)
 
     group = (
         canvas.get_root_item()
@@ -94,6 +148,7 @@ def test_basic():
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
      <span class='ocr_word' id='word_1_1' title='bbox 2 15 76 47; x_wconf 100'>No</span>
      <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 48; x_wconf 74'>quick</span>
+     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf 75'>brown</span>
      <span class='ocr_word' id='word_1_4' title='bbox 250 14 420 48; x_wconf 71'>fox</span>
      <span class='ocr_word'  title='bbox 355 15 429 47; x_wconf 100'>foo</span>
     </span>
@@ -109,14 +164,16 @@ def test_basic():
     canvas.sort_by_position()
     bbox = canvas.get_first_bbox()
     assert bbox.text == "No", "get_first_bbox position"
-    assert canvas.get_previous_bbox() is None, "before get_first_bbox position"
+    with pytest.raises(StopIteration):
+        canvas.get_previous_bbox()
     bbox = canvas.get_next_bbox()
     assert bbox.text == "quick", "get_next_bbox position"
     bbox = canvas.get_previous_bbox()
     assert bbox.text == "No", "get_previous_bbox position"
     bbox = canvas.get_last_bbox()
     assert bbox.text == "foo", "get_last_bbox position"
-    assert canvas.get_next_bbox() is None, "after get_last_bbox position"
+    with pytest.raises(StopIteration):
+        canvas.get_next_bbox()
 
     #########################
 
@@ -133,6 +190,7 @@ def test_basic():
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
      <span class='ocr_word' id='word_1_1' title='bbox 2 15 76 47; x_wconf 100'>No</span>
      <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 48; x_wconf 74'>quick</span>
+     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf 75'>brown</span>
      <span class='ocr_word' id='word_1_4' title='bbox 250 14 420 48; x_wconf 71'>fox</span>
      <span class='ocr_word'  title='bbox 355 15 429 47; x_wconf 100'>foo</span>
      <span class='ocr_word'  title='bbox 356 15 430 47; x_wconf 100'>0</span>
@@ -158,18 +216,6 @@ def test_basic():
 
     #########################
 
-    assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds"
-    assert canvas.get_scale() == 1, "get_scale"
-    canvas._set_zoom_with_center(2, 35, 26)
-    assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds after zoom"
-    assert canvas.convert_from_pixels(0, 0) == (0, 0), "convert_from_pixels"
-    width, height = page.get_size()
-    canvas.set_bounds(-10, -10, width + 10, height + 10)
-    assert canvas.get_bounds() == (-10, -10, 80, 56), "get_bounds after set"
-    assert canvas.convert_from_pixels(0, 0) == (-10, -10), "convert_from_pixels2"
-
-    #########################
-
     group.confidence = 100
     canvas.max_confidence = 90
     canvas.min_confidence = 50
@@ -191,6 +237,7 @@ def test_basic():
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
      <span class='ocr_word' id='word_1_1' title='bbox 2 15 76 47; x_wconf 100'>&lt;em&gt;No&lt;/em&gt;</span>
      <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 48; x_wconf 74'>quick</span>
+     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf 75'>brown</span>
      <span class='ocr_word' id='word_1_4' title='bbox 250 14 420 48; x_wconf 71'>fox</span>
      <span class='ocr_word'  title='bbox 355 15 429 47; x_wconf 100'>foo</span>
      <span class='ocr_word'  title='bbox 356 15 430 47; x_wconf 100'>0</span>
@@ -253,7 +300,7 @@ def test_hocr():
     )
 
     canvas = Canvas()
-    canvas.set_text(page, "text_layer", None, False)
+    canvas.set_text(page=page, layer="text_layer", idle=False)
     canvas.sort_by_confidence()
 
     expected = (
@@ -316,7 +363,8 @@ def test_hocr():
     bbox.delete_box()
     bbox = canvas.get_next_bbox()
     bbox.delete_box()
-    assert canvas.get_last_bbox() is None, "get_last_bbox() returns undef if no boxes"
+    with pytest.raises(StopIteration):
+        canvas.get_last_bbox()
 
     #########################
 
