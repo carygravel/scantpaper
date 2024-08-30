@@ -321,14 +321,14 @@ class Document(BaseDocument):
         if "finished_callback" in options and options["finished_callback"]:
             options["finished_callback"](None)
 
-    def import_scan(self, **options):
+    def import_scan(self, **kwargs):
         """Take new scan, pad it if necessary, display it,
         and set off any post-processing chains"""
 
         # TODO: pass size and options as data, rather than via scope
         # opening inside with didn't work in initial tests for unknown reasons
         fhd = open(  # pylint: disable=consider-using-with
-            options["filename"], mode="r", encoding="utf-8"
+            kwargs["filename"], mode="r", encoding="utf-8"
         )
 
         # Read without blocking
@@ -341,42 +341,42 @@ class Document(BaseDocument):
                 width, height = None, None
                 if size == 0:
                     size, width, height = netpbm.file_size_from_header(
-                        options["filename"]
+                        kwargs["filename"]
                     )
                     logger.info("Header suggests %s", size)
                     if size == 0:
                         return GLib.SOURCE_CONTINUE
                     fhd.close()
 
-                filesize = os.path.getsize(options["filename"])
+                filesize = os.path.getsize(kwargs["filename"])
                 logger.info("Expecting %s, found %s", size, filesize)
                 if size > filesize:
                     pad = size - filesize
-                    with open(options["filename"], mode="ab") as fhd:
+                    with open(kwargs["filename"], mode="ab") as fhd:
                         data = [1] * (pad * BITS_PER_BYTE + 1)
                         fhd.write(struct.pack(f"{len(data)}b", *data))
                     logger.info("Padded %s bytes", pad)
 
                 page = Page(
-                    filename=options["filename"],
-                    resolution=options["resolution"],
+                    filename=kwargs["filename"],
+                    resolution=kwargs["resolution"],
                     width=width,
                     height=height,
                     format="Portable anymap",
-                    delete=options["delete"] if "delete" in options else False,
-                    dir=options["dir"],
+                    delete=kwargs["delete"] if "delete" in kwargs else False,
+                    dir=kwargs["dir"],
                 )
-                index = self.add_page(page, options["page"])
-                if index == NOT_FOUND and options["error_callback"]:
-                    options["error_callback"](
+                index = self.add_page(page, kwargs["page"])
+                if index == NOT_FOUND and kwargs["error_callback"]:
+                    kwargs["error_callback"](
                         None, "Import scan", _("Unable to load image")
                     )
 
                 else:
-                    if "display_callback" in options:
-                        options["display_callback"](None)
+                    if "display_callback" in kwargs:
+                        kwargs["display_callback"](None)
 
-                    self._post_process_scan(page, options)
+                    self._post_process_scan(page, kwargs)
 
                 return GLib.SOURCE_REMOVE
 
