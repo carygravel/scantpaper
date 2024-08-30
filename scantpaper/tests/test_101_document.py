@@ -182,8 +182,6 @@ def test_indexing():
     ], "correctly selected page after manual renumber"
     os.remove(png)
 
-    # Gscan2pdf.Document.quit()
-
 
 def test_file_dates():
     "test file dates"
