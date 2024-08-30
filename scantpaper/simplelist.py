@@ -50,7 +50,9 @@ column_types = {
 class SimpleList(Gtk.TreeView):
     "A simple interface to Gtk's complex MVC list widget"
 
-    def __init__(self, columns):
+    def __init__(
+        self, columns
+    ):  # TODO pass a list of tuples intead of the dict columns
         super().__init__()
         if len(columns.keys()) < 1:
             raise TypeError(
@@ -91,7 +93,11 @@ class SimpleList(Gtk.TreeView):
         for col in column_info:
             if type(col["attr"]).__name__ == "function":
                 self.insert_column_with_data_func(
-                    -1, col["title"], col["renderer"], col["attr"], i,
+                    -1,
+                    col["title"],
+                    col["renderer"],
+                    col["attr"],
+                    i,
                 )
                 i += 1
 
@@ -99,7 +105,10 @@ class SimpleList(Gtk.TreeView):
                 pass
 
             else:
-                column = Gtk.TreeViewColumn(col["title"], col["renderer"],)
+                column = Gtk.TreeViewColumn(
+                    col["title"],
+                    col["renderer"],
+                )
                 self.append_column(column)
                 if col["attr"] == "active":
                     # make boolean columns respond to editing.
