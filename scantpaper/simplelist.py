@@ -234,8 +234,7 @@ class TiedRow(list):
         return self.model[self.iter][index]
 
     def __setitem__(self, index, value):
-        if value is not None:  # allow 0, but not undef
-            self.model[self.iter][index] = value
+        self.model[self.iter][index] = value
 
     def __len__(self):
         return self.model.get_n_columns()

@@ -32,9 +32,6 @@ def test_basic():
     assert model[model.iter_nth_child(None, 0)][0] == "last row", "setitem col"
 
     slist.data[0][0] = None
-    assert (
-        model[model.iter_nth_child(None, 0)][0] == "last row"
-    ), "setitem col ignores None"
     assert len(slist.data[0]) == 1, "len(row)"
     assert 0 in slist.data[0], "in (contains) row"
 
