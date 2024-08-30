@@ -39,13 +39,11 @@ class PageRange(Gtk.VBox):
 
         # the first radio button has to set the group,
         # which is undef for the first button
-
         group = None
         self.button = {}
 
-        def on_toggled_event(nick):
-            if self.button[nick].get_active():
-                self.set_active(nick)
+        def on_toggled_event(_button, active):
+            self.active = active
 
         for nick in sorted(buttons.keys()):
             self.button[nick] = Gtk.RadioButton.new_with_label_from_widget(

@@ -673,7 +673,7 @@ class BaseDocument(SimpleList):
 
         self.select(selection)
 
-    def renumber(self, start=1, step=1, selection="all"):
+    def renumber(self, start=None, step=1, selection="all"):
         "Renumber pages"
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
@@ -690,14 +690,13 @@ class BaseDocument(SimpleList):
             else:
                 selection = range(len(self.data))
 
-            for _ in selection:
-                logger.info("Renumbering page %s->%s", self.data[_][0], start)
-                self.data[_][0] = start
+            for i in selection:
+                logger.info("Renumbering page %s->%s", self.data[i][0], start)
+                self.data[i][0] = start
                 start += step
 
-        # If $start and $step are undefined, just make sure that the numbering is
+        # If start and step are undefined, just make sure that the numbering is
         # ascending.
-
         else:
             for i in range(1, len(self.data)):
                 if self.data[i][0] <= self.data[i - 1][0]:
