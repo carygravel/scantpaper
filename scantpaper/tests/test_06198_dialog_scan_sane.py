@@ -252,7 +252,6 @@ def test_reloads_in_profile(
 
     def changed_profile_cb(_widget, profile):
         assert profile == "my profile", "changed-profile"
-        print(f"dialog.current_scan_options {dialog.current_scan_options}")
         assert dialog.current_scan_options == Profile(
             backend=[
                 ("scan-area", "A4"),
