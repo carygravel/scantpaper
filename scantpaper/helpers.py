@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import logging
 import subprocess
 import datetime
+from dialog import MultipleMessage
+from i18n import _
 
 logger = logging.getLogger(__name__)
 
@@ -132,14 +134,17 @@ def expand_metadata_pattern(**kwargs):
         )
     return kwargs["template"]
 
+
 def show_message_dialog(**options):
+    "show message dialog"
     global message_dialog, SETTING
     if not message_dialog:
-        message_dialog = MultipleMessage( title           =_('Messages'),
-            transient_for = options["parent"]
+        message_dialog = MultipleMessage(
+            title=_("Messages"), transient_for=options["parent"]
         )
-        message_dialog.set_default_size( SETTING["message_window_width"],
-            SETTING["message_window_height"] )
+        message_dialog.set_default_size(
+            SETTING["message_window_width"], SETTING["message_window_height"]
+        )
 
     options["responses"] = SETTING["message"]
     message_dialog.add_message(options)
@@ -148,7 +153,34 @@ def show_message_dialog(**options):
         message_dialog.show_all()
         response = message_dialog.run()
 
-    if  message_dialog:    # could be undefined for multiple calls
-        message_dialog.store_responses( response, SETTING["message"])
-        SETTING["message_window_width"], SETTING["message_window_height"] = message_dialog.get_size()
+    if message_dialog:  # could be undefined for multiple calls
+        message_dialog.store_responses(response, SETTING["message"])
+        (
+            SETTING["message_window_width"],
+            SETTING["message_window_height"],
+        ) = message_dialog.get_size()
         message_dialog.destroy()
+
+
+def parse_truetype_fonts(fclist):
+    "Build a look-up table of all true-type fonts installed"
+    fonts = {"by_file": {}, "by_family": {}}
+    regex_tailing_nl = re.compile(r"\n$")
+    regex_leading_space = re.compile(r"^\s+")
+    regex_tailing_comma = re.compile(r",.*$")
+    regex_leading_style = re.compile(r"^style=")
+    for font in fclist.split("\n"):
+        if re.search(r"ttf:[ ]", font):
+            file_family_style = font.split(":")
+            if len(file_family_style) == 3:
+                file, family, style = file_family_style
+                family = regex_leading_space.sub("", family)
+                family = regex_tailing_comma.sub("", family)
+                style = regex_tailing_nl.sub("", style)
+                style = regex_leading_style.sub("", style)
+                style = regex_tailing_comma.sub("", style)
+                fonts["by_file"][file] = (family, style)
+                if family not in fonts["by_family"]:
+                    fonts["by_family"][family] = {}
+                fonts["by_family"][family][style] = file
+    return fonts

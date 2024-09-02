@@ -19,6 +19,7 @@ from helpers import (
     Proc,
     expand_metadata_pattern,
     collate_metadata,
+    parse_truetype_fonts,
 )
 
 
@@ -544,8 +545,24 @@ def test_helpers():
         proc.stderr == "[Errno 2] No such file or directory: '/command/not/found'"
     ), "stderr running unknown command"
 
-    #########################
 
+def test_parse_truetype_fonts():
+    "test parse_truetype_fonts()"
+    fclist = """/usr/local/share/fonts/Cairo-ExtraLight.ttf: Cairo,Cairo ExtraLight:style=ExtraLight,Regular
+/usr/local/share/fonts/FaustinaVFBeta-Italic.ttf: Faustina VF Beta
+"""
+    assert parse_truetype_fonts(fclist) == {
+        "by_family": {
+            "Cairo": {"ExtraLight": "/usr/local/share/fonts/Cairo-ExtraLight.ttf"}
+        },
+        "by_file": {
+            "/usr/local/share/fonts/Cairo-ExtraLight.ttf": ("Cairo", "ExtraLight")
+        },
+    }, "parse_truetype_fonts() only returns fonts for which we have a style"
+
+
+def test_bbox2markup():
+    "test _bbox2markup()"
     assert _bbox2markup(300, 300, 500, [0, 0, 452, 57]) == pytest.approx(
         [0.0, 486.32, 108.48, 486.32, 0.0, 500.0, 108.48, 500.0], abs=0.01
     ), "converted bbox to markup coords"
