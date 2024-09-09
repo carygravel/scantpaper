@@ -280,7 +280,6 @@ class Document(BaseDocument):
         if "udt" in options and options["udt"]:
 
             def udt_finished_callback(_response):
-                del options["udt"]
                 finished_page = self.find_page_by_uuid(page.uuid)
                 if finished_page is None:
                     self._post_process_scan(None, options)  # to fire finished_callback
@@ -288,15 +287,11 @@ class Document(BaseDocument):
 
                 self._post_process_scan(self.data[finished_page][2], options)
 
-            self.user_defined(
-                page=page.uuid,
-                command=options["udt"],
-                queued_callback=options["queued_callback"],
-                started_callback=options["started_callback"],
-                finished_callback=udt_finished_callback,
-                error_callback=options["error_callback"],
-                display_callback=options["display_callback"],
-            )
+            udt_options = options
+            udt_options["page"] = page.uuid
+            udt_options["command"] = options["udt"]
+            udt_options["finished_callback"] = udt_finished_callback
+            self.user_defined(**udt_options)
             return
 
         if "ocr" in options and options["ocr"]:
