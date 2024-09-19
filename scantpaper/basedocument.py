@@ -230,9 +230,7 @@ class BaseDocument(SimpleList):
         step = 1
         if direction < 0:
             step = -step
-            start = max_page
-            if start > len(self.data) - 1:
-                start = len(self.data) - 1
+            start = min(max_page, len(self.data) - 1)
             end = min_page - 1
 
         i = start
