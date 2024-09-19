@@ -111,7 +111,7 @@ class DocThread(SaveThread):
         threshold, page = (options["threshold"], options["page"])
 
         if _page_gone("threshold", page, request):
-            return None
+            return
         if self.cancel:
             raise CancelledError()
         filename = page.filename
@@ -138,7 +138,13 @@ class DocThread(SaveThread):
         page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        return page
+        request.data(
+            {
+                "type": "page",
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
 
     def brightness_contrast(self, **kwargs):
         "adjust brightness and contrast"
@@ -155,7 +161,7 @@ class DocThread(SaveThread):
         )
 
         if _page_gone("brightness-contrast", options["page"], request):
-            return None
+            return
 
         filename = page.filename
         logger.info(
@@ -174,7 +180,13 @@ class DocThread(SaveThread):
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        return page
+        request.data(
+            {
+                "type": "page",
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
 
     def negate(self, **kwargs):
         "negate page"
@@ -187,7 +199,7 @@ class DocThread(SaveThread):
         page = options["page"]
 
         if _page_gone("negate", page, request):
-            return None
+            return
 
         filename = page.filename
         logger.info("Invert %s", filename)
@@ -200,7 +212,13 @@ class DocThread(SaveThread):
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        return page
+        request.data(
+            {
+                "type": "page",
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
 
     def unsharp(self, **kwargs):
         "run unsharp mask"
@@ -216,7 +234,7 @@ class DocThread(SaveThread):
         threshold = options["threshold"]
 
         if _page_gone("unsharp", page, request):
-            return None
+            return
 
         filename = page.filename
         logger.info(
@@ -237,7 +255,13 @@ class DocThread(SaveThread):
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        return page
+        request.data(
+            {
+                "type": "page",
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
 
     def crop(self, **kwargs):
         "crop page"
@@ -254,7 +278,7 @@ class DocThread(SaveThread):
         height = options["h"]
 
         if _page_gone("crop", options["page"], request):
-            return None
+            return
 
         filename = page.filename
         logger.info("Crop %s x %s y %s w %s h %s", filename, left, top, width, height)
@@ -275,7 +299,13 @@ class DocThread(SaveThread):
         image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        return page
+        request.data(
+            {
+                "type": "page",
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
 
     def split_page(self, **kwargs):
         "split page"
@@ -370,7 +400,7 @@ class DocThread(SaveThread):
         page, language = (options["page"], options["language"])
 
         if _page_gone("tesseract", options["page"], request):
-            return None
+            return
 
         if self.cancel:
             raise CancelledError()
@@ -396,7 +426,13 @@ class DocThread(SaveThread):
         if self.cancel:
             raise CancelledError()
 
-        return page
+        request.data(
+            {
+                "type": "page",
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
 
     def unpaper(self, **kwargs):
         "run unpaper"

@@ -780,11 +780,29 @@ class BaseDocument(SimpleList):
             kwargs["mark_saved_callback"] = mark_saved_callback
 
 
-def _method_generator(method_name):
+def _save_method_generator(method_name):
     def _generic_method(self, _method_name, **kwargs):
-        if _method_name in ["save_pdf", "save_djvu", "save_tiff", "save_image"]:
-            kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)  # pylint: disable=protected-access
+        kwargs["mark_saved"] = True
+        self._note_callbacks(kwargs)
+        method = getattr(self.thread, _method_name)
+        method(**kwargs)
+
+    return lambda self, **kwargs: _generic_method(self, method_name, **kwargs)
+
+
+def _modify_method_generator(method_name):
+    def _generic_method(self, _method_name, **kwargs):
+
+        # FIXME: duplicate to _import_file_data_callback()
+        def _data_callback(response):
+            if isinstance(response.info, dict) and "page" in response.info:
+                self.add_page(response.info["page"], response.info["info"])
+            else:
+                if "logger_callback" in kwargs:
+                    kwargs["logger_callback"](response)
+
+        kwargs["data_callback"] = _data_callback
+        self._note_callbacks(kwargs)
         method = getattr(self.thread, _method_name)
         method(**kwargs)
 
@@ -796,9 +814,14 @@ for method_name_ in [
     "save_djvu",
     "save_tiff",
     "save_image",
-    "rotate",
     "save_text",
     "save_hocr",
+]:
+    setattr(BaseDocument, method_name_, _save_method_generator(method_name_))
+
+
+for method_name_ in [
+    "rotate",
     "analyse",
     "threshold",
     "brightness_contrast",
@@ -808,7 +831,7 @@ for method_name_ in [
     "to_png",
     "tesseract",
 ]:
-    setattr(BaseDocument, method_name_, _method_generator(method_name_))
+    setattr(BaseDocument, method_name_, _modify_method_generator(method_name_))
 
 
 def drag_data_received_callback(

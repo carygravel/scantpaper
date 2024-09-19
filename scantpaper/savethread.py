@@ -450,8 +450,16 @@ class SaveThread(Importhread):
 
     def do_to_png(self, request):
         "convert to PNG in thread"
-        page = request.args[0]
-        return page.to_png(self.paper_sizes)
+        page = request.args[0]["page"]
+        new = page.to_png(self.paper_sizes)
+        new.uuid = page.uuid
+        request.data(
+            {
+                "type": "page",
+                "page": new,
+                "info": {"replace": new.uuid},
+            }
+        )
 
     def set_paper_sizes(self, paper_sizes):
         "set paper sizes"

@@ -206,12 +206,95 @@ class Document(BaseDocument):
             finished_callback=_import_file_finished_callback,
         )
 
+    def _post_process_to_png(self, page, options):
+        def to_png_finished_callback(_response):
+            finished_page = self.find_page_by_uuid(page.uuid)
+            if finished_page is None:
+                self._post_process_scan(None, options)  # to fire finished_callback
+                return
+
+            self._post_process_scan(self.data[finished_page][2], options)
+
+        to_png_options = options.copy()
+        to_png_options["finished_callback"] = to_png_finished_callback
+        to_png_options["page"] = page.uuid
+        del options["to_png"]
+        self.to_png(**to_png_options)  # pylint: disable=no-member
+
+    def _post_process_rotate(self, page, options):
+        def rotate_finished_callback(_response):
+            finished_page = self.find_page_by_uuid(page.uuid)
+            if finished_page is None:
+                self._post_process_scan(None, options)  # to fire finished_callback
+                return
+
+            self._post_process_scan(self.data[finished_page][2], options)
+
+        rotate_options = options.copy()
+        rotate_options["angle"] = options["rotate"]
+        rotate_options["page"] = page.uuid
+        rotate_options["finished_callback"] = rotate_finished_callback
+        del options["rotate"]
+        self.rotate(**rotate_options)  # pylint: disable=no-member
+
+    def _post_process_unpaper(self, page, options):
+        def updated_page_callback(response):
+            if isinstance(response.info, dict) and response.info["type"] == "page":
+                del options["unpaper"]
+                finished_page = self.find_page_by_uuid(page.uuid)
+                if finished_page is None:
+                    self._post_process_scan(None, options)  # to fire finished_callback
+                    return
+                self._post_process_scan(self.data[finished_page][2], options)
+
+        unpaper_options = options.copy()
+        unpaper_options["options"] = {
+            "command": options["unpaper"].get_cmdline(),
+            "direction": options["unpaper"].get_option("direction"),
+        }
+        unpaper_options["page"] = page.uuid
+        unpaper_options["updated_page_callback"] = updated_page_callback
+        del unpaper_options["finished_callback"]
+        self.unpaper(**unpaper_options)
+
+    def _post_process_udt(self, page, options):
+        def udt_finished_callback(_response):
+            finished_page = self.find_page_by_uuid(page.uuid)
+            if finished_page is None:
+                self._post_process_scan(None, options)  # to fire finished_callback
+                return
+
+            self._post_process_scan(self.data[finished_page][2], options)
+
+        udt_options = options.copy()
+        udt_options["page"] = page.uuid
+        udt_options["command"] = options["udt"]
+        udt_options["finished_callback"] = udt_finished_callback
+        self.user_defined(**udt_options)
+
+    def _post_process_ocr(self, page, options):
+        def ocr_finished_callback(_response):
+            del options["ocr"]
+            self._post_process_scan(None, options)  # to fire finished_callback
+
+        self.ocr_pages(
+            pages=[page.uuid],
+            threshold=options.get("threshold"),
+            engine=options["engine"],
+            language=options["language"],
+            queued_callback=options.get("queued_callback"),
+            started_callback=options.get("started_callback"),
+            finished_callback=ocr_finished_callback,
+            error_callback=options.get("error_callback"),
+            display_callback=options.get("display_callback"),
+        )
+
     def _post_process_scan(self, page, options):
         options = defaultdict(None, options)
 
         # tesseract can't extract resolution from pnm, so convert to png
         if (
-            (page is not None)
+            page is not None
             and re.search(
                 r"Portable[ ](any|pix|gray|bit)map",
                 page.format,
@@ -220,97 +303,23 @@ class Document(BaseDocument):
             and "to_png" in options
             and options["to_png"]
         ):
-
-            def to_png_finished_callback(_response):
-                finished_page = self.find_page_by_uuid(page.uuid)
-                if finished_page is None:
-                    self._post_process_scan(None, options)  # to fire finished_callback
-                    return
-
-                self._post_process_scan(self.data[finished_page][2], options)
-
-            self.to_png(  # pylint: disable=no-member
-                page=page.uuid,
-                finished_callback=to_png_finished_callback,
-                **options,
-            )
+            self._post_process_to_png(page, options)
+            return
 
         if "rotate" in options and options["rotate"]:
-
-            def rotate_finished_callback(_response):
-                finished_page = self.find_page_by_uuid(page.uuid)
-                if finished_page is None:
-                    self._post_process_scan(None, options)  # to fire finished_callback
-                    return
-
-                self._post_process_scan(self.data[finished_page][2], options)
-
-            rotate_options = options
-            rotate_options["angle"] = options["rotate"]
-            rotate_options["page"] = page.uuid
-            rotate_options["finished_callback"] = rotate_finished_callback
-            del rotate_options["rotate"]
-            self.rotate(**rotate_options)  # pylint: disable=no-member
+            self._post_process_rotate(page, options)
             return
 
         if "unpaper" in options and options["unpaper"]:
-
-            def updated_page_callback(response):
-                if isinstance(response.info, dict) and response.info["type"] == "page":
-                    del options["unpaper"]
-                    finished_page = self.find_page_by_uuid(page.uuid)
-                    if finished_page is None:
-                        self._post_process_scan(
-                            None, options
-                        )  # to fire finished_callback
-                        return
-                    self._post_process_scan(self.data[finished_page][2], options)
-
-            unpaper_options = options
-            unpaper_options["options"] = {
-                "command": options["unpaper"].get_cmdline(),
-                "direction": options["unpaper"].get_option("direction"),
-            }
-            unpaper_options["page"] = page.uuid
-            unpaper_options["updated_page_callback"] = updated_page_callback
-            del unpaper_options["finished_callback"]
-            self.unpaper(**unpaper_options)
+            self._post_process_unpaper(page, options)
             return
 
         if "udt" in options and options["udt"]:
-
-            def udt_finished_callback(_response):
-                finished_page = self.find_page_by_uuid(page.uuid)
-                if finished_page is None:
-                    self._post_process_scan(None, options)  # to fire finished_callback
-                    return
-
-                self._post_process_scan(self.data[finished_page][2], options)
-
-            udt_options = options
-            udt_options["page"] = page.uuid
-            udt_options["command"] = options["udt"]
-            udt_options["finished_callback"] = udt_finished_callback
-            self.user_defined(**udt_options)
+            self._post_process_udt(page, options)
             return
 
         if "ocr" in options and options["ocr"]:
-
-            def ocr_finished_callback(_response):
-                del options["ocr"]
-                self._post_process_scan(None, options)  # to fire finished_callback
-
-            self.ocr_pages(
-                pages=[page.uuid],
-                threshold=options.get("threshold"),
-                engine=options["engine"],
-                language=options["language"],
-                queued_callback=options.get("queued_callback"),
-                started_callback=options.get("started_callback"),
-                finished_callback=ocr_finished_callback,
-                error_callback=options.get("error_callback"),
-                display_callback=options.get("display_callback"),
-            )
+            self._post_process_ocr(page, options)
             return
 
         if "finished_callback" in options and options["finished_callback"]:
