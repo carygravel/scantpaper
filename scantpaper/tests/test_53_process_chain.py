@@ -1,7 +1,6 @@
-"Test process chain"
+"Test to_png in process chain"
 
 import os
-import subprocess
 import tempfile
 import shutil
 import re
@@ -10,34 +9,10 @@ from gi.repository import GLib
 from document import Document
 
 
-@pytest.mark.skipif(
-    shutil.which("unpaper") is None or shutil.which("tesseract") is None,
-    reason="requires unpaper and tesseract",
-)
-def test_1():
-    "Test process chain"
+@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+def test_1(rotated_qbfox_image):
+    "Test to_png in process chain"
 
-    subprocess.run(
-        [
-            "convert",
-            "+matte",
-            "-depth",
-            "1",
-            "-colorspace",
-            "Gray",
-            "-family",
-            "DejaVu Sans",
-            "-pointsize",
-            "12",
-            "-density",
-            "300",
-            "label:The quick brown fox",
-            "-rotate",
-            "-90",
-            "test.pnm",
-        ],
-        check=True,
-    )
     dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
 
     slist = Document()
@@ -47,12 +22,11 @@ def test_1():
 
     def display_cb(response):
         nonlocal asserts
-        assert True, "Triggered display callback"
         asserts += 1
 
     mlp = GLib.MainLoop()
     slist.import_scan(
-        filename="test.pnm",
+        filename=rotated_qbfox_image,
         page=1,
         to_png=True,
         rotate=-90,
@@ -80,6 +54,5 @@ def test_1():
 
     #########################
 
-    for fname in ["test.pnm"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    if os.path.isfile(rotated_qbfox_image):
+        os.remove(rotated_qbfox_image)

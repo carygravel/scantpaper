@@ -1,6 +1,8 @@
 "Some helper functions to reduce boilerplate"
 
 from types import SimpleNamespace
+import tempfile
+import subprocess
 import pytest
 from dialog.sane import SaneScanDialog
 import gi
@@ -132,3 +134,31 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 </head>
 """
 # pylint: enable=line-too-long
+
+
+@pytest.fixture
+def rotated_qbfox_image():
+    "return a SaneScanDialog instance"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pnm") as temp:
+        subprocess.run(
+            [
+                "convert",
+                "+matte",
+                "-depth",
+                "1",
+                "-colorspace",
+                "Gray",
+                "-family",
+                "DejaVu Sans",
+                "-pointsize",
+                "12",
+                "-density",
+                "300",
+                "label:The quick brown fox",
+                "-rotate",
+                "-90",
+                temp.name,
+            ],
+            check=True,
+        )
+        return temp.name

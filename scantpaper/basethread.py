@@ -172,18 +172,30 @@ class BaseThread(threading.Thread):
                 callback + "_callback" in self.callbacks[uid]
                 and self.callbacks[uid][callback + "_callback"] is not None
             ):
-                self.callbacks[uid][callback + "_callback"](data)
+                try:
+                    self.callbacks[uid][callback + "_callback"](data)
+                except Exception as err:  # pylint: disable=broad-except
+                    if "error_callback" in self.callbacks[uid]:
+                        self.callbacks[uid]["error_callback"](err)
         if (
             stage + "_callback" in self.callbacks[uid]
             and self.callbacks[uid][stage + "_callback"] is not None
         ):
-            self.callbacks[uid][stage + "_callback"](data)
+            try:
+                self.callbacks[uid][stage + "_callback"](data)
+            except Exception as err:  # pylint: disable=broad-except
+                if stage != "error" and "error_callback" in self.callbacks[uid]:
+                    self.callbacks[uid]["error_callback"](err)
         for callback in getattr(self, "after")[stage]:
             if (
                 callback + "_callback" in self.callbacks[uid]
                 and self.callbacks[uid][callback + "_callback"] is not None
             ):
-                self.callbacks[uid][callback + "_callback"](data)
+                try:
+                    self.callbacks[uid][callback + "_callback"](data)
+                except Exception as err:  # pylint: disable=broad-except
+                    if "error_callback" in self.callbacks[uid]:
+                        self.callbacks[uid]["error_callback"](err)
 
     def _monitor_response(self, block=False):
         self._run_callbacks("running", None)
