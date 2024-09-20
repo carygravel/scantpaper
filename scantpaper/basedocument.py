@@ -137,6 +137,10 @@ class BaseDocument(SimpleList):
                 return GLib.SOURCE_CONTINUE
 
             page = self.find_page_by_uuid(uid)
+            if page is None:
+                self.thread.pages.put(None)
+                return GLib.SOURCE_CONTINUE
+
             self.thread.pages.put(self.data[page][2])
         return GLib.SOURCE_CONTINUE
 
