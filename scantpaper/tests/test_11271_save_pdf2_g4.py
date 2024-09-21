@@ -1,13 +1,12 @@
 "Test writing PDF with group 4 compression"
 
-import os
 import subprocess
 import tempfile
 from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
 
     subprocess.run(
@@ -67,6 +66,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.tif", "test.png", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.tif", "test.png", "test.pdf"])

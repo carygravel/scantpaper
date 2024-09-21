@@ -8,7 +8,7 @@ from document import Document
 from gi.repository import GLib
 
 
-def test_import_scan():
+def test_import_scan(clean_up_files):
     "test Document.import_scan()"
 
     slist = Document()
@@ -66,6 +66,4 @@ def test_import_scan():
 
     #########################
 
-    for fname in ["test.ppm", "test2.ppm", "test.pnm"] + glob.glob(f"{dir}/*"):
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.ppm", "test2.ppm", "test.pnm"] + glob.glob(f"{dir}/*"))

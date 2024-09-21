@@ -1,6 +1,5 @@
 "Test importing PDF"
 
-import os
 import subprocess
 import tempfile
 import shutil
@@ -9,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdftk") is None:
@@ -58,6 +57,4 @@ def test_1():
 
     #########################
 
-    for fname in ["test.tif", "input.pdf", "output.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.tif", "input.pdf", "output.pdf"])

@@ -1,6 +1,5 @@
 "Test to_png in process chain"
 
-import os
 import tempfile
 import shutil
 import re
@@ -10,7 +9,7 @@ from document import Document
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_1(rotated_qbfox_image):
+def test_1(rotated_qbfox_image, clean_up_files):
     "Test to_png in process chain"
 
     dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
@@ -54,5 +53,4 @@ def test_1(rotated_qbfox_image):
 
     #########################
 
-    if os.path.isfile(rotated_qbfox_image):
-        os.remove(rotated_qbfox_image)
+    clean_up_files([rotated_qbfox_image])

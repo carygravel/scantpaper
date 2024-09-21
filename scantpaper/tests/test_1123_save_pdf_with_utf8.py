@@ -1,6 +1,5 @@
 "Test writing PDF with utf8 in text layer"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -10,7 +9,7 @@ from document import Document
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test writing PDF with utf8 in text layer"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -64,6 +63,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm", "test.pdf"])

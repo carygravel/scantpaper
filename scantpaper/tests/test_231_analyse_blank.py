@@ -7,7 +7,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test analyse"
 
     subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
@@ -34,6 +34,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["white.pnm"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["white.pnm"])

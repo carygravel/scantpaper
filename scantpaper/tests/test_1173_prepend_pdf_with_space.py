@@ -8,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test prepending a page to a PDF with a space"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -40,6 +40,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm", "test.tif", "te st.pdf", "te st.pdf.bak"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm", "test.tif", "te st.pdf", "te st.pdf.bak"])

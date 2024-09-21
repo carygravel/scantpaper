@@ -10,7 +10,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test saving a djvu"
 
     if shutil.which("cjb2") is None:
@@ -48,6 +48,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm", "test.djvu", "test2.png"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm", "test.djvu", "test2.png"])

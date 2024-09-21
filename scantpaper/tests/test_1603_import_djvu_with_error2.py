@@ -1,6 +1,5 @@
 "Test importing DjVu"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -16,7 +15,7 @@ def mock_import_djvu_txt(self, _text):
     raise ValueError("Error parsing djvu text")
 
 
-def test_1(monkeypatch):
+def test_1(monkeypatch, clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
@@ -59,6 +58,4 @@ def test_1(monkeypatch):
 
     #########################
 
-    for fname in ["test.jpg", "test.djvu"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.jpg", "test.djvu"])

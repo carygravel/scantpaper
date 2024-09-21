@@ -1,6 +1,5 @@
 "Test writing basic PDF"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -10,7 +9,7 @@ from basethread import Request
 from page import Page
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
@@ -39,6 +38,4 @@ def test_1():
     capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
     assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
 
-    for fname in ["test.pnm", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm", "test.pdf"])

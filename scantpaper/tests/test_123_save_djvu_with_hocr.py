@@ -1,6 +1,5 @@
 "Test saving a djvu with text layer from HOCR"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -11,7 +10,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test saving a djvu with text layer from HOCR"
 
     if shutil.which("cjb2") is None:
@@ -69,6 +68,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm", "test.djvu"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm", "test.djvu"])

@@ -1,6 +1,5 @@
 "Test brightness contrast"
 
-import os
 import subprocess
 import tempfile
 from page import VERSION
@@ -8,7 +7,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test brightness contrast"
 
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
@@ -105,6 +104,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.gif"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.gif"])

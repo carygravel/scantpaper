@@ -11,7 +11,7 @@ from document import Document
 from bboxtree import VERSION
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
@@ -133,6 +133,4 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     #########################
 
-    for fname in ["test.jpg", "test.djvu", "text.txt", "ann.txt"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.jpg", "test.djvu", "text.txt", "ann.txt"])

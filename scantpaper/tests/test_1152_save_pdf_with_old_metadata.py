@@ -1,7 +1,6 @@
 "Test writing PDF with old metadata"
 
 import re
-import os
 import subprocess
 import tempfile
 import datetime
@@ -9,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test writing PDF with old metadata"
 
     pnm = "test.pnm"
@@ -55,6 +54,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in [pnm, pdf]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files([pnm, pdf])

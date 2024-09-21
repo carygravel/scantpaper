@@ -9,7 +9,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test saving a djvu with resolution as float"
 
     if shutil.which("cjb2") is None:
@@ -38,6 +38,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.png", "test.djvu"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.png", "test.djvu"])

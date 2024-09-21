@@ -1,6 +1,5 @@
 "Test importing TIFF"
 
-import os
 import subprocess
 import tempfile
 import shutil
@@ -8,7 +7,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing TIFF"
 
     slist = Document()
@@ -50,6 +49,4 @@ def test_1():
 
     #########################
 
-    for fname in [f"{i}.tif" for i in range(1, 11)]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files([f"{i}.tif" for i in range(1, 11)])

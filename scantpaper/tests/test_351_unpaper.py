@@ -1,6 +1,5 @@
 "Test unpaper"
 
-import os
 import subprocess
 import tempfile
 import shutil
@@ -11,7 +10,7 @@ from unpaper import Unpaper
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test unpaper"
 
     unpaper = Unpaper()
@@ -78,6 +77,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm"])

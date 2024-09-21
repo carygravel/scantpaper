@@ -1,6 +1,5 @@
 "Test writing PDF with a 1bpp image"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -9,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test writing PDF with a 1bpp image"
 
     subprocess.run(["convert", "magick:netscape", "test.pbm"], check=True)
@@ -36,6 +35,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pbm", "test.pdf"] + glob.glob("x-000.p*m"):
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pbm", "test.pdf"] + glob.glob("x-000.p*m"))

@@ -1,6 +1,5 @@
 "Test with non-English locale"
 
-import os
 import re
 import subprocess
 import locale
@@ -9,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test with non-English locale"
     locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 
@@ -40,6 +39,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pnm", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm", "test.pdf"])

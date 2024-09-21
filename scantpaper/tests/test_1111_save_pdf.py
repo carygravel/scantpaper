@@ -1,6 +1,5 @@
 "Test writing basic PDF"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -8,7 +7,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
@@ -21,6 +20,7 @@ def test_1():
     slist.set_dir(dirname.name)
 
     asserts = 0
+
     # FIXME: add support for completed, total vars
     #    def import_files_started_cb( thread, process, completed, total ):
     def import_files_started_cb(response):
@@ -88,6 +88,4 @@ def test_1():
 
     #########################
 
-    for fname in ["test.pnm", "test.pdf", "test-1.ppm"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm", "test.pdf", "test-1.ppm"])

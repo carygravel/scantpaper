@@ -1,6 +1,5 @@
 "Test importing PDF"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -10,7 +9,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdfunite") is None:
@@ -119,6 +118,4 @@ startxref
 
     #########################
 
-    for fname in ["page1.tif", "page1.pdf", "page2.pdf", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["page1.tif", "page1.pdf", "page2.pdf", "test.pdf"])

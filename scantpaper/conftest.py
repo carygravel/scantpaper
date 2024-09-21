@@ -3,6 +3,7 @@
 from types import SimpleNamespace
 import tempfile
 import subprocess
+import os
 import pytest
 from dialog.sane import SaneScanDialog
 import gi
@@ -138,7 +139,7 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 
 @pytest.fixture
 def rotated_qbfox_image():
-    "return a SaneScanDialog instance"
+    "return an image with quick brown fox text"
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pnm") as temp:
         subprocess.run(
             [
@@ -162,3 +163,15 @@ def rotated_qbfox_image():
             check=True,
         )
         return temp.name
+
+
+@pytest.fixture
+def clean_up_files():
+    "clean up given files"
+
+    def anonymous(files):
+        for fname in files:
+            if os.path.isfile(fname) or os.path.islink(fname):
+                os.remove(fname)
+
+    return anonymous

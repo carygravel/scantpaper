@@ -1,6 +1,5 @@
 "Test importing DjVu"
 
-import os
 import subprocess
 import tempfile
 import shutil
@@ -9,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
@@ -50,6 +49,4 @@ def test_1():
 
     #########################
 
-    for fname in ["test.jpg", "test.djvu", "test2.djvu"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.jpg", "test.djvu", "test2.djvu"])

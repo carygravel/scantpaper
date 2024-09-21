@@ -1,6 +1,5 @@
 "test saving a PDF with different resolutions in the height and width directions"
 
-import os
 import re
 import subprocess
 import tempfile
@@ -8,7 +7,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "test saving a PDF with different resolutions in the height and width directions"
 
     # Create test image
@@ -38,6 +37,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.png", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.png", "test.pdf"])

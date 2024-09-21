@@ -1,7 +1,6 @@
 "Test writing multipage PDF with utf8"
 
 import re
-import os
 import subprocess
 import tempfile
 import pytest
@@ -10,7 +9,7 @@ from document import Document
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test writing multipage PDF with utf8"
 
     num = 3  # number of pages
@@ -76,6 +75,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pdf"] + [f"{i+1}.pnm" for i in range(num)]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pdf"] + [f"{i+1}.pnm" for i in range(num)])

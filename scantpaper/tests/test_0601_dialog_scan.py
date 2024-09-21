@@ -50,7 +50,7 @@ def test_1():
     assert dialog.framen.is_sensitive(), "with no source, num-page gui not ghosted"
 
 
-def test_2():
+def test_2(clean_up_files):
     "test interaction of scan dialog and document"
 
     window = Gtk.Window()
@@ -113,7 +113,5 @@ def test_2():
             dialog.max_pages == 3
         ), "selecting reverse should automatically limit the max number of pages to scan"
 
-        for fname in ["test.pnm"] + glob.glob(f"{tempdir}/*"):
-            if os.path.isfile(fname):
-                os.remove(fname)
+        clean_up_files(["test.pnm"] + glob.glob(f"{tempdir}/*"))
         os.rmdir(tempdir)

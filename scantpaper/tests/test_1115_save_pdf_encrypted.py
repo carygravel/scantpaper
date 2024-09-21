@@ -1,6 +1,5 @@
 "test saving an encrypted PDF"
 
-import os
 import subprocess
 import shutil
 import tempfile
@@ -9,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "test saving an encrypted PDF"
     if shutil.which("pdftk") is None:
         pytest.skip("pdftk not found")
@@ -39,6 +38,4 @@ def test_1(import_in_mainloop):
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_output(["pdfinfo", "test.pdf"])
 
-    for fname in ["test.jpg", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.jpg", "test.pdf"])

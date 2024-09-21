@@ -7,7 +7,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing PPM"
 
     subprocess.run(["convert", "rose:", "test.ppm"], check=True)
@@ -41,6 +41,4 @@ def test_1():
 
     #########################
 
-    for fname in ["test.ppm", "test.png"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.ppm", "test.png"])

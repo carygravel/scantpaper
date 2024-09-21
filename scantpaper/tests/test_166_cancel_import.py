@@ -1,13 +1,12 @@
 "Test importing TIFF"
 
-import os
 import subprocess
 import tempfile
 from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test importing TIFF"
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
@@ -54,6 +53,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.tif"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.tif"])

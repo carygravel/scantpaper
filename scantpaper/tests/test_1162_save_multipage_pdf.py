@@ -1,13 +1,12 @@
 "Test writing multipage PDF with utf8"
 
-import os
 import subprocess
 import tempfile
 from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test writing multipage PDF"
 
     num = 3  # number of pages
@@ -50,6 +49,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.pdf"] + [f"{i+1}.pnm" for i in range(num)]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pdf"] + [f"{i+1}.pnm" for i in range(num)])

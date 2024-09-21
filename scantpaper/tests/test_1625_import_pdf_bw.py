@@ -1,13 +1,12 @@
 "Test importing PDF"
 
-import os
 import subprocess
 import tempfile
 from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing PDF"
 
     options = [
@@ -56,6 +55,4 @@ def test_1():
 
     #########################
 
-    for fname in ["test.tif", "test.png", "test.pdf"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.tif", "test.png", "test.pdf"])

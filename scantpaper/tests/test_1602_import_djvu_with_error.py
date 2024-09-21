@@ -10,7 +10,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
@@ -57,6 +57,4 @@ def test_1():
 
     #########################
 
-    for fname in ["test.jpg", "test.djvu"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.jpg", "test.djvu"])

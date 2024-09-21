@@ -1,6 +1,5 @@
 "Test process chain"
 
-import os
 import subprocess
 import tempfile
 import shutil
@@ -15,7 +14,7 @@ from unpaper import Unpaper
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_1():
+def test_1(clean_up_files):
     "Test process chain"
 
     unpaper = Unpaper()
@@ -83,6 +82,4 @@ def test_1():
 
     #########################
 
-    for fname in ["test.pnm"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.pnm"])

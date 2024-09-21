@@ -14,7 +14,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
-def test_docthread():
+def test_docthread(clean_up_files):
     "tests for DocThread"
     # Gscan2pdf.Translation.set_domain('gscan2pdf')
     # logger = Log.Log4perl.get_logger
@@ -114,8 +114,7 @@ def test_docthread():
         for _ in range(4):
             thread.monitor(block=True)
 
-        for fname in [cjb2, djvu, pbm, pdf, png, tgz]:
-            os.remove(fname)
+        clean_up_files([cjb2, djvu, pbm, pdf, png, tgz])
 
 
 def test_document():

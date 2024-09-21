@@ -8,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_1(import_in_mainloop):
+def test_1(import_in_mainloop, clean_up_files):
     "Test brightness contrast"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
@@ -70,6 +70,4 @@ def test_1(import_in_mainloop):
 
     #########################
 
-    for fname in ["test.jpg"]:
-        if os.path.isfile(fname):
-            os.remove(fname)
+    clean_up_files(["test.jpg"])
