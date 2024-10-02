@@ -1,0 +1,7658 @@
+#!/usr/bin/python3
+
+# TODO: use pathlib for all paths
+
+# gscan2pdf --- to aid the scan to PDF or DjVu process
+
+# Release procedure:
+#    Use
+#      make tidy
+#      TEST_AUTHOR=1 make test
+#    immediately before release so as not to affect any patches
+#    in between, and then consistently before each commit afterwards.
+# 0. Test scan in lineart, greyscale and colour.
+# 1. New screendump required? Print screen creates screenshot.png in Desktop.
+#    Download new translations (https://translations.launchpad.net/gscan2pdf)
+#    Update translators in credits (https://launchpad.net/gscan2pdf/+topcontributors)
+#    Check $VERSION. If necessary bump with something like
+#     xargs sed -i "s/\(\$VERSION *= \)'2\.13\.1'/\1'2.13.2'/" < MANIFEST
+#    Make appropriate updates to ../debian/changelog
+# 2.  perl Makefile.PL
+#     Upload .pot
+# 3.  make remote-html
+# 4. Build .deb for sf
+#     make signed_tardist
+#     sudo sbuild-update -udr sid-amd64-sbuild
+#     sbuild -sc sid-amd64-sbuild
+#     #debsign .changes
+#    lintian -iI --pedantic .changes
+#    autopkgtest .changes -- schroot sid-amd64-sbuild
+#    check contents with dpkg-deb --contents
+#    test dist sudo dpkg -i gscan2pdf_x.x.x_all.deb
+# 5.  git status
+#     git tag vx.x.x
+#     git push --tags origin master
+#    If the latter doesn't work, try:
+#     git push --tags https://ra28145@git.code.sf.net/p/gscan2pdf/code master
+# 6. create version directory in https://sourceforge.net/projects/gscan2pdf/files/gscan2pdf
+#     make file_releases
+# 7. Build packages for Debian & Ubuntu
+#    name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
+#      * kinetic (until 2023-07)
+#      * jammy (until 2027-04)
+#      * focal (until 2025-04, dh12)
+#      * bionic (until 2023-04, dh11, no tests, no fonts-noto-extra, liblocale-codes-perl >= 3.55, also in Build-Depends-Indep)
+#     debuild -S -sa
+#     dput ftp-master .changes
+#     dput gscan2pdf-ppa .changes
+#    https://launchpad.net/~jeffreyratcliffe/+archive
+# 8. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net, sane-devel@lists.alioth.debian.org
+# 9. To interactively debug in the schroot:
+#     duplicate the config file, typically in /etc/schroot/chroot.d/, changing the sbuild profile to desktop
+#     schroot -c sid-amd64-desktop -u root
+#     apt-get build-dep gscan2pdf
+#     su - <user>
+#     xvfb-run prove -lv <tests>
+
+
+import os
+import pathlib
+import locale
+import re
+import subprocess
+import glob
+import logging
+import gi
+import argparse
+import sys
+from dialog import MultipleMessage
+from dialog.renumber import Renumber
+from dialog.save import Save
+from dialog.scan import Scan
+from document import Document
+from scanner.profile import Profile
+from unpaper import Unpaper
+from canvas import Canvas
+import config
+from i18n import _ 
+import sane             # To get SANE_* enums
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk, GLib # pylint: disable=wrong-import-position
+from imageview import ImageView, Selector, Dragger, SelectorDragger
+from simplelist import SimpleList
+
+# the config file is saved with the numeric locale
+import tempfile
+import logging
+import datetime   
+import gettext
+
+
+HALF                    = 0.5
+UNIT_SLIDER_STEP        = 0.001
+SIGMA_STEP              = 0.1
+MAX_SIGMA               = 5
+_90_DEGREES             = 90
+_180_DEGREES            = 180
+_270_DEGREES            = 270
+DRAGGER_TOOL            = 10
+SELECTOR_TOOL           = 20
+SELECTORDRAGGER_TOOL    = 30
+TABBED_VIEW             = 100
+SPLIT_VIEW_H            = 101
+SPLIT_VIEW_V            = 102
+EDIT_TEXT               = 200
+EDIT_ANNOTATION         = 201
+EMPTY_LIST              = -1
+_100_PERCENT            = 100
+MAX_DPI                 = 2400
+BITS_PER_BYTE           = 8
+RIGHT_MOUSE_BUTTON      = 3
+HELP_WINDOW_WIDTH       = 800
+HELP_WINDOW_HEIGHT      = 600
+HELP_WINDOW_DIVIDER_POS = 200
+_1KB                    = 1024
+_1MB                    = _1KB * _1KB
+_100_000MB              = 100_000
+ZOOM_CONTEXT_FACTOR     = 0.5
+
+GLib.set_application_name('gscan2pdf')
+GLib.set_prgname('net.sourceforge.gscan2pdf');
+prog_name = GLib.get_application_name
+VERSION   = '2.13.2'
+
+# Image border to ensure that a scaled to fit image gets no scrollbars
+border = 1
+
+debug    = False
+EMPTY    = ""
+SPACE    = " "
+DOT      = "."
+PERCENT  = "%"
+ASTERISK = "*"
+d_sane   = gettext.translation('sane-backends')
+args,orig_args=None,None
+logger = logging.getLogger(__name__)
+
+def populate_main_window() :
+    main_vbox = Gtk.VBox()
+    window.add(main_vbox)
+
+    # Set up a SimpleList
+
+    slist = Gscan2pdf.Document()
+
+    # The temp directory has to be available before we start checking for
+    # dependencies in order to be used for the pdftk check.
+
+    create_temp_directory()
+
+    # Create the menu bar
+
+    create_menu_bar(window)
+    main_vbox.pack_start( menubar, False, True,  0 )
+    main_vbox.pack_start( toolbar, False, False, 0 )
+
+    # HPaned for thumbnails and detail view
+
+    hpaned = Gtk.HPaned()
+    hpaned.set_position( SETTING['thumb panel'] )
+    main_vbox.pack_start( hpaned, True, True, 0 )
+
+    # Scrolled window for thumbnails
+
+    scwin_thumbs = Gtk.ScrolledWindow()
+
+    # resize = FALSE to stop the panel expanding on being resized
+    # (Debian #507032)
+
+    hpaned.pack1( scwin_thumbs, False, True )
+    scwin_thumbs.set_policy( 'automatic', 'automatic' )
+    scwin_thumbs.set_shadow_type('etched-in')
+
+    # If dragged below the bottom of the window, scroll it.
+    slist.connect( 'drag-motion' , drag_motion_callback )
+
+    # Set up callback for right mouse clicks.
+
+    slist.connect( 'button-press-event'   , handle_clicks )
+    slist.connect( 'button-release-event' , handle_clicks )
+    scwin_thumbs.add(slist)
+
+    # Notebook, split panes for detail view and OCR output
+
+    vnotebook = Gtk.Notebook()
+    hpanei    = Gtk.HPaned()
+    vpanei    = Gtk.VPaned()
+    hpanei.show()
+    vpanei.show()
+
+    # ImageView for detail view
+
+    view = Gtk.ImageView()
+    if SETTING["image_control_tool"] == SELECTOR_TOOL :
+        view.set_tool( Gtk.ImageView.Tool.Selector(view) )
+ 
+    elif SETTING["image_control_tool"] == DRAGGER_TOOL :
+        view.set_tool( Gtk.ImageView.Tool.Dragger(view) )
+ 
+    else :
+        view.set_tool( Gtk.ImageView.Tool.SelectorDragger(view) )
+
+
+    def anonymous_01( widget, event ):
+        """    #    Gtk3::ImageView::Tool::Selector->new($view);
+"""            
+        handle_clicks( widget, event )
+
+
+    view.connect(
+        'button-press-event' , anonymous_01 
+    )
+    view.connect( 'button-release-event' , handle_clicks )
+    def anonymous_02():
+        if  (canvas is not None) :
+            canvas.handler_block( canvas["zoom_changed_signal"] )
+            canvas.set_scale( view.get_zoom() )
+            canvas.handler_unblock(
+                    canvas["zoom_changed_signal"] )
+
+
+
+    view["zoom_changed_signal"] = view.connect(
+        'zoom-changed' , anonymous_02 
+    )
+    def anonymous_03():
+        if  (canvas is not None) :
+            offset = view.get_offset()
+            canvas.handler_block(
+                    canvas["offset_changed_signal"] )
+            canvas.set_offset( offset["x"], offset["y"] )
+            canvas.handler_unblock(
+                    canvas["offset_changed_signal"] )
+
+
+
+    view["offset_changed_signal"] = view.connect(
+        'offset-changed' , anonymous_03 
+    )
+
+    def anonymous_04( widget, sel ):
+        """    # Callback if the selection changes
+"""            
+        if  (sel is not None) :
+            SETTING["selection"] = sel
+            if  (sb_selector_x is not None) :
+                sb_selector_x.set_value( SETTING["selection"]["x"] )
+                sb_selector_y.set_value( SETTING["selection"]["y"] )
+                sb_selector_w.set_value( SETTING["selection"]["width"] )
+                sb_selector_h.set_value( SETTING["selection"]["height"] )
+
+
+
+
+    view["selection_changed_signal"] = view.connect(
+        'selection-changed' , anonymous_04 
+    )
+
+    # Goo::Canvas for text layer
+
+    canvas = Gscan2pdf.Canvas()
+    def anonymous_05():
+        view.handler_block( view["zoom_changed_signal"] )
+        view.set_zoom( canvas.get_scale() )
+        view.handler_unblock( view["zoom_changed_signal"] )
+
+
+    canvas["zoom_changed_signal"] = canvas.connect(
+        'zoom-changed' , anonymous_05 
+    )
+    def anonymous_06():
+        view.handler_block( view["offset_changed_signal"] )
+        offset = canvas.get_offset()
+        view.set_offset( offset["x"], offset["y"] )
+        view.handler_unblock( view["offset_changed_signal"] )
+
+
+    canvas["offset_changed_signal"] = canvas.connect(
+        'offset-changed' , anonymous_06 
+    )
+
+    # Goo::Canvas for annotation layer
+
+    a_canvas = Gscan2pdf.Canvas()
+    def anonymous_07():
+        view.handler_block( view["zoom_changed_signal"] )
+        view.set_zoom( a_canvas.get_scale() )
+        view.handler_unblock( view["zoom_changed_signal"] )
+
+
+    a_canvas["zoom_changed_signal"] = a_canvas.connect(
+        'zoom-changed' , anonymous_07 
+    )
+    def anonymous_08():
+        view.handler_block( view["offset_changed_signal"] )
+        offset = a_canvas.get_offset()
+        view.set_offset( offset["x"], offset["y"] )
+        view.handler_unblock( view["offset_changed_signal"] )
+
+
+    a_canvas["offset_changed_signal"] = a_canvas.connect(
+        'offset-changed' , anonymous_08 
+    )
+
+    # split panes for detail view/text layer canvas and text layer dialog
+
+    vpaned = Gtk.VPaned()
+    hpaned.pack2( vpaned, True, True )
+    vpaned.show()
+    ocr_text_hbox = Gtk.HBox()
+    edit_vbox = Gtk.HBox()
+    vpaned.pack2( edit_vbox, False, True )
+    edit_vbox.pack_start( ocr_text_hbox, True, True, 0 )
+    ocr_textview = Gtk.TextView()
+    ocr_textview.set_tooltip_text( _('Text layer') )
+    ocr_textbuffer = ocr_textview.get_buffer()
+    ocr_text_fbutton = Gtk.Button()
+    ocr_text_fbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-goto-first', 'button' ) )
+    ocr_text_fbutton.set_tooltip_text( _('Go to least confident text') )
+    def anonymous_09():
+        edit_ocr_text( canvas.get_first_bbox() )
+
+    ocr_text_fbutton.connect(
+        'clicked' , anonymous_09  )
+    ocr_text_pbutton = Gtk.Button()
+    ocr_text_pbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-go-back', 'button' ) )
+    ocr_text_pbutton.set_tooltip_text( _('Go to previous text') )
+    def anonymous_10():
+        edit_ocr_text( canvas.get_previous_bbox() )
+
+    ocr_text_pbutton.connect(
+        'clicked' , anonymous_10  )
+    ocr_index = [
+    [
+    'confidence',             _('Sort by confidence'),             _('Sort OCR text boxes by confidence.')
+        ],         [
+    'position', _('Sort by position'),             _('Sort OCR text boxes by position.')
+        ],
+    ]
+    ocr_text_scmbx = Gscan2pdf.ComboBoxText.new_from_array(ocr_index)
+    ocr_text_scmbx.set_tooltip_text( _('Select sort method for OCR boxes') )
+    def anonymous_11():
+        if ocr_index[ ocr_text_scmbx.get_active() ][0] == 'confidence'             :
+            canvas.sort_by_confidence()
+ 
+        else :
+            canvas.sort_by_position()
+
+
+
+    ocr_text_scmbx.connect(
+        'changed' , anonymous_11 
+    )
+    ocr_text_scmbx.set_active(0)
+    ocr_text_nbutton = Gtk.Button()
+    ocr_text_nbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-go-forward', 'button' ) )
+    ocr_text_nbutton.set_tooltip_text( _('Go to next text') )
+    def anonymous_12():
+        edit_ocr_text( canvas.get_next_bbox() )
+
+    ocr_text_nbutton.connect(
+        'clicked' , anonymous_12  )
+    ocr_text_lbutton = Gtk.Button()
+    ocr_text_lbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-goto-last', 'button' ) )
+    ocr_text_lbutton.set_tooltip_text( _('Go to most confident text') )
+    def anonymous_13():
+        edit_ocr_text( canvas.get_last_bbox() )
+
+    ocr_text_lbutton.connect(
+        'clicked' , anonymous_13  )
+    ocr_text_obutton = Gtk.Button()
+    ocr_text_obutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-ok', 'button' ) )
+    ocr_text_obutton.set_tooltip_text( _('Accept corrections') )
+    def anonymous_14():
+        take_snapshot()
+        text = ocr_textbuffer.text
+        logger.info(
+                "Corrected '" + ocr_bbox.text + f"'->'{text}'" )
+        ocr_bbox.update_box( text, view.get_selection() )
+        current_page.import_hocr( canvas.hocr() )
+        edit_ocr_text(ocr_bbox)
+
+
+    ocr_text_obutton.connect(
+        'clicked' , anonymous_14 
+    )
+    ocr_text_cbutton = Gtk.Button()
+    ocr_text_cbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-cancel', 'button' ) )
+    ocr_text_cbutton.set_tooltip_text( _('Cancel corrections') )
+    def anonymous_15():
+        ocr_text_hbox.hide()
+
+
+    ocr_text_cbutton.connect(
+        'clicked' , anonymous_15 
+    )
+    ocr_text_ubutton = Gtk.Button()
+    ocr_text_ubutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-copy', 'button' ) )
+    ocr_text_ubutton.set_tooltip_text( _('Duplicate text') )
+    def anonymous_16():
+        ocr_bbox = canvas.add_box( ocr_textbuffer.text,
+                view.get_selection() )
+        current_page.import_hocr( canvas.hocr() )
+        edit_ocr_text(ocr_bbox)
+
+
+    ocr_text_ubutton.connect(
+        'clicked' , anonymous_16 
+    )
+    ocr_text_abutton = Gtk.Button()
+    ocr_text_abutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-add', 'button' ) )
+    ocr_text_abutton.set_tooltip_text( _('Add text') )
+    def anonymous_17():
+        take_snapshot()
+        text = ocr_textbuffer.text
+        if   (text is None) or text == EMPTY :
+            text = _('my-new-word')
+
+
+            # If we don't yet have a canvas, create one
+
+        selection = view.get_selection()
+        if  "text_layer"  in current_page :
+            logger.info(f"Added '{text}'")
+            ocr_bbox = canvas.add_box( text, view.get_selection() )
+            current_page.import_hocr( canvas.hocr() )
+            edit_ocr_text(ocr_bbox)
+ 
+        else :
+            logger.info(f"Creating new text layer with '{text}'")
+            current_page["text_layer"] =                   '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]' % (current_page["width"],current_page["height"],selection["x"],selection["y"],selection["x"]+selection["width"],selection["y"]+selection["height"],text)                                                                                           
+            def anonymous_18():
+                ocr_bbox = canvas.get_first_bbox()
+                edit_ocr_text(ocr_bbox)
+
+
+            create_txt_canvas(
+                    current_page,
+                    anonymous_18 
+                )
+
+
+
+    ocr_text_abutton.connect(
+        'clicked' , anonymous_17 
+    )
+    ocr_text_dbutton = Gtk.Button()
+    ocr_text_dbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-delete', 'button' ) )
+    ocr_text_dbutton.set_tooltip_text( _('Delete text') )
+    def anonymous_19():
+        ocr_bbox.delete_box()
+        current_page.import_hocr( canvas.hocr() )
+        edit_ocr_text( canvas.get_current_bbox() )
+
+
+    ocr_text_dbutton.connect(
+        'clicked' , anonymous_19 
+    )
+    ocr_text_hbox.pack_start( ocr_text_fbutton, False, False, 0 )
+    ocr_text_hbox.pack_start( ocr_text_pbutton, False, False, 0 )
+    ocr_text_hbox.pack_start( ocr_text_scmbx,   False, False, 0 )
+    ocr_text_hbox.pack_start( ocr_text_nbutton, False, False, 0 )
+    ocr_text_hbox.pack_start( ocr_text_lbutton, False, False, 0 )
+    ocr_text_hbox.pack_start( ocr_textview,     False, False, 0 )
+    ocr_text_hbox.pack_end( ocr_text_dbutton, False, False, 0 )
+    ocr_text_hbox.pack_end( ocr_text_cbutton, False, False, 0 )
+    ocr_text_hbox.pack_end( ocr_text_obutton, False, False, 0 )
+    ocr_text_hbox.pack_end( ocr_text_ubutton, False, False, 0 )
+    ocr_text_hbox.pack_end( ocr_text_abutton, False, False, 0 )
+
+    # split panes for detail view/text layer canvas and text layer dialog
+
+    ann_hbox = Gtk.HBox()
+    edit_vbox.pack_start( ann_hbox, True, True, 0 )
+    ann_textview = Gtk.TextView()
+    ann_textview.set_tooltip_text( _('Annotations') )
+    ann_textbuffer = ann_textview.get_buffer()
+    ann_obutton = Gtk.Button()
+    ann_obutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-ok', 'button' ) )
+    ann_obutton.set_tooltip_text( _('Accept corrections') )
+    def anonymous_20():
+        text = ann_textbuffer.text
+        logger.info(
+                "Corrected '" + ann_bbox.text + f"'->'{text}'" )
+        ann_bbox.update_box( text, view.get_selection() )
+        current_page.import_annotations( a_canvas.hocr() )
+        edit_annotation(ann_bbox)
+
+
+    ann_obutton.connect(
+        'clicked' , anonymous_20 
+    )
+    ann_cbutton = Gtk.Button()
+    ann_cbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-cancel', 'button' ) )
+    ann_cbutton.set_tooltip_text( _('Cancel corrections') )
+    def anonymous_21():
+        ann_hbox.hide()
+
+
+    ann_cbutton.connect(
+        'clicked' , anonymous_21 
+    )
+    ann_abutton = Gtk.Button()
+    ann_abutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-add', 'button' ) )
+    ann_abutton.set_tooltip_text( _('Add annotation') )
+    def anonymous_22():
+        text = ann_textbuffer.text
+        if   (text is None) or text == EMPTY :
+            text = _('my-new-annotation')
+
+
+            # If we don't yet have a canvas, create one
+
+        selection = view.get_selection()
+        if  "text_layer"  in current_page :
+            logger.info(
+                    "Added '" + ann_textbuffer.text + "'" )
+            ann_bbox = a_canvas.add_box( text, view.get_selection() )
+            current_page.import_annotations( a_canvas.hocr() )
+            edit_annotation(ann_bbox)
+ 
+        else :
+            logger.info(f"Creating new annotation canvas with '{text}'")
+            current_page["annotations"] =                   '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]' % (current_page["width"],current_page["height"],selection["x"],selection["y"],selection["x"]+selection["width"],selection["y"]+selection["height"],text)                                                                                           
+            def anonymous_23():
+                ann_bbox = a_canvas.get_first_bbox()
+                edit_annotation(ann_bbox)
+
+
+            create_ann_canvas(
+                    current_page,
+                    anonymous_23 
+                )
+
+
+
+    ann_abutton.connect(
+        'clicked' , anonymous_22 
+    )
+    ann_dbutton = Gtk.Button()
+    ann_dbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-delete', 'button' ) )
+    ann_dbutton.set_tooltip_text( _('Delete annotation') )
+    def anonymous_24():
+        ann_bbox.delete_box()
+        current_page.import_hocr( a_canvas.hocr() )
+        edit_annotation( canvas.get_bbox_by_index() )
+
+
+    ann_dbutton.connect(
+        'clicked' , anonymous_24 
+    )
+    ann_hbox.pack_start( ann_textview, False, False, 0 )
+    ann_hbox.pack_end( ann_dbutton, False, False, 0 )
+    ann_hbox.pack_end( ann_cbutton, False, False, 0 )
+    ann_hbox.pack_end( ann_obutton, False, False, 0 )
+    ann_hbox.pack_end( ann_abutton, False, False, 0 )
+    pack_viewer_tools()
+
+    # Set up call back for list selection to update detail view
+
+    slist["selection_changed_signal"] = slist.get_selection().connect(
+        'changed' , selection_changed_callback )
+
+    # Without these, the imageviewer and page list steal -/+/ctrl x/c/v keys
+    # from the OCR textview
+
+    window.connect(
+        'key-press-event' , Gtk3.Window.propagate_key_event )
+    window.connect(
+        'key-release-event' , Gtk3.Window.propagate_key_event )
+
+    def anonymous_25( widget, event ):
+        """    # _after ensures that Editables get first bite"""            
+
+            # Let the keypress propagate
+        if event.keyval!=Gdk.KEY_Delete   :
+            return False
+        delete_selection()
+        return True
+
+
+    window.connect_after(
+        'key-press-event' , anonymous_25 
+    )
+
+    # If defined in the config file, set the current directory
+    if 'cwd' not   in SETTING :
+        SETTING['cwd'] = getcwd
+    unpaper = Gscan2pdf.Unpaper( SETTING['unpaper options'] )
+    update_uimanager()
+    window.show_all()
+
+    # Progress bars below window
+    phbox = Gtk.HBox()
+    main_vbox.pack_end( phbox, False, False, 0 )
+    phbox.show()
+    shbox = Gtk.HBox()
+    phbox.add(shbox)
+    spbar = Gtk.ProgressBar()
+    spbar.set_show_text(True)
+    shbox.add(spbar)
+    scbutton = Gtk.Button()
+    scbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-cancel', 'button' ) )
+    shbox.pack_end( scbutton, False, False, 0 )
+    thbox = Gtk.HBox()
+    phbox.add(thbox)
+    tpbar = Gtk.ProgressBar()
+    tpbar.set_show_text(True)
+    thbox.add(tpbar)
+    tcbutton = Gtk.Button()
+    tcbutton.set_image(
+        Gtk.Image.new_from_stock( 'gtk-cancel', 'button' ) )
+    thbox.pack_end( tcbutton, False, False, 0 )
+    ocr_text_hbox.show()
+    ann_hbox.hide()
+
+    # Open scan dialog in background
+    if SETTING['auto-open-scan-dialog'] :
+        scan_dialog( None, True )
+
+    # Deal with --import command line option
+    if  args.import_files is not None     :
+        import_files(args.import_files)
+    if  args.import_all is not None :
+        import_files( args.import_all, True )
+
+
+
+def pack_viewer_tools() :
+    """Pack widgets according to viewer_tools
+"""
+    if SETTING["viewer_tools"] == TABBED_VIEW :
+        vnotebook.append_page( view, Gtk.Label( _('Image') ) )
+        vnotebook.append_page( canvas,
+            Gtk.Label( _('Text layer') ) )
+        vnotebook.append_page( a_canvas,
+            Gtk.Label( _('Annotations') ) )
+        vpaned.pack1( vnotebook, True, True )
+        vnotebook.show_all()
+ 
+    elif SETTING["viewer_tools"] == SPLIT_VIEW_H :
+        hpanei.pack1( view, True, True )
+        hpanei.pack2( canvas, True, True )
+        if a_canvas.get_parent() :
+            vnotebook.remove(a_canvas)
+
+        vpaned.pack1( hpanei, True, True )
+ 
+    else :    # $SPLIT_VIEW_V
+        vpanei.pack1( view, True, True )
+        vpanei.pack2( canvas, True, True )
+        if a_canvas.get_parent() :
+            vnotebook.remove(a_canvas)
+
+        vpaned.pack1( vpanei, True, True )
+
+
+def parse_arguments() :
+    """## Subroutines"""
+    parser = argparse.ArgumentParser(
+                    prog=prog_name,
+                    description='What the program does')
+    parser.add_argument("--device")
+    parser.add_argument("--test", nargs="+", action="append")
+    parser.add_argument("--test-image", type=argparse.FileType())
+    parser.add_argument("--import", nargs="+", dest="import_files", action="append")
+    parser.add_argument("--import-all", nargs="+", action="append")
+    parser.add_argument("--locale")
+    parser.add_argument("--log", type=argparse.FileType('w'))
+    parser.add_argument('--version', action='version', version='%(prog)s '+VERSION)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--debug")
+    group.add_argument("--info")
+    group.add_argument("--warn")
+    group.add_argument("--error")
+    group.add_argument("--fatal")
+    args = parser.parse_args()
+    print(args)
+    # if not GetOptions(*args) :
+    #     sys.exit(1)
+    log_level = logging.WARNING
+    debug     = False
+    if  args.log is not None :
+        args.log = abs_path(args.log)
+        log_level = logging.DEBUG
+        debug     = True
+    if args.info:
+        log_level = logging.INFO
+    if args.error:
+        log_level = logging.ERROR
+    if args.fatal:
+        log_level = logging.CRITICAL
+    # Image.Sane.DEBUG = debug
+
+    logging.basicConfig(filename=args.log, level=log_level)
+#     log_conf = """ log4perl.appender.Screen        = Log::Log4perl::Appender::Screen
+#  log4perl.appender.Screen.layout = Log::Log4perl::Layout::SimpleLayout
+#  log4perl.appender.Screen.utf8   = 1
+# """
+#     if  (log is not None) :
+#         log_conf += """ log4perl.appender.Logfile          = Log::Log4perl::Appender::File
+#  log4perl.appender.Logfile.filename = $log
+#  log4perl.appender.Logfile.mode     = write
+#  log4perl.appender.Logfile.layout   = Log::Log4perl::Layout::SimpleLayout
+#  log4perl.appender.Logfile.utf8     = 1
+#  log4perl.category                  = $log_level, Logfile, Screen
+# """
+ 
+#     else :
+#         log_conf += """ log4perl.category                  = $log_level, Screen
+# """
+
+    # if  (help is not None) :
+    #     subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0           or raise _('Error displaying help'), "\n"
+
+    logger.info(f"Starting {prog_name} {VERSION}")
+    orig_args = [sys.executable]+ sys.argv
+    logger.info( 'Called with ' + SPACE.join(orig_args)   )
+    logger.info(f"Log level {log_level}")
+    if  args.locale is None :
+        gettext.bindtextdomain(f"{prog_name}")
+    else :
+        if   re.search(r"^\/",args.locale,re.MULTILINE|re.DOTALL|re.VERBOSE) :
+            gettext.bindtextdomain(f"{prog_name}", locale)
+        else :
+            gettext.bindtextdomain(f"{prog_name}", getcwd + f"/{locale}" )
+    gettext.textdomain(prog_name)
+
+    logger.info( 'Using ', locale.setlocale(locale.LC_CTYPE), ' locale' )
+    logger.info( 'Startup LC_NUMERIC ', locale.setlocale(locale.LC_NUMERIC) )
+    return args
+
+
+def read_config() :
+
+    # config files: XDG_CONFIG_HOME/gscan2pdfrc or HOME/.config/gscan2pdfrc
+    rcdir      = os.environ['XDG_CONFIG_HOME'] if 'XDG_CONFIG_HOME' in os.environ else f"{os.environ['HOME']}/.config"
+    rcf    = f"{rcdir}/{prog_name}rc"
+    cfg = config.read_config(rcf)
+    config.add_defaults( cfg )
+    config.remove_invalid_paper( cfg["Paper"] )
+    return rcf, cfg
+
+
+def set_up_test_mode() :
+
+    # Set up test mode and make sure file has absolute path and is readable
+    if test.keys()  :
+        SETTING["frontend"] = 'scanimage-perl'
+        for  file in          test.keys()   :
+            device = test[file]
+            del(test[file]) 
+
+          # Find a way of emulating the nonsense \n that some people seem to get
+
+            device = re.sub(r"\\n",r"\n",device,flags=re.MULTILINE|re.DOTALL)
+            logger.debug(f"'{file}','{device}'")
+            if   notre.search(r"^\/",file,re.MULTILINE|re.DOTALL|re.VERBOSE) :
+                file = getcwd + f"/{file}"
+            if not os.access(file,os.R_OK)  :
+                logger.fatal( _('Cannot read file: %s') % (file)   )
+                sys.exit( 1)
+
+            test["file"].append(file)  
+            if "output" not   in test :
+                test["output"] = EMPTY
+            test["output"] +=               f"'{len(test.file)}','{device}','" + basename(file) + "'\n"
+
+      # GetOptions leaves $test as a reference to an empty hash.
+
+    else :
+        test=None
+
+    if  (test_image is not None) :
+        test_image = pathlib.Path(test_image).expanduser()
+        if os.access(test_image,os.R_OK)  :
+            logger.info(f"Using test image {test_image}")
+ 
+        else :
+            logger.fatal( _('Cannot read file: %s') % (test_image)   )
+            sys.exit( 1)
+
+
+    return
+
+
+def application_startup_callback() :
+    window = Gtk.ApplicationWindow(app)
+    window.set_title(f"{prog_name} v{VERSION}")
+    def anonymous_32():
+        if quit() :
+            app.quit()
+ 
+        else :
+            return True
+
+
+
+    window.connect(
+        'delete-event' , anonymous_32 
+    )
+
+    def anonymous_33( w, event ):
+        """    # Note when the window is maximised or not."""            
+        SETTING['window_maximize'] = bool( event.new_window_state & gtk.gdk.WINDOW_STATE_MAXIMIZED )  
+
+
+
+    window.connect(
+        'window-state-event' , anonymous_33 
+    )
+
+    # If defined in the config file, set the window state, size and position
+
+    if SETTING['restore window'] :
+        window.set_default_size( SETTING["window_width"],
+            SETTING["window_height"] )
+        if  "window_x"  in SETTING and  "window_y"  in SETTING :
+            window.os.rename( SETTING["window_x"], SETTING["window_y"] )
+
+        if SETTING["window_maximize"] :
+            window.maximize()
+
+    try :
+        window.set_icon_from_file(f"{iconpath}/gscan2pdf.svg") 
+    except :
+        logger.warn(
+            f"Unable to load icon `{iconpath}/gscan2pdf.svg': {EVAL_ERROR}")
+
+    app.add_window(window)
+    populate_main_window(window)
+    return
+
+
+def application_activate_callback() :
+    window.present()
+    return
+
+
+
+def check_dependencies() :
+    """Check for presence of various packages
+"""
+    image = PythonMagick.Image()
+    regex=re.search(r"ImageMagick\s([\d.]+)",image.Get('version'),re.MULTILINE|re.DOTALL|re.VERBOSE)
+    if   regex :
+        dependencies["perlmagick"] = regex.group(1)
+
+    dependencies["tesseract"] = Gscan2pdf.Tesseract.setup(logger)
+    dependencies["cuneiform"] = Gscan2pdf.Cuneiform.setup(logger)
+    dependencies["unpaper"]   = Gscan2pdf.Unpaper.version()
+    if dependencies["perlmagick"] :
+        logger.info(f"Found Image::Magick {dependencies}{perlmagick}")
+
+    if dependencies["unpaper"] :
+        logger.info(f"Found unpaper {dependencies}{unpaper}")
+
+    dependencies = [
+    [
+    'imagemagick', 'stdout',             r"Version:\sImageMagick\s([\d.-]+)",             [
+    'convert', '--version' ]
+        ],         [
+    'graphicsmagick',                 'stdout',             r"GraphicsMagick\s([\d.-]+)", [
+    'gm', '-version' ]
+        ],         [
+    'scanadf', 'stdout',             r"scanadf\s[(]sane-frontends[)]\s([\d.]+)",             [
+    'scanadf', '--version' ]
+        ],         [
+    'xdg',                      'stdout',             r"xdg-email\s([^\n]+)", [
+    'xdg-email', '--version' ]
+        ],         [
+    'gocr', 'stderr', r"gocr\s([^\n]+)", [
+    'gocr', '-h' ] ],         [
+    'djvu', 'stderr', r"DjVuLibre-([\d.]+)", [
+    'cjb2', '--version' ]
+        ],         [
+    'libtiff', 'both',    # changed from stderr->stdout on 2020-12-12             r"LIBTIFF,\sVersion\s([\d.]+)", [
+    'tiffcp', '-h' ]
+        ],          # pdftops and pdfunite are both in poppler-utils, and so the version is
+        # the version is the same.
+        # Both are needed, though to update %dependencies
+    [
+    'pdftops',                         'stderr',             r"pdftops\sversion\s([\d.]+)", [
+    'pdftops', '-v' ]
+        ],         [
+    'pdfunite',                         'stderr',             r"pdfunite\sversion\s([\d.]+)", [
+    'pdfunite', '-v' ]
+        ],         [
+    'pdf2ps', 'stdout', r"([\d.]+)", [
+    'gs',    '--version' ] ],         [
+    'pdftk',  'stdout', r"([\d.]+)", [
+    'pdftk', '--version' ] ],         [
+    'xz',     'stdout', r"([\d.]+)", [
+    'xz',    '--version' ] ],
+    
+    for _ in     dependencies :
+        ( name, stream, regex, cmd ) = _
+        dependencies[name] =           Gscan2pdf.Document.program_version( stream, regex, cmd )
+        if dependencies[name] and dependencies[name] == '-1' :
+            del(dependencies[name]) 
+
+        if not dependencies["imagemagick"] and dependencies["graphicsmagick"]         :
+            msg = _(
+'GraphicsMagick is being used in ImageMagick compatibility mode.'
+              )               + SPACE               + _('Whilst this might work, it is not currently supported.')               + SPACE               + _('Please switch to ImageMagick in case of problems.')
+            show_message_dialog(
+                parent           = window,
+                type             = 'warning',
+                buttons          = 'ok',
+                text             = msg,
+                store_response = True
+            )
+            dependencies["imagemagick"] = dependencies["graphicsmagick"]
+
+        if dependencies[name] :
+            logger.info(f"Found {name} {dependencies}{{name}}")
+            if name == 'pdftk' :
+
+                # Don't create PDF  directly with imagemagick, as
+                # some distros configure imagemagick not to write PDFs
+
+                tempimg =                   tempfile.TemporaryFile( dir = session, suffix = '.jpg' )
+                Gscan2pdf.Document.exec_command(
+                [
+                'convert', 'rose:', tempimg ] )
+                temppdf =                   tempfile.TemporaryFile( dir = session, suffix = '.pdf' )
+                # pdfobj = PDF.Builder( -file = temppdf )
+                # page   = pdfobj.page()
+                # size   = Gscan2pdf.Document.POINTS_PER_INCH
+                # page.mediabox( size, size )
+                # gfx    = page.gfx()
+                # imgobj = pdfobj.image_jpeg(tempimg)
+                # gfx.image( imgobj, 0, 0, size, size )
+                # pdfobj.save()
+                # pdfobj.end()
+                _,  out = Gscan2pdf.Document.exec_command(
+                [
+                name, temppdf, 'dump_data' ] )
+                msg=None
+                if                      re.search(r"Error:[ ]could[ ]not[ ]load[ ]a[ ]required[ ]library",out,re.MULTILINE|re.DOTALL|re.VERBOSE)                 :
+                    msg = _(
+"pdftk is installed, but seems to be missing required dependencies:\n%s"
+                    ) % (out)  
+ 
+                elif   notre.search(r"NumberOfPages",out,re.MULTILINE|re.DOTALL|re.VERBOSE) :
+                    msg = _(
+'pdftk is installed, but cannot access the directory used for temporary files.'
+                      )                       + _(
+'One reason for this might be that pdftk was installed via snap.'
+                      )                       + _(
+'In this case, removing pdftk, and reinstalling without using snap would allow gscan2pdf to use pdftk.'
+                      )                       + _(
+'Another workaround would be to select a temporary directory under your home directory in Edit/Preferences.'
+                      )
+
+                if msg :
+                    del(dependencies[name]) 
+                    show_message_dialog(
+                        parent           = window,
+                        type             = 'warning',
+                        buttons          = 'ok',
+                        text             = msg,
+                        store_response = True
+                    )
+
+
+
+
+
+    # OCR engine options
+
+    if dependencies["gocr"] :
+        ocr_engine.append([
+        'gocr', _('GOCR'), _('Process image with GOCR.') ])            
+
+    if dependencies["tesseract"] :
+        ocr_engine.append([
+        'tesseract', _('Tesseract'), _('Process image with Tesseract.') ])            
+
+    if dependencies["cuneiform"] :
+        logger.info(f"Found cuneiform v{dependencies}{cuneiform}")
+        ocr_engine.append([
+        'cuneiform', _('Cuneiform'), _('Process image with Cuneiform.') ])            
+
+
+    # Build a look-up table of all true-type fonts installed
+
+    ( _, stdout ) =       Gscan2pdf.Document.exec_command(
+    [
+    'fc-list : family style file'] )
+    fonts = Gscan2pdf.Document.parse_truetype_fonts(stdout)
+    return
+
+
+
+def create_menu_bar() :
+    """Create the menu bar, initialize its menus, and return the menu bar.
+"""
+    # Create a Gtk3::UIManager instance
+    uimanager = Gtk.UIManager()
+
+
+    def anonymous_34():
+        if quit() :
+            app.quit()
+
+    def anonymous_35():
+        select_odd_even(0)
+
+    def anonymous_36():
+        select_odd_even(1)
+
+    def anonymous_37():
+        view.set_zoom(1.0)
+
+    def anonymous_38():
+        view.zoom_to_fit()
+
+    def anonymous_39():
+        view.zoom_in()
+
+    def anonymous_40():
+        view.zoom_out()
+
+    def anonymous_41():
+        rotate( _90_DEGREES,
+                    [
+        indices2pages( slist.get_selected_indices() ) ] )
+
+    def anonymous_42():
+        rotate( _180_DEGREES,
+                    [
+        indices2pages( slist.get_selected_indices() ) ] )
+
+    def anonymous_43():
+        rotate( _270_DEGREES,
+                    [
+        indices2pages( slist.get_selected_indices() ) ] )
+
+
+
+
+
+
+    # extract the accelgroup and add it to the window
+    accelgroup = uimanager.get_accel_group()
+    window.add_accel_group(accelgroup)
+    action_items = [
+            # Fields for each action item:
+        # [name, stock_id, value, label, accelerator, tooltip, callback]
+         # File menu
+        [
+    'File', None, _('_File') ],         [
+    'New',                  'gtk-new',             _('_New'),             '<control>n',             _('Clears all pages'), new
+        ],         [
+    'Open',                   'gtk-open',             _('_Open'),              '<control>o',             _('Open image file(s)'), open_dialog
+        ],         [
+    'Open crashed session',      None,             _('Open c_rashed session'), None,             _('Open crashed session'),  open_session_action
+        ],         [
+    'Scan',              'scanner',             _('S_can'),         '<control>g',             _('Scan document'), scan_dialog
+        ],         [
+    'Save',     'gtk-save', _('Save'), '<control>s',             _('Save'), save_dialog
+        ],         [
+    'Email as PDF',                     'mail-attach',             _('_Email as PDF'),                '<control>e',             _('Attach as PDF to a new email'), email
+        ],         [
+    'Print',     'gtk-print', _('_Print'), '<control>p',             _('Print'), print_dialog
+        ],         [
+    'Compress',                      None,             _('_Compress temporary files'), None,             _('Compress temporary files'),  compress_temp
+        ],         [
+    'Quit',             'gtk-quit',             _('_Quit'),             '<control>q',             _('Quit'),             anonymous_34 
+        ],          # Edit menu
+        [
+    'Edit', None, _('_Edit') ],         [
+    'Undo', 'gtk-undo', _('_Undo'), '<control>z', _('Undo'), undo ],         [
+    'Redo',      'gtk-redo',             _('_Redo'), '<shift><control>z',             _('Redo'),  unundo
+        ],         [
+    'Cut',               'gtk-cut',             _('Cu_t'),          '<control>x',             _('Cut selection'), cut_selection
+        ],         [
+    'Copy',               'gtk-copy',             _('_Copy'),          '<control>c',             _('Copy selection'), copy_selection
+        ],         [
+    'Paste',               'gtk-paste',             _('_Paste'),          '<control>v',             _('Paste selection'), paste_selection
+        ],         [
+    'Delete',                    'gtk-delete',             _('_Delete'),               None,             _('Delete selected pages'), delete_selection
+        ],         [
+    'Renumber',           'gtk-sort-ascending',             _('_Renumber'),      '<control>r',             _('Renumber pages'), renumber_dialog
+        ],         [
+    'Select', None, _('_Select') ],         [
+    'Select All',           'gtk-select-all',             _('_All'),             '<control>a',             _('Select all pages'), select_all
+        ],         [
+    'Select Odd', None, _('_Odd'), '<control>1',             _('Select all odd-numbered pages'),             anonymous_35 
+        ],         [
+    'Select Even', None, _('_Even'), '<control>2',             _('Select all evenly-numbered pages'),             anonymous_36 
+        ],         [
+    'Invert selection',     None,             _('_Invert'),          '<control>i',             _('Invert selection'), select_invert
+        ],         [
+    'Select Blank',             'gtk-select-blank',             _('_Blank'),             '<control>b',             _('Select pages with low standard deviation'),             analyse_select_blank
+        ],         [
+    'Select Dark',           'gtk-select-blank',             _('_Dark'),             '<control>d',             _('Select dark pages'), analyse_select_dark
+        ],         [
+    'Select Modified',             'gtk-select-modified',             _('_Modified'),             '<control>m',             _('Select modified pages since last OCR'),             select_modified_since_ocr
+        ],         [
+    'Select No OCR',                       None,             _('_No OCR'),                         None,             _('Select pages with no OCR output'), select_no_ocr
+        ],         [
+    'Clear OCR',                                'gtk-clear',             _('_Clear OCR'),                           None,             _('Clear OCR output from selected pages'), clear_ocr
+        ],         [
+    'Properties',                'gtk-properties',             _('Propert_ies'),           None,             _('Edit image properties'), properties
+        ],         [
+    'Preferences',          'gtk-preferences',             _('Prefere_nces'),     None,             _('Edit preferences'), preferences
+        ],          # View menu
+        [
+    'View', None, _('_View') ],         [
+    'Zoom 100',         'gtk-zoom-100',             _('Zoom _100%'),   None,             _('Zoom to 100%'), anonymous_37 
+        ],         [
+    'Zoom to fit',      'gtk-zoom-fit',             _('Zoom to _fit'), None,             _('Zoom to fit'),  anonymous_38 
+        ],         [
+    'Zoom in',      'gtk-zoom-in',             _('Zoom _in'), 'plus',             _('Zoom in'),  anonymous_39 
+        ],         [
+    'Zoom out',      'gtk-zoom-out',             _('Zoom _out'), 'minus',             _('Zoom out'),  anonymous_40 
+        ],         [
+    'Rotate 90',             'rotate90',             _('Rotate 90° clockwise'),             '<control><shift>R',             _('Rotate 90° clockwise'),             anonymous_41 
+        ],         [
+    'Rotate 180',             'rotate180',             _('Rotate 180°'),             '<control><shift>F',             _('Rotate 180°'),             anonymous_42 
+        ],         [
+    'Rotate 270',             'rotate270',             _('Rotate 90° anticlockwise'),             '<control><shift>C',             _('Rotate 90° anticlockwise'),             anonymous_43 
+        ],          # Tools menu
+        [
+    'Tools', None, _('_Tools') ],         [
+    'Threshold', None, _('_Threshold'), None,             _('Change each pixel above this threshold to black'),             threshold
+        ],         [
+    'BrightnessContrast',               None,             _('_Brightness / Contrast'),       None,             _('Change brightness & contrast'), brightness_contrast
+        ],         [
+    'Negate', None, _('_Negate'), None,             _('Converts black to white and vice versa'), negate
+        ],         [
+    'Unsharp',                   None,             _('_Unsharp Mask'),         None,             _('Apply an unsharp mask'), unsharp
+        ],         [
+    'CropDialog',     'GTK_STOCK_LEAVE_FULLSCREEN',             _('_Crop'),      None,             _('Crop pages'), crop_dialog
+        ],         [
+    'CropSelection',      'crop',             _('_Crop'),          None,             _('Crop selection'), crop_selection
+        ],         [
+    'unpaper', None, _('_Clean up'), None,             _('Clean up scanned images with unpaper'), unpaper
+        ],         [
+    'split', None, _('_Split'), None,             _('Split pages horizontally or vertically'),             split_dialog
+        ],         [
+    'OCR', None, _('_OCR'), None,             _('Optical Character Recognition'),             ocr_dialog
+        ],         [
+    'User-defined', None, _('U_ser-defined'), None,             _('Process images with user-defined tool'),             user_defined_dialog
+        ],          # Help menu
+        [
+    'Help menu', None, _('_Help') ],         [
+    'Help',     'gtk-help', _('_Help'), '<control>h',             _('Help'), view_html
+        ],         [
+    'About', 'gtk-about', _('_About'), None, _('_About'), about ],
+    ]
+    image_tools = [
+    [
+    'DraggerTool',          'hand-tool',             _('_Pan'),             None,             _('Use the pan tool'), DRAGGER_TOOL
+        ],         [
+    'SelectorTool',                           'selection',             _('_Select'),                            None,             _('Use the rectangular selection tool'), SELECTOR_TOOL
+        ],         [
+    'SelectorDraggerTool',                      'gtk-media-play',             _('_Select & pan'),                        None,             _('Use the combined select and pan tool'), SELECTORDRAGGER_TOOL
+        ],
+    ]
+    viewer_tools = [
+    [
+    'Tabbed', None, _('_Tabbed'), None,             _('Arrange image and OCR viewers in tabs'), TABBED_VIEW
+        ],         [
+    'SplitH', None, _('_Split horizontally'),             None,             _('Arrange image and OCR viewers in horizontally split screen'),             SPLIT_VIEW_H
+        ],         [
+    'SplitV', None, _('_Split vertically'), None,             _('Arrange image and OCR viewers in vertically split screen'),             SPLIT_VIEW_V
+        ],
+    ]
+    ocr_tools = [
+    [
+    'Edit text layer',                       'gtk-edit',             _('Edit text layer'),                   None,             _('Show editing tools for text layer'), EDIT_TEXT
+        ],         [
+    'Edit annotations',             'error-correct-symbolic',             _('Edit annotations'),             None,             _('Show editing tools for annotations'),             EDIT_ANNOTATION
+        ],
+    ]
+    ui = """<ui>
+ <menubar name='MenuBar'>
+  <menu action='File'>
+   <menuitem action='New'/>
+   <menuitem action='Open'/>
+   <menuitem action='Open crashed session'/>
+   <menuitem action='Scan'/>
+   <menuitem action='Save'/>
+   <menuitem action='Email as PDF'/>
+   <menuitem action='Print'/>
+   <separator/>
+   <menuitem action='Compress'/>
+   <separator/>
+   <menuitem action='Quit'/>
+  </menu>
+  <menu action='Edit'>
+   <menuitem action='Undo'/>
+   <menuitem action='Redo'/>
+   <separator/>
+   <menuitem action='Cut'/>
+   <menuitem action='Copy'/>
+   <menuitem action='Paste'/>
+   <menuitem action='Delete'/>
+   <separator/>
+   <menuitem action='Renumber'/>
+   <menu action='Select'>
+    <menuitem action='Select All'/>
+    <menuitem action='Select Odd'/>
+    <menuitem action='Select Even'/>
+    <menuitem action='Invert selection'/>
+    <menuitem action='Select Blank'/>
+    <menuitem action='Select Dark'/>
+    <menuitem action='Select Modified'/>
+    <menuitem action='Select No OCR'/>
+   </menu>
+   <menuitem action='Clear OCR'/>
+   <separator/>
+   <menuitem action='Properties'/>
+   <separator/>
+   <menuitem action='Preferences'/>
+  </menu>
+  <menu action='View'>
+   <menuitem action='DraggerTool'/>
+   <menuitem action='SelectorTool'/>
+   <menuitem action='SelectorDraggerTool'/>
+   <separator/>
+   <menuitem action='Tabbed'/>
+   <menuitem action='SplitH'/>
+   <menuitem action='SplitV'/>
+   <separator/>
+   <menuitem action='Zoom 100'/>
+   <menuitem action='Zoom to fit'/>
+   <menuitem action='Zoom in'/>
+   <menuitem action='Zoom out'/>
+   <separator/>
+   <menuitem action='Rotate 90'/>
+   <menuitem action='Rotate 180'/>
+   <menuitem action='Rotate 270'/>
+   <separator/>
+   <menuitem action='Edit text layer'/>
+   <menuitem action='Edit annotations'/>
+  </menu>
+  <menu action='Tools'>
+   <menuitem action='Threshold'/>
+   <menuitem action='BrightnessContrast'/>
+   <menuitem action='Negate'/>
+   <menuitem action='Unsharp'/>
+   <menuitem action='CropDialog'/>
+   <separator/>
+   <menuitem action='split'/>
+   <menuitem action='unpaper'/>
+   <menuitem action='OCR'/>
+   <separator/>
+   <menuitem action='User-defined'/>
+  </menu>
+  <menu action='Help menu'>
+   <menuitem action='Help'/>
+   <menuitem action='About'/>
+  </menu>
+ </menubar>
+ <toolbar name='ToolBar'>
+  <toolitem action='New'/>
+  <toolitem action='Open'/>
+  <toolitem action='Scan'/>
+  <toolitem action='Save'/>
+  <toolitem action='Email as PDF'/>
+  <toolitem action='Print'/>
+  <separator/>
+  <toolitem action='Undo'/>
+  <toolitem action='Redo'/>
+  <separator/>
+  <toolitem action='Cut'/>
+  <toolitem action='Copy'/>
+  <toolitem action='Paste'/>
+  <toolitem action='Delete'/>
+  <separator/>
+  <toolitem action='Renumber'/>
+  <toolitem action='Select All'/>
+  <separator/>
+  <toolitem action='DraggerTool'/>
+  <toolitem action='SelectorTool'/>
+  <toolitem action='SelectorDraggerTool'/>
+  <separator/>
+  <toolitem action='Zoom 100'/>
+  <toolitem action='Zoom to fit'/>
+  <toolitem action='Zoom in'/>
+  <toolitem action='Zoom out'/>
+  <separator/>
+  <toolitem action='Rotate 90'/>
+  <toolitem action='Rotate 180'/>
+  <toolitem action='Rotate 270'/>
+  <separator/>
+  <toolitem action='Edit text layer'/>
+  <toolitem action='Edit annotations'/>
+  <separator/>
+  <toolitem action='CropSelection'/>
+  <separator/>
+  <toolitem action='Help'/>
+  <toolitem action='Quit'/>
+ </toolbar>
+ <popup name='Detail_Popup'>
+  <menuitem action='DraggerTool'/>
+  <menuitem action='SelectorTool'/>
+  <menuitem action='SelectorDraggerTool'/>
+  <separator/>
+  <menuitem action='Zoom 100'/>
+  <menuitem action='Zoom to fit'/>
+  <menuitem action='Zoom in'/>
+  <menuitem action='Zoom out'/>
+  <separator/>
+  <menuitem action='Rotate 90'/>
+  <menuitem action='Rotate 180'/>
+  <menuitem action='Rotate 270'/>
+  <separator/>
+  <menuitem action='Edit text layer'/>
+  <menuitem action='Edit annotations'/>
+  <separator/>
+  <menuitem action='CropSelection'/>
+  <separator/>
+  <menuitem action='Cut'/>
+  <menuitem action='Copy'/>
+  <menuitem action='Paste'/>
+  <menuitem action='Delete'/>
+  <separator/>
+  <menuitem action='Properties'/>
+ </popup>
+ <popup name='Thumb_Popup'>
+  <menuitem action='Save'/>
+  <menuitem action='Email as PDF'/>
+  <menuitem action='Print'/>
+  <separator/>
+  <menuitem action='Renumber'/>
+  <menuitem action='Select All'/>
+  <menuitem action='Select Odd'/>
+  <menuitem action='Select Even'/>
+  <menuitem action='Invert selection'/>
+  <separator/>
+  <menuitem action='Rotate 90'/>
+  <menuitem action='Rotate 180'/>
+  <menuitem action='Rotate 270'/>
+  <separator/>
+  <menuitem action='CropSelection'/>
+  <separator/>
+  <menuitem action='Cut'/>
+  <menuitem action='Copy'/>
+  <menuitem action='Paste'/>
+  <menuitem action='Delete'/>
+  <separator/>
+  <menuitem action='Clear OCR'/>
+  <separator/>
+  <menuitem action='Properties'/>
+ </popup>
+</ui>
+"""
+
+    # Create the basic Gtk3::ActionGroup instance
+    # and fill it with Gtk3::Action instances
+
+    actions_basic = Gtk.ActionGroup('actions_basic')
+    actions_basic.add_actions( action_items, None )
+    actions_basic.add_radio_actions( image_tools,
+        SETTING["image_control_tool"],
+        change_image_tool_cb )
+    actions_basic.add_radio_actions( viewer_tools, SETTING["viewer_tools"],
+        change_view_cb )
+    actions_basic.add_radio_actions( ocr_tools, EDIT_TEXT,
+        edit_tools_callback )
+
+    # Add the actiongroup to the uimanager
+
+    uimanager.insert_action_group( actions_basic, 0 )
+
+    # add the basic XML description of the GUI
+
+    uimanager.add_ui_from_string(ui)
+
+    # extract the menubar
+
+    menubar = uimanager.get_widget('/MenuBar')
+
+    # Check for presence of various packages
+
+    check_dependencies()
+
+    # Ghost save image item if imagemagick not available
+
+    msg = EMPTY
+    if not dependencies["imagemagick"] :
+        msg += _("Save image and Save as PDF both require imagemagick\n")
+
+
+    # Ghost save image item if libtiff not available
+
+    if not dependencies["libtiff"] :
+        msg += _("Save image requires libtiff\n")
+
+
+    # Ghost djvu item if cjb2 not available
+
+    if not dependencies["djvu"] :
+        msg += _("Save as DjVu requires djvulibre-bin\n")
+
+
+    # Ghost email item if xdg-email not available
+
+    if not dependencies["xdg"] :
+        msg += _("Email as PDF requires xdg-email\n")
+
+
+    # Undo/redo start off ghosted anyway-
+
+    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Redo').set_sensitive(False)
+
+    # save * start off ghosted anyway-
+
+    uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/File/Email as PDF').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Email as PDF').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
+    uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
+    uimanager.get_widget('/Thumb_Popup/Email as PDF').set_sensitive(False)
+    uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Tools/Unsharp').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Tools/CropDialog').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
+
+    # Ghost rotations and unpaper if perlmagick not available
+
+    if not dependencies["perlmagick"] :
+        msg +=           _(
+"The rotating, crop, unsharp, split and unpaper tools require perlmagick\n"
+          )
+
+    if not dependencies["unpaper"] :
+        msg += _("unpaper missing\n")
+
+
+    # Ghost ocr item if ocr not available
+    # Brackets required, as otherwise = would have higher precedence. See
+    # http://perldoc.perl.org/perlop.html#Logical-or-and-Exclusive-Or
+
+    dependencies["ocr"] = (
+             dependencies["gocr"]
+          or dependencies["tesseract"]
+          or dependencies["cuneiform"]
+    )
+    if not dependencies["ocr"] :
+        msg += _("OCR requires gocr, tesseract, or cuneiform\n")
+
+    if dependencies["tesseract"] :
+        lc_messages = locale.setlocale(locale.LC_MESSAGES)
+        lang_msg    = Gscan2pdf.Tesseract.locale_installed(lc_messages)
+        if lang_msg != '1' :
+            logger.warn(lang_msg)
+            msg += lang_msg
+ 
+        else :
+            logger.info(
+f"Using GUI language {lc_messages}, for which a tesseract language package is present"
+            )
+
+
+    if not dependencies["pdftk"] :
+        msg += _("PDF encryption requires pdftk\n")
+
+
+    # Put up warning if needed
+
+    if msg != EMPTY :
+        msg = _('Warning: missing packages') + f"\n{msg}"
+        show_message_dialog(
+            parent           = window,
+            type             = 'warning',
+            buttons          = 'ok',
+            text             = msg,
+            store_response = True
+        )
+
+
+    # extract the toolbar
+
+    toolbar = uimanager.get_widget('/ToolBar')
+
+    # turn off labels
+
+    settings = toolbar.get_settings()
+    settings.gtk_toolbar_style='icons'    # only icons
+    return
+
+
+
+def update_uimanager() :
+    """ghost or unghost as necessary as # pages > 0 or not.
+"""
+    widgets = [
+        '/MenuBar/View/DraggerTool',
+        '/MenuBar/View/SelectorTool',
+        '/MenuBar/View/SelectorDraggerTool',
+        '/MenuBar/View/Tabbed',
+        '/MenuBar/View/SplitH',
+        '/MenuBar/View/SplitV',
+        '/MenuBar/View/Zoom 100',
+        '/MenuBar/View/Zoom to fit',
+        '/MenuBar/View/Zoom in',
+        '/MenuBar/View/Zoom out',
+        '/MenuBar/View/Rotate 90',
+        '/MenuBar/View/Rotate 180',
+        '/MenuBar/View/Rotate 270',
+        '/MenuBar/View/Edit text layer',
+        '/MenuBar/View/Edit annotations',
+        '/MenuBar/Tools/Threshold',
+        '/MenuBar/Tools/BrightnessContrast',
+        '/MenuBar/Tools/Negate',
+        '/MenuBar/Tools/Unsharp',
+        '/MenuBar/Tools/CropDialog',
+        '/MenuBar/Tools/unpaper',
+        '/MenuBar/Tools/split',
+        '/MenuBar/Tools/OCR',
+        '/MenuBar/Tools/User-defined',
+
+        '/ToolBar/DraggerTool',
+        '/ToolBar/SelectorTool',
+        '/ToolBar/SelectorDraggerTool',
+        '/ToolBar/Zoom 100',
+        '/ToolBar/Zoom to fit',
+        '/ToolBar/Zoom in',
+        '/ToolBar/Zoom out',
+        '/ToolBar/Rotate 90',
+        '/ToolBar/Rotate 180',
+        '/ToolBar/Rotate 270',
+        '/ToolBar/Edit text layer',
+        '/ToolBar/Edit annotations',
+        '/ToolBar/CropSelection',
+
+        '/Detail_Popup/DraggerTool',
+        '/Detail_Popup/SelectorTool',
+        '/Detail_Popup/SelectorDraggerTool',
+        '/Detail_Popup/Zoom 100',
+        '/Detail_Popup/Zoom to fit',
+        '/Detail_Popup/Zoom in',
+        '/Detail_Popup/Zoom out',
+        '/Detail_Popup/Rotate 90',
+        '/Detail_Popup/Rotate 180',
+        '/Detail_Popup/Rotate 270',
+        '/Detail_Popup/Edit text layer',
+        '/Detail_Popup/Edit annotations',
+        '/Detail_Popup/CropSelection',
+
+        '/Thumb_Popup/Rotate 90',
+        '/Thumb_Popup/Rotate 180',
+        '/Thumb_Popup/Rotate 270',
+        '/Thumb_Popup/CropSelection',
+    ]
+    if slist.get_selected_indices() :
+        for _ in         widgets :
+            uimanager.get_widget(_).set_sensitive(True)
+
+ 
+    else :
+        for _ in         widgets :
+            uimanager.get_widget(_).set_sensitive(False)
+
+
+
+    # Ghost rotations and unpaper if perlmagick not available
+
+    if not dependencies["perlmagick"] :
+        uimanager.get_widget('/MenuBar/View/Rotate 90').set_sensitive(False)
+        uimanager.get_widget('/MenuBar/View/Rotate 180')           .set_sensitive(False)
+        uimanager.get_widget('/MenuBar/View/Rotate 270')           .set_sensitive(False)
+        uimanager.get_widget('/ToolBar/Rotate 90').set_sensitive(False)
+        uimanager.get_widget('/ToolBar/Rotate 180').set_sensitive(False)
+        uimanager.get_widget('/ToolBar/Rotate 270').set_sensitive(False)
+        uimanager.get_widget('/Detail_Popup/Rotate 90').set_sensitive(False)
+        uimanager.get_widget('/Detail_Popup/Rotate 180')           .set_sensitive(False)
+        uimanager.get_widget('/Detail_Popup/Rotate 270')           .set_sensitive(False)
+        uimanager.get_widget('/Thumb_Popup/Rotate 90').set_sensitive(False)
+        uimanager.get_widget('/Thumb_Popup/Rotate 180').set_sensitive(False)
+        uimanager.get_widget('/Thumb_Popup/Rotate 270').set_sensitive(False)
+        uimanager.get_widget('/MenuBar/Tools/unpaper').set_sensitive(False)
+        uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
+
+
+    # Ghost unpaper item if unpaper not available
+
+    if not dependencies["unpaper"] :
+        uimanager.get_widget('/MenuBar/Tools/unpaper').set_sensitive(False)
+
+
+    # Ghost ocr item if ocr  not available
+
+    if not dependencies["ocr"] :
+        uimanager.get_widget('/MenuBar/Tools/OCR').set_sensitive(False)
+
+    if len( slist["data"] )-1 > EMPTY_LIST :
+        if dependencies["xdg"] :
+            uimanager.get_widget('/MenuBar/File/Email as PDF')               .set_sensitive(True)
+            uimanager.get_widget('/ToolBar/Email as PDF')               .set_sensitive(True)
+            uimanager.get_widget('/Thumb_Popup/Email as PDF')               .set_sensitive(True)
+
+        if dependencies["imagemagick"] and dependencies["libtiff"] :
+            uimanager.get_widget('/MenuBar/File/Save').set_sensitive(True)
+            uimanager.get_widget('/ToolBar/Save').set_sensitive(True)
+            uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(True)
+
+        uimanager.get_widget('/MenuBar/File/Print').set_sensitive(True)
+        uimanager.get_widget('/ToolBar/Print').set_sensitive(True)
+        uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(True)
+        if  (save_button is not None) :
+            save_button.set_sensitive(True)
+ 
+    else :
+        if dependencies["xdg"] :
+            uimanager.get_widget('/MenuBar/File/Email as PDF')               .set_sensitive(False)
+            uimanager.get_widget('/ToolBar/Email as PDF')               .set_sensitive(False)
+            uimanager.get_widget('/Thumb_Popup/Email as PDF')               .set_sensitive(False)
+            if  (windowe is not None) :
+                windowe.hide()
+
+        if dependencies["imagemagick"] and dependencies["libtiff"] :
+            uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
+            uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
+            uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
+
+        uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
+        uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
+        uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
+        if  (save_button is not None) :
+            save_button.set_sensitive(False)
+
+
+   # If the scan dialog has already been drawn, update the start page spinbutton
+
+    if is_not_an_empty_hashref(windows) :
+        windows.update_start_page()
+    return
+
+
+def selection_changed_callback() :
+    selection = slist.get_selected_indices()
+    i         =  selection.pop(0)
+
+    # Display the new image
+    # When editing the page number, there is a race condition where the page
+    # can be undefined
+
+    if  i is not None and  i  < len(slist.data) :
+        path = Gtk.TreePath.new_from_indices(i)
+        slist.scroll_to_cell( path, slist.get_column(0),
+            True, HALF, HALF )
+        sel = view.get_selection()
+        display_image( slist["data"][i][2] )
+        if  (sel is not None) :
+            view.set_selection(sel)
+ 
+    else :
+        view.set_pixbuf(None)
+        canvas.clear_text()
+        a_canvas.clear_text()
+        current_page=None
+
+    update_uimanager()
+    return
+
+
+def drag_motion_callback( tree, context, x, y, t ) :
+    
+    try:
+        ( path, how ) = tree.get_dest_row_at_pos( x, y ) 
+    
+    except:
+        return
+    scroll = tree.get_parent()
+
+    # Add the marker showing the drop in the tree
+
+    tree.set_drag_dest_row( path, how )
+
+    # Make move the default
+    action=[]
+    if context.get_actions() == 'copy':
+        action = ['copy']
+    else :
+        action = ['move']
+
+    Gdk.drag_status( context, action, t )
+    adj = scroll.get_vadjustment()
+    ( value, step ) = ( adj.get_value(), adj.get_step_increment() )
+    if y > adj.get_page_size(-step/2)     :
+        v = value + step
+        m = adj.get_upper(-adj.get_page_size())  
+        adj.set_value(    m if v>m  else v )
+ 
+    elif y < step / 2 :
+        v = value - step
+        m = adj.get_lower()
+        adj.set_value(    m if v<m  else v )
+
+    return False
+
+
+def create_temp_directory() :
+    tmpdir = Gscan2pdf.Document.get_tmp_dir( SETTING["TMPDIR"],
+        r'gscan2pdf-\w\w\w\w' )
+    find_crashed_sessions()
+
+    # Create temporary directory if necessary
+    if   session is None :
+        if  tmpdir is not None and tmpdir != EMPTY :
+            if not os.path.isdir( tmpdir) :
+                os.mkdir( tmpdir)
+            try :
+                session =                   tempfile.newdir( 'gscan2pdf-XXXX', DIR = tmpdir )
+ 
+            except :
+                session = tempfile.newdir( 'gscan2pdf-XXXX', TMPDIR = 1 )
+
+ 
+        else :
+            session = tempfile.newdir( 'gscan2pdf-XXXX', TMPDIR = 1 )
+
+        slist.set_dir(session)
+        try:
+            lockfh=open('>',File.Spec.catfile( session, 'lockfile' ))      ## no critic (RequireBriefOpen)                      
+        
+        except:
+            raise "Cannot open lockfile\n"
+        fcntl.lockf( lockfh, fcntl.LOCK_EX) #raise "Cannot lock file\n"
+        slist.save_session()
+        logger.info(f"Using {session} for temporary files")
+        tmpdir = dirname(session)
+        if  "TMPDIR"  in SETTING and SETTING["TMPDIR"] != tmpdir :
+            logger.warn(
+                _(
+'Warning: unable to use %s for temporary storage. Defaulting to %s instead.'
+                ) % (SETTING["TMPDIR"],tmpdir) 
+                
+                
+            )
+            SETTING["TMPDIR"] = tmpdir
+
+
+
+def find_crashed_sessions() :
+
+    # Look for crashed sessions
+    if   tmpdir is None or tmpdir == EMPTY :
+        tmpdir = File.Spec.tmpdir()
+
+    logger.info(f"Checking {tmpdir} for crashed sessions")
+    sessions, crashed, selected  =       glob.glob(File.Spec.catfile( tmpdir, 'gscan2pdf-????' )) 
+
+    # Forget those used by running sessions
+    for _ in     sessions :
+        try:
+            lockfh=open('>',File.Spec.catfile( _, 'lockfile' ))
+            fcntl.lockf( lockfh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            crashed.append(_)  
+        except:
+            pass
+
+        fcntl.lockf( lockfh, fcntl.LOCK_UN) #raise f"Unlocking error on {lockfh} ({ERRNO})\n"
+        try:
+            lockfh.close()  
+        
+        except:
+            logger.warn( f"Error closing {lockfh} ({ERRNO})")
+
+    # Flag those with no session file
+    missing=[]
+    for _ in      range(len(crashed)-1+1)    :
+        if not os.access(File.Spec.catfile( crashed[_], 'session' ),os.R_OK)  :
+            missing.append(crashed[_])  
+            del(crashed[_])   
+
+
+    if missing :
+        logger.info( 'Unrestorable sessions: ' + SPACE.join(missing)   )
+        dialog = Gtk.Dialog(
+            _('Crashed sessions'),
+            window, 'modal',
+            gtk_delete = 'ok',
+            gtk_cancel = 'cancel'
+        )
+        text = Gtk.TextView()
+        text.set_wrap_mode('word')
+        text.get_buffer().set_text(
+                _('The following list of sessions cannot be restored.')
+              + SPACE
+              + _('Please retrieve any images you require from them.')
+              + SPACE
+              + _('Selected sessions will be deleted.') )
+        dialog.get_content_area().add(text)
+        sessionlist = Gtk.SimpleList( {_('Session'): 'text'} )
+        sessionlist.get_selection().set_mode('multiple')
+        sessionlist["data"].append(missing)  
+        dialog.get_content_area().add(sessionlist)
+        (button) = dialog.get_action_area().get_children()
+        def anonymous_44():
+            button.set_sensitive(
+                    len(sessionlist.get_selected_indices())  > 0 )
+
+
+        sessionlist.get_selection().connect(
+            'changed' , anonymous_44 
+        )
+        sessionlist.get_selection().select_all()
+        dialog.show_all()
+        if dialog.run() =='ok'  :
+            selected = sessionlist.get_selected_indices()
+            for _ in             selected :
+                _ = missing[_]
+            logger.info( 'Selected for deletion: ' + SPACE.join(selected)   )
+            if selected :
+                remove_tree(selected)
+ 
+        else :
+            logger.info('None selected')
+
+        dialog.destroy()
+
+
+    # Allow user to pick a crashed session to restore
+
+    if crashed :
+        dialog = Gtk.Dialog(
+            _('Pick crashed session to restore'),
+            window, 'modal',
+            gtk_ok     = 'ok',
+            gtk_cancel = 'cancel'
+        )
+        label = Gtk.Label( _('Pick crashed session to restore') )
+        box   = dialog.get_content_area()
+        box.add(label)
+        sessionlist = Gtk.SimpleList( {_('Session'): 'text'} )
+        sessionlist["data"].append(crashed)  
+        box.add(sessionlist)
+        dialog.show_all()
+        if dialog.run() =='ok'  :
+            (selected) = sessionlist.get_selected_indices()
+
+        dialog.destroy()
+        if  selected is not None :
+            session = crashed[selected]
+            lockfh=open('>',File.Spec.catfile( session, 'lockfile' ))      #raise "Cannot open lockfile\n"
+            fcntl.lockf( lockfh, fcntl.LOCK_EX )# raise "Cannot lock file\n"
+            slist.set_dir(session)
+            open_session(session)
+
+
+def display_image(page) :
+    
+    current_page = page
+
+    # quotes required to prevent File::Temp object being clobbered
+    pixbuf = Gdk.Pixbuf.new_from_file(f"{current_page}->{filename}")
+    view.set_pixbuf( pixbuf, True )
+    view.set_resolution_ratio(
+        current_page["xresolution"] / current_page["yresolution"] )
+
+    # Get image dimensions to constrain selector spinbuttons on crop dialog
+    width, height  = current_page.get_size()
+
+    # Update the ranges on the crop dialog
+    if  (sb_selector_w is not None) and  (current_page is not None) :
+        sb_selector_w.set_range( 0, width - sb_selector_x.get_value() )
+        sb_selector_h.set_range( 0, height - sb_selector_y.get_value() )
+        sb_selector_x.set_range( 0, width - sb_selector_w.get_value() )
+        sb_selector_y.set_range( 0, height - sb_selector_h.get_value() )
+        SETTING["selection"]["x"]      = sb_selector_x.get_value()
+        SETTING["selection"]["y"]      = sb_selector_y.get_value()
+        SETTING["selection"]["width"]  = sb_selector_w.get_value()
+        SETTING["selection"]["height"] = sb_selector_h.get_value()
+        view.set_selection( SETTING["selection"] )
+
+
+    # Delete OCR output if it has become corrupted
+
+    if  "text_layer"  in current_page        and not Gscan2pdf.Bboxtree.valid( current_page["text_layer"] )     :
+        logger.error(
+            f"deleting corrupt text layer: {current_page}->{text_layer}")
+        del(current_page["text_layer"]) 
+
+    if  "text_layer"  in current_page :
+        create_txt_canvas(current_page)
+ 
+    else :
+        canvas.clear_text()
+
+    if  "annotations"  in current_page :
+        create_ann_canvas(current_page)
+ 
+    else :
+        a_canvas.clear_text()
+
+    return
+
+
+def create_txt_canvas( page, finished_callback ) :
+    
+    offset = view.get_offset()
+    canvas.set_text( page, 'text_layer', edit_ocr_text, True,
+        finished_callback )
+    canvas.set_scale( view.get_zoom() )
+    canvas.set_offset( offset["x"], offset["y"] )
+    canvas.show()
+    return
+
+
+def create_ann_canvas( page, finished_callback ) :
+    
+    offset = view.get_offset()
+    a_canvas.set_text( page, 'annotations', edit_annotation, True,
+        finished_callback )
+    a_canvas.set_scale( view.get_zoom() )
+    a_canvas.set_offset( offset["x"], offset["y"] )
+    a_canvas.show()
+    return
+
+
+def edit_tools_callback( action, current ) :
+    
+    logger.debug( f"in edit_tools_callback with {action}, {current} "
+          + current.get_current_value() )
+    if current.get_current_value() == EDIT_TEXT :
+        ocr_text_hbox.show()
+        ann_hbox.hide()
+        return
+
+    ocr_text_hbox.hide()
+    ann_hbox.show()
+    return
+
+
+def edit_ocr_text( widget, target, ev, bbox ) :
+    
+    if not ev :
+        bbox = widget
+
+    if   (bbox is None) :
+        return
+    ocr_bbox = bbox
+    ocr_textbuffer.text=bbox.text
+    ocr_text_hbox.show_all()
+    view.set_selection( bbox.bbox )
+    view.set_zoom_to_fit(False)
+    view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+    if ev :
+        canvas.pointer_ungrab( widget, ev.time() )
+
+    if bbox :
+        canvas.set_index_by_bbox(bbox)
+
+    return True
+
+
+def edit_annotation( widget, target, ev, bbox ) :
+    
+    if not ev :
+        bbox = widget
+
+    ann_bbox = bbox
+    ann_textbuffer.text=bbox.text
+    ann_hbox.show_all()
+    view.set_selection( bbox.bbox )
+    view.set_zoom_to_fit(False)
+    view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+    if ev :
+        a_canvas.pointer_ungrab( widget, ev.time() )
+
+    if bbox :
+        a_canvas.set_index_by_bbox(bbox)
+
+    return True
+
+
+
+def scans_saved(message) :
+    """Check that all pages have been saved
+"""    
+    if not slist.scans_saved() :
+        response = ask_question(
+            parent             = window,
+            type               = 'question',
+            buttons            = 'ok-cancel',
+            text               = message,
+            store_response   = True,
+            stored_responses = [
+        'ok']
+        )
+        if response != 'ok' :
+            return False
+
+    return True
+
+
+
+def new() :
+    """Deletes all scans after warning.
+"""
+    if not scans_saved(
+            _(
+"Some pages have not been saved.\nDo you really want to clear all pages?"
+            )
+        )     :
+        return
+
+
+    # Update undo/redo buffers
+
+    take_snapshot()
+
+    # in certain circumstances, before v2.5.5, having deleted one of several
+    # pages, pressing the new button would cause some sort of race condition
+    # between the tied array of the slist and the callbacks displaying the
+    # thumbnails, so block this whilst clearing the array.
+
+    slist.get_model().handler_block( slist["row_changed_signal"] )
+    slist.get_selection().handler_block(
+        slist["selection_changed_signal"] )
+
+    # Depopulate the thumbnail list
+
+    slist["data"] = ()
+
+    # Unblock slist signals now finished
+
+    slist.get_selection().handler_unblock(
+        slist["selection_changed_signal"] )
+    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+
+    # Now we have to clear everything manually
+
+    slist.get_selection().unselect_all()
+    view.set_pixbuf(None)
+    canvas.clear_text()
+    a_canvas.clear_text()
+    current_page=None
+
+    # Reset start page in scan dialog
+
+    windows.reset_start_page()
+    return
+
+
+
+def add_filter( file_chooser, name, file_extensions ) :
+    """Create a file filter to show only supported file types in FileChooser dialog
+"""    
+    filter = Gtk.FileFilter()
+    for  extension in     file_extensions :
+        filter_pattern=[]
+
+        # Create case insensitive pattern
+
+        for  byte in          split(EMPTY,extension)    :
+            filter_pattern.append('['+uc(byte)+lc(byte)+']')        
+
+        new_filter_pattern = EMPTY.join(filter_pattern)  
+        filter.add_pattern( "*." + new_filter_pattern )
+
+    types=None
+    for _ in     file_extensions :
+        if  (types is not None) :
+            types += f", *.{_}"
+ 
+        else :
+            types = f"*.{_}"
+
+
+    filter.set_name(f"{name} ({types})")
+    file_chooser.add_filter(filter)
+    filter = Gtk.FileFilter()
+    filter.add_pattern("*")
+    filter.set_name('All files')
+    file_chooser.add_filter(filter)
+    return
+
+
+def error_callback( page_uuid, process, message ) :
+    
+    options = {
+        "parent"           : window,
+        "type"             : 'error',
+        "buttons"          : 'close',
+        "process"          : process,
+        "text"             : message,
+        'store-response' : True,
+    }
+    page=None
+    if  (page_uuid is not None) :
+        page = slist.find_page_by_uuid(page_uuid)
+
+    if  (page is not None) :
+        options["page"] = slist["data"][page][0]
+
+    if  (page_uuid is not None) :
+        page_uuid += ', '
+ 
+    else :
+        page_uuid = EMPTY
+
+    logger.error( f"{page_uuid}{process}, " + encode( 'UTF-8', message ) )
+
+    def anonymous_45():
+        """    # Wrap show_message_dialog() in Glib::Idle->add() to allow the thread to
+    # return immediately in order to allow it to work on subsequent pages
+    # despite errors on previous ones
+"""
+        show_message_dialog(options)
+
+    Glib.Idle.add(
+    anonymous_45  )
+    thbox.hide()
+    return
+
+
+def open_session_file(filename) :
+    
+    logger.info(f"Restoring session in {session}")
+    slist.open_session_file(
+        info           = filename,
+        error_callback = error_callback
+    )
+    return
+
+
+def open_session_action(action) :
+    
+    file_chooser = Gtk.FileChooserDialog(
+        _('Open crashed session'),
+        window, 'select-folder',
+        gtk_cancel = 'cancel',
+        gtk_ok     = 'ok'
+    )
+    file_chooser.set_default_response('ok')
+    file_chooser.set_current_folder( SETTING["cwd"] )
+    if 'ok' == file_chooser.run() :
+
+        # Update undo/redo buffers
+
+        take_snapshot()
+        filename = file_chooser.get_filenames()
+        open_session( filename[0] )
+
+    file_chooser.destroy()
+    return
+
+
+def open_session(sesdir) :
+    
+    logger.info(f"Restoring session in {session}")
+    slist.open_session(
+        dir            = sesdir,
+        delete         = False,
+        error_callback = error_callback
+    )
+    return
+
+
+
+def setup_tpbar( thread, process, completed, total, pid ) :
+    """Helper function to set up thread progress bar
+"""    
+    if total and  (process is not None) :
+        tpbar.set_text(
+            _('Process %i of %i (%s)') % (completed+1,total,process) 
+              
+             
+        )
+        tpbar.set_fraction(
+        ( completed + HALF ) / total )
+        thbox.show_all()
+
+        def anonymous_46():
+            """        # Pass the signal back to:
+        # 1. be able to cancel it when the process has finished
+        # 2. flag that the progress bar has been set up
+        #    and avoid the race condition where the callback is
+        #    entered before the $completed and $total variables have caught up
+"""
+            slist.cancel(
+            [
+            pid] )
+            thbox.hide()
+
+
+        return tcbutton.connect(
+            'clicked' , anonymous_46 
+        )
+
+    return
+
+
+
+def update_tpbar(options) :
+    """Helper function to update thread progress bar
+"""    
+    if options["jobs_total"] :
+        if  "process"  in options :
+            if  "message"  in options :
+                options["process"] += f" - {options}{message}"
+
+            tpbar.set_text(
+                _('Process %i of %i (%s)') % (options["jobs_completed"]+1,options["jobs_total"],options["process"]) 
+                  
+                 
+            )
+ 
+        else :
+            tpbar.set_text(
+                _('Process %i of %i') % (options["jobs_completed"]+1,options["jobs_total"]) 
+                  
+                
+            )
+
+        if  "progress"  in options :
+            tpbar.set_fraction(
+            ( options["jobs_completed"] + options["progress"] ) /                   options["jobs_total"] )
+ 
+        else :
+            tpbar.set_fraction(
+            ( options["jobs_completed"] + HALF ) / options["jobs_total"] )
+
+        thbox.show_all()
+        return True
+
+    return
+
+
+
+def open_dialog() :
+    """Throw up file selector and open selected file
+"""
+    # cd back to cwd to get filename
+
+    os.chdir( SETTING["cwd"])
+    file_chooser = Gtk.FileChooserDialog(
+        _('Open image'),
+        window, 'open',
+        gtk_cancel = 'cancel',
+        gtk_ok     = 'ok'
+    )
+    file_chooser.set_select_multiple(True)
+    file_chooser.set_default_response('ok')
+    file_chooser.set_current_folder( SETTING["cwd"] )
+    add_filter( file_chooser, _('Image files'),
+        'jpg', 'png', 'pnm', 'ppm', 'pbm', 'gif', 'tif', 'tiff', 'pdf', 'djvu',
+        'ps',  'gs2p' )
+    if 'ok' == file_chooser.run() :
+
+        # cd back to tempdir to import
+        os.chdir( session)
+
+        # Update undo/redo buffers
+        take_snapshot()
+        filenames = file_chooser.get_filenames()
+        file_chooser.destroy()
+
+        # Update cwd
+        SETTING["cwd"] = dirname( filenames[0] )
+        import_files(filenames)
+    else :
+        file_chooser.destroy()
+
+    # cd back to tempdir
+    os.chdir( session)
+
+
+def anonymous_47(filename):
+            
+    text = _('Enter user password for PDF %s') % (filename)  
+    dialog =               Gtk.MessageDialog( window,
+                [
+    'destroy-with-parent', 'modal' ],
+                'question', 'ok-cancel', text )
+    dialog.set_title(text)
+    vbox  = dialog.get_content_area()
+    entry = Gtk.Entry()
+    entry.set_visibility(False)
+    entry.set_invisible_char(ASTERISK)
+    vbox.pack_end( entry, False, False, 0 )
+    dialog.show_all()
+    response = dialog.run()
+    text = entry.get_text()
+    dialog.destroy()
+    if response == 'ok' and text != EMPTY :
+        return text
+
+    return
+
+
+def anonymous_48(*argv):
+    logger.debug(f"import_files queued @{{filenames}}")
+    return update_tpbar(*argv)
+
+
+def anonymous_49( thread, process, completed, total ):
+            
+    logger.debug(f"import_files started @{{filenames}}")
+    signal =               setup_tpbar( thread, process, completed, total, pid )
+    if (  (signal is not None) ):
+        return True  
+
+
+def anonymous_50(*argv):
+    return update_tpbar(*argv)
+
+
+def anonymous_51(pending):
+            
+    logger.debug(f"import_files finished @{{filenames}}")
+    if not pending :
+        thbox.hide()
+    if  (signal is not None) :
+        tcbutton.disconnect(signal)
+
+    slist.save_session()
+
+
+def anonymous_52(metadata):
+            
+    update_metadata_settings(metadata)
+
+
+def import_files( filenames, all_pages ) :
+    
+
+    # FIXME: import_files() now returns an array of pids.
+
+    ( signal, pid )=(None,None)
+    options = {
+        "paths"             : filenames,
+        "password_callback" : anonymous_47 ,
+        "queued_callback" : anonymous_48 ,
+        "started_callback" : anonymous_49 ,
+        "running_callback" : anonymous_50 ,
+        "finished_callback" : anonymous_51 ,
+        "metadata_callback" : anonymous_52 ,
+        "error_callback" : error_callback,
+    }
+    if all_pages :
+        def anonymous_53(info):
+            
+            return 1, info["pages"]
+
+
+        options["pagerange_callback"] = anonymous_53 
+ 
+    else :
+        def anonymous_54(info):
+            
+            dialog = Gtk.Dialog(
+                _('Pages to extract'),
+                window, [
+            ["modal","destroy-with-parent"]],
+                gtk_ok     = 'ok',
+                gtk_cancel = 'cancel'
+            )
+            vbox = dialog.get_content_area()
+            hbox = Gtk.HBox()
+            vbox.pack_start( hbox, True, True, 0 )
+            label = Gtk.Label( _('First page to extract') )
+            hbox.pack_start( label, False, False, 0 )
+            spinbuttonf =               Gtk.SpinButton.new_with_range( 1, info["pages"], 1 )
+            hbox.pack_end( spinbuttonf, False, False, 0 )
+            hbox = Gtk.HBox()
+            vbox.pack_start( hbox, True, True, 0 )
+            label = Gtk.Label( _('Last page to extract') )
+            hbox.pack_start( label, False, False, 0 )
+            spinbuttonl =               Gtk.SpinButton.new_with_range( 1, info["pages"], 1 )
+            spinbuttonl.set_value( info["pages"] )
+            hbox.pack_end( spinbuttonl, False, False, 0 )
+            dialog.show_all()
+            response = dialog.run()
+            dialog.destroy()
+            if response == 'ok' :
+                return spinbuttonf.get_value(), spinbuttonl.get_value()
+
+            return
+
+
+        options["pagerange_callback"] = anonymous_54 
+
+    pid = slist.import_files(options)
+    return
+
+
+def update_metadata_settings(dialog) :
+    """Get metadata"""    
+    for  name in     ["author","title","subject","keywords"] :
+        if type(dialog) == 'HASH' :
+            if  name  in dialog :
+                SETTING[name] = dialog[name]
+                for  dialog2 in                  ( windowi, windowe ) :
+                    if  dialog2 is not None :
+                        setattr(dialog2, f"meta_{name}",SETTING[name])
+        else :
+            SETTING[name] = getattr(dialog2, f"meta_{name}")
+            SETTING[f"{name}-suggestions"] = getattr(dialog2, f"meta_{name_suggestions}")              
+
+    datetime=None
+    if type(dialog) == 'HASH' :
+        datetime = dialog["datetime"]
+        for  dialog2 in          ( windowi, windowe ) :
+            if  (dialog2 is not None) :
+                dialog2.meta_datetime=datetime
+
+
+ 
+    else :
+        datetime = dialog.meta_datetime
+
+    success = True
+    if  (datetime is not None) :
+        try :
+            SETTING['datetime offset'] =               [
+            Delta_DHMS( Today_and_Now(), len(datetime) ) ]
+            SETTING['timezone offset'] =               [
+            Gscan2pdf.Document.delta_timezone_to_current(datetime) ]
+ 
+        except :
+            success = False
+            msg =               _(
+                '%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime: %s') % (datetime,_)                 
+            logger.debug(msg)
+            show_message_dialog(
+                parent  = window,
+                type    = 'error',
+                buttons = 'close',
+                text    = msg,
+            )
+
+
+    return success
+
+
+
+def save_pdf( filename, option, list_of_pages ) :
+    """Save selected pages as PDF under given name.
+"""    
+
+    # Compile options
+
+    options = {
+        "compression"      : SETTING['pdf compression'],
+        "downsample"       : SETTING["downsample"],
+        'downsample dpi' : SETTING['downsample dpi'],
+        "quality"          : SETTING["quality"],
+        "text_position"    : SETTING["text_position"],
+        "font"             : SETTING['pdf font'],
+        'user-password'  : windowi.pdf_user_password,
+        "set_timestamp"    : SETTING["set_timestamp"],
+        'convert whitespace to underscores' :
+          SETTING['convert whitespace to underscores'],
+    }
+    if option == 'prependpdf' :
+        options["prepend"] = filename
+ 
+    elif option == 'appendpdf' :
+        options["append"] = filename
+ 
+    elif option == 'ps' :
+        options["ps"]     = filename
+        options["pstool"] = SETTING["ps_backend"]
+
+    if SETTING["post_save_hook"] :
+        options["post_save_hook"] = SETTING["current_psh"]
+
+
+    # Create the PDF
+
+    logger.debug(f"Started saving {filename}")
+    ( signal, pid )=(None,None)
+    def anonymous_55(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_56( thread, process, completed, total ):
+            
+        signal =               setup_tpbar( thread, process, completed, total, pid )
+        if (  (signal is not None) ):
+            return True  
+
+
+    def anonymous_57(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_58( new_page, pending ):
+            
+        if not pending :
+            thbox.hide()
+        if  (signal is not None) :
+            tcbutton.disconnect(signal)
+
+        mark_pages(list_of_pages)
+        if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
+            if  "ps"  in options :
+                launch_default_for_file( options["ps"] )
+ 
+            else :
+                launch_default_for_file(filename)
+
+
+        logger.debug(f"Finished saving {filename}")
+
+
+    pid = slist.save_pdf(
+        path          = f"{filename}",      # stringify in case of PS
+        list_of_pages = list_of_pages,
+        metadata      = Gscan2pdf.Document.collate_metadata(
+            SETTING,
+            [
+    Today_and_Now() ],
+            [
+    Timezone() ]
+        ),
+        options         = options,
+        queued_callback = anonymous_55 ,
+        started_callback = anonymous_56 ,
+        running_callback = anonymous_57 ,
+        finished_callback = anonymous_58 ,
+        error_callback = error_callback
+    )
+    return
+
+
+def launch_default_for_file(filename) :
+    
+    uri = Glib.filename_to_uri( File.Spec.rel2abs(filename), None )
+    logger.info(f"Opening {uri} via default launcher")
+    context = Glib.IO.AppLaunchContext()
+    try :
+        Glib.IO.AppInfo.launch_default_for_uri( uri, context ) 
+    except :
+        logger.error(f"Unable to launch viewer: {_}")
+    return
+
+
+
+def save_dialog() :
+    """Display page selector and on save a fileselector.
+"""
+    if  (windowi is not None) :
+        windowi.present()
+        return
+
+    image_types = ["pdf","gif","jpg","png","pnm","ps","tif","txt","hocr","session"]
+    if dependencies["pdfunite"] :
+        image_types.append('prependpdf','appendpdf')   
+
+    if dependencies["djvu"] :
+        image_types.append('djvu')  
+    ps_backends=[]
+    for  backend in     ["libtiff","pdf2ps","pdftops"] :
+        if dependencies[backend] :
+            ps_backends.append(backend)  
+
+    windowi = Gscan2pdf.Dialog.Save(
+        transient_for  = window,
+        title            = _('Save'),
+        hide_on_delete = True,
+        page_range     = SETTING['Page range'],
+        include_time   = SETTING["use_time"],
+        meta_datetime  = [
+    Add_Delta_DHMS( Today_and_Now(), len( SETTING['datetime offset'] ) )
+        ],
+
+        # TRUE if any value is non-zero
+        select_datetime = bool (SETTING['datetime offset'] != 0),
+        meta_title                = SETTING['title'],
+        meta_title_suggestions    = SETTING['title-suggestions'],
+        meta_author               = SETTING['author'],
+        meta_author_suggestions   = SETTING['author-suggestions'],
+        meta_subject              = SETTING['subject'],
+        meta_subject_suggestions  = SETTING['subject-suggestions'],
+        meta_keywords             = SETTING['keywords'],
+        meta_keywords_suggestions = SETTING['keywords-suggestions'],
+        image_types               = image_types,
+        image_type                = SETTING['image type'],
+        ps_backends               = ps_backends,
+        jpeg_quality              = SETTING["quality"],
+        downsample_dpi            = SETTING['downsample dpi'],
+        downsample                  = SETTING["downsample"],
+        pdf_compression           = SETTING['pdf compression'],
+        available_fonts           = fonts,
+        text_position               = SETTING["text_position"],
+        pdf_font                  = SETTING['pdf font'],
+        can_encrypt_pdf           =  "pdftk"  in dependencies,
+        tiff_compression          = SETTING['tiff compression'],
+    )
+
+    # Frame for page range
+
+    windowi.add_page_range()
+    windowi.add_image_type()
+
+    # Post-save hook
+
+    pshbutton = Gtk.CheckButton( _('Post-save hook') )
+    pshbutton.set_tooltip_text(
+        _(
+'Run command on saved file. The available commands are those user-defined tools that do not specify %o'
+        )
+    )
+    vbox = windowi.get_content_area()
+    vbox.pack_start( pshbutton, False, True, 0 )
+    update_post_save_hooks()
+    vbox.pack_start( windowi["comboboxpsh"], False, True, 0 )
+    def anonymous_59():
+        windowi["comboboxpsh"].set_sensitive( pshbutton.get_active() )
+
+
+    pshbutton.connect(
+        'toggled' , anonymous_59 
+    )
+    pshbutton.set_active( SETTING["post_save_hook"] )
+    windowi["comboboxpsh"].set_sensitive( pshbutton.get_active() )
+    kbutton = Gtk.CheckButton( _('Close dialog on save') )
+    kbutton.set_tooltip_text( _('Close dialog on save') )
+    kbutton.set_active( SETTING["close_dialog_on_save"] )
+    vbox.pack_start( kbutton, False, True, 0 )
+    def anonymous_60():
+        save_button_clicked_callback( kbutton, pshbutton )
+
+    def anonymous_61():
+        windowi.hide()
+
+    windowi.add_actions( 'gtk-save',
+        anonymous_60 ,
+        'gtk-cancel', anonymous_61  )
+    windowi.show_all()
+    windowi.resize( 1, 1 )
+    return
+
+
+def list_of_pages() :
+
+    # Compile list of pages
+
+    list_of_pages=[]
+    pagelist =       slist.get_page_index( SETTING['Page range'], error_callback )
+    if not pagelist :
+        return
+    for _ in     pagelist :
+        list_of_pages.append(slist["data"][_][2]["uuid"])  
+
+    return list_of_pages
+
+
+def save_button_clicked_callback( kbutton, pshbutton ) :
+    # Compile list of pages
+    SETTING['Page range'] = windowi.page_range
+    list_of_pages = list_of_pages
+
+    # dig out the image type, compression and quality
+    SETTING['image type']         = windowi.image_type
+    SETTING["close_dialog_on_save"] = kbutton.get_active()
+    SETTING["post_save_hook"] = pshbutton.get_active()
+    if SETTING["post_save_hook"]        and windowi["comboboxpsh"].get_active()>EMPTY_LIST       :
+        SETTING["current_psh"] = windowi["comboboxpsh"].get_active_text()
+
+    if re.search(r"pdf", SETTING['image type'] ):
+
+            # dig out the compression
+        SETTING["downsample"]        = windowi.downsample
+        SETTING['downsample dpi']  = windowi.downsample_dpi
+        SETTING['pdf compression'] = windowi.pdf_compression
+        SETTING["quality"]           = windowi.jpeg_quality
+        SETTING["text_position"] = windowi.text_position
+        SETTING['pdf font']    = windowi.pdf_font
+
+            # cd back to cwd to save
+        os.chdir( SETTING["cwd"])
+        file_chooser=None
+        if _ == 'pdf' :
+            if not update_metadata_settings(windowi) :
+                save_dialog()
+                return
+
+                # Set up file selector
+            file_chooser = Gtk.FileChooserDialog(
+                    _('PDF filename'),
+                    windowi, 'save',
+                    gtk_cancel = 'cancel',
+                    gtk_save   = 'ok'
+                )
+            filename = Gscan2pdf.Document.expand_metadata_pattern(
+                    template           = SETTING['default filename'],
+                    convert_whitespace =
+                      SETTING['convert whitespace to underscores'],
+                    author        = SETTING["author"],
+                    title         = SETTING["title"],
+                    docdate       = windowi.meta_datetime,
+                    today_and_now = [
+            Today_and_Now() ],
+                    extension     = 'pdf',
+                    subject       = SETTING["subject"],
+                    keywords      = SETTING["keywords"],
+                )
+            file_chooser.set_current_name(filename)
+            file_chooser.set_do_overwrite_confirmation(True)
+ 
+        else :
+            file_chooser = Gtk.FileChooserDialog(
+                    _('PDF filename'),
+                    windowi, 'open',
+                    gtk_cancel = 'cancel',
+                    gtk_open   = 'ok'
+                )
+
+        add_filter( file_chooser, _('PDF files'), 'pdf' )
+        file_chooser.set_current_folder( SETTING["cwd"] )
+        file_chooser.set_default_response('ok')
+        file_chooser.connect(
+                'response' , file_chooser_response_callback,
+                [
+        _, list_of_pages ]
+            )
+        file_chooser.show()
+
+            # cd back to tempdir
+
+        os.chdir( session)
+
+    elif  SETTING['image type'] =='djvu':
+        if not update_metadata_settings(windowi) :
+            save_dialog()
+            return
+
+
+            # cd back to cwd to save
+
+        os.chdir( SETTING["cwd"])
+
+            # Set up file selector
+
+        file_chooser = Gtk.FileChooserDialog(
+                _('DjVu filename'),
+                windowi, 'save',
+                gtk_cancel = 'cancel',
+                gtk_save   = 'ok'
+            )
+        filename = Gscan2pdf.Document.expand_metadata_pattern(
+                template           = SETTING['default filename'],
+                convert_whitespace =
+                  SETTING['convert whitespace to underscores'],
+                author        = SETTING["author"],
+                title         = SETTING["title"],
+                docdate       = windowi.meta_datetime,
+                today_and_now = [
+        Today_and_Now() ],
+                extension     = 'djvu',
+                subject       = SETTING["subject"],
+                keywords      = SETTING["keywords"],
+            )
+        file_chooser.set_current_name(filename)
+        file_chooser.set_default_response('ok')
+        file_chooser.set_current_folder( SETTING["cwd"] )
+        add_filter( file_chooser, _('DjVu files'), 'djvu' )
+        file_chooser.set_do_overwrite_confirmation(True)
+        file_chooser.connect(
+                'response' , file_chooser_response_callback,
+                [
+        'djvu', list_of_pages ]
+            )
+        file_chooser.show()
+
+            # cd back to tempdir
+
+        os.chdir( session)
+
+    elif  SETTING['image type'] =='tif':
+        SETTING['tiff compression'] = windowi.tiff_compression
+        SETTING["quality"]            = windowi.jpeg_quality
+
+            # cd back to cwd to save
+
+        os.chdir( SETTING["cwd"])
+
+            # Set up file selector
+
+        file_chooser = Gtk.FileChooserDialog(
+                _('TIFF filename'),
+                windowi, 'save',
+                gtk_cancel = 'cancel',
+                gtk_save   = 'ok'
+            )
+        file_chooser.set_default_response('ok')
+        file_chooser.set_current_folder( SETTING["cwd"] )
+        add_filter( file_chooser, _('Image files'),
+                SETTING['image type'] )
+        file_chooser.set_do_overwrite_confirmation(True)
+        file_chooser.connect(
+                'response' , file_chooser_response_callback,
+                [
+        'tif', list_of_pages ]
+            )
+        file_chooser.show()
+
+            # cd back to tempdir
+
+        os.chdir( session)
+
+    elif  SETTING['image type'] =='txt':
+
+            # cd back to cwd to save
+
+        os.chdir( SETTING["cwd"])
+
+            # Set up file selector
+
+        file_chooser = Gtk.FileChooserDialog(
+                _('Text filename'),
+                windowi, 'save',
+                gtk_cancel = 'cancel',
+                gtk_save   = 'ok'
+            )
+        file_chooser.set_default_response('ok')
+        file_chooser.set_current_folder( SETTING["cwd"] )
+        file_chooser.set_do_overwrite_confirmation(True)
+        add_filter( file_chooser, _('Text files'), 'txt' )
+        file_chooser.connect(
+                'response' , file_chooser_response_callback,
+                [
+        'txt', list_of_pages ]
+            )
+        file_chooser.show()
+
+            # cd back to tempdir
+
+        os.chdir( session)
+
+    elif  SETTING['image type'] =='hocr':
+
+            # cd back to cwd to save
+
+        os.chdir( SETTING["cwd"])
+
+            # Set up file selector
+
+        file_chooser = Gtk.FileChooserDialog(
+                _('hOCR filename'),
+                windowi, 'save',
+                gtk_cancel = 'cancel',
+                gtk_save   = 'ok'
+            )
+        file_chooser.set_default_response('ok')
+        file_chooser.set_current_folder( SETTING["cwd"] )
+        file_chooser.set_do_overwrite_confirmation(True)
+        add_filter( file_chooser, _('hOCR files'), 'hocr' )
+        file_chooser.connect(
+                'response' , file_chooser_response_callback,
+                [
+        'hocr', list_of_pages ]
+            )
+        file_chooser.show()
+
+            # cd back to tempdir
+
+        os.chdir( session)
+
+    elif  SETTING['image type'] =='ps':
+        SETTING["ps_backend"] = windowi.ps_backend
+        logger.info(f"Selected '{SETTING}{ps_backend}' as ps backend")
+
+            # cd back to cwd to save
+
+        os.chdir( SETTING["cwd"])
+
+            # Set up file selector
+
+        file_chooser = Gtk.FileChooserDialog(
+                _('PS filename'),
+                windowi, 'save',
+                gtk_cancel = 'cancel',
+                gtk_save   = 'ok'
+            )
+        file_chooser.set_default_response('ok')
+        file_chooser.set_current_folder( SETTING["cwd"] )
+        add_filter( file_chooser, _('Postscript files'), 'ps' )
+        file_chooser.set_do_overwrite_confirmation(True)
+        file_chooser.connect(
+                'response' , file_chooser_response_callback,
+                [
+        'ps', list_of_pages ]
+            )
+        file_chooser.show()
+
+            # cd back to tempdir
+
+        os.chdir( session)
+
+    elif  SETTING['image type'] =='session':
+
+            # cd back to cwd to save
+
+        os.chdir( SETTING["cwd"])
+
+            # Set up file selector
+
+        file_chooser = Gtk.FileChooserDialog(
+                _('gscan2pdf session filename'),
+                windowi, 'save',
+                gtk_cancel = 'cancel',
+                gtk_save   = 'ok'
+            )
+        file_chooser.set_default_response('ok')
+        file_chooser.set_current_folder( SETTING["cwd"] )
+        add_filter( file_chooser, _('gscan2pdf session files'), 'gs2p' )
+        file_chooser.set_do_overwrite_confirmation(True)
+        file_chooser.connect(
+                'response' , file_chooser_response_callback,
+                [
+        'gs2p']
+            )
+        file_chooser.show()
+
+            # cd back to tempdir
+
+        os.chdir( session)
+
+    elif  SETTING['image type'] =='jpg':
+        SETTING["quality"] = windowi.jpeg_quality
+        save_image(list_of_pages)
+
+    else :
+        save_image(list_of_pages)
+
+    return
+
+
+def file_chooser_response_callback( dialog, response, data ) :
+    
+    ( type, list_of_pages ) = data
+    logger.debug(f"save filename dialog returned {response}")
+    suffix = type
+    if   re.search(r"pdf",suffix,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
+        suffix = 'pdf'
+    if response == 'ok' :
+        filename = dialog.get_filename()
+        logger.debug(f"FileChooserDialog returned {filename}")
+        if   not re.search(fr"[.]{suffix}$",filename,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
+            filename = f"{filename}.{type}"
+            if ( file_exists( dialog, filename ) ):
+                return  
+
+        if ( file_writable( dialog, filename ) ):
+            return  
+
+        # Update cwd
+        SETTING["cwd"] = dirname(filename)
+        if re.search(r"pdf",type):
+            save_pdf( filename, _, list_of_pages )
+
+        elif type=='djvu':
+            save_djvu( filename, list_of_pages )
+
+        elif type=='tif':
+            save_tiff( filename, None, list_of_pages )
+
+        elif type=='txt':
+            save_text( filename, list_of_pages )
+
+        elif type=='hocr':
+            save_hocr( filename, list_of_pages )
+
+        elif type=='ps':
+            if SETTING["ps_backend"] == 'libtiff' :
+                tif =                       tempfile.TemporaryFile( dir = session, suffix = '.tif' )
+                save_tiff( tif.filename(), filename, list_of_pages )
+ 
+            else :
+                save_pdf( filename, 'ps', list_of_pages )
+
+
+        elif type=='gs2p':
+            slist.save_session( filename, VERSION )
+
+        if  (windowi is not None) and SETTING["close_dialog_on_save"] :
+            windowi.hide()
+
+
+    dialog.destroy()
+    return
+
+
+def file_exists( chooser, filename ) :
+    
+    if os.path.isfile(filename)  :
+
+        # File exists; get the file chooser to ask the user to confirm.
+        chooser.set_filename(filename)
+
+        def anonymous_62():
+            """ Give the name change time to take effect."""
+            chooser.response('ok')
+
+        Glib.Idle.add(
+        anonymous_62  )
+        return True
+
+    return
+
+
+def file_writable( chooser, filename ) :
+    
+    if not os.access( dirname(filename), os.W_OK) : # FIXME: replace with try/except
+        text = _('Directory %s is read-only') % (dirname(filename))  
+        show_message_dialog(
+            parent  = chooser,
+            type    = 'error',
+            buttons = 'close',
+            text    = text
+        )
+        return True
+ 
+    elif os.path.isfile(filename)  and not os.access( filename, os.W_OK) :# FIXME: replace with try/except
+        text = _('File %s is read-only') % (filename)  
+        show_message_dialog(
+            parent  = chooser,
+            type    = 'error',
+            buttons = 'close',
+            text    = text
+        )
+        return True
+
+    return False
+
+
+def save_image(list_of_pages) :
+    
+
+    # cd back to cwd to save
+    os.chdir( SETTING["cwd"])
+
+    # Set up file selector
+    file_chooser = Gtk.FileChooserDialog(
+        _('Image filename'),
+        windowi, 'save',
+        gtk_cancel = 'cancel',
+        gtk_save   = 'ok'
+    )
+    file_chooser.set_default_response('ok')
+    file_chooser.set_current_folder( SETTING["cwd"] )
+    add_filter( file_chooser, _('Image files'),
+        'jpg', 'png', 'pnm', 'gif', 'tif', 'tiff', 'pdf', 'djvu', 'ps' )
+    file_chooser.set_do_overwrite_confirmation(True)
+    if 'ok' == file_chooser.run() :
+        filename = file_chooser.get_filename()
+
+        # Update cwd
+        SETTING["cwd"] = dirname(filename)
+
+        # cd back to tempdir
+        os.chdir( session)
+        if list_of_pages > 1 :
+            w = len(len(list_of_pages))  
+            for _ in              range(1,len(list_of_pages)+1)    :
+                current_filename =                   f"${filename}_%0${w}d.{SETTING}{'image type'}" % (_)                    
+                if os.path.isfile(current_filename)  :
+                    text = _('This operation would overwrite %s') % (current_filename)                        
+                    show_message_dialog(
+                        parent  = file_chooser,
+                        type    = 'error',
+                        buttons = 'close',
+                        text    = text
+                    )
+                    file_chooser.destroy()
+                    return
+
+
+            filename = f"${filename}_%0${w}d.{SETTING}{'image type'}"
+ 
+        else :
+            if   notre.search(fr"[.]{SETTING}{{'image type'}}$",filename,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
+                filename = f"{filename}.{SETTING}{'image type'}"
+                if ( file_exists( file_chooser, filename ) ):
+                    return  
+
+            if ( file_writable( file_chooser, filename ) ):
+                return  
+
+
+        # Create the image
+
+        logger.debug(f"Started saving {filename}")
+        ( signal, pid )=(None,None)
+        def anonymous_63(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_64( thread, process, completed, total ):
+                
+            signal =                   setup_tpbar( thread, process, completed, total, pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_65(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_66( new_page, pending ):
+                
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+            mark_pages(list_of_pages)
+            if  'view files toggle'  in SETTING                    and SETTING['view files toggle']                 :
+                if list_of_pages > 1 :
+                    w = len(len(list_of_pages))  
+                    for _ in                      range(1,len(list_of_pages)+1)    :
+                        launch_default_for_file( filename % (_)   )
+
+ 
+                else :
+                    launch_default_for_file(filename)
+
+
+            logger.debug(f"Finished saving {filename}")
+
+
+        pid = slist.save_image(
+            path            = filename,
+            list_of_pages   = list_of_pages,
+            queued_callback = anonymous_63 ,
+            started_callback = anonymous_64 ,
+            running_callback = anonymous_65 ,
+            finished_callback = anonymous_66 ,
+            error_callback = error_callback
+        )
+        if  (windowi is not None) :
+            windowi.hide()
+
+    file_chooser.destroy()
+    return
+
+
+def save_tiff( filename, ps, list_of_pages ) :
+    
+
+    # Compile options
+
+    options = {
+        "compression" : SETTING['tiff compression'],
+        "quality"     : SETTING["quality"],
+        "ps"          : ps,
+    }
+    if SETTING["post_save_hook"] :
+        options["post_save_hook"] = SETTING["current_psh"]
+
+    ( signal, pid )=(None,None)
+    def anonymous_67(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_68( thread, process, completed, total ):
+            
+        signal =               setup_tpbar( thread, process, completed, total, pid )
+        if (  (signal is not None) ):
+            return True  
+
+
+    def anonymous_69(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_70( new_page, pending ):
+            
+        if not pending :
+            thbox.hide()
+        if  (signal is not None) :
+            tcbutton.disconnect(signal)
+
+        mark_pages(list_of_pages)
+        file =   ps if (ps is not None)  else filename
+        if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
+            launch_default_for_file(filename)
+
+        logger.debug(f"Finished saving {filename}")
+
+
+    pid = slist.save_tiff(
+        path            = filename,
+        list_of_pages   = list_of_pages,
+        options         = options,
+        queued_callback = anonymous_67 ,
+        started_callback = anonymous_68 ,
+        running_callback = anonymous_69 ,
+        finished_callback = anonymous_70 ,
+        error_callback = error_callback
+    )
+    return
+
+
+def save_djvu( filename, list_of_pages ) :
+    
+    # cd back to tempdir
+    os.chdir( session)
+
+    # Create the DjVu
+    logger.debug(f"Started saving {filename}")
+    ( signal, pid )=(None,None)
+    options = {
+        "set_timestamp"                       : SETTING["set_timestamp"],
+        'convert whitespace to underscores' :
+          SETTING['convert whitespace to underscores'],
+    }
+    if SETTING["post_save_hook"] :
+        options["post_save_hook"] = SETTING["current_psh"]
+
+    def anonymous_71(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_72( thread, process, completed, total ):
+            
+        signal =               setup_tpbar( thread, process, completed, total, pid )
+        if (  (signal is not None) ):
+            return True  
+
+
+    def anonymous_73(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_74( new_page, pending ):
+            
+        if not pending :
+            thbox.hide()
+        if  (signal is not None) :
+            tcbutton.disconnect(signal)
+
+        mark_pages(list_of_pages)
+        if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
+            launch_default_for_file(filename)
+
+        logger.debug(f"Finished saving {filename}")
+
+
+    pid = slist.save_djvu(
+        path          = filename,
+        list_of_pages = list_of_pages,
+        options       = options,
+        metadata      = Gscan2pdf.Document.collate_metadata(
+            SETTING,
+            [
+    Today_and_Now() ],
+            [
+    Timezone() ]
+        ),
+        queued_callback = anonymous_71 ,
+        started_callback = anonymous_72 ,
+        running_callback = anonymous_73 ,
+        finished_callback = anonymous_74 ,
+        error_callback = error_callback
+    )
+    return
+
+
+def save_text( filename, list_of_pages ) :
+    
+    ( signal, pid, options )=(None,None,{})
+    if SETTING["post_save_hook"] :
+        options["post_save_hook"] = SETTING["current_psh"]
+
+    def anonymous_75(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_76( thread, process, completed, total ):
+            
+        signal =               setup_tpbar( thread, process, completed, total, pid )
+        if (  (signal is not None) ):
+            return True  
+
+
+    def anonymous_77(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_78( new_page, pending ):
+            
+        if not pending :
+            thbox.hide()
+        if  (signal is not None) :
+            tcbutton.disconnect(signal)
+
+        mark_pages(list_of_pages)
+        if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
+            launch_default_for_file(filename)
+
+        logger.debug(f"Finished saving {filename}")
+
+
+    pid = slist.save_text(
+        path            = filename,
+        list_of_pages   = list_of_pages,
+        options         = options,
+        queued_callback = anonymous_75 ,
+        started_callback = anonymous_76 ,
+        running_callback = anonymous_77 ,
+        finished_callback = anonymous_78 ,
+        error_callback = error_callback
+    )
+    return
+
+
+def save_hocr( filename, list_of_pages ) :
+    
+    ( signal, pid, options )=(None,None,{})
+    if SETTING["post_save_hook"] :
+        options["post_save_hook"] = SETTING["current_psh"]
+
+    def anonymous_79(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_80( thread, process, completed, total ):
+            
+        signal =               setup_tpbar( thread, process, completed, total, pid )
+        if (  (signal is not None) ):
+            return True  
+
+
+    def anonymous_81(*argv):
+        return update_tpbar(*argv)
+
+
+    def anonymous_82( new_page, pending ):
+            
+        if not pending :
+            thbox.hide()
+        if  (signal is not None) :
+            tcbutton.disconnect(signal)
+
+        mark_pages(list_of_pages)
+        if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
+            launch_default_for_file(filename)
+
+        logger.debug(f"Finished saving {filename}")
+
+
+    pid = slist.save_hocr(
+        path            = filename,
+        list_of_pages   = list_of_pages,
+        options         = options,
+        queued_callback = anonymous_79 ,
+        started_callback = anonymous_80 ,
+        running_callback = anonymous_81 ,
+        finished_callback = anonymous_82 ,
+        error_callback = error_callback
+    )
+    return
+
+
+
+def email() :
+    """Display page selector and email.
+"""
+    if  (windowe is not None) :
+        windowe.present()
+        return
+
+    windowe = Gscan2pdf.Dialog.Save(
+        transient_for  = window,
+        title            = _('Email as PDF'),
+        hide_on_delete = True,
+        page_range     = SETTING['Page range'],
+        include_time   = SETTING["use_time"],
+        meta_datetime  = [
+    Add_Delta_DHMS( Today_and_Now(), len( SETTING['datetime offset'] ) )
+        ],
+
+        # TRUE if any value is non-zero
+        select_datetime = bool (SETTING['datetime offset'] != 0),
+        meta_title                = SETTING['title'],
+        meta_title_suggestions    = SETTING['title-suggestions'],
+        meta_author               = SETTING['author'],
+        meta_author_suggestions   = SETTING['author-suggestions'],
+        meta_subject              = SETTING['subject'],
+        meta_subject_suggestions  = SETTING['subject-suggestions'],
+        meta_keywords             = SETTING['keywords'],
+        meta_keywords_suggestions = SETTING['keywords-suggestions'],
+        jpeg_quality              = SETTING["quality"],
+        downsample_dpi            = SETTING['downsample dpi'],
+        downsample                  = SETTING["downsample"],
+        pdf_compression           = SETTING['pdf compression'],
+        text_position               = SETTING["text_position"],
+        pdf_font                  = SETTING['pdf font'],
+        can_encrypt_pdf           =  "pdftk"  in dependencies,
+    )
+
+    # Frame for page range
+
+    windowe.add_page_range()
+
+    # Metadata
+
+    windowe.add_metadata()
+
+    # PDF options
+
+    ( vboxp, hboxp ) = windowe.add_pdf_options()
+    def anonymous_83():
+
+            # Set options
+
+        if not update_metadata_settings(windowe) :
+            email()
+            return
+
+
+            # Compile list of pages
+
+        SETTING['Page range'] = windowe.page_range
+        list_of_pages = list_of_pages
+
+            # dig out the compression
+
+        SETTING["downsample"]        = windowe.downsample
+        SETTING['downsample dpi']  = windowe.downsample_dpi
+        SETTING['pdf compression'] = windowe.pdf_compression
+        SETTING["quality"]           = windowe.jpeg_quality
+
+            # Compile options
+
+        options = {
+                "compression"      : SETTING['pdf compression'],
+                "downsample"       : SETTING["downsample"],
+                'downsample dpi' : SETTING['downsample dpi'],
+                "quality"          : SETTING["quality"],
+                "text_position"    : SETTING["text_position"],
+                "font"             : SETTING['pdf font'],
+                'user-password'  : windowe.pdf_user_password,
+            }
+        filename = Gscan2pdf.Document.expand_metadata_pattern(
+                template           = SETTING['default filename'],
+                convert_whitespace =
+                  SETTING['convert whitespace to underscores'],
+                author        = SETTING["author"],
+                title         = SETTING["title"],
+                docdate       = windowe.meta_datetime,
+                today_and_now = [
+        Today_and_Now() ],
+                extension     = 'pdf',
+                subject       = SETTING["subject"],
+                keywords      = SETTING["keywords"],
+            )
+        if   re.search(r"^\s+$",filename,re.MULTILINE|re.DOTALL|re.VERBOSE) :
+            filename = 'document'
+        pdf = f"{session}/{filename}.pdf"
+
+            # Create the PDF
+
+        ( signal, pid )=(None,None)
+        def anonymous_84(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_85( thread, process, completed, total ):
+                    
+            signal =                       setup_tpbar( thread, process, completed, total,
+                        pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_86(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_87( new_page, pending ):
+                    
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+            mark_pages(list_of_pages)
+            if  'view files toggle'  in SETTING                        and SETTING['view files toggle']                     :
+                launch_default_for_file(pdf)
+
+            status = Gscan2pdf.Document.exec_command(
+            [
+            'xdg-email', '--attach', pdf, 'x@y' ] )
+            if status :
+                show_message_dialog(
+                            parent  = window,
+                            type    = 'error',
+                            buttons = 'close',
+                            text    = _('Error creating email')
+                        )
+
+
+
+        pid = slist.save_pdf(
+                path          = pdf,
+                list_of_pages = list_of_pages,
+                metadata      = Gscan2pdf.Document.collate_metadata(
+                    SETTING,
+                    [
+        Today_and_Now() ],
+                    [
+        Timezone() ]
+                ),
+                options         = options,
+                queued_callback = anonymous_84 ,
+                started_callback = anonymous_85 ,
+                running_callback = anonymous_86 ,
+                finished_callback = anonymous_87 ,
+                error_callback = error_callback
+            )
+        windowe.hide()
+
+
+    def anonymous_88():
+        windowe.hide()
+
+    windowe.add_actions(
+        'gtk-ok',
+        anonymous_83 ,
+        'gtk-cancel',
+        anonymous_88 
+    )
+    windowe.show_all()
+    return
+
+
+
+def scan_dialog( action, hidden, scan ) :
+    """Scan
+"""    
+    if is_not_an_empty_hashref(windows) :
+        windows.show_all()
+        update_postprocessing_options_callback(windows)
+        return
+
+
+    # If device not set by config and there is a default device, then set it
+
+    if "device" not   in SETTING        and  'SANE_DEFAULT_DEVICE'  in os.environ     :
+        SETTING["device"] = os.environ['SANE_DEFAULT_DEVICE']
+
+
+    # scan pop-up window
+
+    options = {
+        'transient-for'               : window,
+        "title"                         : _('Scan Document'),
+        'default-width'               : SETTING["scan_window_width"],
+        'default-height'              : SETTING["scan_window_height"],
+        "logger"                        : logger,
+        "dir"                           : session,
+        'hide-on-delete'              : True,
+        'paper-formats'               : SETTING["Paper"],
+        'allow-batch-flatbed'         : SETTING['allow-batch-flatbed'],
+        'adf-defaults-scan-all-pages' :
+          SETTING['adf-defaults-scan-all-pages'],
+        'document'                   : slist,
+        'ignore-duplex-capabilities' : SETTING['ignore-duplex-capabilities'],
+    }
+    if SETTING["frontend"] == 'libimage-sane-perl' :
+        windows = Gscan2pdf.Dialog.Scan.Image_Sane(
+            options,
+            cycle_sane_handle    = SETTING['cycle sane handle'],
+            cancel_between_pages = (
+                      SETTING['allow-batch-flatbed']
+                  and SETTING['cancel-between-pages']
+            ),
+        )
+ 
+    else :
+        windows = Gscan2pdf.Dialog.Scan.CLI(
+            options,
+            prefix                 = SETTING['scan prefix'],
+            frontend               = SETTING['frontend'],
+            visible_scan_options = SETTING['visible-scan-options'],
+            reload_triggers      = SETTING['scan-reload-triggers'],
+            cache_options        = SETTING['cache options'],
+            options_cache        = SETTING["cache"],
+        )
+        def anonymous_89( widget, cache ):
+                
+            SETTING["cache"] = cache
+
+
+        windows.connect(
+            'changed-options-cache' , anonymous_89 
+        )
+
+
+    # Can't set the device when creating the window,
+    # as the list does not exist then
+
+    windows.connect(
+        'changed-device-list' , changed_device_list_callback )
+
+    # Update default device
+
+    windows.connect( 'changed-device' , changed_device_callback )
+    windows.connect( 'changed-page-number-increment' ,
+          update_postprocessing_options_callback )
+    windows.connect(
+        'changed-side-to-scan' , changed_side_to_scan_callback )
+    signal=None
+    def anonymous_90( widget, message ):
+            
+        logger.debug(
+                f"signal 'started-process' emitted with message: {message}")
+        spbar.set_fraction(0)
+        spbar.set_text(message)
+        shbox.show_all()
+        def anonymous_91():
+            windows.cancel_scan()
+
+
+        signal = scbutton.connect(
+                'clicked' , anonymous_91 
+            )
+
+
+    windows.connect(
+        'started-process' , anonymous_90 
+    )
+    windows.connect(
+        'changed-progress' , changed_progress_callback )
+    windows.connect(
+        'finished-process' , finished_process_callback )
+    windows.connect(
+        'process-error' , process_error_callback,
+        signal
+    )
+
+    # Profiles
+
+    for  profile in      SETTING["profile"].keys()   :
+        windows.add_profile(
+            profile,
+            Gscan2pdf.Scanner.Profile.new_from_data(
+                SETTING["profile"][profile]
+            )
+        )
+
+    def anonymous_92( widget, profile ):
+            
+        SETTING['default profile'] = profile
+
+
+    windows.connect(
+        'changed-profile' , anonymous_92 
+    )
+    def anonymous_93( widget, name, profile ):
+            
+        SETTING["profile"][name] = profile.get_data()
+
+
+    windows.connect(
+        'added-profile' , anonymous_93 
+    )
+    def anonymous_94( widget, profile ):
+            
+        del(SETTING["profile"][profile]) 
+
+
+    windows.connect(
+        'removed-profile' , anonymous_94 
+    )
+
+    def anonymous_95( widget, profile ):
+        """    # Update the default profile when the scan options change
+"""            
+        SETTING['default-scan-options'] = profile.get_data()
+
+
+    windows.connect(
+        'changed-current-scan-options' , anonymous_95 
+    )
+    def anonymous_96( widget, formats ):
+            
+        SETTING["Paper"] = formats
+
+
+    windows.connect(
+        'changed-paper-formats' , anonymous_96 
+    )
+    windows.connect( 'new-scan' , new_scan_callback )
+    windows.connect(
+        'changed-scan-option' , update_postprocessing_options_callback )
+    add_postprocessing_options(windows)
+    if not hidden :
+        windows.show_all()
+    update_postprocessing_options_callback(windows)
+    if device :
+        device_list=[]
+        for _ in         device :
+            device_list.append({ "name" : _, "label" : _ })  
+
+        windows.device_list=device_list
+ 
+    elif not scan        and SETTING['cache-device-list']        and len( SETTING['device list'] )     :
+        windows.device_list=SETTING['device list']
+ 
+    else :
+        windows.get_devices()
+
+    return
+
+
+def changed_device_callback( widget, device ) :
+        # $widget is $windows
+    if  (device is not None) and device != EMPTY :
+        logger.info(f"signal 'changed-device' emitted with data: '{device}'")
+        SETTING["device"] = device
+
+        # Can't set the profile until the options have been loaded. This
+        # should only be called the first time after loading the available
+        # options
+
+        widget["reloaded_signal"] = widget.connect(
+            'reloaded-scan-options' , reloaded_scan_options_callback )
+ 
+    else :
+        logger.info("signal 'changed-device' emitted with data: undef")
+
+    return
+
+
+def changed_device_list_callback( widget, device_list ) :    # $widget is $windows
+    
+    logger.info( "signal 'changed-device-list' emitted with data: "
+          + Dumper(device_list) )
+    if  (device_list is not None) and len(device_list) :
+
+        # Apply the device blacklist
+
+        if  'device blacklist'  in SETTING            and SETTING['device blacklist'] != EMPTY         :
+            device_list = device_list
+            i           = 0
+            while i < device_list :
+                if                      re.search(fr"{SETTING}{{'device blacklist'}}",device_list[i]["name"],re.MULTILINE|re.DOTALL|re.VERBOSE)                 :
+                    logger.info(f"Blacklisting device {device_list}[{i}]{name}")
+                    del(device_list[i])   
+ 
+                else :
+                    i+=1
+
+
+            if len(device_list) < len(device_list) :
+                widget.device_list=device_list
+                return
+
+
+        if SETTING['cache-device-list'] :
+            SETTING['device list'] = device_list
+
+
+       # Only set default device if it hasn't been specified on the command line
+       # and it is in the the device list
+
+        if  "device"  in SETTING and not device :
+            for _ in              device_list  :
+                if SETTING["device"] == _["name"] :
+                    widget.device=SETTING["device"]
+                    return
+
+
+
+        widget.device=device_list[0]["name"]
+ 
+    else :
+        windows=None
+
+    return
+
+
+def changed_side_to_scan_callback( widget, side ) :
+    
+    if len( slist["data"] )-1 > EMPTY_LIST :
+        widget.page_number_start=slist["data"][ len( slist["data"] )-1 ][0]+1
+ 
+    else :
+        widget.page_number_start=1
+
+    return
+
+
+def reloaded_scan_options_callback( widget, side ) :
+    """This should only be called the first time after loading the available options
+"""        # $widget is $windows
+    widget.disconnect( widget["reloaded_signal"] )
+    profiles = SETTING["profile"].keys() 
+    if  'default profile'  in SETTING :
+        widget.profile=SETTING['default profile']
+ 
+    elif  'default-scan-options'  in SETTING :
+        widget.set_current_scan_options(
+            Gscan2pdf.Scanner.Profile.new_from_data(
+                SETTING['default-scan-options']
+            )
+        )
+ 
+    elif profiles :
+        widget.profile=profiles[0]
+
+    update_postprocessing_options_callback(widget)
+    return
+
+
+def changed_progress_callback( widget, progress, message ) :
+    
+    if  (progress is not None) and progress >= 0 and progress <= 1 :
+        spbar.set_fraction(progress)
+ 
+    else :
+        spbar.pulse()
+
+    if  (message is not None) :
+        spbar.set_text(message)
+    return
+
+
+def anonymous_97(*argv):
+    return update_tpbar(*argv)
+
+
+def anonymous_98( thread, process, completed, total ):
+            
+    signal =               setup_tpbar( thread, process, completed, total, pid )
+    if (  (signal is not None) ):
+        return True  
+
+
+def anonymous_99( new_page, pending ):
+            
+    if not pending :
+        thbox.hide()
+    if  (signal is not None) :
+        tcbutton.disconnect(signal)
+
+    slist.save_session()
+
+
+def new_scan_callback( self, path, page_number, xresolution, yresolution ) :
+    
+
+    # Update undo/redo buffers
+
+    take_snapshot()
+    rotate =          SETTING['rotate facing'] if page_number%2  else SETTING['rotate reverse']
+    ( signal, pid )=(None,None)
+    options = {
+        "page"            : page_number,
+        "dir"             : session,
+        "to_png"          : SETTING["to_png"],
+        "rotate"          : rotate,
+        "ocr"             : SETTING['OCR on scan'],
+        "engine"          : SETTING['ocr engine'],
+        "language"        : SETTING['ocr language'],
+        "queued_callback" : anonymous_97 ,
+        "started_callback" : anonymous_98 ,
+        "finished_callback" : anonymous_99 ,
+        "error_callback" : error_callback,
+    }
+    if SETTING['unpaper on scan'] :
+        options["unpaper"] = unpaper
+
+    if SETTING['threshold-before-ocr'] :
+        options["threshold"] = SETTING['threshold tool']
+
+    if SETTING["udt_on_scan"] :
+        options["udt"] = SETTING["current_udt"]
+
+    if  (test_image is not None) :
+        options["filename"] = test_image
+        options["delete"]   = False
+ 
+    else :
+        logger.info(
+            f"Importing scan with resolution={xresolution},{yresolution}")
+        options["filename"]    = path
+        options["xresolution"] = xresolution
+        options["yresolution"] = yresolution
+        options["delete"]      = True
+
+    slist.import_scan(options)
+    return
+
+
+def process_error_callback( widget, process, msg, signal ) :
+    
+    logger.info(f"signal 'process-error' emitted with data: {process} {msg}")
+    if  (signal is not None) :
+        scbutton.disconnect(signal)
+
+    shbox.hide()
+    if process == 'open_device'        and   re.search(r"(Invalid[ ]argument|Device[ ]busy)",msg,re.MULTILINE|re.DOTALL|re.VERBOSE)     :
+        error_name = 'error opening device'
+        response=None
+        if  error_name  in SETTING["message"]            and SETTING["message"][error_name]["response"] == 'ignore'         :
+            response = SETTING["message"][error_name]["response"]
+ 
+        else :
+            dialog =               Gtk.MessageDialog( window,
+                [
+            'destroy-with-parent', 'modal' ],
+                'question', 'ok' )
+            dialog.set_title( _('Error opening the last device used.') )
+            area  = dialog.get_message_area()
+            label = Gtk.Label(
+                _('There was an error opening the last device used.') )
+            area.add(label)
+            radio1 = Gtk.RadioButton.new_with_label( None,
+                _('Whoops! I forgot to turn it on. Try again now.') )
+            area.add(radio1)
+            radio2 = Gtk.RadioButton.new_with_label_from_widget( radio1,
+                _('Rescan for devices') )
+            area.add(radio2)
+            radio3 = Gtk.RadioButton.new_with_label_from_widget( radio1,
+                _('Restart gscan2pdf.') )
+            area.add(radio3)
+            radio4 = Gtk.RadioButton.new_with_label_from_widget( radio1,
+                _("Just ignore the error. I don't need the scanner yet.") )
+            area.add(radio4)
+            cb_cache_device_list =               Gtk.CheckButton.new_with_label( _('Cache device list') )
+            cb_cache_device_list.set_active( SETTING['cache-device-list'] )
+            area.add(cb_cache_device_list)
+            cb = Gtk.CheckButton.new_with_label(
+                _("Don't show this message again") )
+            area.add(cb)
+            dialog.show_all()
+            response = dialog.run()
+            dialog.destroy()
+            if response != 'ok' or radio4.get_active() :
+                response = 'ignore'
+ 
+            elif radio1.get_active() :
+                response = 'reopen' 
+            elif radio3.get_active() :
+                response = 'restart' 
+            else                          :
+                response = 'rescan'
+            if cb.get_active() :
+                SETTING["message"][error_name]["response"] = response
+
+
+        windows=None    # force scan dialog to be rebuilt
+        if response == 'reopen' :
+            scan_dialog()
+ 
+        elif response == 'rescan' :
+            scan_dialog( None, None, True )
+ 
+        elif response == 'restart' :
+            restart()
+
+        # for ignore, we do nothing
+
+        return
+
+    show_message_dialog(
+        parent           = widget,
+        type             = 'error',
+        buttons          = 'close',
+        page             = EMPTY,
+        process          = process,
+        text             = msg,
+        store_response = True
+    )
+    return
+
+
+def finished_process_callback( widget, process, button_signal ) :
+    
+    logger.debug(f"signal 'finished-process' emitted with data: {process}")
+    if  (button_signal is not None) :
+        scbutton.disconnect(button_signal)
+
+    shbox.hide()
+    if process == 'scan_pages'        and windows.sided == 'double'     :
+        def anonymous_100():
+            ( message, next )=(None,None)
+            if windows.side_to_scan == 'facing' :
+                message =                       _('Finished scanning facing pages. Scan reverse pages?')
+                next = 'reverse'
+ 
+            else :
+                message =                       _('Finished scanning reverse pages. Scan facing pages?')
+                next = 'facing'
+
+            response = ask_question(
+                    parent             = windows,
+                    type               = 'question',
+                    buttons            = 'ok-cancel',
+                    text               = message,
+                    default_response = 'ok',
+                    store_response   = True,
+                    stored_responses = [
+            'ok']
+                )
+            if response == 'ok' :
+                windows.side_to_scan=next
+
+
+
+        Glib.Idle.add(
+        anonymous_100 
+        )
+
+    return
+
+
+def restart() :
+    quit()
+    os.execv(sys.executable, *sys.argv)
+
+
+def update_postprocessing_options_callback(widget) :
+                                        # $widget is $windows
+    options   = widget.available_scan_options
+    increment = widget.page_number_increment
+    if  (options is not None) :
+        if increment != 1 or options.can_duplex() :
+            rotate_side_cmbx.show()
+            rotate_side_cmbx2.show()
+ 
+        else :
+            rotate_side_cmbx.hide()
+            rotate_side_cmbx2.hide()
+
+
+    return
+
+
+def add_postprocessing_rotate(vbox) :
+    
+    hboxr = Gtk.HBox()
+    vbox.pack_start( hboxr, False, False, 0 )
+    rbutton = Gtk.CheckButton( _('Rotate') )
+    rbutton.set_tooltip_text( _('Rotate image after scanning') )
+    hboxr.pack_start( rbutton, True, True, 0 )
+    side = [
+    [
+    'both',    _('Both sides'),   _('Both sides.') ],         [
+    'facing',  _('Facing side'),  _('Facing side.') ],         [
+    'reverse', _('Reverse side'), _('Reverse side.') ],
+    ]
+    rotate_side_cmbx = Gscan2pdf.ComboBoxText.new_from_array(side)
+    rotate_side_cmbx.set_tooltip_text( _('Select side to rotate') )
+    hboxr.pack_start( rotate_side_cmbx, True, True, 0 )
+    rotate = [
+    [
+    _90_DEGREES,  _('90'),  _('Rotate image 90 degrees clockwise.') ],         [
+    _180_DEGREES, _('180'), _('Rotate image 180 degrees clockwise.') ],         [
+    _270_DEGREES, _('270'),             _('Rotate image 90 degrees anticlockwise.')
+        ],
+    ]
+    comboboxr = Gscan2pdf.ComboBoxText.new_from_array(rotate)
+    comboboxr.set_tooltip_text( _('Select direction of rotation') )
+    hboxr.pack_end( comboboxr, True, True, 0 )
+    hboxr = Gtk.HBox()
+    vbox.pack_start( hboxr, False, False, 0 )
+    r2button = Gtk.CheckButton( _('Rotate') )
+    r2button.set_tooltip_text( _('Rotate image after scanning') )
+    hboxr.pack_start( r2button, True, True, 0 )
+    side2=[]
+    rotate_side_cmbx2 = Gtk.ComboBoxText()
+    rotate_side_cmbx2.set_tooltip_text( _('Select side to rotate') )
+    hboxr.pack_start( rotate_side_cmbx2, True, True, 0 )
+    comboboxr2 = Gscan2pdf.ComboBoxText.new_from_array(rotate)
+    comboboxr2.set_tooltip_text( _('Select direction of rotation') )
+    hboxr.pack_end( comboboxr2, True, True, 0 )
+    def anonymous_101():
+        if rbutton.get_active() :
+            if side[ rotate_side_cmbx.get_active() ][0] != 'both' :
+                hboxr.set_sensitive(True)
+
+ 
+        else :
+            hboxr.set_sensitive(False)
+
+
+
+    rbutton.connect(
+        'toggled' , anonymous_101 
+    )
+    def anonymous_102():
+        if side[ rotate_side_cmbx.get_active() ][0] == 'both' :
+            hboxr.set_sensitive(False)
+            r2button.set_active(False)
+ 
+        else :
+            if rbutton.get_active() :
+                hboxr.set_sensitive(True)
+
+                # Empty combobox
+
+            while rotate_side_cmbx2.get_active() >EMPTY_LIST  :
+                rotate_side_cmbx2.remove(0)
+                rotate_side_cmbx2.set_active(0)
+
+            side2 = []
+            for _ in             side :
+                if _[0] != 'both'                        and _[0] !=                        side[ rotate_side_cmbx.get_active() ][0]                     :
+                    side2.append(_)  
+
+
+            rotate_side_cmbx2.append_text( side2[0][1] )
+            rotate_side_cmbx2.set_active(0)
+
+
+
+    rotate_side_cmbx.connect(
+        'changed' , anonymous_102 
+    )
+
+    # In case it isn't set elsewhere
+
+    comboboxr2.set_active_index(_90_DEGREES)
+    if SETTING['rotate facing'] or SETTING['rotate reverse'] :
+        rbutton.set_active(True)
+
+    if SETTING['rotate facing'] == SETTING['rotate reverse'] :
+        rotate_side_cmbx.set_active_index('both')
+        comboboxr.set_active_index( SETTING['rotate facing'] )
+ 
+    elif SETTING['rotate facing'] :
+        rotate_side_cmbx.set_active_index('facing')
+        comboboxr.set_active_index( SETTING['rotate facing'] )
+        if SETTING['rotate reverse'] :
+            r2button.set_active(True)
+            rotate_side_cmbx2.set_active_index('reverse')
+            comboboxr2.set_active_index( SETTING['rotate reverse'] )
+
+ 
+    else :
+        rotate_side_cmbx.set_active_index('reverse')
+        comboboxr.set_active_index( SETTING['rotate reverse'] )
+
+    return ( rotate, side, side2, rbutton, r2button,
+        comboboxr, comboboxr2 )
+
+
+def add_postprocessing_udt(vboxp) :
+    
+    hboxudt = Gtk.HBox()
+    vboxp.pack_start( hboxudt, False, False, 0 )
+    udtbutton =       Gtk.CheckButton( _('Process with user-defined tool') )
+    udtbutton.set_tooltip_text(
+        _('Process scanned images with user-defined tool') )
+    hboxudt.pack_start( udtbutton, True, True, 0 )
+    if not SETTING["user_defined_tools"] :
+        hboxudt.set_sensitive(False)
+        udtbutton.set_active(False)
+ 
+    elif SETTING["udt_on_scan"] :
+        udtbutton.set_active(True)
+
+    return udtbutton, add_udt_combobox(hboxudt)
+
+
+def add_udt_combobox(hbox) :
+    
+    toolarray=[]
+    for _ in      SETTING["user_defined_tools"]  :
+        toolarray.append([
+        _, _ ])  
+
+    combobox = Gscan2pdf.ComboBoxText.new_from_array(toolarray)
+    combobox.set_active_index( SETTING["current_udt"] )
+    hbox.pack_start( combobox, True, True, 0 )
+    return combobox
+
+
+def add_postprocessing_ocr(vbox) :
+    
+    hboxo = Gtk.HBox()
+    vbox.pack_start( hboxo, False, False, 0 )
+    obutton = Gtk.CheckButton( _('OCR scanned pages') )
+    obutton.set_tooltip_text( _('OCR scanned pages') )
+    if not dependencies["ocr"] :
+        hboxo.set_sensitive(False)
+        obutton.set_active(False)
+ 
+    elif SETTING['OCR on scan'] :
+        obutton.set_active(True)
+
+    hboxo.pack_start( obutton, True, True, 0 )
+    comboboxe = Gscan2pdf.ComboBoxText.new_from_array(ocr_engine)
+    comboboxe.set_tooltip_text( _('Select OCR engine') )
+    hboxo.pack_end( comboboxe, True, True, 0 )
+    ( comboboxtl, hboxtl, tesslang, comboboxcl, hboxcl, cflang )=(None,None,[],None,None,[])
+    if dependencies["tesseract"] :
+        ( hboxtl, comboboxtl, tesslang ) = add_tess_languages(vbox)
+        def anonymous_103():
+            if ocr_engine[ comboboxe.get_active() ][0] == 'tesseract'                 :
+                hboxtl.show_all()
+ 
+            else :
+                hboxtl.hide()
+
+
+
+        comboboxe.connect(
+            'changed' , anonymous_103 
+        )
+        if not obutton.get_active() :
+            hboxtl.set_sensitive(False)
+        def anonymous_104():
+            if obutton.get_active() :
+                hboxtl.set_sensitive(True)
+ 
+            else :
+                hboxtl.set_sensitive(False)
+
+
+
+        obutton.connect(
+            'toggled' , anonymous_104 
+        )
+
+    if dependencies["cuneiform"] :
+        ( hboxcl, comboboxcl, cflang ) = add_cf_languages(vbox)
+        def anonymous_105():
+            if ocr_engine[ comboboxe.get_active() ][0] == 'cuneiform'                 :
+                hboxcl.show_all()
+ 
+            else :
+                hboxcl.hide()
+
+
+
+        comboboxe.connect(
+            'changed' , anonymous_105 
+        )
+
+    comboboxe.set_active_index( SETTING['ocr engine'] )
+
+    # Checkbox & SpinButton for threshold
+
+    hboxt = Gtk.HBox()
+    vbox.pack_start( hboxt, False, True, 0 )
+    cbto = Gtk.CheckButton.new_with_label( _('Threshold before OCR') )
+    cbto.set_tooltip_text(
+        _(
+                'Threshold the image before performing OCR. '
+              + 'This only affects the image passed to the OCR engine, and not the image stored.'
+        )
+    )
+    cbto.set_active( SETTING['threshold-before-ocr'] )
+    hboxt.pack_start( cbto, False, True, 0 )
+    labelp = Gtk.Label(PERCENT)
+    hboxt.pack_end( labelp, False, True, 0 )
+    spinbutton = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
+    spinbutton.set_value( SETTING['threshold tool'] )
+    spinbutton.set_sensitive( cbto.get_active() )
+    hboxt.pack_end( spinbutton, False, True, 0 )
+    def anonymous_106():
+        spinbutton.set_sensitive( cbto.get_active() )
+
+
+    cbto.connect(
+        'toggled' , anonymous_106 
+    )
+    return (
+        obutton,    comboboxe, hboxtl,  comboboxtl, hboxcl,
+        comboboxcl, tesslang, cflang, cbto,       spinbutton,
+    )
+
+
+def add_postprocessing_options(self) :
+    
+    scwin = Gtk.ScrolledWindow()
+    self.notebook       .append_page( scwin, Gtk.Label( _('Postprocessing') ) )
+    scwin.set_policy( 'automatic', 'automatic' )
+    vboxp = Gtk.VBox()
+    vboxp.set_border_width( self.style_get('content-area-border') )
+    scwin.add_with_viewport(vboxp)
+
+    # Rotate
+
+    ( rotate, side, side2, rbutton, r2button, comboboxr, comboboxr2 )       = add_postprocessing_rotate(vboxp)
+
+    # CheckButton for unpaper
+
+    hboxu = Gtk.HBox()
+    vboxp.pack_start( hboxu, False, False, 0 )
+    ubutton = Gtk.CheckButton( _('Clean up images') )
+    ubutton.set_tooltip_text( _('Clean up scanned images with unpaper') )
+    hboxu.pack_start( ubutton, True, True, 0 )
+    if not dependencies["unpaper"] :
+        ubutton.set_sensitive(False)
+        ubutton.set_active(False)
+ 
+    elif SETTING['unpaper on scan'] :
+        ubutton.set_active(True)
+
+    button = Gtk.Button( _('Options') )
+    button.set_tooltip_text( _('Set unpaper options') )
+    hboxu.pack_end( button, True, True, 0 )
+    def anonymous_107():
+        windowuo = Gscan2pdf.Dialog(
+                transient_for = window,
+                title           = _('unpaper options'),
+            )
+        unpaper.add_options( windowuo.get_content_area() )
+        def anonymous_108():
+
+                    # Update $SETTING
+
+            SETTING['unpaper options'] = unpaper.get_options()
+            windowuo.destroy()
+
+
+        def anonymous_109():
+            windowuo.destroy()
+
+        windowuo.add_actions(
+                'gtk-ok',
+                anonymous_108 ,
+                'gtk-cancel',
+                anonymous_109 
+            )
+        windowuo.show_all()
+
+
+    button.connect(        'clicked' , anonymous_107     )
+        # CheckButton for user-defined tool
+    udtbutton, self.comboboxudt = add_postprocessing_udt(vboxp)
+    (
+        obutton,    comboboxe, hboxtl, comboboxtl, hboxcl,
+        comboboxcl, tesslang,  cflang, tbutton,    tsb
+    ) = add_postprocessing_ocr(vboxp)
+    def anonymous_110():
+        SETTING['rotate facing']  = 0
+        SETTING['rotate reverse'] = 0
+        if rbutton.get_active() :
+            if rotate_side_cmbx.get_active_index() =='both'  :
+                SETTING['rotate facing']  = comboboxr.get_active_index()
+                SETTING['rotate reverse'] = SETTING['rotate facing']
+ 
+            elif rotate_side_cmbx.get_active_index() =='facing'  :
+                SETTING['rotate facing'] = comboboxr.get_active_index()
+ 
+            else :
+                SETTING['rotate reverse'] = comboboxr.get_active_index()
+
+            if r2button.get_active() :
+                if rotate_side_cmbx2.get_active_index()  =='facing' :
+                    SETTING['rotate facing'] =                           comboboxr2.get_active_index()
+ 
+                else :
+                    SETTING['rotate reverse'] =                           comboboxr2.get_active_index()
+
+
+
+        logger.info(f"rotate facing {SETTING}{'rotate facing'}")
+        logger.info(f"rotate reverse {SETTING}{'rotate reverse'}")
+        SETTING['unpaper on scan'] = ubutton.get_active()
+        logger.info(f"unpaper {SETTING}{'unpaper on scan'}")
+        SETTING["udt_on_scan"] = udtbutton.get_active()
+        SETTING["current_udt"] = self.comboboxudt.get_active_text()
+        logger.info(f"UDT {SETTING}{udt_on_scan}")
+        if  "current_udt"  in SETTING :
+            logger.info(f"Current UDT {SETTING}{current_udt}")
+
+        SETTING['OCR on scan'] = obutton.get_active()
+        logger.info(f"OCR {SETTING}{'OCR on scan'}")
+        if SETTING['OCR on scan'] :
+            SETTING['ocr engine'] =                   ocr_engine[ comboboxe.get_active() ][0]
+            if SETTING['ocr engine'] == 'tesseract' :
+                SETTING['ocr language'] = comboboxtl.get_active_index()
+
+            if SETTING['ocr engine'] == 'cuneiform' :
+                SETTING['ocr language'] = comboboxcl.get_active_index()
+
+            SETTING['threshold-before-ocr'] = tbutton.get_active()
+            logger.info(
+                    f"threshold-before-ocr {SETTING}{'threshold-before-ocr'}")
+            SETTING['threshold tool'] = tsb.get_value()
+
+
+
+    self.connect(
+        'clicked-scan-button' , anonymous_110 
+    )
+    def anonymous_111():
+        if  (hboxtl is not None)                and                not( ocr_engine[ comboboxe.get_active() ][0] == 'tesseract' )             :
+            hboxtl.hide()
+
+        if  (hboxcl is not None)                and                not( ocr_engine[ comboboxe.get_active() ][0] == 'cuneiform' )             :
+            hboxcl.hide()
+
+
+
+    self.connect(
+        'show' , anonymous_111 
+    )
+
+    #$self->{notebook}->get_nth_page(1)->show_all;
+
+    return
+
+
+
+def print_dialog() :
+    """print"""
+    os.chdir( SETTING["cwd"])
+    print_op = Gtk.PrintOperation()
+    if  (print_settings is not None) :
+        print_op.set_print_settings(print_settings)
+
+    def anonymous_112( op, context ):
+            
+        settings = op.get_print_settings()
+        pages    = settings.print_pages
+        page_list=[]
+        if pages == 'ranges' :
+            page_set = Set.IntSpan()
+            ranges   = settings.page_ranges
+            for _ in              re.split(r",",ranges)    :
+                page_set.I(_)
+
+            for _ in              range(len( slist["data"] )-1+1)    :
+                if page_set.member( slist["data"][_][0] ) :
+                    page_list.append(_)  
+
+
+ 
+        else :
+            page_list = [ range(len( slist["data"] )-1+1)   ]
+
+        op.set_n_pages( len(page_list)  )
+
+
+    print_op.connect(
+        'begin-print' , anonymous_112 
+    )
+    def anonymous_113( op, context, page_number ):
+            
+        page = slist["data"][page_number][2]
+        cr = context.get_cairo_context()
+
+            # Context dimensions
+
+        pwidth  = context.get_width()
+        pheight = context.get_height()
+
+            # Image dimensions
+            # quotes required to prevent File::Temp object being clobbered
+
+        pixbuf  = Gdk.Pixbuf.new_from_file(f"{page}->{filename}")
+        ratio   = page["xresolution"] / page["yresolution"]
+        iwidth  = pixbuf.get_width()
+        iheight = pixbuf.get_height()
+
+            # Scale context to fit image
+
+        scale = pwidth / iwidth * ratio
+        if pheight / iheight < scale :
+            scale = pheight / iheight
+        cr.scale( scale / ratio, scale )
+
+            # Set source pixbuf
+
+        Gdk.cairo_set_source_pixbuf( cr, pixbuf, 0, 0 )
+
+            # Paint
+
+        cr.paint()
+        return
+
+
+    print_op.connect       (   # FIXME: check print preview works for pages with ratios other than 1.
+        'draw-page' , anonymous_113 
+      )
+    res = print_op.run( 'print-dialog', window )
+    if res == 'apply' :
+        print_settings = print_op.get_print_settings()
+    os.chdir( session)
+
+
+def cut_selection() :
+    """Cut the selection"""
+    clipboard = slist.cut_selection()
+
+
+
+def copy_selection() :
+    """Copy the selection"""
+    clipboard = slist.copy_selection(True)
+
+
+
+def paste_selection() :
+    """Paste the selection"""
+    if   (clipboard is None) :
+        return
+    pages = slist.get_selected_indices()
+    if pages :
+        slist.paste_selection( clipboard, pages[-1], 'after', True )
+ 
+    else :
+        slist.paste_selection( clipboard, None, None, True )
+
+    return
+
+
+
+def delete_selection() :
+    """Delete the selected scans
+"""
+    # Update undo/redo buffers
+
+    take_snapshot()
+    slist.delete_selection_extra()
+
+    # Reset start page in scan dialog
+
+    if is_not_an_empty_hashref(windows) :
+        windows.reset_start_page()
+
+    return
+
+
+
+def select_all() :
+    """Select all scans
+"""
+    # if ($textview -> has_focus) {
+    #  my ($start, $end) = $textbuffer->get_bounds;
+    #  $textbuffer->select_range ($start, $end);
+    # }
+    # else {
+
+    slist.get_selection().select_all()
+
+    # }
+
+
+
+def select_odd_even(odd) :
+    """Select all odd(0) or even(1) scans"""    
+    selection=[]
+    for _ in      range(len( slist["data"] )-1+1)    :
+        if slist["data"][_][0] % 2 ^ odd :
+            selection.append(_)  
+
+    slist.get_selection().unselect_all()
+    slist.select(selection)
+
+
+
+def select_invert() :
+    """Invert selection"""
+    selection = slist.get_selected_indices()
+    inverted = []
+    for i in      range(len( slist.data ))    :
+        if i not in selection :
+            inverted.append(_)  
+    slist.get_selection().unselect_all()
+    slist.select(inverted)
+
+
+def select_modified_since_ocr() :
+    selection=[]
+    for  page in      range(len( slist["data"] )-1+1)    :
+        dirty_time = slist["data"][page][2]["dirty_time"]
+        ocr_flag   = slist["data"][page][2]["ocr_flag"]
+        ocr_time   = slist["data"][page][2]["ocr_time"]
+        dirty_time =   dirty_time if (dirty_time is not None)  else 0
+        ocr_time   =     ocr_time if (ocr_time is not None)    else 0
+        if ocr_flag and ( ocr_time <= dirty_time ) :
+            selection.append(_)  
+
+
+    slist.get_selection().unselect_all()
+    slist.select(selection)
+    return
+
+
+
+def select_no_ocr() :
+    """Select pages with no ocr output
+"""
+    selection=[]
+    for _ in      range(len( slist["data"] )-1+1)    :
+        if "text_layer" not   in slist["data"][_][2] :
+            selection.append(_)  
+
+
+    slist.get_selection().unselect_all()
+    slist.select(selection)
+    return
+
+
+
+def clear_ocr() :
+    """Clear the OCR output from selected pages
+"""
+    # Update undo/redo buffers
+
+    take_snapshot()
+
+    # Clear the existing canvas
+
+    canvas.clear_text()
+    selection = slist.get_selected_indices()
+    for _ in     selection :
+        del(slist["data"][_][2]["text_layer"]) 
+
+    slist.save_session()
+    return
+
+
+
+def analyse_select_blank() :
+    """Analyse and select blank pages
+"""
+    analyse( 1, 0 )
+    return
+
+
+
+def select_blank_pages() :
+    """Select blank pages
+"""
+    for  page in      range(len( slist["data"] )-1+1)    :
+
+        #compare Std Dev to threshold
+
+        if slist["data"][page][2]["std_dev"] <= SETTING['Blank threshold']         :
+            slist.select(page)
+            logger.info('Selecting blank page')
+ 
+        else :
+            slist.unselect(page)
+            logger.info('Unselecting non-blank page')
+
+        logger.info( 'StdDev: '
+              + slist["data"][page][2]["std_dev"]
+              + ' threshold: '
+              + SETTING['Blank threshold'] )
+
+    return
+
+
+
+def analyse_select_dark() :
+    """Analyse and select dark pages
+"""
+    analyse( 0, 1 )
+    return
+
+
+
+def select_dark_pages() :
+    """Select dark pages
+"""
+    for  page in      range(len( slist["data"] )-1+1)    :
+
+        #compare Mean to threshold
+
+        if slist["data"][page][2]["mean"] <= SETTING['Dark threshold'] :
+            slist.select(page)
+            logger.info('Selecting dark page')
+ 
+        else :
+            slist.unselect(page)
+            logger.info('Unselecting non-dark page')
+
+        logger.info( 'mean: '
+              + slist["data"][page][2]["mean"]
+              + ' threshold: '
+              + SETTING['Dark threshold'] )
+
+    return
+
+
+
+def about() :
+    """Display about dialog
+"""    
+    about = Gtk.AboutDialog()
+
+    # Gtk3::AboutDialog->set_url_hook ($func, $data=undef);
+    # Gtk3::AboutDialog->set_email_hook ($func, $data=undef);
+
+    about.set_program_name(prog_name)
+    about.set_version(VERSION)
+    authors = [
+    'Frederik Elwert',         'Klaus Ethgen',         'Andy Fingerhut',         'Leon Fisk',         'John Goerzen',         'Alistair Grant',         'David Hampton',         'Sascha Hunold',         'Jason Kankiewicz',         'Matthijs Kooijman',         'Peter Marschall',         'Chris Mayo',         'Hiroshi Miura',         'Petr Písař',         'Pablo Saratxaga',         'Torsten Schönfeld',         'Roy Shahbazian',         'Jarl Stefansson',         'Wikinaut',         'Jakub Wilk',         'Sean Dreilinger',
+    ]
+    about.set_authors(
+    [
+    'Jeff Ratcliffe'] )
+    about.add_credit_section( 'Patches gratefully received from', authors )
+    about.set_comments( _('To aid the scan-to-PDF process') )
+    about.set_copyright( _('Copyright 2006--2022 Jeffrey Ratcliffe') )
+    licence = """gscan2pdf --- to aid the scan to PDF or DjVu process
+Copyright 2006 -- 2022 Jeffrey Ratcliffe <jffry@posteo.net>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the version 3 GNU General Public License as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+    about.set_license(licence)
+    about.set_website('http://gscan2pdf.sf.net')
+    translators =       """Yuri Chornoivan
+Davidmp
+Whistle
+Dušan Kazik
+Cédric VALMARY (Tot en òc)
+Eric Spierings
+Milo Casagrande
+Raúl González Duque
+R120X
+NSV
+Alexandre Prokoudine
+Aputsiaĸ Niels Janussen
+Paul Wohlhart
+Pierre Slamich
+Tiago Silva
+Igor Zubarev
+Jarosław Ogrodnik
+liorda
+Clopy
+Daniel Nylander
+csola
+dopais
+Po-Hsu Lin
+Tobias Bannert
+Ettore Atalan
+Eric Brandwein
+Mikhail Novosyolov
+rodroes
+morodan
+Hugues Drolet
+Martin Butter
+Albano Battistella
+Olesya Gerasimenko
+Pavel Borecki
+Stephan Woidowski
+Jonatan Nyberg
+Berov
+Utku BERBEROĞLU
+Arthur Rodrigues
+Matthias Sprau
+Buckethead
+Eugen Artus
+Quentin PAGÈS
+Alexandre NICOLADIE
+Aleksandr Proklov
+Silvio Brera
+papoteur
+""" # inverted commas required around EOS because of UTF-8 in $translators
+    about.set_translator_credits(translators)
+    about.set_artists(
+    [
+    'lodp, Andreas E.'] )
+    about.set_logo(
+        Gdk.Pixbuf.new_from_file(f"{iconpath}/gscan2pdf.svg") )
+    about.set_transient_for(window)
+    about.run()
+    about.destroy()
+    return
+
+
+
+def renumber_dialog() :
+    """Dialog for renumber
+"""
+    if  (windowrn is not None) :
+        windowrn.present()
+        return
+
+    windowrn = Gscan2pdf.Dialog.Renumber(
+        transient_for  = window,
+        document         = slist,
+        logger           = logger,
+        hide_on_delete = False,
+    )
+
+    def anonymous_114():
+        """    # Update undo/redo buffers
+"""
+        take_snapshot()
+
+
+    windowrn.connect(
+        'before-renumber' , anonymous_114 
+    )
+    def anonymous_115(msg):
+            
+        show_message_dialog(
+                parent  = windowrn,
+                type    = 'error',
+                buttons = 'close',
+                text    = msg
+            )
+
+
+    windowrn.connect(
+        'error' , anonymous_115 
+    )
+    windowrn.show_all()
+    return
+
+
+
+def indices2pages(indices) :
+    """Helper function to convert an array of indices into an array of Gscan2pdf::Page objects
+"""    
+    pages=[]
+    for _ in     indices :
+        pages.append(slist["data"][_][2]["uuid"])  
+
+    return pages
+
+
+
+def rotate( angle, pagelist, callback ) :
+    """Rotate selected images
+"""    
+
+    # Update undo/redo buffers
+
+    take_snapshot()
+    for  page in      pagelist  :
+        ( signal, pid )=(None,None)
+        def anonymous_116(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_117( thread, process, completed, total ):
+                
+            signal =                   setup_tpbar( thread, process, completed, total, pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_118( new_page, pending ):
+                
+            if callback      :
+                callback(new_page)
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+            slist.save_session()
+
+
+        def anonymous_119(new_page):
+                
+            display_image(new_page)
+
+
+        pid = slist.rotate(
+            angle           = angle,
+            page            = page,
+            queued_callback = anonymous_116 ,
+            started_callback = anonymous_117 ,
+            finished_callback = anonymous_118 ,
+            error_callback   = error_callback,
+            display_callback = anonymous_119 ,
+        )
+
+    return
+
+
+
+def analyse( select_blank, select_dark ) :
+    """Analyse selected images
+"""    
+
+    # Update undo/redo buffers
+
+    take_snapshot()
+    pages_to_analyse=[]
+    for  i in      range(len( slist["data"] )-1+1)    :
+        dirty_time   = slist["data"][i][2]["dirty_time"]
+        analyse_time = slist["data"][i][2]["analyse_time"]
+        dirty_time   =     dirty_time if (dirty_time is not None)    else 0
+        analyse_time =   analyse_time if (analyse_time is not None)  else 0
+        if analyse_time <= dirty_time :
+            logger.info(
+f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {dirty_time}"
+            )
+            pages_to_analyse.append(slist["data"][i][2]["uuid"])  
+
+
+    if len(pages_to_analyse) > 0 :
+        ( signal, pid )=(None,None)
+        def anonymous_120(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_121( thread, process, completed, total ):
+                
+            signal =                   setup_tpbar( thread, process, completed, total, pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_122(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_123( new_page, pending ):
+                
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+            if select_blank :
+                select_blank_pages()
+            if select_dark  :
+                select_dark_pages()
+            slist.save_session()
+
+
+        pid = slist.analyse(
+            list_of_pages   = pages_to_analyse,
+            queued_callback = anonymous_120 ,
+            started_callback = anonymous_121 ,
+            running_callback = anonymous_122 ,
+            finished_callback = anonymous_123 ,
+            error_callback = error_callback,
+        )
+ 
+    else :
+        if select_blank :
+            select_blank_pages()
+        if select_dark  :
+            select_dark_pages()
+
+    return
+
+
+
+def handle_clicks( widget, event ) :
+    """Handle right-clicks
+"""    
+    if event.button() == RIGHT_MOUSE_BUTTON :
+        if issubclass(widget,ImageView) :    # main image
+            uimanager.get_widget('/Detail_Popup')               .popup_at_pointer( event )
+ 
+        else :                                      # Thumbnail simplelist
+            SETTING['Page range'] = 'selected'
+            uimanager.get_widget('/Thumb_Popup')               .popup_at_pointer( event )
+
+
+        # block event propagation
+
+        return True
+
+
+    # allow event propagation
+
+    return False
+
+
+
+def threshold() :
+    """Display page selector and on apply threshold accordingly
+"""
+    windowt = Gscan2pdf.Dialog(
+        transient_for = window,
+        title           = _('Threshold'),
+    )
+
+    # Frame for page range
+
+    windowt.add_page_range()
+
+    # SpinButton for threshold
+
+    hboxt = Gtk.HBox()
+    vbox  = windowt.get_content_area()
+    vbox.pack_start( hboxt, False, True, 0 )
+    label = Gtk.Label( _('Threshold') )
+    hboxt.pack_start( label, False, True, 0 )
+    labelp = Gtk.Label(PERCENT)
+    hboxt.pack_end( labelp, False, True, 0 )
+    spinbutton = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
+    spinbutton.set_value( SETTING['threshold tool'] )
+    hboxt.pack_end( spinbutton, False, True, 0 )
+
+    def anonymous_124():
+        """    # HBox for buttons
+"""
+            # Update undo/redo buffers
+
+        take_snapshot()
+        SETTING['threshold tool'] = spinbutton.get_value()
+        SETTING['Page range']     = windowt.page_range
+        pagelist =               slist.get_page_index( SETTING['Page range'],
+                error_callback )
+        if not pagelist :
+            return
+        page = 0
+        for  i in         pagelist :
+            page+=1
+            ( signal, pid )=(None,None)
+            def anonymous_125(*argv):
+                return update_tpbar(*argv)
+
+
+            def anonymous_126( thread, process, completed, total ):
+                        
+                signal =                           setup_tpbar( thread, process, completed, total,
+                            pid )
+                if (  (signal is not None) ):
+                    return True  
+
+
+            def anonymous_127( new_page, pending ):
+                        
+                if not pending :
+                    thbox.hide()
+                if  (signal is not None) :
+                    tcbutton.disconnect(signal)
+
+                slist.save_session()
+
+
+            def anonymous_128(new_page):
+                        
+                display_image(new_page)
+
+
+            pid = slist.threshold(
+                    threshold       = SETTING['threshold tool'],
+                    page            = slist["data"][i][2]["uuid"],
+                    queued_callback = anonymous_125 ,
+                    started_callback = anonymous_126 ,
+                    finished_callback = anonymous_127 ,
+                    error_callback   = error_callback,
+                    display_callback = anonymous_128 ,
+                )
+
+
+
+    def anonymous_129():
+        windowt.destroy()
+
+    windowt.add_actions(
+        'gtk-apply',
+        anonymous_124 ,
+        'gtk-cancel',
+        anonymous_129 
+    )
+    windowt.show_all()
+    return
+
+
+
+def brightness_contrast() :
+    """Display page selector and on apply brightness & contrast accordingly
+"""
+    windowt = Gscan2pdf.Dialog(
+        transient_for = window,
+        title           = _('Brightness / Contrast'),
+    )
+    ( hbox, label )=(None,None)
+
+    # Frame for page range
+
+    windowt.add_page_range()
+
+    # SpinButton for brightness
+
+    hbox = Gtk.HBox()
+    vbox = windowt.get_content_area()
+    vbox.pack_start( hbox, False, True, 0 )
+    label = Gtk.Label( _('Brightness') )
+    hbox.pack_start( label, False, True, 0 )
+    label = Gtk.Label(PERCENT)
+    hbox.pack_end( label, False, True, 0 )
+    spinbuttonb = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
+    spinbuttonb.set_value( SETTING['brightness tool'] )
+    hbox.pack_end( spinbuttonb, False, True, 0 )
+
+    # SpinButton for contrast
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, False, True, 0 )
+    label = Gtk.Label( _('Contrast') )
+    hbox.pack_start( label, False, True, 0 )
+    label = Gtk.Label(PERCENT)
+    hbox.pack_end( label, False, True, 0 )
+    spinbuttonc = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
+    spinbuttonc.set_value( SETTING['contrast tool'] )
+    hbox.pack_end( spinbuttonc, False, True, 0 )
+
+    def anonymous_130():
+        """    # HBox for buttons
+"""
+            # Update undo/redo buffers
+
+        take_snapshot()
+        SETTING['brightness tool'] = spinbuttonb.get_value()
+        SETTING['contrast tool']   = spinbuttonc.get_value()
+        SETTING['Page range']      = windowt.page_range
+        pagelist =               slist.get_page_index( SETTING['Page range'],
+                error_callback )
+        if not pagelist :
+            return
+        for  i in         pagelist :
+            ( signal, pid )=(None,None)
+            def anonymous_131(*argv):
+                return update_tpbar(*argv)
+
+
+            def anonymous_132( thread, process, completed, total ):
+                        
+                signal =                           setup_tpbar( thread, process, completed, total,
+                            pid )
+                if (  (signal is not None) ):
+                    return True  
+
+
+            def anonymous_133( new_page, pending ):
+                        
+                if not pending :
+                    thbox.hide()
+                if  (signal is not None) :
+                    tcbutton.disconnect(signal)
+
+                slist.save_session()
+
+
+            def anonymous_134(new_page):
+                        
+                display_image(new_page)
+
+
+            pid = slist.brightness_contrast(
+                    brightness      = SETTING['brightness tool'],
+                    contrast        = SETTING['contrast tool'],
+                    page            = slist["data"][i][2]["uuid"],
+                    queued_callback = anonymous_131 ,
+                    started_callback = anonymous_132 ,
+                    finished_callback = anonymous_133 ,
+                    error_callback   = error_callback,
+                    display_callback = anonymous_134 ,
+                )
+
+
+
+    def anonymous_135():
+        windowt.destroy()
+
+    windowt.add_actions(
+        'gtk-apply',
+        anonymous_130 ,
+        'gtk-cancel',
+        anonymous_135 
+    )
+    windowt.show_all()
+    return
+
+
+
+def negate() :
+    """Display page selector and on apply negate accordingly
+"""
+    windowt = Gscan2pdf.Dialog(
+        transient_for = window,
+        title           = _('Negate'),
+    )
+
+    # Frame for page range
+
+    windowt.add_page_range()
+
+    def anonymous_136():
+        """    # HBox for buttons
+"""
+            # Update undo/redo buffers
+
+        take_snapshot()
+        SETTING['Page range'] = windowt.page_range
+        pagelist =               slist.get_page_index( SETTING['Page range'],
+                error_callback )
+        if not pagelist :
+            return
+        for  i in         pagelist :
+            ( signal, pid )=(None,None)
+            def anonymous_137(*argv):
+                return update_tpbar(*argv)
+
+
+            def anonymous_138( thread, process, completed, total ):
+                        
+                signal =                           setup_tpbar( thread, process, completed, total,
+                            pid )
+                if (  (signal is not None) ):
+                    return True  
+
+
+            def anonymous_139( new_page, pending ):
+                        
+                if not pending :
+                    thbox.hide()
+                if  (signal is not None) :
+                    tcbutton.disconnect(signal)
+
+                slist.save_session()
+
+
+            def anonymous_140(new_page):
+                        
+                display_image(new_page)
+
+
+            pid = slist.negate(
+                    page            = slist["data"][i][2]["uuid"],
+                    queued_callback = anonymous_137 ,
+                    started_callback = anonymous_138 ,
+                    finished_callback = anonymous_139 ,
+                    error_callback   = error_callback,
+                    display_callback = anonymous_140 ,
+                )
+
+
+
+    def anonymous_141():
+        windowt.destroy()
+
+    windowt.add_actions(
+        'gtk-apply',
+        anonymous_136 ,
+        'gtk-cancel',
+        anonymous_141 
+    )
+    windowt.show_all()
+    return
+
+
+
+def unsharp() :
+    """Display page selector and on apply unsharp accordingly
+"""
+    windowum = Gscan2pdf.Dialog(
+        transient_for = window,
+        title           = _('Unsharp mask'),
+    )
+
+    # Frame for page range
+
+    windowum.add_page_range()
+    spinbuttonr = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
+    spinbuttons =       Gtk.SpinButton.new_with_range( 0, MAX_SIGMA, SIGMA_STEP )
+    spinbuttong = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
+    spinbuttont =       Gtk.SpinButton.new_with_range( 0, 1, UNIT_SLIDER_STEP )
+    layout = [
+    [
+    _('Radius'),             spinbuttonr,             _('pixels'),             SETTING['unsharp radius'],             _(
+'The radius of the Gaussian, in pixels, not counting the center pixel (0 = automatic).'
+            ),
+        ],         [
+    _('Sigma'), spinbuttons, _('pixels'),             SETTING['unsharp sigma'],             _('The standard deviation of the Gaussian.'),
+        ],         [
+    _('Gain'),             spinbuttong,             PERCENT,             SETTING['unsharp gain'],             _(
+'The percentage of the difference between the original and the blur image that is added back into the original.'
+            ),
+        ],         [
+    _('Threshold'),             spinbuttont,             None,             SETTING['unsharp threshold'],             _(
+'The threshold, as a fraction of QuantumRange, needed to apply the difference amount.'
+            ),
+        ],
+    ]
+
+    # grid for layout
+    grid = Gtk.Grid()
+    vbox = windowum.get_content_area()
+    vbox.pack_start( grid, True, True, 0 )
+    for  row in      range(len(layout)-1+1)    :
+        col   = 0
+        hbox  = Gtk.HBox()
+        label = Gtk.Label( layout[row][col] )
+        grid.attach( hbox, col, row, 1, 1)
+        col+=1 
+        hbox.pack_start( label, False, True, 0 )
+        hbox = Gtk.HBox()
+        hbox.pack_end( layout[row][col], True, True, 0 )
+        grid.attach( hbox, col, row, 1, 1 )
+        col+=1 
+        if    col    in layout[row] :
+            hbox = Gtk.HBox()
+            grid.attach( hbox, col, row, 1, 1 )
+            label = Gtk.Label( layout[row][col] )
+            hbox.pack_start( label, False, True, 0 )
+
+        col+=1 
+        if    col    in layout[row] :
+            layout[row][1].set_value( layout[row][col] )
+
+        col+=1 
+        layout[row][1].set_tooltip_text( layout[row][ col ] )
+
+
+    def anonymous_142():
+        """    # HBox for buttons
+"""
+            # Update undo/redo buffers
+
+        take_snapshot()
+        SETTING['unsharp radius']    = spinbuttonr.get_value()
+        SETTING['unsharp sigma']     = spinbuttons.get_value()
+        SETTING['unsharp gain']      = spinbuttong.get_value()
+        SETTING['unsharp threshold'] = spinbuttont.get_value()
+        SETTING['Page range']        = windowum.page_range
+        pagelist =               slist.get_page_index( SETTING['Page range'],
+                error_callback )
+        if not pagelist :
+            return
+        for  i in         pagelist :
+            ( signal, pid )=(None,None)
+            def anonymous_143(*argv):
+                return update_tpbar(*argv)
+
+
+            def anonymous_144( thread, process, completed, total ):
+                        
+                signal =                           setup_tpbar( thread, process, completed, total,
+                            pid )
+                if (  (signal is not None) ):
+                    return True  
+
+
+            def anonymous_145( new_page, pending ):
+                        
+                if not pending :
+                    thbox.hide()
+                if  (signal is not None) :
+                    tcbutton.disconnect(signal)
+
+                slist.save_session()
+
+
+            def anonymous_146(new_page):
+                        
+                display_image(new_page)
+
+
+            pid = slist.unsharp(
+                    page            = slist["data"][i][2]["uuid"],
+                    radius          = SETTING['unsharp radius'],
+                    sigma           = SETTING['unsharp sigma'],
+                    gain            = SETTING['unsharp gain'],
+                    threshold       = SETTING['unsharp threshold'],
+                    queued_callback = anonymous_143 ,
+                    started_callback = anonymous_144 ,
+                    finished_callback = anonymous_145 ,
+                    error_callback   = error_callback,
+                    display_callback = anonymous_146 ,
+                )
+
+
+
+    def anonymous_147():
+        windowum.destroy()
+
+    windowum.add_actions(
+        'gtk-apply',
+        anonymous_142 ,
+        'gtk-cancel',
+        anonymous_147 
+    )
+    windowum.show_all()
+    return
+
+
+
+def change_image_tool_cb( action, current ) :
+    """Callback for tool-changed signal Gtk3::ImageView
+"""    
+    value = current.get_current_value()
+    tool = 'selector'
+    if value == DRAGGER_TOOL :
+        tool = 'dragger'
+ 
+    elif value == SELECTORDRAGGER_TOOL :
+        tool = Gtk.ImageView.Tool.SelectorDragger(view)
+
+    view.set_tool(tool)
+    if value == SELECTOR_TOOL        or value == SELECTORDRAGGER_TOOL and  "selection"  in SETTING     :
+        view.handler_block( view["selection_changed_signal"] )
+        view.set_selection( SETTING["selection"] )
+        view.handler_unblock( view["selection_changed_signal"] )
+
+    SETTING["image_control_tool"] = value
+    return
+
+
+
+def change_view_cb( action, current ) :
+    """Callback to switch between tabbed and split views
+"""    
+
+    # $SETTING{viewer_tools} still has old value
+
+    if SETTING["viewer_tools"] == TABBED_VIEW :
+        vpaned.remove(vnotebook)
+        vnotebook.remove(view)
+        vnotebook.remove(canvas)
+ 
+    elif SETTING["viewer_tools"] == SPLIT_VIEW_H :
+        vpaned.remove(hpanei)
+        hpanei.remove(view)
+        hpanei.remove(canvas)
+ 
+    else :    # $SPLIT_VIEW_V
+        vpaned.remove(vpanei)
+        vpanei.remove(view)
+        vpanei.remove(canvas)
+        vpanei.remove(a_canvas)
+
+
+    # Update $SETTING{viewer_tools}
+
+    SETTING["viewer_tools"] = current.get_current_value()
+    pack_viewer_tools()
+    return
+
+
+
+def crop_dialog(action) :
+    """Display page selector and on apply crop accordingly
+"""    
+    if  (windowc is not None) :
+        windowc.present()
+        return
+
+    windowc = Gscan2pdf.Dialog(
+        transient_for  = window,
+        title            = _('Crop'),
+        hide_on_delete = True,
+    )
+
+    # Frame for page range
+
+    windowc.add_page_range()
+    ( width, height ) = current_page.get_size()
+    sb_selector_x = Gtk.SpinButton.new_with_range( 0, width,  1 )
+    sb_selector_y = Gtk.SpinButton.new_with_range( 0, height, 1 )
+    sb_selector_w = Gtk.SpinButton.new_with_range( 0, width,  1 )
+    sb_selector_h = Gtk.SpinButton.new_with_range( 0, height, 1 )
+    layout = [
+    [
+    _('x'),             sb_selector_x,             _('The x-position of the left hand edge of the crop.'),
+        ],         [
+    _('y'), sb_selector_y,             _('The y-position of the top edge of the crop.'),
+        ],         [
+    _('Width'),  sb_selector_w, _('The width of the crop.'), ],         [
+    _('Height'), sb_selector_h, _('The height of the crop.'), ],
+    ]
+
+    # grid for layout
+    grid = Gtk.Grid()
+    vbox = windowc.get_content_area()
+    vbox.pack_start( grid, True, True, 0 )
+    for  row in      range(len(layout)-1+1)    :
+        col   = 0
+        hbox  = Gtk.HBox()
+        label = Gtk.Label( layout[row][col] )
+        col+=1
+        grid.attach( hbox, col, row, 1, 1 )
+        hbox.pack_start( label, False, True, 0 )
+        hbox = Gtk.HBox()
+        hbox.pack_end( layout[row][col], True, True, 0 )
+        grid.attach( hbox, col, row, 1, 1 )
+        hbox = Gtk.HBox()
+        col+=1
+        grid.attach( hbox, col, row, 1, 1 )
+        label = Gtk.Label( _('pixels') )
+        hbox.pack_start( label, False, True, 0 )
+        layout[row][1].set_tooltip_text( layout[row][col] )
+
+
+    def anonymous_148():
+        """    # Callbacks if the spinbuttons change
+"""
+        SETTING["selection"]["x"] = sb_selector_x.get_value()
+        sb_selector_w.set_range( 0, width - SETTING["selection"]["x"] )
+        update_selector()
+
+
+    sb_selector_x.connect(
+        'value-changed' , anonymous_148 
+    )
+    def anonymous_149():
+        SETTING["selection"]["y"] = sb_selector_y.get_value()
+        sb_selector_h.set_range( 0, height - SETTING["selection"]["y"] )
+        update_selector()
+
+
+    sb_selector_y.connect(
+        'value-changed' , anonymous_149 
+    )
+    def anonymous_150():
+        SETTING["selection"]["width"] = sb_selector_w.get_value()
+        sb_selector_x.set_range( 0, width - SETTING["selection"]["width"] )
+        update_selector()
+
+
+    sb_selector_w.connect(
+        'value-changed' , anonymous_150 
+    )
+    def anonymous_151():
+        SETTING["selection"]["height"] = sb_selector_h.get_value()
+        sb_selector_y.set_range( 0,
+                height - SETTING["selection"]["height"] )
+        update_selector()
+
+
+    sb_selector_h.connect(
+        'value-changed' , anonymous_151 
+    )
+    if  "x"  in SETTING["selection"] :
+        sb_selector_x.set_value( SETTING["selection"]["x"] )
+
+    if  "y"  in SETTING["selection"] :
+        sb_selector_y.set_value( SETTING["selection"]["y"] )
+
+    if  "width"  in SETTING["selection"] :
+        sb_selector_w.set_value( SETTING["selection"]["width"] )
+
+    if  "height"  in SETTING["selection"] :
+        sb_selector_h.set_value( SETTING["selection"]["height"] )
+
+    def anonymous_152():
+        SETTING['Page range'] = windowc.page_range
+        crop_selection(
+                action,
+                slist.get_page_index(
+                    SETTING['Page range'], error_callback
+                )
+            )
+
+
+    def anonymous_153():
+        windowc.hide()
+
+    windowc.add_actions(
+        'gtk-apply',
+        anonymous_152 ,
+        'gtk-cancel',
+        anonymous_153 
+    )
+    windowc.show_all()
+    return
+
+
+def update_selector() :
+    sel = view.get_selection()
+    view.handler_block( view["selection_changed_signal"] )
+    if  (sel is not None) :
+        view.set_selection( SETTING["selection"] )
+
+    view.handler_unblock( view["selection_changed_signal"] )
+    return
+
+
+def crop_selection( action, pagelist ) :
+    
+    if not SETTING["selection"] :
+        return
+
+    # Update undo/redo buffers
+
+    take_snapshot()
+    if not pagelist or 0 not   in pagelist :
+        pagelist = slist.get_selected_indices()
+
+    if not pagelist :
+        return
+    for  i in     pagelist :
+        ( signal, pid )=(None,None)
+        def anonymous_154(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_155( thread, process, completed, total ):
+                
+            signal =                   setup_tpbar( thread, process, completed, total, pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_156( new_page, pending ):
+                
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+            slist.save_session()
+
+
+        def anonymous_157(new_page):
+                
+            display_image(new_page)
+
+
+        pid = slist.crop(
+            page            = slist["data"][i][2]["uuid"],
+            x               = SETTING["selection"]["x"],
+            y               = SETTING["selection"]["y"],
+            w               = SETTING["selection"]["width"],
+            h               = SETTING["selection"]["height"],
+            queued_callback = anonymous_154 ,
+            started_callback = anonymous_155 ,
+            finished_callback = anonymous_156 ,
+            error_callback   = error_callback,
+            display_callback = anonymous_157 ,
+        )
+
+    return
+
+
+
+def split_dialog(action) :
+    """Display page selector and on apply crop accordingly
+"""    
+
+    # Until we have a separate tool for the divider, kill the whole
+    #        sub { $windowsp->hide }
+    #    if ( defined $windowsp ) {
+    #        $windowsp->present;
+    #        return;
+    #    }
+
+    windowsp = Gscan2pdf.Dialog(
+        transient_for  = window,
+        title            = _('Split'),
+        hide_on_delete = True,
+    )
+
+    # Frame for page range
+
+    windowsp.add_page_range()
+    hbox = Gtk.HBox()
+    vbox = windowsp.get_content_area()
+    vbox.pack_start( hbox, False, False, 0 )
+    label = Gtk.Label( _('Direction') )
+    hbox.pack_start( label, False, True, 0 )
+    direction = [
+    [
+    'v', _('Vertically'),             _('Split the page vertically into left and right pages.')
+        ],         [
+    'h', _('Horizontally'),             _('Split the page horizontally into top and bottom pages.')
+        ],
+    ]
+    combob = Gscan2pdf.ComboBoxText.new_from_array(direction)
+    ( width, height ) = current_page.get_size()
+    sb_pos = Gtk.SpinButton.new_with_range( 0, width, 1 )
+    def anonymous_158():
+        if direction[ combob.get_active() ][0] == 'v' :
+            sb_pos.set_range( 0, width )
+ 
+        else :
+            sb_pos.set_range( 0, height )
+
+        update_view_position( direction[ combob.get_active() ][0],
+                sb_pos.get_value(), width, height )
+
+
+    combob.connect(
+        'changed' , anonymous_158 
+    )
+    combob.set_active_index('v')
+    hbox.pack_end( combob, False, True, 0 )
+
+    # SpinButton for position
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, False, True, 0 )
+    label = Gtk.Label( _('Position') )
+    hbox.pack_start( label, False, True, 0 )
+    hbox.pack_end( sb_pos, False, True, 0 )
+
+    def anonymous_159():
+        """    # Callback if the spinbutton changes
+"""
+        update_view_position( direction[ combob.get_active() ][0],
+                sb_pos.get_value(), width, height )
+
+
+    sb_pos.connect(
+        'value-changed' , anonymous_159 
+    )
+    sb_pos.set_value( width / 2 )
+
+    def anonymous_160( widget, sel ):
+        """    # Callback if the selection changes
+"""            
+        if  (sel is not None) :
+            if direction[ combob.get_active() ][0] == 'v' :
+                sb_pos.set_value( sel["x"] + sel["width"] )
+ 
+            else :
+                sb_pos.set_value( sel["y"] + sel["height"] )
+
+
+
+
+    view["position_changed_signal"] = view.connect(
+        'selection-changed' , anonymous_160 
+    )
+    def anonymous_161():
+
+            # Update undo/redo buffers
+
+        take_snapshot()
+        SETTING['split-direction'] =               direction[ combob.get_active() ][0]
+        SETTING['split-position'] = sb_pos.get_value()
+        SETTING['Page range'] = windowsp.page_range
+        pagelist =               slist.get_page_index( SETTING['Page range'],
+                error_callback )
+        if not pagelist :
+            return
+        page = 0
+        for  i in         pagelist :
+            page+=1
+            ( signal, pid )=(None,None)
+            def anonymous_162(*argv):
+                return update_tpbar(*argv)
+
+
+            def anonymous_163( thread, process, completed, total ):
+                        
+                signal =                           setup_tpbar( thread, process, completed, total,
+                            pid )
+                if (  (signal is not None) ):
+                    return True  
+
+
+            def anonymous_164( new_page, pending ):
+                        
+                if not pending :
+                    thbox.hide()
+                if  (signal is not None) :
+                    tcbutton.disconnect(signal)
+
+                slist.save_session()
+
+
+            def anonymous_165(new_page):
+                        
+                display_image(new_page)
+
+
+            pid = slist.split_page(
+                    direction       = SETTING['split-direction'],
+                    position        = SETTING['split-position'],
+                    page            = slist["data"][i][2]["uuid"],
+                    queued_callback = anonymous_162 ,
+                    started_callback = anonymous_163 ,
+                    finished_callback = anonymous_164 ,
+                    error_callback   = error_callback,
+                    display_callback = anonymous_165 ,
+                )
+
+
+
+    def anonymous_166():
+        view.disconnect(
+                view["position_changed_signal"] )
+        windowsp.destroy()
+
+
+    windowsp.add_actions(
+        'gtk-apply',
+        anonymous_161 ,
+        'gtk-cancel',
+
+        # Until we have a separate tool for the divider, kill the whole
+        #        sub { $windowsp->hide }
+        anonymous_166 
+    )
+    windowsp.show_all()
+    return
+
+
+def update_view_position( direction, position, width, height ) :
+    
+    selection = { "x" : 0, "y" : 0 }
+    if direction == 'v' :
+        selection["width"]  = position
+        selection["height"] = height
+ 
+    else :
+        selection["width"]  = width
+        selection["height"] = position
+
+    view.set_selection( selection )
+    return
+
+
+def user_defined_dialog() :
+    if  (windowudt is not None) :
+        windowudt.present()
+        return
+
+    windowudt = Gscan2pdf.Dialog(
+        transient_for  = window,
+        title            = _('User-defined tools'),
+        hide_on_delete = True,
+    )
+
+    # Frame for page range
+
+    windowudt.add_page_range()
+    hbox = Gtk.HBox()
+    vbox = windowudt.get_content_area()
+    vbox.pack_start( hbox, False, False, 0 )
+    label = Gtk.Label( _('Selected tool') )
+    hbox.pack_start( label, False, True, 0 )
+    comboboxudt = add_udt_combobox(hbox)
+    def anonymous_167():
+        SETTING['Page range'] = windowudt.page_range
+        pagelist = indices2pages(
+                slist.get_page_index(
+                    SETTING['Page range'], error_callback
+                )
+            )
+        if not pagelist :
+            return
+        SETTING["current_udt"] = comboboxudt.get_active_text()
+        user_defined_tool( pagelist, SETTING["current_udt"] )
+        windowudt.hide()
+
+
+    def anonymous_168():
+        windowudt.hide()
+
+    windowudt.add_actions(
+        'gtk-ok',
+        anonymous_167 ,
+        'gtk-cancel',
+        anonymous_168 
+    )
+    windowudt.show_all()
+    return
+
+
+
+def user_defined_tool( pages, cmd ) :
+    """Run a user-defined tool on the selected images
+"""    
+
+    # Update undo/redo buffers
+
+    take_snapshot()
+    for  page in      pages  :
+        ( signal, pid )=(None,None)
+        def anonymous_169(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_170( thread, process, completed, total ):
+                
+            signal =                   setup_tpbar( thread, process, completed, total, pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_171( new_page, pending ):
+                
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+            slist.save_session()
+
+
+        def anonymous_172(new_page):
+                
+            display_image(new_page)
+
+
+        pid = slist.user_defined(
+            page            = page,
+            command         = cmd,
+            queued_callback = anonymous_169 ,
+            started_callback = anonymous_170 ,
+            finished_callback = anonymous_171 ,
+            error_callback   = error_callback,
+            display_callback = anonymous_172 ,
+        )
+
+    return
+
+
+
+def unpaper_page( pages, options, callback ) :
+    """queue $page to be processed by unpaper
+"""    
+    if   (options is None) :
+        options = EMPTY
+
+    # Update undo/redo buffers
+
+    take_snapshot()
+    for  pageobject in      pages  :
+        ( signal, pid )=(None,None)
+        def anonymous_173(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_174( thread, process, completed, total ):
+                
+            signal =                   setup_tpbar( thread, process, completed, total, pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_175( new_page, pending ):
+                
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+            slist.save_session()
+
+
+        def anonymous_176(new_page):
+                
+            display_image(new_page)
+            if callback :
+                callback(new_page)
+
+
+        pid = slist.unpaper(
+            page            = pageobject,
+            options         = options,
+            queued_callback = anonymous_173 ,
+            started_callback = anonymous_174 ,
+            finished_callback = anonymous_175 ,
+            error_callback   = error_callback,
+            display_callback = anonymous_176 ,
+        )
+
+    return
+
+
+
+def unpaper() :
+    """Run unpaper to clean up scan.
+"""
+    if  (windowu is not None) :
+        windowu.present()
+        return
+
+    windowu = Gscan2pdf.Dialog(
+        transient_for  = window,
+        title            = _('unpaper'),
+        hide_on_delete = True,
+    )
+
+    # Frame for page range
+
+    windowu.add_page_range()
+
+    # add unpaper options
+
+    vbox = windowu.get_content_area()
+    unpaper.add_options(vbox)
+    def anonymous_177():
+
+            # Update $SETTING
+
+        SETTING['unpaper options'] = unpaper.get_options()
+        SETTING['Page range']      = windowu.page_range
+
+            # run unpaper
+
+        pagelist = indices2pages(
+                slist.get_page_index(
+                    SETTING['Page range'], error_callback
+                )
+            )
+        if not pagelist :
+            return
+        unpaper_page(
+                pagelist,
+                {
+                    "command"   : unpaper.get_cmdline(),
+                    "direction" : unpaper.get_option('direction')
+                }
+            )
+        windowu.hide()
+
+
+    def anonymous_178():
+        windowu.hide()
+
+    windowu.add_actions(
+        'gtk-ok',
+        anonymous_177 ,
+        'gtk-cancel',
+        anonymous_178 
+    )
+    windowu.show_all()
+    return
+
+
+
+def add_tess_languages(vbox) :
+    """Add hbox for tesseract languages
+"""    
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, False, False, 0 )
+    label = Gtk.Label( _('Language to recognise') )
+    hbox.pack_start( label, False, True, 0 )
+
+    # Tesseract language files
+
+    tesslang=[]
+    for _ in      sorted(Gscan2pdf.Tesseract.languages().keys())     :
+        tesslang.append([
+        _, _( Gscan2pdf.Tesseract.languages()[_] ) ])  
+
+
+    # If there are no language files, then we have tesseract-1.0, i.e. English
+
+    if not tesslang :
+        tesslang.append([
+        None, _('English') ])  
+        logger.info('No tesseract languages found')
+
+    combobox = Gscan2pdf.ComboBoxText.new_from_array(tesslang)
+    combobox.set_active_index( SETTING['ocr language'] )
+    hbox.pack_end( combobox, False, True, 0 )
+    return hbox, combobox, tesslang
+
+
+
+def add_cf_languages(vbox) :
+    """Add hbox for cuneiform languages
+"""    
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, False, False, 0 )
+    label = Gtk.Label( _('Language to recognise') )
+    hbox.pack_start( label, False, True, 0 )
+
+    # Tesseract language files
+
+    lang=[]
+    for _ in      sorted(Gscan2pdf.Cuneiform.languages().keys())     :
+        lang.append([
+        _, _( Gscan2pdf.Cuneiform.languages()[_] ) ])  
+
+    combobox = Gscan2pdf.ComboBoxText.new_from_array(lang)
+    combobox.set_active_index( SETTING['ocr language'] )
+    hbox.pack_end( combobox, False, True, 0 )
+    return hbox, combobox, lang
+
+
+
+def ocr_dialog() :
+    """Run OCR on current page and display result
+"""
+    if  (windowo is not None) :
+        windowo.present()
+        return
+
+    windowo = Gscan2pdf.Dialog(
+        transient_for  = window,
+        title            = _('OCR'),
+        hide_on_delete = True,
+    )
+
+    # Frame for page range
+
+    windowo.add_page_range()
+
+    # OCR engine selection
+
+    hboxe = Gtk.HBox()
+    vbox  = windowo.get_content_area()
+    vbox.pack_start( hboxe, False, True, 0 )
+    label = Gtk.Label( _('OCR Engine') )
+    hboxe.pack_start( label, False, True, 0 )
+    combobe = Gscan2pdf.ComboBoxText.new_from_array(ocr_engine)
+    combobe.set_active_index( SETTING['ocr engine'] )
+    hboxe.pack_end( combobe, False, True, 0 )
+    ( comboboxtl, hboxtl, tesslang, comboboxcl, hboxcl, cflang )=(None,None,[],None,None,[])
+    if dependencies["tesseract"] :
+        ( hboxtl, comboboxtl, tesslang ) = add_tess_languages(vbox)
+        def anonymous_179():
+            if ocr_engine[ combobe.get_active() ][0] == 'tesseract' :
+                hboxtl.show_all()
+ 
+            else :
+                hboxtl.hide()
+
+
+
+        combobe.connect(
+            'changed' , anonymous_179 
+        )
+
+    if dependencies["cuneiform"] :
+        ( hboxcl, comboboxcl, cflang ) = add_cf_languages(vbox)
+        def anonymous_180():
+            if ocr_engine[ combobe.get_active() ][0] == 'cuneiform' :
+                hboxcl.show_all()
+ 
+            else :
+                hboxcl.hide()
+
+
+
+        combobe.connect(
+            'changed' , anonymous_180 
+        )
+
+
+    # Checkbox & SpinButton for threshold
+
+    hboxt = Gtk.HBox()
+    vbox.pack_start( hboxt, False, True, 0 )
+    cbto = Gtk.CheckButton.new_with_label( _('Threshold before OCR') )
+    cbto.set_tooltip_text(
+        _(
+                'Threshold the image before performing OCR. '
+              + 'This only affects the image passed to the OCR engine, and not the image stored.'
+        )
+    )
+    if  'threshold-before-ocr'  in SETTING :
+        cbto.set_active( SETTING['threshold-before-ocr'] )
+
+    hboxt.pack_start( cbto, False, True, 0 )
+    labelp = Gtk.Label(PERCENT)
+    hboxt.pack_end( labelp, False, True, 0 )
+    spinbutton = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
+    spinbutton.set_value( SETTING['threshold tool'] )
+    spinbutton.set_sensitive( cbto.get_active() )
+    hboxt.pack_end( spinbutton, False, True, 0 )
+    def anonymous_181():
+        spinbutton.set_sensitive( cbto.get_active() )
+
+
+    cbto.connect(
+        'toggled' , anonymous_181 
+    )
+    def anonymous_182():
+        ( tesslang, cflang )=(None,None)
+        if  (comboboxtl is not None) :
+            tesslang = tesslang[ comboboxtl.get_active() ][0]
+
+        if  (comboboxcl is not None) :
+            cflang = cflang[ comboboxcl.get_active() ][0]
+
+        run_ocr( ocr_engine[ combobe.get_active() ][0],
+                tesslang, cflang, cbto.get_active(), spinbutton.get_value() )
+
+
+    def anonymous_183():
+        windowo.hide()
+
+    windowo.add_actions(
+        _('Start OCR'),
+        anonymous_182 ,
+        'gtk-close',
+        anonymous_183 
+    )
+    windowo.show_all()
+    if  (hboxtl is not None)        and not( ocr_engine[ combobe.get_active() ][0] == 'tesseract' )     :
+        hboxtl.hide()
+
+    if  (hboxcl is not None)        and not( ocr_engine[ combobe.get_active() ][0] == 'cuneiform' )     :
+        hboxcl.hide()
+
+    return
+
+
+def anonymous_184(*argv):
+    return update_tpbar(*argv)
+
+
+def anonymous_185( thread, process, completed, total ):
+            
+    signal =               setup_tpbar( thread, process, completed, total, pid )
+    if (  (signal is not None) ):
+        return True  
+
+
+def anonymous_186( new_page, pending ):
+            
+    if not pending :
+        thbox.hide()
+    if  (signal is not None) :
+        tcbutton.disconnect(signal)
+
+    slist.save_session()
+
+
+def anonymous_187(new_page):
+            
+    page = slist.get_selected_indices()
+    if page and new_page == slist["data"][ page[0] ][2] :
+        create_txt_canvas(new_page)
+
+
+
+def run_ocr( engine, tesslang, cflang, threshold_flag, threshold ) :
+    
+    if engine == 'tesseract' :
+        SETTING['ocr language'] = tesslang
+
+    if SETTING['ocr engine'] == 'cuneiform' :
+        SETTING['ocr language'] = cflang
+
+    ( signal, pid )=(None,None)
+    options = {
+        "queued_callback" : anonymous_184 ,
+        "started_callback" : anonymous_185 ,
+        "finished_callback" : anonymous_186 ,
+        "error_callback"   : error_callback,
+        "display_callback" : anonymous_187 ,
+        "engine"   : engine,
+        "language" : SETTING['ocr language'],
+    }
+    SETTING['ocr engine']           = engine
+    SETTING['threshold-before-ocr'] = threshold_flag
+    if threshold_flag :
+        SETTING['threshold tool'] = threshold
+        options["threshold"]        = threshold
+
+
+    # fill $pagelist with filenames
+    # depending on which radiobutton is active
+
+    SETTING['Page range'] = windowo.page_range
+    pagelist = indices2pages(
+        slist.get_page_index( SETTING['Page range'], error_callback ) )
+    if not pagelist :
+        return
+    slist.ocr_pages( pagelist, options )
+    windowo.hide()
+    return
+
+
+
+def quit() :
+    """Remove temporary files, note window state, save settings and quit."""
+    if not scans_saved(
+            _("Some pages have not been saved.\nDo you really want to quit?")
+        )     :
+        return
+
+    # Make sure that we are back in the start directory,
+    # otherwise we can't delete the temp dir.
+    os.chdir( SETTING["cwd"])
+
+    # Remove temporary files
+    # (for some reason File::Temp wasn't doing its job here)
+    for file in glob.glob(session+"/*"):
+        os.remove(file) 
+    os.rmdir(session) 
+        # Write window state to settings
+    SETTING["window_width"], SETTING["window_height"]  = window.get_size()
+    SETTING["window_x"],     SETTING["window_y"]       = window.get_position()
+    SETTING['thumb panel'] = hpaned.get_position()
+    if is_not_an_empty_hashref(windows) :
+        ( SETTING["scan_window_width"], SETTING["scan_window_height"] ) =           windows.get_size()
+
+    # Write config file
+    config.write_config( rc, SETTING )
+    logger.info('Killing Sane thread(s)')
+    Gscan2pdf.Frontend.Image_Sane.quit()
+    logger.info('Killing document thread(s)')
+    Gscan2pdf.Document.quit()
+    logger.debug('Quitting')
+
+    # compress log file if we have xz
+    if log and dependencies["xz"] :
+        Gscan2pdf.Document.exec_command(
+        [
+        'xz', '-f', log ] )
+
+    return True
+
+
+
+def view_html() :
+    """Perhaps we should use gtk and mallard for this in the future
+"""
+    # At the moment, we have no translations,
+    # but when we do, replace C with $locale
+
+    uri = f"/usr/share/help/C/{prog_name}/documentation.html"
+    if not pathlib.Path(uri).exists()  :
+        uri = 'http://gscan2pdf.sf.net'
+ 
+    else :
+        uri = Glib.filename_to_uri( uri, None )    # undef => no hostname
+
+    logger.info(f"Opening {uri} via default launcher")
+    context = Glib.IO.AppLaunchContext()
+    Glib.IO.AppInfo.launch_default_for_uri( uri, context )
+    return
+
+
+
+def take_snapshot() :
+    """Update undo/redo buffers before doing something
+"""
+    old_undo_files = map(lambda x:  f"{_}->[2]{filename}" ,undo_buffer)  
+
+    # Deep copy the tied data. Otherwise, very bad things happen.
+
+    undo_buffer    = map(lambda x:  [
+    x ] ,len( slist["data"] ))  
+    undo_selection = slist.get_selected_indices()
+    logger.debug( Dumper( undo_buffer ) )
+
+    # Clean up files that fall off the undo buffer
+
+    undo_files={}
+    for _ in     undo_buffer :
+        undo_files[f"{_}->[2]{filename}"] = True
+
+    delete_files=[]
+    for  file in     old_undo_files :
+        if not undo_files[file] :
+            delete_files.append(file)  
+
+
+    if delete_files :
+        logger.info("Cleaning up @delete_files")
+        os.remove(delete_files) 
+
+
+    # Unghost Undo/redo
+
+    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(True)
+    uimanager.get_widget('/ToolBar/Undo').set_sensitive(True)
+
+    # Check free space in $session directory
+
+    df = df( f"{session}", _1MB )
+    if  (df is not None) :
+        logger.debug(
+f"Free space in {session} (Mb): {df}->{bavail} (warning at {SETTING}{'available-tmp-warning'})"
+        )
+        if df["bavail"] < SETTING['available-tmp-warning'] :
+            text = _('%dMb free in %s.') % (df["bavail"],session)   
+            show_message_dialog(
+                parent  = window,
+                type    = 'warning',
+                buttons = 'close',
+                text    = text
+            )
+
+
+    return
+
+
+
+def undo() :
+    """Put things back to last snapshot after updating redo buffer
+"""
+    logger.info('Undoing')
+
+    # Deep copy the tied data. Otherwise, very bad things happen.
+
+    redo_buffer    = map(lambda x:  [
+    x ] ,len( slist["data"] ))  
+    redo_selection = slist.get_selected_indices()
+    logger.debug('redo_selection, undo_selection:')
+    logger.debug( Dumper( redo_selection, undo_selection ) )
+    logger.debug('redo_buffer, undo_buffer:')
+    logger.debug( Dumper( redo_buffer, undo_buffer ) )
+
+    # Block slist signals whilst updating
+
+    slist.get_model().handler_block( slist["row_changed_signal"] )
+    slist.get_selection().handler_block(
+        slist["selection_changed_signal"] )
+    slist["data"] = undo_buffer
+
+    # Unblock slist signals now finished
+
+    slist.get_selection().handler_unblock(
+        slist["selection_changed_signal"] )
+    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+
+    # Reselect the pages to display the detail view
+
+    slist.select(undo_selection)
+
+    # Update menus/buttons
+
+    update_uimanager()
+    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
+    uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(True)
+    uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Redo').set_sensitive(True)
+    return
+
+
+
+def unundo() :
+    """Put things back to last snapshot after updating redo buffer
+"""
+    logger.info('Redoing')
+
+    # Deep copy the tied data. Otherwise, very bad things happen.
+
+    undo_buffer    = map(lambda x:  [
+    x ] ,len( slist["data"] ))  
+    undo_selection = slist.get_selected_indices()
+    logger.debug('redo_selection, undo_selection:')
+    logger.debug( Dumper( redo_selection, undo_selection ) )
+    logger.debug('redo_buffer, undo_buffer:')
+    logger.debug( Dumper( redo_buffer, undo_buffer ) )
+
+    # Block slist signals whilst updating
+
+    slist.get_model().handler_block( slist["row_changed_signal"] )
+    slist["data"] = redo_buffer
+
+    # Unblock slist signals now finished
+
+    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+
+    # Reselect the pages to display the detail view
+
+    slist.select(redo_selection)
+
+    # Update menus/buttons
+
+    update_uimanager()
+    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(True)
+    uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Undo').set_sensitive(True)
+    uimanager.get_widget('/ToolBar/Redo').set_sensitive(False)
+    return
+
+
+
+def init_icons(icons) :
+    """Initialise $iconfactory
+"""    
+    if (iconfactory is not None):
+        return   
+    iconfactory = Gtk.IconFactory()
+    iconfactory.add_default()
+    for _ in     icons :
+        register_icon( _[0], _[1] )
+
+    return
+
+
+
+def register_icon( stock_id, path ) :
+    """Add icons
+"""    
+    if   (iconfactory is None) :
+        return
+    icon=None
+    try :
+        icon = Gdk.Pixbuf.new_from_file(path) 
+    except :
+        logger.warn(f"Unable to load icon `{path}': {_}")
+    if  (icon is not None) :
+        iconfactory.add( stock_id, Gtk.IconSet.new_from_pixbuf(icon) )
+
+    return
+
+
+
+def mark_pages(pages) :
+    """marked page list as saved
+"""    
+    slist.get_model().handler_block( slist["row_changed_signal"] )
+    for _ in      pages  :
+        i = slist.find_page_by_uuid(_)
+        if  (i is not None) :
+            slist["data"][i][2]["saved"] = True
+
+
+    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+    return
+
+
+
+def compress_temp() :
+    """Convert all files in temp that are not jpg, png, or tiff to png,
+"""
+    if (
+        ask_question(
+            parent  = window,
+            type    = 'question',
+            buttons = 'ok-cancel',
+            text    = _('This operation cannot be undone. Are you sure?'),
+            store_response   = True,
+            stored_responses = [
+    'ok']
+        ) != 'ok'
+      ):
+        return        
+    undo_buffer    = []
+    undo_selection = []
+    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
+    uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
+    for _ in      slist["data"]  :
+        ( signal, pid )=(None,None)
+        def anonymous_188(*argv):
+            return update_tpbar(*argv)
+
+
+        def anonymous_189( thread, process, completed, total ):
+                
+            signal =                   setup_tpbar( thread, process, completed, total, pid )
+            if (  (signal is not None) ):
+                return True  
+
+
+        def anonymous_190( new_page, pending ):
+                
+            if not pending :
+                thbox.hide()
+            if  (signal is not None) :
+                tcbutton.disconnect(signal)
+
+
+
+        pid = slist.to_png(
+            page            = _[2]["uuid"],
+            queued_callback = anonymous_188 ,
+            started_callback = anonymous_189 ,
+            finished_callback = anonymous_190 ,
+            error_callback = error_callback,
+        )
+
+
+def preferences() :
+    """Preferences dialog"""
+    if  (windowr is not None) :
+        windowr.present()
+        return
+
+    windowr = Gscan2pdf.Dialog(
+        transient_for  = window,
+        title            = _('Preferences'),
+        hide_on_delete = True,
+    )
+    vbox = windowr.get_content_area()
+
+    # Notebook for scan and general options
+    notebook = Gtk.Notebook()
+    vbox.pack_start( notebook, True, True, 0 )
+    (
+        vbox1,               frontends,        combob,
+        preentry,            cbc,              cbo,
+        blacklist,           cbcsh,            cb_batch_flatbed,
+        cb_cancel_btw_pages, cb_adf_all_pages, cb_cache_device_list,
+        cb_ignore_duplex
+      )       = _preferences_scan_options( windowr.style_get('content-area-border') )
+    notebook.append_page( vbox1, Gtk.Label( _('Scan options') ) )
+    (
+        vbox2,       fileentry,   cbw,         cbtz,
+        cbtm,        cbts,        cbtp,        tmpentry,
+        spinbuttonw, spinbuttonb, spinbuttond, ocr_function,
+        comboo,      cbv,         cbb,         vboxt
+      )       = _preferences_general_options(
+        windowr.style_get('content-area-border') )
+    notebook.append_page( vbox2, Gtk.Label( _('General options') ) )
+    def anonymous_192():
+        windowr.hide()
+        if SETTING["frontend"] != combob.get_active_index() :
+            SETTING["frontend"] = combob.get_active_index()
+            logger.info(f"Switched frontend to {SETTING}{frontend}")
+            if is_not_an_empty_hashref(windows) :
+                Gscan2pdf.Frontend.Image_Sane.close_device()
+                windows.hide()
+                windows=None
+
+ 
+        else :
+            SETTING['visible-scan-options'] = ()
+            SETTING['scan-reload-triggers'] = ()
+            for _ in              option_visibility_list["data"]  :
+                SETTING['visible-scan-options'][ _[0] ] = _[2]
+                if _[3] :    ## no critic (ProhibitMagicNumbers)
+                    SETTING['scan-reload-triggers'].append(_[0])  
+
+
+            if SETTING["frontend"] != 'libsane-perl'                    and SETTING["frontend"] != 'libimage-sane-perl'                 :
+                SETTING['scan prefix']   = preentry.get_text()
+                SETTING['cache options'] = cbc.get_active()
+                if is_not_an_empty_hashref(windows) :
+                    windows.prefix=SETTING['scan prefix']
+                    windows.cache_options=SETTING['cache options']
+                    windows.visible_scan_options=SETTING['visible-scan-options']
+                    windows.reload_triggers=SETTING['scan-reload-triggers']
+
+                if  "cache"  in SETTING                        and not SETTING['cache options']                     :
+                    del(SETTING["cache"]) 
+
+
+
+        SETTING['auto-open-scan-dialog'] = cbo.get_active()
+        try :
+            text = blacklist.get_text()
+            re.search(text,'dummy_device',re.MULTILINE|re.DOTALL|re.VERBOSE)
+ 
+        except :
+            msg =                   _(
+                    "Invalid regex. Try without special characters such as '*'"
+                  )
+            logger.warn(msg)
+            show_message_dialog(
+                    parent           = windowr,
+                    type             = 'error',
+                    buttons          = 'close',
+                    text             = msg,
+                    store_response = True
+                )
+            blacklist.set_text( SETTING['device blacklist'] )
+
+        SETTING['device blacklist'] = blacklist.get_text()
+        SETTING['cycle sane handle']    = cbcsh.get_active()
+        SETTING['allow-batch-flatbed']  = cb_batch_flatbed.get_active()
+        SETTING['cancel-between-pages'] = cb_cancel_btw_pages.get_active()
+        SETTING['adf-defaults-scan-all-pages'] =               cb_adf_all_pages.get_active()
+        SETTING['cache-device-list'] = cb_cache_device_list.get_active()
+        SETTING['ignore-duplex-capabilities'] =               cb_ignore_duplex.get_active()
+        SETTING['default filename'] = fileentry.get_text()
+        SETTING['restore window']   = cbw.get_active()
+        SETTING["use_timezone"]       = cbtz.get_active()
+        SETTING["use_time"]           = cbtm.get_active()
+        SETTING["set_timestamp"]      = cbts.get_active()
+        SETTING["to_png"]             = cbtp.get_active()
+        SETTING['convert whitespace to underscores'] = cbb.get_active()
+        if is_not_an_empty_hashref(windows) :
+            if SETTING["frontend"] == 'libsane-perl'                    or SETTING["frontend"] == 'libimage-sane-perl'                 :
+                windows.cycle_sane_handle=SETTING['cycle sane handle']
+                windows.cancel_between_pages=SETTING['cancel-between-pages']
+
+            windows.allow_batch_flatbed=SETTING['allow-batch-flatbed']
+            windows.ignore_duplex_capabilities=SETTING['ignore-duplex-capabilities']
+
+        if  (windowi is not None) :
+            windowi.include_time=SETTING["use_time"]
+
+        SETTING['available-tmp-warning'] = spinbuttonw.get_value()
+        SETTING['Blank threshold']       = spinbuttonb.get_value()
+        SETTING['Dark threshold']        = spinbuttond.get_value()
+        SETTING['OCR output']            = comboo.get_active_index()
+
+            # Store viewer preferences
+
+        SETTING['view files toggle'] = cbv.get_active()
+        update_list_user_defined_tools( vboxt,
+                [
+        comboboxudt, windows["comboboxudt"] ] )
+        tmpdirs = File.Spec.splitdir(session)
+        tmpdirs.pop()     # Remove the top level
+        tmp = File.Spec.catdir(tmpdirs)
+
+            # Expand tildes in the filename
+
+        newdir = Gscan2pdf.Document.get_tmp_dir(
+                pathlib.Path( tmpentry.get_text() ).expanduser(),
+                r'gscan2pdf-\w\w\w\w' )
+        if newdir != tmp :
+            SETTING["TMPDIR"] = newdir
+            response = ask_question(
+                    parent  = window,
+                    type    = 'question',
+                    buttons = 'ok-cancel',
+                    text    = _(
+'Changes will only take effect after restarting gscan2pdf.'
+                      )
+                      + SPACE
+                      + _('Restart gscan2pdf now?')
+                )
+            if response == 'ok' :
+                restart()
+
+
+
+    def anonymous_193():
+        windowr.hide()
+
+
+    windowr.add_actions(
+        'gtk-apply',
+        anonymous_192 ,
+        'gtk-cancel',
+        anonymous_193 
+    )
+    windowr.show_all()
+    return
+
+
+def _preferences_scan_options(border_width) :
+    
+    vbox = Gtk.VBox()
+    vbox.set_border_width(border_width)
+    cbo =       Gtk.CheckButton.new_with_label( _('Open scanner at program start') )
+    cbo.set_tooltip_text(
+        _(
+'Automatically open the scan dialog in the background at program start. '
+              + 'This saves time clicking the scan button and waiting for the program to find the list of scanners'
+        )
+    )
+    if  'auto-open-scan-dialog'  in SETTING :
+        cbo.set_active( SETTING['auto-open-scan-dialog'] )
+
+    vbox.pack_start( cbo, True, True, 0 )
+
+    # Frontends
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, False, False, 0 )
+    label = Gtk.Label( _('Frontend') )
+    hbox.pack_start( label, False, False, 0 )
+    frontends = [
+    [
+    'libimage-sane-perl',             _('libimage-sane-perl'),             _('Scan using the Perl bindings for SANE.')
+        ],         [
+    'scanimage', _('scanimage'),             _('Scan using the scanimage frontend.')
+        ],
+    ]
+    if dependencies["scanadf"] :
+        frontends.append([
+        'scanadf', _('scanadf'), _('Scan using the scanadf frontend.') ])            
+
+    combob = Gscan2pdf.ComboBoxText.new_from_array(frontends)
+    hbox.set_tooltip_text( _('Interface used for scanner access') )
+    hbox.pack_end( combob, True, True, 0 )
+
+    # Device blacklist
+
+    hboxb = Gtk.HBox()
+    vbox.pack_start( hboxb, False, False, 0 )
+    label = Gtk.Label( _('Device blacklist') )
+    hboxb.pack_start( label, False, False, 0 )
+    blacklist = Gtk.Entry()
+    hboxb.add(blacklist)
+    hboxb.set_tooltip_text( _('Device blacklist (regular expression)') )
+    if  'device blacklist'  in SETTING :
+        blacklist.set_text( SETTING['device blacklist'] )
+
+
+    # Cycle SANE handle after scan
+
+    cbcsh =       Gtk.CheckButton.new_with_label( _('Cycle SANE handle after scan') )
+    cbcsh.set_tooltip_text(
+        _('Some ADFs do not feed out the last page if this is not enabled') )
+    if  'cycle sane handle'  in SETTING :
+        cbcsh.set_active( SETTING['cycle sane handle'] )
+
+    vbox.pack_start( cbcsh, False, False, 0 )
+
+    # Allow batch scanning from flatbed
+
+    cb_batch_flatbed =       Gtk.CheckButton.new_with_label(
+        _('Allow batch scanning from flatbed') )
+    cb_batch_flatbed.set_tooltip_text(
+        _(
+'If not set, switching to a flatbed scanner will force # pages to 1 and single-sided mode.'
+        )
+    )
+    cb_batch_flatbed.set_active( SETTING['allow-batch-flatbed'] )
+    vbox.pack_start( cb_batch_flatbed, False, False, 0 )
+
+    # Ignore duplex capabilities
+
+    cb_ignore_duplex =       Gtk.CheckButton.new_with_label(
+        _('Ignore duplex capabilities of scanner') )
+    cb_ignore_duplex.set_tooltip_text(
+        _(
+'If set, any duplex capabilities are ignored, and facing/reverse widgets are displayed to allow manual interleaving of pages.'
+        )
+    )
+    cb_ignore_duplex.set_active( SETTING['ignore-duplex-capabilities'] )
+    vbox.pack_start( cb_ignore_duplex, False, False, 0 )
+
+    # Force new scan job between pages
+
+    cb_cancel_btw_pages =       Gtk.CheckButton.new_with_label(
+        _('Force new scan job between pages') )
+    cb_cancel_btw_pages.set_tooltip_text(
+        _(
+'Otherwise, some Brother scanners report out of documents, despite scanning from flatbed.'
+        )
+    )
+    cb_cancel_btw_pages.set_active( SETTING['cancel-between-pages'] )
+    vbox.pack_start( cb_cancel_btw_pages, False, False, 0 )
+    cb_cancel_btw_pages.set_sensitive( SETTING['allow-batch-flatbed'] )
+    def anonymous_194():
+        cb_cancel_btw_pages.set_sensitive(
+                cb_batch_flatbed.get_active() )
+
+
+    cb_batch_flatbed.connect(
+        'toggled' , anonymous_194 
+    )
+
+    # Select num-pages = all on selecting ADF
+
+    cb_adf_all_pages =       Gtk.CheckButton.new_with_label(
+        _('Select # pages = all on selecting ADF') )
+    cb_adf_all_pages.set_tooltip_text(
+        _(
+'If this option is enabled, when switching to source=ADF, # pages = all is selected'
+        )
+    )
+    cb_adf_all_pages.set_active( SETTING['adf-defaults-scan-all-pages'] )
+    vbox.pack_start( cb_adf_all_pages, False, False, 0 )
+
+    # Cache device list
+
+    cb_cache_device_list =       Gtk.CheckButton.new_with_label( _('Cache device list') )
+    cb_cache_device_list.set_tooltip_text(
+        _(
+'If this option is enabled, opening the scanner is quicker, as gscan2pdf does not first search for available devices.'
+          )
+          + _(
+'This is only effective if the device names do not change between sessions.'
+          )
+    )
+    cb_cache_device_list.set_active( SETTING['cache-device-list'] )
+    vbox.pack_start( cb_cache_device_list, False, False, 0 )
+
+    # scan command prefix
+
+    hboxp = Gtk.HBox()
+    vbox.pack_start( hboxp, False, False, 0 )
+    label = Gtk.Label( _('Scan command prefix') )
+    hboxp.pack_start( label, False, False, 0 )
+    preentry = Gtk.Entry()
+    hboxp.add(preentry)
+    if  'scan prefix'  in SETTING :
+        preentry.set_text( SETTING['scan prefix'] )
+
+
+    # Cache options?
+
+    cbc =       Gtk.CheckButton.new_with_label( _('Cache device-dependent options') )
+    if SETTING['cache options'] :
+        cbc.set_active(True)
+    vbox.pack_start( cbc, False, False, 0 )
+
+    # Clear options cache
+
+    buttonc =       Gtk.Button( _('Clear device-dependent options cache') )
+    vbox.pack_start( buttonc, False, False, 0 )
+    def anonymous_195():
+        if  "cache"  in SETTING :
+            del(SETTING["cache"]) 
+        if is_not_an_empty_hashref(windows) :
+            windows.options_cache=None
+
+
+
+    buttonc.connect(
+        'clicked' , anonymous_195 
+    )
+
+    # Option visibility
+
+    oframe = Gtk.Frame( _('Option visibility & control') )
+    vbox.pack_start( oframe, True, True, 0 )
+    vvbox = Gtk.VBox()
+    vvbox.set_border_width(border_width)
+    oframe.add(vvbox)
+    scwin = Gtk.ScrolledWindow()
+    vvbox.pack_start( scwin, True, True, 0 )
+    scwin.set_policy(["never","automatic"])
+    option_visibility_list = Gtk.SimpleList({
+        _('Title')  : 'text',
+        _('Type')   : 'text',
+        _('Show')   : 'bool',
+        _('Reload') : 'bool'}
+    )
+    option_visibility_list.get_selection().set_mode('multiple')
+    scwin.add(option_visibility_list)
+    bhbox = Gtk.HBox()
+    vvbox.pack_start( bhbox, False, False, 0 )
+    sbutton = Gtk.Button( _('Show') )
+    def anonymous_196():
+        for _ in          option_visibility_list.get_selected_indices()  :
+            option_visibility_list["data"][_][2] = True
+
+
+
+    sbutton.connect(
+        'clicked' , anonymous_196 
+    )
+    bhbox.pack_start( sbutton, True, True, 0 )
+    hbutton = Gtk.Button( _('Hide') )
+    def anonymous_197():
+        for _ in          option_visibility_list.get_selected_indices()  :
+            option_visibility_list["data"][_][2] = False
+
+
+
+    hbutton.connect(
+        'clicked' , anonymous_197 
+    )
+    bhbox.pack_start( hbutton, True, True, 0 )
+    fbutton = Gtk.Button( _('List current options') )
+    def anonymous_198():
+        if is_not_an_empty_hashref(windows) :
+            option_visibility_list["data"] = ()
+            options = windows.available_scan_options
+            for  i in              range(1,options.num_options(-1+1))      :
+                opt = options.by_index(i)
+                option_visibility_list["data"].append([
+                opt["title"], opt["type"], True, False ])                        
+
+            option_visibility_list["data"].append([
+            'Paper size', None, True, False ])                    
+ 
+        else :
+            show_message_dialog(
+                    parent  = windowr,
+                    type    = 'error',
+                    buttons = 'close',
+                    text    = _(
+                        'No scanner currently open with command line frontend.')
+                )
+
+        return
+
+
+    fbutton.connect(
+        'clicked' , anonymous_198 
+    )
+    bhbox.pack_start( fbutton, True, True, 0 )
+    show_not_listed =       Gtk.CheckButton.new_with_label( _('Show options not listed') )
+    vvbox.pack_start( show_not_listed, False, False, 0 )
+
+    # fill the list
+    if  'visible-scan-options'  in SETTING :
+        reload={}
+        if isinstance( SETTING['scan-reload-triggers'] ,list)   :
+            SETTING['scan-reload-triggers'] =               [
+            SETTING['scan-reload-triggers'] ]
+
+        for _ in          SETTING['scan-reload-triggers']  :
+            reload[_] = 1
+
+        for _ in          sorted(SETTING['visible-scan-options'].keys())     :
+            option_visibility_list["data"].append([
+            _,                                   None,                 SETTING['visible-scan-options'][_],  _  in reload
+              ])                
+
+
+    def anonymous_199():#FIXME: no need for this anymore, withonly one SANE interface
+        cbcsh.set_sensitive(True)
+        hboxp.set_sensitive( False )
+        cbc.set_sensitive( False )
+        buttonc.set_sensitive( False )
+        oframe.set_sensitive( False )
+
+
+    combob.connect(
+        'changed' , anonymous_199 
+    )
+    combob.set_active_index( SETTING["frontend"] )
+    return vbox, frontends, combob, preentry, cbc, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
+
+
+def _preferences_general_options(border_width) :
+    
+    vbox = Gtk.VBox()
+    vbox.set_border_width(border_width)
+
+    # Restore window setting
+
+    cbw = Gtk.CheckButton.new_with_label(
+        _('Restore window settings on startup') )
+    cbw.set_active( SETTING['restore window'] )
+    vbox.pack_start( cbw, True, True, 0 )
+
+    # View saved files
+
+    cbv = Gtk.CheckButton.new_with_label( _('View files on saving') )
+    cbv.set_active( SETTING['view files toggle'] )
+    vbox.pack_start( cbv, True, True, 0 )
+
+    # Default filename
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( _('Default PDF & DjVu filename') )
+    hbox.pack_start( label, False, False, 0 )
+    fileentry = Gtk.Entry()
+    fileentry.set_tooltip_text(
+        _("""strftime codes, e.g.:
+%Y	current year
+
+with the following additions:
+%Da	author
+%De	filename extension
+%Dk	keywords
+%Ds	subject
+%Dt	title
+
+All document date codes use strftime codes with a leading D, e.g.:
+%DY	document year
+%Dm	document month
+%Dd	document day
+""")
+    )
+    hbox.add(fileentry)
+    fileentry.set_text( SETTING['default filename'] )
+
+    # Replace whitespace in filenames with underscores
+
+    cbb = Gtk.CheckButton.new_with_label(
+        _('Replace whitespace in filenames with underscores') )
+    cbb.set_active( SETTING['convert whitespace to underscores'] )
+    vbox.pack_start( cbb, True, True, 0 )
+
+    # Timezone
+
+    cbtz =       Gtk.CheckButton.new_with_label( _('Use timezone from locale') )
+    cbtz.set_active( SETTING["use_timezone"] )
+    vbox.pack_start( cbtz, True, True, 0 )
+
+    # Time
+
+    cbtm =       Gtk.CheckButton.new_with_label( _('Specify time as well as date') )
+    cbtm.set_active( SETTING["use_time"] )
+    vbox.pack_start( cbtm, True, True, 0 )
+
+    # Set file timestamp with metadata
+
+    cbts = Gtk.CheckButton.new_with_label(
+        _('Set access and modification times to metadata date') )
+    cbts.set_active( SETTING["set_timestamp"] )
+    vbox.pack_start( cbts, True, True, 0 )
+
+    # Convert scans from PNM to PNG
+
+    cbtp = Gtk.CheckButton.new_with_label(
+        _('Convert scanned images to PNG before further processing') )
+    cbtp.set_active( SETTING["to_png"] )
+    vbox.pack_start( cbtp, True, True, 0 )
+
+    # Temporary directory settings
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( _('Temporary directory') )
+    hbox.pack_start( label, False, False, 0 )
+    tmpentry = Gtk.Entry()
+    hbox.add(tmpentry)
+    tmpentry.set_text( dirname(session) )
+    button = Gtk.Button( _('Browse') )
+    def anonymous_200():
+        file_chooser = Gtk.FileChooserDialog(
+                _('Select temporary directory'),
+                windowr, 'select-folder',
+                gtk_cancel = 'cancel',
+                gtk_ok     = 'ok'
+            )
+        file_chooser.set_current_folder( tmpentry.get_text() )
+        if 'ok' == file_chooser.run() :
+            tmpentry.set_text(
+                    Gscan2pdf.Document.get_tmp_dir(
+                        file_chooser.get_filename(),
+                        r'gscan2pdf-\w\w\w\w'
+                    )
+                )
+
+        file_chooser.destroy()
+
+
+    button.connect(
+        'clicked' , anonymous_200 
+    )
+    hbox.pack_end( button, True, True, 0 )
+
+    # Available space in temporary directory
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( _('Warn if available space less than (Mb)') )
+    hbox.pack_start( label, False, False, 0 )
+    spinbuttonw = Gtk.SpinButton.new_with_range( 0, _100_000MB, 1 )
+    spinbuttonw.set_value( SETTING['available-tmp-warning'] )
+    spinbuttonw.set_tooltip_text(
+        _(
+'Warn if the available space in the temporary directory is less than this value'
+        )
+    )
+    hbox.add(spinbuttonw)
+
+    # Blank page standard deviation threshold
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( _('Blank threshold') )
+    hbox.pack_start( label, False, False, 0 )
+    spinbuttonb =       Gtk.SpinButton.new_with_range( 0, 1, UNIT_SLIDER_STEP )
+    spinbuttonb.set_value( SETTING['Blank threshold'] )
+    spinbuttonb.set_tooltip_text(
+        _('Threshold used for selecting blank pages') )
+    hbox.add(spinbuttonb)
+
+    # Dark page mean threshold
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( _('Dark threshold') )
+    hbox.pack_start( label, False, False, 0 )
+    spinbuttond =       Gtk.SpinButton.new_with_range( 0, 1, UNIT_SLIDER_STEP )
+    spinbuttond.set_value( SETTING['Dark threshold'] )
+    spinbuttond.set_tooltip_text(
+        _('Threshold used for selecting dark pages') )
+    hbox.add(spinbuttond)
+
+    # OCR output
+
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( _('OCR output') )
+    hbox.pack_start( label, False, False, 0 )
+    ocr_function = [
+    [
+    'replace',             _('Replace'),             _(
+'Replace the contents of the text buffer with that from the OCR output.'
+            )
+        ],         [
+    'prepend', _('Prepend'),             _('Prepend the OCR output to the text buffer.')
+        ],         [
+    'append', _('Append'),             _('Append the OCR output to the text buffer.')
+        ],
+    ]
+    comboo = Gscan2pdf.ComboBoxText.new_from_array(ocr_function)
+    comboo.set_active_index( SETTING['OCR output'] )
+    hbox.pack_end( comboo, True, True, 0 )
+
+    # Manage user-defined tools
+
+    frame = Gtk.Frame( _('Manage user-defined tools') )
+    vbox.pack_start( frame, True, True, 0 )
+    vboxt = Gtk.VBox()
+    vboxt.set_border_width(border_width)
+    frame.add(vboxt)
+    for  tool in      SETTING["user_defined_tools"]  :
+        add_user_defined_tool_entry( vboxt, [], tool )
+
+    abutton = Gtk.Button.new_from_stock('gtk-add')
+    vboxt.pack_start( abutton, True, True, 0 )
+    def anonymous_201():
+        add_user_defined_tool_entry(
+                vboxt,
+                [
+        comboboxudt, windows["comboboxudt"] ],
+                'my-tool %i %o'
+            )
+        vboxt.reorder_child( abutton, EMPTY_LIST )
+        update_list_user_defined_tools( vboxt,
+                [
+        comboboxudt, windows["comboboxudt"] ] )
+
+
+    abutton.connect(
+        'clicked' , anonymous_201 
+    )
+    return vbox, fileentry, cbw, cbtz, cbtm, cbts, cbtp, tmpentry,       spinbuttonw,       spinbuttonb, spinbuttond, ocr_function, comboo, cbv, cbb, vboxt
+
+
+def _cb_array_append( combobox_array, text ) :
+    
+    for  combobox in      combobox_array  :
+        if  (combobox is not None) :
+            combobox.append_text(text)
+
+
+    return
+
+
+def update_list_user_defined_tools( vbox, combobox_array ) :
+    """Update list of user-defined tools"""    
+    (list)=([])
+    for  combobox in      combobox_array  :
+        if  (combobox is not None) :
+            while combobox.get_num_rows() >0  :
+                combobox.remove(0)
+
+    for  hbox in      vbox.get_children()  :
+        if issubclass(hbox,HBox) :
+            for  widget in              hbox.get_children()  :
+                if issubclass(widget,Entry) :
+                    text = widget.get_text()
+                    list.append(text)  
+                    _cb_array_append( combobox_array, text )
+
+
+
+
+    SETTING["user_defined_tools"] = list
+    update_post_save_hooks()
+    for  combobox in      combobox_array  :
+        if  (combobox is not None) :
+            combobox.set_active_by_text( SETTING["current_udt"] )
+
+
+    return
+
+
+def add_user_defined_tool_entry( vbox, combobox_array, tool ) :
+    """Add user-defined tool entry
+"""    
+    _cb_array_append( combobox_array, tool )
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    entry = Gtk.Entry()
+    entry.set_text(tool)
+    entry.set_tooltip_text(
+        _(
+"""Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.
+
+The other variable available is:
+
+%r resolution"""
+        )
+    )
+    hbox.pack_start( entry, True, True, 0 )
+    button = Gtk.Button()
+    button.set_image( Gtk.Image.new_from_stock( 'gtk-delete', 'button' ) )
+    def anonymous_202():
+        hbox.destroy()
+        update_list_user_defined_tools( vbox, combobox_array )
+
+
+    button.connect(
+        'clicked' , anonymous_202 
+    )
+    hbox.pack_end( button, False, False, 0 )
+    hbox.show_all()
+    return
+
+
+def update_post_save_hooks() :
+    if  (windowi is not None) :
+        if  "comboboxpsh"  in windowi :
+
+            # empty combobox
+
+            for _ in              range(1,windowi["comboboxpsh"].get_num_rows(+1))    :
+                windowi["comboboxpsh"].remove(0)
+
+ 
+        else :
+            # create it
+
+            windowi["comboboxpsh"] = Gscan2pdf.ComboBoxText()
+
+
+        # fill it again
+
+        for  tool in          SETTING["user_defined_tools"]  :
+            if   notre.search(r"%o",tool,re.MULTILINE|re.DOTALL|re.VERBOSE) :
+                windowi["comboboxpsh"].append_text(tool)
+
+
+        windowi["comboboxpsh"].set_active_by_text( SETTING["current_psh"] )
+
+    return
+
+
+def properties() :
+    if  windowp is not None :
+        windowp.present()
+        return
+
+    windowp = Gscan2pdf.Dialog(
+        transient_for  = window,
+        title            = _('Properties'),
+        hide_on_delete = True,
+    )
+    vbox = windowp.get_content_area()
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( d_sane.gettext("X Resolution") )
+    hbox.pack_start( label, False, False, 0 )
+    xspinbutton = Gtk.SpinButton.new_with_range( 0, MAX_DPI, 1 )
+    xspinbutton.set_digits(1)
+    hbox.pack_start( xspinbutton, True, True, 0 )
+    label = Gtk.Label( _('dpi') )
+    hbox.pack_end( label, False, False, 0 )
+    hbox = Gtk.HBox()
+    vbox.pack_start( hbox, True, True, 0 )
+    label = Gtk.Label( d_sane.gettext("Y Resolution") )
+    hbox.pack_start( label, False, False, 0 )
+    yspinbutton = Gtk.SpinButton.new_with_range( 0, MAX_DPI, 1 )
+    yspinbutton.set_digits(1)
+    hbox.pack_start( yspinbutton, True, True, 0 )
+    label = Gtk.Label( _('dpi') )
+    hbox.pack_end( label, False, False, 0 )
+    ( xresolution, yresolution ) = get_selected_properties()
+    logger.debug(
+        f"get_selected_properties returned {xresolution},{yresolution}")
+    xspinbutton.set_value(xresolution)
+    yspinbutton.set_value(yresolution)
+    def anonymous_203():
+        ( xresolution, yresolution ) = get_selected_properties()
+        logger.debug(
+                f"get_selected_properties returned {xresolution},{yresolution}")
+        xspinbutton.set_value(xresolution)
+        yspinbutton.set_value(yresolution)
+
+
+    slist.get_selection().connect(
+        'changed' , anonymous_203 
+    )
+    def anonymous_204():
+        windowp.hide()
+        xresolution = xspinbutton.get_value()
+        yresolution = yspinbutton.get_value()
+        slist.get_model().handler_block(
+                slist["row_changed_signal"] )
+        for _ in          slist.get_selected_indices()  :
+            logger.debug(
+f"setting resolution {xresolution},{yresolution} for page {slist}->{data}[{_}][0]"
+                )
+            slist["data"][_][2]["xresolution"] = xresolution
+            slist["data"][_][2]["yresolution"] = yresolution
+
+        slist.get_model().handler_unblock(
+                slist["row_changed_signal"] )
+
+
+    def anonymous_205():
+        windowp.hide()
+
+
+    windowp.add_actions(
+        'gtk-apply',
+        anonymous_204 ,
+        'gtk-cancel',
+        anonymous_205 
+    )
+    windowp.show_all()
+    return
+
+
+def get_selected_properties() :
+    """Helper function for properties()
+"""
+    page        = slist.get_selected_indices()
+    xresolution = EMPTY
+    yresolution = EMPTY
+    if len(page) > 0 :
+        page =  page.pop(0)
+        xresolution = slist["data"][page][2]["xresolution"]
+        yresolution = slist["data"][page][2]["yresolution"]
+        logger.debug(
+f"Page {slist}->{data}[{page}][0] has resolutions {xresolution},{yresolution}"
+        )
+
+    for _ in     page :
+        if slist["data"][_][2]["xresolution"] != xresolution :
+            xresolution = EMPTY
+            break
+
+
+    for _ in     page :
+        if slist["data"][_][2]["yresolution"] != yresolution :
+            yresolution = EMPTY
+            break
+
+
+
+    # round the value to a sensible number of significant figures
+
+    return    0 if xresolution==EMPTY  else '%.1g' % (  xresolution ),          0 if yresolution==EMPTY  else '%.1g' % (yresolution)  
+
+
+
+def ask_question(options) :
+    """Helper function to display a message dialog, wait for a response, and return it
+"""    
+
+    # replace any numbers with metacharacters to compare to filter
+
+    text =       Gscan2pdf.Dialog.MultipleMessage.filter_message( options["text"] )
+    if Gscan2pdf.Dialog.MultipleMessage.response_stored(
+            text, SETTING["message"]
+        )     :
+        logger.debug( f"Skipped MessageDialog with '{options}{text}', "
+              + f"automatically replying '{SETTING}{message}{{text}}{response}'" )
+        return SETTING["message"][text]["response"]
+
+    cb=None
+    dialog =       Gtk.MessageDialog( options["parent"],
+        [
+    'destroy-with-parent', 'modal' ],
+        options["type"], options["buttons"], options["text"] )
+    logger.debug(f"Displayed MessageDialog with '{options}{text}'")
+    if options['store-response'] :
+        cb = Gtk.CheckButton.new_with_label(
+            _("Don't show this message again") )
+        dialog.get_message_area().add(cb)
+
+    if  'default-response'  in options :
+        dialog.set_default_response( options['default-response'] )
+
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    if options['store-response'] and cb.get_active() :
+        filter = True
+        if options['stored-responses'] :
+            filter = False
+            for _ in              options['stored-responses']  :
+                if _ == response :
+                    filter = True
+                    break
+
+
+
+        if filter :
+            SETTING["message"][text]["response"] = response
+
+
+    logger.debug(f"Replied '{response}'")
+    return response
+
+
+def show_message_dialog(options) :
+    
+    if   (message_dialog is None) :
+        message_dialog = Gscan2pdf.Dialog.MultipleMessage(
+            title           = _('Messages'),
+            transient_for = options["parent"]
+        )
+        message_dialog.set_default_size( SETTING["message_window_width"],
+            SETTING["message_window_height"] )
+
+    options["responses"] = SETTING["message"]
+    message_dialog.add_message(options)
+    response=None
+    if message_dialog["grid_rows"] > 1 :
+        message_dialog.show_all()
+        response = message_dialog.run()
+
+    if  (message_dialog is not None) :    # could be undefined for multiple calls
+        message_dialog.store_responses( response, SETTING["message"] )
+        ( SETTING["message_window_width"], SETTING["message_window_height"] ) =           message_dialog.get_size()
+        message_dialog.destroy()
+        message_dialog=None
+
+    return
+
+
+def is_not_an_empty_hashref(hashref) :
+    
+    return (  (hashref is not None) and hashref.keys()  )
+
+
+args = parse_arguments()
+
+# Catch and log perl warnings
+logging.captureWarnings(True)
+
+rc, SETTING = read_config()
+
+set_up_test_mode()
+
+logger.info(f"Operating system: {OSNAME}")
+if OSNAME == 'linux' :
+    files = glob.glob('/etc/*-release') 
+    for _ in     files :
+        output = Gscan2pdf.Document.slurp(_)
+        if  (output is not None) :
+            output=output.rstrip() 
+            logger.info(output)
+
+
+
+logger.info(f"Perl version {PERL_VERSION}")
+logger.info(f"Glib-Perl version {Glib}::VERSION")
+logger.info(
+    f"Glib::Object::Introspection version {Glib}::Object::Introspection::VERSION"
+)
+logger.info( 'Built for Glib ' + DOT.join(Glib.GET_VERSION_INFO())   )
+logger.info(
+    'Running with Glib ' + DOT.join(Glib.major_version,Glib.minor_version,Glib.micro_version)  
+                  
+)
+logger.info(f"Gtk3-Perl version {Gtk3}::VERSION")
+logger.info( 'Built for GTK ' + DOT.join(( Gtk.MAJOR_VERSION(), Gtk.MINOR_VERSION(), Gtk.MICRO_VERSION() )) 
+     )
+logger.info(
+    'Running with GTK ' + DOT.join(( Gtk.get_major_version, Gtk.get_minor_version,
+        Gtk.get_micro_version
+    )) 
+    
+)
+logger.info(f"Gtk3::SimpleList version {Gtk3}::SimpleList::VERSION")
+logger.info(f"Gscan2pdf::Document version {Gscan2pdf}::Document::VERSION")
+
+if Gscan2pdf.Document.VERSION != VERSION :
+    logger.fatal(
+        'Mismatch between Gscan2pdf::Document version %s and executable version %s.' % (Gscan2pdf.Document.VERSION,VERSION)
+
+         
+    )
+    exit
+
+
+#$logger->info( 'Using GtkImageView version ',
+#    Gtk3::ImageView->library_version );
+
+logger.info(f"Using Gtk3::ImageView version {Gtk3}::ImageView::VERSION")
+logger.info(f"Using PDF::Builder version {PDF}::Builder::VERSION")
+logger.info( 'Using Sane version ' + DOT.join(Image.Sane.get_version())   )
+logger.info(f"Using libimage-sane-perl version {Image}::Sane::VERSION")
+
+if debug :
+    logger.debug( Dumper( SETTING ) )
+
+if "version" not   in SETTING or SETTING["version"] != VERSION :
+    del(SETTING["cache"]) 
+
+SETTING["version"] = VERSION
+
+# Initialise thread handler
+Gscan2pdf.Document.setup(logger)
+
+# Initialise SANE frontends
+Gscan2pdf.Frontend.Image_Sane.setup(logger)
+
+# Update list in Gscan2pdf::Document so that it can be used by get_resolution
+Gscan2pdf.Document.set_paper_sizes( SETTING["Paper"] )
+
+# Create icons for rotate buttons
+iconfactory=None
+iconpath=None
+if os.path.isdir('/usr/share/gscan2pdf') :
+    iconpath = '/usr/share/gscan2pdf'
+else :
+    iconpath = 'icons'
+
+init_icons([
+'rotate90',    f"{iconpath}/stock-rotate-90.svg" ],     [
+'rotate180',   f"{iconpath}/180_degree.svg" ],     [
+'rotate270',   f"{iconpath}/stock-rotate-270.svg" ],     [
+'scanner',     f"{iconpath}/scanner.svg" ],     [
+'pdf',         f"{iconpath}/pdf.svg" ],     [
+'selection',   f"{iconpath}/stock-selection-all-16.png" ],     [
+'hand-tool',   f"{iconpath}/hand-tool.svg" ],     [
+'mail-attach', f"{iconpath}/mail-attach.svg" ],     [
+'crop',        f"{iconpath}/crop.svg" ],
+)
+
+# Define application-wide variables here so that they can be referenced
+# in the menu callbacks
+(
+    slist,     windowi,     windowe, windows, windowo, windowrn, windowu,
+    windowudt, save_button, window,  thbox,   tpbar,
+    tcbutton,  spbar,       shbox,   scbutton, unpaper, hpaned,
+    undo_buffer,
+    redo_buffer,    undo_selection, redo_selection, dependencies,
+    menubar,        toolbar,
+    ocr_engine,     clipboard,
+    windowr,        view,    windowp, message_dialog,
+    print_settings, windowc, current_page,
+
+    # Goo::Canvas for text layer
+    canvas, vpaned, ocr_text_hbox, ocr_textbuffer, ocr_textview, ocr_bbox,
+
+    # Goo::Canvas for annotation layer
+    a_canvas, ann_hbox, ann_textbuffer, ann_textview, ann_bbox,
+
+    # Notebook, split panes for detail view and OCR output
+    vnotebook, hpanei, vpanei,
+
+    # Spinbuttons for selector on crop dialog
+    sb_selector_x, sb_selector_y, sb_selector_w, sb_selector_h,
+
+    # dir below session dir
+    tmpdir,
+
+    # session dir
+    session,
+
+    # filehandle for session lockfile
+    lockfh,
+
+    # Temp::File object for PDF to be emailed
+    # Define here to make sure that it doesn't get deleted until the next email
+    # is created or we quit
+    pdf,
+
+    # hash of true type fonts available. Used by PDF OCR output
+    fonts,
+
+    # SimpleList in preferences dialog
+    option_visibility_list,
+
+    # Comboboxes for user-defined tools and rotate buttons
+    comboboxudt, rotate_side_cmbx, rotate_side_cmbx2,
+
+    # Declare the XML structure
+    uimanager,
+)=(None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,[],[],[],[],{},None,None,[],None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,)
+
+# Create the window
+app = Gtk.Application( 'net.sourceforge.gscan2pdf', 'handles-open' )
+app.connect( 'startup'  , application_startup_callback )
+app.connect( 'activate' , application_activate_callback )
+app.run()
