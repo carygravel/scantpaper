@@ -1,13 +1,9 @@
 "pagerange widget"
-import gettext  # For translations
 import gi
+from i18n import _
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
-
-# from translation import __
-# easier to extract strings with xgettext
-_ = gettext.gettext
 
 # does not yet work. see https://gitlab.gnome.org/GNOME/pygobject/-/issues/215
 # GObject.TypeModule.register_enum( 'Gscan2pdf::PageRange::Range',        ["selected","all"] )

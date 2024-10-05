@@ -1,14 +1,12 @@
 "subclass Gtk.Dialog to add some boilerplate"
 import re
-import gettext  # For translations
 from pagerange import PageRange
 import gi
+from i18n import _
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, Gtk, GObject  # pylint: disable=wrong-import-position
-
-_ = gettext.gettext  # easier to extract strings with xgettext
 
 
 class Dialog(Gtk.Dialog):
