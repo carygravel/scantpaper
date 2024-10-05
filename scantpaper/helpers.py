@@ -1,6 +1,7 @@
 "Various helper functions"
 
 import re
+import os
 from dataclasses import dataclass
 import logging
 import subprocess
@@ -184,3 +185,12 @@ def parse_truetype_fonts(fclist):
                     fonts["by_family"][family] = {}
                 fonts["by_family"][family][style] = file
     return fonts
+
+
+def get_tmp_dir(dirname, pattern):
+    "If user selects session dir as tmp dir, return parent dir"
+    if dirname is None:
+        return None
+    while re.search(pattern, dirname):
+        dirname = os.path.dirname(dirname)
+    return dirname
