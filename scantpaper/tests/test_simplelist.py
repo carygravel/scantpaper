@@ -138,7 +138,7 @@ def test_error():
         slist.data[10] = ["something"]
 
     with pytest.raises(IndexError):
-        _ = slist.data[10]
+        _i = slist.data[10]
 
     with pytest.raises(IndexError):
         del slist.data[10]

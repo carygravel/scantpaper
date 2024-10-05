@@ -231,8 +231,8 @@ class MultipleMessage(Dialog):
                 filt = True
                 if row in self.stored_responses and self.stored_responses[row]:
                     filt = False
-                    for _ in self.stored_responses[row]:
-                        if _ == response:
+                    for i in self.stored_responses[row]:
+                        if i == response:
                             filt = True
                             break
 
