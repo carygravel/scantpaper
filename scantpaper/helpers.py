@@ -57,7 +57,7 @@ def _program_version(stream, regex, proc):
         output = proc.stdout
 
     elif stream == "stderr":
-        output = proc.srderr
+        output = proc.stderr
 
     elif stream == "both":
         output = proc.stdout + proc.stderr
