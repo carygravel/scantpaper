@@ -54,7 +54,7 @@ class SaneThread(BaseThread):
     def do_get_devices(cls, _request):
         "get devices"
         return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
+            SimpleNamespace(name=x[0], vendor=x[1], model=x[2], label=x[3])
             for x in sane.get_devices()
         ]
 
