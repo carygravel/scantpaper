@@ -65,11 +65,13 @@ import gi
 import argparse
 import sys
 import fcntl
+from types import SimpleNamespace
 import tesserocr
-from dialog import MultipleMessage
+from dialog import Dialog, MultipleMessage
 from dialog.renumber import Renumber
 from dialog.save import Save
 from dialog.scan import Scan
+from dialog.sane import SaneScanDialog
 from comboboxtext import ComboBoxText
 from document import Document
 from basedocument import slurp
@@ -228,9 +230,9 @@ def parse_arguments() :
     parser = argparse.ArgumentParser(
                     prog=prog_name,
                     description='What the program does')
-    parser.add_argument("--device")
-    parser.add_argument("--import", nargs="+", dest="import_files", action="append")
-    parser.add_argument("--import-all", nargs="+", action="append")
+    parser.add_argument("--device", nargs="+")
+    parser.add_argument("--import", nargs="+", dest="import_files")
+    parser.add_argument("--import-all", nargs="+")
     parser.add_argument("--locale")
     parser.add_argument("--log", type=argparse.FileType('w'))
     parser.add_argument('--version', action='version', version='%(prog)s '+VERSION)
@@ -333,7 +335,7 @@ def check_dependencies() :
               )               + SPACE               + _('Whilst this might work, it is not currently supported.')               + SPACE               + _('Please switch to ImageMagick in case of problems.')
             show_message_dialog(
                 parent           = window,
-                type             = 'warning',
+                message_type             = 'warning',
                 buttons          = 'ok',
                 text             = msg,
                 store_response = True
@@ -381,7 +383,7 @@ def check_dependencies() :
                     del(dependencies[name]) 
                     show_message_dialog(
                         parent           = window,
-                        type             = 'warning',
+                        message_type             = 'warning',
                         buttons          = 'ok',
                         text             = msg,
                         store_response = True
@@ -512,10 +514,9 @@ def update_uimanager() :
 
 
    # If the scan dialog has already been drawn, update the start page spinbutton
-
-    if is_not_an_empty_hashref(windows) :
+    global windows
+    if windows :
         windows.update_start_page()
-    return
 
 
 def selection_changed_callback() :
@@ -916,6 +917,7 @@ def new() :
     current_page=None
 
     # Reset start page in scan dialog
+    global windows
     windows.reset_start_page()
 
 
@@ -1098,10 +1100,8 @@ def update_tpbar(options) :
 
 
 def open_dialog() :
-    """Throw up file selector and open selected file
-"""
+    "Throw up file selector and open selected file"
     # cd back to cwd to get filename
-
     os.chdir( SETTING["cwd"])
     file_chooser = Gtk.FileChooserDialog(
         _('Open image'),
@@ -1294,7 +1294,7 @@ def update_metadata_settings(dialog) :
             logger.debug(msg)
             show_message_dialog(
                 parent  = window,
-                type    = 'error',
+                message_type    = 'error',
                 buttons = 'close',
                 text    = msg,
             )
@@ -1425,7 +1425,7 @@ def save_dialog() :
         if dependencies[backend] :
             ps_backends.append(backend)  
 
-    windowi = Gscan2pdf.Dialog.Save(
+    windowi = SaveDialog(
         transient_for  = window,
         title            = _('Save'),
         hide_on_delete = True,
@@ -1466,7 +1466,7 @@ def save_dialog() :
 
     # Post-save hook
 
-    pshbutton = Gtk.CheckButton( _('Post-save hook') )
+    pshbutton = Gtk.CheckButton( label=_('Post-save hook') )
     pshbutton.set_tooltip_text(
         _(
 'Run command on saved file. The available commands are those user-defined tools that do not specify %o'
@@ -1485,7 +1485,7 @@ def save_dialog() :
     )
     pshbutton.set_active( SETTING["post_save_hook"] )
     windowi["comboboxpsh"].set_sensitive( pshbutton.get_active() )
-    kbutton = Gtk.CheckButton( _('Close dialog on save') )
+    kbutton = Gtk.CheckButton( label=_('Close dialog on save') )
     kbutton.set_tooltip_text( _('Close dialog on save') )
     kbutton.set_active( SETTING["close_dialog_on_save"] )
     vbox.pack_start( kbutton, False, True, 0 )
@@ -1589,7 +1589,6 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-
         os.chdir( session)
 
     elif  SETTING['image type'] =='djvu':
@@ -1597,13 +1596,10 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
             save_dialog()
             return
 
-
             # cd back to cwd to save
-
         os.chdir( SETTING["cwd"])
 
             # Set up file selector
-
         file_chooser = Gtk.FileChooserDialog(
                 _('DjVu filename'),
                 windowi, 'save',
@@ -1636,7 +1632,6 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-
         os.chdir( session)
 
     elif  SETTING['image type'] =='tif':
@@ -1644,11 +1639,9 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         SETTING["quality"]            = windowi.jpeg_quality
 
             # cd back to cwd to save
-
         os.chdir( SETTING["cwd"])
 
             # Set up file selector
-
         file_chooser = Gtk.FileChooserDialog(
                 _('TIFF filename'),
                 windowi, 'save',
@@ -1668,17 +1661,14 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-
         os.chdir( session)
 
     elif  SETTING['image type'] =='txt':
 
             # cd back to cwd to save
-
         os.chdir( SETTING["cwd"])
 
             # Set up file selector
-
         file_chooser = Gtk.FileChooserDialog(
                 _('Text filename'),
                 windowi, 'save',
@@ -1697,17 +1687,14 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-
         os.chdir( session)
 
     elif  SETTING['image type'] =='hocr':
 
             # cd back to cwd to save
-
         os.chdir( SETTING["cwd"])
 
             # Set up file selector
-
         file_chooser = Gtk.FileChooserDialog(
                 _('hOCR filename'),
                 windowi, 'save',
@@ -1726,7 +1713,6 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-
         os.chdir( session)
 
     elif  SETTING['image type'] =='ps':
@@ -1734,11 +1720,9 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         logger.info(f"Selected '{SETTING}{ps_backend}' as ps backend")
 
             # cd back to cwd to save
-
         os.chdir( SETTING["cwd"])
 
             # Set up file selector
-
         file_chooser = Gtk.FileChooserDialog(
                 _('PS filename'),
                 windowi, 'save',
@@ -1757,17 +1741,14 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-
         os.chdir( session)
 
     elif  SETTING['image type'] =='session':
 
             # cd back to cwd to save
-
         os.chdir( SETTING["cwd"])
 
             # Set up file selector
-
         file_chooser = Gtk.FileChooserDialog(
                 _('gscan2pdf session filename'),
                 windowi, 'save',
@@ -1786,7 +1767,6 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-
         os.chdir( session)
 
     elif  SETTING['image type'] =='jpg':
@@ -1876,7 +1856,7 @@ def file_writable( chooser, filename ) :
         text = _('Directory %s is read-only') % (dirname(filename))  
         show_message_dialog(
             parent  = chooser,
-            type    = 'error',
+            message_type    = 'error',
             buttons = 'close',
             text    = text
         )
@@ -1886,7 +1866,7 @@ def file_writable( chooser, filename ) :
         text = _('File %s is read-only') % (filename)  
         show_message_dialog(
             parent  = chooser,
-            type    = 'error',
+            message_type    = 'error',
             buttons = 'close',
             text    = text
         )
@@ -1929,7 +1909,7 @@ def save_image(list_of_pages) :
                     text = _('This operation would overwrite %s') % (current_filename)                        
                     show_message_dialog(
                         parent  = file_chooser,
-                        type    = 'error',
+                        message_type    = 'error',
                         buttons = 'close',
                         text    = text
                     )
@@ -2227,7 +2207,7 @@ def email() :
         windowe.present()
         return
 
-    windowe = Gscan2pdf.Dialog.Save(
+    windowe = SaveDialog(
         transient_for  = window,
         title            = _('Email as PDF'),
         hide_on_delete = True,
@@ -2350,7 +2330,7 @@ def email() :
             if status :
                 show_message_dialog(
                             parent  = window,
-                            type    = 'error',
+                            message_type    = 'error',
                             buttons = 'close',
                             text    = _('Error creating email')
                         )
@@ -2391,10 +2371,10 @@ def email() :
 
 
 
-def scan_dialog( action, hidden, scan ) :
-    """Scan
-"""    
-    if is_not_an_empty_hashref(windows) :
+def scan_dialog( action, hidden, scan=False ) :
+    "Scan"
+    global windows
+    if windows :
         windows.show_all()
         update_postprocessing_options_callback(windows)
         return
@@ -2402,7 +2382,6 @@ def scan_dialog( action, hidden, scan ) :
     # If device not set by config and there is a default device, then set it
     if "device" not   in SETTING        and  'SANE_DEFAULT_DEVICE'  in os.environ     :
         SETTING["device"] = os.environ['SANE_DEFAULT_DEVICE']
-
 
     # scan pop-up window
     options = {
@@ -2420,86 +2399,46 @@ def scan_dialog( action, hidden, scan ) :
         'document'                   : slist,
         'ignore-duplex-capabilities' : SETTING['ignore-duplex-capabilities'],
     }
-    if SETTING["frontend"] == 'libimage-sane-perl' :
-        windows = Gscan2pdf.Dialog.Scan.Image_Sane(
-            options,
-            cycle_sane_handle    = SETTING['cycle sane handle'],
-            cancel_between_pages = (
-                      SETTING['allow-batch-flatbed']
-                  and SETTING['cancel-between-pages']
-            ),
-        )
- 
-    else :
-        windows = Gscan2pdf.Dialog.Scan.CLI(
-            options,
-            prefix                 = SETTING['scan prefix'],
-            frontend               = SETTING['frontend'],
-            visible_scan_options = SETTING['visible-scan-options'],
-            reload_triggers      = SETTING['scan-reload-triggers'],
-            cache_options        = SETTING['cache options'],
-            options_cache        = SETTING["cache"],
-        )
-        def anonymous_89( widget, cache ):
-                
-            SETTING["cache"] = cache
-
-
-        windows.connect(
-            'changed-options-cache' , anonymous_89 
-        )
-
+    windows = SaneScanDialog(
+        options,
+        cycle_sane_handle    = SETTING['cycle sane handle'],
+        cancel_between_pages = (
+                    SETTING['allow-batch-flatbed']
+                and SETTING['cancel-between-pages']
+        ),
+    )
 
     # Can't set the device when creating the window,
     # as the list does not exist then
-
-    windows.connect(
-        'changed-device-list' , changed_device_list_callback )
+    windows.connect(        'changed-device-list' , changed_device_list_callback )
 
     # Update default device
-
     windows.connect( 'changed-device' , changed_device_callback )
-    windows.connect( 'changed-page-number-increment' ,
-          update_postprocessing_options_callback )
-    windows.connect(
-        'changed-side-to-scan' , changed_side_to_scan_callback )
+    windows.connect( 'changed-page-number-increment' ,          update_postprocessing_options_callback )
+    windows.connect(        'changed-side-to-scan' , changed_side_to_scan_callback )
     signal=None
-    def anonymous_90( widget, message ):
-            
+
+    def started_progress_callback( widget, message ):
+        global spbar    
+        global shbox
+        global scbutton
         logger.debug(
                 f"signal 'started-process' emitted with message: {message}")
         spbar.set_fraction(0)
         spbar.set_text(message)
         shbox.show_all()
-        def anonymous_91():
-            windows.cancel_scan()
+        signal = scbutton.connect(                'clicked' , windows.cancel_scan             )
 
-
-        signal = scbutton.connect(
-                'clicked' , anonymous_91 
-            )
-
-
-    windows.connect(
-        'started-process' , anonymous_90 
-    )
-    windows.connect(
-        'changed-progress' , changed_progress_callback )
-    windows.connect(
-        'finished-process' , finished_process_callback )
-    windows.connect(
-        'process-error' , process_error_callback,
-        signal
-    )
+    windows.connect(        'started-process' , started_progress_callback     )
+    windows.connect(        'changed-progress' , changed_progress_callback )
+    windows.connect(        'finished-process' , finished_process_callback )
+    windows.connect(        'process-error' , process_error_callback,        signal    )
 
     # Profiles
-
     for  profile in      SETTING["profile"].keys()   :
         windows.add_profile(
             profile,
-            Gscan2pdf.Scanner.Profile.new_from_data(
-                SETTING["profile"][profile]
-            )
+            Profile(                SETTING["profile"][profile]            )
         )
 
     def anonymous_92( widget, profile ):
@@ -2528,10 +2467,8 @@ def scan_dialog( action, hidden, scan ) :
     )
 
     def anonymous_95( widget, profile ):
-        """    # Update the default profile when the scan options change
-"""            
+        "Update the default profile when the scan options change"           
         SETTING['default-scan-options'] = profile.get_data()
-
 
     windows.connect(
         'changed-current-scan-options' , anonymous_95 
@@ -2551,86 +2488,75 @@ def scan_dialog( action, hidden, scan ) :
     if not hidden :
         windows.show_all()
     update_postprocessing_options_callback(windows)
-    if device :
+    logger.debug(f"before device {args.device}")
+    if args.device :
         device_list=[]
-        for d in         device :
-            device_list.append({ "name" : d, "label" : d })  
+        for d in         args.device :
+            device_list.append(SimpleNamespace(name= d, label=d ))  
 
         windows.device_list=device_list
  
     elif not scan        and SETTING['cache-device-list']        and len( SETTING['device list'] )     :
         windows.device_list=SETTING['device list']
- 
     else :
         windows.get_devices()
 
 
 def changed_device_callback( widget, device ) :
         # $widget is $windows
-    if  (device is not None) and device != EMPTY :
+    if  device != EMPTY :
         logger.info(f"signal 'changed-device' emitted with data: '{device}'")
         SETTING["device"] = device
 
         # Can't set the profile until the options have been loaded. This
         # should only be called the first time after loading the available
         # options
-
-        widget["reloaded_signal"] = widget.connect(
-            'reloaded-scan-options' , reloaded_scan_options_callback )
+        widget.reloaded_signal = widget.connect(            'reloaded-scan-options' , reloaded_scan_options_callback )
  
     else :
         logger.info("signal 'changed-device' emitted with data: undef")
 
-    return
-
 
 def changed_device_list_callback( widget, device_list ) :    # $widget is $windows
     
-    logger.info( "signal 'changed-device-list' emitted with data: "
-          + Dumper(device_list) )
-    if  (device_list is not None) and len(device_list) :
+    logger.info( "signal 'changed-device-list' emitted with data: %s",device_list )
+    if len(device_list) :
 
         # Apply the device blacklist
-
-        if  'device blacklist'  in SETTING            and SETTING['device blacklist'] != EMPTY         :
+        if  'device blacklist'  in SETTING            and SETTING['device blacklist'] not in [None, ""]         :
             device_list = device_list
             i           = 0
-            while i < device_list :
-                if                      re.search(fr"{SETTING}{{'device blacklist'}}",device_list[i]["name"],re.MULTILINE|re.DOTALL|re.VERBOSE)                 :
-                    logger.info(f"Blacklisting device {device_list}[{i}]{name}")
+            while i < len(device_list) :
+                if                      re.search(device_list[i].name, SETTING['device blacklist'],re.MULTILINE|re.DOTALL|re.VERBOSE)                 :
+                    logger.info(f"Blacklisting device {device_list[i].name}")
                     del(device_list[i])   
  
                 else :
                     i+=1
 
-
             if len(device_list) < len(device_list) :
                 widget.device_list=device_list
                 return
 
-
         if SETTING['cache-device-list'] :
             SETTING['device list'] = device_list
 
-
        # Only set default device if it hasn't been specified on the command line
        # and it is in the the device list
-
-        if  "device"  in SETTING and not device :
+        if  "device"  in SETTING  :
             for d in              device_list  :
-                if SETTING["device"] == d["name"] :
+                if SETTING["device"] == d.name :
                     widget.device=SETTING["device"]
                     return
 
-
-
-        widget.device=device_list[0]["name"]
+        widget.device=device_list[0].name
  
     else :
+        global windows
         windows=None
 
 
-def changed_side_to_scan_callback( widget, side ) :
+def changed_side_to_scan_callback( widget ) :
     
     if len( slist.data )-1 > EMPTY_LIST :
         widget.page_number_start=slist.data[ len( slist.data )-1 ][0]+1
@@ -2638,30 +2564,27 @@ def changed_side_to_scan_callback( widget, side ) :
         widget.page_number_start=1
 
 
-def reloaded_scan_options_callback( widget, side ) :
-    """This should only be called the first time after loading the available options
-"""        # $widget is $windows
-    widget.disconnect( widget["reloaded_signal"] )
+def reloaded_scan_options_callback( widget ) :
+    """This should only be called the first time after loading the available options"""        # $widget is $windows
+    widget.disconnect( widget.reloaded_signal )
     profiles = SETTING["profile"].keys() 
     if  'default profile'  in SETTING :
         widget.profile=SETTING['default profile']
  
     elif  'default-scan-options'  in SETTING :
         widget.set_current_scan_options(
-            Gscan2pdf.Scanner.Profile.new_from_data(
-                SETTING['default-scan-options']
-            )
+            Profile(                SETTING['default-scan-options']            )
         )
  
     elif profiles :
         widget.profile=profiles[0]
 
     update_postprocessing_options_callback(widget)
-    return
 
 
 def changed_progress_callback( widget, progress, message ) :
     
+    global spbar    
     if  (progress is not None) and progress >= 0 and progress <= 1 :
         spbar.set_fraction(progress)
  
@@ -2737,9 +2660,11 @@ def new_scan_callback( self, path, page_number, xresolution, yresolution ) :
 def process_error_callback( widget, process, msg, signal ) :
     
     logger.info(f"signal 'process-error' emitted with data: {process} {msg}")
-    if  (signal is not None) :
+    if  signal is not None :
+        global scbutton
         scbutton.disconnect(signal)
 
+    global shbox
     shbox.hide()
     if process == 'open_device'        and   re.search(r"(Invalid[ ]argument|Device[ ]busy)",msg,re.MULTILINE|re.DOTALL|re.VERBOSE)     :
         error_name = 'error opening device'
@@ -2790,7 +2715,7 @@ def process_error_callback( widget, process, msg, signal ) :
             if cb.get_active() :
                 SETTING["message"][error_name]["response"] = response
 
-
+        global windows
         windows=None    # force scan dialog to be rebuilt
         if response == 'reopen' :
             scan_dialog()
@@ -2807,23 +2732,25 @@ def process_error_callback( widget, process, msg, signal ) :
 
     show_message_dialog(
         parent           = widget,
-        type             = 'error',
+        message_type             = 'error',
         buttons          = 'close',
         page             = EMPTY,
         process          = process,
         text             = msg,
         store_response = True
     )
-    return
 
 
-def finished_process_callback( widget, process, button_signal ) :
+def finished_process_callback( widget, process, button_signal=None ) :
     
     logger.debug(f"signal 'finished-process' emitted with data: {process}")
-    if  (button_signal is not None) :
+    if  button_signal is not None :
+        global scbutton
         scbutton.disconnect(button_signal)
 
+    global shbox
     shbox.hide()
+    global windows
     if process == 'scan_pages'        and windows.sided == 'double'     :
         def anonymous_100():
             ( message, next )=(None,None)
@@ -2866,6 +2793,8 @@ def update_postprocessing_options_callback(widget) :
                                         # $widget is $windows
     options   = widget.available_scan_options
     increment = widget.page_number_increment
+    global rotate_side_cmbx
+    global rotate_side_cmbx2
     if  (options is not None) :
         if increment != 1 or options.can_duplex() :
             rotate_side_cmbx.show()
@@ -2883,7 +2812,7 @@ def add_postprocessing_rotate(vbox) :
     
     hboxr = Gtk.HBox()
     vbox.pack_start( hboxr, False, False, 0 )
-    rbutton = Gtk.CheckButton( _('Rotate') )
+    rbutton = Gtk.CheckButton( label=_('Rotate') )
     rbutton.set_tooltip_text( _('Rotate image after scanning') )
     hboxr.pack_start( rbutton, True, True, 0 )
     side = [
@@ -2892,6 +2821,8 @@ def add_postprocessing_rotate(vbox) :
     'facing',  _('Facing side'),  _('Facing side.') ],         [
     'reverse', _('Reverse side'), _('Reverse side.') ],
     ]
+    global rotate_side_cmbx
+    global rotate_side_cmbx2
     rotate_side_cmbx = ComboBoxText(data=side)
     rotate_side_cmbx.set_tooltip_text( _('Select side to rotate') )
     hboxr.pack_start( rotate_side_cmbx, True, True, 0 )
@@ -2907,7 +2838,7 @@ def add_postprocessing_rotate(vbox) :
     hboxr.pack_end( comboboxr, True, True, 0 )
     hboxr = Gtk.HBox()
     vbox.pack_start( hboxr, False, False, 0 )
-    r2button = Gtk.CheckButton( _('Rotate') )
+    r2button = Gtk.CheckButton( label=_('Rotate') )
     r2button.set_tooltip_text( _('Rotate image after scanning') )
     hboxr.pack_start( r2button, True, True, 0 )
     side2=[]
@@ -2931,7 +2862,7 @@ def add_postprocessing_rotate(vbox) :
     rbutton.connect(
         'toggled' , anonymous_101 
     )
-    def anonymous_102():
+    def anonymous_102(arg):
         if side[ rotate_side_cmbx.get_active() ][0] == 'both' :
             hboxr.set_sensitive(False)
             r2button.set_active(False)
@@ -2989,7 +2920,7 @@ def add_postprocessing_udt(vboxp) :
     
     hboxudt = Gtk.HBox()
     vboxp.pack_start( hboxudt, False, False, 0 )
-    udtbutton =       Gtk.CheckButton( _('Process with user-defined tool') )
+    udtbutton =       Gtk.CheckButton( label=_('Process with user-defined tool') )
     udtbutton.set_tooltip_text(
         _('Process scanned images with user-defined tool') )
     hboxudt.pack_start( udtbutton, True, True, 0 )
@@ -3019,7 +2950,7 @@ def add_postprocessing_ocr(vbox) :
     
     hboxo = Gtk.HBox()
     vbox.pack_start( hboxo, False, False, 0 )
-    obutton = Gtk.CheckButton( _('OCR scanned pages') )
+    obutton = Gtk.CheckButton( label=_('OCR scanned pages') )
     obutton.set_tooltip_text( _('OCR scanned pages') )
     if not dependencies["ocr"] :
         hboxo.set_sensitive(False)
@@ -3062,28 +2993,12 @@ def add_postprocessing_ocr(vbox) :
             'toggled' , anonymous_104 
         )
 
-    if dependencies["cuneiform"] :
-        ( hboxcl, comboboxcl, cflang ) = add_cf_languages(vbox)
-        def anonymous_105():
-            if ocr_engine[ comboboxe.get_active() ][0] == 'cuneiform'                 :
-                hboxcl.show_all()
- 
-            else :
-                hboxcl.hide()
-
-
-
-        comboboxe.connect(
-            'changed' , anonymous_105 
-        )
-
     comboboxe.set_active_index( SETTING['ocr engine'] )
 
     # Checkbox & SpinButton for threshold
-
     hboxt = Gtk.HBox()
     vbox.pack_start( hboxt, False, True, 0 )
-    cbto = Gtk.CheckButton.new_with_label( _('Threshold before OCR') )
+    cbto = Gtk.CheckButton( label=_('Threshold before OCR') )
     cbto.set_tooltip_text(
         _(
                 'Threshold the image before performing OCR. '
@@ -3115,20 +3030,18 @@ def add_postprocessing_options(self) :
     
     scwin = Gtk.ScrolledWindow()
     self.notebook       .append_page( scwin, Gtk.Label( label=_('Postprocessing') ) )
-    scwin.set_policy( 'automatic', 'automatic' )
+    scwin.set_policy( Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC )
     vboxp = Gtk.VBox()
-    vboxp.set_border_width( self.style_get('content-area-border') )
-    scwin.add_with_viewport(vboxp)
+    vboxp.set_border_width( self.get_border_width() )
+    scwin.add(vboxp)
 
     # Rotate
-
-    ( rotate, side, side2, rbutton, r2button, comboboxr, comboboxr2 )       = add_postprocessing_rotate(vboxp)
+    rotate, side, side2, rbutton, r2button, comboboxr, comboboxr2        = add_postprocessing_rotate(vboxp)
 
     # CheckButton for unpaper
-
     hboxu = Gtk.HBox()
     vboxp.pack_start( hboxu, False, False, 0 )
-    ubutton = Gtk.CheckButton( _('Clean up images') )
+    ubutton = Gtk.CheckButton( label=_('Clean up images') )
     ubutton.set_tooltip_text( _('Clean up scanned images with unpaper') )
     hboxu.pack_start( ubutton, True, True, 0 )
     if not dependencies["unpaper"] :
@@ -3138,11 +3051,11 @@ def add_postprocessing_options(self) :
     elif SETTING['unpaper on scan'] :
         ubutton.set_active(True)
 
-    button = Gtk.Button( _('Options') )
+    button = Gtk.Button( label=_('Options') )
     button.set_tooltip_text( _('Set unpaper options') )
     hboxu.pack_end( button, True, True, 0 )
     def anonymous_107():
-        windowuo = Gscan2pdf.Dialog(
+        windowuo = Dialog(
                 transient_for = window,
                 title           = _('unpaper options'),
             )
@@ -3177,6 +3090,8 @@ def add_postprocessing_options(self) :
     def anonymous_110():
         SETTING['rotate facing']  = 0
         SETTING['rotate reverse'] = 0
+        global rotate_side_cmbx
+        global rotate_side_cmbx2
         if rbutton.get_active() :
             if rotate_side_cmbx.get_active_index() =='both'  :
                 SETTING['rotate facing']  = comboboxr.get_active_index()
@@ -3247,7 +3162,7 @@ def add_postprocessing_options(self) :
 
 
 def print_dialog() :
-    """print"""
+    "print"
     os.chdir( SETTING["cwd"])
     print_op = Gtk.PrintOperation()
     if  (print_settings is not None) :
@@ -3348,7 +3263,8 @@ def delete_selection() :
     slist.delete_selection_extra()
 
     # Reset start page in scan dialog
-    if is_not_an_empty_hashref(windows) :
+    global windows
+    if windows :
         windows.reset_start_page()
 
 
@@ -3589,13 +3505,12 @@ papoteur
 
 
 def renumber_dialog() :
-    """Dialog for renumber
-"""
-    if  (windowrn is not None) :
+    "Dialog for renumber"
+    if  windowrn is not None :
         windowrn.present()
         return
 
-    windowrn = Gscan2pdf.Dialog.Renumber(
+    windowrn = Dialog.Renumber(
         transient_for  = window,
         document         = slist,
         logger           = logger,
@@ -3615,7 +3530,7 @@ def renumber_dialog() :
             
         show_message_dialog(
                 parent  = windowrn,
-                type    = 'error',
+                message_type    = 'error',
                 buttons = 'close',
                 text    = msg
             )
@@ -3625,8 +3540,6 @@ def renumber_dialog() :
         'error' , anonymous_115 
     )
     windowrn.show_all()
-    return
-
 
 
 def indices2pages(indices) :
@@ -3639,11 +3552,9 @@ def indices2pages(indices) :
 
 
 def rotate( angle, pagelist, callback ) :
-    """Rotate selected images
-"""    
+    """Rotate selected images"""    
 
     # Update undo/redo buffers
-
     take_snapshot()
     for  page in      pagelist  :
         ( signal, pid )=(None,None)
@@ -3779,7 +3690,7 @@ def handle_clicks( widget, event ) :
 
 def threshold() :
     "Display page selector and on apply threshold accordingly"
-    windowt = Gscan2pdf.Dialog(
+    windowt = Dialog(
         transient_for = window,
         title           = _('Threshold'),
     )
@@ -3869,9 +3780,8 @@ def threshold() :
 
 
 def brightness_contrast() :
-    """Display page selector and on apply brightness & contrast accordingly
-"""
-    windowt = Gscan2pdf.Dialog(
+    "Display page selector and on apply brightness & contrast accordingly"
+    windowt = Dialog(
         transient_for = window,
         title           = _('Brightness / Contrast'),
     )
@@ -3973,9 +3883,8 @@ def brightness_contrast() :
 
 
 def negate() :
-    """Display page selector and on apply negate accordingly
-"""
-    windowt = Gscan2pdf.Dialog(
+    "Display page selector and on apply negate accordingly"
+    windowt = Dialog(
         transient_for = window,
         title           = _('Negate'),
     )
@@ -4050,9 +3959,8 @@ def negate() :
 
 
 def unsharp() :
-    """Display page selector and on apply unsharp accordingly
-"""
-    windowum = Gscan2pdf.Dialog(
+    "Display page selector and on apply unsharp accordingly"
+    windowum = Dialog(
         transient_for = window,
         title           = _('Unsharp mask'),
     )
@@ -4239,7 +4147,7 @@ def crop_dialog(action) :
         windowc.present()
         return
 
-    windowc = Gscan2pdf.Dialog(
+    windowc = Dialog(
         transient_for  = window,
         title            = _('Crop'),
         hide_on_delete = True,
@@ -4424,13 +4332,9 @@ def crop_selection( action, pagelist ) :
             display_callback = anonymous_157 ,
         )
 
-    return
-
-
 
 def split_dialog(action) :
-    """Display page selector and on apply crop accordingly
-"""    
+    """Display page selector and on apply crop accordingly"""    
 
     # Until we have a separate tool for the divider, kill the whole
     #        sub { $windowsp->hide }
@@ -4439,7 +4343,7 @@ def split_dialog(action) :
     #        return;
     #    }
 
-    windowsp = Gscan2pdf.Dialog(
+    windowsp = Dialog(
         transient_for  = window,
         title            = _('Split'),
         hide_on_delete = True,
@@ -4610,7 +4514,7 @@ def user_defined_dialog() :
         windowudt.present()
         return
 
-    windowudt = Gscan2pdf.Dialog(
+    windowudt = Dialog(
         transient_for  = window,
         title            = _('User-defined tools'),
         hide_on_delete = True,
@@ -4762,7 +4666,7 @@ def unpaper() :
         windowu.present()
         return
 
-    windowu = Gscan2pdf.Dialog(
+    windowu = Dialog(
         transient_for  = window,
         title            = _('unpaper'),
         hide_on_delete = True,
@@ -4817,31 +4721,23 @@ def unpaper() :
 
 
 def add_tess_languages(vbox) :
-    """Add hbox for tesseract languages
-"""    
+    "Add hbox for tesseract languages"    
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, False, False, 0 )
     label = Gtk.Label( label=_('Language to recognise') )
     hbox.pack_start( label, False, True, 0 )
 
     # Tesseract language files
-
     tesslang=[]
-    for lang in      sorted(Gscan2pdf.Tesseract.languages().keys())     :
-        tesslang.append([
-        lang, ( Gscan2pdf.Tesseract.languages()[lang] ) ])  
-
-    # If there are no language files, then we have tesseract-1.0, i.e. English
-    if not tesslang :
-        tesslang.append([
-        None, _('English') ])  
-        logger.info('No tesseract languages found')
+    tesscodes=get_tesseract_codes()
+    langs=languages(tesscodes)
+    for lang in      sorted(tesscodes)     :
+        tesslang.append([lang, langs[lang]  ])  
 
     combobox = ComboBoxText(data=tesslang)
     combobox.set_active_index( SETTING['ocr language'] )
     hbox.pack_end( combobox, False, True, 0 )
     return hbox, combobox, tesslang
-
 
 
 def ocr_dialog() :
@@ -4850,7 +4746,7 @@ def ocr_dialog() :
         windowo.present()
         return
 
-    windowo = Gscan2pdf.Dialog(
+    windowo = Dialog(
         transient_for  = window,
         title            = _('OCR'),
         hide_on_delete = True,
@@ -4870,9 +4766,9 @@ def ocr_dialog() :
     combobe = ComboBoxText(data=ocr_engine)
     combobe.set_active_index( SETTING['ocr engine'] )
     hboxe.pack_end( combobe, False, True, 0 )
-    ( comboboxtl, hboxtl, tesslang, comboboxcl, hboxcl, cflang )=(None,None,[],None,None,[])
+    comboboxtl, hboxtl, tesslang, comboboxcl, hboxcl, cflang =None,None,[],None,None,[]
     if dependencies["tesseract"] :
-        ( hboxtl, comboboxtl, tesslang ) = add_tess_languages(vbox)
+        hboxtl, comboboxtl, tesslang  = add_tess_languages(vbox)
         def anonymous_179():
             if ocr_engine[ combobe.get_active() ][0] == 'tesseract' :
                 hboxtl.show_all()
@@ -4906,7 +4802,7 @@ def ocr_dialog() :
 
     hboxt = Gtk.HBox()
     vbox.pack_start( hboxt, False, True, 0 )
-    cbto = Gtk.CheckButton.new_with_label( _('Threshold before OCR') )
+    cbto = Gtk.CheckButton( label=_('Threshold before OCR') )
     cbto.set_tooltip_text(
         _(
                 'Threshold the image before performing OCR. '
@@ -5028,9 +4924,8 @@ def run_ocr( engine, tesslang, cflang, threshold_flag, threshold ) :
     return
 
 
-
 def quit() :
-    """Remove temporary files, note window state, save settings and quit."""
+    "Remove temporary files, note window state, save settings and quit."
     if not scans_saved(
             _("Some pages have not been saved.\nDo you really want to quit?")
         )     :
@@ -5041,36 +4936,36 @@ def quit() :
     os.chdir( SETTING["cwd"])
 
     # Remove temporary files
-    # (for some reason File::Temp wasn't doing its job here)
-    for file in glob.glob(session+"/*"):
+    for file in glob.glob(session.name+"/*"):
         os.remove(file) 
-    os.rmdir(session) 
+    os.rmdir(session.name) 
         # Write window state to settings
+    global window
+    global hpaned
     SETTING["window_width"], SETTING["window_height"]  = window.get_size()
     SETTING["window_x"],     SETTING["window_y"]       = window.get_position()
     SETTING['thumb panel'] = hpaned.get_position()
-    if is_not_an_empty_hashref(windows) :
-        ( SETTING["scan_window_width"], SETTING["scan_window_height"] ) =           windows.get_size()
+    global windows
+    if windows :
+        SETTING["scan_window_width"], SETTING["scan_window_height"]  =           windows.get_size()
+        logger.info('Killing Sane thread(s)')
+        windows.thread.quit()
 
     # Write config file
     config.write_config( rc, SETTING )
-    logger.info('Killing Sane thread(s)')
-    Gscan2pdf.Frontend.Image_Sane.quit()
     logger.info('Killing document thread(s)')
-    Gscan2pdf.Document.quit()
+    slist.thread.quit()
     logger.debug('Quitting')
 
     # compress log file if we have xz
-    if log and dependencies["xz"] :
-        exec_command(        [        'xz', '-f', log ] )
+    if args.log and dependencies["xz"] :
+        exec_command(        [        'xz', '-f', args.log ] )
 
     return True
 
 
-
 def view_html() :
-    """Perhaps we should use gtk and mallard for this in the future
-"""
+    "Perhaps we should use gtk and mallard for this in the future"
     # At the moment, we have no translations,
     # but when we do, replace C with $locale
 
@@ -5089,8 +4984,7 @@ def view_html() :
 
 
 def take_snapshot() :
-    """Update undo/redo buffers before doing something
-"""
+    "Update undo/redo buffers before doing something"
     old_undo_files = map(lambda x:  f"{_}->[2]{filename}" ,undo_buffer)  
 
     # Deep copy the tied data. Otherwise, very bad things happen.
@@ -5123,15 +5017,16 @@ def take_snapshot() :
     # Check free space in $session directory
 
     df = df( f"{session}", _1MB )
-    if  (df is not None) :
+    if  df is not None :
         logger.debug(
 f"Free space in {session} (Mb): {df}->{bavail} (warning at {SETTING}{'available-tmp-warning'})"
         )
+        global window
         if df["bavail"] < SETTING['available-tmp-warning'] :
             text = _('%dMb free in %s.') % (df["bavail"],session)   
             show_message_dialog(
                 parent  = window,
-                type    = 'warning',
+                message_type    = 'warning',
                 buttons = 'close',
                 text    = text
             )
@@ -5242,6 +5137,7 @@ def mark_pages(pages) :
 
 def compress_temp() :
     "Convert all files in temp that are not jpg, png, or tiff to png,"
+    global window
     if (
         ask_question(
             parent  = window,
@@ -5290,13 +5186,16 @@ def compress_temp() :
         )
 
 
-def preferences() :
-    """Preferences dialog"""
-    if  (windowr is not None) :
+def preferences(arg) :
+    "Preferences dialog"
+    global windows
+    global windowr
+    if  windowr is not None :
         windowr.present()
         return
 
-    windowr = Gscan2pdf.Dialog(
+    global window
+    windowr = Dialog(
         transient_for  = window,
         title            = _('Preferences'),
         hide_on_delete = True,
@@ -5312,26 +5211,24 @@ def preferences() :
         blacklist,           cbcsh,            cb_batch_flatbed,
         cb_cancel_btw_pages, cb_adf_all_pages, cb_cache_device_list,
         cb_ignore_duplex
-      )       = _preferences_scan_options( windowr.style_get('content-area-border') )
+      )       = _preferences_scan_options( windowr.get_border_width()) 
     notebook.append_page( vbox1, Gtk.Label( label=_('Scan options') ) )
     (
         vbox2,       fileentry,   cbw,         cbtz,
         cbtm,        cbts,        cbtp,        tmpentry,
         spinbuttonw, spinbuttonb, spinbuttond, ocr_function,
         comboo,      cbv,         cbb,         vboxt
-      )       = _preferences_general_options(
-        windowr.style_get('content-area-border') )
+      )       = _preferences_general_options(windowr.get_border_width() )
     notebook.append_page( vbox2, Gtk.Label( label=_('General options') ) )
     def anonymous_192():
         windowr.hide()
         if SETTING["frontend"] != combob.get_active_index() :
             SETTING["frontend"] = combob.get_active_index()
             logger.info(f"Switched frontend to {SETTING}{frontend}")
-            if is_not_an_empty_hashref(windows) :
+            if windows :
                 Gscan2pdf.Frontend.Image_Sane.close_device()
                 windows.hide()
                 windows=None
-
  
         else :
             SETTING['visible-scan-options'] = ()
@@ -5345,16 +5242,13 @@ def preferences() :
             if SETTING["frontend"] != 'libsane-perl'                    and SETTING["frontend"] != 'libimage-sane-perl'                 :
                 SETTING['scan prefix']   = preentry.get_text()
                 SETTING['cache options'] = cbc.get_active()
-                if is_not_an_empty_hashref(windows) :
-                    windows.prefix=SETTING['scan prefix']
+                if windows :
                     windows.cache_options=SETTING['cache options']
                     windows.visible_scan_options=SETTING['visible-scan-options']
                     windows.reload_triggers=SETTING['scan-reload-triggers']
 
                 if  "cache"  in SETTING                        and not SETTING['cache options']                     :
                     del(SETTING["cache"]) 
-
-
 
         SETTING['auto-open-scan-dialog'] = cbo.get_active()
         try :
@@ -5368,7 +5262,7 @@ def preferences() :
             logger.warning(msg)
             show_message_dialog(
                     parent           = windowr,
-                    type             = 'error',
+                    message_type             = 'error',
                     buttons          = 'close',
                     text             = msg,
                     store_response = True
@@ -5389,15 +5283,13 @@ def preferences() :
         SETTING["set_timestamp"]      = cbts.get_active()
         SETTING["to_png"]             = cbtp.get_active()
         SETTING['convert whitespace to underscores'] = cbb.get_active()
-        if is_not_an_empty_hashref(windows) :
-            if SETTING["frontend"] == 'libsane-perl'                    or SETTING["frontend"] == 'libimage-sane-perl'                 :
-                windows.cycle_sane_handle=SETTING['cycle sane handle']
-                windows.cancel_between_pages=SETTING['cancel-between-pages']
-
+        if windows :
+            windows.cycle_sane_handle=SETTING['cycle sane handle']
+            windows.cancel_between_pages=SETTING['cancel-between-pages']
             windows.allow_batch_flatbed=SETTING['allow-batch-flatbed']
             windows.ignore_duplex_capabilities=SETTING['ignore-duplex-capabilities']
 
-        if  (windowi is not None) :
+        if  windowi is not None :
             windowi.include_time=SETTING["use_time"]
 
         SETTING['available-tmp-warning'] = spinbuttonw.get_value()
@@ -5420,6 +5312,7 @@ def preferences() :
                 r'gscan2pdf-\w\w\w\w' )
         if newdir != tmp :
             SETTING["TMPDIR"] = newdir
+            global window
             response = ask_question(
                     parent  = window,
                     type    = 'question',
@@ -5446,14 +5339,14 @@ def preferences() :
         anonymous_193 
     )
     windowr.show_all()
-    return
 
 
 def _preferences_scan_options(border_width) :
+    global windows
     
     vbox = Gtk.VBox()
     vbox.set_border_width(border_width)
-    cbo =       Gtk.CheckButton.new_with_label( _('Open scanner at program start') )
+    cbo =       Gtk.CheckButton( label=_('Open scanner at program start') )
     cbo.set_tooltip_text(
         _(
 'Automatically open the scan dialog in the background at program start. '
@@ -5466,7 +5359,6 @@ def _preferences_scan_options(border_width) :
     vbox.pack_start( cbo, True, True, 0 )
 
     # Frontends
-
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, False, False, 0 )
     label = Gtk.Label( label=_('Frontend') )
@@ -5474,20 +5366,14 @@ def _preferences_scan_options(border_width) :
     frontends = [
     [
     'libimage-sane-perl',             _('libimage-sane-perl'),             _('Scan using the Perl bindings for SANE.')
-        ],         [
-    'scanimage', _('scanimage'),             _('Scan using the scanimage frontend.')
-        ],
+        ],     
     ]
-    if dependencies["scanadf"] :
-        frontends.append([
-        'scanadf', _('scanadf'), _('Scan using the scanadf frontend.') ])            
 
     combob = ComboBoxText(data=frontends)
     hbox.set_tooltip_text( _('Interface used for scanner access') )
     hbox.pack_end( combob, True, True, 0 )
 
     # Device blacklist
-
     hboxb = Gtk.HBox()
     vbox.pack_start( hboxb, False, False, 0 )
     label = Gtk.Label( label=_('Device blacklist') )
@@ -5500,8 +5386,7 @@ def _preferences_scan_options(border_width) :
 
 
     # Cycle SANE handle after scan
-
-    cbcsh =       Gtk.CheckButton.new_with_label( _('Cycle SANE handle after scan') )
+    cbcsh =       Gtk.CheckButton( label=_('Cycle SANE handle after scan') )
     cbcsh.set_tooltip_text(
         _('Some ADFs do not feed out the last page if this is not enabled') )
     if  'cycle sane handle'  in SETTING :
@@ -5510,9 +5395,8 @@ def _preferences_scan_options(border_width) :
     vbox.pack_start( cbcsh, False, False, 0 )
 
     # Allow batch scanning from flatbed
-
-    cb_batch_flatbed =       Gtk.CheckButton.new_with_label(
-        _('Allow batch scanning from flatbed') )
+    cb_batch_flatbed =       Gtk.CheckButton(
+        label=_('Allow batch scanning from flatbed') )
     cb_batch_flatbed.set_tooltip_text(
         _(
 'If not set, switching to a flatbed scanner will force # pages to 1 and single-sided mode.'
@@ -5522,9 +5406,8 @@ def _preferences_scan_options(border_width) :
     vbox.pack_start( cb_batch_flatbed, False, False, 0 )
 
     # Ignore duplex capabilities
-
-    cb_ignore_duplex =       Gtk.CheckButton.new_with_label(
-        _('Ignore duplex capabilities of scanner') )
+    cb_ignore_duplex =       Gtk.CheckButton(
+        label=_('Ignore duplex capabilities of scanner') )
     cb_ignore_duplex.set_tooltip_text(
         _(
 'If set, any duplex capabilities are ignored, and facing/reverse widgets are displayed to allow manual interleaving of pages.'
@@ -5534,9 +5417,8 @@ def _preferences_scan_options(border_width) :
     vbox.pack_start( cb_ignore_duplex, False, False, 0 )
 
     # Force new scan job between pages
-
-    cb_cancel_btw_pages =       Gtk.CheckButton.new_with_label(
-        _('Force new scan job between pages') )
+    cb_cancel_btw_pages =       Gtk.CheckButton(
+        label=_('Force new scan job between pages') )
     cb_cancel_btw_pages.set_tooltip_text(
         _(
 'Otherwise, some Brother scanners report out of documents, despite scanning from flatbed.'
@@ -5549,15 +5431,13 @@ def _preferences_scan_options(border_width) :
         cb_cancel_btw_pages.set_sensitive(
                 cb_batch_flatbed.get_active() )
 
-
     cb_batch_flatbed.connect(
         'toggled' , anonymous_194 
     )
 
     # Select num-pages = all on selecting ADF
-
-    cb_adf_all_pages =       Gtk.CheckButton.new_with_label(
-        _('Select # pages = all on selecting ADF') )
+    cb_adf_all_pages =       Gtk.CheckButton(
+        label=_('Select # pages = all on selecting ADF') )
     cb_adf_all_pages.set_tooltip_text(
         _(
 'If this option is enabled, when switching to source=ADF, # pages = all is selected'
@@ -5567,8 +5447,7 @@ def _preferences_scan_options(border_width) :
     vbox.pack_start( cb_adf_all_pages, False, False, 0 )
 
     # Cache device list
-
-    cb_cache_device_list =       Gtk.CheckButton.new_with_label( _('Cache device list') )
+    cb_cache_device_list =       Gtk.CheckButton( label=_('Cache device list') )
     cb_cache_device_list.set_tooltip_text(
         _(
 'If this option is enabled, opening the scanner is quicker, as gscan2pdf does not first search for available devices.'
@@ -5581,7 +5460,6 @@ def _preferences_scan_options(border_width) :
     vbox.pack_start( cb_cache_device_list, False, False, 0 )
 
     # scan command prefix
-
     hboxp = Gtk.HBox()
     vbox.pack_start( hboxp, False, False, 0 )
     label = Gtk.Label( label=_('Scan command prefix') )
@@ -5593,20 +5471,19 @@ def _preferences_scan_options(border_width) :
 
 
     # Cache options?
-
-    cbc =       Gtk.CheckButton.new_with_label( _('Cache device-dependent options') )
+    cbc =       Gtk.CheckButton( label=_('Cache device-dependent options') )
     if SETTING['cache options'] :
         cbc.set_active(True)
     vbox.pack_start( cbc, False, False, 0 )
 
     # Clear options cache
 
-    buttonc =       Gtk.Button( _('Clear device-dependent options cache') )
+    buttonc =       Gtk.Button( label=_('Clear device-dependent options cache') )
     vbox.pack_start( buttonc, False, False, 0 )
     def anonymous_195():
         if  "cache"  in SETTING :
             del(SETTING["cache"]) 
-        if is_not_an_empty_hashref(windows) :
+        if windows :
             windows.options_cache=None
 
 
@@ -5624,7 +5501,7 @@ def _preferences_scan_options(border_width) :
     oframe.add(vvbox)
     scwin = Gtk.ScrolledWindow()
     vvbox.pack_start( scwin, True, True, 0 )
-    scwin.set_policy(["never","automatic"])
+    scwin.set_policy( Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC )
     option_visibility_list = Gtk.SimpleList({
         _('Title')  : 'text',
         _('Type')   : 'text',
@@ -5635,7 +5512,7 @@ def _preferences_scan_options(border_width) :
     scwin.add(option_visibility_list)
     bhbox = Gtk.HBox()
     vvbox.pack_start( bhbox, False, False, 0 )
-    sbutton = Gtk.Button( _('Show') )
+    sbutton = Gtk.Button( label=_('Show') )
 
     def anonymous_196():
         for i in          option_visibility_list.get_selected_indices()  :
@@ -5645,7 +5522,7 @@ def _preferences_scan_options(border_width) :
         'clicked' , anonymous_196 
     )
     bhbox.pack_start( sbutton, True, True, 0 )
-    hbutton = Gtk.Button( _('Hide') )
+    hbutton = Gtk.Button( label=_('Hide') )
 
     def anonymous_197():
         for i in          option_visibility_list.get_selected_indices()  :
@@ -5653,9 +5530,10 @@ def _preferences_scan_options(border_width) :
 
     hbutton.connect(        'clicked' , anonymous_197     )
     bhbox.pack_start( hbutton, True, True, 0 )
-    fbutton = Gtk.Button( _('List current options') )
+    fbutton = Gtk.Button( label=_('List current options') )
+    global windowr
     def anonymous_198():
-        if is_not_an_empty_hashref(windows) :
+        if windows :
             option_visibility_list.data = ()
             options = windows.available_scan_options
             for  i in              range(1,options.num_options())      :
@@ -5669,7 +5547,7 @@ def _preferences_scan_options(border_width) :
         else :
             show_message_dialog(
                     parent  = windowr,
-                    type    = 'error',
+                    message_type    = 'error',
                     buttons = 'close',
                     text    = _(
                         'No scanner currently open with command line frontend.')
@@ -5682,7 +5560,7 @@ def _preferences_scan_options(border_width) :
         'clicked' , anonymous_198 
     )
     bhbox.pack_start( fbutton, True, True, 0 )
-    show_not_listed =       Gtk.CheckButton.new_with_label( _('Show options not listed') )
+    show_not_listed =       Gtk.CheckButton( label=_('Show options not listed') )
     vvbox.pack_start( show_not_listed, False, False, 0 )
 
 
@@ -5693,10 +5571,7 @@ def _preferences_scan_options(border_width) :
         buttonc.set_sensitive( False )
         oframe.set_sensitive( False )
 
-
-    combob.connect(
-        'changed' , anonymous_199 
-    )
+    combob.connect(        'changed' , anonymous_199     )
     combob.set_active_index( SETTING["frontend"] )
     return vbox, frontends, combob, preentry, cbc, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
 
@@ -5707,14 +5582,13 @@ def _preferences_general_options(border_width) :
     vbox.set_border_width(border_width)
 
     # Restore window setting
-
-    cbw = Gtk.CheckButton.new_with_label(
-        _('Restore window settings on startup') )
+    cbw = Gtk.CheckButton(
+        label=_('Restore window settings on startup') )
     cbw.set_active( SETTING['restore window'] )
     vbox.pack_start( cbw, True, True, 0 )
 
     # View saved files
-    cbv = Gtk.CheckButton.new_with_label( _('View files on saving') )
+    cbv = Gtk.CheckButton( label=_('View files on saving') )
     cbv.set_active( SETTING['view files toggle'] )
     vbox.pack_start( cbv, True, True, 0 )
 
@@ -5786,7 +5660,8 @@ All document date codes use strftime codes with a leading D, e.g.:
     tmpentry = Gtk.Entry()
     hbox.add(tmpentry)
     tmpentry.set_text( dirname(session) )
-    button = Gtk.Button( _('Browse') )
+    button = Gtk.Button( label=_('Browse') )
+    global windowr
     def anonymous_200():
         file_chooser = Gtk.FileChooserDialog(
                 _('Select temporary directory'),
@@ -5872,7 +5747,6 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.pack_end( comboo, True, True, 0 )
 
     # Manage user-defined tools
-
     frame = Gtk.Frame( _('Manage user-defined tools') )
     vbox.pack_start( frame, True, True, 0 )
     vboxt = Gtk.VBox()
@@ -6001,7 +5875,8 @@ def properties() :
         windowp.present()
         return
 
-    windowp = Gscan2pdf.Dialog(
+    global window
+    windowp = Dialog(
         transient_for  = window,
         title            = _('Properties'),
         hide_on_delete = True,
@@ -6060,11 +5935,8 @@ f"setting resolution {xresolution},{yresolution} for page {slist.data[i][0]}"
         windowp.hide()
 
 
-    windowp.add_actions(
-        'gtk-apply',
-        anonymous_204 ,
-        'gtk-cancel',
-        anonymous_205 
+    windowp.add_actions(        'gtk-apply',        anonymous_204 ,
+        'gtk-cancel',        anonymous_205 
     )
     windowp.show_all()
 
@@ -6097,13 +5969,11 @@ f"Page {slist}->{data}[{page}][0] has resolutions {xresolution},{yresolution}"
 
 
 def ask_question(options) :
-    """Helper function to display a message dialog, wait for a response, and return it
-"""    
+    "Helper function to display a message dialog, wait for a response, and return it"    
 
     # replace any numbers with metacharacters to compare to filter
-
-    text =       Gscan2pdf.Dialog.MultipleMessage.filter_message( options["text"] )
-    if Gscan2pdf.Dialog.MultipleMessage.response_stored(
+    text =       MultipleMessage.filter_message( options["text"] )
+    if MultipleMessage.response_stored(
             text, SETTING["message"]
         )     :
         logger.debug( f"Skipped MessageDialog with '{options}{text}', "
@@ -6143,10 +6013,10 @@ def ask_question(options) :
     return response
 
 
-def show_message_dialog(options) :
-    
-    if   (message_dialog is None) :
-        message_dialog = Gscan2pdf.Dialog.MultipleMessage(
+def show_message_dialog(**options) :
+    global message_dialog
+    if   message_dialog is None :
+        message_dialog = MultipleMessage(
             title           = _('Messages'),
             transient_for = options["parent"]
         )
@@ -6156,22 +6026,15 @@ def show_message_dialog(options) :
     options["responses"] = SETTING["message"]
     message_dialog.add_message(options)
     response=None
-    if message_dialog["grid_rows"] > 1 :
+    if message_dialog.grid_rows > 1 :
         message_dialog.show_all()
         response = message_dialog.run()
 
-    if  (message_dialog is not None) :    # could be undefined for multiple calls
+    if  message_dialog is not None :    # could be undefined for multiple calls
         message_dialog.store_responses( response, SETTING["message"] )
-        ( SETTING["message_window_width"], SETTING["message_window_height"] ) =           message_dialog.get_size()
+        SETTING["message_window_width"], SETTING["message_window_height"]  =           message_dialog.get_size()
         message_dialog.destroy()
         message_dialog=None
-
-    return
-
-
-def is_not_an_empty_hashref(hashref) :
-    
-    return (  (hashref is not None) and hashref.keys()  )
 
 
 def recursive_slurp(files):
@@ -6191,6 +6054,9 @@ args = parse_arguments()
 logging.captureWarnings(True)
 
 rc, SETTING = read_config()
+if SETTING["cwd"] is None:
+    SETTING["cwd"] = os.getcwd()
+SETTING["version"] = VERSION
 
 logger.info(f"Operating system: {sys.platform}")
 if sys.platform == 'linux' :
@@ -6270,18 +6136,19 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # self.add(self.label)
         # self.label.show()
 
-        def anonymous_32():
+        def app_quit_callback(w, event):
+            print(f"app_quit_callback w {w} event {event}")
             if quit() :
                 app.quit()
     
             else :
                 return True
 
-        self.connect(            'delete-event' , anonymous_32         )
+        self.connect(            'delete-event' , app_quit_callback         )
 
         def anonymous_33( w, event ):
-            """    # Note when the window is maximised or not."""            
-            SETTING['window_maximize'] = bool( event.new_window_state & gtk.gdk.WINDOW_STATE_MAXIMIZED )  
+            "Note when the window is maximised or not"            
+            SETTING['window_maximize'] = bool( event.new_window_state & Gdk.WindowState.MAXIMIZED )  
 
         self.connect(            'window-state-event' , anonymous_33         )
 
@@ -6302,7 +6169,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 f"Unable to load icon `{iconpath}/gscan2pdf.svg': {EVAL_ERROR}")
 
         # app.add_window(window)
-        logger.debug(f"before populate_main_window {_}")
         self.populate_main_window()
 
     def on_change_label_state(self, action, value):
@@ -6315,7 +6181,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.maximize()
         else:
             self.unmaximize()
-
 
     def populate_main_window(self) :
         global slist
@@ -6333,12 +6198,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         create_temp_directory()
 
         # Create the menu bar
-        logger.debug(f"before create_menu_bar {_}")
         menubar, toolbar = self.create_menu_bar()
         main_vbox.pack_start( menubar, False, True,  0 )
         main_vbox.pack_start( toolbar, False, False, 0 )
 
         # HPaned for thumbnails and detail view
+        global hpaned
         hpaned = Gtk.HPaned()
         hpaned.set_position( SETTING['thumb panel'] )
         main_vbox.pack_start( hpaned, True, True, 0 )
@@ -6690,10 +6555,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Without these, the imageviewer and page list steal -/+/ctrl x/c/v keys
         # from the OCR textview
-        self.connect(
-            'key-press-event' , Gtk.Window.propagate_key_event )
-        self.connect(
-            'key-release-event' , Gtk.Window.propagate_key_event )
+        self.connect(            'key-press-event' , Gtk.Window.propagate_key_event )
+        self.connect(            'key-release-event' , Gtk.Window.propagate_key_event )
 
         def anonymous_25( widget, event ):
             """    # _after ensures that Editables get first bite"""            
@@ -6718,11 +6581,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         phbox = Gtk.HBox()
         main_vbox.pack_end( phbox, False, False, 0 )
         phbox.show()
+        global shbox
         shbox = Gtk.HBox()
         phbox.add(shbox)
+        global spbar    
         spbar = Gtk.ProgressBar()
         spbar.set_show_text(True)
         shbox.add(spbar)
+        global scbutton
         scbutton = Gtk.Button(label=_("_Cancel"))
         shbox.pack_end( scbutton, False, False, 0 )
         thbox = Gtk.HBox()
@@ -6754,39 +6620,39 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         global uimanager
         uimanager = Gtk.UIManager()
 
-        def anonymous_34():
+        def anonymous_34(w):
             if quit() :
                 app.quit()
 
-        def anonymous_35():
+        def anonymous_35(w):
             select_odd_even(0)
 
-        def anonymous_36():
+        def anonymous_36(w):
             select_odd_even(1)
 
-        def anonymous_37():
+        def anonymous_37(w):
             view.set_zoom(1.0)
 
-        def anonymous_38():
+        def anonymous_38(w):
             view.zoom_to_fit()
 
-        def anonymous_39():
+        def anonymous_39(w):
             view.zoom_in()
 
-        def anonymous_40():
+        def anonymous_40(w):
             view.zoom_out()
 
-        def anonymous_41():
+        def anonymous_41(w):
             rotate( _90_DEGREES,
                         [
             indices2pages( slist.get_selected_indices() ) ] )
 
-        def anonymous_42():
+        def anonymous_42(w):
             rotate( _180_DEGREES,
                         [
             indices2pages( slist.get_selected_indices() ) ] )
 
-        def anonymous_43():
+        def anonymous_43(w):
             rotate( _270_DEGREES,
                         [
             indices2pages( slist.get_selected_indices() ) ] )
@@ -7122,7 +6988,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         menubar = uimanager.get_widget('/MenuBar')
 
         # Check for presence of various packages
-        logger.debug(f"before check_dependencies {_}")
         check_dependencies()
 
         # Ghost save image item if imagemagick not available
@@ -7192,7 +7057,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg = _('Warning: missing packages') + f"\n{msg}"
             show_message_dialog(
                 parent           = self,
-                type             = 'warning',
+                message_type             = 'warning',
                 buttons          = 'ok',
                 text             = msg,
                 store_response = True
@@ -7247,8 +7112,9 @@ class Application(Gtk.Application):
         # Windows are associated with the application
         # when the last one is closed the application shuts down
         if not self.window:
-            logger.debug(f"before appwindow {_}")
             self.window = ApplicationWindow(application=self, title=f"{prog_name} v{VERSION}")
+            global window
+            window=self.window
         self.window.present()
 
     # def do_command_line(self, command_line):
