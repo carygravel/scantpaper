@@ -1,6 +1,7 @@
 "test config helper functions"
 
 import os
+from types import SimpleNamespace
 from config import (
     read_config,
     write_config,
@@ -96,6 +97,48 @@ def test_config():
     output = read_config(rc)
 
     assert output == example, "remove undefined profiles"
+
+
+def test_config2():
+    "test config helper functions"
+    rc = "test"
+
+    #########################
+
+    config = """{
+    "device list": [
+        {
+            "label": "test_label",
+            "model": "test_model",
+            "name": "test_name",
+            "vendor": "test_vendor"
+        }
+    ],
+    "version": "1.7.3"
+}"""
+    with open(rc, "w", encoding="utf-8") as fh:
+        fh.write(config)
+
+    example = {
+        "device list": [
+            SimpleNamespace(
+                name="test_name",
+                vendor="test_vendor",
+                model="test_model",
+                label="test_label",
+            )
+        ],
+        "version": "1.7.3",
+    }
+    output = read_config(rc)
+
+    assert output == example, "Deserialise device list"
+
+    #########################
+
+    write_config(rc, example)
+    output = slurp(rc)
+    assert output == config, "Serialise device list"
 
     #########################
 

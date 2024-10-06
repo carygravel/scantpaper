@@ -3,6 +3,7 @@
 import os
 import json
 import logging
+from types import SimpleNamespace
 from basedocument import slurp
 from i18n import _
 
@@ -10,8 +11,8 @@ DEFAULTS = {
     "window_width": 800,
     "window_height": 600,
     "window_maximize": True,
-    "window_x": None,
-    "window_y": None,
+    "window_x": 0,
+    "window_y": 0,
     "thumb panel": 100,
     "viewer_tools": 100,
     "image_control_tool": 30,
@@ -63,7 +64,7 @@ DEFAULTS = {
     "adf-defaults-scan-all-pages": True,
     "cycle sane handle": False,
     "ignore-duplex-capabilities": False,
-    "profile": None,
+    "profile": {},
     "default profile": None,
     "default-scan-options": None,
     "rotate facing": 0,
@@ -145,6 +146,13 @@ def read_config(filename):
     ):
         config["user_defined_tools"] = [config["user_defined_tools"]]
 
+    if (
+        "device list" in config
+        and len(config["device list"]) > 0
+        and isinstance(config["device list"][0], dict)
+    ):
+        config["device list"] = [SimpleNamespace(**x) for x in config["device list"]]
+
     # remove undefined profiles
     if "profile" in config:
         for profile in list(config["profile"].keys()):
@@ -194,6 +202,15 @@ def remove_invalid_paper(hashref):
 
 def write_config(rc, config):
     "write config"
+    if "device list" in config:
+        dl = []
+        for dns in config["device list"]:
+            d = {}
+            for key in ["name", "vendor", "model", "label"]:
+                if hasattr(dns, key):
+                    d[key] = getattr(dns, key)
+            dl.append(d)
+        config["device list"] = dl
     with open(rc, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(config, sort_keys=True, indent=4))
     logger.info("Wrote config to %s", rc)
