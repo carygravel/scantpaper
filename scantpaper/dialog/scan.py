@@ -506,17 +506,17 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # Note any duplicate model names and add the device if necessary
         seen = {}
         for dev in device_list:
-            if dev.model in [None, ""]:
+            if not hasattr(dev, "model") or dev.model in [None, ""]:
                 dev.model = dev.name
             if dev.model not in seen:
                 seen[dev.model] = 0
             seen[dev.model] += 1
 
         for dev in device_list:
-            if dev.vendor in [None, ""]:
-                dev.label = dev.model
-            else:
+            if hasattr(dev, "vendor") and dev.vendor not in [None, ""]:
                 dev.label = f"{dev.vendor} {dev.model}"
+            else:
+                dev.label = dev.model
 
             if seen[dev.model] > 1:
                 dev.label += f" on {dev.name}"
