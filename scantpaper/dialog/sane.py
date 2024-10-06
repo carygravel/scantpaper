@@ -66,7 +66,7 @@ class SaneScanDialog(Scan):
             nonlocal pbar
             pbar.destroy()
             device_list = response.info
-            logger.info("Sane.get_devices() returned: %s", device_list)
+            logger.info("sane.get_devices() returned: %s", device_list)
             self.device_list = device_list
             if len(device_list) == 0:
                 self.emit("process-error", "get_devices", _("No devices found"))
@@ -158,7 +158,7 @@ class SaneScanDialog(Scan):
         )
 
     def _initialise_options(self, options):
-        logger.debug("Sane->get_option_descriptor returned: %s", options)
+        logger.debug("sane.get_option_descriptor() returned: %s", options)
         vbox, hboxp = None, None
         num_dev_options = options.num_options()
 
