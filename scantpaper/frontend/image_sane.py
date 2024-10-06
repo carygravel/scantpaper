@@ -253,9 +253,9 @@ def decode_info(info):
         num -= 1
 
     while num > -1:
-        if info >= 2 ** num:
+        if info >= 2**num:
             this.append(opts[num])
-            info -= 2 ** num
+            info -= 2**num
         num -= 1
 
     return " + ".join(this)
