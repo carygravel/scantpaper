@@ -2371,7 +2371,7 @@ def email() :
 
 
 
-def scan_dialog( action, hidden, scan=False ) :
+def scan_dialog( action, hidden=False, scan=False ) :
     "Scan"
     global windows
     if windows :
@@ -2383,24 +2383,20 @@ def scan_dialog( action, hidden, scan=False ) :
     if "device" not   in SETTING        and  'SANE_DEFAULT_DEVICE'  in os.environ     :
         SETTING["device"] = os.environ['SANE_DEFAULT_DEVICE']
 
-    # scan pop-up window
-    options = {
-        'transient-for'               : window,
-        "title"                         : _('Scan Document'),
-        'default-width'               : SETTING["scan_window_width"],
-        'default-height'              : SETTING["scan_window_height"],
-        "logger"                        : logger,
-        "dir"                           : session,
-        'hide-on-delete'              : True,
-        'paper-formats'               : SETTING["Paper"],
-        'allow-batch-flatbed'         : SETTING['allow-batch-flatbed'],
-        'adf-defaults-scan-all-pages' :
-          SETTING['adf-defaults-scan-all-pages'],
-        'document'                   : slist,
-        'ignore-duplex-capabilities' : SETTING['ignore-duplex-capabilities'],
-    }
+    # scan dialog
     windows = SaneScanDialog(
-        options,
+        transient_for               = window,
+        title                         = _('Scan Document'),
+        default_width               = SETTING["scan_window_width"],
+        default_height              = SETTING["scan_window_height"],
+        dir                           = session,
+        hide_on_delete              = True,
+        paper_formats               = SETTING["Paper"],
+        allow_batch_flatbed         = SETTING['allow-batch-flatbed'],
+        adf_defaults_scan_all_pages =
+          SETTING['adf-defaults-scan-all-pages'],
+        document                   = slist,
+        ignore_duplex_capabilities = SETTING['ignore-duplex-capabilities'],
         cycle_sane_handle    = SETTING['cycle sane handle'],
         cancel_between_pages = (
                     SETTING['allow-batch-flatbed']
@@ -3142,23 +3138,13 @@ def add_postprocessing_options(self) :
     self.connect(
         'clicked-scan-button' , anonymous_110 
     )
-    def anonymous_111():
-        if  (hboxtl is not None)                and                not( ocr_engine[ comboboxe.get_active() ][0] == 'tesseract' )             :
+    def show_callback(w):
+        i = comboboxe.get_active()
+        if  i > -1 and hboxtl is not None                and                ocr_engine[ i ][0] != 'tesseract'             :
             hboxtl.hide()
 
-        if  (hboxcl is not None)                and                not( ocr_engine[ comboboxe.get_active() ][0] == 'cuneiform' )             :
-            hboxcl.hide()
-
-
-
-    self.connect(
-        'show' , anonymous_111 
-    )
-
+    self.connect(        'show' , show_callback     )
     #$self->{notebook}->get_nth_page(1)->show_all;
-
-    return
-
 
 
 def print_dialog() :
@@ -6136,15 +6122,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # self.add(self.label)
         # self.label.show()
 
-        def app_quit_callback(w, event):
-            print(f"app_quit_callback w {w} event {event}")
-            if quit() :
-                app.quit()
-    
-            else :
-                return True
-
-        self.connect(            'delete-event' , app_quit_callback         )
+        self.connect(            'delete-event' , lambda w, e: not quit()         )
 
         def anonymous_33( w, event ):
             "Note when the window is maximised or not"            

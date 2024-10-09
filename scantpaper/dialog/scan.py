@@ -256,8 +256,12 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             self.framen.set_sensitive(True)
         else:
             options = self.available_scan_options
-            if options is not None and options.flatbed_selected(
-                self.thread.device_handle
+
+            # on startup, self.thread doesn't get defined until later
+            if (
+                hasattr(self, "thread")
+                and options is not None
+                and options.flatbed_selected(self.thread.device_handle)
             ):
                 self.framen.set_sensitive(False)
 
@@ -322,7 +326,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             newval = self.cursor
 
         if win is not None:
-            display = Gdk.Display.get_default
+            display = Gdk.Display.get_default()
             win.set_cursor(Gdk.Cursor.new_from_name(display, newval))
 
         self.scan_button.set_sensitive(newval == "default")
@@ -340,11 +344,12 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     def current_scan_options(self, newval):
         self._current_scan_options = newval
 
+    combobp = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.ignored_paper_formats = []
-        self.combobp = None
         self.option_widgets = {}
         self._geometry_boxes = {}
 
@@ -453,7 +458,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.profile = self.combobsp.get_active_text()
 
     def show(self, *args, **kwargs):
-        self.signal_chain_from_overridden()  # don't know what the python equivalent is
         self.framex.hide()
         self._flatbed_or_duplex_callback()
         if (
@@ -807,20 +811,19 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def _set_paper_formats(self, formats):
         "Add paper size to combobox if scanner large enough"
-        combobp = self.combobp
-        if combobp is not None:
+        if self.combobp is not None:
 
             # Remove all formats, leaving Manual and Edit
-            num = combobp.get_num_rows()
+            num = self.combobp.get_num_rows()
             while num > 2:
                 num -= 1
-                combobp.remove(0)
+                self.combobp.remove(0)
             self.ignored_paper_formats = []
             options = self.available_scan_options
             for fmt in formats:
                 if options.supports_paper(formats[fmt], PAPER_TOLERANCE):
                     logger.debug("Options support paper size '%s'.", fmt)
-                    combobp.prepend_text(fmt)
+                    self.combobp.prepend_text(fmt)
 
                 else:
                     logger.debug("Options do not support paper size '%s'.", fmt)
@@ -830,7 +833,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             paper = self.paper
             if paper is None:
                 paper = _("Manual")
-            combobp.set_active_by_text(paper)
+            self.combobp.set_active_by_text(paper)
 
     def _set_paper(self, paper):
         """Treat a paper size as a profile, so build up the required profile of

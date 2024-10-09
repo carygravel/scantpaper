@@ -496,7 +496,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
     def _flatbed_or_duplex_callback(self):
 
         options = self.available_scan_options
-        if options is not None:
+        if options is not None and hasattr(self, "thread") and hasattr(self, "_vboxx"):
             if options.flatbed_selected(self.thread.device_handle) or (
                 options.can_duplex() and not self.ignore_duplex_capabilities
             ):
