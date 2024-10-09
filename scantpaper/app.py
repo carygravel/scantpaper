@@ -138,7 +138,7 @@ SPACE    = " "
 DOT      = "."
 PERCENT  = "%"
 ASTERISK = "*"
-d_sane   = gettext.translation('sane-backends')
+d_sane   = gettext.translation('sane-backends', fallback=True)
 args,orig_args=None,None
 logger = logging.getLogger(__name__)
 
