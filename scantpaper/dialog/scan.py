@@ -2,7 +2,6 @@
 
 import re
 from copy import copy
-import gettext
 import logging
 from gi.repository import Gdk, Gtk, GObject
 from comboboxtext import ComboBoxText
@@ -10,7 +9,7 @@ from dialog.paperlist import PaperList
 from dialog.pagecontrols import PageControls, MAX_PAGES
 from scanner.profile import Profile
 from scanner.options import Options, within_tolerance
-from i18n import _
+from i18n import _, d_sane
 from const import POINTS_PER_INCH
 from frontend import enums
 
@@ -22,7 +21,6 @@ CANVAS_POINT_SIZE = 10
 CANVAS_MIN_WIDTH = 1
 NO_INDEX = -1
 
-d_sane = gettext.translation("sane-backends", fallback=True).gettext
 logger = logging.getLogger(__name__)
 
 

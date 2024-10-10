@@ -1,17 +1,15 @@
 "Scan dialog for SANE backend"
 
 import logging
-import gettext
 from gi.repository import GObject, Gtk
 from frontend import enums
 from frontend.image_sane import SaneThread
 from dialog.scan import Scan, _geometry_option, make_progress_string
 from scanner.options import Options
-from i18n import _
+from i18n import _, d_sane
 
 EMPTY = ""
 LAST_PAGE = -1
-d_sane = gettext.translation("sane-backends", fallback=True).gettext
 logger = logging.getLogger(__name__)
 
 

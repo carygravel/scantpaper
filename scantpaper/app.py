@@ -79,7 +79,7 @@ from scanner.profile import Profile
 from unpaper import Unpaper
 from canvas import Canvas
 import config
-from i18n import _
+from i18n import _, d_sane
 from helpers import get_tmp_dir, program_version, exec_command, parse_truetype_fonts
 from tesseract import languages, _iso639_1to3, locale_installed, get_tesseract_codes
 import sane             # To get SANE_* enums
@@ -138,7 +138,6 @@ SPACE    = " "
 DOT      = "."
 PERCENT  = "%"
 ASTERISK = "*"
-d_sane   = gettext.translation('sane-backends', fallback=True)
 args,orig_args=None,None
 logger = logging.getLogger(__name__)
 
@@ -5870,7 +5869,7 @@ def properties() :
     vbox = windowp.get_content_area()
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
-    label = Gtk.Label( label=d_sane.gettext("X Resolution") )
+    label = Gtk.Label( label=d_sane("X Resolution") )
     hbox.pack_start( label, False, False, 0 )
     xspinbutton = Gtk.SpinButton.new_with_range( 0, MAX_DPI, 1 )
     xspinbutton.set_digits(1)
@@ -5879,7 +5878,7 @@ def properties() :
     hbox.pack_end( label, False, False, 0 )
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
-    label = Gtk.Label( label=d_sane.gettext("Y Resolution") )
+    label = Gtk.Label( label=d_sane("Y Resolution") )
     hbox.pack_start( label, False, False, 0 )
     yspinbutton = Gtk.SpinButton.new_with_range( 0, MAX_DPI, 1 )
     yspinbutton.set_digits(1)
