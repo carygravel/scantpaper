@@ -10,7 +10,7 @@ from document import Document
 def test_1(import_in_mainloop, clean_up_files):
     "Test analyse"
 
-    subprocess.run(["convert", "xc:white", "white.pgm"], check=True)
+    subprocess.run(["convert", "-size", "10x10", "xc:white", "white.pgm"], check=True)
 
     slist = Document()
 
@@ -18,6 +18,7 @@ def test_1(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["white.pgm"])
+    print(f"after import {slist.data[0][2].image_object.size, slist.data[0][2].image_object.mode}")
 
     mlp = GLib.MainLoop()
     slist.analyse(
@@ -28,9 +29,6 @@ def test_1(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert slist.data[0][2].std_dev == [0.0], "Found blank page"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == dirname.name
-    ), "using session directory"
 
     #########################
 

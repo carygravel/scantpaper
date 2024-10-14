@@ -54,25 +54,31 @@ class SaveThread(Importhread):
         if "metadata" in options and "ps" not in options:
             metadata = prepare_output_metadata("PDF", options["metadata"])
 
-        with open(outdir / "origin_pre.pdf", "wb") as fhd:
+        with open(outdir / "origin_pre.pdf", "wb", buffering=0) as fhd:# turn off buffering
             filenames = []
             sizes = []
             for page in options["list_of_pages"]:
                 filenames.append(_write_image_object(page, options))
                 sizes += list(page.matching_paper_sizes(self.paper_sizes).keys())
             sizes = list(set(sizes))  # make the keys unique
+            print(f"filenames, sizes {filenames, sizes}")
             if sizes:
                 size = self.paper_sizes[sizes[0]]
                 metadata["layout_fun"] = img2pdf.get_layout_fun(
                     (img2pdf.mm_to_pt(size["x"]), img2pdf.mm_to_pt(size["y"]))
                 )
+            print(f"before creating {outdir / 'origin_pre.pdf'}")
             fhd.write(img2pdf.convert(filenames, **metadata))
+            print(f"after creating {outdir / 'origin_pre.pdf'}")
+            print(f"os.path.isfile() {os.path.isfile(outdir / 'origin_pre.pdf')} os.path.getsize() {os.path.getsize(outdir / 'origin_pre.pdf')}")
+        print(f"before _pdf_to_hocr")
         ocrmypdf.api._pdf_to_hocr(
             outdir / "origin_pre.pdf",
             outdir,
             language="eng",
             skip_text=True,
         )
+        print(f"after _pdf_to_hocr")
         for pagenr, pagedata in enumerate(options["list_of_pages"]):
             if pagedata.text_layer:
                 with open(
@@ -87,7 +93,9 @@ class SaveThread(Importhread):
             if self.cancel:
                 raise CancelledError()
 
+        print(f"before ocrmypdf.api._hocr_to_ocr_pdf {filename}")
         ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
+        print(f"after ocrmypdf.api._hocr_to_ocr_pdf {filename} os.path.isfile() {os.path.isfile(filename)} os.path.getsize() {os.path.getsize(filename)}")
 
         _append_pdf(filename, options, request)
 
@@ -443,24 +451,6 @@ class SaveThread(Importhread):
 
         _post_save_hook(options["path"], options["options"])
 
-    def to_png(self, **kwargs):
-        "convert to PNG"
-        callbacks = _note_callbacks(kwargs)
-        return self.send("to_png", kwargs, **callbacks)
-
-    def do_to_png(self, request):
-        "convert to PNG in thread"
-        page = request.args[0]["page"]
-        new = page.to_png(self.paper_sizes)
-        new.uuid = page.uuid
-        request.data(
-            {
-                "type": "page",
-                "page": new,
-                "info": {"replace": new.uuid},
-            }
-        )
-
     def set_paper_sizes(self, paper_sizes):
         "set paper sizes"
         self.paper_sizes = paper_sizes
@@ -612,9 +602,9 @@ def prepare_output_metadata(ftype, metadata):
 
 
 def _write_image_object(page, options):
-    filename = page.filename
-    save = False
-    image = None
+    print(f"in _write_image_object {page, options}")
+    print(f"in _write_image_object page.filename {page.filename}")
+    image = page.image_object
     if (
         options
         and "options" in options
@@ -625,8 +615,6 @@ def _write_image_object(page, options):
         if options["options"]["downsample dpi"] < min(
             page.resolution[0], page.resolution[1]
         ):
-            save = True
-            image = page.im_object()
             width = (
                 page.width * options["options"]["downsample dpi"] // page.resolution[0]
             )
@@ -639,11 +627,9 @@ def _write_image_object(page, options):
         and "options" in options
         and options["options"]
         and "compression" in options["options"]
-        and "g" in options["options"]["compression"]
+        and options["options"]["compression"][0] == "g" # g3 or g4
     ):
-        save = True
-        if image is None:
-            image = page.im_object()
+        print(f"in _write_image_object before threshold")
         # Grayscale
         image = image.convert("L")
         # Threshold
@@ -651,14 +637,15 @@ def _write_image_object(page, options):
         image = image.point(lambda p: 255 if p > threshold else 0)
         # To mono
         image = image.convert("1")
-    if save:
-        regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        with tempfile.NamedTemporaryFile(
-            dir=options["dir"], suffix=regex.group(1), delete=False
-        ) as tmp:
-            filename = tmp.name
-            image.save(filename)
-    return filename
+        print(f"in _write_image_object after threshold")
+    with tempfile.NamedTemporaryFile(
+        dir=options["dir"], suffix=".png", delete=False
+    ) as tmp:
+        xresolution, yresolution, _units = page.get_resolution()
+        print(f"xresolution, yresolution {xresolution, yresolution}")
+        image.save(tmp.name, dpi=(xresolution, yresolution))
+        print(f"tmp.name {tmp.name} os.path.getsize() {os.path.getsize(tmp.name)}")
+        return tmp.name
 
 
 def _append_pdf(filename, options, request):

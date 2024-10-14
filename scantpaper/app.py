@@ -65,6 +65,7 @@ import gi
 import argparse
 import sys
 import fcntl
+import shutil
 from types import SimpleNamespace
 import tesserocr
 from dialog import Dialog, MultipleMessage
@@ -127,7 +128,7 @@ ZOOM_CONTEXT_FACTOR     = 0.5
 GLib.set_application_name('gscan2pdf')
 GLib.set_prgname('net.sourceforge.gscan2pdf');
 prog_name = GLib.get_application_name()
-VERSION   = '2.13.2'
+VERSION   = '3.0.0'
 
 # Image border to ensure that a scaled to fit image gets no scrollbars
 border = 1
@@ -972,7 +973,7 @@ def error_callback( page_uuid, process, message ) :
     else :
         page_uuid = EMPTY
 
-    logger.error( f"{page_uuid}{process}, " + encode( 'UTF-8', message ) )
+    logger.error( f"{page_uuid[process]}, " + encode( 'UTF-8', message ) )
 
     def anonymous_45():
         """    # Wrap show_message_dialog() in Glib::Idle->add() to allow the thread to
@@ -1068,19 +1069,14 @@ def update_tpbar(options) :
     if options["jobs_total"] :
         if  "process"  in options :
             if  "message"  in options :
-                options["process"] += f" - {options}{message}"
-
+                options["process"] += f" - {options['message']}"
             tpbar.set_text(
-                _('Process %i of %i (%s)') % (options["jobs_completed"]+1,options["jobs_total"],options["process"]) 
-                  
-                 
+                _('Process %i of %i (%s)') % (options["jobs_completed"]+1,options["jobs_total"],options["process"])                  
             )
  
         else :
             tpbar.set_text(
                 _('Process %i of %i') % (options["jobs_completed"]+1,options["jobs_total"]) 
-                  
-                
             )
 
         if  "progress"  in options :
@@ -1093,9 +1089,6 @@ def update_tpbar(options) :
 
         thbox.show_all()
         return True
-
-    return
-
 
 
 def open_dialog() :
@@ -1716,7 +1709,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
     elif  SETTING['image type'] =='ps':
         SETTING["ps_backend"] = windowi.ps_backend
-        logger.info(f"Selected '{SETTING}{ps_backend}' as ps backend")
+        logger.info(f"Selected '{SETTING['ps_backend']}' as ps backend")
 
             # cd back to cwd to save
         os.chdir( SETTING["cwd"])
@@ -1903,7 +1896,7 @@ def save_image(list_of_pages) :
         if list_of_pages > 1 :
             w = len(len(list_of_pages))  
             for i in              range(1,len(list_of_pages)+1)    :
-                current_filename =                   f"${filename}_%0${w}d.{SETTING}{'image type'}" % (i)                    
+                current_filename =                   f"${filename}_%0${w}d.{SETTING['image type']}" % (i)                    
                 if os.path.isfile(current_filename)  :
                     text = _('This operation would overwrite %s') % (current_filename)                        
                     show_message_dialog(
@@ -1916,11 +1909,11 @@ def save_image(list_of_pages) :
                     return
 
 
-            filename = f"${filename}_%0${w}d.{SETTING}{'image type'}"
+            filename = f"${filename}_%0${w}d.{SETTING['image type']}"
  
         else :
-            if   notre.search(fr"[.]{SETTING}{{'image type'}}$",filename,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
-                filename = f"{filename}.{SETTING}{'image type'}"
+            if   not re.search(fr"[.]{SETTING['image type']}$",filename,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
+                filename = f"{filename}.{SETTING['image type']}"
                 if ( file_exists( file_chooser, filename ) ):
                     return  
 
@@ -2612,13 +2605,12 @@ def anonymous_99( new_page, pending ):
     slist.save_session()
 
 
-def new_scan_callback( self, path, page_number, xresolution, yresolution ) :
+def new_scan_callback( self, image_object, page_number, xresolution, yresolution ) :
     
-
     # Update undo/redo buffers
     take_snapshot()
     rotate =          SETTING['rotate facing'] if page_number%2  else SETTING['rotate reverse']
-    ( signal, pid )=(None,None)
+    signal, pid=None,None
     options = {
         "page"            : page_number,
         "dir"             : session,
@@ -2631,6 +2623,9 @@ def new_scan_callback( self, path, page_number, xresolution, yresolution ) :
         "started_callback" : anonymous_98 ,
         "finished_callback" : anonymous_99 ,
         "error_callback" : error_callback,
+        "image_object"    : image_object,
+        "xresolution": xresolution,
+        "yresolution": yresolution,
     }
     if SETTING['unpaper on scan'] :
         options["unpaper"] = unpaper
@@ -2643,13 +2638,8 @@ def new_scan_callback( self, path, page_number, xresolution, yresolution ) :
 
     logger.info(
         f"Importing scan with resolution={xresolution},{yresolution}")
-    options["filename"]    = path
-    options["xresolution"] = xresolution
-    options["yresolution"] = yresolution
-    options["delete"]      = True
 
-    slist.import_scan(options)
-    return
+    slist.import_scan(**options)
 
 
 def process_error_callback( widget, process, msg, signal ) :
@@ -3082,7 +3072,7 @@ def add_postprocessing_options(self) :
         obutton,    comboboxe, hboxtl, comboboxtl, hboxcl,
         comboboxcl, tesslang,  cflang, tbutton,    tsb
     ) = add_postprocessing_ocr(vboxp)
-    def anonymous_110():
+    def clicked_scan_button_cb(w):
         SETTING['rotate facing']  = 0
         SETTING['rotate reverse'] = 0
         global rotate_side_cmbx
@@ -3105,38 +3095,31 @@ def add_postprocessing_options(self) :
                 else :
                     SETTING['rotate reverse'] =                           comboboxr2.get_active_index()
 
-
-
-        logger.info(f"rotate facing {SETTING}{'rotate facing'}")
-        logger.info(f"rotate reverse {SETTING}{'rotate reverse'}")
+        logger.info(f"rotate facing {SETTING['rotate facing']}")
+        logger.info(f"rotate reverse {SETTING['rotate reverse']}")
         SETTING['unpaper on scan'] = ubutton.get_active()
-        logger.info(f"unpaper {SETTING}{'unpaper on scan'}")
+        logger.info(f"unpaper {SETTING['unpaper on scan']}")
         SETTING["udt_on_scan"] = udtbutton.get_active()
         SETTING["current_udt"] = self.comboboxudt.get_active_text()
-        logger.info(f"UDT {SETTING}{udt_on_scan}")
+        logger.info(f"UDT {SETTING['udt_on_scan']}")
         if  "current_udt"  in SETTING :
-            logger.info(f"Current UDT {SETTING}{current_udt}")
+            logger.info(f"Current UDT {SETTING['current_udt']}")
 
         SETTING['OCR on scan'] = obutton.get_active()
-        logger.info(f"OCR {SETTING}{'OCR on scan'}")
+        logger.info(f"OCR {SETTING['OCR on scan']}")
         if SETTING['OCR on scan'] :
-            SETTING['ocr engine'] =                   ocr_engine[ comboboxe.get_active() ][0]
-            if SETTING['ocr engine'] == 'tesseract' :
-                SETTING['ocr language'] = comboboxtl.get_active_index()
-
-            if SETTING['ocr engine'] == 'cuneiform' :
-                SETTING['ocr language'] = comboboxcl.get_active_index()
+            i = comboboxe.get_active()
+            if i > -1:
+                SETTING['ocr engine'] =                   ocr_engine[ i ][0]
+                if SETTING['ocr engine'] == 'tesseract' :
+                    SETTING['ocr language'] = comboboxtl.get_active_index()
 
             SETTING['threshold-before-ocr'] = tbutton.get_active()
             logger.info(
-                    f"threshold-before-ocr {SETTING}{'threshold-before-ocr'}")
+                    f"threshold-before-ocr {SETTING['threshold-before-ocr']}")
             SETTING['threshold tool'] = tsb.get_value()
 
-
-
-    self.connect(
-        'clicked-scan-button' , anonymous_110 
-    )
+    self.connect(        'clicked-scan-button' , clicked_scan_button_cb     )
     def show_callback(w):
         i = comboboxe.get_active()
         if  i > -1 and hboxtl is not None                and                ocr_engine[ i ][0] != 'tesseract'             :
@@ -4970,13 +4953,13 @@ def view_html() :
 
 def take_snapshot() :
     "Update undo/redo buffers before doing something"
-    old_undo_files = map(lambda x:  f"{_}->[2]{filename}" ,undo_buffer)  
+    global undo_buffer
+    old_undo_files = list(map(lambda x: x[2].filename ,undo_buffer)  )
 
     # Deep copy the tied data. Otherwise, very bad things happen.
-
-    undo_buffer    = map(lambda x:  [x ] ,len( slist.data ))  
+    undo_buffer    = list(map(lambda x:  [x ] ,slist.data)  )
     undo_selection = slist.get_selected_indices()
-    logger.debug( Dumper( undo_buffer ) )
+    logger.debug(  "Undo buffer %s", undo_buffer  )
 
     # Clean up files that fall off the undo buffer
     undo_files={}
@@ -4988,37 +4971,30 @@ def take_snapshot() :
         if not undo_files[file] :
             delete_files.append(file)  
 
-
     if delete_files :
-        logger.info("Cleaning up @delete_files")
+        logger.info("Cleaning up delete_files")
         os.remove(delete_files) 
 
-
     # Unghost Undo/redo
-
     uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(True)
     uimanager.get_widget('/ToolBar/Undo').set_sensitive(True)
 
-    # Check free space in $session directory
-
-    df = df( f"{session}", _1MB )
-    if  df is not None :
+    # Check free space in session directory
+    df = shutil.disk_usage(session.name)
+    if  df :
+        df = df.free/1024/1024
         logger.debug(
-f"Free space in {session} (Mb): {df}->{bavail} (warning at {SETTING}{'available-tmp-warning'})"
+f"Free space in {session.name} (Mb): {df} (warning at {SETTING['available-tmp-warning']})"
         )
         global window
-        if df["bavail"] < SETTING['available-tmp-warning'] :
-            text = _('%dMb free in %s.') % (df["bavail"],session)   
+        if df < SETTING['available-tmp-warning'] :
+            text = _('%dMb free in %s.') % (df,session.name)   
             show_message_dialog(
                 parent  = window,
                 message_type    = 'warning',
                 buttons = 'close',
                 text    = text
             )
-
-
-    return
-
 
 
 def undo() :
@@ -5120,57 +5096,6 @@ def mark_pages(pages) :
     slist.get_model().handler_unblock( slist["row_changed_signal"] )
 
 
-def compress_temp() :
-    "Convert all files in temp that are not jpg, png, or tiff to png,"
-    global window
-    if (
-        ask_question(
-            parent  = window,
-            type    = 'question',
-            buttons = 'ok-cancel',
-            text    = _('This operation cannot be undone. Are you sure?'),
-            store_response   = True,
-            stored_responses = [
-    'ok']
-        ) != 'ok'
-      ):
-        return        
-    undo_buffer    = []
-    undo_selection = []
-    global uimanager
-    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
-    uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
-    for i in      slist.data  :
-        signal, pid =None,None
-        def anonymous_188(*argv):
-            return update_tpbar(*argv)
-
-
-        def anonymous_189( thread, process, completed, total ):
-                
-            signal =                   setup_tpbar( thread, process, completed, total, pid )
-            if (  (signal is not None) ):
-                return True  
-
-
-        def anonymous_190( new_page, pending ):
-                
-            if not pending :
-                thbox.hide()
-            if  (signal is not None) :
-                tcbutton.disconnect(signal)
-
-
-
-        pid = slist.to_png(
-            page            = i[2].uuid,
-            queued_callback = anonymous_188 ,
-            started_callback = anonymous_189 ,
-            finished_callback = anonymous_190 ,
-            error_callback = error_callback,
-        )
-
-
 def preferences(arg) :
     "Preferences dialog"
     global windows
@@ -5209,7 +5134,7 @@ def preferences(arg) :
         windowr.hide()
         if SETTING["frontend"] != combob.get_active_index() :
             SETTING["frontend"] = combob.get_active_index()
-            logger.info(f"Switched frontend to {SETTING}{frontend}")
+            logger.info(f"Switched frontend to {SETTING['frontend']}")
             if windows :
                 Gscan2pdf.Frontend.Image_Sane.close_device()
                 windows.hide()
@@ -5961,8 +5886,8 @@ def ask_question(options) :
     if MultipleMessage.response_stored(
             text, SETTING["message"]
         )     :
-        logger.debug( f"Skipped MessageDialog with '{options}{text}', "
-              + f"automatically replying '{SETTING}{message}{{text}}{response}'" )
+        logger.debug( f"Skipped MessageDialog with '{options['text']}', "
+              + f"automatically replying '{SETTING['message'][text]['response']}'" )
         return SETTING["message"][text]["response"]
 
     cb=None
@@ -5970,7 +5895,7 @@ def ask_question(options) :
         [
     'destroy-with-parent', 'modal' ],
         options["type"], options["buttons"], options["text"] )
-    logger.debug(f"Displayed MessageDialog with '{options}{text}'")
+    logger.debug(f"Displayed MessageDialog with '{options['text']}'")
     if options['store-response'] :
         cb = Gtk.CheckButton.new_with_label(
             _("Don't show this message again") )
@@ -6656,8 +6581,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         'Email as PDF',                     'mail-attach',             _('_Email as PDF'),                '<control>e',             _('Attach as PDF to a new email'), email
             ],         [
         'Print',     'gtk-print', _('_Print'), '<control>p',             _('Print'), print_dialog
-            ],         [
-        'Compress',                      None,             _('_Compress temporary files'), None,             _('Compress temporary files'),  compress_temp
             ],         [
         'Quit',             'gtk-quit',             _('_Quit'),             '<control>q',             _('Quit'),             anonymous_34 
             ],          # Edit menu

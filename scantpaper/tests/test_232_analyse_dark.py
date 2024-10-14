@@ -28,9 +28,6 @@ def test_1(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert slist.data[0][2].mean == [0.0], "Found dark page"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == dirname.name
-    ), "using session directory"
 
     #########################
 

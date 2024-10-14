@@ -38,9 +38,6 @@ STRFTIME_MONTH_OFFSET = -1
 MIN_YEAR_FOR_DATECALC = 1970
 LAST_ELEMENT = -1
 
-
-EXPORT_OK = []
-
 ISODATE_REGEX = r"(\d{4})-(\d\d)-(\d\d)"
 TIME_REGEX = r"(\d\d):(\d\d):(\d\d)"
 TZ_REGEX = r"([+-]\d\d):(\d\d)"
@@ -175,6 +172,7 @@ class Document(BaseDocument):
 
     def import_file(self, password=None, **options):
         "import file"
+        print(f"in import_file({options})")
         # File in which to store the process ID
         # so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -185,6 +183,7 @@ class Document(BaseDocument):
             dirname = self.dir
 
         def _import_file_data_callback(response):
+            print(f"in _import_file_data_callback({response})")
             try:
                 self.add_page(response.info, None)
             except AttributeError:
@@ -192,6 +191,7 @@ class Document(BaseDocument):
                     options["logger_callback"](response)
 
         def _import_file_finished_callback(response):
+            print(f"in _import_file_finished_callback({response})")
             if "finished_callback" in options:
                 options["finished_callback"](response)
 
@@ -205,21 +205,6 @@ class Document(BaseDocument):
             data_callback=_import_file_data_callback,
             finished_callback=_import_file_finished_callback,
         )
-
-    def _post_process_to_png(self, page, options):
-        def to_png_finished_callback(_response):
-            finished_page = self.find_page_by_uuid(page.uuid)
-            if finished_page is None:
-                self._post_process_scan(None, options)  # to fire finished_callback
-                return
-
-            self._post_process_scan(self.data[finished_page][2], options)
-
-        to_png_options = options.copy()
-        to_png_options["finished_callback"] = to_png_finished_callback
-        to_png_options["page"] = page.uuid
-        del options["to_png"]
-        self.to_png(**to_png_options)  # pylint: disable=no-member
 
     def _post_process_rotate(self, page, options):
         def rotate_finished_callback(_response):
@@ -292,20 +277,6 @@ class Document(BaseDocument):
     def _post_process_scan(self, page, options):
         options = defaultdict(None, options)
 
-        # tesseract can't extract resolution from pnm, so convert to png
-        if (
-            page is not None
-            and re.search(
-                r"Portable[ ](any|pix|gray|bit)map",
-                page.format,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            and "to_png" in options
-            and options["to_png"]
-        ):
-            self._post_process_to_png(page, options)
-            return
-
         if "rotate" in options and options["rotate"]:
             self._post_process_rotate(page, options)
             return
@@ -326,72 +297,27 @@ class Document(BaseDocument):
             options["finished_callback"](None)
 
     def import_scan(self, **kwargs):
-        """Take new scan, pad it if necessary, display it,
-        and set off any post-processing chains"""
+        "Take new scan, display it, and set off any post-processing chains"
 
-        # TODO: pass size and options as data, rather than via scope
-        # opening inside with didn't work in initial tests for unknown reasons
-        fhd = open(  # pylint: disable=consider-using-with
-            kwargs["filename"], mode="r", encoding="utf-8"
-        )
+        page_kwargs = {
+            "resolution":kwargs["resolution"],
+            "format":"Portable anymap",
+            "dir":kwargs["dir"],
+        }
+        for key in ["image_object", "filename"]:
+            if key in kwargs:
+                page_kwargs[key]=kwargs[key]
+        page = Page(**page_kwargs)
+        index = self.add_page(page, kwargs["page"])
+        if index == NOT_FOUND and kwargs["error_callback"]:
+            kwargs["error_callback"](
+                None, "Import scan", _("Unable to load image")
+            )
+        else:
+            if "display_callback" in kwargs:
+                kwargs["display_callback"](None)
 
-        # Read without blocking
-        size = 0
-
-        def file_changed_callback(_fileno, condition, *data):
-            nonlocal size, fhd
-
-            if condition & GLib.IOCondition.IN:
-                width, height = None, None
-                if size == 0:
-                    size, width, height = netpbm.file_size_from_header(
-                        kwargs["filename"]
-                    )
-                    logger.info("Header suggests %s", size)
-                    if size == 0:
-                        return GLib.SOURCE_CONTINUE
-                    fhd.close()
-
-                filesize = os.path.getsize(kwargs["filename"])
-                logger.info("Expecting %s, found %s", size, filesize)
-                if size > filesize:
-                    pad = size - filesize
-                    with open(kwargs["filename"], mode="ab") as fhd:
-                        data = [1] * (pad * BITS_PER_BYTE + 1)
-                        fhd.write(struct.pack(f"{len(data)}b", *data))
-                    logger.info("Padded %s bytes", pad)
-
-                page = Page(
-                    filename=kwargs["filename"],
-                    resolution=kwargs["resolution"],
-                    width=width,
-                    height=height,
-                    format="Portable anymap",
-                    delete=kwargs["delete"] if "delete" in kwargs else False,
-                    dir=kwargs["dir"],
-                )
-                index = self.add_page(page, kwargs["page"])
-                if index == NOT_FOUND and kwargs["error_callback"]:
-                    kwargs["error_callback"](
-                        None, "Import scan", _("Unable to load image")
-                    )
-
-                else:
-                    if "display_callback" in kwargs:
-                        kwargs["display_callback"](None)
-
-                    self._post_process_scan(page, kwargs)
-
-                return GLib.SOURCE_REMOVE
-
-            return GLib.SOURCE_CONTINUE
-
-        GLib.io_add_watch(
-            fhd,
-            GLib.PRIORITY_DEFAULT,
-            GLib.IOCondition.IN | GLib.IOCondition.HUP,
-            file_changed_callback,
-        )
+            self._post_process_scan(page, kwargs)
 
     def split_page(self, **kwargs):
         """split the given page either vertically or horizontally, creating an

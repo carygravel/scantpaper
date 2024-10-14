@@ -303,6 +303,7 @@ class BaseDocument(SimpleList):
 
     def add_page(self, new_page, ref):
         "Add a new page to the document"
+        print(f"in add_page({new_page}, {ref})")
         pagenum = None
 
         # FIXME: This is really hacky to allow import_scan() to specify the page number
@@ -325,8 +326,7 @@ class BaseDocument(SimpleList):
                 pagenum = len(self.data) + 1
             self.data.append([pagenum, thumb, new_page])
             logger.info(
-                "Added %s (%s) at page %s with resolution %s,%s",
-                new_page.filename,
+                "Added %s at page %s with resolution %s,%s",
                 new_page.uuid,
                 pagenum,
                 xresolution,
@@ -337,11 +337,9 @@ class BaseDocument(SimpleList):
             if "replace" in ref:
                 pagenum = self.data[i][0]
                 logger.info(
-                    "Replaced %s (%s) at page %s with %s (%s), resolution %s,%s",
-                    self.data[i][2].filename,
+                    "Replaced %s at page %s with %s, resolution %s,%s",
                     self.data[i][2].uuid,
                     pagenum,
-                    new_page.filename,
                     new_page.uuid,
                     xresolution,
                     yresolution,
@@ -353,8 +351,7 @@ class BaseDocument(SimpleList):
                 pagenum = self.data[i][0] + 1
                 self.data.insert(i + 1, [pagenum, thumb, new_page])
                 logger.info(
-                    "Inserted %s (%s) at page %s with resolution %s,%s,%s",
-                    new_page.filename,
+                    "Inserted %s at page %s with resolution %s,%s,%s",
                     new_page.uuid,
                     pagenum,
                     xresolution,

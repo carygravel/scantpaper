@@ -54,7 +54,7 @@ def test_1(import_in_mainloop, clean_up_files):
     mlp.run()
     assert slist.data[0][2].width == 35, "1st page width after split"
     assert slist.data[0][2].height == 46, "1st page height after split"
-    image = slist.data[0][2].im_object()
+    image = slist.data[0][2].image_object
     assert image.width == 35, "1st image width after crop"
     assert image.height == 46, "1st image height after crop"
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -78,7 +78,7 @@ def test_1(import_in_mainloop, clean_up_files):
 
     assert slist.data[1][2].width == 35, "2nd page width after split"
     assert slist.data[1][2].height == 46, "2nd page height after split"
-    image = slist.data[1][2].im_object()
+    image = slist.data[1][2].image_object
     assert image.width == 35, "2nd image width after crop"
     assert image.height == 46, "2nd image height after crop"
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>

@@ -17,7 +17,7 @@ from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-positi
 
 
 PAGE_TOLERANCE = 0.02
-VERSION = "2.13.2"
+VERSION = "2.13.2"#TODO: move to app or somewhere similar
 MODE2DEPTH = {
     "1": 1,
     "L": 8,
@@ -45,18 +45,17 @@ class Page:
     dir = None
     saved = False
     _depth = None
+    std_dev = None
 
     def __init__(self, **kwargs):
-        if "filename" not in kwargs:
-            raise ValueError("Error: filename not supplied")
-        if not os.path.isfile(kwargs["filename"]):
-            raise FileNotFoundError("Error: filename not found")
-        if "format" not in kwargs:
-            raise ValueError("Error: format not supplied")
+        print(kwargs)
+        if ("image_object" not in kwargs and "filename" not in kwargs) or ("image_object" in kwargs and "filename" in kwargs):
+            raise ValueError("Error: please supply either a filename or an image object")
+        if "image_object" in kwargs and not isinstance(kwargs["image_object"],Image.Image):
+            raise TypeError("Error: image_object is not of type Image")
 
-        logger.info(
-            "New page filename %s, format %s", kwargs["filename"], kwargs["format"]
-        )
+        if "filename" in kwargs:
+            self.image_object=Image.open(kwargs["filename"])
 
         # set this before setting attributes from kwargs in order to reuse uuid
         # if necessary. Therefore, the uuid tracks the page through import,
@@ -70,55 +69,14 @@ class Page:
         if self.resolution and not isinstance(self.resolution, tuple):
             self.resolution = (self.resolution, self.resolution, "PixelsPerInch")
 
-        # copy or move image to session directory
-        suffix = {
-            "Portable Network Graphics": ".png",
-            "Joint Photographic Experts Group JFIF format": ".jpg",
-            "Tagged Image File Format": ".tif",
-            "Portable anymap": ".pnm",
-            "Portable pixmap format (color)": ".ppm",
-            "Portable graymap format (gray scale)": ".pgm",
-            "Portable bitmap format (black and white)": ".pbm",
-            "PBM": ".pbm",
-            "PPM": ".ppm",
-            "PNG": ".png",
-            "JPEG": ".jpg",
-            "CompuServe graphics interchange format": ".gif",
-            "GIF": ".gif",
-        }
-        self.filename = (
-            tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
-                dir=kwargs["dir"],
-                suffix=suffix[kwargs["format"]],
-                delete=False,
-            ).name
+        logger.info(
+            "New page size %s, format %s, (%s)", len(self.image_object.tobytes()), self.image_object.mode, self.uuid
         )
-        if "delete" in kwargs and kwargs["delete"]:
-            shutil.move(kwargs["filename"], self.filename)
-        else:
-            shutil.copy2(kwargs["filename"], self.filename)
-
-        logger.info("New page written as %s (%s)", self.filename, self.uuid)
 
     def clone(self, copy_image=False):
         "clone the page"
         new = copy.deepcopy(self)
         new.uuid = uuid.uuid1()
-        if copy_image:
-            _filename, suffix = os.path.splitext(self.filename)
-            new.filename = (
-                tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
-                    dir=self.dir, suffix=suffix
-                ).name
-            )
-            logger.info(
-                "Cloning %s (%s) -> %s (%s)",
-                self.filename,
-                self.uuid,
-                new.filename,
-                new.uuid,
-            )
-            shutil.copy2(self.filename, new.filename)
         return new
 
     def import_hocr(self, hocr):
@@ -175,44 +133,22 @@ class Page:
             return None
         return Bboxtree(self.annotations).to_djvu_ann()
 
-    def to_png(self, page_sizes=None):
-        "Convert the image format to PNG"
-        image = self.im_object()
-        if image.format == "PNG":
-            return self
-        png = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
-            dir=self.dir, suffix=".png", delete=False
-        ).name
-        resolution = self.get_resolution(page_sizes)
-        image.save(png, dpi=(resolution[0], resolution[1]))
-        new = Page(
-            filename=png,
-            format="Portable Network Graphics",
-            dir=self.dir,
-            resolution=resolution,
-            width=self.width,
-            height=self.height,
-        )
-        if self.text_layer is not None:
-            new.text_layer = self.text_layer
-
-        return new
-
     def get_size(self):
         "get the image size"
         if self.width is None or self.height is None:
-            image = self.im_object()
-            self.width = image.width
-            self.height = image.height
+            self.width = self.image_object.width
+            self.height = self.image_object.height
 
         return self.width, self.height
 
     def get_resolution(self, paper_sizes=None):
         "get the resolution"
+        print(f"in get_resolution {self.resolution}")
         if self.resolution is not None:
             return self.resolution
 
         locale.setlocale(locale.LC_NUMERIC, "C")
+        print(f"in get_resolution self.size {self.size}")
         if self.size != (None, None, None):
             width, height = self.get_size()
             logger.debug("PDF size %sx%s %s", self.size[0], self.size[1], self.size[2])
@@ -228,10 +164,9 @@ class Page:
             logger.debug("resolution %s %s", self.resolution[0], self.resolution[1])
             return self.resolution
 
-        image = self.im_object()
-        image_format = image.format
         units = "PixelsPerInch"
-        if re.search(r"^P.M$", image_format, re.MULTILINE | re.DOTALL | re.VERBOSE):
+        print(f"in get_resolution self.image_object.format {self.image_object.format}")
+        if re.search(r"^P.M$", self.image_object.format, re.MULTILINE | re.DOTALL | re.VERBOSE):
             # Return the first match based on the format
             for value in self.matching_paper_sizes(paper_sizes).values():
                 xresolution = value
@@ -244,23 +179,25 @@ class Page:
             return self.resolution
 
         xresolution, yresolution = 72, 72
+        print(f"in get_resolution self.image_object.info {self.image_object.info}")
         for key in ["dpi", "aspect", "jfif_density"]:
-            if key in image.info and image.info[key][0] > 0:
-                xresolution, yresolution = image.info[key]
+            # for some reason PIL reports TIFFs e.g. in test 11271 as resolution==1
+            if key in self.image_object.info and self.image_object.info[key][0] > 1:
+                xresolution, yresolution = self.image_object.info[key]
 
-        if "jfif_unit" in image.info and image.info["jfif_unit"] == 2:
+        if "jfif_unit" in self.image_object.info and self.image_object.info["jfif_unit"] == 2:
             units = "PixelsPerCentimeter"
             xresolution *= CM_PER_INCH
             yresolution *= CM_PER_INCH
 
         # if no units for resolution, rewrite the resolution, which forces units
         # tested by test_1114_save_pdf_different_resolutions.py
-        if (
-            xresolution != yresolution
-            and "density_unit" not in image.info
-            and "jfif_unit" not in image.info
-        ):
-            image.save(self.filename, dpi=(xresolution, yresolution))
+        # if (
+        #     xresolution != yresolution
+        #     and "density_unit" not in image.info
+        #     and "jfif_unit" not in image.info
+        # ):
+        #     image.save(self.filename, dpi=(xresolution, yresolution))
 
         self.resolution = (xresolution, yresolution, units)
         return self.resolution
@@ -289,33 +226,34 @@ class Page:
 
         return matching
 
-    def im_object(self):
-        "returns PIL object"
-        return Image.open(self.filename)
-
     def get_pixbuf_at_scale(self, max_width, max_height):
         """logic taken from at_scale_size_prepared_cb() in
         https://gitlab.gnome.org/GNOME/gdk-pixbuf/blob/2.40.0/gdk-pixbuf/gdk-pixbuf-io.c
 
         Returns the pixbuf scaled to fit in the given box"""
+        if self.image_object is None:
+            logger.warning("Cannot get pixbuf from None")
+            return None
         xresolution, yresolution, _units = self.get_resolution()
         width, height = self.get_size()
         width, height = _prepare_scale(
             width, height, xresolution / yresolution, max_width, max_height
         )
         pixbuf = None
-        try:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                self.filename, width, height, False
-            )
-        except (GLib.Error, TypeError) as exc:
-            logger.warning("Caught error getting pixbuf: %s", exc)
+        with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as filename:
+            self.image_object.save(filename.name)
+            try:
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                    filename.name, width, height, False
+                )
+            except (GLib.Error, TypeError) as exc:
+                logger.warning("Caught error getting pixbuf: %s", exc)
         return pixbuf
 
     def get_depth(self):
         "return image depth based on mode provided by PIL"
         if self._depth is None:
-            self._depth = MODE2DEPTH[self.im_object().mode]
+            self._depth = MODE2DEPTH[self.image_object.mode]
         return self._depth
 
     def equalize_resolution(self):
@@ -323,12 +261,11 @@ class Page:
         xresolution, yresolution, units = self.get_resolution()
         width, height = self.width, self.height
         if xresolution != yresolution:
-            image = self.im_object()
             resolution = max(xresolution, yresolution)
             width *= resolution / xresolution
             height *= resolution / yresolution
             logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
-            return resolution, image.resize(
+            return resolution, self.image_object.resize(
                 (int(width), int(height)), resample=Image.BOX
             )
         return xresolution, None

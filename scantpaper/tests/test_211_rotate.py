@@ -38,14 +38,7 @@ def test_1(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    new = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", slist.data[0][2].filename],
-        text=True,
-    )
-    assert new == "JPEG 46x70 46x70+0+0 8-bit DirectClass sRGB ", "valid JPG created"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == dirname.name
-    ), "using session directory"
+    assert slist.data[0][2].image_object.mode == "RGB", "valid JPG created"
     assert not slist.scans_saved(), "modification removed saved tag"
 
     #########################

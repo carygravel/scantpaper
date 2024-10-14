@@ -25,7 +25,6 @@ def test_1(import_in_mainloop, clean_up_files):
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]'
     )
-
     mlp = GLib.MainLoop()
     slist.analyse(
         list_of_pages=[slist.data[0][2].uuid],
@@ -33,11 +32,8 @@ def test_1(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    assert slist.data[0][2].mean == [
-        145.5391304347826,
-        89.22546583850932,
-        80.40186335403726,
-    ], "mean before"
+    mean = [145.5391304347826, 89.22546583850932, 80.40186335403726]
+    assert slist.data[0][2].mean == mean, "mean before"
 
     mlp = GLib.MainLoop()
     slist.brightness_contrast(
@@ -48,7 +44,6 @@ def test_1(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-
     mlp = GLib.MainLoop()
     slist.analyse(
         list_of_pages=[slist.data[0][2].uuid],
@@ -56,16 +51,8 @@ def test_1(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-
-    assert slist.data[0][2].mean != [
-        145.5391304347826,
-        89.22546583850932,
-        80.40186335403726,
-    ], "mean after"
+    assert slist.data[0][2].mean != mean, "mean after"
     assert re.search("ACCOUNT", slist.data[0][2].bboxtree), "OCR output still there"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == dirname.name
-    ), "using session directory"
     assert not slist.scans_saved(), "modification removed saved tag"
 
     #########################

@@ -1,6 +1,5 @@
 "Test importing PPM"
 
-import os
 import subprocess
 import tempfile
 from gi.repository import GLib
@@ -11,10 +10,6 @@ def test_1(clean_up_files):
     "Test importing PPM"
 
     subprocess.run(["convert", "rose:", "test.ppm"], check=True)
-    subprocess.run(["convert", "rose:", "test.png"], check=True)
-    old = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", "test.png"], text=True
-    )
 
     slist = Document()
 
@@ -30,15 +25,8 @@ def test_1(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    new = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", slist.data[0][2].filename],
-        text=True,
-    )
-    assert new == old, "PPM imported correctly"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == dirname.name
-    ), "using session directory"
+    assert slist.data[0][2].image_object.mode == "RGB", "PPM imported correctly"
 
     #########################
 
-    clean_up_files(["test.ppm", "test.png"])
+    clean_up_files(["test.ppm"])

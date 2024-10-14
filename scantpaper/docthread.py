@@ -34,24 +34,12 @@ class DocThread(SaveThread):
 
         if _page_gone("rotate", page, request):
             return None
-        filename = page.filename
-        logger.info("Rotating %s by %s degrees", filename, angle)
-        image = page.im_object().rotate(angle, expand=True)
+        logger.info("Rotating %s by %s degrees", page.uuid, angle)
+        page.image_object = page.image_object.rotate(angle, expand=True)
 
         if self.cancel:
             raise CancelledError()
-        regex = re.search(r"([.]\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            suffix = regex.group(1)
 
-        fnm = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
-            dir=options["dir"], suffix=suffix, delete=False
-        )
-        image.save(fnm.name)
-
-        if self.cancel:
-            raise CancelledError()
-        page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
         if angle in (90, 270):
@@ -70,23 +58,28 @@ class DocThread(SaveThread):
 
     def do_analyse(self, request):
         "analyse page in thread"
+        print(f"in do_analyse")
         options = request.args[0]
         list_of_pages = options["list_of_pages"]
 
         i = 1
         total = len(list_of_pages)
         for page in list_of_pages:
+            print(f"analysing page {i} of {total}")
             self.progress = (i - 1) / total
             self.message = _("Analysing page %i of %i") % (i, total)
             i += 1
 
-            image = page.im_object()
-
             if self.cancel:
                 raise CancelledError()
-            stat = ImageStat.Stat(image)
-            mean, stddev = stat.mean, stat.stddev
-            logger.info("std dev: %s mean: %s", stddev, mean)
+            print(f"before stat {page.image_object.size}")
+            stat = ImageStat.Stat(page.image_object)
+            print(f"after stat {stat} {dir(stat)} {stat.count}")
+            page.mean = stat.mean
+            print(f"after mean {page.mean}")
+            page.std_dev = stat.stddev
+            print(f"after std dev {page.std_dev}")
+            logger.info("std dev: %s mean: %s", page.std_dev, page.mean)
             if self.cancel:
                 raise CancelledError()
 
@@ -95,8 +88,6 @@ class DocThread(SaveThread):
             #   blur or low-pass filter the image (so words look like ovals)
             #   look at few vertical narrow slices of the image and get the Standard Deviation
             #   if most of the Std Dev are high, then it might be portrait
-            page.mean = mean
-            page.std_dev = stddev
             page.analyse_time = datetime.datetime.now()
             request.data(page)
 
@@ -114,28 +105,20 @@ class DocThread(SaveThread):
             return
         if self.cancel:
             raise CancelledError()
-        filename = page.filename
-        logger.info("Threshold %s with %s", filename, threshold)
-        image = page.im_object()
+        logger.info("Threshold %s with %s", page.uuid, threshold)
 
         # To grayscale
-        image = image.convert("L")
+        page.image_object = page.image_object.convert("L")
         # Threshold
-        image = image.point(lambda p: 255 if p > threshold else 0)
+        page.image_object = page.image_object.point(lambda p: 255 if p > threshold else 0)
         # To mono
-        image = image.convert("1")
+        page.image_object = page.image_object.convert("1")
 
         if self.cancel:
             raise CancelledError()
 
-        fnm = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
-            dir=options["dir"], suffix=".png", delete=False
-        )
-        image.save(fnm.name)
-
         if self.cancel:
             raise CancelledError()
-        page.filename = fnm.name
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
         request.data(
@@ -163,21 +146,18 @@ class DocThread(SaveThread):
         if _page_gone("brightness-contrast", options["page"], request):
             return
 
-        filename = page.filename
         logger.info(
-            "Enhance %s with brightness %s, contrast %s", filename, brightness, contrast
+            "Enhance %s with brightness %s, contrast %s", page.uuid, brightness, contrast
         )
-        image = page.im_object()
         if self.cancel:
             raise CancelledError()
 
-        image = ImageEnhance.Brightness(image).enhance(brightness)
-        image = ImageEnhance.Contrast(image).enhance(contrast)
+        page.image_object = ImageEnhance.Brightness(page.image_object).enhance(brightness)
+        page.image_object = ImageEnhance.Contrast(page.image_object).enhance(contrast)
 
         if self.cancel:
             raise CancelledError()
 
-        image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
         request.data(
@@ -201,15 +181,12 @@ class DocThread(SaveThread):
         if _page_gone("negate", page, request):
             return
 
-        filename = page.filename
-        logger.info("Invert %s", filename)
-        image = page.im_object()
-        image = ImageOps.invert(image)
+        logger.info("Invert %s", page.uuid)
+        page.image_object = ImageOps.invert(page.image_object)
 
         if self.cancel:
             raise CancelledError()
 
-        image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
         request.data(
@@ -236,23 +213,20 @@ class DocThread(SaveThread):
         if _page_gone("unsharp", page, request):
             return
 
-        filename = page.filename
         logger.info(
             "Unsharp mask %s radius %s percent %s threshold %s",
-            filename,
+            page.uuid,
             radius,
             percent,
             threshold,
         )
-        image = page.im_object()
-        image = image.filter(
+        page.image_object = page.image_object.filter(
             ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=threshold)
         )
 
         if self.cancel:
             raise CancelledError()
 
-        image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
         request.data(
@@ -280,23 +254,20 @@ class DocThread(SaveThread):
         if _page_gone("crop", options["page"], request):
             return
 
-        filename = page.filename
-        logger.info("Crop %s x %s y %s w %s h %s", filename, left, top, width, height)
-        image = page.im_object()
+        logger.info("Crop %s x %s y %s w %s h %s", page.uuid, left, top, width, height)
 
-        image = image.crop((left, top, left + width, top + height))
+        page.image_object = page.image_object.crop((left, top, left + width, top + height))
 
         if self.cancel:
             raise CancelledError()
 
-        page.width = image.width
-        page.height = image.height
+        page.width = page.image_object.width
+        page.height = page.image_object.height
 
         if page.text_layer is not None:
             bboxtree = Bboxtree(page.text_layer)
             page.text_layer = bboxtree.crop(left, top, width, height).json()
 
-        image.save(filename)
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
         request.data(
@@ -320,54 +291,38 @@ class DocThread(SaveThread):
         if _page_gone("split", options["page"], request):
             return
 
-        filename = page.filename
-        filename2 = filename
-        image = page.im_object()
+        image = page.image_object
         image2 = image.copy()
 
+        logger.info(
+            "Splitting in direction %s @ %s -> %s + %s",
+            options["direction"],
+            options["position"],
+            page.uuid,
+            page.uuid,
+        )
         # split the image
         boxes = _calculate_crop_tuples(options, image)
-        image = image.crop(boxes[0])
+        page.image_object = image.crop(boxes[0])
         image2 = image2.crop(boxes[1])
 
         if self.cancel:
             raise CancelledError()
 
         # Write them
-        suffix = None
-        regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            suffix = regex.group(1)
-            with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=f".{suffix}", delete=False
-            ) as filename, tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=f".{suffix}", delete=False
-            ) as filename2:
-                image.save(filename)
-                image2.save(filename2)
+        page.width = image.width
+        page.height = image.height
+        page.dirty_time = datetime.datetime.now()  # flag as dirty
 
-            logger.info(
-                "Splitting in direction %s @ %s -> %s + %s",
-                options["direction"],
-                options["position"],
-                filename,
-                filename2,
-            )
-            if self.cancel:
-                raise CancelledError()
-            page.filename = filename.name
-            page.width = image.width
-            page.height = image.height
-            page.dirty_time = datetime.datetime.now()  # flag as dirty
-            # split doesn't change the resolution, so we can safely copy it
-            new2 = Page(
-                filename=filename2.name,
-                dir=options["dir"],
-                delete=True,
-                format=page.format,
-                resolution=page.resolution,
-                dirty_time=page.dirty_time,
-            )
+        # split doesn't change the resolution, so we can safely copy it
+        new2 = Page(
+            image_object=image2,
+            dir=options["dir"],
+            delete=True,
+            format=page.format,
+            resolution=page.resolution,
+            dirty_time=page.dirty_time,
+        )
         if page.text_layer:
             bboxtree = Bboxtree(page.text_layer)
             bboxtree2 = Bboxtree(page.text_layer)
@@ -412,7 +367,10 @@ class DocThread(SaveThread):
             output = "image_out"
 
             api.SetVariable("tessedit_create_hocr", "T")
-            _pp = api.ProcessPages(output, page.filename)
+            api.SetVariable("hocr_font_info", "T")
+            with tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".png") as file:
+                page.image_object.save(file.name)
+                _pp = api.ProcessPages(output, file.name)
 
             # Unnecessary filesystem write/read
             path_hocr = pathlib.Path(output).with_suffix(".hocr")
@@ -498,31 +456,24 @@ class DocThread(SaveThread):
             return
 
         try:
-            if re.search(
-                r"[.]pnm$",
-                options["page"].filename,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                infile = options["page"].filename
-            else:
-                image = options["page"].im_object()
-                depth = options["page"].get_depth()
+            image = options["page"].image_object
+            depth = options["page"].get_depth()
 
-                suffix = ".pbm"
-                if depth > 1:
-                    suffix = ".pnm"
+            suffix = ".pbm"
+            if depth > 1:
+                suffix = ".pnm"
 
-                # Temporary filename for new file
-                with tempfile.NamedTemporaryFile(
-                    dir=options["dir"], suffix=suffix, delete=False
-                ) as temp:
-                    infile = temp.name
-                    logger.debug(
-                        "Converting %s -> %s for unpaper",
-                        options["page"].filename,
-                        infile,
-                    )
-                    image.save(infile)
+            # Temporary filename for new file
+            with tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=suffix, delete=False
+            ) as temp:
+                infile = temp.name
+                logger.debug(
+                    "Writing %s -> %s for unpaper",
+                    options["page"].uuid,
+                    infile,
+                )
+                image.save(infile)
 
             options["options"]["command"][-3] = infile
 

@@ -3,6 +3,7 @@
 import os
 import subprocess
 import tempfile
+from PIL import Image
 from page import Page, _prepare_scale, VERSION
 from gi.repository import GdkPixbuf
 import pytest
@@ -12,7 +13,6 @@ def test_1():
     "Tests for Page class"
     with pytest.raises(ValueError):
         page = Page(
-            format="PBM",
             dir=tempfile.mkdtemp(),
         )
     with pytest.raises(FileNotFoundError):
@@ -24,12 +24,7 @@ def test_1():
 
     # Create test image
     subprocess.run(["convert", "-size", "210x297", "xc:white", "test.pnm"], check=True)
-
-    with pytest.raises(ValueError):
-        page = Page(
-            filename="test.pnm",
-            dir=tempfile.mkdtemp(),
-        )
+    image_object = Image.new("RGB", (210, 297))
 
     #########################
 
@@ -55,16 +50,18 @@ def test_1():
     }
 
     page = Page(
-        filename="test.pnm",
-        format="PBM",
+        image_object=image_object,
         dir=tempfile.mkdtemp(),
-        delete=True,
     )
-    assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic portrait"
-    subprocess.run(["convert", "-size", "297x210", "xc:white", "test.pnm"], check=True)
+    assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "from image object"
+
     page = Page(
         filename="test.pnm",
-        format="PBM",
+        dir=tempfile.mkdtemp(),
+    )
+    assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic portrait"
+    page = Page(
+        filename="test.pnm",
         dir=tempfile.mkdtemp(),
     )
     assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic landscape"
@@ -91,7 +88,6 @@ def test_1():
     )
     page = Page(
         filename="test.jpg",
-        format="Joint Photographic Experts Group JFIF format",
         dir=tempfile.mkdtemp(),
     )
     assert page.get_resolution(paper_sizes) == (300.0, 300.0, "PixelsPerInch"), "inches"
@@ -110,7 +106,6 @@ def test_1():
     )
     page = Page(
         filename="test.jpg",
-        format="Joint Photographic Experts Group JFIF format",
         dir=tempfile.mkdtemp(),
     )
     assert page.get_resolution(paper_sizes) == (
@@ -125,7 +120,6 @@ def test_1():
     )
     page = Page(
         filename="test.jpg",
-        format="Joint Photographic Experts Group JFIF format",
         dir=tempfile.mkdtemp(),
     )
     assert page.get_resolution(paper_sizes) == (
@@ -150,14 +144,14 @@ def test_1():
     assert page.export_djvu_ann() is None, "export_djvu_ann() without bboxes"
 
 
-def test_2():
+def test_2(clean_up_files):
     "Tests for Page class"
+
     subprocess.run(["convert", "-size", "210x297", "xc:white", "test.pnm"], check=True)
 
     with pytest.raises(ValueError):
         page = Page(
             filename="test.pnm",
-            format="PBM",
             dir=tempfile.mkdtemp(),
             size=[105, 148, "elephants"],
         )
@@ -165,7 +159,6 @@ def test_2():
 
     page = Page(
         filename="test.pnm",
-        format="PBM",
         dir=tempfile.mkdtemp(),
         size=[105, 148, "pts"],
     )
@@ -177,7 +170,6 @@ def test_2():
 
     page = Page(
         filename="test.pnm",
-        format="PBM",
         dir=tempfile.mkdtemp(),
     )
     assert page.get_resolution() == (72, 72, "PixelsPerInch"), "default to 72"
@@ -185,10 +177,7 @@ def test_2():
     #########################
 
     new_page = page.clone()
-    assert new_page.filename == page.filename, "clone without creating new image"
-
-    new_page = page.clone(True)
-    assert new_page.filename != page.filename, "clone creating new image"
+    assert new_page.image_object == page.image_object, "clone"
 
     #########################
 
@@ -309,23 +298,14 @@ def test_2():
 
     #########################
 
-    png = page.to_png()
-    assert png.filename[-3:] == "png", "to_png()"
-
-    page.text_layer = None
-    png = page.to_png()
-    assert png.filename[-3:] == "png", "to_png() without text layer"
-
-    #########################
-
     pixbuf = page.get_pixbuf_at_scale(100, 100)
     assert isinstance(pixbuf, GdkPixbuf.Pixbuf), "get_pixbuf_at_scale()"
 
-    page.filename = None
+    page.image_object = None
     assert (
         page.get_pixbuf_at_scale(100, 100) is None
     ), "get_pixbuf_at_scale() does fall over with an error"
 
     #########################
 
-    os.remove("test.pnm")
+    clean_up_files(["test.pnm", "test.jpg"])

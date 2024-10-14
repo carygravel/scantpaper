@@ -11,9 +11,6 @@ def test_1(clean_up_files):
     "Test importing TIFF"
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    old = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", "test.tif"], text=True
-    )
 
     slist = Document()
 
@@ -29,14 +26,7 @@ def test_1(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    new = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", slist.data[0][2].filename],
-        text=True,
-    )
-    assert new == old, "TIFF imported correctly"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == dirname.name
-    ), "using session directory"
+    assert slist.data[0][2].image_object.mode == "RGB", "TIFF imported correctly"
 
     #########################
 

@@ -45,9 +45,6 @@ def test_1(import_in_mainloop, clean_up_files):
 
     assert len(slist.data[0][2].mean) == 1, "depth == 1"
     assert re.search("ACCOUNT", slist.data[0][2].bboxtree), "OCR output still there"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == dirname.name
-    ), "using session directory"
     assert not slist.scans_saved(), "modification removed saved tag"
 
     #########################

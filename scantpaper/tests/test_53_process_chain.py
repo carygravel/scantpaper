@@ -27,7 +27,6 @@ def test_1(rotated_qbfox_image, clean_up_files):
     slist.import_scan(
         filename=rotated_qbfox_image,
         page=1,
-        to_png=True,
         rotate=-90,
         ocr=True,
         resolution=300,
@@ -41,8 +40,7 @@ def test_1(rotated_qbfox_image, clean_up_files):
     GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert re.search(r"png$", slist.data[0][2].filename), "converted PNM to PNG"
-    assert asserts == 4, "display callback called for import, rotate, to_png, tesseract"
+    assert asserts == 3, "display callback called for import, rotate, tesseract"
     assert slist.data[0][2].resolution[0] == 300, "Resolution of imported image"
 
     hocr = slist.data[0][2].export_hocr()

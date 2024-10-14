@@ -47,11 +47,7 @@ def test_1(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    new = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", slist.data[0][2].filename],
-        text=True,
-    )
-    assert old == new, "BW PDF imported correctly"
+    assert slist.data[0][2].image_object.mode == "1", "BW PDF imported correctly"
 
     #########################
 

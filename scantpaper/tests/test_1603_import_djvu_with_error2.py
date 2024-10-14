@@ -50,11 +50,7 @@ def test_1(monkeypatch, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    capture = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", slist.data[0][2].filename],
-        text=True,
-    )
-    assert re.search(r"^TIFF", capture), "DjVu imported otherwise correctly"
+    assert slist.data[0][2].image_object.mode == "RGB", "DjVu imported otherwise correctly"
 
     #########################
 

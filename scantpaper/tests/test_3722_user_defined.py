@@ -45,7 +45,7 @@ def test_1(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    assert slist.data[0][2].mean == [0], "User-defined after error"
+    assert slist.data[0][2].mean == [0.0, 0.0, 0.0], "User-defined after error"
 
     #########################
 

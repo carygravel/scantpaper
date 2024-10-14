@@ -58,7 +58,7 @@ def test_1(import_in_mainloop, clean_up_files):
     mlp.run()
     assert slist.data[0][2].width == 10, "page width after crop"
     assert slist.data[0][2].height == 10, "page height after crop"
-    image = slist.data[0][2].im_object()
+    image = slist.data[0][2].image_object
     assert image.width == 10, "image width after crop"
     assert image.height == 10, "image height after crop"
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>

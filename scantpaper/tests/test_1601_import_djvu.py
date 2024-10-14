@@ -92,14 +92,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     assert asserts == 2, "callbacks all run"
 
-    capture = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", slist.data[0][2].filename],
-        text=True,
-    )
-    assert re.search(r"^TIFF", capture), "DjVu imported correctly"
-    assert (
-        os.path.dirname(slist.data[0][2].filename) == f"{slist.dir}"
-    ), "using session directory"
+    assert slist.data[0][2].image_object.mode == "RGB", "DjVu imported correctly"
     expected = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

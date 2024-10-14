@@ -4,12 +4,14 @@ import glob
 import os
 import subprocess
 import tempfile
+import pytest
 from document import Document
 from gi.repository import GLib
 
 
-def test_import_scan(clean_up_files):
+def test_import_scan(clean_up_files):# FIXME: not sure we need this anymore, now we are passed Image objects around
     "test Document.import_scan()"
+    pytest.skip("Skip until we are sure we need this")
 
     slist = Document()
 

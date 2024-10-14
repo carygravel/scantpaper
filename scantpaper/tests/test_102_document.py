@@ -140,9 +140,6 @@ def test_document():
         ran_callback = True
         clipboard = slist.copy_selection(True)
         slist.paste_selection(clipboard[0], 0, "after", True)  # copy-paste page 1->2
-        assert (
-            slist.data[0][2].filename != slist.data[1][2].filename
-        ), "different filename"
         assert slist.data[0][2].uuid != slist.data[1][2].uuid, "different uuid"
         assert slist.data[1][0] == 2, "new page is number 2"
         assert slist.get_selected_indices() == [1], "pasted page selected"

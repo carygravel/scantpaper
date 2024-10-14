@@ -5,6 +5,7 @@ import queue
 import pathlib
 import logging
 import re
+import os
 import subprocess
 import glob
 import tempfile
@@ -289,7 +290,6 @@ class Importhread(BaseThread):
                 page = Page(
                     filename=args["info"]["path"],
                     dir=args["dir"],
-                    delete=False,
                     format=args["info"]["format"],
                     width=args["info"]["width"][0],
                     height=args["info"]["height"][0],
@@ -305,9 +305,7 @@ class Importhread(BaseThread):
                         args["last"] - args["first"] + 1,
                     )
                     tif = None
-                    with tempfile.NamedTemporaryFile(
-                        dir=args["dir"], suffix=".tif", delete=False
-                    ) as tif:
+                    with tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".tif") as tif:
                         subprocess.run(
                             ["tiffcp", f"{args['info']['path']},{i}", tif.name],
                             check=True,
@@ -317,7 +315,6 @@ class Importhread(BaseThread):
                         page = Page(
                             filename=tif.name,
                             dir=args["dir"],
-                            delete=True,
                             format=args["info"]["format"],
                             width=args["info"]["width"][i - 1],
                             height=args["info"]["height"][i - 1],
@@ -351,7 +348,8 @@ class Importhread(BaseThread):
                 width=args["info"]["width"][0],
                 height=args["info"]["height"][0],
             )
-            request.data(page.to_png(self.paper_sizes))
+            page.get_resolution(self.paper_sizes)
+            request.data(page)
 
     def get_file_info(self, path, password, **kwargs):
         "get file info"
@@ -372,9 +370,7 @@ class Importhread(BaseThread):
                     i,
                     args["last"] - args["first"] + 1,
                 )
-                with tempfile.NamedTemporaryFile(
-                    dir=args["dir"], suffix=".tif", delete=False
-                ) as tif:
+                with tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".tif") as tif:
                     subprocess.run(
                         [
                             "ddjvu",
@@ -408,7 +404,6 @@ class Importhread(BaseThread):
                     page = Page(
                         filename=tif.name,
                         dir=args["dir"],
-                        delete=True,
                         format="Tagged Image File Format",
                         resolution=(
                             args["info"]["ppi"][i - 1],
@@ -438,6 +433,7 @@ class Importhread(BaseThread):
 
     def _do_import_pdf(self, request):
         args = request.args[0]
+        print(f"in _do_import_pdf({args})")
 
         # Extract images from PDF
         warning_flag, xresolution, yresolution = False, None, None
@@ -457,6 +453,7 @@ class Importhread(BaseThread):
                 ),
                 text=True,
             )
+            print(f"out {out}")
             for line in re.split(r"\n", out):
                 xresolution, yresolution = line[70:75], line[76:81]
                 if re.search(r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE):
@@ -486,6 +483,7 @@ class Importhread(BaseThread):
 
             # Import each image
             images = glob.glob("x-??*.???")
+            print(f"images {images}")
             if len(images) != 1:
                 warning_flag = True
             for fname in images:
@@ -495,15 +493,17 @@ class Importhread(BaseThread):
                 if regex:
                     ext = regex.group(1)
                 try:
+                    print(f"before page")
                     page = Page(
                         filename=fname,
                         dir=args["dir"],
-                        delete=True,
                         format=image_format[ext],
                         resolution=(xresolution, yresolution, "PixelsPerInch"),
                     )
+                    print(f"after page {page}")
                     page.import_pdftotext(self._extract_text_from_pdf(request, i))
-                    request.data(page.to_png(self.paper_sizes))
+                    request.data(page)
+                    os.remove(fname)
                 except (PermissionError, IOError) as err:
                     logger.error("Caught error importing PDF: %s", err)
                     request.error(_("Error importing PDF"))

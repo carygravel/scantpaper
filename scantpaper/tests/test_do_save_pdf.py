@@ -26,7 +26,7 @@ def test_1(clean_up_files):
                 dir=tdir.name,
                 delete=True,
                 format="Portable anymap",
-                resolution=(70, 70, "PixelsPerInch"),
+                resolution=(72, 72, "PixelsPerInch"),
                 width=70,
                 height=46,
             )
