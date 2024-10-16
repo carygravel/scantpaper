@@ -623,7 +623,7 @@ class Canvas(
             # Using the root window x,y position for dragging the canvas, as the
             # values returned by event.x and y cause a bouncing effect, and
             # only the value since the last event is required.
-            _, x, y = self._device.get_position()
+            _screen, x, y = self._device.get_position()
             self._drag_start = {"x": x, "y": y}
             self._dragging = True
 
@@ -636,12 +636,12 @@ class Canvas(
         #    self.update_cursor( event.x, event.y );
         return True
 
-    def _motion(self, _):
+    def _motion(self, _canvas, _event):
         if not self._dragging:
             return False
         offset = self.get_offset()
         zoom = self.get_scale()
-        _, x, y = self._device.get_position()
+        _screen, x, y = self._device.get_position()
         offset_x = offset["x"] + (x - self._drag_start["x"]) / zoom
         offset_y = offset["y"] + (y - self._drag_start["y"]) / zoom
         self._drag_start["x"], self._drag_start["y"] = (x, y)
