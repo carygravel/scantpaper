@@ -61,30 +61,24 @@ class SaveThread(Importhread):
                 filenames.append(_write_image_object(page, options))
                 sizes += list(page.matching_paper_sizes(self.paper_sizes).keys())
             sizes = list(set(sizes))  # make the keys unique
-            print(f"filenames, sizes {filenames, sizes}")
             if sizes:
                 size = self.paper_sizes[sizes[0]]
                 metadata["layout_fun"] = img2pdf.get_layout_fun(
                     (img2pdf.mm_to_pt(size["x"]), img2pdf.mm_to_pt(size["y"]))
                 )
-            print(f"before creating {outdir / 'origin_pre.pdf'}")
             fhd.write(img2pdf.convert(filenames, **metadata))
-            print(f"after creating {outdir / 'origin_pre.pdf'}")
-            print(f"os.path.isfile() {os.path.isfile(outdir / 'origin_pre.pdf')} os.path.getsize() {os.path.getsize(outdir / 'origin_pre.pdf')}")
-        print(f"before _pdf_to_hocr")
         ocrmypdf.api._pdf_to_hocr(
             outdir / "origin_pre.pdf",
             outdir,
             language="eng",
             skip_text=True,
         )
-        print(f"after _pdf_to_hocr")
-        for pagenr, pagedata in enumerate(options["list_of_pages"]):
-            if pagedata.text_layer:
+        for pagenr, page in enumerate(options["list_of_pages"]):
+            if page.text_layer:
                 with open(
                     outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w", encoding="utf-8"
                 ) as fhd:
-                    fhd.write(pagedata.export_hocr())
+                    fhd.write(page.export_hocr())
             self.progress = pagenr / (len(options["list_of_pages"]) + 1)
             self.message = _("Saving page %i of %i") % (
                 pagenr,
@@ -93,9 +87,7 @@ class SaveThread(Importhread):
             if self.cancel:
                 raise CancelledError()
 
-        print(f"before ocrmypdf.api._hocr_to_ocr_pdf {filename}")
         ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
-        print(f"after ocrmypdf.api._hocr_to_ocr_pdf {filename} os.path.isfile() {os.path.isfile(filename)} os.path.getsize() {os.path.getsize(filename)}")
 
         _append_pdf(filename, options, request)
 
@@ -128,14 +120,14 @@ class SaveThread(Importhread):
     def do_save_djvu(self, request):
         "save DjvU in thread"
         args = request.args[0]
-        page = 0
+        i = 0
         filelist = []
-        for pagedata in args["list_of_pages"]:
-            page += 1
-            self.progress = page / (len(args["list_of_pages"]) - 1 + 2)
+        for page in args["list_of_pages"]:
+            i += 1
+            self.progress = i / (len(args["list_of_pages"]) + 1)
             self.message = _("Writing page %i of %i") % (
-                page,
-                len(args["list_of_pages"]) - 1 + 1,
+                i,
+                len(args["list_of_pages"]),
             )
             with tempfile.NamedTemporaryFile(
                 dir=args["dir"], suffix=".djvu", delete=False
@@ -153,7 +145,7 @@ class SaveThread(Importhread):
                 # if error:
                 #     return
                 compression, filename, resolution = _convert_image_for_djvu(
-                    pagedata, args, request
+                    page, args, request
                 )
 
                 # Create the djvu
@@ -168,7 +160,7 @@ class SaveThread(Importhread):
                     logger.error(
                         "Error writing image for page %s of DjVu (process "
                         "returned %s, image size %s)",
-                        page,
+                        i,
                         proc.returncode,
                         size,
                     )
@@ -176,8 +168,8 @@ class SaveThread(Importhread):
                     return
 
                 filelist.append(djvu.name)
-                _add_txt_to_djvu(djvu, args["dir"], pagedata, request)
-                _add_ann_to_djvu(djvu, args["dir"], pagedata, request)
+                _add_txt_to_djvu(djvu, args["dir"], page, request)
+                _add_ann_to_djvu(djvu, args["dir"], page, request)
 
         self.progress = 1
         self.message = _("Merging DjVu")
@@ -246,67 +238,59 @@ class SaveThread(Importhread):
         "save TIFF in thread"
         options = request.args[0]
 
-        page = 0
+        i = 0
         filelist = []
-        for pagedata in options["list_of_pages"]:
-            page += 1
-            self.progress = (page - 1) / (len(options["list_of_pages"]) + 1)
+        for page in options["list_of_pages"]:
+            self.progress = i / (len(options["list_of_pages"]) + 1)
+            i += 1
             # self.message = _("Converting image %i of %i to TIFF") % (
             #     page,
             #     len(options["list_of_pages"]) - 1 + 1,
             # )
-            filename = pagedata.filename
-            if not re.search(
-                r"[.]tif", filename, re.MULTILINE | re.DOTALL | re.VERBOSE
-            ) or (
-                "compression" in options["options"]
-                and options["options"]["compression"] == "jpeg"
-            ):
-                with tempfile.NamedTemporaryFile(
-                    dir=options["dir"], suffix=".tif", delete=False
-                ) as tif:
-                    xresolution, yresolution, units = pagedata.resolution
+            with tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".tif", delete=False
+            ) as infile, tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".tif", delete=False
+            ) as out:
+                page.image_object.save(infile.name)
+                xresolution, yresolution, units = page.resolution
 
-                    # Convert to tiff
+                # Convert to tiff
+                depth = []
+                if "compression" in options["options"]:
+                    if options["options"]["compression"] == "jpeg":
+                        depth = ["-depth", "8"]
 
-                    depth = []
-                    if "compression" in options["options"]:
-                        if options["options"]["compression"] == "jpeg":
-                            depth = ["-depth", "8"]
+                    elif re.search(
+                        r"g[34]",
+                        options["options"]["compression"],
+                        re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    ):
+                        depth = ["-threshold", "40%", "-depth", "1"]
 
-                        elif re.search(
-                            r"g[34]",
-                            options["options"]["compression"],
-                            re.MULTILINE | re.DOTALL | re.VERBOSE,
-                        ):
-                            depth = ["-threshold", "40%", "-depth", "1"]
-
-                    cmd = [
-                        "convert",
-                        filename,
-                        "-units",
-                        units,
-                        "-density",
-                        f"{xresolution}x{yresolution}",
-                        *depth,
-                        tif.name,
-                    ]
-                    subprocess.run(cmd, check=True)
-                    if self.cancel:
-                        raise CancelledError()
-                    # if status:
-                    #     logger.error("Error writing TIFF")
-                    #     self._thread_throw_error(
-                    #         options["uuid"],
-                    #         options["page"]["uuid"],
-                    #         "Save file",
-                    #         _("Error writing TIFF"),
-                    #     )
-                    #     return
-
-                    filename = tif.name
-
-            filelist.append(filename)
+                cmd = [
+                    "convert",
+                    infile.name,
+                    "-units",
+                    units,
+                    "-density",
+                    f"{xresolution}x{yresolution}",
+                    *depth,
+                    out.name,
+                ]
+                subprocess.run(cmd, check=True)
+                if self.cancel:
+                    raise CancelledError()
+                # if status:
+                #     logger.error("Error writing TIFF")
+                #     self._thread_throw_error(
+                #         options["uuid"],
+                #         options["page"]["uuid"],
+                #         "Save file",
+                #         _("Error writing TIFF"),
+                #     )
+                #     return
+                filelist.append(out.name)
 
         compression = []
         if "compression" in options["options"]:
@@ -355,47 +339,20 @@ class SaveThread(Importhread):
         "save pages as image files in thread"
         options = defaultdict(None, request.args[0])
 
-        if len(options["list_of_pages"]) == 1:
-            proc = exec_command(
-                [
-                    "convert",
-                    options["list_of_pages"][0].filename,
-                    "-density",
-                    str(options["list_of_pages"][0].resolution[0])
-                    + f'x{options["list_of_pages"][0].resolution[1]}',
-                    options["path"],
-                ],
-                options["pidfile"],
-            )
+        i = 0
+        for page in options["list_of_pages"]:
+            i += 1
+            if len(options["list_of_pages"])>1:
+                filename = options["path"] % (i)
+            else:
+                filename = options["path"]
+            page.image_object.save(filename)
             if self.cancel:
                 raise CancelledError()
-            if proc.returncode:
-                request.error(_("Error saving image"))
+            # if proc.returncode:
+            #     request.error(_("Error saving image"))
 
-            _post_save_hook(options["list_of_pages"][0].filename, options["options"])
-
-        else:
-            current_filename = None
-            i = 1
-            for page in options["list_of_pages"]:
-                current_filename = options["path"] % (i)
-                i += 1
-                proc = exec_command(
-                    [
-                        "convert",
-                        page.filename,
-                        "-density",
-                        page.xresolution + "x" + page.yresolution,
-                        current_filename,
-                    ],
-                    options["pidfile"],
-                )
-                if self.cancel:
-                    raise CancelledError()
-                if proc.returncode:
-                    request.error(_("Error saving image"))
-
-                _post_save_hook(page.filename, options["options"])
+            _post_save_hook(filename, options["options"])
 
     def save_text(self, **kwargs):
         "save text file"
@@ -473,16 +430,10 @@ class SaveThread(Importhread):
         if _page_gone("user-defined", options["page"], request):
             return
 
-        infile = options["page"].filename
-        suffix = None
-        regex = re.search(r"([.]\w*)$", infile, re.MULTILINE | re.DOTALL | re.VERBOSE)
-        if regex:
-            suffix = regex.group(1)
-
         try:
-            with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=suffix, delete=False
-            ) as out:
+            with tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".png") as infile, tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".png") as out:
+                options["page"].image_object.save(infile.name)
                 if re.search("%o", options["command"]):
                     options["command"] = re.sub(
                         r"%o",
@@ -492,13 +443,13 @@ class SaveThread(Importhread):
                     )
                     options["command"] = re.sub(
                         r"%i",
-                        infile,
+                        infile.name,
                         options["command"],
                         flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                     )
 
                 else:
-                    if not shutil.copy2(infile, out.name):
+                    if not shutil.copy2(infile.name, out.name):
                         request.error(_("Error copying page"))
                         return
 
@@ -543,9 +494,8 @@ class SaveThread(Importhread):
 
                 # assume the resolution hasn't changed
                 new = Page(
-                    filename=out.name,
+                    image_object=image,
                     dir=options["dir"],
-                    delete=True,
                     format=image.format,
                     resolution=options["page"].resolution,
                 )
@@ -602,8 +552,6 @@ def prepare_output_metadata(ftype, metadata):
 
 
 def _write_image_object(page, options):
-    print(f"in _write_image_object {page, options}")
-    print(f"in _write_image_object page.filename {page.filename}")
     image = page.image_object
     if (
         options
@@ -629,7 +577,6 @@ def _write_image_object(page, options):
         and "compression" in options["options"]
         and options["options"]["compression"][0] == "g" # g3 or g4
     ):
-        print(f"in _write_image_object before threshold")
         # Grayscale
         image = image.convert("L")
         # Threshold
@@ -637,14 +584,11 @@ def _write_image_object(page, options):
         image = image.point(lambda p: 255 if p > threshold else 0)
         # To mono
         image = image.convert("1")
-        print(f"in _write_image_object after threshold")
     with tempfile.NamedTemporaryFile(
         dir=options["dir"], suffix=".png", delete=False
     ) as tmp:
         xresolution, yresolution, _units = page.get_resolution()
-        print(f"xresolution, yresolution {xresolution, yresolution}")
         image.save(tmp.name, dpi=(xresolution, yresolution))
-        print(f"tmp.name {tmp.name} os.path.getsize() {os.path.getsize(tmp.name)}")
         return tmp.name
 
 
@@ -717,67 +661,41 @@ def _post_save_hook(filename, options):
         subprocess.run(args, check=True)
 
 
-def _convert_image_for_djvu(pagedata, options, request):
-    filename = pagedata.filename
-
+def _convert_image_for_djvu(page, options, request):
     # Check the image depth to decide what sort of compression to use
     compression = None
 
     # c44 and cjb2 do not support different resolutions in the x and y
     # directions, so resample
-    resolution, image = pagedata.equalize_resolution()
-    if image:
-        upsample = True
-    else:
-        upsample = False
-        image = Image.open(filename)
-
-    # c44 can only use pnm and jpg
-    fformat = None
-    regex = re.search(r"[.](\w*)$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE)
-    if regex:
-        fformat = regex.group(1)
-
-    mode = image.mode
-    if mode != "1":
-        compression = "c44"
-        if (
-            not re.search(
-                r"(?:pnm|jpg)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            or upsample
-        ):
-            with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".pnm", delete=False
-            ) as pnm:
-                image.save(pnm.name)
-                filename = pnm.name
+    resolution, image = page.equalize_resolution()
 
     # cjb2 can only use pnm and tif
-    else:
+    if image.mode == "1":
         compression = "cjb2"
-        if (
-            not re.search(
-                r"(?:pnm|tif)", fformat, re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
-            or (fformat == "pnm" and mode != "PseudoClass")
-            or upsample
-        ):
-            with tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm") as pbm:
-                err = image.save(pbm.name)
-                if f"{err}":
-                    logger.error(err)
-                    request.error(f"Error writing {pbm}: {err}.")
-                    return None
+        with tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm", delete=False) as pbm:
+            err = image.save(pbm.name)
+            if f"{err}":
+                logger.error(err)
+                request.error(f"Error writing {pbm}: {err}.")
+                return None
 
-                filename = pbm.name
+            filename = pbm.name
+
+    # c44 can only use pnm and jpg
+    else:
+        compression = "c44"
+        with tempfile.NamedTemporaryFile(
+            dir=options["dir"], suffix=".pnm", delete=False
+        ) as pnm:
+            image.save(pnm.name)
+            filename = pnm.name
 
     return compression, filename, resolution
 
 
-def _add_txt_to_djvu(djvu, dirname, pagedata, request):
-    if pagedata.text_layer is not None:
-        txt = pagedata.export_djvu_txt()
+def _add_txt_to_djvu(djvu, dirname, page, request):
+    if page.text_layer is not None:
+        txt = page.export_djvu_txt()
         if txt == "":
             return
         logger.debug(txt)
@@ -802,15 +720,15 @@ def _add_txt_to_djvu(djvu, dirname, pagedata, request):
             subprocess.run(cmd, check=True)
         except ValueError:
             logger.error(
-                "Error adding text layer to DjVu page %s", pagedata["page_number"]
+                "Error adding text layer to DjVu page %s", page["page_number"]
             )
             request.error(_("Error adding text layer to DjVu"))
 
 
-def _add_ann_to_djvu(djvu, dirname, pagedata, request):
+def _add_ann_to_djvu(djvu, dirname, page, request):
     """FIXME - refactor this together with _add_txt_to_djvu"""
-    if pagedata.annotations is not None:
-        ann = pagedata.export_djvu_ann()
+    if page.annotations is not None:
+        ann = page.export_djvu_ann()
         if ann == "":
             return
         logger.debug(ann)
@@ -836,7 +754,7 @@ def _add_ann_to_djvu(djvu, dirname, pagedata, request):
         except ValueError:
             logger.error(
                 "Error adding annotations to DjVu page %s",
-                pagedata["page_number"],
+                page["page_number"],
             )
             request.error(_("Error adding annotations to DjVu"))
 

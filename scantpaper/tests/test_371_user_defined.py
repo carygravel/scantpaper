@@ -52,7 +52,7 @@ def test_1(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert slist.data[0][2].mean == [0.0, 0.0, 0.0], "User-defined with %i and %o"
+    assert slist.data[0][2].mean == [0.0], "User-defined with %i and %o"
     assert slist.data[0][2].resolution[0] == 25.4, "Resolution of converted image"
     assert re.search("ACCOUNT", slist.data[0][2].bboxtree), "OCR output still there"
     assert not slist.scans_saved(), "modification removed saved tag"

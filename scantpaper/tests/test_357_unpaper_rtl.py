@@ -109,18 +109,20 @@ def test_1(import_in_mainloop, clean_up_files):
 
     level = []
     for i in [0, 1]:
-        out = subprocess.check_output(
-            [
-                "convert",
-                slist.data[i][2].filename,
-                "-depth",
-                "1",
-                "-resize",
-                "1x1",
-                "txt:-",
-            ],
-            text=True,
-        )
+        with tempfile.NamedTemporaryFile(suffix=".pnm") as filename:
+            slist.data[i][2].image_object.save(filename.name)
+            out = subprocess.check_output(
+                [
+                    "convert",
+                    filename.name,
+                    "-depth",
+                    "1",
+                    "-resize",
+                    "1x1",
+                    "txt:-",
+                ],
+                text=True,
+            )
         regex = re.search(r"gray\((\d{2,3}(\.\d+)?)%?\)", out)
         assert regex, f"valid PNM created for page {i+1}"
         level.append(regex.group(1))

@@ -41,7 +41,6 @@ def test_1(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    print(f"before gs")
     subprocess.run(
         [
             "gs",

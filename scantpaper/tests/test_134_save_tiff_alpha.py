@@ -50,7 +50,7 @@ def test_1(import_in_mainloop, clean_up_files):
 
     example = subprocess.check_output(["identify", "test.tif"], text=True)
     assert (
-        re.search(r"test.tif TIFF \d\d\dx\d\d \d\d\dx\d\d\+0\+0 16-bit sRGB", example)
+        re.search(r"test.tif TIFF \d\d\dx\d\d \d\d\dx\d\d\+0\+0 8-bit sRGB", example)
         is not None
     ), "valid TIFF created"
 

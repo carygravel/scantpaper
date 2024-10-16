@@ -303,7 +303,6 @@ class BaseDocument(SimpleList):
 
     def add_page(self, new_page, ref):
         "Add a new page to the document"
-        print(f"in add_page({new_page}, {ref})")
         pagenum = None
 
         # FIXME: This is really hacky to allow import_scan() to specify the page number

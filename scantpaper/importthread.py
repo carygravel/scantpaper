@@ -433,7 +433,6 @@ class Importhread(BaseThread):
 
     def _do_import_pdf(self, request):
         args = request.args[0]
-        print(f"in _do_import_pdf({args})")
 
         # Extract images from PDF
         warning_flag, xresolution, yresolution = False, None, None
@@ -453,7 +452,6 @@ class Importhread(BaseThread):
                 ),
                 text=True,
             )
-            print(f"out {out}")
             for line in re.split(r"\n", out):
                 xresolution, yresolution = line[70:75], line[76:81]
                 if re.search(r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE):
@@ -483,7 +481,6 @@ class Importhread(BaseThread):
 
             # Import each image
             images = glob.glob("x-??*.???")
-            print(f"images {images}")
             if len(images) != 1:
                 warning_flag = True
             for fname in images:
@@ -493,14 +490,12 @@ class Importhread(BaseThread):
                 if regex:
                     ext = regex.group(1)
                 try:
-                    print(f"before page")
                     page = Page(
                         filename=fname,
                         dir=args["dir"],
                         format=image_format[ext],
                         resolution=(xresolution, yresolution, "PixelsPerInch"),
                     )
-                    print(f"after page {page}")
                     page.import_pdftotext(self._extract_text_from_pdf(request, i))
                     request.data(page)
                     os.remove(fname)

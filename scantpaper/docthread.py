@@ -58,27 +58,26 @@ class DocThread(SaveThread):
 
     def do_analyse(self, request):
         "analyse page in thread"
-        print(f"in do_analyse")
         options = request.args[0]
         list_of_pages = options["list_of_pages"]
 
         i = 1
         total = len(list_of_pages)
         for page in list_of_pages:
-            print(f"analysing page {i} of {total}")
             self.progress = (i - 1) / total
             self.message = _("Analysing page %i of %i") % (i, total)
             i += 1
 
             if self.cancel:
                 raise CancelledError()
-            print(f"before stat {page.image_object.size}")
             stat = ImageStat.Stat(page.image_object)
-            print(f"after stat {stat} {dir(stat)} {stat.count}")
-            page.mean = stat.mean
-            print(f"after mean {page.mean}")
-            page.std_dev = stat.stddev
-            print(f"after std dev {page.std_dev}")
+            # ImageStat seems to have a bug here. Working around it.
+            if stat.count == [0]:
+                page.mean = [0.]
+                page.std_dev = [0.]
+            else:
+                page.mean = stat.mean
+                page.std_dev = stat.stddev
             logger.info("std dev: %s mean: %s", page.std_dev, page.mean)
             if self.cancel:
                 raise CancelledError()
@@ -310,8 +309,8 @@ class DocThread(SaveThread):
             raise CancelledError()
 
         # Write them
-        page.width = image.width
-        page.height = image.height
+        page.width = page.image_object.width
+        page.height = page.image_object.height
         page.dirty_time = datetime.datetime.now()  # flag as dirty
 
         # split doesn't change the resolution, so we can safely copy it

@@ -46,9 +46,9 @@ class Page:
     saved = False
     _depth = None
     std_dev = None
+    mean = None
 
     def __init__(self, **kwargs):
-        print(kwargs)
         if ("image_object" not in kwargs and "filename" not in kwargs) or ("image_object" in kwargs and "filename" in kwargs):
             raise ValueError("Error: please supply either a filename or an image object")
         if "image_object" in kwargs and not isinstance(kwargs["image_object"],Image.Image):
@@ -143,12 +143,10 @@ class Page:
 
     def get_resolution(self, paper_sizes=None):
         "get the resolution"
-        print(f"in get_resolution {self.resolution}")
         if self.resolution is not None:
             return self.resolution
 
         locale.setlocale(locale.LC_NUMERIC, "C")
-        print(f"in get_resolution self.size {self.size}")
         if self.size != (None, None, None):
             width, height = self.get_size()
             logger.debug("PDF size %sx%s %s", self.size[0], self.size[1], self.size[2])
@@ -165,7 +163,6 @@ class Page:
             return self.resolution
 
         units = "PixelsPerInch"
-        print(f"in get_resolution self.image_object.format {self.image_object.format}")
         if re.search(r"^P.M$", self.image_object.format, re.MULTILINE | re.DOTALL | re.VERBOSE):
             # Return the first match based on the format
             for value in self.matching_paper_sizes(paper_sizes).values():
@@ -179,7 +176,6 @@ class Page:
             return self.resolution
 
         xresolution, yresolution = 72, 72
-        print(f"in get_resolution self.image_object.info {self.image_object.info}")
         for key in ["dpi", "aspect", "jfif_density"]:
             # for some reason PIL reports TIFFs e.g. in test 11271 as resolution==1
             if key in self.image_object.info and self.image_object.info[key][0] > 1:
@@ -268,7 +264,7 @@ class Page:
             return resolution, self.image_object.resize(
                 (int(width), int(height)), resample=Image.BOX
             )
-        return xresolution, None
+        return xresolution, self.image_object
 
 
 def _prepare_scale(image_width, image_height, res_ratio, max_width, max_height):

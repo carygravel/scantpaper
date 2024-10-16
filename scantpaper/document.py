@@ -172,7 +172,6 @@ class Document(BaseDocument):
 
     def import_file(self, password=None, **options):
         "import file"
-        print(f"in import_file({options})")
         # File in which to store the process ID
         # so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
@@ -183,7 +182,6 @@ class Document(BaseDocument):
             dirname = self.dir
 
         def _import_file_data_callback(response):
-            print(f"in _import_file_data_callback({response})")
             try:
                 self.add_page(response.info, None)
             except AttributeError:
@@ -191,7 +189,6 @@ class Document(BaseDocument):
                     options["logger_callback"](response)
 
         def _import_file_finished_callback(response):
-            print(f"in _import_file_finished_callback({response})")
             if "finished_callback" in options:
                 options["finished_callback"](response)
 

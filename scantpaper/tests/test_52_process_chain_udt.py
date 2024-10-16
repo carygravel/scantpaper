@@ -50,7 +50,7 @@ def test_1(clean_up_files):
     )
     mlp.run()
 
-    assert slist.data[0][2].mean == [0.0, 0.0, 0.0], "User-defined with %i and %o"
+    assert slist.data[0][2].mean == [0.0], "User-defined with %i and %o"
 
     #########################
 

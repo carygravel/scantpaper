@@ -18,7 +18,6 @@ def test_1(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["white.pgm"])
-    print(f"after import {slist.data[0][2].image_object.size, slist.data[0][2].image_object.mode}")
 
     mlp = GLib.MainLoop()
     slist.analyse(
