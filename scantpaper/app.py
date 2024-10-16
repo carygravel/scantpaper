@@ -202,6 +202,7 @@ def pack_viewer_tools() :
     global canvas
     global a_canvas
     global vpaned
+    global hpanei
     if SETTING["viewer_tools"] == TABBED_VIEW :
         vnotebook.append_page( view, Gtk.Label( label=_('Image') ) )
         vnotebook.append_page( canvas,            Gtk.Label(label= _('Text layer') ) )
@@ -2424,7 +2425,7 @@ def scan_dialog( action, hidden=False, scan=False ) :
 
     # Profiles
     for  profile in      SETTING["profile"].keys()   :
-        windows.add_profile(
+        windows._add_profile(
             profile,
             Profile(                SETTING["profile"][profile]            )
         )
@@ -2658,10 +2659,9 @@ def process_error_callback( widget, process, msg, signal ) :
             response = SETTING["message"][error_name]["response"]
  
         else :
-            dialog =               Gtk.MessageDialog( window,
-                [
-            'destroy-with-parent', 'modal' ],
-                'question', 'ok' )
+            dialog =               Gtk.MessageDialog( parent=window,destroy_with_parent=True,modal=True,
+                message_type='question',
+                buttons=Gtk.ButtonsType.OK )
             dialog.set_title( _('Error opening the last device used.') )
             area  = dialog.get_message_area()
             label = Gtk.Label(
@@ -4086,6 +4086,7 @@ def change_view_cb( action, current ) :
     global canvas
     global a_canvas
     global vpaned
+    global hpanei
 
     # SETTING["viewer_tools"] still has old value
     if SETTING["viewer_tools"] == TABBED_VIEW :
@@ -6130,6 +6131,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Notebook, split panes for detail view and OCR output
         global vnotebook
         vnotebook = Gtk.Notebook()
+        global hpanei
         hpanei    = Gtk.HPaned()
         vpanei    = Gtk.VPaned()
         hpanei.show()
