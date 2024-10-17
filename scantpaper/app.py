@@ -520,7 +520,7 @@ def update_uimanager() :
         windows.update_start_page()
 
 
-def selection_changed_callback() :
+def selection_changed_callback(_selection):
     global view
     global canvas
     global a_canvas
@@ -530,16 +530,14 @@ def selection_changed_callback() :
     # Display the new image
     # When editing the page number, there is a race condition where the page
     # can be undefined
-
     if  i is not None and  i  < len(slist.data) :
-        path = Gtk.TreePath.new_from_indices(i)
+        path = Gtk.TreePath.new_from_indices([i])
         slist.scroll_to_cell( path, slist.get_column(0),
             True, HALF, HALF )
         sel = view.get_selection()
         display_image( slist.data[i][2] )
         if  (sel is not None) :
             view.set_selection(sel)
- 
     else :
         view.set_pixbuf(None)
         canvas.clear_text()
@@ -727,16 +725,12 @@ def find_crashed_sessions(tmpdir) :
 
 
 def display_image(page) :
-    
     current_page = page
-
-    # quotes required to prevent File::Temp object being clobbered
-    pixbuf = Gdk.Pixbuf.new_from_file(f"{current_page}->{filename}")
     global view
     global canvas
-    view.set_pixbuf( pixbuf, True )
-    view.set_resolution_ratio(
-        current_page["xresolution"] / current_page["yresolution"] )
+    view.set_pixbuf( current_page.get_pixbuf(), True )
+    xresolution, yresolution, units = current_page.resolution
+    view.set_resolution_ratio(xresolution / yresolution )
 
     # Get image dimensions to constrain selector spinbuttons on crop dialog
     width, height  = current_page.get_size()
@@ -755,7 +749,6 @@ def display_image(page) :
 
 
     # Delete OCR output if it has become corrupted
-
     if  "text_layer"  in current_page        and not Gscan2pdf.Bboxtree.valid( current_page["text_layer"] )     :
         logger.error(
             f"deleting corrupt text layer: {current_page}->{text_layer}")
@@ -763,13 +756,11 @@ def display_image(page) :
 
     if  "text_layer"  in current_page :
         create_txt_canvas(current_page)
- 
     else :
         canvas.clear_text()
 
     if  "annotations"  in current_page :
         create_ann_canvas(current_page)
- 
     else :
         a_canvas.clear_text()
 
@@ -2614,7 +2605,7 @@ def new_scan_callback( self, image_object, page_number, xresolution, yresolution
     signal, pid=None,None
     options = {
         "page"            : page_number,
-        "dir"             : session,
+        "dir"             : session.name,
         "to_png"          : SETTING["to_png"],
         "rotate"          : rotate,
         "ocr"             : SETTING['OCR on scan'],
@@ -2625,8 +2616,7 @@ def new_scan_callback( self, image_object, page_number, xresolution, yresolution
         "finished_callback" : anonymous_99 ,
         "error_callback" : error_callback,
         "image_object"    : image_object,
-        "xresolution": xresolution,
-        "yresolution": yresolution,
+        "resolution": (xresolution, yresolution, "PixelsPerInch"),
     }
     if SETTING['unpaper on scan'] :
         options["unpaper"] = unpaper
