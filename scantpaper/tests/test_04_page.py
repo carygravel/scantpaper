@@ -298,13 +298,17 @@ def test_2(clean_up_files):
 
     #########################
 
+    pixbuf = page.get_pixbuf()
+    assert isinstance(pixbuf, GdkPixbuf.Pixbuf), "get_pixbuf()"
+
     pixbuf = page.get_pixbuf_at_scale(100, 100)
     assert isinstance(pixbuf, GdkPixbuf.Pixbuf), "get_pixbuf_at_scale()"
 
     page.image_object = None
+    assert page.get_pixbuf() is None, "get_pixbuf() doesn't fall over with an error"
     assert (
         page.get_pixbuf_at_scale(100, 100) is None
-    ), "get_pixbuf_at_scale() does fall over with an error"
+    ), "get_pixbuf_at_scale() doesn't fall over with an error"
 
     #########################
 

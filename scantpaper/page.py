@@ -1,8 +1,6 @@
 "Class of data and methods for handling page objects"
 import locale
 import re
-import shutil
-import os
 import tempfile
 import uuid
 import logging
@@ -17,7 +15,7 @@ from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-positi
 
 
 PAGE_TOLERANCE = 0.02
-VERSION = "2.13.2"#TODO: move to app or somewhere similar
+VERSION = "2.13.2"  # TODO: move to app or somewhere similar
 MODE2DEPTH = {
     "1": 1,
     "L": 8,
@@ -49,13 +47,19 @@ class Page:
     mean = None
 
     def __init__(self, **kwargs):
-        if ("image_object" not in kwargs and "filename" not in kwargs) or ("image_object" in kwargs and "filename" in kwargs):
-            raise ValueError("Error: please supply either a filename or an image object")
-        if "image_object" in kwargs and not isinstance(kwargs["image_object"],Image.Image):
+        if ("image_object" not in kwargs and "filename" not in kwargs) or (
+            "image_object" in kwargs and "filename" in kwargs
+        ):
+            raise ValueError(
+                "Error: please supply either a filename or an image object"
+            )
+        if "image_object" in kwargs and not isinstance(
+            kwargs["image_object"], Image.Image
+        ):
             raise TypeError("Error: image_object is not of type Image")
 
         if "filename" in kwargs:
-            self.image_object=Image.open(kwargs["filename"])
+            self.image_object = Image.open(kwargs["filename"])
 
         # set this before setting attributes from kwargs in order to reuse uuid
         # if necessary. Therefore, the uuid tracks the page through import,
@@ -70,7 +74,10 @@ class Page:
             self.resolution = (self.resolution, self.resolution, "PixelsPerInch")
 
         logger.info(
-            "New page size %s, format %s, (%s)", len(self.image_object.tobytes()), self.image_object.mode, self.uuid
+            "New page size %s, format %s, (%s)",
+            len(self.image_object.tobytes()),
+            self.image_object.mode,
+            self.uuid,
         )
 
     def clone(self, copy_image=False):
@@ -163,7 +170,9 @@ class Page:
             return self.resolution
 
         units = "PixelsPerInch"
-        if re.search(r"^P.M$", self.image_object.format, re.MULTILINE | re.DOTALL | re.VERBOSE):
+        if re.search(
+            r"^P.M$", self.image_object.format, re.MULTILINE | re.DOTALL | re.VERBOSE
+        ):
             # Return the first match based on the format
             for value in self.matching_paper_sizes(paper_sizes).values():
                 xresolution = value
@@ -181,7 +190,10 @@ class Page:
             if key in self.image_object.info and self.image_object.info[key][0] > 1:
                 xresolution, yresolution = self.image_object.info[key]
 
-        if "jfif_unit" in self.image_object.info and self.image_object.info["jfif_unit"] == 2:
+        if (
+            "jfif_unit" in self.image_object.info
+            and self.image_object.info["jfif_unit"] == 2
+        ):
             units = "PixelsPerCentimeter"
             xresolution *= CM_PER_INCH
             yresolution *= CM_PER_INCH
@@ -221,6 +233,31 @@ class Page:
                 )
 
         return matching
+
+    def get_pixbuf(self):
+        "return a pixbuf of the image"
+        if self.image_object is None:
+            logger.warning("Cannot get pixbuf from None")
+            return None
+        # TODO: This doesn't work, probably because I didn't test it with an RGB image,
+        # but would be a better solution
+        # width, height = self.image_object.size
+        # return GdkPixbuf.Pixbuf.new_from_bytes(
+        #     GLib.Bytes.new(self.image_object.tobytes()),
+        #     GdkPixbuf.Colorspace.RGB,
+        #     False,
+        #     8,
+        #     width,
+        #     height,
+        #     width * 3,
+        # )
+        with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as filename:
+            self.image_object.save(filename.name)
+            try:
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename.name)
+            except (GLib.Error, TypeError) as exc:
+                logger.warning("Caught error getting pixbuf: %s", exc)
+        return pixbuf
 
     def get_pixbuf_at_scale(self, max_width, max_height):
         """logic taken from at_scale_size_prepared_cb() in
