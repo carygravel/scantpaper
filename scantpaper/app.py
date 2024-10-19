@@ -5668,9 +5668,6 @@ def _cb_array_append( combobox_array, text ) :
             combobox.append_text(text)
 
 
-    return
-
-
 def update_list_user_defined_tools( vbox, combobox_array ) :
     """Update list of user-defined tools"""    
     (list)=([])
@@ -5694,12 +5691,8 @@ def update_list_user_defined_tools( vbox, combobox_array ) :
             combobox.set_active_by_text( SETTING["current_udt"] )
 
 
-    return
-
-
 def add_user_defined_tool_entry( vbox, combobox_array, tool ) :
-    """Add user-defined tool entry
-"""    
+    "Add user-defined tool entry"    
     _cb_array_append( combobox_array, tool )
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
