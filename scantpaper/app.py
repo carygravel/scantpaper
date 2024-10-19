@@ -68,7 +68,7 @@ import fcntl
 import shutil
 from types import SimpleNamespace
 import tesserocr
-from dialog import Dialog, MultipleMessage
+from dialog import Dialog, MultipleMessage, filter_message, response_stored
 from dialog.renumber import Renumber
 from dialog.save import Save
 from dialog.scan import Scan
@@ -79,6 +79,7 @@ from basedocument import slurp
 from scanner.profile import Profile
 from unpaper import Unpaper
 from canvas import Canvas
+from bboxtree import Bboxtree
 import config
 from i18n import _, d_sane
 from helpers import get_tmp_dir, program_version, exec_command, parse_truetype_fonts
@@ -337,7 +338,7 @@ def check_dependencies() :
             show_message_dialog(
                 parent           = window,
                 message_type             = 'warning',
-                buttons          = 'ok',
+                buttons          = Gtk.ButtonsType.OK,
                 text             = msg,
                 store_response = True
             )
@@ -385,7 +386,7 @@ def check_dependencies() :
                     show_message_dialog(
                         parent           = window,
                         message_type             = 'warning',
-                        buttons          = 'ok',
+                        buttons          = Gtk.ButtonsType.OK,
                         text             = msg,
                         store_response = True
                     )
@@ -517,7 +518,7 @@ def update_uimanager() :
    # If the scan dialog has already been drawn, update the start page spinbutton
     global windows
     if windows :
-        windows.update_start_page()
+        windows._update_start_page()
 
 
 def selection_changed_callback(_selection):
@@ -747,19 +748,18 @@ def display_image(page) :
         SETTING["selection"]["height"] = sb_selector_h.get_value()
         view.set_selection( SETTING["selection"] )
 
-
     # Delete OCR output if it has become corrupted
-    if  "text_layer"  in current_page        and not Gscan2pdf.Bboxtree.valid( current_page["text_layer"] )     :
+    if  current_page.text_layer is not None and not current_page.text_layer.valid(  )     :
         logger.error(
-            f"deleting corrupt text layer: {current_page}->{text_layer}")
-        del(current_page["text_layer"]) 
+            f"deleting corrupt text layer: {current_page.text_layer}")
+        current_page.text_layer = None
 
-    if  "text_layer"  in current_page :
+    if  current_page.text_layer :
         create_txt_canvas(current_page)
     else :
         canvas.clear_text()
 
-    if  "annotations"  in current_page :
+    if  current_page.annotations :
         create_ann_canvas(current_page)
     else :
         a_canvas.clear_text()
@@ -857,13 +857,12 @@ def scans_saved(message) :
         response = ask_question(
             parent             = window,
             type               = 'question',
-            buttons            = 'ok-cancel',
+            buttons            = Gtk.ButtonsType.OK_CANCEL,
             text               = message,
             store_response   = True,
-            stored_responses = [
-        'ok']
+            stored_responses = [Gtk.ResponseType.OK]
         )
-        if response != 'ok' :
+        if response != Gtk.ResponseType.OK :
             return False
 
     return True
@@ -948,7 +947,7 @@ def error_callback( page_uuid, process, message ) :
     options = {
         "parent"           : window,
         "type"             : 'error',
-        "buttons"          : 'close',
+        "buttons"          : Gtk.ButtonsType.CLOSE,
         "process"          : process,
         "text"             : message,
         'store-response' : True,
@@ -1054,11 +1053,11 @@ def setup_tpbar( thread, process, completed, total, pid ) :
     return
 
 
-
-def update_tpbar(options) :
-    """Helper function to update thread progress bar
-"""    
-    if options["jobs_total"] :
+def update_tpbar(response) :
+    "Helper function to update thread progress bar"    
+    options = response.info
+    print(f"update_tpbar({options})")
+    if options and options["jobs_total"] :
         if  "process"  in options :
             if  "message"  in options :
                 options["process"] += f" - {options['message']}"
@@ -1279,7 +1278,7 @@ def update_metadata_settings(dialog) :
             show_message_dialog(
                 parent  = window,
                 message_type    = 'error',
-                buttons = 'close',
+                buttons = Gtk.ButtonsType.CLOSE,
                 text    = msg,
             )
 
@@ -1841,7 +1840,7 @@ def file_writable( chooser, filename ) :
         show_message_dialog(
             parent  = chooser,
             message_type    = 'error',
-            buttons = 'close',
+            buttons = Gtk.ButtonsType.CLOSE,
             text    = text
         )
         return True
@@ -1851,7 +1850,7 @@ def file_writable( chooser, filename ) :
         show_message_dialog(
             parent  = chooser,
             message_type    = 'error',
-            buttons = 'close',
+            buttons = Gtk.ButtonsType.CLOSE,
             text    = text
         )
         return True
@@ -1894,7 +1893,7 @@ def save_image(list_of_pages) :
                     show_message_dialog(
                         parent  = file_chooser,
                         message_type    = 'error',
-                        buttons = 'close',
+                        buttons = Gtk.ButtonsType.CLOSE,
                         text    = text
                     )
                     file_chooser.destroy()
@@ -2315,7 +2314,7 @@ def email() :
                 show_message_dialog(
                             parent  = window,
                             message_type    = 'error',
-                            buttons = 'close',
+                            buttons = Gtk.ButtonsType.CLOSE,
                             text    = _('Error creating email')
                         )
 
@@ -2576,15 +2575,13 @@ def changed_progress_callback( widget, progress, message ) :
     return
 
 
-def anonymous_97(*argv):
-    return update_tpbar(*argv)
-
-
-def anonymous_98( thread, process, completed, total ):
-            
-    signal =               setup_tpbar( thread, process, completed, total, pid )
-    if (  (signal is not None) ):
-        return True  
+def scan_started_callback( response ):
+    print(f"scan_started_callback( {response} )")
+    if response.info:
+        process, completed, total = response.info
+        signal =               setup_tpbar( thread, process, completed, total, pid )
+        if (  (signal is not None) ):
+            return True  
 
 
 def anonymous_99( new_page, pending ):
@@ -2611,8 +2608,8 @@ def new_scan_callback( self, image_object, page_number, xresolution, yresolution
         "ocr"             : SETTING['OCR on scan'],
         "engine"          : SETTING['ocr engine'],
         "language"        : SETTING['ocr language'],
-        "queued_callback" : anonymous_97 ,
-        "started_callback" : anonymous_98 ,
+        "queued_callback" : update_tpbar ,
+        "started_callback" : scan_started_callback ,
         "finished_callback" : anonymous_99 ,
         "error_callback" : error_callback,
         "image_object"    : image_object,
@@ -2708,7 +2705,7 @@ def process_error_callback( widget, process, msg, signal ) :
     show_message_dialog(
         parent           = widget,
         message_type             = 'error',
-        buttons          = 'close',
+        buttons          = Gtk.ButtonsType.CLOSE,
         page             = EMPTY,
         process          = process,
         text             = msg,
@@ -2740,19 +2737,18 @@ def finished_process_callback( widget, process, button_signal=None ) :
             response = ask_question(
                     parent             = windows,
                     type               = 'question',
-                    buttons            = 'ok-cancel',
+                    buttons            = Gtk.ButtonsType.OK_CANCEL,
                     text               = message,
-                    default_response = 'ok',
+                    default_response = Gtk.ResponseType.OK,
                     store_response   = True,
-                    stored_responses = [
-            'ok']
+                    stored_responses = [Gtk.ResponseType.OK]
                 )
-            if response == 'ok' :
+            if response == Gtk.ResponseType.OK :
                 windows.side_to_scan=next
 
 
 
-        Glib.Idle.add(
+        GLib.Idle.add(
         anonymous_100 
         )
 
@@ -3489,7 +3485,7 @@ def renumber_dialog() :
         show_message_dialog(
                 parent  = windowrn,
                 message_type    = 'error',
-                buttons = 'close',
+                buttons = Gtk.ButtonsType.CLOSE,
                 text    = msg
             )
 
@@ -3669,10 +3665,8 @@ def threshold() :
     hboxt.pack_end( spinbutton, False, True, 0 )
 
     def anonymous_124():
-        """    # HBox for buttons
-"""
+            # HBox for buttons
             # Update undo/redo buffers
-
         take_snapshot()
         SETTING['threshold tool'] = spinbutton.get_value()
         SETTING['Page range']     = windowt.page_range
@@ -3772,10 +3766,8 @@ def brightness_contrast() :
     hbox.pack_end( spinbuttonc, False, True, 0 )
 
     def anonymous_130():
-        """    # HBox for buttons
-"""
+            # HBox for buttons
             # Update undo/redo buffers
-
         take_snapshot()
         SETTING['brightness tool'] = spinbuttonb.get_value()
         SETTING['contrast tool']   = spinbuttonc.get_value()
@@ -3852,10 +3844,8 @@ def negate() :
     windowt.add_page_range()
 
     def anonymous_136():
-        """    # HBox for buttons
-"""
+            # HBox for buttons
             # Update undo/redo buffers
-
         take_snapshot()
         SETTING['Page range'] = windowt.page_range
         pagelist =               slist.get_page_index( SETTING['Page range'],
@@ -3978,10 +3968,8 @@ def unsharp() :
 
 
     def anonymous_142():
-        """    # HBox for buttons
-"""
+            # HBox for buttons
             # Update undo/redo buffers
-
         take_snapshot()
         SETTING['unsharp radius']    = spinbuttonr.get_value()
         SETTING['unsharp sigma']     = spinbuttons.get_value()
@@ -4153,8 +4141,7 @@ def crop_dialog(action) :
 
 
     def anonymous_148():
-        """    # Callbacks if the spinbuttons change
-"""
+        # Callbacks if the spinbuttons change
         SETTING["selection"]["x"] = sb_selector_x.get_value()
         sb_selector_w.set_range( 0, width - SETTING["selection"]["x"] )
         update_selector()
@@ -4983,7 +4970,7 @@ f"Free space in {session.name} (Mb): {df} (warning at {SETTING['available-tmp-wa
             show_message_dialog(
                 parent  = window,
                 message_type    = 'warning',
-                buttons = 'close',
+                buttons = Gtk.ButtonsType.CLOSE,
                 text    = text
             )
 
@@ -5164,7 +5151,7 @@ def preferences(arg) :
             show_message_dialog(
                     parent           = windowr,
                     message_type             = 'error',
-                    buttons          = 'close',
+                    buttons          = Gtk.ButtonsType.CLOSE,
                     text             = msg,
                     store_response = True
                 )
@@ -5217,7 +5204,7 @@ def preferences(arg) :
             response = ask_question(
                     parent  = window,
                     type    = 'question',
-                    buttons = 'ok-cancel',
+                    buttons = Gtk.ButtonsType.OK_CANCEL,
                     text    = _(
 'Changes will only take effect after restarting gscan2pdf.'
                       )
@@ -5449,7 +5436,7 @@ def _preferences_scan_options(border_width) :
             show_message_dialog(
                     parent  = windowr,
                     message_type    = 'error',
-                    buttons = 'close',
+                    buttons = Gtk.ButtonsType.CLOSE,
                     text    = _(
                         'No scanner currently open with command line frontend.')
                 )
@@ -5869,40 +5856,39 @@ f"Page {slist}->{data}[{page}][0] has resolutions {xresolution},{yresolution}"
     return    0 if xresolution==EMPTY  else '%.1g' % (  xresolution ),          0 if yresolution==EMPTY  else '%.1g' % (yresolution)  
 
 
-def ask_question(options) :
+def ask_question(**kwargs) :
     "Helper function to display a message dialog, wait for a response, and return it"    
 
     # replace any numbers with metacharacters to compare to filter
-    text =       MultipleMessage.filter_message( options["text"] )
-    if MultipleMessage.response_stored(
+    text =       filter_message( kwargs["text"] )
+    if response_stored(
             text, SETTING["message"]
         )     :
-        logger.debug( f"Skipped MessageDialog with '{options['text']}', "
+        logger.debug( f"Skipped MessageDialog with '{kwargs['text']}', "
               + f"automatically replying '{SETTING['message'][text]['response']}'" )
         return SETTING["message"][text]["response"]
 
     cb=None
-    dialog =       Gtk.MessageDialog( options["parent"],
-        [
-    'destroy-with-parent', 'modal' ],
-        options["type"], options["buttons"], options["text"] )
-    logger.debug(f"Displayed MessageDialog with '{options['text']}'")
-    if options['store-response'] :
+    dialog =       Gtk.MessageDialog( parent=kwargs["parent"],
+    modal=True, destroy_with_parent=True ,
+        message_type=kwargs["type"], buttons=kwargs["buttons"], text=kwargs["text"] )
+    logger.debug(f"Displayed MessageDialog with '{kwargs['text']}'")
+    if 'store-response' in kwargs :
         cb = Gtk.CheckButton.new_with_label(
             _("Don't show this message again") )
         dialog.get_message_area().add(cb)
 
-    if  'default-response'  in options :
-        dialog.set_default_response( options['default-response'] )
+    if  'default-response'  in kwargs :
+        dialog.set_default_response( kwargs['default-response'] )
 
     dialog.show_all()
     response = dialog.run()
     dialog.destroy()
-    if options['store-response'] and cb.get_active() :
+    if 'store-response' in kwargs and cb.get_active() :
         filter = True
-        if options['stored-responses'] :
+        if kwargs['stored-responses'] :
             filter = False
-            for i in              options['stored-responses']  :
+            for i in              kwargs['stored-responses']  :
                 if i == response :
                     filter = True
                     break
@@ -6141,32 +6127,24 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         view.connect(            'button-press-event' , handle_clicks        )
         view.connect( 'button-release-event' , handle_clicks )
-        def anonymous_02():
+        def view_zoom_changed_callback(view, zoom):
             global canvas
             if  canvas is not None :
-                canvas.handler_block( canvas["zoom_changed_signal"] )
-                canvas.set_scale( view.get_zoom() )
-                canvas.handler_unblock(
-                        canvas["zoom_changed_signal"] )
+                canvas.handler_block( canvas.zoom_changed_signal )
+                canvas.set_scale( zoom )
+                canvas.handler_unblock(canvas.zoom_changed_signal )
 
-
-
-        view.zoom_changed_signal = view.connect(            'zoom-changed' , anonymous_02         )
-        def anonymous_03():
+        view.zoom_changed_signal = view.connect(            'zoom-changed' , view_zoom_changed_callback         )
+        def view_offset_changed_callback(view, x, y):
             global canvas
             if  canvas is not None :
-                offset = view.get_offset()
-                canvas.handler_block(
-                        canvas["offset_changed_signal"] )
-                canvas.set_offset( offset["x"], offset["y"] )
-                canvas.handler_unblock(
-                        canvas["offset_changed_signal"] )
+                canvas.handler_block(canvas.offset_changed_signal )
+                canvas.set_offset( x, y )
+                canvas.handler_unblock(canvas.offset_changed_signal )
 
+        view.offset_changed_signal = view.connect(            'offset-changed' , view_offset_changed_callback         )
 
-
-        view.offset_changed_signal = view.connect(            'offset-changed' , anonymous_03         )
-
-        def anonymous_04( widget, sel ):
+        def view_selection_changed_callback( view, sel ):
             "Callback if the selection changes"            
             if  sel is not None :
                 SETTING["selection"] = sel
@@ -6176,17 +6154,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     sb_selector_w.set_value( SETTING["selection"]["width"] )
                     sb_selector_h.set_value( SETTING["selection"]["height"] )
 
-        view.selection_changed_signal = view.connect(            'selection-changed' , anonymous_04         )
+        view.selection_changed_signal = view.connect(            'selection-changed' , view_selection_changed_callback         )
 
         # Goo.Canvas for text layer
         global canvas
         canvas = Canvas()
-        def anonymous_05():
+        def canvas_zoom_changed_callback(canvas, zoom):
             view.handler_block( view.zoom_changed_signal )
             view.set_zoom( canvas.get_scale() )
             view.handler_unblock( view.zoom_changed_signal )
 
-        canvas.zoom_changed_signal = canvas.connect(            'zoom-changed' , anonymous_05         )
+        canvas.zoom_changed_signal = canvas.connect(            'zoom-changed' , canvas_zoom_changed_callback         )
         def anonymous_06():
             view.handler_block( view.offset_changed_signal )
             offset = canvas.get_offset()
@@ -6950,7 +6928,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             show_message_dialog(
                 parent           = self,
                 message_type             = 'warning',
-                buttons          = 'ok',
+                buttons          = Gtk.ButtonsType.OK,
                 text             = msg,
                 store_response = True
             )
