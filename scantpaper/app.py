@@ -117,7 +117,6 @@ EMPTY_LIST              = -1
 _100_PERCENT            = 100
 MAX_DPI                 = 2400
 BITS_PER_BYTE           = 8
-RIGHT_MOUSE_BUTTON      = 3
 HELP_WINDOW_WIDTH       = 800
 HELP_WINDOW_HEIGHT      = 600
 HELP_WINDOW_DIVIDER_POS = 200
@@ -3627,8 +3626,8 @@ f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {di
 def handle_clicks( widget, event ) :
     "Handle right-clicks"    
     global uimanager
-    if event.button() == RIGHT_MOUSE_BUTTON :
-        if issubclass(widget,ImageView) :    # main image
+    if event.button == 3 :#RIGHT_MOUSE_BUTTON      
+        if isinstance(widget, ImageView) :    # main image
             uimanager.get_widget('/Detail_Popup')               .popup_at_pointer( event )
  
         else :                                      # Thumbnail simplelist
@@ -5685,15 +5684,12 @@ def update_list_user_defined_tools( vbox, combobox_array ) :
                 combobox.remove(0)
 
     for  hbox in      vbox.get_children()  :
-        if issubclass(hbox,HBox) :
+        if isinstance(hbox,Gtk.HBox) :
             for  widget in              hbox.get_children()  :
-                if issubclass(widget,Entry) :
+                if isinstance(widget,Gtk.Entry) :
                     text = widget.get_text()
                     list.append(text)  
                     _cb_array_append( combobox_array, text )
-
-
-
 
     SETTING["user_defined_tools"] = list
     update_post_save_hooks()
