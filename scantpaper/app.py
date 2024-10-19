@@ -972,8 +972,7 @@ def error_callback( page_uuid, process, message ) :
 """
         show_message_dialog(options)
 
-    Glib.Idle.add(
-    anonymous_45  )
+    GLib.Idle.add(    anonymous_45  )
     thbox.hide()
 
 
@@ -1825,8 +1824,7 @@ def file_exists( chooser, filename ) :
             """ Give the name change time to take effect."""
             chooser.response('ok')
 
-        Glib.Idle.add(
-        anonymous_62  )
+        GLib.Idle.add(anonymous_62)
         return True
 
     return
@@ -2747,9 +2745,7 @@ def finished_process_callback( widget, process, button_signal=None ) :
 
 
 
-        GLib.Idle.add(
-        anonymous_100 
-        )
+        GLib.Idle.add(anonymous_100)
 
     return
 
