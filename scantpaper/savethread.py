@@ -426,10 +426,6 @@ class SaveThread(Importhread):
     def do_user_defined(self, request):
         "run user defined command on page in thread"
         options = request.args[0]
-
-        if _page_gone("user-defined", options["page"], request):
-            return
-
         try:
             with tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".png") as infile, tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=".png") as out:
@@ -822,14 +818,3 @@ def _add_annotations_to_pdf(page, gs_page):
             color=rgb,
             opacity=0.5,
         )
-
-
-def _page_gone(process, page, request):
-    if not os.path.isfile(
-        page.filename
-    ):  # in case file was deleted after process started
-        err = f"Page for process {request.uuid} no longer exists. Cannot {process}."
-        logger.error(err)
-        request.error(err)
-        return True
-    return False

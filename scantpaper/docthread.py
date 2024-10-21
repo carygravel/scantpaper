@@ -10,7 +10,7 @@ import glob
 import tempfile
 from PIL import ImageStat, ImageEnhance, ImageOps, ImageFilter
 from importthread import CancelledError, _note_callbacks
-from savethread import SaveThread, _page_gone
+from savethread import SaveThread
 from i18n import _
 from page import Page
 from bboxtree import Bboxtree
@@ -31,9 +31,6 @@ class DocThread(SaveThread):
         "rotate page in thread"
         options = request.args[0]
         angle, page = options["angle"], options["page"]
-
-        if _page_gone("rotate", page, request):
-            return None
         logger.info("Rotating %s by %s degrees", page.uuid, angle)
         page.image_object = page.image_object.rotate(angle, expand=True)
 
@@ -100,8 +97,6 @@ class DocThread(SaveThread):
         options = request.args[0]
         threshold, page = (options["threshold"], options["page"])
 
-        if _page_gone("threshold", page, request):
-            return
         if self.cancel:
             raise CancelledError()
         logger.info("Threshold %s with %s", page.uuid, threshold)
@@ -142,9 +137,6 @@ class DocThread(SaveThread):
             options["page"],
         )
 
-        if _page_gone("brightness-contrast", options["page"], request):
-            return
-
         logger.info(
             "Enhance %s with brightness %s, contrast %s", page.uuid, brightness, contrast
         )
@@ -177,9 +169,6 @@ class DocThread(SaveThread):
         options = request.args[0]
         page = options["page"]
 
-        if _page_gone("negate", page, request):
-            return
-
         logger.info("Invert %s", page.uuid)
         page.image_object = ImageOps.invert(page.image_object)
 
@@ -208,9 +197,6 @@ class DocThread(SaveThread):
         radius = options["radius"]
         percent = options["percent"]
         threshold = options["threshold"]
-
-        if _page_gone("unsharp", page, request):
-            return
 
         logger.info(
             "Unsharp mask %s radius %s percent %s threshold %s",
@@ -250,9 +236,6 @@ class DocThread(SaveThread):
         width = options["w"]
         height = options["h"]
 
-        if _page_gone("crop", options["page"], request):
-            return
-
         logger.info("Crop %s x %s y %s w %s h %s", page.uuid, left, top, width, height)
 
         page.image_object = page.image_object.crop((left, top, left + width, top + height))
@@ -286,10 +269,6 @@ class DocThread(SaveThread):
         "split page in thread"
         options = request.args[0]
         page = options["page"]
-
-        if _page_gone("split", options["page"], request):
-            return
-
         image = page.image_object
         image2 = image.copy()
 
@@ -352,9 +331,8 @@ class DocThread(SaveThread):
         "run tesseract in thread"
         options = request.args[0]
         page, language = (options["page"], options["language"])
-
-        if _page_gone("tesseract", options["page"], request):
-            return
+        if language is None:
+            raise ValueError(_("No tesseract language specified"))
 
         if self.cancel:
             raise CancelledError()
@@ -364,7 +342,6 @@ class DocThread(SaveThread):
             request.error(_("tessdata directory not found"))
         with tesserocr.PyTessBaseAPI(lang=language, path=paths[-1]) as api:
             output = "image_out"
-
             api.SetVariable("tessedit_create_hocr", "T")
             api.SetVariable("hocr_font_info", "T")
             with tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".png") as file:
@@ -450,10 +427,6 @@ class DocThread(SaveThread):
     def do_unpaper(self, request):
         "run unpaper in thread"
         options = request.args[0]
-
-        if _page_gone("unpaper", options["page"], request):
-            return
-
         try:
             image = options["page"].image_object
             depth = options["page"].get_depth()
