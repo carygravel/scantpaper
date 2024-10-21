@@ -50,7 +50,10 @@ class ComboBoxText(Gtk.ComboBoxText):
     def get_active_index(self):
         """Get the current active item of a combobox
         based on the index column of the array"""
-        return self.data[self.get_active()][self.index_column]
+        i = self.get_active()
+        if i == -1:
+            return None
+        return self.data[i][self.index_column]
 
     def get_row_by_text(self, text):
         """Get row number with $text"""
@@ -65,7 +68,7 @@ class ComboBoxText(Gtk.ComboBoxText):
     def set_active_by_text(self, text):
         "set row by the item text"
         index = self.get_row_by_text(text)
-        if index > -1 or text is not None:
+        if index > -1 and text is not None:
             self.set_active(index)
 
     def get_num_rows(self):
