@@ -633,6 +633,11 @@ def _set_timestamp(options):
 
     metadata = options["metadata"]
     adatetime = metadata["datetime"]
+
+    # Ensure adatetime is timezone-aware
+    if adatetime.tzinfo is None:
+        adatetime = adatetime.replace(tzinfo=datetime.timezone.utc)
+
     epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
     adatetime = (adatetime - epoch).total_seconds()
     if adatetime < 0:

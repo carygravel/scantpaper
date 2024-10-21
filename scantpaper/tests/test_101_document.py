@@ -431,8 +431,8 @@ def test_helpers():
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
-        "datetime offset": datetime.timedelta(days=2, hours=0, minutes=59, seconds=59),
-        "timezone offset": datetime.timedelta(hours=0),
+        "datetime offset": [2, 0, 59, 59],
+        "timezone offset": [0, 0, 0, 0],
     }
     today_and_now = datetime.datetime(
         2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
