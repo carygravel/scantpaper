@@ -105,7 +105,7 @@ def expand_metadata_pattern(**kwargs):
 
     # Expand author, title and extension
     for key in ["author", "title", "subject", "keywords", "extension"]:
-        if key not in kwargs:
+        if key not in kwargs or kwargs[key] is None:
             kwargs[key] = ""
         regex = r"%D" + key[0]
         kwargs["template"] = re.sub(
