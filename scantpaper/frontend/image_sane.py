@@ -36,6 +36,11 @@ class SaneThread(BaseThread):
             if request.process == "quit":
                 return False
         except Exception as err:  # pylint: disable=broad-except
+            logger.error(
+                "Error running process '%s': %s",
+                request.process,
+                err,
+            )
             if (
                 request.process == "scan_page"
                 and str(err) == "Document feeder out of documents"
