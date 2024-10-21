@@ -1928,30 +1928,35 @@ def save_tiff( filename, ps, uuids ) :
         return update_tpbar(*argv)
 
 
-    def anonymous_68( thread, process, completed, total ):
+    def save_tiff_started_callback( response ):
+        #thread, process, completed, total
+        pass
             
-        signal =  setup_tpbar( process, completed, total, pid )
-        if signal is not None:
-            return True  
+        # signal =  setup_tpbar( process, completed, total, pid )
+        # if signal is not None:
+        #     return True  
 
 
     def anonymous_69(*argv):
         return update_tpbar(*argv)
 
 
-    def anonymous_70( new_page, pending ):
+    def save_tiff_finished_callback( response ):
+        filename = response.request.args[0]["path"]
+        uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
+        #new_page, pending
             
-        if not pending :
-            thbox.hide()
-        if  (signal is not None) :
-            tcbutton.disconnect(signal)
+        # if not pending :
+        #     thbox.hide()
+        # if  signal is not None :
+        #     tcbutton.disconnect(signal)
 
         mark_pages(uuids)
-        file =   ps if (ps is not None)  else filename
+        file =   ps if ps is not None  else filename
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
-            launch_default_for_file(filename)
+            launch_default_for_file(file)
 
-        logger.debug(f"Finished saving {filename}")
+        logger.debug(f"Finished saving {file}")
 
 
     pid = slist.save_tiff(
@@ -1959,9 +1964,9 @@ def save_tiff( filename, ps, uuids ) :
         list_of_pages   = uuids,
         options         = options,
         queued_callback = anonymous_67 ,
-        started_callback = anonymous_68 ,
+        started_callback = save_tiff_started_callback ,
         running_callback = anonymous_69 ,
-        finished_callback = anonymous_70 ,
+        finished_callback = save_tiff_finished_callback ,
         error_callback = error_callback
     )
 
