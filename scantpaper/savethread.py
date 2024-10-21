@@ -54,7 +54,9 @@ class SaveThread(Importhread):
         if "metadata" in options and "ps" not in options:
             metadata = prepare_output_metadata("PDF", options["metadata"])
 
-        with open(outdir / "origin_pre.pdf", "wb", buffering=0) as fhd:# turn off buffering
+        with open(
+            outdir / "origin_pre.pdf", "wb", buffering=0
+        ) as fhd:  # turn off buffering
             filenames = []
             sizes = []
             for page in options["list_of_pages"]:
@@ -342,7 +344,7 @@ class SaveThread(Importhread):
         i = 0
         for page in options["list_of_pages"]:
             i += 1
-            if len(options["list_of_pages"])>1:
+            if len(options["list_of_pages"]) > 1:
                 filename = options["path"] % (i)
             else:
                 filename = options["path"]
@@ -427,8 +429,11 @@ class SaveThread(Importhread):
         "run user defined command on page in thread"
         options = request.args[0]
         try:
-            with tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".png") as infile, tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".png") as out:
+            with tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".png"
+            ) as infile, tempfile.NamedTemporaryFile(
+                dir=options["dir"], suffix=".png"
+            ) as out:
                 options["page"].image_object.save(infile.name)
                 if re.search("%o", options["command"]):
                     options["command"] = re.sub(
@@ -571,7 +576,7 @@ def _write_image_object(page, options):
         and "options" in options
         and options["options"]
         and "compression" in options["options"]
-        and options["options"]["compression"][0] == "g" # g3 or g4
+        and options["options"]["compression"][0] == "g"  # g3 or g4
     ):
         # Grayscale
         image = image.convert("L")
@@ -673,7 +678,9 @@ def _convert_image_for_djvu(page, options, request):
     # cjb2 can only use pnm and tif
     if image.mode == "1":
         compression = "cjb2"
-        with tempfile.TemporaryFile(dir=options["dir"], suffix=".pbm", delete=False) as pbm:
+        with tempfile.TemporaryFile(
+            dir=options["dir"], suffix=".pbm", delete=False
+        ) as pbm:
             err = image.save(pbm.name)
             if f"{err}":
                 logger.error(err)
@@ -720,9 +727,7 @@ def _add_txt_to_djvu(djvu, dirname, page, request):
         try:
             subprocess.run(cmd, check=True)
         except ValueError:
-            logger.error(
-                "Error adding text layer to DjVu page %s", page["page_number"]
-            )
+            logger.error("Error adding text layer to DjVu page %s", page["page_number"])
             request.error(_("Error adding text layer to DjVu"))
 
 
