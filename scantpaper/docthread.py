@@ -70,8 +70,8 @@ class DocThread(SaveThread):
             stat = ImageStat.Stat(page.image_object)
             # ImageStat seems to have a bug here. Working around it.
             if stat.count == [0]:
-                page.mean = [0.]
-                page.std_dev = [0.]
+                page.mean = [0.0]
+                page.std_dev = [0.0]
             else:
                 page.mean = stat.mean
                 page.std_dev = stat.stddev
@@ -104,7 +104,9 @@ class DocThread(SaveThread):
         # To grayscale
         page.image_object = page.image_object.convert("L")
         # Threshold
-        page.image_object = page.image_object.point(lambda p: 255 if p > threshold else 0)
+        page.image_object = page.image_object.point(
+            lambda p: 255 if p > threshold else 0
+        )
         # To mono
         page.image_object = page.image_object.convert("1")
 
@@ -138,12 +140,17 @@ class DocThread(SaveThread):
         )
 
         logger.info(
-            "Enhance %s with brightness %s, contrast %s", page.uuid, brightness, contrast
+            "Enhance %s with brightness %s, contrast %s",
+            page.uuid,
+            brightness,
+            contrast,
         )
         if self.cancel:
             raise CancelledError()
 
-        page.image_object = ImageEnhance.Brightness(page.image_object).enhance(brightness)
+        page.image_object = ImageEnhance.Brightness(page.image_object).enhance(
+            brightness
+        )
         page.image_object = ImageEnhance.Contrast(page.image_object).enhance(contrast)
 
         if self.cancel:
@@ -238,7 +245,9 @@ class DocThread(SaveThread):
 
         logger.info("Crop %s x %s y %s w %s h %s", page.uuid, left, top, width, height)
 
-        page.image_object = page.image_object.crop((left, top, left + width, top + height))
+        page.image_object = page.image_object.crop(
+            (left, top, left + width, top + height)
+        )
 
         if self.cancel:
             raise CancelledError()
