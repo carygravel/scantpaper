@@ -174,7 +174,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         # Update the start spinbutton if the page number is been edited.
         if newval:
             newval.get_model().connect(
-                "row-changed", lambda x: self._update_start_page()
+                "row-changed", lambda x, y, z: self._update_start_page()
             )
             newval.get_model().connect(
                 "row-inserted", lambda x, y, z: self._update_start_page()
