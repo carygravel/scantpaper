@@ -70,7 +70,7 @@ from types import SimpleNamespace
 import tesserocr
 from dialog import Dialog, MultipleMessage, filter_message, response_stored
 from dialog.renumber import Renumber
-from dialog.save import Save
+from dialog.save import Save as SaveDialog
 from dialog.scan import Scan
 from dialog.sane import SaneScanDialog
 from comboboxtext import ComboBoxText
@@ -82,7 +82,7 @@ from canvas import Canvas
 from bboxtree import Bboxtree
 import config
 from i18n import _, d_sane
-from helpers import get_tmp_dir, program_version, exec_command, parse_truetype_fonts
+from helpers import get_tmp_dir, program_version, exec_command, parse_truetype_fonts, expand_metadata_pattern, collate_metadata
 from tesseract import languages, _iso639_1to3, locale_installed, get_tesseract_codes
 import sane             # To get SANE_* enums
 
@@ -96,7 +96,6 @@ import tempfile
 import logging
 import datetime   
 import gettext
-
 
 HALF                    = 0.5
 UNIT_SLIDER_STEP        = 0.001
@@ -299,7 +298,6 @@ def read_config() :
 
 def check_dependencies() :
     "Check for presence of various packages"
-    # logger.debug(f"in check_dependencies {_}")
 
     dependencies["tesseract"] = tesserocr.tesseract_version()
     dependencies["tesserocr"] = tesserocr.__version__
@@ -391,9 +389,9 @@ def check_dependencies() :
                     )
                     
     # OCR engine options
-    # if dependencies["tesseract"] :
-    #     ocr_engine.append([
-    #     'tesseract', _('Tesseract'), _('Process image with Tesseract.') ])            
+    if dependencies["tesseract"] :
+        ocr_engine.append([
+        'tesseract', _('Tesseract'), _('Process image with Tesseract.') ])            
 
     # Build a look-up table of all true-type fonts installed
     proc  =       exec_command(    [    'fc-list', ":", "family", "style", 'file'] )
@@ -748,19 +746,20 @@ def display_image(page) :
         view.set_selection( SETTING["selection"] )
 
     # Delete OCR output if it has become corrupted
-    if  current_page.text_layer is not None and not current_page.text_layer.valid(  )     :
-        logger.error(
-            f"deleting corrupt text layer: {current_page.text_layer}")
-        current_page.text_layer = None
+    if current_page.text_layer is not None:
+        bbox = Bboxtree(current_page.text_layer)
+        if not bbox.valid():
+            logger.error(f"deleting corrupt text layer: {current_page.text_layer}")
+            current_page.text_layer = None
 
-    if  current_page.text_layer :
+    if current_page.text_layer:
         create_txt_canvas(current_page)
-    else :
+    else:
         canvas.clear_text()
 
-    if  current_page.annotations :
+    if current_page.annotations:
         create_ann_canvas(current_page)
-    else :
+    else:
         a_canvas.clear_text()
 
 
@@ -884,17 +883,15 @@ def new() :
     # pages, pressing the new button would cause some sort of race condition
     # between the tied array of the slist and the callbacks displaying the
     # thumbnails, so block this whilst clearing the array.
-    slist.get_model().handler_block( slist["row_changed_signal"] )
-    slist.get_selection().handler_block(
-        slist["selection_changed_signal"] )
+    slist.get_model().handler_block( slist.row_changed_signal )
+    slist.get_selection().handler_block(slist.selection_changed_signal )
 
     # Depopulate the thumbnail list
     slist.data = []
 
     # Unblock slist signals now finished
-    slist.get_selection().handler_unblock(
-        slist["selection_changed_signal"] )
-    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+    slist.get_selection().handler_unblock(slist.selection_changed_signal )
+    slist.get_model().handler_unblock( slist.row_changed_signal )
 
     # Now we have to clear everything manually
     slist.get_selection().unselect_all()
@@ -915,14 +912,13 @@ def add_filter( file_chooser, name, file_extensions ) :
     "Create a file filter to show only supported file types in FileChooser dialog"    
     filter = Gtk.FileFilter()
     for  extension in     file_extensions :
-        filter_pattern=[]
+        pattern=[]
 
         # Create case insensitive pattern
-        for  byte in          split(EMPTY,extension)    :
-            filter_pattern.append('['+uc(byte)+lc(byte)+']')        
+        for  char in          extension    :
+            pattern.append('['+char.upper()+char.lower()+']')        
 
-        new_filter_pattern = EMPTY.join(filter_pattern)  
-        filter.add_pattern( "*." + new_filter_pattern )
+        filter.add_pattern( "*." + EMPTY.join(pattern)  )
 
     types=None
     for ext in     file_extensions :
@@ -938,41 +934,37 @@ def add_filter( file_chooser, name, file_extensions ) :
     filter.add_pattern("*")
     filter.set_name('All files')
     file_chooser.add_filter(filter)
-    return
 
 
-def error_callback( page_uuid, process, message ) :
-    
+def error_callback( response ) :
+    args = response.request.args
+    process = response.request.process
+    stage = response.type.name.lower()
+    message = response.status
+    page = None
+    if "page" in args[0]:
+        page = args[0]["page"]
+
     options = {
         "parent"           : window,
-        "type"             : 'error',
+        "message_type"     : 'error',
         "buttons"          : Gtk.ButtonsType.CLOSE,
         "process"          : process,
         "text"             : message,
         'store-response' : True,
+        "page"           : page,
     }
-    page=None
-    if  (page_uuid is not None) :
-        page = slist.find_page_by_uuid(page_uuid)
 
-    if  (page is not None) :
-        options["page"] = slist.data[page][0]
+    logger.error( f"Error running '{stage}' callback for '{process}' process: {message}")
 
-    if  page_uuid is not None :
-        page_uuid += ', '
-    else :
-        page_uuid = EMPTY
+    def show_message_dialog_wrapper():
+        """ Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
+        return immediately in order to allow it to work on subsequent pages
+        despite errors on previous ones"""
+        show_message_dialog(**options)
 
-    logger.error( f"{page_uuid[process]}, " + encode( 'UTF-8', message ) )
-
-    def anonymous_45():
-        """    # Wrap show_message_dialog() in Glib::Idle->add() to allow the thread to
-    # return immediately in order to allow it to work on subsequent pages
-    # despite errors on previous ones
-"""
-        show_message_dialog(options)
-
-    GLib.Idle.add(    anonymous_45  )
+    GLib.idle_add(show_message_dialog_wrapper)
+    global thbox
     thbox.hide()
 
 
@@ -1017,45 +1009,33 @@ def open_session(sesdir) :
     )
 
 
-
-def setup_tpbar( thread, process, completed, total, pid ) :
-    """Helper function to set up thread progress bar
-"""    
+def setup_tpbar( process, completed, total, pid ) :
+    "Helper function to set up thread progress bar"    
     if total and  (process is not None) :
         tpbar.set_text(
             _('Process %i of %i (%s)') % (completed+1,total,process) 
-              
-             
         )
-        tpbar.set_fraction(
-        ( completed + HALF ) / total )
+        tpbar.set_fraction( ( completed + HALF ) / total )
         thbox.show_all()
-
+    
         def anonymous_46():
-            """        # Pass the signal back to:
-        # 1. be able to cancel it when the process has finished
-        # 2. flag that the progress bar has been set up
-        #    and avoid the race condition where the callback is
-        #    entered before the $completed and $total variables have caught up
-"""
-            slist.cancel(
-            [
-            pid] )
+            """ Pass the signal back to:
+            1. be able to cancel it when the process has finished
+            2. flag that the progress bar has been set up
+               and avoid the race condition where the callback is
+               entered before the $completed and $total variables have caught up"""
+            slist.cancel( [ pid ] )
             thbox.hide()
 
-
-        return tcbutton.connect(
-            'clicked' , anonymous_46 
-        )
-
-    return
+        return tcbutton.connect( 'clicked' , anonymous_46  )
 
 
 def update_tpbar(response) :
-    "Helper function to update thread progress bar"    
+    "Helper function to update thread progress bar"
+    if response is None or response.info is None:
+        return    
     options = response.info
-    print(f"update_tpbar({options})")
-    if options and options["jobs_total"] :
+    if options["jobs_total"] :
         if  "process"  in options :
             if  "message"  in options :
                 options["process"] += f" - {options['message']}"
@@ -1094,8 +1074,8 @@ def open_dialog() :
     file_chooser.set_default_response('ok')
     file_chooser.set_current_folder( SETTING["cwd"] )
     add_filter( file_chooser, _('Image files'),
-        'jpg', 'png', 'pnm', 'ppm', 'pbm', 'gif', 'tif', 'tiff', 'pdf', 'djvu',
-        'ps',  'gs2p' )
+        ['jpg', 'png', 'pnm', 'ppm', 'pbm', 'gif', 'tif', 'tiff', 'pdf', 'djvu',
+        'ps',  'gs2p'] )
     if 'ok' == file_chooser.run() :
 
         # cd back to tempdir to import
@@ -1147,8 +1127,8 @@ def anonymous_48(*argv):
 def anonymous_49( thread, process, completed, total ):
             
     logger.debug(f"import_files started @{{filenames}}")
-    signal =               setup_tpbar( thread, process, completed, total, pid )
-    if (  (signal is not None) ):
+    signal =    setup_tpbar( process, completed, total, pid )
+    if signal is not None:
         return True  
 
 
@@ -1161,7 +1141,7 @@ def anonymous_51(pending):
     logger.debug(f"import_files finished @{{filenames}}")
     if not pending :
         thbox.hide()
-    if  (signal is not None) :
+    if signal is not None :
         tcbutton.disconnect(signal)
 
     slist.save_session()
@@ -1236,7 +1216,7 @@ def import_files( filenames, all_pages ) :
 
 
 def update_metadata_settings(dialog) :
-    """Get metadata"""    
+    "Get metadata"    
     for  name in     ["author","title","subject","keywords"] :
         if type(dialog) == 'HASH' :
             if  name  in dialog :
@@ -1245,33 +1225,34 @@ def update_metadata_settings(dialog) :
                     if  dialog2 is not None :
                         setattr(dialog2, f"meta_{name}",SETTING[name])
         else :
-            SETTING[name] = getattr(dialog2, f"meta_{name}")
-            SETTING[f"{name}-suggestions"] = getattr(dialog2, f"meta_{name_suggestions}")              
+            SETTING[name] = getattr(dialog, f"meta_{name}")
+            SETTING[f"{name}-suggestions"] = getattr(dialog, f"meta_{name}_suggestions")              
 
-    datetime=None
+    doc_datetime=None
     if type(dialog) == 'HASH' :
-        datetime = dialog["datetime"]
+        doc_datetime = dialog["datetime"]
         for  dialog2 in          ( windowi, windowe ) :
-            if  (dialog2 is not None) :
-                dialog2.meta_datetime=datetime
+            if  dialog2 is not None :
+                dialog2.meta_datetime=doc_datetime
 
 
  
     else :
-        datetime = dialog.meta_datetime
+        doc_datetime = dialog.meta_datetime
 
     success = True
-    if  (datetime is not None) :
+    if  doc_datetime is not None :
         try :
-            SETTING['datetime offset'] =               [
-            Delta_DHMS( Today_and_Now(), len(datetime) ) ]
-            SETTING['timezone offset'] =               [
-            Gscan2pdf.Document.delta_timezone_to_current(datetime) ]
+            delta = datetime.datetime.now() - doc_datetime
+            SETTING['datetime offset'] =               [ delta.days, delta.seconds//3600, (delta.seconds//60)%60, delta.seconds%60 ]
+            ts = doc_datetime.timestamp()
+            local_offset = datetime.datetime.fromtimestamp(ts) - datetime.datetime.utcfromtimestamp(ts)
+            SETTING['timezone offset'] =               [ local_offset.days, local_offset.seconds//3600, (local_offset.seconds//60)%60, local_offset.seconds%60 ]
  
-        except :
+        except Exception as e:
             success = False
             msg =               _(
-                '%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime: %s') % (datetime,_)                 
+                '%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime: %s') % (*doc_datetime,e)                 
             logger.debug(msg)
             show_message_dialog(
                 parent  = window,
@@ -1280,17 +1261,13 @@ def update_metadata_settings(dialog) :
                 text    = msg,
             )
 
-
     return success
 
 
-
-def save_pdf( filename, option, list_of_pages ) :
-    """Save selected pages as PDF under given name.
-"""    
+def save_pdf( filename, option, list_of_page_uuids ) :
+    "Save selected pages as PDF under given name."    
 
     # Compile options
-
     options = {
         "compression"      : SETTING['pdf compression'],
         "downsample"       : SETTING["downsample"],
@@ -1316,88 +1293,72 @@ def save_pdf( filename, option, list_of_pages ) :
     if SETTING["post_save_hook"] :
         options["post_save_hook"] = SETTING["current_psh"]
 
-
     # Create the PDF
-
     logger.debug(f"Started saving {filename}")
-    ( signal, pid )=(None,None)
-    def anonymous_55(*argv):
-        return update_tpbar(*argv)
+    signal, pid =(None,None)
+
+    def save_pdf_started_callback( response ):
+        if response.info is not None:
+            process, completed, total = response.info            
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
+                return True  
+        return False
 
 
-    def anonymous_56( thread, process, completed, total ):
+    def save_pdf_finished_callback( response ):
+        #new_page, pending
             
-        signal =               setup_tpbar( thread, process, completed, total, pid )
-        if (  (signal is not None) ):
-            return True  
-
-
-    def anonymous_57(*argv):
-        return update_tpbar(*argv)
-
-
-    def anonymous_58( new_page, pending ):
-            
-        if not pending :
-            thbox.hide()
-        if  (signal is not None) :
+        # if not pending :
+        #     thbox.hide()
+        if  signal is not None :
             tcbutton.disconnect(signal)
 
-        mark_pages(list_of_pages)
+        mark_pages(list_of_page_uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             if  "ps"  in options :
                 launch_default_for_file( options["ps"] )
- 
             else :
                 launch_default_for_file(filename)
 
-
         logger.debug(f"Finished saving {filename}")
 
-
     pid = slist.save_pdf(
-        path          = f"{filename}",      # stringify in case of PS
-        list_of_pages = list_of_pages,
-        metadata      = Gscan2pdf.Document.collate_metadata(
-            SETTING,
-            [
-    Today_and_Now() ],
-            [
-    Timezone() ]
-        ),
+        path          = filename,
+        list_of_pages = list_of_page_uuids,
+        metadata      = collate_metadata( SETTING,            datetime.datetime.now()  ),
         options         = options,
-        queued_callback = anonymous_55 ,
-        started_callback = anonymous_56 ,
-        running_callback = anonymous_57 ,
-        finished_callback = anonymous_58 ,
+        queued_callback = update_tpbar ,
+        started_callback = save_pdf_started_callback ,
+        running_callback = update_tpbar ,
+        finished_callback = save_pdf_finished_callback ,
         error_callback = error_callback
     )
-    return
 
 
 def launch_default_for_file(filename) :
     
-    uri = Glib.filename_to_uri( File.Spec.rel2abs(filename), None )
+    uri = GLib.filename_to_uri( os.path.abspath(filename), None )
     logger.info(f"Opening {uri} via default launcher")
-    context = Glib.IO.AppLaunchContext()
+    context = Gio.AppLaunchContext()
     try :
-        Glib.IO.AppInfo.launch_default_for_uri( uri, context ) 
-    except :
-        logger.error(f"Unable to launch viewer: {_}")
+        Gio.AppInfo.launch_default_for_uri( uri, context ) 
+    except Exception as e:
+        logger.error(f"Unable to launch viewer: {e}")
     return
 
 
 
-def save_dialog() :
-    """Display page selector and on save a fileselector.
-"""
-    if  (windowi is not None) :
+def save_dialog(_action) :
+    "Display page selector and on save a fileselector."
+    global windowi
+    if  windowi is not None :
         windowi.present()
         return
 
     image_types = ["pdf","gif","jpg","png","pnm","ps","tif","txt","hocr","session"]
     if dependencies["pdfunite"] :
-        image_types.append('prependpdf','appendpdf')   
+        image_types.extend(['prependpdf','appendpdf'])   
 
     if dependencies["djvu"] :
         image_types.append('djvu')  
@@ -1406,15 +1367,14 @@ def save_dialog() :
         if dependencies[backend] :
             ps_backends.append(backend)  
 
+    days, hours, minutes, seconds = SETTING['datetime offset']
     windowi = SaveDialog(
         transient_for  = window,
         title            = _('Save'),
         hide_on_delete = True,
         page_range     = SETTING['Page range'],
         include_time   = SETTING["use_time"],
-        meta_datetime  = [
-    Add_Delta_DHMS( Today_and_Now(), len( SETTING['datetime offset'] ) )
-        ],
+        meta_datetime  = datetime.datetime.now()+datetime.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds),
 
         # TRUE if any value is non-zero
         select_datetime = bool (SETTING['datetime offset'] != 0),
@@ -1456,16 +1416,16 @@ def save_dialog() :
     vbox = windowi.get_content_area()
     vbox.pack_start( pshbutton, False, True, 0 )
     update_post_save_hooks()
-    vbox.pack_start( windowi["comboboxpsh"], False, True, 0 )
+    vbox.pack_start( windowi.comboboxpsh, False, True, 0 )
     def anonymous_59():
-        windowi["comboboxpsh"].set_sensitive( pshbutton.get_active() )
+        windowi.comboboxpsh.set_sensitive( pshbutton.get_active() )
 
 
     pshbutton.connect(
         'toggled' , anonymous_59 
     )
     pshbutton.set_active( SETTING["post_save_hook"] )
-    windowi["comboboxpsh"].set_sensitive( pshbutton.get_active() )
+    windowi.comboboxpsh.set_sensitive( pshbutton.get_active() )
     kbutton = Gtk.CheckButton( label=_('Close dialog on save') )
     kbutton.set_tooltip_text( _('Close dialog on save') )
     kbutton.set_active( SETTING["close_dialog_on_save"] )
@@ -1473,42 +1433,36 @@ def save_dialog() :
     def anonymous_60():
         save_button_clicked_callback( kbutton, pshbutton )
 
-    def anonymous_61():
-        windowi.hide()
-
-    windowi.add_actions( 'gtk-save',
-        anonymous_60 ,
-        'gtk-cancel', anonymous_61  )
+    windowi.add_actions( [('gtk-save',
+        anonymous_60 ),
+        ('gtk-cancel', windowi.hide)]  )
     windowi.show_all()
     windowi.resize( 1, 1 )
     return
 
 
-def list_of_pages() :
-
-    # Compile list of pages
-
-    list_of_pages=[]
+def list_of_page_uuids() :
+    "Compile list of pages"
+    uuids=[]
     pagelist =       slist.get_page_index( SETTING['Page range'], error_callback )
     if not pagelist :
-        return
+        return []
     for i in     pagelist :
-        list_of_pages.append(slist.data[i][2]["uuid"])  
-
-    return list_of_pages
+        uuids.append(slist.data[i][2].uuid)  
+    return uuids
 
 
 def save_button_clicked_callback( kbutton, pshbutton ) :
     # Compile list of pages
     SETTING['Page range'] = windowi.page_range
-    list_of_pages = list_of_pages
+    uuids = list_of_page_uuids()
 
     # dig out the image type, compression and quality
     SETTING['image type']         = windowi.image_type
     SETTING["close_dialog_on_save"] = kbutton.get_active()
     SETTING["post_save_hook"] = pshbutton.get_active()
-    if SETTING["post_save_hook"]        and windowi["comboboxpsh"].get_active()>EMPTY_LIST       :
-        SETTING["current_psh"] = windowi["comboboxpsh"].get_active_text()
+    if SETTING["post_save_hook"]        and windowi.comboboxpsh.get_active()>EMPTY_LIST       :
+        SETTING["current_psh"] = windowi.comboboxpsh.get_active_text()
 
     if re.search(r"pdf", SETTING['image type'] ):
 
@@ -1530,20 +1484,20 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
                 # Set up file selector
             file_chooser = Gtk.FileChooserDialog(
-                    _('PDF filename'),
-                    windowi, 'save',
-                    gtk_cancel = 'cancel',
-                    gtk_save   = 'ok'
+                    title=_('PDF filename'),
+                    parent=windowi, action=Gtk.FileChooserAction.SAVE,
                 )
-            filename = Gscan2pdf.Document.expand_metadata_pattern(
+            file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                    Gtk.STOCK_OK, Gtk.ResponseType.OK)
+
+            filename = expand_metadata_pattern(
                     template           = SETTING['default filename'],
                     convert_whitespace =
                       SETTING['convert whitespace to underscores'],
                     author        = SETTING["author"],
                     title         = SETTING["title"],
                     docdate       = windowi.meta_datetime,
-                    today_and_now = [
-            Today_and_Now() ],
+                    today_and_now = datetime.datetime.now(),
                     extension     = 'pdf',
                     subject       = SETTING["subject"],
                     keywords      = SETTING["keywords"],
@@ -1559,18 +1513,17 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
                     gtk_open   = 'ok'
                 )
 
-        add_filter( file_chooser, _('PDF files'), 'pdf' )
+        add_filter( file_chooser, _('PDF files'), ['pdf'] )
         file_chooser.set_current_folder( SETTING["cwd"] )
-        file_chooser.set_default_response('ok')
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
-                [
-        _, list_of_pages ]
+                [ SETTING['image type'], uuids ]
             )
         file_chooser.show()
 
             # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
 
     elif  SETTING['image type'] =='djvu':
         if not update_metadata_settings(windowi) :
@@ -1603,12 +1556,11 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.set_current_name(filename)
         file_chooser.set_default_response('ok')
         file_chooser.set_current_folder( SETTING["cwd"] )
-        add_filter( file_chooser, _('DjVu files'), 'djvu' )
+        add_filter( file_chooser, _('DjVu files'), ['djvu'] )
         file_chooser.set_do_overwrite_confirmation(True)
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
-                [
-        'djvu', list_of_pages ]
+                [        'djvu', uuids ]
             )
         file_chooser.show()
 
@@ -1632,12 +1584,11 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.set_default_response('ok')
         file_chooser.set_current_folder( SETTING["cwd"] )
         add_filter( file_chooser, _('Image files'),
-                SETTING['image type'] )
+                [SETTING['image type']] )
         file_chooser.set_do_overwrite_confirmation(True)
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
-                [
-        'tif', list_of_pages ]
+                [        'tif', uuids ]
             )
         file_chooser.show()
 
@@ -1659,11 +1610,10 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.set_default_response('ok')
         file_chooser.set_current_folder( SETTING["cwd"] )
         file_chooser.set_do_overwrite_confirmation(True)
-        add_filter( file_chooser, _('Text files'), 'txt' )
+        add_filter( file_chooser, _('Text files'), ['txt'] )
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
-                [
-        'txt', list_of_pages ]
+                [        'txt', uuids ]
             )
         file_chooser.show()
 
@@ -1685,11 +1635,10 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.set_default_response('ok')
         file_chooser.set_current_folder( SETTING["cwd"] )
         file_chooser.set_do_overwrite_confirmation(True)
-        add_filter( file_chooser, _('hOCR files'), 'hocr' )
+        add_filter( file_chooser, _('hOCR files'), ['hocr'] )
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
-                [
-        'hocr', list_of_pages ]
+                [        'hocr', uuids ]
             )
         file_chooser.show()
 
@@ -1712,12 +1661,11 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
             )
         file_chooser.set_default_response('ok')
         file_chooser.set_current_folder( SETTING["cwd"] )
-        add_filter( file_chooser, _('Postscript files'), 'ps' )
+        add_filter( file_chooser, _('Postscript files'), ['ps'] )
         file_chooser.set_do_overwrite_confirmation(True)
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
-                [
-        'ps', list_of_pages ]
+                [        'ps', uuids ]
             )
         file_chooser.show()
 
@@ -1738,7 +1686,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
             )
         file_chooser.set_default_response('ok')
         file_chooser.set_current_folder( SETTING["cwd"] )
-        add_filter( file_chooser, _('gscan2pdf session files'), 'gs2p' )
+        add_filter( file_chooser, _('gscan2pdf session files'), ['gs2p'] )
         file_chooser.set_do_overwrite_confirmation(True)
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
@@ -1752,59 +1700,55 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
     elif  SETTING['image type'] =='jpg':
         SETTING["quality"] = windowi.jpeg_quality
-        save_image(list_of_pages)
+        save_image(uuids)
 
     else :
-        save_image(list_of_pages)
-
-    return
+        save_image(uuids)
 
 
 def file_chooser_response_callback( dialog, response, data ) :
-    
-    ( type, list_of_pages ) = data
-    logger.debug(f"save filename dialog returned {response}")
-    suffix = type
+    filetype, uuids = data
+    suffix = filetype
     if   re.search(r"pdf",suffix,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
         suffix = 'pdf'
-    if response == 'ok' :
+    if response == Gtk.ResponseType.OK :
         filename = dialog.get_filename()
         logger.debug(f"FileChooserDialog returned {filename}")
         if   not re.search(fr"[.]{suffix}$",filename,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
-            filename = f"{filename}.{type}"
-            if ( file_exists( dialog, filename ) ):
+            filename = f"{filename}.{filetype}"
+            if file_exists( dialog, filename ) :
                 return  
 
-        if ( file_writable( dialog, filename ) ):
+        if file_writable( dialog, filename ) :
             return  
 
         # Update cwd
-        SETTING["cwd"] = dirname(filename)
-        if re.search(r"pdf",type):
-            save_pdf( filename, _, list_of_pages )
+        SETTING["cwd"] = os.path.dirname(filename)
+        if re.search(r"pdf",filetype):
+            save_pdf( filename, filetype, uuids )
 
-        elif type=='djvu':
-            save_djvu( filename, list_of_pages )
+        elif filetype=='djvu':
+            save_djvu( filename, uuids )
 
-        elif type=='tif':
-            save_tiff( filename, None, list_of_pages )
+        elif filetype=='tif':
+            save_tiff( filename, None, uuids )
 
-        elif type=='txt':
-            save_text( filename, list_of_pages )
+        elif filetype=='txt':
+            save_text( filename, uuids )
 
-        elif type=='hocr':
-            save_hocr( filename, list_of_pages )
+        elif filetype=='hocr':
+            save_hocr( filename, uuids )
 
-        elif type=='ps':
+        elif filetype=='ps':
             if SETTING["ps_backend"] == 'libtiff' :
                 tif =                       tempfile.TemporaryFile( dir = session, suffix = '.tif' )
-                save_tiff( tif.filename(), filename, list_of_pages )
+                save_tiff( tif.filename(), filename, uuids )
  
             else :
-                save_pdf( filename, 'ps', list_of_pages )
+                save_pdf( filename, 'ps', uuids )
 
 
-        elif type=='gs2p':
+        elif filetype=='gs2p':
             slist.save_session( filename, VERSION )
 
         if  windowi is not None and SETTING["close_dialog_on_save"] :
@@ -1832,8 +1776,8 @@ def file_exists( chooser, filename ) :
 
 def file_writable( chooser, filename ) :
     
-    if not os.access( dirname(filename), os.W_OK) : # FIXME: replace with try/except
-        text = _('Directory %s is read-only') % (dirname(filename))  
+    if not os.access( os.path.dirname(filename), os.W_OK) : # FIXME: replace with try/except
+        text = _('Directory %s is read-only') % (os.path.dirname(filename))  
         show_message_dialog(
             parent  = chooser,
             message_type    = 'error',
@@ -1855,7 +1799,7 @@ def file_writable( chooser, filename ) :
     return False
 
 
-def save_image(list_of_pages) :
+def save_image(uuids) :
     
 
     # cd back to cwd to save
@@ -1871,7 +1815,7 @@ def save_image(list_of_pages) :
     file_chooser.set_default_response('ok')
     file_chooser.set_current_folder( SETTING["cwd"] )
     add_filter( file_chooser, _('Image files'),
-        'jpg', 'png', 'pnm', 'gif', 'tif', 'tiff', 'pdf', 'djvu', 'ps' )
+        ['jpg', 'png', 'pnm', 'gif', 'tif', 'tiff', 'pdf', 'djvu', 'ps'] )
     file_chooser.set_do_overwrite_confirmation(True)
     if 'ok' == file_chooser.run() :
         filename = file_chooser.get_filename()
@@ -1881,9 +1825,9 @@ def save_image(list_of_pages) :
 
         # cd back to tempdir
         os.chdir( session)
-        if list_of_pages > 1 :
-            w = len(len(list_of_pages))  
-            for i in              range(1,len(list_of_pages)+1)    :
+        if uuids > 1 :
+            w = len(len(uuids))  
+            for i in              range(1,len(uuids)+1)    :
                 current_filename =                   f"${filename}_%0${w}d.{SETTING['image type']}" % (i)                    
                 if os.path.isfile(current_filename)  :
                     text = _('This operation would overwrite %s') % (current_filename)                        
@@ -1919,8 +1863,8 @@ def save_image(list_of_pages) :
 
         def anonymous_64( thread, process, completed, total ):
                 
-            signal =                   setup_tpbar( thread, process, completed, total, pid )
-            if (  (signal is not None) ):
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
                 return True  
 
 
@@ -1935,11 +1879,11 @@ def save_image(list_of_pages) :
             if  signal is not None :
                 tcbutton.disconnect(signal)
 
-            mark_pages(list_of_pages)
+            mark_pages(uuids)
             if  'view files toggle'  in SETTING                    and SETTING['view files toggle']                 :
-                if list_of_pages > 1 :
-                    w = len(len(list_of_pages))  
-                    for i in                      range(1,len(list_of_pages)+1)    :
+                if uuids > 1 :
+                    w = len(len(uuids))  
+                    for i in                      range(1,len(uuids)+1)    :
                         launch_default_for_file( filename % (i)   )
                 else :
                     launch_default_for_file(filename)
@@ -1949,7 +1893,7 @@ def save_image(list_of_pages) :
 
         pid = slist.save_image(
             path            = filename,
-            list_of_pages   = list_of_pages,
+            list_of_pages   = uuids,
             queued_callback = anonymous_63 ,
             started_callback = anonymous_64 ,
             running_callback = anonymous_65 ,
@@ -1962,7 +1906,7 @@ def save_image(list_of_pages) :
     file_chooser.destroy()
 
 
-def save_tiff( filename, ps, list_of_pages ) :
+def save_tiff( filename, ps, uuids ) :
     
 
     # Compile options
@@ -1982,8 +1926,8 @@ def save_tiff( filename, ps, list_of_pages ) :
 
     def anonymous_68( thread, process, completed, total ):
             
-        signal =               setup_tpbar( thread, process, completed, total, pid )
-        if (  (signal is not None) ):
+        signal =  setup_tpbar( process, completed, total, pid )
+        if signal is not None:
             return True  
 
 
@@ -1998,7 +1942,7 @@ def save_tiff( filename, ps, list_of_pages ) :
         if  (signal is not None) :
             tcbutton.disconnect(signal)
 
-        mark_pages(list_of_pages)
+        mark_pages(uuids)
         file =   ps if (ps is not None)  else filename
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             launch_default_for_file(filename)
@@ -2008,7 +1952,7 @@ def save_tiff( filename, ps, list_of_pages ) :
 
     pid = slist.save_tiff(
         path            = filename,
-        list_of_pages   = list_of_pages,
+        list_of_pages   = uuids,
         options         = options,
         queued_callback = anonymous_67 ,
         started_callback = anonymous_68 ,
@@ -2016,10 +1960,9 @@ def save_tiff( filename, ps, list_of_pages ) :
         finished_callback = anonymous_70 ,
         error_callback = error_callback
     )
-    return
 
 
-def save_djvu( filename, list_of_pages ) :
+def save_djvu( filename, uuids ) :
     
     # cd back to tempdir
     os.chdir( session)
@@ -2041,8 +1984,8 @@ def save_djvu( filename, list_of_pages ) :
 
     def anonymous_72( thread, process, completed, total ):
             
-        signal =               setup_tpbar( thread, process, completed, total, pid )
-        if (  (signal is not None) ):
+        signal =  setup_tpbar( process, completed, total, pid )
+        if signal is not None:
             return True  
 
 
@@ -2057,7 +2000,7 @@ def save_djvu( filename, list_of_pages ) :
         if  (signal is not None) :
             tcbutton.disconnect(signal)
 
-        mark_pages(list_of_pages)
+        mark_pages(uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             launch_default_for_file(filename)
 
@@ -2066,7 +2009,7 @@ def save_djvu( filename, list_of_pages ) :
 
     pid = slist.save_djvu(
         path          = filename,
-        list_of_pages = list_of_pages,
+        list_of_pages = uuids,
         options       = options,
         metadata      = Gscan2pdf.Document.collate_metadata(
             SETTING,
@@ -2083,7 +2026,7 @@ def save_djvu( filename, list_of_pages ) :
     )
 
 
-def save_text( filename, list_of_pages ) :
+def save_text( filename, uuids ) :
     
     ( signal, pid, options )=(None,None,{})
     if SETTING["post_save_hook"] :
@@ -2095,8 +2038,8 @@ def save_text( filename, list_of_pages ) :
 
     def anonymous_76( thread, process, completed, total ):
             
-        signal =               setup_tpbar( thread, process, completed, total, pid )
-        if (  (signal is not None) ):
+        signal = setup_tpbar( process, completed, total, pid )
+        if signal is not None:
             return True  
 
 
@@ -2111,7 +2054,7 @@ def save_text( filename, list_of_pages ) :
         if  (signal is not None) :
             tcbutton.disconnect(signal)
 
-        mark_pages(list_of_pages)
+        mark_pages(uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             launch_default_for_file(filename)
 
@@ -2120,7 +2063,7 @@ def save_text( filename, list_of_pages ) :
 
     pid = slist.save_text(
         path            = filename,
-        list_of_pages   = list_of_pages,
+        list_of_pages   = uuids,
         options         = options,
         queued_callback = anonymous_75 ,
         started_callback = anonymous_76 ,
@@ -2128,10 +2071,9 @@ def save_text( filename, list_of_pages ) :
         finished_callback = anonymous_78 ,
         error_callback = error_callback
     )
-    return
 
 
-def save_hocr( filename, list_of_pages ) :
+def save_hocr( filename, uuids ) :
     
     ( signal, pid, options )=(None,None,{})
     if SETTING["post_save_hook"] :
@@ -2143,8 +2085,8 @@ def save_hocr( filename, list_of_pages ) :
 
     def anonymous_80( thread, process, completed, total ):
             
-        signal =               setup_tpbar( thread, process, completed, total, pid )
-        if (  (signal is not None) ):
+        signal = setup_tpbar( process, completed, total, pid )
+        if signal is not None:
             return True  
 
 
@@ -2159,7 +2101,7 @@ def save_hocr( filename, list_of_pages ) :
         if  (signal is not None) :
             tcbutton.disconnect(signal)
 
-        mark_pages(list_of_pages)
+        mark_pages(uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             launch_default_for_file(filename)
 
@@ -2168,7 +2110,7 @@ def save_hocr( filename, list_of_pages ) :
 
     pid = slist.save_hocr(
         path            = filename,
-        list_of_pages   = list_of_pages,
+        list_of_pages   = uuids,
         options         = options,
         queued_callback = anonymous_79 ,
         started_callback = anonymous_80 ,
@@ -2176,7 +2118,6 @@ def save_hocr( filename, list_of_pages ) :
         finished_callback = anonymous_82 ,
         error_callback = error_callback
     )
-    return
 
 
 
@@ -2235,21 +2176,17 @@ def email() :
             email()
             return
 
-
             # Compile list of pages
-
         SETTING['Page range'] = windowe.page_range
-        list_of_pages = list_of_pages
+        uuids = list_of_page_uuids()
 
             # dig out the compression
-
         SETTING["downsample"]        = windowe.downsample
         SETTING['downsample dpi']  = windowe.downsample_dpi
         SETTING['pdf compression'] = windowe.pdf_compression
         SETTING["quality"]           = windowe.jpeg_quality
 
             # Compile options
-
         options = {
                 "compression"      : SETTING['pdf compression'],
                 "downsample"       : SETTING["downsample"],
@@ -2285,9 +2222,8 @@ def email() :
 
         def anonymous_85( thread, process, completed, total ):
                     
-            signal =                       setup_tpbar( thread, process, completed, total,
-                        pid )
-            if (  (signal is not None) ):
+            signal = setup_tpbar( process, completed, total,pid )
+            if signal is not None:
                 return True  
 
 
@@ -2299,10 +2235,10 @@ def email() :
                     
             if not pending :
                 thbox.hide()
-            if  (signal is not None) :
+            if signal is not None :
                 tcbutton.disconnect(signal)
 
-            mark_pages(list_of_pages)
+            mark_pages(uuids)
             if  'view files toggle'  in SETTING                        and SETTING['view files toggle']                     :
                 launch_default_for_file(pdf)
 
@@ -2319,7 +2255,7 @@ def email() :
 
         pid = slist.save_pdf(
                 path          = pdf,
-                list_of_pages = list_of_pages,
+                list_of_pages = uuids,
                 metadata      = Gscan2pdf.Document.collate_metadata(
                     SETTING,
                     [
@@ -2347,8 +2283,6 @@ def email() :
         anonymous_88 
     )
     windowe.show_all()
-    return
-
 
 
 def scan_dialog( action, hidden=False, scan=False ) :
@@ -2567,28 +2501,29 @@ def changed_progress_callback( widget, progress, message ) :
     else :
         spbar.pulse()
 
-    if  (message is not None) :
+    if  message is not None :
         spbar.set_text(message)
     return
 
 
-def scan_started_callback( response ):
-    print(f"scan_started_callback( {response} )")
+def import_scan_started_callback( response ):
+    logger.debug(f"import_scan_started_callback( {response} )")
     if response.info:
         process, completed, total = response.info
-        signal =               setup_tpbar( thread, process, completed, total, pid )
-        if (  (signal is not None) ):
+        signal =               setup_tpbar( process, completed, total, pid )
+        if signal is not None:
             return True  
 
 
-def anonymous_99( new_page, pending ):
-            
-    if not pending :
-        thbox.hide()
-    if  (signal is not None) :
-        tcbutton.disconnect(signal)
+def import_scan_finished_callback( response ):
+    logger.debug(f"import_scan_finished_callback( {response} )")
+    # new_page, pending
+    # if not pending :
+    #     thbox.hide()
+    # if  signal is not None :
+    #     tcbutton.disconnect(signal)
 
-    slist.save_session()
+    # slist.save_session()
 
 
 def new_scan_callback( self, image_object, page_number, xresolution, yresolution ) :
@@ -2606,8 +2541,8 @@ def new_scan_callback( self, image_object, page_number, xresolution, yresolution
         "engine"          : SETTING['ocr engine'],
         "language"        : SETTING['ocr language'],
         "queued_callback" : update_tpbar ,
-        "started_callback" : scan_started_callback ,
-        "finished_callback" : anonymous_99 ,
+        "started_callback" : import_scan_started_callback ,
+        "finished_callback" : import_scan_finished_callback ,
         "error_callback" : error_callback,
         "image_object"    : image_object,
         "resolution": (xresolution, yresolution, "PixelsPerInch"),
@@ -2761,7 +2696,7 @@ def update_postprocessing_options_callback(widget) :
     increment = widget.page_number_increment
     global rotate_side_cmbx
     global rotate_side_cmbx2
-    if  (options is not None) :
+    if  options is not None :
         if increment != 1 or options.can_duplex() :
             rotate_side_cmbx.show()
             rotate_side_cmbx2.show()
@@ -2769,9 +2704,6 @@ def update_postprocessing_options_callback(widget) :
         else :
             rotate_side_cmbx.hide()
             rotate_side_cmbx2.hide()
-
-
-    return
 
 
 def add_postprocessing_rotate(vbox) :
@@ -2814,31 +2746,27 @@ def add_postprocessing_rotate(vbox) :
     comboboxr2 = ComboBoxText(data=rotate)
     comboboxr2.set_tooltip_text( _('Select direction of rotation') )
     hboxr.pack_end( comboboxr2, True, True, 0 )
+
     def anonymous_101():
         if rbutton.get_active() :
             if side[ rotate_side_cmbx.get_active() ][0] != 'both' :
                 hboxr.set_sensitive(True)
-
- 
         else :
             hboxr.set_sensitive(False)
-
-
 
     rbutton.connect(
         'toggled' , anonymous_101 
     )
+
     def anonymous_102(arg):
         if side[ rotate_side_cmbx.get_active() ][0] == 'both' :
             hboxr.set_sensitive(False)
-            r2button.set_active(False)
- 
+            r2button.set_active(False) 
         else :
             if rbutton.get_active() :
                 hboxr.set_sensitive(True)
 
                 # Empty combobox
-
             while rotate_side_cmbx2.get_active() >EMPTY_LIST  :
                 rotate_side_cmbx2.remove(0)
                 rotate_side_cmbx2.set_active(0)
@@ -2848,11 +2776,8 @@ def add_postprocessing_rotate(vbox) :
                 if s[0] != 'both'                        and s[0] !=                        side[ rotate_side_cmbx.get_active() ][0]                     :
                     side2.append(s)  
 
-
             rotate_side_cmbx2.append_text( side2[0][1] )
             rotate_side_cmbx2.set_active(0)
-
-
 
     rotate_side_cmbx.connect(        'changed' , anonymous_102     )
 
@@ -2929,37 +2854,26 @@ def add_postprocessing_ocr(vbox) :
     comboboxe = ComboBoxText(data=ocr_engine)
     comboboxe.set_tooltip_text( _('Select OCR engine') )
     hboxo.pack_end( comboboxe, True, True, 0 )
-    ( comboboxtl, hboxtl, tesslang, comboboxcl, hboxcl, cflang )=(None,None,[],None,None,[])
+    comboboxtl, hboxtl, tesslang=None,None,[]
+
     if dependencies["tesseract"] :
-        ( hboxtl, comboboxtl, tesslang ) = add_tess_languages(vbox)
-        def anonymous_103():
-            if ocr_engine[ comboboxe.get_active() ][0] == 'tesseract'                 :
-                hboxtl.show_all()
- 
+        hboxtl, comboboxtl, tesslang = add_tess_languages(vbox)
+
+        def ocr_engine_changed_callback(comboboxe):
+            if comboboxe.get_active_text() == 'tesseract' :
+                hboxtl.show_all() 
             else :
                 hboxtl.hide()
 
-
-
-        comboboxe.connect(
-            'changed' , anonymous_103 
-        )
+        comboboxe.connect(            'changed' , ocr_engine_changed_callback         )
         if not obutton.get_active() :
             hboxtl.set_sensitive(False)
-        def anonymous_104():
-            if obutton.get_active() :
-                hboxtl.set_sensitive(True)
- 
-            else :
-                hboxtl.set_sensitive(False)
 
-
-
-        obutton.connect(
-            'toggled' , anonymous_104 
-        )
+        obutton.connect(            'toggled' , lambda x: hboxtl.set_sensitive(x.get_active())         )
 
     comboboxe.set_active_index( SETTING['ocr engine'] )
+    if len(ocr_engine) > 0 and comboboxe.get_active_index() is None :
+        comboboxe.set_active(0)
 
     # Checkbox & SpinButton for threshold
     hboxt = Gtk.HBox()
@@ -2987,8 +2901,8 @@ def add_postprocessing_ocr(vbox) :
         'toggled' , anonymous_106 
     )
     return (
-        obutton,    comboboxe, hboxtl,  comboboxtl, hboxcl,
-        comboboxcl, tesslang, cflang, cbto,       spinbutton,
+        obutton,    comboboxe, hboxtl,  comboboxtl, 
+        tesslang, cbto,       spinbutton,
     )
 
 
@@ -3050,8 +2964,8 @@ def add_postprocessing_options(self) :
         # CheckButton for user-defined tool
     udtbutton, self.comboboxudt = add_postprocessing_udt(vboxp)
     (
-        obutton,    comboboxe, hboxtl, comboboxtl, hboxcl,
-        comboboxcl, tesslang,  cflang, tbutton,    tsb
+        obutton,    comboboxe, hboxtl, comboboxtl,
+        tesslang,  tbutton,    tsb
     ) = add_postprocessing_ocr(vboxp)
     def clicked_scan_button_cb(w):
         SETTING['rotate facing']  = 0
@@ -3089,11 +3003,13 @@ def add_postprocessing_options(self) :
         SETTING['OCR on scan'] = obutton.get_active()
         logger.info(f"OCR {SETTING['OCR on scan']}")
         if SETTING['OCR on scan'] :
-            i = comboboxe.get_active()
-            if i > -1:
-                SETTING['ocr engine'] =                   ocr_engine[ i ][0]
-                if SETTING['ocr engine'] == 'tesseract' :
-                    SETTING['ocr language'] = comboboxtl.get_active_index()
+            SETTING['ocr engine'] = comboboxe.get_active_index()
+            if SETTING['ocr engine'] is None :
+                SETTING['ocr engine'] = ocr_engine[0][0]
+            logger.info(f"ocr engine {SETTING['ocr engine']}")
+            if SETTING['ocr engine'] == 'tesseract' :
+                SETTING['ocr language'] = comboboxtl.get_active_index()
+                logger.info(f"ocr language {SETTING['ocr language']}")
 
             SETTING['threshold-before-ocr'] = tbutton.get_active()
             logger.info(
@@ -3276,7 +3192,7 @@ def select_no_ocr() :
     "Select pages with no ocr output"
     selection=[]
     for i in      range(len( slist.data ))    :
-        if "text_layer" not   in slist.data[i][2] :
+        if  not   hasattr(slist.data[i][2],'text_layer') :
             selection.append(i)  
 
     slist.get_selection().unselect_all()
@@ -3293,7 +3209,7 @@ def clear_ocr() :
     canvas.clear_text()
     selection = slist.get_selected_indices()
     for i in     selection :
-        del(slist.data[i][2].text_layer) 
+        slist.data[i][2].text_layer = None
 
     slist.save_session()
 
@@ -3513,8 +3429,8 @@ def rotate( angle, pagelist, callback ) :
 
         def anonymous_117( thread, process, completed, total ):
                 
-            signal =                   setup_tpbar( thread, process, completed, total, pid )
-            if (  (signal is not None) ):
+            signal =  setup_tpbar( process, completed, total, pid )
+            if signal is not None:
                 return True  
 
 
@@ -3545,16 +3461,11 @@ def rotate( angle, pagelist, callback ) :
             display_callback = anonymous_119 ,
         )
 
-    return
-
-
 
 def analyse( select_blank, select_dark ) :
-    """Analyse selected images
-"""    
+    "Analyse selected images"    
 
     # Update undo/redo buffers
-
     take_snapshot()
     pages_to_analyse=[]
     for  i in      range(len( slist.data ))    :
@@ -3577,8 +3488,8 @@ f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {di
 
         def anonymous_121( thread, process, completed, total ):
                 
-            signal =                   setup_tpbar( thread, process, completed, total, pid )
-            if (  (signal is not None) ):
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
                 return True  
 
 
@@ -3614,9 +3525,6 @@ f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {di
             select_blank_pages()
         if select_dark  :
             select_dark_pages()
-
-    return
-
 
 
 def handle_clicks( widget, event ) :
@@ -3679,9 +3587,8 @@ def threshold() :
 
             def anonymous_126( thread, process, completed, total ):
                         
-                signal =                           setup_tpbar( thread, process, completed, total,
-                            pid )
-                if (  (signal is not None) ):
+                signal = setup_tpbar( process, completed, total,                            pid )
+                if signal is not None:
                     return True  
 
 
@@ -3689,7 +3596,7 @@ def threshold() :
                         
                 if not pending :
                     thbox.hide()
-                if  (signal is not None) :
+                if signal is not None :
                     tcbutton.disconnect(signal)
 
                 slist.save_session()
@@ -3711,7 +3618,6 @@ def threshold() :
                 )
 
 
-
     def anonymous_129():
         windowt.destroy()
 
@@ -3722,8 +3628,6 @@ def threshold() :
         anonymous_129 
     )
     windowt.show_all()
-    return
-
 
 
 def brightness_contrast() :
@@ -3779,9 +3683,9 @@ def brightness_contrast() :
 
             def anonymous_132( thread, process, completed, total ):
                         
-                signal =                           setup_tpbar( thread, process, completed, total,
+                signal = setup_tpbar( process, completed, total,
                             pid )
-                if (  (signal is not None) ):
+                if signal is not None:
                     return True  
 
 
@@ -3789,7 +3693,7 @@ def brightness_contrast() :
                         
                 if not pending :
                     thbox.hide()
-                if  (signal is not None) :
+                if signal is not None :
                     tcbutton.disconnect(signal)
 
                 slist.save_session()
@@ -3812,7 +3716,6 @@ def brightness_contrast() :
                 )
 
 
-
     def anonymous_135():
         windowt.destroy()
 
@@ -3823,8 +3726,6 @@ def brightness_contrast() :
         anonymous_135 
     )
     windowt.show_all()
-    return
-
 
 
 def negate() :
@@ -3855,9 +3756,8 @@ def negate() :
 
             def anonymous_138( thread, process, completed, total ):
                         
-                signal =                           setup_tpbar( thread, process, completed, total,
-                            pid )
-                if (  (signal is not None) ):
+                signal = setup_tpbar( process, completed, total, pid )
+                if signal is not None:
                     return True  
 
 
@@ -3865,7 +3765,7 @@ def negate() :
                         
                 if not pending :
                     thbox.hide()
-                if  (signal is not None) :
+                if signal is not None :
                     tcbutton.disconnect(signal)
 
                 slist.save_session()
@@ -3885,8 +3785,6 @@ def negate() :
                     display_callback = anonymous_140 ,
                 )
 
-
-
     def anonymous_141():
         windowt.destroy()
 
@@ -3897,8 +3795,6 @@ def negate() :
         anonymous_141 
     )
     windowt.show_all()
-    return
-
 
 
 def unsharp() :
@@ -3983,9 +3879,8 @@ def unsharp() :
 
             def anonymous_144( thread, process, completed, total ):
                         
-                signal =                           setup_tpbar( thread, process, completed, total,
-                            pid )
-                if (  (signal is not None) ):
+                signal = setup_tpbar( process, completed, total,pid )
+                if signal is not None:
                     return True  
 
 
@@ -3993,7 +3888,7 @@ def unsharp() :
                         
                 if not pending :
                     thbox.hide()
-                if  (signal is not None) :
+                if signal is not None :
                     tcbutton.disconnect(signal)
 
                 slist.save_session()
@@ -4017,8 +3912,6 @@ def unsharp() :
                     display_callback = anonymous_146 ,
                 )
 
-
-
     def anonymous_147():
         windowum.destroy()
 
@@ -4029,7 +3922,6 @@ def unsharp() :
         anonymous_147 
     )
     windowum.show_all()
-
 
 
 def change_image_tool_cb( action, current ) :
@@ -4240,8 +4132,8 @@ def crop_selection( action, pagelist ) :
 
         def anonymous_155( thread, process, completed, total ):
                 
-            signal =                   setup_tpbar( thread, process, completed, total, pid )
-            if (  (signal is not None) ):
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
                 return True  
 
 
@@ -4249,7 +4141,7 @@ def crop_selection( action, pagelist ) :
                 
             if not pending :
                 thbox.hide()
-            if  (signal is not None) :
+            if signal is not None :
                 tcbutton.disconnect(signal)
 
             slist.save_session()
@@ -4382,9 +4274,8 @@ def split_dialog(action) :
 
             def anonymous_163( thread, process, completed, total ):
                         
-                signal =                           setup_tpbar( thread, process, completed, total,
-                            pid )
-                if (  (signal is not None) ):
+                signal = setup_tpbar( process, completed, total,pid )
+                if signal is not None:
                     return True  
 
 
@@ -4392,7 +4283,7 @@ def split_dialog(action) :
                         
                 if not pending :
                     thbox.hide()
-                if  (signal is not None) :
+                if signal is not None :
                     tcbutton.disconnect(signal)
 
                 slist.save_session()
@@ -4413,7 +4304,6 @@ def split_dialog(action) :
                     error_callback   = error_callback,
                     display_callback = anonymous_165 ,
                 )
-
 
 
     def anonymous_166():
@@ -4494,16 +4384,12 @@ def user_defined_dialog() :
         anonymous_168 
     )
     windowudt.show_all()
-    return
-
 
 
 def user_defined_tool( pages, cmd ) :
-    """Run a user-defined tool on the selected images
-"""    
+    "Run a user-defined tool on the selected images"    
 
     # Update undo/redo buffers
-
     take_snapshot()
     for  page in      pages  :
         ( signal, pid )=(None,None)
@@ -4513,8 +4399,8 @@ def user_defined_tool( pages, cmd ) :
 
         def anonymous_170( thread, process, completed, total ):
                 
-            signal =                   setup_tpbar( thread, process, completed, total, pid )
-            if (  (signal is not None) ):
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
                 return True  
 
 
@@ -4522,7 +4408,7 @@ def user_defined_tool( pages, cmd ) :
                 
             if not pending :
                 thbox.hide()
-            if  (signal is not None) :
+            if signal is not None :
                 tcbutton.disconnect(signal)
 
             slist.save_session()
@@ -4543,9 +4429,6 @@ def user_defined_tool( pages, cmd ) :
             display_callback = anonymous_172 ,
         )
 
-    return
-
-
 
 def unpaper_page( pages, options, callback ) :
     """queue $page to be processed by unpaper
@@ -4564,8 +4447,8 @@ def unpaper_page( pages, options, callback ) :
 
         def anonymous_174( thread, process, completed, total ):
                 
-            signal =                   setup_tpbar( thread, process, completed, total, pid )
-            if (  (signal is not None) ):
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
                 return True  
 
 
@@ -4573,7 +4456,7 @@ def unpaper_page( pages, options, callback ) :
                 
             if not pending :
                 thbox.hide()
-            if  (signal is not None) :
+            if signal is not None :
                 tcbutton.disconnect(signal)
 
             slist.save_session()
@@ -4595,9 +4478,6 @@ def unpaper_page( pages, options, callback ) :
             error_callback   = error_callback,
             display_callback = anonymous_176 ,
         )
-
-    return
-
 
 
 def unpaper() :
@@ -4677,6 +4557,8 @@ def add_tess_languages(vbox) :
 
     combobox = ComboBoxText(data=tesslang)
     combobox.set_active_index( SETTING['ocr language'] )
+    if not combobox.get_active_index():
+        combobox.set_active( 0 )
     hbox.pack_end( combobox, False, True, 0 )
     return hbox, combobox, tesslang
 
@@ -4694,11 +4576,9 @@ def ocr_dialog() :
     )
 
     # Frame for page range
-
     windowo.add_page_range()
 
     # OCR engine selection
-
     hboxe = Gtk.HBox()
     vbox  = windowo.get_content_area()
     vbox.pack_start( hboxe, False, True, 0 )
@@ -4717,30 +4597,9 @@ def ocr_dialog() :
             else :
                 hboxtl.hide()
 
-
-
-        combobe.connect(
-            'changed' , anonymous_179 
-        )
-
-    if dependencies["cuneiform"] :
-        ( hboxcl, comboboxcl, cflang ) = add_cf_languages(vbox)
-        def anonymous_180():
-            if ocr_engine[ combobe.get_active() ][0] == 'cuneiform' :
-                hboxcl.show_all()
- 
-            else :
-                hboxcl.hide()
-
-
-
-        combobe.connect(
-            'changed' , anonymous_180 
-        )
-
+        combobe.connect( 'changed' , anonymous_179  )
 
     # Checkbox & SpinButton for threshold
-
     hboxt = Gtk.HBox()
     vbox.pack_start( hboxt, False, True, 0 )
     cbto = Gtk.CheckButton( label=_('Threshold before OCR') )
@@ -4768,15 +4627,12 @@ def ocr_dialog() :
         'toggled' , anonymous_181 
     )
     def anonymous_182():
-        ( tesslang, cflang )=(None,None)
-        if  (comboboxtl is not None) :
+        tesslang =None
+        if  comboboxtl is not None :
             tesslang = tesslang[ comboboxtl.get_active() ][0]
 
-        if  (comboboxcl is not None) :
-            cflang = cflang[ comboboxcl.get_active() ][0]
-
         run_ocr( ocr_engine[ combobe.get_active() ][0],
-                tesslang, cflang, cbto.get_active(), spinbutton.get_value() )
+                tesslang, cbto.get_active(), spinbutton.get_value() )
 
 
     def anonymous_183():
@@ -4792,11 +4648,6 @@ def ocr_dialog() :
     if  (hboxtl is not None)        and not( ocr_engine[ combobe.get_active() ][0] == 'tesseract' )     :
         hboxtl.hide()
 
-    if  (hboxcl is not None)        and not( ocr_engine[ combobe.get_active() ][0] == 'cuneiform' )     :
-        hboxcl.hide()
-
-    return
-
 
 def anonymous_184(*argv):
     return update_tpbar(*argv)
@@ -4804,8 +4655,8 @@ def anonymous_184(*argv):
 
 def anonymous_185( thread, process, completed, total ):
             
-    signal =               setup_tpbar( thread, process, completed, total, pid )
-    if (  (signal is not None) ):
+    signal =               setup_tpbar( process, completed, total, pid )
+    if signal is not None:
         return True  
 
 
@@ -4813,7 +4664,7 @@ def anonymous_186( new_page, pending ):
             
     if not pending :
         thbox.hide()
-    if  (signal is not None) :
+    if signal is not None :
         tcbutton.disconnect(signal)
 
     slist.save_session()
@@ -4826,16 +4677,12 @@ def anonymous_187(new_page):
         create_txt_canvas(new_page)
 
 
-
-def run_ocr( engine, tesslang, cflang, threshold_flag, threshold ) :
+def run_ocr( engine, tesslang, threshold_flag, threshold ) :
     
     if engine == 'tesseract' :
         SETTING['ocr language'] = tesslang
 
-    if SETTING['ocr engine'] == 'cuneiform' :
-        SETTING['ocr language'] = cflang
-
-    ( signal, pid )=(None,None)
+    signal, pid =None,None
     options = {
         "queued_callback" : anonymous_184 ,
         "started_callback" : anonymous_185 ,
@@ -4851,10 +4698,8 @@ def run_ocr( engine, tesslang, cflang, threshold_flag, threshold ) :
         SETTING['threshold tool'] = threshold
         options["threshold"]        = threshold
 
-
-    # fill $pagelist with filenames
+    # fill pagelist with filenames
     # depending on which radiobutton is active
-
     SETTING['Page range'] = windowo.page_range
     pagelist = indices2pages(
         slist.get_page_index( SETTING['Page range'], error_callback ) )
@@ -4862,7 +4707,6 @@ def run_ocr( engine, tesslang, cflang, threshold_flag, threshold ) :
         return
     slist.ocr_pages( pagelist, options )
     windowo.hide()
-    return
 
 
 def quit() :
@@ -4984,15 +4828,13 @@ def undo() :
     logger.debug( Dumper( redo_buffer, undo_buffer ) )
 
     # Block slist signals whilst updating
-    slist.get_model().handler_block( slist["row_changed_signal"] )
-    slist.get_selection().handler_block(
-        slist["selection_changed_signal"] )
+    slist.get_model().handler_block( slist.row_changed_signal )
+    slist.get_selection().handler_block(slist.selection_changed_signal )
     slist.data = undo_buffer
 
     # Unblock slist signals now finished
-    slist.get_selection().handler_unblock(
-        slist["selection_changed_signal"] )
-    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+    slist.get_selection().handler_unblock(slist.selection_changed_signal )
+    slist.get_model().handler_unblock( slist.row_changed_signal )
 
     # Reselect the pages to display the detail view
     slist.select(undo_selection)
@@ -5020,11 +4862,11 @@ def unundo() :
     logger.debug( Dumper( redo_buffer, undo_buffer ) )
 
     # Block slist signals whilst updating
-    slist.get_model().handler_block( slist["row_changed_signal"] )
+    slist.get_model().handler_block( slist.row_changed_signal )
     slist.data = redo_buffer
 
     # Unblock slist signals now finished
-    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+    slist.get_model().handler_unblock( slist.row_changed_signal )
 
     # Reselect the pages to display the detail view
     slist.select(redo_selection)
@@ -5059,14 +4901,13 @@ def register_icon( iconfactory, stock_id, path ) :
 
 def mark_pages(pages) :
     "marked page list as saved"    
-    slist.get_model().handler_block( slist["row_changed_signal"] )
+    slist.get_model().handler_block( slist.row_changed_signal )
     for p in      pages  :
         i = slist.find_page_by_uuid(p)
         if  i is not None :
             slist.data[i][2].saved = True
 
-
-    slist.get_model().handler_unblock( slist["row_changed_signal"] )
+    slist.get_model().handler_unblock( slist.row_changed_signal )
 
 
 def preferences(arg) :
@@ -5184,7 +5025,7 @@ def preferences(arg) :
         SETTING['view files toggle'] = cbv.get_active()
         update_list_user_defined_tools( vboxt,
                 [
-        comboboxudt, windows["comboboxudt"] ] )
+        comboboxudt, windows.comboboxudt ] )
         tmpdirs = File.Spec.splitdir(session)
         tmpdirs.pop()     # Remove the top level
         tmp = File.Spec.catdir(tmpdirs)
@@ -5646,13 +5487,13 @@ All document date codes use strftime codes with a leading D, e.g.:
         add_user_defined_tool_entry(
                 vboxt,
                 [
-        comboboxudt, windows["comboboxudt"] ],
+        comboboxudt, windows.comboboxudt ],
                 'my-tool %i %o'
             )
         vboxt.reorder_child( abutton, EMPTY_LIST )
         update_list_user_defined_tools( vboxt,
                 [
-        comboboxudt, windows["comboboxudt"] ] )
+        comboboxudt, windows.comboboxudt ] )
 
 
     abutton.connect(
@@ -5724,23 +5565,23 @@ The other variable available is:
 
 def update_post_save_hooks() :
     if  windowi is not None :
-        if  "comboboxpsh"  in windowi :
+        if  hasattr(windowi,"comboboxpsh"):
 
             # empty combobox
-            for i in              range(1,windowi["comboboxpsh"].get_num_rows()+1)    :
-                windowi["comboboxpsh"].remove(0)
+            for i in              range(1,windowi.comboboxpsh.get_num_rows()+1)    :
+                windowi.comboboxpsh.remove(0)
 
         else :
             # create it
-            windowi["comboboxpsh"] = ComboBoxText()
+            windowi.comboboxpsh = ComboBoxText()
 
         # fill it again
         for  tool in          SETTING["user_defined_tools"]  :
-            if   notre.search(r"%o",tool,re.MULTILINE|re.DOTALL|re.VERBOSE) :
-                windowi["comboboxpsh"].append_text(tool)
+            if   not re.search(r"%o",tool,re.MULTILINE|re.DOTALL|re.VERBOSE) :
+                windowi.comboboxpsh.append_text(tool)
 
 
-        windowi["comboboxpsh"].set_active_by_text( SETTING["current_psh"] )
+        windowi.comboboxpsh.set_active_by_text( SETTING["current_psh"] )
 
 
 def properties() :
@@ -6293,9 +6134,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if   (text is None) or text == EMPTY :
                 text = _('my-new-word')
 
-                # If we don't yet have a canvas, create one
+            # If we don't yet have a canvas, create one
             selection = view.get_selection()
-            if  "text_layer"  in current_page :
+            if  hasattr(current_page,'text_layer') :
                 logger.info(f"Added '{text}'")
                 ocr_bbox = canvas.add_box( text, view.get_selection() )
                 current_page.import_hocr( canvas.hocr() )
@@ -6303,7 +6144,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     
             else :
                 logger.info(f"Creating new text layer with '{text}'")
-                current_page["text_layer"] =                   '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]' % (current_page["width"],current_page["height"],selection["x"],selection["y"],selection["x"]+selection["width"],selection["y"]+selection["height"],text)                                                                                           
+                current_page.text_layer =                   '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]' % (current_page["width"],current_page["height"],selection["x"],selection["y"],selection["x"]+selection["width"],selection["y"]+selection["height"],text)                                                                                           
                 def anonymous_18():
                     ocr_bbox = canvas.get_first_bbox()
                     edit_ocr_text(ocr_bbox)
@@ -6370,9 +6211,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                 # If we don't yet have a canvas, create one
             selection = view.get_selection()
-            if  "text_layer"  in current_page :
-                logger.info(
-                        "Added '" + ann_textbuffer.text + "'" )
+            if  hasattr(current_page,'text_layer') :
+                logger.info(f"Added '{ann_textbuffer.text}'" )
                 ann_bbox = a_canvas.add_box( text, view.get_selection() )
                 current_page.import_annotations( a_canvas.hocr() )
                 edit_annotation(ann_bbox)
@@ -6448,6 +6288,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         global scbutton
         scbutton = Gtk.Button(label=_("_Cancel"))
         shbox.pack_end( scbutton, False, False, 0 )
+        global thbox
         thbox = Gtk.HBox()
         phbox.add(thbox)
         tpbar = Gtk.ProgressBar()
