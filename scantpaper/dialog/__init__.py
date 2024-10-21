@@ -51,7 +51,7 @@ class Dialog(Gtk.Dialog):
 
     def add_page_range(self):
         "Add a frame and radio buttons to $vbox"
-        frame = Gtk.Frame(_("Page Range"))
+        frame = Gtk.Frame(label=_("Page Range"))
         self.get_content_area().pack_start(frame, False, False, 0)
         prng = PageRange()
         prng.set_active(self.page_range)
