@@ -982,11 +982,11 @@ def open_session_file(filename) :
 def open_session_action(action) :
     
     file_chooser = Gtk.FileChooserDialog(
-        _('Open crashed session'),
-        window, 'select-folder',
-        gtk_cancel = 'cancel',
-        gtk_ok     = 'ok'
+        title=_('Open crashed session'),
+        parent=window, action=Gtk.FileChooserAction.SELECT_FOLDER,
     )
+    file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OK, Gtk.ResponseType.OK)
     file_chooser.set_default_response('ok')
     file_chooser.set_current_folder( SETTING["cwd"] )
     if 'ok' == file_chooser.run() :
@@ -1067,13 +1067,13 @@ def open_dialog() :
     # cd back to cwd to get filename
     os.chdir( SETTING["cwd"])
     file_chooser = Gtk.FileChooserDialog(
-        _('Open image'),
-        window, 'open',
-        gtk_cancel = 'cancel',
-        gtk_ok     = 'ok'
+        title=_('Open image'),
+        parent=window, action=Gtk.FileChooserAction.OPEN,
     )
+    file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
     file_chooser.set_select_multiple(True)
-    file_chooser.set_default_response('ok')
+    file_chooser.set_default_response(Gtk.ResponseType.OK)
     file_chooser.set_current_folder( SETTING["cwd"] )
     add_filter( file_chooser, _('Image files'),
         ['jpg', 'png', 'pnm', 'ppm', 'pbm', 'gif', 'tif', 'tiff', 'pdf', 'djvu',
@@ -1081,7 +1081,7 @@ def open_dialog() :
     if 'ok' == file_chooser.run() :
 
         # cd back to tempdir to import
-        os.chdir( session)
+        os.chdir( session.name)
 
         # Update undo/redo buffers
         take_snapshot()
@@ -1509,11 +1509,11 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
  
         else :
             file_chooser = Gtk.FileChooserDialog(
-                    _('PDF filename'),
-                    windowi, 'open',
-                    gtk_cancel = 'cancel',
-                    gtk_open   = 'ok'
+                    title=_('PDF filename'),
+                    parent=windowi, action=Gtk.FileChooserAction.OPEN,
                 )
+            file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                    Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 
         add_filter( file_chooser, _('PDF files'), ['pdf'] )
         file_chooser.set_current_folder( SETTING["cwd"] )
@@ -1537,26 +1537,25 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
             # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
-                _('DjVu filename'),
-                windowi, 'save',
-                gtk_cancel = 'cancel',
-                gtk_save   = 'ok'
+                title=_('DjVu filename'),
+                parent=windowi, action=Gtk.FileChooserAction.SAVE,
             )
-        filename = Gscan2pdf.Document.expand_metadata_pattern(
+        file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+        filename = expand_metadata_pattern(
                 template           = SETTING['default filename'],
                 convert_whitespace =
                   SETTING['convert whitespace to underscores'],
                 author        = SETTING["author"],
                 title         = SETTING["title"],
                 docdate       = windowi.meta_datetime,
-                today_and_now = [
-        Today_and_Now() ],
+                today_and_now = datetime.datetime.now(),
                 extension     = 'djvu',
                 subject       = SETTING["subject"],
                 keywords      = SETTING["keywords"],
             )
         file_chooser.set_current_name(filename)
-        file_chooser.set_default_response('ok')
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder( SETTING["cwd"] )
         add_filter( file_chooser, _('DjVu files'), ['djvu'] )
         file_chooser.set_do_overwrite_confirmation(True)
@@ -1567,7 +1566,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
 
     elif  SETTING['image type'] =='tif':
         SETTING['tiff compression'] = windowi.tiff_compression
@@ -1578,12 +1577,12 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
             # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
-                _('TIFF filename'),
-                windowi, 'save',
-                gtk_cancel = 'cancel',
-                gtk_save   = 'ok'
-            )
-        file_chooser.set_default_response('ok')
+            title=_('TIFF filename'),
+            parent=windowi, action=Gtk.FileChooserAction.SAVE,
+        )
+        file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder( SETTING["cwd"] )
         add_filter( file_chooser, _('Image files'),
                 [SETTING['image type']] )
@@ -1595,7 +1594,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
 
     elif  SETTING['image type'] =='txt':
 
@@ -1604,15 +1603,15 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
             # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
-                _('Text filename'),
-                windowi, 'save',
-                gtk_cancel = 'cancel',
-                gtk_save   = 'ok'
-            )
-        file_chooser.set_default_response('ok')
+                title=_('Text filename'),
+                parent=windowi, action=Gtk.FileChooserAction.SAVE,
+        )
+        file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder( SETTING["cwd"] )
-        file_chooser.set_do_overwrite_confirmation(True)
         add_filter( file_chooser, _('Text files'), ['txt'] )
+        file_chooser.set_do_overwrite_confirmation(True)
         file_chooser.connect(
                 'response' , file_chooser_response_callback,
                 [        'txt', uuids ]
@@ -1620,7 +1619,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
 
     elif  SETTING['image type'] =='hocr':
 
@@ -1629,12 +1628,12 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
             # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
-                _('hOCR filename'),
-                windowi, 'save',
-                gtk_cancel = 'cancel',
-                gtk_save   = 'ok'
+                title=_('hOCR filename'),
+                parent=windowi, action=Gtk.FileChooserAction.SAVE,
             )
-        file_chooser.set_default_response('ok')
+        file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder( SETTING["cwd"] )
         file_chooser.set_do_overwrite_confirmation(True)
         add_filter( file_chooser, _('hOCR files'), ['hocr'] )
@@ -1645,7 +1644,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
 
     elif  SETTING['image type'] =='ps':
         SETTING["ps_backend"] = windowi.ps_backend
@@ -1656,12 +1655,13 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
             # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
-                _('PS filename'),
-                windowi, 'save',
-                gtk_cancel = 'cancel',
-                gtk_save   = 'ok'
+                title=_('PS filename'),
+                parent=windowi,
+                action=Gtk.FileChooserAction.SAVE,
             )
-        file_chooser.set_default_response('ok')
+        file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder( SETTING["cwd"] )
         add_filter( file_chooser, _('Postscript files'), ['ps'] )
         file_chooser.set_do_overwrite_confirmation(True)
@@ -1672,7 +1672,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
 
     elif  SETTING['image type'] =='session':
 
@@ -1681,12 +1681,13 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
             # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
-                _('gscan2pdf session filename'),
-                windowi, 'save',
-                gtk_cancel = 'cancel',
-                gtk_save   = 'ok'
+                title=_('gscan2pdf session filename'),
+                parent=windowi,
+                action=Gtk.FileChooserAction.SAVE,
             )
-        file_chooser.set_default_response('ok')
+        file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder( SETTING["cwd"] )
         add_filter( file_chooser, _('gscan2pdf session files'), ['gs2p'] )
         file_chooser.set_do_overwrite_confirmation(True)
@@ -1698,7 +1699,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         file_chooser.show()
 
             # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
 
     elif  SETTING['image type'] =='jpg':
         SETTING["quality"] = windowi.jpeg_quality
@@ -1809,12 +1810,13 @@ def save_image(uuids) :
 
     # Set up file selector
     file_chooser = Gtk.FileChooserDialog(
-        _('Image filename'),
-        windowi, 'save',
-        gtk_cancel = 'cancel',
-        gtk_save   = 'ok'
+        title=_('Image filename'),
+        parent=windowi, 
+        action=Gtk.FileChooserAction.SAVE,
     )
-    file_chooser.set_default_response('ok')
+    file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+    file_chooser.set_default_response(Gtk.ResponseType.OK)
     file_chooser.set_current_folder( SETTING["cwd"] )
     add_filter( file_chooser, _('Image files'),
         ['jpg', 'png', 'pnm', 'gif', 'tif', 'tiff', 'pdf', 'djvu', 'ps'] )
@@ -1826,7 +1828,7 @@ def save_image(uuids) :
         SETTING["cwd"] = dirname(filename)
 
         # cd back to tempdir
-        os.chdir( session)
+        os.chdir( session.name)
         if uuids > 1 :
             w = len(len(uuids))  
             for i in              range(1,len(uuids)+1)    :
@@ -1967,7 +1969,7 @@ def save_tiff( filename, ps, uuids ) :
 def save_djvu( filename, uuids ) :
     
     # cd back to tempdir
-    os.chdir( session)
+    os.chdir( session.name)
 
     # Create the DjVu
     logger.debug(f"Started saving {filename}")
@@ -1984,23 +1986,25 @@ def save_djvu( filename, uuids ) :
         return update_tpbar(*argv)
 
 
-    def anonymous_72( thread, process, completed, total ):
-            
-        signal =  setup_tpbar( process, completed, total, pid )
-        if signal is not None:
-            return True  
+    def save_djvu_started_callback( response ):
+        pass
+        # signal =  setup_tpbar( process, completed, total, pid )
+        # if signal is not None:
+        #     return True  
 
 
     def anonymous_73(*argv):
         return update_tpbar(*argv)
 
 
-    def anonymous_74( new_page, pending ):
-            
-        if not pending :
-            thbox.hide()
-        if  (signal is not None) :
-            tcbutton.disconnect(signal)
+    def save_djvu_finished_callback( response ):
+        filename = response.request.args[0]["path"]
+        uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
+        # new_page, pending
+        # if not pending :
+        #     thbox.hide()
+        # if  (signal is not None) :
+        #     tcbutton.disconnect(signal)
 
         mark_pages(uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
@@ -2013,17 +2017,12 @@ def save_djvu( filename, uuids ) :
         path          = filename,
         list_of_pages = uuids,
         options       = options,
-        metadata      = Gscan2pdf.Document.collate_metadata(
-            SETTING,
-            [
-    Today_and_Now() ],
-            [
-    Timezone() ]
-        ),
+        metadata      = collate_metadata(
+            SETTING,datetime.datetime.now()),
         queued_callback = anonymous_71 ,
-        started_callback = anonymous_72 ,
+        started_callback = save_djvu_started_callback ,
         running_callback = anonymous_73 ,
-        finished_callback = anonymous_74 ,
+        finished_callback = save_djvu_finished_callback ,
         error_callback = error_callback
     )
 
@@ -2124,21 +2123,19 @@ def save_hocr( filename, uuids ) :
 
 
 def email() :
-    """Display page selector and email.
-"""
+    "Display page selector and email."
     if  (windowe is not None) :
         windowe.present()
         return
 
+    offset = SETTING['datetime offset']
     windowe = SaveDialog(
         transient_for  = window,
         title            = _('Email as PDF'),
         hide_on_delete = True,
         page_range     = SETTING['Page range'],
         include_time   = SETTING["use_time"],
-        meta_datetime  = [
-    Add_Delta_DHMS( Today_and_Now(), len( SETTING['datetime offset'] ) )
-        ],
+        meta_datetime  = datetime.datetime.now()+datetime.timedelta(days=offset[0], hours=offset[1], minutes=offset[2], seconds=offset[3]),
 
         # TRUE if any value is non-zero
         select_datetime = bool (SETTING['datetime offset'] != 0),
@@ -2198,15 +2195,14 @@ def email() :
                 "font"             : SETTING['pdf font'],
                 'user-password'  : windowe.pdf_user_password,
             }
-        filename = Gscan2pdf.Document.expand_metadata_pattern(
+        filename = expand_metadata_pattern(
                 template           = SETTING['default filename'],
                 convert_whitespace =
                   SETTING['convert whitespace to underscores'],
                 author        = SETTING["author"],
                 title         = SETTING["title"],
                 docdate       = windowe.meta_datetime,
-                today_and_now = [
-        Today_and_Now() ],
+                today_and_now = datetime.datetime.now(),
                 extension     = 'pdf',
                 subject       = SETTING["subject"],
                 keywords      = SETTING["keywords"],
@@ -2258,12 +2254,8 @@ def email() :
         pid = slist.save_pdf(
                 path          = pdf,
                 list_of_pages = uuids,
-                metadata      = Gscan2pdf.Document.collate_metadata(
-                    SETTING,
-                    [
-        Today_and_Now() ],
-                    [
-        Timezone() ]
+                metadata      = collate_metadata(
+                    SETTING,datetime.datetime.now()
                 ),
                 options         = options,
                 queued_callback = anonymous_84 ,
@@ -3096,7 +3088,7 @@ def print_dialog() :
     res = print_op.run( 'print-dialog', window )
     if res == 'apply' :
         print_settings = print_op.get_print_settings()
-    os.chdir( session)
+    os.chdir( session.name)
 
 
 def cut_selection() :
@@ -5390,11 +5382,12 @@ All document date codes use strftime codes with a leading D, e.g.:
     global windowr
     def anonymous_200():
         file_chooser = Gtk.FileChooserDialog(
-                _('Select temporary directory'),
-                windowr, 'select-folder',
-                gtk_cancel = 'cancel',
-                gtk_ok     = 'ok'
+                title=_('Select temporary directory'),
+                parent=windowr, 
+                action=Gtk.FileChooserAction.SELECT_FOLDER,
             )
+        file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OK, Gtk.ResponseType.OK)
         file_chooser.set_current_folder( tmpentry.get_text() )
         if 'ok' == file_chooser.run() :
             tmpentry.set_text(
