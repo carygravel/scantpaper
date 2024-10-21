@@ -142,6 +142,11 @@ class BaseThread(threading.Thread):
             if request.process == "quit":
                 return False
         except Exception as err:  # pylint: disable=broad-except
+            logger.error(
+                "Error running process '%s': %s",
+                request.process,
+                err,
+            )
             request.error(None, str(err))
         return True
 
@@ -154,58 +159,56 @@ class BaseThread(threading.Thread):
             return self._monitor_response(block)
         return GLib.SOURCE_CONTINUE
 
-    def _run_callbacks(self, stage, result):
+    def _execute_callbacks_for_stage(self, stage, result):
         """helper method to run the callbacks associated with each stage
         (started, running, finished)"""
         if stage == "running":
             for uid, callbacks in self.callbacks.items():
                 if callbacks["started"]:
-                    self._run_callback(stage, uid, result)
+                    self._execute_stage_callbacks(stage, uid, result)
         else:
-            self._run_callback(stage, result.request.uuid, result)
+            self._execute_stage_callbacks(stage, result.request.uuid, result)
 
-    def _run_callback(self, stage, uid, data):
+    def _execute_stage_callbacks(self, stage, uid, data):
         if uid not in self.callbacks:
             return
         for callback in getattr(self, "before")[stage]:
-            if (
-                callback + "_callback" in self.callbacks[uid]
-                and self.callbacks[uid][callback + "_callback"] is not None
-            ):
-                try:
-                    self.callbacks[uid][callback + "_callback"](data)
-                except Exception as err:  # pylint: disable=broad-except
-                    if "error_callback" in self.callbacks[uid]:
-                        self.callbacks[uid]["error_callback"](err)
+            self._execute_single_callback(callback + "_callback", stage, uid, data)
+        self._execute_single_callback(stage + "_callback", stage, uid, data)
+        for callback in getattr(self, "after")[stage]:
+            self._execute_single_callback(callback + "_callback", stage, uid, data)
+
+    def _execute_single_callback(self, callback, stage, uid, data):
         if (
-            stage + "_callback" in self.callbacks[uid]
-            and self.callbacks[uid][stage + "_callback"] is not None
+            callback in self.callbacks[uid]
+            and self.callbacks[uid][callback] is not None
         ):
             try:
-                self.callbacks[uid][stage + "_callback"](data)
+                self.callbacks[uid][callback](data)
             except Exception as err:  # pylint: disable=broad-except
-                if stage != "error" and "error_callback" in self.callbacks[uid]:
-                    self.callbacks[uid]["error_callback"](err)
-        for callback in getattr(self, "after")[stage]:
-            if (
-                callback + "_callback" in self.callbacks[uid]
-                and self.callbacks[uid][callback + "_callback"] is not None
-            ):
-                try:
-                    self.callbacks[uid][callback + "_callback"](data)
-                except Exception as err:  # pylint: disable=broad-except
-                    if "error_callback" in self.callbacks[uid]:
-                        self.callbacks[uid]["error_callback"](err)
+                if (
+                    callback != "error_callback"
+                    and "error_callback" in self.callbacks[uid]
+                ):
+                    logger.error(
+                        "Error running %s callback '%s' for process '%s' with args: %s: %s",
+                        stage,
+                        callback,
+                        data.request.process,
+                        data.request.args,
+                        err,
+                    )
+                    self.callbacks[uid]["error_callback"](data)
 
     def _monitor_response(self, block=False):
-        self._run_callbacks("running", None)
+        self._execute_callbacks_for_stage("running", None)
         try:
             result = self.responses.get(block)
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
         stage = result.type.name.lower()
         callback = stage + "_callback"
-        self._run_callbacks(stage, result)
+        self._execute_callbacks_for_stage(stage, result)
         uid = result.request.uuid
         if uid in self.callbacks:
             if callback in ["queued_callback", "started_callback", "data_callback"]:
