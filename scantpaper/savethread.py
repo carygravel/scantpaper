@@ -529,7 +529,7 @@ def _need_temp_pdf(options):
         "prepend" in options
         or "append" in options
         or "ps" in options
-        or "user-password" in options
+        or ("user-password" in options and options["user-password"] != "")
     )
 
 
