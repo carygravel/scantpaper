@@ -811,7 +811,9 @@ class Save(Dialog):
         hboxf.pack_start(label, False, False, 0)
         fontb = Gtk.Button(label="Font name goes here")
         hboxf.pack_end(fontb, False, True, 0)
-        if self.pdf_font is None or not pathlib.Path(self.pdf_font).exists():
+        if (
+            self.pdf_font is None or not pathlib.Path(self.pdf_font).exists()
+        ) and self.available_fonts is not None:
             self.pdf_font = list(self.available_fonts["by_file"].keys())[0]
 
         if (
@@ -819,7 +821,7 @@ class Save(Dialog):
             and self.available_fonts is not None
             and self.pdf_font in self.available_fonts["by_file"]
         ):
-            (family, style) = self.available_fonts["by_file"][self.pdf_font]
+            family, style = self.available_fonts["by_file"][self.pdf_font]
             fontb.set_label(f"{family} {style}")
 
         else:
