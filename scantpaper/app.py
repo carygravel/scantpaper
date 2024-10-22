@@ -667,7 +667,8 @@ def find_crashed_sessions(tmpdir) :
               + SPACE
               + _('Selected sessions will be deleted.') )
         dialog.get_content_area().add(text)
-        sessionlist = Gtk.SimpleList( {_('Session'): 'text'} )
+        columns = {_('Session'): 'text'}
+        sessionlist = Gtk.SimpleList(**columns)
         sessionlist.get_selection().set_mode('multiple')
         sessionlist.data.append(missing)  
         dialog.get_content_area().add(sessionlist)
@@ -706,7 +707,8 @@ def find_crashed_sessions(tmpdir) :
         label = Gtk.Label(label= _('Pick crashed session to restore') )
         box   = dialog.get_content_area()
         box.add(label)
-        sessionlist = Gtk.SimpleList( {_('Session'): 'text'} )
+        columns = {_('Session'): 'text'}
+        sessionlist = Gtk.SimpleList(**columns)
         sessionlist.data.append(crashed)  
         box.add(sessionlist)
         dialog.show_all()
@@ -5226,12 +5228,12 @@ def _preferences_scan_options(border_width) :
     scwin = Gtk.ScrolledWindow()
     vvbox.pack_start( scwin, True, True, 0 )
     scwin.set_policy( Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC )
-    option_visibility_list = Gtk.SimpleList({
+    columns = {
         _('Title')  : 'text',
         _('Type')   : 'text',
         _('Show')   : 'bool',
         _('Reload') : 'bool'}
-    )
+    option_visibility_list = Gtk.SimpleList(**columns)
     option_visibility_list.get_selection().set_mode('multiple')
     scwin.add(option_visibility_list)
     bhbox = Gtk.HBox()
