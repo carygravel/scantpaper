@@ -9,17 +9,15 @@ class PaperList(SimpleList):
     "A list of paper sizes"
 
     def __init__(self, formats):
-        super().__init__(
-            {
-                _("Name"): "text",
-                _("Width"): "int",
-                _("Height"): "int",
-                _("Left"): "int",
-                _("Top"): "int",
-                _("Units"): "text",
-            }
-        )
-
+        columns = {
+            _("Name"): "text",
+            _("Width"): "int",
+            _("Height"): "int",
+            _("Left"): "int",
+            _("Top"): "int",
+            _("Units"): "text",
+        }
+        super().__init__(**columns)
         for size in formats.items():
             self.data.append(
                 [

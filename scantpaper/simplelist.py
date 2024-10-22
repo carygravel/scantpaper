@@ -50,9 +50,7 @@ column_types = {
 class SimpleList(Gtk.TreeView):
     "A simple interface to Gtk's complex MVC list widget"
 
-    def __init__(
-        self, columns
-    ):  # TODO pass a list of tuples intead of the dict columns
+    def __init__(self, **columns):
         super().__init__()
         if len(columns.keys()) < 1:
             raise TypeError(
@@ -78,12 +76,16 @@ class SimpleList(Gtk.TreeView):
                 {
                     "title": name,
                     "type": column_types[typekey]["type"],
-                    "renderer": column_types[typekey]["renderer"]
-                    if "renderer" in column_types[typekey]
-                    else None,
-                    "attr": column_types[typekey]["attr"]
-                    if "attr" in column_types[typekey]
-                    else "hidden",
+                    "renderer": (
+                        column_types[typekey]["renderer"]
+                        if "renderer" in column_types[typekey]
+                        else None
+                    ),
+                    "attr": (
+                        column_types[typekey]["attr"]
+                        if "attr" in column_types[typekey]
+                        else "hidden"
+                    ),
                 }
             )
 

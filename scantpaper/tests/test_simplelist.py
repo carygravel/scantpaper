@@ -9,7 +9,7 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 def test_basic():
     "basic functionality tests for SimpleList"
-    slist = SimpleList({"col1": "text"})
+    slist = SimpleList(col1="text")
     assert isinstance(slist, SimpleList), "Created simplelist"
     assert isinstance(slist.data, list), "simplelist data is a list"
 
@@ -75,7 +75,7 @@ def test_basic():
 def test_iterators():
     "test iterators in SimpleList"
 
-    slist = SimpleList({"col1": "text"})
+    slist = SimpleList(col1="text")
     slist.data = [["new data"]]
     flag = False
     for _row in slist.data:
@@ -92,20 +92,18 @@ def test_error():
     "test error handling in SimpleList"
 
     with pytest.raises(TypeError):
-        SimpleList({})
+        SimpleList()
 
     with pytest.raises(TypeError):
-        SimpleList({"col": None})
+        SimpleList(col=None)
 
     SimpleList.add_column_type(new={})
-    slist = SimpleList(
-        {"col1": "new", "col2": "markup", "col3": "bool", "col4": "scalar"}
-    )
+    slist = SimpleList(col1="new", col2="markup", col3="bool", col4="scalar")
     assert (
         slist.get_column_types()["new"]["type"] == str
     ), "unknown custom renderers default to str"
 
-    slist = SimpleList({"col1": "text"})
+    slist = SimpleList(col1="text")
     with pytest.raises(ValueError):
         slist.get_column_editable(1)
 
@@ -147,7 +145,7 @@ def test_error():
 def test_renderer():
     "test renderer in SimpleList"
     window = Gtk.Window()
-    slist = SimpleList({"col": "scalar"})
+    slist = SimpleList(col="scalar")
     slist.data.append(["row1"])
     window.add(slist)
     window.show_all()
@@ -156,7 +154,7 @@ def test_renderer():
 
 def test_signals():
     "test signals in SimpleList"
-    slist = SimpleList({"col1": "text", "col2": "bool"})
+    slist = SimpleList(col1="text", col2="bool")
     slist.data.append(["row1", True])
 
     assert not slist.get_column_editable(0), "get_column_editable"
@@ -176,5 +174,5 @@ def test_signals():
 
 def test_pixbuf():
     "test pixbuf column"
-    slist = SimpleList({"col": "pixbuf"})
+    slist = SimpleList(col="pixbuf")
     assert isinstance(slist, SimpleList), "Created simplelist"

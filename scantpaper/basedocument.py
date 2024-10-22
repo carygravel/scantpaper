@@ -62,9 +62,8 @@ class BaseDocument(SimpleList):
         self.select(selection)
 
     def __init__(self, **kwargs):
-        super().__init__(
-            {"#": "int", _("Thumbnails"): "pixbuf", "Page Data": "hstring"}
-        )
+        columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page Data": "hstring"}
+        super().__init__(**columns)
         self.thread = DocThread()
         self.thread.register_callback("mark_saved", "before", "finished")
         self.thread.register_callback("display", "before", "finished")
