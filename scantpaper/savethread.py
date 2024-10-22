@@ -199,6 +199,8 @@ class SaveThread(Importhread):
 
                 # Write the metadata
                 for key, val in metadata.items():
+                    if val is None:
+                        continue
 
                     # backslash-escape any double quotes and bashslashes
                     val = re.sub(
