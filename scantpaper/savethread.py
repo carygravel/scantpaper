@@ -320,7 +320,7 @@ class SaveThread(Importhread):
         #     )
         #     return
 
-        if "ps" in options["options"]:
+        if "ps" in options["options"] and options["options"]["ps"] is not None:
             # self.message = _("Converting to PS")
             cmd = ["tiff2ps", "-3", options["path"], "-O", options["options"]["ps"]]
             proc = exec_command(cmd, options["pidfile"])
