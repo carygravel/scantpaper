@@ -107,9 +107,11 @@ class SimpleList(Gtk.TreeView):
                 pass
 
             else:
+                attr = {col["attr"]: i}
                 column = Gtk.TreeViewColumn(
                     col["title"],
                     col["renderer"],
+                    **attr,
                 )
                 self.append_column(column)
                 if col["attr"] == "active":
