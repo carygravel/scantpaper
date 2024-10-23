@@ -989,10 +989,9 @@ def open_session_action(action) :
             Gtk.STOCK_OK, Gtk.ResponseType.OK)
     file_chooser.set_default_response('ok')
     file_chooser.set_current_folder( SETTING["cwd"] )
-    if 'ok' == file_chooser.run() :
+    if file_chooser.run() == Gtk.ResponseType.OK:
 
         # Update undo/redo buffers
-
         take_snapshot()
         filename = file_chooser.get_filenames()
         open_session( filename[0] )
@@ -1078,7 +1077,7 @@ def open_dialog() :
     add_filter( file_chooser, _('Image files'),
         ['jpg', 'png', 'pnm', 'ppm', 'pbm', 'gif', 'tif', 'tiff', 'pdf', 'djvu',
         'ps',  'gs2p'] )
-    if 'ok' == file_chooser.run() :
+    if  file_chooser.run() == Gtk.ResponseType.OK:
 
         # cd back to tempdir to import
         os.chdir( session.name)
@@ -1089,7 +1088,7 @@ def open_dialog() :
         file_chooser.destroy()
 
         # Update cwd
-        SETTING["cwd"] = dirname( filenames[0] )
+        SETTING["cwd"] = os.path.dirname( filenames[0] )
         import_files(filenames)
     else :
         file_chooser.destroy()
@@ -1804,7 +1803,6 @@ def file_writable( chooser, filename ) :
 
 def save_image(uuids) :
     
-
     # cd back to cwd to save
     os.chdir( SETTING["cwd"])
 
@@ -1821,18 +1819,18 @@ def save_image(uuids) :
     add_filter( file_chooser, _('Image files'),
         ['jpg', 'png', 'pnm', 'gif', 'tif', 'tiff', 'pdf', 'djvu', 'ps'] )
     file_chooser.set_do_overwrite_confirmation(True)
-    if 'ok' == file_chooser.run() :
+    if file_chooser.run() == Gtk.ResponseType.OK:
         filename = file_chooser.get_filename()
 
         # Update cwd
-        SETTING["cwd"] = dirname(filename)
+        SETTING["cwd"] = os.path.dirname(filename)
 
         # cd back to tempdir
         os.chdir( session.name)
-        if uuids > 1 :
-            w = len(len(uuids))  
-            for i in              range(1,len(uuids)+1)    :
-                current_filename =                   f"${filename}_%0${w}d.{SETTING['image type']}" % (i)                    
+        if len(uuids) > 1 :
+            w = len(uuids)
+            for i in range(1,len(uuids)+1) :
+                current_filename = f"${filename}_%0${w}d.{SETTING['image type']}" % (i)                    
                 if os.path.isfile(current_filename)  :
                     text = _('This operation would overwrite %s') % (current_filename)                        
                     show_message_dialog(
@@ -1853,41 +1851,43 @@ def save_image(uuids) :
                 if ( file_exists( file_chooser, filename ) ):
                     return  
 
-            if ( file_writable( file_chooser, filename ) ):
+            if file_writable( file_chooser, filename ):
                 return  
 
-
         # Create the image
-
         logger.debug(f"Started saving {filename}")
         ( signal, pid )=(None,None)
         def anonymous_63(*argv):
             return update_tpbar(*argv)
 
 
-        def anonymous_64( thread, process, completed, total ):
+        def save_image_started_callback( response ):
+            #thread, process, completed, total
+            pass
                 
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
+            # signal = setup_tpbar( process, completed, total, pid )
+            # if signal is not None:
+            #     return True  
 
 
         def anonymous_65(*argv):
             return update_tpbar(*argv)
 
 
-        def anonymous_66( new_page, pending ):
-                
-            if not pending :
-                thbox.hide()
-            if  signal is not None :
-                tcbutton.disconnect(signal)
+        def save_image_finished_callback( response ):
+            #new_page, pending
+            filename = response.request.args[0]["path"]
+            uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
+            # if not pending :
+            #     thbox.hide()
+            # if  signal is not None :
+            #     tcbutton.disconnect(signal)
 
             mark_pages(uuids)
             if  'view files toggle'  in SETTING                    and SETTING['view files toggle']                 :
-                if uuids > 1 :
-                    w = len(len(uuids))  
-                    for i in                      range(1,len(uuids)+1)    :
+                if len(uuids) > 1 :
+                    w = len(uuids) 
+                    for i in range(1,len(uuids)+1) :
                         launch_default_for_file( filename % (i)   )
                 else :
                     launch_default_for_file(filename)
@@ -1899,9 +1899,9 @@ def save_image(uuids) :
             path            = filename,
             list_of_pages   = uuids,
             queued_callback = anonymous_63 ,
-            started_callback = anonymous_64 ,
+            started_callback = save_image_started_callback ,
             running_callback = anonymous_65 ,
-            finished_callback = anonymous_66 ,
+            finished_callback = save_image_finished_callback ,
             error_callback = error_callback
         )
         if  windowi is not None :
@@ -4890,6 +4890,7 @@ def register_icon( iconfactory, stock_id, path ) :
     "Add icons"    
     # try :
     icon = GdkPixbuf.Pixbuf.new_from_file(path) 
+    print(f"icon {icon}")
     if  icon is None :
         logger.warning("Unable to load icon `%s'", path)
     else:
@@ -5375,14 +5376,13 @@ All document date codes use strftime codes with a leading D, e.g.:
     vbox.pack_start( cbtp, True, True, 0 )
 
     # Temporary directory settings
-
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
     label = Gtk.Label( label=_('Temporary directory') )
     hbox.pack_start( label, False, False, 0 )
     tmpentry = Gtk.Entry()
     hbox.add(tmpentry)
-    tmpentry.set_text( dirname(session) )
+    tmpentry.set_text( os.path.dirname(session) )
     button = Gtk.Button( label=_('Browse') )
     global windowr
     def anonymous_200():
@@ -5394,7 +5394,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         file_chooser.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                 Gtk.STOCK_OK, Gtk.ResponseType.OK)
         file_chooser.set_current_folder( tmpentry.get_text() )
-        if 'ok' == file_chooser.run() :
+        if file_chooser.run() == Gtk.ResponseType.OK:
             tmpentry.set_text(
                     get_tmp_dir(
                         file_chooser.get_filename(),
@@ -5804,7 +5804,7 @@ init_icons([
 ('rotate90',    f"{iconpath}/stock-rotate-90.svg"),     
 ('rotate180',   f"{iconpath}/180_degree.svg"),     
 ('rotate270',   f"{iconpath}/stock-rotate-270.svg") ,     
-('scanner',     f"{iconpath}/scanner.svg") ,     
+#('scanner',     f"{iconpath}/scanner.svg") ,     
 ('pdf',         f"{iconpath}/pdf.svg") ,     
 ('selection',   f"{iconpath}/stock-selection-all-16.png") ,     
 ('hand-tool',   f"{iconpath}/hand-tool.svg") ,     
