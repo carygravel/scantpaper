@@ -724,7 +724,18 @@ def find_crashed_sessions(tmpdir) :
             open_session(session)
 
 
+def display_callback(response) :
+    "Find the page from the input uuid and display it"
+    uuid = response.request.args[0]["page"].uuid
+    i = slist.find_page_by_uuid(uuid)
+    if i is None:
+        logger.error("Can't display page with uuid %s: page not found", uuid)
+    else:
+        display_image(slist.data[i][2])
+
+
 def display_image(page) :
+    "Display the image in the view"
     current_page = page
     global view
     global canvas
@@ -1418,12 +1429,8 @@ def save_dialog(_action) :
     vbox.pack_start( pshbutton, False, True, 0 )
     update_post_save_hooks()
     vbox.pack_start( windowi.comboboxpsh, False, True, 0 )
-    def anonymous_59():
-        windowi.comboboxpsh.set_sensitive( pshbutton.get_active() )
-
-
     pshbutton.connect(
-        'toggled' , anonymous_59 
+        'toggled' , lambda _action: windowi.comboboxpsh.set_sensitive( pshbutton.get_active() )
     )
     pshbutton.set_active( SETTING["post_save_hook"] )
     windowi.comboboxpsh.set_sensitive( pshbutton.get_active() )
@@ -1431,11 +1438,9 @@ def save_dialog(_action) :
     kbutton.set_tooltip_text( _('Close dialog on save') )
     kbutton.set_active( SETTING["close_dialog_on_save"] )
     vbox.pack_start( kbutton, False, True, 0 )
-    def anonymous_60():
-        save_button_clicked_callback( kbutton, pshbutton )
 
     windowi.add_actions( [('gtk-save',
-        anonymous_60 ),
+        lambda : save_button_clicked_callback( kbutton, pshbutton ) ),
         ('gtk-cancel', windowi.hide)]  )
     windowi.show_all()
     windowi.resize( 1, 1 )
@@ -1448,9 +1453,7 @@ def list_of_page_uuids() :
     pagelist =       slist.get_page_index( SETTING['Page range'], error_callback )
     if not pagelist :
         return []
-    for i in     pagelist :
-        uuids.append(slist.data[i][2].uuid)  
-    return uuids
+    return [slist.data[i][2].uuid for i in pagelist]
 
 
 def save_button_clicked_callback( kbutton, pshbutton ) :
@@ -2042,11 +2045,12 @@ def save_text( filename, uuids ) :
         return update_tpbar(*argv)
 
 
-    def anonymous_76( thread, process, completed, total ):
-            
-        signal = setup_tpbar( process, completed, total, pid )
-        if signal is not None:
-            return True  
+    def save_text_started_callback( response ):
+        #thread, process, completed, total
+        pass
+        # signal = setup_tpbar( process, completed, total, pid )
+        # if signal is not None:
+        #     return True  
 
 
     def anonymous_77(*argv):
@@ -2072,7 +2076,7 @@ def save_text( filename, uuids ) :
         list_of_pages   = uuids,
         options         = options,
         queued_callback = anonymous_75 ,
-        started_callback = anonymous_76 ,
+        started_callback = save_text_started_callback ,
         running_callback = anonymous_77 ,
         finished_callback = anonymous_78 ,
         error_callback = error_callback
@@ -2089,11 +2093,12 @@ def save_hocr( filename, uuids ) :
         return update_tpbar(*argv)
 
 
-    def anonymous_80( thread, process, completed, total ):
-            
-        signal = setup_tpbar( process, completed, total, pid )
-        if signal is not None:
-            return True  
+    def save_hocr_started_callback( response ):
+        #thread, process, completed, total
+        pass
+        # signal = setup_tpbar( process, completed, total, pid )
+        # if signal is not None:
+        #     return True  
 
 
     def anonymous_81(*argv):
@@ -2119,7 +2124,7 @@ def save_hocr( filename, uuids ) :
         list_of_pages   = uuids,
         options         = options,
         queued_callback = anonymous_79 ,
-        started_callback = anonymous_80 ,
+        started_callback = save_hocr_started_callback ,
         running_callback = anonymous_81 ,
         finished_callback = anonymous_82 ,
         error_callback = error_callback
@@ -2162,20 +2167,16 @@ def email() :
     )
 
     # Frame for page range
-
     windowe.add_page_range()
 
     # Metadata
-
     windowe.add_metadata()
 
     # PDF options
-
-    ( vboxp, hboxp ) = windowe.add_pdf_options()
-    def anonymous_83():
+    vboxp, hboxp  = windowe.add_pdf_options()
+    def email_callback():
 
             # Set options
-
         if not update_metadata_settings(windowe) :
             email()
             return
@@ -2217,17 +2218,17 @@ def email() :
         pdf = f"{session}/{filename}.pdf"
 
             # Create the PDF
-
         ( signal, pid )=(None,None)
         def anonymous_84(*argv):
             return update_tpbar(*argv)
 
 
-        def anonymous_85( thread, process, completed, total ):
-                    
-            signal = setup_tpbar( process, completed, total,pid )
-            if signal is not None:
-                return True  
+        def email_started_callback( response ):
+            #thread, process, completed, total
+            pass
+            # signal = setup_tpbar( process, completed, total,pid )
+            # if signal is not None:
+            #     return True  
 
 
         def anonymous_86(*argv):
@@ -2254,8 +2255,6 @@ def email() :
                             text    = _('Error creating email')
                         )
 
-
-
         pid = slist.save_pdf(
                 path          = pdf,
                 list_of_pages = uuids,
@@ -2264,23 +2263,19 @@ def email() :
                 ),
                 options         = options,
                 queued_callback = anonymous_84 ,
-                started_callback = anonymous_85 ,
+                started_callback = email_started_callback ,
                 running_callback = anonymous_86 ,
                 finished_callback = anonymous_87 ,
                 error_callback = error_callback
             )
         windowe.hide()
 
-
-    def anonymous_88():
-        windowe.hide()
-
-    windowe.add_actions(
-        'gtk-ok',
-        anonymous_83 ,
-        'gtk-cancel',
-        anonymous_88 
-    )
+    windowe.add_actions([
+        ('gtk-ok',
+        email_callback) ,
+        ('gtk-cancel',
+        lambda : windowe.hide())
+    ])
     windowe.show_all()
 
 
@@ -2939,25 +2934,18 @@ def add_postprocessing_options(self) :
                 title           = _('unpaper options'),
             )
         unpaper.add_options( windowuo.get_content_area() )
-        def anonymous_108():
+        def unpaper_options_callback():
 
                     # Update $SETTING
-
             SETTING['unpaper options'] = unpaper.get_options()
             windowuo.destroy()
 
-
-        def anonymous_109():
-            windowuo.destroy()
-
-        windowuo.add_actions(
-                'gtk-ok',
-                anonymous_108 ,
-                'gtk-cancel',
-                anonymous_109 
-            )
+        windowuo.add_actions([
+                ('gtk-ok',
+                unpaper_options_callback) ,
+                ('gtk-cancel',
+                lambda : windowuo.destroy())])
         windowuo.show_all()
-
 
     button.connect(        'clicked' , anonymous_107     )
         # CheckButton for user-defined tool
@@ -3410,7 +3398,7 @@ def indices2pages(indices) :
     "Helper function to convert an array of indices into an array of Gscan2pdf::Page objects"    
     pages=[]
     for i in     indices :
-        pages.append(slist.data[i][2]["uuid"])  
+        pages.append(slist.data[i][2].uuid)  
 
     return pages
 
@@ -3426,9 +3414,10 @@ def rotate( angle, pagelist, callback ) :
             return update_tpbar(*argv)
 
 
-        def anonymous_117( thread, process, completed, total ):
-                
-            signal =  setup_tpbar( process, completed, total, pid )
+        def rotate_started_callback( response ):
+            #thread, process, completed, total
+            pass
+            # signal =  setup_tpbar( process, completed, total, pid )
             if signal is not None:
                 return True  
 
@@ -3445,19 +3434,14 @@ def rotate( angle, pagelist, callback ) :
             slist.save_session()
 
 
-        def anonymous_119(new_page):
-                
-            display_image(new_page)
-
-
         pid = slist.rotate(
             angle           = angle,
             page            = page,
             queued_callback = anonymous_116 ,
-            started_callback = anonymous_117 ,
+            started_callback = rotate_started_callback ,
             finished_callback = anonymous_118 ,
             error_callback   = error_callback,
-            display_callback = anonymous_119 ,
+            display_callback = display_callback ,
         )
 
 
@@ -3476,7 +3460,7 @@ def analyse( select_blank, select_dark ) :
             logger.info(
 f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {dirty_time}"
             )
-            pages_to_analyse.append(slist.data[i][2]["uuid"])  
+            pages_to_analyse.append(slist.data[i][2].uuid)  
 
 
     if len(pages_to_analyse) > 0 :
@@ -3485,11 +3469,12 @@ f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {di
             return update_tpbar(*argv)
 
 
-        def anonymous_121( thread, process, completed, total ):
-                
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
+        def analyse_started_callback( response ):
+            #thread, process, completed, total
+            pass
+            # signal = setup_tpbar( process, completed, total, pid )
+            # if signal is not None:
+            #     return True  
 
 
         def anonymous_122(*argv):
@@ -3513,7 +3498,7 @@ f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {di
         pid = slist.analyse(
             list_of_pages   = pages_to_analyse,
             queued_callback = anonymous_120 ,
-            started_callback = anonymous_121 ,
+            started_callback = analyse_started_callback ,
             running_callback = anonymous_122 ,
             finished_callback = anonymous_123 ,
             error_callback = error_callback,
@@ -3544,7 +3529,7 @@ def handle_clicks( widget, event ) :
     return False
 
 
-def threshold() :
+def threshold(_action) :
     "Display page selector and on apply threshold accordingly"
     windowt = Dialog(
         transient_for = window,
@@ -3566,7 +3551,7 @@ def threshold() :
     spinbutton.set_value( SETTING['threshold tool'] )
     hboxt.pack_end( spinbutton, False, True, 0 )
 
-    def anonymous_124():
+    def threshold_apply_callback():
             # HBox for buttons
             # Update undo/redo buffers
         take_snapshot()
@@ -3584,48 +3569,41 @@ def threshold() :
                 return update_tpbar(*argv)
 
 
-            def anonymous_126( thread, process, completed, total ):
+            def threshold_started_callback( response ):
+                #thread, process, completed, total
+                pass
                         
-                signal = setup_tpbar( process, completed, total,                            pid )
-                if signal is not None:
-                    return True  
+                # signal = setup_tpbar( process, completed, total,                            pid )
+                # if signal is not None:
+                #     return True  
 
 
-            def anonymous_127( new_page, pending ):
-                        
-                if not pending :
-                    thbox.hide()
-                if signal is not None :
-                    tcbutton.disconnect(signal)
+            def threshold_finished_callback( response ):
+                #new_page, pending
+                pass
+                # if not pending :
+                #     thbox.hide()
+                # if signal is not None :
+                #     tcbutton.disconnect(signal)
 
-                slist.save_session()
-
-
-            def anonymous_128(new_page):
-                        
-                display_image(new_page)
-
+                #slist.save_session()
 
             pid = slist.threshold(
                     threshold       = SETTING['threshold tool'],
-                    page            = slist.data[i][2]["uuid"],
+                    page            = slist.data[i][2].uuid,
                     queued_callback = anonymous_125 ,
-                    started_callback = anonymous_126 ,
-                    finished_callback = anonymous_127 ,
+                    started_callback = threshold_started_callback ,
+                    finished_callback = threshold_finished_callback ,
                     error_callback   = error_callback,
-                    display_callback = anonymous_128 ,
+                    display_callback = display_callback ,
                 )
 
-
-    def anonymous_129():
-        windowt.destroy()
-
-    windowt.add_actions(
+    windowt.add_actions([(
         'gtk-apply',
-        anonymous_124 ,
-        'gtk-cancel',
-        anonymous_129 
-    )
+        threshold_apply_callback) ,
+        ('gtk-cancel',
+        lambda : windowt.destroy())
+    ])
     windowt.show_all()
 
 
@@ -3663,7 +3641,7 @@ def brightness_contrast() :
     spinbuttonc.set_value( SETTING['contrast tool'] )
     hbox.pack_end( spinbuttonc, False, True, 0 )
 
-    def anonymous_130():
+    def brightness_contrast_callback():
             # HBox for buttons
             # Update undo/redo buffers
         take_snapshot()
@@ -3680,12 +3658,13 @@ def brightness_contrast() :
                 return update_tpbar(*argv)
 
 
-            def anonymous_132( thread, process, completed, total ):
+            def brightness_contrast_started_callback( response ):
+                #thread, process, completed, total
+                pass
                         
-                signal = setup_tpbar( process, completed, total,
-                            pid )
-                if signal is not None:
-                    return True  
+                # signal = setup_tpbar( process, completed, total, pid )
+                # if signal is not None:
+                #     return True  
 
 
             def anonymous_133( new_page, pending ):
@@ -3697,33 +3676,23 @@ def brightness_contrast() :
 
                 slist.save_session()
 
-
-            def anonymous_134(new_page):
-                        
-                display_image(new_page)
-
-
             pid = slist.brightness_contrast(
                     brightness      = SETTING['brightness tool'],
                     contrast        = SETTING['contrast tool'],
-                    page            = slist.data[i][2]["uuid"],
+                    page            = slist.data[i][2].uuid,
                     queued_callback = anonymous_131 ,
-                    started_callback = anonymous_132 ,
+                    started_callback = brightness_contrast_started_callback ,
                     finished_callback = anonymous_133 ,
                     error_callback   = error_callback,
-                    display_callback = anonymous_134 ,
+                    display_callback = display_callback ,
                 )
 
-
-    def anonymous_135():
-        windowt.destroy()
-
-    windowt.add_actions(
-        'gtk-apply',
-        anonymous_130 ,
-        'gtk-cancel',
-        anonymous_135 
-    )
+    windowt.add_actions([
+        ('gtk-apply',
+        brightness_contrast_callback) ,
+        ('gtk-cancel',
+        lambda : windowt.destroy())
+    ])
     windowt.show_all()
 
 
@@ -3735,10 +3704,9 @@ def negate() :
     )
 
     # Frame for page range
-
     windowt.add_page_range()
 
-    def anonymous_136():
+    def negate_callback():
             # HBox for buttons
             # Update undo/redo buffers
         take_snapshot()
@@ -3753,11 +3721,13 @@ def negate() :
                 return update_tpbar(*argv)
 
 
-            def anonymous_138( thread, process, completed, total ):
+            def negate_started_callback( response ):#TODO: all these started callbacks are identical
+                #thread, process, completed, total
+                pass
                         
-                signal = setup_tpbar( process, completed, total, pid )
-                if signal is not None:
-                    return True  
+                # signal = setup_tpbar( process, completed, total, pid )
+                # if signal is not None:
+                #     return True  
 
 
             def anonymous_139( new_page, pending ):
@@ -3770,29 +3740,21 @@ def negate() :
                 slist.save_session()
 
 
-            def anonymous_140(new_page):
-                        
-                display_image(new_page)
-
-
             pid = slist.negate(
-                    page            = slist.data[i][2]["uuid"],
+                    page            = slist.data[i][2].uuid,
                     queued_callback = anonymous_137 ,
-                    started_callback = anonymous_138 ,
+                    started_callback = negate_started_callback ,
                     finished_callback = anonymous_139 ,
                     error_callback   = error_callback,
-                    display_callback = anonymous_140 ,
+                    display_callback = display_callback ,
                 )
 
-    def anonymous_141():
-        windowt.destroy()
-
-    windowt.add_actions(
-        'gtk-apply',
-        anonymous_136 ,
-        'gtk-cancel',
-        anonymous_141 
-    )
+    windowt.add_actions([
+        ('gtk-apply',
+        negate_callback) ,
+        ('gtk-cancel',
+        lambda : windowt.destroy())
+    ])
     windowt.show_all()
 
 
@@ -3857,7 +3819,7 @@ def unsharp() :
         layout[row][1].set_tooltip_text( layout[row][ col ] )
 
 
-    def anonymous_142():
+    def unsharp_callback():
             # HBox for buttons
             # Update undo/redo buffers
         take_snapshot()
@@ -3876,11 +3838,13 @@ def unsharp() :
                 return update_tpbar(*argv)
 
 
-            def anonymous_144( thread, process, completed, total ):
+            def unsharp_started_callback( response ):
+                #thread, process, completed, total
+                pass
                         
-                signal = setup_tpbar( process, completed, total,pid )
-                if signal is not None:
-                    return True  
+                # signal = setup_tpbar( process, completed, total,pid )
+                # if signal is not None:
+                #     return True  
 
 
             def anonymous_145( new_page, pending ):
@@ -3892,34 +3856,25 @@ def unsharp() :
 
                 slist.save_session()
 
-
-            def anonymous_146(new_page):
-                        
-                display_image(new_page)
-
-
             pid = slist.unsharp(
-                    page            = slist.data[i][2]["uuid"],
+                    page            = slist.data[i][2].uuid,
                     radius          = SETTING['unsharp radius'],
                     sigma           = SETTING['unsharp sigma'],
                     gain            = SETTING['unsharp gain'],
                     threshold       = SETTING['unsharp threshold'],
                     queued_callback = anonymous_143 ,
-                    started_callback = anonymous_144 ,
+                    started_callback = unsharp_started_callback ,
                     finished_callback = anonymous_145 ,
                     error_callback   = error_callback,
-                    display_callback = anonymous_146 ,
+                    display_callback = display_callback ,
                 )
 
-    def anonymous_147():
-        windowum.destroy()
-
-    windowum.add_actions(
-        'gtk-apply',
-        anonymous_142 ,
-        'gtk-cancel',
-        anonymous_147 
-    )
+    windowum.add_actions([
+        ('gtk-apply',
+        unsharp_callback) ,
+        ('gtk-cancel',
+        lambda : windowum.destroy())
+    ])
     windowum.show_all()
 
 
@@ -4076,7 +4031,7 @@ def crop_dialog(action) :
     if  "height"  in SETTING["selection"] :
         sb_selector_h.set_value( SETTING["selection"]["height"] )
 
-    def anonymous_152():
+    def crop_callback():
         SETTING['Page range'] = windowc.page_range
         crop_selection(
                 action,
@@ -4085,18 +4040,13 @@ def crop_dialog(action) :
                 )
             )
 
-
-    def anonymous_153():
-        windowc.hide()
-
-    windowc.add_actions(
-        'gtk-apply',
-        anonymous_152 ,
-        'gtk-cancel',
-        anonymous_153 
-    )
+    windowc.add_actions([
+        ('gtk-apply',
+        crop_callback) ,
+        ('gtk-cancel',
+        lambda : windowc.hide())
+    ])
     windowc.show_all()
-    return
 
 
 def update_selector() :
@@ -4129,11 +4079,12 @@ def crop_selection( action, pagelist ) :
             return update_tpbar(*argv)
 
 
-        def anonymous_155( thread, process, completed, total ):
-                
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
+        def crop_started_callback( response ):
+            #thread, process, completed, total
+            pass
+            # signal = setup_tpbar( process, completed, total, pid )
+            # if signal is not None:
+            #     return True  
 
 
         def anonymous_156( new_page, pending ):
@@ -4146,22 +4097,17 @@ def crop_selection( action, pagelist ) :
             slist.save_session()
 
 
-        def anonymous_157(new_page):
-                
-            display_image(new_page)
-
-
         pid = slist.crop(
-            page            = slist.data[i][2]["uuid"],
+            page            = slist.data[i][2].uuid,
             x               = SETTING["selection"]["x"],
             y               = SETTING["selection"]["y"],
             w               = SETTING["selection"]["width"],
             h               = SETTING["selection"]["height"],
             queued_callback = anonymous_154 ,
-            started_callback = anonymous_155 ,
+            started_callback = crop_started_callback ,
             finished_callback = anonymous_156 ,
             error_callback   = error_callback,
-            display_callback = anonymous_157 ,
+            display_callback = display_callback ,
         )
 
 
@@ -4251,10 +4197,9 @@ def split_dialog(action) :
 
     global view
     view.position_changed_signal = view.connect(        'selection-changed' , anonymous_160     )
-    def anonymous_161():
+    def split_apply_callback():
 
-            # Update undo/redo buffers
-
+        # Update undo/redo buffers
         take_snapshot()
         SETTING['split-direction'] =               direction[ combob.get_active() ][0]
         SETTING['split-position'] = sb_pos.get_value()
@@ -4271,9 +4216,10 @@ def split_dialog(action) :
                 return update_tpbar(*argv)
 
 
-            def anonymous_163( thread, process, completed, total ):
-                        
-                signal = setup_tpbar( process, completed, total,pid )
+            def split_started_callback( response ):
+                #thread, process, completed, total
+                pass
+                # signal = setup_tpbar( process, completed, total,pid )
                 if signal is not None:
                     return True  
 
@@ -4288,39 +4234,34 @@ def split_dialog(action) :
                 slist.save_session()
 
 
-            def anonymous_165(new_page):
-                        
-                display_image(new_page)
-
-
             pid = slist.split_page(
                     direction       = SETTING['split-direction'],
                     position        = SETTING['split-position'],
-                    page            = slist.data[i][2]["uuid"],
+                    page            = slist.data[i][2].uuid,
                     queued_callback = anonymous_162 ,
-                    started_callback = anonymous_163 ,
+                    started_callback = split_started_callback ,
                     finished_callback = anonymous_164 ,
                     error_callback   = error_callback,
-                    display_callback = anonymous_165 ,
+                    display_callback = display_callback ,
                 )
 
 
-    def anonymous_166():
+    def split_cancel_callback():
         global view
         view.disconnect(
                 view["position_changed_signal"] )
         windowsp.destroy()
 
 
-    windowsp.add_actions(
-        'gtk-apply',
-        anonymous_161 ,
-        'gtk-cancel',
+    windowsp.add_actions([
+        ('gtk-apply',
+        split_apply_callback) ,
+        ('gtk-cancel',
 
         # Until we have a separate tool for the divider, kill the whole
         #        sub { $windowsp->hide }
-        anonymous_166 
-    )
+        split_cancel_callback) 
+    ])
     windowsp.show_all()
 
 
@@ -4359,7 +4300,7 @@ def user_defined_dialog() :
     label = Gtk.Label( label=_('Selected tool') )
     hbox.pack_start( label, False, True, 0 )
     comboboxudt = add_udt_combobox(hbox)
-    def anonymous_167():
+    def udt_apply_callback():
         SETTING['Page range'] = windowudt.page_range
         pagelist = indices2pages(
                 slist.get_page_index(
@@ -4373,15 +4314,12 @@ def user_defined_dialog() :
         windowudt.hide()
 
 
-    def anonymous_168():
-        windowudt.hide()
-
-    windowudt.add_actions(
-        'gtk-ok',
-        anonymous_167 ,
-        'gtk-cancel',
-        anonymous_168 
-    )
+    windowudt.add_actions([
+        ('gtk-ok',
+        udt_apply_callback) ,
+        ('gtk-cancel',
+            lambda : windowudt.hide())
+    ])
     windowudt.show_all()
 
 
@@ -4396,11 +4334,12 @@ def user_defined_tool( pages, cmd ) :
             return update_tpbar(*argv)
 
 
-        def anonymous_170( thread, process, completed, total ):
-                
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
+        def user_defined_started_callback( response ):
+            #thread, process, completed, total
+            pass
+            # signal = setup_tpbar( process, completed, total, pid )
+            # if signal is not None:
+            #     return True  
 
 
         def anonymous_171( new_page, pending ):
@@ -4413,25 +4352,19 @@ def user_defined_tool( pages, cmd ) :
             slist.save_session()
 
 
-        def anonymous_172(new_page):
-                
-            display_image(new_page)
-
-
         pid = slist.user_defined(
             page            = page,
             command         = cmd,
             queued_callback = anonymous_169 ,
-            started_callback = anonymous_170 ,
+            started_callback = user_defined_started_callback ,
             finished_callback = anonymous_171 ,
             error_callback   = error_callback,
-            display_callback = anonymous_172 ,
+            display_callback = display_callback ,
         )
 
 
 def unpaper_page( pages, options, callback ) :
-    """queue $page to be processed by unpaper
-"""    
+    "queue $page to be processed by unpaper"    
     if   (options is None) :
         options = EMPTY
 
@@ -4444,11 +4377,12 @@ def unpaper_page( pages, options, callback ) :
             return update_tpbar(*argv)
 
 
-        def anonymous_174( thread, process, completed, total ):
-                
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
+        def unpaper_started_callback( response ):
+            #thread, process, completed, total
+            pass
+            # signal = setup_tpbar( process, completed, total, pid )
+            # if signal is not None:
+            #     return True  
 
 
         def anonymous_175( new_page, pending ):
@@ -4472,7 +4406,7 @@ def unpaper_page( pages, options, callback ) :
             page            = pageobject,
             options         = options,
             queued_callback = anonymous_173 ,
-            started_callback = anonymous_174 ,
+            started_callback = unpaper_started_callback ,
             finished_callback = anonymous_175 ,
             error_callback   = error_callback,
             display_callback = anonymous_176 ,
@@ -4480,9 +4414,8 @@ def unpaper_page( pages, options, callback ) :
 
 
 def unpaper() :
-    """Run unpaper to clean up scan.
-"""
-    if  (windowu is not None) :
+    "Run unpaper to clean up scan."
+    if  windowu is not None :
         windowu.present()
         return
 
@@ -4500,15 +4433,13 @@ def unpaper() :
 
     vbox = windowu.get_content_area()
     unpaper.add_options(vbox)
-    def anonymous_177():
+    def unpaper_apply_callback():
 
-            # Update $SETTING
-
+        # Update $SETTING
         SETTING['unpaper options'] = unpaper.get_options()
         SETTING['Page range']      = windowu.page_range
 
-            # run unpaper
-
+        # run unpaper
         pagelist = indices2pages(
                 slist.get_page_index(
                     SETTING['Page range'], error_callback
@@ -4526,18 +4457,13 @@ def unpaper() :
         windowu.hide()
 
 
-    def anonymous_178():
-        windowu.hide()
-
-    windowu.add_actions(
-        'gtk-ok',
-        anonymous_177 ,
-        'gtk-cancel',
-        anonymous_178 
-    )
+    windowu.add_actions([
+        ('gtk-ok',
+        unpaper_apply_callback) ,
+        ('gtk-cancel',
+            lambda : windowu.hide())
+    ])
     windowu.show_all()
-    return
-
 
 
 def add_tess_languages(vbox) :
@@ -4564,7 +4490,7 @@ def add_tess_languages(vbox) :
 
 def ocr_dialog() :
     "Run OCR on current page and display result"
-    if  (windowo is not None) :
+    if  windowo is not None :
         windowo.present()
         return
 
@@ -4625,7 +4551,7 @@ def ocr_dialog() :
     cbto.connect(
         'toggled' , anonymous_181 
     )
-    def anonymous_182():
+    def ocr_apply_callback():
         tesslang =None
         if  comboboxtl is not None :
             tesslang = tesslang[ comboboxtl.get_active() ][0]
@@ -4633,18 +4559,14 @@ def ocr_dialog() :
         run_ocr( ocr_engine[ combobe.get_active() ][0],
                 tesslang, cbto.get_active(), spinbutton.get_value() )
 
-
-    def anonymous_183():
-        windowo.hide()
-
-    windowo.add_actions(
-        _('Start OCR'),
-        anonymous_182 ,
-        'gtk-close',
-        anonymous_183 
-    )
+    windowo.add_actions([
+        ('gtk-ok',
+        ocr_apply_callback) ,
+        ('gtk-cancel',
+            lambda : windowo.hide())
+    ])
     windowo.show_all()
-    if  (hboxtl is not None)        and not( ocr_engine[ combobe.get_active() ][0] == 'tesseract' )     :
+    if  hboxtl is not None and ocr_engine[ combobe.get_active() ][0] != 'tesseract' :
         hboxtl.hide()
 
 
@@ -4652,11 +4574,12 @@ def anonymous_184(*argv):
     return update_tpbar(*argv)
 
 
-def anonymous_185( thread, process, completed, total ):
-            
-    signal =               setup_tpbar( process, completed, total, pid )
-    if signal is not None:
-        return True  
+def ocr_started_callback( response ):
+    #thread, process, completed, total
+    pass
+    # signal =               setup_tpbar( process, completed, total, pid )
+    # if signal is not None:
+    #     return True  
 
 
 def anonymous_186( new_page, pending ):
@@ -4684,7 +4607,7 @@ def run_ocr( engine, tesslang, threshold_flag, threshold ) :
     signal, pid =None,None
     options = {
         "queued_callback" : anonymous_184 ,
-        "started_callback" : anonymous_185 ,
+        "started_callback" : ocr_started_callback ,
         "finished_callback" : anonymous_186 ,
         "error_callback"   : error_callback,
         "display_callback" : anonymous_187 ,
@@ -4758,29 +4681,29 @@ def view_html() :
         uri = 'http://gscan2pdf.sf.net'
  
     else :
-        uri = Glib.filename_to_uri( uri, None )    # undef => no hostname
+        uri = GLib.filename_to_uri( uri, None )    # undef => no hostname
 
     logger.info(f"Opening {uri} via default launcher")
-    context = Glib.IO.AppLaunchContext()
-    Glib.IO.AppInfo.launch_default_for_uri( uri, context )
+    context = Gio.AppLaunchContext()
+    Gio.AppInfo.launch_default_for_uri( uri, context )
     return
-
 
 
 def take_snapshot() :
     "Update undo/redo buffers before doing something"
     global undo_buffer
-    old_undo_files = list(map(lambda x: x[2].filename ,undo_buffer)  )
+    logger.debug(f"take_snapshot: {undo_buffer}")
+    old_undo_files = list(map(lambda x: x[2].uuid ,undo_buffer)  )
 
     # Deep copy the tied data. Otherwise, very bad things happen.
-    undo_buffer    = list(map(lambda x:  [x ] ,slist.data)  )
+    undo_buffer    = slist.data.copy()
     undo_selection = slist.get_selected_indices()
     logger.debug(  "Undo buffer %s", undo_buffer  )
 
     # Clean up files that fall off the undo buffer
     undo_files={}
     for i in     undo_buffer :
-        undo_files[f"{i[2].filename}"] = True
+        undo_files[i[2].uuid] = True
 
     delete_files=[]
     for  file in     old_undo_files :
@@ -4944,7 +4867,7 @@ def preferences(arg) :
         comboo,      cbv,         cbb,         vboxt
       )       = _preferences_general_options(windowr.get_border_width() )
     notebook.append_page( vbox2, Gtk.Label( label=_('General options') ) )
-    def anonymous_192():
+    def preferences_apply_callback():
         windowr.hide()
         if SETTING["frontend"] != combob.get_active_index() :
             SETTING["frontend"] = combob.get_active_index()
@@ -5050,18 +4973,12 @@ def preferences(arg) :
             if response == 'ok' :
                 restart()
 
-
-
-    def anonymous_193():
-        windowr.hide()
-
-
-    windowr.add_actions(
-        'gtk-apply',
-        anonymous_192 ,
-        'gtk-cancel',
-        anonymous_193 
-    )
+    windowr.add_actions([
+        ('gtk-ok',
+        preferences_apply_callback) ,
+        ('gtk-cancel',
+            lambda : windowr.hide())
+    ])
     windowr.show_all()
 
 
@@ -5630,7 +5547,7 @@ def properties() :
     slist.get_selection().connect(
         'changed' , anonymous_203 
     )
-    def anonymous_204():
+    def properties_apply_callback():
         windowp.hide()
         xresolution = xspinbutton.get_value()
         yresolution = yspinbutton.get_value()
@@ -5644,14 +5561,12 @@ f"setting resolution {xresolution},{yresolution} for page {slist.data[i][0]}"
 
         slist.get_model().handler_unblock(                slist.row_changed_signal )
 
-
-    def anonymous_205():
-        windowp.hide()
-
-
-    windowp.add_actions(        'gtk-apply',        anonymous_204 ,
-        'gtk-cancel',        anonymous_205 
-    )
+    windowp.add_actions([
+        ('gtk-ok',
+        properties_apply_callback) ,
+        ('gtk-cancel',
+            lambda : windowp.hide())
+    ])
     windowp.show_all()
 
 
