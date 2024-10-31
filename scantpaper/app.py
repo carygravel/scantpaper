@@ -125,7 +125,7 @@ _100_000MB              = 100_000
 ZOOM_CONTEXT_FACTOR     = 0.5
 
 GLib.set_application_name('gscan2pdf')
-GLib.set_prgname('net.sourceforge.gscan2pdf');
+GLib.set_prgname('net.sourceforge.gscan2pdf')
 prog_name = GLib.get_application_name()
 VERSION   = '3.0.0'
 
@@ -1773,7 +1773,7 @@ def file_exists( chooser, filename ) :
             """ Give the name change time to take effect."""
             chooser.response('ok')
 
-        GLib.Idle.add(anonymous_62)
+        GLib.idle_add(anonymous_62)
         return True
 
     return
@@ -2672,11 +2672,7 @@ def finished_process_callback( widget, process, button_signal=None ) :
             if response == Gtk.ResponseType.OK :
                 windows.side_to_scan=next
 
-
-
-        GLib.Idle.add(anonymous_100)
-
-    return
+        GLib.idle_add(anonymous_100)
 
 
 def restart() :
@@ -4426,11 +4422,9 @@ def unpaper() :
     )
 
     # Frame for page range
-
     windowu.add_page_range()
 
     # add unpaper options
-
     vbox = windowu.get_content_area()
     unpaper.add_options(vbox)
     def unpaper_apply_callback():
@@ -5260,33 +5254,28 @@ All document date codes use strftime codes with a leading D, e.g.:
     fileentry.set_text( SETTING['default filename'] )
 
     # Replace whitespace in filenames with underscores
-
     cbb = Gtk.CheckButton.new_with_label(
         _('Replace whitespace in filenames with underscores') )
     cbb.set_active( SETTING['convert whitespace to underscores'] )
     vbox.pack_start( cbb, True, True, 0 )
 
     # Timezone
-
     cbtz =       Gtk.CheckButton.new_with_label( _('Use timezone from locale') )
     cbtz.set_active( SETTING["use_timezone"] )
     vbox.pack_start( cbtz, True, True, 0 )
 
     # Time
-
     cbtm =       Gtk.CheckButton.new_with_label( _('Specify time as well as date') )
     cbtm.set_active( SETTING["use_time"] )
     vbox.pack_start( cbtm, True, True, 0 )
 
     # Set file timestamp with metadata
-
     cbts = Gtk.CheckButton.new_with_label(
         _('Set access and modification times to metadata date') )
     cbts.set_active( SETTING["set_timestamp"] )
     vbox.pack_start( cbts, True, True, 0 )
 
     # Convert scans from PNM to PNG
-
     cbtp = Gtk.CheckButton.new_with_label(
         _('Convert scanned images to PNG before further processing') )
     cbtp.set_active( SETTING["to_png"] )
@@ -5328,7 +5317,6 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.pack_end( button, True, True, 0 )
 
     # Available space in temporary directory
-
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
     label = Gtk.Label( label=_('Warn if available space less than (Mb)') )
@@ -5343,7 +5331,6 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.add(spinbuttonw)
 
     # Blank page standard deviation threshold
-
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
     label = Gtk.Label( label=_('Blank threshold') )
@@ -5355,7 +5342,6 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.add(spinbuttonb)
 
     # Dark page mean threshold
-
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
     label = Gtk.Label( label=_('Dark threshold') )
@@ -5367,7 +5353,6 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.add(spinbuttond)
 
     # OCR output
-
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, True, True, 0 )
     label = Gtk.Label( label=_('OCR output') )
@@ -5676,67 +5661,68 @@ def recursive_slurp(files):
                 logger.info(output)
 
 
-args = parse_arguments()
+def pre_flight():
+    global args
+    global rc
+    global SETTING
+    global iconpath
+    args = parse_arguments()
 
-# Catch and log perl warnings
-logging.captureWarnings(True)
+    # Catch and log Python warnings
+    logging.captureWarnings(True)
 
-rc, SETTING = read_config()
-if SETTING["cwd"] is None:
-    SETTING["cwd"] = os.getcwd()
-SETTING["version"] = VERSION
+    rc, SETTING = read_config()
+    if SETTING["cwd"] is None:
+        SETTING["cwd"] = os.getcwd()
+    SETTING["version"] = VERSION
 
-logger.info(f"Operating system: {sys.platform}")
-if sys.platform == 'linux' :
-    recursive_slurp(glob.glob('/etc/*-release') )
+    logger.info(f"Operating system: {sys.platform}")
+    if sys.platform == 'linux' :
+        recursive_slurp(glob.glob('/etc/*-release') )
 
-logger.info(f"Python version {sys.version_info}")
-logger.info(f"GLib VERSION_MIN_REQUIRED {GLib.VERSION_MIN_REQUIRED}")
-logger.info(f"GLib._version {GLib._version}")
-logger.info(    f"gi.__version__ {gi.__version__}")
-logger.info(    f"gi.version_info {gi.version_info}")
-logger.info(f"Gtk._version {Gtk._version}")
-logger.info( 'Built for GTK %s.%s.%s', Gtk.MAJOR_VERSION, Gtk.MINOR_VERSION, Gtk.MICRO_VERSION )
-logger.info(
-    'Running with GTK %s.%s.%s', Gtk.get_major_version(), Gtk.get_minor_version(),
-        Gtk.get_micro_version())
-logger.info( 'sane.__version__ %s',sane.__version__)   
-logger.info( 'sane.init() %s',sane.init())   
+    logger.info(f"Python version {sys.version_info}")
+    logger.info(f"GLib VERSION_MIN_REQUIRED {GLib.VERSION_MIN_REQUIRED}")
+    logger.info(f"GLib._version {GLib._version}")
+    logger.info(    f"gi.__version__ {gi.__version__}")
+    logger.info(    f"gi.version_info {gi.version_info}")
+    logger.info(f"Gtk._version {Gtk._version}")
+    logger.info( 'Built for GTK %s.%s.%s', Gtk.MAJOR_VERSION, Gtk.MINOR_VERSION, Gtk.MICRO_VERSION )
+    logger.info(
+        'Running with GTK %s.%s.%s', Gtk.get_major_version(), Gtk.get_minor_version(),
+            Gtk.get_micro_version())
+    logger.info( 'sane.__version__ %s',sane.__version__)   
+    logger.info( 'sane.init() %s',sane.init())   
 
-if debug :
-    logger.debug( Dumper( SETTING ) )
+    if debug :
+        logger.debug( Dumper( SETTING ) )
 
-SETTING["version"] = VERSION
+    SETTING["version"] = VERSION
 
-# Create icons for rotate buttons
-iconpath=None
-if os.path.isdir('/usr/share/gscan2pdf') :
-    iconpath = '/usr/share/gscan2pdf'
-else :
-    iconpath = 'icons'
+    # Create icons for rotate buttons
+    iconpath=None
+    if os.path.isdir('/usr/share/gscan2pdf') :
+        iconpath = '/usr/share/gscan2pdf'
+    else :
+        iconpath = 'icons'
 
-init_icons([
-('rotate90',    f"{iconpath}/stock-rotate-90.svg"),     
-('rotate180',   f"{iconpath}/180_degree.svg"),     
-('rotate270',   f"{iconpath}/stock-rotate-270.svg") ,     
-#('scanner',     f"{iconpath}/scanner.svg") ,     
-('pdf',         f"{iconpath}/pdf.svg") ,     
-('selection',   f"{iconpath}/stock-selection-all-16.png") ,     
-('hand-tool',   f"{iconpath}/hand-tool.svg") ,     
-('mail-attach', f"{iconpath}/mail-attach.svg") ,     
-('crop',        f"{iconpath}/crop.svg") ,
-])
-
-# Create the window
-# app = Gtk.Application(      application_id='org.gscan2pdf',             flags=Gio.ApplicationFlags.HANDLES_OPEN )
-# app.connect( 'startup'  , application_startup_callback )
-# app.connect( 'activate' , application_activate_callback )
-# app.run()
+    init_icons([
+    ('rotate90',    f"{iconpath}/stock-rotate-90.svg"),     
+    ('rotate180',   f"{iconpath}/180_degree.svg"),     
+    ('rotate270',   f"{iconpath}/stock-rotate-270.svg") ,     
+    #('scanner',     f"{iconpath}/scanner.svg") ,     
+    ('pdf',         f"{iconpath}/pdf.svg") ,     
+    ('selection',   f"{iconpath}/stock-selection-all-16.png") ,     
+    ('hand-tool',   f"{iconpath}/hand-tool.svg") ,     
+    ('mail-attach', f"{iconpath}/mail-attach.svg") ,     
+    ('crop',        f"{iconpath}/crop.svg") ,
+    ])
 
 
 class ApplicationWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        pre_flight()
 
         # # This will be in the windows group and have the "win" prefix
         # max_action = Gio.SimpleAction.new_stateful(
@@ -6721,7 +6707,7 @@ class Application(Gtk.Application):
         "only allow a single window and raise any existing ones"
 
         # Windows are associated with the application
-        # when the last one is closed the application shuts down
+        # until the last one is closed and the application shuts down
         if not self.window:
             self.window = ApplicationWindow(application=self, title=f"{prog_name} v{VERSION}")
             global window
