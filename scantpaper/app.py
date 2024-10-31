@@ -668,8 +668,8 @@ def find_crashed_sessions(tmpdir) :
               + _('Selected sessions will be deleted.') )
         dialog.get_content_area().add(text)
         columns = {_('Session'): 'text'}
-        sessionlist = Gtk.SimpleList(**columns)
-        sessionlist.get_selection().set_mode('multiple')
+        sessionlist = SimpleList(**columns)
+        sessionlist.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         sessionlist.data.append(missing)  
         dialog.get_content_area().add(sessionlist)
         (button) = dialog.get_action_area().get_children()
@@ -708,7 +708,7 @@ def find_crashed_sessions(tmpdir) :
         box   = dialog.get_content_area()
         box.add(label)
         columns = {_('Session'): 'text'}
-        sessionlist = Gtk.SimpleList(**columns)
+        sessionlist = SimpleList(**columns)
         sessionlist.data.append(crashed)  
         box.add(sessionlist)
         dialog.show_all()
@@ -4841,7 +4841,7 @@ def preferences(arg) :
     notebook = Gtk.Notebook()
     vbox.pack_start( notebook, True, True, 0 )
     (
-        vbox1,               frontends,        combob,
+        vbox1,               frontends,
         preentry,            cbc,              cbo,
         blacklist,           cbcsh,            cb_batch_flatbed,
         cb_cancel_btw_pages, cb_adf_all_pages, cb_cache_device_list,
@@ -4998,10 +4998,6 @@ def _preferences_scan_options(border_width) :
         ],     
     ]
 
-    combob = ComboBoxText(data=frontends)
-    hbox.set_tooltip_text( _('Interface used for scanner access') )
-    hbox.pack_end( combob, True, True, 0 )
-
     # Device blacklist
     hboxb = Gtk.HBox()
     vbox.pack_start( hboxb, False, False, 0 )
@@ -5012,7 +5008,6 @@ def _preferences_scan_options(border_width) :
     hboxb.set_tooltip_text( _('Device blacklist (regular expression)') )
     if  'device blacklist'  in SETTING :
         blacklist.set_text( SETTING['device blacklist'] )
-
 
     # Cycle SANE handle after scan
     cbcsh =       Gtk.CheckButton( label=_('Cycle SANE handle after scan') )
@@ -5098,7 +5093,6 @@ def _preferences_scan_options(border_width) :
     if  'scan prefix'  in SETTING :
         preentry.set_text( SETTING['scan prefix'] )
 
-
     # Cache options?
     cbc =       Gtk.CheckButton( label=_('Cache device-dependent options') )
     if SETTING['cache options'] :
@@ -5106,7 +5100,6 @@ def _preferences_scan_options(border_width) :
     vbox.pack_start( cbc, False, False, 0 )
 
     # Clear options cache
-
     buttonc =       Gtk.Button( label=_('Clear device-dependent options cache') )
     vbox.pack_start( buttonc, False, False, 0 )
     def anonymous_195():
@@ -5122,8 +5115,7 @@ def _preferences_scan_options(border_width) :
     )
 
     # Option visibility
-
-    oframe = Gtk.Frame( _('Option visibility & control') )
+    oframe = Gtk.Frame( label=_('Option visibility & control') )
     vbox.pack_start( oframe, True, True, 0 )
     vvbox = Gtk.VBox()
     vvbox.set_border_width(border_width)
@@ -5136,8 +5128,8 @@ def _preferences_scan_options(border_width) :
         _('Type')   : 'text',
         _('Show')   : 'bool',
         _('Reload') : 'bool'}
-    option_visibility_list = Gtk.SimpleList(**columns)
-    option_visibility_list.get_selection().set_mode('multiple')
+    option_visibility_list = SimpleList(**columns)
+    option_visibility_list.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
     scwin.add(option_visibility_list)
     bhbox = Gtk.HBox()
     vvbox.pack_start( bhbox, False, False, 0 )
@@ -5182,8 +5174,6 @@ def _preferences_scan_options(border_width) :
                         'No scanner currently open with command line frontend.')
                 )
 
-        return
-
 
     fbutton.connect(
         'clicked' , anonymous_198 
@@ -5200,9 +5190,7 @@ def _preferences_scan_options(border_width) :
         buttonc.set_sensitive( False )
         oframe.set_sensitive( False )
 
-    combob.connect(        'changed' , anonymous_199     )
-    combob.set_active_index( SETTING["frontend"] )
-    return vbox, frontends, combob, preentry, cbc, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
+    return vbox, frontends, preentry, cbc, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
 
 
 def _preferences_general_options(border_width) :
@@ -5282,7 +5270,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.pack_start( label, False, False, 0 )
     tmpentry = Gtk.Entry()
     hbox.add(tmpentry)
-    tmpentry.set_text( os.path.dirname(session) )
+    tmpentry.set_text( os.path.dirname(session.name) )
     button = Gtk.Button( label=_('Browse') )
     global windowr
     def anonymous_200():
@@ -5367,7 +5355,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.pack_end( comboo, True, True, 0 )
 
     # Manage user-defined tools
-    frame = Gtk.Frame( _('Manage user-defined tools') )
+    frame = Gtk.Frame( label=_('Manage user-defined tools') )
     vbox.pack_start( frame, True, True, 0 )
     vboxt = Gtk.VBox()
     vboxt.set_border_width(border_width)
