@@ -56,7 +56,9 @@ class Page:
         if "image_object" in kwargs and not isinstance(
             kwargs["image_object"], Image.Image
         ):
-            raise TypeError("Error: image_object is not of type Image")
+            raise TypeError(
+                f"Error: image_object is type {type(kwargs['image_object'])} not Image"
+            )
 
         if "filename" in kwargs:
             self.image_object = Image.open(kwargs["filename"])

@@ -77,6 +77,10 @@ TIFF_COMPRESSION_ALGS = [
     ("g4", _("G4"), _("Compress output with CCITT Group 4 encoding.")),
     ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
+DATETIME_FORMAT = {
+    True: "%Y-%m-%dT%H:%M:%S",
+    False: "%Y-%m-%d",
+}
 
 
 class Save(Dialog):
@@ -402,10 +406,12 @@ class Save(Dialog):
             hboxe.hide()
             self.select_datetime = False
 
-    def _datetime_focus_out_callback(self, widget):
-        text = widget.get_text()
+    def _datetime_focus_out_callback(self, entry_widget, _event):
+        text = entry_widget.get_text()
         if text is not None:
-            self.meta_datetime = datetime.datetime.strptime(text)
+            self.meta_datetime = datetime.datetime.strptime(
+                text, DATETIME_FORMAT[self._include_time]
+            )
         return False
 
     def _clicked_edit_date_button(self, _widget):
@@ -420,7 +426,7 @@ class Save(Dialog):
         # Editing the entry and clicking the edit button bypasses the
         # focus-out-event, so update the date now
         self.meta_datetime = datetime.datetime.strptime(
-            self._meta_datetime_widget.get_text()
+            self._meta_datetime_widget.get_text(), DATETIME_FORMAT[self._include_time]
         )
         calendar.select_day(self.meta_datetime.day)
         calendar.select_month(self.meta_datetime.month - 1, self.meta_datetime.year)
@@ -428,7 +434,7 @@ class Save(Dialog):
 
         def calendar_day_selected_callback(_widget):
             year, month, day = calendar.get_date()
-            self.meta_datetime = datetime.date(day, month + 1, year)
+            self.meta_datetime = datetime.datetime(year, month + 1, day)
 
         calendar_s = calendar.connect("day-selected", calendar_day_selected_callback)
 
@@ -457,7 +463,7 @@ class Save(Dialog):
         vbox_date.pack_start(today_b, True, True, 0)
         window_date.show_all()
 
-    def _insert_text_handler(self, widget, string, length, position):
+    def _insert_text_handler(self, widget, string, _length, position):
         text = widget.get_text()
         text_len = len(text)
         widget.handler_block_by_func(self._insert_text_handler)
@@ -470,15 +476,15 @@ class Save(Dialog):
             day_offset = 1
             if string == "-":
                 day_offset = -day_offset
-            date = datetime.datetime.strptime(text) + datetime.timedelta(
-                days=day_offset
-            )
+            date = datetime.datetime.strptime(
+                text, DATETIME_FORMAT[self._include_time]
+            ) + datetime.timedelta(days=day_offset)
             widget.set_text(date.isoformat())
         # only allow integers and -
         elif not self.include_time and re.search(
             r"^[\d\-]+$", string, re.MULTILINE | re.DOTALL | re.VERBOSE
         ):
-            widget.insert_text(string, length, position)
+            widget.insert_text(string, position)
             position += 1
 
         widget.handler_unblock_by_func(self._insert_text_handler)

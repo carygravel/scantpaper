@@ -165,7 +165,7 @@ class Options(GObject.Object):
         of duplex scanner, or if the capability is inactive."""
         for option in self.array:
             if not enums.CAP_INACTIVE & option.cap:
-                if re.search(
+                if option.name is not None and re.search(
                     r"duplex",
                     option.name,
                     re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,

@@ -238,7 +238,7 @@ class SaneScanDialog(Scan):
         if val:
             widget.set_active(True)
 
-        def activate_switch_cb():
+        def activate_switch_cb(_widget, _arg2):
             self.num_reloads = 0  # num-reloads is read-only
             value = widget.get_active()
             self.set_option(opt, value)
