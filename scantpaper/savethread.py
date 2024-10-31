@@ -356,7 +356,7 @@ class SaveThread(Importhread):
             # if proc.returncode:
             #     request.error(_("Error saving image"))
 
-            _post_save_hook(filename, None)
+            _post_save_hook(filename, options.get("options"))
 
     def save_text(self, **kwargs):
         "save text file"
