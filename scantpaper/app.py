@@ -1245,10 +1245,7 @@ def update_metadata_settings(dialog) :
         doc_datetime = dialog["datetime"]
         for  dialog2 in          ( windowi, windowe ) :
             if  dialog2 is not None :
-                dialog2.meta_datetime=doc_datetime
-
-
- 
+                dialog2.meta_datetime=doc_datetime 
     else :
         doc_datetime = dialog.meta_datetime
 
@@ -1264,7 +1261,7 @@ def update_metadata_settings(dialog) :
         except Exception as e:
             success = False
             msg =               _(
-                '%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime: %s') % (*doc_datetime,e)                 
+                '%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime: %s') % (doc_datetime,e)                 
             logger.debug(msg)
             show_message_dialog(
                 parent  = window,
@@ -2292,25 +2289,28 @@ def scan_dialog( action, hidden=False, scan=False ) :
         SETTING["device"] = os.environ['SANE_DEFAULT_DEVICE']
 
     # scan dialog
-    windows = SaneScanDialog(
-        transient_for               = window,
-        title                         = _('Scan Document'),
-        default_width               = SETTING["scan_window_width"],
-        default_height              = SETTING["scan_window_height"],
-        dir                           = session,
-        hide_on_delete              = True,
-        paper_formats               = SETTING["Paper"],
-        allow_batch_flatbed         = SETTING['allow-batch-flatbed'],
-        adf_defaults_scan_all_pages =
+    kwargs = {
+        "transient_for"               : window,
+        "title"                         : _('Scan Document'),
+        "dir"                           : session,
+        "hide_on_delete"              : True,
+        "paper_formats"               : SETTING["Paper"],
+        "allow_batch_flatbed"         : SETTING['allow-batch-flatbed'],
+        "adf_defaults_scan_all_pages" :
           SETTING['adf-defaults-scan-all-pages'],
-        document                   = slist,
-        ignore_duplex_capabilities = SETTING['ignore-duplex-capabilities'],
-        cycle_sane_handle    = SETTING['cycle sane handle'],
-        cancel_between_pages = (
+        "document"                   : slist,
+        "ignore_duplex_capabilities" : SETTING['ignore-duplex-capabilities'],
+        "cycle_sane_handle"    : SETTING['cycle sane handle'],
+        "cancel_between_pages" : (
                     SETTING['allow-batch-flatbed']
                 and SETTING['cancel-between-pages']
         ),
-    )
+    }
+    if SETTING["scan_window_width"]:
+        kwargs["default_width"]= SETTING["scan_window_width"]
+    if SETTING["scan_window_height"]:
+        kwargs["default_height"]= SETTING["scan_window_height"]
+    windows = SaneScanDialog(  **kwargs  )
 
     # Can't set the device when creating the window,
     # as the list does not exist then
@@ -2345,37 +2345,31 @@ def scan_dialog( action, hidden=False, scan=False ) :
             Profile(                SETTING["profile"][profile]            )
         )
 
-    def anonymous_92( widget, profile ):
+    def changed_profile_callback( widget, profile ):
             
         SETTING['default profile'] = profile
 
 
-    windows.connect(
-        'changed-profile' , anonymous_92 
-    )
-    def anonymous_93( widget, name, profile ):
+    windows.connect('changed-profile' , changed_profile_callback)
+    def added_profile_callback( widget, name, profile ):
             
-        SETTING["profile"][name] = profile.get_data()
+        SETTING["profile"][name] = profile.get()
 
 
-    windows.connect(
-        'added-profile' , anonymous_93 
-    )
-    def anonymous_94( widget, profile ):
+    windows.connect('added-profile' , added_profile_callback)
+    def removed_profile_callback( widget, profile ):
             
         del(SETTING["profile"][profile]) 
 
 
-    windows.connect(
-        'removed-profile' , anonymous_94 
-    )
+    windows.connect('removed-profile' , removed_profile_callback)
 
-    def anonymous_95( widget, profile ):
+    def changed_current_scan_options_callback( widget, profile, _uuid ):
         "Update the default profile when the scan options change"           
-        SETTING['default-scan-options'] = profile.get_data()
+        SETTING['default-scan-options'] = profile.get()
 
     windows.connect(
-        'changed-current-scan-options' , anonymous_95 
+        'changed-current-scan-options' , changed_current_scan_options_callback
     )
     def anonymous_96( widget, formats ):
             
@@ -2680,8 +2674,8 @@ def restart() :
     os.execv(sys.executable, *sys.argv)
 
 
-def update_postprocessing_options_callback(widget) :
-                                        # $widget is $windows
+def update_postprocessing_options_callback(widget, _option_name=None, _option_val=None, _uuid=None) :
+                                        # widget is windows
     options   = widget.available_scan_options
     increment = widget.page_number_increment
     global rotate_side_cmbx
