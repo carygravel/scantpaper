@@ -1072,7 +1072,7 @@ def update_tpbar(response) :
         return True
 
 
-def open_dialog() :
+def open_dialog(_action) :
     "Throw up file selector and open selected file"
     # cd back to cwd to get filename
     os.chdir( SETTING["cwd"])
@@ -1105,10 +1105,10 @@ def open_dialog() :
         file_chooser.destroy()
 
     # cd back to tempdir
-    os.chdir( session)
+    os.chdir( session.name)
 
 
-def anonymous_47(filename):
+def import_files_password_callback(filename):
             
     text = _('Enter user password for PDF %s') % (filename)  
     dialog =               Gtk.MessageDialog( window,
@@ -1131,70 +1131,74 @@ def anonymous_47(filename):
     return
 
 
-def anonymous_48(*argv):
-    logger.debug(f"import_files queued @{{filenames}}")
-    return update_tpbar(*argv)
+def import_files_queued_callback(response):
+    #*argv
+    #filenames
+    logger.debug(f"queued import_files({response})")
+#    return update_tpbar(*argv)
 
 
-def anonymous_49( thread, process, completed, total ):
+def import_files_started_callback( response ):
+    #thread, process, completed, total
+    #filenames
             
-    logger.debug(f"import_files started @{{filenames}}")
-    signal =    setup_tpbar( process, completed, total, pid )
-    if signal is not None:
-        return True  
+    logger.debug(f"started import_files({response})")
+    # signal =    setup_tpbar( process, completed, total, pid )
+    # if signal is not None:
+    #     return True  
 
 
-def anonymous_50(*argv):
-    return update_tpbar(*argv)
+def import_files_running_callback(response):
+    #*argv
+    pass
+    #return update_tpbar(*argv)
 
 
-def anonymous_51(pending):
-            
-    logger.debug(f"import_files finished @{{filenames}}")
-    if not pending :
-        thbox.hide()
-    if signal is not None :
-        tcbutton.disconnect(signal)
+def import_files_finished_callback(response):
+    #pending, filenames
+    logger.debug(f"finished import_files({response})")
+    # if not pending :
+    #     thbox.hide()
+    # if signal is not None :
+    #     tcbutton.disconnect(signal)
 
-    slist.save_session()
+    # slist.save_session()
 
 
-def anonymous_52(metadata):
-            
+def import_files_metadata_callback(metadata):
+    logger.debug(f"import_files_metadata_callback({metadata})")
     update_metadata_settings(metadata)
 
 
-def import_files( filenames, all_pages ) :
+def import_files( filenames, all_pages=False ) :
     
-
     # FIXME: import_files() now returns an array of pids.
-
     ( signal, pid )=(None,None)
     options = {
         "paths"             : filenames,
-        "password_callback" : anonymous_47 ,
-        "queued_callback" : anonymous_48 ,
-        "started_callback" : anonymous_49 ,
-        "running_callback" : anonymous_50 ,
-        "finished_callback" : anonymous_51 ,
-        "metadata_callback" : anonymous_52 ,
+        "password_callback" : import_files_password_callback ,
+        "queued_callback" : import_files_queued_callback ,
+        "started_callback" : import_files_started_callback ,
+        "running_callback" : import_files_running_callback ,
+        "finished_callback" : import_files_finished_callback ,
+        "metadata_callback" : import_files_metadata_callback ,
         "error_callback" : error_callback,
     }
     if all_pages :
-        def anonymous_53(info):
+        def all_pages_callback(info):
             
             return 1, info["pages"]
 
 
-        options["pagerange_callback"] = anonymous_53 
+        options["pagerange_callback"] = all_pages_callback 
  
     else :
-        def anonymous_54(info):
+        def select_pagerange_callback(info):
             
             dialog = Gtk.Dialog(
-                _('Pages to extract'),
-                window, [
-            ["modal","destroy-with-parent"]],
+                title=_('Pages to extract'),
+                transient_for=window,
+                modal=True,destroy_with_parent=True,
                 gtk_ok     = 'ok',
                 gtk_cancel = 'cancel'
             )
@@ -1221,16 +1225,16 @@ def import_files( filenames, all_pages ) :
             return
 
 
-        options["pagerange_callback"] = anonymous_54 
+        options["pagerange_callback"] = select_pagerange_callback 
 
-    pid = slist.import_files(options)
-    return
+    pid = slist.import_files(**options)
 
 
 def update_metadata_settings(dialog) :
     "Get metadata"    
+    logger.debug(f"update_metadata_settings({dialog})")
     for  name in     ["author","title","subject","keywords"] :
-        if type(dialog) == 'HASH' :
+        if isinstance(dialog, dict) :
             if  name  in dialog :
                 SETTING[name] = dialog[name]
                 for  dialog2 in                  ( windowi, windowe ) :
@@ -1241,11 +1245,12 @@ def update_metadata_settings(dialog) :
             SETTING[f"{name}-suggestions"] = getattr(dialog, f"meta_{name}_suggestions")              
 
     doc_datetime=None
-    if type(dialog) == 'HASH' :
-        doc_datetime = dialog["datetime"]
-        for  dialog2 in          ( windowi, windowe ) :
-            if  dialog2 is not None :
-                dialog2.meta_datetime=doc_datetime 
+    if isinstance(dialog, dict) :
+        if "datetime" in dialog:
+            doc_datetime = dialog["datetime"]
+            for  dialog2 in          ( windowi, windowe ) :
+                if  dialog2 is not None :
+                    dialog2.meta_datetime=doc_datetime 
     else :
         doc_datetime = dialog.meta_datetime
 
