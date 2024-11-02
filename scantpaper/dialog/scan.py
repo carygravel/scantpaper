@@ -456,6 +456,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.profile = self.combobsp.get_active_text()
 
     def show(self, *args, **kwargs):
+        PageControls.show(self, **kwargs)
         self.framex.hide()
         self._flatbed_or_duplex_callback()
         if (

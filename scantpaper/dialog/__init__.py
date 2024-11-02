@@ -35,15 +35,15 @@ class Dialog(Gtk.Dialog):
         self.destroy()
         return Gdk.EVENT_PROPAGATE
 
-    def do_key_press_event(self, event):  # pylint: disable=arguments-differ
-        if event.keyval != Gdk.KEY_Escape:
-            return Gdk.EVENT_PROPAGATE
-
-        if self.hide_on_delete:
-            self.hide()
-        else:
-            self.destroy()
-        return Gdk.EVENT_STOP
+    def do_key_press_event(self, event):
+        if event.keyval == Gdk.KEY_Escape:
+            if self.hide_on_delete:
+                self.hide()
+            else:
+                self.destroy()
+            return Gdk.EVENT_STOP
+        Gtk.Dialog.do_key_press_event(self, event)
+        return Gdk.EVENT_PROPAGATE
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
