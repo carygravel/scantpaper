@@ -4842,7 +4842,7 @@ def preferences(arg) :
     vbox.pack_start( notebook, True, True, 0 )
     (
         vbox1,               frontends,
-        preentry,            cbc,              cbo,
+        cbo,
         blacklist,           cbcsh,            cb_batch_flatbed,
         cb_cancel_btw_pages, cb_adf_all_pages, cb_cache_device_list,
         cb_ignore_duplex
@@ -4872,18 +4872,6 @@ def preferences(arg) :
                 SETTING['visible-scan-options'][ i[0] ] = i[2]
                 if i[3] :
                     SETTING['scan-reload-triggers'].append(i[0])  
-
-
-            if SETTING["frontend"] != 'libsane-perl'                    and SETTING["frontend"] != 'libimage-sane-perl'                 :
-                SETTING['scan prefix']   = preentry.get_text()
-                SETTING['cache options'] = cbc.get_active()
-                if windows :
-                    windows.cache_options=SETTING['cache options']
-                    windows.visible_scan_options=SETTING['visible-scan-options']
-                    windows.reload_triggers=SETTING['scan-reload-triggers']
-
-                if  "cache"  in SETTING                        and not SETTING['cache options']                     :
-                    del(SETTING["cache"]) 
 
         SETTING['auto-open-scan-dialog'] = cbo.get_active()
         try :
@@ -5083,114 +5071,7 @@ def _preferences_scan_options(border_width) :
     cb_cache_device_list.set_active( SETTING['cache-device-list'] )
     vbox.pack_start( cb_cache_device_list, False, False, 0 )
 
-    # scan command prefix
-    hboxp = Gtk.HBox()
-    vbox.pack_start( hboxp, False, False, 0 )
-    label = Gtk.Label( label=_('Scan command prefix') )
-    hboxp.pack_start( label, False, False, 0 )
-    preentry = Gtk.Entry()
-    hboxp.add(preentry)
-    if  'scan prefix'  in SETTING :
-        preentry.set_text( SETTING['scan prefix'] )
-
-    # Cache options?
-    cbc =       Gtk.CheckButton( label=_('Cache device-dependent options') )
-    if SETTING['cache options'] :
-        cbc.set_active(True)
-    vbox.pack_start( cbc, False, False, 0 )
-
-    # Clear options cache
-    buttonc =       Gtk.Button( label=_('Clear device-dependent options cache') )
-    vbox.pack_start( buttonc, False, False, 0 )
-    def anonymous_195():
-        if  "cache"  in SETTING :
-            del(SETTING["cache"]) 
-        if windows :
-            windows.options_cache=None
-
-
-
-    buttonc.connect(
-        'clicked' , anonymous_195 
-    )
-
-    # Option visibility
-    oframe = Gtk.Frame( label=_('Option visibility & control') )
-    vbox.pack_start( oframe, True, True, 0 )
-    vvbox = Gtk.VBox()
-    vvbox.set_border_width(border_width)
-    oframe.add(vvbox)
-    scwin = Gtk.ScrolledWindow()
-    vvbox.pack_start( scwin, True, True, 0 )
-    scwin.set_policy( Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC )
-    columns = {
-        _('Title')  : 'text',
-        _('Type')   : 'text',
-        _('Show')   : 'bool',
-        _('Reload') : 'bool'}
-    option_visibility_list = SimpleList(**columns)
-    option_visibility_list.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
-    scwin.add(option_visibility_list)
-    bhbox = Gtk.HBox()
-    vvbox.pack_start( bhbox, False, False, 0 )
-    sbutton = Gtk.Button( label=_('Show') )
-
-    def anonymous_196():
-        for i in          option_visibility_list.get_selected_indices()  :
-            option_visibility_list.data[i][2] = True
-
-    sbutton.connect(
-        'clicked' , anonymous_196 
-    )
-    bhbox.pack_start( sbutton, True, True, 0 )
-    hbutton = Gtk.Button( label=_('Hide') )
-
-    def anonymous_197():
-        for i in          option_visibility_list.get_selected_indices()  :
-            option_visibility_list.data[i][2] = False
-
-    hbutton.connect(        'clicked' , anonymous_197     )
-    bhbox.pack_start( hbutton, True, True, 0 )
-    fbutton = Gtk.Button( label=_('List current options') )
-    global windowr
-    def anonymous_198():
-        if windows :
-            option_visibility_list.data = ()
-            options = windows.available_scan_options
-            for  i in              range(1,options.num_options())      :
-                opt = options.by_index(i)
-                option_visibility_list.data.append([
-                opt["title"], opt["type"], True, False ])                        
-
-            option_visibility_list.data.append([
-            'Paper size', None, True, False ])                    
- 
-        else :
-            show_message_dialog(
-                    parent  = windowr,
-                    message_type    = 'error',
-                    buttons = Gtk.ButtonsType.CLOSE,
-                    text    = _(
-                        'No scanner currently open with command line frontend.')
-                )
-
-
-    fbutton.connect(
-        'clicked' , anonymous_198 
-    )
-    bhbox.pack_start( fbutton, True, True, 0 )
-    show_not_listed =       Gtk.CheckButton( label=_('Show options not listed') )
-    vvbox.pack_start( show_not_listed, False, False, 0 )
-
-
-    def anonymous_199():#FIXME: no need for this anymore, withonly one SANE interface
-        cbcsh.set_sensitive(True)
-        hboxp.set_sensitive( False )
-        cbc.set_sensitive( False )
-        buttonc.set_sensitive( False )
-        oframe.set_sensitive( False )
-
-    return vbox, frontends, preentry, cbc, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
+    return vbox, frontends, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
 
 
 def _preferences_general_options(border_width) :
@@ -6191,9 +6072,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             import_files(args.import_files)
         if  args.import_all is not None :
             import_files( args.import_all, True )
-
-
-
 
 
     def create_menu_bar(self) :
