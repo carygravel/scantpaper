@@ -36,6 +36,9 @@ def test_basic():
     assert dialog.meta_subject == "subject", "subject"
     assert dialog.meta_keywords == "keywords", "keywords"
 
+    dialog._meta_author_widget.set_text("author2")
+    assert dialog.meta_author == "author2", "author from Entry()"
+
 
 def test_datetime():
     "test datetime"

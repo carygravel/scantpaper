@@ -507,13 +507,13 @@ class Save(Dialog):
             row += 1
             setattr(
                 self,
-                f"meta_{name}_widget",
+                f"_meta_{name}_widget",
                 EntryCompletion(
                     getattr(self, f"meta_{name}"),
                     getattr(self, f"meta_{name}_suggestions"),
                 ),
             )
-            hbox.pack_start(getattr(self, f"meta_{name}_widget"), True, True, 0)
+            hbox.pack_start(getattr(self, f"_meta_{name}_widget"), True, True, 0)
 
     def _on_toggle_include_time(self, newval):
         if hasattr(self, "_meta_box_widget"):
