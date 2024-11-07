@@ -4,6 +4,7 @@ import os
 import json
 import logging
 from types import SimpleNamespace
+import datetime
 from basedocument import slurp
 from i18n import _
 
@@ -42,7 +43,7 @@ DEFAULTS = {
     "set_timestamp": True,
     "use_time": False,
     "use_timezone": True,
-    "datetime offset": [0, 0, 0, 0],
+    "datetime offset": datetime.timedelta(seconds=0),
     "pdf compression": "auto",
     "tiff compression": None,
     "text_position": "behind",
@@ -146,6 +147,7 @@ def read_config(filename):
     ):
         config["user_defined_tools"] = [config["user_defined_tools"]]
 
+    # deserialise device list
     if (
         "device list" in config
         and len(config["device list"]) > 0
@@ -158,6 +160,15 @@ def read_config(filename):
         for profile in list(config["profile"].keys()):
             if not config["profile"][profile]:
                 del config["profile"][profile]
+
+    # deserialise timedelta
+    if "datetime offset" in config:
+        config["datetime offset"] = datetime.timedelta(
+            days=config["datetime offset"][0],
+            hours=config["datetime offset"][1],
+            minutes=config["datetime offset"][2],
+            seconds=config["datetime offset"][3],
+        )
 
     logger.debug(config)
     return config
@@ -202,6 +213,8 @@ def remove_invalid_paper(hashref):
 
 def write_config(rc, config):
     "write config"
+
+    # serialise device list
     if "device list" in config:
         dl = []
         for dns in config["device list"]:
@@ -211,6 +224,16 @@ def write_config(rc, config):
                     d[key] = getattr(dns, key)
             dl.append(d)
         config["device list"] = dl
+
+    # serialise timedelta
+    if "datetime offset" in config:
+        config["datetime offset"] = [
+            config["datetime offset"].days,
+            config["datetime offset"].seconds // 3600,
+            (config["datetime offset"].seconds // 60) % 60,
+            config["datetime offset"].seconds % 60,
+        ]
+
     with open(rc, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(config, sort_keys=True, indent=4))
     logger.info("Wrote config to %s", rc)

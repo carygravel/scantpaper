@@ -2,6 +2,7 @@
 
 import os
 from types import SimpleNamespace
+import datetime
 from config import (
     read_config,
     write_config,
@@ -139,6 +140,32 @@ def test_config2():
     write_config(rc, example)
     output = slurp(rc)
     assert output == config, "Serialise device list"
+
+    #########################
+
+    config = """{
+    "datetime offset": [
+        0,
+        0,
+        0,
+        0
+    ],
+    "version": "1.7.3"
+}"""
+    with open(rc, "w", encoding="utf-8") as fh:
+        fh.write(config)
+    example = {"version": "1.7.3", "datetime offset": datetime.timedelta(seconds=0)}
+    output = read_config(rc)
+    assert output == example, "Deserialise datetime offset"
+
+    #########################
+
+    write_config(rc, example)
+
+    example = config.split("\n")
+    output = slurp(rc).split("\n")
+
+    assert output == example, "Serialise datetime offset"
 
     #########################
 
