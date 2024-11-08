@@ -880,6 +880,26 @@ class Save(Dialog):
 
         fontb.connect("clicked", font_clicked_callback)
 
+    def update_config_dict(self, config):
+        "update config based from instance metadata"
+        for name in ["author", "title", "subject", "keywords"]:
+            config[name] = getattr(self, f"meta_{name}")
+            config[f"{name}-suggestions"] = getattr(self, f"meta_{name}_suggestions")
+
+        if self.meta_datetime is not None:
+
+            # convert from date to datetime if necessary
+            args = self.meta_datetime.timetuple()[:6]
+            doc_datetime = datetime.datetime(*args)
+
+            config["datetime offset"] = doc_datetime - datetime.datetime.now()
+
+    def update_from_import_metadata(self, metadata):
+        "update instance based from imported metadata"
+        for name in ["author", "title", "subject", "keywords", "datetime"]:
+            if name in metadata:
+                setattr(self, f"meta_{name}", metadata[name])
+
 
 def filter_table(table, types):
     "filter table list by types"
