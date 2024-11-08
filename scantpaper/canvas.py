@@ -579,10 +579,10 @@ class Canvas(
 
             def _boxed_text_in_idle():
                 self._boxed_text(kwargs)
-                del self._old_idles[kwargs["box"]]
+                del self._old_idles[str(kwargs["box"])]
                 return GLib.SOURCE_REMOVE
 
-            self._old_idles[kwargs["box"]] = GLib.idle_add(_boxed_text_in_idle)
+            self._old_idles[str(kwargs["box"])] = GLib.idle_add(_boxed_text_in_idle)
         else:
             self._boxed_text(kwargs)
 
