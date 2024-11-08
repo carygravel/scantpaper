@@ -77,10 +77,6 @@ TIFF_COMPRESSION_ALGS = [
     ("g4", _("G4"), _("Compress output with CCITT Group 4 encoding.")),
     ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
-DATETIME_FORMAT = {
-    True: "%Y-%m-%dT%H:%M:%S",
-    False: "%Y-%m-%d",
-}
 
 
 class Save(Dialog):
@@ -100,7 +96,7 @@ class Save(Dialog):
         if newval != self._meta_datetime:
             self._meta_datetime = newval
             if self._meta_datetime_widget is not None:
-                self._meta_datetime_widget.set_text(newval.isoformat())
+                self._meta_datetime_widget.set_text(newval.isoformat(sep=" "))
 
     select_datetime = GObject.Property(
         type=bool,
@@ -371,7 +367,7 @@ class Save(Dialog):
         bspecify_dt.connect("clicked", self._clicked_specify_date_button, hboxe)
         self._meta_datetime_widget = Gtk.Entry()
         if self.meta_datetime is not None and self.meta_datetime != "":
-            self._meta_datetime_widget.set_text(self.meta_datetime.isoformat())
+            self._meta_datetime_widget.set_text(self.meta_datetime.isoformat(sep=" "))
 
         self._meta_datetime_widget.set_activates_default(True)
         self._meta_datetime_widget.set_tooltip_text(_("Year-Month-Day"))
@@ -408,10 +404,8 @@ class Save(Dialog):
 
     def _datetime_focus_out_callback(self, entry_widget, _event):
         text = entry_widget.get_text()
-        if text is not None:
-            self.meta_datetime = datetime.datetime.strptime(
-                text, DATETIME_FORMAT[self._include_time]
-            )
+        if text not in [None, ""]:
+            self.meta_datetime = datetime.datetime.fromisoformat(text)
         return False
 
     def _clicked_edit_date_button(self, _widget):
@@ -425,8 +419,8 @@ class Save(Dialog):
 
         # Editing the entry and clicking the edit button bypasses the
         # focus-out-event, so update the date now
-        self.meta_datetime = datetime.datetime.strptime(
-            self._meta_datetime_widget.get_text(), DATETIME_FORMAT[self._include_time]
+        self.meta_datetime = datetime.datetime.fromisoformat(
+            self._meta_datetime_widget.get_text()
         )
         calendar.select_day(self.meta_datetime.day)
         calendar.select_month(self.meta_datetime.month - 1, self.meta_datetime.year)
@@ -476,13 +470,20 @@ class Save(Dialog):
             day_offset = 1
             if string == "-":
                 day_offset = -day_offset
-            date = datetime.datetime.strptime(
-                text, DATETIME_FORMAT[self._include_time]
-            ) + datetime.timedelta(days=day_offset)
-            widget.set_text(date.isoformat())
-        # only allow integers and -
-        elif not self.include_time and re.search(
-            r"^[\d\-]+$", string, re.MULTILINE | re.DOTALL | re.VERBOSE
+            date = datetime.datetime.fromisoformat(text) + datetime.timedelta(
+                days=day_offset
+            )
+            widget.set_text(date.isoformat(sep=" "))
+        elif (
+            not self.include_time
+            and re.search(
+                r"^[\d\-]+$", string[:ENTRY_WIDTH_DATE], re.ASCII
+            )  # only allow integers and -
+        ) or (
+            self.include_time
+            and re.search(
+                r"^[\d\-: ]+$", string, re.ASCII
+            )  # only allow integers and -:
         ):
             widget.insert_text(string, position)
             position += 1
