@@ -2,6 +2,7 @@
 
 import subprocess
 import tempfile
+import datetime
 from gi.repository import GLib
 from document import Document
 
@@ -39,8 +40,9 @@ def test_1(clean_up_files):
     asserts = 0
 
     def metadata_cb(response):
-        assert response["datetime"] == [2018, 12, 31, 12, 0, 0], "datetime"
-        assert response["tz"] == [None, None, None, 0, 0, None, None], "timezone"
+        assert response["datetime"] == datetime.datetime(
+            2018, 12, 31, 12, 0, tzinfo=datetime.timezone.utc
+        ), "datetime"
         assert response["author"] == "Authör", "author"
         assert response["subject"] == "Sübject", "subject"
         assert response["keywords"] == "Keywörds", "keywords"

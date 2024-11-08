@@ -45,11 +45,6 @@ def get_page_index_all_callback2(_uuid, _process, _message):
 
 def test_basics():
     "test basics"
-    # Gscan2pdf.Translation.set_domain('gscan2pdf')
-
-    # logger = Log.Log4perl.get_logger
-    # Gscan2pdf.Document.setup(logger)
-
     slist = Document()
     assert (
         slist.pages_possible(1, 1) == -1
@@ -431,8 +426,7 @@ def test_helpers():
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
-        "datetime offset": [2, 0, 59, 59],
-        "timezone offset": [0, 0, 0, 0],
+        "datetime offset": datetime.timedelta(days=2, hours=0, minutes=59, seconds=59),
     }
     today_and_now = datetime.datetime(
         2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
@@ -472,22 +466,25 @@ def test_helpers():
     assert _extract_metadata(
         {"format": "Portable Document Format", "datetime": "2016-08-06T02:00:00Z"}
     ) == {
-        "datetime": [2016, 8, 6, 2, 0, 0],
-        "tz": [None, None, None, 0, 0, None, None],
-    }, "_extract_metadata"
+        "datetime": datetime.datetime(
+            2016, 8, 6, 2, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=0))
+        ),
+    }, "_extract_metadata UTC"
 
     assert _extract_metadata(
         {"format": "Portable Document Format", "datetime": "2016-08-06T02:00:00+02"}
     ) == {
-        "datetime": [2016, 8, 6, 2, 0, 0],
-        "tz": [None, None, None, 2, 0, None, None],
-    }, "_extract_metadata"
+        "datetime": datetime.datetime(
+            2016, 8, 6, 2, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=2))
+        ),
+    }, "_extract_metadata UTC+2"
 
     assert _extract_metadata(
         {"format": "Portable Document Format", "datetime": "2019-01-01T02:00:00+14"}
     ) == {
-        "datetime": [2019, 1, 1, 2, 0, 0],
-        "tz": [None, None, None, 14, 0, None, None],
+        "datetime": datetime.datetime(
+            2019, 1, 1, 2, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=14))
+        ),
     }, "_extract_metadata GMT+14"
 
     assert not _extract_metadata(

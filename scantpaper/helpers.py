@@ -83,13 +83,7 @@ def collate_metadata(settings, today_and_now):
     for key in ["author", "title", "subject", "keywords"]:
         if key in settings:
             metadata[key] = settings[key]
-    offset = datetime.timedelta(
-        days=settings["datetime offset"][0],
-        hours=settings["datetime offset"][1],
-        minutes=settings["datetime offset"][2],
-        seconds=settings["datetime offset"][3],
-    )
-    metadata["datetime"] = today_and_now + offset
+    metadata["datetime"] = today_and_now + settings["datetime offset"]
     if "use_time" not in settings:
         metadata["datetime"] = metadata["datetime"].replace(hour=0, minute=0, second=0)
 

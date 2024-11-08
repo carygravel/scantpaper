@@ -1,16 +1,12 @@
 "main document IO methods"
 from collections import defaultdict
 import datetime
-import struct
 import re
-import os
 import logging
 from i18n import _
 from basedocument import BaseDocument
 from page import Page
-import netpbm
 from bboxtree import unescape_utf8
-from gi.repository import GLib
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +33,6 @@ STRFTIME_YEAR_OFFSET = -1900
 STRFTIME_MONTH_OFFSET = -1
 MIN_YEAR_FOR_DATECALC = 1970
 LAST_ELEMENT = -1
-
-ISODATE_REGEX = r"(\d{4})-(\d\d)-(\d\d)"
-TIME_REGEX = r"(\d\d):(\d\d):(\d\d)"
-TZ_REGEX = r"([+-]\d\d):(\d\d)"
 
 
 class Document(BaseDocument):
@@ -297,19 +289,17 @@ class Document(BaseDocument):
         "Take new scan, display it, and set off any post-processing chains"
 
         page_kwargs = {
-            "resolution":kwargs["resolution"],
-            "format":"Portable anymap",
-            "dir":kwargs["dir"],
+            "resolution": kwargs["resolution"],
+            "format": "Portable anymap",
+            "dir": kwargs["dir"],
         }
         for key in ["image_object", "filename"]:
             if key in kwargs:
-                page_kwargs[key]=kwargs[key]
+                page_kwargs[key] = kwargs[key]
         page = Page(**page_kwargs)
         index = self.add_page(page, kwargs["page"])
         if index == NOT_FOUND and kwargs["error_callback"]:
-            kwargs["error_callback"](
-                None, "Import scan", _("Unable to load image")
-            )
+            kwargs["error_callback"](None, "Import scan", _("Unable to load image"))
         else:
             if "display_callback" in kwargs:
                 kwargs["display_callback"](None)
@@ -375,7 +365,7 @@ def _extract_metadata(info):
     for key in info.keys():
         if (
             re.search(
-                r"(author|title|subject|keywords|tz)",
+                r"(author|title|subject|keywords)",
                 key,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
@@ -384,49 +374,10 @@ def _extract_metadata(info):
             metadata[key] = unescape_utf8(info[key])
 
     if "datetime" in info:
-        if info["format"] == "Portable Document Format":
-            regex = re.search(
-                r"^(.{19})((?:[+-]\d+)|Z)?$",
-                info["datetime"],
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if regex:
-                try:
-                    dtm = datetime.datetime.strptime(
-                        regex.group(1), "%Y-%m-%dT%H:%M:%S"
-                    )
-                    tzn = regex.group(2)
-                    metadata["datetime"] = [
-                        dtm.year,
-                        dtm.month,
-                        dtm.day,
-                        dtm.hour,
-                        dtm.minute,
-                        dtm.second,
-                    ]
-                    if (tzn is None) or tzn == "Z":
-                        tzn = 0
-
-                    metadata["tz"] = [None, None, None, int(tzn), 0, None, None]
-                except ValueError:
-                    pass
-
-        elif info["format"] == "DJVU":
-            regex = re.search(
-                rf"^{ISODATE_REGEX}\s{TIME_REGEX}{TZ_REGEX}",
-                info["datetime"],
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if regex:
-                metadata["datetime"] = [int(regex.group(x)) for x in range(1, 7)]
-                metadata["tz"] = [
-                    None,
-                    None,
-                    None,
-                    int(regex.group(7)),
-                    int(regex.group(8)),
-                    None,
-                    None,
-                ]
+        if info["format"] in ["Portable Document Format", "DJVU"]:
+            try:
+                metadata["datetime"] = datetime.datetime.fromisoformat(info["datetime"])
+            except ValueError:
+                pass
 
     return metadata
