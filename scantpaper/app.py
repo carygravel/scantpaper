@@ -776,15 +776,15 @@ def display_image(page) :
         a_canvas.clear_text()
 
 
-def create_txt_canvas( page, finished_callback ) :
+def create_txt_canvas( page, finished_callback=None ) :
     
     global view
     global canvas
     offset = view.get_offset()
-    canvas.set_text( page, 'text_layer', edit_ocr_text, True,
-        finished_callback )
+    canvas.set_text( page=page, layer='text_layer', edit_callback=edit_ocr_text, idle=True,
+        finished_callback=finished_callback )
     canvas.set_scale( view.get_zoom() )
-    canvas.set_offset( offset["x"], offset["y"] )
+    canvas.set_offset( offset.x, offset.y )
     canvas.show()
 
 
@@ -1167,7 +1167,9 @@ def import_files_finished_callback(response):
 
 def import_files_metadata_callback(metadata):
     logger.debug(f"import_files_metadata_callback({metadata})")
-    update_metadata_settings(metadata)
+    for  dialog in          ( windowi, windowe ) :
+        if  dialog is not None :
+            dialog.update_from_import_metadata(metadata)
 
 
 def import_files( filenames, all_pages=False ) :
@@ -1228,54 +1230,6 @@ def import_files( filenames, all_pages=False ) :
         options["pagerange_callback"] = select_pagerange_callback 
 
     pid = slist.import_files(**options)
-
-
-def update_metadata_settings(dialog) :
-    "Get metadata"    
-    logger.debug(f"update_metadata_settings({dialog})")
-    for  name in     ["author","title","subject","keywords"] :
-        if isinstance(dialog, dict) :
-            if  name  in dialog :
-                SETTING[name] = dialog[name]
-                for  dialog2 in                  ( windowi, windowe ) :
-                    if  dialog2 is not None :
-                        setattr(dialog2, f"meta_{name}",SETTING[name])
-        else :
-            SETTING[name] = getattr(dialog, f"meta_{name}")
-            SETTING[f"{name}-suggestions"] = getattr(dialog, f"meta_{name}_suggestions")              
-
-    doc_datetime=None
-    if isinstance(dialog, dict) :
-        if "datetime" in dialog:
-            doc_datetime = dialog["datetime"]
-            for  dialog2 in          ( windowi, windowe ) :
-                if  dialog2 is not None :
-                    dialog2.meta_datetime=doc_datetime 
-    else :
-        doc_datetime = dialog.meta_datetime
-
-    success = True
-    if  doc_datetime is not None :
-        try :
-            delta = datetime.datetime.now() - doc_datetime
-            SETTING['datetime offset'] =               [ delta.days, delta.seconds//3600, (delta.seconds//60)%60, delta.seconds%60 ]
-            ts = doc_datetime.timestamp()
-            local_offset = datetime.datetime.fromtimestamp(ts) - datetime.datetime.utcfromtimestamp(ts)
-            SETTING['timezone offset'] =               [ local_offset.days, local_offset.seconds//3600, (local_offset.seconds//60)%60, local_offset.seconds%60 ]
- 
-        except Exception as e:
-            success = False
-            msg =               _(
-                '%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime: %s') % (doc_datetime,e)                 
-            logger.debug(msg)
-            show_message_dialog(
-                parent  = window,
-                message_type    = 'error',
-                buttons = Gtk.ButtonsType.CLOSE,
-                text    = msg,
-            )
-
-    return success
 
 
 def save_pdf( filename, option, list_of_page_uuids ) :
@@ -1381,17 +1335,14 @@ def save_dialog(_action) :
         if dependencies[backend] :
             ps_backends.append(backend)  
 
-    days, hours, minutes, seconds = SETTING['datetime offset']
     windowi = SaveDialog(
         transient_for  = window,
         title            = _('Save'),
         hide_on_delete = True,
         page_range     = SETTING['Page range'],
         include_time   = SETTING["use_time"],
-        meta_datetime  = datetime.datetime.now()+datetime.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds),
-
-        # TRUE if any value is non-zero
-        select_datetime = bool (SETTING['datetime offset'] != 0),
+        meta_datetime  = datetime.datetime.now()+SETTING['datetime offset'],
+        select_datetime = bool (abs(SETTING['datetime offset'].seconds) > 0),
         meta_title                = SETTING['title'],
         meta_title_suggestions    = SETTING['title-suggestions'],
         meta_author               = SETTING['author'],
@@ -1484,9 +1435,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         os.chdir( SETTING["cwd"])
         file_chooser=None
         if SETTING['image type'] == 'pdf' :
-            if not update_metadata_settings(windowi) :
-                save_dialog()
-                return
+            windowi.update_config_dict(SETTING)
 
                 # Set up file selector
             file_chooser = Gtk.FileChooserDialog(
@@ -1532,9 +1481,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
         os.chdir( session.name)
 
     elif  SETTING['image type'] =='djvu':
-        if not update_metadata_settings(windowi) :
-            save_dialog()
-            return
+        windowi.update_config_dict(SETTING)
 
             # cd back to cwd to save
         os.chdir( SETTING["cwd"])
@@ -2140,17 +2087,14 @@ def email() :
         windowe.present()
         return
 
-    offset = SETTING['datetime offset']
     windowe = SaveDialog(
         transient_for  = window,
         title            = _('Email as PDF'),
         hide_on_delete = True,
         page_range     = SETTING['Page range'],
         include_time   = SETTING["use_time"],
-        meta_datetime  = datetime.datetime.now()+datetime.timedelta(days=offset[0], hours=offset[1], minutes=offset[2], seconds=offset[3]),
-
-        # TRUE if any value is non-zero
-        select_datetime = bool (SETTING['datetime offset'] != 0),
+        meta_datetime  = datetime.datetime.now()+SETTING['datetime offset'],
+        select_datetime = bool (abs(SETTING['datetime offset'].seconds) > 0),
         meta_title                = SETTING['title'],
         meta_title_suggestions    = SETTING['title-suggestions'],
         meta_author               = SETTING['author'],
@@ -2179,9 +2123,7 @@ def email() :
     def email_callback():
 
             # Set options
-        if not update_metadata_settings(windowe) :
-            email()
-            return
+        windowe.update_config_dict(SETTING)
 
             # Compile list of pages
         SETTING['Page range'] = windowe.page_range
