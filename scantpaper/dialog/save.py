@@ -366,9 +366,6 @@ class Save(Dialog):
         hboxe = Gtk.HBox()
         bspecify_dt.connect("clicked", self._clicked_specify_date_button, hboxe)
         self._meta_datetime_widget = Gtk.Entry()
-        if self.meta_datetime is not None and self.meta_datetime != "":
-            self._meta_datetime_widget.set_text(self.meta_datetime.isoformat(sep=" "))
-
         self._meta_datetime_widget.set_activates_default(True)
         self._meta_datetime_widget.set_tooltip_text(_("Year-Month-Day"))
         self._meta_datetime_widget.set_alignment(1.0)  # Right justify
@@ -391,8 +388,11 @@ class Save(Dialog):
         button.show()
         bspecify_dt.set_active(self.select_datetime)
         self._add_metadata_widgets(grid, row)
-
         self._on_toggle_include_time(self.include_time)
+
+        # set this after bspecify_dt.set_active() to prevent meta_now_widget overwriting it
+        if self.meta_datetime is not None and self.meta_datetime != "":
+            self._meta_datetime_widget.set_text(self.meta_datetime.isoformat())
 
     def _clicked_specify_date_button(self, widget, hboxe):
         if widget.get_active():
@@ -895,7 +895,7 @@ class Save(Dialog):
             config["datetime offset"] = doc_datetime - datetime.datetime.now()
 
     def update_from_import_metadata(self, metadata):
-        "update instance based from imported metadata"
+        "update instance from imported metadata"
         for name in ["author", "title", "subject", "keywords", "datetime"]:
             if name in metadata:
                 setattr(self, f"meta_{name}", metadata[name])
