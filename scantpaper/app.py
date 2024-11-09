@@ -1167,9 +1167,11 @@ def import_files_finished_callback(response):
 
 def import_files_metadata_callback(metadata):
     logger.debug(f"import_files_metadata_callback({metadata})")
+    global SETTING
     for  dialog in          ( windowi, windowe ) :
         if  dialog is not None :
             dialog.update_from_import_metadata(metadata)
+    config.update_config_from_imported_metadata(SETTING, metadata)
 
 
 def import_files( filenames, all_pages=False ) :
@@ -1342,7 +1344,7 @@ def save_dialog(_action) :
         page_range     = SETTING['Page range'],
         include_time   = SETTING["use_time"],
         meta_datetime  = datetime.datetime.now()+SETTING['datetime offset'],
-        select_datetime = bool (abs(SETTING['datetime offset'].seconds) > 0),
+        select_datetime = bool( SETTING['datetime offset']),
         meta_title                = SETTING['title'],
         meta_title_suggestions    = SETTING['title-suggestions'],
         meta_author               = SETTING['author'],
@@ -2080,7 +2082,6 @@ def save_hocr( filename, uuids ) :
     )
 
 
-
 def email() :
     "Display page selector and email."
     if  (windowe is not None) :
@@ -2094,7 +2095,7 @@ def email() :
         page_range     = SETTING['Page range'],
         include_time   = SETTING["use_time"],
         meta_datetime  = datetime.datetime.now()+SETTING['datetime offset'],
-        select_datetime = bool (abs(SETTING['datetime offset'].seconds) > 0),
+        select_datetime = bool( SETTING['datetime offset']),
         meta_title                = SETTING['title'],
         meta_title_suggestions    = SETTING['title-suggestions'],
         meta_author               = SETTING['author'],
