@@ -2,15 +2,24 @@
 
 import os
 from types import SimpleNamespace
-import datetime
+from datetime import datetime, timedelta
 from config import (
     read_config,
     write_config,
     add_defaults,
     remove_invalid_paper,
+    update_config_from_imported_metadata,
     DEFAULTS,
 )
 from basedocument import slurp
+
+
+class MockedDateTime(datetime):
+    "mock now"
+
+    @classmethod
+    def now(cls):  # pylint: disable=arguments-differ
+        return datetime(2018, 1, 1, 0, 0, 0)
 
 
 def test_config():
@@ -100,7 +109,7 @@ def test_config():
     assert output == example, "remove undefined profiles"
 
 
-def test_config2():
+def test_config2(mocker):
     "test config helper functions"
     rc = "test"
 
@@ -154,7 +163,7 @@ def test_config2():
 }"""
     with open(rc, "w", encoding="utf-8") as fh:
         fh.write(config)
-    example = {"version": "1.7.3", "datetime offset": datetime.timedelta(seconds=0)}
+    example = {"version": "1.7.3", "datetime offset": timedelta(seconds=0)}
     output = read_config(rc)
     assert output == example, "Deserialise datetime offset"
 
@@ -166,6 +175,19 @@ def test_config2():
     output = slurp(rc).split("\n")
 
     assert output == example, "Serialise datetime offset"
+
+    #########################
+
+    mocker.patch("config.datetime.datetime", MockedDateTime)
+    config = {"version": "1.7.3", "datetime offset": timedelta(seconds=0)}
+    metadata = {"title": "title", "datetime": datetime(2017, 12, 31, 0, 0, 0)}
+    update_config_from_imported_metadata(config, metadata)
+    example = {
+        "datetime offset": timedelta(days=-1),
+        "title": "title",
+        "version": "1.7.3",
+    }
+    assert config == example, "update_config_from_imported_metadata"
 
     #########################
 

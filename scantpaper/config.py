@@ -237,3 +237,18 @@ def write_config(rc, config):
     with open(rc, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(config, sort_keys=True, indent=4))
     logger.info("Wrote config to %s", rc)
+
+
+def update_config_from_imported_metadata(config, metadata):
+    "update config from imported metadata"
+    for name in ["author", "title", "subject", "keywords"]:
+        if name in metadata:
+            config[name] = metadata[name]
+    if "datetime" in metadata and metadata["datetime"] is not None:
+        config["datetime offset"] = (
+            metadata["datetime"].replace(tzinfo=None) - datetime.datetime.now()
+        )
+        if "use_time" not in config or not config["use_time"]:
+            config["datetime offset"] = datetime.timedelta(
+                days=config["datetime offset"].days
+            )
