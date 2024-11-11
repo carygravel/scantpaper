@@ -653,10 +653,11 @@ def find_crashed_sessions(tmpdir) :
     if missing :
         logger.info( 'Unrestorable sessions: ' + SPACE.join(missing)   )
         dialog = Gtk.Dialog(
-            _('Crashed sessions'),
-            window, 'modal',
-            gtk_delete = 'ok',
-            gtk_cancel = 'cancel'
+            title=_('Crashed sessions'),
+            transient_for=window, modal=True,
+        )
+        dialog.add_buttons(
+            Gtk.STOCK_DELETE, Gtk.ResponseType.OK, Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL
         )
         text = Gtk.TextView()
         text.set_wrap_mode('word')
@@ -696,14 +697,12 @@ def find_crashed_sessions(tmpdir) :
 
 
     # Allow user to pick a crashed session to restore
-
     if crashed :
         dialog = Gtk.Dialog(
-            _('Pick crashed session to restore'),
-            window, 'modal',
-            gtk_ok     = 'ok',
-            gtk_cancel = 'cancel'
+            title=_('Pick crashed session to restore'),
+            transient_for=window, modal=True,
         )
+        dialog.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         label = Gtk.Label(label= _('Pick crashed session to restore') )
         box   = dialog.get_content_area()
         box.add(label)
@@ -1114,7 +1113,7 @@ def import_files_password_callback(filename):
     dialog =               Gtk.MessageDialog( window,
                 [
     'destroy-with-parent', 'modal' ],
-                'question', 'ok-cancel', text )
+                'question', Gtk.ResponseType.OK_CANCEL, text )
     dialog.set_title(text)
     vbox  = dialog.get_content_area()
     entry = Gtk.Entry()
@@ -1125,10 +1124,9 @@ def import_files_password_callback(filename):
     response = dialog.run()
     text = entry.get_text()
     dialog.destroy()
-    if response == 'ok' and text != EMPTY :
+    if response == Gtk.ResponseType.OK and text != EMPTY :
         return text
-
-    return
+    return None
 
 
 def import_files_queued_callback(response):
@@ -1203,8 +1201,9 @@ def import_files( filenames, all_pages=False ) :
                 title=_('Pages to extract'),
                 transient_for=window,
                 modal=True,destroy_with_parent=True,
-                gtk_ok     = 'ok',
-                gtk_cancel = 'cancel'
+            )
+            dialog.add_buttons(
+                Gtk.STOCK_OK, Gtk.ResponseType.OK, Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL
             )
             vbox = dialog.get_content_area()
             hbox = Gtk.HBox()
@@ -1223,10 +1222,9 @@ def import_files( filenames, all_pages=False ) :
             dialog.show_all()
             response = dialog.run()
             dialog.destroy()
-            if response == 'ok' :
-                return spinbuttonf.get_value(), spinbuttonl.get_value()
-
-            return
+            if response == Gtk.ResponseType.OK :
+                return int(spinbuttonf.get_value()), int(spinbuttonl.get_value())
+            return None, None
 
 
         options["pagerange_callback"] = select_pagerange_callback 
@@ -2402,8 +2400,8 @@ def changed_device_list_callback( widget, device_list ) :    # $widget is $windo
         windows=None
 
 
-def changed_side_to_scan_callback( widget ) :
-    
+def changed_side_to_scan_callback( widget, _arg ) :
+    logger.debug(f"changed_side_to_scan_callback( {widget, _arg} )")
     if len( slist.data )-1 > EMPTY_LIST :
         widget.page_number_start=slist.data[ len( slist.data )-1 ][0]+1
     else :
@@ -4894,7 +4892,7 @@ def preferences(arg) :
                       + SPACE
                       + _('Restart gscan2pdf now?')
                 )
-            if response == 'ok' :
+            if response == Gtk.ResponseType.OK :
                 restart()
 
     windowr.add_actions([
