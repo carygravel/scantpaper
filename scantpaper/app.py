@@ -2080,9 +2080,9 @@ def save_hocr( filename, uuids ) :
     )
 
 
-def email() :
+def email(_action):
     "Display page selector and email."
-    if  (windowe is not None) :
+    if windowe is not None:
         windowe.present()
         return
 
@@ -2949,11 +2949,11 @@ def add_postprocessing_options(self) :
     #$self->{notebook}->get_nth_page(1)->show_all;
 
 
-def print_dialog() :
+def print_dialog(_action):
     "print"
     os.chdir( SETTING["cwd"])
     print_op = Gtk.PrintOperation()
-    if  (print_settings is not None) :
+    if print_settings is not None:
         print_op.set_print_settings(print_settings)
 
     def anonymous_112( op, context ):
@@ -3196,7 +3196,7 @@ def select_dark_pages() :
 
 
 
-def about() :
+def about(_action):
     "Display about dialog"    
     about = Gtk.AboutDialog()
 
@@ -3292,9 +3292,9 @@ papoteur
 
 
 
-def renumber_dialog() :
+def renumber_dialog(_action):
     "Dialog for renumber"
-    if  windowrn is not None :
+    if windowrn is not None:
         windowrn.present()
         return
 
@@ -3543,7 +3543,7 @@ def threshold(_action) :
     windowt.show_all()
 
 
-def brightness_contrast() :
+def brightness_contrast(_action) :
     "Display page selector and on apply brightness & contrast accordingly"
     windowt = Dialog(
         transient_for = window,
@@ -3693,7 +3693,7 @@ def negate(_action) :
     windowt.show_all()
 
 
-def unsharp() :
+def unsharp(_action) :
     "Display page selector and on apply unsharp accordingly"
     windowum = Dialog(
         transient_for = window,
@@ -4215,13 +4215,13 @@ def update_view_position( direction, position, width, height ) :
     view.set_selection( selection )
 
 
-def user_defined_dialog() :
-    if  (windowudt is not None) :
+def user_defined_dialog(_action):
+    if windowudt is not None:
         windowudt.present()
         return
 
     windowudt = Dialog(
-        transient_for  = window,
+        transient_for = window,
         title            = _('User-defined tools'),
         hide_on_delete = True,
     )
@@ -4348,7 +4348,7 @@ def unpaper_page( pages, options, callback ) :
         )
 
 
-def unpaper() :
+def unpaper(_action):
     "Run unpaper to clean up scan."
     if  windowu is not None :
         windowu.present()
@@ -4421,7 +4421,7 @@ def add_tess_languages(vbox) :
     return hbox, combobox, tesslang
 
 
-def ocr_dialog() :
+def ocr_dialog(_action) :
     "Run OCR on current page and display result"
     if  windowo is not None :
         windowo.present()
