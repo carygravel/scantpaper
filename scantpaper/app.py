@@ -3632,7 +3632,7 @@ def brightness_contrast() :
     windowt.show_all()
 
 
-def negate() :
+def negate(_action) :
     "Display page selector and on apply negate accordingly"
     windowt = Dialog(
         transient_for = window,
@@ -3647,12 +3647,11 @@ def negate() :
             # Update undo/redo buffers
         take_snapshot()
         SETTING['Page range'] = windowt.page_range
-        pagelist =               slist.get_page_index( SETTING['Page range'],
-                error_callback )
+        pagelist = slist.get_page_index( SETTING['Page range'], error_callback )
         if not pagelist :
             return
-        for  i in         pagelist :
-            ( signal, pid )=(None,None)
+        for i in pagelist:
+            signal, pid = None, None
             def anonymous_137(*argv):
                 return update_tpbar(*argv)
 
@@ -3666,21 +3665,21 @@ def negate() :
                 #     return True  
 
 
-            def anonymous_139( new_page, pending ):
-                        
-                if not pending :
-                    thbox.hide()
-                if signal is not None :
-                    tcbutton.disconnect(signal)
-
-                slist.save_session()
+            def negate_finished_callback( response ):
+                # new_page, pending                        
+                # if not pending :
+                #     thbox.hide()
+                # if signal is not None :
+                #     tcbutton.disconnect(signal)
+                # slist.save_session()
+                pass
 
 
             pid = slist.negate(
                     page            = slist.data[i][2].uuid,
                     queued_callback = anonymous_137 ,
                     started_callback = negate_started_callback ,
-                    finished_callback = anonymous_139 ,
+                    finished_callback = negate_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
