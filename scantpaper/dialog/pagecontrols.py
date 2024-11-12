@@ -188,8 +188,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         # Notebook to collate options
         self.notebook = Gtk.Notebook()
         self.notebook.set_scrollable(True)
-        vbox = self.get_content_area()
-        vbox.pack_start(self.notebook, True, True, 0)
+        self.get_content_area().pack_end(self.notebook, True, True, 0)
 
         # Notebook page 1
         scwin = Gtk.ScrolledWindow()

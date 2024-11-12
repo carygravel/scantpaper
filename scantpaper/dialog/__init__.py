@@ -50,7 +50,7 @@ class Dialog(Gtk.Dialog):
         self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
 
     def add_page_range(self):
-        "Add a frame and radio buttons to $vbox"
+        "Add a frame and radio buttons to content area"
         frame = Gtk.Frame(label=_("Page Range"))
         self.get_content_area().pack_start(frame, False, False, 0)
         prng = PageRange()
@@ -100,11 +100,9 @@ class MultipleMessage(Dialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        vbox = self.get_content_area()
-
         # to ensure dialog can't grow too big if we have too many messages
         scwin = Gtk.ScrolledWindow()
-        vbox.pack_start(scwin, True, True, 0)
+        self.get_content_area().pack_start(scwin, True, True, 0)
         self.grid = Gtk.Grid()
         self.grid_rows = 0
         self.stored_responses = []

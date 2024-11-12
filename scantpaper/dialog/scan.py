@@ -352,8 +352,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self._geometry_boxes = {}
 
         self.connect("show", self.show)
-        vbox = self.get_content_area()
-        self._add_device_combobox(vbox)
+        self._add_device_combobox()
 
         # Scan profiles
         self.profiles = {}
@@ -407,8 +406,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.setting_profile = []
         self.setting_current_scan_options = []
 
-    def _add_device_combobox(self, vbox):
-
+    def _add_device_combobox(self):
         self.hboxd = Gtk.HBox()
         labeld = Gtk.Label(label=_("Device"))
         self.hboxd.pack_start(labeld, False, False, 0)
@@ -445,7 +443,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.connect("changed-device", do_changed_device)
         self.combobd.set_tooltip_text(_("Sets the device to be used for the scan"))
         self.hboxd.pack_end(self.combobd, False, False, 0)
-        vbox.pack_start(self.hboxd, False, False, 0)
+        self.get_content_area().pack_start(self.hboxd, False, False, 0)
 
     def _do_scan(self):
         self.emit("clicked-scan-button")
