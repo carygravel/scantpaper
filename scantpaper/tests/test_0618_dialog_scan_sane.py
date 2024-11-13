@@ -20,10 +20,10 @@ def test_scan_reverse_pages(
     def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
         nonlocal n
         n += 1
-        if pagenumber == 10:
+        if pagenumber == 2:
             nonlocal callbacks
             callbacks += 1
-        elif pagenumber > 10:
+        elif pagenumber < 2:
             assert False, "new-scan emitted 10 times"
             callbacks = 0
             loop.quit()
