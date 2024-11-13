@@ -12,21 +12,6 @@ def scalar_cell_renderer(_tree_column, cell, model, itr, i):
     cell.text = "" if info is None else info
 
 
-def do_text_cell_edited(renderer, text_path, new_text, slist):
-    "callback for edited signal of text cell"
-    path = Gtk.TreePath.new_from_string(text_path)
-    model = slist.get_model()
-    model[model.get_iter(path)][renderer.column] = new_text
-
-
-def do_toggled(renderer, row, slist):
-    "callback for toggled signal of boolean cell"
-    col = renderer.column
-    model = slist.get_model()
-    itr = model.iter_nth_child(None, int(row))
-    model[itr][col] = not model[itr][col]
-
-
 column_types = {
     "hidden": {"type": str, "attr": "hidden"},
     "text": {"type": str, "renderer": Gtk.CellRendererText(), "attr": "text"},
@@ -118,7 +103,7 @@ class SimpleList(Gtk.TreeView):
                     # make boolean columns respond to editing.
                     row = column.get_cells()[0]
                     row.activatable = True
-                    row.connect("toggled", do_toggled, self)
+                    row.connect("toggled", self.do_toggled)
                     col["renderer"].column = i
                     i += 1
 
@@ -126,9 +111,10 @@ class SimpleList(Gtk.TreeView):
                     # attach a decent 'edited' callback to any
                     # columns using a text renderer.  we do NOT
                     # turn on editing by default.
-
                     row = column.get_cells()
-                    col["renderer"].connect("edited", do_text_cell_edited, self)
+                    col["renderer"].connect(
+                        "edited", self.do_text_cell_edited, col["type"]
+                    )
                     col["renderer"].column = i
                     i += 1
 
@@ -145,6 +131,23 @@ class SimpleList(Gtk.TreeView):
         "setter for data property"
         self.get_model().clear()
         self.data.extend(new_data)
+
+    def do_toggled(self, renderer, row):
+        "callback for toggled signal of boolean cell"
+        col = renderer.column
+        model = self.get_model()
+        itr = model.iter_nth_child(None, int(row))
+        model[itr][col] = not model[itr][col]
+
+    def do_text_cell_edited(self, renderer, text_path, new_text, col_type):
+        "callback for edited signal of text cell"
+        path = Gtk.TreePath.new_from_string(text_path)
+        model = self.get_model()
+        if col_type == int:
+            new_text = int(new_text)
+        elif col_type == float:
+            new_text = float(new_text)
+        model[model.get_iter(path)][renderer.column] = new_text
 
     def set_column_editable(self, index, editable):
         "set whether a column can be edited"
