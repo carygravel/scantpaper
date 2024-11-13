@@ -689,7 +689,7 @@ class ImageView(Gtk.DrawingArea):
 
     def set_offset(self, offset_x, offset_y):
         """set offset (pan)"""
-        if self.get_pixbuf is None:
+        if self.get_pixbuf() is None:
             return
 
         # Convert the widget size to image scale to make the comparisons easier

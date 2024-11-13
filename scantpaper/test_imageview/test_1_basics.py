@@ -129,8 +129,8 @@ def test_1():
     assert viewport.width == 1, "correctly cleared viewport width"
     assert viewport.height == 1, "correctly cleared viewport height"
 
-    with pytest.raises(AttributeError):
-        view.set_pixbuf(None, False)
+    view.set_pixbuf(None, False)
+    assert view.get_pixbuf() is None, "correctly cleared pixbuf #2"
 
     if False:
         assert not view.get_draw_rect(), "correctly cleared draw rectangle"
