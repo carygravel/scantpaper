@@ -522,19 +522,19 @@ def selection_changed_callback(_selection):
     global view
     global canvas
     global a_canvas
+    global current_page
     selection = slist.get_selected_indices()
-    i         =  selection.pop(0)
 
     # Display the new image
     # When editing the page number, there is a race condition where the page
     # can be undefined
-    if  i is not None and  i  < len(slist.data) :
+    if selection:
+        i = selection.pop(0)
         path = Gtk.TreePath.new_from_indices([i])
-        slist.scroll_to_cell( path, slist.get_column(0),
-            True, HALF, HALF )
+        slist.scroll_to_cell( path, slist.get_column(0), True, HALF, HALF )
         sel = view.get_selection()
         display_image( slist.data[i][2] )
-        if  (sel is not None) :
+        if sel is not None:
             view.set_selection(sel)
     else :
         view.set_pixbuf(None)
