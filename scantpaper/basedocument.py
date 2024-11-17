@@ -99,9 +99,9 @@ class BaseDocument(SimpleList):
             Gdk.DragAction.COPY | Gdk.DragAction.MOVE,
         )
 
-        def drag_data_get_callback(_tree, _context, sel):
+        def drag_data_get_callback(_tree, _context, sel, _info, _time, _user_data=None):
             # set dummy data which we'll ignore and use selected rows
-            setattr(sel, sel.get_target(), [])
+            sel.set(sel.get_target(), 8, [])  # 8 == string format
 
         self.connect("drag-data-get", drag_data_get_callback)
         self.connect("drag-data-delete", self.delete_selection)
@@ -451,14 +451,18 @@ class BaseDocument(SimpleList):
 
         dest = None
         if path is not None:
-            if how in ("after", "into-or-after"):
+            path = int(path)
+            if how in (
+                Gtk.TreeViewDropPosition.AFTER,
+                Gtk.TreeViewDropPosition.INTO_OR_AFTER,
+            ):
                 path += 1
-            self.data.insert(path, data)
+            for row in data:
+                self.data.insert(path, row)
             dest = path
-
         else:
             dest = len(self.data)
-            self.data.append(data)
+            self.data.extend(data)
 
         # Renumber the newly pasted rows
         start = None
@@ -493,18 +497,20 @@ class BaseDocument(SimpleList):
         # self.save_session()
         logger.info("Pasted %s pages at position %s", len(data), dest)
 
-    def delete_selection(self, _context=None):
+    def delete_selection(self, _self=None, _context=None):
         "Delete the selected pages"
 
         # The drag-data-delete callback seems to be fired twice. Therefore, create
         # a hash of the context hashes and ignore the second drop. There must be a
         # less hacky way of solving this. FIXME
-        # if context is not None:
-        #     if context in self.context:
-        #         del self.context
-        #         return
+        if _context is not None:
+            if hasattr(self, "_context") and _context in self._context:
+                self._context = {}
+                return
 
-        #     self.context[context] = 1
+            if not hasattr(self, "_context"):
+                self._context = {}
+            self._context[_context] = 1
 
         model, paths = self.get_selection().get_selected_rows()
 
@@ -833,25 +839,26 @@ for method_name_ in [
     setattr(BaseDocument, method_name_, _modify_method_generator(method_name_))
 
 
-def drag_data_received_callback(
+def drag_data_received_callback(  # pylint: disable=too-many-positional-arguments, too-many-arguments
     tree, context, xpos, ypos, data, info, time
-):  # pylint: disable=too-many-arguments
+):
     "callback to receive DnD data"
-    delete = bool(context.get_actions == "move")
+    delete = bool(context.get_actions() & Gdk.DragAction.MOVE)
 
     # This callback is fired twice, seemingly once for the drop flag,
     # and once for the copy flag. If the drop flag is disabled, the URI
     # drop does not work. If the copy flag is disabled, the drag-with-copy
     # does not work. Therefore if copying, create a hash of the drop times
     # and ignore the second drop.
-
     if not delete:
-        if time in tree["drops"]:
-            del tree["drops"]
+        if hasattr(tree, "drops") and time in tree.drops:
+            tree.drops = {}
             Gtk.drag_finish(context, True, delete, time)
             return
 
-        tree["drops"][time] = 1
+        if not hasattr(tree, "drops"):
+            tree.drops = {}
+        tree.drops[time] = 1
 
     if info == ID_URI:
         uris = data.get_uris()
@@ -864,9 +871,12 @@ def drag_data_received_callback(
         Gtk.drag_finish(context, True, False, time)
 
     elif info == ID_PAGE:
-        path, how = tree.get_dest_row_at_pos(xpos, ypos)
-        if path is not None:
-            path = path.to_string()
+        row = tree.get_dest_row_at_pos(xpos, ypos)
+        path, how = None, None
+        if row:
+            path, how = row
+            if path is not None:
+                path = path.to_string()
         rows = tree.get_selected_indices()
         if not rows:
             return
@@ -874,7 +884,6 @@ def drag_data_received_callback(
 
         # pasting without updating the selection
         # in order not to defeat the finish() call below.
-
         tree.paste_selection(selection, path, how)
         Gtk.drag_finish(context, True, delete, time)
 
