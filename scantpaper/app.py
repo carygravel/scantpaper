@@ -554,24 +554,20 @@ def drag_motion_callback( tree, context, x, y, t ) :
     scroll = tree.get_parent()
 
     # Add the marker showing the drop in the tree
-
     tree.set_drag_dest_row( path, how )
 
     # Make move the default
-    action=[]
-    if context.get_actions() == 'copy':
-        action = ['copy']
-    else :
-        action = ['move']
+    action=Gdk.DragAction.MOVE
+    if context.get_actions() == Gdk.DragAction.COPY:
+        action = Gdk.DragAction.COPY
 
     Gdk.drag_status( context, action, t )
     adj = scroll.get_vadjustment()
-    ( value, step ) = ( adj.get_value(), adj.get_step_increment() )
-    if y > adj.get_page_size(-step/2)     :
+    value, step = adj.get_value(), adj.get_step_increment()
+    if y > adj.get_page_size() -step/2    :
         v = value + step
         m = adj.get_upper(-adj.get_page_size())  
         adj.set_value(    m if v>m  else v )
- 
     elif y < step / 2 :
         v = value - step
         m = adj.get_lower()
