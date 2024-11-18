@@ -294,8 +294,8 @@ class Canvas(
         "set the canvas text from a page object"
 
         if self._old_idles:
-            for box, source in self._old_idles.items():
-                GLib.Source.remove(source)
+            for box in list(self._old_idles.keys()):
+                GLib.Source.remove(self._old_idles[box])
                 del self._old_idles[box]
 
         self.position_index = None
