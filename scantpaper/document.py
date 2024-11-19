@@ -3,6 +3,7 @@ from collections import defaultdict
 import datetime
 import re
 import logging
+import sys
 from i18n import _
 from basedocument import BaseDocument
 from page import Page
@@ -375,6 +376,15 @@ def _extract_metadata(info):
 
     if "datetime" in info:
         if info["format"] in ["Portable Document Format", "DJVU"]:
+
+            # before python 3.11, fromisoformat() did not understand Z==UTC, or TZs without minutes
+            if sys.version_info < (3, 11):
+                if info["datetime"][-1] == "Z":
+                    info["datetime"] = info["datetime"][:-1] + "+00:00"
+                elif re.search(
+                    r"^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d$", info["datetime"]
+                ):
+                    info["datetime"] += ":00"
             try:
                 metadata["datetime"] = datetime.datetime.fromisoformat(info["datetime"])
             except ValueError:
