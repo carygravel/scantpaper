@@ -23,6 +23,15 @@ class Profile(GObject.Object):
             self.backend = []
         else:
             self.backend = deepcopy(backend)
+
+            # if we have just pulled a profile from pre-v3 gscan2pdf config,
+            # then convert the dict pairs to tuples
+            for i, opt in enumerate(self.backend):
+                if isinstance(opt, dict):
+                    name = list(opt.keys())[0]
+                    val = opt[name]
+                    self.backend[i] = (name, val)
+
             self.map_from_cli()
 
         # add uuid to identify later which callback has finished
@@ -32,6 +41,8 @@ class Profile(GObject.Object):
         return Profile(frontend=self.frontend, backend=self.backend, uid=self.uuid)
 
     def __str__(self):
+        if not hasattr(self, "uuid"):
+            self.uuid = None
         return f"Profile(frontend={self.frontend}, backend={self.backend}, uuid={self.uuid})"
 
     def __eq__(self, other):
@@ -50,7 +61,7 @@ class Profile(GObject.Object):
         # Note any duplicate options, keeping only the last entry.
         seen = {}
         for i in self.each_backend_option(True):
-            (nam, _value) = self.get_backend_option_by_index(i)
+            nam, _value = self.get_backend_option_by_index(i)
             synonyms = _synonyms(nam)
             for key in synonyms:
                 if key in seen:

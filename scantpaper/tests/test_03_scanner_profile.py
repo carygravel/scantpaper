@@ -74,6 +74,14 @@ def test_1():
 
     #########################
 
+    profile = Profile(frontend={"num_pages": 1}, backend=[{"br-x": "297"}])
+    assert profile.get() == {
+        "backend": [("br-x", "297")],
+        "frontend": {"num_pages": 1},
+    }, "map old pre-v3 profiles to use tuples"
+
+    #########################
+
     profile = Profile(backend=[("l", 1), ("y", 50), ("x", 50), ("t", 2)])
     assert profile.get() == {
         "backend": [("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)],

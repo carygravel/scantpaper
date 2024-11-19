@@ -449,9 +449,9 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.emit("clicked-scan-button")
         self.scan()
 
-    def _do_profile_changed(self, _data):
+    def _do_profile_changed(self, combobsp):
         self.num_reloads = 0  # num-reloads is read-only
-        self.profile = self.combobsp.get_active_text()
+        self.profile = combobsp.get_active_text()
 
     def show(self, *args, **kwargs):
         PageControls.show(self, **kwargs)
@@ -1135,6 +1135,15 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 logger.warning("Ignoring inactive option '%s'.", name)
                 self._set_option_profile(profile, itr)
                 return
+
+            # if we have a profile from a pre-v3 gscan2pdf config, the types
+            # are likely wrong, so force the conversion
+            if opt.type == enums.TYPE_INT:
+                val = int(val)
+            elif opt.type == enums.TYPE_FIXED:
+                val = float(val)
+            elif opt.type == enums.TYPE_BOOL:
+                val = bool(val)
 
             # Don't try to set invalid option
             if isinstance(opt.constraint, list):

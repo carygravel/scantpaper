@@ -406,7 +406,7 @@ def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
     def finished_process_cb(_widget, process):
         dialog.disconnect(f_signal)
-        assert process == "set_option br-x to 10", "finished-process set_option"
+        assert process == "set_option br-x to 10.0", "finished-process set_option"
         nonlocal callbacks
         callbacks += 1
 
