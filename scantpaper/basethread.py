@@ -186,18 +186,19 @@ class BaseThread(threading.Thread):
             try:
                 self.callbacks[uid][callback](data)
             except Exception as err:  # pylint: disable=broad-except
+                logger.error(
+                    "Error running %s callback '%s' for process '%s' with args: %s: %s",
+                    stage,
+                    callback,
+                    data.request.process,
+                    data.request.args,
+                    err,
+                )
                 if (
                     callback != "error_callback"
                     and "error_callback" in self.callbacks[uid]
+                    and self.callbacks[uid]["error_callback"] is not None
                 ):
-                    logger.error(
-                        "Error running %s callback '%s' for process '%s' with args: %s: %s",
-                        stage,
-                        callback,
-                        data.request.process,
-                        data.request.args,
-                        err,
-                    )
                     self.callbacks[uid]["error_callback"](data)
 
     def _monitor_response(self, block=False):
