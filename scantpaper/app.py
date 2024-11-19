@@ -2284,7 +2284,10 @@ def scan_dialog( action, hidden=False, scan=False ) :
     for  profile in      SETTING["profile"].keys()   :
         windows._add_profile(
             profile,
-            Profile(                SETTING["profile"][profile]            )
+            Profile(
+                frontend=SETTING["profile"][profile]["frontend"],
+                backend=SETTING["profile"][profile]["backend"]
+            )
         )
 
     def changed_profile_callback( widget, profile ):
