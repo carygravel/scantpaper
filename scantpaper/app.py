@@ -4739,19 +4739,19 @@ def init_icons(icons) :
     iconfactory = Gtk.IconFactory()
     for icon in     icons :
         register_icon(iconfactory, *icon )
+    iconfactory.add_default()
 
 
 def register_icon( iconfactory, stock_id, path ) :
     "Add icons"    
-    # try :
-    icon = GdkPixbuf.Pixbuf.new_from_file(path) 
-    print(f"icon {icon}")
-    if  icon is None :
-        logger.warning("Unable to load icon `%s'", path)
-    else:
-        iconfactory.add( stock_id, Gtk.IconSet.new_from_pixbuf(icon) )
-    # except as err:
-    #     logger.warning(f"Unable to load icon `%s': %s", path, err)
+    try :
+        icon = GdkPixbuf.Pixbuf.new_from_file(path)
+        if  icon is None :
+            logger.warning("Unable to load icon `%s'", path)
+        else:
+            iconfactory.add( stock_id, Gtk.IconSet(icon) )
+    except Exception as err:
+        logger.warning(f"Unable to load icon `%s': %s", path, err)
 
 
 def mark_pages(pages) :
@@ -5516,7 +5516,7 @@ def pre_flight():
     ('rotate90',    f"{iconpath}/stock-rotate-90.svg"),     
     ('rotate180',   f"{iconpath}/180_degree.svg"),     
     ('rotate270',   f"{iconpath}/stock-rotate-270.svg") ,     
-    #('scanner',     f"{iconpath}/scanner.svg") ,     
+    ('scanner',     f"{iconpath}/scanner.svg"),
     ('pdf',         f"{iconpath}/pdf.svg") ,     
     ('selection',   f"{iconpath}/stock-selection-all-16.png") ,     
     ('hand-tool',   f"{iconpath}/hand-tool.svg") ,     
@@ -6189,7 +6189,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         [
         'Edit text layer',                       'gtk-edit',             _('Edit text layer'),                   None,             _('Show editing tools for text layer'), EDIT_TEXT
             ],         [
-        'Edit annotations',             'error-correct-symbolic',             _('Edit annotations'),             None,             _('Show editing tools for annotations'),             EDIT_ANNOTATION
+        'Edit annotations',             'gtk-paste',             _('Edit annotations'),             None,             _('Show editing tools for annotations'),             EDIT_ANNOTATION
             ],
         ]
         ui = """<ui>
