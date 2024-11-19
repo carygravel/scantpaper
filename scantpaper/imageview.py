@@ -499,8 +499,13 @@ class ImageView(Gtk.DrawingArea):
 
         context.paint()
         selection = self.get_selection()
-        if (pixbuf is not None) and (selection is not None):
-            (x, y, w, h,) = (
+        if pixbuf is not None and selection is not None:
+            (
+                x,
+                y,
+                w,
+                h,
+            ) = (
                 selection.x,
                 selection.y,
                 selection.width,
@@ -532,14 +537,14 @@ class ImageView(Gtk.DrawingArea):
     def do_scroll_event(self, event):
         """respond to the scroll event"""
         center_x, center_y = self.to_image_coords(event.x, event.y)
+        if center_x is None:
+            return
         zoom = None
         self.set_zoom_to_fit(False)
         if event.direction == Gdk.ScrollDirection.UP:
             zoom = self.get_zoom() * self.zoom_step
-
         else:
             zoom = self.get_zoom() / self.zoom_step
-
         self._set_zoom_with_center(zoom, center_x, center_y)
 
     def do_configure_event(self, _event):
@@ -576,10 +581,11 @@ class ImageView(Gtk.DrawingArea):
     def get_pixbuf_size(self):
         """return size of current pixbuf"""
         pixbuf = self.get_pixbuf()
-        if pixbuf is not None:
-            size = Gdk.Rectangle()
-            size.width, size.height = pixbuf.get_width(), pixbuf.get_height()
-            return size
+        if pixbuf is None:
+            return None
+        size = Gdk.Rectangle()
+        size.width, size.height = pixbuf.get_width(), pixbuf.get_height()
+        return size
 
     def set_zoom(self, zoom):
         """setting the zoom via the public API disables zoom-to-fit"""
@@ -609,6 +615,8 @@ class ImageView(Gtk.DrawingArea):
         zoom = self.get_zoom()
         ratio = self.get_resolution_ratio()
         offset = self.get_offset()
+        if offset is None:
+            return None, None
         factor = self.get_scale_factor()
         return x * factor / zoom * ratio - offset.x, y * factor / zoom - offset.y
 
