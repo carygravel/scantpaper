@@ -190,8 +190,9 @@ logger = logging.getLogger(__name__)
     comboboxudt, rotate_side_cmbx, rotate_side_cmbx2,
 
     # Declare the XML structure
-    uimanager,
+    builder,
 )=(None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,[],[],[],[],{},None,None,[],None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,)
+actions = {}
 
 
 def pack_viewer_tools() :
@@ -298,6 +299,7 @@ def read_config() :
 
 def check_dependencies() :
     "Check for presence of various packages"
+    global dependencies
 
     dependencies["tesseract"] = tesserocr.tesseract_version()
     dependencies["tesserocr"] = tesserocr.__version__
@@ -400,22 +402,22 @@ def check_dependencies() :
 
 def update_uimanager() :
     "ghost or unghost as necessary as # pages > 0 or not"
-    widgets = [
-        '/MenuBar/View/DraggerTool',
-        '/MenuBar/View/SelectorTool',
-        '/MenuBar/View/SelectorDraggerTool',
-        '/MenuBar/View/Tabbed',
-        '/MenuBar/View/SplitH',
-        '/MenuBar/View/SplitV',
-        '/MenuBar/View/Zoom 100',
-        '/MenuBar/View/Zoom to fit',
-        '/MenuBar/View/Zoom in',
-        '/MenuBar/View/Zoom out',
-        '/MenuBar/View/Rotate 90',
-        '/MenuBar/View/Rotate 180',
-        '/MenuBar/View/Rotate 270',
-        '/MenuBar/View/Edit text layer',
-        '/MenuBar/View/Edit annotations',
+    action_names = [
+        # '/MenuBar/View/DraggerTool',
+        # '/MenuBar/View/SelectorTool',
+        # '/MenuBar/View/SelectorDraggerTool',
+        # '/MenuBar/View/Tabbed',
+        # '/MenuBar/View/SplitH',
+        # '/MenuBar/View/SplitV',
+        'zoom100',
+        'zoomtofit',
+        'zoomin',
+        'zoomout',
+        'rotate90',
+        'rotate180',
+        'rotate270',
+        # '/MenuBar/View/Edit text layer',
+        # '/MenuBar/View/Edit annotations',
         '/MenuBar/Tools/Threshold',
         '/MenuBar/Tools/BrightnessContrast',
         '/MenuBar/Tools/Negate',
@@ -459,21 +461,18 @@ def update_uimanager() :
         '/Thumb_Popup/Rotate 270',
         '/Thumb_Popup/CropSelection',
     ]
-    global uimanager
-    if slist.get_selected_indices() :
-        for widget in         widgets :
-            uimanager.get_widget(widget).set_sensitive(True)
-    else :
-        for widget in         widgets :
-            uimanager.get_widget(widget).set_sensitive(False)
+    enabled = bool(slist.get_selected_indices())
+    for action_name in         action_names :
+        if action_name in actions:
+            actions[action_name].set_enabled(enabled)
 
     # Ghost unpaper item if unpaper not available
     if not dependencies["unpaper"] :
-        uimanager.get_widget('/MenuBar/Tools/unpaper').set_sensitive(False)
+        builder.get_object('/MenuBar/Tools/unpaper').set_sensitive(False)
 
     # Ghost ocr item if ocr  not available
     if not dependencies["ocr"] :
-        uimanager.get_widget('/MenuBar/Tools/OCR').set_sensitive(False)
+        builder.get_object('/MenuBar/Tools/OCR').set_sensitive(False)
 
     if len( slist.data ) :
         if dependencies["xdg"] :
@@ -494,21 +493,21 @@ def update_uimanager() :
  
     else :
         if dependencies["xdg"] :
-            uimanager.get_widget('/MenuBar/File/Email as PDF')               .set_sensitive(False)
-            uimanager.get_widget('/ToolBar/Email as PDF')               .set_sensitive(False)
-            uimanager.get_widget('/Thumb_Popup/Email as PDF')               .set_sensitive(False)
-            if  (windowe is not None) :
+            # uimanager.get_widget('/MenuBar/File/Email as PDF')               .set_sensitive(False)
+            # uimanager.get_widget('/ToolBar/Email as PDF')               .set_sensitive(False)
+            # uimanager.get_widget('/Thumb_Popup/Email as PDF')               .set_sensitive(False)
+            if  windowe is not None :
                 windowe.hide()
 
-        if dependencies["imagemagick"] and dependencies["libtiff"] :
-            uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
-            uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
-            uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
+        # if dependencies["imagemagick"] and dependencies["libtiff"] :
+        #     uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
+        #     uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
+        #     uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
 
-        uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
-        uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
-        uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
-        if  (save_button is not None) :
+        # uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
+        # uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
+        # uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
+        if  save_button is not None :
             save_button.set_sensitive(False)
 
 
@@ -874,8 +873,7 @@ def scans_saved(message) :
     return True
 
 
-
-def new() :
+def new(_action, _param) :
     "Deletes all scans after warning"
     if not scans_saved(
             _(
@@ -985,7 +983,7 @@ def open_session_file(filename) :
     )
 
 
-def open_session_action(action) :
+def opensessionaction(action) :
     
     file_chooser = Gtk.FileChooserDialog(
         title=_('Open crashed session'),
@@ -1067,7 +1065,7 @@ def update_tpbar(response) :
         return True
 
 
-def open_dialog(_action) :
+def opendialog(_action, _param) :
     "Throw up file selector and open selected file"
     # cd back to cwd to get filename
     os.chdir( SETTING["cwd"])
@@ -1313,7 +1311,7 @@ def launch_default_for_file(filename) :
 
 
 
-def save_dialog(_action) :
+def savedialog(_action) :
     "Display page selector and on save a fileselector."
     global windowi
     if  windowi is not None :
@@ -2218,7 +2216,7 @@ def email(_action):
     windowe.show_all()
 
 
-def scan_dialog( action, hidden=False, scan=False ) :
+def scandialog( action, hidden=False, scan=False ) :
     "Scan"
     global windows
     if windows :
@@ -2555,10 +2553,10 @@ def process_error_callback( widget, process, msg, signal ) :
         global windows
         windows=None    # force scan dialog to be rebuilt
         if response == 'reopen' :
-            scan_dialog()
+            scandialog()
  
         elif response == 'rescan' :
-            scan_dialog( None, None, True )
+            scandialog( None, None, True )
  
         elif response == 'restart' :
             restart()
@@ -2948,7 +2946,7 @@ def add_postprocessing_options(self) :
     #$self->{notebook}->get_nth_page(1)->show_all;
 
 
-def print_dialog(_action):
+def printdialog(_action):
     "print"
     os.chdir( SETTING["cwd"])
     print_op = Gtk.PrintOperation()
@@ -3019,19 +3017,17 @@ def print_dialog(_action):
     os.chdir( session.name)
 
 
-def cut_selection() :
+def cutselection() :
     """Cut the selection"""
     clipboard = slist.cut_selection()
 
 
-
-def copy_selection() :
+def copyselection() :
     """Copy the selection"""
     clipboard = slist.copy_selection(True)
 
 
-
-def paste_selection() :
+def pasteselection() :
     """Paste the selection"""
     if   (clipboard is None) :
         return
@@ -3043,7 +3039,7 @@ def paste_selection() :
         slist.paste_selection( clipboard, None, None, True )
 
 
-def delete_selection() :
+def deleteselection() :
     "Delete the selected scans"
     # Update undo/redo buffers
     take_snapshot()
@@ -3055,7 +3051,7 @@ def delete_selection() :
         windows.reset_start_page()
 
 
-def select_all() :
+def selectall() :
     "Select all scans"
     # if ($textview -> has_focus) {
     #  my ($start, $end) = $textbuffer->get_bounds;
@@ -3066,7 +3062,6 @@ def select_all() :
     slist.get_selection().select_all()
 
     # }
-
 
 
 def select_odd_even(odd) :
@@ -3080,8 +3075,7 @@ def select_odd_even(odd) :
     slist.select(selection)
 
 
-
-def select_invert() :
+def selectinvert() :
     """Invert selection"""
     selection = slist.get_selected_indices()
     inverted = []
@@ -3092,7 +3086,7 @@ def select_invert() :
     slist.select(inverted)
 
 
-def select_modified_since_ocr() :
+def selectmodifiedsinceocr() :
     selection=[]
     for  page in      range(len( slist.data ))    :
         dirty_time = slist.data[page][2]["dirty_time"]
@@ -3109,8 +3103,7 @@ def select_modified_since_ocr() :
     return
 
 
-
-def select_no_ocr() :
+def selectnoocr() :
     "Select pages with no ocr output"
     selection=[]
     for i in      range(len( slist.data ))    :
@@ -3121,7 +3114,7 @@ def select_no_ocr() :
     slist.select(selection)
 
 
-def clear_ocr() :
+def clearocr() :
     "Clear the OCR output from selected pages"
     # Update undo/redo buffers
     take_snapshot()
@@ -3136,7 +3129,7 @@ def clear_ocr() :
     slist.save_session()
 
 
-def analyse_select_blank() :
+def analyseselectblank() :
     "Analyse and select blank pages"
     analyse( 1, 0 )
 
@@ -3159,16 +3152,10 @@ def select_blank_pages() :
               + ' threshold: '
               + SETTING['Blank threshold'] )
 
-    return
 
-
-
-def analyse_select_dark() :
-    """Analyse and select dark pages
-"""
+def analyseselectdark() :
+    """Analyse and select dark pages"""
     analyse( 0, 1 )
-    return
-
 
 
 def select_dark_pages() :
@@ -3192,7 +3179,6 @@ def select_dark_pages() :
               + SETTING['Dark threshold'] )
 
     return
-
 
 
 def about(_action):
@@ -3290,8 +3276,7 @@ papoteur
     return
 
 
-
-def renumber_dialog(_action):
+def renumberdialog(_action):
     "Dialog for renumber"
     if windowrn is not None:
         windowrn.present()
@@ -3542,7 +3527,7 @@ def threshold(_action) :
     windowt.show_all()
 
 
-def brightness_contrast(_action) :
+def brightnesscontrast(_action) :
     "Display page selector and on apply brightness & contrast accordingly"
     windowt = Dialog(
         transient_for = window,
@@ -3863,7 +3848,7 @@ def change_view_cb( action, current ) :
     pack_viewer_tools()
 
 
-def crop_dialog(action) :
+def cropdialog(action) :
     "Display page selector and on apply crop accordingly"    
     if  (windowc is not None) :
         windowc.present()
@@ -4045,7 +4030,7 @@ def crop_selection( action, pagelist ) :
         )
 
 
-def split_dialog(action) :
+def splitdialog(action) :
     """Display page selector and on apply crop accordingly"""    
 
     # Until we have a separate tool for the divider, kill the whole
@@ -4214,7 +4199,7 @@ def update_view_position( direction, position, width, height ) :
     view.set_selection( selection )
 
 
-def user_defined_dialog(_action):
+def userdefineddialog(_action):
     if windowudt is not None:
         windowudt.present()
         return
@@ -4420,7 +4405,7 @@ def add_tess_languages(vbox) :
     return hbox, combobox, tesslang
 
 
-def ocr_dialog(_action) :
+def ocrdialog(_action) :
     "Run OCR on current page and display result"
     if  windowo is not None :
         windowo.present()
@@ -4603,7 +4588,7 @@ def quit() :
     return True
 
 
-def view_html() :
+def viewhtml() :
     "Perhaps we should use gtk and mallard for this in the future"
     # At the moment, we have no translations,
     # but when we do, replace C with $locale
@@ -4749,7 +4734,7 @@ def register_icon( iconfactory, stock_id, path ) :
         if  icon is None :
             logger.warning("Unable to load icon `%s'", path)
         else:
-            iconfactory.add( stock_id, Gtk.IconSet(icon) )
+            iconfactory.add( stock_id, Gtk.IconSet.new_from_pixbuf(icon) )
     except Exception as err:
         logger.warning(f"Unable to load icon `%s': %s", path, err)
 
@@ -5525,6 +5510,38 @@ def pre_flight():
     ])
 
 
+def quitapp(_action, _param):
+    if quit() :
+        app.quit()
+
+def anonymous35(_action):
+    select_odd_even(0)
+
+def anonymous36(_action):
+    select_odd_even(1)
+
+def zoom100(_action):
+    view.set_zoom(1.0)
+
+def zoomtofit(_action):
+    view.zoom_to_fit()
+
+def zoomin(_action):
+    view.zoom_in()
+
+def zoomout(_action):
+    view.zoom_out()
+
+def rotate90(_action):
+    rotate( _90_DEGREES, [indices2pages( slist.get_selected_indices() ) ] )
+
+def rotate180(_action):
+    rotate( _180_DEGREES, [indices2pages( slist.get_selected_indices() ) ] )
+
+def rotate270(_action):
+    rotate( _270_DEGREES, [indices2pages( slist.get_selected_indices() ) ] )
+
+
 class ApplicationWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -5610,10 +5627,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # dependencies in order to be used for the pdftk check.
         create_temp_directory()
 
-        # Create the menu bar
-        menubar, toolbar = self.create_menu_bar()
-        main_vbox.pack_start( menubar, False, True,  0 )
-        main_vbox.pack_start( toolbar, False, False, 0 )
+        # Create the toolbar
+        main_vbox.pack_start( self.create_toolbar(), False, False, 0 )
 
         # HPaned for thumbnails and detail view
         global hpaned
@@ -5969,7 +5984,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 # Let the keypress propagate
             if event.keyval!=Gdk.KEY_Delete   :
                 return False
-            delete_selection()
+            deleteselection()
             return True
 
 
@@ -6009,7 +6024,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Open scan dialog in background
         if SETTING['auto-open-scan-dialog'] :
-            scan_dialog( None, True )
+            scandialog( None, True )
 
         # Deal with --import command line option
         if  args.import_files is not None     :
@@ -6018,51 +6033,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             import_files( args.import_all, True )
 
 
-    def create_menu_bar(self) :
+    def create_toolbar(self) :
         "Create the menu bar, initialize its menus, and return the menu bar"
-        global uimanager
-        uimanager = Gtk.UIManager()
+        # global uimanager
+        # uimanager = Gtk.UIManager()
 
-        def anonymous_34(w):
-            if quit() :
-                app.quit()
-
-        def anonymous_35(w):
-            select_odd_even(0)
-
-        def anonymous_36(w):
-            select_odd_even(1)
-
-        def anonymous_37(w):
-            view.set_zoom(1.0)
-
-        def anonymous_38(w):
-            view.zoom_to_fit()
-
-        def anonymous_39(w):
-            view.zoom_in()
-
-        def anonymous_40(w):
-            view.zoom_out()
-
-        def anonymous_41(w):
-            rotate( _90_DEGREES,
-                        [
-            indices2pages( slist.get_selected_indices() ) ] )
-
-        def anonymous_42(w):
-            rotate( _180_DEGREES,
-                        [
-            indices2pages( slist.get_selected_indices() ) ] )
-
-        def anonymous_43(w):
-            rotate( _270_DEGREES,
-                        [
-            indices2pages( slist.get_selected_indices() ) ] )
-
-        # extract the accelgroup and add it to the window
-        accelgroup = uimanager.get_accel_group()
-        self.add_accel_group(accelgroup)
+        # # extract the accelgroup and add it to the window
+        # accelgroup = uimanager.get_accel_group()
+        # self.add_accel_group(accelgroup)
         action_items = [
                 # Fields for each action item:
             # [name, stock_id, value, label, accelerator, tooltip, callback]
@@ -6071,53 +6049,53 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         'File', None, _('_File') ],         [
         'New',                  'gtk-new',             _('_New'),             '<control>n',             _('Clears all pages'), new
             ],         [
-        'Open',                   'gtk-open',             _('_Open'),              '<control>o',             _('Open image file(s)'), open_dialog
+        'Open',                   'gtk-open',             _('_Open'),              '<control>o',             _('Open image file(s)'), opendialog
             ],         [
-        'Open crashed session',      None,             _('Open c_rashed session'), None,             _('Open crashed session'),  open_session_action
+        'Open crashed session',      None,             _('Open c_rashed session'), None,             _('Open crashed session'),  opensessionaction
             ],         [
-        'Scan',              'scanner',             _('S_can'),         '<control>g',             _('Scan document'), scan_dialog
+        'Scan',              'scanner',             _('S_can'),         '<control>g',             _('Scan document'), scandialog
             ],         [
-        'Save',     'gtk-save', _('Save'), '<control>s',             _('Save'), save_dialog
+        'Save',     'gtk-save', _('Save'), '<control>s',             _('Save'), savedialog
             ],         [
         'Email as PDF',                     'mail-attach',             _('_Email as PDF'),                '<control>e',             _('Attach as PDF to a new email'), email
             ],         [
-        'Print',     'gtk-print', _('_Print'), '<control>p',             _('Print'), print_dialog
+        'Print',     'gtk-print', _('_Print'), '<control>p',             _('Print'), printdialog
             ],         [
-        'Quit',             'gtk-quit',             _('_Quit'),             '<control>q',             _('Quit'),             anonymous_34 
+        'Quit',             'gtk-quit',             _('_Quit'),             '<control>q',             _('Quit'),             quitapp
             ],          # Edit menu
             [
         'Edit', None, _('_Edit') ],         [
         'Undo', 'gtk-undo', _('_Undo'), '<control>z', _('Undo'), undo ],         [
         'Redo',      'gtk-redo',             _('_Redo'), '<shift><control>z',             _('Redo'),  unundo
             ],         [
-        'Cut',               'gtk-cut',             _('Cu_t'),          '<control>x',             _('Cut selection'), cut_selection
+        'Cut',               'gtk-cut',             _('Cu_t'),          '<control>x',             _('Cut selection'), cutselection
             ],         [
-        'Copy',               'gtk-copy',             _('_Copy'),          '<control>c',             _('Copy selection'), copy_selection
+        'Copy',               'gtk-copy',             _('_Copy'),          '<control>c',             _('Copy selection'), copyselection
             ],         [
-        'Paste',               'gtk-paste',             _('_Paste'),          '<control>v',             _('Paste selection'), paste_selection
+        'Paste',               'gtk-paste',             _('_Paste'),          '<control>v',             _('Paste selection'), pasteselection
             ],         [
-        'Delete',                    'gtk-delete',             _('_Delete'),               None,             _('Delete selected pages'), delete_selection
+        'Delete',                    'gtk-delete',             _('_Delete'),               None,             _('Delete selected pages'), deleteselection
             ],         [
-        'Renumber',           'gtk-sort-ascending',             _('_Renumber'),      '<control>r',             _('Renumber pages'), renumber_dialog
+        'Renumber',           'gtk-sort-ascending',             _('_Renumber'),      '<control>r',             _('Renumber pages'), renumberdialog
             ],         [
         'Select', None, _('_Select') ],         [
-        'Select All',           'gtk-select-all',             _('_All'),             '<control>a',             _('Select all pages'), select_all
+        'Select All',           'gtk-select-all',             _('_All'),             '<control>a',             _('Select all pages'), selectall
             ],         [
-        'Select Odd', None, _('_Odd'), '<control>1',             _('Select all odd-numbered pages'),             anonymous_35 
+        'Select Odd', None, _('_Odd'), '<control>1',             _('Select all odd-numbered pages'),             anonymous35
             ],         [
-        'Select Even', None, _('_Even'), '<control>2',             _('Select all evenly-numbered pages'),             anonymous_36 
+        'Select Even', None, _('_Even'), '<control>2',             _('Select all evenly-numbered pages'),             anonymous36
             ],         [
-        'Invert selection',     None,             _('_Invert'),          '<control>i',             _('Invert selection'), select_invert
+        'Invert selection',     None,             _('_Invert'),          '<control>i',             _('Invert selection'), selectinvert
             ],         [
-        'Select Blank',             'gtk-select-blank',             _('_Blank'),             '<control>b',             _('Select pages with low standard deviation'),             analyse_select_blank
+        'Select Blank',             'gtk-select-blank',             _('_Blank'),             '<control>b',             _('Select pages with low standard deviation'),             analyseselectblank
             ],         [
-        'Select Dark',           'gtk-select-blank',             _('_Dark'),             '<control>d',             _('Select dark pages'), analyse_select_dark
+        'Select Dark',           'gtk-select-blank',             _('_Dark'),             '<control>d',             _('Select dark pages'), analyseselectdark
             ],         [
-        'Select Modified',             'gtk-select-modified',             _('_Modified'),             '<control>m',             _('Select modified pages since last OCR'),             select_modified_since_ocr
+        'Select Modified',             'gtk-select-modified',             _('_Modified'),             '<control>m',             _('Select modified pages since last OCR'),             selectmodifiedsinceocr
             ],         [
-        'Select No OCR',                       None,             _('_No OCR'),                         None,             _('Select pages with no OCR output'), select_no_ocr
+        'Select No OCR',                       None,             _('_No OCR'),                         None,             _('Select pages with no OCR output'), selectnoocr
             ],         [
-        'Clear OCR',                                'gtk-clear',             _('_Clear OCR'),                           None,             _('Clear OCR output from selected pages'), clear_ocr
+        'Clear OCR',                                'gtk-clear',             _('_Clear OCR'),                           None,             _('Clear OCR output from selected pages'), clearocr
             ],         [
         'Properties',                'gtk-properties',             _('Propert_ies'),           None,             _('Edit image properties'), properties
             ],         [
@@ -6125,45 +6103,45 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],          # View menu
             [
         'View', None, _('_View') ],         [
-        'Zoom 100',         'gtk-zoom-100',             _('Zoom _100%'),   None,             _('Zoom to 100%'), anonymous_37 
+        'Zoom 100',         'gtk-zoom-100',             _('Zoom _100%'),   None,             _('Zoom to 100%'), zoom100
             ],         [
-        'Zoom to fit',      'gtk-zoom-fit',             _('Zoom to _fit'), None,             _('Zoom to fit'),  anonymous_38 
+        'Zoom to fit',      'gtk-zoom-fit',             _('Zoom to _fit'), None,             _('Zoom to fit'),  zoomtofit
             ],         [
-        'Zoom in',      'gtk-zoom-in',             _('Zoom _in'), 'plus',             _('Zoom in'),  anonymous_39 
+        'Zoom in',      'gtk-zoom-in',             _('Zoom _in'), 'plus',             _('Zoom in'),  zoomin
             ],         [
-        'Zoom out',      'gtk-zoom-out',             _('Zoom _out'), 'minus',             _('Zoom out'),  anonymous_40 
+        'Zoom out',      'gtk-zoom-out',             _('Zoom _out'), 'minus',             _('Zoom out'),  zoomout
             ],         [
-        'Rotate 90',             'rotate90',             _('Rotate 90° clockwise'),             '<control><shift>R',             _('Rotate 90° clockwise'),             anonymous_41 
+        'Rotate 90',             'rotate90',             _('Rotate 90° clockwise'),             '<control><shift>R',             _('Rotate 90° clockwise'),             rotate90
             ],         [
-        'Rotate 180',             'rotate180',             _('Rotate 180°'),             '<control><shift>F',             _('Rotate 180°'),             anonymous_42 
+        'Rotate 180',             'rotate180',             _('Rotate 180°'),             '<control><shift>F',             _('Rotate 180°'),             rotate180
             ],         [
-        'Rotate 270',             'rotate270',             _('Rotate 90° anticlockwise'),             '<control><shift>C',             _('Rotate 90° anticlockwise'),             anonymous_43 
+        'Rotate 270',             'rotate270',             _('Rotate 90° anticlockwise'),             '<control><shift>C',             _('Rotate 90° anticlockwise'),             rotate270
             ],          # Tools menu
             [
         'Tools', None, _('_Tools') ],         [
         'Threshold', None, _('_Threshold'), None,             _('Change each pixel above this threshold to black'),             threshold
             ],         [
-        'BrightnessContrast',               None,             _('_Brightness / Contrast'),       None,             _('Change brightness & contrast'), brightness_contrast
+        'BrightnessContrast',               None,             _('_Brightness / Contrast'),       None,             _('Change brightness & contrast'), brightnesscontrast
             ],         [
         'Negate', None, _('_Negate'), None,             _('Converts black to white and vice versa'), negate
             ],         [
         'Unsharp',                   None,             _('_Unsharp Mask'),         None,             _('Apply an unsharp mask'), unsharp
             ],         [
-        'CropDialog',     'GTK_STOCK_LEAVE_FULLSCREEN',             _('_Crop'),      None,             _('Crop pages'), crop_dialog
+        'CropDialog',     'GTK_STOCK_LEAVE_FULLSCREEN',             _('_Crop'),      None,             _('Crop pages'), cropdialog
             ],         [
         'CropSelection',      'crop',             _('_Crop'),          None,             _('Crop selection'), crop_selection
             ],         [
         'unpaper', None, _('_Clean up'), None,             _('Clean up scanned images with unpaper'), unpaper
             ],         [
-        'split', None, _('_Split'), None,             _('Split pages horizontally or vertically'),             split_dialog
+        'split', None, _('_Split'), None,             _('Split pages horizontally or vertically'),             splitdialog
             ],         [
-        'OCR', None, _('_OCR'), None,             _('Optical Character Recognition'),             ocr_dialog
+        'OCR', None, _('_OCR'), None,             _('Optical Character Recognition'),             ocrdialog
             ],         [
-        'User-defined', None, _('U_ser-defined'), None,             _('Process images with user-defined tool'),             user_defined_dialog
+        'User-defined', None, _('U_ser-defined'), None,             _('Process images with user-defined tool'),             userdefineddialog
             ],          # Help menu
             [
         'Help menu', None, _('_Help') ],         [
-        'Help',     'gtk-help', _('_Help'), '<control>h',             _('Help'), view_html
+        'Help',     'gtk-help', _('_Help'), '<control>h',             _('Help'), viewhtml
             ],         [
         'About', 'gtk-about', _('_About'), None, _('_About'), about ],
         ]
@@ -6369,24 +6347,24 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Create the basic Gtk.ActionGroup instance
         # and fill it with Gtk.Action instances
-        actions_basic = Gtk.ActionGroup('actions_basic')
-        actions_basic.add_actions( action_items, None )
-        actions_basic.add_radio_actions( image_tools,
-            SETTING["image_control_tool"],
-            change_image_tool_cb )
-        actions_basic.add_radio_actions( viewer_tools, SETTING["viewer_tools"],
-            change_view_cb )
-        actions_basic.add_radio_actions( ocr_tools, EDIT_TEXT,
-            edit_tools_callback )
+        # actions_basic = Gtk.ActionGroup('actions_basic')
+        # actions_basic.add_actions( action_items, None )
+        # actions_basic.add_radio_actions( image_tools,
+        #     SETTING["image_control_tool"],
+        #     change_image_tool_cb )
+        # actions_basic.add_radio_actions( viewer_tools, SETTING["viewer_tools"],
+        #     change_view_cb )
+        # actions_basic.add_radio_actions( ocr_tools, EDIT_TEXT,
+        #     edit_tools_callback )
 
         # Add the actiongroup to the uimanager
-        uimanager.insert_action_group( actions_basic, 0 )
+        # uimanager.insert_action_group( actions_basic, 0 )
 
         # add the basic XML description of the GUI
-        uimanager.add_ui_from_string(ui)
+        # uimanager.add_ui_from_string(ui)
 
         # extract the menubar
-        menubar = uimanager.get_widget('/MenuBar')
+        # menubar = uimanager.get_widget('/MenuBar')
 
         # Check for presence of various packages
         check_dependencies()
@@ -6409,28 +6387,28 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo start off ghosted anyway-
-        uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(False)
-        uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
-        uimanager.get_widget('/ToolBar/Redo').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(False)
+        # uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
+        # uimanager.get_widget('/ToolBar/Redo').set_sensitive(False)
 
         # save * start off ghosted anyway-
-        uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/File/Email as PDF').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
-        uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
-        uimanager.get_widget('/ToolBar/Email as PDF').set_sensitive(False)
-        uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
-        uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
-        uimanager.get_widget('/Thumb_Popup/Email as PDF').set_sensitive(False)
-        uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Tools/Unsharp').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Tools/CropDialog').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
-        uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/File/Email as PDF').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
+        # uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
+        # uimanager.get_widget('/ToolBar/Email as PDF').set_sensitive(False)
+        # uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
+        # uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
+        # uimanager.get_widget('/Thumb_Popup/Email as PDF').set_sensitive(False)
+        # uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Tools/Unsharp').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Tools/CropDialog').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
+        # uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
 
         if not dependencies["unpaper"] :
             msg += _("unpaper missing\n")
@@ -6465,12 +6443,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
 
         # extract the toolbar
-        toolbar = uimanager.get_widget('/ToolBar')
+        toolbar = builder.get_object('toolbar')
 
         # turn off labels
         settings = toolbar.get_settings()
         settings.gtk_toolbar_style='icons'    # only icons
-        return menubar, toolbar
+        return toolbar
 
 
 class Application(Gtk.Application):
@@ -6496,16 +6474,30 @@ class Application(Gtk.Application):
     def do_startup(self):
         Gtk.Application.do_startup(self)
 
-        # action = Gio.SimpleAction.new("about", None)
-        # action.connect("activate", self.on_about)
-        # self.add_action(action)
+        global actions
+        for name, function in [
+            ("new", new),
+            ("open", opendialog),
+            ("opensessionaction", opensessionaction),
+            ("scandialog", scandialog),
+            ("savedialog", savedialog),
+            ("email", email),
+            ("printdialog", printdialog),
+            ("quit", quitapp),
+            ("about", about),
+            ("tooltype", change_image_tool_cb),
+        ]:
+            actions[name] = Gio.SimpleAction.new(name, None)
+            actions[name].connect("activate", function)
+            self.add_action(actions[name])
 
-        # action = Gio.SimpleAction.new("quit", None)
-        # action.connect("activate", self.on_quit)
+        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        global builder
+        builder = Gtk.Builder()
+        builder.add_from_file(os.path.join(base_path, "app.ui"))
+        self.set_menubar(builder.get_object("menubar"))
 
-        # self.add_action(action)
-        # builder = Gtk.Builder.new_from_string(MENU_XML, -1)
-        # self.set_app_menu(builder.get_object("app-menu"))
 
     def do_activate(self):
         "only allow a single window and raise any existing ones"

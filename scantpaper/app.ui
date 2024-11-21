@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="menubar">
+    <submenu>
+      <attribute name="label" translatable="yes">_File</attribute>
+      <section>
+      <item>
+        <attribute name="action">app.new</attribute>
+        <attribute name="label" translatable="yes">_New</attribute>
+        <attribute name="accel">&lt;control&gt;n</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.open</attribute>
+        <attribute name="label" translatable="yes">_Open</attribute>
+        <attribute name="accel">&lt;control&gt;o</attribute>
+      </item>
+      <item>
+        <attribute name="action">opensessionaction</attribute>
+        <attribute name="label" translatable="yes">Open c_rashed session</attribute>
+      </item>
+      <item>
+        <attribute name="action">scandialog</attribute>
+        <attribute name="label" translatable="yes">S_can</attribute>
+        <attribute name="accel">&lt;control&gt;g</attribute>
+      </item>
+      <item>
+        <attribute name="action">savedialog</attribute>
+        <attribute name="label" translatable="yes">Save</attribute>
+        <attribute name="accel">&lt;control&gt;s</attribute>
+      </item>
+      <item>
+        <attribute name="action">email</attribute>
+        <attribute name="label" translatable="yes">_Email as PDF</attribute>
+        <attribute name="accel">&lt;control&gt;e</attribute>
+      </item>
+      <item>
+        <attribute name="action">printdialog</attribute>
+        <attribute name="label" translatable="yes">_Print</attribute>
+        <attribute name="accel">&lt;control&gt;p</attribute>
+      </item>
+      </section>
+      <section>
+      <item>
+        <attribute name="action">app.quit</attribute>
+        <attribute name="label" translatable="yes">_Quit</attribute>
+        <attribute name="accel">&lt;control&gt;q</attribute>
+      </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Edit</attribute>
+      <section>
+        <item>
+        <attribute name="action">undo</attribute>
+        <attribute name="label" translatable="yes">_Undo</attribute>
+        <attribute name="accel">&lt;control&gt;z</attribute>
+      </item>
+      <item>
+        <attribute name="action">unundo</attribute>
+        <attribute name="label" translatable="yes">_Redo</attribute>
+        <attribute name="accel">&lt;shift&gt;&lt;control&gt;z</attribute>
+      </item>
+    </section>
+  <section>
+  <item>
+        <attribute name="action">cutselection</attribute>
+        <attribute name="label" translatable="yes">Cu_t</attribute>
+        <attribute name="accel">&lt;control&gt;x</attribute>
+      </item>
+      <item>
+        <attribute name="action">copyselection</attribute>
+        <attribute name="label" translatable="yes">_Copy</attribute>
+        <attribute name="accel">&lt;control&gt;c</attribute>
+      </item>
+      <item>
+        <attribute name="action">pasteselection</attribute>
+        <attribute name="label" translatable="yes">_Paste</attribute>
+        <attribute name="accel">&lt;control&gt;v</attribute>
+      </item>
+      <item>
+        <attribute name="action">deleteselection</attribute>
+        <attribute name="label" translatable="yes">_Delete</attribute>
+      </item>
+    </section>
+    <section>
+        <item>
+        <attribute name="action">renumberdialog</attribute>
+        <attribute name="label" translatable="yes">_Renumber</attribute>
+        <attribute name="accel">&lt;control&gt;r</attribute>
+      </item>
+    </section>
+    <submenu>
+      <attribute name="label" translatable="yes">_Select</attribute>
+      <item>
+        <attribute name="action">selectall</attribute>
+        <attribute name="label" translatable="yes">_All</attribute>
+        <attribute name="accel">&lt;control&gt;a</attribute>
+      </item>
+      <item>
+        <attribute name="action">anonymous35</attribute>
+        <attribute name="label" translatable="yes">_Odd</attribute>
+        <attribute name="accel">&lt;control&gt;1</attribute>
+      </item>
+      <item>
+        <attribute name="action">anonymous36</attribute>
+        <attribute name="label" translatable="yes">_Even</attribute>
+        <attribute name="accel">&lt;control&gt;2</attribute>
+      </item>
+      <item>
+        <attribute name="action">selectinvert</attribute>
+        <attribute name="label" translatable="yes">_Invert</attribute>
+        <attribute name="accel">&lt;control&gt;i</attribute>
+      </item>
+      <item>
+        <attribute name="action">analyseselectblank</attribute>
+        <attribute name="label" translatable="yes">_Blank</attribute>
+        <attribute name="accel">&lt;control&gt;b</attribute>
+      </item>
+      <item>
+        <attribute name="action">analyseselectdark</attribute>
+        <attribute name="label" translatable="yes">_Dark</attribute>
+        <attribute name="accel">&lt;control&gt;d</attribute>
+      </item>
+      <item>
+        <attribute name="action">selectmodifiedsinceocr</attribute>
+        <attribute name="label" translatable="yes">_Modified</attribute>
+        <attribute name="accel">&lt;control&gt;m</attribute>
+      </item>
+      <item>
+        <attribute name="action">selectnoocr</attribute>
+        <attribute name="label" translatable="yes">_No OCR</attribute>
+      </item>
+    </submenu>
+    <section>
+    <item>
+        <attribute name="action">clearocr</attribute>
+        <attribute name="label" translatable="yes">_Clear OCR</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">properties</attribute>
+        <attribute name="label" translatable="yes">Propert_ies</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">preferences</attribute>
+        <attribute name="label" translatable="yes">Prefere_nces</attribute>
+      </item>
+    </section>
+  </submenu>
+  <submenu>
+    <attribute name="label" translatable="yes">_View</attribute>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Pan</attribute>
+        <attribute name="action">app.tooltype</attribute>
+        <attribute name="target" type="i">0</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Select</attribute>
+        <attribute name="action">app.tooltype</attribute>
+        <attribute name="target" type="i">1</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Select &amp; pan</attribute>
+        <attribute name="action">app.tooltype</attribute>
+        <attribute name="target" type="i">2</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Tabbed</attribute>
+        <attribute name="action">app.viewtype</attribute>
+        <attribute name="target" type="i">0</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Split horizontally</attribute>
+        <attribute name="action">app.viewtype</attribute>
+        <attribute name="target" type="i">1</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Split vertically</attribute>
+        <attribute name="action">app.viewtype</attribute>
+        <attribute name="target" type="i">2</attribute>
+      </item>
+    </section>
+    <section>
+    <item>
+        <attribute name="action">zoom100</attribute>
+        <attribute name="label" translatable="yes">Zoom _100%</attribute>
+      </item>
+      <item>
+        <attribute name="action">zoomtofit</attribute>
+        <attribute name="label" translatable="yes">Zoom to _fit</attribute>
+      </item>
+      <item>
+        <attribute name="action">zoomin</attribute>
+        <attribute name="label" translatable="yes">Zoom _in</attribute>
+        <attribute name="accel">plus</attribute>
+      </item>
+      <item>
+        <attribute name="action">zoomout</attribute>
+        <attribute name="label" translatable="yes">Zoom _out</attribute>
+        <attribute name="accel">minus</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">rotate90</attribute>
+        <attribute name="label" translatable="yes">Rotate 90° clockwise</attribute>
+        <attribute name="accel">&lt;control&gt;&lt;shift&gt;R</attribute>
+      </item>
+      <item>
+        <attribute name="action">rotate180</attribute>
+        <attribute name="label" translatable="yes">Rotate 180°</attribute>
+        <attribute name="accel">&lt;control&gt;&lt;shift&gt;F</attribute>
+      </item>
+      <item>
+        <attribute name="action">rotate270</attribute>
+        <attribute name="label" translatable="yes">Rotate 90° anticlockwise</attribute>
+        <attribute name="accel">&lt;control&gt;&lt;shift&gt;C</attribute>
+      </item>
+    </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Tools</attribute>
+      <section>
+      <item>
+        <attribute name="action">threshold</attribute>
+        <attribute name="label" translatable="yes">_Threshold</attribute>
+      </item>
+      <item>
+        <attribute name="action">brightness_contrast</attribute>
+        <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
+      </item>
+      <item>
+        <attribute name="action">negate</attribute>
+        <attribute name="label" translatable="yes">_Negate</attribute>
+      </item>
+      <item>
+        <attribute name="action">unsharp</attribute>
+        <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
+      </item>
+      <item>
+        <attribute name="action">cropdialog</attribute>
+        <attribute name="label" translatable="yes">_Crop</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">unpaper</attribute>
+        <attribute name="label" translatable="yes">_Clean up</attribute>
+      </item>
+      <item>
+        <attribute name="action">splitdialog</attribute>
+        <attribute name="label" translatable="yes">_Split</attribute>
+      </item>
+      <item>
+        <attribute name="action">ocrdialog</attribute>
+        <attribute name="label" translatable="yes">_OCR</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">userdefineddialog</attribute>
+        <attribute name="label" translatable="yes">U_ser-defined</attribute>
+      </item>
+    </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Help</attribute>
+      <item>
+        <attribute name="action">viewhtml</attribute>
+        <attribute name="label" translatable="yes">_Help</attribute>
+        <attribute name="accel">&lt;control&gt;h</attribute>
+      </item>
+      <item>
+        <attribute name="action">about</attribute>
+        <attribute name="label" translatable="yes">_About</attribute>
+        <attribute name="accel">&lt;control&gt;h</attribute>
+      </item>
+    </submenu>
+  </menu>
+  <object class="GtkToolbar" id="toolbar">
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_new">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Clears all pages</property>
+        <property name="action_name">app.new</property>
+        <property name="stock_id">gtk-new</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_quit">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Quit</property>
+        <property name="action_name">app.quit</property>
+        <property name="stock_id">gtk-quit</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+  </object>
+</interface>
