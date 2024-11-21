@@ -911,7 +911,7 @@ def new(_action, _param) :
 
     # Reset start page in scan dialog
     global windows
-    windows.reset_start_page()
+    windows._reset_start_page()
 
 
 def add_filter( file_chooser, name, file_extensions ) :
@@ -3042,7 +3042,7 @@ def deleteselection() :
     # Reset start page in scan dialog
     global windows
     if windows :
-        windows.reset_start_page()
+        windows._reset_start_page()
 
 
 def selectall() :
@@ -4625,8 +4625,8 @@ def take_snapshot() :
         os.remove(delete_files) 
 
     # Unghost Undo/redo
-    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(True)
-    uimanager.get_widget('/ToolBar/Undo').set_sensitive(True)
+    global actions
+    actions["undo"].set_enabled(True)
 
     # Check free space in session directory
     df = shutil.disk_usage(session.name)
@@ -6477,8 +6477,9 @@ class Application(Gtk.Application):
             ("email", email),
             ("printdialog", printdialog),
             ("quit", quitapp),
-            ("about", about),
+            ("undo", undo),
             ("tooltype", change_image_tool_cb),
+            ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
             actions[name].connect("activate", function)
