@@ -2987,9 +2987,8 @@ def printdialog(_action):
 
             # Image dimensions
             # quotes required to prevent File::Temp object being clobbered
-
-        pixbuf  = Gdk.Pixbuf.new_from_file(f"{page}->{filename}")
-        ratio   = page["xresolution"] / page["yresolution"]
+        pixbuf  = GdkPixbuf.Pixbuf.new_from_file(f"{page.filename}")
+        ratio   = page.xresolution / page.yresolution
         iwidth  = pixbuf.get_width()
         iheight = pixbuf.get_height()
 
@@ -3005,7 +3004,6 @@ def printdialog(_action):
 
             # Paint
         cr.paint()
-        return
 
 
     print_op.connect       (   # FIXME: check print preview works for pages with ratios other than 1.
