@@ -2314,14 +2314,11 @@ def scandialog( action, hidden=False, scan=False ) :
     windows.connect(
         'changed-current-scan-options' , changed_current_scan_options_callback
     )
-    def anonymous_96( widget, formats ):
-            
+    def changed_paper_formats_callback( widget, formats ):
         SETTING["Paper"] = formats
 
 
-    windows.connect(
-        'changed-paper-formats' , anonymous_96 
-    )
+    windows.connect('changed-paper-formats' , changed_paper_formats_callback)
     windows.connect( 'new-scan' , new_scan_callback )
     windows.connect(
         'changed-scan-option' , update_postprocessing_options_callback )
@@ -2329,7 +2326,6 @@ def scandialog( action, hidden=False, scan=False ) :
     if not hidden :
         windows.show_all()
     update_postprocessing_options_callback(windows)
-    logger.debug(f"before device {args.device}")
     if args.device :
         device_list=[]
         for d in         args.device :
