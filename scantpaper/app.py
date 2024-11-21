@@ -3181,7 +3181,7 @@ def select_dark_pages() :
     return
 
 
-def about(_action):
+def about(_action, _param):
     "Display about dialog"    
     about = Gtk.AboutDialog()
 
@@ -3198,9 +3198,9 @@ def about(_action):
     'Jeff Ratcliffe'] )
     about.add_credit_section( 'Patches gratefully received from', authors )
     about.set_comments( _('To aid the scan-to-PDF process') )
-    about.set_copyright( _('Copyright 2006--2022 Jeffrey Ratcliffe') )
+    about.set_copyright( _('Copyright 2006--2024 Jeffrey Ratcliffe') )
     licence = """gscan2pdf --- to aid the scan to PDF or DjVu process
-Copyright 2006 -- 2022 Jeffrey Ratcliffe <jffry@posteo.net>
+Copyright 2006 -- 2024 Jeffrey Ratcliffe <jffry@posteo.net>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the version 3 GNU General Public License as
@@ -3263,17 +3263,16 @@ Alexandre NICOLADIE
 Aleksandr Proklov
 Silvio Brera
 papoteur
-""" # inverted commas required around EOS because of UTF-8 in $translators
+"""
     about.set_translator_credits(translators)
     about.set_artists(
     [
     'lodp, Andreas E.'] )
     about.set_logo(
-        Gdk.Pixbuf.new_from_file(f"{iconpath}/gscan2pdf.svg") )
+        GdkPixbuf.Pixbuf.new_from_file(f"{iconpath}/gscan2pdf.svg") )
     about.set_transient_for(window)
     about.run()
     about.destroy()
-    return
 
 
 def renumberdialog(_action):
