@@ -137,7 +137,7 @@ def test_1():
         allocation = Gdk.Rectangle()
         allocation.x, allocation.y, allocation.width, allocation.height = 0, 0, 100, 100
         view.size_allocate(allocation)
-        view.set_pixbuf(Gdk.Pixbuf(Gdk.colormap_get_system(), False, 8, 50, 50))
+        view.set_pixbuf(GdkPixbuf.Pixbuf(Gdk.colormap_get_system(), False, 8, 50, 50))
         rect = view.get_viewport()
         assert (
             rect.x == 0 and rect.y == 0 and rect.width == 50 and rect.height == 50
@@ -147,7 +147,7 @@ def test_1():
         assert (
             rect.x == 25 and rect.y == 25 and rect.width == 50 and rect.height == 50
         ), "Ensure that getting the draw rectangle works as expected."
-        view.set_pixbuf(Gdk.Pixbuf(Gdk.colormap_get_system(), False, 8, 200, 200))
+        view.set_pixbuf(GdkPixbuf.Pixbuf(Gdk.colormap_get_system(), False, 8, 200, 200))
         view.set_zoom(1)
         view.set_offset(0, 0)
         rect = view.get_viewport()
