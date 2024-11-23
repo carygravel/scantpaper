@@ -474,16 +474,12 @@ def update_uimanager() :
     if not dependencies["ocr"] :
         builder.get_object('/MenuBar/Tools/OCR').set_sensitive(False)
 
-    if len( slist.data ) :
+    if len( slist.data ) > 0:
         if dependencies["xdg"] :
-            uimanager.get_widget('/MenuBar/File/Email as PDF')               .set_sensitive(True)
-            uimanager.get_widget('/ToolBar/Email as PDF')               .set_sensitive(True)
-            uimanager.get_widget('/Thumb_Popup/Email as PDF')               .set_sensitive(True)
+            actions["email"].set_enabled(True)
 
         if dependencies["imagemagick"] and dependencies["libtiff"] :
-            uimanager.get_widget('/MenuBar/File/Save').set_sensitive(True)
-            uimanager.get_widget('/ToolBar/Save').set_sensitive(True)
-            uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(True)
+            actions["save"].set_enabled(True)
 
         uimanager.get_widget('/MenuBar/File/Print').set_sensitive(True)
         uimanager.get_widget('/ToolBar/Print').set_sensitive(True)
@@ -493,16 +489,12 @@ def update_uimanager() :
  
     else :
         if dependencies["xdg"] :
-            # uimanager.get_widget('/MenuBar/File/Email as PDF')               .set_sensitive(False)
-            # uimanager.get_widget('/ToolBar/Email as PDF')               .set_sensitive(False)
-            # uimanager.get_widget('/Thumb_Popup/Email as PDF')               .set_sensitive(False)
+            actions["email"].set_enabled(False)
             if  windowe is not None :
                 windowe.hide()
 
-        # if dependencies["imagemagick"] and dependencies["libtiff"] :
-        #     uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
-        #     uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
-        #     uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
+        if dependencies["imagemagick"] and dependencies["libtiff"] :
+            actions["save"].set_enabled(False)
 
         # uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
         # uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
@@ -2073,8 +2065,9 @@ def save_hocr( filename, uuids ) :
     )
 
 
-def email(_action):
+def email(_action, _param):
     "Display page selector and email."
+    global windowe
     if windowe is not None:
         windowe.present()
         return
@@ -2106,9 +2099,6 @@ def email(_action):
 
     # Frame for page range
     windowe.add_page_range()
-
-    # Metadata
-    windowe.add_metadata()
 
     # PDF options
     vboxp, hboxp  = windowe.add_pdf_options()

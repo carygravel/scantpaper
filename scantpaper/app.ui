@@ -29,7 +29,7 @@
         <attribute name="accel">&lt;control&gt;s</attribute>
       </item>
       <item>
-        <attribute name="action">email</attribute>
+        <attribute name="action">app.email</attribute>
         <attribute name="label" translatable="yes">_Email as PDF</attribute>
         <attribute name="accel">&lt;control&gt;e</attribute>
       </item>
@@ -321,6 +321,16 @@
         <property name="tooltip_text" translatable="yes">Save</property>
         <property name="action_name">app.save</property>
         <property name="stock_id">gtk-save</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_email">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Attach as PDF to a new email</property>
+        <property name="action_name">app.email</property>
+        <property name="stock_id">mail-attach</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
