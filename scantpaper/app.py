@@ -1310,8 +1310,7 @@ def launch_default_for_file(filename) :
     return
 
 
-
-def savedialog(_action) :
+def save_dialog(_action, _param) :
     "Display page selector and on save a fileselector."
     global windowi
     if  windowi is not None :
@@ -6028,7 +6027,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Scan',              'scanner',             _('S_can'),         '<control>g',             _('Scan document'), scan_dialog
             ],         [
-        'Save',     'gtk-save', _('Save'), '<control>s',             _('Save'), savedialog
+        'Save',     'gtk-save', _('Save'), '<control>s',             _('Save'), save_dialog
             ],         [
         'Email as PDF',                     'mail-attach',             _('_Email as PDF'),                '<control>e',             _('Attach as PDF to a new email'), email
             ],         [
@@ -6471,9 +6470,9 @@ class Application(Gtk.Application):
         for name, function in [
             ("new", new),
             ("open", open_dialog),
-            ("open-session-action", open_session_action),
+            ("open-session", open_session_action),
             ("scan", scan_dialog),
-            ("savedialog", savedialog),
+            ("save", save_dialog),
             ("email", email),
             ("printdialog", printdialog),
             ("quit", quitapp),
