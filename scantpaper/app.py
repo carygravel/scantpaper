@@ -481,10 +481,8 @@ def update_uimanager() :
         if dependencies["imagemagick"] and dependencies["libtiff"] :
             actions["save"].set_enabled(True)
 
-        uimanager.get_widget('/MenuBar/File/Print').set_sensitive(True)
-        uimanager.get_widget('/ToolBar/Print').set_sensitive(True)
-        uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(True)
-        if  (save_button is not None) :
+        actions["print"].set_enabled(True)
+        if  save_button is not None :
             save_button.set_sensitive(True)
  
     else :
@@ -496,9 +494,7 @@ def update_uimanager() :
         if dependencies["imagemagick"] and dependencies["libtiff"] :
             actions["save"].set_enabled(False)
 
-        # uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
-        # uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
-        # uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
+        actions["print"].set_enabled(False)
         if  save_button is not None :
             save_button.set_sensitive(False)
 
@@ -2931,26 +2927,28 @@ def add_postprocessing_options(self) :
     #$self->{notebook}->get_nth_page(1)->show_all;
 
 
-def printdialog(_action):
+def print_dialog(_action, _param):
     "print"
     os.chdir( SETTING["cwd"])
     print_op = Gtk.PrintOperation()
+    global print_settings
     if print_settings is not None:
         print_op.set_print_settings(print_settings)
 
-    def anonymous_112( op, context ):
+    def begin_print_callback( op, context ):
             
         settings = op.get_print_settings()
-        pages    = settings.print_pages
+        pages    = settings.get_print_pages()
         page_list=[]
-        if pages == 'ranges' :
-            page_set = Set.IntSpan()
-            ranges   = settings.page_ranges
-            for i in              re.split(r",",ranges)    :
-                page_set.I(i)
+        if pages == Gtk.PrintPages.RANGES :
+            page_set = set()
+            ranges   = settings.get_page_ranges()
+            for r in              ranges    :
+                for i in range(r.start+1, r.end+1):
+                    page_set.add(i)
 
             for i in              range(len( slist.data ))    :
-                if page_set.member( slist.data[i][0] ) :
+                if slist.data[i][0] in page_set :
                     page_list.append(i)  
         else :
             page_list = [ range(len( slist.data ))   ]
@@ -2958,10 +2956,8 @@ def printdialog(_action):
         op.set_n_pages( len(page_list)  )
 
 
-    print_op.connect(
-        'begin-print' , anonymous_112 
-    )
-    def anonymous_113( op, context, page_number ):
+    print_op.connect('begin-print', begin_print_callback)
+    def draw_page_callback( op, context, page_number ):
             
         page = slist.data[page_number][2]
         cr = context.get_cairo_context()
@@ -2971,14 +2967,13 @@ def printdialog(_action):
         pheight = context.get_height()
 
             # Image dimensions
-            # quotes required to prevent File::Temp object being clobbered
-        pixbuf  = GdkPixbuf.Pixbuf.new_from_file(f"{page.filename}")
-        ratio   = page.xresolution / page.yresolution
+        pixbuf  = page.get_pixbuf()
+        xresolution, yresolution, units = page.resolution
+        ratio   = xresolution / yresolution
         iwidth  = pixbuf.get_width()
         iheight = pixbuf.get_height()
 
             # Scale context to fit image
-
         scale = pwidth / iwidth * ratio
         if pheight / iheight < scale :
             scale = pheight / iheight
@@ -2990,12 +2985,10 @@ def printdialog(_action):
             # Paint
         cr.paint()
 
-
-    print_op.connect       (   # FIXME: check print preview works for pages with ratios other than 1.
-        'draw-page' , anonymous_113 
-      )
-    res = print_op.run( 'print-dialog', window )
-    if res == 'apply' :
+    # FIXME: check print preview works for pages with ratios other than 1.
+    print_op.connect('draw-page', draw_page_callback)
+    res = print_op.run( Gtk.PrintOperationAction.PRINT_DIALOG, window )
+    if res == Gtk.PrintOperationResult.APPLY :
         print_settings = print_op.get_print_settings()
     os.chdir( session.name)
 
@@ -6021,7 +6014,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Email as PDF',                     'mail-attach',             _('_Email as PDF'),                '<control>e',             _('Attach as PDF to a new email'), email
             ],         [
-        'Print',     'gtk-print', _('_Print'), '<control>p',             _('Print'), printdialog
+        'Print',     'gtk-print', _('_Print'), '<control>p',             _('Print'), print_dialog
             ],         [
         'Quit',             'gtk-quit',             _('_Quit'),             '<control>q',             _('Quit'),             quitapp
             ],          # Edit menu
@@ -6355,15 +6348,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # uimanager.get_widget('/ToolBar/Redo').set_sensitive(False)
 
         # save * start off ghosted anyway-
-        # uimanager.get_widget('/MenuBar/File/Save').set_sensitive(False)
-        # uimanager.get_widget('/MenuBar/File/Email as PDF').set_sensitive(False)
-        # uimanager.get_widget('/MenuBar/File/Print').set_sensitive(False)
-        # uimanager.get_widget('/ToolBar/Save').set_sensitive(False)
-        # uimanager.get_widget('/ToolBar/Email as PDF').set_sensitive(False)
-        # uimanager.get_widget('/ToolBar/Print').set_sensitive(False)
-        # uimanager.get_widget('/Thumb_Popup/Save').set_sensitive(False)
-        # uimanager.get_widget('/Thumb_Popup/Email as PDF').set_sensitive(False)
-        # uimanager.get_widget('/Thumb_Popup/Print').set_sensitive(False)
+        actions["save"].set_enabled(False)
+        actions["email"].set_enabled(False)
+        actions["print"].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
@@ -6464,7 +6451,7 @@ class Application(Gtk.Application):
             ("scan", scan_dialog),
             ("save", save_dialog),
             ("email", email),
-            ("printdialog", printdialog),
+            ("print", print_dialog),
             ("quit", quitapp),
             ("undo", undo),
             ("tooltype", change_image_tool_cb),

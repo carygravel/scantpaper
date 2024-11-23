@@ -34,7 +34,7 @@
         <attribute name="accel">&lt;control&gt;e</attribute>
       </item>
       <item>
-        <attribute name="action">printdialog</attribute>
+        <attribute name="action">app.print</attribute>
         <attribute name="label" translatable="yes">_Print</attribute>
         <attribute name="accel">&lt;control&gt;p</attribute>
       </item>
@@ -331,6 +331,16 @@
         <property name="tooltip_text" translatable="yes">Attach as PDF to a new email</property>
         <property name="action_name">app.email</property>
         <property name="stock_id">mail-attach</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_print">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Print</property>
+        <property name="action_name">app.print</property>
+        <property name="stock_id">gtk-print</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
