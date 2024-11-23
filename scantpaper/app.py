@@ -983,7 +983,7 @@ def open_session_file(filename) :
     )
 
 
-def opensessionaction(action) :
+def open_session_action(action) :
     
     file_chooser = Gtk.FileChooserDialog(
         title=_('Open crashed session'),
@@ -1065,7 +1065,7 @@ def update_tpbar(response) :
         return True
 
 
-def opendialog(_action, _param) :
+def open_dialog(_action, _param) :
     "Throw up file selector and open selected file"
     # cd back to cwd to get filename
     os.chdir( SETTING["cwd"])
@@ -2216,7 +2216,7 @@ def email(_action):
     windowe.show_all()
 
 
-def scandialog( action, hidden=False, scan=False ) :
+def scan_dialog( _action, _param, hidden=False, scan=False ) :
     "Scan"
     global windows
     if windows :
@@ -2549,10 +2549,10 @@ def process_error_callback( widget, process, msg, signal ) :
         global windows
         windows=None    # force scan dialog to be rebuilt
         if response == 'reopen' :
-            scandialog()
+            scan_dialog(None, None)
  
         elif response == 'rescan' :
-            scandialog( None, None, True )
+            scan_dialog( None, None, None, True )
  
         elif response == 'restart' :
             restart()
@@ -5450,7 +5450,6 @@ def pre_flight():
     global args
     global rc
     global SETTING
-    global iconpath
     args = parse_arguments()
 
     # Catch and log Python warnings
@@ -5482,25 +5481,6 @@ def pre_flight():
         logger.debug( Dumper( SETTING ) )
 
     SETTING["version"] = VERSION
-
-    # Create icons for rotate buttons
-    iconpath=None
-    if os.path.isdir('/usr/share/gscan2pdf') :
-        iconpath = '/usr/share/gscan2pdf'
-    else :
-        iconpath = 'icons'
-
-    init_icons([
-    ('rotate90',    f"{iconpath}/stock-rotate-90.svg"),     
-    ('rotate180',   f"{iconpath}/180_degree.svg"),     
-    ('rotate270',   f"{iconpath}/stock-rotate-270.svg") ,     
-    ('scanner',     f"{iconpath}/scanner.svg"),
-    ('pdf',         f"{iconpath}/pdf.svg") ,     
-    ('selection',   f"{iconpath}/stock-selection-all-16.png") ,     
-    ('hand-tool',   f"{iconpath}/hand-tool.svg") ,     
-    ('mail-attach', f"{iconpath}/mail-attach.svg") ,     
-    ('crop',        f"{iconpath}/crop.svg") ,
-    ])
 
 
 def quitapp(_action, _param):
@@ -6017,7 +5997,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Open scan dialog in background
         if SETTING['auto-open-scan-dialog'] :
-            scandialog( None, True )
+            scan_dialog( None, None, True )
 
         # Deal with --import command line option
         if  args.import_files is not None     :
@@ -6042,11 +6022,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         'File', None, _('_File') ],         [
         'New',                  'gtk-new',             _('_New'),             '<control>n',             _('Clears all pages'), new
             ],         [
-        'Open',                   'gtk-open',             _('_Open'),              '<control>o',             _('Open image file(s)'), opendialog
+        'Open',                   'gtk-open',             _('_Open'),              '<control>o',             _('Open image file(s)'), open_dialog
             ],         [
-        'Open crashed session',      None,             _('Open c_rashed session'), None,             _('Open crashed session'),  opensessionaction
+        'Open crashed session',      None,             _('Open c_rashed session'), None,             _('Open crashed session'),  open_session_action
             ],         [
-        'Scan',              'scanner',             _('S_can'),         '<control>g',             _('Scan document'), scandialog
+        'Scan',              'scanner',             _('S_can'),         '<control>g',             _('Scan document'), scan_dialog
             ],         [
         'Save',     'gtk-save', _('Save'), '<control>s',             _('Save'), savedialog
             ],         [
@@ -6467,12 +6447,32 @@ class Application(Gtk.Application):
     def do_startup(self):
         Gtk.Application.do_startup(self)
 
+        # Add extra icons early to be available for Gtk.Builder
+        global iconpath
+        iconpath=None
+        if os.path.isdir('/usr/share/gscan2pdf') :
+            iconpath = '/usr/share/gscan2pdf'
+        else :
+            iconpath = 'icons'
+
+        init_icons([
+        ('rotate90',    f"{iconpath}/stock-rotate-90.svg"),     
+        ('rotate180',   f"{iconpath}/180_degree.svg"),     
+        ('rotate270',   f"{iconpath}/stock-rotate-270.svg") ,     
+        ('scanner',     f"{iconpath}/scanner.svg"),
+        ('pdf',         f"{iconpath}/pdf.svg") ,     
+        ('selection',   f"{iconpath}/stock-selection-all-16.png") ,     
+        ('hand-tool',   f"{iconpath}/hand-tool.svg") ,     
+        ('mail-attach', f"{iconpath}/mail-attach.svg") ,     
+        ('crop',        f"{iconpath}/crop.svg") ,
+        ])
+
         global actions
         for name, function in [
             ("new", new),
-            ("open", opendialog),
-            ("opensessionaction", opensessionaction),
-            ("scandialog", scandialog),
+            ("open", open_dialog),
+            ("open-session-action", open_session_action),
+            ("scan", scan_dialog),
             ("savedialog", savedialog),
             ("email", email),
             ("printdialog", printdialog),

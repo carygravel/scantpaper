@@ -15,11 +15,11 @@
         <attribute name="accel">&lt;control&gt;o</attribute>
       </item>
       <item>
-        <attribute name="action">opensessionaction</attribute>
+        <attribute name="action">app.open-session-action</attribute>
         <attribute name="label" translatable="yes">Open c_rashed session</attribute>
       </item>
       <item>
-        <attribute name="action">scandialog</attribute>
+        <attribute name="action">app.scan</attribute>
         <attribute name="label" translatable="yes">S_can</attribute>
         <attribute name="accel">&lt;control&gt;g</attribute>
       </item>
@@ -301,6 +301,16 @@
         <property name="tooltip_text" translatable="yes">Open image file(s)</property>
         <property name="action_name">app.open</property>
         <property name="stock_id">gtk-open</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_scan">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Scan document</property>
+        <property name="action_name">app.scan</property>
+        <property name="stock_id">scanner</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
