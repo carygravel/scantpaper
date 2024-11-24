@@ -56,7 +56,7 @@
         <attribute name="accel">&lt;control&gt;z</attribute>
       </item>
       <item>
-        <attribute name="action">unundo</attribute>
+        <attribute name="action">app.redo</attribute>
         <attribute name="label" translatable="yes">_Redo</attribute>
         <attribute name="accel">&lt;shift&gt;&lt;control&gt;z</attribute>
       </item>
@@ -356,6 +356,17 @@
         <property name="vexpand">False</property>
       </object>
     </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_redo">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Redo</property>
+        <property name="action_name">app.redo</property>
+        <property name="stock_id">gtk-redo</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorToolItem" /></child>
     <child>
       <object class="GtkToolButton" id="toolbutton_quit">
         <property name="can_focus">False</property>

@@ -561,6 +561,13 @@ class BaseDocument(SimpleList):
         # self.save_session()
         logger.info("Deleted %s pages", npages)
 
+    def clone_data(self):
+        "for undo/redo"
+        data = []
+        for row in self.data:
+            data.append([row[0], row[1], row[2].clone(True)])
+        return data
+
     def scans_saved(self):
         "Check that all pages have been saved"
         for row in self:

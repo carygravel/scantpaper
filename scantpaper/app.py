@@ -3266,8 +3266,7 @@ def renumberdialog(_action):
     )
 
     def anonymous_114():
-        """    # Update undo/redo buffers
-"""
+        "Update undo/redo buffers"
         take_snapshot()
 
 
@@ -3300,7 +3299,7 @@ def indices2pages(indices) :
 
 
 def rotate( angle, pagelist, callback ) :
-    """Rotate selected images"""    
+    "Rotate selected images"
 
     # Update undo/redo buffers
     take_snapshot()
@@ -3961,7 +3960,6 @@ def crop_selection( action, pagelist ) :
         return
 
     # Update undo/redo buffers
-
     take_snapshot()
     if not pagelist or 0 not   in pagelist :
         pagelist = slist.get_selected_indices()
@@ -4264,7 +4262,6 @@ def unpaper_page( pages, options, callback ) :
         options = EMPTY
 
     # Update undo/redo buffers
-
     take_snapshot()
     for  pageobject in      pages  :
         ( signal, pid )=(None,None)
@@ -4629,18 +4626,20 @@ f"Free space in {session.name} (Mb): {df} (warning at {SETTING['available-tmp-wa
             )
 
 
-def undo() :
+def undo(_action, _param) :
     "Put things back to last snapshot after updating redo buffer"
     logger.info('Undoing')
 
-    # Deep copy the tied data. Otherwise, very bad things happen.
-    redo_buffer    = map(lambda x:  [
-    x ] ,len( slist.data ))  
+    global undo_buffer
+    global undo_selection
+    global redo_buffer
+    global redo_selection
+    redo_buffer    = slist.clone_data()
     redo_selection = slist.get_selected_indices()
-    logger.debug('redo_selection, undo_selection:')
-    logger.debug( Dumper( redo_selection, undo_selection ) )
-    logger.debug('redo_buffer, undo_buffer:')
-    logger.debug( Dumper( redo_buffer, undo_buffer ) )
+    logger.debug('undo_buffer: %s', undo_buffer)
+    logger.debug('undo_selection: %s', undo_selection)
+    logger.debug('redo_buffer: %s', redo_buffer)
+    logger.debug('redo_selection: %s', redo_selection)
 
     # Block slist signals whilst updating
     slist.get_model().handler_block( slist.row_changed_signal )
@@ -4656,31 +4655,33 @@ def undo() :
 
     # Update menus/buttons
     update_uimanager()
-    global uimanager
-    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
-    uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(True)
-    uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
-    uimanager.get_widget('/ToolBar/Redo').set_sensitive(True)
+    global actions
+    actions["undo"].set_enabled(False)
+    actions["redo"].set_enabled(True)
 
 
-def unundo() :
+def unundo(_action, _param) :
     "Put things back to last snapshot after updating redo buffer"
     logger.info('Redoing')
 
-    # Deep copy the tied data. Otherwise, very bad things happen.
-    undo_buffer    = map(lambda x:  [
-    x ] ,len( slist.data ))  
+    global undo_buffer
+    global undo_selection
+    global redo_buffer
+    global redo_selection
+    undo_buffer    = slist.clone_data()
     undo_selection = slist.get_selected_indices()
-    logger.debug('redo_selection, undo_selection:')
-    logger.debug( Dumper( redo_selection, undo_selection ) )
-    logger.debug('redo_buffer, undo_buffer:')
-    logger.debug( Dumper( redo_buffer, undo_buffer ) )
+    logger.debug('undo_buffer: %s', undo_buffer)
+    logger.debug('undo_selection: %s', undo_selection)
+    logger.debug('redo_buffer: %s', redo_buffer)
+    logger.debug('redo_selection: %s', redo_selection)
 
     # Block slist signals whilst updating
     slist.get_model().handler_block( slist.row_changed_signal )
+    slist.get_selection().handler_block(slist.selection_changed_signal )
     slist.data = redo_buffer
 
     # Unblock slist signals now finished
+    slist.get_selection().handler_unblock(slist.selection_changed_signal )
     slist.get_model().handler_unblock( slist.row_changed_signal )
 
     # Reselect the pages to display the detail view
@@ -4688,11 +4689,9 @@ def unundo() :
 
     # Update menus/buttons
     update_uimanager()
-    global uimanager
-    uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(True)
-    uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(False)
-    uimanager.get_widget('/ToolBar/Undo').set_sensitive(True)
-    uimanager.get_widget('/ToolBar/Redo').set_sensitive(False)
+    global actions
+    actions["undo"].set_enabled(True)
+    actions["redo"].set_enabled(False)
 
 
 def init_icons(icons) :
@@ -5464,10 +5463,6 @@ def pre_flight():
             Gtk.get_micro_version())
     logger.info( 'sane.__version__ %s',sane.__version__)   
     logger.info( 'sane.init() %s',sane.init())   
-
-    if debug :
-        logger.debug( Dumper( SETTING ) )
-
     SETTING["version"] = VERSION
 
 
@@ -6347,16 +6342,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if not dependencies["xdg"] :
             msg += _("Email as PDF requires xdg-email\n")
 
-        # Undo/redo start off ghosted anyway-
-        # uimanager.get_widget('/MenuBar/Edit/Undo').set_sensitive(False)
-        # uimanager.get_widget('/MenuBar/Edit/Redo').set_sensitive(False)
-        # uimanager.get_widget('/ToolBar/Undo').set_sensitive(False)
-        # uimanager.get_widget('/ToolBar/Redo').set_sensitive(False)
-
-        # save * start off ghosted anyway-
-        actions["save"].set_enabled(False)
-        actions["email"].set_enabled(False)
-        actions["print"].set_enabled(False)
+        # Undo/redo, save & tools start off ghosted anyway-
+        for action in ["undo", "redo", "save", "email", "print"]:
+            actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
@@ -6460,6 +6448,7 @@ class Application(Gtk.Application):
             ("print", print_dialog),
             ("quit", quitapp),
             ("undo", undo),
+            ("redo", unundo),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
