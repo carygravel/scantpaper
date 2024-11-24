@@ -51,7 +51,7 @@
       <attribute name="label" translatable="yes">_Edit</attribute>
       <section>
         <item>
-        <attribute name="action">undo</attribute>
+        <attribute name="action">app.undo</attribute>
         <attribute name="label" translatable="yes">_Undo</attribute>
         <attribute name="accel">&lt;control&gt;z</attribute>
       </item>
@@ -341,6 +341,17 @@
         <property name="tooltip_text" translatable="yes">Print</property>
         <property name="action_name">app.print</property>
         <property name="stock_id">gtk-print</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorToolItem" /></child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_undo">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Undo</property>
+        <property name="action_name">app.undo</property>
+        <property name="stock_id">gtk-undo</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
