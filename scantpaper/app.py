@@ -94,6 +94,7 @@ from simplelist import SimpleList
 # the config file is saved with the numeric locale
 import tempfile
 import logging
+import warnings
 import datetime   
 import gettext
 
@@ -5436,6 +5437,11 @@ def pre_flight():
 
     # Catch and log Python warnings
     logging.captureWarnings(True)
+
+    # Suppress Warning: g_value_get_int: assertion 'G_VALUE_HOLDS_INT (value)' failed
+    # from dialog.save.Save._meta_datetime_widget.set_text()
+    # https://bugzilla.gnome.org/show_bug.cgi?id=708676
+    warnings.filterwarnings('ignore', '.*g_value_get_int.*', Warning)
 
     rc, SETTING = read_config()
     if SETTING["cwd"] is None:
