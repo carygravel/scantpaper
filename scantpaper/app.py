@@ -410,6 +410,7 @@ def update_uimanager() :
         # '/MenuBar/View/Tabbed',
         # '/MenuBar/View/SplitH',
         # '/MenuBar/View/SplitV',
+        'cut',
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -479,10 +480,8 @@ def update_uimanager() :
         if dependencies["xdg"] :
             actions["email"].set_enabled(True)
 
-        if dependencies["imagemagick"] and dependencies["libtiff"] :
-            actions["save"].set_enabled(True)
-
         actions["print"].set_enabled(True)
+        actions["save"].set_enabled(True)
         if  save_button is not None :
             save_button.set_sensitive(True)
  
@@ -492,10 +491,8 @@ def update_uimanager() :
             if  windowe is not None :
                 windowe.hide()
 
-        if dependencies["imagemagick"] and dependencies["libtiff"] :
-            actions["save"].set_enabled(False)
-
         actions["print"].set_enabled(False)
+        actions["save"].set_enabled(False)
         if  save_button is not None :
             save_button.set_sensitive(False)
 
@@ -2994,8 +2991,8 @@ def print_dialog(_action, _param):
     os.chdir( session.name)
 
 
-def cutselection() :
-    """Cut the selection"""
+def cut_selection(_action, _param) :
+    "Cut the selection"
     clipboard = slist.cut_selection()
 
 
@@ -6024,7 +6021,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         'Undo', 'gtk-undo', _('_Undo'), '<control>z', _('Undo'), undo ],         [
         'Redo',      'gtk-redo',             _('_Redo'), '<shift><control>z',             _('Redo'),  unundo
             ],         [
-        'Cut',               'gtk-cut',             _('Cu_t'),          '<control>x',             _('Cut selection'), cutselection
+        'Cut',               'gtk-cut',             _('Cu_t'),          '<control>x',             _('Cut selection'), cut_selection
             ],         [
         'Copy',               'gtk-copy',             _('_Copy'),          '<control>c',             _('Copy selection'), copyselection
             ],         [
@@ -6343,7 +6340,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print"]:
+        for action in ["undo", "redo", "cut", "save", "email", "print"]:
             actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
@@ -6449,6 +6446,7 @@ class Application(Gtk.Application):
             ("quit", quitapp),
             ("undo", undo),
             ("redo", unundo),
+            ("cut", cut_selection),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
