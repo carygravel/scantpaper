@@ -68,7 +68,7 @@
         <attribute name="accel">&lt;control&gt;x</attribute>
       </item>
       <item>
-        <attribute name="action">copyselection</attribute>
+        <attribute name="action">app.copy</attribute>
         <attribute name="label" translatable="yes">_Copy</attribute>
         <attribute name="accel">&lt;control&gt;c</attribute>
       </item>
@@ -373,6 +373,16 @@
         <property name="tooltip_text" translatable="yes">Cut selection</property>
         <property name="action_name">app.cut</property>
         <property name="stock_id">gtk-cut</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_copy">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Copy selection</property>
+        <property name="action_name">app.copy</property>
+        <property name="stock_id">gtk-copy</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>

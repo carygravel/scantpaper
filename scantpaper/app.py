@@ -411,6 +411,7 @@ def update_uimanager() :
         # '/MenuBar/View/SplitH',
         # '/MenuBar/View/SplitV',
         'cut',
+        'copy',
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -2996,8 +2997,8 @@ def cut_selection(_action, _param) :
     clipboard = slist.cut_selection()
 
 
-def copyselection() :
-    """Copy the selection"""
+def copy_selection(_action, _param) :
+    "Copy the selection"
     clipboard = slist.copy_selection(True)
 
 
@@ -6023,7 +6024,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Cut',               'gtk-cut',             _('Cu_t'),          '<control>x',             _('Cut selection'), cut_selection
             ],         [
-        'Copy',               'gtk-copy',             _('_Copy'),          '<control>c',             _('Copy selection'), copyselection
+        'Copy',               'gtk-copy',             _('_Copy'),          '<control>c',             _('Copy selection'), copy_selection
             ],         [
         'Paste',               'gtk-paste',             _('_Paste'),          '<control>v',             _('Paste selection'), pasteselection
             ],         [
@@ -6340,7 +6341,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "cut", "save", "email", "print"]:
+        for action in ["undo", "redo", "save", "email", "print"]:
             actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
@@ -6447,6 +6448,7 @@ class Application(Gtk.Application):
             ("undo", undo),
             ("redo", unundo),
             ("cut", cut_selection),
+            ("copy", copy_selection),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
