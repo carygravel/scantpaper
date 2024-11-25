@@ -73,7 +73,7 @@
         <attribute name="accel">&lt;control&gt;c</attribute>
       </item>
       <item>
-        <attribute name="action">pasteselection</attribute>
+        <attribute name="action">app.paste</attribute>
         <attribute name="label" translatable="yes">_Paste</attribute>
         <attribute name="accel">&lt;control&gt;v</attribute>
       </item>
@@ -383,6 +383,16 @@
         <property name="tooltip_text" translatable="yes">Copy selection</property>
         <property name="action_name">app.copy</property>
         <property name="stock_id">gtk-copy</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_paste">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Paste selection</property>
+        <property name="action_name">app.paste</property>
+        <property name="stock_id">gtk-paste</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>

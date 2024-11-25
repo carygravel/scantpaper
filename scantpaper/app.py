@@ -497,6 +497,9 @@ def update_uimanager() :
         if  save_button is not None :
             save_button.set_sensitive(False)
 
+    global clipboard
+    actions["paste"].set_enabled(bool(clipboard))
+
 
    # If the scan dialog has already been drawn, update the start page spinbutton
     global windows
@@ -2994,24 +2997,29 @@ def print_dialog(_action, _param):
 
 def cut_selection(_action, _param) :
     "Cut the selection"
+    global clipboard
     clipboard = slist.cut_selection()
+    update_uimanager()
 
 
 def copy_selection(_action, _param) :
     "Copy the selection"
+    global clipboard
     clipboard = slist.copy_selection(True)
+    update_uimanager()
 
 
-def pasteselection() :
-    """Paste the selection"""
-    if   (clipboard is None) :
+def paste_selection(_action, _param) :
+    "Paste the selection"
+    global clipboard
+    if clipboard is None:
         return
     pages = slist.get_selected_indices()
-    if pages :
+    if pages:
         slist.paste_selection( clipboard, pages[-1], 'after', True )
- 
     else :
         slist.paste_selection( clipboard, None, None, True )
+    update_uimanager()
 
 
 def deleteselection() :
@@ -6026,7 +6034,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Copy',               'gtk-copy',             _('_Copy'),          '<control>c',             _('Copy selection'), copy_selection
             ],         [
-        'Paste',               'gtk-paste',             _('_Paste'),          '<control>v',             _('Paste selection'), pasteselection
+        'Paste',               'gtk-paste',             _('_Paste'),          '<control>v',             _('Paste selection'), paste_selection
             ],         [
         'Delete',                    'gtk-delete',             _('_Delete'),               None,             _('Delete selected pages'), deleteselection
             ],         [
@@ -6449,6 +6457,7 @@ class Application(Gtk.Application):
             ("redo", unundo),
             ("cut", cut_selection),
             ("copy", copy_selection),
+            ("paste", paste_selection),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
