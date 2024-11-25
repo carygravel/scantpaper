@@ -412,6 +412,7 @@ def update_uimanager() :
         # '/MenuBar/View/SplitV',
         'cut',
         'copy',
+        "delete",
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -3011,6 +3012,7 @@ def copy_selection(_action, _param) :
 
 def paste_selection(_action, _param) :
     "Paste the selection"
+    take_snapshot()
     global clipboard
     if clipboard is None:
         return
@@ -3022,16 +3024,17 @@ def paste_selection(_action, _param) :
     update_uimanager()
 
 
-def deleteselection() :
+def delete_selection(_action, _param) :
     "Delete the selected scans"
     # Update undo/redo buffers
     take_snapshot()
-    slist.delete_selection_extra()
+    slist._delete_selection_extra()
 
     # Reset start page in scan dialog
     global windows
     if windows :
         windows._reset_start_page()
+    update_uimanager()
 
 
 def selectall() :
@@ -5946,7 +5949,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 # Let the keypress propagate
             if event.keyval!=Gdk.KEY_Delete   :
                 return False
-            deleteselection()
+            delete_selection()
             return True
 
 
@@ -6036,7 +6039,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Paste',               'gtk-paste',             _('_Paste'),          '<control>v',             _('Paste selection'), paste_selection
             ],         [
-        'Delete',                    'gtk-delete',             _('_Delete'),               None,             _('Delete selected pages'), deleteselection
+        'Delete',                    'gtk-delete',             _('_Delete'),               None,             _('Delete selected pages'), delete_selection
             ],         [
         'Renumber',           'gtk-sort-ascending',             _('_Renumber'),      '<control>r',             _('Renumber pages'), renumberdialog
             ],         [
@@ -6458,6 +6461,7 @@ class Application(Gtk.Application):
             ("cut", cut_selection),
             ("copy", copy_selection),
             ("paste", paste_selection),
+            ("delete", delete_selection),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
