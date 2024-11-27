@@ -102,7 +102,7 @@
         <attribute name="accel">&lt;control&gt;1</attribute>
       </item>
       <item>
-        <attribute name="action">anonymous36</attribute>
+        <attribute name="action">app.select-even</attribute>
         <attribute name="label" translatable="yes">_Even</attribute>
         <attribute name="accel">&lt;control&gt;2</attribute>
       </item>

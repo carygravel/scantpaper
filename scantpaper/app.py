@@ -5468,7 +5468,7 @@ def quitapp(_action, _param):
 def select_odd(_action, _param):
     select_odd_even(0)
 
-def anonymous36(_action):
+def select_even(_action, _param):
     select_odd_even(1)
 
 def zoom100(_action):
@@ -6034,7 +6034,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Select Odd', None, _('_Odd'), '<control>1',             _('Select all odd-numbered pages'),             select_odd
             ],         [
-        'Select Even', None, _('_Even'), '<control>2',             _('Select all evenly-numbered pages'),             anonymous36
+        'Select Even', None, _('_Even'), '<control>2',             _('Select all evenly-numbered pages'),             select_even
             ],         [
         'Invert selection',     None,             _('_Invert'),          '<control>i',             _('Invert selection'), selectinvert
             ],         [
@@ -6451,6 +6451,7 @@ class Application(Gtk.Application):
             ("renumber", renumber_dialog),
             ("select-all", select_all),
             ("select-odd", select_odd),
+            ("select-even", select_even),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
