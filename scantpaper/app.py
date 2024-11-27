@@ -414,6 +414,7 @@ def update_uimanager() :
         'copy',
         "delete",
         "renumber",
+        "select-all"
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -3038,7 +3039,7 @@ def delete_selection(_action, _param) :
     update_uimanager()
 
 
-def selectall() :
+def select_all(_action, _param) :
     "Select all scans"
     # if ($textview -> has_focus) {
     #  my ($start, $end) = $textbuffer->get_bounds;
@@ -6029,7 +6030,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         'Renumber',           'gtk-sort-ascending',             _('_Renumber'),      '<control>r',             _('Renumber pages'), renumber_dialog
             ],         [
         'Select', None, _('_Select') ],         [
-        'Select All',           'gtk-select-all',             _('_All'),             '<control>a',             _('Select all pages'), selectall
+        'Select All',           'gtk-select-all',             _('_All'),             '<control>a',             _('Select all pages'), select_all
             ],         [
         'Select Odd', None, _('_Odd'), '<control>1',             _('Select all odd-numbered pages'),             anonymous35
             ],         [
@@ -6448,6 +6449,7 @@ class Application(Gtk.Application):
             ("paste", paste_selection),
             ("delete", delete_selection),
             ("renumber", renumber_dialog),
+            ("select-all", select_all),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

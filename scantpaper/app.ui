@@ -92,7 +92,7 @@
     <submenu>
       <attribute name="label" translatable="yes">_Select</attribute>
       <item>
-        <attribute name="action">selectall</attribute>
+        <attribute name="action">app.select-all</attribute>
         <attribute name="label" translatable="yes">_All</attribute>
         <attribute name="accel">&lt;control&gt;a</attribute>
       </item>
@@ -414,6 +414,16 @@
         <property name="tooltip_text" translatable="yes">Renumber pages</property>
         <property name="action_name">app.renumber</property>
         <property name="stock_id">gtk-sort-ascending</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_select_all">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Select all pages</property>
+        <property name="action_name">app.select-all</property>
+        <property name="stock_id">gtk-select-all</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
