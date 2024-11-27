@@ -3053,7 +3053,7 @@ def select_all(_action, _param) :
 
 
 def select_odd_even(odd) :
-    """Select all odd(0) or even(1) scans"""    
+    "Select all odd(0) or even(1) scans"
     selection=[]
     for i in      range(len( slist.data ))    :
         if slist.data[i][0] % 2 ^ odd :
@@ -3063,8 +3063,8 @@ def select_odd_even(odd) :
     slist.select(selection)
 
 
-def selectinvert() :
-    """Invert selection"""
+def select_invert(_action, _param) :
+    "Invert selection"
     selection = slist.get_selected_indices()
     inverted = []
     for i in      range(len( slist.data ))    :
@@ -6036,7 +6036,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Select Even', None, _('_Even'), '<control>2',             _('Select all evenly-numbered pages'),             select_even
             ],         [
-        'Invert selection',     None,             _('_Invert'),          '<control>i',             _('Invert selection'), selectinvert
+        'Invert selection',     None,             _('_Invert'),          '<control>i',             _('Invert selection'), select_invert
             ],         [
         'Select Blank',             'gtk-select-blank',             _('_Blank'),             '<control>b',             _('Select pages with low standard deviation'),             analyseselectblank
             ],         [
@@ -6452,6 +6452,7 @@ class Application(Gtk.Application):
             ("select-all", select_all),
             ("select-odd", select_odd),
             ("select-even", select_even),
+            ("select-invert", select_invert),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

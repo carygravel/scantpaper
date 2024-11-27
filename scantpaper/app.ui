@@ -107,7 +107,7 @@
         <attribute name="accel">&lt;control&gt;2</attribute>
       </item>
       <item>
-        <attribute name="action">selectinvert</attribute>
+        <attribute name="action">app.select-invert</attribute>
         <attribute name="label" translatable="yes">_Invert</attribute>
         <attribute name="accel">&lt;control&gt;i</attribute>
       </item>
