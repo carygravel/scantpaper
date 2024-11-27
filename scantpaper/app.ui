@@ -97,7 +97,7 @@
         <attribute name="accel">&lt;control&gt;a</attribute>
       </item>
       <item>
-        <attribute name="action">anonymous35</attribute>
+        <attribute name="action">app.select-odd</attribute>
         <attribute name="label" translatable="yes">_Odd</attribute>
         <attribute name="accel">&lt;control&gt;1</attribute>
       </item>

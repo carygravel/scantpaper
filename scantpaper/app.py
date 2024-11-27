@@ -5465,7 +5465,7 @@ def quitapp(_action, _param):
     if quit() :
         app.quit()
 
-def anonymous35(_action):
+def select_odd(_action, _param):
     select_odd_even(0)
 
 def anonymous36(_action):
@@ -6032,7 +6032,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         'Select', None, _('_Select') ],         [
         'Select All',           'gtk-select-all',             _('_All'),             '<control>a',             _('Select all pages'), select_all
             ],         [
-        'Select Odd', None, _('_Odd'), '<control>1',             _('Select all odd-numbered pages'),             anonymous35
+        'Select Odd', None, _('_Odd'), '<control>1',             _('Select all odd-numbered pages'),             select_odd
             ],         [
         'Select Even', None, _('_Even'), '<control>2',             _('Select all evenly-numbered pages'),             anonymous36
             ],         [
@@ -6450,6 +6450,7 @@ class Application(Gtk.Application):
             ("delete", delete_selection),
             ("renumber", renumber_dialog),
             ("select-all", select_all),
+            ("select-odd", select_odd),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
