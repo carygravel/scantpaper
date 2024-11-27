@@ -413,6 +413,7 @@ def update_uimanager() :
         'cut',
         'copy',
         "delete",
+        "renumber",
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -3261,40 +3262,25 @@ papoteur
     about.destroy()
 
 
-def renumberdialog(_action):
+def renumber_dialog(_action, _param):
     "Dialog for renumber"
+    global windowrn
     if windowrn is not None:
         windowrn.present()
         return
 
-    windowrn = Dialog.Renumber(
+    windowrn = Renumber(
         transient_for  = window,
         document         = slist,
-        logger           = logger,
         hide_on_delete = False,
     )
-
-    def anonymous_114():
-        "Update undo/redo buffers"
-        take_snapshot()
-
-
-    windowrn.connect(
-        'before-renumber' , anonymous_114 
-    )
-    def anonymous_115(msg):
-            
-        show_message_dialog(
+    windowrn.connect('before-renumber' , lambda x: take_snapshot())
+    windowrn.connect('error' , lambda msg: show_message_dialog(
                 parent  = windowrn,
                 message_type    = 'error',
                 buttons = Gtk.ButtonsType.CLOSE,
                 text    = msg
-            )
-
-
-    windowrn.connect(
-        'error' , anonymous_115 
-    )
+            ))
     windowrn.show_all()
 
 
@@ -3303,7 +3289,6 @@ def indices2pages(indices) :
     pages=[]
     for i in     indices :
         pages.append(slist.data[i][2].uuid)  
-
     return pages
 
 
@@ -6041,7 +6026,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Delete',                    'gtk-delete',             _('_Delete'),               None,             _('Delete selected pages'), delete_selection
             ],         [
-        'Renumber',           'gtk-sort-ascending',             _('_Renumber'),      '<control>r',             _('Renumber pages'), renumberdialog
+        'Renumber',           'gtk-sort-ascending',             _('_Renumber'),      '<control>r',             _('Renumber pages'), renumber_dialog
             ],         [
         'Select', None, _('_Select') ],         [
         'Select All',           'gtk-select-all',             _('_All'),             '<control>a',             _('Select all pages'), selectall
@@ -6462,6 +6447,7 @@ class Application(Gtk.Application):
             ("copy", copy_selection),
             ("paste", paste_selection),
             ("delete", delete_selection),
+            ("renumber", renumber_dialog),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

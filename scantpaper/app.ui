@@ -84,7 +84,7 @@
     </section>
     <section>
         <item>
-        <attribute name="action">renumberdialog</attribute>
+        <attribute name="action">app.renumber</attribute>
         <attribute name="label" translatable="yes">_Renumber</attribute>
         <attribute name="accel">&lt;control&gt;r</attribute>
       </item>
@@ -403,6 +403,17 @@
         <property name="tooltip_text" translatable="yes">Delete selected pages</property>
         <property name="action_name">app.delete</property>
         <property name="stock_id">gtk-delete</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorToolItem" /></child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_renumber">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Renumber pages</property>
+        <property name="action_name">app.renumber</property>
+        <property name="stock_id">gtk-sort-ascending</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
