@@ -3117,7 +3117,7 @@ def clearocr() :
     slist.save_session()
 
 
-def analyseselectblank() :
+def select_blank(_action, _param) :
     "Analyse and select blank pages"
     analyse( 1, 0 )
 
@@ -3127,7 +3127,8 @@ def select_blank_pages() :
     for  page in      range(len( slist.data ))    :
 
         # compare Std Dev to threshold
-        if slist.data[page][2]["std_dev"] <= SETTING['Blank threshold']         :
+        # std_dev is a list -- 1 value per channel
+        if sum(slist.data[page][2].std_dev)/len(slist.data[page][2].std_dev) <= SETTING['Blank threshold']         :
             slist.select(page)
             logger.info('Selecting blank page')
  
@@ -3135,10 +3136,7 @@ def select_blank_pages() :
             slist.unselect(page)
             logger.info('Unselecting non-blank page')
 
-        logger.info( 'StdDev: '
-              + slist.data[page][2]["std_dev"]
-              + ' threshold: '
-              + SETTING['Blank threshold'] )
+        logger.info( f"StdDev: {slist.data[page][2].std_dev} threshold: {SETTING['Blank threshold']}" )
 
 
 def analyseselectdark() :
@@ -3342,19 +3340,17 @@ def analyse( select_blank, select_dark ) :
     take_snapshot()
     pages_to_analyse=[]
     for  i in      range(len( slist.data ))    :
-        dirty_time   = slist.data[i][2]["dirty_time"]
-        analyse_time = slist.data[i][2]["analyse_time"]
-        dirty_time   =     dirty_time if (dirty_time is not None)    else 0
-        analyse_time =   analyse_time if (analyse_time is not None)  else 0
+        page = slist.data[i][2]
+        dirty_time   =     page.dirty_time if hasattr(page,"dirty_time")    else datetime.datetime(1970,1,1)
+        analyse_time =   page.analyse_time if hasattr(page,"analyse_time")    else datetime.datetime(1970,1,1)
         if analyse_time <= dirty_time :
             logger.info(
-f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {dirty_time}"
+f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} dirty_time: {dirty_time}"
             )
             pages_to_analyse.append(slist.data[i][2].uuid)  
 
-
     if len(pages_to_analyse) > 0 :
-        ( signal, pid )=(None,None)
+        signal, pid =None,None
         def anonymous_120(*argv):
             return update_tpbar(*argv)
 
@@ -3371,26 +3367,26 @@ f"Updating: {slist}->{data}[{i}][0] analyse_time: {analyse_time} dirty_time: {di
             return update_tpbar(*argv)
 
 
-        def anonymous_123( new_page, pending ):
+        def analyse_finished_callback( new_page, pending=None ):
                 
-            if not pending :
-                thbox.hide()
-            if  (signal is not None) :
-                tcbutton.disconnect(signal)
+#            if not pending :
+#                thbox.hide()
+#            if  signal is not None :
+#                tcbutton.disconnect(signal)
 
             if select_blank :
                 select_blank_pages()
             if select_dark  :
                 select_dark_pages()
-            slist.save_session()
+#            slist.save_session()
 
 
         pid = slist.analyse(
             list_of_pages   = pages_to_analyse,
-            queued_callback = anonymous_120 ,
-            started_callback = analyse_started_callback ,
-            running_callback = anonymous_122 ,
-            finished_callback = anonymous_123 ,
+#            queued_callback = anonymous_120 ,
+#            started_callback = analyse_started_callback ,
+#            running_callback = anonymous_122 ,
+            finished_callback = analyse_finished_callback ,
             error_callback = error_callback,
         )
  
@@ -6038,7 +6034,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Invert selection',     None,             _('_Invert'),          '<control>i',             _('Invert selection'), select_invert
             ],         [
-        'Select Blank',             'gtk-select-blank',             _('_Blank'),             '<control>b',             _('Select pages with low standard deviation'),             analyseselectblank
+        'Select Blank',             'gtk-select-blank',             _('_Blank'),             '<control>b',             _('Select pages with low standard deviation'),             select_blank
             ],         [
         'Select Dark',           'gtk-select-blank',             _('_Dark'),             '<control>d',             _('Select dark pages'), analyseselectdark
             ],         [
@@ -6453,6 +6449,7 @@ class Application(Gtk.Application):
             ("select-odd", select_odd),
             ("select-even", select_even),
             ("select-invert", select_invert),
+            ("select-blank", select_blank),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

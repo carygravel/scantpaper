@@ -112,7 +112,7 @@
         <attribute name="accel">&lt;control&gt;i</attribute>
       </item>
       <item>
-        <attribute name="action">analyseselectblank</attribute>
+        <attribute name="action">app.select-blank</attribute>
         <attribute name="label" translatable="yes">_Blank</attribute>
         <attribute name="accel">&lt;control&gt;b</attribute>
       </item>
