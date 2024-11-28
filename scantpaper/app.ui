@@ -127,7 +127,7 @@
         <attribute name="accel">&lt;control&gt;m</attribute>
       </item>
       <item>
-        <attribute name="action">selectnoocr</attribute>
+        <attribute name="action">app.select-no-ocr</attribute>
         <attribute name="label" translatable="yes">_No OCR</attribute>
       </item>
     </submenu>

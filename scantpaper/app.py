@@ -421,6 +421,7 @@ def update_uimanager() :
         "select-blank",
         "select-dark",
         "select-modified",
+        "select-no-ocr",
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -3093,11 +3094,11 @@ def select_modified_since_ocr(_action, _param) :
     slist.select(selection)
 
 
-def selectnoocr() :
+def select_no_ocr(_action, _param) :
     "Select pages with no ocr output"
     selection=[]
     for i in      range(len( slist.data ))    :
-        if  not   hasattr(slist.data[i][2],'text_layer') :
+        if  not   hasattr(slist.data[i][2],'text_layer') or slist.data[i][2].text_layer is None:
             selection.append(i)  
 
     slist.get_selection().unselect_all()
@@ -6036,7 +6037,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Select Modified',             'gtk-select-modified',             _('_Modified'),             '<control>m',             _('Select modified pages since last OCR'),             select_modified_since_ocr
             ],         [
-        'Select No OCR',                       None,             _('_No OCR'),                         None,             _('Select pages with no OCR output'), selectnoocr
+        'Select No OCR',                       None,             _('_No OCR'),                         None,             _('Select pages with no OCR output'), select_no_ocr
             ],         [
         'Clear OCR',                                'gtk-clear',             _('_Clear OCR'),                           None,             _('Clear OCR output from selected pages'), clearocr
             ],         [
@@ -6448,6 +6449,7 @@ class Application(Gtk.Application):
             ("select-blank", select_blank),
             ("select-dark", select_dark),
             ("select-modified", select_modified_since_ocr),
+            ("select-no-ocr", select_no_ocr),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
