@@ -133,7 +133,7 @@
     </submenu>
     <section>
     <item>
-        <attribute name="action">clearocr</attribute>
+        <attribute name="action">app.clear-ocr</attribute>
         <attribute name="label" translatable="yes">_Clear OCR</attribute>
       </item>
     </section>

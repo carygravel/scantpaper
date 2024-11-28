@@ -422,6 +422,7 @@ def update_uimanager() :
         "select-dark",
         "select-modified",
         "select-no-ocr",
+        "clear-ocr",
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -3105,7 +3106,7 @@ def select_no_ocr(_action, _param) :
     slist.select(selection)
 
 
-def clearocr() :
+def clear_ocr(_action, _param) :
     "Clear the OCR output from selected pages"
     # Update undo/redo buffers
     take_snapshot()
@@ -3117,7 +3118,7 @@ def clearocr() :
     for i in     selection :
         slist.data[i][2].text_layer = None
 
-    slist.save_session()
+    # slist.save_session()
 
 
 def select_blank(_action, _param) :
@@ -6039,7 +6040,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Select No OCR',                       None,             _('_No OCR'),                         None,             _('Select pages with no OCR output'), select_no_ocr
             ],         [
-        'Clear OCR',                                'gtk-clear',             _('_Clear OCR'),                           None,             _('Clear OCR output from selected pages'), clearocr
+        'Clear OCR',                                'gtk-clear',             _('_Clear OCR'),                           None,             _('Clear OCR output from selected pages'), clear_ocr
             ],         [
         'Properties',                'gtk-properties',             _('Propert_ies'),           None,             _('Edit image properties'), properties
             ],         [
@@ -6450,6 +6451,7 @@ class Application(Gtk.Application):
             ("select-dark", select_dark),
             ("select-modified", select_modified_since_ocr),
             ("select-no-ocr", select_no_ocr),
+            ("clear-ocr", clear_ocr),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:
