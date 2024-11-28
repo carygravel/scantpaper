@@ -423,6 +423,7 @@ def update_uimanager() :
         "select-modified",
         "select-no-ocr",
         "clear-ocr",
+        "properties",
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -5242,7 +5243,8 @@ def update_post_save_hooks() :
         windowi.comboboxpsh.set_active_by_text( SETTING["current_psh"] )
 
 
-def properties() :
+def properties(_action, _param) :
+    global windowp
     if  windowp is not None :
         windowp.present()
         return
@@ -5272,22 +5274,20 @@ def properties() :
     hbox.pack_start( yspinbutton, True, True, 0 )
     label = Gtk.Label( label=_('dpi') )
     hbox.pack_end( label, False, False, 0 )
-    ( xresolution, yresolution ) = get_selected_properties()
+    xresolution, yresolution = get_selected_properties()
     logger.debug(
         f"get_selected_properties returned {xresolution},{yresolution}")
     xspinbutton.set_value(xresolution)
     yspinbutton.set_value(yresolution)
-    def anonymous_203():
-        ( xresolution, yresolution ) = get_selected_properties()
+    def selection_changed_callback():
+        xresolution, yresolution = get_selected_properties()
         logger.debug(
                 f"get_selected_properties returned {xresolution},{yresolution}")
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
 
 
-    slist.get_selection().connect(
-        'changed' , anonymous_203 
-    )
+    slist.get_selection().connect('changed' , selection_changed_callback)
     def properties_apply_callback():
         windowp.hide()
         xresolution = xspinbutton.get_value()
@@ -5297,8 +5297,7 @@ def properties() :
             logger.debug(
 f"setting resolution {xresolution},{yresolution} for page {slist.data[i][0]}"
                 )
-            slist.data[i][2].xresolution = xresolution
-            slist.data[i][2].yresolution = yresolution
+            slist.data[i][2].resolution = xresolution, yresolution, "PixelsPerInch"
 
         slist.get_model().handler_unblock(                slist.row_changed_signal )
 
@@ -5314,28 +5313,28 @@ f"setting resolution {xresolution},{yresolution} for page {slist.data[i][0]}"
 def get_selected_properties() :
     "Helper function for properties()"
     page        = slist.get_selected_indices()
-    xresolution = EMPTY
-    yresolution = EMPTY
+    xresolution = None
+    yresolution = None
+    units = None
     if len(page) > 0 :
-        page =  page.pop(0)
-        xresolution = slist.data[page][2]["xresolution"]
-        yresolution = slist.data[page][2]["yresolution"]
+        i =  page.pop(0)
+        xresolution, yresolution, units = slist.data[i][2].resolution
         logger.debug(
-f"Page {slist}->{data}[{page}][0] has resolutions {xresolution},{yresolution}"
+f"Page {slist.data[i][0]} has resolutions {xresolution},{yresolution}"
         )
 
     for i in     page :
-        if slist.data[i][2].xresolution != xresolution :
-            xresolution = EMPTY
+        if slist.data[i][2].resolution[0] != xresolution :
+            xresolution = None
             break
 
     for i in     page :
-        if slist.data[i][2].yresolution != yresolution :
-            yresolution = EMPTY
+        if slist.data[i][2].resolution[0] != yresolution :
+            yresolution = None
             break
 
     # round the value to a sensible number of significant figures
-    return    0 if xresolution==EMPTY  else '%.1g' % (  xresolution ),          0 if yresolution==EMPTY  else '%.1g' % (yresolution)  
+    return    xresolution, yresolution
 
 
 def ask_question(**kwargs) :
@@ -6452,6 +6451,7 @@ class Application(Gtk.Application):
             ("select-modified", select_modified_since_ocr),
             ("select-no-ocr", select_no_ocr),
             ("clear-ocr", clear_ocr),
+            ("properties", properties),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

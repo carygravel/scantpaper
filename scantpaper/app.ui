@@ -139,7 +139,7 @@
     </section>
     <section>
       <item>
-        <attribute name="action">properties</attribute>
+        <attribute name="action">app.properties</attribute>
         <attribute name="label" translatable="yes">Propert_ies</attribute>
       </item>
     </section>
