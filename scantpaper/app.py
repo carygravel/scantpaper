@@ -415,6 +415,11 @@ def update_uimanager() :
         "delete",
         "renumber",
         "select-all"
+        "select-odd",
+        "select-even",
+        "select-invert",
+        "select-blank",
+        "select-dark",
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -3119,7 +3124,7 @@ def clearocr() :
 
 def select_blank(_action, _param) :
     "Analyse and select blank pages"
-    analyse( 1, 0 )
+    analyse( True, False )
 
 
 def select_blank_pages() :
@@ -3139,19 +3144,18 @@ def select_blank_pages() :
         logger.info( f"StdDev: {slist.data[page][2].std_dev} threshold: {SETTING['Blank threshold']}" )
 
 
-def analyseselectdark() :
-    """Analyse and select dark pages"""
-    analyse( 0, 1 )
+def select_dark(_action, _param) :
+    "Analyse and select dark pages"
+    analyse( False, True )
 
 
 def select_dark_pages() :
-    """Select dark pages
-"""
+    "Select dark pages"
     for  page in      range(len( slist.data ))    :
 
-        #compare Mean to threshold
-
-        if slist.data[page][2]["mean"] <= SETTING['Dark threshold'] :
+        # compare Mean to threshold
+        # mean is a list -- 1 value per channel
+        if sum(slist.data[page][2].mean)/len(slist.data[page][2].std_dev) <= SETTING['Dark threshold'] :
             slist.select(page)
             logger.info('Selecting dark page')
  
@@ -3159,12 +3163,7 @@ def select_dark_pages() :
             slist.unselect(page)
             logger.info('Unselecting non-dark page')
 
-        logger.info( 'mean: '
-              + slist.data[page][2]["mean"]
-              + ' threshold: '
-              + SETTING['Dark threshold'] )
-
-    return
+        logger.info( f"mean: {slist.data[page][2].mean} threshold: {SETTING['Dark threshold']}" )
 
 
 def about(_action, _param):
@@ -6036,7 +6035,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Select Blank',             'gtk-select-blank',             _('_Blank'),             '<control>b',             _('Select pages with low standard deviation'),             select_blank
             ],         [
-        'Select Dark',           'gtk-select-blank',             _('_Dark'),             '<control>d',             _('Select dark pages'), analyseselectdark
+        'Select Dark',           'gtk-select-blank',             _('_Dark'),             '<control>d',             _('Select dark pages'), select_dark
             ],         [
         'Select Modified',             'gtk-select-modified',             _('_Modified'),             '<control>m',             _('Select modified pages since last OCR'),             selectmodifiedsinceocr
             ],         [
@@ -6450,6 +6449,7 @@ class Application(Gtk.Application):
             ("select-even", select_even),
             ("select-invert", select_invert),
             ("select-blank", select_blank),
+            ("select-dark", select_dark),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

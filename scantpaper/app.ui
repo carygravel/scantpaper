@@ -117,7 +117,7 @@
         <attribute name="accel">&lt;control&gt;b</attribute>
       </item>
       <item>
-        <attribute name="action">analyseselectdark</attribute>
+        <attribute name="action">app.select-dark</attribute>
         <attribute name="label" translatable="yes">_Dark</attribute>
         <attribute name="accel">&lt;control&gt;d</attribute>
       </item>
