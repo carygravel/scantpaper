@@ -420,6 +420,7 @@ def update_uimanager() :
         "select-invert",
         "select-blank",
         "select-dark",
+        "select-modified",
         'zoom100',
         'zoomtofit',
         'zoomin',
@@ -3079,21 +3080,17 @@ def select_invert(_action, _param) :
     slist.select(inverted)
 
 
-def selectmodifiedsinceocr() :
+def select_modified_since_ocr(_action, _param) :
     selection=[]
     for  page in      range(len( slist.data ))    :
-        dirty_time = slist.data[page][2]["dirty_time"]
-        ocr_flag   = slist.data[page][2]["ocr_flag"]
-        ocr_time   = slist.data[page][2]["ocr_time"]
-        dirty_time =   dirty_time if (dirty_time is not None)  else 0
-        ocr_time   =     ocr_time if (ocr_time is not None)    else 0
+        dirty_time   =     page.dirty_time if hasattr(page,"dirty_time")    else datetime.datetime(1970,1,1)
+        ocr_time   =     page.ocr_time if hasattr(page,"ocr_time")    else datetime.datetime(1970,1,1)
+        ocr_flag   =     page.ocr_flag if hasattr(page,"ocr_flag")    else False
         if ocr_flag and ( ocr_time <= dirty_time ) :
             selection.append(_)  
 
-
     slist.get_selection().unselect_all()
     slist.select(selection)
-    return
 
 
 def selectnoocr() :
@@ -6037,7 +6034,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Select Dark',           'gtk-select-blank',             _('_Dark'),             '<control>d',             _('Select dark pages'), select_dark
             ],         [
-        'Select Modified',             'gtk-select-modified',             _('_Modified'),             '<control>m',             _('Select modified pages since last OCR'),             selectmodifiedsinceocr
+        'Select Modified',             'gtk-select-modified',             _('_Modified'),             '<control>m',             _('Select modified pages since last OCR'),             select_modified_since_ocr
             ],         [
         'Select No OCR',                       None,             _('_No OCR'),                         None,             _('Select pages with no OCR output'), selectnoocr
             ],         [
@@ -6450,6 +6447,7 @@ class Application(Gtk.Application):
             ("select-invert", select_invert),
             ("select-blank", select_blank),
             ("select-dark", select_dark),
+            ("select-modified", select_modified_since_ocr),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

@@ -122,7 +122,7 @@
         <attribute name="accel">&lt;control&gt;d</attribute>
       </item>
       <item>
-        <attribute name="action">selectmodifiedsinceocr</attribute>
+        <attribute name="action">app.select-modified</attribute>
         <attribute name="label" translatable="yes">_Modified</attribute>
         <attribute name="accel">&lt;control&gt;m</attribute>
       </item>
