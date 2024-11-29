@@ -19,6 +19,11 @@ class Profile(GObject.Object):
             self.frontend = {}
         else:
             self.frontend = deepcopy(frontend)
+
+            # if we have just pulled a profile from pre-v3 gscan2pdf config,
+            # ensure num_pages is an int
+            if "num_pages" in self.frontend:
+                self.frontend["num_pages"] = int(self.frontend["num_pages"])
         if backend is None:
             self.backend = []
         else:
