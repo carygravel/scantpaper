@@ -4715,7 +4715,7 @@ def mark_pages(pages) :
     slist.get_model().handler_unblock( slist.row_changed_signal )
 
 
-def preferences(arg) :
+def preferences(_action, _param) :
     "Preferences dialog"
     global windows
     global windowr
@@ -4735,7 +4735,7 @@ def preferences(arg) :
     notebook = Gtk.Notebook()
     vbox.pack_start( notebook, True, True, 0 )
     (
-        vbox1,               frontends,
+        vbox1,
         cbo,
         blacklist,           cbcsh,            cb_batch_flatbed,
         cb_cancel_btw_pages, cb_adf_all_pages, cb_cache_device_list,
@@ -4869,17 +4869,6 @@ def _preferences_scan_options(border_width) :
 
     vbox.pack_start( cbo, True, True, 0 )
 
-    # Frontends
-    hbox = Gtk.HBox()
-    vbox.pack_start( hbox, False, False, 0 )
-    label = Gtk.Label( label=_('Frontend') )
-    hbox.pack_start( label, False, False, 0 )
-    frontends = [
-    [
-    'libimage-sane-perl',             _('libimage-sane-perl'),             _('Scan using the Perl bindings for SANE.')
-        ],     
-    ]
-
     # Device blacklist
     hboxb = Gtk.HBox()
     vbox.pack_start( hboxb, False, False, 0 )
@@ -4888,7 +4877,7 @@ def _preferences_scan_options(border_width) :
     blacklist = Gtk.Entry()
     hboxb.add(blacklist)
     hboxb.set_tooltip_text( _('Device blacklist (regular expression)') )
-    if  'device blacklist'  in SETTING :
+    if  'device blacklist'  in SETTING and SETTING['device blacklist'] is not None :
         blacklist.set_text( SETTING['device blacklist'] )
 
     # Cycle SANE handle after scan
@@ -4965,7 +4954,7 @@ def _preferences_scan_options(border_width) :
     cb_cache_device_list.set_active( SETTING['cache-device-list'] )
     vbox.pack_start( cb_cache_device_list, False, False, 0 )
 
-    return vbox, frontends, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
+    return vbox, cbo, blacklist,       cbcsh, cb_batch_flatbed, cb_cancel_btw_pages, cb_adf_all_pages,       cb_cache_device_list, cb_ignore_duplex
 
 
 def _preferences_general_options(border_width) :
@@ -6452,6 +6441,7 @@ class Application(Gtk.Application):
             ("select-no-ocr", select_no_ocr),
             ("clear-ocr", clear_ocr),
             ("properties", properties),
+            ("preferences", preferences),
             ("tooltype", change_image_tool_cb),
             ("about", about),
         ]:

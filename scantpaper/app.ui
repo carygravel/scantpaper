@@ -145,7 +145,7 @@
     </section>
     <section>
       <item>
-        <attribute name="action">preferences</attribute>
+        <attribute name="action">app.preferences</attribute>
         <attribute name="label" translatable="yes">Prefere_nces</attribute>
       </item>
     </section>
