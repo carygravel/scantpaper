@@ -424,7 +424,7 @@ def update_uimanager() :
         "select-no-ocr",
         "clear-ocr",
         "properties",
-        'zoom100',
+        'zoom-100',
         'zoomtofit',
         'zoomin',
         'zoomout',
@@ -5453,7 +5453,7 @@ def select_odd(_action, _param):
 def select_even(_action, _param):
     select_odd_even(1)
 
-def zoom100(_action):
+def zoom_100(_action, _param):
     view.set_zoom(1.0)
 
 def zoomtofit(_action):
@@ -6036,7 +6036,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],          # View menu
             [
         'View', None, _('_View') ],         [
-        'Zoom 100',         'gtk-zoom-100',             _('Zoom _100%'),   None,             _('Zoom to 100%'), zoom100
+        'Zoom 100',         'gtk-zoom-100',             _('Zoom _100%'),   None,             _('Zoom to 100%'), zoom_100
             ],         [
         'Zoom to fit',      'gtk-zoom-fit',             _('Zoom to _fit'), None,             _('Zoom to fit'),  zoomtofit
             ],         [
@@ -6443,6 +6443,7 @@ class Application(Gtk.Application):
             ("properties", properties),
             ("preferences", preferences),
             ("tooltype", change_image_tool_cb),
+            ("zoom-100", zoom_100),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
