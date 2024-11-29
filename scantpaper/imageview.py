@@ -430,10 +430,10 @@ class ImageView(Gtk.DrawingArea):
     selection = GObject.Property(
         type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
     )
-    zoom_to_fit = GObject.Property(
+    zoom_is_fit = GObject.Property(
         type=bool,
         default=True,
-        nick="Zoom to fit",
+        nick="Zoom is fit",
         blurb="Whether the zoom factor is automatically calculated to fit the window",
     )
     zoom_to_fit_limit = GObject.Property(
@@ -540,7 +540,7 @@ class ImageView(Gtk.DrawingArea):
         if center_x is None:
             return
         zoom = None
-        self.set_zoom_to_fit(False)
+        self.setzoom_is_fit(False)
         if event.direction == Gdk.ScrollDirection.UP:
             zoom = self.get_zoom() * self.zoom_step
         else:
@@ -549,7 +549,7 @@ class ImageView(Gtk.DrawingArea):
 
     def do_configure_event(self, _event):
         """respond to the configure event"""
-        if self.zoom_to_fit:
+        if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
 
     def __init__(self, *args, **kwargs):
@@ -569,7 +569,7 @@ class ImageView(Gtk.DrawingArea):
     def set_pixbuf(self, pixbuf, zoom_to_fit=False):
         """set pixbuf, optionally zooming to fit"""
         self.pixbuf = pixbuf
-        self.set_zoom_to_fit(zoom_to_fit)
+        self.setzoom_is_fit(zoom_to_fit)
         if not zoom_to_fit:
             self.set_offset(0, 0)
         self.queue_draw()
@@ -589,7 +589,7 @@ class ImageView(Gtk.DrawingArea):
 
     def set_zoom(self, zoom):
         """setting the zoom via the public API disables zoom-to-fit"""
-        self.set_zoom_to_fit(False)
+        self.setzoom_is_fit(False)
         self._set_zoom_no_center(zoom)
 
     def _set_zoom(self, zoom):
@@ -643,9 +643,9 @@ class ImageView(Gtk.DrawingArea):
         )
         self._set_zoom_with_center(zoom, center_x, center_y)
 
-    def set_zoom_to_fit(self, zoom_to_fit, limit=None):
+    def setzoom_is_fit(self, zoom_to_fit, limit=None):
         """zoom to fit current pixbuf"""
-        self.zoom_to_fit = zoom_to_fit
+        self.zoom_is_fit = zoom_to_fit
         if limit is not None:
             self.zoom_to_fit_limit = limit
 
@@ -673,27 +673,27 @@ class ImageView(Gtk.DrawingArea):
         """zoom to fit current selection, with an optional factor for a border"""
         self.zoom_to_box(self.get_selection(), context_factor)
 
-    def get_zoom_to_fit(self):
+    def getzoom_is_fit(self):
         """return value of zoom_to_fit property"""
-        return self.zoom_to_fit
+        return self.zoom_is_fit
 
     def zoom_in(self):
         """zoom in one step"""
-        self.set_zoom_to_fit(False)
+        self.setzoom_is_fit(False)
         self._set_zoom_no_center(self.get_zoom() * self.zoom_step)
 
     def zoom_out(self):
         """zoom out one step"""
-        self.set_zoom_to_fit(False)
+        self.setzoom_is_fit(False)
         self._set_zoom_no_center(self.get_zoom() / self.zoom_step)
 
     def zoom_to_fit(self):
         """set zoom-to-fit property True"""
-        self.set_zoom_to_fit(True)
+        self.setzoom_is_fit(True)
 
     def set_fitting(self, value):
         """set zoom-to-fit property"""
-        self.set_zoom_to_fit(value)
+        self.setzoom_is_fit(value)
 
     def set_offset(self, offset_x, offset_y):
         """set offset (pan)"""
@@ -775,7 +775,7 @@ class ImageView(Gtk.DrawingArea):
     def set_resolution_ratio(self, ratio):
         """set ratio between x and y resolutions"""
         self.resolution_ratio = ratio
-        if self.zoom_to_fit:
+        if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
         self.queue_draw()
 
