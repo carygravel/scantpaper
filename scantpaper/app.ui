@@ -213,7 +213,7 @@
         <attribute name="accel">&lt;control&gt;&lt;shift&gt;R</attribute>
       </item>
       <item>
-        <attribute name="action">rotate180</attribute>
+        <attribute name="action">app.rotate-180</attribute>
         <attribute name="label" translatable="yes">Rotate 180°</attribute>
         <attribute name="accel">&lt;control&gt;&lt;shift&gt;F</attribute>
       </item>
@@ -476,6 +476,16 @@
         <property name="tooltip_text" translatable="yes">Rotate 90° clockwise</property>
         <property name="action_name">app.rotate-90</property>
         <property name="stock_id">rotate90</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_rotate_180">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Rotate 180°</property>
+        <property name="action_name">app.rotate-180</property>
+        <property name="stock_id">rotate180</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>

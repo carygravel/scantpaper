@@ -429,7 +429,7 @@ def update_uimanager() :
         'zoom-in',
         'zoom-out',
         'rotate-90',
-        'rotate180',
+        'rotate-180',
         'rotate270',
         # '/MenuBar/View/Edit text layer',
         # '/MenuBar/View/Edit annotations',
@@ -5472,7 +5472,7 @@ def zoom_out(_action, _param):
 def rotate_90(_action, _param):
     rotate( _90_DEGREES, indices2pages( slist.get_selected_indices() ) )
 
-def rotate180(_action):
+def rotate_180(_action, _param):
     rotate( _180_DEGREES, indices2pages( slist.get_selected_indices() ) )
 
 def rotate270(_action):
@@ -5915,17 +5915,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.connect(            'key-press-event' , Gtk.Window.propagate_key_event )
         self.connect(            'key-release-event' , Gtk.Window.propagate_key_event )
 
-        def anonymous_25( widget, event ):
-            """    # _after ensures that Editables get first bite"""            
+        def on_key_press( widget, event ):
 
                 # Let the keypress propagate
             if event.keyval!=Gdk.KEY_Delete   :
-                return False
-            delete_selection()
-            return True
+                return Glib.EVENT_PROPAGATE
+            delete_selection(None, None)
+            return Glib.EVENT_STOP
 
-
-        self.connect_after(            'key-press-event' , anonymous_25         )
+        # _after ensures that Editables get first bite
+        self.connect_after(            'key-press-event' , on_key_press         )
 
         # If defined in the config file, set the current directory
         if 'cwd' not   in SETTING :
@@ -6050,7 +6049,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Rotate 90',             'rotate90',             _('Rotate 90° clockwise'),             '<control><shift>R',             _('Rotate 90° clockwise'),             rotate_90
             ],         [
-        'Rotate 180',             'rotate180',             _('Rotate 180°'),             '<control><shift>F',             _('Rotate 180°'),             rotate180
+        'Rotate 180',             'rotate180',             _('Rotate 180°'),             '<control><shift>F',             _('Rotate 180°'),             rotate_180
             ],         [
         'Rotate 270',             'rotate270',             _('Rotate 90° anticlockwise'),             '<control><shift>C',             _('Rotate 90° anticlockwise'),             rotate270
             ],          # Tools menu
@@ -6452,6 +6451,7 @@ class Application(Gtk.Application):
             ("zoom-in", zoom_in),
             ("zoom-out", zoom_out),
             ("rotate-90", rotate_90),
+            ("rotate-180", rotate_180),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
