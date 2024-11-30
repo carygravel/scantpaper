@@ -426,7 +426,7 @@ def update_uimanager() :
         "properties",
         'zoom-100',
         'zoom-to-fit',
-        'zoomin',
+        'zoom-in',
         'zoomout',
         'rotate90',
         'rotate180',
@@ -5461,7 +5461,7 @@ def zoom_to_fit(_action, _param):
     global view
     view.zoom_to_fit()
 
-def zoomin(_action):
+def zoom_in(_action, _param):
     view.zoom_in()
 
 def zoomout(_action):
@@ -6042,7 +6042,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Zoom to fit',      'gtk-zoom-fit',             _('Zoom to _fit'), None,             _('Zoom to fit'),  zoom_to_fit
             ],         [
-        'Zoom in',      'gtk-zoom-in',             _('Zoom _in'), 'plus',             _('Zoom in'),  zoomin
+        'Zoom in',      'gtk-zoom-in',             _('Zoom _in'), 'plus',             _('Zoom in'),  zoom_in
             ],         [
         'Zoom out',      'gtk-zoom-out',             _('Zoom _out'), 'minus',             _('Zoom out'),  zoomout
             ],         [
@@ -6447,6 +6447,7 @@ class Application(Gtk.Application):
             ("tooltype", change_image_tool_cb),
             ("zoom-100", zoom_100),
             ("zoom-to-fit", zoom_to_fit),
+            ("zoom-in", zoom_in),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

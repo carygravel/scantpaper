@@ -196,7 +196,7 @@
         <attribute name="label" translatable="yes">Zoom to _fit</attribute>
       </item>
       <item>
-        <attribute name="action">zoomin</attribute>
+        <attribute name="action">app.zoom-in</attribute>
         <attribute name="label" translatable="yes">Zoom _in</attribute>
         <attribute name="accel">plus</attribute>
       </item>
@@ -445,6 +445,16 @@
         <property name="tooltip_text" translatable="yes">Zoom to fit</property>
         <property name="action_name">app.zoom-to-fit</property>
         <property name="stock_id">gtk-zoom-fit</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_zoom_in">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Zoom in</property>
+        <property name="action_name">app.zoom-in</property>
+        <property name="stock_id">gtk-zoom-in</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
