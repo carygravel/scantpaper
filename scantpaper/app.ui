@@ -201,7 +201,7 @@
         <attribute name="accel">plus</attribute>
       </item>
       <item>
-        <attribute name="action">zoomout</attribute>
+        <attribute name="action">app.zoom-out</attribute>
         <attribute name="label" translatable="yes">Zoom _out</attribute>
         <attribute name="accel">minus</attribute>
       </item>
@@ -455,6 +455,16 @@
         <property name="tooltip_text" translatable="yes">Zoom in</property>
         <property name="action_name">app.zoom-in</property>
         <property name="stock_id">gtk-zoom-in</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_zoom_out">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Zoom out</property>
+        <property name="action_name">app.zoom-out</property>
+        <property name="stock_id">gtk-zoom-out</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
