@@ -430,7 +430,7 @@ def update_uimanager() :
         'zoom-out',
         'rotate-90',
         'rotate-180',
-        'rotate270',
+        'rotate-270',
         # '/MenuBar/View/Edit text layer',
         # '/MenuBar/View/Edit annotations',
         '/MenuBar/Tools/Threshold',
@@ -5475,7 +5475,7 @@ def rotate_90(_action, _param):
 def rotate_180(_action, _param):
     rotate( _180_DEGREES, indices2pages( slist.get_selected_indices() ) )
 
-def rotate270(_action):
+def rotate_270(_action, _param):
     rotate( _270_DEGREES, indices2pages( slist.get_selected_indices() ) )
 
 
@@ -6051,7 +6051,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Rotate 180',             'rotate180',             _('Rotate 180°'),             '<control><shift>F',             _('Rotate 180°'),             rotate_180
             ],         [
-        'Rotate 270',             'rotate270',             _('Rotate 90° anticlockwise'),             '<control><shift>C',             _('Rotate 90° anticlockwise'),             rotate270
+        'Rotate 270',             'rotate270',             _('Rotate 90° anticlockwise'),             '<control><shift>C',             _('Rotate 90° anticlockwise'),             rotate_270
             ],          # Tools menu
             [
         'Tools', None, _('_Tools') ],         [
@@ -6452,6 +6452,7 @@ class Application(Gtk.Application):
             ("zoom-out", zoom_out),
             ("rotate-90", rotate_90),
             ("rotate-180", rotate_180),
+            ("rotate-270", rotate_270),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
