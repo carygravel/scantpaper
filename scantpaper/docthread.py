@@ -46,7 +46,13 @@ class DocThread(SaveThread):
                 page.resolution[0],
                 page.resolution[2],
             )
-        return page
+        request.data(
+            {
+                "type": "page",
+                "page": page,
+                "info": {"replace": page.uuid},
+            }
+        )
 
     def analyse(self, **kwargs):
         "analyse page"

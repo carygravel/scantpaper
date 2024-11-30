@@ -319,7 +319,7 @@ class BaseDocument(SimpleList):
         thumb = new_page.get_pixbuf_at_scale(self.heightt, self.widtht)
 
         # Add to the page list
-        if i is None:
+        if ref is None:
             if pagenum is None:
                 pagenum = len(self.data) + 1
             self.data.append([pagenum, thumb, new_page])
@@ -332,6 +332,8 @@ class BaseDocument(SimpleList):
             )
 
         else:
+            if i is None:
+                raise FileNotFoundError("Requested page does not exist.")
             if "replace" in ref:
                 pagenum = self.data[i][0]
                 logger.info(

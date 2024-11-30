@@ -198,11 +198,14 @@ class Document(BaseDocument):
 
     def _post_process_rotate(self, page, options):
         def rotate_finished_callback(_response):
-            finished_page = self.find_page_by_uuid(page.uuid)
+            if page is None:
+                finished_page = None
+            else:
+                finished_page = self.find_page_by_uuid(page.uuid)
             if finished_page is None:
-                self._post_process_scan(None, options)  # to fire finished_callback
+                if "finished_callback" in options and options["finished_callback"]:
+                    options["finished_callback"](None)
                 return
-
             self._post_process_scan(self.data[finished_page][2], options)
 
         rotate_options = options.copy()
