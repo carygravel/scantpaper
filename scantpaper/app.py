@@ -428,7 +428,7 @@ def update_uimanager() :
         'zoom-to-fit',
         'zoom-in',
         'zoom-out',
-        'rotate90',
+        'rotate-90',
         'rotate180',
         'rotate270',
         # '/MenuBar/View/Edit text layer',
@@ -3290,14 +3290,16 @@ def indices2pages(indices) :
     return pages
 
 
-def rotate( angle, pagelist, callback ) :
+def rotate( angle, pagelist, callback=None ) :
     "Rotate selected images"
+    logger.debug(f"pagelist {pagelist}")
 
     # Update undo/redo buffers
     take_snapshot()
     for  page in      pagelist  :
-        ( signal, pid )=(None,None)
-        def anonymous_116(*argv):
+        logger.debug(f"page {page}")
+        signal, pid =None,None
+        def rotate_queued_callback(*argv):
             return update_tpbar(*argv)
 
 
@@ -3309,13 +3311,13 @@ def rotate( angle, pagelist, callback ) :
                 return True  
 
 
-        def anonymous_118( new_page, pending ):
+        def rotate_finished_callback( new_page, pending ):
                 
             if callback      :
                 callback(new_page)
             if not pending :
                 thbox.hide()
-            if  (signal is not None) :
+            if  signal is not None :
                 tcbutton.disconnect(signal)
 
             slist.save_session()
@@ -3324,9 +3326,9 @@ def rotate( angle, pagelist, callback ) :
         pid = slist.rotate(
             angle           = angle,
             page            = page,
-            queued_callback = anonymous_116 ,
-            started_callback = rotate_started_callback ,
-            finished_callback = anonymous_118 ,
+            # queued_callback = rotate_queued_callback ,
+            # started_callback = rotate_started_callback ,
+            # finished_callback = rotate_finished_callback ,
             error_callback   = error_callback,
             display_callback = display_callback ,
         )
@@ -5467,14 +5469,14 @@ def zoom_in(_action, _param):
 def zoom_out(_action, _param):
     view.zoom_out()
 
-def rotate90(_action):
-    rotate( _90_DEGREES, [indices2pages( slist.get_selected_indices() ) ] )
+def rotate_90(_action, _param):
+    rotate( _90_DEGREES, indices2pages( slist.get_selected_indices() ) )
 
 def rotate180(_action):
-    rotate( _180_DEGREES, [indices2pages( slist.get_selected_indices() ) ] )
+    rotate( _180_DEGREES, indices2pages( slist.get_selected_indices() ) )
 
 def rotate270(_action):
-    rotate( _270_DEGREES, [indices2pages( slist.get_selected_indices() ) ] )
+    rotate( _270_DEGREES, indices2pages( slist.get_selected_indices() ) )
 
 
 class ApplicationWindow(Gtk.ApplicationWindow):
@@ -6046,7 +6048,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Zoom out',      'gtk-zoom-out',             _('Zoom _out'), 'minus',             _('Zoom out'),  zoom_out
             ],         [
-        'Rotate 90',             'rotate90',             _('Rotate 90° clockwise'),             '<control><shift>R',             _('Rotate 90° clockwise'),             rotate90
+        'Rotate 90',             'rotate90',             _('Rotate 90° clockwise'),             '<control><shift>R',             _('Rotate 90° clockwise'),             rotate_90
             ],         [
         'Rotate 180',             'rotate180',             _('Rotate 180°'),             '<control><shift>F',             _('Rotate 180°'),             rotate180
             ],         [
@@ -6449,6 +6451,7 @@ class Application(Gtk.Application):
             ("zoom-to-fit", zoom_to_fit),
             ("zoom-in", zoom_in),
             ("zoom-out", zoom_out),
+            ("rotate-90", rotate_90),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

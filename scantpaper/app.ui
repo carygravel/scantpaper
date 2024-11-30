@@ -208,7 +208,7 @@
     </section>
     <section>
       <item>
-        <attribute name="action">rotate90</attribute>
+        <attribute name="action">app.rotate-90</attribute>
         <attribute name="label" translatable="yes">Rotate 90° clockwise</attribute>
         <attribute name="accel">&lt;control&gt;&lt;shift&gt;R</attribute>
       </item>
@@ -465,6 +465,17 @@
         <property name="tooltip_text" translatable="yes">Zoom out</property>
         <property name="action_name">app.zoom-out</property>
         <property name="stock_id">gtk-zoom-out</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorToolItem" /></child>
+    <child>
+      <object class="GtkToolButton" id="toolbutton_rotate_90">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Rotate 90° clockwise</property>
+        <property name="action_name">app.rotate-90</property>
+        <property name="stock_id">rotate90</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
