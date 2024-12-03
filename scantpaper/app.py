@@ -404,9 +404,6 @@ def check_dependencies() :
 def update_uimanager() :
     "ghost or unghost as necessary as # pages > 0 or not"
     action_names = [
-        # '/MenuBar/View/DraggerTool',
-        # '/MenuBar/View/SelectorTool',
-        # '/MenuBar/View/SelectorDraggerTool',
         # '/MenuBar/View/Tabbed',
         # '/MenuBar/View/SplitH',
         # '/MenuBar/View/SplitV',
@@ -424,6 +421,7 @@ def update_uimanager() :
         "select-no-ocr",
         "clear-ocr",
         "properties",
+        "tooltype",
         'zoom-100',
         'zoom-to-fit',
         'zoom-in',
@@ -3764,22 +3762,24 @@ def unsharp(_action) :
     windowum.show_all()
 
 
-def change_image_tool_cb( action, current ) :
-    "Callback for tool-changed signal ImageView"    
-    value = current.get_current_value()
+def change_image_tool_cb( action, parameter ) :
+    "Callback for tool-changed signal ImageView"
+    action.set_state(parameter)
+    value = parameter.get_string()
     global view
     tool = Selector(view)
-    if value == DRAGGER_TOOL :
+    if value == "dragger" :
         tool = Dragger(view)
  
-    elif value == SELECTORDRAGGER_TOOL :
+    elif value == "selectordragger" :
         tool = SelectorDragger(view)
 
-    view.set_tool(tool)
-    if value == SELECTOR_TOOL        or value == SELECTORDRAGGER_TOOL and  "selection"  in SETTING     :
-        view.handler_block( view["selection_changed_signal"] )
-        view.set_selection( SETTING["selection"] )
-        view.handler_unblock( view["selection_changed_signal"] )
+    if view: # could be undefined at application start
+        view.set_tool(tool)
+        if value in ["selector", "selectordragger"] and  "selection"  in SETTING     :
+            view.handler_block( view.selection_changed_signal )
+            view.set_selection( SETTING["selection"] )
+            view.handler_unblock( view.selection_changed_signal )
 
     SETTING["image_control_tool"] = value
 
@@ -5919,9 +5919,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                 # Let the keypress propagate
             if event.keyval!=Gdk.KEY_Delete   :
-                return Glib.EVENT_PROPAGATE
+                return Gdk.EVENT_PROPAGATE
             delete_selection(None, None)
-            return Glib.EVENT_STOP
+            return Gdk.EVENT_STOP
 
         # _after ensures that Editables get first bite
         self.connect_after(            'key-press-event' , on_key_press         )
@@ -6445,7 +6445,6 @@ class Application(Gtk.Application):
             ("clear-ocr", clear_ocr),
             ("properties", properties),
             ("preferences", preferences),
-            ("tooltype", change_image_tool_cb),
             ("zoom-100", zoom_100),
             ("zoom-to-fit", zoom_to_fit),
             ("zoom-in", zoom_in),
@@ -6458,6 +6457,13 @@ class Application(Gtk.Application):
             actions[name] = Gio.SimpleAction.new(name, None)
             actions[name].connect("activate", function)
             self.add_action(actions[name])
+
+        # action with a state created (name, parameter type, initial state)
+        tool_action = Gio.SimpleAction.new_stateful("tooltype", GLib.VariantType.new('s'), GLib.Variant.new_string('selectordragger'))
+        # connected to the callback function
+        tool_action.connect("activate", change_image_tool_cb)
+        # added to the window
+        self.add_action(tool_action)
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
         base_path = os.path.abspath(os.path.dirname(__file__))

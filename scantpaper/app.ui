@@ -156,17 +156,17 @@
       <item>
         <attribute name="label" translatable="yes">_Pan</attribute>
         <attribute name="action">app.tooltype</attribute>
-        <attribute name="target" type="i">0</attribute>
+        <attribute name="target">dragger</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Select</attribute>
         <attribute name="action">app.tooltype</attribute>
-        <attribute name="target" type="i">1</attribute>
+        <attribute name="target">selector</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Select &amp; pan</attribute>
         <attribute name="action">app.tooltype</attribute>
-        <attribute name="target" type="i">2</attribute>
+        <attribute name="target">selectordragger</attribute>
       </item>
     </section>
     <section>
@@ -424,6 +424,42 @@
         <property name="tooltip_text" translatable="yes">Select all pages</property>
         <property name="action_name">app.select-all</property>
         <property name="stock_id">gtk-select-all</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorToolItem" /></child>
+    <child>
+      <object class="GtkRadioToolButton" id="toolbutton_dragger">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Use the pan tool</property>
+        <property name="action_name">app.tooltype</property>
+        <property name="action-target">'dragger'</property>
+        <property name="stock_id">hand-tool</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioToolButton" id="toolbutton_selector">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Use the rectangular selection tool</property>
+        <property name="action_name">app.tooltype</property>
+        <property name="group">toolbutton_dragger</property>
+        <property name="action-target">'selector'</property>
+        <property name="stock_id">selection</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioToolButton" id="toolbutton_selectordragger">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Use the combined select and pan tool</property>
+        <property name="action_name">app.tooltype</property>
+        <property name="group">toolbutton_dragger</property>
+        <property name="action-target">'selectordragger'</property>
+        <property name="stock_id">gtk-media-play</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
       </object>
