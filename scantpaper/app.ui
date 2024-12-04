@@ -173,17 +173,17 @@
       <item>
         <attribute name="label" translatable="yes">_Tabbed</attribute>
         <attribute name="action">app.viewtype</attribute>
-        <attribute name="target" type="i">0</attribute>
+        <attribute name="target">tabbed</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Split horizontally</attribute>
         <attribute name="action">app.viewtype</attribute>
-        <attribute name="target" type="i">1</attribute>
+        <attribute name="target">horizontal</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Split vertically</attribute>
         <attribute name="action">app.viewtype</attribute>
-        <attribute name="target" type="i">2</attribute>
+        <attribute name="target">vertical</attribute>
       </item>
     </section>
     <section>

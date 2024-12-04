@@ -204,14 +204,15 @@ def pack_viewer_tools() :
     global a_canvas
     global vpaned
     global hpanei
-    if SETTING["viewer_tools"] == TABBED_VIEW :
+    global vpanei
+    if SETTING["viewer_tools"] == "tabbed" :
         vnotebook.append_page( view, Gtk.Label( label=_('Image') ) )
         vnotebook.append_page( canvas,            Gtk.Label(label= _('Text layer') ) )
         vnotebook.append_page( a_canvas,            Gtk.Label( label=_('Annotations') ) )
         vpaned.pack1( vnotebook, True, True )
         vnotebook.show_all()
  
-    elif SETTING["viewer_tools"] == SPLIT_VIEW_H :
+    elif SETTING["viewer_tools"] == "horizontal" :
         hpanei.pack1( view, True, True )
         hpanei.pack2( canvas, True, True )
         if a_canvas.get_parent() :
@@ -219,7 +220,7 @@ def pack_viewer_tools() :
 
         vpaned.pack1( hpanei, True, True )
  
-    else :    # $SPLIT_VIEW_V
+    else :    # vertical
         vpanei.pack1( view, True, True )
         vpanei.pack2( canvas, True, True )
         if a_canvas.get_parent() :
@@ -404,9 +405,6 @@ def check_dependencies() :
 def update_uimanager() :
     "ghost or unghost as necessary as # pages > 0 or not"
     action_names = [
-        # '/MenuBar/View/Tabbed',
-        # '/MenuBar/View/SplitH',
-        # '/MenuBar/View/SplitV',
         'cut',
         'copy',
         "delete",
@@ -422,6 +420,7 @@ def update_uimanager() :
         "clear-ocr",
         "properties",
         "tooltype",
+        "viewtype",
         'zoom-100',
         'zoom-to-fit',
         'zoom-in',
@@ -441,16 +440,6 @@ def update_uimanager() :
         '/MenuBar/Tools/OCR',
         '/MenuBar/Tools/User-defined',
 
-        '/ToolBar/DraggerTool',
-        '/ToolBar/SelectorTool',
-        '/ToolBar/SelectorDraggerTool',
-        '/ToolBar/Zoom 100',
-        '/ToolBar/Zoom to fit',
-        '/ToolBar/Zoom in',
-        '/ToolBar/Zoom out',
-        '/ToolBar/Rotate 90',
-        '/ToolBar/Rotate 180',
-        '/ToolBar/Rotate 270',
         '/ToolBar/Edit text layer',
         '/ToolBar/Edit annotations',
         '/ToolBar/CropSelection',
@@ -3784,34 +3773,35 @@ def change_image_tool_cb( action, parameter ) :
     SETTING["image_control_tool"] = value
 
 
-def change_view_cb( action, current ) :
+def change_view_cb( action, parameter ) :
     "Callback to switch between tabbed and split views"    
+    action.set_state(parameter)
     global vnotebook
     global view
     global canvas
     global a_canvas
     global vpaned
     global hpanei
+    global vpanei
 
     # SETTING["viewer_tools"] still has old value
-    if SETTING["viewer_tools"] == TABBED_VIEW :
+    if SETTING["viewer_tools"] == "tabbed" :
         vpaned.remove(vnotebook)
         vnotebook.remove(view)
         vnotebook.remove(canvas)
  
-    elif SETTING["viewer_tools"] == SPLIT_VIEW_H :
+    elif SETTING["viewer_tools"] == "horizontal" :
         vpaned.remove(hpanei)
         hpanei.remove(view)
         hpanei.remove(canvas)
  
-    else :    # $SPLIT_VIEW_V
+    else :    # vertical
         vpaned.remove(vpanei)
         vpanei.remove(view)
         vpanei.remove(canvas)
         vpanei.remove(a_canvas)
 
-    # Update $SETTING{viewer_tools}
-    SETTING["viewer_tools"] = current.get_current_value()
+    SETTING["viewer_tools"] = parameter.get_string()
     pack_viewer_tools()
 
 
@@ -5595,6 +5585,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         vnotebook = Gtk.Notebook()
         global hpanei
         hpanei    = Gtk.HPaned()
+        global vpanei
         vpanei    = Gtk.VPaned()
         hpanei.show()
         vpanei.show()
@@ -6460,10 +6451,13 @@ class Application(Gtk.Application):
 
         # action with a state created (name, parameter type, initial state)
         tool_action = Gio.SimpleAction.new_stateful("tooltype", GLib.VariantType.new('s'), GLib.Variant.new_string('selectordragger'))
+        view_action = Gio.SimpleAction.new_stateful("viewtype", GLib.VariantType.new('s'), GLib.Variant.new_string('tabbed'))
         # connected to the callback function
         tool_action.connect("activate", change_image_tool_cb)
+        view_action.connect("activate", change_view_cb)
         # added to the window
         self.add_action(tool_action)
+        self.add_action(view_action)
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
         base_path = os.path.abspath(os.path.dirname(__file__))
