@@ -431,7 +431,7 @@ def update_uimanager() :
         # '/MenuBar/View/Edit text layer',
         # '/MenuBar/View/Edit annotations',
         "threshold",
-        '/MenuBar/Tools/BrightnessContrast',
+        'brightness-contrast',
         '/MenuBar/Tools/Negate',
         '/MenuBar/Tools/Unsharp',
         '/MenuBar/Tools/CropDialog',
@@ -3481,7 +3481,7 @@ def threshold(_action, _param) :
     windowt.show_all()
 
 
-def brightnesscontrast(_action) :
+def brightness_contrast(_action, _param) :
     "Display page selector and on apply brightness & contrast accordingly"
     windowt = Dialog(
         transient_for = window,
@@ -3527,21 +3527,20 @@ def brightnesscontrast(_action) :
         if not pagelist :
             return
         for  i in         pagelist :
-            ( signal, pid )=(None,None)
-            def anonymous_131(*argv):
+            signal, pid=None,None
+            def brightness_contrast_queued_callback(*argv):
                 return update_tpbar(*argv)
 
 
             def brightness_contrast_started_callback( response ):
-                #thread, process, completed, total
-                pass
+                thread, process, completed, total
                         
-                # signal = setup_tpbar( process, completed, total, pid )
-                # if signal is not None:
-                #     return True  
+                signal = setup_tpbar( process, completed, total, pid )
+                if signal is not None:
+                    return True  
 
 
-            def anonymous_133( new_page, pending ):
+            def brightness_contrast_finished_callback( new_page, pending ):
                         
                 if not pending :
                     thbox.hide()
@@ -3554,9 +3553,9 @@ def brightnesscontrast(_action) :
                     brightness      = SETTING['brightness tool'],
                     contrast        = SETTING['contrast tool'],
                     page            = slist.data[i][2].uuid,
-                    queued_callback = anonymous_131 ,
-                    started_callback = brightness_contrast_started_callback ,
-                    finished_callback = anonymous_133 ,
+                    # queued_callback = brightness_contrast_queued_callback ,
+                    # started_callback = brightness_contrast_started_callback ,
+                    # finished_callback = brightness_contrast_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
@@ -6048,7 +6047,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         'Tools', None, _('_Tools') ],         [
         'Threshold', None, _('_Threshold'), None,             _('Change each pixel above this threshold to black'),             threshold
             ],         [
-        'BrightnessContrast',               None,             _('_Brightness / Contrast'),       None,             _('Change brightness & contrast'), brightnesscontrast
+        'BrightnessContrast',               None,             _('_Brightness / Contrast'),       None,             _('Change brightness & contrast'), brightness_contrast
             ],         [
         'Negate', None, _('_Negate'), None,             _('Converts black to white and vice versa'), negate
             ],         [
@@ -6314,9 +6313,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast"]:
             actions[action].set_enabled(False)
-        # uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/Unsharp').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/CropDialog').set_sensitive(False)
@@ -6443,6 +6441,7 @@ class Application(Gtk.Application):
             ("rotate-180", rotate_180),
             ("rotate-270", rotate_270),
             ("threshold", threshold),
+            ("brightness-contrast", brightness_contrast),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

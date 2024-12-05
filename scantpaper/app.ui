@@ -232,7 +232,7 @@
         <attribute name="label" translatable="yes">_Threshold</attribute>
       </item>
       <item>
-        <attribute name="action">brightness_contrast</attribute>
+        <attribute name="action">app.brightness-contrast</attribute>
         <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
       </item>
       <item>
