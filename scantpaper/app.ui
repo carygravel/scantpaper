@@ -236,7 +236,7 @@
         <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
       </item>
       <item>
-        <attribute name="action">negate</attribute>
+        <attribute name="action">app.negate</attribute>
         <attribute name="label" translatable="yes">_Negate</attribute>
       </item>
       <item>

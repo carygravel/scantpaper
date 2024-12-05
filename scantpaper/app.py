@@ -432,7 +432,7 @@ def update_uimanager() :
         # '/MenuBar/View/Edit annotations',
         "threshold",
         'brightness-contrast',
-        '/MenuBar/Tools/Negate',
+        'negate',
         '/MenuBar/Tools/Unsharp',
         '/MenuBar/Tools/CropDialog',
         '/MenuBar/Tools/unpaper',
@@ -3569,7 +3569,7 @@ def brightness_contrast(_action, _param) :
     windowt.show_all()
 
 
-def negate(_action) :
+def negate(_action, _param) :
     "Display page selector and on apply negate accordingly"
     windowt = Dialog(
         transient_for = window,
@@ -3589,34 +3589,32 @@ def negate(_action) :
             return
         for i in pagelist:
             signal, pid = None, None
-            def anonymous_137(*argv):
+            def negate_queued_callback(*argv):
                 return update_tpbar(*argv)
 
 
             def negate_started_callback( response ):#TODO: all these started callbacks are identical
-                #thread, process, completed, total
-                pass
+                thread, process, completed, total
                         
-                # signal = setup_tpbar( process, completed, total, pid )
-                # if signal is not None:
-                #     return True  
+                signal = setup_tpbar( process, completed, total, pid )
+                if signal is not None:
+                    return True  
 
 
             def negate_finished_callback( response ):
-                # new_page, pending                        
-                # if not pending :
-                #     thbox.hide()
-                # if signal is not None :
-                #     tcbutton.disconnect(signal)
-                # slist.save_session()
-                pass
+                new_page, pending                        
+                if not pending :
+                    thbox.hide()
+                if signal is not None :
+                    tcbutton.disconnect(signal)
+                slist.save_session()
 
 
             pid = slist.negate(
                     page            = slist.data[i][2].uuid,
-                    queued_callback = anonymous_137 ,
-                    started_callback = negate_started_callback ,
-                    finished_callback = negate_finished_callback ,
+                    # queued_callback = negate_queued_callback ,
+                    # started_callback = negate_started_callback ,
+                    # finished_callback = negate_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
@@ -6313,9 +6311,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate"]:
             actions[action].set_enabled(False)
-        # uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/Unsharp').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/CropDialog').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
@@ -6442,6 +6439,7 @@ class Application(Gtk.Application):
             ("rotate-270", rotate_270),
             ("threshold", threshold),
             ("brightness-contrast", brightness_contrast),
+            ("negate", negate),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
