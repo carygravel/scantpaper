@@ -433,7 +433,7 @@ def update_uimanager() :
         "threshold",
         'brightness-contrast',
         'negate',
-        '/MenuBar/Tools/Unsharp',
+        'unsharp',
         '/MenuBar/Tools/CropDialog',
         '/MenuBar/Tools/unpaper',
         '/MenuBar/Tools/split',
@@ -3628,7 +3628,7 @@ def negate(_action, _param) :
     windowt.show_all()
 
 
-def unsharp(_action) :
+def unsharp(_action, _param) :
     "Display page selector and on apply unsharp accordingly"
     windowum = Dialog(
         transient_for = window,
@@ -3639,23 +3639,18 @@ def unsharp(_action) :
 
     windowum.add_page_range()
     spinbuttonr = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
-    spinbuttons =       Gtk.SpinButton.new_with_range( 0, MAX_SIGMA, SIGMA_STEP )
-    spinbuttong = Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
-    spinbuttont =       Gtk.SpinButton.new_with_range( 0, 1, UNIT_SLIDER_STEP )
+    spinbuttons =       Gtk.SpinButton.new_with_range( 0, 2*_100_PERCENT, 1 )
+    spinbuttont =       Gtk.SpinButton.new_with_range( 0, _100_PERCENT, 1 )
     layout = [
     [
     _('Radius'),             spinbuttonr,             _('pixels'),             SETTING['unsharp radius'],             _(
-'The radius of the Gaussian, in pixels, not counting the center pixel (0 = automatic).'
+'Blur Radius.'
             ),
         ],         [
-    _('Sigma'), spinbuttons, _('pixels'),             SETTING['unsharp sigma'],             _('The standard deviation of the Gaussian.'),
-        ],         [
-    _('Gain'),             spinbuttong,             PERCENT,             SETTING['unsharp gain'],             _(
-'The percentage of the difference between the original and the blur image that is added back into the original.'
-            ),
+    _('Percentage'), spinbuttons, _('%'),             SETTING['unsharp percentage'],             _('Unsharp strength, in percent.'),
         ],         [
     _('Threshold'),             spinbuttont,             None,             SETTING['unsharp threshold'],             _(
-'The threshold, as a fraction of QuantumRange, needed to apply the difference amount.'
+'Threshold controls the minimum brightness change that will be sharpened.'
             ),
         ],
     ]
@@ -3694,30 +3689,28 @@ def unsharp(_action) :
             # Update undo/redo buffers
         take_snapshot()
         SETTING['unsharp radius']    = spinbuttonr.get_value()
-        SETTING['unsharp sigma']     = spinbuttons.get_value()
-        SETTING['unsharp gain']      = spinbuttong.get_value()
-        SETTING['unsharp threshold'] = spinbuttont.get_value()
+        SETTING['unsharp percentage']     = int(spinbuttons.get_value())
+        SETTING['unsharp threshold'] = int(spinbuttont.get_value())
         SETTING['Page range']        = windowum.page_range
         pagelist =               slist.get_page_index( SETTING['Page range'],
                 error_callback )
         if not pagelist :
             return
         for  i in         pagelist :
-            ( signal, pid )=(None,None)
-            def anonymous_143(*argv):
+            signal, pid=None,None
+            def unsharp_queued_callback(*argv):
                 return update_tpbar(*argv)
 
 
             def unsharp_started_callback( response ):
-                #thread, process, completed, total
-                pass
+                thread, process, completed, total
                         
-                # signal = setup_tpbar( process, completed, total,pid )
-                # if signal is not None:
-                #     return True  
+                signal = setup_tpbar( process, completed, total,pid )
+                if signal is not None:
+                    return True  
 
 
-            def anonymous_145( new_page, pending ):
+            def unsharp_finished_callback( new_page, pending ):
                         
                 if not pending :
                     thbox.hide()
@@ -3729,12 +3722,11 @@ def unsharp(_action) :
             pid = slist.unsharp(
                     page            = slist.data[i][2].uuid,
                     radius          = SETTING['unsharp radius'],
-                    sigma           = SETTING['unsharp sigma'],
-                    gain            = SETTING['unsharp gain'],
+                    percent           = SETTING['unsharp percentage'],
                     threshold       = SETTING['unsharp threshold'],
-                    queued_callback = anonymous_143 ,
-                    started_callback = unsharp_started_callback ,
-                    finished_callback = anonymous_145 ,
+                    # queued_callback = unsharp_queued_callback ,
+                    # started_callback = unsharp_started_callback ,
+                    # finished_callback = unsharp_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
@@ -6311,9 +6303,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp"]:
             actions[action].set_enabled(False)
-        # uimanager.get_widget('/MenuBar/Tools/Unsharp').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/CropDialog').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
@@ -6440,6 +6431,7 @@ class Application(Gtk.Application):
             ("threshold", threshold),
             ("brightness-contrast", brightness_contrast),
             ("negate", negate),
+            ("unsharp", unsharp),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

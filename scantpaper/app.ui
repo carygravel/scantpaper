@@ -240,7 +240,7 @@
         <attribute name="label" translatable="yes">_Negate</attribute>
       </item>
       <item>
-        <attribute name="action">unsharp</attribute>
+        <attribute name="action">app.unsharp</attribute>
         <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
       </item>
       <item>
