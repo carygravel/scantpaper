@@ -430,7 +430,7 @@ def update_uimanager() :
         'rotate-270',
         # '/MenuBar/View/Edit text layer',
         # '/MenuBar/View/Edit annotations',
-        '/MenuBar/Tools/Threshold',
+        "threshold",
         '/MenuBar/Tools/BrightnessContrast',
         '/MenuBar/Tools/Negate',
         '/MenuBar/Tools/Unsharp',
@@ -3403,7 +3403,7 @@ def handle_clicks( widget, event ) :
     return False
 
 
-def threshold(_action) :
+def threshold(_action, _param) :
     "Display page selector and on apply threshold accordingly"
     windowt = Dialog(
         transient_for = window,
@@ -6314,9 +6314,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold"]:
             actions[action].set_enabled(False)
-        # uimanager.get_widget('/MenuBar/Tools/Threshold').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/BrightnessContrast')       .set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/Negate').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/Unsharp').set_sensitive(False)
@@ -6443,6 +6442,7 @@ class Application(Gtk.Application):
             ("rotate-90", rotate_90),
             ("rotate-180", rotate_180),
             ("rotate-270", rotate_270),
+            ("threshold", threshold),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

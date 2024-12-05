@@ -228,7 +228,7 @@
       <attribute name="label" translatable="yes">_Tools</attribute>
       <section>
       <item>
-        <attribute name="action">threshold</attribute>
+        <attribute name="action">app.threshold</attribute>
         <attribute name="label" translatable="yes">_Threshold</attribute>
       </item>
       <item>
