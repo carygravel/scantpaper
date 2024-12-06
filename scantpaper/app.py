@@ -434,7 +434,7 @@ def update_uimanager() :
         'brightness-contrast',
         'negate',
         'unsharp',
-        '/MenuBar/Tools/CropDialog',
+        'crop-dialog',
         '/MenuBar/Tools/unpaper',
         '/MenuBar/Tools/split',
         '/MenuBar/Tools/OCR',
@@ -719,9 +719,10 @@ def display_callback(response) :
 
 def display_image(page) :
     "Display the image in the view"
-    current_page = page
     global view
     global canvas
+    global current_page
+    current_page = page
     view.set_pixbuf( current_page.get_pixbuf(), True )
     xresolution, yresolution, units = current_page.resolution
     view.set_resolution_ratio(xresolution / yresolution )
@@ -730,15 +731,18 @@ def display_image(page) :
     width, height  = current_page.get_size()
 
     # Update the ranges on the crop dialog
-    if  (sb_selector_w is not None) and  (current_page is not None) :
+    global sb_selector_x
+    global sb_selector_y
+    global sb_selector_w
+    global sb_selector_h
+    if  sb_selector_w is not None and  current_page is not None :
         sb_selector_w.set_range( 0, width - sb_selector_x.get_value() )
         sb_selector_h.set_range( 0, height - sb_selector_y.get_value() )
         sb_selector_x.set_range( 0, width - sb_selector_w.get_value() )
         sb_selector_y.set_range( 0, height - sb_selector_h.get_value() )
-        SETTING["selection"]["x"]      = sb_selector_x.get_value()
-        SETTING["selection"]["y"]      = sb_selector_y.get_value()
-        SETTING["selection"]["width"]  = sb_selector_w.get_value()
-        SETTING["selection"]["height"] = sb_selector_h.get_value()
+        if SETTING["selection"] is None:
+            SETTING["selection"] = Gdk.Rectangle()
+        SETTING["selection"].x,SETTING["selection"].y,SETTING["selection"].width,SETTING["selection"].height      = sb_selector_x.get_value(),sb_selector_y.get_value(),sb_selector_w.get_value(),sb_selector_h.get_value()
         view.set_selection( SETTING["selection"] )
 
     # Delete OCR output if it has become corrupted
@@ -3711,7 +3715,6 @@ def unsharp(_action, _param) :
 
 
             def unsharp_finished_callback( new_page, pending ):
-                        
                 if not pending :
                     thbox.hide()
                 if signal is not None :
@@ -3794,9 +3797,11 @@ def change_view_cb( action, parameter ) :
     pack_viewer_tools()
 
 
-def cropdialog(action) :
+def crop_dialog(_action, _param) :
     "Display page selector and on apply crop accordingly"    
-    if  (windowc is not None) :
+    global windowc
+    global current_page
+    if  windowc is not None :
         windowc.present()
         return
 
@@ -3807,9 +3812,12 @@ def cropdialog(action) :
     )
 
     # Frame for page range
-
     windowc.add_page_range()
-    ( width, height ) = current_page.get_size()
+    width, height = current_page.get_size()
+    global sb_selector_x
+    global sb_selector_y
+    global sb_selector_w
+    global sb_selector_h
     sb_selector_x = Gtk.SpinButton.new_with_range( 0, width,  1 )
     sb_selector_y = Gtk.SpinButton.new_with_range( 0, height, 1 )
     sb_selector_w = Gtk.SpinButton.new_with_range( 0, width,  1 )
@@ -3829,77 +3837,54 @@ def cropdialog(action) :
     vbox = windowc.get_content_area()
     vbox.pack_start( grid, True, True, 0 )
     for  row in      range(len(layout))    :
-        col   = 0
         hbox  = Gtk.HBox()
-        label = Gtk.Label( label=layout[row][col] )
-        col+=1
-        grid.attach( hbox, col, row, 1, 1 )
+        label = Gtk.Label( label=layout[row][0] )
+        grid.attach( hbox, 1, row, 1, 1 )
         hbox.pack_start( label, False, True, 0 )
         hbox = Gtk.HBox()
-        hbox.pack_end( layout[row][col], True, True, 0 )
-        grid.attach( hbox, col, row, 1, 1 )
+        hbox.pack_end( layout[row][1], True, True, 0 )
+        grid.attach( hbox, 2, row, 1, 1 )
         hbox = Gtk.HBox()
-        col+=1
-        grid.attach( hbox, col, row, 1, 1 )
+        grid.attach( hbox, 3, row, 1, 1 )
         label = Gtk.Label( label=_('pixels') )
         hbox.pack_start( label, False, True, 0 )
-        layout[row][1].set_tooltip_text( layout[row][col] )
+        layout[row][1].set_tooltip_text( layout[row][2] )
 
 
-    def anonymous_148():
-        # Callbacks if the spinbuttons change
-        SETTING["selection"]["x"] = sb_selector_x.get_value()
-        sb_selector_w.set_range( 0, width - SETTING["selection"]["x"] )
-        update_selector()
+    def sb_selector_value_changed(widget, dimension):
+        if SETTING["selection"] is None:
+            SETTING["selection"] = Gdk.Rectangle()
+        setattr(SETTING["selection"],dimension, widget.get_value())
+        if dimension == "x":
+            sb_selector_w.set_range( 0, width - SETTING["selection"].x )
+        elif dimension == "y":
+            sb_selector_h.set_range( 0, height - SETTING["selection"].y )
+        elif dimension == "width":
+            sb_selector_x.set_range( 0, width - SETTING["selection"].width )
+        else: # height
+            sb_selector_y.set_range( 0, height - SETTING["selection"].height )
+        global view
+        sel = view.get_selection()
+        view.handler_block( view.selection_changed_signal )
+        view.set_selection( SETTING["selection"] )
+        view.handler_unblock( view.selection_changed_signal )
 
 
-    sb_selector_x.connect(
-        'value-changed' , anonymous_148 
-    )
-    def anonymous_149():
-        SETTING["selection"]["y"] = sb_selector_y.get_value()
-        sb_selector_h.set_range( 0, height - SETTING["selection"]["y"] )
-        update_selector()
+    sb_selector_x.connect(        'value-changed' , sb_selector_value_changed, "x"     )
+    sb_selector_y.connect(        'value-changed' , sb_selector_value_changed, "y"     )
+    sb_selector_w.connect(        'value-changed' , sb_selector_value_changed, "width"     )
+    sb_selector_h.connect(        'value-changed' , sb_selector_value_changed, "height"     )
 
-
-    sb_selector_y.connect(
-        'value-changed' , anonymous_149 
-    )
-    def anonymous_150():
-        SETTING["selection"]["width"] = sb_selector_w.get_value()
-        sb_selector_x.set_range( 0, width - SETTING["selection"]["width"] )
-        update_selector()
-
-
-    sb_selector_w.connect(
-        'value-changed' , anonymous_150 
-    )
-    def anonymous_151():
-        SETTING["selection"]["height"] = sb_selector_h.get_value()
-        sb_selector_y.set_range( 0,
-                height - SETTING["selection"]["height"] )
-        update_selector()
-
-
-    sb_selector_h.connect(
-        'value-changed' , anonymous_151 
-    )
-    if  "x"  in SETTING["selection"] :
-        sb_selector_x.set_value( SETTING["selection"]["x"] )
-
-    if  "y"  in SETTING["selection"] :
-        sb_selector_y.set_value( SETTING["selection"]["y"] )
-
-    if  "width"  in SETTING["selection"] :
-        sb_selector_w.set_value( SETTING["selection"]["width"] )
-
-    if  "height"  in SETTING["selection"] :
-        sb_selector_h.set_value( SETTING["selection"]["height"] )
+    if  SETTING["selection"]:
+        sb_selector_x.set_value( SETTING["selection"].x )
+        sb_selector_y.set_value( SETTING["selection"].y )
+        sb_selector_w.set_value( SETTING["selection"].width )
+        sb_selector_h.set_value( SETTING["selection"].height )
 
     def crop_callback():
         SETTING['Page range'] = windowc.page_range
         crop_selection(
-                action,
+                None,#action
                 slist.get_page_index(
                     SETTING['Page range'], error_callback
                 )
@@ -3912,17 +3897,6 @@ def cropdialog(action) :
         lambda : windowc.hide())
     ])
     windowc.show_all()
-
-
-def update_selector() :
-    global view
-    sel = view.get_selection()
-    view.handler_block( view["selection_changed_signal"] )
-    if  (sel is not None) :
-        view.set_selection( SETTING["selection"] )
-
-    view.handler_unblock( view["selection_changed_signal"] )
-    return
 
 
 def crop_selection( action, pagelist ) :
@@ -3938,20 +3912,19 @@ def crop_selection( action, pagelist ) :
     if not pagelist :
         return
     for  i in     pagelist :
-        ( signal, pid )=(None,None)
-        def anonymous_154(*argv):
+        signal, pid =None,None
+        def crop_queued_callback(*argv):
             return update_tpbar(*argv)
 
 
         def crop_started_callback( response ):
-            #thread, process, completed, total
-            pass
-            # signal = setup_tpbar( process, completed, total, pid )
-            # if signal is not None:
-            #     return True  
+            thread, process, completed, total
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
+                return True  
 
 
-        def anonymous_156( new_page, pending ):
+        def crop_finished_callback( new_page, pending ):
                 
             if not pending :
                 thbox.hide()
@@ -3963,13 +3936,13 @@ def crop_selection( action, pagelist ) :
 
         pid = slist.crop(
             page            = slist.data[i][2].uuid,
-            x               = SETTING["selection"]["x"],
-            y               = SETTING["selection"]["y"],
-            w               = SETTING["selection"]["width"],
-            h               = SETTING["selection"]["height"],
-            queued_callback = anonymous_154 ,
-            started_callback = crop_started_callback ,
-            finished_callback = anonymous_156 ,
+            x               = SETTING["selection"].x,
+            y               = SETTING["selection"].y,
+            w               = SETTING["selection"].width,
+            h               = SETTING["selection"].height,
+            # queued_callback = crop_queued_callback ,
+            # started_callback = crop_started_callback ,
+            # finished_callback = crop_finished_callback ,
             error_callback   = error_callback,
             display_callback = display_callback ,
         )
@@ -4007,7 +3980,7 @@ def splitdialog(action) :
         ],
     ]
     combob = ComboBoxText(data=direction)
-    ( width, height ) = current_page.get_size()
+    width, height = current_page.get_size()
     sb_pos = Gtk.SpinButton.new_with_range( 0, width, 1 )
     def anonymous_158():
         if direction[ combob.get_active() ][0] == 'v' :
@@ -5612,13 +5585,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def view_selection_changed_callback( view, sel ):
             "Callback if the selection changes"            
-            if  sel is not None :
-                SETTING["selection"] = sel
-                if  (sb_selector_x is not None) :
-                    sb_selector_x.set_value( SETTING["selection"]["x"] )
-                    sb_selector_y.set_value( SETTING["selection"]["y"] )
-                    sb_selector_w.set_value( SETTING["selection"]["width"] )
-                    sb_selector_h.set_value( SETTING["selection"]["height"] )
+            global sb_selector_x
+            global sb_selector_y
+            global sb_selector_w
+            global sb_selector_h
+            if  sel is not None and sb_selector_x is not None :
+
+                # copy required here because somehow the garbage collection
+                # destroys the Gdk.Rectangle too early and afterwards, the
+                # contents are corrupt.
+                SETTING["selection"] = sel.copy()
+                sb_selector_x.set_value( sel.x )
+                sb_selector_y.set_value( sel.y )
+                sb_selector_w.set_value( sel.width )
+                sb_selector_h.set_value( sel.height )
 
         view.selection_changed_signal = view.connect(            'selection-changed' , view_selection_changed_callback         )
 
@@ -6043,7 +6023,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'Unsharp',                   None,             _('_Unsharp Mask'),         None,             _('Apply an unsharp mask'), unsharp
             ],         [
-        'CropDialog',     'GTK_STOCK_LEAVE_FULLSCREEN',             _('_Crop'),      None,             _('Crop pages'), cropdialog
+        'CropDialog',     'GTK_STOCK_LEAVE_FULLSCREEN',             _('_Crop'),      None,             _('Crop pages'), crop_dialog
             ],         [
         'CropSelection',      'crop',             _('_Crop'),          None,             _('Crop selection'), crop_selection
             ],         [
@@ -6303,9 +6283,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog"]:
             actions[action].set_enabled(False)
-        # uimanager.get_widget('/MenuBar/Tools/CropDialog').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
 
@@ -6432,6 +6411,7 @@ class Application(Gtk.Application):
             ("brightness-contrast", brightness_contrast),
             ("negate", negate),
             ("unsharp", unsharp),
+            ("crop-dialog", crop_dialog),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

@@ -244,7 +244,7 @@
         <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
       </item>
       <item>
-        <attribute name="action">cropdialog</attribute>
+        <attribute name="action">app.crop-dialog</attribute>
         <attribute name="label" translatable="yes">_Crop</attribute>
       </item>
     </section>
