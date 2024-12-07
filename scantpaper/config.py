@@ -7,6 +7,7 @@ from types import SimpleNamespace
 import datetime
 from basedocument import slurp
 from i18n import _
+from gi.repository import Gdk
 
 DEFAULTS = {
     "window_width": 800,
@@ -169,6 +170,17 @@ def read_config(filename):
             seconds=config["datetime offset"][3],
         )
 
+    # deserialise selection
+    if "selection" in config and config["selection"] is not None:
+        selection = Gdk.Rectangle()
+        selection.x, selection.y, selection.width, selection.height = (
+            config["selection"]["x"],
+            config["selection"]["y"],
+            config["selection"]["width"],
+            config["selection"]["height"],
+        )
+        config["selection"] = selection
+
     logger.debug(config)
     return config
 
@@ -232,6 +244,17 @@ def write_config(rc, config):
             (config["datetime offset"].seconds // 60) % 60,
             config["datetime offset"].seconds % 60,
         ]
+
+    # serialise selection
+    if "selection" in config and config["selection"] is not None:
+        selection = {}
+        selection["x"], selection["y"], selection["width"], selection["height"] = (
+            config["selection"].x,
+            config["selection"].y,
+            config["selection"].width,
+            config["selection"].height,
+        )
+        config["selection"] = selection
 
     with open(rc, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(config, sort_keys=True, indent=4))

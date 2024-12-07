@@ -3,6 +3,7 @@
 import os
 from types import SimpleNamespace
 from datetime import datetime, timedelta
+from gi.repository import Gdk
 from config import (
     read_config,
     write_config,
@@ -188,6 +189,37 @@ def test_config2(mocker):
         "version": "1.7.3",
     }
     assert config == example, "update_config_from_imported_metadata"
+
+    #########################
+
+    config = """{
+    "selection": {
+        "height": 4,
+        "width": 3,
+        "x": 1,
+        "y": 2
+    },
+    "version": "1.7.3"
+}"""
+    with open(rc, "w", encoding="utf-8") as fh:
+        fh.write(config)
+    selection = Gdk.Rectangle()
+    selection.x, selection.y, selection.width, selection.height = 1, 2, 3, 4
+    example = {"version": "1.7.3", "selection": selection}
+    output = read_config(rc)
+    assert output["selection"].x == 1, "Deserialise selection x"
+    assert output["selection"].y == 2, "Deserialise selection y"
+    assert output["selection"].width == 3, "Deserialise selection width"
+    assert output["selection"].height == 4, "Deserialise selection height"
+
+    #########################
+
+    write_config(rc, example)
+
+    example = config.split("\n")
+    output = slurp(rc).split("\n")
+
+    assert output == example, "Serialise selection"
 
     #########################
 
