@@ -189,6 +189,8 @@ class MultipleMessage(Dialog):
 
     def add_message(self, row):
         "possibly split messages or explain them"
+        if row["text"] is None:
+            row["text"] = ""
         text = munge_message(row["text"])
         if isinstance(text, list):
             for line in text:
