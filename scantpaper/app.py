@@ -435,6 +435,7 @@ def update_uimanager() :
         'negate',
         'unsharp',
         'crop-dialog',
+        "crop-selection",
         '/MenuBar/Tools/unpaper',
         '/MenuBar/Tools/split',
         '/MenuBar/Tools/OCR',
@@ -442,7 +443,6 @@ def update_uimanager() :
 
         '/ToolBar/Edit text layer',
         '/ToolBar/Edit annotations',
-        '/ToolBar/CropSelection',
 
         '/Detail_Popup/DraggerTool',
         '/Detail_Popup/SelectorTool',
@@ -456,12 +456,6 @@ def update_uimanager() :
         '/Detail_Popup/Rotate 270',
         '/Detail_Popup/Edit text layer',
         '/Detail_Popup/Edit annotations',
-        '/Detail_Popup/CropSelection',
-
-        '/Thumb_Popup/Rotate 90',
-        '/Thumb_Popup/Rotate 180',
-        '/Thumb_Popup/Rotate 270',
-        '/Thumb_Popup/CropSelection',
     ]
     enabled = bool(slist.get_selected_indices())
     for action_name in         action_names :
@@ -3885,6 +3879,7 @@ def crop_dialog(_action, _param) :
         SETTING['Page range'] = windowc.page_range
         crop_selection(
                 None,#action
+                None,#param
                 slist.get_page_index(
                     SETTING['Page range'], error_callback
                 )
@@ -3899,14 +3894,14 @@ def crop_dialog(_action, _param) :
     windowc.show_all()
 
 
-def crop_selection( action, pagelist ) :
+def crop_selection( action, param, pagelist=None ) :
     
     if not SETTING["selection"] :
         return
 
     # Update undo/redo buffers
     take_snapshot()
-    if not pagelist or 0 not   in pagelist :
+    if not pagelist:
         pagelist = slist.get_selected_indices()
 
     if not pagelist :
@@ -6283,7 +6278,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection"]:
             actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
         # uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
@@ -6412,6 +6407,7 @@ class Application(Gtk.Application):
             ("negate", negate),
             ("unsharp", unsharp),
             ("crop-dialog", crop_dialog),
+            ("crop-selection", crop_selection),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

@@ -538,6 +538,17 @@
     </child>
     <child><object class="GtkSeparatorToolItem" /></child>
     <child>
+      <object class="GtkToolButton" id="toolbutton_crop_selection">
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Crop selection</property>
+        <property name="action_name">app.crop-selection</property>
+        <property name="stock_id">crop</property>
+        <property name="hexpand">False</property>
+        <property name="vexpand">False</property>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorToolItem" /></child>
+    <child>
       <object class="GtkToolButton" id="toolbutton_quit">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Quit</property>
