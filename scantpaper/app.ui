@@ -258,7 +258,7 @@
         <attribute name="label" translatable="yes">_Split</attribute>
       </item>
       <item>
-        <attribute name="action">ocrdialog</attribute>
+        <attribute name="action">app.ocr</attribute>
         <attribute name="label" translatable="yes">_OCR</attribute>
       </item>
     </section>

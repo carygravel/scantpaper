@@ -438,7 +438,7 @@ def update_uimanager() :
         "crop-selection",
         'unpaper',
         'split',
-        '/MenuBar/Tools/OCR',
+        'ocr',
         '/MenuBar/Tools/User-defined',
 
         '/ToolBar/Edit text layer',
@@ -4296,8 +4296,9 @@ def add_tess_languages(vbox) :
     return hbox, combobox, tesslang
 
 
-def ocrdialog(_action) :
+def ocr_dialog(_action, _parma) :
     "Run OCR on current page and display result"
+    global windowo
     if  windowo is not None :
         windowo.present()
         return
@@ -4320,13 +4321,12 @@ def ocrdialog(_action) :
     combobe = ComboBoxText(data=ocr_engine)
     combobe.set_active_index( SETTING['ocr engine'] )
     hboxe.pack_end( combobe, False, True, 0 )
-    comboboxtl, hboxtl, tesslang, comboboxcl, hboxcl, cflang =None,None,[],None,None,[]
+    comboboxtl, hboxtl, tesslang =None,None,[]
     if dependencies["tesseract"] :
         hboxtl, comboboxtl, tesslang  = add_tess_languages(vbox)
         def anonymous_179():
             if ocr_engine[ combobe.get_active() ][0] == 'tesseract' :
                 hboxtl.show_all()
- 
             else :
                 hboxtl.hide()
 
@@ -4352,20 +4352,18 @@ def ocrdialog(_action) :
     spinbutton.set_value( SETTING['threshold tool'] )
     spinbutton.set_sensitive( cbto.get_active() )
     hboxt.pack_end( spinbutton, False, True, 0 )
-    def anonymous_181():
+    def toggled_threshold_ocr():
         spinbutton.set_sensitive( cbto.get_active() )
 
 
-    cbto.connect(
-        'toggled' , anonymous_181 
-    )
+    cbto.connect(        'toggled' , toggled_threshold_ocr     )
     def ocr_apply_callback():
-        tesslang =None
+        lang =None
         if  comboboxtl is not None :
-            tesslang = tesslang[ comboboxtl.get_active() ][0]
+            lang = tesslang[ comboboxtl.get_active() ][0]
 
         run_ocr( ocr_engine[ combobe.get_active() ][0],
-                tesslang, cbto.get_active(), spinbutton.get_value() )
+                lang, cbto.get_active(), spinbutton.get_value() )
 
     windowo.add_actions([
         ('gtk-ok',
@@ -4378,19 +4376,18 @@ def ocrdialog(_action) :
         hboxtl.hide()
 
 
-def anonymous_184(*argv):
+def ocr_queued_callback(*argv):
     return update_tpbar(*argv)
 
 
 def ocr_started_callback( response ):
-    #thread, process, completed, total
-    pass
-    # signal =               setup_tpbar( process, completed, total, pid )
-    # if signal is not None:
-    #     return True  
+    thread, process, completed, total
+    signal =               setup_tpbar( process, completed, total, pid )
+    if signal is not None:
+        return True  
 
 
-def anonymous_186( new_page, pending ):
+def ocr_finished_callback( new_page, pending ):
             
     if not pending :
         thbox.hide()
@@ -4400,11 +4397,15 @@ def anonymous_186( new_page, pending ):
     slist.save_session()
 
 
-def anonymous_187(new_page):
-            
-    page = slist.get_selected_indices()
-    if page and new_page == slist.data[ page[0] ][2] :
-        create_txt_canvas(new_page)
+def ocr_display_callback(response):
+    uuid = response.request.args[0]["page"].uuid
+    i = slist.find_page_by_uuid(uuid)
+    if i is None:
+        logger.error("Can't display page with uuid %s: page not found", uuid)
+    else:
+        page = slist.get_selected_indices()
+        if page and i ==  page[0] :
+            create_txt_canvas(slist.data[i][2])
 
 
 def run_ocr( engine, tesslang, threshold_flag, threshold ) :
@@ -4413,12 +4414,12 @@ def run_ocr( engine, tesslang, threshold_flag, threshold ) :
         SETTING['ocr language'] = tesslang
 
     signal, pid =None,None
-    options = {
-        "queued_callback" : anonymous_184 ,
-        "started_callback" : ocr_started_callback ,
-        "finished_callback" : anonymous_186 ,
+    kwargs = {
+        # "queued_callback" : ocr_queued_callback ,
+        # "started_callback" : ocr_started_callback ,
+        # "finished_callback" : ocr_finished_callback ,
         "error_callback"   : error_callback,
-        "display_callback" : anonymous_187 ,
+        "display_callback" : ocr_display_callback ,
         "engine"   : engine,
         "language" : SETTING['ocr language'],
     }
@@ -4426,7 +4427,7 @@ def run_ocr( engine, tesslang, threshold_flag, threshold ) :
     SETTING['threshold-before-ocr'] = threshold_flag
     if threshold_flag :
         SETTING['threshold tool'] = threshold
-        options["threshold"]        = threshold
+        kwargs["threshold"]        = threshold
 
     # fill pagelist with filenames
     # depending on which radiobutton is active
@@ -4435,7 +4436,8 @@ def run_ocr( engine, tesslang, threshold_flag, threshold ) :
         slist.get_page_index( SETTING['Page range'], error_callback ) )
     if not pagelist :
         return
-    slist.ocr_pages( pagelist, options )
+    kwargs["pages"] = pagelist
+    slist.ocr_pages( **kwargs )
     windowo.hide()
 
 
@@ -6006,7 +6008,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'split', None, _('_Split'), None,             _('Split pages horizontally or vertically'),             split_dialog
             ],         [
-        'OCR', None, _('_OCR'), None,             _('Optical Character Recognition'),             ocrdialog
+        'OCR', None, _('_OCR'), None,             _('Optical Character Recognition'),             ocr_dialog
             ],         [
         'User-defined', None, _('U_ser-defined'), None,             _('Process images with user-defined tool'),             userdefineddialog
             ],          # Help menu
@@ -6258,7 +6260,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection", "split", "unpaper"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection", "split", "unpaper", "ocr"]:
             actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
 
@@ -6389,6 +6391,7 @@ class Application(Gtk.Application):
             ("crop-selection", crop_selection),
             ("split", split_dialog),
             ("unpaper", unpaper),
+            ("ocr", ocr_dialog),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
