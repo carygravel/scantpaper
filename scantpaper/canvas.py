@@ -310,8 +310,9 @@ class Canvas(
         self.confidence_index = ListIter()
         tree = Bboxtree(getattr(kwargs["page"], kwargs["layer"]))
         itr = tree.each_bbox()
-        box = next(itr)
-        if box is None:
+        try:
+            box = next(itr)
+        except StopIteration:
             return
         options = {
             "iter": itr,
