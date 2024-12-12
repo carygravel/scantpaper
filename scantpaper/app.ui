@@ -254,7 +254,7 @@
         <attribute name="label" translatable="yes">_Clean up</attribute>
       </item>
       <item>
-        <attribute name="action">splitdialog</attribute>
+        <attribute name="action">app.split</attribute>
         <attribute name="label" translatable="yes">_Split</attribute>
       </item>
       <item>

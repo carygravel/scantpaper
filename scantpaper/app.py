@@ -437,7 +437,7 @@ def update_uimanager() :
         'crop-dialog',
         "crop-selection",
         '/MenuBar/Tools/unpaper',
-        '/MenuBar/Tools/split',
+        'split',
         '/MenuBar/Tools/OCR',
         '/MenuBar/Tools/User-defined',
 
@@ -3943,7 +3943,7 @@ def crop_selection( action, param, pagelist=None ) :
         )
 
 
-def splitdialog(action) :
+def split_dialog(_action, _param) :
     """Display page selector and on apply crop accordingly"""    
 
     # Until we have a separate tool for the divider, kill the whole
@@ -3960,7 +3960,6 @@ def splitdialog(action) :
     )
 
     # Frame for page range
-
     windowsp.add_page_range()
     hbox = Gtk.HBox()
     vbox = windowsp.get_content_area()
@@ -3977,7 +3976,7 @@ def splitdialog(action) :
     combob = ComboBoxText(data=direction)
     width, height = current_page.get_size()
     sb_pos = Gtk.SpinButton.new_with_range( 0, width, 1 )
-    def anonymous_158():
+    def changed_split_direction(_widget):
         if direction[ combob.get_active() ][0] == 'v' :
             sb_pos.set_range( 0, width )
  
@@ -3988,47 +3987,35 @@ def splitdialog(action) :
                 sb_pos.get_value(), width, height )
 
 
-    combob.connect(
-        'changed' , anonymous_158 
-    )
+    combob.connect(        'changed' , changed_split_direction     )
     combob.set_active_index('v')
     hbox.pack_end( combob, False, True, 0 )
 
     # SpinButton for position
-
     hbox = Gtk.HBox()
     vbox.pack_start( hbox, False, True, 0 )
     label = Gtk.Label( label=_('Position') )
     hbox.pack_start( label, False, True, 0 )
     hbox.pack_end( sb_pos, False, True, 0 )
 
-    def anonymous_159():
-        """    # Callback if the spinbutton changes
-"""
+    def changed_split_position_sb_value(_widget):
         update_view_position( direction[ combob.get_active() ][0],
                 sb_pos.get_value(), width, height )
 
 
-    sb_pos.connect(
-        'value-changed' , anonymous_159 
-    )
+    sb_pos.connect(        'value-changed' , changed_split_position_sb_value     )
     sb_pos.set_value( width / 2 )
 
-    def anonymous_160( widget, sel ):
-        """    # Callback if the selection changes
-"""            
-        if  (sel is not None) :
+    def changed_split_position_selection( widget, sel ):
+        if  sel  :
             if direction[ combob.get_active() ][0] == 'v' :
-                sb_pos.set_value( sel["x"] + sel["width"] )
- 
+                sb_pos.set_value( sel.x + sel.width )
             else :
-                sb_pos.set_value( sel["y"] + sel["height"] )
-
-
+                sb_pos.set_value( sel.y + sel.height )
 
 
     global view
-    view.position_changed_signal = view.connect(        'selection-changed' , anonymous_160     )
+    view.position_changed_signal = view.connect(        'selection-changed' , changed_split_position_selection     )
     def split_apply_callback():
 
         # Update undo/redo buffers
@@ -4044,19 +4031,18 @@ def splitdialog(action) :
         for  i in         pagelist :
             page+=1
             ( signal, pid )=(None,None)
-            def anonymous_162(*argv):
+            def queued_callback(*argv):
                 return update_tpbar(*argv)
 
 
             def split_started_callback( response ):
-                #thread, process, completed, total
-                pass
-                # signal = setup_tpbar( process, completed, total,pid )
+                thread, process, completed, total
+                signal = setup_tpbar( process, completed, total,pid )
                 if signal is not None:
                     return True  
 
 
-            def anonymous_164( new_page, pending ):
+            def split_finished_callback( new_page, pending ):
                         
                 if not pending :
                     thbox.hide()
@@ -4070,9 +4056,9 @@ def splitdialog(action) :
                     direction       = SETTING['split-direction'],
                     position        = SETTING['split-position'],
                     page            = slist.data[i][2].uuid,
-                    queued_callback = anonymous_162 ,
-                    started_callback = split_started_callback ,
-                    finished_callback = anonymous_164 ,
+                    # queued_callback = queued_callback ,
+                    # started_callback = split_started_callback ,
+                    # finished_callback = split_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
@@ -4099,14 +4085,13 @@ def splitdialog(action) :
 
 def update_view_position( direction, position, width, height ) :
     
-    selection = { "x" : 0, "y" : 0 }
+    selection = Gdk.Rectangle()
     if direction == 'v' :
-        selection["width"]  = position
-        selection["height"] = height
- 
+        selection.width  = position
+        selection.height = height
     else :
-        selection["width"]  = width
-        selection["height"] = position
+        selection.width  = width
+        selection.height = position
 
     global view
     view.set_selection( selection )
@@ -6024,7 +6009,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'unpaper', None, _('_Clean up'), None,             _('Clean up scanned images with unpaper'), unpaper
             ],         [
-        'split', None, _('_Split'), None,             _('Split pages horizontally or vertically'),             splitdialog
+        'split', None, _('_Split'), None,             _('Split pages horizontally or vertically'),             split_dialog
             ],         [
         'OCR', None, _('_OCR'), None,             _('Optical Character Recognition'),             ocrdialog
             ],         [
@@ -6278,10 +6263,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection", "split"]:
             actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
-        # uimanager.get_widget('/MenuBar/Tools/split').set_sensitive(False)
 
         if not dependencies["unpaper"] :
             msg += _("unpaper missing\n")
@@ -6408,6 +6392,7 @@ class Application(Gtk.Application):
             ("unsharp", unsharp),
             ("crop-dialog", crop_dialog),
             ("crop-selection", crop_selection),
+            ("split", split_dialog),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
