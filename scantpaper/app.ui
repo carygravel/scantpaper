@@ -250,7 +250,7 @@
     </section>
     <section>
       <item>
-        <attribute name="action">unpaper</attribute>
+        <attribute name="action">app.unpaper</attribute>
         <attribute name="label" translatable="yes">_Clean up</attribute>
       </item>
       <item>

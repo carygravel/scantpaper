@@ -436,7 +436,7 @@ def update_uimanager() :
         'unsharp',
         'crop-dialog',
         "crop-selection",
-        '/MenuBar/Tools/unpaper',
+        'unpaper',
         'split',
         '/MenuBar/Tools/OCR',
         '/MenuBar/Tools/User-defined',
@@ -464,7 +464,8 @@ def update_uimanager() :
 
     # Ghost unpaper item if unpaper not available
     if not dependencies["unpaper"] :
-        builder.get_object('/MenuBar/Tools/unpaper').set_sensitive(False)
+        actions['unpaper'].set_enabled(False)
+        del actions['unpaper']
 
     # Ghost ocr item if ocr  not available
     if not dependencies["ocr"] :
@@ -4180,28 +4181,27 @@ def user_defined_tool( pages, cmd ) :
         )
 
 
-def unpaper_page( pages, options, callback ) :
+def unpaper_page( pages, options ) :
     "queue $page to be processed by unpaper"    
-    if   (options is None) :
-        options = EMPTY
+    if   options is None :
+        options = {}
 
     # Update undo/redo buffers
     take_snapshot()
     for  pageobject in      pages  :
-        ( signal, pid )=(None,None)
-        def anonymous_173(*argv):
+        signal, pid =None,None
+        def unpaper_queued_callback(*argv):
             return update_tpbar(*argv)
 
 
         def unpaper_started_callback( response ):
-            #thread, process, completed, total
-            pass
-            # signal = setup_tpbar( process, completed, total, pid )
-            # if signal is not None:
-            #     return True  
+            thread, process, completed, total
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
+                return True  
 
 
-        def anonymous_175( new_page, pending ):
+        def unpaper_finished_callback( new_page, pending ):
                 
             if not pending :
                 thbox.hide()
@@ -4211,26 +4211,20 @@ def unpaper_page( pages, options, callback ) :
             slist.save_session()
 
 
-        def anonymous_176(new_page):
-                
-            display_image(new_page)
-            if callback :
-                callback(new_page)
-
-
         pid = slist.unpaper(
             page            = pageobject,
             options         = options,
-            queued_callback = anonymous_173 ,
-            started_callback = unpaper_started_callback ,
-            finished_callback = anonymous_175 ,
+            # queued_callback = unpaper_queued_callback ,
+            # started_callback = unpaper_started_callback ,
+            # finished_callback = unpaper_finished_callback ,
             error_callback   = error_callback,
-            display_callback = anonymous_176 ,
+            display_callback = display_callback ,
         )
 
 
-def unpaper(_action):
+def unpaper(_action, _param):
     "Run unpaper to clean up scan."
+    global windowu
     if  windowu is not None :
         windowu.present()
         return
@@ -5869,6 +5863,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # If defined in the config file, set the current directory
         if 'cwd' not   in SETTING :
             SETTING['cwd'] = getcwd
+        global unpaper
         unpaper = Unpaper( SETTING['unpaper options'] )
         update_uimanager()
         self.show_all()
@@ -6263,7 +6258,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection", "split"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection", "split", "unpaper"]:
             actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
 
@@ -6393,6 +6388,7 @@ class Application(Gtk.Application):
             ("crop-dialog", crop_dialog),
             ("crop-selection", crop_selection),
             ("split", split_dialog),
+            ("unpaper", unpaper),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
