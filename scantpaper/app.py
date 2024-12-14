@@ -439,7 +439,7 @@ def update_uimanager() :
         'unpaper',
         'split',
         'ocr',
-        '/MenuBar/Tools/User-defined',
+        'user-defined',
 
         '/ToolBar/Edit text layer',
         '/ToolBar/Edit annotations',
@@ -4098,7 +4098,8 @@ def update_view_position( direction, position, width, height ) :
     view.set_selection( selection )
 
 
-def userdefineddialog(_action):
+def user_defined_dialog(_action, _param):
+    global windowudt
     if windowudt is not None:
         windowudt.present()
         return
@@ -4110,7 +4111,6 @@ def userdefineddialog(_action):
     )
 
     # Frame for page range
-
     windowudt.add_page_range()
     hbox = Gtk.HBox()
     vbox = windowudt.get_content_area()
@@ -4147,20 +4147,19 @@ def user_defined_tool( pages, cmd ) :
     # Update undo/redo buffers
     take_snapshot()
     for  page in      pages  :
-        ( signal, pid )=(None,None)
-        def anonymous_169(*argv):
+        signal, pid =None,None
+        def user_defined_queued_callback(*argv):
             return update_tpbar(*argv)
 
 
         def user_defined_started_callback( response ):
-            #thread, process, completed, total
-            pass
-            # signal = setup_tpbar( process, completed, total, pid )
-            # if signal is not None:
-            #     return True  
+            thread, process, completed, total
+            signal = setup_tpbar( process, completed, total, pid )
+            if signal is not None:
+                return True  
 
 
-        def anonymous_171( new_page, pending ):
+        def user_defined_finished_callback( new_page, pending ):
                 
             if not pending :
                 thbox.hide()
@@ -4173,9 +4172,9 @@ def user_defined_tool( pages, cmd ) :
         pid = slist.user_defined(
             page            = page,
             command         = cmd,
-            queued_callback = anonymous_169 ,
-            started_callback = user_defined_started_callback ,
-            finished_callback = anonymous_171 ,
+            # queued_callback = user_defined_queued_callback ,
+            # started_callback = user_defined_started_callback ,
+            # finished_callback = user_defined_finished_callback ,
             error_callback   = error_callback,
             display_callback = display_callback ,
         )
@@ -5043,7 +5042,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     abutton.set_image(
         Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
     vboxt.pack_start( abutton, True, True, 0 )
-    def anonymous_201():
+    def clicked_add_udt(_action):
         add_user_defined_tool_entry(
                 vboxt,
                 [
@@ -5056,9 +5055,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         comboboxudt, windows.comboboxudt ] )
 
 
-    abutton.connect(
-        'clicked' , anonymous_201 
-    )
+    abutton.connect('clicked' , clicked_add_udt)
     return vbox, fileentry, cbw, cbtz, cbtm, cbts, cbtp, tmpentry,       spinbuttonw,       spinbuttonb, spinbuttond, ocr_function, comboo, cbv, cbb, vboxt
 
 
@@ -5992,7 +5989,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],         [
         'OCR', None, _('_OCR'), None,             _('Optical Character Recognition'),             ocr_dialog
             ],         [
-        'User-defined', None, _('U_ser-defined'), None,             _('Process images with user-defined tool'),             userdefineddialog
+        'User-defined', None, _('U_ser-defined'), None,             _('Process images with user-defined tool'),             user_defined_dialog
             ],          # Help menu
             [
         'Help menu', None, _('_Help') ],         [
@@ -6242,7 +6239,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             msg += _("Email as PDF requires xdg-email\n")
 
         # Undo/redo, save & tools start off ghosted anyway-
-        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection", "split", "unpaper", "ocr"]:
+        for action in ["undo", "redo", "save", "email", "print", "threshold", "brightness-contrast", "negate", "unsharp", "crop-dialog", "crop-selection", "split", "unpaper", "ocr", "user-defined"]:
             actions[action].set_enabled(False)
         # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
 
@@ -6374,6 +6371,7 @@ class Application(Gtk.Application):
             ("split", split_dialog),
             ("unpaper", unpaper),
             ("ocr", ocr_dialog),
+            ("user-defined", user_defined_dialog),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)

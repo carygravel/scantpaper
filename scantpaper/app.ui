@@ -264,7 +264,7 @@
     </section>
     <section>
       <item>
-        <attribute name="action">userdefineddialog</attribute>
+        <attribute name="action">app.user-defined</attribute>
         <attribute name="label" translatable="yes">U_ser-defined</attribute>
       </item>
     </section>
