@@ -2595,7 +2595,7 @@ def finished_process_callback( widget, process, button_signal=None ) :
 
 def restart() :
     quit()
-    os.execv(sys.executable, *sys.argv)
+    os.execv(sys.executable, ["python"] + sys.argv)
 
 
 def update_postprocessing_options_callback(widget, _option_name=None, _option_val=None, _uuid=None) :
@@ -4681,27 +4681,11 @@ def preferences(_action, _param) :
     notebook.append_page( vbox2, Gtk.Label( label=_('General options') ) )
     def preferences_apply_callback():
         windowr.hide()
-        if SETTING["frontend"] != combob.get_active_index() :
-            SETTING["frontend"] = combob.get_active_index()
-            logger.info(f"Switched frontend to {SETTING['frontend']}")
-            if windows :
-                Gscan2pdf.Frontend.Image_Sane.close_device()
-                windows.hide()
-                windows=None
- 
-        else :
-            SETTING['visible-scan-options'] = ()
-            SETTING['scan-reload-triggers'] = ()
-            for i in              option_visibility_list.data  :
-                SETTING['visible-scan-options'][ i[0] ] = i[2]
-                if i[3] :
-                    SETTING['scan-reload-triggers'].append(i[0])  
 
         SETTING['auto-open-scan-dialog'] = cbo.get_active()
         try :
             text = blacklist.get_text()
-            re.search(text,'dummy_device',re.MULTILINE|re.DOTALL|re.VERBOSE)
- 
+            re.search(text,'dummy_device',re.MULTILINE|re.DOTALL|re.VERBOSE) 
         except :
             msg =                   _(
                     "Invalid regex. Try without special characters such as '*'"
@@ -4749,13 +4733,11 @@ def preferences(_action, _param) :
         update_list_user_defined_tools( vboxt,
                 [
         comboboxudt, windows.comboboxudt ] )
-        tmpdirs = File.Spec.splitdir(session)
-        tmpdirs.pop()     # Remove the top level
-        tmp = File.Spec.catdir(tmpdirs)
+        tmp = os.path.abspath(os.path.join(session.name, '..'))     # Up a level
 
             # Expand tildes in the filename
         newdir = get_tmp_dir(
-                pathlib.Path( tmpentry.get_text() ).expanduser(),
+                str(pathlib.Path( tmpentry.get_text() ).expanduser()),
                 r'gscan2pdf-\w\w\w\w' )
         if newdir != tmp :
             SETTING["TMPDIR"] = newdir
