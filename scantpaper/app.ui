@@ -272,7 +272,7 @@
     <submenu>
       <attribute name="label" translatable="yes">_Help</attribute>
       <item>
-        <attribute name="action">viewhtml</attribute>
+        <attribute name="action">app.help</attribute>
         <attribute name="label" translatable="yes">_Help</attribute>
         <attribute name="accel">&lt;control&gt;h</attribute>
       </item>

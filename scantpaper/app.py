@@ -4480,7 +4480,7 @@ def quit() :
     return True
 
 
-def viewhtml() :
+def view_html(_action, _param) :
     "Perhaps we should use gtk and mallard for this in the future"
     # At the moment, we have no translations,
     # but when we do, replace C with $locale
@@ -5993,7 +5993,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ],          # Help menu
             [
         'Help menu', None, _('_Help') ],         [
-        'Help',     'gtk-help', _('_Help'), '<control>h',             _('Help'), viewhtml
+        'Help',     'gtk-help', _('_Help'), '<control>h',             _('Help'), view_html
             ],         [
         'About', 'gtk-about', _('_About'), None, _('_About'), about ],
         ]
@@ -6372,6 +6372,7 @@ class Application(Gtk.Application):
             ("unpaper", unpaper),
             ("ocr", ocr_dialog),
             ("user-defined", user_defined_dialog),
+            ("help", view_html),
             ("about", about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
