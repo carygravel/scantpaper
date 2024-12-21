@@ -283,6 +283,72 @@
       </item>
     </submenu>
   </menu>
+  <object class="GtkMenu" id="detail_popup">
+    <child>
+      <object class="GtkRadioMenuItem" id="context_dragger">
+        <property name="label" translatable="yes">_Pan</property>
+        <signal name="toggled" handler="on_dragger"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioMenuItem" id="context_selector">
+        <property name="label" translatable="yes">_Select</property>
+        <property name="group">context_dragger</property>
+        <signal name="toggled" handler="on_selector"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioMenuItem" id="context_draggerselector">
+        <property name="label" translatable="yes">_Select &amp; pan</property>
+        <property name="group">context_dragger</property>
+        <signal name="toggled" handler="on_selectordragger"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Zoom _100%</property>
+        <signal name="activate" handler="on_zoom_100"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Zoom to _fit</property>
+        <signal name="activate" handler="on_zoom_to_fit"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Zoom _in</property>
+        <signal name="activate" handler="on_zoom_in"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Zoom _out</property>
+        <signal name="activate" handler="on_zoom_out"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Rotate 90° clockwise</property>
+        <signal name="activate" handler="on_rotate_90"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Rotate 180°</property>
+        <signal name="activate" handler="on_rotate_180"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
+        <signal name="activate" handler="on_rotate_270"/>
+      </object>
+    </child>
+  </object>
   <object class="GtkToolbar" id="toolbar">
     <property name="can_focus">False</property>
     <child>

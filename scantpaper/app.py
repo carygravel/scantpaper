@@ -191,8 +191,8 @@ logger = logging.getLogger(__name__)
     comboboxudt, rotate_side_cmbx, rotate_side_cmbx2,
 
     # Declare the XML structure
-    builder,
-)=(None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,[],[],[],[],{},None,None,[],None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,)
+    builder,detail_popup,
+)=(None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,[],[],[],[],{},None,None,[],None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,)
 actions = {}
 
 
@@ -469,7 +469,7 @@ def update_uimanager() :
 
     # Ghost ocr item if ocr  not available
     if not dependencies["ocr"] :
-        builder.get_object('/MenuBar/Tools/OCR').set_sensitive(False)
+        actions('ocr').set_enabled(False)
 
     if len( slist.data ) > 0:
         if dependencies["xdg"] :
@@ -3386,11 +3386,17 @@ f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} dirty_time: {dirty_t
 
 def handle_clicks( widget, event ) :
     "Handle right-clicks"    
-    global uimanager
+    global builder
     if event.button == 3 :#RIGHT_MOUSE_BUTTON      
         if isinstance(widget, ImageView) :    # main image
-            uimanager.get_widget('/Detail_Popup')               .popup_at_pointer( event )
- 
+            # menu = builder.get_object('detail_popup')
+            # popup = Gtk.Menu.new_from_model(menu)
+            # logger.debug(f"popup prefix {popup.list_action_prefixes()}")
+            # popup.popup_at_pointer( event )
+            global detail_popup
+            # popup.popup(None, None, None, None, event.button, event.time)
+            detail_popup.show_all()
+            detail_popup.popup_at_pointer( event )
         else :                                      # Thumbnail simplelist
             SETTING['Page range'] = 'selected'
             uimanager.get_widget('/Thumb_Popup')               .popup_at_pointer( event )
@@ -3740,7 +3746,8 @@ def unsharp(_action, _param) :
 
 def change_image_tool_cb( action, parameter ) :
     "Callback for tool-changed signal ImageView"
-    action.set_state(parameter)
+    logger.debug(f"change_image_tool_cb( {action, parameter} )")
+    #action.set_state(parameter)
     value = parameter.get_string()
     global view
     tool = Selector(view)
@@ -4482,20 +4489,19 @@ def quit() :
 
 def view_html(_action, _param) :
     "Perhaps we should use gtk and mallard for this in the future"
+    # Or possibly https://github.com/ultrabug/mkdocs-static-i18n
     # At the moment, we have no translations,
-    # but when we do, replace C with $locale
+    # but when we do, replace C with locale
 
     uri = f"/usr/share/help/C/{prog_name}/documentation.html"
-    if not pathlib.Path(uri).exists()  :
-        uri = 'http://gscan2pdf.sf.net'
- 
-    else :
+    if pathlib.Path(uri).exists()  :
         uri = GLib.filename_to_uri( uri, None )    # undef => no hostname
+    else :
+        uri = 'http://gscan2pdf.sf.net'
 
     logger.info(f"Opening {uri} via default launcher")
     context = Gio.AppLaunchContext()
     Gio.AppInfo.launch_default_for_uri( uri, context )
-    return
 
 
 def take_snapshot() :
@@ -5392,27 +5398,56 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         pre_flight()
 
-        # # This will be in the windows group and have the "win" prefix
-        # max_action = Gio.SimpleAction.new_stateful(
-        #     "maximize", None, GLib.Variant.new_boolean(False)
-        # )
-        # max_action.connect("change-state", self.on_maximize_toggle)
-        # self.add_action(max_action)
-
-        # # Keep it in sync with the actual state
-        # self.connect(
-        #     "notify::is-maximized",
-        #     lambda obj, pspec: max_action.set_state(
-        #         GLib.Variant.new_boolean(obj.props.is_maximized)
-        #     ),
-        # )
-
-        # lbl_variant = GLib.Variant.new_string("String 1")
-        # lbl_action = Gio.SimpleAction.new_stateful(
-        #     "change_label", lbl_variant.get_type(), lbl_variant
-        # )
-        # lbl_action.connect("change-state", self.on_change_label_state)
-        # self.add_action(lbl_action)
+        # This will be in the windows group and have the "win" prefix
+        global actions
+        for name, function in [
+            ("new", new),
+            ("open", open_dialog),
+            ("open-session", open_session_action),
+            ("scan", scan_dialog),
+            ("save", save_dialog),
+            ("email", email),
+            ("print", print_dialog),
+            ("quit", quitapp),
+            ("undo", undo),
+            ("redo", unundo),
+            ("cut", cut_selection),
+            ("copy", copy_selection),
+            ("paste", paste_selection),
+            ("delete", delete_selection),
+            ("renumber", renumber_dialog),
+            ("select-all", select_all),
+            ("select-odd", select_odd),
+            ("select-even", select_even),
+            ("select-invert", select_invert),
+            ("select-blank", select_blank),
+            ("select-dark", select_dark),
+            ("select-modified", select_modified_since_ocr),
+            ("select-no-ocr", select_no_ocr),
+            ("clear-ocr", clear_ocr),
+            ("properties", properties),
+            ("preferences", preferences),
+            ("zoom-100", zoom_100),
+            ("zoom-to-fit", zoom_to_fit),
+            ("zoom-in", zoom_in),
+            ("zoom-out", zoom_out),
+            ("rotate-90", rotate_90),
+            ("rotate-180", rotate_180),
+            ("rotate-270", rotate_270),
+            ("threshold", threshold),
+            ("brightness-contrast", brightness_contrast),
+            ("negate", negate),
+            ("unsharp", unsharp),
+            ("crop-dialog", crop_dialog),
+            ("crop-selection", crop_selection),
+            ("split", split_dialog),
+            ("unpaper", unpaper),
+            ("ocr", ocr_dialog),
+            ("user-defined", user_defined_dialog),
+            ("help", view_html),
+            ("about", about),
+        ]:
+            self.add_action(actions[name])
 
         # self.label = Gtk.Label(label=lbl_variant.get_string(), margin=30)
         # self.add(self.label)
@@ -6327,6 +6362,7 @@ class Application(Gtk.Application):
         ('crop',        f"{iconpath}/crop.svg") ,
         ])
 
+        # These will be in the application group and have the "app" prefix
         global actions
         for name, function in [
             ("new", new),
@@ -6380,21 +6416,25 @@ class Application(Gtk.Application):
             self.add_action(actions[name])
 
         # action with a state created (name, parameter type, initial state)
-        tool_action = Gio.SimpleAction.new_stateful("tooltype", GLib.VariantType.new('s'), GLib.Variant.new_string('selectordragger'))
-        view_action = Gio.SimpleAction.new_stateful("viewtype", GLib.VariantType.new('s'), GLib.Variant.new_string('tabbed'))
+        actions["tooltype"] = Gio.SimpleAction.new_stateful("tooltype", GLib.VariantType.new('s'), GLib.Variant.new_string('selectordragger'))
+        actions["viewtype"] = Gio.SimpleAction.new_stateful("viewtype", GLib.VariantType.new('s'), GLib.Variant.new_string('tabbed'))
         # connected to the callback function
-        tool_action.connect("activate", change_image_tool_cb)
-        view_action.connect("activate", change_view_cb)
+        actions["tooltype"].connect("toggled", change_image_tool_cb)
+        actions["viewtype"].connect("toggled", change_view_cb)
         # added to the window
-        self.add_action(tool_action)
-        self.add_action(view_action)
+        self.add_action(actions["tooltype"])
+        self.add_action(actions["viewtype"])
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
         base_path = os.path.abspath(os.path.dirname(__file__))
         global builder
         builder = Gtk.Builder()
         builder.add_from_file(os.path.join(base_path, "app.ui"))
+        builder.connect_signals(self)
         self.set_menubar(builder.get_object("menubar"))
+
+        global detail_popup
+        detail_popup = builder.get_object('detail_popup')
 
 
     def do_activate(self):
@@ -6407,6 +6447,42 @@ class Application(Gtk.Application):
             global window
             window=self.window
         self.window.present()
+
+
+    # It's a shame that we have to define these here, but I can't see a way
+    # to connect the actions in a context menu in app.ui otherwise
+    def on_dragger(self, _widget):
+        global actions
+        change_image_tool_cb(actions["tooltype"], GLib.Variant('s', 'dragger'))
+
+    def on_selector(self, _widget):
+        global actions
+        change_image_tool_cb(actions["tooltype"], GLib.Variant('s', 'selector'))
+
+    def on_selectordragger(self, _widget):
+        global actions
+        change_image_tool_cb(actions["tooltype"], GLib.Variant('s', 'selectordragger'))
+
+    def on_zoom_100(self, _widget):
+        zoom_100(None, None)
+
+    def on_zoom_to_fit(self, _widget):
+        zoom_to_fit(None, None)
+
+    def on_zoom_in(self, _widget):
+        zoom_in(None, None)
+
+    def on_zoom_out(self, _widget):
+        zoom_out(None, None)
+
+    def on_rotate_90(self, _widget):
+        rotate_90(None, None)
+
+    def on_rotate_180(self, _widget):
+        rotate_180(None, None)
+
+    def on_rotate_270(self, _widget):
+        rotate_270(None, None)
 
     # def do_command_line(self, command_line):
     #     options = command_line.get_options_dict()
