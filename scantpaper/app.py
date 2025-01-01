@@ -6311,6 +6311,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
 
         # extract the toolbar
+        global builder
         toolbar = builder.get_object('toolbar')
 
         # turn off labels
@@ -6337,6 +6338,13 @@ class Application(Gtk.Application):
         #     "Command line test",
         #     None,
         # )
+
+        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        global builder
+        builder = Gtk.Builder()
+        builder.add_from_file(os.path.join(base_path, "app.ui"))
+        builder.connect_signals(self)
 
 
     def do_startup(self):
@@ -6419,18 +6427,13 @@ class Application(Gtk.Application):
         actions["tooltype"] = Gio.SimpleAction.new_stateful("tooltype", GLib.VariantType.new('s'), GLib.Variant.new_string('selectordragger'))
         actions["viewtype"] = Gio.SimpleAction.new_stateful("viewtype", GLib.VariantType.new('s'), GLib.Variant.new_string('tabbed'))
         # connected to the callback function
-        actions["tooltype"].connect("toggled", change_image_tool_cb)
-        actions["viewtype"].connect("toggled", change_view_cb)
+        actions["tooltype"].connect("activate", change_image_tool_cb)
+        actions["viewtype"].connect("activate", change_view_cb)
         # added to the window
         self.add_action(actions["tooltype"])
         self.add_action(actions["viewtype"])
 
-        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
-        base_path = os.path.abspath(os.path.dirname(__file__))
         global builder
-        builder = Gtk.Builder()
-        builder.add_from_file(os.path.join(base_path, "app.ui"))
-        builder.connect_signals(self)
         self.set_menubar(builder.get_object("menubar"))
 
         global detail_popup
