@@ -4619,11 +4619,11 @@ def unundo(_action, _param) :
     actions["redo"].set_enabled(False)
 
 
-def init_icons(icons) :
+def init_icons(iconpath, icons) :
     "Initialise iconfactory"    
     iconfactory = Gtk.IconFactory()
-    for icon in     icons :
-        register_icon(iconfactory, *icon )
+    for iconname, filename in     icons :
+        register_icon(iconfactory, iconname, iconpath+"/"+filename )
     iconfactory.add_default()
 
 
@@ -6358,16 +6358,16 @@ class Application(Gtk.Application):
         else :
             iconpath = 'icons'
 
-        init_icons([
-        ('rotate90',    f"{iconpath}/stock-rotate-90.svg"),     
-        ('rotate180',   f"{iconpath}/180_degree.svg"),     
-        ('rotate270',   f"{iconpath}/stock-rotate-270.svg") ,     
-        ('scanner',     f"{iconpath}/scanner.svg"),
-        ('pdf',         f"{iconpath}/pdf.svg") ,     
-        ('selection',   f"{iconpath}/stock-selection-all-16.png") ,     
-        ('hand-tool',   f"{iconpath}/hand-tool.svg") ,     
-        ('mail-attach', f"{iconpath}/mail-attach.svg") ,     
-        ('crop',        f"{iconpath}/crop.svg") ,
+        init_icons(iconpath, [
+        ('rotate90',    "stock-rotate-90.svg"),     
+        ('rotate180',   "180_degree.svg"),     
+        ('rotate270',   "stock-rotate-270.svg") ,     
+        ('scanner',     "scanner.svg"),
+        ('pdf',         "pdf.svg") ,     
+        ('selection',   "stock-selection-all-16.png") ,     
+        ('hand-tool',   "hand-tool.svg") ,     
+        ('mail-attach', "mail-attach.svg") ,     
+        ('crop',        "crop.svg") ,
         ])
 
         # These will be in the application group and have the "app" prefix
