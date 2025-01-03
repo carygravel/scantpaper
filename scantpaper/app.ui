@@ -349,6 +349,83 @@
       </object>
     </child>
   </object>
+  <object class="GtkMenu" id="thumb_popup">
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Save</property>
+        <signal name="activate" handler="on_save"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Email as PDF</property>
+        <signal name="activate" handler="on_email"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Print</property>
+        <signal name="activate" handler="on_print"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Renumber</property>
+        <signal name="activate" handler="on_renumber"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Select All</property>
+        <signal name="activate" handler="on_select_all"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Select Odd</property>
+        <signal name="activate" handler="on_select_odd"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Select Even</property>
+        <signal name="activate" handler="on_select_even"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Invert selection</property>
+        <signal name="activate" handler="on_invert_selection"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Rotate 90° clockwise</property>
+        <signal name="activate" handler="on_rotate_90"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Rotate 180°</property>
+        <signal name="activate" handler="on_rotate_180"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
+        <signal name="activate" handler="on_rotate_270"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Crop</property>
+        <signal name="activate" handler="on_crop"/>
+      </object>
+    </child>
+  </object>
   <object class="GtkToolbar" id="toolbar">
     <property name="can_focus">False</property>
     <child>

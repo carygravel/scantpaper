@@ -3389,17 +3389,14 @@ def handle_clicks( widget, event ) :
     global builder
     if event.button == 3 :#RIGHT_MOUSE_BUTTON      
         if isinstance(widget, ImageView) :    # main image
-            # menu = builder.get_object('detail_popup')
-            # popup = Gtk.Menu.new_from_model(menu)
-            # logger.debug(f"popup prefix {popup.list_action_prefixes()}")
-            # popup.popup_at_pointer( event )
             global detail_popup
-            # popup.popup(None, None, None, None, event.button, event.time)
             detail_popup.show_all()
             detail_popup.popup_at_pointer( event )
         else :                                      # Thumbnail simplelist
             SETTING['Page range'] = 'selected'
-            uimanager.get_widget('/Thumb_Popup')               .popup_at_pointer( event )
+            global thumb_popup
+            thumb_popup.show_all()
+            thumb_popup.popup_at_pointer( event )
 
         # block event propagation
         return True
@@ -6439,6 +6436,9 @@ class Application(Gtk.Application):
         global detail_popup
         detail_popup = builder.get_object('detail_popup')
 
+        global thumb_popup
+        thumb_popup = builder.get_object('thumb_popup')
+
 
     def do_activate(self):
         "only allow a single window and raise any existing ones"
@@ -6486,6 +6486,33 @@ class Application(Gtk.Application):
 
     def on_rotate_270(self, _widget):
         rotate_270(None, None)
+
+    def on_save(self, _widget):
+        save_dialog(None, None)
+
+    def on_email(self, _widget):
+        email(None, None)
+
+    def on_print(self, _widget):
+        print_dialog(None, None)
+
+    def on_renumber(self, _widget):
+        renumber_dialog(None, None)
+
+    def on_select_all(self, _widget):
+        select_all(None, None)
+
+    def on_select_odd(self, _widget):
+        select_odd_even(0)
+
+    def on_select_even(self, _widget):
+        select_odd_even(1)
+
+    def on_invert_selection(self, _widget):
+        select_invert(None, None)
+
+    def on_crop(self, _widget):
+        crop_dialog(None, None)
 
     # def do_command_line(self, command_line):
     #     options = command_line.get_options_dict()
