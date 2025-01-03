@@ -6339,17 +6339,6 @@ class Application(Gtk.Application):
         #     None,
         # )
 
-        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
-        base_path = os.path.abspath(os.path.dirname(__file__))
-        global builder
-        builder = Gtk.Builder()
-        builder.add_from_file(os.path.join(base_path, "app.ui"))
-        builder.connect_signals(self)
-
-
-    def do_startup(self):
-        Gtk.Application.do_startup(self)
-
         # Add extra icons early to be available for Gtk.Builder
         global iconpath
         iconpath=None
@@ -6369,6 +6358,17 @@ class Application(Gtk.Application):
         ('mail-attach', "mail-attach.svg") ,     
         ('crop',        "crop.svg") ,
         ])
+
+        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        global builder
+        builder = Gtk.Builder()
+        builder.add_from_file(os.path.join(base_path, "app.ui"))
+        builder.connect_signals(self)
+
+
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
 
         # These will be in the application group and have the "app" prefix
         global actions
