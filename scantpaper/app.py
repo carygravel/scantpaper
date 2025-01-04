@@ -3911,6 +3911,7 @@ def crop_selection( action, param, pagelist=None ) :
 
     if not pagelist :
         return
+
     for  i in     pagelist :
         signal, pid =None,None
         def crop_queued_callback(*argv):
@@ -5572,16 +5573,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def view_selection_changed_callback( view, sel ):
             "Callback if the selection changes"            
+            # copy required here because somehow the garbage collection
+            # destroys the Gdk.Rectangle too early and afterwards, the
+            # contents are corrupt.
+            SETTING["selection"] = sel.copy()
             global sb_selector_x
             global sb_selector_y
             global sb_selector_w
             global sb_selector_h
             if  sel is not None and sb_selector_x is not None :
-
-                # copy required here because somehow the garbage collection
-                # destroys the Gdk.Rectangle too early and afterwards, the
-                # contents are corrupt.
-                SETTING["selection"] = sel.copy()
                 sb_selector_x.set_value( sel.x )
                 sb_selector_y.set_value( sel.y )
                 sb_selector_w.set_value( sel.width )
@@ -6512,7 +6512,7 @@ class Application(Gtk.Application):
         select_invert(None, None)
 
     def on_crop(self, _widget):
-        crop_dialog(None, None)
+        crop_selection(None, None)
 
     # def do_command_line(self, command_line):
     #     options = command_line.get_options_dict()

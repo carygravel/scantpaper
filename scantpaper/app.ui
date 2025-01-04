@@ -348,6 +348,13 @@
         <signal name="activate" handler="on_rotate_270"/>
       </object>
     </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Crop</property>
+        <signal name="activate" handler="on_crop"/>
+      </object>
+    </child>
   </object>
   <object class="GtkMenu" id="thumb_popup">
     <child>
