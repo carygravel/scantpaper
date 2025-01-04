@@ -937,7 +937,7 @@ def error_callback( response ) :
     message = response.status
     page = None
     if "page" in args[0]:
-        page = args[0]["page"]
+        page = slist.data[slist.find_page_by_uuid(args[0]["page"].uuid)][0]
 
     options = {
         "parent"           : window,
