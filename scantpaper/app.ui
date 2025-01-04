@@ -355,6 +355,38 @@
         <signal name="activate" handler="on_crop"/>
       </object>
     </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Cut</property>
+        <signal name="activate" handler="on_cut"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Copy</property>
+        <signal name="activate" handler="on_copy"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Paste</property>
+        <signal name="activate" handler="on_paste"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Delete</property>
+        <signal name="activate" handler="on_delete"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Properties</property>
+        <signal name="activate" handler="on_properties"/>
+      </object>
+    </child>
   </object>
   <object class="GtkMenu" id="thumb_popup">
     <child>
@@ -430,6 +462,45 @@
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Crop</property>
         <signal name="activate" handler="on_crop"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Cut</property>
+        <signal name="activate" handler="on_cut"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Copy</property>
+        <signal name="activate" handler="on_copy"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Paste</property>
+        <signal name="activate" handler="on_paste"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Delete</property>
+        <signal name="activate" handler="on_delete"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Clear OCR</property>
+        <signal name="activate" handler="on_clear_ocr"/>
+      </object>
+    </child>
+    <child><object class="GtkSeparatorMenuItem" /></child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="label" translatable="yes">Properties</property>
+        <signal name="activate" handler="on_properties"/>
       </object>
     </child>
   </object>

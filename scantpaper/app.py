@@ -6514,6 +6514,24 @@ class Application(Gtk.Application):
     def on_crop(self, _widget):
         crop_selection(None, None)
 
+    def on_cut(self, _widget):
+        cut_selection(None, None)
+
+    def on_copy(self, _widget):
+        copy_selection(None, None)
+
+    def on_paste(self, _widget):
+        paste_selection(None, None)
+
+    def on_delete(self, _widget):
+        delete_selection(None, None)
+
+    def on_clear_ocr(self, _widget):
+        clear_ocr(None, None)
+
+    def on_properties(self, _widget):
+        properties(None, None)
+
     # def do_command_line(self, command_line):
     #     options = command_line.get_options_dict()
 
