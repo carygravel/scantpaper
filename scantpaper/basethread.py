@@ -199,6 +199,7 @@ class BaseThread(threading.Thread):
                     and "error_callback" in self.callbacks[uid]
                     and self.callbacks[uid]["error_callback"] is not None
                 ):
+                    data = data._replace(status=str(err))
                     self.callbacks[uid]["error_callback"](data)
 
     def _monitor_response(self, block=False):
