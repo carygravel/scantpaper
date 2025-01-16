@@ -194,6 +194,7 @@ logger = logging.getLogger(__name__)
     builder,detail_popup,
 )=(None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,[],[],[],[],{},None,None,[],None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,)
 actions = {}
+prevent_image_tool_update = False
 
 
 def pack_viewer_tools() :
@@ -3386,7 +3387,6 @@ f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} dirty_time: {dirty_t
 
 def handle_clicks( widget, event ) :
     "Handle right-clicks"    
-    global builder
     if event.button == 3 :#RIGHT_MOUSE_BUTTON      
         if isinstance(widget, ImageView) :    # main image
             global detail_popup
@@ -3741,20 +3741,32 @@ def unsharp(_action, _param) :
     windowum.show_all()
 
 
-def change_image_tool_cb( action, parameter ) :
+def change_image_tool_cb( action, value ) :
     "Callback for tool-changed signal ImageView"
-    logger.debug(f"change_image_tool_cb( {action, parameter} )")
-    #action.set_state(parameter)
-    value = parameter.get_string()
+    global prevent_image_tool_update
+
+    # Prevent triggering the handler if it was triggered programmatically
+    if prevent_image_tool_update:
+        return        
+
+    # ignore value if it hasn't changed
+    if action.get_state() == value:
+        return
+
+    # Set the flag to prevent recursive updates
+    prevent_image_tool_update = True            
+    action.set_state(value)
+    prevent_image_tool_update = False
+
+    value = value.get_string()
     global view
-    tool = Selector(view)
-    if value == "dragger" :
-        tool = Dragger(view)
- 
-    elif value == "selectordragger" :
-        tool = SelectorDragger(view)
 
     if view: # could be undefined at application start
+        tool = Selector(view)
+        if value == "dragger" :
+            tool = Dragger(view)
+        elif value == "selectordragger" :
+            tool = SelectorDragger(view)
         view.set_tool(tool)
         if value in ["selector", "selectordragger"] and  "selection"  in SETTING     :
             view.handler_block( view.selection_changed_signal )
@@ -6455,15 +6467,12 @@ class Application(Gtk.Application):
     # It's a shame that we have to define these here, but I can't see a way
     # to connect the actions in a context menu in app.ui otherwise
     def on_dragger(self, _widget):
-        global actions
         change_image_tool_cb(actions["tooltype"], GLib.Variant('s', 'dragger'))
 
     def on_selector(self, _widget):
-        global actions
         change_image_tool_cb(actions["tooltype"], GLib.Variant('s', 'selector'))
 
     def on_selectordragger(self, _widget):
-        global actions
         change_image_tool_cb(actions["tooltype"], GLib.Variant('s', 'selectordragger'))
 
     def on_zoom_100(self, _widget):
