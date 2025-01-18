@@ -298,7 +298,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkRadioMenuItem" id="context_draggerselector">
+      <object class="GtkRadioMenuItem" id="context_selectordragger">
         <property name="label" translatable="yes">_Select &amp; pan</property>
         <property name="group">context_dragger</property>
         <signal name="toggled" handler="on_selectordragger"/>

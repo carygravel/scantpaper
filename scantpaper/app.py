@@ -462,6 +462,7 @@ def update_uimanager() :
     for action_name in         action_names :
         if action_name in actions:
             actions[action_name].set_enabled(enabled)
+    detail_popup.set_sensitive(enabled)
 
     # Ghost unpaper item if unpaper not available
     if not dependencies["unpaper"] :
@@ -3756,9 +3757,11 @@ def change_image_tool_cb( action, value ) :
     # Set the flag to prevent recursive updates
     prevent_image_tool_update = True            
     action.set_state(value)
+    value = value.get_string()
+    button = builder.get_object(f"context_{value}")
+    button.set_active(True)
     prevent_image_tool_update = False
 
-    value = value.get_string()
     global view
 
     if view: # could be undefined at application start
@@ -5365,7 +5368,10 @@ def pre_flight():
             Gtk.get_micro_version())
     logger.info( 'sane.__version__ %s',sane.__version__)   
     logger.info( 'sane.init() %s',sane.init())   
-    SETTING["version"] = VERSION
+    
+    # initialise image control tool radio button setting
+    change_image_tool_cb(actions["tooltype"], GLib.Variant('s', SETTING["image_control_tool"]))
+    builder.get_object("context_"+SETTING["image_control_tool"]).set_active(True)
 
 
 def quitapp(_action, _param):
@@ -6433,7 +6439,7 @@ class Application(Gtk.Application):
             self.add_action(actions[name])
 
         # action with a state created (name, parameter type, initial state)
-        actions["tooltype"] = Gio.SimpleAction.new_stateful("tooltype", GLib.VariantType.new('s'), GLib.Variant.new_string('selectordragger'))
+        actions["tooltype"] = Gio.SimpleAction.new_stateful("tooltype", GLib.VariantType.new('s'), GLib.Variant.new_string('dragger'))
         actions["viewtype"] = Gio.SimpleAction.new_stateful("viewtype", GLib.VariantType.new('s'), GLib.Variant.new_string('tabbed'))
         # connected to the callback function
         actions["tooltype"].connect("activate", change_image_tool_cb)
