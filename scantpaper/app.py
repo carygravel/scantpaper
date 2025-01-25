@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 
-# TODO: use pathlib for all paths
+# TODO:
+# use pathlib for all paths
+# fix progress bars
+# fix edit OCR button text
 
 # gscan2pdf --- to aid the scan to PDF or DjVu process
 
@@ -1004,55 +1007,63 @@ def open_session(sesdir) :
     )
 
 
-def setup_tpbar( process, completed, total, pid ) :
-    "Helper function to set up thread progress bar"    
-    if total and  (process is not None) :
+def setup_tpbar( response ) :#, pid
+    "Helper function to set up thread progress bar"
+    logger.debug(f"setup_tpbar( {response} )")
+    pid=None
+    process_name, num_completed, total = response.request.process, response.num_completed_jobs, response.total_jobs
+    if total and process_name is not None :
         tpbar.set_text(
-            _('Process %i of %i (%s)') % (completed+1,total,process) 
+            _('Process %i of %i (%s)') % (num_completed+1,total,process_name) 
         )
-        tpbar.set_fraction( ( completed + HALF ) / total )
+        tpbar.set_fraction( ( num_completed + HALF ) / total )
         thbox.show_all()
     
-        def anonymous_46():
+        def cancel_process():
             """ Pass the signal back to:
             1. be able to cancel it when the process has finished
             2. flag that the progress bar has been set up
                and avoid the race condition where the callback is
-               entered before the $completed and $total variables have caught up"""
+               entered before the num_completed and total variables have caught up"""
             slist.cancel( [ pid ] )
             thbox.hide()
 
-        return tcbutton.connect( 'clicked' , anonymous_46  )
+        global signal
+        signal = tcbutton.connect( 'clicked' , cancel_process  )
 
 
 def update_tpbar(response) :
     "Helper function to update thread progress bar"
-    if response is None or response.info is None:
-        return    
-    options = response.info
-    if options["jobs_total"] :
-        if  "process"  in options :
-            if  "message"  in options :
-                options["process"] += f" - {options['message']}"
+    if response and response.total_jobs:
+        if response.request.process:
+            # if  "message"  in options :
+            #     options["process"] += f" - {options['message']}"
             tpbar.set_text(
-                _('Process %i of %i (%s)') % (options["jobs_completed"]+1,options["jobs_total"],options["process"])                  
+                _('Process %i of %i (%s)') % (response.num_completed_jobs+1,response.total_jobs,response.request.process)                  
             )
  
         else :
             tpbar.set_text(
-                _('Process %i of %i') % (options["jobs_completed"]+1,options["jobs_total"]) 
+                _('Process %i of %i') % (response.num_completed_jobs+1,response.total_jobs) 
             )
 
-        if  "progress"  in options :
-            tpbar.set_fraction(
-            ( options["jobs_completed"] + options["progress"] ) /                   options["jobs_total"] )
+        # if  "progress"  in options :
+        #     tpbar.set_fraction(
+        #     ( options["jobs_completed"] + options["progress"] ) /                   options["jobs_total"] )
  
-        else :
-            tpbar.set_fraction(
-            ( options["jobs_completed"] + HALF ) / options["jobs_total"] )
+        # else :
+        tpbar.set_fraction(( response.num_completed_jobs + HALF ) / response.total_jobs )
 
         thbox.show_all()
         return True
+
+
+def finish_tpbar(response) :
+    "Helper function to update thread progress bar"
+    if not response.pending :
+        thbox.hide()
+    if signal is not None :
+        tcbutton.disconnect(signal)
 
 
 def open_dialog(_action, _param) :
@@ -1113,37 +1124,18 @@ def import_files_password_callback(filename):
     return None
 
 
-def import_files_queued_callback(response):
-    #*argv
-    #filenames
-    logger.debug(f"queued import_files({response})")
-#    return update_tpbar(*argv)
-
-
 def import_files_started_callback( response ):
-    #thread, process, completed, total
-    #filenames
-            
     logger.debug(f"started import_files({response})")
-    # signal =    setup_tpbar( process, completed, total, pid )
-    # if signal is not None:
-    #     return True  
+    return update_tpbar(response)
 
 
 def import_files_running_callback(response):
-    #*argv
-    pass
-    #return update_tpbar(*argv)
+    return update_tpbar(response)
 
 
 def import_files_finished_callback(response):
-    #pending, filenames
     logger.debug(f"finished import_files({response})")
-    # if not pending :
-    #     thbox.hide()
-    # if signal is not None :
-    #     tcbutton.disconnect(signal)
-
+    finish_tpbar(response)
     # slist.save_session()
 
 
@@ -1159,13 +1151,13 @@ def import_files_metadata_callback(metadata):
 def import_files( filenames, all_pages=False ) :
     
     # FIXME: import_files() now returns an array of pids.
-    ( signal, pid )=(None,None)
+    signal, pid =None,None
     options = {
         "paths"             : filenames,
         "password_callback" : import_files_password_callback ,
-        "queued_callback" : import_files_queued_callback ,
-        "started_callback" : import_files_started_callback ,
-        "running_callback" : import_files_running_callback ,
+        "queued_callback" : setup_tpbar ,
+        "started_callback" : update_tpbar ,
+        "running_callback" : update_tpbar ,
         "finished_callback" : import_files_finished_callback ,
         "metadata_callback" : import_files_metadata_callback ,
         "error_callback" : error_callback,
@@ -1259,10 +1251,8 @@ def save_pdf( filename, option, list_of_page_uuids ) :
 
 
     def save_pdf_finished_callback( response ):
-        #new_page, pending
-            
-        # if not pending :
-        #     thbox.hide()
+        if not response.pending :
+            thbox.hide()
         if  signal is not None :
             tcbutton.disconnect(signal)
 
@@ -1280,8 +1270,8 @@ def save_pdf( filename, option, list_of_page_uuids ) :
         list_of_pages = list_of_page_uuids,
         metadata      = collate_metadata( SETTING,            datetime.datetime.now()  ),
         options         = options,
-        queued_callback = update_tpbar ,
-        started_callback = save_pdf_started_callback ,
+        queued_callback = setup_tpbar ,
+        started_callback = update_tpbar ,
         running_callback = update_tpbar ,
         finished_callback = save_pdf_finished_callback ,
         error_callback = error_callback
@@ -1792,31 +1782,15 @@ def save_image(uuids) :
         # Create the image
         logger.debug(f"Started saving {filename}")
         ( signal, pid )=(None,None)
-        def anonymous_63(*argv):
-            return update_tpbar(*argv)
-
-
-        def save_image_started_callback( response ):
-            #thread, process, completed, total
-            pass
-                
-            # signal = setup_tpbar( process, completed, total, pid )
-            # if signal is not None:
-            #     return True  
-
-
-        def anonymous_65(*argv):
-            return update_tpbar(*argv)
 
 
         def save_image_finished_callback( response ):
-            #new_page, pending
             filename = response.request.args[0]["path"]
             uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-            # if not pending :
-            #     thbox.hide()
-            # if  signal is not None :
-            #     tcbutton.disconnect(signal)
+            if not response.pending :
+                thbox.hide()
+            if  signal is not None :
+                tcbutton.disconnect(signal)
 
             mark_pages(uuids)
             if  'view files toggle'  in SETTING                    and SETTING['view files toggle']                 :
@@ -1833,9 +1807,9 @@ def save_image(uuids) :
         pid = slist.save_image(
             path            = filename,
             list_of_pages   = uuids,
-            queued_callback = anonymous_63 ,
-            started_callback = save_image_started_callback ,
-            running_callback = anonymous_65 ,
+            queued_callback = setup_tpbar ,
+            started_callback = update_tpbar ,
+            running_callback = update_tpbar ,
             finished_callback = save_image_finished_callback ,
             error_callback = error_callback
         )
@@ -1859,33 +1833,12 @@ def save_tiff( filename, ps, uuids ) :
         options["post_save_hook"] = SETTING["current_psh"]
 
     ( signal, pid )=(None,None)
-    def anonymous_67(*argv):
-        return update_tpbar(*argv)
-
-
-    def save_tiff_started_callback( response ):
-        #thread, process, completed, total
-        pass
-            
-        # signal =  setup_tpbar( process, completed, total, pid )
-        # if signal is not None:
-        #     return True  
-
-
-    def anonymous_69(*argv):
-        return update_tpbar(*argv)
 
 
     def save_tiff_finished_callback( response ):
         filename = response.request.args[0]["path"]
         uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-        #new_page, pending
-            
-        # if not pending :
-        #     thbox.hide()
-        # if  signal is not None :
-        #     tcbutton.disconnect(signal)
-
+        finish_tpbar(response)
         mark_pages(uuids)
         file =   ps if ps is not None  else filename
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
@@ -1898,9 +1851,9 @@ def save_tiff( filename, ps, uuids ) :
         path            = filename,
         list_of_pages   = uuids,
         options         = options,
-        queued_callback = anonymous_67 ,
-        started_callback = save_tiff_started_callback ,
-        running_callback = anonymous_69 ,
+        queued_callback = setup_tpbar ,
+        started_callback = update_tpbar ,
+        running_callback = update_tpbar ,
         finished_callback = save_tiff_finished_callback ,
         error_callback = error_callback
     )
@@ -1922,30 +1875,11 @@ def save_djvu( filename, uuids ) :
     if SETTING["post_save_hook"] :
         options["post_save_hook"] = SETTING["current_psh"]
 
-    def anonymous_71(*argv):
-        return update_tpbar(*argv)
-
-
-    def save_djvu_started_callback( response ):
-        pass
-        # signal =  setup_tpbar( process, completed, total, pid )
-        # if signal is not None:
-        #     return True  
-
-
-    def anonymous_73(*argv):
-        return update_tpbar(*argv)
-
 
     def save_djvu_finished_callback( response ):
         filename = response.request.args[0]["path"]
         uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-        # new_page, pending
-        # if not pending :
-        #     thbox.hide()
-        # if  (signal is not None) :
-        #     tcbutton.disconnect(signal)
-
+        finish_tpbar(response)
         mark_pages(uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             launch_default_for_file(filename)
@@ -1959,9 +1893,9 @@ def save_djvu( filename, uuids ) :
         options       = options,
         metadata      = collate_metadata(
             SETTING,datetime.datetime.now()),
-        queued_callback = anonymous_71 ,
-        started_callback = save_djvu_started_callback ,
-        running_callback = anonymous_73 ,
+        queued_callback = setup_tpbar ,
+        started_callback = update_tpbar ,
+        running_callback = update_tpbar ,
         finished_callback = save_djvu_finished_callback ,
         error_callback = error_callback
     )
@@ -1973,29 +1907,10 @@ def save_text( filename, uuids ) :
     if SETTING["post_save_hook"] :
         options["post_save_hook"] = SETTING["current_psh"]
 
-    def anonymous_75(*argv):
-        return update_tpbar(*argv)
 
-
-    def save_text_started_callback( response ):
-        #thread, process, completed, total
-        pass
-        # signal = setup_tpbar( process, completed, total, pid )
-        # if signal is not None:
-        #     return True  
-
-
-    def anonymous_77(*argv):
-        return update_tpbar(*argv)
-
-
-    def anonymous_78( new_page, pending ):
+    def save_text_finished_callback( response ):
             
-        if not pending :
-            thbox.hide()
-        if  (signal is not None) :
-            tcbutton.disconnect(signal)
-
+        finish_tpbar(response)
         mark_pages(uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             launch_default_for_file(filename)
@@ -2007,10 +1922,10 @@ def save_text( filename, uuids ) :
         path            = filename,
         list_of_pages   = uuids,
         options         = options,
-        queued_callback = anonymous_75 ,
-        started_callback = save_text_started_callback ,
-        running_callback = anonymous_77 ,
-        finished_callback = anonymous_78 ,
+        queued_callback = setup_tpbar ,
+        started_callback = update_tpbar ,
+        running_callback = update_tpbar ,
+        finished_callback = save_text_finished_callback ,
         error_callback = error_callback
     )
 
@@ -2021,29 +1936,9 @@ def save_hocr( filename, uuids ) :
     if SETTING["post_save_hook"] :
         options["post_save_hook"] = SETTING["current_psh"]
 
-    def anonymous_79(*argv):
-        return update_tpbar(*argv)
 
-
-    def save_hocr_started_callback( response ):
-        #thread, process, completed, total
-        pass
-        # signal = setup_tpbar( process, completed, total, pid )
-        # if signal is not None:
-        #     return True  
-
-
-    def anonymous_81(*argv):
-        return update_tpbar(*argv)
-
-
-    def anonymous_82( new_page, pending ):
-            
-        if not pending :
-            thbox.hide()
-        if  (signal is not None) :
-            tcbutton.disconnect(signal)
-
+    def save_hocr_finished_callback( response ):
+        finish_tpbar(response)
         mark_pages(uuids)
         if  'view files toggle'  in SETTING                and SETTING['view files toggle']             :
             launch_default_for_file(filename)
@@ -2055,10 +1950,10 @@ def save_hocr( filename, uuids ) :
         path            = filename,
         list_of_pages   = uuids,
         options         = options,
-        queued_callback = anonymous_79 ,
-        started_callback = save_hocr_started_callback ,
-        running_callback = anonymous_81 ,
-        finished_callback = anonymous_82 ,
+        queued_callback = setup_tpbar ,
+        started_callback = update_tpbar ,
+        running_callback = update_tpbar ,
+        finished_callback = save_hocr_finished_callback ,
         error_callback = error_callback
     )
 
@@ -2143,29 +2038,10 @@ def email(_action, _param):
 
             # Create the PDF
         ( signal, pid )=(None,None)
-        def anonymous_84(*argv):
-            return update_tpbar(*argv)
 
 
-        def email_started_callback( response ):
-            #thread, process, completed, total
-            pass
-            # signal = setup_tpbar( process, completed, total,pid )
-            # if signal is not None:
-            #     return True  
-
-
-        def anonymous_86(*argv):
-            return update_tpbar(*argv)
-
-
-        def anonymous_87( new_page, pending ):
-                    
-            if not pending :
-                thbox.hide()
-            if signal is not None :
-                tcbutton.disconnect(signal)
-
+        def email_finished_callback( response ):
+            finish_tpbar(response)
             mark_pages(uuids)
             if  'view files toggle'  in SETTING                        and SETTING['view files toggle']                     :
                 launch_default_for_file(pdf)
@@ -2186,10 +2062,10 @@ def email(_action, _param):
                     SETTING,datetime.datetime.now()
                 ),
                 options         = options,
-                queued_callback = anonymous_84 ,
-                started_callback = email_started_callback ,
-                running_callback = anonymous_86 ,
-                finished_callback = anonymous_87 ,
+                queued_callback = setup_tpbar ,
+                started_callback = update_tpbar ,
+                running_callback = update_tpbar ,
+                finished_callback = email_finished_callback ,
                 error_callback = error_callback
             )
         windowe.hide()
@@ -2420,23 +2296,9 @@ def changed_progress_callback( widget, progress, message ) :
     return
 
 
-def import_scan_started_callback( response ):
-    logger.debug(f"import_scan_started_callback( {response} )")
-    if response.info:
-        process, completed, total = response.info
-        signal =               setup_tpbar( process, completed, total, pid )
-        if signal is not None:
-            return True  
-
-
 def import_scan_finished_callback( response ):
     logger.debug(f"import_scan_finished_callback( {response} )")
-    # new_page, pending
-    # if not pending :
-    #     thbox.hide()
-    # if  signal is not None :
-    #     tcbutton.disconnect(signal)
-
+    finish_tpbar(response)
     # slist.save_session()
 
 
@@ -2454,8 +2316,8 @@ def new_scan_callback( self, image_object, page_number, xresolution, yresolution
         "ocr"             : SETTING['OCR on scan'],
         "engine"          : SETTING['ocr engine'],
         "language"        : SETTING['ocr language'],
-        "queued_callback" : update_tpbar ,
-        "started_callback" : import_scan_started_callback ,
+        "queued_callback" : setup_tpbar ,
+        "started_callback" : update_tpbar ,
         "finished_callback" : import_scan_finished_callback ,
         "error_callback" : error_callback,
         "image_object"    : image_object,
@@ -3287,36 +3149,22 @@ def rotate( angle, pagelist, callback=None ) :
     for  page in      pagelist  :
         logger.debug(f"page {page}")
         signal, pid =None,None
-        def rotate_queued_callback(*argv):
-            return update_tpbar(*argv)
 
 
-        def rotate_started_callback( response ):
-            #thread, process, completed, total
-            pass
-            # signal =  setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
-
-
-        def rotate_finished_callback( new_page, pending ):
-                
-            if callback      :
-                callback(new_page)
-            if not pending :
-                thbox.hide()
-            if  signal is not None :
-                tcbutton.disconnect(signal)
-
-            slist.save_session()
+        def rotate_finished_callback( response ):
+            # if callback      :
+            #     callback(new_page)
+            finish_tpbar(response)
+            # slist.save_session()
 
 
         pid = slist.rotate(
             angle           = angle,
             page            = page,
-            # queued_callback = rotate_queued_callback ,
-            # started_callback = rotate_started_callback ,
-            # finished_callback = rotate_finished_callback ,
+            queued_callback = setup_tpbar ,
+            started_callback = update_tpbar ,
+            running_callback = update_tpbar ,
+            finished_callback = rotate_finished_callback ,
             error_callback   = error_callback,
             display_callback = display_callback ,
         )
@@ -3340,29 +3188,9 @@ f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} dirty_time: {dirty_t
 
     if len(pages_to_analyse) > 0 :
         signal, pid =None,None
-        def anonymous_120(*argv):
-            return update_tpbar(*argv)
 
-
-        def analyse_started_callback( response ):
-            #thread, process, completed, total
-            pass
-            # signal = setup_tpbar( process, completed, total, pid )
-            # if signal is not None:
-            #     return True  
-
-
-        def anonymous_122(*argv):
-            return update_tpbar(*argv)
-
-
-        def analyse_finished_callback( new_page, pending=None ):
-                
-#            if not pending :
-#                thbox.hide()
-#            if  signal is not None :
-#                tcbutton.disconnect(signal)
-
+        def analyse_finished_callback( response ):
+            finish_tpbar(response)
             if select_blank :
                 select_blank_pages()
             if select_dark  :
@@ -3372,9 +3200,9 @@ f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} dirty_time: {dirty_t
 
         pid = slist.analyse(
             list_of_pages   = pages_to_analyse,
-#            queued_callback = anonymous_120 ,
-#            started_callback = analyse_started_callback ,
-#            running_callback = anonymous_122 ,
+            queued_callback = setup_tpbar ,
+            started_callback = update_tpbar ,
+            running_callback = update_tpbar ,
             finished_callback = analyse_finished_callback ,
             error_callback = error_callback,
         )
@@ -3442,34 +3270,18 @@ def threshold(_action, _param) :
         for  i in         pagelist :
             page+=1
             ( signal, pid )=(None,None)
-            def anonymous_125(*argv):
-                return update_tpbar(*argv)
-
-
-            def threshold_started_callback( response ):
-                #thread, process, completed, total
-                pass
-                        
-                # signal = setup_tpbar( process, completed, total,                            pid )
-                # if signal is not None:
-                #     return True  
 
 
             def threshold_finished_callback( response ):
-                #new_page, pending
-                pass
-                # if not pending :
-                #     thbox.hide()
-                # if signal is not None :
-                #     tcbutton.disconnect(signal)
-
+                finish_tpbar(response)
                 #slist.save_session()
 
             pid = slist.threshold(
                     threshold       = SETTING['threshold tool'],
                     page            = slist.data[i][2].uuid,
-                    queued_callback = anonymous_125 ,
-                    started_callback = threshold_started_callback ,
+                    queued_callback = setup_tpbar ,
+                    started_callback = update_tpbar ,
+                    running_callback = update_tpbar ,
                     finished_callback = threshold_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
@@ -3531,34 +3343,19 @@ def brightness_contrast(_action, _param) :
             return
         for  i in         pagelist :
             signal, pid=None,None
-            def brightness_contrast_queued_callback(*argv):
-                return update_tpbar(*argv)
 
-
-            def brightness_contrast_started_callback( response ):
-                thread, process, completed, total
-                        
-                signal = setup_tpbar( process, completed, total, pid )
-                if signal is not None:
-                    return True  
-
-
-            def brightness_contrast_finished_callback( new_page, pending ):
-                        
-                if not pending :
-                    thbox.hide()
-                if signal is not None :
-                    tcbutton.disconnect(signal)
-
-                slist.save_session()
+            def brightness_contrast_finished_callback( response ):
+                finish_tpbar(response)
+                #slist.save_session()
 
             pid = slist.brightness_contrast(
                     brightness      = SETTING['brightness tool'],
                     contrast        = SETTING['contrast tool'],
                     page            = slist.data[i][2].uuid,
-                    # queued_callback = brightness_contrast_queued_callback ,
-                    # started_callback = brightness_contrast_started_callback ,
-                    # finished_callback = brightness_contrast_finished_callback ,
+                    queued_callback = setup_tpbar ,
+                    started_callback = update_tpbar ,
+                    running_callback = update_tpbar ,
+                    finished_callback = brightness_contrast_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
@@ -3592,32 +3389,17 @@ def negate(_action, _param) :
             return
         for i in pagelist:
             signal, pid = None, None
-            def negate_queued_callback(*argv):
-                return update_tpbar(*argv)
-
-
-            def negate_started_callback( response ):#TODO: all these started callbacks are identical
-                thread, process, completed, total
-                        
-                signal = setup_tpbar( process, completed, total, pid )
-                if signal is not None:
-                    return True  
-
 
             def negate_finished_callback( response ):
-                new_page, pending                        
-                if not pending :
-                    thbox.hide()
-                if signal is not None :
-                    tcbutton.disconnect(signal)
-                slist.save_session()
-
+                finish_tpbar(response)
+                #slist.save_session()
 
             pid = slist.negate(
                     page            = slist.data[i][2].uuid,
-                    # queued_callback = negate_queued_callback ,
-                    # started_callback = negate_started_callback ,
-                    # finished_callback = negate_finished_callback ,
+                    queued_callback = setup_tpbar ,
+                    started_callback = update_tpbar ,
+                    running_callback = update_tpbar ,
+                    finished_callback = negate_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
@@ -3701,34 +3483,20 @@ def unsharp(_action, _param) :
             return
         for  i in         pagelist :
             signal, pid=None,None
-            def unsharp_queued_callback(*argv):
-                return update_tpbar(*argv)
 
-
-            def unsharp_started_callback( response ):
-                thread, process, completed, total
-                        
-                signal = setup_tpbar( process, completed, total,pid )
-                if signal is not None:
-                    return True  
-
-
-            def unsharp_finished_callback( new_page, pending ):
-                if not pending :
-                    thbox.hide()
-                if signal is not None :
-                    tcbutton.disconnect(signal)
-
-                slist.save_session()
+            def unsharp_finished_callback( response ):
+                finish_tpbar(response)
+                #slist.save_session()
 
             pid = slist.unsharp(
                     page            = slist.data[i][2].uuid,
                     radius          = SETTING['unsharp radius'],
                     percent           = SETTING['unsharp percentage'],
                     threshold       = SETTING['unsharp threshold'],
-                    # queued_callback = unsharp_queued_callback ,
-                    # started_callback = unsharp_started_callback ,
-                    # finished_callback = unsharp_finished_callback ,
+                    queued_callback = setup_tpbar ,
+                    started_callback = update_tpbar ,
+                    running_callback = update_tpbar ,
+                    finished_callback = unsharp_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
@@ -3929,25 +3697,10 @@ def crop_selection( action, param, pagelist=None ) :
 
     for  i in     pagelist :
         signal, pid =None,None
-        def crop_queued_callback(*argv):
-            return update_tpbar(*argv)
 
-
-        def crop_started_callback( response ):
-            thread, process, completed, total
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
-
-
-        def crop_finished_callback( new_page, pending ):
-                
-            if not pending :
-                thbox.hide()
-            if signal is not None :
-                tcbutton.disconnect(signal)
-
-            slist.save_session()
+        def crop_finished_callback( response ):
+            finish_tpbar(response)
+            #slist.save_session()
 
 
         pid = slist.crop(
@@ -3956,9 +3709,10 @@ def crop_selection( action, param, pagelist=None ) :
             y               = SETTING["selection"].y,
             w               = SETTING["selection"].width,
             h               = SETTING["selection"].height,
-            # queued_callback = crop_queued_callback ,
-            # started_callback = crop_started_callback ,
-            # finished_callback = crop_finished_callback ,
+            queued_callback = setup_tpbar ,
+            started_callback = update_tpbar ,
+            running_callback = update_tpbar ,
+            finished_callback = crop_finished_callback ,
             error_callback   = error_callback,
             display_callback = display_callback ,
         )
@@ -4052,43 +3806,27 @@ def split_dialog(_action, _param) :
         for  i in         pagelist :
             page+=1
             ( signal, pid )=(None,None)
-            def queued_callback(*argv):
-                return update_tpbar(*argv)
 
-
-            def split_started_callback( response ):
-                thread, process, completed, total
-                signal = setup_tpbar( process, completed, total,pid )
-                if signal is not None:
-                    return True  
-
-
-            def split_finished_callback( new_page, pending ):
-                        
-                if not pending :
-                    thbox.hide()
-                if signal is not None :
-                    tcbutton.disconnect(signal)
-
-                slist.save_session()
+            def split_finished_callback( response ):
+                finish_tpbar(response)
+                #slist.save_session()
 
 
             pid = slist.split_page(
                     direction       = SETTING['split-direction'],
                     position        = SETTING['split-position'],
                     page            = slist.data[i][2].uuid,
-                    # queued_callback = queued_callback ,
-                    # started_callback = split_started_callback ,
-                    # finished_callback = split_finished_callback ,
+                    queued_callback = setup_tpbar ,
+                    started_callback = update_tpbar ,
+                    running_callback = update_tpbar ,
+                    finished_callback = split_finished_callback ,
                     error_callback   = error_callback,
                     display_callback = display_callback ,
                 )
 
 
     def split_cancel_callback():
-        global view
-        view.disconnect(
-                view["position_changed_signal"] )
+        view.disconnect( view.position_changed_signal )
         windowsp.destroy()
 
 
@@ -4168,33 +3906,19 @@ def user_defined_tool( pages, cmd ) :
     take_snapshot()
     for  page in      pages  :
         signal, pid =None,None
-        def user_defined_queued_callback(*argv):
-            return update_tpbar(*argv)
 
-
-        def user_defined_started_callback( response ):
-            thread, process, completed, total
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
-
-
-        def user_defined_finished_callback( new_page, pending ):
-                
-            if not pending :
-                thbox.hide()
-            if signal is not None :
-                tcbutton.disconnect(signal)
-
-            slist.save_session()
+        def user_defined_finished_callback( response ):
+            finish_tpbar(response)
+            #slist.save_session()
 
 
         pid = slist.user_defined(
             page            = page,
             command         = cmd,
-            # queued_callback = user_defined_queued_callback ,
-            # started_callback = user_defined_started_callback ,
-            # finished_callback = user_defined_finished_callback ,
+            queued_callback = setup_tpbar ,
+            started_callback = update_tpbar ,
+            running_callback = update_tpbar ,
+            finished_callback = user_defined_finished_callback ,
             error_callback   = error_callback,
             display_callback = display_callback ,
         )
@@ -4209,33 +3933,19 @@ def unpaper_page( pages, options ) :
     take_snapshot()
     for  pageobject in      pages  :
         signal, pid =None,None
-        def unpaper_queued_callback(*argv):
-            return update_tpbar(*argv)
 
-
-        def unpaper_started_callback( response ):
-            thread, process, completed, total
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
-
-
-        def unpaper_finished_callback( new_page, pending ):
-                
-            if not pending :
-                thbox.hide()
-            if signal is not None :
-                tcbutton.disconnect(signal)
-
-            slist.save_session()
+        def unpaper_finished_callback( response ):
+            finish_tpbar(response)
+            #slist.save_session()
 
 
         pid = slist.unpaper(
             page            = pageobject,
             options         = options,
-            # queued_callback = unpaper_queued_callback ,
-            # started_callback = unpaper_started_callback ,
-            # finished_callback = unpaper_finished_callback ,
+            queued_callback = setup_tpbar ,
+            started_callback = update_tpbar ,
+            running_callback = update_tpbar ,
+            finished_callback = unpaper_finished_callback ,
             error_callback   = error_callback,
             display_callback = display_callback ,
         )
@@ -4395,25 +4105,9 @@ def ocr_dialog(_action, _parma) :
         hboxtl.hide()
 
 
-def ocr_queued_callback(*argv):
-    return update_tpbar(*argv)
-
-
-def ocr_started_callback( response ):
-    thread, process, completed, total
-    signal =               setup_tpbar( process, completed, total, pid )
-    if signal is not None:
-        return True  
-
-
-def ocr_finished_callback( new_page, pending ):
-            
-    if not pending :
-        thbox.hide()
-    if signal is not None :
-        tcbutton.disconnect(signal)
-
-    slist.save_session()
+def ocr_finished_callback( response ) :
+    finish_tpbar(response)
+    #slist.save_session()
 
 
 def ocr_display_callback(response):
@@ -4434,9 +4128,10 @@ def run_ocr( engine, tesslang, threshold_flag, threshold ) :
 
     signal, pid =None,None
     kwargs = {
-        # "queued_callback" : ocr_queued_callback ,
-        # "started_callback" : ocr_started_callback ,
-        # "finished_callback" : ocr_finished_callback ,
+        "queued_callback" : setup_tpbar ,
+        "started_callback" : update_tpbar ,
+        "running_callback" : update_tpbar ,
+        "finished_callback" : ocr_finished_callback ,
         "error_callback"   : error_callback,
         "display_callback" : ocr_display_callback ,
         "engine"   : engine,
@@ -5916,9 +5611,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         global thbox
         thbox = Gtk.HBox()
         phbox.add(thbox)
+        global tpbar
         tpbar = Gtk.ProgressBar()
         tpbar.set_show_text(True)
         thbox.add(tpbar)
+        global tcbutton
         tcbutton = Gtk.Button(label=_("_Cancel"))
         thbox.pack_end( tcbutton, False, False, 0 )
         ocr_text_hbox.show()
