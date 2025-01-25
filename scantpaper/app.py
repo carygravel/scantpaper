@@ -2,7 +2,10 @@
 
 # TODO:
 # use pathlib for all paths
-# fix edit OCR button text
+# name anonymous functions
+# restore last used scan settings
+# persist data with sqlite
+# migrate to Gtk4
 
 # gscan2pdf --- to aid the scan to PDF or DjVu process
 
@@ -4819,7 +4822,7 @@ The other variable available is:
         )
     )
     hbox.pack_start( entry, True, True, 0 )
-    button = Gtk.Button(label=_("_Delete"))
+    button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
     def anonymous_202():
         hbox.destroy()
         update_list_user_defined_tools( vbox, combobox_array )
@@ -5398,13 +5401,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_lbutton.set_image(
             Gtk.Image.new_from_icon_name("go-last", Gtk.IconSize.BUTTON))
         ocr_text_lbutton.set_tooltip_text( _('Go to most confident text') )
+
         def anonymous_13():
             global canvas
             edit_ocr_text( canvas.get_last_bbox() )
 
         ocr_text_lbutton.connect(
             'clicked' , anonymous_13  )
-        ocr_text_obutton = Gtk.Button(label=_("_OK"))
+        ocr_text_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
         ocr_text_obutton.set_tooltip_text( _('Accept corrections') )
         def anonymous_14():
             take_snapshot()
@@ -5420,7 +5424,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_obutton.connect(
             'clicked' , anonymous_14 
         )
-        ocr_text_cbutton = Gtk.Button(label=_("_Cancel"))
+        ocr_text_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ocr_text_cbutton.set_tooltip_text( _('Cancel corrections') )
         def anonymous_15():
             ocr_text_hbox.hide()
@@ -5429,7 +5433,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_cbutton.connect(
             'clicked' , anonymous_15 
         )
-        ocr_text_ubutton = Gtk.Button(label=_("_Copy"))
+        ocr_text_ubutton = Gtk.Button.new_with_mnemonic(label=_("_Copy"))
         ocr_text_ubutton.set_tooltip_text( _('Duplicate text') )
         def anonymous_16():
             global canvas
@@ -5479,7 +5483,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_abutton.connect(
             'clicked' , anonymous_17 
         )
-        ocr_text_dbutton = Gtk.Button(label=_("_Delete"))
+        ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ocr_text_dbutton.set_tooltip_text( _('Delete text') )
         def anonymous_19():
             ocr_bbox.delete_box()
@@ -5505,7 +5509,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text( _('Annotations') )
         ann_textbuffer = ann_textview.get_buffer()
-        ann_obutton = Gtk.Button(label=_("_Ok"))
+        ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
         ann_obutton.set_tooltip_text( _('Accept corrections') )
         def anonymous_20():
             text = ann_textbuffer.text
@@ -5516,7 +5520,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             edit_annotation(ann_bbox)
 
         ann_obutton.connect(            'clicked' , anonymous_20         )
-        ann_cbutton = Gtk.Button(label=_("_Cancel"))
+        ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ann_cbutton.set_tooltip_text( _('Cancel corrections') )
         ann_cbutton.connect(            'clicked' , ann_hbox.hide         )
         ann_abutton = Gtk.Button()
@@ -5550,7 +5554,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     )
 
         ann_abutton.connect(            'clicked' , anonymous_22         )
-        ann_dbutton = Gtk.Button(label=_("_Delete"))
+        ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ann_dbutton.set_tooltip_text( _('Delete annotation') )
         def anonymous_24():
             ann_bbox.delete_box()
@@ -5605,7 +5609,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         spbar.set_show_text(True)
         shbox.add(spbar)
         global scbutton
-        scbutton = Gtk.Button(label=_("_Cancel"))
+        scbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         shbox.pack_end( scbutton, False, False, 0 )
         global thbox
         thbox = Gtk.HBox()
@@ -5615,7 +5619,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         tpbar.set_show_text(True)
         thbox.add(tpbar)
         global tcbutton
-        tcbutton = Gtk.Button(label=_("_Cancel"))
+        tcbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         thbox.pack_end( tcbutton, False, False, 0 )
         ocr_text_hbox.show()
         ann_hbox.hide()
