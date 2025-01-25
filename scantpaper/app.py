@@ -2,7 +2,6 @@
 
 # TODO:
 # use pathlib for all paths
-# fix progress bars
 # fix edit OCR button text
 
 # gscan2pdf --- to aid the scan to PDF or DjVu process
