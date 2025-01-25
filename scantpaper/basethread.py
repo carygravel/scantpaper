@@ -8,7 +8,18 @@ import logging
 import weakref
 from gi.repository import GLib
 
-Response = collections.namedtuple("Response", ["type", "request", "info", "status"])
+Response = collections.namedtuple(
+    "Response",
+    [
+        "type",
+        "request",
+        "info",
+        "status",
+        "num_completed_jobs",
+        "total_jobs",
+        "pending",
+    ],
+)  # , "pid"
 ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "DATA"]
 ResponseType = Enum("ResponseType", ResponseTypes)
 
@@ -35,6 +46,9 @@ class Request:
                 request=self,
                 info=info,
                 status=status,
+                num_completed_jobs=None,
+                total_jobs=None,
+                pending=None,
             )
         )
 
@@ -71,6 +85,8 @@ class BaseThread(threading.Thread):
         self.additional_callbacks = {}
         self.before = {}
         self.after = {}
+        self.num_completed_jobs = 0
+        self.total_jobs = 0
         self._finalizer = weakref.finalize(self, self.quit)
         for callback in CALLBACKS:
             self.before[callback] = set()
@@ -117,6 +133,7 @@ class BaseThread(threading.Thread):
                 callbacks[k] = val
         self.callbacks[request.uuid] = callbacks
         self.requests.put(request)
+        self.total_jobs += 1
         request.queued()
         GLib.timeout_add(100, self.monitor)
         return request.uuid
@@ -157,6 +174,7 @@ class BaseThread(threading.Thread):
         # no point in returning if there are still responses
         while not self.responses.empty():
             return self._monitor_response(block)
+        self.total_jobs = 0
         return GLib.SOURCE_CONTINUE
 
     def _execute_callbacks_for_stage(self, stage, result):
@@ -179,6 +197,12 @@ class BaseThread(threading.Thread):
             self._execute_single_callback(callback + "_callback", stage, uid, data)
 
     def _execute_single_callback(self, callback, stage, uid, data):
+        if data is not None:
+            data = data._replace(
+                num_completed_jobs=self.num_completed_jobs,
+                total_jobs=self.total_jobs,
+                pending=not self.requests.empty(),
+            )
         if (
             callback in self.callbacks[uid]
             and self.callbacks[uid][callback] is not None
@@ -224,5 +248,6 @@ class BaseThread(threading.Thread):
                     )
             else:  # finished, cancelled, error
                 del self.callbacks[uid]
+                self.num_completed_jobs += 1
                 return GLib.SOURCE_REMOVE
         return GLib.SOURCE_CONTINUE

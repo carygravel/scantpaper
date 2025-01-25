@@ -14,26 +14,70 @@ class MyThread(BaseThread):
 
 
 EXPECTED = [
-    Response(type=ResponseType.QUEUED, request="", info=None, status=None),
-    Response(type=ResponseType.STARTED, request="", info=None, status=None),
+    Response(
+        type=ResponseType.QUEUED,
+        request="",
+        info=None,
+        status=None,
+        num_completed_jobs=0,
+        total_jobs=1,
+        pending=False,
+    ),
+    Response(
+        type=ResponseType.STARTED,
+        request="",
+        info=None,
+        status=None,
+        num_completed_jobs=0,
+        total_jobs=1,
+        pending=False,
+    ),
     None,  # running
-    Response(type=ResponseType.DATA, request="", info="arg1 / arg2", status=None),
+    Response(
+        type=ResponseType.DATA,
+        request="",
+        info="arg1 / arg2",
+        status=None,
+        num_completed_jobs=0,
+        total_jobs=1,
+        pending=False,
+    ),
     None,  # running
-    Response(type=ResponseType.FINISHED, request="", info=0.5, status=None),
+    Response(
+        type=ResponseType.FINISHED,
+        request="",
+        info=0.5,
+        status=None,
+        num_completed_jobs=0,
+        total_jobs=1,
+        pending=False,
+    ),
     Response(
         type=ResponseType.ERROR,
         request="",
         info=None,
         status="division by zero",
+        num_completed_jobs=1,
+        total_jobs=2,
+        pending=False,
     ),
     Response(
         type=ResponseType.ERROR,
         request="",
         info=None,
         status="no handler for [nodiv]",
+        num_completed_jobs=2,
+        total_jobs=3,
+        pending=False,
     ),
     Response(
-        type=ResponseType.FINISHED, request="", info=0.5, status=None
+        type=ResponseType.FINISHED,
+        request="",
+        info=0.5,
+        status=None,
+        num_completed_jobs=3,
+        total_jobs=4,
+        pending=False,
     ),  # after_finished
 ]
 
