@@ -28,6 +28,7 @@ class Dialog(Gtk.Dialog):
     )
 
     def do_delete_event(self, _event):  # pylint: disable=arguments-differ
+        "delete event"
         if self.hide_on_delete:
             self.hide()
             return Gdk.EVENT_STOP  # ensures that the window is not destroyed
@@ -36,6 +37,7 @@ class Dialog(Gtk.Dialog):
         return Gdk.EVENT_PROPAGATE
 
     def do_key_press_event(self, event):
+        "key press event"
         if event.keyval == Gdk.KEY_Escape:
             if self.hide_on_delete:
                 self.hide()
@@ -56,10 +58,10 @@ class Dialog(Gtk.Dialog):
         prng = PageRange()
         prng.set_active(self.page_range)
 
-        def set_page_range():
-            self.page_range = prng
+        def page_range_changed_callback(_widget, data):
+            self.page_range = data
 
-        prng.connect("changed", set_page_range)
+        prng.connect("changed", page_range_changed_callback)
         frame.add(prng)
 
     def add_actions(self, button_list):
