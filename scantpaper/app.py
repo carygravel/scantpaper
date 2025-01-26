@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 # TODO:
-# use pathlib for all paths
-# name anonymous functions
+# page range ignored - only selected pages are saved
+# black & lint
 # restore last used scan settings
+# use pathlib for all paths
 # persist data with sqlite
 # migrate to Gtk4
 
@@ -661,11 +662,11 @@ def find_crashed_sessions(tmpdir) :
         dialog.get_content_area().add(sessionlist)
         (button) = dialog.get_action_area().get_children()
 
-        def anonymous_44():
+        def changed_selection_callback():
             button.set_sensitive(
                     len(sessionlist.get_selected_indices())  > 0 )
 
-        sessionlist.get_selection().connect(            'changed' , anonymous_44         )
+        sessionlist.get_selection().connect(            'changed' , changed_selection_callback)         
         sessionlist.get_selection().select_all()
         dialog.show_all()
         if dialog.run() =='ok'  :
@@ -1693,14 +1694,11 @@ def file_exists( chooser, filename ) :
         # File exists; get the file chooser to ask the user to confirm.
         chooser.set_filename(filename)
 
-        def anonymous_62():
-            """ Give the name change time to take effect."""
-            chooser.response('ok')
-
-        GLib.idle_add(anonymous_62)
+        # Give the name change a chance to take effect
+        GLib.idle_add(lambda: chooser.response('ok'))
         return True
 
-    return
+    return False
 
 
 def file_writable( chooser, filename ) :
@@ -2434,12 +2432,11 @@ def finished_process_callback( widget, process, button_signal=None ) :
     shbox.hide()
     global windows
     if process == 'scan_pages'        and windows.sided == 'double'     :
-        def anonymous_100():
+        def prompt_reverse_sides():
             ( message, next )=(None,None)
             if windows.side_to_scan == 'facing' :
                 message =                       _('Finished scanning facing pages. Scan reverse pages?')
                 next = 'reverse'
- 
             else :
                 message =                       _('Finished scanning reverse pages. Scan facing pages?')
                 next = 'facing'
@@ -2456,7 +2453,7 @@ def finished_process_callback( widget, process, button_signal=None ) :
             if response == Gtk.ResponseType.OK :
                 windows.side_to_scan=next
 
-        GLib.idle_add(anonymous_100)
+        GLib.idle_add(prompt_reverse_sides)
 
 
 def restart() :
@@ -2521,18 +2518,16 @@ def add_postprocessing_rotate(vbox) :
     comboboxr2.set_tooltip_text( _('Select direction of rotation') )
     hboxr.pack_end( comboboxr2, True, True, 0 )
 
-    def anonymous_101():
+    def toggled_rotate_callback():
         if rbutton.get_active() :
             if side[ rotate_side_cmbx.get_active() ][0] != 'both' :
                 hboxr.set_sensitive(True)
         else :
             hboxr.set_sensitive(False)
 
-    rbutton.connect(
-        'toggled' , anonymous_101 
-    )
+    rbutton.connect('toggled' , toggled_rotate_callback )
 
-    def anonymous_102(arg):
+    def toggled_rotate_side_callback(arg):
         if side[ rotate_side_cmbx.get_active() ][0] == 'both' :
             hboxr.set_sensitive(False)
             r2button.set_active(False) 
@@ -2553,7 +2548,7 @@ def add_postprocessing_rotate(vbox) :
             rotate_side_cmbx2.append_text( side2[0][1] )
             rotate_side_cmbx2.set_active(0)
 
-    rotate_side_cmbx.connect(        'changed' , anonymous_102     )
+    rotate_side_cmbx.connect(        'changed' , toggled_rotate_side_callback     )
 
     # In case it isn't set elsewhere
     comboboxr2.set_active_index(_90_DEGREES)
@@ -2667,13 +2662,7 @@ def add_postprocessing_ocr(vbox) :
     spinbutton.set_value( SETTING['threshold tool'] )
     spinbutton.set_sensitive( cbto.get_active() )
     hboxt.pack_end( spinbutton, False, True, 0 )
-    def anonymous_106():
-        spinbutton.set_sensitive( cbto.get_active() )
-
-
-    cbto.connect(
-        'toggled' , anonymous_106 
-    )
+    cbto.connect('toggled', lambda _: spinbutton.set_sensitive(cbto.get_active()))
     return (
         obutton,    comboboxe, hboxtl,  comboboxtl, 
         tesslang, cbto,       spinbutton,
@@ -2708,7 +2697,7 @@ def add_postprocessing_options(self) :
     button = Gtk.Button( label=_('Options') )
     button.set_tooltip_text( _('Set unpaper options') )
     hboxu.pack_end( button, True, True, 0 )
-    def anonymous_107():
+    def show_unpaper_options():
         windowuo = Dialog(
                 transient_for = window,
                 title           = _('unpaper options'),
@@ -2727,7 +2716,7 @@ def add_postprocessing_options(self) :
                 lambda : windowuo.destroy())])
         windowuo.show_all()
 
-    button.connect(        'clicked' , anonymous_107     )
+    button.connect(        'clicked' , show_unpaper_options     )
         # CheckButton for user-defined tool
     udtbutton, self.comboboxudt = add_postprocessing_udt(vboxp)
     (
@@ -4055,13 +4044,13 @@ def ocr_dialog(_action, _parma) :
     comboboxtl, hboxtl, tesslang =None,None,[]
     if dependencies["tesseract"] :
         hboxtl, comboboxtl, tesslang  = add_tess_languages(vbox)
-        def anonymous_179():
+        def changed_ocr_engine():
             if ocr_engine[ combobe.get_active() ][0] == 'tesseract' :
                 hboxtl.show_all()
             else :
                 hboxtl.hide()
 
-        combobe.connect( 'changed' , anonymous_179  )
+        combobe.connect( 'changed' , changed_ocr_engine     )
 
     # Checkbox & SpinButton for threshold
     hboxt = Gtk.HBox()
@@ -4549,12 +4538,8 @@ def _preferences_scan_options(border_width) :
     cb_cancel_btw_pages.set_active( SETTING['cancel-between-pages'] )
     vbox.pack_start( cb_cancel_btw_pages, False, False, 0 )
     cb_cancel_btw_pages.set_sensitive( SETTING['allow-batch-flatbed'] )
-    def anonymous_194():
-        cb_cancel_btw_pages.set_sensitive(
-                cb_batch_flatbed.get_active() )
-
     cb_batch_flatbed.connect(
-        'toggled' , anonymous_194 
+        'toggled', lambda _: cb_cancel_btw_pages.set_sensitive(cb_batch_flatbed.get_active())
     )
 
     # Select num-pages = all on selecting ADF
@@ -4664,7 +4649,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     tmpentry.set_text( os.path.dirname(session.name) )
     button = Gtk.Button( label=_('Browse') )
     global windowr
-    def anonymous_200():
+    def choose_temp_dir():
         file_chooser = Gtk.FileChooserDialog(
                 title=_('Select temporary directory'),
                 parent=windowr, 
@@ -4684,9 +4669,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         file_chooser.destroy()
 
 
-    button.connect(
-        'clicked' , anonymous_200 
-    )
+    button.connect(        'clicked' , choose_temp_dir     )
     hbox.pack_end( button, True, True, 0 )
 
     # Available space in temporary directory
@@ -4823,14 +4806,12 @@ The other variable available is:
     )
     hbox.pack_start( entry, True, True, 0 )
     button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
-    def anonymous_202():
+    def delete_udt():
         hbox.destroy()
         update_list_user_defined_tools( vbox, combobox_array )
 
 
-    button.connect(
-        'clicked' , anonymous_202 
-    )
+    button.connect(        'clicked' , delete_udt     )
     hbox.pack_end( button, False, False, 0 )
     hbox.show_all()
     return
@@ -5168,11 +5149,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.connect(            'delete-event' , lambda w, e: not quit()         )
 
-        def anonymous_33( w, event ):
+        def window_state_event_callback( w, event ):
             "Note when the window is maximised or not"            
             SETTING['window_maximize'] = bool( event.new_window_state & Gdk.WindowState.MAXIMIZED )  
 
-        self.connect(            'window-state-event' , anonymous_33         )
+        self.connect(            'window-state-event' , window_state_event_callback         )
 
         # If defined in the config file, set the window state, size and position
         if SETTING['restore window'] :
@@ -5307,36 +5288,36 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Goo.Canvas for text layer
         global canvas
         canvas = Canvas()
-        def canvas_zoom_changed_callback(canvas, zoom):
+        def text_zoom_changed_callback(canvas, zoom):
             view.handler_block( view.zoom_changed_signal )
             view.set_zoom( canvas.get_scale() )
             view.handler_unblock( view.zoom_changed_signal )
 
-        canvas.zoom_changed_signal = canvas.connect(            'zoom-changed' , canvas_zoom_changed_callback         )
-        def anonymous_06():
+        canvas.zoom_changed_signal = canvas.connect(            'zoom-changed' , text_zoom_changed_callback         )
+        def text_offset_changed_callback():
             view.handler_block( view.offset_changed_signal )
             offset = canvas.get_offset()
             view.set_offset( offset["x"], offset["y"] )
             view.handler_unblock( view.offset_changed_signal )
 
-        canvas.offset_changed_signal = canvas.connect(            'offset-changed' , anonymous_06         )
+        canvas.offset_changed_signal = canvas.connect(            'offset-changed' , text_offset_changed_callback         )
 
         # Goo.Canvas for annotation layer
         global a_canvas
         a_canvas = Canvas()
-        def anonymous_07():
+        def ann_zoom_changed_callback():
             view.handler_block( view.zoom_changed_signal )
             view.set_zoom( a_canvas.get_scale() )
             view.handler_unblock( view.zoom_changed_signal )
 
-        a_canvas.zoom_changed_signal = a_canvas.connect(            'zoom-changed' , anonymous_07         )
-        def anonymous_08():
+        a_canvas.zoom_changed_signal = a_canvas.connect(            'zoom-changed' , ann_zoom_changed_callback         )
+        def ann_offset_changed_callback():
             view.handler_block( view.offset_changed_signal )
             offset = a_canvas.get_offset()
             view.set_offset( offset["x"], offset["y"] )
             view.handler_unblock( view.offset_changed_signal )
 
-        a_canvas.offset_changed_signal = a_canvas.connect(            'offset-changed' , anonymous_08         )
+        a_canvas.offset_changed_signal = a_canvas.connect(            'offset-changed' , ann_offset_changed_callback         )
 
         # split panes for detail view/text layer canvas and text layer dialog
         global vpaned
@@ -5354,20 +5335,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_fbutton.set_image(
             Gtk.Image.new_from_icon_name("go-first", Gtk.IconSize.BUTTON))
         ocr_text_fbutton.set_tooltip_text( _('Go to least confident text') )
-        def anonymous_09():
-            edit_ocr_text( canvas.get_first_bbox() )
-
         ocr_text_fbutton.connect(
-            'clicked' , anonymous_09  )
+            'clicked', lambda _: edit_ocr_text(canvas.get_first_bbox())
+        )
         ocr_text_pbutton = Gtk.Button()
         ocr_text_pbutton.set_image(
             Gtk.Image.new_from_icon_name("go-previous", Gtk.IconSize.BUTTON))
         ocr_text_pbutton.set_tooltip_text( _('Go to previous text') )
-        def anonymous_10():
-            edit_ocr_text( canvas.get_previous_bbox() )
-
         ocr_text_pbutton.connect(
-            'clicked' , anonymous_10  )
+            'clicked', lambda _: edit_ocr_text(canvas.get_previous_bbox())
+        )
         ocr_index = [
         [
         'confidence',             _('Sort by confidence'),             _('Sort OCR text boxes by confidence.')
@@ -5377,81 +5354,61 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ]
         ocr_text_scmbx = ComboBoxText(data=ocr_index)
         ocr_text_scmbx.set_tooltip_text( _('Select sort method for OCR boxes') )
-        def anonymous_11(arg):
-            global canvas
+        def changed_text_sort_method(arg):
             if ocr_index[ ocr_text_scmbx.get_active() ][0] == 'confidence'             :
-                canvas.sort_by_confidence()
-    
+                canvas.sort_by_confidence()    
             else :
                 canvas.sort_by_position()
 
-        ocr_text_scmbx.connect(            'changed' , anonymous_11         )
+        ocr_text_scmbx.connect(            'changed' , changed_text_sort_method         )
         ocr_text_scmbx.set_active(0)
         ocr_text_nbutton = Gtk.Button()
         ocr_text_nbutton.set_image(
             Gtk.Image.new_from_icon_name("go-next", Gtk.IconSize.BUTTON))
         ocr_text_nbutton.set_tooltip_text( _('Go to next text') )
-        def anonymous_12():
-            global canvas
-            edit_ocr_text( canvas.get_next_bbox() )
-
         ocr_text_nbutton.connect(
-            'clicked' , anonymous_12  )
+            'clicked', lambda _: edit_ocr_text(canvas.get_next_bbox())
+        )
         ocr_text_lbutton = Gtk.Button()
         ocr_text_lbutton.set_image(
             Gtk.Image.new_from_icon_name("go-last", Gtk.IconSize.BUTTON))
         ocr_text_lbutton.set_tooltip_text( _('Go to most confident text') )
-
-        def anonymous_13():
-            global canvas
-            edit_ocr_text( canvas.get_last_bbox() )
-
         ocr_text_lbutton.connect(
-            'clicked' , anonymous_13  )
+            'clicked', lambda _: edit_ocr_text(canvas.get_last_bbox())
+        )
         ocr_text_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
         ocr_text_obutton.set_tooltip_text( _('Accept corrections') )
-        def anonymous_14():
+        def ocr_text_button_clicked():
             take_snapshot()
             text = ocr_textbuffer.text
             logger.info(
                     "Corrected '" + ocr_bbox.text + f"'->'{text}'" )
             ocr_bbox.update_box( text, view.get_selection() )
-            global canvas
             current_page.import_hocr( canvas.hocr() )
             edit_ocr_text(ocr_bbox)
 
 
-        ocr_text_obutton.connect(
-            'clicked' , anonymous_14 
-        )
+        ocr_text_obutton.connect(            'clicked' , ocr_text_button_clicked         )
         ocr_text_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ocr_text_cbutton.set_tooltip_text( _('Cancel corrections') )
-        def anonymous_15():
-            ocr_text_hbox.hide()
-
-
         ocr_text_cbutton.connect(
-            'clicked' , anonymous_15 
+            'clicked', lambda _: ocr_text_hbox.hide()
         )
         ocr_text_ubutton = Gtk.Button.new_with_mnemonic(label=_("_Copy"))
         ocr_text_ubutton.set_tooltip_text( _('Duplicate text') )
-        def anonymous_16():
-            global canvas
+        def ocr_text_copy():
             ocr_bbox = canvas.add_box( ocr_textbuffer.text,
                     view.get_selection() )
             current_page.import_hocr( canvas.hocr() )
             edit_ocr_text(ocr_bbox)
 
 
-        ocr_text_ubutton.connect(
-            'clicked' , anonymous_16 
-        )
+        ocr_text_ubutton.connect(            'clicked' , ocr_text_copy         )
         ocr_text_abutton = Gtk.Button()
         ocr_text_abutton.set_image(
             Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
         ocr_text_abutton.set_tooltip_text( _('Add text') )
-        def anonymous_17():
-            global canvas
+        def ocr_text_add():
             take_snapshot()
             text = ocr_textbuffer.text
             if   (text is None) or text == EMPTY :
@@ -5464,33 +5421,25 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 ocr_bbox = canvas.add_box( text, view.get_selection() )
                 current_page.import_hocr( canvas.hocr() )
                 edit_ocr_text(ocr_bbox)
-    
             else :
                 logger.info(f"Creating new text layer with '{text}'")
                 current_page.text_layer =                   '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]' % (current_page["width"],current_page["height"],selection["x"],selection["y"],selection["x"]+selection["width"],selection["y"]+selection["height"],text)                                                                                           
-                def anonymous_18():
+                def ocr_new_page():
                     ocr_bbox = canvas.get_first_bbox()
                     edit_ocr_text(ocr_bbox)
 
 
-                create_txt_canvas(
-                        current_page,
-                        anonymous_18 
-                    )
+                create_txt_canvas(                        current_page,                        ocr_new_page                     )
 
-
-
-        ocr_text_abutton.connect(
-            'clicked' , anonymous_17 
-        )
+        ocr_text_abutton.connect(            'clicked' , ocr_text_add         )
         ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ocr_text_dbutton.set_tooltip_text( _('Delete text') )
-        def anonymous_19():
+        def ocr_text_delete():
             ocr_bbox.delete_box()
             current_page.import_hocr( canvas.hocr() )
             edit_ocr_text( canvas.get_current_bbox() )
 
-        ocr_text_dbutton.connect(            'clicked' , anonymous_19         )
+        ocr_text_dbutton.connect(            'clicked' , ocr_text_delete         )
         ocr_text_hbox.pack_start( ocr_text_fbutton, False, False, 0 )
         ocr_text_hbox.pack_start( ocr_text_pbutton, False, False, 0 )
         ocr_text_hbox.pack_start( ocr_text_scmbx,   False, False, 0 )
@@ -5511,7 +5460,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_textbuffer = ann_textview.get_buffer()
         ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
         ann_obutton.set_tooltip_text( _('Accept corrections') )
-        def anonymous_20():
+        def ann_text_ok():
             text = ann_textbuffer.text
             logger.info(
                     "Corrected '" + ann_bbox.text + f"'->'{text}'" )
@@ -5519,7 +5468,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             current_page.import_annotations( a_canvas.hocr() )
             edit_annotation(ann_bbox)
 
-        ann_obutton.connect(            'clicked' , anonymous_20         )
+        ann_obutton.connect(            'clicked' , ann_text_ok         )
         ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ann_cbutton.set_tooltip_text( _('Cancel corrections') )
         ann_cbutton.connect(            'clicked' , ann_hbox.hide         )
@@ -5527,7 +5476,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_abutton.set_image(
             Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
         ann_abutton.set_tooltip_text( _('Add annotation') )
-        def anonymous_22():
+        def ann_text_new():
             text = ann_textbuffer.text
             if   (text is None) or text == EMPTY :
                 text = _('my-new-annotation')
@@ -5543,25 +5492,25 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             else :
                 logger.info(f"Creating new annotation canvas with '{text}'")
                 current_page["annotations"] =                   '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]' % (current_page["width"],current_page["height"],selection["x"],selection["y"],selection["x"]+selection["width"],selection["y"]+selection["height"],text)                                                                                           
-                def anonymous_23():
+                def ann_text_new_page():
                     ann_bbox = a_canvas.get_first_bbox()
                     edit_annotation(ann_bbox)
 
 
                 create_ann_canvas(
                         current_page,
-                        anonymous_23 
+                        ann_text_new_page 
                     )
 
-        ann_abutton.connect(            'clicked' , anonymous_22         )
+        ann_abutton.connect(            'clicked' , ann_text_new         )
         ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ann_dbutton.set_tooltip_text( _('Delete annotation') )
-        def anonymous_24():
+        def ann_text_delete():
             ann_bbox.delete_box()
             current_page.import_hocr( a_canvas.hocr() )
             edit_annotation( canvas.get_bbox_by_index() )
 
-        ann_dbutton.connect(            'clicked' , anonymous_24         )
+        ann_dbutton.connect(            'clicked' , ann_text_delete         )
         ann_hbox.pack_start( ann_textview, False, False, 0 )
         ann_hbox.pack_end( ann_dbutton, False, False, 0 )
         ann_hbox.pack_end( ann_cbutton, False, False, 0 )
