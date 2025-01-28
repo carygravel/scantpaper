@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 # TODO:
-# page range ignored - only selected pages are saved
 # black & lint
 # restore last used scan settings
 # use pathlib for all paths
 # persist data with sqlite
+# fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # migrate to Gtk4
 
 # gscan2pdf --- to aid the scan to PDF or DjVu process
@@ -1212,7 +1212,7 @@ def import_files( filenames, all_pages=False ) :
 
 
 def save_pdf( filename, option, list_of_page_uuids ) :
-    "Save selected pages as PDF under given name."    
+    "Save selected pages as PDF under given name."
 
     # Compile options
     options = {
@@ -1243,15 +1243,6 @@ def save_pdf( filename, option, list_of_page_uuids ) :
     # Create the PDF
     logger.debug(f"Started saving {filename}")
     signal, pid =(None,None)
-
-    def save_pdf_started_callback( response ):
-        if response.info is not None:
-            process, completed, total = response.info            
-            signal = setup_tpbar( process, completed, total, pid )
-            if signal is not None:
-                return True  
-        return False
-
 
     def save_pdf_finished_callback( response ):
         if not response.pending :
@@ -1342,12 +1333,10 @@ def save_dialog(_action, _param) :
     )
 
     # Frame for page range
-
     windowi.add_page_range()
     windowi.add_image_type()
 
     # Post-save hook
-
     pshbutton = Gtk.CheckButton( label=_('Post-save hook') )
     pshbutton.set_tooltip_text(
         _(
@@ -1637,6 +1626,7 @@ def save_button_clicked_callback( kbutton, pshbutton ) :
 
 
 def file_chooser_response_callback( dialog, response, data ) :
+    "Callback for file chooser dialog"
     filetype, uuids = data
     suffix = filetype
     if   re.search(r"pdf",suffix,re.IGNORECASE|re.MULTILINE|re.DOTALL|re.VERBOSE) :
