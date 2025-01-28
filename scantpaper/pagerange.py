@@ -20,8 +20,7 @@ class PageRange(Gtk.VBox):
     active = GObject.Property(
         type=str, default="selected", nick="active", blurb="Either selected or all"
     )
-    widget_list = []
-    button = None
+    widget_list = []  # list of all PageRange widgets
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,8 +37,9 @@ class PageRange(Gtk.VBox):
         group = None
         self.button = {}
 
-        def on_toggled_event(_button, active):
-            self.active = active
+        def on_toggled_event(button, active):
+            if button.get_active():
+                self.set_active(active)
 
         for nick in sorted(buttons.keys()):
             self.button[nick] = Gtk.RadioButton.new_with_label_from_widget(
@@ -50,6 +50,10 @@ class PageRange(Gtk.VBox):
             if not group:
                 group = self.button["all"]
 
+            # initial state
+            if self.active == nick:
+                self.button[nick].set_active(True)
+
         self.widget_list.append(self)
 
     def get_active(self):
@@ -58,9 +62,11 @@ class PageRange(Gtk.VBox):
 
     def set_active(self, active):
         "set active button"
+        if self.active == active:
+            return
         for widget in self.widget_list:
             widget.active = active
             for nick in self.button:
-                if active == nick:
+                if active == nick and not widget.button[nick].get_active():
                     widget.button[nick].set_active(True)
-                    widget.emit("changed", nick)
+        self.emit("changed", active)
