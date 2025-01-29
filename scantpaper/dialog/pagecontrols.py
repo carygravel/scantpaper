@@ -461,10 +461,11 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         slist = self.document
         if slist is None:
             return
-        if len(slist.data) > 0:
+        num_pages = len(slist.data)
+        if num_pages > 0:
             start_page = self.page_number_start
             step = self.page_number_increment
-            if start_page > slist.data[-1][0] + step:
+            if start_page > slist.data[num_pages - 1][0] + step:
                 self.page_number_start = slist
         else:
             self.page_number_start = 1
