@@ -7,6 +7,7 @@
 # persist data with sqlite
 # fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # migrate to Gtk4
+# remaining FIXMEs and TODOs
 
 # gscan2pdf --- to aid the scan to PDF or DjVu process
 
@@ -2273,26 +2274,28 @@ def reloaded_scan_options_callback( widget ) :
 
 
 def changed_progress_callback( widget, progress, message ) :
-    
-    global spbar    
-    if  (progress is not None) and progress >= 0 and progress <= 1 :
+    if  progress is not None and progress >= 0 and progress <= 1 :
         spbar.set_fraction(progress)
- 
     else :
         spbar.pulse()
 
     if  message is not None :
         spbar.set_text(message)
-    return
 
 
 def import_scan_finished_callback( response ):
     logger.debug(f"import_scan_finished_callback( {response} )")
-    finish_tpbar(response)
+    # FIXME: response is hard-coded to None in _post_process_scan().
+    # Work out how to pass number of pending requests
+    # We have two threads, the scan thread, and the document thread.
+    # We should probably combine the results in one progress bar
+    # finish_tpbar(response)
     # slist.save_session()
 
 
 def new_scan_callback( self, image_object, page_number, xresolution, yresolution ) :
+    if image_object is None:
+        return
     
     # Update undo/redo buffers
     take_snapshot()
