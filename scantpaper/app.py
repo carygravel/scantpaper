@@ -310,13 +310,6 @@ prevent_image_tool_update = False
 
 def pack_viewer_tools():
     "Pack widgets according to viewer_tools"
-    global vnotebook
-    global view
-    global canvas
-    global a_canvas
-    global vpaned
-    global hpanei
-    global vpanei
     if SETTING["viewer_tools"] == "tabbed":
         vnotebook.append_page(view, Gtk.Label(label=_("Image")))
         vnotebook.append_page(canvas, Gtk.Label(label=_("Text layer")))
@@ -417,7 +410,6 @@ def read_config():
 
 def check_dependencies():
     "Check for presence of various packages"
-    global dependencies
 
     dependencies["tesseract"] = tesserocr.tesseract_version()
     dependencies["tesserocr"] = tesserocr.__version__
@@ -624,19 +616,14 @@ def update_uimanager():
         if save_button is not None:
             save_button.set_sensitive(False)
 
-    global clipboard
     actions["paste"].set_enabled(bool(clipboard))
 
     # If the scan dialog has already been drawn, update the start page spinbutton
-    global windows
     if windows:
         windows._update_start_page()
 
 
 def selection_changed_callback(_selection):
-    global view
-    global canvas
-    global a_canvas
     global current_page
     selection = slist.get_selected_indices()
 
@@ -694,7 +681,6 @@ def drag_motion_callback(tree, context, x, y, t):
 def create_temp_directory():
     global session
     global tmpdir
-    global slist
     tmpdir = get_tmp_dir(SETTING["TMPDIR"], r"gscan2pdf-\w\w\w\w")
     find_crashed_sessions(tmpdir)
 
@@ -854,8 +840,6 @@ def display_callback(response):
 
 def display_image(page):
     "Display the image in the view"
-    global view
-    global canvas
     global current_page
     current_page = page
     view.set_pixbuf(current_page.get_pixbuf(), True)
@@ -866,10 +850,6 @@ def display_image(page):
     width, height = current_page.get_size()
 
     # Update the ranges on the crop dialog
-    global sb_selector_x
-    global sb_selector_y
-    global sb_selector_w
-    global sb_selector_h
     if sb_selector_w is not None and current_page is not None:
         sb_selector_w.set_range(0, width - sb_selector_x.get_value())
         sb_selector_h.set_range(0, height - sb_selector_y.get_value())
@@ -909,9 +889,6 @@ def display_image(page):
 
 
 def create_txt_canvas(page, finished_callback=None):
-
-    global view
-    global canvas
     offset = view.get_offset()
     canvas.set_text(
         page=page,
@@ -926,10 +903,6 @@ def create_txt_canvas(page, finished_callback=None):
 
 
 def create_ann_canvas(page, finished_callback):
-
-    global view
-    global canvas
-    global a_canvas
     offset = view.get_offset()
     a_canvas.set_text(page, "annotations", edit_annotation, True, finished_callback)
     a_canvas.set_scale(view.get_zoom())
@@ -954,9 +927,6 @@ def edit_tools_callback(action, current):
 
 
 def edit_ocr_text(widget, target, ev, bbox):
-
-    global view
-    global canvas
     if not ev:
         bbox = widget
 
@@ -978,9 +948,6 @@ def edit_ocr_text(widget, target, ev, bbox):
 
 
 def edit_annotation(widget, target, ev, bbox):
-
-    global view
-    global a_canvas
     if not ev:
         bbox = widget
 
@@ -1042,16 +1009,12 @@ def new(_action, _param):
 
     # Now we have to clear everything manually
     slist.get_selection().unselect_all()
-    global view
     view.set_pixbuf(None)
-    global canvas
     canvas.clear_text()
-    global a_canvas
     a_canvas.clear_text()
     current_page = None
 
     # Reset start page in scan dialog
-    global windows
     windows._reset_start_page()
 
 
@@ -1111,7 +1074,6 @@ def error_callback(response):
         show_message_dialog(**options)
 
     GLib.idle_add(show_message_dialog_wrapper)
-    global thbox
     thbox.hide()
 
 
@@ -1313,7 +1275,6 @@ def import_files_finished_callback(response):
 
 def import_files_metadata_callback(metadata):
     logger.debug(f"import_files_metadata_callback({metadata})")
-    global SETTING
     for dialog in (windowi, windowe):
         if dialog is not None:
             dialog.update_from_import_metadata(metadata)
@@ -2322,9 +2283,6 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
     signal = None
 
     def started_progress_callback(widget, message):
-        global spbar
-        global shbox
-        global scbutton
         logger.debug(f"signal 'started-process' emitted with message: {message}")
         spbar.set_fraction(0)
         spbar.set_text(message)
@@ -2543,10 +2501,8 @@ def process_error_callback(widget, process, msg, signal):
 
     logger.info(f"signal 'process-error' emitted with data: {process} {msg}")
     if signal is not None:
-        global scbutton
         scbutton.disconnect(signal)
 
-    global shbox
     shbox.hide()
     if process == "open_device" and re.search(
         r"(Invalid[ ]argument|Device[ ]busy)",
@@ -2645,12 +2601,9 @@ def finished_process_callback(widget, process, button_signal=None):
 
     logger.debug(f"signal 'finished-process' emitted with data: {process}")
     if button_signal is not None:
-        global scbutton
         scbutton.disconnect(button_signal)
 
-    global shbox
     shbox.hide()
-    global windows
     if process == "scan_pages" and windows.sided == "double":
 
         def prompt_reverse_sides():
@@ -2688,8 +2641,6 @@ def update_postprocessing_options_callback(
     # widget is windows
     options = widget.available_scan_options
     increment = widget.page_number_increment
-    global rotate_side_cmbx
-    global rotate_side_cmbx2
     if options is not None:
         if increment != 1 or options.can_duplex():
             rotate_side_cmbx.show()
@@ -2953,8 +2904,6 @@ def add_postprocessing_options(self):
     def clicked_scan_button_cb(w):
         SETTING["rotate facing"] = 0
         SETTING["rotate reverse"] = 0
-        global rotate_side_cmbx
-        global rotate_side_cmbx2
         if rbutton.get_active():
             if rotate_side_cmbx.get_active_index() == "both":
                 SETTING["rotate facing"] = comboboxr.get_active_index()
@@ -3092,7 +3041,6 @@ def copy_selection(_action, _param):
 def paste_selection(_action, _param):
     "Paste the selection"
     take_snapshot()
-    global clipboard
     if clipboard is None:
         return
     pages = slist.get_selected_indices()
@@ -3110,7 +3058,6 @@ def delete_selection(_action, _param):
     slist._delete_selection_extra()
 
     # Reset start page in scan dialog
-    global windows
     if windows:
         windows._reset_start_page()
     update_uimanager()
@@ -3192,7 +3139,6 @@ def clear_ocr(_action, _param):
     take_snapshot()
 
     # Clear the existing canvas
-    global canvas
     canvas.clear_text()
     selection = slist.get_selected_indices()
     for i in selection:
@@ -3482,12 +3428,10 @@ def handle_clicks(widget, event):
     "Handle right-clicks"
     if event.button == 3:  # RIGHT_MOUSE_BUTTON
         if isinstance(widget, ImageView):  # main image
-            global detail_popup
             detail_popup.show_all()
             detail_popup.popup_at_pointer(event)
         else:  # Thumbnail simplelist
             SETTING["Page range"] = "selected"
-            global thumb_popup
             thumb_popup.show_all()
             thumb_popup.popup_at_pointer(event)
 
@@ -3795,8 +3739,6 @@ def change_image_tool_cb(action, value):
     button.set_active(True)
     prevent_image_tool_update = False
 
-    global view
-
     if view:  # could be undefined at application start
         tool = Selector(view)
         if value == "dragger":
@@ -3815,13 +3757,6 @@ def change_image_tool_cb(action, value):
 def change_view_cb(action, parameter):
     "Callback to switch between tabbed and split views"
     action.set_state(parameter)
-    global vnotebook
-    global view
-    global canvas
-    global a_canvas
-    global vpaned
-    global hpanei
-    global vpanei
 
     # SETTING["viewer_tools"] still has old value
     if SETTING["viewer_tools"] == "tabbed":
@@ -3847,7 +3782,6 @@ def change_view_cb(action, parameter):
 def crop_dialog(_action, _param):
     "Display page selector and on apply crop accordingly"
     global windowc
-    global current_page
     if windowc is not None:
         windowc.present()
         return
@@ -3922,7 +3856,6 @@ def crop_dialog(_action, _param):
             sb_selector_x.set_range(0, width - SETTING["selection"].width)
         else:  # height
             sb_selector_y.set_range(0, height - SETTING["selection"].height)
-        global view
         sel = view.get_selection()
         view.handler_block(view.selection_changed_signal)
         view.set_selection(SETTING["selection"])
@@ -4064,7 +3997,6 @@ def split_dialog(_action, _param):
             else:
                 sb_pos.set_value(sel.y + sel.height)
 
-    global view
     view.position_changed_signal = view.connect(
         "selection-changed", changed_split_position_selection
     )
@@ -4128,7 +4060,6 @@ def update_view_position(direction, position, width, height):
         selection.width = width
         selection.height = position
 
-    global view
     view.set_selection(selection)
 
 
@@ -4439,12 +4370,9 @@ def quit():
         os.remove(file)
     os.rmdir(session.name)
     # Write window state to settings
-    global window
-    global hpaned
     SETTING["window_width"], SETTING["window_height"] = window.get_size()
     SETTING["window_x"], SETTING["window_y"] = window.get_position()
     SETTING["thumb panel"] = hpaned.get_position()
-    global windows
     if windows:
         SETTING["scan_window_width"], SETTING["scan_window_height"] = windows.get_size()
         logger.info("Killing Sane thread(s)")
@@ -4506,7 +4434,6 @@ def take_snapshot():
         os.remove(delete_files)
 
     # Unghost Undo/redo
-    global actions
     actions["undo"].set_enabled(True)
 
     # Check free space in session directory
@@ -4517,7 +4444,6 @@ def take_snapshot():
             f"Free space in {session.name} (Mb): {df} (warning at "
             f"{SETTING['available-tmp-warning']})"
         )
-        global window
         if df < SETTING["available-tmp-warning"]:
             text = _("%dMb free in %s.") % (df, session.name)
             show_message_dialog(
@@ -4532,8 +4458,6 @@ def undo(_action, _param):
     "Put things back to last snapshot after updating redo buffer"
     logger.info("Undoing")
 
-    global undo_buffer
-    global undo_selection
     global redo_buffer
     global redo_selection
     redo_buffer = slist.clone_data()
@@ -4557,7 +4481,6 @@ def undo(_action, _param):
 
     # Update menus/buttons
     update_uimanager()
-    global actions
     actions["undo"].set_enabled(False)
     actions["redo"].set_enabled(True)
 
@@ -4568,8 +4491,6 @@ def unundo(_action, _param):
 
     global undo_buffer
     global undo_selection
-    global redo_buffer
-    global redo_selection
     undo_buffer = slist.clone_data()
     undo_selection = slist.get_selected_indices()
     logger.debug("undo_buffer: %s", undo_buffer)
@@ -4591,7 +4512,6 @@ def unundo(_action, _param):
 
     # Update menus/buttons
     update_uimanager()
-    global actions
     actions["undo"].set_enabled(True)
     actions["redo"].set_enabled(False)
 
@@ -4629,13 +4549,11 @@ def mark_pages(pages):
 
 def preferences(_action, _param):
     "Preferences dialog"
-    global windows
     global windowr
     if windowr is not None:
         windowr.present()
         return
 
-    global window
     windowr = Dialog(
         transient_for=window,
         title=_("Preferences"),
@@ -4736,7 +4654,6 @@ def preferences(_action, _param):
         )
         if newdir != tmp:
             SETTING["TMPDIR"] = newdir
-            global window
             response = ask_question(
                 parent=window,
                 type="question",
@@ -4755,7 +4672,6 @@ def preferences(_action, _param):
 
 
 def _preferences_scan_options(border_width):
-    global windows
 
     vbox = Gtk.VBox()
     vbox.set_border_width(border_width)
@@ -4951,7 +4867,6 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.add(tmpentry)
     tmpentry.set_text(os.path.dirname(session.name))
     button = Gtk.Button(label=_("Browse"))
-    global windowr
 
     def choose_temp_dir():
         file_chooser = Gtk.FileChooserDialog(
@@ -5151,7 +5066,6 @@ def properties(_action, _param):
         windowp.present()
         return
 
-    global window
     windowp = Dialog(
         transient_for=window,
         title=_("Properties"),
@@ -5385,12 +5299,10 @@ def select_even(_action, _param):
 
 
 def zoom_100(_action, _param):
-    global view
     view.set_zoom(1.0)
 
 
 def zoom_to_fit(_action, _param):
-    global view
     view.zoom_to_fit()
 
 
@@ -5421,7 +5333,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         pre_flight()
 
         # This will be in the windows group and have the "win" prefix
-        global actions
         for name, function in [
             ("new", new),
             ("open", open_dialog),
@@ -5582,7 +5493,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         view.connect("button-release-event", handle_clicks)
 
         def view_zoom_changed_callback(view, zoom):
-            global canvas
             if canvas is not None:
                 canvas.handler_block(canvas.zoom_changed_signal)
                 canvas.set_scale(zoom)
@@ -5593,7 +5503,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
 
         def view_offset_changed_callback(view, x, y):
-            global canvas
             if canvas is not None:
                 canvas.handler_block(canvas.offset_changed_signal)
                 canvas.set_offset(x, y)
@@ -5609,10 +5518,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # destroys the Gdk.Rectangle too early and afterwards, the
             # contents are corrupt.
             SETTING["selection"] = sel.copy()
-            global sb_selector_x
-            global sb_selector_y
-            global sb_selector_w
-            global sb_selector_h
             if sel is not None and sb_selector_x is not None:
                 sb_selector_x.set_value(sel.x)
                 sb_selector_y.set_value(sel.y)
@@ -6627,7 +6532,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
 
         # extract the toolbar
-        global builder
         toolbar = builder.get_object("toolbar")
 
         # turn off labels
@@ -6689,7 +6593,6 @@ class Application(Gtk.Application):
         Gtk.Application.do_startup(self)
 
         # These will be in the application group and have the "app" prefix
-        global actions
         for name, function in [
             ("new", new),
             ("open", open_dialog),
@@ -6754,8 +6657,6 @@ class Application(Gtk.Application):
         # added to the window
         self.add_action(actions["tooltype"])
         self.add_action(actions["viewtype"])
-
-        global builder
         self.set_menubar(builder.get_object("menubar"))
 
         global detail_popup
