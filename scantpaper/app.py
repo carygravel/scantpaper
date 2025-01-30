@@ -68,13 +68,11 @@ import os
 import pathlib
 import locale
 import re
-import subprocess
 import glob
 import logging
 import fcntl
 import gettext
 import datetime
-import logging
 import shutil
 import sys
 import tempfile
@@ -85,7 +83,6 @@ import tesserocr
 from dialog import Dialog, MultipleMessage, filter_message, response_stored
 from dialog.renumber import Renumber
 from dialog.save import Save as SaveDialog
-from dialog.scan import Scan
 from dialog.sane import SaneScanDialog
 from comboboxtext import ComboBoxText
 from document import Document
@@ -104,7 +101,7 @@ from helpers import (
     expand_metadata_pattern,
     collate_metadata,
 )
-from tesseract import languages, _iso639_1to3, locale_installed, get_tesseract_codes
+from tesseract import languages, locale_installed, get_tesseract_codes
 import sane  # To get SANE_* enums
 
 gi.require_version("Gtk", "3.0")
