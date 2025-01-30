@@ -304,6 +304,16 @@ logger = logging.getLogger(__name__)
     None,
     None,
 )
+global thumb_popup
+thumb_popup = None
+global iconpath
+iconpath = None
+global SETTING
+SETTING = None
+global rc
+rc = None
+global signal
+signal = None
 actions = {}
 prevent_image_tool_update = False
 
@@ -1107,7 +1117,6 @@ def open_session_action(action):
 
 
 def open_session(sesdir):
-
     logger.info(f"Restoring session in {session}")
     slist.open_session(dir=sesdir, delete=False, error_callback=error_callback)
 
@@ -1955,7 +1964,7 @@ def save_image(uuids):
 
         # Create the image
         logger.debug(f"Started saving {filename}")
-        (signal, pid) = (None, None)
+        signal, pid = None, None
 
         def save_image_finished_callback(response):
             filename = response.request.args[0]["path"]
@@ -2003,7 +2012,7 @@ def save_tiff(filename, ps, uuids):
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
 
-    (signal, pid) = (None, None)
+    signal, pid = None, None
 
     def save_tiff_finished_callback(response):
         filename = response.request.args[0]["path"]
@@ -2035,7 +2044,7 @@ def save_djvu(filename, uuids):
 
     # Create the DjVu
     logger.debug(f"Started saving {filename}")
-    (signal, pid) = (None, None)
+    signal, pid = None, None
     options = {
         "set_timestamp": SETTING["set_timestamp"],
         "convert whitespace to underscores": SETTING[
@@ -2069,8 +2078,7 @@ def save_djvu(filename, uuids):
 
 
 def save_text(filename, uuids):
-
-    (signal, pid, options) = (None, None, {})
+    signal, pid, options = None, None, {}
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
 
@@ -2096,8 +2104,7 @@ def save_text(filename, uuids):
 
 
 def save_hocr(filename, uuids):
-
-    (signal, pid, options) = (None, None, {})
+    signal, pid, options = None, None, {}
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
 
@@ -2200,7 +2207,7 @@ def email(_action, _param):
         pdf = f"{session}/{filename}.pdf"
 
         # Create the PDF
-        (signal, pid) = (None, None)
+        signal, pid = None, None
 
         def email_finished_callback(response):
             finish_tpbar(response)
@@ -3476,7 +3483,7 @@ def threshold(_action, _param):
         page = 0
         for i in pagelist:
             page += 1
-            (signal, pid) = (None, None)
+            signal, pid = None, None
 
             def threshold_finished_callback(response):
                 finish_tpbar(response)
@@ -4014,7 +4021,7 @@ def split_dialog(_action, _param):
         page = 0
         for i in pagelist:
             page += 1
-            (signal, pid) = (None, None)
+            signal, pid = None, None
 
             def split_finished_callback(response):
                 finish_tpbar(response)
@@ -6561,7 +6568,6 @@ class Application(Gtk.Application):
 
         # Add extra icons early to be available for Gtk.Builder
         global iconpath
-        iconpath = None
         if os.path.isdir("/usr/share/gscan2pdf"):
             iconpath = "/usr/share/gscan2pdf"
         else:
