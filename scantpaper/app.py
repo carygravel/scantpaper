@@ -49,18 +49,19 @@
 #      * kinetic (until 2023-07)
 #      * jammy (until 2027-04)
 #      * focal (until 2025-04, dh12)
-#      * bionic (until 2023-04, dh11, no tests, no fonts-noto-extra, liblocale-codes-perl >= 3.55, also in Build-Depends-Indep)
 #     debuild -S -sa
 #     dput ftp-master .changes
 #     dput gscan2pdf-ppa .changes
 #    https://launchpad.net/~jeffreyratcliffe/+archive
-# 8. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net, sane-devel@lists.alioth.debian.org
+# 8. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net,
+#    sane-devel@lists.alioth.debian.org
 # 9. To interactively debug in the schroot:
-#     duplicate the config file, typically in /etc/schroot/chroot.d/, changing the sbuild profile to desktop
-#     schroot -c sid-amd64-desktop -u root
-#     apt-get build-dep gscan2pdf
-#     su - <user>
-#     xvfb-run prove -lv <tests>
+#      * duplicate the config file, typically in /etc/schroot/chroot.d/, changing
+#        the sbuild profile to desktop
+#       schroot -c sid-amd64-desktop -u root
+#       apt-get build-dep gscan2pdf
+#       su - <user>
+#       xvfb-run prove -lv <tests>
 
 import os
 import pathlib
@@ -380,26 +381,12 @@ def parse_arguments():
         logging.basicConfig(filename=args.log, level=log_level)
     else:
         logging.basicConfig(level=args.log_level)
-    #     log_conf = """ log4perl.appender.Screen        = Log::Log4perl::Appender::Screen
-    #  log4perl.appender.Screen.layout = Log::Log4perl::Layout::SimpleLayout
-    #  log4perl.appender.Screen.utf8   = 1
-    # """
-    #     if  (log is not None) :
-    #         log_conf += """ log4perl.appender.Logfile          = Log::Log4perl::Appender::File
-    #  log4perl.appender.Logfile.filename = $log
-    #  log4perl.appender.Logfile.mode     = write
-    #  log4perl.appender.Logfile.layout   = Log::Log4perl::Layout::SimpleLayout
-    #  log4perl.appender.Logfile.utf8     = 1
-    #  log4perl.category                  = $log_level, Logfile, Screen
-    # """
 
-    #     else :
-    #         log_conf += """ log4perl.category                  = $log_level, Screen
-    # """
-
-    # if  (help is not None) :
-    #     subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0           or raise _('Error displaying help'), "\n"
-
+    # if help is not None:
+    #     try:
+    #         subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0
+    #     except:
+    #         raise _('Error displaying help'), "\n"
     logger.info(f"Starting {prog_name} {VERSION}")
     orig_args = [sys.executable] + sys.argv
     logger.info("Called with " + SPACE.join(orig_args))
@@ -519,16 +506,19 @@ def check_dependencies():
                         "pdftk is installed, but seems to be missing required dependencies:\n%s"
                     ) % (proc.stdout)
 
-                #                 elif   not re.search(r"NumberOfPages",proc.stdout,re.MULTILINE|re.DOTALL|re.VERBOSE) :
-                #                     logger.debug(f"before msg {_}")
-                #                     msg = _(
+                # elif not re.search(r"NumberOfPages",proc.stdout,
+                #                    re.MULTILINE|re.DOTALL|re.VERBOSE):
+                #     logger.debug(f"before msg {_}")
+                #     msg = _(
                 # 'pdftk is installed, but cannot access the directory used for temporary files.'
                 #                       )                       + _(
                 # 'One reason for this might be that pdftk was installed via snap.'
                 #                       )                       + _(
-                # 'In this case, removing pdftk, and reinstalling without using snap would allow gscan2pdf to use pdftk.'
+                # 'In this case, removing pdftk, and reinstalling without using '
+                #   'snap would allow gscan2pdf to use pdftk.'
                 #                       )                       + _(
-                # 'Another workaround would be to select a temporary directory under your home directory in Edit/Preferences.'
+                # 'Another workaround would be to select a temporary directory under '
+                #  'your home directory in Edit/Preferences.'
                 #                       )
 
                 if msg:
@@ -1217,8 +1207,7 @@ def update_tpbar(response):
 
         # if  "progress"  in options :
         #     tpbar.set_fraction(
-        #     ( options["jobs_completed"] + options["progress"] ) /                   options["jobs_total"] )
-
+        #     ( options["jobs_completed"] + options["progress"] ) / options["jobs_total"] )
         # else :
         tpbar.set_fraction((response.num_completed_jobs + HALF) / response.total_jobs)
 
@@ -1541,7 +1530,8 @@ def save_dialog(_action, _param):
     pshbutton = Gtk.CheckButton(label=_("Post-save hook"))
     pshbutton.set_tooltip_text(
         _(
-            "Run command on saved file. The available commands are those user-defined tools that do not specify %o"
+            "Run command on saved file. The available commands are those "
+            "user-defined tools that do not specify %o"
         )
     )
     vbox = windowi.get_content_area()
@@ -2481,8 +2471,8 @@ def changed_side_to_scan_callback(widget, _arg):
         widget.page_number_start = 1
 
 
-def reloaded_scan_options_callback(widget):
-    """This should only be called the first time after loading the available options"""  # $widget is $windows
+def reloaded_scan_options_callback(widget):  # widget is windows
+    "This should only be called the first time after loading the available options"
     widget.disconnect(widget.reloaded_signal)
     profiles = SETTING["profile"].keys()
     if "default profile" in SETTING:
@@ -3460,7 +3450,8 @@ def analyse(select_blank, select_dark):
         )
         if analyse_time <= dirty_time:
             logger.info(
-                f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} dirty_time: {dirty_time}"
+                f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} "
+                f"dirty_time: {dirty_time}"
             )
             pages_to_analyse.append(slist.data[i][2].uuid)
 
@@ -4528,7 +4519,8 @@ def take_snapshot():
     if df:
         df = df.free / 1024 / 1024
         logger.debug(
-            f"Free space in {session.name} (Mb): {df} (warning at {SETTING['available-tmp-warning']})"
+            f"Free space in {session.name} (Mb): {df} (warning at "
+            f"{SETTING['available-tmp-warning']})"
         )
         global window
         if df < SETTING["available-tmp-warning"]:
@@ -4776,7 +4768,8 @@ def _preferences_scan_options(border_width):
     cbo.set_tooltip_text(
         _(
             "Automatically open the scan dialog in the background at program start. "
-            + "This saves time clicking the scan button and waiting for the program to find the list of scanners"
+            "This saves time clicking the scan button and waiting for the "
+            "program to find the list of scanners"
         )
     )
     if "auto-open-scan-dialog" in SETTING:
@@ -4809,7 +4802,8 @@ def _preferences_scan_options(border_width):
     cb_batch_flatbed = Gtk.CheckButton(label=_("Allow batch scanning from flatbed"))
     cb_batch_flatbed.set_tooltip_text(
         _(
-            "If not set, switching to a flatbed scanner will force # pages to 1 and single-sided mode."
+            "If not set, switching to a flatbed scanner will force # pages to "
+            "1 and single-sided mode."
         )
     )
     cb_batch_flatbed.set_active(SETTING["allow-batch-flatbed"])
@@ -4819,7 +4813,8 @@ def _preferences_scan_options(border_width):
     cb_ignore_duplex = Gtk.CheckButton(label=_("Ignore duplex capabilities of scanner"))
     cb_ignore_duplex.set_tooltip_text(
         _(
-            "If set, any duplex capabilities are ignored, and facing/reverse widgets are displayed to allow manual interleaving of pages."
+            "If set, any duplex capabilities are ignored, and facing/reverse "
+            "widgets are displayed to allow manual interleaving of pages."
         )
     )
     cb_ignore_duplex.set_active(SETTING["ignore-duplex-capabilities"])
@@ -4829,7 +4824,8 @@ def _preferences_scan_options(border_width):
     cb_cancel_btw_pages = Gtk.CheckButton(label=_("Force new scan job between pages"))
     cb_cancel_btw_pages.set_tooltip_text(
         _(
-            "Otherwise, some Brother scanners report out of documents, despite scanning from flatbed."
+            "Otherwise, some Brother scanners report out of documents, "
+            "despite scanning from flatbed."
         )
     )
     cb_cancel_btw_pages.set_active(SETTING["cancel-between-pages"])
@@ -4854,7 +4850,8 @@ def _preferences_scan_options(border_width):
     cb_cache_device_list = Gtk.CheckButton(label=_("Cache device list"))
     cb_cache_device_list.set_tooltip_text(
         _(
-            "If this option is enabled, opening the scanner is quicker, as gscan2pdf does not first search for available devices."
+            "If this option is enabled, opening the scanner is quicker, "
+            "as gscan2pdf does not first search for available devices."
         )
         + _(
             "This is only effective if the device names do not change between sessions."
@@ -5113,10 +5110,10 @@ def add_user_defined_tool_entry(vbox, combobox_array, tool):
     entry.set_text(tool)
     entry.set_tooltip_text(
         _(
-            """Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.
+            """Use %i and %o for the input and output filenames respectively,
+or a single %i if the image is to be modified in-place.
 
 The other variable available is:
-
 %r resolution"""
         )
     )
@@ -5786,7 +5783,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             else:
                 logger.info(f"Creating new text layer with '{text}'")
                 current_page.text_layer = (
-                    '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
+                    '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
+                    '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
                     % (
                         current_page["width"],
                         current_page["height"],
@@ -5868,7 +5866,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             else:
                 logger.info(f"Creating new annotation canvas with '{text}'")
                 current_page["annotations"] = (
-                    '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
+                    '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
+                    '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
                     % (
                         current_page["width"],
                         current_page["height"],
@@ -6611,7 +6610,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             lang_msg = locale_installed(lc_messages, get_tesseract_codes())
             if lang_msg == "":
                 logger.info(
-                    f"Using GUI language {lc_messages}, for which a tesseract language package is present"
+                    f"Using GUI language {lc_messages}, "
+                    "for which a tesseract language package is present"
                 )
             else:
                 logger.warning(lang_msg)
