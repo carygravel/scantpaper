@@ -2,7 +2,7 @@
 
 # TODO:
 # fix AttributeError after a page has been scanned
-# black & lint
+# lint
 # restore last used scan settings
 # use pathlib for all paths
 # persist data with sqlite
@@ -63,6 +63,7 @@
 #       su - <user>
 #       xvfb-run prove -lv <tests>
 
+import argparse
 import os
 import pathlib
 import locale
@@ -70,12 +71,16 @@ import re
 import subprocess
 import glob
 import logging
-import gi
-import argparse
-import sys
 import fcntl
+import gettext
+import datetime
+import logging
 import shutil
+import sys
+import tempfile
 from types import SimpleNamespace
+import warnings
+import gi
 import tesserocr
 from dialog import Dialog, MultipleMessage, filter_message, response_stored
 from dialog.renumber import Renumber
@@ -112,13 +117,6 @@ from gi.repository import (
 )  # pylint: disable=wrong-import-position
 from imageview import ImageView, Selector, Dragger, SelectorDragger
 from simplelist import SimpleList
-
-# the config file is saved with the numeric locale
-import tempfile
-import logging
-import warnings
-import datetime
-import gettext
 
 HALF = 0.5
 UNIT_SLIDER_STEP = 0.001
