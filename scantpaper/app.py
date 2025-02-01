@@ -3,6 +3,7 @@
 # TODO:
 # fix AttributeError after a page has been scanned
 # lint
+# fix progress bar
 # restore last used scan settings
 # use pathlib for all paths
 # persist data with sqlite
@@ -936,7 +937,7 @@ def edit_tools_callback(action, current):
     return
 
 
-def edit_ocr_text(widget, target, ev, bbox):
+def edit_ocr_text(widget, _target, ev, bbox):
     if not ev:
         bbox = widget
 
@@ -957,7 +958,7 @@ def edit_ocr_text(widget, target, ev, bbox):
     return True
 
 
-def edit_annotation(widget, target, ev, bbox):
+def edit_annotation(widget, _target, ev, bbox):
     if not ev:
         bbox = widget
 
@@ -1088,13 +1089,11 @@ def error_callback(response):
 
 
 def open_session_file(filename):
-
     logger.info(f"Restoring session in {session}")
     slist.open_session_file(info=filename, error_callback=error_callback)
 
 
-def open_session_action(action):
-
+def open_session_action(_action):
     file_chooser = Gtk.FileChooserDialog(
         title=_("Open crashed session"),
         parent=window,
@@ -1113,7 +1112,6 @@ def open_session_action(action):
         open_session(filename[0])
 
     file_chooser.destroy()
-    return
 
 
 def open_session(sesdir):
@@ -2289,7 +2287,7 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
     windows.connect("changed-side-to-scan", changed_side_to_scan_callback)
     signal = None
 
-    def started_progress_callback(widget, message):
+    def started_progress_callback(_widget, message):
         logger.debug(f"signal 'started-process' emitted with message: {message}")
         spbar.set_fraction(0)
         spbar.set_text(message)
@@ -2311,25 +2309,22 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
             ),
         )
 
-    def changed_profile_callback(widget, profile):
-
+    def changed_profile_callback(_widget, profile):
         SETTING["default profile"] = profile
 
     windows.connect("changed-profile", changed_profile_callback)
 
-    def added_profile_callback(widget, name, profile):
-
+    def added_profile_callback(_widget, name, profile):
         SETTING["profile"][name] = profile.get()
 
     windows.connect("added-profile", added_profile_callback)
 
-    def removed_profile_callback(widget, profile):
-
+    def removed_profile_callback(_widget, profile):
         del SETTING["profile"][profile]
 
     windows.connect("removed-profile", removed_profile_callback)
 
-    def changed_current_scan_options_callback(widget, profile, _uuid):
+    def changed_current_scan_options_callback(_widget, profile, _uuid):
         "Update the default profile when the scan options change"
         SETTING["default-scan-options"] = profile.get()
 
@@ -2337,7 +2332,7 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
         "changed-current-scan-options", changed_current_scan_options_callback
     )
 
-    def changed_paper_formats_callback(widget, formats):
+    def changed_paper_formats_callback(_widget, formats):
         SETTING["Paper"] = formats
 
     windows.connect("changed-paper-formats", changed_paper_formats_callback)
@@ -2447,7 +2442,7 @@ def reloaded_scan_options_callback(widget):  # widget is windows
     update_postprocessing_options_callback(widget)
 
 
-def changed_progress_callback(widget, progress, message):
+def changed_progress_callback(_widget, progress, message):
     if progress is not None and progress >= 0 and progress <= 1:
         spbar.set_fraction(progress)
     else:
@@ -2467,7 +2462,7 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def new_scan_callback(self, image_object, page_number, xresolution, yresolution):
+def new_scan_callback(_self, image_object, page_number, xresolution, yresolution):
     if image_object is None:
         return
 
@@ -2604,7 +2599,7 @@ def process_error_callback(widget, process, msg, signal):
     )
 
 
-def finished_process_callback(widget, process, button_signal=None):
+def finished_process_callback(_widget, process, button_signal=None):
 
     logger.debug(f"signal 'finished-process' emitted with data: {process}")
     if button_signal is not None:
@@ -2705,7 +2700,7 @@ def add_postprocessing_rotate(vbox):
 
     rbutton.connect("toggled", toggled_rotate_callback)
 
-    def toggled_rotate_side_callback(arg):
+    def toggled_rotate_side_callback(_arg):
         if side[rotate_side_cmbx.get_active()][0] == "both":
             hboxr.set_sensitive(False)
             r2button.set_active(False)
@@ -2956,7 +2951,7 @@ def add_postprocessing_options(self):
 
     self.connect("clicked-scan-button", clicked_scan_button_cb)
 
-    def show_callback(w):
+    def show_callback(_w):
         i = comboboxe.get_active()
         if i > -1 and hboxtl is not None and ocr_engine[i][0] != "tesseract":
             hboxtl.hide()
@@ -2973,7 +2968,7 @@ def print_dialog(_action, _param):
     if print_settings is not None:
         print_op.set_print_settings(print_settings)
 
-    def begin_print_callback(op, context):
+    def begin_print_callback(op, _context):
 
         settings = op.get_print_settings()
         pages = settings.get_print_pages()
@@ -2995,7 +2990,7 @@ def print_dialog(_action, _param):
 
     print_op.connect("begin-print", begin_print_callback)
 
-    def draw_page_callback(op, context, page_number):
+    def draw_page_callback(_op, context, page_number):
 
         page = slist.data[page_number][2]
         cr = context.get_cairo_context()
@@ -3350,7 +3345,7 @@ def indices2pages(indices):
     return pages
 
 
-def rotate(angle, pagelist, callback=None):
+def rotate(angle, pagelist):
     "Rotate selected images"
     logger.debug(f"pagelist {pagelist}")
 
@@ -3360,19 +3355,13 @@ def rotate(angle, pagelist, callback=None):
         logger.debug(f"page {page}")
         signal, pid = None, None
 
-        def rotate_finished_callback(response):
-            # if callback      :
-            #     callback(new_page)
-            finish_tpbar(response)
-            # slist.save_session()
-
         pid = slist.rotate(
             angle=angle,
             page=page,
             queued_callback=setup_tpbar,
             started_callback=update_tpbar,
             running_callback=update_tpbar,
-            finished_callback=rotate_finished_callback,
+            finished_callback=finish_tpbar,
             error_callback=error_callback,
             display_callback=display_callback,
         )
@@ -3893,7 +3882,7 @@ def crop_dialog(_action, _param):
     windowc.show_all()
 
 
-def crop_selection(action, param, pagelist=None):
+def crop_selection(_action, _param, pagelist=None):
 
     if not SETTING["selection"]:
         return
@@ -3997,7 +3986,7 @@ def split_dialog(_action, _param):
     sb_pos.connect("value-changed", changed_split_position_sb_value)
     sb_pos.set_value(width / 2)
 
-    def changed_split_position_selection(widget, sel):
+    def changed_split_position_selection(_widget, sel):
         if sel:
             if direction[combob.get_active()][0] == "v":
                 sb_pos.set_value(sel.x + sel.width)
@@ -5395,7 +5384,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.connect("delete-event", lambda w, e: not quit())
 
-        def window_state_event_callback(w, event):
+        def window_state_event_callback(_w, event):
             "Note when the window is maximised or not"
             SETTING["window_maximize"] = bool(
                 event.new_window_state & Gdk.WindowState.MAXIMIZED
@@ -5499,7 +5488,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         view.connect("button-press-event", handle_clicks)
         view.connect("button-release-event", handle_clicks)
 
-        def view_zoom_changed_callback(view, zoom):
+        def view_zoom_changed_callback(_view, zoom):
             if canvas is not None:
                 canvas.handler_block(canvas.zoom_changed_signal)
                 canvas.set_scale(zoom)
@@ -5509,7 +5498,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "zoom-changed", view_zoom_changed_callback
         )
 
-        def view_offset_changed_callback(view, x, y):
+        def view_offset_changed_callback(_view, x, y):
             if canvas is not None:
                 canvas.handler_block(canvas.offset_changed_signal)
                 canvas.set_offset(x, y)
@@ -5519,7 +5508,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "offset-changed", view_offset_changed_callback
         )
 
-        def view_selection_changed_callback(view, sel):
+        def view_selection_changed_callback(_view, sel):
             "Callback if the selection changes"
             # copy required here because somehow the garbage collection
             # destroys the Gdk.Rectangle too early and afterwards, the
@@ -5539,7 +5528,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         global canvas
         canvas = Canvas()
 
-        def text_zoom_changed_callback(canvas, zoom):
+        def text_zoom_changed_callback(canvas, _zoom):
             view.handler_block(view.zoom_changed_signal)
             view.set_zoom(canvas.get_scale())
             view.handler_unblock(view.zoom_changed_signal)
@@ -5620,7 +5609,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_scmbx = ComboBoxText(data=ocr_index)
         ocr_text_scmbx.set_tooltip_text(_("Select sort method for OCR boxes"))
 
-        def changed_text_sort_method(arg):
+        def changed_text_sort_method(_arg):
             if ocr_index[ocr_text_scmbx.get_active()][0] == "confidence":
                 canvas.sort_by_confidence()
             else:
@@ -5819,7 +5808,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.connect("key-press-event", Gtk.Window.propagate_key_event)
         self.connect("key-release-event", Gtk.Window.propagate_key_event)
 
-        def on_key_press(widget, event):
+        def on_key_press(_widget, event):
 
             # Let the keypress propagate
             if event.keyval != Gdk.KEY_Delete:
@@ -6774,11 +6763,11 @@ class Application(Gtk.Application):
     #     self.activate()
     #     return 0
 
-    def on_about(self, action, param):
+    def on_about(self, _action, _param):
         about_dialog = Gtk.AboutDialog(transient_for=self.window, modal=True)
         about_dialog.present()
 
-    def on_quit(self, action, param):
+    def on_quit(self, _action, _param):
         self.quit()
 
 
