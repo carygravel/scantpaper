@@ -537,6 +537,7 @@ def check_dependencies():
 
     # Build a look-up table of all true-type fonts installed
     proc = exec_command(["fc-list", ":", "family", "style", "file"])
+    global fonts
     fonts = parse_truetype_fonts(proc.stdout)
 
 
@@ -565,8 +566,6 @@ def update_uimanager():
         "rotate-90",
         "rotate-180",
         "rotate-270",
-        # '/MenuBar/View/Edit text layer',
-        # '/MenuBar/View/Edit annotations',
         "threshold",
         "brightness-contrast",
         "negate",
@@ -577,20 +576,6 @@ def update_uimanager():
         "split",
         "ocr",
         "user-defined",
-        "/ToolBar/Edit text layer",
-        "/ToolBar/Edit annotations",
-        "/Detail_Popup/DraggerTool",
-        "/Detail_Popup/SelectorTool",
-        "/Detail_Popup/SelectorDraggerTool",
-        "/Detail_Popup/Zoom 100",
-        "/Detail_Popup/Zoom to fit",
-        "/Detail_Popup/Zoom in",
-        "/Detail_Popup/Zoom out",
-        "/Detail_Popup/Rotate 90",
-        "/Detail_Popup/Rotate 180",
-        "/Detail_Popup/Rotate 270",
-        "/Detail_Popup/Edit text layer",
-        "/Detail_Popup/Edit annotations",
     ]
     enabled = bool(slist.get_selected_indices())
     for action_name in action_names:
@@ -798,7 +783,7 @@ def find_crashed_sessions(tmpdir):
         dialog.show_all()
         if dialog.run() == "ok":
             selected = sessionlist.get_selected_indices()
-            for i, v in enumerate(selected):
+            for i, _v in enumerate(selected):
                 selected[i] = missing[i]
             logger.info("Selected for deletion: " + SPACE.join(selected))
             if selected:
@@ -854,7 +839,7 @@ def display_image(page):
     global current_page
     current_page = page
     view.set_pixbuf(current_page.get_pixbuf(), True)
-    xresolution, yresolution, units = current_page.resolution
+    xresolution, yresolution, _units = current_page.resolution
     view.set_resolution_ratio(xresolution / yresolution)
 
     # Get image dimensions to constrain selector spinbuttons on crop dialog
@@ -943,6 +928,8 @@ def edit_ocr_text(widget, _target, ev, bbox):
 
     if bbox is None:
         return
+
+    global ocr_bbox
     ocr_bbox = bbox
     ocr_textbuffer.text = bbox.text
     ocr_text_hbox.show_all()
@@ -962,6 +949,7 @@ def edit_annotation(widget, _target, ev, bbox):
     if not ev:
         bbox = widget
 
+    global ann_bbox
     ann_bbox = bbox
     ann_textbuffer.text = bbox.text
     ann_hbox.show_all()
@@ -1023,6 +1011,7 @@ def new(_action, _param):
     view.set_pixbuf(None)
     canvas.clear_text()
     a_canvas.clear_text()
+    global current_page
     current_page = None
 
     # Reset start page in scan dialog
@@ -1291,7 +1280,6 @@ def import_files_metadata_callback(metadata):
 def import_files(filenames, all_pages=False):
 
     # FIXME: import_files() now returns an array of pids.
-    signal, pid = None, None
     options = {
         "paths": filenames,
         "password_callback": import_files_password_callback,
@@ -1349,7 +1337,7 @@ def import_files(filenames, all_pages=False):
 
         options["pagerange_callback"] = select_pagerange_callback
 
-    pid = slist.import_files(**options)
+    slist.import_files(**options)
 
 
 def save_pdf(filename, option, list_of_page_uuids):
@@ -1384,7 +1372,7 @@ def save_pdf(filename, option, list_of_page_uuids):
 
     # Create the PDF
     logger.debug(f"Started saving {filename}")
-    signal, pid = (None, None)
+    signal = None
 
     def save_pdf_finished_callback(response):
         if not response.pending:
@@ -1401,7 +1389,7 @@ def save_pdf(filename, option, list_of_page_uuids):
 
         logger.debug(f"Finished saving {filename}")
 
-    pid = slist.save_pdf(
+    slist.save_pdf(
         path=filename,
         list_of_pages=list_of_page_uuids,
         metadata=collate_metadata(SETTING, datetime.datetime.now()),
@@ -1525,7 +1513,6 @@ def save_dialog(_action, _param):
 
 def list_of_page_uuids():
     "Compile list of pages"
-    uuids = []
     pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
     if not pagelist:
         return []
@@ -1962,7 +1949,7 @@ def save_image(uuids):
 
         # Create the image
         logger.debug(f"Started saving {filename}")
-        signal, pid = None, None
+        signal = None
 
         def save_image_finished_callback(response):
             filename = response.request.args[0]["path"]
@@ -1974,16 +1961,16 @@ def save_image(uuids):
 
             mark_pages(uuids)
             if "view files toggle" in SETTING and SETTING["view files toggle"]:
-                if len(uuids) > 1:
-                    w = len(uuids)
-                    for i in range(1, len(uuids) + 1):
+                w = len(uuids)
+                if w > 1:
+                    for i in range(1, w + 1):
                         launch_default_for_file(filename % (i))
                 else:
                     launch_default_for_file(filename)
 
             logger.debug(f"Finished saving {filename}")
 
-        pid = slist.save_image(
+        slist.save_image(
             path=filename,
             list_of_pages=uuids,
             queued_callback=setup_tpbar,
@@ -2010,8 +1997,6 @@ def save_tiff(filename, ps, uuids):
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
 
-    signal, pid = None, None
-
     def save_tiff_finished_callback(response):
         filename = response.request.args[0]["path"]
         uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
@@ -2023,7 +2008,7 @@ def save_tiff(filename, ps, uuids):
 
         logger.debug(f"Finished saving {file}")
 
-    pid = slist.save_tiff(
+    slist.save_tiff(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -2042,7 +2027,6 @@ def save_djvu(filename, uuids):
 
     # Create the DjVu
     logger.debug(f"Started saving {filename}")
-    signal, pid = None, None
     options = {
         "set_timestamp": SETTING["set_timestamp"],
         "convert whitespace to underscores": SETTING[
@@ -2062,7 +2046,7 @@ def save_djvu(filename, uuids):
 
         logger.debug(f"Finished saving {filename}")
 
-    pid = slist.save_djvu(
+    slist.save_djvu(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -2076,7 +2060,7 @@ def save_djvu(filename, uuids):
 
 
 def save_text(filename, uuids):
-    signal, pid, options = None, None, {}
+    options = {}
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
 
@@ -2089,7 +2073,7 @@ def save_text(filename, uuids):
 
         logger.debug(f"Finished saving {filename}")
 
-    pid = slist.save_text(
+    slist.save_text(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -2102,7 +2086,7 @@ def save_text(filename, uuids):
 
 
 def save_hocr(filename, uuids):
-    signal, pid, options = None, None, {}
+    options = {}
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
 
@@ -2114,7 +2098,7 @@ def save_hocr(filename, uuids):
 
         logger.debug(f"Finished saving {filename}")
 
-    pid = slist.save_hocr(
+    slist.save_hocr(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -2162,7 +2146,7 @@ def email(_action, _param):
     windowe.add_page_range()
 
     # PDF options
-    vboxp, hboxp = windowe.add_pdf_options()
+    windowe.add_pdf_options()
 
     def email_callback():
 
@@ -2205,7 +2189,6 @@ def email(_action, _param):
         pdf = f"{session}/{filename}.pdf"
 
         # Create the PDF
-        signal, pid = None, None
 
         def email_finished_callback(response):
             finish_tpbar(response)
@@ -2222,7 +2205,7 @@ def email(_action, _param):
                     text=_("Error creating email"),
                 )
 
-        pid = slist.save_pdf(
+        slist.save_pdf(
             path=pdf,
             list_of_pages=uuids,
             metadata=collate_metadata(SETTING, datetime.datetime.now()),
@@ -2288,6 +2271,7 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
     signal = None
 
     def started_progress_callback(_widget, message):
+        nonlocal signal
         logger.debug(f"signal 'started-process' emitted with message: {message}")
         spbar.set_fraction(0)
         spbar.set_text(message)
@@ -2469,7 +2453,6 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
     # Update undo/redo buffers
     take_snapshot()
     rotate = SETTING["rotate facing"] if page_number % 2 else SETTING["rotate reverse"]
-    signal, pid = None, None
     options = {
         "page": page_number,
         "dir": session.name,
@@ -2683,7 +2666,6 @@ def add_postprocessing_rotate(vbox):
     r2button = Gtk.CheckButton(label=_("Rotate"))
     r2button.set_tooltip_text(_("Rotate image after scanning"))
     hboxr.pack_start(r2button, True, True, 0)
-    side2 = []
     rotate_side_cmbx2 = Gtk.ComboBoxText()
     rotate_side_cmbx2.set_tooltip_text(_("Select side to rotate"))
     hboxr.pack_start(rotate_side_cmbx2, True, True, 0)
@@ -2744,7 +2726,7 @@ def add_postprocessing_rotate(vbox):
         rotate_side_cmbx.set_active_index("reverse")
         comboboxr.set_active_index(SETTING["rotate reverse"])
 
-    return (rotate, side, side2, rbutton, r2button, comboboxr, comboboxr2)
+    return rbutton, r2button, comboboxr, comboboxr2
 
 
 def add_postprocessing_udt(vboxp):
@@ -2793,10 +2775,10 @@ def add_postprocessing_ocr(vbox):
     comboboxe = ComboBoxText(data=ocr_engine)
     comboboxe.set_tooltip_text(_("Select OCR engine"))
     hboxo.pack_end(comboboxe, True, True, 0)
-    comboboxtl, hboxtl, tesslang = None, None, []
+    comboboxtl, hboxtl = None, None
 
     if dependencies["tesseract"]:
-        hboxtl, comboboxtl, tesslang = add_tess_languages(vbox)
+        hboxtl, comboboxtl, _tesslang = add_tess_languages(vbox)
 
         def ocr_engine_changed_callback(comboboxe):
             if comboboxe.get_active_text() == "tesseract":
@@ -2833,15 +2815,7 @@ def add_postprocessing_ocr(vbox):
     spinbutton.set_sensitive(cbto.get_active())
     hboxt.pack_end(spinbutton, False, True, 0)
     cbto.connect("toggled", lambda _: spinbutton.set_sensitive(cbto.get_active()))
-    return (
-        obutton,
-        comboboxe,
-        hboxtl,
-        comboboxtl,
-        tesslang,
-        cbto,
-        spinbutton,
-    )
+    return obutton, comboboxe, hboxtl, comboboxtl, cbto, spinbutton
 
 
 def add_postprocessing_options(self):
@@ -2854,9 +2828,7 @@ def add_postprocessing_options(self):
     scwin.add(vboxp)
 
     # Rotate
-    rotate, side, side2, rbutton, r2button, comboboxr, comboboxr2 = (
-        add_postprocessing_rotate(vboxp)
-    )
+    rbutton, r2button, comboboxr, comboboxr2 = add_postprocessing_rotate(vboxp)
 
     # CheckButton for unpaper
     hboxu = Gtk.HBox()
@@ -2899,9 +2871,7 @@ def add_postprocessing_options(self):
     button.connect("clicked", show_unpaper_options)
     # CheckButton for user-defined tool
     udtbutton, self.comboboxudt = add_postprocessing_udt(vboxp)
-    (obutton, comboboxe, hboxtl, comboboxtl, tesslang, tbutton, tsb) = (
-        add_postprocessing_ocr(vboxp)
-    )
+    obutton, comboboxe, hboxtl, comboboxtl, tbutton, tsb = add_postprocessing_ocr(vboxp)
 
     def clicked_scan_button_cb(w):
         SETTING["rotate facing"] = 0
@@ -3001,7 +2971,7 @@ def print_dialog(_action, _param):
 
         # Image dimensions
         pixbuf = page.get_pixbuf()
-        xresolution, yresolution, units = page.resolution
+        xresolution, yresolution, _units = page.resolution
         ratio = xresolution / yresolution
         iwidth = pixbuf.get_width()
         iheight = pixbuf.get_height()
@@ -3353,9 +3323,8 @@ def rotate(angle, pagelist):
     take_snapshot()
     for page in pagelist:
         logger.debug(f"page {page}")
-        signal, pid = None, None
 
-        pid = slist.rotate(
+        slist.rotate(
             angle=angle,
             page=page,
             queued_callback=setup_tpbar,
@@ -3393,7 +3362,6 @@ def analyse(select_blank, select_dark):
             pages_to_analyse.append(slist.data[i][2].uuid)
 
     if len(pages_to_analyse) > 0:
-        signal, pid = None, None
 
         def analyse_finished_callback(response):
             finish_tpbar(response)
@@ -3402,9 +3370,9 @@ def analyse(select_blank, select_dark):
             if select_dark:
                 select_dark_pages()
 
-        #            slist.save_session()
+        # slist.save_session()
 
-        pid = slist.analyse(
+        slist.analyse(
             list_of_pages=pages_to_analyse,
             queued_callback=setup_tpbar,
             started_callback=update_tpbar,
@@ -3472,13 +3440,12 @@ def threshold(_action, _param):
         page = 0
         for i in pagelist:
             page += 1
-            signal, pid = None, None
 
             def threshold_finished_callback(response):
                 finish_tpbar(response)
                 # slist.save_session()
 
-            pid = slist.threshold(
+            slist.threshold(
                 threshold=SETTING["threshold tool"],
                 page=slist.data[i][2].uuid,
                 queued_callback=setup_tpbar,
@@ -3543,13 +3510,12 @@ def brightness_contrast(_action, _param):
         if not pagelist:
             return
         for i in pagelist:
-            signal, pid = None, None
 
             def brightness_contrast_finished_callback(response):
                 finish_tpbar(response)
                 # slist.save_session()
 
-            pid = slist.brightness_contrast(
+            slist.brightness_contrast(
                 brightness=SETTING["brightness tool"],
                 contrast=SETTING["contrast tool"],
                 page=slist.data[i][2].uuid,
@@ -3589,13 +3555,12 @@ def negate(_action, _param):
         if not pagelist:
             return
         for i in pagelist:
-            signal, pid = None, None
 
             def negate_finished_callback(response):
                 finish_tpbar(response)
                 # slist.save_session()
 
-            pid = slist.negate(
+            slist.negate(
                 page=slist.data[i][2].uuid,
                 queued_callback=setup_tpbar,
                 started_callback=update_tpbar,
@@ -3690,13 +3655,12 @@ def unsharp(_action, _param):
         if not pagelist:
             return
         for i in pagelist:
-            signal, pid = None, None
 
             def unsharp_finished_callback(response):
                 finish_tpbar(response)
                 # slist.save_session()
 
-            pid = slist.unsharp(
+            slist.unsharp(
                 page=slist.data[i][2].uuid,
                 radius=SETTING["unsharp radius"],
                 percent=SETTING["unsharp percentage"],
@@ -3852,7 +3816,6 @@ def crop_dialog(_action, _param):
             sb_selector_x.set_range(0, width - SETTING["selection"].width)
         else:  # height
             sb_selector_y.set_range(0, height - SETTING["selection"].height)
-        sel = view.get_selection()
         view.handler_block(view.selection_changed_signal)
         view.set_selection(SETTING["selection"])
         view.handler_unblock(view.selection_changed_signal)
@@ -3896,13 +3859,12 @@ def crop_selection(_action, _param, pagelist=None):
         return
 
     for i in pagelist:
-        signal, pid = None, None
 
         def crop_finished_callback(response):
             finish_tpbar(response)
             # slist.save_session()
 
-        pid = slist.crop(
+        slist.crop(
             page=slist.data[i][2].uuid,
             x=SETTING["selection"].x,
             y=SETTING["selection"].y,
@@ -4010,13 +3972,12 @@ def split_dialog(_action, _param):
         page = 0
         for i in pagelist:
             page += 1
-            signal, pid = None, None
 
             def split_finished_callback(response):
                 finish_tpbar(response)
                 # slist.save_session()
 
-            pid = slist.split_page(
+            slist.split_page(
                 direction=SETTING["split-direction"],
                 position=SETTING["split-position"],
                 page=slist.data[i][2].uuid,
@@ -4103,13 +4064,12 @@ def user_defined_tool(pages, cmd):
     # Update undo/redo buffers
     take_snapshot()
     for page in pages:
-        signal, pid = None, None
 
         def user_defined_finished_callback(response):
             finish_tpbar(response)
             # slist.save_session()
 
-        pid = slist.user_defined(
+        slist.user_defined(
             page=page,
             command=cmd,
             queued_callback=setup_tpbar,
@@ -4129,13 +4089,12 @@ def unpaper_page(pages, options):
     # Update undo/redo buffers
     take_snapshot()
     for pageobject in pages:
-        signal, pid = None, None
 
         def unpaper_finished_callback(response):
             finish_tpbar(response)
             # slist.save_session()
 
-        pid = slist.unpaper(
+        slist.unpaper(
             page=pageobject,
             options=options,
             queued_callback=setup_tpbar,
@@ -4320,7 +4279,6 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
     if engine == "tesseract":
         SETTING["ocr language"] = tesslang
 
-    signal, pid = None, None
     kwargs = {
         "queued_callback": setup_tpbar,
         "started_callback": update_tpbar,
@@ -4414,6 +4372,7 @@ def take_snapshot():
     undo_buffer = slist.data.copy()
     undo_selection = slist.get_selected_indices()
     logger.debug("Undo buffer %s", undo_buffer)
+    logger.debug("Undo selection %s", undo_selection)
 
     # Clean up files that fall off the undo buffer
     undo_files = {}
@@ -4584,7 +4543,7 @@ def preferences(_action, _param):
         spinbuttonw,
         spinbuttonb,
         spinbuttond,
-        ocr_function,
+        _ocr_function,
         comboo,
         cbv,
         cbb,
@@ -5041,7 +5000,7 @@ def update_post_save_hooks():
         if hasattr(windowi, "comboboxpsh"):
 
             # empty combobox
-            for i in range(1, windowi.comboboxpsh.get_num_rows() + 1):
+            for _i in range(1, windowi.comboboxpsh.get_num_rows() + 1):
                 windowi.comboboxpsh.remove(0)
 
         else:
@@ -5123,10 +5082,9 @@ def get_selected_properties():
     page = slist.get_selected_indices()
     xresolution = None
     yresolution = None
-    units = None
     if len(page) > 0:
         i = page.pop(0)
-        xresolution, yresolution, units = slist.data[i][2].resolution
+        xresolution, yresolution, _units = slist.data[i][2].resolution
         logger.debug(
             f"Page {slist.data[i][0]} has resolutions {xresolution},{yresolution}"
         )
@@ -5327,61 +5285,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         super().__init__(*args, **kwargs)
 
         pre_flight()
-
-        # This will be in the windows group and have the "win" prefix
-        for name, function in [
-            ("new", new),
-            ("open", open_dialog),
-            ("open-session", open_session_action),
-            ("scan", scan_dialog),
-            ("save", save_dialog),
-            ("email", email),
-            ("print", print_dialog),
-            ("quit", quitapp),
-            ("undo", undo),
-            ("redo", unundo),
-            ("cut", cut_selection),
-            ("copy", copy_selection),
-            ("paste", paste_selection),
-            ("delete", delete_selection),
-            ("renumber", renumber_dialog),
-            ("select-all", select_all),
-            ("select-odd", select_odd),
-            ("select-even", select_even),
-            ("select-invert", select_invert),
-            ("select-blank", select_blank),
-            ("select-dark", select_dark),
-            ("select-modified", select_modified_since_ocr),
-            ("select-no-ocr", select_no_ocr),
-            ("clear-ocr", clear_ocr),
-            ("properties", properties),
-            ("preferences", preferences),
-            ("zoom-100", zoom_100),
-            ("zoom-to-fit", zoom_to_fit),
-            ("zoom-in", zoom_in),
-            ("zoom-out", zoom_out),
-            ("rotate-90", rotate_90),
-            ("rotate-180", rotate_180),
-            ("rotate-270", rotate_270),
-            ("threshold", threshold),
-            ("brightness-contrast", brightness_contrast),
-            ("negate", negate),
-            ("unsharp", unsharp),
-            ("crop-dialog", crop_dialog),
-            ("crop-selection", crop_selection),
-            ("split", split_dialog),
-            ("unpaper", unpaper),
-            ("ocr", ocr_dialog),
-            ("user-defined", user_defined_dialog),
-            ("help", view_html),
-            ("about", about),
-        ]:
-            self.add_action(actions[name])
-
-        # self.label = Gtk.Label(label=lbl_variant.get_string(), margin=30)
-        # self.add(self.label)
-        # self.label.show()
-
         self.connect("delete-event", lambda w, e: not quit())
 
         def window_state_event_callback(_w, event):
@@ -5866,592 +5769,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def create_toolbar(self):
         "Create the menu bar, initialize its menus, and return the menu bar"
-        # global uimanager
-        # uimanager = Gtk.UIManager()
-
-        # # extract the accelgroup and add it to the window
-        # accelgroup = uimanager.get_accel_group()
-        # self.add_accel_group(accelgroup)
-        action_items = [
-            # Fields for each action item:
-            # [name, stock_id, value, label, accelerator, tooltip, callback]
-            # File menu
-            ["File", None, _("_File")],
-            ["New", "gtk-new", _("_New"), "<control>n", _("Clears all pages"), new],
-            [
-                "Open",
-                "gtk-open",
-                _("_Open"),
-                "<control>o",
-                _("Open image file(s)"),
-                open_dialog,
-            ],
-            [
-                "Open crashed session",
-                None,
-                _("Open c_rashed session"),
-                None,
-                _("Open crashed session"),
-                open_session_action,
-            ],
-            [
-                "Scan",
-                "scanner",
-                _("S_can"),
-                "<control>g",
-                _("Scan document"),
-                scan_dialog,
-            ],
-            ["Save", "gtk-save", _("Save"), "<control>s", _("Save"), save_dialog],
-            [
-                "Email as PDF",
-                "mail-attach",
-                _("_Email as PDF"),
-                "<control>e",
-                _("Attach as PDF to a new email"),
-                email,
-            ],
-            ["Print", "gtk-print", _("_Print"), "<control>p", _("Print"), print_dialog],
-            [
-                "Quit",
-                "gtk-quit",
-                _("_Quit"),
-                "<control>q",
-                _("Quit"),
-                quitapp,
-            ],  # Edit menu
-            ["Edit", None, _("_Edit")],
-            ["Undo", "gtk-undo", _("_Undo"), "<control>z", _("Undo"), undo],
-            ["Redo", "gtk-redo", _("_Redo"), "<shift><control>z", _("Redo"), unundo],
-            [
-                "Cut",
-                "gtk-cut",
-                _("Cu_t"),
-                "<control>x",
-                _("Cut selection"),
-                cut_selection,
-            ],
-            [
-                "Copy",
-                "gtk-copy",
-                _("_Copy"),
-                "<control>c",
-                _("Copy selection"),
-                copy_selection,
-            ],
-            [
-                "Paste",
-                "gtk-paste",
-                _("_Paste"),
-                "<control>v",
-                _("Paste selection"),
-                paste_selection,
-            ],
-            [
-                "Delete",
-                "gtk-delete",
-                _("_Delete"),
-                None,
-                _("Delete selected pages"),
-                delete_selection,
-            ],
-            [
-                "Renumber",
-                "gtk-sort-ascending",
-                _("_Renumber"),
-                "<control>r",
-                _("Renumber pages"),
-                renumber_dialog,
-            ],
-            ["Select", None, _("_Select")],
-            [
-                "Select All",
-                "gtk-select-all",
-                _("_All"),
-                "<control>a",
-                _("Select all pages"),
-                select_all,
-            ],
-            [
-                "Select Odd",
-                None,
-                _("_Odd"),
-                "<control>1",
-                _("Select all odd-numbered pages"),
-                select_odd,
-            ],
-            [
-                "Select Even",
-                None,
-                _("_Even"),
-                "<control>2",
-                _("Select all evenly-numbered pages"),
-                select_even,
-            ],
-            [
-                "Invert selection",
-                None,
-                _("_Invert"),
-                "<control>i",
-                _("Invert selection"),
-                select_invert,
-            ],
-            [
-                "Select Blank",
-                "gtk-select-blank",
-                _("_Blank"),
-                "<control>b",
-                _("Select pages with low standard deviation"),
-                select_blank,
-            ],
-            [
-                "Select Dark",
-                "gtk-select-blank",
-                _("_Dark"),
-                "<control>d",
-                _("Select dark pages"),
-                select_dark,
-            ],
-            [
-                "Select Modified",
-                "gtk-select-modified",
-                _("_Modified"),
-                "<control>m",
-                _("Select modified pages since last OCR"),
-                select_modified_since_ocr,
-            ],
-            [
-                "Select No OCR",
-                None,
-                _("_No OCR"),
-                None,
-                _("Select pages with no OCR output"),
-                select_no_ocr,
-            ],
-            [
-                "Clear OCR",
-                "gtk-clear",
-                _("_Clear OCR"),
-                None,
-                _("Clear OCR output from selected pages"),
-                clear_ocr,
-            ],
-            [
-                "Properties",
-                "gtk-properties",
-                _("Propert_ies"),
-                None,
-                _("Edit image properties"),
-                properties,
-            ],
-            [
-                "Preferences",
-                "gtk-preferences",
-                _("Prefere_nces"),
-                None,
-                _("Edit preferences"),
-                preferences,
-            ],  # View menu
-            ["View", None, _("_View")],
-            [
-                "Zoom 100",
-                "gtk-zoom-100",
-                _("Zoom _100%"),
-                None,
-                _("Zoom to 100%"),
-                zoom_100,
-            ],
-            [
-                "Zoom to fit",
-                "gtk-zoom-fit",
-                _("Zoom to _fit"),
-                None,
-                _("Zoom to fit"),
-                zoom_to_fit,
-            ],
-            ["Zoom in", "gtk-zoom-in", _("Zoom _in"), "plus", _("Zoom in"), zoom_in],
-            [
-                "Zoom out",
-                "gtk-zoom-out",
-                _("Zoom _out"),
-                "minus",
-                _("Zoom out"),
-                zoom_out,
-            ],
-            [
-                "Rotate 90",
-                "rotate90",
-                _("Rotate 90° clockwise"),
-                "<control><shift>R",
-                _("Rotate 90° clockwise"),
-                rotate_90,
-            ],
-            [
-                "Rotate 180",
-                "rotate180",
-                _("Rotate 180°"),
-                "<control><shift>F",
-                _("Rotate 180°"),
-                rotate_180,
-            ],
-            [
-                "Rotate 270",
-                "rotate270",
-                _("Rotate 90° anticlockwise"),
-                "<control><shift>C",
-                _("Rotate 90° anticlockwise"),
-                rotate_270,
-            ],  # Tools menu
-            ["Tools", None, _("_Tools")],
-            [
-                "Threshold",
-                None,
-                _("_Threshold"),
-                None,
-                _("Change each pixel above this threshold to black"),
-                threshold,
-            ],
-            [
-                "BrightnessContrast",
-                None,
-                _("_Brightness / Contrast"),
-                None,
-                _("Change brightness & contrast"),
-                brightness_contrast,
-            ],
-            [
-                "Negate",
-                None,
-                _("_Negate"),
-                None,
-                _("Converts black to white and vice versa"),
-                negate,
-            ],
-            [
-                "Unsharp",
-                None,
-                _("_Unsharp Mask"),
-                None,
-                _("Apply an unsharp mask"),
-                unsharp,
-            ],
-            [
-                "CropDialog",
-                "GTK_STOCK_LEAVE_FULLSCREEN",
-                _("_Crop"),
-                None,
-                _("Crop pages"),
-                crop_dialog,
-            ],
-            [
-                "CropSelection",
-                "crop",
-                _("_Crop"),
-                None,
-                _("Crop selection"),
-                crop_selection,
-            ],
-            [
-                "unpaper",
-                None,
-                _("_Clean up"),
-                None,
-                _("Clean up scanned images with unpaper"),
-                unpaper,
-            ],
-            [
-                "split",
-                None,
-                _("_Split"),
-                None,
-                _("Split pages horizontally or vertically"),
-                split_dialog,
-            ],
-            [
-                "OCR",
-                None,
-                _("_OCR"),
-                None,
-                _("Optical Character Recognition"),
-                ocr_dialog,
-            ],
-            [
-                "User-defined",
-                None,
-                _("U_ser-defined"),
-                None,
-                _("Process images with user-defined tool"),
-                user_defined_dialog,
-            ],  # Help menu
-            ["Help menu", None, _("_Help")],
-            ["Help", "gtk-help", _("_Help"), "<control>h", _("Help"), view_html],
-            ["About", "gtk-about", _("_About"), None, _("_About"), about],
-        ]
-        image_tools = [
-            [
-                "DraggerTool",
-                "hand-tool",
-                _("_Pan"),
-                None,
-                _("Use the pan tool"),
-                DRAGGER_TOOL,
-            ],
-            [
-                "SelectorTool",
-                "selection",
-                _("_Select"),
-                None,
-                _("Use the rectangular selection tool"),
-                SELECTOR_TOOL,
-            ],
-            [
-                "SelectorDraggerTool",
-                "gtk-media-play",
-                _("_Select & pan"),
-                None,
-                _("Use the combined select and pan tool"),
-                SELECTORDRAGGER_TOOL,
-            ],
-        ]
-        viewer_tools = [
-            [
-                "Tabbed",
-                None,
-                _("_Tabbed"),
-                None,
-                _("Arrange image and OCR viewers in tabs"),
-                TABBED_VIEW,
-            ],
-            [
-                "SplitH",
-                None,
-                _("_Split horizontally"),
-                None,
-                _("Arrange image and OCR viewers in horizontally split screen"),
-                SPLIT_VIEW_H,
-            ],
-            [
-                "SplitV",
-                None,
-                _("_Split vertically"),
-                None,
-                _("Arrange image and OCR viewers in vertically split screen"),
-                SPLIT_VIEW_V,
-            ],
-        ]
-        ocr_tools = [
-            [
-                "Edit text layer",
-                "gtk-edit",
-                _("Edit text layer"),
-                None,
-                _("Show editing tools for text layer"),
-                EDIT_TEXT,
-            ],
-            [
-                "Edit annotations",
-                "gtk-paste",
-                _("Edit annotations"),
-                None,
-                _("Show editing tools for annotations"),
-                EDIT_ANNOTATION,
-            ],
-        ]
-        ui = """<ui>
-    <menubar name='MenuBar'>
-    <menu action='File'>
-    <menuitem action='New'/>
-    <menuitem action='Open'/>
-    <menuitem action='Open crashed session'/>
-    <menuitem action='Scan'/>
-    <menuitem action='Save'/>
-    <menuitem action='Email as PDF'/>
-    <menuitem action='Print'/>
-    <separator/>
-    <menuitem action='Compress'/>
-    <separator/>
-    <menuitem action='Quit'/>
-    </menu>
-    <menu action='Edit'>
-    <menuitem action='Undo'/>
-    <menuitem action='Redo'/>
-    <separator/>
-    <menuitem action='Cut'/>
-    <menuitem action='Copy'/>
-    <menuitem action='Paste'/>
-    <menuitem action='Delete'/>
-    <separator/>
-    <menuitem action='Renumber'/>
-    <menu action='Select'>
-        <menuitem action='Select All'/>
-        <menuitem action='Select Odd'/>
-        <menuitem action='Select Even'/>
-        <menuitem action='Invert selection'/>
-        <menuitem action='Select Blank'/>
-        <menuitem action='Select Dark'/>
-        <menuitem action='Select Modified'/>
-        <menuitem action='Select No OCR'/>
-    </menu>
-    <menuitem action='Clear OCR'/>
-    <separator/>
-    <menuitem action='Properties'/>
-    <separator/>
-    <menuitem action='Preferences'/>
-    </menu>
-    <menu action='View'>
-    <menuitem action='DraggerTool'/>
-    <menuitem action='SelectorTool'/>
-    <menuitem action='SelectorDraggerTool'/>
-    <separator/>
-    <menuitem action='Tabbed'/>
-    <menuitem action='SplitH'/>
-    <menuitem action='SplitV'/>
-    <separator/>
-    <menuitem action='Zoom 100'/>
-    <menuitem action='Zoom to fit'/>
-    <menuitem action='Zoom in'/>
-    <menuitem action='Zoom out'/>
-    <separator/>
-    <menuitem action='Rotate 90'/>
-    <menuitem action='Rotate 180'/>
-    <menuitem action='Rotate 270'/>
-    <separator/>
-    <menuitem action='Edit text layer'/>
-    <menuitem action='Edit annotations'/>
-    </menu>
-    <menu action='Tools'>
-    <menuitem action='Threshold'/>
-    <menuitem action='BrightnessContrast'/>
-    <menuitem action='Negate'/>
-    <menuitem action='Unsharp'/>
-    <menuitem action='CropDialog'/>
-    <separator/>
-    <menuitem action='split'/>
-    <menuitem action='unpaper'/>
-    <menuitem action='OCR'/>
-    <separator/>
-    <menuitem action='User-defined'/>
-    </menu>
-    <menu action='Help menu'>
-    <menuitem action='Help'/>
-    <menuitem action='About'/>
-    </menu>
-    </menubar>
-    <toolbar name='ToolBar'>
-    <toolitem action='New'/>
-    <toolitem action='Open'/>
-    <toolitem action='Scan'/>
-    <toolitem action='Save'/>
-    <toolitem action='Email as PDF'/>
-    <toolitem action='Print'/>
-    <separator/>
-    <toolitem action='Undo'/>
-    <toolitem action='Redo'/>
-    <separator/>
-    <toolitem action='Cut'/>
-    <toolitem action='Copy'/>
-    <toolitem action='Paste'/>
-    <toolitem action='Delete'/>
-    <separator/>
-    <toolitem action='Renumber'/>
-    <toolitem action='Select All'/>
-    <separator/>
-    <toolitem action='DraggerTool'/>
-    <toolitem action='SelectorTool'/>
-    <toolitem action='SelectorDraggerTool'/>
-    <separator/>
-    <toolitem action='Zoom 100'/>
-    <toolitem action='Zoom to fit'/>
-    <toolitem action='Zoom in'/>
-    <toolitem action='Zoom out'/>
-    <separator/>
-    <toolitem action='Rotate 90'/>
-    <toolitem action='Rotate 180'/>
-    <toolitem action='Rotate 270'/>
-    <separator/>
-    <toolitem action='Edit text layer'/>
-    <toolitem action='Edit annotations'/>
-    <separator/>
-    <toolitem action='CropSelection'/>
-    <separator/>
-    <toolitem action='Help'/>
-    <toolitem action='Quit'/>
-    </toolbar>
-    <popup name='Detail_Popup'>
-    <menuitem action='DraggerTool'/>
-    <menuitem action='SelectorTool'/>
-    <menuitem action='SelectorDraggerTool'/>
-    <separator/>
-    <menuitem action='Zoom 100'/>
-    <menuitem action='Zoom to fit'/>
-    <menuitem action='Zoom in'/>
-    <menuitem action='Zoom out'/>
-    <separator/>
-    <menuitem action='Rotate 90'/>
-    <menuitem action='Rotate 180'/>
-    <menuitem action='Rotate 270'/>
-    <separator/>
-    <menuitem action='Edit text layer'/>
-    <menuitem action='Edit annotations'/>
-    <separator/>
-    <menuitem action='CropSelection'/>
-    <separator/>
-    <menuitem action='Cut'/>
-    <menuitem action='Copy'/>
-    <menuitem action='Paste'/>
-    <menuitem action='Delete'/>
-    <separator/>
-    <menuitem action='Properties'/>
-    </popup>
-    <popup name='Thumb_Popup'>
-    <menuitem action='Save'/>
-    <menuitem action='Email as PDF'/>
-    <menuitem action='Print'/>
-    <separator/>
-    <menuitem action='Renumber'/>
-    <menuitem action='Select All'/>
-    <menuitem action='Select Odd'/>
-    <menuitem action='Select Even'/>
-    <menuitem action='Invert selection'/>
-    <separator/>
-    <menuitem action='Rotate 90'/>
-    <menuitem action='Rotate 180'/>
-    <menuitem action='Rotate 270'/>
-    <separator/>
-    <menuitem action='CropSelection'/>
-    <separator/>
-    <menuitem action='Cut'/>
-    <menuitem action='Copy'/>
-    <menuitem action='Paste'/>
-    <menuitem action='Delete'/>
-    <separator/>
-    <menuitem action='Clear OCR'/>
-    <separator/>
-    <menuitem action='Properties'/>
-    </popup>
-    </ui>
-    """
-
-        # Create the basic Gtk.ActionGroup instance
-        # and fill it with Gtk.Action instances
-        # actions_basic = Gtk.ActionGroup('actions_basic')
-        # actions_basic.add_actions( action_items, None )
-        # actions_basic.add_radio_actions( image_tools,
-        #     SETTING["image_control_tool"],
-        #     change_image_tool_cb )
-        # actions_basic.add_radio_actions( viewer_tools, SETTING["viewer_tools"],
-        #     change_view_cb )
-        # actions_basic.add_radio_actions( ocr_tools, EDIT_TEXT,
-        #     edit_tools_callback )
-
-        # Add the actiongroup to the uimanager
-        # uimanager.insert_action_group( actions_basic, 0 )
-
-        # add the basic XML description of the GUI
-        # uimanager.add_ui_from_string(ui)
-
-        # extract the menubar
-        # menubar = uimanager.get_widget('/MenuBar')
 
         # Check for presence of various packages
         check_dependencies()
