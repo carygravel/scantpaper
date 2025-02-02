@@ -3,7 +3,7 @@
 # TODO:
 # fix AttributeError after a page has been scanned
 # lint
-# fix progress bar
+# fix progress bar, including during scan
 # restore last used scan settings
 # use pathlib for all paths
 # persist data with sqlite
@@ -346,6 +346,7 @@ def pack_viewer_tools():
 
 
 def parse_arguments():
+    "parse command line arguments"
     parser = argparse.ArgumentParser(
         prog=prog_name, description="What the program does"
     )
@@ -405,7 +406,7 @@ def parse_arguments():
 
 
 def read_config():
-
+    "Read the configuration file"
     # config files: XDG_CONFIG_HOME/gscan2pdfrc or HOME/.config/gscan2pdfrc
     rcdir = (
         os.environ["XDG_CONFIG_HOME"]
@@ -620,6 +621,7 @@ def update_uimanager():
 
 
 def selection_changed_callback(_selection):
+    "Handle selection change"
     global current_page
     selection = slist.get_selected_indices()
 
@@ -644,7 +646,7 @@ def selection_changed_callback(_selection):
 
 
 def drag_motion_callback(tree, context, x, y, t):
-
+    "Handle drag motion"
     try:
         path, how = tree.get_dest_row_at_pos(x, y)
     except:
@@ -675,6 +677,7 @@ def drag_motion_callback(tree, context, x, y, t):
 
 
 def create_temp_directory():
+    "Create a temporary directory for the session"
     global session
     global tmpdir
     tmpdir = get_tmp_dir(SETTING["TMPDIR"], r"gscan2pdf-\w\w\w\w")
@@ -885,6 +888,7 @@ def display_image(page):
 
 
 def create_txt_canvas(page, finished_callback=None):
+    "Create the text canvas"
     offset = view.get_offset()
     canvas.set_text(
         page=page,
@@ -899,6 +903,7 @@ def create_txt_canvas(page, finished_callback=None):
 
 
 def create_ann_canvas(page, finished_callback):
+    "Create the annotation canvas"
     offset = view.get_offset()
     a_canvas.set_text(page, "annotations", edit_annotation, True, finished_callback)
     a_canvas.set_scale(view.get_zoom())
@@ -907,7 +912,7 @@ def create_ann_canvas(page, finished_callback):
 
 
 def edit_tools_callback(action, current):
-
+    "Show/hide the edit tools"
     logger.debug(
         f"in edit_tools_callback with {action}, {current} "
         + current.get_current_value()
@@ -923,6 +928,7 @@ def edit_tools_callback(action, current):
 
 
 def edit_ocr_text(widget, _target, ev, bbox):
+    "Edit OCR text"
     if not ev:
         bbox = widget
 
@@ -946,6 +952,7 @@ def edit_ocr_text(widget, _target, ev, bbox):
 
 
 def edit_annotation(widget, _target, ev, bbox):
+    "Edit annotation"
     if not ev:
         bbox = widget
 
@@ -1047,6 +1054,7 @@ def add_filter(file_chooser, name, file_extensions):
 
 
 def error_callback(response):
+    "Handle errors"
     args = response.request.args
     process = response.request.process
     stage = response.type.name.lower()
@@ -1078,11 +1086,13 @@ def error_callback(response):
 
 
 def open_session_file(filename):
+    "open session"
     logger.info(f"Restoring session in {session}")
     slist.open_session_file(info=filename, error_callback=error_callback)
 
 
 def open_session_action(_action):
+    "open session"
     file_chooser = Gtk.FileChooserDialog(
         title=_("Open crashed session"),
         parent=window,
@@ -1104,6 +1114,7 @@ def open_session_action(_action):
 
 
 def open_session(sesdir):
+    "open session"
     logger.info(f"Restoring session in {session}")
     slist.open_session(dir=sesdir, delete=False, error_callback=error_callback)
 
@@ -1230,7 +1241,7 @@ def open_dialog(_action, _param):
 
 
 def import_files_password_callback(filename):
-
+    "Ask for password for encrypted PDF"
     text = _("Enter user password for PDF %s") % (filename)
     dialog = Gtk.MessageDialog(
         window,
@@ -1255,21 +1266,25 @@ def import_files_password_callback(filename):
 
 
 def import_files_started_callback(response):
+    "import_files started callback"
     logger.debug(f"started import_files({response})")
     return update_tpbar(response)
 
 
 def import_files_running_callback(response):
+    "import_files running callback"
     return update_tpbar(response)
 
 
 def import_files_finished_callback(response):
+    "import_files finished callback"
     logger.debug(f"finished import_files({response})")
     finish_tpbar(response)
     # slist.save_session()
 
 
 def import_files_metadata_callback(metadata):
+    "Update the metadata from the imported file"
     logger.debug(f"import_files_metadata_callback({metadata})")
     for dialog in (windowi, windowe):
         if dialog is not None:
@@ -1278,7 +1293,7 @@ def import_files_metadata_callback(metadata):
 
 
 def import_files(filenames, all_pages=False):
-
+    "Import given files"
     # FIXME: import_files() now returns an array of pids.
     options = {
         "paths": filenames,
@@ -1403,7 +1418,7 @@ def save_pdf(filename, option, list_of_page_uuids):
 
 
 def launch_default_for_file(filename):
-
+    "Launch default viewer for file"
     uri = GLib.filename_to_uri(os.path.abspath(filename), None)
     logger.info(f"Opening {uri} via default launcher")
     context = Gio.AppLaunchContext()
@@ -1520,6 +1535,8 @@ def list_of_page_uuids():
 
 
 def save_button_clicked_callback(kbutton, pshbutton):
+    "Save selected pages"
+
     # Compile list of pages
     SETTING["Page range"] = windowi.page_range
     uuids = list_of_page_uuids()
@@ -1845,6 +1862,7 @@ def file_chooser_response_callback(dialog, response, data):
 
 
 def file_exists(chooser, filename):
+    "Check if a file exists and prompt the user for confirmation if it does."
 
     if os.path.isfile(filename):
 
@@ -1859,6 +1877,7 @@ def file_exists(chooser, filename):
 
 
 def file_writable(chooser, filename):
+    "Check if a file or its directory is writable and show an error dialog if not."
 
     if not os.access(
         os.path.dirname(filename), os.W_OK
@@ -1888,6 +1907,7 @@ def file_writable(chooser, filename):
 
 
 def save_image(uuids):
+    "Save selected pages as image under given name."
 
     # cd back to cwd to save
     os.chdir(SETTING["cwd"])
@@ -1986,9 +2006,7 @@ def save_image(uuids):
 
 
 def save_tiff(filename, ps, uuids):
-
-    # Compile options
-
+    "Save a list of pages as a TIFF file with specified options"
     options = {
         "compression": SETTING["tiff compression"],
         "quality": SETTING["quality"],
@@ -2021,6 +2039,7 @@ def save_tiff(filename, ps, uuids):
 
 
 def save_djvu(filename, uuids):
+    "Save a list of pages as a DjVu file."
 
     # cd back to tempdir
     os.chdir(session.name)
@@ -2043,7 +2062,6 @@ def save_djvu(filename, uuids):
         mark_pages(uuids)
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(filename)
-
         logger.debug(f"Finished saving {filename}")
 
     slist.save_djvu(
@@ -2060,6 +2078,7 @@ def save_djvu(filename, uuids):
 
 
 def save_text(filename, uuids):
+    "Save OCR text"
     options = {}
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
@@ -2086,6 +2105,7 @@ def save_text(filename, uuids):
 
 
 def save_hocr(filename, uuids):
+    "Save HOCR (HTML OCR) data to a file"
     options = {}
     if SETTING["post_save_hook"]:
         options["post_save_hook"] = SETTING["current_psh"]
@@ -2340,6 +2360,7 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
 
 
 def changed_device_callback(widget, device):
+    "callback for changed device"
     # $widget is $windows
     if device != EMPTY:
         logger.info(f"signal 'changed-device' emitted with data: '{device}'")
@@ -2357,7 +2378,7 @@ def changed_device_callback(widget, device):
 
 
 def changed_device_list_callback(widget, device_list):  # $widget is $windows
-
+    "callback for changed device list"
     logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
     if len(device_list):
 
@@ -2403,6 +2424,7 @@ def changed_device_list_callback(widget, device_list):  # $widget is $windows
 
 
 def changed_side_to_scan_callback(widget, _arg):
+    "Callback function to handle the event when the side to scan is changed."
     logger.debug(f"changed_side_to_scan_callback( {widget, _arg} )")
     if len(slist.data) - 1 > EMPTY_LIST:
         widget.page_number_start = slist.data[len(slist.data) - 1][0] + 1
@@ -2427,6 +2449,7 @@ def reloaded_scan_options_callback(widget):  # widget is windows
 
 
 def changed_progress_callback(_widget, progress, message):
+    "Updates the progress bar based on the given progress value and message."
     if progress is not None and progress >= 0 and progress <= 1:
         spbar.set_fraction(progress)
     else:
@@ -2437,6 +2460,7 @@ def changed_progress_callback(_widget, progress, message):
 
 
 def import_scan_finished_callback(response):
+    "Callback function to handle the completion of a scan import process."
     logger.debug(f"import_scan_finished_callback( {response} )")
     # FIXME: response is hard-coded to None in _post_process_scan().
     # Work out how to pass number of pending requests
@@ -2447,6 +2471,7 @@ def import_scan_finished_callback(response):
 
 
 def new_scan_callback(_self, image_object, page_number, xresolution, yresolution):
+    "Callback function to handle a new scan."
     if image_object is None:
         return
 
@@ -2483,7 +2508,7 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
 
 
 def process_error_callback(widget, process, msg, signal):
-
+    "Callback function to handle process errors."
     logger.info(f"signal 'process-error' emitted with data: {process} {msg}")
     if signal is not None:
         scbutton.disconnect(signal)
@@ -2568,7 +2593,6 @@ def process_error_callback(widget, process, msg, signal):
             restart()
 
         # for ignore, we do nothing
-
         return
 
     show_message_dialog(
@@ -2583,7 +2607,7 @@ def process_error_callback(widget, process, msg, signal):
 
 
 def finished_process_callback(_widget, process, button_signal=None):
-
+    "Callback function to handle the completion of a process."
     logger.debug(f"signal 'finished-process' emitted with data: {process}")
     if button_signal is not None:
         scbutton.disconnect(button_signal)
@@ -2616,6 +2640,7 @@ def finished_process_callback(_widget, process, button_signal=None):
 
 
 def restart():
+    "Restart the application"
     quit()
     os.execv(sys.executable, ["python"] + sys.argv)
 
@@ -2623,6 +2648,7 @@ def restart():
 def update_postprocessing_options_callback(
     widget, _option_name=None, _option_val=None, _uuid=None
 ):
+    "update the visibility of post-processing options based on the widget's scan options."
     # widget is windows
     options = widget.available_scan_options
     increment = widget.page_number_increment
@@ -2637,7 +2663,7 @@ def update_postprocessing_options_callback(
 
 
 def add_postprocessing_rotate(vbox):
-
+    "Adds post-processing rotation options to the given vbox."
     hboxr = Gtk.HBox()
     vbox.pack_start(hboxr, False, False, 0)
     rbutton = Gtk.CheckButton(label=_("Rotate"))
@@ -2730,7 +2756,7 @@ def add_postprocessing_rotate(vbox):
 
 
 def add_postprocessing_udt(vboxp):
-
+    "Adds a user-defined tool (UDT) post-processing option to the given VBox."
     hboxudt = Gtk.HBox()
     vboxp.pack_start(hboxudt, False, False, 0)
     udtbutton = Gtk.CheckButton(label=_("Process with user-defined tool"))
@@ -2747,7 +2773,7 @@ def add_postprocessing_udt(vboxp):
 
 
 def add_udt_combobox(hbox):
-
+    "Adds a ComboBoxText widget to the given hbox containing user-defined tools."
     toolarray = []
     for t in SETTING["user_defined_tools"]:
         toolarray.append([t, t])
@@ -2759,7 +2785,7 @@ def add_udt_combobox(hbox):
 
 
 def add_postprocessing_ocr(vbox):
-
+    "Adds post-processing OCR options to the given vbox."
     hboxo = Gtk.HBox()
     vbox.pack_start(hboxo, False, False, 0)
     obutton = Gtk.CheckButton(label=_("OCR scanned pages"))
@@ -2819,7 +2845,7 @@ def add_postprocessing_ocr(vbox):
 
 
 def add_postprocessing_options(self):
-
+    "Adds post-processing options to the dialog window."
     scwin = Gtk.ScrolledWindow()
     self.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
     scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -2839,7 +2865,6 @@ def add_postprocessing_options(self):
     if not dependencies["unpaper"]:
         ubutton.set_sensitive(False)
         ubutton.set_active(False)
-
     elif SETTING["unpaper on scan"]:
         ubutton.set_active(True)
 
@@ -3071,6 +3096,7 @@ def select_invert(_action, _param):
 
 
 def select_modified_since_ocr(_action, _param):
+    "Selects pages that have been modified since the last OCR process."
     selection = []
     for page in range(len(slist.data)):
         dirty_time = (
@@ -3846,7 +3872,7 @@ def crop_dialog(_action, _param):
 
 
 def crop_selection(_action, _param, pagelist=None):
-
+    "Crop the selected area of the specified pages."
     if not SETTING["selection"]:
         return
 
@@ -3880,7 +3906,7 @@ def crop_selection(_action, _param, pagelist=None):
 
 
 def split_dialog(_action, _param):
-    """Display page selector and on apply crop accordingly"""
+    "Display page selector and on apply crop accordingly"
 
     # Until we have a separate tool for the divider, kill the whole
     #        sub { $windowsp->hide }
@@ -4008,7 +4034,7 @@ def split_dialog(_action, _param):
 
 
 def update_view_position(direction, position, width, height):
-
+    "Updates the view's selection rectangle based on the given direction and dimensions."
     selection = Gdk.Rectangle()
     if direction == "v":
         selection.width = position
@@ -4021,6 +4047,7 @@ def update_view_position(direction, position, width, height):
 
 
 def user_defined_dialog(_action, _param):
+    "Displays a dialog for selecting and applying user-defined tools."
     global windowudt
     if windowudt is not None:
         windowudt.present()
@@ -4259,11 +4286,13 @@ def ocr_dialog(_action, _parma):
 
 
 def ocr_finished_callback(response):
+    "Callback function to be executed when OCR processing is finished."
     finish_tpbar(response)
     # slist.save_session()
 
 
 def ocr_display_callback(response):
+    "Callback function to handle the display of OCR (Optical Character Recognition) results."
     uuid = response.request.args[0]["page"].uuid
     i = slist.find_page_by_uuid(uuid)
     if i is None:
@@ -4275,7 +4304,7 @@ def ocr_display_callback(response):
 
 
 def run_ocr(engine, tesslang, threshold_flag, threshold):
-
+    "Run OCR on a set of pages"
     if engine == "tesseract":
         SETTING["ocr language"] = tesslang
 
@@ -4944,8 +4973,8 @@ def _cb_array_append(combobox_array, text):
 
 
 def update_list_user_defined_tools(vbox, combobox_array):
-    """Update list of user-defined tools"""
-    (list) = []
+    "Update list of user-defined tools"
+    tools = []
     for combobox in combobox_array:
         if combobox is not None:
             while combobox.get_num_rows() > 0:
@@ -4956,10 +4985,10 @@ def update_list_user_defined_tools(vbox, combobox_array):
             for widget in hbox.get_children():
                 if isinstance(widget, Gtk.Entry):
                     text = widget.get_text()
-                    list.append(text)
+                    tools.append(text)
                     _cb_array_append(combobox_array, text)
 
-    SETTING["user_defined_tools"] = list
+    SETTING["user_defined_tools"] = tools
     update_post_save_hooks()
     for combobox in combobox_array:
         if combobox is not None:
@@ -4996,6 +5025,7 @@ The other variable available is:
 
 
 def update_post_save_hooks():
+    "Updates the post-save hooks"
     if windowi is not None:
         if hasattr(windowi, "comboboxpsh"):
 
@@ -5016,6 +5046,7 @@ def update_post_save_hooks():
 
 
 def properties(_action, _param):
+    "Display and manage the properties dialog for setting X and Y resolution."
     global windowp
     if windowp is not None:
         windowp.present()
@@ -5152,6 +5183,7 @@ def ask_question(**kwargs):
 
 
 def show_message_dialog(**options):
+    "Displays a message dialog with the given options."
     global message_dialog
     if message_dialog is None:
         message_dialog = MultipleMessage(
@@ -5178,6 +5210,10 @@ def show_message_dialog(**options):
 
 
 def recursive_slurp(files):
+    """
+    Recursively processes a list of files and directories, logging the contents
+    of each file.
+    """
     for file in files:
         if os.path.isdir(file):
             recursive_slurp(glob.glob(f"{file}/*"))
@@ -5189,6 +5225,11 @@ def recursive_slurp(files):
 
 
 def pre_flight():
+    """
+    Pre-flight initialization function that sets up global variables,
+    captures warnings, reads configuration, logs system information,
+    and initializes various components.
+    """
     global args
     global rc
     global SETTING
@@ -5240,43 +5281,53 @@ def pre_flight():
 
 
 def quitapp(_action, _param):
+    "Handle the quit action for the application."
     if quit():
         app.quit()
 
 
 def select_odd(_action, _param):
+    "Selects odd-numbered pages"
     select_odd_even(0)
 
 
 def select_even(_action, _param):
+    "Selects even-numbered pages"
     select_odd_even(1)
 
 
 def zoom_100(_action, _param):
+    "Sets the zoom level of the view to 100%."
     view.set_zoom(1.0)
 
 
 def zoom_to_fit(_action, _param):
+    "Adjusts the view to fit the content within the visible area."
     view.zoom_to_fit()
 
 
 def zoom_in(_action, _param):
+    "Zooms in the current view"
     view.zoom_in()
 
 
 def zoom_out(_action, _param):
+    "Zooms out the current view"
     view.zoom_out()
 
 
 def rotate_90(_action, _param):
+    "Rotates the selected pages by 90 degrees"
     rotate(_90_DEGREES, indices2pages(slist.get_selected_indices()))
 
 
 def rotate_180(_action, _param):
+    "Rotates the selected pages by 180 degrees"
     rotate(_180_DEGREES, indices2pages(slist.get_selected_indices()))
 
 
 def rotate_270(_action, _param):
+    "Rotates the selected pages by 270 degrees"
     rotate(_270_DEGREES, indices2pages(slist.get_selected_indices()))
 
 
@@ -5314,11 +5365,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # app.add_window(window)
         self.populate_main_window()
 
-    def on_change_label_state(self, action, value):
-        action.set_state(value)
-        self.label.set_text(value.get_string())
-
     def on_maximize_toggle(self, action, value):
+        "Toggles the maximized state of the window"
         action.set_state(value)
         if value.get_boolean():
             self.maximize()
@@ -5326,6 +5374,30 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.unmaximize()
 
     def populate_main_window(self):
+        """
+        Populates the main window with various UI components and sets up necessary callbacks.
+
+        This method performs the following tasks:
+        - Creates the main vertical box container and adds it to the window.
+        - Sets up a SimpleList for document handling and updates its paper sizes.
+        - Creates a temporary directory for dependency checks.
+        - Creates and packs the toolbar into the main vertical box.
+        - Sets up a horizontal pane for thumbnails and detail view.
+        - Configures a scrolled window for thumbnails and connects drag and click events.
+        - Sets up a notebook and split panes for detail view and OCR output.
+        - Initializes the ImageView for detail view and connects various event callbacks.
+        - Sets up Goo.Canvas for text and annotation layers with zoom and offset change callbacks.
+        - Configures the OCR text editing interface with various buttons and their callbacks.
+        - Configures the annotation editing interface with various buttons and their callbacks.
+        - Sets up the callback for list selection to update the detail view.
+        - Connects key press events to handle delete key functionality.
+        - Sets the current working directory if defined in the config file.
+        - Initializes the Unpaper tool with specified options.
+        - Updates the UI manager and shows all components.
+        - Adds progress bars below the window.
+        - Opens the scan dialog in the background if auto-open is enabled.
+        - Handles command line options for importing files.
+        """
         global slist
         main_vbox = Gtk.VBox()
         self.add(main_vbox)
@@ -5993,98 +6065,112 @@ class Application(Gtk.Application):
     # It's a shame that we have to define these here, but I can't see a way
     # to connect the actions in a context menu in app.ui otherwise
     def on_dragger(self, _widget):
+        "Handles the event when the dragger tool is selected."
         change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "dragger"))
 
     def on_selector(self, _widget):
+        "Handles the event when the selector tool is selected."
         change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "selector"))
 
     def on_selectordragger(self, _widget):
+        "Handles the event when the selector dragger tool is selected."
         change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "selectordragger"))
 
     def on_zoom_100(self, _widget):
+        "Zooms the current page to 100%"
         zoom_100(None, None)
 
     def on_zoom_to_fit(self, _widget):
+        "Zooms the current page so that it fits the viewing pane."
         zoom_to_fit(None, None)
 
     def on_zoom_in(self, _widget):
+        "Zooms in the current page."
         zoom_in(None, None)
 
     def on_zoom_out(self, _widget):
+        "Zooms out the current page."
         zoom_out(None, None)
 
     def on_rotate_90(self, _widget):
+        "Rotate the selected pages by 90 degrees."
         rotate_90(None, None)
 
     def on_rotate_180(self, _widget):
+        "Rotate the selected pages by 180 degrees."
         rotate_180(None, None)
 
     def on_rotate_270(self, _widget):
+        "Rotate the selected pages by 270 degrees."
         rotate_270(None, None)
 
     def on_save(self, _widget):
+        "Displays the save dialog."
         save_dialog(None, None)
 
     def on_email(self, _widget):
+        "displays the email dialog."
         email(None, None)
 
     def on_print(self, _widget):
+        "displays the print dialog."
         print_dialog(None, None)
 
     def on_renumber(self, _widget):
+        "Displays the renumber dialog."
         renumber_dialog(None, None)
 
     def on_select_all(self, _widget):
+        "selects all pages."
         select_all(None, None)
 
     def on_select_odd(self, _widget):
+        "selects the pages with odd numbers."
         select_odd_even(0)
 
     def on_select_even(self, _widget):
+        "selects the pages with even numbers."
         select_odd_even(1)
 
     def on_invert_selection(self, _widget):
+        "Inverts the current selection."
         select_invert(None, None)
 
     def on_crop(self, _widget):
+        "Displays the crop dialog."
         crop_selection(None, None)
 
     def on_cut(self, _widget):
+        "cuts the selected pages to the clipboard."
         cut_selection(None, None)
 
     def on_copy(self, _widget):
+        "copies the selected pages to the clipboard."
         copy_selection(None, None)
 
     def on_paste(self, _widget):
+        "pastes the copied pages."
         paste_selection(None, None)
 
     def on_delete(self, _widget):
+        "deletes the selected pages."
         delete_selection(None, None)
 
     def on_clear_ocr(self, _widget):
+        "Clears the OCR (Optical Character Recognition) data."
         clear_ocr(None, None)
 
     def on_properties(self, _widget):
+        "displays the properties dialog."
         properties(None, None)
 
-    # def do_command_line(self, command_line):
-    #     options = command_line.get_options_dict()
-
-    #     # convert GVariantDict -> GVariant -> dict
-    #     options = options.end().unpack()
-
-    #     if "test" in options:
-    #         # This is printed on the main instance
-    #         print("Test argument recieved: %s" % options["test"])
-
-    #     self.activate()
-    #     return 0
-
     def on_about(self, _action, _param):
+        "displays the about dialog."
         about_dialog = Gtk.AboutDialog(transient_for=self.window, modal=True)
         about_dialog.present()
 
     def on_quit(self, _action, _param):
+        "Handles the quit action."
         self.quit()
 
 
