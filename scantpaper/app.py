@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+"main application"
 
 # TODO:
 # fix AttributeError after a page has been scanned
@@ -5332,6 +5332,8 @@ def rotate_270(_action, _param):
 
 
 class ApplicationWindow(Gtk.ApplicationWindow):
+    "ApplicationWindow class"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -5926,6 +5928,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
 
 class Application(Gtk.Application):
+    "Application class"
 
     def __init__(self, *args, **kwargs):
         super().__init__(
