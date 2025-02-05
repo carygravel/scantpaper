@@ -387,10 +387,10 @@ def parse_arguments():
     #         subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0
     #     except:
     #         raise _('Error displaying help'), "\n"
-    logger.info(f"Starting {prog_name} {VERSION}")
+    logger.info("Starting %s %s", prog_name, VERSION)
     orig_args = [sys.executable] + sys.argv
-    logger.info("Called with " + SPACE.join(orig_args))
-    logger.info(f"Log level {args.log_level}")
+    logger.info("Called with %s", SPACE.join(orig_args))
+    logger.info("Log level %s", args.log_level)
     if args.locale is None:
         gettext.bindtextdomain(f"{prog_name}")
     else:
@@ -427,11 +427,13 @@ def check_dependencies():
     dependencies["tesserocr"] = tesserocr.__version__
     if dependencies["tesseract"]:
         logger.info(
-            f"Found tesserocr {dependencies['tesserocr']}, {dependencies['tesseract']}"
+            "Found tesserocr %s, %s",
+            dependencies["tesserocr"],
+            dependencies["tesseract"],
         )
     dependencies["unpaper"] = Unpaper().program_version()
     if dependencies["unpaper"]:
-        logger.info(f"Found unpaper {dependencies['unpaper']}")
+        logger.info("Found unpaper %s", dependencies["unpaper"])
 
     dependency_rules = [
         [
@@ -477,7 +479,7 @@ def check_dependencies():
             dependencies["imagemagick"] = dependencies["graphicsmagick"]
 
         if dependencies[name]:
-            logger.info(f"Found {name} {dependencies[name]}")
+            logger.info("Found %s %s", name, dependencies[name])
             if name == "pdftk":
 
                 # Don't create PDF  directly with imagemagick, as
@@ -702,14 +704,15 @@ def create_temp_directory():
             raise "Cannot open lockfile\n"
         fcntl.lockf(lockfh, fcntl.LOCK_EX)  # raise "Cannot lock file\n"
         slist.save_session()
-        logger.info(f"Using {session.name} for temporary files")
+        logger.info("Using %s for temporary files", session.name)
         tmpdir = os.path.dirname(session.name)
         if "TMPDIR" in SETTING and SETTING["TMPDIR"] != tmpdir:
             logger.warning(
                 _(
                     "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-                )
-                % (SETTING["TMPDIR"], tmpdir)
+                ),
+                SETTING["TMPDIR"],
+                tmpdir,
             )
             SETTING["TMPDIR"] = tmpdir
 
@@ -719,7 +722,7 @@ def find_crashed_sessions(tmpdir):
     if tmpdir is None or tmpdir == EMPTY:
         tmpdir = tempfile.gettempdir()
 
-    logger.info(f"Checking {tmpdir} for crashed sessions")
+    logger.info("Checking %s for crashed sessions", tmpdir)
     sessions = glob.glob(os.path.join(tmpdir, "gscan2pdf-????"))
     crashed, selected = [], []
 
@@ -739,7 +742,7 @@ def find_crashed_sessions(tmpdir):
             lockfh.close()
 
         except:
-            logger.warning(f"Error closing {lockfh} ({ERRNO})")
+            logger.warning("Error closing %s (%s)", lockfh, ERRNO)
 
     # Flag those with no session file
     missing = []
@@ -749,7 +752,7 @@ def find_crashed_sessions(tmpdir):
             del crashed[i]
 
     if missing:
-        logger.info("Unrestorable sessions: " + SPACE.join(missing))
+        logger.info("Unrestorable sessions: %s", SPACE.join(missing))
         dialog = Gtk.Dialog(
             title=_("Crashed sessions"),
             transient_for=window,
@@ -788,7 +791,7 @@ def find_crashed_sessions(tmpdir):
             selected = sessionlist.get_selected_indices()
             for i, _v in enumerate(selected):
                 selected[i] = missing[i]
-            logger.info("Selected for deletion: " + SPACE.join(selected))
+            logger.info("Selected for deletion: %s", SPACE.join(selected))
             if selected:
                 remove_tree(selected)
 
@@ -873,7 +876,7 @@ def display_image(page):
     if current_page.text_layer is not None:
         bbox = Bboxtree(current_page.text_layer)
         if not bbox.valid():
-            logger.error(f"deleting corrupt text layer: {current_page.text_layer}")
+            logger.error("deleting corrupt text layer: %s", current_page.text_layer)
             current_page.text_layer = None
 
     if current_page.text_layer:
@@ -1073,7 +1076,9 @@ def error_callback(response):
         "page": page,
     }
 
-    logger.error(f"Error running '{stage}' callback for '{process}' process: {message}")
+    logger.error(
+        "Error running '%s' callback for '%s' process: %s", stage, process, message
+    )
 
     def show_message_dialog_wrapper():
         """Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
@@ -1087,7 +1092,7 @@ def error_callback(response):
 
 def open_session_file(filename):
     "open session"
-    logger.info(f"Restoring session in {session}")
+    logger.info("Restoring session in %s", session)
     slist.open_session_file(info=filename, error_callback=error_callback)
 
 
@@ -1115,13 +1120,13 @@ def open_session_action(_action):
 
 def open_session(sesdir):
     "open session"
-    logger.info(f"Restoring session in {session}")
+    logger.info("Restoring session in %s", session)
     slist.open_session(dir=sesdir, delete=False, error_callback=error_callback)
 
 
 def setup_tpbar(response):  # , pid
     "Helper function to set up thread progress bar"
-    logger.debug(f"setup_tpbar( {response} )")
+    logger.debug("setup_tpbar( %s )", response)
     pid = None
     process_name, num_completed, total = (
         response.request.process,
@@ -1265,27 +1270,16 @@ def import_files_password_callback(filename):
     return None
 
 
-def import_files_started_callback(response):
-    "import_files started callback"
-    logger.debug(f"started import_files({response})")
-    return update_tpbar(response)
-
-
-def import_files_running_callback(response):
-    "import_files running callback"
-    return update_tpbar(response)
-
-
 def import_files_finished_callback(response):
     "import_files finished callback"
-    logger.debug(f"finished import_files({response})")
+    logger.debug("finished import_files(%s)", response)
     finish_tpbar(response)
     # slist.save_session()
 
 
 def import_files_metadata_callback(metadata):
     "Update the metadata from the imported file"
-    logger.debug(f"import_files_metadata_callback({metadata})")
+    logger.debug("import_files_metadata_callback(%s)", metadata)
     for dialog in (windowi, windowe):
         if dialog is not None:
             dialog.update_from_import_metadata(metadata)
@@ -1386,7 +1380,7 @@ def save_pdf(filename, option, list_of_page_uuids):
         options["post_save_hook"] = SETTING["current_psh"]
 
     # Create the PDF
-    logger.debug(f"Started saving {filename}")
+    logger.debug("Started saving %s", filename)
     signal = None
 
     def save_pdf_finished_callback(response):
@@ -1402,7 +1396,7 @@ def save_pdf(filename, option, list_of_page_uuids):
             else:
                 launch_default_for_file(filename)
 
-        logger.debug(f"Finished saving {filename}")
+        logger.debug("Finished saving %s", filename)
 
     slist.save_pdf(
         path=filename,
@@ -1420,12 +1414,12 @@ def save_pdf(filename, option, list_of_page_uuids):
 def launch_default_for_file(filename):
     "Launch default viewer for file"
     uri = GLib.filename_to_uri(os.path.abspath(filename), None)
-    logger.info(f"Opening {uri} via default launcher")
+    logger.info("Opening %s via default launcher", uri)
     context = Gio.AppLaunchContext()
     try:
         Gio.AppInfo.launch_default_for_uri(uri, context)
     except Exception as e:
-        logger.error(f"Unable to launch viewer: {e}")
+        logger.error("Unable to launch viewer: %s", e)
     return
 
 
@@ -1744,7 +1738,7 @@ def save_button_clicked_callback(kbutton, pshbutton):
 
     elif SETTING["image type"] == "ps":
         SETTING["ps_backend"] = windowi.ps_backend
-        logger.info(f"Selected '{SETTING['ps_backend']}' as ps backend")
+        logger.info("Selected '%s' as ps backend", SETTING["ps_backend"])
 
         # cd back to cwd to save
         os.chdir(SETTING["cwd"])
@@ -1814,7 +1808,7 @@ def file_chooser_response_callback(dialog, response, data):
         suffix = "pdf"
     if response == Gtk.ResponseType.OK:
         filename = dialog.get_filename()
-        logger.debug(f"FileChooserDialog returned {filename}")
+        logger.debug("FileChooserDialog returned %s", filename)
         if not re.search(
             rf"[.]{suffix}$",
             filename,
@@ -1968,7 +1962,7 @@ def save_image(uuids):
                 return
 
         # Create the image
-        logger.debug(f"Started saving {filename}")
+        logger.debug("Started saving %s", filename)
         signal = None
 
         def save_image_finished_callback(response):
@@ -1988,7 +1982,7 @@ def save_image(uuids):
                 else:
                     launch_default_for_file(filename)
 
-            logger.debug(f"Finished saving {filename}")
+            logger.debug("Finished saving %s", filename)
 
         slist.save_image(
             path=filename,
@@ -2024,7 +2018,7 @@ def save_tiff(filename, ps, uuids):
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(file)
 
-        logger.debug(f"Finished saving {file}")
+        logger.debug("Finished saving %s", file)
 
     slist.save_tiff(
         path=filename,
@@ -2045,7 +2039,7 @@ def save_djvu(filename, uuids):
     os.chdir(session.name)
 
     # Create the DjVu
-    logger.debug(f"Started saving {filename}")
+    logger.debug("Started saving %s", filename)
     options = {
         "set_timestamp": SETTING["set_timestamp"],
         "convert whitespace to underscores": SETTING[
@@ -2062,7 +2056,7 @@ def save_djvu(filename, uuids):
         mark_pages(uuids)
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(filename)
-        logger.debug(f"Finished saving {filename}")
+        logger.debug("Finished saving %s", filename)
 
     slist.save_djvu(
         path=filename,
@@ -2090,7 +2084,7 @@ def save_text(filename, uuids):
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(filename)
 
-        logger.debug(f"Finished saving {filename}")
+        logger.debug("Finished saving %s", filename)
 
     slist.save_text(
         path=filename,
@@ -2116,7 +2110,7 @@ def save_hocr(filename, uuids):
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(filename)
 
-        logger.debug(f"Finished saving {filename}")
+        logger.debug("Finished saving %s", filename)
 
     slist.save_hocr(
         path=filename,
@@ -2291,11 +2285,11 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
     signal = None
 
     def started_progress_callback(_widget, message):
-        nonlocal signal
-        logger.debug(f"signal 'started-process' emitted with message: {message}")
+        logger.debug("'started-process' emitted with message: %s", message)
         spbar.set_fraction(0)
         spbar.set_text(message)
         shbox.show_all()
+        nonlocal signal
         signal = scbutton.connect("clicked", windows.cancel_scan)
 
     windows.connect("started-process", started_progress_callback)
@@ -2363,7 +2357,7 @@ def changed_device_callback(widget, device):
     "callback for changed device"
     # $widget is $windows
     if device != EMPTY:
-        logger.info(f"signal 'changed-device' emitted with data: '{device}'")
+        logger.info("signal 'changed-device' emitted with data: '%s'", device)
         SETTING["device"] = device
 
         # Can't set the profile until the options have been loaded. This
@@ -2372,7 +2366,6 @@ def changed_device_callback(widget, device):
         widget.reloaded_signal = widget.connect(
             "reloaded-scan-options", reloaded_scan_options_callback
         )
-
     else:
         logger.info("signal 'changed-device' emitted with data: undef")
 
@@ -2395,7 +2388,7 @@ def changed_device_list_callback(widget, device_list):  # $widget is $windows
                     SETTING["device blacklist"],
                     re.MULTILINE | re.DOTALL | re.VERBOSE,
                 ):
-                    logger.info(f"Blacklisting device {device_list[i].name}")
+                    logger.info("Blacklisting device %s", device_list[i].name)
                     del device_list[i]
 
                 else:
@@ -2425,7 +2418,7 @@ def changed_device_list_callback(widget, device_list):  # $widget is $windows
 
 def changed_side_to_scan_callback(widget, _arg):
     "Callback function to handle the event when the side to scan is changed."
-    logger.debug(f"changed_side_to_scan_callback( {widget, _arg} )")
+    logger.debug("changed_side_to_scan_callback( %s, %s )", widget, _arg)
     if len(slist.data) - 1 > EMPTY_LIST:
         widget.page_number_start = slist.data[len(slist.data) - 1][0] + 1
     else:
@@ -2461,7 +2454,7 @@ def changed_progress_callback(_widget, progress, message):
 
 def import_scan_finished_callback(response):
     "Callback function to handle the completion of a scan import process."
-    logger.debug(f"import_scan_finished_callback( {response} )")
+    logger.debug("import_scan_finished_callback( %s )", response)
     # FIXME: response is hard-coded to None in _post_process_scan().
     # Work out how to pass number of pending requests
     # We have two threads, the scan thread, and the document thread.
@@ -2502,14 +2495,14 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
     if SETTING["udt_on_scan"]:
         options["udt"] = SETTING["current_udt"]
 
-    logger.info(f"Importing scan with resolution={xresolution},{yresolution}")
+    logger.info("Importing scan with resolution=%s,%s", xresolution, yresolution)
 
     slist.import_scan(**options)
 
 
 def process_error_callback(widget, process, msg, signal):
     "Callback function to handle process errors."
-    logger.info(f"signal 'process-error' emitted with data: {process} {msg}")
+    logger.info("signal 'process-error' emitted with data: %s %s", process, msg)
     if signal is not None:
         scbutton.disconnect(signal)
 
@@ -2608,7 +2601,7 @@ def process_error_callback(widget, process, msg, signal):
 
 def finished_process_callback(_widget, process, button_signal=None):
     "Callback function to handle the completion of a process."
-    logger.debug(f"signal 'finished-process' emitted with data: {process}")
+    logger.debug("signal 'finished-process' emitted with data: %s", process)
     if button_signal is not None:
         scbutton.disconnect(button_signal)
 
@@ -2919,29 +2912,29 @@ def add_postprocessing_options(self):
                 else:
                     SETTING["rotate reverse"] = comboboxr2.get_active_index()
 
-        logger.info(f"rotate facing {SETTING['rotate facing']}")
-        logger.info(f"rotate reverse {SETTING['rotate reverse']}")
+        logger.info("rotate facing %s", SETTING["rotate facing"])
+        logger.info("rotate reverse %s", SETTING["rotate reverse"])
         SETTING["unpaper on scan"] = ubutton.get_active()
-        logger.info(f"unpaper {SETTING['unpaper on scan']}")
+        logger.info("unpaper %s", SETTING["unpaper on scan"])
         SETTING["udt_on_scan"] = udtbutton.get_active()
         SETTING["current_udt"] = self.comboboxudt.get_active_text()
-        logger.info(f"UDT {SETTING['udt_on_scan']}")
+        logger.info("UDT %s", SETTING["udt_on_scan"])
         if "current_udt" in SETTING:
-            logger.info(f"Current UDT {SETTING['current_udt']}")
+            logger.info("Current UDT %s", SETTING["current_udt"])
 
         SETTING["OCR on scan"] = obutton.get_active()
-        logger.info(f"OCR {SETTING['OCR on scan']}")
+        logger.info("OCR %s", SETTING["OCR on scan"])
         if SETTING["OCR on scan"]:
             SETTING["ocr engine"] = comboboxe.get_active_index()
             if SETTING["ocr engine"] is None:
                 SETTING["ocr engine"] = ocr_engine[0][0]
-            logger.info(f"ocr engine {SETTING['ocr engine']}")
+            logger.info("ocr engine %s", SETTING["ocr engine"])
             if SETTING["ocr engine"] == "tesseract":
                 SETTING["ocr language"] = comboboxtl.get_active_index()
-                logger.info(f"ocr language {SETTING['ocr language']}")
+                logger.info("ocr language %s", SETTING["ocr language"])
 
             SETTING["threshold-before-ocr"] = tbutton.get_active()
-            logger.info(f"threshold-before-ocr {SETTING['threshold-before-ocr']}")
+            logger.info("threshold-before-ocr %s", SETTING["threshold-before-ocr"])
             SETTING["threshold tool"] = tsb.get_value()
 
     self.connect("clicked-scan-button", clicked_scan_button_cb)
@@ -3162,13 +3155,14 @@ def select_blank_pages():
         ):
             slist.select(page)
             logger.info("Selecting blank page")
-
         else:
             slist.unselect(page)
             logger.info("Unselecting non-blank page")
 
         logger.info(
-            f"StdDev: {slist.data[page][2].std_dev} threshold: {SETTING['Blank threshold']}"
+            "StdDev: %s threshold: %s",
+            slist.data[page][2].std_dev,
+            SETTING["Blank threshold"],
         )
 
 
@@ -3189,13 +3183,14 @@ def select_dark_pages():
         ):
             slist.select(page)
             logger.info("Selecting dark page")
-
         else:
             slist.unselect(page)
             logger.info("Unselecting non-dark page")
 
         logger.info(
-            f"mean: {slist.data[page][2].mean} threshold: {SETTING['Dark threshold']}"
+            "mean: %s threshold: %s",
+            slist.data[page][2].mean,
+            SETTING["Dark threshold"],
         )
 
 
@@ -3343,13 +3338,10 @@ def indices2pages(indices):
 
 def rotate(angle, pagelist):
     "Rotate selected images"
-    logger.debug(f"pagelist {pagelist}")
 
     # Update undo/redo buffers
     take_snapshot()
     for page in pagelist:
-        logger.debug(f"page {page}")
-
         slist.rotate(
             angle=angle,
             page=page,
@@ -3382,8 +3374,10 @@ def analyse(select_blank, select_dark):
         )
         if analyse_time <= dirty_time:
             logger.info(
-                f"Updating: {slist.data[i][0]} analyse_time: {analyse_time} "
-                f"dirty_time: {dirty_time}"
+                "Updating: %s analyse_time: %s dirty_time: %s",
+                slist.data[i][0],
+                analyse_time,
+                dirty_time,
             )
             pages_to_analyse.append(slist.data[i][2].uuid)
 
@@ -4386,7 +4380,7 @@ def view_html(_action, _param):
     else:
         uri = "http://gscan2pdf.sf.net"
 
-    logger.info(f"Opening {uri} via default launcher")
+    logger.info("Opening %s via default launcher", uri)
     context = Gio.AppLaunchContext()
     Gio.AppInfo.launch_default_for_uri(uri, context)
 
@@ -4394,7 +4388,6 @@ def view_html(_action, _param):
 def take_snapshot():
     "Update undo/redo buffers before doing something"
     global undo_buffer
-    logger.debug(f"take_snapshot: {undo_buffer}")
     old_undo_files = list(map(lambda x: x[2].uuid, undo_buffer))
 
     # Deep copy the tied data. Otherwise, very bad things happen.
@@ -4425,8 +4418,10 @@ def take_snapshot():
     if df:
         df = df.free / 1024 / 1024
         logger.debug(
-            f"Free space in {session.name} (Mb): {df} (warning at "
-            f"{SETTING['available-tmp-warning']})"
+            "Free space in %s (Mb): %s (warning at %s)",
+            session.name,
+            df,
+            SETTING["available-tmp-warning"],
         )
         if df < SETTING["available-tmp-warning"]:
             text = _("%dMb free in %s.") % (df, session.name)
@@ -5077,13 +5072,13 @@ def properties(_action, _param):
     label = Gtk.Label(label=_("dpi"))
     hbox.pack_end(label, False, False, 0)
     xresolution, yresolution = get_selected_properties()
-    logger.debug(f"get_selected_properties returned {xresolution},{yresolution}")
+    logger.debug("get_selected_properties returned %s,%s", xresolution, yresolution)
     xspinbutton.set_value(xresolution)
     yspinbutton.set_value(yresolution)
 
     def selection_changed_callback():
         xresolution, yresolution = get_selected_properties()
-        logger.debug(f"get_selected_properties returned {xresolution},{yresolution}")
+        logger.debug("get_selected_properties returned %s,%s", xresolution, yresolution)
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
 
@@ -5096,7 +5091,10 @@ def properties(_action, _param):
         slist.get_model().handler_block(slist.row_changed_signal)
         for i in slist.get_selected_indices():
             logger.debug(
-                f"setting resolution {xresolution},{yresolution} for page {slist.data[i][0]}"
+                "setting resolution %s,%s for page %s",
+                xresolution,
+                yresolution,
+                slist.data[i][0],
             )
             slist.data[i][2].resolution = xresolution, yresolution, "PixelsPerInch"
 
@@ -5117,7 +5115,7 @@ def get_selected_properties():
         i = page.pop(0)
         xresolution, yresolution, _units = slist.data[i][2].resolution
         logger.debug(
-            f"Page {slist.data[i][0]} has resolutions {xresolution},{yresolution}"
+            "Page %s has resolutions %s,%s", slist.data[i][0], xresolution, yresolution
         )
 
     for i in page:
@@ -5155,7 +5153,7 @@ def ask_question(**kwargs):
         buttons=kwargs["buttons"],
         text=kwargs["text"],
     )
-    logger.debug(f"Displayed MessageDialog with '{kwargs['text']}'")
+    logger.debug("Displayed MessageDialog with '%s'", kwargs["text"])
     if "store-response" in kwargs:
         cb = Gtk.CheckButton.new_with_label(_("Don't show this message again"))
         dialog.get_message_area().add(cb)
@@ -5178,7 +5176,7 @@ def ask_question(**kwargs):
         if filter:
             SETTING["message"][text]["response"] = response
 
-    logger.debug(f"Replied '{response}'")
+    logger.debug("Replied '%s'", response)
     return response
 
 
@@ -5248,16 +5246,16 @@ def pre_flight():
         SETTING["cwd"] = os.getcwd()
     SETTING["version"] = VERSION
 
-    logger.info(f"Operating system: {sys.platform}")
+    logger.info("Operating system: %s", sys.platform)
     if sys.platform == "linux":
         recursive_slurp(glob.glob("/etc/*-release"))
 
-    logger.info(f"Python version {sys.version_info}")
-    logger.info(f"GLib VERSION_MIN_REQUIRED {GLib.VERSION_MIN_REQUIRED}")
-    logger.info(f"GLib._version {GLib._version}")
-    logger.info(f"gi.__version__ {gi.__version__}")
-    logger.info(f"gi.version_info {gi.version_info}")
-    logger.info(f"Gtk._version {Gtk._version}")
+    logger.info("Python version %s", sys.version_info)
+    logger.info("GLib VERSION_MIN_REQUIRED %s", GLib.VERSION_MIN_REQUIRED)
+    logger.info("GLib._version %s", GLib._version)
+    logger.info("gi.__version__ %s", gi.__version__)
+    logger.info("gi.version_info %s", gi.version_info)
+    logger.info("Gtk._version %s", Gtk._version)
     logger.info(
         "Built for GTK %s.%s.%s",
         Gtk.MAJOR_VERSION,
@@ -5361,7 +5359,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.set_icon_from_file(f"{iconpath}/gscan2pdf.svg")
         except:
             logger.warning(
-                f"Unable to load icon `{iconpath}/gscan2pdf.svg': {EVAL_ERROR}"
+                "Unable to load icon `%s/gscan2pdf.svg': %s", iconpath, EVAL_ERROR
             )
 
         # app.add_window(window)
@@ -5649,12 +5647,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # If we don't yet have a canvas, create one
             selection = view.get_selection()
             if hasattr(current_page, "text_layer"):
-                logger.info(f"Added '{text}'")
+                logger.info("Added '%s'", text)
                 ocr_bbox = canvas.add_box(text, view.get_selection())
                 current_page.import_hocr(canvas.hocr())
                 edit_ocr_text(ocr_bbox)
             else:
-                logger.info(f"Creating new text layer with '{text}'")
+                logger.info("Creating new text layer with '%s'", text)
                 current_page.text_layer = (
                     '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
                     '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
@@ -5731,13 +5729,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 # If we don't yet have a canvas, create one
             selection = view.get_selection()
             if hasattr(current_page, "text_layer"):
-                logger.info(f"Added '{ann_textbuffer.text}'")
+                logger.info("Added '%s'", ann_textbuffer.text)
                 ann_bbox = a_canvas.add_box(text, view.get_selection())
                 current_page.import_annotations(a_canvas.hocr())
                 edit_annotation(ann_bbox)
 
             else:
-                logger.info(f"Creating new annotation canvas with '{text}'")
+                logger.info("Creating new annotation canvas with '%s'", text)
                 current_page["annotations"] = (
                     '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
                     '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
@@ -5897,8 +5895,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             lang_msg = locale_installed(lc_messages, get_tesseract_codes())
             if lang_msg == "":
                 logger.info(
-                    f"Using GUI language {lc_messages}, "
-                    "for which a tesseract language package is present"
+                    "Using GUI language %s, for which a tesseract language package is present",
+                    lc_messages,
                 )
             else:
                 logger.warning(lang_msg)
