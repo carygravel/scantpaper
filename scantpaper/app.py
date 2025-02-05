@@ -378,7 +378,7 @@ def parse_arguments():
     args = parser.parse_args()
 
     if args.log:
-        logging.basicConfig(filename=args.log, level=log_level)
+        logging.basicConfig(filename=args.log, level=args.log_level)
     else:
         logging.basicConfig(level=args.log_level)
 
@@ -397,7 +397,7 @@ def parse_arguments():
         if re.search(r"^\/", args.locale, re.MULTILINE | re.DOTALL | re.VERBOSE):
             gettext.bindtextdomain(f"{prog_name}", locale)
         else:
-            gettext.bindtextdomain(f"{prog_name}", getcwd + f"/{locale}")
+            gettext.bindtextdomain(f"{prog_name}", os.getcwd() + f"/{locale}")
     gettext.textdomain(prog_name)
 
     logger.info("Using %s locale", locale.setlocale(locale.LC_CTYPE))
@@ -732,17 +732,16 @@ def find_crashed_sessions(tmpdir):
             lockfh = open(">", os.path.join(session, "lockfile"))
             fcntl.lockf(lockfh, fcntl.LOCK_EX | fcntl.LOCK_NB)
             crashed.append(_)
-        except:
-            pass
-
-        fcntl.lockf(
-            lockfh, fcntl.LOCK_UN
-        )  # raise f"Unlocking error on {lockfh} ({ERRNO})\n"
+        except Exception as e:
+            logger.warning("Error opening lockfile %s (%s)", lockfh, str(e))
+        try:
+            fcntl.lockf(lockfh, fcntl.LOCK_UN)
+        except Exception as e:
+            logger.warning("Error locking lockfile %s (%s)", lockfh, str(e))
         try:
             lockfh.close()
-
-        except:
-            logger.warning("Error closing %s (%s)", lockfh, ERRNO)
+        except Exception as e:
+            logger.warning("Error closing lockfile %s (%s)", lockfh, str(e))
 
     # Flag those with no session file
     missing = []
@@ -793,8 +792,7 @@ def find_crashed_sessions(tmpdir):
                 selected[i] = missing[i]
             logger.info("Selected for deletion: %s", SPACE.join(selected))
             if selected:
-                remove_tree(selected)
-
+                shutil.rmtree(selected)
         else:
             logger.info("None selected")
 
@@ -5357,9 +5355,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         try:
             self.set_icon_from_file(f"{iconpath}/gscan2pdf.svg")
-        except:
+        except Exception as e:
             logger.warning(
-                "Unable to load icon `%s/gscan2pdf.svg': %s", iconpath, EVAL_ERROR
+                "Unable to load icon `%s/gscan2pdf.svg': %s", iconpath, str(e)
             )
 
         # app.add_window(window)
@@ -5796,7 +5794,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # If defined in the config file, set the current directory
         if "cwd" not in SETTING:
-            SETTING["cwd"] = getcwd
+            SETTING["cwd"] = os.getcwd()
         global unpaper
         unpaper = Unpaper(SETTING["unpaper options"])
         update_uimanager()
