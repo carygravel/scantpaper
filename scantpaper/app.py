@@ -786,7 +786,7 @@ def find_crashed_sessions(tmpdir):
         sessionlist.get_selection().connect("changed", changed_selection_callback)
         sessionlist.get_selection().select_all()
         dialog.show_all()
-        if dialog.run() == "ok":
+        if dialog.run() == Gtk.ResponseType.OK:
             selected = sessionlist.get_selected_indices()
             for i, _v in enumerate(selected):
                 selected[i] = missing[i]
@@ -814,8 +814,8 @@ def find_crashed_sessions(tmpdir):
         sessionlist.data.append(crashed)
         box.add(sessionlist)
         dialog.show_all()
-        if dialog.run() == "ok":
-            (selected) = sessionlist.get_selected_indices()
+        if dialog.run() == Gtk.ResponseType.OK:
+            selected = sessionlist.get_selected_indices()
 
         dialog.destroy()
         if selected is not None:
@@ -1104,7 +1104,7 @@ def open_session_action(_action):
     file_chooser.add_buttons(
         Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK
     )
-    file_chooser.set_default_response("ok")
+    file_chooser.set_default_response(Gtk.ResponseType.OK)
     file_chooser.set_current_folder(SETTING["cwd"])
     if file_chooser.run() == Gtk.ResponseType.OK:
 
@@ -1862,7 +1862,7 @@ def file_exists(chooser, filename):
         chooser.set_filename(filename)
 
         # Give the name change a chance to take effect
-        GLib.idle_add(lambda: chooser.response("ok"))
+        GLib.idle_add(lambda: chooser.response(Gtk.ResponseType.OK))
         return True
 
     return False
