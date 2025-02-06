@@ -2560,9 +2560,8 @@ def process_error_callback(widget, process, msg, signal):
             dialog.show_all()
             response = dialog.run()
             dialog.destroy()
-            if response != "ok" or radio4.get_active():
+            if response != Gtk.ResponseType.OK or radio4.get_active():
                 response = "ignore"
-
             elif radio1.get_active():
                 response = "reopen"
             elif radio3.get_active():
@@ -2576,10 +2575,8 @@ def process_error_callback(widget, process, msg, signal):
         windows = None  # force scan dialog to be rebuilt
         if response == "reopen":
             scan_dialog(None, None)
-
         elif response == "rescan":
-            scan_dialog(None, None, None, True)
-
+            scan_dialog(None, None, False, True)
         elif response == "restart":
             restart()
 
