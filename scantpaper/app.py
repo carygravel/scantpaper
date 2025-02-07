@@ -746,9 +746,9 @@ def find_crashed_sessions(tmpdir):
 
     # Flag those with no session file
     missing = []
-    for i in range(len(crashed)):
-        if not os.access(os.path.join(crashed[i], "session"), os.R_OK):
-            missing.append(crashed[i])
+    for i, session in enumerate(crashed):
+        if not os.access(os.path.join(session, "session"), os.R_OK):
+            missing.append(session)
             del crashed[i]
 
     if missing:
@@ -2961,8 +2961,8 @@ def print_dialog(_action, _param):
                 for i in range(r.start + 1, r.end + 1):
                     page_set.add(i)
 
-            for i in range(len(slist.data)):
-                if slist.data[i][0] in page_set:
+            for i, row in enumerate(slist.data):
+                if row[0] in page_set:
                     page_list.append(i)
         else:
             page_list = [range(len(slist.data))]
@@ -3062,8 +3062,8 @@ def select_all(_action, _param):
 def select_odd_even(odd):
     "Select all odd(0) or even(1) scans"
     selection = []
-    for i in range(len(slist.data)):
-        if slist.data[i][0] % 2 ^ odd:
+    for i, row in enumerate(slist.data):
+        if row[0] % 2 ^ odd:
             selection.append(i)
 
     slist.get_selection().unselect_all()
@@ -3106,11 +3106,8 @@ def select_modified_since_ocr(_action, _param):
 def select_no_ocr(_action, _param):
     "Select pages with no ocr output"
     selection = []
-    for i in range(len(slist.data)):
-        if (
-            not hasattr(slist.data[i][2], "text_layer")
-            or slist.data[i][2].text_layer is None
-        ):
+    for i, row in enumerate(slist.data):
+        if not hasattr(row[2], "text_layer") or row[2].text_layer is None:
             selection.append(i)
 
     slist.get_selection().unselect_all()
@@ -3138,14 +3135,11 @@ def select_blank(_action, _param):
 
 def select_blank_pages():
     "Select blank pages"
-    for page in range(len(slist.data)):
+    for page in slist.data:
 
         # compare Std Dev to threshold
         # std_dev is a list -- 1 value per channel
-        if (
-            sum(slist.data[page][2].std_dev) / len(slist.data[page][2].std_dev)
-            <= SETTING["Blank threshold"]
-        ):
+        if sum(page[2].std_dev) / len(page[2].std_dev) <= SETTING["Blank threshold"]:
             slist.select(page)
             logger.info("Selecting blank page")
         else:
@@ -3154,7 +3148,7 @@ def select_blank_pages():
 
         logger.info(
             "StdDev: %s threshold: %s",
-            slist.data[page][2].std_dev,
+            page[2].std_dev,
             SETTING["Blank threshold"],
         )
 
@@ -3166,14 +3160,11 @@ def select_dark(_action, _param):
 
 def select_dark_pages():
     "Select dark pages"
-    for page in range(len(slist.data)):
+    for page in slist.data:
 
         # compare Mean to threshold
         # mean is a list -- 1 value per channel
-        if (
-            sum(slist.data[page][2].mean) / len(slist.data[page][2].std_dev)
-            <= SETTING["Dark threshold"]
-        ):
+        if sum(page[2].mean) / len(page[2].std_dev) <= SETTING["Dark threshold"]:
             slist.select(page)
             logger.info("Selecting dark page")
         else:
@@ -3182,7 +3173,7 @@ def select_dark_pages():
 
         logger.info(
             "mean: %s threshold: %s",
-            slist.data[page][2].mean,
+            page[2].mean,
             SETTING["Dark threshold"],
         )
 
@@ -3353,8 +3344,8 @@ def analyse(select_blank, select_dark):
     # Update undo/redo buffers
     take_snapshot()
     pages_to_analyse = []
-    for i in range(len(slist.data)):
-        page = slist.data[i][2]
+    for row in slist.data:
+        page = row[2]
         dirty_time = (
             page.dirty_time
             if hasattr(page, "dirty_time")
@@ -3368,11 +3359,11 @@ def analyse(select_blank, select_dark):
         if analyse_time <= dirty_time:
             logger.info(
                 "Updating: %s analyse_time: %s dirty_time: %s",
-                slist.data[i][0],
+                row[0],
                 analyse_time,
                 dirty_time,
             )
-            pages_to_analyse.append(slist.data[i][2].uuid)
+            pages_to_analyse.append(page.uuid)
 
     if len(pages_to_analyse) > 0:
 
@@ -3632,29 +3623,29 @@ def unsharp(_action, _param):
     grid = Gtk.Grid()
     vbox = windowum.get_content_area()
     vbox.pack_start(grid, True, True, 0)
-    for row in range(len(layout)):
+    for i, row in enumerate(layout):
         col = 0
         hbox = Gtk.HBox()
-        label = Gtk.Label(label=layout[row][col])
-        grid.attach(hbox, col, row, 1, 1)
+        label = Gtk.Label(label=row[col])
+        grid.attach(hbox, col, i, 1, 1)
         col += 1
         hbox.pack_start(label, False, True, 0)
         hbox = Gtk.HBox()
-        hbox.pack_end(layout[row][col], True, True, 0)
-        grid.attach(hbox, col, row, 1, 1)
+        hbox.pack_end(row[col], True, True, 0)
+        grid.attach(hbox, col, i, 1, 1)
         col += 1
-        if col in layout[row]:
+        if col in row:
             hbox = Gtk.HBox()
-            grid.attach(hbox, col, row, 1, 1)
-            label = Gtk.Label(label=layout[row][col])
+            grid.attach(hbox, col, i, 1, 1)
+            label = Gtk.Label(label=row[col])
             hbox.pack_start(label, False, True, 0)
 
         col += 1
-        if col in layout[row]:
-            layout[row][1].set_value(layout[row][col])
+        if col in row:
+            row[1].set_value(row[col])
 
         col += 1
-        layout[row][1].set_tooltip_text(layout[row][col])
+        row[1].set_tooltip_text(row[col])
 
     def unsharp_callback():
         # HBox for buttons
@@ -3803,19 +3794,19 @@ def crop_dialog(_action, _param):
     grid = Gtk.Grid()
     vbox = windowc.get_content_area()
     vbox.pack_start(grid, True, True, 0)
-    for row in range(len(layout)):
+    for i, row in enumerate(layout):
         hbox = Gtk.HBox()
-        label = Gtk.Label(label=layout[row][0])
-        grid.attach(hbox, 1, row, 1, 1)
+        label = Gtk.Label(label=row[0])
+        grid.attach(hbox, 1, i, 1, 1)
         hbox.pack_start(label, False, True, 0)
         hbox = Gtk.HBox()
-        hbox.pack_end(layout[row][1], True, True, 0)
-        grid.attach(hbox, 2, row, 1, 1)
+        hbox.pack_end(row[1], True, True, 0)
+        grid.attach(hbox, 2, i, 1, 1)
         hbox = Gtk.HBox()
-        grid.attach(hbox, 3, row, 1, 1)
+        grid.attach(hbox, 3, i, 1, 1)
         label = Gtk.Label(label=_("pixels"))
         hbox.pack_start(label, False, True, 0)
-        layout[row][1].set_tooltip_text(layout[row][2])
+        row[1].set_tooltip_text(row[2])
 
     def sb_selector_value_changed(widget, dimension):
         if SETTING["selection"] is None:
