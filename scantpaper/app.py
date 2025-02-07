@@ -1418,7 +1418,6 @@ def launch_default_for_file(filename):
         Gio.AppInfo.launch_default_for_uri(uri, context)
     except Exception as e:
         logger.error("Unable to launch viewer: %s", e)
-    return
 
 
 def save_dialog(_action, _param):
@@ -5005,7 +5004,6 @@ The other variable available is:
     button.connect("clicked", delete_udt)
     hbox.pack_end(button, False, False, 0)
     hbox.show_all()
-    return
 
 
 def update_post_save_hooks():
