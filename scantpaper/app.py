@@ -2230,9 +2230,7 @@ def email(_action, _param):
         )
         windowe.hide()
 
-    windowe.add_actions(
-        [("gtk-ok", email_callback), ("gtk-cancel", lambda: windowe.hide())]
-    )
+    windowe.add_actions([("gtk-ok", email_callback), ("gtk-cancel", windowe.hide)])
     windowe.show_all()
 
 
@@ -2876,7 +2874,7 @@ def add_postprocessing_options(self):
         windowuo.add_actions(
             [
                 ("gtk-ok", unpaper_options_callback),
-                ("gtk-cancel", lambda: windowuo.destroy()),
+                ("gtk-cancel", windowuo.destroy),
             ]
         )
         windowuo.show_all()
@@ -3474,7 +3472,7 @@ def threshold(_action, _param):
     windowt.add_actions(
         [
             ("gtk-apply", threshold_apply_callback),
-            ("gtk-cancel", lambda: windowt.destroy()),
+            ("gtk-cancel", windowt.destroy),
         ]
     )
     windowt.show_all()
@@ -3545,7 +3543,7 @@ def brightness_contrast(_action, _param):
     windowt.add_actions(
         [
             ("gtk-apply", brightness_contrast_callback),
-            ("gtk-cancel", lambda: windowt.destroy()),
+            ("gtk-cancel", windowt.destroy),
         ]
     )
     windowt.show_all()
@@ -3586,7 +3584,7 @@ def negate(_action, _param):
             )
 
     windowt.add_actions(
-        [("gtk-apply", negate_callback), ("gtk-cancel", lambda: windowt.destroy())]
+        [("gtk-apply", negate_callback), ("gtk-cancel", windowt.destroy)]
     )
     windowt.show_all()
 
@@ -3689,7 +3687,7 @@ def unsharp(_action, _param):
             )
 
     windowum.add_actions(
-        [("gtk-apply", unsharp_callback), ("gtk-cancel", lambda: windowum.destroy())]
+        [("gtk-apply", unsharp_callback), ("gtk-cancel", windowum.destroy)]
     )
     windowum.show_all()
 
@@ -3854,9 +3852,7 @@ def crop_dialog(_action, _param):
             slist.get_page_index(SETTING["Page range"], error_callback),
         )
 
-    windowc.add_actions(
-        [("gtk-apply", crop_callback), ("gtk-cancel", lambda: windowc.hide())]
-    )
+    windowc.add_actions([("gtk-apply", crop_callback), ("gtk-cancel", windowc.hide)])
     windowc.show_all()
 
 
@@ -4069,7 +4065,7 @@ def user_defined_dialog(_action, _param):
         windowudt.hide()
 
     windowudt.add_actions(
-        [("gtk-ok", udt_apply_callback), ("gtk-cancel", lambda: windowudt.hide())]
+        [("gtk-ok", udt_apply_callback), ("gtk-cancel", windowudt.hide)]
     )
     windowudt.show_all()
 
@@ -4164,7 +4160,7 @@ def unpaper(_action, _param):
         windowu.hide()
 
     windowu.add_actions(
-        [("gtk-ok", unpaper_apply_callback), ("gtk-cancel", lambda: windowu.hide())]
+        [("gtk-ok", unpaper_apply_callback), ("gtk-cancel", windowu.hide)]
     )
     windowu.show_all()
 
@@ -4266,9 +4262,7 @@ def ocr_dialog(_action, _parma):
             spinbutton.get_value(),
         )
 
-    windowo.add_actions(
-        [("gtk-ok", ocr_apply_callback), ("gtk-cancel", lambda: windowo.hide())]
-    )
+    windowo.add_actions([("gtk-ok", ocr_apply_callback), ("gtk-cancel", windowo.hide)])
     windowo.show_all()
     if hboxtl is not None and ocr_engine[combobe.get_active()][0] != "tesseract":
         hboxtl.hide()
@@ -4640,7 +4634,7 @@ def preferences(_action, _param):
                 restart()
 
     windowr.add_actions(
-        [("gtk-ok", preferences_apply_callback), ("gtk-cancel", lambda: windowr.hide())]
+        [("gtk-ok", preferences_apply_callback), ("gtk-cancel", windowr.hide)]
     )
     windowr.show_all()
 
@@ -5096,7 +5090,7 @@ def properties(_action, _param):
         slist.get_model().handler_unblock(slist.row_changed_signal)
 
     windowp.add_actions(
-        [("gtk-ok", properties_apply_callback), ("gtk-cancel", lambda: windowp.hide())]
+        [("gtk-ok", properties_apply_callback), ("gtk-cancel", windowp.hide)]
     )
     windowp.show_all()
 
