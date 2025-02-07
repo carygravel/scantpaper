@@ -1028,7 +1028,7 @@ def new(_action, _param):
 
 def add_filter(file_chooser, name, file_extensions):
     "Create a file filter to show only supported file types in FileChooser dialog"
-    filter = Gtk.FileFilter()
+    ffilter = Gtk.FileFilter()
     for extension in file_extensions:
         pattern = []
 
@@ -1036,7 +1036,7 @@ def add_filter(file_chooser, name, file_extensions):
         for char in extension:
             pattern.append("[" + char.upper() + char.lower() + "]")
 
-        filter.add_pattern("*." + EMPTY.join(pattern))
+        ffilter.add_pattern("*." + EMPTY.join(pattern))
 
     types = None
     for ext in file_extensions:
@@ -1046,12 +1046,12 @@ def add_filter(file_chooser, name, file_extensions):
         else:
             types = f"*.{ext}"
 
-    filter.set_name(f"{name} ({types})")
-    file_chooser.add_filter(filter)
-    filter = Gtk.FileFilter()
-    filter.add_pattern("*")
-    filter.set_name("All files")
-    file_chooser.add_filter(filter)
+    ffilter.set_name(f"{name} ({types})")
+    file_chooser.add_filter(ffilter)
+    ffilter = Gtk.FileFilter()
+    ffilter.add_pattern("*")
+    ffilter.set_name("All files")
+    file_chooser.add_filter(ffilter)
 
 
 def error_callback(response):
@@ -2604,13 +2604,13 @@ def finished_process_callback(_widget, process, button_signal=None):
     if process == "scan_pages" and windows.sided == "double":
 
         def prompt_reverse_sides():
-            (message, next) = (None, None)
+            message, side = None, None
             if windows.side_to_scan == "facing":
                 message = _("Finished scanning facing pages. Scan reverse pages?")
-                next = "reverse"
+                side = "reverse"
             else:
                 message = _("Finished scanning reverse pages. Scan facing pages?")
-                next = "facing"
+                side = "facing"
 
             response = ask_question(
                 parent=windows,
@@ -2622,14 +2622,14 @@ def finished_process_callback(_widget, process, button_signal=None):
                 stored_responses=[Gtk.ResponseType.OK],
             )
             if response == Gtk.ResponseType.OK:
-                windows.side_to_scan = next
+                windows.side_to_scan = side
 
         GLib.idle_add(prompt_reverse_sides)
 
 
 def restart():
     "Restart the application"
-    quit()
+    ask_quit()
     os.execv(sys.executable, ["python"] + sys.argv)
 
 
@@ -4326,7 +4326,7 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
     windowo.hide()
 
 
-def quit():
+def ask_quit():
     "Remove temporary files, note window state, save settings and quit."
     if not scans_saved(
         _("Some pages have not been saved.\nDo you really want to quit?")
@@ -5160,15 +5160,15 @@ def ask_question(**kwargs):
     response = dialog.run()
     dialog.destroy()
     if "store-response" in kwargs and cb.get_active():
-        filter = True
+        flag = True
         if kwargs["stored-responses"]:
-            filter = False
+            flag = False
             for i in kwargs["stored-responses"]:
                 if i == response:
-                    filter = True
+                    flag = True
                     break
 
-        if filter:
+        if flag:
             SETTING["message"][text]["response"] = response
 
     logger.debug("Replied '%s'", response)
@@ -5273,9 +5273,9 @@ def pre_flight():
     builder.get_object("context_" + SETTING["image_control_tool"]).set_active(True)
 
 
-def quitapp(_action, _param):
+def quit_app(_action, _param):
     "Handle the quit action for the application."
-    if quit():
+    if ask_quit():
         app.quit()
 
 
@@ -5331,7 +5331,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         super().__init__(*args, **kwargs)
 
         pre_flight()
-        self.connect("delete-event", lambda w, e: not quit())
+        self.connect("delete-event", lambda w, e: not ask_quit())
 
         def window_state_event_callback(_w, event):
             "Note when the window is maximised or not"
@@ -5981,7 +5981,7 @@ class Application(Gtk.Application):
             ("save", save_dialog),
             ("email", email),
             ("print", print_dialog),
-            ("quit", quitapp),
+            ("quit", quit_app),
             ("undo", undo),
             ("redo", unundo),
             ("cut", cut_selection),
