@@ -92,6 +92,8 @@ from scanner.profile import Profile
 from unpaper import Unpaper
 from canvas import Canvas
 from bboxtree import Bboxtree
+from imageview import ImageView, Selector, Dragger, SelectorDragger
+from simplelist import SimpleList
 import config
 from i18n import _, d_sane
 from helpers import (
@@ -106,15 +108,13 @@ from tesseract import languages, locale_installed, get_tesseract_codes
 import sane  # To get SANE_* enums
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (
+from gi.repository import (  # pylint: disable=wrong-import-position
     Gtk,
     Gdk,
     GdkPixbuf,
     GLib,
     Gio,
-)  # pylint: disable=wrong-import-position
-from imageview import ImageView, Selector, Dragger, SelectorDragger
-from simplelist import SimpleList
+)
 
 HALF = 0.5
 UNIT_SLIDER_STEP = 0.001
