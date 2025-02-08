@@ -187,7 +187,7 @@ class Selector(Tool):
         self._update_selection(event)
 
     def _update_selection(self, event):
-        (x, y, x2, y2, x_old, y_old, x2_old, y2_old) = (
+        x, y, x2, y2, x_old, y_old, x2_old, y2_old = (
             None,
             None,
             None,
@@ -211,9 +211,9 @@ class Selector(Tool):
             y2 = event.y
         else:
             selection = self.view().get_selection()
-            if (x is None) or (y is None):
+            if x is None or y is None:
                 x_old, y_old = self.view().to_widget_coords(selection.x, selection.y)
-            if (x2 is None) or (y2 is None):
+            if x2 is None or y2 is None:
                 x2_old, y2_old = self.view().to_widget_coords(
                     selection.x + selection.width,
                     selection.y + selection.height,
@@ -242,8 +242,8 @@ class Selector(Tool):
         "given the coordinates, return the cursor type"
         selection = self.view().get_selection()
         if selection is not None:
-            (sx1, sy1) = self.view().to_widget_coords(selection.x, selection.y)
-            (sx2, sy2) = self.view().to_widget_coords(
+            sx1, sy1 = self.view().to_widget_coords(selection.x, selection.y)
+            sx2, sy2 = self.view().to_widget_coords(
                 selection.x + selection.width,
                 selection.y + selection.height,
             )
@@ -277,10 +277,10 @@ class Selector(Tool):
         else:
             if self.dragging:
                 self.drag_start = {"x": x, "y": y}
-                (self.h_edge, self.v_edge) = ["upper", "upper"]
+                self.h_edge, self.v_edge = ("upper", "upper")
 
             else:
-                (self.h_edge, self.v_edge) = ["mid", "mid"]
+                self.h_edge, self.v_edge = ("mid", "mid")
 
         return cursorhash[self.h_edge][self.v_edge]
 
@@ -310,7 +310,7 @@ class Selector(Tool):
                 setattr(self, edge, "upper")
 
     def _update_undragged_edge(self, edge, coords):
-        (x, y, sx1, sy1, sx2, sy2) = coords
+        x, y, sx1, sy1, sx2, sy2 = coords
         setattr(self, edge, "mid")
         if sy1 < y < sy2:
             if sx1 - CURSOR_PIXELS < x < sx1 + CURSOR_PIXELS:
