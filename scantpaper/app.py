@@ -157,7 +157,7 @@ SPACE = " "
 DOT = "."
 PERCENT = "%"
 ASTERISK = "*"
-args, orig_args = None, None
+args = None
 logger = logging.getLogger(__name__)
 
 # Define application-wide variables here so that they can be referenced
@@ -388,8 +388,12 @@ def parse_arguments():
     #     except:
     #         raise _('Error displaying help'), "\n"
     logger.info("Starting %s %s", prog_name, VERSION)
-    orig_args = [sys.executable] + sys.argv
-    logger.info("Called with %s", SPACE.join(orig_args))
+    logger.info("Called with %s", SPACE.join([sys.executable] + sys.argv))
+
+    # make sure argv has absolute paths in case we change directories
+    # and then restart the program
+    sys.argv = [os.path.abspath(path) for path in sys.argv if os.path.isfile(path)]
+
     logger.info("Log level %s", args.log_level)
     if args.locale is None:
         gettext.bindtextdomain(f"{prog_name}")
