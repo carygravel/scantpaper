@@ -1,7 +1,7 @@
 "main application"
 
 # TODO:
-# fix AttributeError after a page has been scanned
+# fix TypeErrors when dragging edges of selection
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
@@ -680,8 +680,6 @@ def drag_motion_callback(tree, context, x, y, t):
         m = adj.get_lower()
         adj.set_value(m if v < m else v)
 
-    return False
-
 
 def create_temp_directory():
     "Create a temporary directory for the session"
@@ -948,8 +946,6 @@ def edit_ocr_text(widget, _target, ev, bbox):
     if bbox:
         canvas.set_index_by_bbox(bbox)
 
-    return True
-
 
 def edit_annotation(widget, _target, ev, bbox):
     "Edit annotation"
@@ -968,8 +964,6 @@ def edit_annotation(widget, _target, ev, bbox):
 
     if bbox:
         a_canvas.set_index_by_bbox(bbox)
-
-    return True
 
 
 def scans_saved(message):
@@ -1178,7 +1172,6 @@ def update_tpbar(response):
         tpbar.set_fraction((response.num_completed_jobs + HALF) / response.total_jobs)
 
         thbox.show_all()
-        return True
 
 
 def finish_tpbar(response):
@@ -4314,7 +4307,7 @@ def ask_quit():
     if not scans_saved(
         _("Some pages have not been saved.\nDo you really want to quit?")
     ):
-        return
+        return False
 
     # Make sure that we are back in the start directory,
     # otherwise we can't delete the temp dir.
