@@ -5095,6 +5095,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._configfile = None
         self._pre_flight()
         self.connect("delete-event", lambda w, e: not ask_quit())
 
