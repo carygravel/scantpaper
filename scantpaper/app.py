@@ -4492,7 +4492,7 @@ def register_icon(iconfactory, stock_id, path):
         else:
             iconfactory.add(stock_id, Gtk.IconSet.new_from_pixbuf(icon))
     except Exception as err:
-        logger.warning(f"Unable to load icon `%s': %s", path, err)
+        logger.warning("Unable to load icon `%s': %s", path, err)
 
 
 def mark_pages(pages):
