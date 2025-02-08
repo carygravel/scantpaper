@@ -287,7 +287,7 @@ class Selector(Tool):
     def _update_dragged_edge(self, direction, s, s1, s2):
         edge = ("h" if direction == "x" else "v") + "_edge"
         if getattr(self, edge) == "lower":
-            if direction in self.drag_start:
+            if direction in self.drag_start and self.drag_start[direction] is not None:
                 if s > self.drag_start[direction]:
                     setattr(self, edge, "upper")
                 else:
