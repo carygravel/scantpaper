@@ -484,19 +484,23 @@ def check_dependencies():
 
                 # Don't create PDF  directly with imagemagick, as
                 # some distros configure imagemagick not to write PDFs
-                tempimg = tempfile.NamedTemporaryFile(dir=session.name, suffix=".jpg")
-                exec_command(["convert", "rose:", tempimg.name])
-                temppdf = tempfile.NamedTemporaryFile(dir=session.name, suffix=".pdf")
-                # pdfobj = PDF.Builder( -file = temppdf )
-                # page   = pdfobj.page()
-                # size   = Gscan2pdf.Document.POINTS_PER_INCH
-                # page.mediabox( size, size )
-                # gfx    = page.gfx()
-                # imgobj = pdfobj.image_jpeg(tempimg)
-                # gfx.image( imgobj, 0, 0, size, size )
-                # pdfobj.save()
-                # pdfobj.end()
-                proc = exec_command([name, temppdf.name, "dump_data"])
+                with tempfile.NamedTemporaryFile(
+                    dir=session.name, suffix=".jpg"
+                ) as tempimg:
+                    exec_command(["convert", "rose:", tempimg.name])
+                with tempfile.NamedTemporaryFile(
+                    dir=session.name, suffix=".pdf"
+                ) as temppdf:
+                    # pdfobj = PDF.Builder( -file = temppdf )
+                    # page   = pdfobj.page()
+                    # size   = Gscan2pdf.Document.POINTS_PER_INCH
+                    # page.mediabox( size, size )
+                    # gfx    = page.gfx()
+                    # imgobj = pdfobj.image_jpeg(tempimg)
+                    # gfx.image( imgobj, 0, 0, size, size )
+                    # pdfobj.save()
+                    # pdfobj.end()
+                    proc = exec_command([name, temppdf.name, "dump_data"])
                 msg = None
                 if re.search(
                     r"Error:[ ]could[ ]not[ ]load[ ]a[ ]required[ ]library",
@@ -696,14 +700,14 @@ def create_temp_directory():
             except:
                 session = tempfile.TemporaryDirectory(prefix="gscan2pdf-")
         else:
-            session = tempfile.TemporaryDirectory(prefix="gscan2pdf-")
+            session = (
+                tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
+                    prefix="gscan2pdf-"
+                )
+            )
 
         slist.set_dir(session.name)
-        try:
-            lockfh = open(os.path.join(session.name, "lockfile"), "w", encoding="utf-8")
-        except:
-            raise "Cannot open lockfile\n"
-        fcntl.lockf(lockfh, fcntl.LOCK_EX)  # raise "Cannot lock file\n"
+        create_lockfile()
         slist.save_session()
         logger.info("Using %s for temporary files", session.name)
         tmpdir = os.path.dirname(session.name)
@@ -718,6 +722,12 @@ def create_temp_directory():
             SETTING["TMPDIR"] = tmpdir
 
 
+def create_lockfile():
+    "create a lockfile in the session directory"
+    with open(os.path.join(session.name, "lockfile"), "w", encoding="utf-8") as lockfh:
+        fcntl.lockf(lockfh, fcntl.LOCK_EX)
+
+
 def find_crashed_sessions(tmpdir):
     "Look for crashed sessions"
     if tmpdir is None or tmpdir == EMPTY:
@@ -730,19 +740,10 @@ def find_crashed_sessions(tmpdir):
     # Forget those used by running sessions
     for session in sessions:
         try:
-            lockfh = open(">", os.path.join(session, "lockfile"))
-            fcntl.lockf(lockfh, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            crashed.append(_)
+            create_lockfile()
+            crashed.append(session)
         except Exception as e:
             logger.warning("Error opening lockfile %s (%s)", lockfh, str(e))
-        try:
-            fcntl.lockf(lockfh, fcntl.LOCK_UN)
-        except Exception as e:
-            logger.warning("Error locking lockfile %s (%s)", lockfh, str(e))
-        try:
-            lockfh.close()
-        except Exception as e:
-            logger.warning("Error closing lockfile %s (%s)", lockfh, str(e))
 
     # Flag those with no session file
     missing = []
@@ -821,10 +822,7 @@ def find_crashed_sessions(tmpdir):
         dialog.destroy()
         if selected is not None:
             session = crashed[selected]
-            lockfh = open(
-                ">", os.path.join(session, "lockfile")
-            )  # raise "Cannot open lockfile\n"
-            fcntl.lockf(lockfh, fcntl.LOCK_EX)  # raise "Cannot lock file\n"
+            create_lockfile()
             slist.set_dir(session)
             open_session(session)
 
