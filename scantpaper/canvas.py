@@ -1186,7 +1186,6 @@ class ListIter:
             return
 
         self.insert_before_position(bbox, i, value)
-        return
 
     def remove_current_box_from_index(self):
         "remove the current box from the index"
@@ -1195,8 +1194,7 @@ class ListIter:
             return
 
         self.list.pop(self.index)
-        if self.index > len(self.list) - 1:
-            self.index = len(self.list) - 1
+        self.index = min(self.index, len(self.list) - 1)
 
 
 class TreeIter:
