@@ -917,10 +917,6 @@ def create_ann_canvas(page, finished_callback=None):
 
 def edit_tools_callback(action, current):
     "Show/hide the edit tools"
-    logger.debug(
-        f"in edit_tools_callback with {action}, {current} "
-        + current.get_current_value()
-    )
     if current.get_current_value() == EDIT_TEXT:
         ocr_text_hbox.show()
         ann_hbox.hide()
@@ -928,7 +924,6 @@ def edit_tools_callback(action, current):
 
     ocr_text_hbox.hide()
     ann_hbox.show()
-    return
 
 
 def edit_ocr_text(widget, _target=None, ev=None, bbox=None):
@@ -5588,7 +5583,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def ocr_text_button_clicked():
             take_snapshot()
             text = ocr_textbuffer.text
-            logger.info("Corrected '" + ocr_bbox.text + f"'->'{text}'")
+            logger.info("Corrected '%s'->'%s'", ocr_bbox.text, text)
             ocr_bbox.update_box(text, view.get_selection())
             current_page.import_hocr(canvas.hocr())
             edit_ocr_text(ocr_bbox)
@@ -5680,7 +5675,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ann_text_ok():
             text = ann_textbuffer.text
-            logger.info("Corrected '" + ann_bbox.text + f"'->'{text}'")
+            logger.info("Corrected '%s'->'%s'", ann_bbox.text, text)
             ann_bbox.update_box(text, view.get_selection())
             current_page.import_annotations(a_canvas.hocr())
             edit_annotation(ann_bbox)
