@@ -2,6 +2,8 @@
 
 # TODO:
 # fix TypeErrors when dragging edges of selection
+# fix panning text layer
+# fix editing text layer
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
@@ -904,7 +906,7 @@ def create_txt_canvas(page, finished_callback=None):
     canvas.show()
 
 
-def create_ann_canvas(page, finished_callback):
+def create_ann_canvas(page, finished_callback=None):
     "Create the annotation canvas"
     offset = view.get_offset()
     a_canvas.set_text(page, "annotations", edit_annotation, True, finished_callback)
@@ -929,7 +931,7 @@ def edit_tools_callback(action, current):
     return
 
 
-def edit_ocr_text(widget, _target, ev, bbox):
+def edit_ocr_text(widget, _target=None, ev=None, bbox=None):
     "Edit OCR text"
     if not ev:
         bbox = widget
@@ -951,7 +953,7 @@ def edit_ocr_text(widget, _target, ev, bbox):
         canvas.set_index_by_bbox(bbox)
 
 
-def edit_annotation(widget, _target, ev, bbox):
+def edit_annotation(widget, _target=None, ev=None, bbox=None):
     "Edit annotation"
     if not ev:
         bbox = widget
