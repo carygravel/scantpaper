@@ -2985,8 +2985,7 @@ def print_dialog(_action, _param):
 
         # Scale context to fit image
         scale = pwidth / iwidth * ratio
-        if pheight / iheight < scale:
-            scale = pheight / iheight
+        scale = min(scale, pheight / iheight)
         cr.scale(scale / ratio, scale)
 
         # Set source pixbuf
