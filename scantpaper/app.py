@@ -909,7 +909,13 @@ def create_txt_canvas(page, finished_callback=None):
 def create_ann_canvas(page, finished_callback=None):
     "Create the annotation canvas"
     offset = view.get_offset()
-    a_canvas.set_text(page, "annotations", edit_annotation, True, finished_callback)
+    a_canvas.set_text(
+        page=page,
+        layer="annotations",
+        edit_callback=edit_annotation,
+        idle=True,
+        finished_callback=finished_callback,
+    )
     a_canvas.set_scale(view.get_zoom())
     a_canvas.set_offset(offset["x"], offset["y"])
     a_canvas.show()
@@ -5596,7 +5602,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_ubutton.set_tooltip_text(_("Duplicate text"))
 
         def ocr_text_copy():
-            ocr_bbox = canvas.add_box(ocr_textbuffer.text, view.get_selection())
+            ocr_bbox = canvas.add_box(
+                text=ocr_textbuffer.text, bbox=view.get_selection()
+            )
             current_page.import_hocr(canvas.hocr())
             edit_ocr_text(ocr_bbox)
 
@@ -5617,7 +5625,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             selection = view.get_selection()
             if hasattr(current_page, "text_layer"):
                 logger.info("Added '%s'", text)
-                ocr_bbox = canvas.add_box(text, view.get_selection())
+                ocr_bbox = canvas.add_box(text=text, bbox=view.get_selection())
                 current_page.import_hocr(canvas.hocr())
                 edit_ocr_text(ocr_bbox)
             else:
@@ -5695,11 +5703,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if (text is None) or text == EMPTY:
                 text = _("my-new-annotation")
 
-                # If we don't yet have a canvas, create one
+            # If we don't yet have a canvas, create one
             selection = view.get_selection()
             if hasattr(current_page, "text_layer"):
                 logger.info("Added '%s'", ann_textbuffer.text)
-                ann_bbox = a_canvas.add_box(text, view.get_selection())
+                ann_bbox = a_canvas.add_box(text=text, bbox=view.get_selection())
                 current_page.import_annotations(a_canvas.hocr())
                 edit_annotation(ann_bbox)
 
