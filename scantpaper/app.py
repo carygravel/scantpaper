@@ -917,7 +917,7 @@ def create_ann_canvas(page, finished_callback=None):
         finished_callback=finished_callback,
     )
     a_canvas.set_scale(view.get_zoom())
-    a_canvas.set_offset(offset["x"], offset["y"])
+    a_canvas.set_offset(offset.x, offset.y)
     a_canvas.show()
 
 
