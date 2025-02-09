@@ -2373,7 +2373,6 @@ def changed_device_list_callback(widget, device_list):  # $widget is $windows
             None,
             "",
         ]:
-            device_list = device_list
             i = 0
             while i < len(device_list):
                 if re.search(
@@ -2383,7 +2382,6 @@ def changed_device_list_callback(widget, device_list):  # $widget is $windows
                 ):
                     logger.info("Blacklisting device %s", device_list[i].name)
                     del device_list[i]
-
                 else:
                     i += 1
 
