@@ -189,6 +189,7 @@ class Canvas(
     GooCanvas.Canvas
 ):  # TODO: replace this with https://github.com/gaphor/gaphas
     "Subclass GooCanvas.Canvas to add properties and methods to display hocr output"
+
     __gsignals__ = {
         "zoom-changed": (GObject.SignalFlags.RUN_FIRST, None, (float,)),
         "offset-changed": (
@@ -616,10 +617,10 @@ class Canvas(
         self.emit("zoom-changed", zoom)
         self.set_offset(offset_x, offset_y)
 
-    def _button_pressed(self, event):
+    def _button_pressed(self, _self, event):
 
         # middle mouse button
-        if event.button() == 2:
+        if event.button == 2:
 
             # Using the root window x,y position for dragging the canvas, as the
             # values returned by event.x and y cause a bouncing effect, and
@@ -630,14 +631,14 @@ class Canvas(
 
         #    self.update_cursor( event.x, event.y );
 
-    def _button_released(self, event):
-        if event.button() == 2:
+    def _button_released(self, _self, event):
+        if event.button == 2:
             self._dragging = False
 
         #    self.update_cursor( event.x, event.y );
         return True
 
-    def _motion(self, _canvas, _event):
+    def _motion(self, _self, _event):
         if not self._dragging:
             return False
         offset = self.get_offset()
@@ -649,13 +650,11 @@ class Canvas(
         self.set_offset(offset_x, offset_y)
         return True
 
-    def _scroll(self, event):
-
-        (center_x, center_y) = self.convert_from_pixels(event.x(), event.y())
+    def _scroll(self, _self, event):
+        center_x, center_y = self.convert_from_pixels(event.x, event.y)
         zoom = None
-        if event.direction() == "up":
+        if event.direction == Gdk.ScrollDirection.UP:
             zoom = self.get_scale() * 2
-
         else:
             zoom = self.get_scale() / 2
 
@@ -785,7 +784,7 @@ class Bbox(GooCanvas.CanvasGroup):
 
             self.transform_text(scale, angle)
 
-    def button_press_callback(self, target, event, edit_callback):
+    def button_press_callback(self, _self, target, event, edit_callback):
         "button press callback"
         if event.button() == 1:
             self.parent.get_parent()["dragging"] = False
