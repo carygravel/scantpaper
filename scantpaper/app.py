@@ -602,7 +602,7 @@ def update_uimanager():
 
     # Ghost ocr item if ocr  not available
     if not dependencies["ocr"]:
-        actions("ocr").set_enabled(False)
+        actions["ocr"].set_enabled(False)
 
     if len(slist.data) > 0:
         if dependencies["xdg"]:
