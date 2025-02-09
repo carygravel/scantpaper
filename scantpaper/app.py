@@ -1249,7 +1249,7 @@ def import_files_password_callback(filename):
         window,
         ["destroy-with-parent", "modal"],
         "question",
-        Gtk.ResponseType.OK_CANCEL,
+        Gtk.ButtonsType.OK_CANCEL,
         text,
     )
     dialog.set_title(text)
