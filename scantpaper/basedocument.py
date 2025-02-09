@@ -1,4 +1,5 @@
 "Base document methods"
+
 from collections import defaultdict
 import uuid
 import re
@@ -29,6 +30,7 @@ SimpleList.add_column_type(hstring={"type": object, "attr": "hidden"})
 
 class BaseDocument(SimpleList):
     "a Document is a simple list of pages"
+
     jobs_completed = 0
     jobs_total = 0
     uuid_object = uuid.uuid1()
@@ -606,17 +608,17 @@ class BaseDocument(SimpleList):
             for row in self.data:
                 row[2].saved = True
 
-    def open_session_file(self, options):
+    def open_session_file(self, **kwargs):
         "open session file"
-        if "info" not in options:
-            if options["error_callback"]:
-                options["error_callback"](
+        if "info" not in kwargs:
+            if kwargs["error_callback"]:
+                kwargs["error_callback"](
                     None, "Open file", "Error: session file not supplied."
                 )
 
             return
 
-        with tarfile.open(options["info"], True) as tar:
+        with tarfile.open(kwargs["info"], True) as tar:
             filenamelist = tar.list_files()
             sessionfile = [x for x in filenamelist if re.search(r"\/session$", x)]
             sesdir = os.path.join(self.dir, os.path.dirname(sessionfile[0]))
@@ -625,27 +627,25 @@ class BaseDocument(SimpleList):
                     filename, os.path.join(sesdir, os.path.basename(filename))
                 )
 
-        self.open_session(dir=sesdir, delete=True, **options)
-        if options["finished_callback"]:
-            options["finished_callback"]()
+        self.open_session(dir=sesdir, delete=True, **kwargs)
+        if kwargs["finished_callback"]:
+            kwargs["finished_callback"]()
 
-    def open_session(self, options):
+    def open_session(self, **kwargs):
         "open session file"
-        if "dir" not in options:
-            if options["error_callback"]:
-                options["error_callback"](
+        if "dir" not in kwargs:
+            if kwargs["error_callback"]:
+                kwargs["error_callback"](
                     None, "Open file", "Error: session folder not defined"
                 )
-
             return
 
-        sessionfile = os.path.join(options["dir"], "session")
+        sessionfile = os.path.join(kwargs["dir"], "session")
         if not os.access(sessionfile, os.R_OK):
-            if options["error_callback"]:
-                options["error_callback"](
+            if kwargs["error_callback"]:
+                kwargs["error_callback"](
                     None, "Open file", f"Error: Unable to read {sessionfile}"
                 )
-
             return
 
         # sessionref = retrieve(sessionfile)
@@ -665,13 +665,13 @@ class BaseDocument(SimpleList):
             # don't reuse session directory
 
             session[pagenum]["dir"] = self.dir
-            session[pagenum]["delete"] = options["delete"]
+            session[pagenum]["delete"] = kwargs["delete"]
 
             # correct the path now that it is relative to the current session dir
 
-            if options["dir"] != self.dir:
+            if kwargs["dir"] != self.dir:
                 session[pagenum]["filename"] = os.path.join(
-                    options["dir"], os.path.basename(session[pagenum]["filename"])
+                    kwargs["dir"], os.path.basename(session[pagenum]["filename"])
                 )
 
             # Populate the SimpleList
