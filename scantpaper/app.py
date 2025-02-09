@@ -2434,7 +2434,7 @@ def reloaded_scan_options_callback(widget):  # widget is windows
 
 def changed_progress_callback(_widget, progress, message):
     "Updates the progress bar based on the given progress value and message."
-    if progress is not None and progress >= 0 and progress <= 1:
+    if progress is not None and (0 <= progress <= 1):
         spbar.set_fraction(progress)
     else:
         spbar.pulse()
