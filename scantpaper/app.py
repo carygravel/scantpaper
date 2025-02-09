@@ -921,7 +921,7 @@ def create_ann_canvas(page, finished_callback=None):
     a_canvas.show()
 
 
-def edit_tools_callback(action, current):
+def edit_tools_callback(_action, current):
     "Show/hide the edit tools"
     if current.get_current_value() == EDIT_TEXT:
         ocr_text_hbox.show()
