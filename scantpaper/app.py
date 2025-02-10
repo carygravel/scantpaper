@@ -3208,9 +3208,9 @@ def about(_action, _param):
     about.set_authors(["Jeff Ratcliffe"])
     about.add_credit_section("Patches gratefully received from", authors)
     about.set_comments(_("To aid the scan-to-PDF process"))
-    about.set_copyright(_("Copyright 2006--2024 Jeffrey Ratcliffe"))
+    about.set_copyright(_("Copyright 2006--2025 Jeffrey Ratcliffe"))
     licence = """gscan2pdf --- to aid the scan to PDF or DjVu process
-Copyright 2006 -- 2024 Jeffrey Ratcliffe <jffry@posteo.net>
+Copyright 2006 -- 2025 Jeffrey Ratcliffe <jffry@posteo.net>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the version 3 GNU General Public License as
