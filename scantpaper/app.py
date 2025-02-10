@@ -1,6 +1,8 @@
 "main application"
 
 # TODO:
+# rotate icons wrong way round
+# save_pdf landscape squashes into portrait
 # fix TypeErrors when dragging edges of selection
 # fix panning text layer
 # fix editing text layer
@@ -307,8 +309,6 @@ logger = logging.getLogger(__name__)
     None,
     None,
 )
-global thumb_popup
-thumb_popup = None
 global iconpath
 iconpath = None
 global SETTING
@@ -3387,24 +3387,6 @@ def analyse(select_blank, select_dark):
             select_dark_pages()
 
 
-def handle_clicks(widget, event):
-    "Handle right-clicks"
-    if event.button == 3:  # RIGHT_MOUSE_BUTTON
-        if isinstance(widget, ImageView):  # main image
-            detail_popup.show_all()
-            detail_popup.popup_at_pointer(event)
-        else:  # Thumbnail simplelist
-            SETTING["Page range"] = "selected"
-            thumb_popup.show_all()
-            thumb_popup.popup_at_pointer(event)
-
-        # block event propagation
-        return True
-
-    # allow event propagation
-    return False
-
-
 def threshold(_action, _param):
     "Display page selector and on apply threshold accordingly"
     windowt = Dialog(
@@ -5336,6 +5318,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 "Unable to load icon `%s/gscan2pdf.svg': %s", iconpath, str(e)
             )
 
+        self._thumb_popup = builder.get_object("thumb_popup")
+
         # app.add_window(window)
         self.populate_main_window()
 
@@ -5408,8 +5392,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         slist.connect("drag-motion", drag_motion_callback)
 
         # Set up callback for right mouse clicks.
-        slist.connect("button-press-event", handle_clicks)
-        slist.connect("button-release-event", handle_clicks)
+        slist.connect("button-press-event", self.handle_clicks)
+        slist.connect("button-release-event", self.handle_clicks)
         scwin_thumbs.add(slist)
 
         # Notebook, split panes for detail view and OCR output
@@ -5434,8 +5418,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         else:
             view.set_tool(SelectorDragger(view))
 
-        view.connect("button-press-event", handle_clicks)
-        view.connect("button-release-event", handle_clicks)
+        view.connect("button-press-event", self.handle_clicks)
+        view.connect("button-release-event", self.handle_clicks)
 
         def view_zoom_changed_callback(_view, zoom):
             if canvas is not None:
@@ -5900,6 +5884,23 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         settings.gtk_toolbar_style = "icons"  # only icons
         return toolbar
 
+    def handle_clicks(self, widget, event):
+        "Handle right-clicks"
+        if event.button == 3:  # RIGHT_MOUSE_BUTTON
+            if isinstance(widget, ImageView):  # main image
+                detail_popup.show_all()
+                detail_popup.popup_at_pointer(event)
+            else:  # Thumbnail simplelist
+                SETTING["Page range"] = "selected"
+                self._thumb_popup.show_all()
+                self._thumb_popup.popup_at_pointer(event)
+
+            # block event propagation
+            return True
+
+        # allow event propagation
+        return False
+
 
 class Application(Gtk.Application):
     "Application class"
@@ -6022,9 +6023,6 @@ class Application(Gtk.Application):
 
         global detail_popup
         detail_popup = builder.get_object("detail_popup")
-
-        global thumb_popup
-        thumb_popup = builder.get_object("thumb_popup")
 
     def do_activate(self):
         "only allow a single window and raise any existing ones"
