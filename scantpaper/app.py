@@ -311,8 +311,6 @@ logger = logging.getLogger(__name__)
 )
 global SETTING
 SETTING = None
-global rc
-rc = None
 global signal
 signal = None
 actions = {}
@@ -407,21 +405,6 @@ def parse_arguments():
     logger.info("Using %s locale", locale.setlocale(locale.LC_CTYPE))
     logger.info("Startup LC_NUMERIC %s", locale.setlocale(locale.LC_NUMERIC))
     return args
-
-
-def read_config():
-    "Read the configuration file"
-    # config files: XDG_CONFIG_HOME/gscan2pdfrc or HOME/.config/gscan2pdfrc
-    rcdir = (
-        os.environ["XDG_CONFIG_HOME"]
-        if "XDG_CONFIG_HOME" in os.environ
-        else f"{os.environ['HOME']}/.config"
-    )
-    rcf = f"{rcdir}/{prog_name}rc"
-    cfg = config.read_config(rcf)
-    config.add_defaults(cfg)
-    config.remove_invalid_paper(cfg["Paper"])
-    return rcf, cfg
 
 
 def check_dependencies():
@@ -4202,7 +4185,7 @@ def ask_quit():
         windows.thread.quit()
 
     # Write config file
-    config.write_config(rc, SETTING)
+    config.write_config(app.window._configfile, SETTING)
     logger.info("Killing document thread(s)")
     slist.thread.quit()
     logger.debug("Quitting")
@@ -5059,62 +5042,6 @@ def recursive_slurp(files):
                 logger.info(output)
 
 
-def pre_flight():
-    """
-    Pre-flight initialization function that sets up global variables,
-    captures warnings, reads configuration, logs system information,
-    and initializes various components.
-    """
-    global args
-    global rc
-    global SETTING
-    args = parse_arguments()
-
-    # Catch and log Python warnings
-    logging.captureWarnings(True)
-
-    # Suppress Warning: g_value_get_int: assertion 'G_VALUE_HOLDS_INT (value)' failed
-    # from dialog.save.Save._meta_datetime_widget.set_text()
-    # https://bugzilla.gnome.org/show_bug.cgi?id=708676
-    warnings.filterwarnings("ignore", ".*g_value_get_int.*", Warning)
-
-    rc, SETTING = read_config()
-    if SETTING["cwd"] is None:
-        SETTING["cwd"] = os.getcwd()
-    SETTING["version"] = VERSION
-
-    logger.info("Operating system: %s", sys.platform)
-    if sys.platform == "linux":
-        recursive_slurp(glob.glob("/etc/*-release"))
-
-    logger.info("Python version %s", sys.version_info)
-    logger.info("GLib VERSION_MIN_REQUIRED %s", GLib.VERSION_MIN_REQUIRED)
-    logger.info("GLib._version %s", GLib._version)
-    logger.info("gi.__version__ %s", gi.__version__)
-    logger.info("gi.version_info %s", gi.version_info)
-    logger.info("Gtk._version %s", Gtk._version)
-    logger.info(
-        "Built for GTK %s.%s.%s",
-        Gtk.MAJOR_VERSION,
-        Gtk.MINOR_VERSION,
-        Gtk.MICRO_VERSION,
-    )
-    logger.info(
-        "Running with GTK %s.%s.%s",
-        Gtk.get_major_version(),
-        Gtk.get_minor_version(),
-        Gtk.get_micro_version(),
-    )
-    logger.info("sane.__version__ %s", sane.__version__)
-    logger.info("sane.init() %s", sane.init())
-
-    # initialise image control tool radio button setting
-    change_image_tool_cb(
-        actions["tooltype"], GLib.Variant("s", SETTING["image_control_tool"])
-    )
-    builder.get_object("context_" + SETTING["image_control_tool"]).set_active(True)
-
-
 def quit_app(_action, _param):
     "Handle the quit action for the application."
     if ask_quit():
@@ -5172,7 +5099,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        pre_flight()
+        self._pre_flight()
         self.connect("delete-event", lambda w, e: not ask_quit())
 
         def window_state_event_callback(_w, event):
@@ -5205,6 +5132,74 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # app.add_window(window)
         self.populate_main_window()
+
+    def _pre_flight(self):
+        """
+        Pre-flight initialization function that sets up global variables,
+        captures warnings, reads configuration, logs system information,
+        and initializes various components.
+        """
+        global args
+        global SETTING
+        args = parse_arguments()
+
+        # Catch and log Python warnings
+        logging.captureWarnings(True)
+
+        # Suppress Warning: g_value_get_int: assertion 'G_VALUE_HOLDS_INT (value)' failed
+        # from dialog.save.Save._meta_datetime_widget.set_text()
+        # https://bugzilla.gnome.org/show_bug.cgi?id=708676
+        warnings.filterwarnings("ignore", ".*g_value_get_int.*", Warning)
+
+        SETTING = self._read_config()
+        if SETTING["cwd"] is None:
+            SETTING["cwd"] = os.getcwd()
+        SETTING["version"] = VERSION
+
+        logger.info("Operating system: %s", sys.platform)
+        if sys.platform == "linux":
+            recursive_slurp(glob.glob("/etc/*-release"))
+
+        logger.info("Python version %s", sys.version_info)
+        logger.info("GLib VERSION_MIN_REQUIRED %s", GLib.VERSION_MIN_REQUIRED)
+        logger.info("GLib._version %s", GLib._version)
+        logger.info("gi.__version__ %s", gi.__version__)
+        logger.info("gi.version_info %s", gi.version_info)
+        logger.info("Gtk._version %s", Gtk._version)
+        logger.info(
+            "Built for GTK %s.%s.%s",
+            Gtk.MAJOR_VERSION,
+            Gtk.MINOR_VERSION,
+            Gtk.MICRO_VERSION,
+        )
+        logger.info(
+            "Running with GTK %s.%s.%s",
+            Gtk.get_major_version(),
+            Gtk.get_minor_version(),
+            Gtk.get_micro_version(),
+        )
+        logger.info("sane.__version__ %s", sane.__version__)
+        logger.info("sane.init() %s", sane.init())
+
+        # initialise image control tool radio button setting
+        change_image_tool_cb(
+            actions["tooltype"], GLib.Variant("s", SETTING["image_control_tool"])
+        )
+        builder.get_object("context_" + SETTING["image_control_tool"]).set_active(True)
+
+    def _read_config(self):
+        "Read the configuration file"
+        # config files: XDG_CONFIG_HOME/gscan2pdfrc or HOME/.config/gscan2pdfrc
+        rcdir = (
+            os.environ["XDG_CONFIG_HOME"]
+            if "XDG_CONFIG_HOME" in os.environ
+            else f"{os.environ['HOME']}/.config"
+        )
+        self._configfile = f"{rcdir}/{prog_name}rc"
+        cfg = config.read_config(self._configfile)
+        config.add_defaults(cfg)
+        config.remove_invalid_paper(cfg["Paper"])
+        return cfg
 
     def on_maximize_toggle(self, action, value):
         "Toggles the maximized state of the window"
@@ -6142,6 +6137,7 @@ class Application(Gtk.Application):
 
 
 if __name__ == "__main__":
+    global app
     app = Application()
     # app.run(sys.argv)
     app.run()
