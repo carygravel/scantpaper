@@ -6139,11 +6139,6 @@ class Application(Gtk.Application):
         "displays the properties dialog."
         properties(None, None)
 
-    def on_about(self, _action, _param):
-        "displays the about dialog."
-        about_dialog = Gtk.AboutDialog(transient_for=self.window, modal=True)
-        about_dialog.present()
-
     def on_quit(self, _action, _param):
         "Handles the quit action."
         self.quit()
