@@ -309,8 +309,6 @@ logger = logging.getLogger(__name__)
     None,
     None,
 )
-global iconpath
-iconpath = None
 global SETTING
 SETTING = None
 global rc
@@ -3173,115 +3171,6 @@ def select_dark_pages():
         )
 
 
-def about(_action, _param):
-    "Display about dialog"
-    about = Gtk.AboutDialog()
-
-    # Gtk.AboutDialog->set_url_hook ($func, $data=undef);
-    # Gtk.AboutDialog->set_email_hook ($func, $data=undef);
-
-    about.set_program_name(prog_name)
-    about.set_version(VERSION)
-    authors = [
-        "Frederik Elwert",
-        "Klaus Ethgen",
-        "Andy Fingerhut",
-        "Leon Fisk",
-        "John Goerzen",
-        "Alistair Grant",
-        "David Hampton",
-        "Sascha Hunold",
-        "Jason Kankiewicz",
-        "Matthijs Kooijman",
-        "Peter Marschall",
-        "Chris Mayo",
-        "Hiroshi Miura",
-        "Petr Písař",
-        "Pablo Saratxaga",
-        "Torsten Schönfeld",
-        "Roy Shahbazian",
-        "Jarl Stefansson",
-        "Wikinaut",
-        "Jakub Wilk",
-        "Sean Dreilinger",
-    ]
-    about.set_authors(["Jeff Ratcliffe"])
-    about.add_credit_section("Patches gratefully received from", authors)
-    about.set_comments(_("To aid the scan-to-PDF process"))
-    about.set_copyright(_("Copyright 2006--2025 Jeffrey Ratcliffe"))
-    licence = """gscan2pdf --- to aid the scan to PDF or DjVu process
-Copyright 2006 -- 2025 Jeffrey Ratcliffe <jffry@posteo.net>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the version 3 GNU General Public License as
-published by the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
-    about.set_license(licence)
-    about.set_website("http://gscan2pdf.sf.net")
-    translators = """Yuri Chornoivan
-Davidmp
-Whistle
-Dušan Kazik
-Cédric VALMARY (Tot en òc)
-Eric Spierings
-Milo Casagrande
-Raúl González Duque
-R120X
-NSV
-Alexandre Prokoudine
-Aputsiaĸ Niels Janussen
-Paul Wohlhart
-Pierre Slamich
-Tiago Silva
-Igor Zubarev
-Jarosław Ogrodnik
-liorda
-Clopy
-Daniel Nylander
-csola
-dopais
-Po-Hsu Lin
-Tobias Bannert
-Ettore Atalan
-Eric Brandwein
-Mikhail Novosyolov
-rodroes
-morodan
-Hugues Drolet
-Martin Butter
-Albano Battistella
-Olesya Gerasimenko
-Pavel Borecki
-Stephan Woidowski
-Jonatan Nyberg
-Berov
-Utku BERBEROĞLU
-Arthur Rodrigues
-Matthias Sprau
-Buckethead
-Eugen Artus
-Quentin PAGÈS
-Alexandre NICOLADIE
-Aleksandr Proklov
-Silvio Brera
-papoteur
-"""
-    about.set_translator_credits(translators)
-    about.set_artists(["lodp, Andreas E."])
-    about.set_logo(GdkPixbuf.Pixbuf.new_from_file(f"{iconpath}/gscan2pdf.svg"))
-    about.set_transient_for(window)
-    about.run()
-    about.destroy()
-
-
 def renumber_dialog(_action, _param):
     "Dialog for renumber"
     global windowrn
@@ -4452,14 +4341,6 @@ def unundo(_action, _param):
     actions["redo"].set_enabled(False)
 
 
-def init_icons(iconpath, icons):
-    "Initialise iconfactory"
-    iconfactory = Gtk.IconFactory()
-    for iconname, filename in icons:
-        register_icon(iconfactory, iconname, iconpath + "/" + filename)
-    iconfactory.add_default()
-
-
 def register_icon(iconfactory, stock_id, path):
     "Add icons"
     try:
@@ -5312,10 +5193,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.maximize()
 
         try:
-            self.set_icon_from_file(f"{iconpath}/gscan2pdf.svg")
+            self.set_icon_from_file(f"{self.get_application()._iconpath}/gscan2pdf.svg")
         except Exception as e:
             logger.warning(
-                "Unable to load icon `%s/gscan2pdf.svg': %s", iconpath, str(e)
+                "Unable to load icon `%s/gscan2pdf.svg': %s",
+                self.get_application()._iconpath,
+                str(e),
             )
 
         self._thumb_popup = builder.get_object("thumb_popup")
@@ -5923,14 +5806,11 @@ class Application(Gtk.Application):
         # )
 
         # Add extra icons early to be available for Gtk.Builder
-        global iconpath
         if os.path.isdir("/usr/share/gscan2pdf"):
-            iconpath = "/usr/share/gscan2pdf"
+            self._iconpath = "/usr/share/gscan2pdf"
         else:
-            iconpath = "icons"
-
-        init_icons(
-            iconpath,
+            self._iconpath = "icons"
+        self._init_icons(
             [
                 ("rotate90", "stock-rotate-90.svg"),
                 ("rotate180", "180_degree.svg"),
@@ -6000,7 +5880,7 @@ class Application(Gtk.Application):
             ("ocr", ocr_dialog),
             ("user-defined", user_defined_dialog),
             ("help", view_html),
-            ("about", about),
+            ("about", self.about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
             actions[name].connect("activate", function)
@@ -6142,6 +6022,123 @@ class Application(Gtk.Application):
     def on_quit(self, _action, _param):
         "Handles the quit action."
         self.quit()
+
+    def _init_icons(self, icons):
+        "Initialise iconfactory"
+        iconfactory = Gtk.IconFactory()
+        for iconname, filename in icons:
+            register_icon(iconfactory, iconname, self._iconpath + "/" + filename)
+        iconfactory.add_default()
+
+    def about(self, _action, _param):
+        "Display about dialog"
+        about = Gtk.AboutDialog()
+
+        # Gtk.AboutDialog->set_url_hook ($func, $data=undef);
+        # Gtk.AboutDialog->set_email_hook ($func, $data=undef);
+
+        about.set_program_name(prog_name)
+        about.set_version(VERSION)
+        authors = [
+            "Frederik Elwert",
+            "Klaus Ethgen",
+            "Andy Fingerhut",
+            "Leon Fisk",
+            "John Goerzen",
+            "Alistair Grant",
+            "David Hampton",
+            "Sascha Hunold",
+            "Jason Kankiewicz",
+            "Matthijs Kooijman",
+            "Peter Marschall",
+            "Chris Mayo",
+            "Hiroshi Miura",
+            "Petr Písař",
+            "Pablo Saratxaga",
+            "Torsten Schönfeld",
+            "Roy Shahbazian",
+            "Jarl Stefansson",
+            "Wikinaut",
+            "Jakub Wilk",
+            "Sean Dreilinger",
+        ]
+        about.set_authors(["Jeff Ratcliffe"])
+        about.add_credit_section("Patches gratefully received from", authors)
+        about.set_comments(_("To aid the scan-to-PDF process"))
+        about.set_copyright(_("Copyright 2006--2025 Jeffrey Ratcliffe"))
+        licence = """gscan2pdf --- to aid the scan to PDF or DjVu process
+    Copyright 2006 -- 2025 Jeffrey Ratcliffe <jffry@posteo.net>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the version 3 GNU General Public License as
+    published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    """
+        about.set_license(licence)
+        about.set_website("http://gscan2pdf.sf.net")
+        translators = """Yuri Chornoivan
+    Davidmp
+    Whistle
+    Dušan Kazik
+    Cédric VALMARY (Tot en òc)
+    Eric Spierings
+    Milo Casagrande
+    Raúl González Duque
+    R120X
+    NSV
+    Alexandre Prokoudine
+    Aputsiaĸ Niels Janussen
+    Paul Wohlhart
+    Pierre Slamich
+    Tiago Silva
+    Igor Zubarev
+    Jarosław Ogrodnik
+    liorda
+    Clopy
+    Daniel Nylander
+    csola
+    dopais
+    Po-Hsu Lin
+    Tobias Bannert
+    Ettore Atalan
+    Eric Brandwein
+    Mikhail Novosyolov
+    rodroes
+    morodan
+    Hugues Drolet
+    Martin Butter
+    Albano Battistella
+    Olesya Gerasimenko
+    Pavel Borecki
+    Stephan Woidowski
+    Jonatan Nyberg
+    Berov
+    Utku BERBEROĞLU
+    Arthur Rodrigues
+    Matthias Sprau
+    Buckethead
+    Eugen Artus
+    Quentin PAGÈS
+    Alexandre NICOLADIE
+    Aleksandr Proklov
+    Silvio Brera
+    papoteur
+    """
+        about.set_translator_credits(translators)
+        about.set_artists(["lodp, Andreas E."])
+        about.set_logo(
+            GdkPixbuf.Pixbuf.new_from_file(f"{self._iconpath}/gscan2pdf.svg")
+        )
+        about.set_transient_for(window)
+        about.run()
+        about.destroy()
 
 
 if __name__ == "__main__":
