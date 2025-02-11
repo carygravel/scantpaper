@@ -166,144 +166,80 @@ logger = logging.getLogger(__name__)
 
 # Define application-wide variables here so that they can be referenced
 # in the menu callbacks
-(
-    slist,
-    windowi,
-    windowe,
-    windows,
-    windowo,
-    windowrn,
-    windowu,
-    windowudt,
-    save_button,
-    window,
-    thbox,
-    tpbar,
-    tcbutton,
-    spbar,
-    shbox,
-    scbutton,
-    unpaper,
-    hpaned,
-    undo_buffer,
-    redo_buffer,
-    undo_selection,
-    redo_selection,
-    dependencies,
-    menubar,
-    toolbar,
-    ocr_engine,
-    clipboard,
-    windowr,
-    view,
-    windowp,
-    message_dialog,
-    print_settings,
-    windowc,
-    # Goo::Canvas for text layer
-    canvas,
-    vpaned,
-    ocr_text_hbox,
-    ocr_textbuffer,
-    ocr_textview,
-    ocr_bbox,
-    # Goo::Canvas for annotation layer
-    a_canvas,
-    ann_hbox,
-    ann_textbuffer,
-    ann_textview,
-    ann_bbox,
-    # Notebook, split panes for detail view and OCR output
-    vnotebook,
-    hpanei,
-    vpanei,
-    # Spinbuttons for selector on crop dialog
-    sb_selector_x,
-    sb_selector_y,
-    sb_selector_w,
-    sb_selector_h,
-    # dir below session dir
-    tmpdir,
-    # session dir
-    session,
-    # filehandle for session lockfile
-    lockfh,
-    # Temp::File object for PDF to be emailed
-    # Define here to make sure that it doesn't get deleted until the next email
-    # is created or we quit
-    pdf,
-    # SimpleList in preferences dialog
-    option_visibility_list,
-    # Comboboxes for user-defined tools and rotate buttons
-    comboboxudt,
-    rotate_side_cmbx,
-    rotate_side_cmbx2,
-    # Declare the XML structure
-    builder,
-    detail_popup,
-) = (
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    [],
-    [],
-    [],
-    [],
-    {},
-    None,
-    None,
-    [],
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-)
+slist = None
+windowi = None
+windowe = None
+windows = None
+windowo = None
+windowrn = None
+windowu = None
+windowudt = None
+save_button = None
+window = None
+thbox = None
+tpbar = None
+tcbutton = None
+spbar = None
+shbox = None
+scbutton = None
+unpaper = None
+hpaned = None
+undo_buffer = []
+redo_buffer = []
+undo_selection = []
+redo_selection = []
+dependencies = {}
+menubar = None
+toolbar = None
+ocr_engine = []
+clipboard = None
+windowr = None
+view = None
+windowp = None
+message_dialog = None
+print_settings = None
+windowc = None
+# GooCanvas for text layer
+canvas = None
+vpaned = None
+ocr_text_hbox = None
+ocr_textbuffer = None
+ocr_textview = None
+ocr_bbox = None
+# GooCanvas for annotation layer
+a_canvas = None
+ann_hbox = None
+ann_textbuffer = None
+ann_textview = None
+ann_bbox = None
+# Notebook, split panes for detail view and OCR output
+vnotebook = None
+hpanei = None
+vpanei = None
+# Spinbuttons for selector on crop dialog
+sb_selector_x = None
+sb_selector_y = None
+sb_selector_w = None
+sb_selector_h = None
+# dir below session dir
+tmpdir = None
+# session dir
+session = None
+# filehandle for session lockfile
+lockfh = None
+# Temp::File object for PDF to be emailed
+# Define here to make sure that it doesn't get deleted until the next email
+# is created or we quit
+pdf = None
+# SimpleList in preferences dialog
+option_visibility_list = None
+# Comboboxes for user-defined tools and rotate buttons
+comboboxudt = None
+rotate_side_cmbx = None
+rotate_side_cmbx2 = None
+# Declare the XML structure
+builder = None
+detail_popup = None
 global SETTING
 SETTING = None
 global signal
