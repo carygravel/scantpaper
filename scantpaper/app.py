@@ -233,8 +233,6 @@ logger = logging.getLogger(__name__)
     # Define here to make sure that it doesn't get deleted until the next email
     # is created or we quit
     pdf,
-    # hash of true type fonts available. Used by PDF OCR output
-    fonts,
     # SimpleList in preferences dialog
     option_visibility_list,
     # Comboboxes for user-defined tools and rotate buttons
@@ -271,7 +269,6 @@ logger = logging.getLogger(__name__)
     None,
     None,
     [],
-    None,
     None,
     None,
     None,
@@ -531,8 +528,7 @@ def check_dependencies():
 
     # Build a look-up table of all true-type fonts installed
     proc = exec_command(["fc-list", ":", "family", "style", "file"])
-    global fonts
-    fonts = parse_truetype_fonts(proc.stdout)
+    app._fonts = parse_truetype_fonts(proc.stdout)
 
 
 def update_uimanager():
@@ -1452,7 +1448,7 @@ def save_dialog(_action, _param):
         downsample_dpi=SETTING["downsample dpi"],
         downsample=SETTING["downsample"],
         pdf_compression=SETTING["pdf compression"],
-        available_fonts=fonts,
+        available_fonts=app._fonts,
         text_position=SETTING["text_position"],
         pdf_font=SETTING["pdf font"],
         can_encrypt_pdf="pdftk" in dependencies,
@@ -5825,6 +5821,7 @@ class Application(Gtk.Application):
         builder = Gtk.Builder()
         builder.add_from_file(os.path.join(base_path, "app.ui"))
         builder.connect_signals(self)
+        self._fonts = None
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
