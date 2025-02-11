@@ -200,7 +200,6 @@ logger = logging.getLogger(__name__)
     message_dialog,
     print_settings,
     windowc,
-    current_page,
     # Goo::Canvas for text layer
     canvas,
     vpaned,
@@ -269,7 +268,6 @@ logger = logging.getLogger(__name__)
     None,
     None,
     [],
-    None,
     None,
     None,
     None,
@@ -612,7 +610,6 @@ def update_uimanager():
 
 def selection_changed_callback(_selection):
     "Handle selection change"
-    global current_page
     selection = slist.get_selected_indices()
 
     # Display the new image
@@ -630,7 +627,7 @@ def selection_changed_callback(_selection):
         view.set_pixbuf(None)
         canvas.clear_text()
         a_canvas.clear_text()
-        current_page = None
+        app.window._current_page = None
 
     update_uimanager()
 
@@ -820,17 +817,16 @@ def display_callback(response):
 
 def display_image(page):
     "Display the image in the view"
-    global current_page
-    current_page = page
-    view.set_pixbuf(current_page.get_pixbuf(), True)
-    xresolution, yresolution, _units = current_page.resolution
+    app.window._current_page = page
+    view.set_pixbuf(app.window._current_page.get_pixbuf(), True)
+    xresolution, yresolution, _units = app.window._current_page.resolution
     view.set_resolution_ratio(xresolution / yresolution)
 
     # Get image dimensions to constrain selector spinbuttons on crop dialog
-    width, height = current_page.get_size()
+    width, height = app.window._current_page.get_size()
 
     # Update the ranges on the crop dialog
-    if sb_selector_w is not None and current_page is not None:
+    if sb_selector_w is not None and app.window._current_page is not None:
         sb_selector_w.set_range(0, width - sb_selector_x.get_value())
         sb_selector_h.set_range(0, height - sb_selector_y.get_value())
         sb_selector_x.set_range(0, width - sb_selector_w.get_value())
@@ -851,19 +847,21 @@ def display_image(page):
         view.set_selection(SETTING["selection"])
 
     # Delete OCR output if it has become corrupted
-    if current_page.text_layer is not None:
-        bbox = Bboxtree(current_page.text_layer)
+    if app.window._current_page.text_layer is not None:
+        bbox = Bboxtree(app.window._current_page.text_layer)
         if not bbox.valid():
-            logger.error("deleting corrupt text layer: %s", current_page.text_layer)
-            current_page.text_layer = None
+            logger.error(
+                "deleting corrupt text layer: %s", app.window._current_page.text_layer
+            )
+            app.window._current_page.text_layer = None
 
-    if current_page.text_layer:
-        create_txt_canvas(current_page)
+    if app.window._current_page.text_layer:
+        create_txt_canvas(app.window._current_page)
     else:
         canvas.clear_text()
 
-    if current_page.annotations:
-        create_ann_canvas(current_page)
+    if app.window._current_page.annotations:
+        create_ann_canvas(app.window._current_page)
     else:
         a_canvas.clear_text()
 
@@ -996,8 +994,7 @@ def new(_action, _param):
     view.set_pixbuf(None)
     canvas.clear_text()
     a_canvas.clear_text()
-    global current_page
-    current_page = None
+    app.window._current_page = None
 
     # Reset start page in scan dialog
     windows._reset_start_page()
@@ -3603,7 +3600,7 @@ def crop_dialog(_action, _param):
 
     # Frame for page range
     windowc.add_page_range()
-    width, height = current_page.get_size()
+    width, height = app.window._current_page.get_size()
     global sb_selector_x
     global sb_selector_y
     global sb_selector_w
@@ -3762,7 +3759,7 @@ def split_dialog(_action, _param):
         ],
     ]
     combob = ComboBoxText(data=direction)
-    width, height = current_page.get_size()
+    width, height = app.window._current_page.get_size()
     sb_pos = Gtk.SpinButton.new_with_range(0, width, 1)
 
     def changed_split_direction(_widget):
@@ -4181,7 +4178,7 @@ def ask_quit():
         windows.thread.quit()
 
     # Write config file
-    config.write_config(app.window._configfile, SETTING)
+    config.write_config(window._configfile, SETTING)
     logger.info("Killing document thread(s)")
     slist.thread.quit()
     logger.debug("Quitting")
@@ -5096,6 +5093,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         super().__init__(*args, **kwargs)
 
         self._configfile = None
+        self._current_page = None
         self._pre_flight()
         self.connect("delete-event", lambda w, e: not ask_quit())
 
@@ -5449,7 +5447,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             text = ocr_textbuffer.text
             logger.info("Corrected '%s'->'%s'", ocr_bbox.text, text)
             ocr_bbox.update_box(text, view.get_selection())
-            current_page.import_hocr(canvas.hocr())
+            self._current_page.import_hocr(canvas.hocr())
             edit_ocr_text(ocr_bbox)
 
         ocr_text_obutton.connect("clicked", ocr_text_button_clicked)
@@ -5463,7 +5461,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ocr_bbox = canvas.add_box(
                 text=ocr_textbuffer.text, bbox=view.get_selection()
             )
-            current_page.import_hocr(canvas.hocr())
+            self._current_page.import_hocr(canvas.hocr())
             edit_ocr_text(ocr_bbox)
 
         ocr_text_ubutton.connect("clicked", ocr_text_copy)
@@ -5481,19 +5479,19 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # If we don't yet have a canvas, create one
             selection = view.get_selection()
-            if hasattr(current_page, "text_layer"):
+            if hasattr(self._current_page, "text_layer"):
                 logger.info("Added '%s'", text)
                 ocr_bbox = canvas.add_box(text=text, bbox=view.get_selection())
-                current_page.import_hocr(canvas.hocr())
+                self._current_page.import_hocr(canvas.hocr())
                 edit_ocr_text(ocr_bbox)
             else:
                 logger.info("Creating new text layer with '%s'", text)
-                current_page.text_layer = (
+                self._current_page.text_layer = (
                     '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
                     '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
                     % (
-                        current_page["width"],
-                        current_page["height"],
+                        self._current_page["width"],
+                        self._current_page["height"],
                         selection["x"],
                         selection["y"],
                         selection["x"] + selection["width"],
@@ -5506,7 +5504,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     ocr_bbox = canvas.get_first_bbox()
                     edit_ocr_text(ocr_bbox)
 
-                create_txt_canvas(current_page, ocr_new_page)
+                create_txt_canvas(self._current_page, ocr_new_page)
 
         ocr_text_abutton.connect("clicked", ocr_text_add)
         ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
@@ -5514,7 +5512,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ocr_text_delete():
             ocr_bbox.delete_box()
-            current_page.import_hocr(canvas.hocr())
+            self._current_page.import_hocr(canvas.hocr())
             edit_ocr_text(canvas.get_current_bbox())
 
         ocr_text_dbutton.connect("clicked", ocr_text_delete)
@@ -5543,7 +5541,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             text = ann_textbuffer.text
             logger.info("Corrected '%s'->'%s'", ann_bbox.text, text)
             ann_bbox.update_box(text, view.get_selection())
-            current_page.import_annotations(a_canvas.hocr())
+            self._current_page.import_annotations(a_canvas.hocr())
             edit_annotation(ann_bbox)
 
         ann_obutton.connect("clicked", ann_text_ok)
@@ -5563,20 +5561,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # If we don't yet have a canvas, create one
             selection = view.get_selection()
-            if hasattr(current_page, "text_layer"):
+            if hasattr(self._current_page, "text_layer"):
                 logger.info("Added '%s'", ann_textbuffer.text)
                 ann_bbox = a_canvas.add_box(text=text, bbox=view.get_selection())
-                current_page.import_annotations(a_canvas.hocr())
+                self._current_page.import_annotations(a_canvas.hocr())
                 edit_annotation(ann_bbox)
 
             else:
                 logger.info("Creating new annotation canvas with '%s'", text)
-                current_page["annotations"] = (
+                self._current_page["annotations"] = (
                     '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
                     '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
                     % (
-                        current_page["width"],
-                        current_page["height"],
+                        self._current_page["width"],
+                        self._current_page["height"],
                         selection["x"],
                         selection["y"],
                         selection["x"] + selection["width"],
@@ -5589,7 +5587,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     ann_bbox = a_canvas.get_first_bbox()
                     edit_annotation(ann_bbox)
 
-                create_ann_canvas(current_page, ann_text_new_page)
+                create_ann_canvas(self._current_page, ann_text_new_page)
 
         ann_abutton.connect("clicked", ann_text_new)
         ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
@@ -5597,7 +5595,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ann_text_delete():
             ann_bbox.delete_box()
-            current_page.import_hocr(a_canvas.hocr())
+            self._current_page.import_hocr(a_canvas.hocr())
             edit_annotation(canvas.get_bbox_by_index())
 
         ann_dbutton.connect("clicked", ann_text_delete)
