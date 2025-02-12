@@ -205,7 +205,6 @@ vpaned = None
 ocr_text_hbox = None
 ocr_textbuffer = None
 ocr_textview = None
-ocr_bbox = None
 # GooCanvas for annotation layer
 a_canvas = None
 ann_hbox = None
@@ -807,7 +806,7 @@ def create_txt_canvas(page, finished_callback=None):
     canvas.set_text(
         page=page,
         layer="text_layer",
-        edit_callback=edit_ocr_text,
+        edit_callback=app.window.edit_ocr_text,
         idle=True,
         finished_callback=finished_callback,
     )
@@ -840,28 +839,6 @@ def edit_tools_callback(_action, current):
 
     ocr_text_hbox.hide()
     ann_hbox.show()
-
-
-def edit_ocr_text(widget, _target=None, ev=None, bbox=None):
-    "Edit OCR text"
-    if not ev:
-        bbox = widget
-
-    if bbox is None:
-        return
-
-    global ocr_bbox
-    ocr_bbox = bbox
-    ocr_textbuffer.text = bbox.text
-    ocr_text_hbox.show_all()
-    view.set_selection(bbox.bbox)
-    view.set_zoom_to_fit(False)
-    view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
-    if ev:
-        canvas.pointer_ungrab(widget, ev.time())
-
-    if bbox:
-        canvas.set_index_by_bbox(bbox)
 
 
 def edit_annotation(widget, _target=None, ev=None, bbox=None):
@@ -5029,6 +5006,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self._configfile = None
         self._current_page = None
+        self._current_ocr_bbox = None
         self._pre_flight()
         self.connect("delete-event", lambda w, e: not ask_quit())
 
@@ -5329,7 +5307,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_fbutton.set_tooltip_text(_("Go to least confident text"))
         ocr_text_fbutton.connect(
-            "clicked", lambda _: edit_ocr_text(canvas.get_first_bbox())
+            "clicked", lambda _: self.edit_ocr_text(canvas.get_first_bbox())
         )
         ocr_text_pbutton = Gtk.Button()
         ocr_text_pbutton.set_image(
@@ -5337,7 +5315,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_pbutton.set_tooltip_text(_("Go to previous text"))
         ocr_text_pbutton.connect(
-            "clicked", lambda _: edit_ocr_text(canvas.get_previous_bbox())
+            "clicked", lambda _: self.edit_ocr_text(canvas.get_previous_bbox())
         )
         ocr_index = [
             [
@@ -5364,7 +5342,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_nbutton.set_tooltip_text(_("Go to next text"))
         ocr_text_nbutton.connect(
-            "clicked", lambda _: edit_ocr_text(canvas.get_next_bbox())
+            "clicked", lambda _: self.edit_ocr_text(canvas.get_next_bbox())
         )
         ocr_text_lbutton = Gtk.Button()
         ocr_text_lbutton.set_image(
@@ -5372,18 +5350,18 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_lbutton.set_tooltip_text(_("Go to most confident text"))
         ocr_text_lbutton.connect(
-            "clicked", lambda _: edit_ocr_text(canvas.get_last_bbox())
+            "clicked", lambda _: self.edit_ocr_text(canvas.get_last_bbox())
         )
         ocr_text_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
         ocr_text_obutton.set_tooltip_text(_("Accept corrections"))
 
-        def ocr_text_button_clicked():
+        def ocr_text_button_clicked(_widget):
             take_snapshot()
             text = ocr_textbuffer.text
-            logger.info("Corrected '%s'->'%s'", ocr_bbox.text, text)
-            ocr_bbox.update_box(text, view.get_selection())
+            logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
+            self._current_ocr_bbox.update_box(text, view.get_selection())
             self._current_page.import_hocr(canvas.hocr())
-            edit_ocr_text(ocr_bbox)
+            self.edit_ocr_text(self._current_ocr_bbox)
 
         ocr_text_obutton.connect("clicked", ocr_text_button_clicked)
         ocr_text_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
@@ -5392,12 +5370,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_ubutton = Gtk.Button.new_with_mnemonic(label=_("_Copy"))
         ocr_text_ubutton.set_tooltip_text(_("Duplicate text"))
 
-        def ocr_text_copy():
-            ocr_bbox = canvas.add_box(
+        def ocr_text_copy(_widget):
+            self._current_ocr_bbox = canvas.add_box(
                 text=ocr_textbuffer.text, bbox=view.get_selection()
             )
             self._current_page.import_hocr(canvas.hocr())
-            edit_ocr_text(ocr_bbox)
+            self.edit_ocr_text(self._current_ocr_bbox)
 
         ocr_text_ubutton.connect("clicked", ocr_text_copy)
         ocr_text_abutton = Gtk.Button()
@@ -5406,7 +5384,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_abutton.set_tooltip_text(_("Add text"))
 
-        def ocr_text_add():
+        def ocr_text_add(_widget):
             take_snapshot()
             text = ocr_textbuffer.text
             if (text is None) or text == EMPTY:
@@ -5416,9 +5394,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             selection = view.get_selection()
             if hasattr(self._current_page, "text_layer"):
                 logger.info("Added '%s'", text)
-                ocr_bbox = canvas.add_box(text=text, bbox=view.get_selection())
+                self._current_ocr_bbox = canvas.add_box(
+                    text=text, bbox=view.get_selection()
+                )
                 self._current_page.import_hocr(canvas.hocr())
-                edit_ocr_text(ocr_bbox)
+                self.edit_ocr_text(self._current_ocr_bbox)
             else:
                 logger.info("Creating new text layer with '%s'", text)
                 self._current_page.text_layer = (
@@ -5435,9 +5415,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     )
                 )
 
-                def ocr_new_page():
-                    ocr_bbox = canvas.get_first_bbox()
-                    edit_ocr_text(ocr_bbox)
+                def ocr_new_page(_widget):
+                    self._current_ocr_bbox = canvas.get_first_bbox()
+                    self.edit_ocr_text(self._current_ocr_bbox)
 
                 create_txt_canvas(self._current_page, ocr_new_page)
 
@@ -5445,10 +5425,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ocr_text_dbutton.set_tooltip_text(_("Delete text"))
 
-        def ocr_text_delete():
-            ocr_bbox.delete_box()
+        def ocr_text_delete(_widget):
+            self._current_ocr_bbox.delete_box()
             self._current_page.import_hocr(canvas.hocr())
-            edit_ocr_text(canvas.get_current_bbox())
+            self.edit_ocr_text(canvas.get_current_bbox())
 
         ocr_text_dbutton.connect("clicked", ocr_text_delete)
         ocr_text_hbox.pack_start(ocr_text_fbutton, False, False, 0)
@@ -5708,6 +5688,26 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # allow event propagation
         return False
+
+    def edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
+        "Edit OCR text"
+        if not ev:
+            bbox = widget
+
+        if bbox is None:
+            return
+
+        self._current_ocr_bbox = bbox
+        ocr_textbuffer.text = bbox.text
+        ocr_text_hbox.show_all()
+        view.set_selection(bbox.bbox)
+        view.set_zoom_to_fit(False)
+        view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+        if ev:
+            canvas.pointer_ungrab(widget, ev.time())
+
+        if bbox:
+            canvas.set_index_by_bbox(bbox)
 
 
 class Application(Gtk.Application):
