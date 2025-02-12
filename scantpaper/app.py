@@ -221,8 +221,6 @@ sb_selector_x = None
 sb_selector_y = None
 sb_selector_w = None
 sb_selector_h = None
-# dir below session dir
-tmpdir = None
 # session dir
 session = None
 # filehandle for session lockfile
@@ -600,17 +598,18 @@ def drag_motion_callback(tree, context, x, y, t):
 def create_temp_directory():
     "Create a temporary directory for the session"
     global session
-    global tmpdir
-    tmpdir = get_tmp_dir(SETTING["TMPDIR"], r"gscan2pdf-\w\w\w\w")
-    find_crashed_sessions(tmpdir)
+    app.tmpdir = get_tmp_dir(SETTING["TMPDIR"], r"gscan2pdf-\w\w\w\w")
+    find_crashed_sessions(app.tmpdir)
 
     # Create temporary directory if necessary
     if session is None:
-        if tmpdir is not None and tmpdir != EMPTY:
-            if not os.path.isdir(tmpdir):
-                os.mkdir(tmpdir)
+        if app.tmpdir is not None and app.tmpdir != EMPTY:
+            if not os.path.isdir(app.tmpdir):
+                os.mkdir(app.tmpdir)
             try:
-                session = tempfile.TemporaryDirectory(prefix="gscan2pdf-", dir=tmpdir)
+                session = tempfile.TemporaryDirectory(
+                    prefix="gscan2pdf-", dir=app.tmpdir
+                )
             except:
                 session = tempfile.TemporaryDirectory(prefix="gscan2pdf-")
         else:
@@ -624,16 +623,16 @@ def create_temp_directory():
         create_lockfile()
         slist.save_session()
         logger.info("Using %s for temporary files", session.name)
-        tmpdir = os.path.dirname(session.name)
-        if "TMPDIR" in SETTING and SETTING["TMPDIR"] != tmpdir:
+        app.tmpdir = os.path.dirname(session.name)
+        if "TMPDIR" in SETTING and SETTING["TMPDIR"] != app.tmpdir:
             logger.warning(
                 _(
                     "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
                 ),
                 SETTING["TMPDIR"],
-                tmpdir,
+                app.tmpdir,
             )
-            SETTING["TMPDIR"] = tmpdir
+            SETTING["TMPDIR"] = app.tmpdir
 
 
 def create_lockfile():
@@ -5757,6 +5756,8 @@ class Application(Gtk.Application):
         builder.add_from_file(os.path.join(base_path, "app.ui"))
         builder.connect_signals(self)
         self._fonts = None
+        # dir below session dir
+        self.tmpdir = None
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
