@@ -98,6 +98,7 @@ from canvas import Canvas
 from bboxtree import Bboxtree
 from imageview import ImageView, Selector, Dragger, SelectorDragger
 from simplelist import SimpleList
+from print_operation import PrintOperation
 import config
 from i18n import _, d_sane
 from helpers import (
@@ -197,7 +198,6 @@ windowr = None
 view = None
 windowp = None
 message_dialog = None
-print_settings = None
 windowc = None
 # GooCanvas for text layer
 canvas = None
@@ -2806,65 +2806,10 @@ def add_postprocessing_options(self):
 def print_dialog(_action, _param):
     "print"
     os.chdir(SETTING["cwd"])
-    print_op = Gtk.PrintOperation()
-    global print_settings
-    if print_settings is not None:
-        print_op.set_print_settings(print_settings)
-
-    def begin_print_callback(op, _context):
-
-        settings = op.get_print_settings()
-        pages = settings.get_print_pages()
-        page_list = []
-        if pages == Gtk.PrintPages.RANGES:
-            page_set = set()
-            ranges = settings.get_page_ranges()
-            for r in ranges:
-                for i in range(r.start + 1, r.end + 1):
-                    page_set.add(i)
-
-            for i, row in enumerate(slist.data):
-                if row[0] in page_set:
-                    page_list.append(i)
-        else:
-            page_list = [range(len(slist.data))]
-
-        op.set_n_pages(len(page_list))
-
-    print_op.connect("begin-print", begin_print_callback)
-
-    def draw_page_callback(_op, context, page_number):
-
-        page = slist.data[page_number][2]
-        cr = context.get_cairo_context()
-
-        # Context dimensions
-        pwidth = context.get_width()
-        pheight = context.get_height()
-
-        # Image dimensions
-        pixbuf = page.get_pixbuf()
-        xresolution, yresolution, _units = page.resolution
-        ratio = xresolution / yresolution
-        iwidth = pixbuf.get_width()
-        iheight = pixbuf.get_height()
-
-        # Scale context to fit image
-        scale = pwidth / iwidth * ratio
-        scale = min(scale, pheight / iheight)
-        cr.scale(scale / ratio, scale)
-
-        # Set source pixbuf
-        Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
-
-        # Paint
-        cr.paint()
-
-    # FIXME: check print preview works for pages with ratios other than 1.
-    print_op.connect("draw-page", draw_page_callback)
+    print_op = PrintOperation(settings=app.window.print_settings, slist=slist)
     res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, window)
     if res == Gtk.PrintOperationResult.APPLY:
-        print_settings = print_op.get_print_settings()
+        app.window.print_settings = print_op.get_print_settings()
     os.chdir(session.name)
 
 
@@ -4989,6 +4934,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_ocr_bbox = None
         self._current_ann_bbox = None
         self._pre_flight()
+        self.print_settings = None
         self.connect("delete-event", lambda w, e: not ask_quit())
 
         def window_state_event_callback(_w, event):
