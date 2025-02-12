@@ -210,7 +210,6 @@ a_canvas = None
 ann_hbox = None
 ann_textbuffer = None
 ann_textview = None
-ann_bbox = None
 # Notebook, split panes for detail view and OCR output
 vnotebook = None
 hpanei = None
@@ -821,7 +820,7 @@ def create_ann_canvas(page, finished_callback=None):
     a_canvas.set_text(
         page=page,
         layer="annotations",
-        edit_callback=edit_annotation,
+        edit_callback=app.window.edit_annotation,
         idle=True,
         finished_callback=finished_callback,
     )
@@ -839,25 +838,6 @@ def edit_tools_callback(_action, current):
 
     ocr_text_hbox.hide()
     ann_hbox.show()
-
-
-def edit_annotation(widget, _target=None, ev=None, bbox=None):
-    "Edit annotation"
-    if not ev:
-        bbox = widget
-
-    global ann_bbox
-    ann_bbox = bbox
-    ann_textbuffer.text = bbox.text
-    ann_hbox.show_all()
-    view.set_selection(bbox.bbox)
-    view.set_zoom_to_fit(False)
-    view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
-    if ev:
-        a_canvas.pointer_ungrab(widget, ev.time())
-
-    if bbox:
-        a_canvas.set_index_by_bbox(bbox)
 
 
 def scans_saved(message):
@@ -5007,6 +4987,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._configfile = None
         self._current_page = None
         self._current_ocr_bbox = None
+        self._current_ann_bbox = None
         self._pre_flight()
         self.connect("delete-event", lambda w, e: not ask_quit())
 
@@ -5452,12 +5433,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
         ann_obutton.set_tooltip_text(_("Accept corrections"))
 
-        def ann_text_ok():
+        def ann_text_ok(_widget):
             text = ann_textbuffer.text
-            logger.info("Corrected '%s'->'%s'", ann_bbox.text, text)
-            ann_bbox.update_box(text, view.get_selection())
+            logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
+            self._current_ann_bbox.update_box(text, view.get_selection())
             self._current_page.import_annotations(a_canvas.hocr())
-            edit_annotation(ann_bbox)
+            self.edit_annotation(self._current_ann_bbox)
 
         ann_obutton.connect("clicked", ann_text_ok)
         ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
@@ -5469,19 +5450,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ann_abutton.set_tooltip_text(_("Add annotation"))
 
-        def ann_text_new():
+        def ann_text_new(_widget):
             text = ann_textbuffer.text
-            if (text is None) or text == EMPTY:
+            if text is None or text == EMPTY:
                 text = _("my-new-annotation")
 
             # If we don't yet have a canvas, create one
             selection = view.get_selection()
             if hasattr(self._current_page, "text_layer"):
                 logger.info("Added '%s'", ann_textbuffer.text)
-                ann_bbox = a_canvas.add_box(text=text, bbox=view.get_selection())
+                self._current_ann_bbox = a_canvas.add_box(
+                    text=text, bbox=view.get_selection()
+                )
                 self._current_page.import_annotations(a_canvas.hocr())
-                edit_annotation(ann_bbox)
-
+                self.edit_annotation(self._current_ann_bbox)
             else:
                 logger.info("Creating new annotation canvas with '%s'", text)
                 self._current_page["annotations"] = (
@@ -5498,9 +5480,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     )
                 )
 
-                def ann_text_new_page():
-                    ann_bbox = a_canvas.get_first_bbox()
-                    edit_annotation(ann_bbox)
+                def ann_text_new_page(_widget):
+                    self._current_ann_bbox = a_canvas.get_first_bbox()
+                    self.edit_annotation(self._current_ann_bbox)
 
                 create_ann_canvas(self._current_page, ann_text_new_page)
 
@@ -5508,10 +5490,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ann_dbutton.set_tooltip_text(_("Delete annotation"))
 
-        def ann_text_delete():
-            ann_bbox.delete_box()
+        def ann_text_delete(_widget):
+            self._current_ann_bbox.delete_box()
             self._current_page.import_hocr(a_canvas.hocr())
-            edit_annotation(canvas.get_bbox_by_index())
+            self.edit_annotation(canvas.get_bbox_by_index())
 
         ann_dbutton.connect("clicked", ann_text_delete)
         ann_hbox.pack_start(ann_textview, False, False, 0)
@@ -5708,6 +5690,23 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         if bbox:
             canvas.set_index_by_bbox(bbox)
+
+    def edit_annotation(self, widget, _target=None, ev=None, bbox=None):
+        "Edit annotation"
+        if not ev:
+            bbox = widget
+
+        self._current_ann_bbox = bbox
+        ann_textbuffer.text = bbox.text
+        ann_hbox.show_all()
+        view.set_selection(bbox.bbox)
+        view.set_zoom_to_fit(False)
+        view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+        if ev:
+            a_canvas.pointer_ungrab(widget, ev.time())
+
+        if bbox:
+            a_canvas.set_index_by_bbox(bbox)
 
 
 class Application(Gtk.Application):
