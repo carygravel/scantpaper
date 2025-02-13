@@ -173,7 +173,6 @@ windowi = None
 windowe = None
 windows = None
 windowo = None
-windowrn = None
 windowu = None
 windowudt = None
 save_button = None
@@ -2984,27 +2983,26 @@ def select_dark_pages():
 
 def renumber_dialog(_action, _param):
     "Dialog for renumber"
-    global windowrn
-    if windowrn is not None:
-        windowrn.present()
+    if app.window.renumber_dialog is not None:
+        app.window.renumber_dialog.present()
         return
 
-    windowrn = Renumber(
+    app.window.renumber_dialog = Renumber(
         transient_for=window,
         document=slist,
         hide_on_delete=False,
     )
-    windowrn.connect("before-renumber", lambda x: take_snapshot())
-    windowrn.connect(
+    app.window.renumber_dialog.connect("before-renumber", lambda x: take_snapshot())
+    app.window.renumber_dialog.connect(
         "error",
         lambda msg: show_message_dialog(
-            parent=windowrn,
+            parent=app.window.renumber_dialog,
             message_type="error",
             buttons=Gtk.ButtonsType.CLOSE,
             text=msg,
         ),
     )
-    windowrn.show_all()
+    app.window.renumber_dialog.show_all()
 
 
 def indices2pages(indices):
@@ -4933,6 +4931,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_ann_bbox = None
         self._pre_flight()
         self.print_settings = None
+        self.renumber_dialog = None
         self.connect("delete-event", lambda w, e: not ask_quit())
 
         def window_state_event_callback(_w, event):
