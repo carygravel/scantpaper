@@ -75,6 +75,7 @@ class BaseDocument(SimpleList):
         self.set_headers_visible(False)
         self.set_reorderable(True)
         self.dir = None
+        self.clipboard = None
         for key, val in kwargs.items():
             setattr(self, key, val)
 

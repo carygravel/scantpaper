@@ -10,6 +10,7 @@
 # fix progress bar, including during scan
 # restore last used scan settings
 # use pathlib for all paths
+# refactor methods using slist.clipboard
 # persist data with sqlite
 # fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # migrate to Gtk4
@@ -193,7 +194,6 @@ dependencies = {}
 menubar = None
 toolbar = None
 ocr_engine = []
-clipboard = None
 windowr = None
 view = None
 windowp = None
@@ -533,7 +533,7 @@ def update_uimanager():
         if save_button is not None:
             save_button.set_sensitive(False)
 
-    actions["paste"].set_enabled(bool(clipboard))
+    actions["paste"].set_enabled(bool(slist.clipboard))
 
     # If the scan dialog has already been drawn, update the start page spinbutton
     if windows:
@@ -2815,28 +2815,26 @@ def print_dialog(_action, _param):
 
 def cut_selection(_action, _param):
     "Cut the selection"
-    global clipboard
-    clipboard = slist.cut_selection()
+    slist.clipboard = slist.cut_selection()
     update_uimanager()
 
 
 def copy_selection(_action, _param):
     "Copy the selection"
-    global clipboard
-    clipboard = slist.copy_selection(True)
+    slist.clipboard = slist.copy_selection(True)
     update_uimanager()
 
 
 def paste_selection(_action, _param):
     "Paste the selection"
-    take_snapshot()
-    if clipboard is None:
+    if slist.clipboard is None:
         return
+    take_snapshot()
     pages = slist.get_selected_indices()
     if pages:
-        slist.paste_selection(clipboard, pages[-1], "after", True)
+        slist.paste_selection(slist.clipboard, pages[-1], "after", True)
     else:
-        slist.paste_selection(clipboard, None, None, True)
+        slist.paste_selection(slist.clipboard, None, None, True)
     update_uimanager()
 
 
