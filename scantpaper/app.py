@@ -240,7 +240,6 @@ SETTING = None
 global signal
 signal = None
 actions = {}
-prevent_image_tool_update = False
 
 
 def pack_viewer_tools():
@@ -3358,41 +3357,6 @@ def unsharp(_action, _param):
     windowum.show_all()
 
 
-def change_image_tool_cb(action, value):
-    "Callback for tool-changed signal ImageView"
-    global prevent_image_tool_update
-
-    # Prevent triggering the handler if it was triggered programmatically
-    if prevent_image_tool_update:
-        return
-
-    # ignore value if it hasn't changed
-    if action.get_state() == value:
-        return
-
-    # Set the flag to prevent recursive updates
-    prevent_image_tool_update = True
-    action.set_state(value)
-    value = value.get_string()
-    button = builder.get_object(f"context_{value}")
-    button.set_active(True)
-    prevent_image_tool_update = False
-
-    if view:  # could be undefined at application start
-        tool = Selector(view)
-        if value == "dragger":
-            tool = Dragger(view)
-        elif value == "selectordragger":
-            tool = SelectorDragger(view)
-        view.set_tool(tool)
-        if value in ["selector", "selectordragger"] and "selection" in SETTING:
-            view.handler_block(view.selection_changed_signal)
-            view.set_selection(SETTING["selection"])
-            view.handler_unblock(view.selection_changed_signal)
-
-    SETTING["image_control_tool"] = value
-
-
 def change_view_cb(action, parameter):
     "Callback to switch between tabbed and split views"
     action.set_state(parameter)
@@ -4929,6 +4893,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_page = None
         self._current_ocr_bbox = None
         self._current_ann_bbox = None
+        self._prevent_image_tool_update = False
         self._pre_flight()
         self.print_settings = None
         self.renumber_dialog = None
@@ -5013,8 +4978,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         logger.info("sane.__version__ %s", sane.__version__)
         logger.info("sane.init() %s", sane.init())
 
+        # add the actions to the window that have window-classed callbacks
+        app.add_action(actions["tooltype"])
+        app.add_action(actions["viewtype"])
+
+        # connect the action callback for tools and view
+        actions["tooltype"].connect("activate", self._change_image_tool_cb)
+        actions["viewtype"].connect("activate", change_view_cb)
+
         # initialise image control tool radio button setting
-        change_image_tool_cb(
+        self._change_image_tool_cb(
             actions["tooltype"], GLib.Variant("s", SETTING["image_control_tool"])
         )
         builder.get_object("context_" + SETTING["image_control_tool"]).set_active(True)
@@ -5614,6 +5587,39 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # allow event propagation
         return False
 
+    def _change_image_tool_cb(self, action, value):
+        "Callback for tool-changed signal ImageView"
+
+        # Prevent triggering the handler if it was triggered programmatically
+        if self._prevent_image_tool_update:
+            return
+
+        # ignore value if it hasn't changed
+        if action.get_state() == value:
+            return
+
+        # Set the flag to prevent recursive updates
+        self._prevent_image_tool_update = True
+        action.set_state(value)
+        value = value.get_string()
+        button = builder.get_object(f"context_{value}")
+        button.set_active(True)
+        self._prevent_image_tool_update = False
+
+        if view:  # could be undefined at application start
+            tool = Selector(view)
+            if value == "dragger":
+                tool = Dragger(view)
+            elif value == "selectordragger":
+                tool = SelectorDragger(view)
+            view.set_tool(tool)
+            if value in ["selector", "selectordragger"] and "selection" in SETTING:
+                view.handler_block(view.selection_changed_signal)
+                view.set_selection(SETTING["selection"])
+                view.handler_unblock(view.selection_changed_signal)
+
+        SETTING["image_control_tool"] = value
+
     def edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
         "Edit OCR text"
         if not ev:
@@ -5763,12 +5769,6 @@ class Application(Gtk.Application):
         actions["viewtype"] = Gio.SimpleAction.new_stateful(
             "viewtype", GLib.VariantType.new("s"), GLib.Variant.new_string("tabbed")
         )
-        # connected to the callback function
-        actions["tooltype"].connect("activate", change_image_tool_cb)
-        actions["viewtype"].connect("activate", change_view_cb)
-        # added to the window
-        self.add_action(actions["tooltype"])
-        self.add_action(actions["viewtype"])
         self.set_menubar(builder.get_object("menubar"))
 
         global detail_popup
@@ -5791,15 +5791,27 @@ class Application(Gtk.Application):
     # to connect the actions in a context menu in app.ui otherwise
     def on_dragger(self, _widget):
         "Handles the event when the dragger tool is selected."
-        change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "dragger"))
+        # builder calls this the first time before the window is defined
+        if self.window:
+            self.window._change_image_tool_cb(
+                actions["tooltype"], GLib.Variant("s", "dragger")
+            )
 
     def on_selector(self, _widget):
         "Handles the event when the selector tool is selected."
-        change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "selector"))
+        # builder calls this the first time before the window is defined
+        if self.window:
+            self.window._change_image_tool_cb(
+                actions["tooltype"], GLib.Variant("s", "selector")
+            )
 
     def on_selectordragger(self, _widget):
         "Handles the event when the selector dragger tool is selected."
-        change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "selectordragger"))
+        # builder calls this the first time before the window is defined
+        if self.window:
+            self.window._change_image_tool_cb(
+                actions["tooltype"], GLib.Variant("s", "selectordragger")
+            )
 
     def on_zoom_100(self, _widget):
         "Zooms the current page to 100%"
