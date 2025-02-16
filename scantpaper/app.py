@@ -90,6 +90,7 @@ from dialog import Dialog, MultipleMessage, filter_message, response_stored
 from dialog.renumber import Renumber
 from dialog.save import Save as SaveDialog
 from dialog.sane import SaneScanDialog
+from dialog.crop import Crop
 from comboboxtext import ComboBoxText
 from document import Document
 from basedocument import slurp
@@ -213,11 +214,6 @@ ann_textview = None
 vnotebook = None
 hpanei = None
 vpanei = None
-# Spinbuttons for selector on crop dialog
-sb_selector_x = None
-sb_selector_y = None
-sb_selector_w = None
-sb_selector_h = None
 # session dir
 session = None
 # filehandle for session lockfile
@@ -757,24 +753,10 @@ def display_image(page):
     width, height = app.window._current_page.get_size()
 
     # Update the ranges on the crop dialog
-    if sb_selector_w is not None and app.window._current_page is not None:
-        sb_selector_w.set_range(0, width - sb_selector_x.get_value())
-        sb_selector_h.set_range(0, height - sb_selector_y.get_value())
-        sb_selector_x.set_range(0, width - sb_selector_w.get_value())
-        sb_selector_y.set_range(0, height - sb_selector_h.get_value())
-        if SETTING["selection"] is None:
-            SETTING["selection"] = Gdk.Rectangle()
-        (
-            SETTING["selection"].x,
-            SETTING["selection"].y,
-            SETTING["selection"].width,
-            SETTING["selection"].height,
-        ) = (
-            sb_selector_x.get_value(),
-            sb_selector_y.get_value(),
-            sb_selector_w.get_value(),
-            sb_selector_h.get_value(),
-        )
+    if windowc is not None and app.window._current_page is not None:
+        windowc.page_width = width
+        windowc.page_height = height
+        SETTING["selection"] = windowc.selection
         view.set_selection(SETTING["selection"])
 
     # Delete OCR output if it has become corrupted
@@ -3389,90 +3371,19 @@ def crop_dialog(_action, _param):
         windowc.present()
         return
 
-    windowc = Dialog(
-        transient_for=window,
-        title=_("Crop"),
-        hide_on_delete=True,
-    )
-
-    # Frame for page range
-    windowc.add_page_range()
     width, height = app.window._current_page.get_size()
-    global sb_selector_x
-    global sb_selector_y
-    global sb_selector_w
-    global sb_selector_h
-    sb_selector_x = Gtk.SpinButton.new_with_range(0, width, 1)
-    sb_selector_y = Gtk.SpinButton.new_with_range(0, height, 1)
-    sb_selector_w = Gtk.SpinButton.new_with_range(0, width, 1)
-    sb_selector_h = Gtk.SpinButton.new_with_range(0, height, 1)
-    layout = [
-        [
-            _("x"),
-            sb_selector_x,
-            _("The x-position of the left hand edge of the crop."),
-        ],
-        [
-            _("y"),
-            sb_selector_y,
-            _("The y-position of the top edge of the crop."),
-        ],
-        [
-            _("Width"),
-            sb_selector_w,
-            _("The width of the crop."),
-        ],
-        [
-            _("Height"),
-            sb_selector_h,
-            _("The height of the crop."),
-        ],
-    ]
+    windowc = Crop(transient_for=window, page_width=width, page_height=height)
 
-    # grid for layout
-    grid = Gtk.Grid()
-    vbox = windowc.get_content_area()
-    vbox.pack_start(grid, True, True, 0)
-    for i, row in enumerate(layout):
-        hbox = Gtk.HBox()
-        label = Gtk.Label(label=row[0])
-        grid.attach(hbox, 1, i, 1, 1)
-        hbox.pack_start(label, False, True, 0)
-        hbox = Gtk.HBox()
-        hbox.pack_end(row[1], True, True, 0)
-        grid.attach(hbox, 2, i, 1, 1)
-        hbox = Gtk.HBox()
-        grid.attach(hbox, 3, i, 1, 1)
-        label = Gtk.Label(label=_("pixels"))
-        hbox.pack_start(label, False, True, 0)
-        row[1].set_tooltip_text(row[2])
-
-    def sb_selector_value_changed(widget, dimension):
-        if SETTING["selection"] is None:
-            SETTING["selection"] = Gdk.Rectangle()
-        setattr(SETTING["selection"], dimension, widget.get_value())
-        if dimension == "x":
-            sb_selector_w.set_range(0, width - SETTING["selection"].x)
-        elif dimension == "y":
-            sb_selector_h.set_range(0, height - SETTING["selection"].y)
-        elif dimension == "width":
-            sb_selector_x.set_range(0, width - SETTING["selection"].width)
-        else:  # height
-            sb_selector_y.set_range(0, height - SETTING["selection"].height)
+    def on_changed_selection(_widget, selection):
+        SETTING["selection"] = selection
         view.handler_block(view.selection_changed_signal)
-        view.set_selection(SETTING["selection"])
+        view.set_selection(selection)
         view.handler_unblock(view.selection_changed_signal)
 
-    sb_selector_x.connect("value-changed", sb_selector_value_changed, "x")
-    sb_selector_y.connect("value-changed", sb_selector_value_changed, "y")
-    sb_selector_w.connect("value-changed", sb_selector_value_changed, "width")
-    sb_selector_h.connect("value-changed", sb_selector_value_changed, "height")
+    windowc.connect("changed-selection", on_changed_selection)
 
     if SETTING["selection"]:
-        sb_selector_x.set_value(SETTING["selection"].x)
-        sb_selector_y.set_value(SETTING["selection"].y)
-        sb_selector_w.set_value(SETTING["selection"].width)
-        sb_selector_h.set_value(SETTING["selection"].height)
+        windowc.selection = SETTING["selection"]
 
     def crop_callback():
         SETTING["Page range"] = windowc.page_range
@@ -5130,11 +5041,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # destroys the Gdk.Rectangle too early and afterwards, the
             # contents are corrupt.
             SETTING["selection"] = sel.copy()
-            if sel is not None and sb_selector_x is not None:
-                sb_selector_x.set_value(sel.x)
-                sb_selector_y.set_value(sel.y)
-                sb_selector_w.set_value(sel.width)
-                sb_selector_h.set_value(sel.height)
+            if sel is not None and windowc is not None:
+                windowc.selection = SETTING["selection"]
 
         view.selection_changed_signal = view.connect(
             "selection-changed", view_selection_changed_callback
