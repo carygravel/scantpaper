@@ -205,7 +205,6 @@ a_canvas = None
 ann_hbox = None
 ann_textbuffer = None
 ann_textview = None
-hpanei = None
 vpanei = None
 # session dir
 session = None
@@ -4872,11 +4871,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Notebook, split panes for detail view and OCR output
         self._vnotebook = Gtk.Notebook()
-        global hpanei
-        hpanei = Gtk.HPaned()
+        self._hpanei = Gtk.HPaned()
         global vpanei
         vpanei = Gtk.VPaned()
-        hpanei.show()
+        self._hpanei.show()
         vpanei.show()
 
         # ImageView for detail view
@@ -5365,21 +5363,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._vnotebook.append_page(a_canvas, Gtk.Label(label=_("Annotations")))
             vpaned.pack1(self._vnotebook, True, True)
             self._vnotebook.show_all()
-
         elif SETTING["viewer_tools"] == "horizontal":
-            hpanei.pack1(view, True, True)
-            hpanei.pack2(canvas, True, True)
+            self._hpanei.pack1(view, True, True)
+            self._hpanei.pack2(canvas, True, True)
             if a_canvas.get_parent():
                 self._vnotebook.remove(a_canvas)
-
-            vpaned.pack1(hpanei, True, True)
-
+            vpaned.pack1(self._hpanei, True, True)
         else:  # vertical
             vpanei.pack1(view, True, True)
             vpanei.pack2(canvas, True, True)
             if a_canvas.get_parent():
                 self._vnotebook.remove(a_canvas)
-
             vpaned.pack1(vpanei, True, True)
 
     def handle_clicks(self, widget, event):
@@ -5441,12 +5435,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             vpaned.remove(self._vnotebook)
             self._vnotebook.remove(view)
             self._vnotebook.remove(canvas)
-
         elif SETTING["viewer_tools"] == "horizontal":
-            vpaned.remove(hpanei)
-            hpanei.remove(view)
-            hpanei.remove(canvas)
-
+            vpaned.remove(self._hpanei)
+            self._hpanei.remove(view)
+            self._hpanei.remove(canvas)
         else:  # vertical
             vpaned.remove(vpanei)
             vpanei.remove(view)
