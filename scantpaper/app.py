@@ -205,8 +205,6 @@ a_canvas = None
 ann_hbox = None
 ann_textbuffer = None
 ann_textview = None
-# Notebook, split panes for detail view and OCR output
-vnotebook = None
 hpanei = None
 vpanei = None
 # session dir
@@ -231,32 +229,6 @@ SETTING = None
 global signal
 signal = None
 actions = {}
-
-
-def pack_viewer_tools():
-    "Pack widgets according to viewer_tools"
-    if SETTING["viewer_tools"] == "tabbed":
-        vnotebook.append_page(view, Gtk.Label(label=_("Image")))
-        vnotebook.append_page(canvas, Gtk.Label(label=_("Text layer")))
-        vnotebook.append_page(a_canvas, Gtk.Label(label=_("Annotations")))
-        vpaned.pack1(vnotebook, True, True)
-        vnotebook.show_all()
-
-    elif SETTING["viewer_tools"] == "horizontal":
-        hpanei.pack1(view, True, True)
-        hpanei.pack2(canvas, True, True)
-        if a_canvas.get_parent():
-            vnotebook.remove(a_canvas)
-
-        vpaned.pack1(hpanei, True, True)
-
-    else:  # vertical
-        vpanei.pack1(view, True, True)
-        vpanei.pack2(canvas, True, True)
-        if a_canvas.get_parent():
-            vnotebook.remove(a_canvas)
-
-        vpaned.pack1(vpanei, True, True)
 
 
 def parse_arguments():
@@ -3334,31 +3306,6 @@ def unsharp(_action, _param):
     windowum.show_all()
 
 
-def change_view_cb(action, parameter):
-    "Callback to switch between tabbed and split views"
-    action.set_state(parameter)
-
-    # SETTING["viewer_tools"] still has old value
-    if SETTING["viewer_tools"] == "tabbed":
-        vpaned.remove(vnotebook)
-        vnotebook.remove(view)
-        vnotebook.remove(canvas)
-
-    elif SETTING["viewer_tools"] == "horizontal":
-        vpaned.remove(hpanei)
-        hpanei.remove(view)
-        hpanei.remove(canvas)
-
-    else:  # vertical
-        vpaned.remove(vpanei)
-        vpanei.remove(view)
-        vpanei.remove(canvas)
-        vpanei.remove(a_canvas)
-
-    SETTING["viewer_tools"] = parameter.get_string()
-    pack_viewer_tools()
-
-
 def crop_dialog(_action, _param):
     "Display page selector and on apply crop accordingly"
     global windowc
@@ -4829,7 +4776,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # connect the action callback for tools and view
         actions["tooltype"].connect("activate", self._change_image_tool_cb)
-        actions["viewtype"].connect("activate", change_view_cb)
+        actions["viewtype"].connect("activate", self._change_view_cb)
 
         # initialise image control tool radio button setting
         self._change_image_tool_cb(
@@ -4924,8 +4871,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         scwin_thumbs.add(slist)
 
         # Notebook, split panes for detail view and OCR output
-        global vnotebook
-        vnotebook = Gtk.Notebook()
+        self._vnotebook = Gtk.Notebook()
         global hpanei
         hpanei = Gtk.HPaned()
         global vpanei
@@ -5258,7 +5204,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_hbox.pack_end(ann_cbutton, False, False, 0)
         ann_hbox.pack_end(ann_obutton, False, False, 0)
         ann_hbox.pack_end(ann_abutton, False, False, 0)
-        pack_viewer_tools()
+        self._pack_viewer_tools()
 
         # Set up call back for list selection to update detail view
         slist.selection_changed_signal = slist.get_selection().connect(
@@ -5411,6 +5357,31 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         settings.gtk_toolbar_style = "icons"  # only icons
         return toolbar
 
+    def _pack_viewer_tools(self):
+        "Pack widgets according to viewer_tools"
+        if SETTING["viewer_tools"] == "tabbed":
+            self._vnotebook.append_page(view, Gtk.Label(label=_("Image")))
+            self._vnotebook.append_page(canvas, Gtk.Label(label=_("Text layer")))
+            self._vnotebook.append_page(a_canvas, Gtk.Label(label=_("Annotations")))
+            vpaned.pack1(self._vnotebook, True, True)
+            self._vnotebook.show_all()
+
+        elif SETTING["viewer_tools"] == "horizontal":
+            hpanei.pack1(view, True, True)
+            hpanei.pack2(canvas, True, True)
+            if a_canvas.get_parent():
+                self._vnotebook.remove(a_canvas)
+
+            vpaned.pack1(hpanei, True, True)
+
+        else:  # vertical
+            vpanei.pack1(view, True, True)
+            vpanei.pack2(canvas, True, True)
+            if a_canvas.get_parent():
+                self._vnotebook.remove(a_canvas)
+
+            vpaned.pack1(vpanei, True, True)
+
     def handle_clicks(self, widget, event):
         "Handle right-clicks"
         if event.button == 3:  # RIGHT_MOUSE_BUTTON
@@ -5460,6 +5431,30 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 view.handler_unblock(view.selection_changed_signal)
 
         SETTING["image_control_tool"] = value
+
+    def _change_view_cb(self, action, parameter):
+        "Callback to switch between tabbed and split views"
+        action.set_state(parameter)
+
+        # SETTING["viewer_tools"] still has old value
+        if SETTING["viewer_tools"] == "tabbed":
+            vpaned.remove(self._vnotebook)
+            self._vnotebook.remove(view)
+            self._vnotebook.remove(canvas)
+
+        elif SETTING["viewer_tools"] == "horizontal":
+            vpaned.remove(hpanei)
+            hpanei.remove(view)
+            hpanei.remove(canvas)
+
+        else:  # vertical
+            vpaned.remove(vpanei)
+            vpanei.remove(view)
+            vpanei.remove(canvas)
+            vpanei.remove(a_canvas)
+
+        SETTING["viewer_tools"] = parameter.get_string()
+        self._pack_viewer_tools()
 
     def edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
         "Edit OCR text"
