@@ -6,6 +6,7 @@
 # fix TypeErrors when dragging edges of selection
 # fix panning text layer
 # fix editing text layer
+# deleting last page produces TypeError
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
@@ -177,7 +178,6 @@ windowo = None
 windowu = None
 windowudt = None
 save_button = None
-window = None
 thbox = None
 tpbar = None
 tcbutton = None
@@ -374,7 +374,7 @@ def check_dependencies():
                 + _("Please switch to ImageMagick in case of problems.")
             )
             show_message_dialog(
-                parent=window,
+                parent=app.window,
                 message_type="warning",
                 buttons=Gtk.ButtonsType.OK,
                 text=msg,
@@ -433,7 +433,7 @@ def check_dependencies():
                 if msg:
                     del dependencies[name]
                     show_message_dialog(
-                        parent=window,
+                        parent=app.window,
                         message_type="warning",
                         buttons=Gtk.ButtonsType.OK,
                         text=msg,
@@ -657,7 +657,7 @@ def find_crashed_sessions(tmpdir):
         logger.info("Unrestorable sessions: %s", SPACE.join(missing))
         dialog = Gtk.Dialog(
             title=_("Crashed sessions"),
-            transient_for=window,
+            transient_for=app.window,
             modal=True,
         )
         dialog.add_buttons(
@@ -705,7 +705,7 @@ def find_crashed_sessions(tmpdir):
     if crashed:
         dialog = Gtk.Dialog(
             title=_("Pick crashed session to restore"),
-            transient_for=window,
+            transient_for=app.window,
             modal=True,
         )
         dialog.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
@@ -820,7 +820,7 @@ def scans_saved(message):
     "Check that all pages have been saved"
     if not slist.scans_saved():
         response = ask_question(
-            parent=window,
+            parent=app.window,
             type="question",
             buttons=Gtk.ButtonsType.OK_CANCEL,
             text=message,
@@ -907,7 +907,7 @@ def error_callback(response):
         page = slist.data[slist.find_page_by_uuid(args[0]["page"].uuid)][0]
 
     options = {
-        "parent": window,
+        "parent": app.window,
         "message_type": "error",
         "buttons": Gtk.ButtonsType.CLOSE,
         "process": process,
@@ -940,7 +940,7 @@ def open_session_action(_action):
     "open session"
     file_chooser = Gtk.FileChooserDialog(
         title=_("Open crashed session"),
-        parent=window,
+        parent=app.window,
         action=Gtk.FileChooserAction.SELECT_FOLDER,
     )
     file_chooser.add_buttons(
@@ -1037,7 +1037,7 @@ def open_dialog(_action, _param):
     os.chdir(SETTING["cwd"])
     file_chooser = Gtk.FileChooserDialog(
         title=_("Open image"),
-        parent=window,
+        parent=app.window,
         action=Gtk.FileChooserAction.OPEN,
     )
     file_chooser.add_buttons(
@@ -1088,7 +1088,7 @@ def import_files_password_callback(filename):
     "Ask for password for encrypted PDF"
     text = _("Enter user password for PDF %s") % (filename)
     dialog = Gtk.MessageDialog(
-        window,
+        app.window,
         ["destroy-with-parent", "modal"],
         "question",
         Gtk.ButtonsType.OK_CANCEL,
@@ -1152,7 +1152,7 @@ def import_files(filenames, all_pages=False):
 
             dialog = Gtk.Dialog(
                 title=_("Pages to extract"),
-                transient_for=window,
+                transient_for=app.window,
                 modal=True,
                 destroy_with_parent=True,
             )
@@ -1291,7 +1291,7 @@ def save_dialog(_action, _param):
             ps_backends.append(backend)
 
     windowi = SaveDialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Save"),
         hide_on_delete=True,
         page_range=SETTING["Page range"],
@@ -1970,7 +1970,7 @@ def email(_action, _param):
         return
 
     windowe = SaveDialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Email as PDF"),
         hide_on_delete=True,
         page_range=SETTING["Page range"],
@@ -2051,7 +2051,7 @@ def email(_action, _param):
             status = exec_command(["xdg-email", "--attach", pdf, "x@y"])
             if status:
                 show_message_dialog(
-                    parent=window,
+                    parent=app.window,
                     message_type="error",
                     buttons=Gtk.ButtonsType.CLOSE,
                     text=_("Error creating email"),
@@ -2088,7 +2088,7 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
 
     # scan dialog
     kwargs = {
-        "transient_for": window,
+        "transient_for": app.window,
         "title": _("Scan Document"),
         "dir": session,
         "hide_on_delete": True,
@@ -2356,7 +2356,7 @@ def process_error_callback(widget, process, msg, signal):
 
         else:
             dialog = Gtk.MessageDialog(
-                parent=window,
+                parent=app.window,
                 destroy_with_parent=True,
                 modal=True,
                 message_type="question",
@@ -2698,7 +2698,7 @@ def add_postprocessing_options(self):
 
     def show_unpaper_options():
         windowuo = Dialog(
-            transient_for=window,
+            transient_for=app.window,
             title=_("unpaper options"),
         )
         unpaper.add_options(windowuo.get_content_area())
@@ -2783,7 +2783,7 @@ def print_dialog(_action, _param):
     "print"
     os.chdir(SETTING["cwd"])
     print_op = PrintOperation(settings=app.window.print_settings, slist=slist)
-    res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, window)
+    res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, app.window)
     if res == Gtk.PrintOperationResult.APPLY:
         app.window.print_settings = print_op.get_print_settings()
     os.chdir(session.name)
@@ -2965,7 +2965,7 @@ def renumber_dialog(_action, _param):
         return
 
     app.window.renumber_dialog = Renumber(
-        transient_for=window,
+        transient_for=app.window,
         document=slist,
         hide_on_delete=False,
     )
@@ -3065,7 +3065,7 @@ def analyse(select_blank, select_dark):
 def threshold(_action, _param):
     "Display page selector and on apply threshold accordingly"
     windowt = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Threshold"),
     )
 
@@ -3124,7 +3124,7 @@ def threshold(_action, _param):
 def brightness_contrast(_action, _param):
     "Display page selector and on apply brightness & contrast accordingly"
     windowt = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Brightness / Contrast"),
     )
     hbox, label = None, None
@@ -3195,7 +3195,7 @@ def brightness_contrast(_action, _param):
 def negate(_action, _param):
     "Display page selector and on apply negate accordingly"
     windowt = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Negate"),
     )
 
@@ -3235,7 +3235,7 @@ def negate(_action, _param):
 def unsharp(_action, _param):
     "Display page selector and on apply unsharp accordingly"
     windowum = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Unsharp mask"),
     )
 
@@ -3368,7 +3368,7 @@ def crop_dialog(_action, _param):
         return
 
     width, height = app.window._current_page.get_size()
-    windowc = Crop(transient_for=window, page_width=width, page_height=height)
+    windowc = Crop(transient_for=app.window, page_width=width, page_height=height)
 
     def on_changed_selection(_widget, selection):
         SETTING["selection"] = selection
@@ -3438,7 +3438,7 @@ def split_dialog(_action, _param):
     #    }
 
     windowsp = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Split"),
         hide_on_delete=True,
     )
@@ -3576,7 +3576,7 @@ def user_defined_dialog(_action, _param):
         return
 
     windowudt = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("User-defined tools"),
         hide_on_delete=True,
     )
@@ -3663,7 +3663,7 @@ def unpaper(_action, _param):
         return
 
     windowu = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("unpaper"),
         hide_on_delete=True,
     )
@@ -3732,7 +3732,7 @@ def ocr_dialog(_action, _parma):
         return
 
     windowo = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("OCR"),
         hide_on_delete=True,
     )
@@ -3873,8 +3873,8 @@ def ask_quit():
         os.remove(file)
     os.rmdir(session.name)
     # Write window state to settings
-    SETTING["window_width"], SETTING["window_height"] = window.get_size()
-    SETTING["window_x"], SETTING["window_y"] = window.get_position()
+    SETTING["window_width"], SETTING["window_height"] = app.window.get_size()
+    SETTING["window_x"], SETTING["window_y"] = app.window.get_position()
     SETTING["thumb panel"] = hpaned.get_position()
     if windows:
         SETTING["scan_window_width"], SETTING["scan_window_height"] = windows.get_size()
@@ -3882,7 +3882,7 @@ def ask_quit():
         windows.thread.quit()
 
     # Write config file
-    config.write_config(window._configfile, SETTING)
+    config.write_config(app.window._configfile, SETTING)
     logger.info("Killing document thread(s)")
     slist.thread.quit()
     logger.debug("Quitting")
@@ -3931,7 +3931,7 @@ def take_snapshot():
         if df < SETTING["available-tmp-warning"]:
             text = _("%dMb free in %s.") % (df, session.name)
             show_message_dialog(
-                parent=window,
+                parent=app.window,
                 message_type="warning",
                 buttons=Gtk.ButtonsType.CLOSE,
                 text=text,
@@ -3991,7 +3991,7 @@ def preferences(_action, _param):
         return
 
     windowr = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Preferences"),
         hide_on_delete=True,
     )
@@ -4091,7 +4091,7 @@ def preferences(_action, _param):
         if newdir != tmp:
             SETTING["TMPDIR"] = newdir
             response = ask_question(
-                parent=window,
+                parent=app.window,
                 type="question",
                 buttons=Gtk.ButtonsType.OK_CANCEL,
                 text=_("Changes will only take effect after restarting gscan2pdf.")
@@ -4504,7 +4504,7 @@ def properties(_action, _param):
         return
 
     windowp = Dialog(
-        transient_for=window,
+        transient_for=app.window,
         title=_("Properties"),
         hide_on_delete=True,
     )
@@ -5626,8 +5626,6 @@ class Application(Gtk.Application):
             self.window = ApplicationWindow(
                 application=self, title=f"{prog_name} v{VERSION}"
             )
-            global window
-            window = self.window
         self.window.present()
 
     # It's a shame that we have to define these here, but I can't see a way
@@ -5861,7 +5859,7 @@ class Application(Gtk.Application):
         about.set_logo(
             GdkPixbuf.Pixbuf.new_from_file(f"{self._iconpath}/gscan2pdf.svg")
         )
-        about.set_transient_for(window)
+        about.set_transient_for(self.window)
         about.run()
         about.destroy()
 
