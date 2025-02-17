@@ -181,7 +181,6 @@ save_button = None
 thbox = None
 tpbar = None
 tcbutton = None
-spbar = None
 scbutton = None
 unpaper = None
 dependencies = {}
@@ -2089,8 +2088,8 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
 
     def started_progress_callback(_widget, message):
         logger.debug("'started-process' emitted with message: %s", message)
-        spbar.set_fraction(0)
-        spbar.set_text(message)
+        app.window._spbar.set_fraction(0)
+        app.window._spbar.set_text(message)
         app.window._shbox.show_all()
         nonlocal signal
         signal = scbutton.connect("clicked", windows.cancel_scan)
@@ -2245,12 +2244,11 @@ def reloaded_scan_options_callback(widget):  # widget is windows
 def changed_progress_callback(_widget, progress, message):
     "Updates the progress bar based on the given progress value and message."
     if progress is not None and (0 <= progress <= 1):
-        spbar.set_fraction(progress)
+        app.window._spbar.set_fraction(progress)
     else:
-        spbar.pulse()
-
+        app.window._spbar.pulse()
     if message is not None:
-        spbar.set_text(message)
+        app.window._spbar.set_text(message)
 
 
 def import_scan_finished_callback(response):
@@ -5234,10 +5232,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         phbox.show()
         self._shbox = Gtk.HBox()
         phbox.add(self._shbox)
-        global spbar
-        spbar = Gtk.ProgressBar()
-        spbar.set_show_text(True)
-        self._shbox.add(spbar)
+        self._spbar = Gtk.ProgressBar()
+        self._spbar.set_show_text(True)
+        self._shbox.add(self._spbar)
         global scbutton
         scbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         self._shbox.pack_end(scbutton, False, False, 0)
