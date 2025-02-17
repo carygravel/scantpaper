@@ -102,6 +102,7 @@ from bboxtree import Bboxtree
 from imageview import ImageView, Selector, Dragger, SelectorDragger
 from simplelist import SimpleList
 from print_operation import PrintOperation
+from progress import Progress
 import config
 from i18n import _, d_sane
 from helpers import (
@@ -178,10 +179,6 @@ windowo = None
 windowu = None
 windowudt = None
 save_button = None
-thbox = None
-tpbar = None
-tcbutton = None
-scbutton = None
 unpaper = None
 dependencies = {}
 menubar = None
@@ -893,7 +890,7 @@ def error_callback(response):
         show_message_dialog(**options)
 
     GLib.idle_add(show_message_dialog_wrapper)
-    thbox.hide()
+    app.window._pp_progress.hide()
 
 
 def open_session_file(filename):
@@ -940,11 +937,11 @@ def setup_tpbar(response):  # , pid
         response.total_jobs,
     )
     if total and process_name is not None:
-        tpbar.set_text(
+        app.window._pp_progress.set_text(
             _("Process %i of %i (%s)") % (num_completed + 1, total, process_name)
         )
-        tpbar.set_fraction((num_completed + HALF) / total)
-        thbox.show_all()
+        app.window._pp_progress.set_fraction((num_completed + HALF) / total)
+        app.window._pp_progress.show_all()
 
         def cancel_process():
             """Pass the signal back to:
@@ -953,10 +950,10 @@ def setup_tpbar(response):  # , pid
                and avoid the race condition where the callback is
                entered before the num_completed and total variables have caught up"""
             slist.cancel([pid])
-            thbox.hide()
+            app.window._pp_progress.hide()
 
         global signal
-        signal = tcbutton.connect("clicked", cancel_process)
+        signal = app.window._pp_progress.connect("clicked", cancel_process)
 
 
 def update_tpbar(response):
@@ -965,7 +962,7 @@ def update_tpbar(response):
         if response.request.process:
             # if  "message"  in options :
             #     options["process"] += f" - {options['message']}"
-            tpbar.set_text(
+            app.window._pp_progress.set_text(
                 _("Process %i of %i (%s)")
                 % (
                     response.num_completed_jobs + 1,
@@ -975,7 +972,7 @@ def update_tpbar(response):
             )
 
         else:
-            tpbar.set_text(
+            app.window._pp_progress.set_text(
                 _("Process %i of %i")
                 % (response.num_completed_jobs + 1, response.total_jobs)
             )
@@ -984,17 +981,18 @@ def update_tpbar(response):
         #     tpbar.set_fraction(
         #     ( options["jobs_completed"] + options["progress"] ) / options["jobs_total"] )
         # else :
-        tpbar.set_fraction((response.num_completed_jobs + HALF) / response.total_jobs)
-
-        thbox.show_all()
+        app.window._pp_progress.set_fraction(
+            (response.num_completed_jobs + HALF) / response.total_jobs
+        )
+        app.window._pp_progress.show_all()
 
 
 def finish_tpbar(response):
     "Helper function to update thread progress bar"
     if not response.pending:
-        thbox.hide()
+        app.window._pp_progress.hide()
     if signal is not None:
-        tcbutton.disconnect(signal)
+        app.window._pp_progress.disconnect(signal)
 
 
 def open_dialog(_action, _param):
@@ -1190,9 +1188,9 @@ def save_pdf(filename, option, list_of_page_uuids):
 
     def save_pdf_finished_callback(response):
         if not response.pending:
-            thbox.hide()
+            app.window._pp_progress.hide()
         if signal is not None:
-            tcbutton.disconnect(signal)
+            app.window._pp_progress.disconnect(signal)
 
         mark_pages(list_of_page_uuids)
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
@@ -1773,9 +1771,9 @@ def save_image(uuids):
             filename = response.request.args[0]["path"]
             uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
             if not response.pending:
-                thbox.hide()
+                app.window._pp_progress.hide()
             if signal is not None:
-                tcbutton.disconnect(signal)
+                app.window._pp_progress.disconnect(signal)
 
             mark_pages(uuids)
             if "view files toggle" in SETTING and SETTING["view files toggle"]:
@@ -2088,11 +2086,11 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
 
     def started_progress_callback(_widget, message):
         logger.debug("'started-process' emitted with message: %s", message)
-        app.window._spbar.set_fraction(0)
-        app.window._spbar.set_text(message)
-        app.window._shbox.show_all()
+        app.window._scan_progress.set_fraction(0)
+        app.window._scan_progress.set_text(message)
+        app.window._scan_progress.show_all()
         nonlocal signal
-        signal = scbutton.connect("clicked", windows.cancel_scan)
+        signal = app.window._scan_progress.connect("clicked", windows.cancel_scan)
 
     windows.connect("started-process", started_progress_callback)
     windows.connect("changed-progress", changed_progress_callback)
@@ -2244,11 +2242,11 @@ def reloaded_scan_options_callback(widget):  # widget is windows
 def changed_progress_callback(_widget, progress, message):
     "Updates the progress bar based on the given progress value and message."
     if progress is not None and (0 <= progress <= 1):
-        app.window._spbar.set_fraction(progress)
+        app.window._scan_progress.set_fraction(progress)
     else:
-        app.window._spbar.pulse()
+        app.window._scan_progress.pulse()
     if message is not None:
-        app.window._spbar.set_text(message)
+        app.window._scan_progress.set_text(message)
 
 
 def import_scan_finished_callback(response):
@@ -2303,9 +2301,9 @@ def process_error_callback(widget, process, msg, signal):
     "Callback function to handle process errors."
     logger.info("signal 'process-error' emitted with data: %s %s", process, msg)
     if signal is not None:
-        scbutton.disconnect(signal)
+        app.window._scan_progress.disconnect(signal)
 
-    app.window._shbox.hide()
+    app.window._scan_progress.hide()
     if process == "open_device" and re.search(
         r"(Invalid[ ]argument|Device[ ]busy)",
         msg,
@@ -2399,9 +2397,9 @@ def finished_process_callback(_widget, process, button_signal=None):
     "Callback function to handle the completion of a process."
     logger.debug("signal 'finished-process' emitted with data: %s", process)
     if button_signal is not None:
-        scbutton.disconnect(button_signal)
+        app.window._scan_progress.disconnect(button_signal)
 
-    app.window._shbox.hide()
+    app.window._scan_progress.hide()
     if process == "scan_pages" and windows.sided == "double":
 
         def prompt_reverse_sides():
@@ -5230,24 +5228,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         phbox = Gtk.HBox()
         main_vbox.pack_end(phbox, False, False, 0)
         phbox.show()
-        self._shbox = Gtk.HBox()
-        phbox.add(self._shbox)
-        self._spbar = Gtk.ProgressBar()
-        self._spbar.set_show_text(True)
-        self._shbox.add(self._spbar)
-        global scbutton
-        scbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
-        self._shbox.pack_end(scbutton, False, False, 0)
-        global thbox
-        thbox = Gtk.HBox()
-        phbox.add(thbox)
-        global tpbar
-        tpbar = Gtk.ProgressBar()
-        tpbar.set_show_text(True)
-        thbox.add(tpbar)
-        global tcbutton
-        tcbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
-        thbox.pack_end(tcbutton, False, False, 0)
+        self._scan_progress = Progress()
+        phbox.add(self._scan_progress)
+        self._pp_progress = Progress()
+        phbox.add(self._pp_progress)
+
+        # OCR text editing interface
         ocr_text_hbox.show()
         ann_hbox.hide()
 
