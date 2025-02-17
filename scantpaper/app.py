@@ -196,7 +196,6 @@ message_dialog = None
 windowc = None
 # GooCanvas for text layer
 canvas = None
-vpaned = None
 ocr_text_hbox = None
 ocr_textbuffer = None
 ocr_textview = None
@@ -4970,13 +4969,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
 
         # split panes for detail view/text layer canvas and text layer dialog
-        global vpaned
-        vpaned = Gtk.VPaned()
-        self._hpaned.pack2(vpaned, True, True)
-        vpaned.show()
+        self._vpaned = Gtk.VPaned()
+        self._hpaned.pack2(self._vpaned, True, True)
+        self._vpaned.show()
         ocr_text_hbox = Gtk.HBox()
         edit_vbox = Gtk.HBox()
-        vpaned.pack2(edit_vbox, False, True)
+        self._vpaned.pack2(edit_vbox, False, True)
         edit_vbox.pack_start(ocr_text_hbox, True, True, 0)
         ocr_textview = Gtk.TextView()
         ocr_textview.set_tooltip_text(_("Text layer"))
@@ -5359,20 +5357,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._vnotebook.append_page(view, Gtk.Label(label=_("Image")))
             self._vnotebook.append_page(canvas, Gtk.Label(label=_("Text layer")))
             self._vnotebook.append_page(a_canvas, Gtk.Label(label=_("Annotations")))
-            vpaned.pack1(self._vnotebook, True, True)
+            self._vpaned.pack1(self._vnotebook, True, True)
             self._vnotebook.show_all()
         elif SETTING["viewer_tools"] == "horizontal":
             self._hpanei.pack1(view, True, True)
             self._hpanei.pack2(canvas, True, True)
             if a_canvas.get_parent():
                 self._vnotebook.remove(a_canvas)
-            vpaned.pack1(self._hpanei, True, True)
+            self._vpaned.pack1(self._hpanei, True, True)
         else:  # vertical
             self._vpanei.pack1(view, True, True)
             self._vpanei.pack2(canvas, True, True)
             if a_canvas.get_parent():
                 self._vnotebook.remove(a_canvas)
-            vpaned.pack1(self._vpanei, True, True)
+            self._vpaned.pack1(self._vpanei, True, True)
 
     def handle_clicks(self, widget, event):
         "Handle right-clicks"
@@ -5430,15 +5428,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # SETTING["viewer_tools"] still has old value
         if SETTING["viewer_tools"] == "tabbed":
-            vpaned.remove(self._vnotebook)
+            self._vpaned.remove(self._vnotebook)
             self._vnotebook.remove(view)
             self._vnotebook.remove(canvas)
         elif SETTING["viewer_tools"] == "horizontal":
-            vpaned.remove(self._hpanei)
+            self._vpaned.remove(self._hpanei)
             self._hpanei.remove(view)
             self._hpanei.remove(canvas)
         else:  # vertical
-            vpaned.remove(self._vpanei)
+            self._vpaned.remove(self._vpanei)
             self._vpanei.remove(view)
             self._vpanei.remove(canvas)
             self._vpanei.remove(a_canvas)
