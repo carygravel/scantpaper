@@ -162,8 +162,29 @@ def test_document():
         assert dialog.page_number_start == 3, "page-number-start after paste"
         slist.select([0, 1])
         assert slist.get_selected_indices() == [0, 1], "selected all pages"
+
+        slist.take_snapshot()
+        # pylint: disable=protected-access
+        assert len(slist._undo_buffer) == 2, "snapshot taken"
+        assert slist._undo_selection == [0, 1], "snapshot selection"
+
         slist.delete_selection()
         assert len(slist.data) == 0, "deleted all pages"
+
+        slist.undo()
+        assert len(slist.data) == 2, "undo delete"
+        assert len(slist._undo_buffer) == 0, "can't undo twice"
+        assert slist._undo_selection == [], "can't undo selection"
+        assert len(slist._redo_buffer) == 0, "redo buffer empty"
+        assert slist._undo_selection == [], "redo selection empty"
+
+        slist.unundo()
+        assert len(slist.data) == 0, "redo delete"
+        assert len(slist._undo_buffer) == 2, "can't undo twice"
+        assert slist._undo_selection == [0, 1], "can't undo selection"
+        assert len(slist._redo_buffer) == 0, "redo buffer empty"
+        assert slist._undo_selection == [], "redo selection empty"
+        # pylint: enable=protected-access
 
         # TODO/FIXME: test drag-and-drop callbacks for move
         # TODO/FIXME: test drag-and-drop callbacks for copy
