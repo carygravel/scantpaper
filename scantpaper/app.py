@@ -185,7 +185,6 @@ spbar = None
 shbox = None
 scbutton = None
 unpaper = None
-hpaned = None
 dependencies = {}
 menubar = None
 toolbar = None
@@ -3875,7 +3874,7 @@ def ask_quit():
     # Write window state to settings
     SETTING["window_width"], SETTING["window_height"] = app.window.get_size()
     SETTING["window_x"], SETTING["window_y"] = app.window.get_position()
-    SETTING["thumb panel"] = hpaned.get_position()
+    SETTING["thumb panel"] = app.window._hpaned.get_position()
     if windows:
         SETTING["scan_window_width"], SETTING["scan_window_height"] = windows.get_size()
         logger.info("Killing Sane thread(s)")
@@ -4903,17 +4902,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         main_vbox.pack_start(self.create_toolbar(), False, False, 0)
 
         # HPaned for thumbnails and detail view
-        global hpaned
-        hpaned = Gtk.HPaned()
-        hpaned.set_position(SETTING["thumb panel"])
-        main_vbox.pack_start(hpaned, True, True, 0)
+        self._hpaned = Gtk.HPaned()
+        self._hpaned.set_position(SETTING["thumb panel"])
+        main_vbox.pack_start(self._hpaned, True, True, 0)
 
         # Scrolled window for thumbnails
         scwin_thumbs = Gtk.ScrolledWindow()
 
         # resize = FALSE to stop the panel expanding on being resized
         # (Debian #507032)
-        hpaned.pack1(scwin_thumbs, False, True)
+        self._hpaned.pack1(scwin_thumbs, False, True)
         scwin_thumbs.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scwin_thumbs.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
 
@@ -5032,7 +5030,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # split panes for detail view/text layer canvas and text layer dialog
         global vpaned
         vpaned = Gtk.VPaned()
-        hpaned.pack2(vpaned, True, True)
+        self._hpaned.pack2(vpaned, True, True)
         vpaned.show()
         ocr_text_hbox = Gtk.HBox()
         edit_vbox = Gtk.HBox()
