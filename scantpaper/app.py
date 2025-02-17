@@ -205,7 +205,6 @@ a_canvas = None
 ann_hbox = None
 ann_textbuffer = None
 ann_textview = None
-vpanei = None
 # session dir
 session = None
 # filehandle for session lockfile
@@ -4872,10 +4871,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Notebook, split panes for detail view and OCR output
         self._vnotebook = Gtk.Notebook()
         self._hpanei = Gtk.HPaned()
-        global vpanei
-        vpanei = Gtk.VPaned()
+        self._vpanei = Gtk.VPaned()
         self._hpanei.show()
-        vpanei.show()
+        self._vpanei.show()
 
         # ImageView for detail view
         global view
@@ -5370,11 +5368,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._vnotebook.remove(a_canvas)
             vpaned.pack1(self._hpanei, True, True)
         else:  # vertical
-            vpanei.pack1(view, True, True)
-            vpanei.pack2(canvas, True, True)
+            self._vpanei.pack1(view, True, True)
+            self._vpanei.pack2(canvas, True, True)
             if a_canvas.get_parent():
                 self._vnotebook.remove(a_canvas)
-            vpaned.pack1(vpanei, True, True)
+            vpaned.pack1(self._vpanei, True, True)
 
     def handle_clicks(self, widget, event):
         "Handle right-clicks"
@@ -5440,10 +5438,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._hpanei.remove(view)
             self._hpanei.remove(canvas)
         else:  # vertical
-            vpaned.remove(vpanei)
-            vpanei.remove(view)
-            vpanei.remove(canvas)
-            vpanei.remove(a_canvas)
+            vpaned.remove(self._vpanei)
+            self._vpanei.remove(view)
+            self._vpanei.remove(canvas)
+            self._vpanei.remove(a_canvas)
 
         SETTING["viewer_tools"] = parameter.get_string()
         self._pack_viewer_tools()
