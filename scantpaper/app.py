@@ -182,7 +182,6 @@ thbox = None
 tpbar = None
 tcbutton = None
 spbar = None
-shbox = None
 scbutton = None
 unpaper = None
 dependencies = {}
@@ -2092,7 +2091,7 @@ def scan_dialog(_action, _param, hidden=False, scan=False):
         logger.debug("'started-process' emitted with message: %s", message)
         spbar.set_fraction(0)
         spbar.set_text(message)
-        shbox.show_all()
+        app.window._shbox.show_all()
         nonlocal signal
         signal = scbutton.connect("clicked", windows.cancel_scan)
 
@@ -2308,7 +2307,7 @@ def process_error_callback(widget, process, msg, signal):
     if signal is not None:
         scbutton.disconnect(signal)
 
-    shbox.hide()
+    app.window._shbox.hide()
     if process == "open_device" and re.search(
         r"(Invalid[ ]argument|Device[ ]busy)",
         msg,
@@ -2404,7 +2403,7 @@ def finished_process_callback(_widget, process, button_signal=None):
     if button_signal is not None:
         scbutton.disconnect(button_signal)
 
-    shbox.hide()
+    app.window._shbox.hide()
     if process == "scan_pages" and windows.sided == "double":
 
         def prompt_reverse_sides():
@@ -5233,16 +5232,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         phbox = Gtk.HBox()
         main_vbox.pack_end(phbox, False, False, 0)
         phbox.show()
-        global shbox
-        shbox = Gtk.HBox()
-        phbox.add(shbox)
+        self._shbox = Gtk.HBox()
+        phbox.add(self._shbox)
         global spbar
         spbar = Gtk.ProgressBar()
         spbar.set_show_text(True)
-        shbox.add(spbar)
+        self._shbox.add(spbar)
         global scbutton
         scbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
-        shbox.pack_end(scbutton, False, False, 0)
+        self._shbox.pack_end(scbutton, False, False, 0)
         global thbox
         thbox = Gtk.HBox()
         phbox.add(thbox)
