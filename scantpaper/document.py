@@ -1,9 +1,11 @@
 "main document IO methods"
+
 from collections import defaultdict
 import datetime
 import re
 import logging
 import sys
+import os
 from i18n import _
 from basedocument import BaseDocument
 from page import Page
@@ -38,6 +40,13 @@ LAST_ELEMENT = -1
 
 class Document(BaseDocument):
     "More methods"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._undo_buffer = []
+        self._undo_selection = []
+        self._redo_buffer = []
+        self._redo_selection = []
 
     def import_files(self, **options):
         """To avoid race condtions importing multiple files,
@@ -362,6 +371,73 @@ class Document(BaseDocument):
         self._note_callbacks(kwargs)
         kwargs["data_callback"] = _user_defined_data_callback
         self.thread.user_defined(**kwargs)
+
+    def take_snapshot(self):
+        "take a snapshot of the document"
+
+        old_undo_files = list(map(lambda x: x[2].uuid, self._undo_buffer))
+
+        # Deep copy the tied data. Otherwise, very bad things happen.
+        self._undo_buffer = self.data.copy()
+        self._undo_selection = self.get_selected_indices()
+        logger.debug("Undo buffer %s", self._undo_buffer)
+        logger.debug("Undo selection %s", self._undo_selection)
+
+        # Clean up files that fall off the undo buffer
+        undo_files = {}
+        for i in self._undo_buffer:
+            undo_files[i[2].uuid] = True
+
+        delete_files = []
+        for file in old_undo_files:
+            if not undo_files[file]:
+                delete_files.append(file)
+
+        if delete_files:
+            logger.info("Cleaning up delete_files")
+            os.remove(delete_files)
+
+    def undo(self):
+        "undo the last action"
+        self._redo_buffer = self.clone_data()
+        self._redo_selection = self.get_selected_indices()
+        logger.debug("undo_buffer: %s", self._undo_buffer)
+        logger.debug("undo_selection: %s", self._undo_selection)
+        logger.debug("redo_buffer: %s", self._redo_buffer)
+        logger.debug("redo_selection: %s", self._redo_selection)
+
+        # Block slist signals whilst updating
+        self.get_model().handler_block(self.row_changed_signal)
+        self.get_selection().handler_block(self.selection_changed_signal)
+        self.data = self._undo_buffer
+
+        # Unblock slist signals now finished
+        self.get_selection().handler_unblock(self.selection_changed_signal)
+        self.get_model().handler_unblock(self.row_changed_signal)
+
+        # Reselect the pages to display the detail view
+        self.select(self._undo_selection)
+
+    def unundo(self):
+        "redo the last action"
+        self._undo_buffer = self.clone_data()
+        self._undo_selection = self.get_selected_indices()
+        logger.debug("undo_buffer: %s", self._undo_buffer)
+        logger.debug("undo_selection: %s", self._undo_selection)
+        logger.debug("redo_buffer: %s", self._redo_buffer)
+        logger.debug("redo_selection: %s", self._redo_selection)
+
+        # Block slist signals whilst updating
+        self.get_model().handler_block(self.row_changed_signal)
+        self.get_selection().handler_block(self.selection_changed_signal)
+        self.data = self._redo_buffer
+
+        # Unblock slist signals now finished
+        self.get_selection().handler_unblock(self.selection_changed_signal)
+        self.get_model().handler_unblock(self.row_changed_signal)
+
+        # Reselect the pages to display the detail view
+        self.select(self._redo_selection)
 
 
 def _extract_metadata(info):

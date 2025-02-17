@@ -186,10 +186,6 @@ shbox = None
 scbutton = None
 unpaper = None
 hpaned = None
-undo_buffer = []
-redo_buffer = []
-undo_selection = []
-redo_selection = []
 dependencies = {}
 menubar = None
 toolbar = None
@@ -3917,28 +3913,7 @@ def view_html(_action, _param):
 
 def take_snapshot():
     "Update undo/redo buffers before doing something"
-    global undo_buffer
-    old_undo_files = list(map(lambda x: x[2].uuid, undo_buffer))
-
-    # Deep copy the tied data. Otherwise, very bad things happen.
-    undo_buffer = slist.data.copy()
-    undo_selection = slist.get_selected_indices()
-    logger.debug("Undo buffer %s", undo_buffer)
-    logger.debug("Undo selection %s", undo_selection)
-
-    # Clean up files that fall off the undo buffer
-    undo_files = {}
-    for i in undo_buffer:
-        undo_files[i[2].uuid] = True
-
-    delete_files = []
-    for file in old_undo_files:
-        if not undo_files[file]:
-            delete_files.append(file)
-
-    if delete_files:
-        logger.info("Cleaning up delete_files")
-        os.remove(delete_files)
+    slist.take_snapshot()
 
     # Unghost Undo/redo
     actions["undo"].set_enabled(True)
@@ -3966,27 +3941,7 @@ def take_snapshot():
 def undo(_action, _param):
     "Put things back to last snapshot after updating redo buffer"
     logger.info("Undoing")
-
-    global redo_buffer
-    global redo_selection
-    redo_buffer = slist.clone_data()
-    redo_selection = slist.get_selected_indices()
-    logger.debug("undo_buffer: %s", undo_buffer)
-    logger.debug("undo_selection: %s", undo_selection)
-    logger.debug("redo_buffer: %s", redo_buffer)
-    logger.debug("redo_selection: %s", redo_selection)
-
-    # Block slist signals whilst updating
-    slist.get_model().handler_block(slist.row_changed_signal)
-    slist.get_selection().handler_block(slist.selection_changed_signal)
-    slist.data = undo_buffer
-
-    # Unblock slist signals now finished
-    slist.get_selection().handler_unblock(slist.selection_changed_signal)
-    slist.get_model().handler_unblock(slist.row_changed_signal)
-
-    # Reselect the pages to display the detail view
-    slist.select(undo_selection)
+    slist.undo()
 
     # Update menus/buttons
     update_uimanager()
@@ -3997,27 +3952,7 @@ def undo(_action, _param):
 def unundo(_action, _param):
     "Put things back to last snapshot after updating redo buffer"
     logger.info("Redoing")
-
-    global undo_buffer
-    global undo_selection
-    undo_buffer = slist.clone_data()
-    undo_selection = slist.get_selected_indices()
-    logger.debug("undo_buffer: %s", undo_buffer)
-    logger.debug("undo_selection: %s", undo_selection)
-    logger.debug("redo_buffer: %s", redo_buffer)
-    logger.debug("redo_selection: %s", redo_selection)
-
-    # Block slist signals whilst updating
-    slist.get_model().handler_block(slist.row_changed_signal)
-    slist.get_selection().handler_block(slist.selection_changed_signal)
-    slist.data = redo_buffer
-
-    # Unblock slist signals now finished
-    slist.get_selection().handler_unblock(slist.selection_changed_signal)
-    slist.get_model().handler_unblock(slist.row_changed_signal)
-
-    # Reselect the pages to display the detail view
-    slist.select(redo_selection)
+    slist.unundo()
 
     # Update menus/buttons
     update_uimanager()
