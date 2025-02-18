@@ -213,7 +213,6 @@ option_visibility_list = None
 comboboxudt = None
 rotate_side_cmbx = None
 rotate_side_cmbx2 = None
-detail_popup = None
 global SETTING
 SETTING = None
 global signal
@@ -453,7 +452,7 @@ def update_uimanager():
     for action_name in action_names:
         if action_name in actions:
             actions[action_name].set_enabled(enabled)
-    detail_popup.set_sensitive(enabled)
+    app.detail_popup.set_sensitive(enabled)
 
     # Ghost unpaper item if unpaper not available
     if not dependencies["unpaper"]:
@@ -5357,8 +5356,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Handle right-clicks"
         if event.button == 3:  # RIGHT_MOUSE_BUTTON
             if isinstance(widget, ImageView):  # main image
-                detail_popup.show_all()
-                detail_popup.popup_at_pointer(event)
+                app.detail_popup.show_all()
+                app.detail_popup.popup_at_pointer(event)
             else:  # Thumbnail simplelist
                 SETTING["Page range"] = "selected"
                 self._thumb_popup.show_all()
@@ -5507,6 +5506,7 @@ class Application(Gtk.Application):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(base_path, "app.ui"))
         self.builder.connect_signals(self)
+        self.detail_popup = self.builder.get_object("detail_popup")
         self._fonts = None
         # dir below session dir
         self.tmpdir = None
@@ -5574,9 +5574,6 @@ class Application(Gtk.Application):
             "viewtype", GLib.VariantType.new("s"), GLib.Variant.new_string("tabbed")
         )
         self.set_menubar(self.builder.get_object("menubar"))
-
-        global detail_popup
-        detail_popup = self.builder.get_object("detail_popup")
 
     def do_activate(self):
         "only allow a single window and raise any existing ones"
