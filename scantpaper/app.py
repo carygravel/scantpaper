@@ -213,8 +213,6 @@ option_visibility_list = None
 comboboxudt = None
 rotate_side_cmbx = None
 rotate_side_cmbx2 = None
-# Declare the XML structure
-builder = None
 detail_popup = None
 global SETTING
 SETTING = None
@@ -4709,7 +4707,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 str(e),
             )
 
-        self._thumb_popup = builder.get_object("thumb_popup")
+        self._thumb_popup = app.builder.get_object("thumb_popup")
 
         # app.add_window(window)
         self.populate_main_window()
@@ -4774,7 +4772,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._change_image_tool_cb(
             actions["tooltype"], GLib.Variant("s", SETTING["image_control_tool"])
         )
-        builder.get_object("context_" + SETTING["image_control_tool"]).set_active(True)
+        app.builder.get_object("context_" + SETTING["image_control_tool"]).set_active(
+            True
+        )
 
     def _read_config(self):
         "Read the configuration file"
@@ -5325,7 +5325,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
 
         # extract the toolbar
-        toolbar = builder.get_object("toolbar")
+        toolbar = app.builder.get_object("toolbar")
 
         # turn off labels
         settings = toolbar.get_settings()
@@ -5385,7 +5385,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._prevent_image_tool_update = True
         action.set_state(value)
         value = value.get_string()
-        button = builder.get_object(f"context_{value}")
+        button = app.builder.get_object(f"context_{value}")
         button.set_active(True)
         self._prevent_image_tool_update = False
 
@@ -5504,10 +5504,9 @@ class Application(Gtk.Application):
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
         base_path = os.path.abspath(os.path.dirname(__file__))
-        global builder
-        builder = Gtk.Builder()
-        builder.add_from_file(os.path.join(base_path, "app.ui"))
-        builder.connect_signals(self)
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(os.path.join(base_path, "app.ui"))
+        self.builder.connect_signals(self)
         self._fonts = None
         # dir below session dir
         self.tmpdir = None
@@ -5574,10 +5573,10 @@ class Application(Gtk.Application):
         actions["viewtype"] = Gio.SimpleAction.new_stateful(
             "viewtype", GLib.VariantType.new("s"), GLib.Variant.new_string("tabbed")
         )
-        self.set_menubar(builder.get_object("menubar"))
+        self.set_menubar(self.builder.get_object("menubar"))
 
         global detail_popup
-        detail_popup = builder.get_object("detail_popup")
+        detail_popup = self.builder.get_object("detail_popup")
 
     def do_activate(self):
         "only allow a single window and raise any existing ones"
