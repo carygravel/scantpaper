@@ -7,6 +7,7 @@
 # fix panning text layer
 # fix editing text layer
 # deleting last page produces TypeError
+# saving a scan profile produced TypeError
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
@@ -173,7 +174,6 @@ logger = logging.getLogger(__name__)
 # in the menu callbacks
 slist = None
 windowi = None
-windowe = None
 windows = None
 windowo = None
 windowu = None
@@ -411,85 +411,6 @@ def check_dependencies():
     app._fonts = parse_truetype_fonts(proc.stdout)
 
 
-def update_uimanager():
-    "ghost or unghost as necessary as # pages > 0 or not"
-    action_names = [
-        "cut",
-        "copy",
-        "delete",
-        "renumber",
-        "select-all",
-        "select-odd",
-        "select-even",
-        "select-invert",
-        "select-blank",
-        "select-dark",
-        "select-modified",
-        "select-no-ocr",
-        "clear-ocr",
-        "properties",
-        "tooltype",
-        "viewtype",
-        "zoom-100",
-        "zoom-to-fit",
-        "zoom-in",
-        "zoom-out",
-        "rotate-90",
-        "rotate-180",
-        "rotate-270",
-        "threshold",
-        "brightness-contrast",
-        "negate",
-        "unsharp",
-        "crop-dialog",
-        "crop-selection",
-        "unpaper",
-        "split",
-        "ocr",
-        "user-defined",
-    ]
-    enabled = bool(slist.get_selected_indices())
-    for action_name in action_names:
-        if action_name in actions:
-            actions[action_name].set_enabled(enabled)
-    app.detail_popup.set_sensitive(enabled)
-
-    # Ghost unpaper item if unpaper not available
-    if not dependencies["unpaper"]:
-        actions["unpaper"].set_enabled(False)
-        del actions["unpaper"]
-
-    # Ghost ocr item if ocr  not available
-    if not dependencies["ocr"]:
-        actions["ocr"].set_enabled(False)
-
-    if len(slist.data) > 0:
-        if dependencies["xdg"]:
-            actions["email"].set_enabled(True)
-
-        actions["print"].set_enabled(True)
-        actions["save"].set_enabled(True)
-        if save_button is not None:
-            save_button.set_sensitive(True)
-
-    else:
-        if dependencies["xdg"]:
-            actions["email"].set_enabled(False)
-            if windowe is not None:
-                windowe.hide()
-
-        actions["print"].set_enabled(False)
-        actions["save"].set_enabled(False)
-        if save_button is not None:
-            save_button.set_sensitive(False)
-
-    actions["paste"].set_enabled(bool(slist.clipboard))
-
-    # If the scan dialog has already been drawn, update the start page spinbutton
-    if windows:
-        windows._update_start_page()
-
-
 def selection_changed_callback(_selection):
     "Handle selection change"
     selection = slist.get_selected_indices()
@@ -511,7 +432,7 @@ def selection_changed_callback(_selection):
         a_canvas.clear_text()
         app.window._current_page = None
 
-    update_uimanager()
+    app.window.update_uimanager()
 
 
 def drag_motion_callback(tree, context, x, y, t):
@@ -1080,7 +1001,7 @@ def import_files_finished_callback(response):
 def import_files_metadata_callback(metadata):
     "Update the metadata from the imported file"
     logger.debug("import_files_metadata_callback(%s)", metadata)
-    for dialog in (windowi, windowe):
+    for dialog in (windowi, app.window._windowe):
         if dialog is not None:
             dialog.update_from_import_metadata(metadata)
     config.update_config_from_imported_metadata(SETTING, metadata)
@@ -1923,118 +1844,6 @@ def save_hocr(filename, uuids):
     )
 
 
-def email(_action, _param):
-    "Display page selector and email."
-    global windowe
-    if windowe is not None:
-        windowe.present()
-        return
-
-    windowe = SaveDialog(
-        transient_for=app.window,
-        title=_("Email as PDF"),
-        hide_on_delete=True,
-        page_range=SETTING["Page range"],
-        include_time=SETTING["use_time"],
-        meta_datetime=datetime.datetime.now() + SETTING["datetime offset"],
-        select_datetime=bool(SETTING["datetime offset"]),
-        meta_title=SETTING["title"],
-        meta_title_suggestions=SETTING["title-suggestions"],
-        meta_author=SETTING["author"],
-        meta_author_suggestions=SETTING["author-suggestions"],
-        meta_subject=SETTING["subject"],
-        meta_subject_suggestions=SETTING["subject-suggestions"],
-        meta_keywords=SETTING["keywords"],
-        meta_keywords_suggestions=SETTING["keywords-suggestions"],
-        jpeg_quality=SETTING["quality"],
-        downsample_dpi=SETTING["downsample dpi"],
-        downsample=SETTING["downsample"],
-        pdf_compression=SETTING["pdf compression"],
-        text_position=SETTING["text_position"],
-        pdf_font=SETTING["pdf font"],
-        can_encrypt_pdf="pdftk" in dependencies,
-    )
-
-    # Frame for page range
-    windowe.add_page_range()
-
-    # PDF options
-    windowe.add_pdf_options()
-
-    def email_callback():
-
-        # Set options
-        windowe.update_config_dict(SETTING)
-
-        # Compile list of pages
-        SETTING["Page range"] = windowe.page_range
-        uuids = list_of_page_uuids()
-
-        # dig out the compression
-        SETTING["downsample"] = windowe.downsample
-        SETTING["downsample dpi"] = windowe.downsample_dpi
-        SETTING["pdf compression"] = windowe.pdf_compression
-        SETTING["quality"] = windowe.jpeg_quality
-
-        # Compile options
-        options = {
-            "compression": SETTING["pdf compression"],
-            "downsample": SETTING["downsample"],
-            "downsample dpi": SETTING["downsample dpi"],
-            "quality": SETTING["quality"],
-            "text_position": SETTING["text_position"],
-            "font": SETTING["pdf font"],
-            "user-password": windowe.pdf_user_password,
-        }
-        filename = expand_metadata_pattern(
-            template=SETTING["default filename"],
-            convert_whitespace=SETTING["convert whitespace to underscores"],
-            author=SETTING["author"],
-            title=SETTING["title"],
-            docdate=windowe.meta_datetime,
-            today_and_now=datetime.datetime.now(),
-            extension="pdf",
-            subject=SETTING["subject"],
-            keywords=SETTING["keywords"],
-        )
-        if re.search(r"^\s+$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE):
-            filename = "document"
-        pdf = f"{session}/{filename}.pdf"
-
-        # Create the PDF
-
-        def email_finished_callback(response):
-            finish_tpbar(response)
-            mark_pages(uuids)
-            if "view files toggle" in SETTING and SETTING["view files toggle"]:
-                launch_default_for_file(pdf)
-
-            status = exec_command(["xdg-email", "--attach", pdf, "x@y"])
-            if status:
-                show_message_dialog(
-                    parent=app.window,
-                    message_type="error",
-                    buttons=Gtk.ButtonsType.CLOSE,
-                    text=_("Error creating email"),
-                )
-
-        slist.save_pdf(
-            path=pdf,
-            list_of_pages=uuids,
-            metadata=collate_metadata(SETTING, datetime.datetime.now()),
-            options=options,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
-            finished_callback=email_finished_callback,
-            error_callback=error_callback,
-        )
-        windowe.hide()
-
-    windowe.add_actions([("gtk-ok", email_callback), ("gtk-cancel", windowe.hide)])
-    windowe.show_all()
-
-
 def scan_dialog(_action, _param, hidden=False, scan=False):
     "Scan"
     global windows
@@ -2752,13 +2561,13 @@ def print_dialog(_action, _param):
 def cut_selection(_action, _param):
     "Cut the selection"
     slist.clipboard = slist.cut_selection()
-    update_uimanager()
+    app.window.update_uimanager()
 
 
 def copy_selection(_action, _param):
     "Copy the selection"
     slist.clipboard = slist.copy_selection(True)
-    update_uimanager()
+    app.window.update_uimanager()
 
 
 def paste_selection(_action, _param):
@@ -2771,7 +2580,7 @@ def paste_selection(_action, _param):
         slist.paste_selection(slist.clipboard, pages[-1], "after", True)
     else:
         slist.paste_selection(slist.clipboard, None, None, True)
-    update_uimanager()
+    app.window.update_uimanager()
 
 
 def delete_selection(_action, _param):
@@ -2783,7 +2592,7 @@ def delete_selection(_action, _param):
     # Reset start page in scan dialog
     if windows:
         windows._reset_start_page()
-    update_uimanager()
+    app.window.update_uimanager()
 
 
 def select_all(_action, _param):
@@ -3879,7 +3688,7 @@ def undo(_action, _param):
     slist.undo()
 
     # Update menus/buttons
-    update_uimanager()
+    app.window.update_uimanager()
     actions["undo"].set_enabled(False)
     actions["redo"].set_enabled(True)
 
@@ -3890,7 +3699,7 @@ def unundo(_action, _param):
     slist.unundo()
 
     # Update menus/buttons
-    update_uimanager()
+    app.window.update_uimanager()
     actions["undo"].set_enabled(True)
     actions["redo"].set_enabled(False)
 
@@ -4675,9 +4484,73 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_ocr_bbox = None
         self._current_ann_bbox = None
         self._prevent_image_tool_update = False
+
+        # These will be in the window group and have the "win" prefix
+        for name, function in [
+            ("new", new),
+            ("open", open_dialog),
+            ("open-session", open_session_action),
+            ("scan", scan_dialog),
+            ("save", save_dialog),
+            ("email", self.email),
+            ("print", print_dialog),
+            ("quit", quit_app),
+            ("undo", undo),
+            ("redo", unundo),
+            ("cut", cut_selection),
+            ("copy", copy_selection),
+            ("paste", paste_selection),
+            ("delete", delete_selection),
+            ("renumber", renumber_dialog),
+            ("select-all", select_all),
+            ("select-odd", select_odd),
+            ("select-even", select_even),
+            ("select-invert", select_invert),
+            ("select-blank", select_blank),
+            ("select-dark", select_dark),
+            ("select-modified", select_modified_since_ocr),
+            ("select-no-ocr", select_no_ocr),
+            ("clear-ocr", clear_ocr),
+            ("properties", properties),
+            ("preferences", preferences),
+            ("zoom-100", zoom_100),
+            ("zoom-to-fit", zoom_to_fit),
+            ("zoom-in", zoom_in),
+            ("zoom-out", zoom_out),
+            ("rotate-90", rotate_90),
+            ("rotate-180", rotate_180),
+            ("rotate-270", rotate_270),
+            ("threshold", threshold),
+            ("brightness-contrast", brightness_contrast),
+            ("negate", negate),
+            ("unsharp", unsharp),
+            ("crop-dialog", crop_dialog),
+            ("crop-selection", crop_selection),
+            ("split", split_dialog),
+            ("unpaper", unpaper),
+            ("ocr", ocr_dialog),
+            ("user-defined", user_defined_dialog),
+            ("help", view_html),
+            ("about", self.about),
+        ]:
+            actions[name] = Gio.SimpleAction.new(name, None)
+            actions[name].connect("activate", function)
+            self.add_action(actions[name])
+
+        # action with a state created (name, parameter type, initial state)
+        actions["tooltype"] = Gio.SimpleAction.new_stateful(
+            "tooltype", GLib.VariantType.new("s"), GLib.Variant.new_string("dragger")
+        )
+        actions["viewtype"] = Gio.SimpleAction.new_stateful(
+            "viewtype", GLib.VariantType.new("s"), GLib.Variant.new_string("tabbed")
+        )
+        app = self.get_application()
+        app.set_menubar(app.builder.get_object("menubar"))
+
         self._pre_flight()
         self.print_settings = None
         self.renumber_dialog = None
+        self._windowe = None
         self.connect("delete-event", lambda w, e: not ask_quit())
 
         def window_state_event_callback(_w, event):
@@ -5220,7 +5093,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             SETTING["cwd"] = os.getcwd()
         global unpaper
         unpaper = Unpaper(SETTING["unpaper options"])
-        update_uimanager()
+        self.update_uimanager()
         self.show_all()
 
         # Progress bars below window
@@ -5461,255 +5334,83 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if bbox:
             a_canvas.set_index_by_bbox(bbox)
 
+    def update_uimanager(self):
+        "ghost or unghost as necessary as # pages > 0 or not"
+        action_names = [
+            "cut",
+            "copy",
+            "delete",
+            "renumber",
+            "select-all",
+            "select-odd",
+            "select-even",
+            "select-invert",
+            "select-blank",
+            "select-dark",
+            "select-modified",
+            "select-no-ocr",
+            "clear-ocr",
+            "properties",
+            "tooltype",
+            "viewtype",
+            "zoom-100",
+            "zoom-to-fit",
+            "zoom-in",
+            "zoom-out",
+            "rotate-90",
+            "rotate-180",
+            "rotate-270",
+            "threshold",
+            "brightness-contrast",
+            "negate",
+            "unsharp",
+            "crop-dialog",
+            "crop-selection",
+            "unpaper",
+            "split",
+            "ocr",
+            "user-defined",
+        ]
+        enabled = bool(slist.get_selected_indices())
+        for action_name in action_names:
+            if action_name in actions:
+                actions[action_name].set_enabled(enabled)
+        app.detail_popup.set_sensitive(enabled)
 
-class Application(Gtk.Application):
-    "Application class"
+        # Ghost unpaper item if unpaper not available
+        if not dependencies["unpaper"]:
+            actions["unpaper"].set_enabled(False)
+            del actions["unpaper"]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args,
-            application_id="org.gscan2pdf",
-            flags=Gio.ApplicationFlags.HANDLES_OPEN,
-            **kwargs,
-        )
-        self.window = None
-        # self.add_main_option(
-        #     "test",
-        #     ord("t"),
-        #     GLib.OptionFlags.NONE,
-        #     GLib.OptionArg.NONE,
-        #     "Command line test",
-        #     None,
-        # )
+        # Ghost ocr item if ocr  not available
+        if not dependencies["ocr"]:
+            actions["ocr"].set_enabled(False)
 
-        # Add extra icons early to be available for Gtk.Builder
-        if os.path.isdir("/usr/share/gscan2pdf"):
-            self._iconpath = "/usr/share/gscan2pdf"
+        if len(slist.data) > 0:
+            if dependencies["xdg"]:
+                actions["email"].set_enabled(True)
+
+            actions["print"].set_enabled(True)
+            actions["save"].set_enabled(True)
+            if save_button is not None:
+                save_button.set_sensitive(True)
+
         else:
-            self._iconpath = "icons"
-        self._init_icons(
-            [
-                ("rotate90", "stock-rotate-90.svg"),
-                ("rotate180", "180_degree.svg"),
-                ("rotate270", "stock-rotate-270.svg"),
-                ("scanner", "scanner.svg"),
-                ("pdf", "pdf.svg"),
-                ("selection", "stock-selection-all-16.png"),
-                ("hand-tool", "hand-tool.svg"),
-                ("mail-attach", "mail-attach.svg"),
-                ("crop", "crop.svg"),
-            ],
-        )
+            if dependencies["xdg"]:
+                actions["email"].set_enabled(False)
+                if self._windowe is not None:
+                    self._windowe.hide()
 
-        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
-        base_path = os.path.abspath(os.path.dirname(__file__))
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file(os.path.join(base_path, "app.ui"))
-        self.builder.connect_signals(self)
-        self.detail_popup = self.builder.get_object("detail_popup")
-        self._fonts = None
-        # dir below session dir
-        self.tmpdir = None
+            actions["print"].set_enabled(False)
+            actions["save"].set_enabled(False)
+            if save_button is not None:
+                save_button.set_sensitive(False)
 
-    def do_startup(self):
-        Gtk.Application.do_startup(self)
+        actions["paste"].set_enabled(bool(slist.clipboard))
 
-        # These will be in the application group and have the "app" prefix
-        for name, function in [
-            ("new", new),
-            ("open", open_dialog),
-            ("open-session", open_session_action),
-            ("scan", scan_dialog),
-            ("save", save_dialog),
-            ("email", email),
-            ("print", print_dialog),
-            ("quit", quit_app),
-            ("undo", undo),
-            ("redo", unundo),
-            ("cut", cut_selection),
-            ("copy", copy_selection),
-            ("paste", paste_selection),
-            ("delete", delete_selection),
-            ("renumber", renumber_dialog),
-            ("select-all", select_all),
-            ("select-odd", select_odd),
-            ("select-even", select_even),
-            ("select-invert", select_invert),
-            ("select-blank", select_blank),
-            ("select-dark", select_dark),
-            ("select-modified", select_modified_since_ocr),
-            ("select-no-ocr", select_no_ocr),
-            ("clear-ocr", clear_ocr),
-            ("properties", properties),
-            ("preferences", preferences),
-            ("zoom-100", zoom_100),
-            ("zoom-to-fit", zoom_to_fit),
-            ("zoom-in", zoom_in),
-            ("zoom-out", zoom_out),
-            ("rotate-90", rotate_90),
-            ("rotate-180", rotate_180),
-            ("rotate-270", rotate_270),
-            ("threshold", threshold),
-            ("brightness-contrast", brightness_contrast),
-            ("negate", negate),
-            ("unsharp", unsharp),
-            ("crop-dialog", crop_dialog),
-            ("crop-selection", crop_selection),
-            ("split", split_dialog),
-            ("unpaper", unpaper),
-            ("ocr", ocr_dialog),
-            ("user-defined", user_defined_dialog),
-            ("help", view_html),
-            ("about", self.about),
-        ]:
-            actions[name] = Gio.SimpleAction.new(name, None)
-            actions[name].connect("activate", function)
-            self.add_action(actions[name])
-
-        # action with a state created (name, parameter type, initial state)
-        actions["tooltype"] = Gio.SimpleAction.new_stateful(
-            "tooltype", GLib.VariantType.new("s"), GLib.Variant.new_string("dragger")
-        )
-        actions["viewtype"] = Gio.SimpleAction.new_stateful(
-            "viewtype", GLib.VariantType.new("s"), GLib.Variant.new_string("tabbed")
-        )
-        self.set_menubar(self.builder.get_object("menubar"))
-
-    def do_activate(self):
-        "only allow a single window and raise any existing ones"
-
-        # Windows are associated with the application
-        # until the last one is closed and the application shuts down
-        if not self.window:
-            self.window = ApplicationWindow(
-                application=self, title=f"{prog_name} v{VERSION}"
-            )
-        self.window.present()
-
-    # It's a shame that we have to define these here, but I can't see a way
-    # to connect the actions in a context menu in app.ui otherwise
-    def on_dragger(self, _widget):
-        "Handles the event when the dragger tool is selected."
-        # builder calls this the first time before the window is defined
-        if self.window:
-            self.window._change_image_tool_cb(
-                actions["tooltype"], GLib.Variant("s", "dragger")
-            )
-
-    def on_selector(self, _widget):
-        "Handles the event when the selector tool is selected."
-        # builder calls this the first time before the window is defined
-        if self.window:
-            self.window._change_image_tool_cb(
-                actions["tooltype"], GLib.Variant("s", "selector")
-            )
-
-    def on_selectordragger(self, _widget):
-        "Handles the event when the selector dragger tool is selected."
-        # builder calls this the first time before the window is defined
-        if self.window:
-            self.window._change_image_tool_cb(
-                actions["tooltype"], GLib.Variant("s", "selectordragger")
-            )
-
-    def on_zoom_100(self, _widget):
-        "Zooms the current page to 100%"
-        zoom_100(None, None)
-
-    def on_zoom_to_fit(self, _widget):
-        "Zooms the current page so that it fits the viewing pane."
-        zoom_to_fit(None, None)
-
-    def on_zoom_in(self, _widget):
-        "Zooms in the current page."
-        zoom_in(None, None)
-
-    def on_zoom_out(self, _widget):
-        "Zooms out the current page."
-        zoom_out(None, None)
-
-    def on_rotate_90(self, _widget):
-        "Rotate the selected pages by 90 degrees."
-        rotate_90(None, None)
-
-    def on_rotate_180(self, _widget):
-        "Rotate the selected pages by 180 degrees."
-        rotate_180(None, None)
-
-    def on_rotate_270(self, _widget):
-        "Rotate the selected pages by 270 degrees."
-        rotate_270(None, None)
-
-    def on_save(self, _widget):
-        "Displays the save dialog."
-        save_dialog(None, None)
-
-    def on_email(self, _widget):
-        "displays the email dialog."
-        email(None, None)
-
-    def on_print(self, _widget):
-        "displays the print dialog."
-        print_dialog(None, None)
-
-    def on_renumber(self, _widget):
-        "Displays the renumber dialog."
-        renumber_dialog(None, None)
-
-    def on_select_all(self, _widget):
-        "selects all pages."
-        select_all(None, None)
-
-    def on_select_odd(self, _widget):
-        "selects the pages with odd numbers."
-        select_odd_even(0)
-
-    def on_select_even(self, _widget):
-        "selects the pages with even numbers."
-        select_odd_even(1)
-
-    def on_invert_selection(self, _widget):
-        "Inverts the current selection."
-        select_invert(None, None)
-
-    def on_crop(self, _widget):
-        "Displays the crop dialog."
-        crop_selection(None, None)
-
-    def on_cut(self, _widget):
-        "cuts the selected pages to the clipboard."
-        cut_selection(None, None)
-
-    def on_copy(self, _widget):
-        "copies the selected pages to the clipboard."
-        copy_selection(None, None)
-
-    def on_paste(self, _widget):
-        "pastes the copied pages."
-        paste_selection(None, None)
-
-    def on_delete(self, _widget):
-        "deletes the selected pages."
-        delete_selection(None, None)
-
-    def on_clear_ocr(self, _widget):
-        "Clears the OCR (Optical Character Recognition) data."
-        clear_ocr(None, None)
-
-    def on_properties(self, _widget):
-        "displays the properties dialog."
-        properties(None, None)
-
-    def on_quit(self, _action, _param):
-        "Handles the quit action."
-        self.quit()
-
-    def _init_icons(self, icons):
-        "Initialise iconfactory"
-        iconfactory = Gtk.IconFactory()
-        for iconname, filename in icons:
-            register_icon(iconfactory, iconname, self._iconpath + "/" + filename)
-        iconfactory.add_default()
+        # If the scan dialog has already been drawn, update the start page spinbutton
+        if windows:
+            windows._update_start_page()
 
     def about(self, _action, _param):
         "Display about dialog"
@@ -5820,6 +5521,307 @@ class Application(Gtk.Application):
         about.set_transient_for(self.window)
         about.run()
         about.destroy()
+
+    def email(self, _action, _param):
+        "Display page selector and email."
+        if self._windowe is not None:
+            self._windowe.present()
+            return
+
+        self._windowe = SaveDialog(
+            transient_for=app.window,
+            title=_("Email as PDF"),
+            hide_on_delete=True,
+            page_range=SETTING["Page range"],
+            include_time=SETTING["use_time"],
+            meta_datetime=datetime.datetime.now() + SETTING["datetime offset"],
+            select_datetime=bool(SETTING["datetime offset"]),
+            meta_title=SETTING["title"],
+            meta_title_suggestions=SETTING["title-suggestions"],
+            meta_author=SETTING["author"],
+            meta_author_suggestions=SETTING["author-suggestions"],
+            meta_subject=SETTING["subject"],
+            meta_subject_suggestions=SETTING["subject-suggestions"],
+            meta_keywords=SETTING["keywords"],
+            meta_keywords_suggestions=SETTING["keywords-suggestions"],
+            jpeg_quality=SETTING["quality"],
+            downsample_dpi=SETTING["downsample dpi"],
+            downsample=SETTING["downsample"],
+            pdf_compression=SETTING["pdf compression"],
+            text_position=SETTING["text_position"],
+            pdf_font=SETTING["pdf font"],
+            can_encrypt_pdf="pdftk" in dependencies,
+        )
+
+        # Frame for page range
+        self._windowe.add_page_range()
+
+        # PDF options
+        self._windowe.add_pdf_options()
+
+        def email_callback():
+
+            # Set options
+            self._windowe.update_config_dict(SETTING)
+
+            # Compile list of pages
+            SETTING["Page range"] = self._windowe.page_range
+            uuids = list_of_page_uuids()
+
+            # dig out the compression
+            SETTING["downsample"] = self._windowe.downsample
+            SETTING["downsample dpi"] = self._windowe.downsample_dpi
+            SETTING["pdf compression"] = self._windowe.pdf_compression
+            SETTING["quality"] = self._windowe.jpeg_quality
+
+            # Compile options
+            options = {
+                "compression": SETTING["pdf compression"],
+                "downsample": SETTING["downsample"],
+                "downsample dpi": SETTING["downsample dpi"],
+                "quality": SETTING["quality"],
+                "text_position": SETTING["text_position"],
+                "font": SETTING["pdf font"],
+                "user-password": self._windowe.pdf_user_password,
+            }
+            filename = expand_metadata_pattern(
+                template=SETTING["default filename"],
+                convert_whitespace=SETTING["convert whitespace to underscores"],
+                author=SETTING["author"],
+                title=SETTING["title"],
+                docdate=self._windowe.meta_datetime,
+                today_and_now=datetime.datetime.now(),
+                extension="pdf",
+                subject=SETTING["subject"],
+                keywords=SETTING["keywords"],
+            )
+            if re.search(r"^\s+$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE):
+                filename = "document"
+            pdf = f"{session}/{filename}.pdf"
+
+            # Create the PDF
+
+            def email_finished_callback(response):
+                finish_tpbar(response)
+                mark_pages(uuids)
+                if "view files toggle" in SETTING and SETTING["view files toggle"]:
+                    launch_default_for_file(pdf)
+
+                status = exec_command(["xdg-email", "--attach", pdf, "x@y"])
+                if status:
+                    show_message_dialog(
+                        parent=app.window,
+                        message_type="error",
+                        buttons=Gtk.ButtonsType.CLOSE,
+                        text=_("Error creating email"),
+                    )
+
+            slist.save_pdf(
+                path=pdf,
+                list_of_pages=uuids,
+                metadata=collate_metadata(SETTING, datetime.datetime.now()),
+                options=options,
+                queued_callback=setup_tpbar,
+                started_callback=update_tpbar,
+                running_callback=update_tpbar,
+                finished_callback=email_finished_callback,
+                error_callback=error_callback,
+            )
+            self._windowe.hide()
+
+        self._windowe.add_actions(
+            [("gtk-ok", email_callback), ("gtk-cancel", self._windowe.hide)]
+        )
+        self._windowe.show_all()
+
+
+class Application(Gtk.Application):
+    "Application class"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            application_id="org.gscan2pdf",
+            flags=Gio.ApplicationFlags.HANDLES_OPEN,
+            **kwargs,
+        )
+        self.window = None
+        # self.add_main_option(
+        #     "test",
+        #     ord("t"),
+        #     GLib.OptionFlags.NONE,
+        #     GLib.OptionArg.NONE,
+        #     "Command line test",
+        #     None,
+        # )
+
+        # Add extra icons early to be available for Gtk.Builder
+        if os.path.isdir("/usr/share/gscan2pdf"):
+            self._iconpath = "/usr/share/gscan2pdf"
+        else:
+            self._iconpath = "icons"
+        self._init_icons(
+            [
+                ("rotate90", "stock-rotate-90.svg"),
+                ("rotate180", "180_degree.svg"),
+                ("rotate270", "stock-rotate-270.svg"),
+                ("scanner", "scanner.svg"),
+                ("pdf", "pdf.svg"),
+                ("selection", "stock-selection-all-16.png"),
+                ("hand-tool", "hand-tool.svg"),
+                ("mail-attach", "mail-attach.svg"),
+                ("crop", "crop.svg"),
+            ],
+        )
+
+        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(os.path.join(base_path, "app.ui"))
+        self.builder.connect_signals(self)
+        self.detail_popup = self.builder.get_object("detail_popup")
+        self._fonts = None
+        # dir below session dir
+        self.tmpdir = None
+
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
+
+    def do_activate(self):
+        "only allow a single window and raise any existing ones"
+
+        # Windows are associated with the application
+        # until the last one is closed and the application shuts down
+        if not self.window:
+            self.window = ApplicationWindow(
+                application=self, title=f"{prog_name} v{VERSION}"
+            )
+        self.window.present()
+
+    # It's a shame that we have to define these here, but I can't see a way
+    # to connect the actions in a context menu in app.ui otherwise
+    def on_dragger(self, _widget):
+        "Handles the event when the dragger tool is selected."
+        # builder calls this the first time before the window is defined
+        if self.window:
+            self.window._change_image_tool_cb(
+                actions["tooltype"], GLib.Variant("s", "dragger")
+            )
+
+    def on_selector(self, _widget):
+        "Handles the event when the selector tool is selected."
+        # builder calls this the first time before the window is defined
+        if self.window:
+            self.window._change_image_tool_cb(
+                actions["tooltype"], GLib.Variant("s", "selector")
+            )
+
+    def on_selectordragger(self, _widget):
+        "Handles the event when the selector dragger tool is selected."
+        # builder calls this the first time before the window is defined
+        if self.window:
+            self.window._change_image_tool_cb(
+                actions["tooltype"], GLib.Variant("s", "selectordragger")
+            )
+
+    def on_zoom_100(self, _widget):
+        "Zooms the current page to 100%"
+        zoom_100(None, None)
+
+    def on_zoom_to_fit(self, _widget):
+        "Zooms the current page so that it fits the viewing pane."
+        zoom_to_fit(None, None)
+
+    def on_zoom_in(self, _widget):
+        "Zooms in the current page."
+        zoom_in(None, None)
+
+    def on_zoom_out(self, _widget):
+        "Zooms out the current page."
+        zoom_out(None, None)
+
+    def on_rotate_90(self, _widget):
+        "Rotate the selected pages by 90 degrees."
+        rotate_90(None, None)
+
+    def on_rotate_180(self, _widget):
+        "Rotate the selected pages by 180 degrees."
+        rotate_180(None, None)
+
+    def on_rotate_270(self, _widget):
+        "Rotate the selected pages by 270 degrees."
+        rotate_270(None, None)
+
+    def on_save(self, _widget):
+        "Displays the save dialog."
+        save_dialog(None, None)
+
+    def on_email(self, _widget):
+        "displays the email dialog."
+        self.window.email(None, None)
+
+    def on_print(self, _widget):
+        "displays the print dialog."
+        print_dialog(None, None)
+
+    def on_renumber(self, _widget):
+        "Displays the renumber dialog."
+        renumber_dialog(None, None)
+
+    def on_select_all(self, _widget):
+        "selects all pages."
+        select_all(None, None)
+
+    def on_select_odd(self, _widget):
+        "selects the pages with odd numbers."
+        select_odd_even(0)
+
+    def on_select_even(self, _widget):
+        "selects the pages with even numbers."
+        select_odd_even(1)
+
+    def on_invert_selection(self, _widget):
+        "Inverts the current selection."
+        select_invert(None, None)
+
+    def on_crop(self, _widget):
+        "Displays the crop dialog."
+        crop_selection(None, None)
+
+    def on_cut(self, _widget):
+        "cuts the selected pages to the clipboard."
+        cut_selection(None, None)
+
+    def on_copy(self, _widget):
+        "copies the selected pages to the clipboard."
+        copy_selection(None, None)
+
+    def on_paste(self, _widget):
+        "pastes the copied pages."
+        paste_selection(None, None)
+
+    def on_delete(self, _widget):
+        "deletes the selected pages."
+        delete_selection(None, None)
+
+    def on_clear_ocr(self, _widget):
+        "Clears the OCR (Optical Character Recognition) data."
+        clear_ocr(None, None)
+
+    def on_properties(self, _widget):
+        "displays the properties dialog."
+        properties(None, None)
+
+    def on_quit(self, _action, _param):
+        "Handles the quit action."
+        self.quit()
+
+    def _init_icons(self, icons):
+        "Initialise iconfactory"
+        iconfactory = Gtk.IconFactory()
+        for iconname, filename in icons:
+            register_icon(iconfactory, iconname, self._iconpath + "/" + filename)
+        iconfactory.add_default()
 
 
 if __name__ == "__main__":

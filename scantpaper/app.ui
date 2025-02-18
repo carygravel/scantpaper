@@ -5,43 +5,43 @@
       <attribute name="label" translatable="yes">_File</attribute>
       <section>
       <item>
-        <attribute name="action">app.new</attribute>
+        <attribute name="action">win.new</attribute>
         <attribute name="label" translatable="yes">_New</attribute>
         <attribute name="accel">&lt;control&gt;n</attribute>
       </item>
       <item>
-        <attribute name="action">app.open</attribute>
+        <attribute name="action">win.open</attribute>
         <attribute name="label" translatable="yes">_Open</attribute>
         <attribute name="accel">&lt;control&gt;o</attribute>
       </item>
       <item>
-        <attribute name="action">app.open-session</attribute>
+        <attribute name="action">win.open-session</attribute>
         <attribute name="label" translatable="yes">Open c_rashed session</attribute>
       </item>
       <item>
-        <attribute name="action">app.scan</attribute>
+        <attribute name="action">win.scan</attribute>
         <attribute name="label" translatable="yes">S_can</attribute>
         <attribute name="accel">&lt;control&gt;g</attribute>
       </item>
       <item>
-        <attribute name="action">app.save</attribute>
+        <attribute name="action">win.save</attribute>
         <attribute name="label" translatable="yes">Save</attribute>
         <attribute name="accel">&lt;control&gt;s</attribute>
       </item>
       <item>
-        <attribute name="action">app.email</attribute>
+        <attribute name="action">win.email</attribute>
         <attribute name="label" translatable="yes">_Email as PDF</attribute>
         <attribute name="accel">&lt;control&gt;e</attribute>
       </item>
       <item>
-        <attribute name="action">app.print</attribute>
+        <attribute name="action">win.print</attribute>
         <attribute name="label" translatable="yes">_Print</attribute>
         <attribute name="accel">&lt;control&gt;p</attribute>
       </item>
       </section>
       <section>
       <item>
-        <attribute name="action">app.quit</attribute>
+        <attribute name="action">win.quit</attribute>
         <attribute name="label" translatable="yes">_Quit</attribute>
         <attribute name="accel">&lt;control&gt;q</attribute>
       </item>
@@ -51,40 +51,40 @@
       <attribute name="label" translatable="yes">_Edit</attribute>
       <section>
         <item>
-        <attribute name="action">app.undo</attribute>
+        <attribute name="action">win.undo</attribute>
         <attribute name="label" translatable="yes">_Undo</attribute>
         <attribute name="accel">&lt;control&gt;z</attribute>
       </item>
       <item>
-        <attribute name="action">app.redo</attribute>
+        <attribute name="action">win.redo</attribute>
         <attribute name="label" translatable="yes">_Redo</attribute>
         <attribute name="accel">&lt;shift&gt;&lt;control&gt;z</attribute>
       </item>
     </section>
   <section>
   <item>
-        <attribute name="action">app.cut</attribute>
+        <attribute name="action">win.cut</attribute>
         <attribute name="label" translatable="yes">Cu_t</attribute>
         <attribute name="accel">&lt;control&gt;x</attribute>
       </item>
       <item>
-        <attribute name="action">app.copy</attribute>
+        <attribute name="action">win.copy</attribute>
         <attribute name="label" translatable="yes">_Copy</attribute>
         <attribute name="accel">&lt;control&gt;c</attribute>
       </item>
       <item>
-        <attribute name="action">app.paste</attribute>
+        <attribute name="action">win.paste</attribute>
         <attribute name="label" translatable="yes">_Paste</attribute>
         <attribute name="accel">&lt;control&gt;v</attribute>
       </item>
       <item>
-        <attribute name="action">app.delete</attribute>
+        <attribute name="action">win.delete</attribute>
         <attribute name="label" translatable="yes">_Delete</attribute>
       </item>
     </section>
     <section>
         <item>
-        <attribute name="action">app.renumber</attribute>
+        <attribute name="action">win.renumber</attribute>
         <attribute name="label" translatable="yes">_Renumber</attribute>
         <attribute name="accel">&lt;control&gt;r</attribute>
       </item>
@@ -92,60 +92,60 @@
     <submenu>
       <attribute name="label" translatable="yes">_Select</attribute>
       <item>
-        <attribute name="action">app.select-all</attribute>
+        <attribute name="action">win.select-all</attribute>
         <attribute name="label" translatable="yes">_All</attribute>
         <attribute name="accel">&lt;control&gt;a</attribute>
       </item>
       <item>
-        <attribute name="action">app.select-odd</attribute>
+        <attribute name="action">win.select-odd</attribute>
         <attribute name="label" translatable="yes">_Odd</attribute>
         <attribute name="accel">&lt;control&gt;1</attribute>
       </item>
       <item>
-        <attribute name="action">app.select-even</attribute>
+        <attribute name="action">win.select-even</attribute>
         <attribute name="label" translatable="yes">_Even</attribute>
         <attribute name="accel">&lt;control&gt;2</attribute>
       </item>
       <item>
-        <attribute name="action">app.select-invert</attribute>
+        <attribute name="action">win.select-invert</attribute>
         <attribute name="label" translatable="yes">_Invert</attribute>
         <attribute name="accel">&lt;control&gt;i</attribute>
       </item>
       <item>
-        <attribute name="action">app.select-blank</attribute>
+        <attribute name="action">win.select-blank</attribute>
         <attribute name="label" translatable="yes">_Blank</attribute>
         <attribute name="accel">&lt;control&gt;b</attribute>
       </item>
       <item>
-        <attribute name="action">app.select-dark</attribute>
+        <attribute name="action">win.select-dark</attribute>
         <attribute name="label" translatable="yes">_Dark</attribute>
         <attribute name="accel">&lt;control&gt;d</attribute>
       </item>
       <item>
-        <attribute name="action">app.select-modified</attribute>
+        <attribute name="action">win.select-modified</attribute>
         <attribute name="label" translatable="yes">_Modified</attribute>
         <attribute name="accel">&lt;control&gt;m</attribute>
       </item>
       <item>
-        <attribute name="action">app.select-no-ocr</attribute>
+        <attribute name="action">win.select-no-ocr</attribute>
         <attribute name="label" translatable="yes">_No OCR</attribute>
       </item>
     </submenu>
     <section>
     <item>
-        <attribute name="action">app.clear-ocr</attribute>
+        <attribute name="action">win.clear-ocr</attribute>
         <attribute name="label" translatable="yes">_Clear OCR</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="action">app.properties</attribute>
+        <attribute name="action">win.properties</attribute>
         <attribute name="label" translatable="yes">Propert_ies</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="action">app.preferences</attribute>
+        <attribute name="action">win.preferences</attribute>
         <attribute name="label" translatable="yes">Prefere_nces</attribute>
       </item>
     </section>
@@ -155,70 +155,70 @@
     <section>
       <item>
         <attribute name="label" translatable="yes">_Pan</attribute>
-        <attribute name="action">app.tooltype</attribute>
+        <attribute name="action">win.tooltype</attribute>
         <attribute name="target">dragger</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Select</attribute>
-        <attribute name="action">app.tooltype</attribute>
+        <attribute name="action">win.tooltype</attribute>
         <attribute name="target">selector</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Select &amp; pan</attribute>
-        <attribute name="action">app.tooltype</attribute>
+        <attribute name="action">win.tooltype</attribute>
         <attribute name="target">selectordragger</attribute>
       </item>
     </section>
     <section>
       <item>
         <attribute name="label" translatable="yes">_Tabbed</attribute>
-        <attribute name="action">app.viewtype</attribute>
+        <attribute name="action">win.viewtype</attribute>
         <attribute name="target">tabbed</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Split horizontally</attribute>
-        <attribute name="action">app.viewtype</attribute>
+        <attribute name="action">win.viewtype</attribute>
         <attribute name="target">horizontal</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Split vertically</attribute>
-        <attribute name="action">app.viewtype</attribute>
+        <attribute name="action">win.viewtype</attribute>
         <attribute name="target">vertical</attribute>
       </item>
     </section>
     <section>
     <item>
-        <attribute name="action">app.zoom-100</attribute>
+        <attribute name="action">win.zoom-100</attribute>
         <attribute name="label" translatable="yes">Zoom _100%</attribute>
       </item>
       <item>
-        <attribute name="action">app.zoom-to-fit</attribute>
+        <attribute name="action">win.zoom-to-fit</attribute>
         <attribute name="label" translatable="yes">Zoom to _fit</attribute>
       </item>
       <item>
-        <attribute name="action">app.zoom-in</attribute>
+        <attribute name="action">win.zoom-in</attribute>
         <attribute name="label" translatable="yes">Zoom _in</attribute>
         <attribute name="accel">plus</attribute>
       </item>
       <item>
-        <attribute name="action">app.zoom-out</attribute>
+        <attribute name="action">win.zoom-out</attribute>
         <attribute name="label" translatable="yes">Zoom _out</attribute>
         <attribute name="accel">minus</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="action">app.rotate-90</attribute>
+        <attribute name="action">win.rotate-90</attribute>
         <attribute name="label" translatable="yes">Rotate 90° clockwise</attribute>
         <attribute name="accel">&lt;control&gt;&lt;shift&gt;R</attribute>
       </item>
       <item>
-        <attribute name="action">app.rotate-180</attribute>
+        <attribute name="action">win.rotate-180</attribute>
         <attribute name="label" translatable="yes">Rotate 180°</attribute>
         <attribute name="accel">&lt;control&gt;&lt;shift&gt;F</attribute>
       </item>
       <item>
-        <attribute name="action">app.rotate-270</attribute>
+        <attribute name="action">win.rotate-270</attribute>
         <attribute name="label" translatable="yes">Rotate 90° anticlockwise</attribute>
         <attribute name="accel">&lt;control&gt;&lt;shift&gt;C</attribute>
       </item>
@@ -228,43 +228,43 @@
       <attribute name="label" translatable="yes">_Tools</attribute>
       <section>
       <item>
-        <attribute name="action">app.threshold</attribute>
+        <attribute name="action">win.threshold</attribute>
         <attribute name="label" translatable="yes">_Threshold</attribute>
       </item>
       <item>
-        <attribute name="action">app.brightness-contrast</attribute>
+        <attribute name="action">win.brightness-contrast</attribute>
         <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
       </item>
       <item>
-        <attribute name="action">app.negate</attribute>
+        <attribute name="action">win.negate</attribute>
         <attribute name="label" translatable="yes">_Negate</attribute>
       </item>
       <item>
-        <attribute name="action">app.unsharp</attribute>
+        <attribute name="action">win.unsharp</attribute>
         <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
       </item>
       <item>
-        <attribute name="action">app.crop-dialog</attribute>
+        <attribute name="action">win.crop-dialog</attribute>
         <attribute name="label" translatable="yes">_Crop</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="action">app.unpaper</attribute>
+        <attribute name="action">win.unpaper</attribute>
         <attribute name="label" translatable="yes">_Clean up</attribute>
       </item>
       <item>
-        <attribute name="action">app.split</attribute>
+        <attribute name="action">win.split</attribute>
         <attribute name="label" translatable="yes">_Split</attribute>
       </item>
       <item>
-        <attribute name="action">app.ocr</attribute>
+        <attribute name="action">win.ocr</attribute>
         <attribute name="label" translatable="yes">_OCR</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="action">app.user-defined</attribute>
+        <attribute name="action">win.user-defined</attribute>
         <attribute name="label" translatable="yes">U_ser-defined</attribute>
       </item>
     </section>
@@ -272,12 +272,12 @@
     <submenu>
       <attribute name="label" translatable="yes">_Help</attribute>
       <item>
-        <attribute name="action">app.help</attribute>
+        <attribute name="action">win.help</attribute>
         <attribute name="label" translatable="yes">_Help</attribute>
         <attribute name="accel">&lt;control&gt;h</attribute>
       </item>
       <item>
-        <attribute name="action">app.about</attribute>
+        <attribute name="action">win.about</attribute>
         <attribute name="label" translatable="yes">_About</attribute>
         <attribute name="accel">&lt;control&gt;h</attribute>
       </item>
@@ -510,7 +510,7 @@
       <object class="GtkToolButton" id="toolbutton_new">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Clears all pages</property>
-        <property name="action_name">app.new</property>
+        <property name="action_name">win.new</property>
         <property name="stock_id">gtk-new</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -520,7 +520,7 @@
       <object class="GtkToolButton" id="toolbutton_open">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Open image file(s)</property>
-        <property name="action_name">app.open</property>
+        <property name="action_name">win.open</property>
         <property name="stock_id">gtk-open</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -530,7 +530,7 @@
       <object class="GtkToolButton" id="toolbutton_scan">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Scan document</property>
-        <property name="action_name">app.scan</property>
+        <property name="action_name">win.scan</property>
         <property name="stock_id">scanner</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -540,7 +540,7 @@
       <object class="GtkToolButton" id="toolbutton_save">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Save</property>
-        <property name="action_name">app.save</property>
+        <property name="action_name">win.save</property>
         <property name="stock_id">gtk-save</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -550,7 +550,7 @@
       <object class="GtkToolButton" id="toolbutton_email">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Attach as PDF to a new email</property>
-        <property name="action_name">app.email</property>
+        <property name="action_name">win.email</property>
         <property name="stock_id">mail-attach</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -560,7 +560,7 @@
       <object class="GtkToolButton" id="toolbutton_print">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Print</property>
-        <property name="action_name">app.print</property>
+        <property name="action_name">win.print</property>
         <property name="stock_id">gtk-print</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -571,7 +571,7 @@
       <object class="GtkToolButton" id="toolbutton_undo">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Undo</property>
-        <property name="action_name">app.undo</property>
+        <property name="action_name">win.undo</property>
         <property name="stock_id">gtk-undo</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -581,7 +581,7 @@
       <object class="GtkToolButton" id="toolbutton_redo">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Redo</property>
-        <property name="action_name">app.redo</property>
+        <property name="action_name">win.redo</property>
         <property name="stock_id">gtk-redo</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -592,7 +592,7 @@
       <object class="GtkToolButton" id="toolbutton_cut">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Cut selection</property>
-        <property name="action_name">app.cut</property>
+        <property name="action_name">win.cut</property>
         <property name="stock_id">gtk-cut</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -602,7 +602,7 @@
       <object class="GtkToolButton" id="toolbutton_copy">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Copy selection</property>
-        <property name="action_name">app.copy</property>
+        <property name="action_name">win.copy</property>
         <property name="stock_id">gtk-copy</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -612,7 +612,7 @@
       <object class="GtkToolButton" id="toolbutton_paste">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Paste selection</property>
-        <property name="action_name">app.paste</property>
+        <property name="action_name">win.paste</property>
         <property name="stock_id">gtk-paste</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -622,7 +622,7 @@
       <object class="GtkToolButton" id="toolbutton_delete">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Delete selected pages</property>
-        <property name="action_name">app.delete</property>
+        <property name="action_name">win.delete</property>
         <property name="stock_id">gtk-delete</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -633,7 +633,7 @@
       <object class="GtkToolButton" id="toolbutton_renumber">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Renumber pages</property>
-        <property name="action_name">app.renumber</property>
+        <property name="action_name">win.renumber</property>
         <property name="stock_id">gtk-sort-ascending</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -643,7 +643,7 @@
       <object class="GtkToolButton" id="toolbutton_select_all">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Select all pages</property>
-        <property name="action_name">app.select-all</property>
+        <property name="action_name">win.select-all</property>
         <property name="stock_id">gtk-select-all</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -654,7 +654,7 @@
       <object class="GtkRadioToolButton" id="toolbutton_dragger">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Use the pan tool</property>
-        <property name="action_name">app.tooltype</property>
+        <property name="action_name">win.tooltype</property>
         <property name="action-target">'dragger'</property>
         <property name="stock_id">hand-tool</property>
         <property name="hexpand">False</property>
@@ -665,7 +665,7 @@
       <object class="GtkRadioToolButton" id="toolbutton_selector">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Use the rectangular selection tool</property>
-        <property name="action_name">app.tooltype</property>
+        <property name="action_name">win.tooltype</property>
         <property name="group">toolbutton_dragger</property>
         <property name="action-target">'selector'</property>
         <property name="stock_id">selection</property>
@@ -677,7 +677,7 @@
       <object class="GtkRadioToolButton" id="toolbutton_selectordragger">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Use the combined select and pan tool</property>
-        <property name="action_name">app.tooltype</property>
+        <property name="action_name">win.tooltype</property>
         <property name="group">toolbutton_dragger</property>
         <property name="action-target">'selectordragger'</property>
         <property name="stock_id">gtk-media-play</property>
@@ -690,7 +690,7 @@
       <object class="GtkToolButton" id="toolbutton_zoom_100">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Zoom to 100%</property>
-        <property name="action_name">app.zoom-100</property>
+        <property name="action_name">win.zoom-100</property>
         <property name="stock_id">gtk-zoom-100</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -700,7 +700,7 @@
       <object class="GtkToolButton" id="toolbutton_zoom_to_fit">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Zoom to fit</property>
-        <property name="action_name">app.zoom-to-fit</property>
+        <property name="action_name">win.zoom-to-fit</property>
         <property name="stock_id">gtk-zoom-fit</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -710,7 +710,7 @@
       <object class="GtkToolButton" id="toolbutton_zoom_in">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Zoom in</property>
-        <property name="action_name">app.zoom-in</property>
+        <property name="action_name">win.zoom-in</property>
         <property name="stock_id">gtk-zoom-in</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -720,7 +720,7 @@
       <object class="GtkToolButton" id="toolbutton_zoom_out">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Zoom out</property>
-        <property name="action_name">app.zoom-out</property>
+        <property name="action_name">win.zoom-out</property>
         <property name="stock_id">gtk-zoom-out</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -731,7 +731,7 @@
       <object class="GtkToolButton" id="toolbutton_rotate_90">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Rotate 90° clockwise</property>
-        <property name="action_name">app.rotate-90</property>
+        <property name="action_name">win.rotate-90</property>
         <property name="stock_id">rotate90</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -741,7 +741,7 @@
       <object class="GtkToolButton" id="toolbutton_rotate_180">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Rotate 180°</property>
-        <property name="action_name">app.rotate-180</property>
+        <property name="action_name">win.rotate-180</property>
         <property name="stock_id">rotate180</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -751,7 +751,7 @@
       <object class="GtkToolButton" id="toolbutton_rotate_270">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Rotate 90° anticlockwise</property>
-        <property name="action_name">app.rotate-270</property>
+        <property name="action_name">win.rotate-270</property>
         <property name="stock_id">rotate270</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -762,7 +762,7 @@
       <object class="GtkToolButton" id="toolbutton_crop_selection">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Crop selection</property>
-        <property name="action_name">app.crop-selection</property>
+        <property name="action_name">win.crop-selection</property>
         <property name="stock_id">crop</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
@@ -773,7 +773,7 @@
       <object class="GtkToolButton" id="toolbutton_quit">
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Quit</property>
-        <property name="action_name">app.quit</property>
+        <property name="action_name">win.quit</property>
         <property name="stock_id">gtk-quit</property>
         <property name="hexpand">False</property>
         <property name="vexpand">False</property>
