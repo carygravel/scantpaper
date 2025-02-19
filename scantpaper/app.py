@@ -632,7 +632,7 @@ def display_image(page):
     if app.window._windowc is not None and app.window._current_page is not None:
         app.window._windowc.page_width = width
         app.window._windowc.page_height = height
-        SETTING["selection"] = self._windowc.selection
+        SETTING["selection"] = app.window._windowc.selection
         view.set_selection(SETTING["selection"])
 
     # Delete OCR output if it has become corrupted
@@ -5499,7 +5499,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowc = Crop(transient_for=self, page_width=width, page_height=height)
 
         def on_changed_selection(_widget, selection):
-            SETTING["selection"] = selection
+            # copy required here because somehow the garbage collection
+            # destroys the Gdk.Rectangle too early and afterwards, the
+            # contents are corrupt.
+            SETTING["selection"] = selection.copy()
             view.handler_block(view.selection_changed_signal)
             view.set_selection(selection)
             view.handler_unblock(view.selection_changed_signal)
