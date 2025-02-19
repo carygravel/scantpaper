@@ -177,7 +177,6 @@ windowi = None
 windows = None
 windowo = None
 windowu = None
-windowudt = None
 save_button = None
 unpaper = None
 dependencies = {}
@@ -3280,11 +3279,6 @@ def update_view_position(direction, position, width, height):
 
 def user_defined_dialog(_action, _param):
     "Displays a dialog for selecting and applying user-defined tools."
-    global windowudt
-    if windowudt is not None:
-        windowudt.present()
-        return
-
     windowudt = Dialog(
         transient_for=app.window,
         title=_("User-defined tools"),
