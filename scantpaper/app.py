@@ -188,7 +188,6 @@ windowr = None
 view = None
 windowp = None
 message_dialog = None
-windowc = None
 # GooCanvas for text layer
 canvas = None
 ocr_text_hbox = None
@@ -630,10 +629,10 @@ def display_image(page):
     width, height = app.window._current_page.get_size()
 
     # Update the ranges on the crop dialog
-    if windowc is not None and app.window._current_page is not None:
-        windowc.page_width = width
-        windowc.page_height = height
-        SETTING["selection"] = windowc.selection
+    if app.window._windowc is not None and app.window._current_page is not None:
+        app.window._windowc.page_width = width
+        app.window._windowc.page_height = height
+        SETTING["selection"] = self._windowc.selection
         view.set_selection(SETTING["selection"])
 
     # Delete OCR output if it has become corrupted
@@ -3104,39 +3103,6 @@ def unsharp(_action, _param):
     windowum.show_all()
 
 
-def crop_dialog(_action, _param):
-    "Display page selector and on apply crop accordingly"
-    global windowc
-    if windowc is not None:
-        windowc.present()
-        return
-
-    width, height = app.window._current_page.get_size()
-    windowc = Crop(transient_for=app.window, page_width=width, page_height=height)
-
-    def on_changed_selection(_widget, selection):
-        SETTING["selection"] = selection
-        view.handler_block(view.selection_changed_signal)
-        view.set_selection(selection)
-        view.handler_unblock(view.selection_changed_signal)
-
-    windowc.connect("changed-selection", on_changed_selection)
-
-    if SETTING["selection"]:
-        windowc.selection = SETTING["selection"]
-
-    def crop_callback():
-        SETTING["Page range"] = windowc.page_range
-        crop_selection(
-            None,  # action
-            None,  # param
-            slist.get_page_index(SETTING["Page range"], error_callback),
-        )
-
-    windowc.add_actions([("gtk-apply", crop_callback), ("gtk-cancel", windowc.hide)])
-    windowc.show_all()
-
-
 def crop_selection(_action, _param, pagelist=None):
     "Crop the selected area of the specified pages."
     if not SETTING["selection"]:
@@ -4524,7 +4490,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("brightness-contrast", brightness_contrast),
             ("negate", negate),
             ("unsharp", unsharp),
-            ("crop-dialog", crop_dialog),
+            ("crop-dialog", self.crop_dialog),
             ("crop-selection", crop_selection),
             ("split", split_dialog),
             ("unpaper", unpaper),
@@ -4550,6 +4516,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._pre_flight()
         self.print_settings = None
         self.renumber_dialog = None
+        self._windowc = None
         self._windowe = None
         self.connect("delete-event", lambda w, e: not ask_quit())
 
@@ -4782,8 +4749,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # destroys the Gdk.Rectangle too early and afterwards, the
             # contents are corrupt.
             SETTING["selection"] = sel.copy()
-            if sel is not None and windowc is not None:
-                windowc.selection = SETTING["selection"]
+            if sel is not None and self._windowc is not None:
+                self._windowc.selection = SETTING["selection"]
 
         view.selection_changed_signal = view.connect(
             "selection-changed", view_selection_changed_callback
@@ -5522,6 +5489,39 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         about.run()
         about.destroy()
 
+    def crop_dialog(self, _action, _param):
+        "Display page selector and on apply crop accordingly"
+        if self._windowc is not None:
+            self._windowc.present()
+            return
+
+        width, height = self._current_page.get_size()
+        self._windowc = Crop(transient_for=self, page_width=width, page_height=height)
+
+        def on_changed_selection(_widget, selection):
+            SETTING["selection"] = selection
+            view.handler_block(view.selection_changed_signal)
+            view.set_selection(selection)
+            view.handler_unblock(view.selection_changed_signal)
+
+        self._windowc.connect("changed-selection", on_changed_selection)
+
+        if SETTING["selection"]:
+            self._windowc.selection = SETTING["selection"]
+
+        def crop_callback():
+            SETTING["Page range"] = self._windowc.page_range
+            crop_selection(
+                None,  # action
+                None,  # param
+                slist.get_page_index(SETTING["Page range"], error_callback),
+            )
+
+        self._windowc.add_actions(
+            [("gtk-apply", crop_callback), ("gtk-cancel", self._windowc.hide)]
+        )
+        self._windowc.show_all()
+
     def email(self, _action, _param):
         "Display page selector and email."
         if self._windowe is not None:
@@ -5529,7 +5529,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             return
 
         self._windowe = SaveDialog(
-            transient_for=app.window,
+            transient_for=self,
             title=_("Email as PDF"),
             hide_on_delete=True,
             page_range=SETTING["Page range"],
@@ -5610,7 +5610,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 status = exec_command(["xdg-email", "--attach", pdf, "x@y"])
                 if status:
                     show_message_dialog(
-                        parent=app.window,
+                        parent=self,
                         message_type="error",
                         buttons=Gtk.ButtonsType.CLOSE,
                         text=_("Error creating email"),
