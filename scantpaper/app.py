@@ -173,7 +173,6 @@ logger = logging.getLogger(__name__)
 # Define application-wide variables here so that they can be referenced
 # in the menu callbacks
 slist = None
-windowi = None
 windows = None
 save_button = None
 dependencies = {}
@@ -993,7 +992,7 @@ def import_files_finished_callback(response):
 def import_files_metadata_callback(metadata):
     "Update the metadata from the imported file"
     logger.debug("import_files_metadata_callback(%s)", metadata)
-    for dialog in (windowi, app.window._windowe):
+    for dialog in (app.window._windowi, app.window._windowe):
         if dialog is not None:
             dialog.update_from_import_metadata(metadata)
     config.update_config_from_imported_metadata(SETTING, metadata)
@@ -1062,68 +1061,6 @@ def import_files(filenames, all_pages=False):
     slist.import_files(**options)
 
 
-def save_pdf(filename, option, list_of_page_uuids):
-    "Save selected pages as PDF under given name."
-
-    # Compile options
-    options = {
-        "compression": SETTING["pdf compression"],
-        "downsample": SETTING["downsample"],
-        "downsample dpi": SETTING["downsample dpi"],
-        "quality": SETTING["quality"],
-        "text_position": SETTING["text_position"],
-        "font": SETTING["pdf font"],
-        "user-password": windowi.pdf_user_password,
-        "set_timestamp": SETTING["set_timestamp"],
-        "convert whitespace to underscores": SETTING[
-            "convert whitespace to underscores"
-        ],
-    }
-    if option == "prependpdf":
-        options["prepend"] = filename
-
-    elif option == "appendpdf":
-        options["append"] = filename
-
-    elif option == "ps":
-        options["ps"] = filename
-        options["pstool"] = SETTING["ps_backend"]
-
-    if SETTING["post_save_hook"]:
-        options["post_save_hook"] = SETTING["current_psh"]
-
-    # Create the PDF
-    logger.debug("Started saving %s", filename)
-    signal = None
-
-    def save_pdf_finished_callback(response):
-        if not response.pending:
-            app.window._pp_progress.hide()
-        if signal is not None:
-            app.window._pp_progress.disconnect(signal)
-
-        mark_pages(list_of_page_uuids)
-        if "view files toggle" in SETTING and SETTING["view files toggle"]:
-            if "ps" in options:
-                launch_default_for_file(options["ps"])
-            else:
-                launch_default_for_file(filename)
-
-        logger.debug("Finished saving %s", filename)
-
-    slist.save_pdf(
-        path=filename,
-        list_of_pages=list_of_page_uuids,
-        metadata=collate_metadata(SETTING, datetime.datetime.now()),
-        options=options,
-        queued_callback=setup_tpbar,
-        started_callback=update_tpbar,
-        running_callback=update_tpbar,
-        finished_callback=save_pdf_finished_callback,
-        error_callback=error_callback,
-    )
-
-
 def launch_default_for_file(filename):
     "Launch default viewer for file"
     uri = GLib.filename_to_uri(os.path.abspath(filename), None)
@@ -1135,436 +1072,12 @@ def launch_default_for_file(filename):
         logger.error("Unable to launch viewer: %s", e)
 
 
-def save_dialog(_action, _param):
-    "Display page selector and on save a fileselector."
-    global windowi
-    if windowi is not None:
-        windowi.present()
-        return
-
-    image_types = [
-        "pdf",
-        "gif",
-        "jpg",
-        "png",
-        "pnm",
-        "ps",
-        "tif",
-        "txt",
-        "hocr",
-        "session",
-    ]
-    if dependencies["pdfunite"]:
-        image_types.extend(["prependpdf", "appendpdf"])
-
-    if dependencies["djvu"]:
-        image_types.append("djvu")
-    ps_backends = []
-    for backend in ["libtiff", "pdf2ps", "pdftops"]:
-        if dependencies[backend]:
-            ps_backends.append(backend)
-
-    windowi = SaveDialog(
-        transient_for=app.window,
-        title=_("Save"),
-        hide_on_delete=True,
-        page_range=SETTING["Page range"],
-        include_time=SETTING["use_time"],
-        meta_datetime=datetime.datetime.now() + SETTING["datetime offset"],
-        select_datetime=bool(SETTING["datetime offset"]),
-        meta_title=SETTING["title"],
-        meta_title_suggestions=SETTING["title-suggestions"],
-        meta_author=SETTING["author"],
-        meta_author_suggestions=SETTING["author-suggestions"],
-        meta_subject=SETTING["subject"],
-        meta_subject_suggestions=SETTING["subject-suggestions"],
-        meta_keywords=SETTING["keywords"],
-        meta_keywords_suggestions=SETTING["keywords-suggestions"],
-        image_types=image_types,
-        image_type=SETTING["image type"],
-        ps_backends=ps_backends,
-        jpeg_quality=SETTING["quality"],
-        downsample_dpi=SETTING["downsample dpi"],
-        downsample=SETTING["downsample"],
-        pdf_compression=SETTING["pdf compression"],
-        available_fonts=app._fonts,
-        text_position=SETTING["text_position"],
-        pdf_font=SETTING["pdf font"],
-        can_encrypt_pdf="pdftk" in dependencies,
-        tiff_compression=SETTING["tiff compression"],
-    )
-
-    # Frame for page range
-    windowi.add_page_range()
-    windowi.add_image_type()
-
-    # Post-save hook
-    pshbutton = Gtk.CheckButton(label=_("Post-save hook"))
-    pshbutton.set_tooltip_text(
-        _(
-            "Run command on saved file. The available commands are those "
-            "user-defined tools that do not specify %o"
-        )
-    )
-    vbox = windowi.get_content_area()
-    vbox.pack_start(pshbutton, False, True, 0)
-    update_post_save_hooks()
-    vbox.pack_start(windowi.comboboxpsh, False, True, 0)
-    pshbutton.connect(
-        "toggled",
-        lambda _action: windowi.comboboxpsh.set_sensitive(pshbutton.get_active()),
-    )
-    pshbutton.set_active(SETTING["post_save_hook"])
-    windowi.comboboxpsh.set_sensitive(pshbutton.get_active())
-    kbutton = Gtk.CheckButton(label=_("Close dialog on save"))
-    kbutton.set_tooltip_text(_("Close dialog on save"))
-    kbutton.set_active(SETTING["close_dialog_on_save"])
-    vbox.pack_start(kbutton, False, True, 0)
-
-    windowi.add_actions(
-        [
-            ("gtk-save", lambda: save_button_clicked_callback(kbutton, pshbutton)),
-            ("gtk-cancel", windowi.hide),
-        ]
-    )
-    windowi.show_all()
-    windowi.resize(1, 1)
-    return
-
-
 def list_of_page_uuids():
     "Compile list of pages"
     pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
     if not pagelist:
         return []
     return [slist.data[i][2].uuid for i in pagelist]
-
-
-def save_button_clicked_callback(kbutton, pshbutton):
-    "Save selected pages"
-
-    # Compile list of pages
-    SETTING["Page range"] = windowi.page_range
-    uuids = list_of_page_uuids()
-
-    # dig out the image type, compression and quality
-    SETTING["image type"] = windowi.image_type
-    SETTING["close_dialog_on_save"] = kbutton.get_active()
-    SETTING["post_save_hook"] = pshbutton.get_active()
-    if SETTING["post_save_hook"] and windowi.comboboxpsh.get_active() > EMPTY_LIST:
-        SETTING["current_psh"] = windowi.comboboxpsh.get_active_text()
-
-    if re.search(r"pdf", SETTING["image type"]):
-
-        # dig out the compression
-        SETTING["downsample"] = windowi.downsample
-        SETTING["downsample dpi"] = windowi.downsample_dpi
-        SETTING["pdf compression"] = windowi.pdf_compression
-        SETTING["quality"] = windowi.jpeg_quality
-        SETTING["text_position"] = windowi.text_position
-        SETTING["pdf font"] = windowi.pdf_font
-
-        # cd back to cwd to save
-        os.chdir(SETTING["cwd"])
-        file_chooser = None
-        if SETTING["image type"] == "pdf":
-            windowi.update_config_dict(SETTING)
-
-            # Set up file selector
-            file_chooser = Gtk.FileChooserDialog(
-                title=_("PDF filename"),
-                parent=windowi,
-                action=Gtk.FileChooserAction.SAVE,
-            )
-            file_chooser.add_buttons(
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OK,
-                Gtk.ResponseType.OK,
-            )
-
-            filename = expand_metadata_pattern(
-                template=SETTING["default filename"],
-                convert_whitespace=SETTING["convert whitespace to underscores"],
-                author=SETTING["author"],
-                title=SETTING["title"],
-                docdate=windowi.meta_datetime,
-                today_and_now=datetime.datetime.now(),
-                extension="pdf",
-                subject=SETTING["subject"],
-                keywords=SETTING["keywords"],
-            )
-            file_chooser.set_current_name(filename)
-            file_chooser.set_do_overwrite_confirmation(True)
-
-        else:
-            file_chooser = Gtk.FileChooserDialog(
-                title=_("PDF filename"),
-                parent=windowi,
-                action=Gtk.FileChooserAction.OPEN,
-            )
-            file_chooser.add_buttons(
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OPEN,
-                Gtk.ResponseType.OK,
-            )
-
-        add_filter(file_chooser, _("PDF files"), ["pdf"])
-        file_chooser.set_current_folder(SETTING["cwd"])
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.connect(
-            "response", file_chooser_response_callback, [SETTING["image type"], uuids]
-        )
-        file_chooser.show()
-
-        # cd back to tempdir
-        os.chdir(session.name)
-
-    elif SETTING["image type"] == "djvu":
-        windowi.update_config_dict(SETTING)
-
-        # cd back to cwd to save
-        os.chdir(SETTING["cwd"])
-
-        # Set up file selector
-        file_chooser = Gtk.FileChooserDialog(
-            title=_("DjVu filename"),
-            parent=windowi,
-            action=Gtk.FileChooserAction.SAVE,
-        )
-        file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_SAVE,
-            Gtk.ResponseType.OK,
-        )
-        filename = expand_metadata_pattern(
-            template=SETTING["default filename"],
-            convert_whitespace=SETTING["convert whitespace to underscores"],
-            author=SETTING["author"],
-            title=SETTING["title"],
-            docdate=windowi.meta_datetime,
-            today_and_now=datetime.datetime.now(),
-            extension="djvu",
-            subject=SETTING["subject"],
-            keywords=SETTING["keywords"],
-        )
-        file_chooser.set_current_name(filename)
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(SETTING["cwd"])
-        add_filter(file_chooser, _("DjVu files"), ["djvu"])
-        file_chooser.set_do_overwrite_confirmation(True)
-        file_chooser.connect(
-            "response", file_chooser_response_callback, ["djvu", uuids]
-        )
-        file_chooser.show()
-
-        # cd back to tempdir
-        os.chdir(session.name)
-
-    elif SETTING["image type"] == "tif":
-        SETTING["tiff compression"] = windowi.tiff_compression
-        SETTING["quality"] = windowi.jpeg_quality
-
-        # cd back to cwd to save
-        os.chdir(SETTING["cwd"])
-
-        # Set up file selector
-        file_chooser = Gtk.FileChooserDialog(
-            title=_("TIFF filename"),
-            parent=windowi,
-            action=Gtk.FileChooserAction.SAVE,
-        )
-        file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_SAVE,
-            Gtk.ResponseType.OK,
-        )
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(SETTING["cwd"])
-        add_filter(file_chooser, _("Image files"), [SETTING["image type"]])
-        file_chooser.set_do_overwrite_confirmation(True)
-        file_chooser.connect("response", file_chooser_response_callback, ["tif", uuids])
-        file_chooser.show()
-
-        # cd back to tempdir
-        os.chdir(session.name)
-
-    elif SETTING["image type"] == "txt":
-
-        # cd back to cwd to save
-        os.chdir(SETTING["cwd"])
-
-        # Set up file selector
-        file_chooser = Gtk.FileChooserDialog(
-            title=_("Text filename"),
-            parent=windowi,
-            action=Gtk.FileChooserAction.SAVE,
-        )
-        file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_SAVE,
-            Gtk.ResponseType.OK,
-        )
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(SETTING["cwd"])
-        add_filter(file_chooser, _("Text files"), ["txt"])
-        file_chooser.set_do_overwrite_confirmation(True)
-        file_chooser.connect("response", file_chooser_response_callback, ["txt", uuids])
-        file_chooser.show()
-
-        # cd back to tempdir
-        os.chdir(session.name)
-
-    elif SETTING["image type"] == "hocr":
-
-        # cd back to cwd to save
-        os.chdir(SETTING["cwd"])
-
-        # Set up file selector
-        file_chooser = Gtk.FileChooserDialog(
-            title=_("hOCR filename"),
-            parent=windowi,
-            action=Gtk.FileChooserAction.SAVE,
-        )
-        file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_SAVE,
-            Gtk.ResponseType.OK,
-        )
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(SETTING["cwd"])
-        file_chooser.set_do_overwrite_confirmation(True)
-        add_filter(file_chooser, _("hOCR files"), ["hocr"])
-        file_chooser.connect(
-            "response", file_chooser_response_callback, ["hocr", uuids]
-        )
-        file_chooser.show()
-
-        # cd back to tempdir
-        os.chdir(session.name)
-
-    elif SETTING["image type"] == "ps":
-        SETTING["ps_backend"] = windowi.ps_backend
-        logger.info("Selected '%s' as ps backend", SETTING["ps_backend"])
-
-        # cd back to cwd to save
-        os.chdir(SETTING["cwd"])
-
-        # Set up file selector
-        file_chooser = Gtk.FileChooserDialog(
-            title=_("PS filename"),
-            parent=windowi,
-            action=Gtk.FileChooserAction.SAVE,
-        )
-        file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_SAVE,
-            Gtk.ResponseType.OK,
-        )
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(SETTING["cwd"])
-        add_filter(file_chooser, _("Postscript files"), ["ps"])
-        file_chooser.set_do_overwrite_confirmation(True)
-        file_chooser.connect("response", file_chooser_response_callback, ["ps", uuids])
-        file_chooser.show()
-
-        # cd back to tempdir
-        os.chdir(session.name)
-
-    elif SETTING["image type"] == "session":
-
-        # cd back to cwd to save
-        os.chdir(SETTING["cwd"])
-
-        # Set up file selector
-        file_chooser = Gtk.FileChooserDialog(
-            title=_("gscan2pdf session filename"),
-            parent=windowi,
-            action=Gtk.FileChooserAction.SAVE,
-        )
-        file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_SAVE,
-            Gtk.ResponseType.OK,
-        )
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(SETTING["cwd"])
-        add_filter(file_chooser, _("gscan2pdf session files"), ["gs2p"])
-        file_chooser.set_do_overwrite_confirmation(True)
-        file_chooser.connect("response", file_chooser_response_callback, ["gs2p"])
-        file_chooser.show()
-
-        # cd back to tempdir
-        os.chdir(session.name)
-
-    elif SETTING["image type"] == "jpg":
-        SETTING["quality"] = windowi.jpeg_quality
-        save_image(uuids)
-
-    else:
-        save_image(uuids)
-
-
-def file_chooser_response_callback(dialog, response, data):
-    "Callback for file chooser dialog"
-    filetype, uuids = data
-    suffix = filetype
-    if re.search(r"pdf", suffix, re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE):
-        suffix = "pdf"
-    if response == Gtk.ResponseType.OK:
-        filename = dialog.get_filename()
-        logger.debug("FileChooserDialog returned %s", filename)
-        if not re.search(
-            rf"[.]{suffix}$",
-            filename,
-            re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-        ):
-            filename = f"{filename}.{filetype}"
-            if file_exists(dialog, filename):
-                return
-
-        if file_writable(dialog, filename):
-            return
-
-        # Update cwd
-        SETTING["cwd"] = os.path.dirname(filename)
-        if re.search(r"pdf", filetype):
-            save_pdf(filename, filetype, uuids)
-
-        elif filetype == "djvu":
-            save_djvu(filename, uuids)
-
-        elif filetype == "tif":
-            save_tiff(filename, None, uuids)
-
-        elif filetype == "txt":
-            save_text(filename, uuids)
-
-        elif filetype == "hocr":
-            save_hocr(filename, uuids)
-
-        elif filetype == "ps":
-            if SETTING["ps_backend"] == "libtiff":
-                tif = tempfile.TemporaryFile(dir=session, suffix=".tif")
-                save_tiff(tif.filename(), filename, uuids)
-
-            else:
-                save_pdf(filename, "ps", uuids)
-
-        elif filetype == "gs2p":
-            slist.save_session(filename, VERSION)
-
-        if windowi is not None and SETTING["close_dialog_on_save"]:
-            windowi.hide()
-
-    dialog.destroy()
 
 
 def file_exists(chooser, filename):
@@ -1610,105 +1123,6 @@ def file_writable(chooser, filename):
         return True
 
     return False
-
-
-def save_image(uuids):
-    "Save selected pages as image under given name."
-
-    # cd back to cwd to save
-    os.chdir(SETTING["cwd"])
-
-    # Set up file selector
-    file_chooser = Gtk.FileChooserDialog(
-        title=_("Image filename"),
-        parent=windowi,
-        action=Gtk.FileChooserAction.SAVE,
-    )
-    file_chooser.add_buttons(
-        Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK
-    )
-    file_chooser.set_default_response(Gtk.ResponseType.OK)
-    file_chooser.set_current_folder(SETTING["cwd"])
-    add_filter(
-        file_chooser,
-        _("Image files"),
-        ["jpg", "png", "pnm", "gif", "tif", "tiff", "pdf", "djvu", "ps"],
-    )
-    file_chooser.set_do_overwrite_confirmation(True)
-    if file_chooser.run() == Gtk.ResponseType.OK:
-        filename = file_chooser.get_filename()
-
-        # Update cwd
-        SETTING["cwd"] = os.path.dirname(filename)
-
-        # cd back to tempdir
-        os.chdir(session.name)
-        if len(uuids) > 1:
-            w = len(uuids)
-            for i in range(1, len(uuids) + 1):
-                current_filename = f"${filename}_%0${w}d.{SETTING['image type']}" % (i)
-                if os.path.isfile(current_filename):
-                    text = _("This operation would overwrite %s") % (current_filename)
-                    app.window.show_message_dialog(
-                        parent=file_chooser,
-                        message_type="error",
-                        buttons=Gtk.ButtonsType.CLOSE,
-                        text=text,
-                    )
-                    file_chooser.destroy()
-                    return
-
-            filename = f"${filename}_%0${w}d.{SETTING['image type']}"
-
-        else:
-            if not re.search(
-                rf"[.]{SETTING['image type']}$",
-                filename,
-                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                filename = f"{filename}.{SETTING['image type']}"
-                if file_exists(file_chooser, filename):
-                    return
-
-            if file_writable(file_chooser, filename):
-                return
-
-        # Create the image
-        logger.debug("Started saving %s", filename)
-        signal = None
-
-        def save_image_finished_callback(response):
-            filename = response.request.args[0]["path"]
-            uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-            if not response.pending:
-                app.window._pp_progress.hide()
-            if signal is not None:
-                app.window._pp_progress.disconnect(signal)
-
-            mark_pages(uuids)
-            if "view files toggle" in SETTING and SETTING["view files toggle"]:
-                w = len(uuids)
-                if w > 1:
-                    for i in range(1, w + 1):
-                        launch_default_for_file(filename % (i))
-                else:
-                    launch_default_for_file(filename)
-
-            logger.debug("Finished saving %s", filename)
-
-        slist.save_image(
-            path=filename,
-            list_of_pages=uuids,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
-            finished_callback=save_image_finished_callback,
-            error_callback=error_callback,
-        )
-        if windowi is not None:
-            windowi.hide()
-
-    file_chooser.destroy()
 
 
 def save_tiff(filename, ps, uuids):
@@ -3887,7 +3301,7 @@ def update_list_user_defined_tools(vbox, combobox_array):
                     _cb_array_append(combobox_array, text)
 
     SETTING["user_defined_tools"] = tools
-    update_post_save_hooks()
+    app.window.update_post_save_hooks()
     for combobox in combobox_array:
         if combobox is not None:
             combobox.set_active_by_text(SETTING["current_udt"])
@@ -3919,27 +3333,6 @@ The other variable available is:
     button.connect("clicked", delete_udt)
     hbox.pack_end(button, False, False, 0)
     hbox.show_all()
-
-
-def update_post_save_hooks():
-    "Updates the post-save hooks"
-    if windowi is not None:
-        if hasattr(windowi, "comboboxpsh"):
-
-            # empty combobox
-            for _i in range(1, windowi.comboboxpsh.get_num_rows() + 1):
-                windowi.comboboxpsh.remove(0)
-
-        else:
-            # create it
-            windowi.comboboxpsh = ComboBoxText()
-
-        # fill it again
-        for tool in SETTING["user_defined_tools"]:
-            if not re.search(r"%o", tool, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                windowi.comboboxpsh.append_text(tool)
-
-        windowi.comboboxpsh.set_active_by_text(SETTING["current_psh"])
 
 
 def get_selected_properties():
@@ -4100,7 +3493,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("open", open_dialog),
             ("open-session", open_session_action),
             ("scan", scan_dialog),
-            ("save", save_dialog),
+            ("save", self.save_dialog),
             ("email", self.email),
             ("print", print_dialog),
             ("quit", quit_app),
@@ -4163,6 +3556,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowc = None
         self._windowo = None
         self._windowu = None
+        self._windowi = None
         self._windowe = None
         self._windowr = None
         self._windowp = None
@@ -5389,6 +4783,631 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if hboxtl is not None and ocr_engine[combobe.get_active()][0] != "tesseract":
             hboxtl.hide()
 
+    def save_dialog(self, _action, _param):
+        "Display page selector and on save a fileselector."
+        if self._windowi is not None:
+            self._windowi.present()
+            return
+
+        image_types = [
+            "pdf",
+            "gif",
+            "jpg",
+            "png",
+            "pnm",
+            "ps",
+            "tif",
+            "txt",
+            "hocr",
+            "session",
+        ]
+        if dependencies["pdfunite"]:
+            image_types.extend(["prependpdf", "appendpdf"])
+
+        if dependencies["djvu"]:
+            image_types.append("djvu")
+        ps_backends = []
+        for backend in ["libtiff", "pdf2ps", "pdftops"]:
+            if dependencies[backend]:
+                ps_backends.append(backend)
+
+        self._windowi = SaveDialog(
+            transient_for=self,
+            title=_("Save"),
+            hide_on_delete=True,
+            page_range=SETTING["Page range"],
+            include_time=SETTING["use_time"],
+            meta_datetime=datetime.datetime.now() + SETTING["datetime offset"],
+            select_datetime=bool(SETTING["datetime offset"]),
+            meta_title=SETTING["title"],
+            meta_title_suggestions=SETTING["title-suggestions"],
+            meta_author=SETTING["author"],
+            meta_author_suggestions=SETTING["author-suggestions"],
+            meta_subject=SETTING["subject"],
+            meta_subject_suggestions=SETTING["subject-suggestions"],
+            meta_keywords=SETTING["keywords"],
+            meta_keywords_suggestions=SETTING["keywords-suggestions"],
+            image_types=image_types,
+            image_type=SETTING["image type"],
+            ps_backends=ps_backends,
+            jpeg_quality=SETTING["quality"],
+            downsample_dpi=SETTING["downsample dpi"],
+            downsample=SETTING["downsample"],
+            pdf_compression=SETTING["pdf compression"],
+            available_fonts=app._fonts,
+            text_position=SETTING["text_position"],
+            pdf_font=SETTING["pdf font"],
+            can_encrypt_pdf="pdftk" in dependencies,
+            tiff_compression=SETTING["tiff compression"],
+        )
+
+        # Frame for page range
+        self._windowi.add_page_range()
+        self._windowi.add_image_type()
+
+        # Post-save hook
+        pshbutton = Gtk.CheckButton(label=_("Post-save hook"))
+        pshbutton.set_tooltip_text(
+            _(
+                "Run command on saved file. The available commands are those "
+                "user-defined tools that do not specify %o"
+            )
+        )
+        vbox = self._windowi.get_content_area()
+        vbox.pack_start(pshbutton, False, True, 0)
+        self.update_post_save_hooks()
+        vbox.pack_start(self._windowi.comboboxpsh, False, True, 0)
+        pshbutton.connect(
+            "toggled",
+            lambda _action: self._windowi.comboboxpsh.set_sensitive(
+                pshbutton.get_active()
+            ),
+        )
+        pshbutton.set_active(SETTING["post_save_hook"])
+        self._windowi.comboboxpsh.set_sensitive(pshbutton.get_active())
+        kbutton = Gtk.CheckButton(label=_("Close dialog on save"))
+        kbutton.set_tooltip_text(_("Close dialog on save"))
+        kbutton.set_active(SETTING["close_dialog_on_save"])
+        vbox.pack_start(kbutton, False, True, 0)
+
+        self._windowi.add_actions(
+            [
+                (
+                    "gtk-save",
+                    lambda: self.save_button_clicked_callback(kbutton, pshbutton),
+                ),
+                ("gtk-cancel", self._windowi.hide),
+            ]
+        )
+        self._windowi.show_all()
+        self._windowi.resize(1, 1)
+
+    def save_button_clicked_callback(self, kbutton, pshbutton):
+        "Save selected pages"
+
+        # Compile list of pages
+        SETTING["Page range"] = self._windowi.page_range
+        uuids = list_of_page_uuids()
+
+        # dig out the image type, compression and quality
+        SETTING["image type"] = self._windowi.image_type
+        SETTING["close_dialog_on_save"] = kbutton.get_active()
+        SETTING["post_save_hook"] = pshbutton.get_active()
+        if (
+            SETTING["post_save_hook"]
+            and self._windowi.comboboxpsh.get_active() > EMPTY_LIST
+        ):
+            SETTING["current_psh"] = self._windowi.comboboxpsh.get_active_text()
+
+        if re.search(r"pdf", SETTING["image type"]):
+
+            # dig out the compression
+            SETTING["downsample"] = self._windowi.downsample
+            SETTING["downsample dpi"] = self._windowi.downsample_dpi
+            SETTING["pdf compression"] = self._windowi.pdf_compression
+            SETTING["quality"] = self._windowi.jpeg_quality
+            SETTING["text_position"] = self._windowi.text_position
+            SETTING["pdf font"] = self._windowi.pdf_font
+
+            # cd back to cwd to save
+            os.chdir(SETTING["cwd"])
+            file_chooser = None
+            if SETTING["image type"] == "pdf":
+                self._windowi.update_config_dict(SETTING)
+
+                # Set up file selector
+                file_chooser = Gtk.FileChooserDialog(
+                    title=_("PDF filename"),
+                    parent=self._windowi,
+                    action=Gtk.FileChooserAction.SAVE,
+                )
+                file_chooser.add_buttons(
+                    Gtk.STOCK_CANCEL,
+                    Gtk.ResponseType.CANCEL,
+                    Gtk.STOCK_OK,
+                    Gtk.ResponseType.OK,
+                )
+
+                filename = expand_metadata_pattern(
+                    template=SETTING["default filename"],
+                    convert_whitespace=SETTING["convert whitespace to underscores"],
+                    author=SETTING["author"],
+                    title=SETTING["title"],
+                    docdate=self._windowi.meta_datetime,
+                    today_and_now=datetime.datetime.now(),
+                    extension="pdf",
+                    subject=SETTING["subject"],
+                    keywords=SETTING["keywords"],
+                )
+                file_chooser.set_current_name(filename)
+                file_chooser.set_do_overwrite_confirmation(True)
+
+            else:
+                file_chooser = Gtk.FileChooserDialog(
+                    title=_("PDF filename"),
+                    parent=self._windowi,
+                    action=Gtk.FileChooserAction.OPEN,
+                )
+                file_chooser.add_buttons(
+                    Gtk.STOCK_CANCEL,
+                    Gtk.ResponseType.CANCEL,
+                    Gtk.STOCK_OPEN,
+                    Gtk.ResponseType.OK,
+                )
+
+            add_filter(file_chooser, _("PDF files"), ["pdf"])
+            file_chooser.set_current_folder(SETTING["cwd"])
+            file_chooser.set_default_response(Gtk.ResponseType.OK)
+            file_chooser.connect(
+                "response",
+                self.file_chooser_response_callback,
+                [SETTING["image type"], uuids],
+            )
+            file_chooser.show()
+
+            # cd back to tempdir
+            os.chdir(session.name)
+
+        elif SETTING["image type"] == "djvu":
+            self._windowi.update_config_dict(SETTING)
+
+            # cd back to cwd to save
+            os.chdir(SETTING["cwd"])
+
+            # Set up file selector
+            file_chooser = Gtk.FileChooserDialog(
+                title=_("DjVu filename"),
+                parent=self._windowi,
+                action=Gtk.FileChooserAction.SAVE,
+            )
+            file_chooser.add_buttons(
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE,
+                Gtk.ResponseType.OK,
+            )
+            filename = expand_metadata_pattern(
+                template=SETTING["default filename"],
+                convert_whitespace=SETTING["convert whitespace to underscores"],
+                author=SETTING["author"],
+                title=SETTING["title"],
+                docdate=self._windowi.meta_datetime,
+                today_and_now=datetime.datetime.now(),
+                extension="djvu",
+                subject=SETTING["subject"],
+                keywords=SETTING["keywords"],
+            )
+            file_chooser.set_current_name(filename)
+            file_chooser.set_default_response(Gtk.ResponseType.OK)
+            file_chooser.set_current_folder(SETTING["cwd"])
+            add_filter(file_chooser, _("DjVu files"), ["djvu"])
+            file_chooser.set_do_overwrite_confirmation(True)
+            file_chooser.connect(
+                "response", self.file_chooser_response_callback, ["djvu", uuids]
+            )
+            file_chooser.show()
+
+            # cd back to tempdir
+            os.chdir(session.name)
+
+        elif SETTING["image type"] == "tif":
+            SETTING["tiff compression"] = self._windowi.tiff_compression
+            SETTING["quality"] = self._windowi.jpeg_quality
+
+            # cd back to cwd to save
+            os.chdir(SETTING["cwd"])
+
+            # Set up file selector
+            file_chooser = Gtk.FileChooserDialog(
+                title=_("TIFF filename"),
+                parent=self._windowi,
+                action=Gtk.FileChooserAction.SAVE,
+            )
+            file_chooser.add_buttons(
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE,
+                Gtk.ResponseType.OK,
+            )
+            file_chooser.set_default_response(Gtk.ResponseType.OK)
+            file_chooser.set_current_folder(SETTING["cwd"])
+            add_filter(file_chooser, _("Image files"), [SETTING["image type"]])
+            file_chooser.set_do_overwrite_confirmation(True)
+            file_chooser.connect(
+                "response", self.file_chooser_response_callback, ["tif", uuids]
+            )
+            file_chooser.show()
+
+            # cd back to tempdir
+            os.chdir(session.name)
+
+        elif SETTING["image type"] == "txt":
+
+            # cd back to cwd to save
+            os.chdir(SETTING["cwd"])
+
+            # Set up file selector
+            file_chooser = Gtk.FileChooserDialog(
+                title=_("Text filename"),
+                parent=self._windowi,
+                action=Gtk.FileChooserAction.SAVE,
+            )
+            file_chooser.add_buttons(
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE,
+                Gtk.ResponseType.OK,
+            )
+            file_chooser.set_default_response(Gtk.ResponseType.OK)
+            file_chooser.set_current_folder(SETTING["cwd"])
+            add_filter(file_chooser, _("Text files"), ["txt"])
+            file_chooser.set_do_overwrite_confirmation(True)
+            file_chooser.connect(
+                "response", self.file_chooser_response_callback, ["txt", uuids]
+            )
+            file_chooser.show()
+
+            # cd back to tempdir
+            os.chdir(session.name)
+
+        elif SETTING["image type"] == "hocr":
+
+            # cd back to cwd to save
+            os.chdir(SETTING["cwd"])
+
+            # Set up file selector
+            file_chooser = Gtk.FileChooserDialog(
+                title=_("hOCR filename"),
+                parent=self._windowi,
+                action=Gtk.FileChooserAction.SAVE,
+            )
+            file_chooser.add_buttons(
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE,
+                Gtk.ResponseType.OK,
+            )
+            file_chooser.set_default_response(Gtk.ResponseType.OK)
+            file_chooser.set_current_folder(SETTING["cwd"])
+            file_chooser.set_do_overwrite_confirmation(True)
+            add_filter(file_chooser, _("hOCR files"), ["hocr"])
+            file_chooser.connect(
+                "response", self.file_chooser_response_callback, ["hocr", uuids]
+            )
+            file_chooser.show()
+
+            # cd back to tempdir
+            os.chdir(session.name)
+
+        elif SETTING["image type"] == "ps":
+            SETTING["ps_backend"] = self._windowi.ps_backend
+            logger.info("Selected '%s' as ps backend", SETTING["ps_backend"])
+
+            # cd back to cwd to save
+            os.chdir(SETTING["cwd"])
+
+            # Set up file selector
+            file_chooser = Gtk.FileChooserDialog(
+                title=_("PS filename"),
+                parent=self._windowi,
+                action=Gtk.FileChooserAction.SAVE,
+            )
+            file_chooser.add_buttons(
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE,
+                Gtk.ResponseType.OK,
+            )
+            file_chooser.set_default_response(Gtk.ResponseType.OK)
+            file_chooser.set_current_folder(SETTING["cwd"])
+            add_filter(file_chooser, _("Postscript files"), ["ps"])
+            file_chooser.set_do_overwrite_confirmation(True)
+            file_chooser.connect(
+                "response", self.file_chooser_response_callback, ["ps", uuids]
+            )
+            file_chooser.show()
+
+            # cd back to tempdir
+            os.chdir(session.name)
+
+        elif SETTING["image type"] == "session":
+
+            # cd back to cwd to save
+            os.chdir(SETTING["cwd"])
+
+            # Set up file selector
+            file_chooser = Gtk.FileChooserDialog(
+                title=_("gscan2pdf session filename"),
+                parent=self._windowi,
+                action=Gtk.FileChooserAction.SAVE,
+            )
+            file_chooser.add_buttons(
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE,
+                Gtk.ResponseType.OK,
+            )
+            file_chooser.set_default_response(Gtk.ResponseType.OK)
+            file_chooser.set_current_folder(SETTING["cwd"])
+            add_filter(file_chooser, _("gscan2pdf session files"), ["gs2p"])
+            file_chooser.set_do_overwrite_confirmation(True)
+            file_chooser.connect(
+                "response", self.file_chooser_response_callback, ["gs2p"]
+            )
+            file_chooser.show()
+
+            # cd back to tempdir
+            os.chdir(session.name)
+
+        elif SETTING["image type"] == "jpg":
+            SETTING["quality"] = self._windowi.jpeg_quality
+            self.save_image(uuids)
+
+        else:
+            self.save_image(uuids)
+
+    def file_chooser_response_callback(self, dialog, response, data):
+        "Callback for file chooser dialog"
+        filetype, uuids = data
+        suffix = filetype
+        if re.search(
+            r"pdf", suffix, re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE
+        ):
+            suffix = "pdf"
+        if response == Gtk.ResponseType.OK:
+            filename = dialog.get_filename()
+            logger.debug("FileChooserDialog returned %s", filename)
+            if not re.search(
+                rf"[.]{suffix}$",
+                filename,
+                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+            ):
+                filename = f"{filename}.{filetype}"
+                if file_exists(dialog, filename):
+                    return
+
+            if file_writable(dialog, filename):
+                return
+
+            # Update cwd
+            SETTING["cwd"] = os.path.dirname(filename)
+            if re.search(r"pdf", filetype):
+                self.save_pdf(filename, filetype, uuids)
+
+            elif filetype == "djvu":
+                save_djvu(filename, uuids)
+
+            elif filetype == "tif":
+                save_tiff(filename, None, uuids)
+
+            elif filetype == "txt":
+                save_text(filename, uuids)
+
+            elif filetype == "hocr":
+                save_hocr(filename, uuids)
+
+            elif filetype == "ps":
+                if SETTING["ps_backend"] == "libtiff":
+                    tif = tempfile.TemporaryFile(dir=session, suffix=".tif")
+                    save_tiff(tif.filename(), filename, uuids)
+
+                else:
+                    self.save_pdf(filename, "ps", uuids)
+
+            elif filetype == "gs2p":
+                slist.save_session(filename, VERSION)
+
+            if self._windowi is not None and SETTING["close_dialog_on_save"]:
+                self._windowi.hide()
+
+        dialog.destroy()
+
+    def save_pdf(self, filename, option, list_of_page_uuids):
+        "Save selected pages as PDF under given name."
+
+        # Compile options
+        options = {
+            "compression": SETTING["pdf compression"],
+            "downsample": SETTING["downsample"],
+            "downsample dpi": SETTING["downsample dpi"],
+            "quality": SETTING["quality"],
+            "text_position": SETTING["text_position"],
+            "font": SETTING["pdf font"],
+            "user-password": self._windowi.pdf_user_password,
+            "set_timestamp": SETTING["set_timestamp"],
+            "convert whitespace to underscores": SETTING[
+                "convert whitespace to underscores"
+            ],
+        }
+        if option == "prependpdf":
+            options["prepend"] = filename
+
+        elif option == "appendpdf":
+            options["append"] = filename
+
+        elif option == "ps":
+            options["ps"] = filename
+            options["pstool"] = SETTING["ps_backend"]
+
+        if SETTING["post_save_hook"]:
+            options["post_save_hook"] = SETTING["current_psh"]
+
+        # Create the PDF
+        logger.debug("Started saving %s", filename)
+        signal = None
+
+        def save_pdf_finished_callback(response):
+            if not response.pending:
+                self._pp_progress.hide()
+            if signal is not None:
+                self._pp_progress.disconnect(signal)
+
+            mark_pages(list_of_page_uuids)
+            if "view files toggle" in SETTING and SETTING["view files toggle"]:
+                if "ps" in options:
+                    launch_default_for_file(options["ps"])
+                else:
+                    launch_default_for_file(filename)
+
+            logger.debug("Finished saving %s", filename)
+
+        slist.save_pdf(
+            path=filename,
+            list_of_pages=list_of_page_uuids,
+            metadata=collate_metadata(SETTING, datetime.datetime.now()),
+            options=options,
+            queued_callback=setup_tpbar,
+            started_callback=update_tpbar,
+            running_callback=update_tpbar,
+            finished_callback=save_pdf_finished_callback,
+            error_callback=error_callback,
+        )
+
+    def save_image(self, uuids):
+        "Save selected pages as image under given name."
+
+        # cd back to cwd to save
+        os.chdir(SETTING["cwd"])
+
+        # Set up file selector
+        file_chooser = Gtk.FileChooserDialog(
+            title=_("Image filename"),
+            parent=self._windowi,
+            action=Gtk.FileChooserAction.SAVE,
+        )
+        file_chooser.add_buttons(
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_SAVE,
+            Gtk.ResponseType.OK,
+        )
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
+        file_chooser.set_current_folder(SETTING["cwd"])
+        add_filter(
+            file_chooser,
+            _("Image files"),
+            ["jpg", "png", "pnm", "gif", "tif", "tiff", "pdf", "djvu", "ps"],
+        )
+        file_chooser.set_do_overwrite_confirmation(True)
+        if file_chooser.run() == Gtk.ResponseType.OK:
+            filename = file_chooser.get_filename()
+
+            # Update cwd
+            SETTING["cwd"] = os.path.dirname(filename)
+
+            # cd back to tempdir
+            os.chdir(session.name)
+            if len(uuids) > 1:
+                w = len(uuids)
+                for i in range(1, len(uuids) + 1):
+                    current_filename = (
+                        f"${filename}_%0${w}d.{SETTING['image type']}" % (i)
+                    )
+                    if os.path.isfile(current_filename):
+                        text = _("This operation would overwrite %s") % (
+                            current_filename
+                        )
+                        app.window.show_message_dialog(
+                            parent=file_chooser,
+                            message_type="error",
+                            buttons=Gtk.ButtonsType.CLOSE,
+                            text=text,
+                        )
+                        file_chooser.destroy()
+                        return
+
+                filename = f"${filename}_%0${w}d.{SETTING['image type']}"
+
+            else:
+                if not re.search(
+                    rf"[.]{SETTING['image type']}$",
+                    filename,
+                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+                ):
+                    filename = f"{filename}.{SETTING['image type']}"
+                    if file_exists(file_chooser, filename):
+                        return
+
+                if file_writable(file_chooser, filename):
+                    return
+
+            # Create the image
+            logger.debug("Started saving %s", filename)
+            signal = None
+
+            def save_image_finished_callback(response):
+                filename = response.request.args[0]["path"]
+                uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
+                if not response.pending:
+                    app.window._pp_progress.hide()
+                if signal is not None:
+                    app.window._pp_progress.disconnect(signal)
+
+                mark_pages(uuids)
+                if "view files toggle" in SETTING and SETTING["view files toggle"]:
+                    w = len(uuids)
+                    if w > 1:
+                        for i in range(1, w + 1):
+                            launch_default_for_file(filename % (i))
+                    else:
+                        launch_default_for_file(filename)
+
+                logger.debug("Finished saving %s", filename)
+
+            slist.save_image(
+                path=filename,
+                list_of_pages=uuids,
+                queued_callback=setup_tpbar,
+                started_callback=update_tpbar,
+                running_callback=update_tpbar,
+                finished_callback=save_image_finished_callback,
+                error_callback=error_callback,
+            )
+            if self._windowi is not None:
+                self._windowi.hide()
+
+        file_chooser.destroy()
+
+    def update_post_save_hooks(self):
+        "Updates the post-save hooks"
+        if self._windowi is not None:
+            if hasattr(self._windowi, "comboboxpsh"):
+
+                # empty combobox
+                for _i in range(1, self._windowi.comboboxpsh.get_num_rows() + 1):
+                    self._windowi.comboboxpsh.remove(0)
+
+            else:
+                # create it
+                self._windowi.comboboxpsh = ComboBoxText()
+
+            # fill it again
+            for tool in SETTING["user_defined_tools"]:
+                if not re.search(r"%o", tool, re.MULTILINE | re.DOTALL | re.VERBOSE):
+                    self._windowi.comboboxpsh.append_text(tool)
+
+            self._windowi.comboboxpsh.set_active_by_text(SETTING["current_psh"])
+
     def email(self, _action, _param):
         "Display page selector and email."
         if self._windowe is not None:
@@ -5590,8 +5609,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     "ignore-duplex-capabilities"
                 ]
 
-            if windowi is not None:
-                windowi.include_time = SETTING["use_time"]
+            if self._windowi is not None:
+                self._windowi.include_time = SETTING["use_time"]
 
             SETTING["available-tmp-warning"] = spinbuttonw.get_value()
             SETTING["Blank threshold"] = spinbuttonb.get_value()
@@ -5746,7 +5765,7 @@ class Application(Gtk.Application):
 
     def on_save(self, _widget):
         "Displays the save dialog."
-        save_dialog(None, None)
+        self.window.save_dialog(None, None)
 
     def on_email(self, _widget):
         "displays the email dialog."
