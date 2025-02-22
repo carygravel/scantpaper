@@ -167,7 +167,6 @@ SPACE = " "
 DOT = "."
 PERCENT = "%"
 ASTERISK = "*"
-args = None
 logger = logging.getLogger(__name__)
 
 # Define application-wide variables here so that they can be referenced
@@ -1316,7 +1315,7 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
 
 def restart():
     "Restart the application"
-    ask_quit()
+    app.window.can_quit()
     os.execv(sys.executable, ["python"] + sys.argv)
 
 
@@ -2296,45 +2295,6 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
     app.window._windowo.hide()
 
 
-def ask_quit():
-    "Remove temporary files, note window state, save settings and quit."
-    if not scans_saved(
-        _("Some pages have not been saved.\nDo you really want to quit?")
-    ):
-        return False
-
-    # Make sure that we are back in the start directory,
-    # otherwise we can't delete the temp dir.
-    os.chdir(SETTING["cwd"])
-
-    # Remove temporary files
-    for file in glob.glob(session.name + "/*"):
-        os.remove(file)
-    os.rmdir(session.name)
-    # Write window state to settings
-    SETTING["window_width"], SETTING["window_height"] = app.window.get_size()
-    SETTING["window_x"], SETTING["window_y"] = app.window.get_position()
-    SETTING["thumb panel"] = app.window._hpaned.get_position()
-    if app.window._windows:
-        SETTING["scan_window_width"], SETTING["scan_window_height"] = (
-            app.window._windows.get_size()
-        )
-        logger.info("Killing Sane thread(s)")
-        app.window._windows.thread.quit()
-
-    # Write config file
-    config.write_config(app.window._configfile, SETTING)
-    logger.info("Killing document thread(s)")
-    slist.thread.quit()
-    logger.debug("Quitting")
-
-    # compress log file if we have xz
-    if args.log and dependencies["xz"]:
-        exec_command(["xz", "-f", args.log])
-
-    return True
-
-
 def view_html(_action, _param):
     "Perhaps we should use gtk and mallard for this in the future"
     # Or possibly https://github.com/ultrabug/mkdocs-static-i18n
@@ -2885,7 +2845,7 @@ def recursive_slurp(files):
 
 def quit_app(_action, _param):
     "Handle the quit action for the application."
-    if ask_quit():
+    if app.window.can_quit():
         app.quit()
 
 
@@ -2947,6 +2907,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._prevent_image_tool_update = False
         self._rotate_side_cmbx = None
         self._rotate_side_cmbx2 = None
+        self._args = None
 
         # These will be in the window group and have the "win" prefix
         for name, function in [
@@ -3022,7 +2983,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowe = None
         self._windowr = None
         self._windowp = None
-        self.connect("delete-event", lambda w, e: not ask_quit())
+        self.connect("delete-event", lambda w, e: not self.can_quit())
 
         def window_state_event_callback(_w, event):
             "Note when the window is maximised or not"
@@ -3061,9 +3022,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         captures warnings, reads configuration, logs system information,
         and initializes various components.
         """
-        global args
         global SETTING
-        args = parse_arguments()
+        self._args = parse_arguments()
 
         # Catch and log Python warnings
         logging.captureWarnings(True)
@@ -3584,10 +3544,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.scan_dialog(None, None, True)
 
         # Deal with --import command line option
-        if args.import_files is not None:
-            import_files(args.import_files)
-        if args.import_all is not None:
-            import_files(args.import_all, True)
+        if self._args.import_files is not None:
+            import_files(self._args.import_files)
+        if self._args.import_all is not None:
+            import_files(self._args.import_all, True)
 
     def create_toolbar(self):
         "Create the menu bar, initialize its menus, and return the menu bar"
@@ -4078,9 +4038,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if not hidden:
             self._windows.show_all()
         self.update_postprocessing_options_callback(self._windows)
-        if args.device:
+        if self._args.device:
             device_list = []
-            for d in args.device:
+            for d in self._args.device:
                 device_list.append(SimpleNamespace(name=d, label=d))
 
             self._windows.device_list = device_list
@@ -5646,6 +5606,44 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             [("gtk-ok", preferences_apply_callback), ("gtk-cancel", self._windowr.hide)]
         )
         self._windowr.show_all()
+
+    def can_quit(self):
+        "Remove temporary files, note window state, save settings and quit."
+        if not scans_saved(
+            _("Some pages have not been saved.\nDo you really want to quit?")
+        ):
+            return False
+
+        # Make sure that we are back in the start directory,
+        # otherwise we can't delete the temp dir.
+        os.chdir(SETTING["cwd"])
+
+        # Remove temporary files
+        for file in glob.glob(session.name + "/*"):
+            os.remove(file)
+        os.rmdir(session.name)
+        # Write window state to settings
+        SETTING["window_width"], SETTING["window_height"] = app.window.get_size()
+        SETTING["window_x"], SETTING["window_y"] = app.window.get_position()
+        SETTING["thumb panel"] = app.window._hpaned.get_position()
+        if app.window._windows:
+            SETTING["scan_window_width"], SETTING["scan_window_height"] = (
+                app.window._windows.get_size()
+            )
+            logger.info("Killing Sane thread(s)")
+            app.window._windows.thread.quit()
+
+        # Write config file
+        config.write_config(app.window._configfile, SETTING)
+        logger.info("Killing document thread(s)")
+        slist.thread.quit()
+        logger.debug("Quitting")
+
+        # compress log file if we have xz
+        if self._args.log and dependencies["xz"]:
+            exec_command(["xz", "-f", self._args.log])
+
+        return True
 
 
 class Application(Gtk.Application):
