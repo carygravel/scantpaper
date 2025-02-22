@@ -173,7 +173,6 @@ logger = logging.getLogger(__name__)
 # Define application-wide variables here so that they can be referenced
 # in the menu callbacks
 slist = None
-windows = None
 save_button = None
 dependencies = {}
 menubar = None
@@ -737,7 +736,7 @@ def new(_action, _param):
     app.window._current_page = None
 
     # Reset start page in scan dialog
-    windows._reset_start_page()
+    app.window._windows._reset_start_page()
 
 
 def add_filter(file_chooser, name, file_extensions):
@@ -1250,182 +1249,6 @@ def save_hocr(filename, uuids):
     )
 
 
-def scan_dialog(_action, _param, hidden=False, scan=False):
-    "Scan"
-    global windows
-    if windows:
-        windows.show_all()
-        update_postprocessing_options_callback(windows)
-        return
-
-    # If device not set by config and there is a default device, then set it
-    if "device" not in SETTING and "SANE_DEFAULT_DEVICE" in os.environ:
-        SETTING["device"] = os.environ["SANE_DEFAULT_DEVICE"]
-
-    # scan dialog
-    kwargs = {
-        "transient_for": app.window,
-        "title": _("Scan Document"),
-        "dir": session,
-        "hide_on_delete": True,
-        "paper_formats": SETTING["Paper"],
-        "allow_batch_flatbed": SETTING["allow-batch-flatbed"],
-        "adf_defaults_scan_all_pages": SETTING["adf-defaults-scan-all-pages"],
-        "document": slist,
-        "ignore_duplex_capabilities": SETTING["ignore-duplex-capabilities"],
-        "cycle_sane_handle": SETTING["cycle sane handle"],
-        "cancel_between_pages": (
-            SETTING["allow-batch-flatbed"] and SETTING["cancel-between-pages"]
-        ),
-    }
-    if SETTING["scan_window_width"]:
-        kwargs["default_width"] = SETTING["scan_window_width"]
-    if SETTING["scan_window_height"]:
-        kwargs["default_height"] = SETTING["scan_window_height"]
-    windows = SaneScanDialog(**kwargs)
-
-    # Can't set the device when creating the window,
-    # as the list does not exist then
-    windows.connect("changed-device-list", changed_device_list_callback)
-
-    # Update default device
-    windows.connect("changed-device", changed_device_callback)
-    windows.connect(
-        "changed-page-number-increment", update_postprocessing_options_callback
-    )
-    windows.connect("changed-side-to-scan", changed_side_to_scan_callback)
-    signal = None
-
-    def started_progress_callback(_widget, message):
-        logger.debug("'started-process' emitted with message: %s", message)
-        app.window._scan_progress.set_fraction(0)
-        app.window._scan_progress.set_text(message)
-        app.window._scan_progress.show_all()
-        nonlocal signal
-        signal = app.window._scan_progress.connect("clicked", windows.cancel_scan)
-
-    windows.connect("started-process", started_progress_callback)
-    windows.connect("changed-progress", changed_progress_callback)
-    windows.connect("finished-process", finished_process_callback)
-    windows.connect("process-error", process_error_callback, signal)
-
-    # Profiles
-    for profile in SETTING["profile"].keys():
-        windows._add_profile(
-            profile,
-            Profile(
-                frontend=SETTING["profile"][profile]["frontend"],
-                backend=SETTING["profile"][profile]["backend"],
-            ),
-        )
-
-    def changed_profile_callback(_widget, profile):
-        SETTING["default profile"] = profile
-
-    windows.connect("changed-profile", changed_profile_callback)
-
-    def added_profile_callback(_widget, name, profile):
-        SETTING["profile"][name] = profile.get()
-
-    windows.connect("added-profile", added_profile_callback)
-
-    def removed_profile_callback(_widget, profile):
-        del SETTING["profile"][profile]
-
-    windows.connect("removed-profile", removed_profile_callback)
-
-    def changed_current_scan_options_callback(_widget, profile, _uuid):
-        "Update the default profile when the scan options change"
-        SETTING["default-scan-options"] = profile.get()
-
-    windows.connect(
-        "changed-current-scan-options", changed_current_scan_options_callback
-    )
-
-    def changed_paper_formats_callback(_widget, formats):
-        SETTING["Paper"] = formats
-
-    windows.connect("changed-paper-formats", changed_paper_formats_callback)
-    windows.connect("new-scan", new_scan_callback)
-    windows.connect("changed-scan-option", update_postprocessing_options_callback)
-    add_postprocessing_options(windows)
-    if not hidden:
-        windows.show_all()
-    update_postprocessing_options_callback(windows)
-    if args.device:
-        device_list = []
-        for d in args.device:
-            device_list.append(SimpleNamespace(name=d, label=d))
-
-        windows.device_list = device_list
-
-    elif not scan and SETTING["cache-device-list"] and len(SETTING["device list"]):
-        windows.device_list = SETTING["device list"]
-    else:
-        windows.get_devices()
-
-
-def changed_device_callback(widget, device):
-    "callback for changed device"
-    # $widget is $windows
-    if device != EMPTY:
-        logger.info("signal 'changed-device' emitted with data: '%s'", device)
-        SETTING["device"] = device
-
-        # Can't set the profile until the options have been loaded. This
-        # should only be called the first time after loading the available
-        # options
-        widget.reloaded_signal = widget.connect(
-            "reloaded-scan-options", reloaded_scan_options_callback
-        )
-    else:
-        logger.info("signal 'changed-device' emitted with data: undef")
-
-
-def changed_device_list_callback(widget, device_list):  # $widget is $windows
-    "callback for changed device list"
-    logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
-    if len(device_list):
-
-        # Apply the device blacklist
-        if "device blacklist" in SETTING and SETTING["device blacklist"] not in [
-            None,
-            "",
-        ]:
-            i = 0
-            while i < len(device_list):
-                if re.search(
-                    device_list[i].name,
-                    SETTING["device blacklist"],
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                ):
-                    logger.info("Blacklisting device %s", device_list[i].name)
-                    del device_list[i]
-                else:
-                    i += 1
-
-            if len(device_list) < len(device_list):
-                widget.device_list = device_list
-                return
-
-        if SETTING["cache-device-list"]:
-            SETTING["device list"] = device_list
-
-        # Only set default device if it hasn't been specified on the command line
-        # and it is in the the device list
-        if "device" in SETTING:
-            for d in device_list:
-                if SETTING["device"] == d.name:
-                    widget.device = SETTING["device"]
-                    return
-
-        widget.device = device_list[0].name
-
-    else:
-        global windows
-        windows = None
-
-
 def changed_side_to_scan_callback(widget, _arg):
     "Callback function to handle the event when the side to scan is changed."
     logger.debug("changed_side_to_scan_callback( %s, %s )", widget, _arg)
@@ -1433,22 +1256,6 @@ def changed_side_to_scan_callback(widget, _arg):
         widget.page_number_start = slist.data[len(slist.data) - 1][0] + 1
     else:
         widget.page_number_start = 1
-
-
-def reloaded_scan_options_callback(widget):  # widget is windows
-    "This should only be called the first time after loading the available options"
-    widget.disconnect(widget.reloaded_signal)
-    profiles = SETTING["profile"].keys()
-    if "default profile" in SETTING:
-        widget.profile = SETTING["default profile"]
-
-    elif "default-scan-options" in SETTING:
-        widget.set_current_scan_options(Profile(SETTING["default-scan-options"]))
-
-    elif profiles:
-        widget.profile = profiles[0]
-
-    update_postprocessing_options_callback(widget)
 
 
 def changed_progress_callback(_widget, progress, message):
@@ -1509,156 +1316,10 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
     slist.import_scan(**options)
 
 
-def process_error_callback(widget, process, msg, signal):
-    "Callback function to handle process errors."
-    logger.info("signal 'process-error' emitted with data: %s %s", process, msg)
-    if signal is not None:
-        app.window._scan_progress.disconnect(signal)
-
-    app.window._scan_progress.hide()
-    if process == "open_device" and re.search(
-        r"(Invalid[ ]argument|Device[ ]busy)",
-        msg,
-        re.MULTILINE | re.DOTALL | re.VERBOSE,
-    ):
-        error_name = "error opening device"
-        response = None
-        if (
-            error_name in SETTING["message"]
-            and SETTING["message"][error_name]["response"] == "ignore"
-        ):
-            response = SETTING["message"][error_name]["response"]
-
-        else:
-            dialog = Gtk.MessageDialog(
-                parent=app.window,
-                destroy_with_parent=True,
-                modal=True,
-                message_type="question",
-                buttons=Gtk.ButtonsType.OK,
-            )
-            dialog.set_title(_("Error opening the last device used."))
-            area = dialog.get_message_area()
-            label = Gtk.Label(
-                label=_("There was an error opening the last device used.")
-            )
-            area.add(label)
-            radio1 = Gtk.RadioButton.new_with_label(
-                None, label=_("Whoops! I forgot to turn it on. Try again now.")
-            )
-            area.add(radio1)
-            radio2 = Gtk.RadioButton.new_with_label_from_widget(
-                radio1, label=_("Rescan for devices")
-            )
-            area.add(radio2)
-            radio3 = Gtk.RadioButton.new_with_label_from_widget(
-                radio1, label=_("Restart gscan2pdf.")
-            )
-            area.add(radio3)
-            radio4 = Gtk.RadioButton.new_with_label_from_widget(
-                radio1, label=_("Just ignore the error. I don't need the scanner yet.")
-            )
-            area.add(radio4)
-            cb_cache_device_list = Gtk.CheckButton.new_with_label(
-                _("Cache device list")
-            )
-            cb_cache_device_list.set_active(SETTING["cache-device-list"])
-            area.add(cb_cache_device_list)
-            cb = Gtk.CheckButton.new_with_label(
-                label=_("Don't show this message again")
-            )
-            area.add(cb)
-            dialog.show_all()
-            response = dialog.run()
-            dialog.destroy()
-            if response != Gtk.ResponseType.OK or radio4.get_active():
-                response = "ignore"
-            elif radio1.get_active():
-                response = "reopen"
-            elif radio3.get_active():
-                response = "restart"
-            else:
-                response = "rescan"
-            if cb.get_active():
-                SETTING["message"][error_name]["response"] = response
-
-        global windows
-        windows = None  # force scan dialog to be rebuilt
-        if response == "reopen":
-            scan_dialog(None, None)
-        elif response == "rescan":
-            scan_dialog(None, None, False, True)
-        elif response == "restart":
-            restart()
-
-        # for ignore, we do nothing
-        return
-
-    app.window.show_message_dialog(
-        parent=widget,
-        message_type="error",
-        buttons=Gtk.ButtonsType.CLOSE,
-        page=EMPTY,
-        process=process,
-        text=msg,
-        store_response=True,
-    )
-
-
-def finished_process_callback(_widget, process, button_signal=None):
-    "Callback function to handle the completion of a process."
-    logger.debug("signal 'finished-process' emitted with data: %s", process)
-    if button_signal is not None:
-        app.window._scan_progress.disconnect(button_signal)
-
-    app.window._scan_progress.hide()
-    if process == "scan_pages" and windows.sided == "double":
-
-        def prompt_reverse_sides():
-            message, side = None, None
-            if windows.side_to_scan == "facing":
-                message = _("Finished scanning facing pages. Scan reverse pages?")
-                side = "reverse"
-            else:
-                message = _("Finished scanning reverse pages. Scan facing pages?")
-                side = "facing"
-
-            response = ask_question(
-                parent=windows,
-                type="question",
-                buttons=Gtk.ButtonsType.OK_CANCEL,
-                text=message,
-                default_response=Gtk.ResponseType.OK,
-                store_response=True,
-                stored_responses=[Gtk.ResponseType.OK],
-            )
-            if response == Gtk.ResponseType.OK:
-                windows.side_to_scan = side
-
-        GLib.idle_add(prompt_reverse_sides)
-
-
 def restart():
     "Restart the application"
     ask_quit()
     os.execv(sys.executable, ["python"] + sys.argv)
-
-
-def update_postprocessing_options_callback(
-    widget, _option_name=None, _option_val=None, _uuid=None
-):
-    "update the visibility of post-processing options based on the widget's scan options."
-    # widget is windows
-    options = widget.available_scan_options
-    increment = widget.page_number_increment
-    if options is not None:
-        if increment != 1 or options.can_duplex():
-            rotate_side_cmbx.show()
-            rotate_side_cmbx2.show()
-
-        else:
-            rotate_side_cmbx.hide()
-            rotate_side_cmbx2.hide()
 
 
 def add_postprocessing_rotate(vbox):
@@ -1996,8 +1657,8 @@ def delete_selection(_action, _param):
     slist._delete_selection_extra()
 
     # Reset start page in scan dialog
-    if windows:
-        windows._reset_start_page()
+    if app.window._windows:
+        app.window._windows._reset_start_page()
     app.window.update_uimanager()
 
 
@@ -2860,10 +2521,12 @@ def ask_quit():
     SETTING["window_width"], SETTING["window_height"] = app.window.get_size()
     SETTING["window_x"], SETTING["window_y"] = app.window.get_position()
     SETTING["thumb panel"] = app.window._hpaned.get_position()
-    if windows:
-        SETTING["scan_window_width"], SETTING["scan_window_height"] = windows.get_size()
+    if app.window._windows:
+        SETTING["scan_window_width"], SETTING["scan_window_height"] = (
+            app.window._windows.get_size()
+        )
         logger.info("Killing Sane thread(s)")
-        windows.thread.quit()
+        app.window._windows.thread.quit()
 
     # Write config file
     config.write_config(app.window._configfile, SETTING)
@@ -3251,10 +2914,12 @@ All document date codes use strftime codes with a leading D, e.g.:
 
     def clicked_add_udt(_action):
         add_user_defined_tool_entry(
-            vboxt, [comboboxudt, windows.comboboxudt], "my-tool %i %o"
+            vboxt, [comboboxudt, app.window._windows.comboboxudt], "my-tool %i %o"
         )
         vboxt.reorder_child(abutton, EMPTY_LIST)
-        update_list_user_defined_tools(vboxt, [comboboxudt, windows.comboboxudt])
+        update_list_user_defined_tools(
+            vboxt, [comboboxudt, app.window._windows.comboboxudt]
+        )
 
     abutton.connect("clicked", clicked_add_udt)
     return (
@@ -3492,7 +3157,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("new", new),
             ("open", open_dialog),
             ("open-session", open_session_action),
-            ("scan", scan_dialog),
+            ("scan", self.scan_dialog),
             ("save", self.save_dialog),
             ("email", self.email),
             ("print", print_dialog),
@@ -3553,6 +3218,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.print_settings = None
         self.renumber_dialog = None
         self._message_dialog = None
+        self._windows = None
         self._windowc = None
         self._windowo = None
         self._windowu = None
@@ -4119,7 +3785,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Open scan dialog in background
         if SETTING["auto-open-scan-dialog"]:
-            scan_dialog(None, None, True)
+            self.scan_dialog(None, None, True)
 
         # Deal with --import command line option
         if args.import_files is not None:
@@ -4417,8 +4083,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         actions["paste"].set_enabled(bool(slist.clipboard))
 
         # If the scan dialog has already been drawn, update the start page spinbutton
-        if windows:
-            windows._update_start_page()
+        if self._windows:
+            self._windows._update_start_page()
 
     def show_message_dialog(self, **kwargs):
         "Displays a message dialog with the given options."
@@ -4510,6 +4176,339 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             [("gtk-ok", properties_apply_callback), ("gtk-cancel", self._windowp.hide)]
         )
         self._windowp.show_all()
+
+    def scan_dialog(self, _action, _param, hidden=False, scan=False):
+        "Scan"
+        if self._windows:
+            self._windows.show_all()
+            self.update_postprocessing_options_callback(self._windows)
+            return
+
+        # If device not set by config and there is a default device, then set it
+        if "device" not in SETTING and "SANE_DEFAULT_DEVICE" in os.environ:
+            SETTING["device"] = os.environ["SANE_DEFAULT_DEVICE"]
+
+        # scan dialog
+        kwargs = {
+            "transient_for": app.window,
+            "title": _("Scan Document"),
+            "dir": session,
+            "hide_on_delete": True,
+            "paper_formats": SETTING["Paper"],
+            "allow_batch_flatbed": SETTING["allow-batch-flatbed"],
+            "adf_defaults_scan_all_pages": SETTING["adf-defaults-scan-all-pages"],
+            "document": slist,
+            "ignore_duplex_capabilities": SETTING["ignore-duplex-capabilities"],
+            "cycle_sane_handle": SETTING["cycle sane handle"],
+            "cancel_between_pages": (
+                SETTING["allow-batch-flatbed"] and SETTING["cancel-between-pages"]
+            ),
+        }
+        if SETTING["scan_window_width"]:
+            kwargs["default_width"] = SETTING["scan_window_width"]
+        if SETTING["scan_window_height"]:
+            kwargs["default_height"] = SETTING["scan_window_height"]
+        self._windows = SaneScanDialog(**kwargs)
+
+        # Can't set the device when creating the window,
+        # as the list does not exist then
+        self._windows.connect("changed-device-list", self.changed_device_list_callback)
+
+        # Update default device
+        self._windows.connect("changed-device", self.changed_device_callback)
+        self._windows.connect(
+            "changed-page-number-increment", self.update_postprocessing_options_callback
+        )
+        self._windows.connect("changed-side-to-scan", changed_side_to_scan_callback)
+        signal = None
+
+        def started_progress_callback(_widget, message):
+            logger.debug("'started-process' emitted with message: %s", message)
+            app.window._scan_progress.set_fraction(0)
+            app.window._scan_progress.set_text(message)
+            app.window._scan_progress.show_all()
+            nonlocal signal
+            signal = app.window._scan_progress.connect(
+                "clicked", self._windows.cancel_scan
+            )
+
+        self._windows.connect("started-process", started_progress_callback)
+        self._windows.connect("changed-progress", changed_progress_callback)
+        self._windows.connect("finished-process", self.finished_process_callback)
+        self._windows.connect("process-error", self.process_error_callback, signal)
+
+        # Profiles
+        for profile in SETTING["profile"].keys():
+            self._windows._add_profile(
+                profile,
+                Profile(
+                    frontend=SETTING["profile"][profile]["frontend"],
+                    backend=SETTING["profile"][profile]["backend"],
+                ),
+            )
+
+        def changed_profile_callback(_widget, profile):
+            SETTING["default profile"] = profile
+
+        self._windows.connect("changed-profile", changed_profile_callback)
+
+        def added_profile_callback(_widget, name, profile):
+            SETTING["profile"][name] = profile.get()
+
+        self._windows.connect("added-profile", added_profile_callback)
+
+        def removed_profile_callback(_widget, profile):
+            del SETTING["profile"][profile]
+
+        self._windows.connect("removed-profile", removed_profile_callback)
+
+        def changed_current_scan_options_callback(_widget, profile, _uuid):
+            "Update the default profile when the scan options change"
+            SETTING["default-scan-options"] = profile.get()
+
+        self._windows.connect(
+            "changed-current-scan-options", changed_current_scan_options_callback
+        )
+
+        def changed_paper_formats_callback(_widget, formats):
+            SETTING["Paper"] = formats
+
+        self._windows.connect("changed-paper-formats", changed_paper_formats_callback)
+        self._windows.connect("new-scan", new_scan_callback)
+        self._windows.connect(
+            "changed-scan-option", self.update_postprocessing_options_callback
+        )
+        add_postprocessing_options(self._windows)
+        if not hidden:
+            self._windows.show_all()
+        self.update_postprocessing_options_callback(self._windows)
+        if args.device:
+            device_list = []
+            for d in args.device:
+                device_list.append(SimpleNamespace(name=d, label=d))
+
+            self._windows.device_list = device_list
+
+        elif not scan and SETTING["cache-device-list"] and len(SETTING["device list"]):
+            self._windows.device_list = SETTING["device list"]
+        else:
+            self._windows.get_devices()
+
+    def changed_device_callback(self, widget, device):
+        "callback for changed device"
+        # widget is windows
+        if device != EMPTY:
+            logger.info("signal 'changed-device' emitted with data: '%s'", device)
+            SETTING["device"] = device
+
+            # Can't set the profile until the options have been loaded. This
+            # should only be called the first time after loading the available
+            # options
+            widget.reloaded_signal = widget.connect(
+                "reloaded-scan-options", self.reloaded_scan_options_callback
+            )
+        else:
+            logger.info("signal 'changed-device' emitted with data: undef")
+
+    def changed_device_list_callback(self, widget, device_list):  # widget is windows
+        "callback for changed device list"
+        logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
+        if len(device_list):
+
+            # Apply the device blacklist
+            if "device blacklist" in SETTING and SETTING["device blacklist"] not in [
+                None,
+                "",
+            ]:
+                i = 0
+                while i < len(device_list):
+                    if re.search(
+                        device_list[i].name,
+                        SETTING["device blacklist"],
+                        re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    ):
+                        logger.info("Blacklisting device %s", device_list[i].name)
+                        del device_list[i]
+                    else:
+                        i += 1
+
+                if len(device_list) < len(device_list):
+                    widget.device_list = device_list
+                    return
+
+            if SETTING["cache-device-list"]:
+                SETTING["device list"] = device_list
+
+            # Only set default device if it hasn't been specified on the command line
+            # and it is in the the device list
+            if "device" in SETTING:
+                for d in device_list:
+                    if SETTING["device"] == d.name:
+                        widget.device = SETTING["device"]
+                        return
+
+            widget.device = device_list[0].name
+
+        else:
+            self._windows = None
+
+    def update_postprocessing_options_callback(
+        self, widget, _option_name=None, _option_val=None, _uuid=None
+    ):
+        "update the visibility of post-processing options based on the widget's scan options."
+        # widget is windows
+        options = widget.available_scan_options
+        increment = widget.page_number_increment
+        if options is not None:
+            if increment != 1 or options.can_duplex():
+                rotate_side_cmbx.show()
+                rotate_side_cmbx2.show()
+
+            else:
+                rotate_side_cmbx.hide()
+                rotate_side_cmbx2.hide()
+
+    def reloaded_scan_options_callback(self, widget):  # widget is windows
+        "This should only be called the first time after loading the available options"
+        widget.disconnect(widget.reloaded_signal)
+        profiles = SETTING["profile"].keys()
+        if "default profile" in SETTING:
+            widget.profile = SETTING["default profile"]
+
+        elif "default-scan-options" in SETTING:
+            widget.set_current_scan_options(Profile(SETTING["default-scan-options"]))
+
+        elif profiles:
+            widget.profile = profiles[0]
+
+        self.update_postprocessing_options_callback(widget)
+
+    def process_error_callback(self, widget, process, msg, signal):
+        "Callback function to handle process errors."
+        logger.info("signal 'process-error' emitted with data: %s %s", process, msg)
+        if signal is not None:
+            self._scan_progress.disconnect(signal)
+
+        self._scan_progress.hide()
+        if process == "open_device" and re.search(
+            r"(Invalid[ ]argument|Device[ ]busy)",
+            msg,
+            re.MULTILINE | re.DOTALL | re.VERBOSE,
+        ):
+            error_name = "error opening device"
+            response = None
+            if (
+                error_name in SETTING["message"]
+                and SETTING["message"][error_name]["response"] == "ignore"
+            ):
+                response = SETTING["message"][error_name]["response"]
+
+            else:
+                dialog = Gtk.MessageDialog(
+                    parent=self,
+                    destroy_with_parent=True,
+                    modal=True,
+                    message_type="question",
+                    buttons=Gtk.ButtonsType.OK,
+                )
+                dialog.set_title(_("Error opening the last device used."))
+                area = dialog.get_message_area()
+                label = Gtk.Label(
+                    label=_("There was an error opening the last device used.")
+                )
+                area.add(label)
+                radio1 = Gtk.RadioButton.new_with_label(
+                    None, label=_("Whoops! I forgot to turn it on. Try again now.")
+                )
+                area.add(radio1)
+                radio2 = Gtk.RadioButton.new_with_label_from_widget(
+                    radio1, label=_("Rescan for devices")
+                )
+                area.add(radio2)
+                radio3 = Gtk.RadioButton.new_with_label_from_widget(
+                    radio1, label=_("Restart gscan2pdf.")
+                )
+                area.add(radio3)
+                radio4 = Gtk.RadioButton.new_with_label_from_widget(
+                    radio1,
+                    label=_("Just ignore the error. I don't need the scanner yet."),
+                )
+                area.add(radio4)
+                cb_cache_device_list = Gtk.CheckButton.new_with_label(
+                    _("Cache device list")
+                )
+                cb_cache_device_list.set_active(SETTING["cache-device-list"])
+                area.add(cb_cache_device_list)
+                cb = Gtk.CheckButton.new_with_label(
+                    label=_("Don't show this message again")
+                )
+                area.add(cb)
+                dialog.show_all()
+                response = dialog.run()
+                dialog.destroy()
+                if response != Gtk.ResponseType.OK or radio4.get_active():
+                    response = "ignore"
+                elif radio1.get_active():
+                    response = "reopen"
+                elif radio3.get_active():
+                    response = "restart"
+                else:
+                    response = "rescan"
+                if cb.get_active():
+                    SETTING["message"][error_name]["response"] = response
+
+            self._windows = None  # force scan dialog to be rebuilt
+            if response == "reopen":
+                self.scan_dialog(None, None)
+            elif response == "rescan":
+                self.scan_dialog(None, None, False, True)
+            elif response == "restart":
+                restart()
+
+            # for ignore, we do nothing
+            return
+
+        self.show_message_dialog(
+            parent=widget,
+            message_type="error",
+            buttons=Gtk.ButtonsType.CLOSE,
+            page=EMPTY,
+            process=process,
+            text=msg,
+            store_response=True,
+        )
+
+    def finished_process_callback(self, widget, process, button_signal=None):
+        "Callback function to handle the completion of a process."
+        logger.debug("signal 'finished-process' emitted with data: %s", process)
+        if button_signal is not None:
+            self._scan_progress.disconnect(button_signal)
+
+        self._scan_progress.hide()
+        if process == "scan_pages" and widget.sided == "double":
+
+            def prompt_reverse_sides():
+                message, side = None, None
+                if widget.side_to_scan == "facing":
+                    message = _("Finished scanning facing pages. Scan reverse pages?")
+                    side = "reverse"
+                else:
+                    message = _("Finished scanning reverse pages. Scan facing pages?")
+                    side = "facing"
+
+                response = ask_question(
+                    parent=widget,
+                    type="question",
+                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                    text=message,
+                    default_response=Gtk.ResponseType.OK,
+                    store_response=True,
+                    stored_responses=[Gtk.ResponseType.OK],
+                )
+                if response == Gtk.ResponseType.OK:
+                    widget.side_to_scan = side
+
+            GLib.idle_add(prompt_reverse_sides)
 
     def about(self, _action, _param):
         "Display about dialog"
@@ -5601,11 +5600,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             SETTING["set_timestamp"] = cbts.get_active()
             SETTING["to_png"] = cbtp.get_active()
             SETTING["convert whitespace to underscores"] = cbb.get_active()
-            if windows:
-                windows.cycle_sane_handle = SETTING["cycle sane handle"]
-                windows.cancel_between_pages = SETTING["cancel-between-pages"]
-                windows.allow_batch_flatbed = SETTING["allow-batch-flatbed"]
-                windows.ignore_duplex_capabilities = SETTING[
+            if self._windows:
+                self._windows.cycle_sane_handle = SETTING["cycle sane handle"]
+                self._windows.cancel_between_pages = SETTING["cancel-between-pages"]
+                self._windows.allow_batch_flatbed = SETTING["allow-batch-flatbed"]
+                self._windows.ignore_duplex_capabilities = SETTING[
                     "ignore-duplex-capabilities"
                 ]
 
@@ -5619,7 +5618,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # Store viewer preferences
             SETTING["view files toggle"] = cbv.get_active()
-            update_list_user_defined_tools(vboxt, [comboboxudt, windows.comboboxudt])
+            update_list_user_defined_tools(
+                vboxt, [comboboxudt, self._windows.comboboxudt]
+            )
             tmp = os.path.abspath(os.path.join(session.name, ".."))  # Up a level
 
             # Expand tildes in the filename
