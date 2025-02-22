@@ -175,9 +175,7 @@ logger = logging.getLogger(__name__)
 slist = None
 windowi = None
 windows = None
-windowu = None
 save_button = None
-unpaper = None
 dependencies = {}
 menubar = None
 toolbar = None
@@ -2085,7 +2083,7 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
         "resolution": (xresolution, yresolution, "PixelsPerInch"),
     }
     if SETTING["unpaper on scan"]:
-        options["unpaper"] = unpaper
+        options["unpaper"] = app.window._unpaper
 
     if SETTING["threshold-before-ocr"]:
         options["threshold"] = SETTING["threshold tool"]
@@ -2465,12 +2463,12 @@ def add_postprocessing_options(self):
             transient_for=app.window,
             title=_("unpaper options"),
         )
-        unpaper.add_options(windowuo.get_content_area())
+        self._unpaper.add_options(windowuo.get_content_area())
 
         def unpaper_options_callback():
 
             # Update $SETTING
-            SETTING["unpaper options"] = unpaper.get_options()
+            SETTING["unpaper options"] = self._unpaper.get_options()
             windowuo.destroy()
 
         windowuo.add_actions(
@@ -3356,53 +3354,6 @@ def unpaper_page(pages, options):
         )
 
 
-def unpaper(_action, _param):
-    "Run unpaper to clean up scan."
-    global windowu
-    if windowu is not None:
-        windowu.present()
-        return
-
-    windowu = Dialog(
-        transient_for=app.window,
-        title=_("unpaper"),
-        hide_on_delete=True,
-    )
-
-    # Frame for page range
-    windowu.add_page_range()
-
-    # add unpaper options
-    vbox = windowu.get_content_area()
-    unpaper.add_options(vbox)
-
-    def unpaper_apply_callback():
-
-        # Update $SETTING
-        SETTING["unpaper options"] = unpaper.get_options()
-        SETTING["Page range"] = windowu.page_range
-
-        # run unpaper
-        pagelist = indices2pages(
-            slist.get_page_index(SETTING["Page range"], error_callback)
-        )
-        if not pagelist:
-            return
-        unpaper_page(
-            pagelist,
-            {
-                "command": unpaper.get_cmdline(),
-                "direction": unpaper.get_option("direction"),
-            },
-        )
-        windowu.hide()
-
-    windowu.add_actions(
-        [("gtk-ok", unpaper_apply_callback), ("gtk-cancel", windowu.hide)]
-    )
-    windowu.show_all()
-
-
 def add_tess_languages(vbox):
     "Add hbox for tesseract languages"
     hbox = Gtk.HBox()
@@ -4213,7 +4164,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("crop-dialog", self.crop_dialog),
             ("crop-selection", crop_selection),
             ("split", split_dialog),
-            ("unpaper", unpaper),
+            ("unpaper", self.unpaper),
             ("ocr", self.ocr_dialog),
             ("user-defined", user_defined_dialog),
             ("help", view_html),
@@ -4238,6 +4189,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.renumber_dialog = None
         self._windowc = None
         self._windowo = None
+        self._windowu = None
         self._windowe = None
         self._windowr = None
         self._windowp = None
@@ -4781,8 +4733,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # If defined in the config file, set the current directory
         if "cwd" not in SETTING:
             SETTING["cwd"] = os.getcwd()
-        global unpaper
-        unpaper = Unpaper(SETTING["unpaper options"])
+        self._unpaper = Unpaper(SETTING["unpaper options"])
         self.update_uimanager()
         self.show_all()
 
@@ -5313,6 +5264,51 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             [("gtk-apply", crop_callback), ("gtk-cancel", self._windowc.hide)]
         )
         self._windowc.show_all()
+
+    def unpaper(self, _action, _param):
+        "Run unpaper to clean up scan."
+        if self._windowu is not None:
+            self._windowu.present()
+            return
+
+        self._windowu = Dialog(
+            transient_for=self,
+            title=_("unpaper"),
+            hide_on_delete=True,
+        )
+
+        # Frame for page range
+        self._windowu.add_page_range()
+
+        # add unpaper options
+        vbox = self._windowu.get_content_area()
+        self._unpaper.add_options(vbox)
+
+        def unpaper_apply_callback():
+
+            # Update $SETTING
+            SETTING["unpaper options"] = self._unpaper.get_options()
+            SETTING["Page range"] = self._windowu.page_range
+
+            # run unpaper
+            pagelist = indices2pages(
+                slist.get_page_index(SETTING["Page range"], error_callback)
+            )
+            if not pagelist:
+                return
+            unpaper_page(
+                pagelist,
+                {
+                    "command": self._unpaper.get_cmdline(),
+                    "direction": self._unpaper.get_option("direction"),
+                },
+            )
+            self._windowu.hide()
+
+        self._windowu.add_actions(
+            [("gtk-ok", unpaper_apply_callback), ("gtk-cancel", self._windowu.hide)]
+        )
+        self._windowu.show_all()
 
     def ocr_dialog(self, _action, _parma):
         "Run OCR on current page and display result"
