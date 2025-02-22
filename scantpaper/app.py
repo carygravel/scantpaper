@@ -174,7 +174,6 @@ dependencies = {}
 menubar = None
 toolbar = None
 ocr_engine = []
-view = None
 ocr_text_hbox = None
 ocr_textbuffer = None
 ocr_textview = None
@@ -273,12 +272,12 @@ def selection_changed_callback(_selection):
         app.window.slist.scroll_to_cell(
             path, app.window.slist.get_column(0), True, HALF, HALF
         )
-        sel = view.get_selection()
+        sel = app.window.view.get_selection()
         display_image(app.window.slist.data[i][2])
         if sel is not None:
-            view.set_selection(sel)
+            app.window.view.set_selection(sel)
     else:
-        view.set_pixbuf(None)
+        app.window.view.set_pixbuf(None)
         app.window.t_canvas.clear_text()
         app.window.a_canvas.clear_text()
         app.window._current_page = None
@@ -328,9 +327,9 @@ def display_callback(response):
 def display_image(page):
     "Display the image in the view"
     app.window._current_page = page
-    view.set_pixbuf(app.window._current_page.get_pixbuf(), True)
+    app.window.view.set_pixbuf(app.window._current_page.get_pixbuf(), True)
     xresolution, yresolution, _units = app.window._current_page.resolution
-    view.set_resolution_ratio(xresolution / yresolution)
+    app.window.view.set_resolution_ratio(xresolution / yresolution)
 
     # Get image dimensions to constrain selector spinbuttons on crop dialog
     width, height = app.window._current_page.get_size()
@@ -340,7 +339,7 @@ def display_image(page):
         app.window._windowc.page_width = width
         app.window._windowc.page_height = height
         SETTING["selection"] = app.window._windowc.selection
-        view.set_selection(SETTING["selection"])
+        app.window.view.set_selection(SETTING["selection"])
 
     # Delete OCR output if it has become corrupted
     if app.window._current_page.text_layer is not None:
@@ -364,7 +363,7 @@ def display_image(page):
 
 def create_txt_canvas(page, finished_callback=None):
     "Create the text canvas"
-    offset = view.get_offset()
+    offset = app.window.view.get_offset()
     app.window.t_canvas.set_text(
         page=page,
         layer="text_layer",
@@ -372,14 +371,14 @@ def create_txt_canvas(page, finished_callback=None):
         idle=True,
         finished_callback=finished_callback,
     )
-    app.window.t_canvas.set_scale(view.get_zoom())
+    app.window.t_canvas.set_scale(app.window.view.get_zoom())
     app.window.t_canvas.set_offset(offset.x, offset.y)
     app.window.t_canvas.show()
 
 
 def create_ann_canvas(page, finished_callback=None):
     "Create the annotation canvas"
-    offset = view.get_offset()
+    offset = app.window.view.get_offset()
     app.window.a_canvas.set_text(
         page=page,
         layer="annotations",
@@ -387,7 +386,7 @@ def create_ann_canvas(page, finished_callback=None):
         idle=True,
         finished_callback=finished_callback,
     )
-    app.window.a_canvas.set_scale(view.get_zoom())
+    app.window.a_canvas.set_scale(app.window.view.get_zoom())
     app.window.a_canvas.set_offset(offset.x, offset.y)
     app.window.a_canvas.show()
 
@@ -450,7 +449,7 @@ def new(_action, _param):
 
     # Now we have to clear everything manually
     app.window.slist.get_selection().unselect_all()
-    view.set_pixbuf(None)
+    app.window.view.set_pixbuf(None)
     app.window.t_canvas.clear_text()
     app.window.a_canvas.clear_text()
     app.window._current_page = None
@@ -1747,7 +1746,7 @@ def split_dialog(_action, _param):
             else:
                 sb_pos.set_value(sel.y + sel.height)
 
-    view.position_changed_signal = view.connect(
+    app.window.view.position_changed_signal = app.window.view.connect(
         "selection-changed", changed_split_position_selection
     )
 
@@ -1784,7 +1783,7 @@ def split_dialog(_action, _param):
             )
 
     def split_cancel_callback():
-        view.disconnect(view.position_changed_signal)
+        app.window.view.disconnect(app.window.view.position_changed_signal)
         windowsp.destroy()
 
     windowsp.add_actions(
@@ -1811,7 +1810,7 @@ def update_view_position(direction, position, width, height):
         selection.width = width
         selection.height = position
 
-    view.set_selection(selection)
+    app.window.view.set_selection(selection)
 
 
 def user_defined_dialog(_action, _param):
@@ -2539,22 +2538,22 @@ def select_even(_action, _param):
 
 def zoom_100(_action, _param):
     "Sets the zoom level of the view to 100%."
-    view.set_zoom(1.0)
+    app.window.view.set_zoom(1.0)
 
 
 def zoom_to_fit(_action, _param):
     "Adjusts the view to fit the content within the visible area."
-    view.zoom_to_fit()
+    app.window.view.zoom_to_fit()
 
 
 def zoom_in(_action, _param):
     "Zooms in the current view"
-    view.zoom_in()
+    app.window.view.zoom_in()
 
 
 def zoom_out(_action, _param):
     "Zooms out the current view"
-    view.zoom_out()
+    app.window.view.zoom_out()
 
 
 def rotate_90(_action, _param):
@@ -2587,6 +2586,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._rotate_side_cmbx2 = None
         self.session = None  # session dir
         self._args = None  # GooCanvas for text layer
+        self.view = None
         self.t_canvas = None  # GooCanvas for annotation layer
         self.a_canvas = None
         self.slist = None
@@ -2854,19 +2854,18 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._vpanei.show()
 
         # ImageView for detail view
-        global view
-        view = ImageView()
+        self.view = ImageView()
         if SETTING["image_control_tool"] == SELECTOR_TOOL:
-            view.set_tool(Selector(view))
+            self.view.set_tool(Selector(self.view))
 
         elif SETTING["image_control_tool"] == DRAGGER_TOOL:
-            view.set_tool(Dragger(view))
+            self.view.set_tool(Dragger(self.view))
 
         else:
-            view.set_tool(SelectorDragger(view))
+            self.view.set_tool(SelectorDragger(self.view))
 
-        view.connect("button-press-event", self.handle_clicks)
-        view.connect("button-release-event", self.handle_clicks)
+        self.view.connect("button-press-event", self.handle_clicks)
+        self.view.connect("button-release-event", self.handle_clicks)
 
         def view_zoom_changed_callback(_view, zoom):
             if self.t_canvas is not None:
@@ -2874,7 +2873,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.t_canvas.set_scale(zoom)
                 self.t_canvas.handler_unblock(self.t_canvas.zoom_changed_signal)
 
-        view.zoom_changed_signal = view.connect(
+        self.view.zoom_changed_signal = self.view.connect(
             "zoom-changed", view_zoom_changed_callback
         )
 
@@ -2884,7 +2883,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.t_canvas.set_offset(x, y)
                 self.t_canvas.handler_unblock(self.t_canvas.offset_changed_signal)
 
-        view.offset_changed_signal = view.connect(
+        self.view.offset_changed_signal = self.view.connect(
             "offset-changed", view_offset_changed_callback
         )
 
@@ -2897,7 +2896,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if sel is not None and self._windowc is not None:
                 self._windowc.selection = SETTING["selection"]
 
-        view.selection_changed_signal = view.connect(
+        self.view.selection_changed_signal = self.view.connect(
             "selection-changed", view_selection_changed_callback
         )
 
@@ -2905,19 +2904,19 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.t_canvas = Canvas()
 
         def text_zoom_changed_callback(canvas, _zoom):
-            view.handler_block(view.zoom_changed_signal)
-            view.set_zoom(canvas.get_scale())
-            view.handler_unblock(view.zoom_changed_signal)
+            self.view.handler_block(self.view.zoom_changed_signal)
+            self.view.set_zoom(canvas.get_scale())
+            self.view.handler_unblock(self.view.zoom_changed_signal)
 
         self.t_canvas.zoom_changed_signal = self.t_canvas.connect(
             "zoom-changed", text_zoom_changed_callback
         )
 
         def text_offset_changed_callback():
-            view.handler_block(view.offset_changed_signal)
+            self.view.handler_block(self.view.offset_changed_signal)
             offset = self.t_canvas.get_offset()
-            view.set_offset(offset["x"], offset["y"])
-            view.handler_unblock(view.offset_changed_signal)
+            self.view.set_offset(offset["x"], offset["y"])
+            self.view.handler_unblock(self.view.offset_changed_signal)
 
         self.t_canvas.offset_changed_signal = self.t_canvas.connect(
             "offset-changed", text_offset_changed_callback
@@ -2927,19 +2926,19 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.a_canvas = Canvas()
 
         def ann_zoom_changed_callback():
-            view.handler_block(view.zoom_changed_signal)
-            view.set_zoom(self.a_canvas.get_scale())
-            view.handler_unblock(view.zoom_changed_signal)
+            self.view.handler_block(self.view.zoom_changed_signal)
+            self.view.set_zoom(self.a_canvas.get_scale())
+            self.view.handler_unblock(self.view.zoom_changed_signal)
 
         self.a_canvas.zoom_changed_signal = self.a_canvas.connect(
             "zoom-changed", ann_zoom_changed_callback
         )
 
         def ann_offset_changed_callback():
-            view.handler_block(view.offset_changed_signal)
+            self.view.handler_block(self.view.offset_changed_signal)
             offset = self.a_canvas.get_offset()
-            view.set_offset(offset["x"], offset["y"])
-            view.handler_unblock(view.offset_changed_signal)
+            self.view.set_offset(offset["x"], offset["y"])
+            self.view.handler_unblock(self.view.offset_changed_signal)
 
         self.a_canvas.offset_changed_signal = self.a_canvas.connect(
             "offset-changed", ann_offset_changed_callback
@@ -3014,7 +3013,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             take_snapshot()
             text = ocr_textbuffer.text
             logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
-            self._current_ocr_bbox.update_box(text, view.get_selection())
+            self._current_ocr_bbox.update_box(text, self.view.get_selection())
             self._current_page.import_hocr(self.t_canvas.hocr())
             self.edit_ocr_text(self._current_ocr_bbox)
 
@@ -3027,7 +3026,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ocr_text_copy(_widget):
             self._current_ocr_bbox = self.t_canvas.add_box(
-                text=ocr_textbuffer.text, bbox=view.get_selection()
+                text=ocr_textbuffer.text, bbox=self.view.get_selection()
             )
             self._current_page.import_hocr(self.t_canvas.hocr())
             self.edit_ocr_text(self._current_ocr_bbox)
@@ -3046,11 +3045,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 text = _("my-new-word")
 
             # If we don't yet have a canvas, create one
-            selection = view.get_selection()
+            selection = self.view.get_selection()
             if hasattr(self._current_page, "text_layer"):
                 logger.info("Added '%s'", text)
                 self._current_ocr_bbox = self.t_canvas.add_box(
-                    text=text, bbox=view.get_selection()
+                    text=text, bbox=self.view.get_selection()
                 )
                 self._current_page.import_hocr(self.t_canvas.hocr())
                 self.edit_ocr_text(self._current_ocr_bbox)
@@ -3110,7 +3109,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def ann_text_ok(_widget):
             text = ann_textbuffer.text
             logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
-            self._current_ann_bbox.update_box(text, view.get_selection())
+            self._current_ann_bbox.update_box(text, self.view.get_selection())
             self._current_page.import_annotations(self.a_canvas.hocr())
             self.edit_annotation(self._current_ann_bbox)
 
@@ -3130,11 +3129,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 text = _("my-new-annotation")
 
             # If we don't yet have a canvas, create one
-            selection = view.get_selection()
+            selection = self.view.get_selection()
             if hasattr(self._current_page, "text_layer"):
                 logger.info("Added '%s'", ann_textbuffer.text)
                 self._current_ann_bbox = self.a_canvas.add_box(
-                    text=text, bbox=view.get_selection()
+                    text=text, bbox=self.view.get_selection()
                 )
                 self._current_page.import_annotations(self.a_canvas.hocr())
                 self.edit_annotation(self._current_ann_bbox)
@@ -3316,7 +3315,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def _pack_viewer_tools(self):
         "Pack widgets according to viewer_tools"
         if SETTING["viewer_tools"] == "tabbed":
-            self._vnotebook.append_page(view, Gtk.Label(label=_("Image")))
+            self._vnotebook.append_page(self.view, Gtk.Label(label=_("Image")))
             self._vnotebook.append_page(self.t_canvas, Gtk.Label(label=_("Text layer")))
             self._vnotebook.append_page(
                 self.a_canvas, Gtk.Label(label=_("Annotations"))
@@ -3324,13 +3323,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._vpaned.pack1(self._vnotebook, True, True)
             self._vnotebook.show_all()
         elif SETTING["viewer_tools"] == "horizontal":
-            self._hpanei.pack1(view, True, True)
+            self._hpanei.pack1(self.view, True, True)
             self._hpanei.pack2(self.t_canvas, True, True)
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
             self._vpaned.pack1(self._hpanei, True, True)
         else:  # vertical
-            self._vpanei.pack1(view, True, True)
+            self._vpanei.pack1(self.view, True, True)
             self._vpanei.pack2(self.t_canvas, True, True)
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
@@ -3372,17 +3371,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         button.set_active(True)
         self._prevent_image_tool_update = False
 
-        if view:  # could be undefined at application start
-            tool = Selector(view)
+        if self.view:  # could be undefined at application start
+            tool = Selector(self.view)
             if value == "dragger":
-                tool = Dragger(view)
+                tool = Dragger(self.view)
             elif value == "selectordragger":
-                tool = SelectorDragger(view)
-            view.set_tool(tool)
+                tool = SelectorDragger(self.view)
+            self.view.set_tool(tool)
             if value in ["selector", "selectordragger"] and "selection" in SETTING:
-                view.handler_block(view.selection_changed_signal)
-                view.set_selection(SETTING["selection"])
-                view.handler_unblock(view.selection_changed_signal)
+                self.view.handler_block(self.view.selection_changed_signal)
+                self.view.set_selection(SETTING["selection"])
+                self.view.handler_unblock(self.view.selection_changed_signal)
 
         SETTING["image_control_tool"] = value
 
@@ -3393,15 +3392,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # SETTING["viewer_tools"] still has old value
         if SETTING["viewer_tools"] == "tabbed":
             self._vpaned.remove(self._vnotebook)
-            self._vnotebook.remove(view)
+            self._vnotebook.remove(self.view)
             self._vnotebook.remove(self.t_canvas)
         elif SETTING["viewer_tools"] == "horizontal":
             self._vpaned.remove(self._hpanei)
-            self._hpanei.remove(view)
+            self._hpanei.remove(self.view)
             self._hpanei.remove(self.t_canvas)
         else:  # vertical
             self._vpaned.remove(self._vpanei)
-            self._vpanei.remove(view)
+            self._vpanei.remove(self.view)
             self._vpanei.remove(self.t_canvas)
             self._vpanei.remove(self.a_canvas)
 
@@ -3419,9 +3418,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_ocr_bbox = bbox
         ocr_textbuffer.text = bbox.text
         ocr_text_hbox.show_all()
-        view.set_selection(bbox.bbox)
-        view.set_zoom_to_fit(False)
-        view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+        self.view.set_selection(bbox.bbox)
+        self.view.set_zoom_to_fit(False)
+        self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
             self.t_canvas.pointer_ungrab(widget, ev.time())
 
@@ -3436,9 +3435,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_ann_bbox = bbox
         ann_textbuffer.text = bbox.text
         ann_hbox.show_all()
-        view.set_selection(bbox.bbox)
-        view.set_zoom_to_fit(False)
-        view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+        self.view.set_selection(bbox.bbox)
+        self.view.set_zoom_to_fit(False)
+        self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
             self.a_canvas.pointer_ungrab(widget, ev.time())
 
@@ -4554,9 +4553,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # destroys the Gdk.Rectangle too early and afterwards, the
             # contents are corrupt.
             SETTING["selection"] = selection.copy()
-            view.handler_block(view.selection_changed_signal)
-            view.set_selection(selection)
-            view.handler_unblock(view.selection_changed_signal)
+            self.view.handler_block(self.view.selection_changed_signal)
+            self.view.set_selection(selection)
+            self.view.handler_unblock(self.view.selection_changed_signal)
 
         self._windowc.connect("changed-selection", on_changed_selection)
 
