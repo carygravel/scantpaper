@@ -201,8 +201,6 @@ pdf = None
 option_visibility_list = None
 # Comboboxes for user-defined tools and rotate buttons
 comboboxudt = None
-rotate_side_cmbx = None
-rotate_side_cmbx2 = None
 global SETTING
 SETTING = None
 global signal
@@ -1322,99 +1320,6 @@ def restart():
     os.execv(sys.executable, ["python"] + sys.argv)
 
 
-def add_postprocessing_rotate(vbox):
-    "Adds post-processing rotation options to the given vbox."
-    hboxr = Gtk.HBox()
-    vbox.pack_start(hboxr, False, False, 0)
-    rbutton = Gtk.CheckButton(label=_("Rotate"))
-    rbutton.set_tooltip_text(_("Rotate image after scanning"))
-    hboxr.pack_start(rbutton, True, True, 0)
-    side = [
-        ["both", _("Both sides"), _("Both sides.")],
-        ["facing", _("Facing side"), _("Facing side.")],
-        ["reverse", _("Reverse side"), _("Reverse side.")],
-    ]
-    global rotate_side_cmbx
-    global rotate_side_cmbx2
-    rotate_side_cmbx = ComboBoxText(data=side)
-    rotate_side_cmbx.set_tooltip_text(_("Select side to rotate"))
-    hboxr.pack_start(rotate_side_cmbx, True, True, 0)
-    rotate = [
-        [_90_DEGREES, _("90"), _("Rotate image 90 degrees clockwise.")],
-        [_180_DEGREES, _("180"), _("Rotate image 180 degrees clockwise.")],
-        [_270_DEGREES, _("270"), _("Rotate image 90 degrees anticlockwise.")],
-    ]
-    comboboxr = ComboBoxText(data=rotate)
-    comboboxr.set_tooltip_text(_("Select direction of rotation"))
-    hboxr.pack_end(comboboxr, True, True, 0)
-    hboxr = Gtk.HBox()
-    vbox.pack_start(hboxr, False, False, 0)
-    r2button = Gtk.CheckButton(label=_("Rotate"))
-    r2button.set_tooltip_text(_("Rotate image after scanning"))
-    hboxr.pack_start(r2button, True, True, 0)
-    rotate_side_cmbx2 = Gtk.ComboBoxText()
-    rotate_side_cmbx2.set_tooltip_text(_("Select side to rotate"))
-    hboxr.pack_start(rotate_side_cmbx2, True, True, 0)
-    comboboxr2 = ComboBoxText(data=rotate)
-    comboboxr2.set_tooltip_text(_("Select direction of rotation"))
-    hboxr.pack_end(comboboxr2, True, True, 0)
-
-    def toggled_rotate_callback():
-        if rbutton.get_active():
-            if side[rotate_side_cmbx.get_active()][0] != "both":
-                hboxr.set_sensitive(True)
-        else:
-            hboxr.set_sensitive(False)
-
-    rbutton.connect("toggled", toggled_rotate_callback)
-
-    def toggled_rotate_side_callback(_arg):
-        if side[rotate_side_cmbx.get_active()][0] == "both":
-            hboxr.set_sensitive(False)
-            r2button.set_active(False)
-        else:
-            if rbutton.get_active():
-                hboxr.set_sensitive(True)
-
-                # Empty combobox
-            while rotate_side_cmbx2.get_active() > EMPTY_LIST:
-                rotate_side_cmbx2.remove(0)
-                rotate_side_cmbx2.set_active(0)
-
-            side2 = []
-            for s in side:
-                if s[0] != "both" and s[0] != side[rotate_side_cmbx.get_active()][0]:
-                    side2.append(s)
-
-            rotate_side_cmbx2.append_text(side2[0][1])
-            rotate_side_cmbx2.set_active(0)
-
-    rotate_side_cmbx.connect("changed", toggled_rotate_side_callback)
-
-    # In case it isn't set elsewhere
-    comboboxr2.set_active_index(_90_DEGREES)
-    if SETTING["rotate facing"] or SETTING["rotate reverse"]:
-        rbutton.set_active(True)
-
-    if SETTING["rotate facing"] == SETTING["rotate reverse"]:
-        rotate_side_cmbx.set_active_index("both")
-        comboboxr.set_active_index(SETTING["rotate facing"])
-
-    elif SETTING["rotate facing"]:
-        rotate_side_cmbx.set_active_index("facing")
-        comboboxr.set_active_index(SETTING["rotate facing"])
-        if SETTING["rotate reverse"]:
-            r2button.set_active(True)
-            rotate_side_cmbx2.set_active_index("reverse")
-            comboboxr2.set_active_index(SETTING["rotate reverse"])
-
-    else:
-        rotate_side_cmbx.set_active_index("reverse")
-        comboboxr.set_active_index(SETTING["rotate reverse"])
-
-    return rbutton, r2button, comboboxr, comboboxr2
-
-
 def add_postprocessing_udt(vboxp):
     "Adds a user-defined tool (UDT) post-processing option to the given VBox."
     hboxudt = Gtk.HBox()
@@ -1502,117 +1407,6 @@ def add_postprocessing_ocr(vbox):
     hboxt.pack_end(spinbutton, False, True, 0)
     cbto.connect("toggled", lambda _: spinbutton.set_sensitive(cbto.get_active()))
     return obutton, comboboxe, hboxtl, comboboxtl, cbto, spinbutton
-
-
-def add_postprocessing_options(self):
-    "Adds post-processing options to the dialog window."
-    scwin = Gtk.ScrolledWindow()
-    self.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
-    scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-    vboxp = Gtk.VBox()
-    vboxp.set_border_width(self.get_border_width())
-    scwin.add(vboxp)
-
-    # Rotate
-    rbutton, r2button, comboboxr, comboboxr2 = add_postprocessing_rotate(vboxp)
-
-    # CheckButton for unpaper
-    hboxu = Gtk.HBox()
-    vboxp.pack_start(hboxu, False, False, 0)
-    ubutton = Gtk.CheckButton(label=_("Clean up images"))
-    ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
-    hboxu.pack_start(ubutton, True, True, 0)
-    if not dependencies["unpaper"]:
-        ubutton.set_sensitive(False)
-        ubutton.set_active(False)
-    elif SETTING["unpaper on scan"]:
-        ubutton.set_active(True)
-
-    button = Gtk.Button(label=_("Options"))
-    button.set_tooltip_text(_("Set unpaper options"))
-    hboxu.pack_end(button, True, True, 0)
-
-    def show_unpaper_options():
-        windowuo = Dialog(
-            transient_for=app.window,
-            title=_("unpaper options"),
-        )
-        self._unpaper.add_options(windowuo.get_content_area())
-
-        def unpaper_options_callback():
-
-            # Update $SETTING
-            SETTING["unpaper options"] = self._unpaper.get_options()
-            windowuo.destroy()
-
-        windowuo.add_actions(
-            [
-                ("gtk-ok", unpaper_options_callback),
-                ("gtk-cancel", windowuo.destroy),
-            ]
-        )
-        windowuo.show_all()
-
-    button.connect("clicked", show_unpaper_options)
-    # CheckButton for user-defined tool
-    udtbutton, self.comboboxudt = add_postprocessing_udt(vboxp)
-    obutton, comboboxe, hboxtl, comboboxtl, tbutton, tsb = add_postprocessing_ocr(vboxp)
-
-    def clicked_scan_button_cb(w):
-        SETTING["rotate facing"] = 0
-        SETTING["rotate reverse"] = 0
-        if rbutton.get_active():
-            if rotate_side_cmbx.get_active_index() == "both":
-                SETTING["rotate facing"] = comboboxr.get_active_index()
-                SETTING["rotate reverse"] = SETTING["rotate facing"]
-
-            elif rotate_side_cmbx.get_active_index() == "facing":
-                SETTING["rotate facing"] = comboboxr.get_active_index()
-
-            else:
-                SETTING["rotate reverse"] = comboboxr.get_active_index()
-
-            if r2button.get_active():
-                if rotate_side_cmbx2.get_active_index() == "facing":
-                    SETTING["rotate facing"] = comboboxr2.get_active_index()
-
-                else:
-                    SETTING["rotate reverse"] = comboboxr2.get_active_index()
-
-        logger.info("rotate facing %s", SETTING["rotate facing"])
-        logger.info("rotate reverse %s", SETTING["rotate reverse"])
-        SETTING["unpaper on scan"] = ubutton.get_active()
-        logger.info("unpaper %s", SETTING["unpaper on scan"])
-        SETTING["udt_on_scan"] = udtbutton.get_active()
-        SETTING["current_udt"] = self.comboboxudt.get_active_text()
-        logger.info("UDT %s", SETTING["udt_on_scan"])
-        if "current_udt" in SETTING:
-            logger.info("Current UDT %s", SETTING["current_udt"])
-
-        SETTING["OCR on scan"] = obutton.get_active()
-        logger.info("OCR %s", SETTING["OCR on scan"])
-        if SETTING["OCR on scan"]:
-            SETTING["ocr engine"] = comboboxe.get_active_index()
-            if SETTING["ocr engine"] is None:
-                SETTING["ocr engine"] = ocr_engine[0][0]
-            logger.info("ocr engine %s", SETTING["ocr engine"])
-            if SETTING["ocr engine"] == "tesseract":
-                SETTING["ocr language"] = comboboxtl.get_active_index()
-                logger.info("ocr language %s", SETTING["ocr language"])
-
-            SETTING["threshold-before-ocr"] = tbutton.get_active()
-            logger.info("threshold-before-ocr %s", SETTING["threshold-before-ocr"])
-            SETTING["threshold tool"] = tsb.get_value()
-
-    self.connect("clicked-scan-button", clicked_scan_button_cb)
-
-    def show_callback(_w):
-        i = comboboxe.get_active()
-        if i > -1 and hboxtl is not None and ocr_engine[i][0] != "tesseract":
-            hboxtl.hide()
-
-    self.connect("show", show_callback)
-    # $self->{notebook}->get_nth_page(1)->show_all;
 
 
 def print_dialog(_action, _param):
@@ -3151,6 +2945,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_ocr_bbox = None
         self._current_ann_bbox = None
         self._prevent_image_tool_update = False
+        self._rotate_side_cmbx = None
+        self._rotate_side_cmbx2 = None
 
         # These will be in the window group and have the "win" prefix
         for name, function in [
@@ -4278,7 +4074,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windows.connect(
             "changed-scan-option", self.update_postprocessing_options_callback
         )
-        add_postprocessing_options(self._windows)
+        self.add_postprocessing_options(self._windows)
         if not hidden:
             self._windows.show_all()
         self.update_postprocessing_options_callback(self._windows)
@@ -4293,6 +4089,118 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._windows.device_list = SETTING["device list"]
         else:
             self._windows.get_devices()
+
+    def add_postprocessing_options(self, widget):
+        "Adds post-processing options to the dialog window."
+        scwin = Gtk.ScrolledWindow()
+        widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
+        scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        vboxp = Gtk.VBox()
+        vboxp.set_border_width(widget.get_border_width())
+        scwin.add(vboxp)
+
+        # Rotate
+        rbutton, r2button, comboboxr, comboboxr2 = self.add_postprocessing_rotate(vboxp)
+
+        # CheckButton for unpaper
+        hboxu = Gtk.HBox()
+        vboxp.pack_start(hboxu, False, False, 0)
+        ubutton = Gtk.CheckButton(label=_("Clean up images"))
+        ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
+        hboxu.pack_start(ubutton, True, True, 0)
+        if not dependencies["unpaper"]:
+            ubutton.set_sensitive(False)
+            ubutton.set_active(False)
+        elif SETTING["unpaper on scan"]:
+            ubutton.set_active(True)
+
+        button = Gtk.Button(label=_("Options"))
+        button.set_tooltip_text(_("Set unpaper options"))
+        hboxu.pack_end(button, True, True, 0)
+
+        def show_unpaper_options():
+            windowuo = Dialog(
+                transient_for=app.window,
+                title=_("unpaper options"),
+            )
+            self._unpaper.add_options(windowuo.get_content_area())
+
+            def unpaper_options_callback():
+
+                # Update $SETTING
+                SETTING["unpaper options"] = self._unpaper.get_options()
+                windowuo.destroy()
+
+            windowuo.add_actions(
+                [
+                    ("gtk-ok", unpaper_options_callback),
+                    ("gtk-cancel", windowuo.destroy),
+                ]
+            )
+            windowuo.show_all()
+
+        button.connect("clicked", show_unpaper_options)
+        # CheckButton for user-defined tool
+        udtbutton, widget.comboboxudt = add_postprocessing_udt(vboxp)
+        obutton, comboboxe, hboxtl, comboboxtl, tbutton, tsb = add_postprocessing_ocr(
+            vboxp
+        )
+
+        def clicked_scan_button_cb(w):
+            SETTING["rotate facing"] = 0
+            SETTING["rotate reverse"] = 0
+            if rbutton.get_active():
+                if self._rotate_side_cmbx.get_active_index() == "both":
+                    SETTING["rotate facing"] = comboboxr.get_active_index()
+                    SETTING["rotate reverse"] = SETTING["rotate facing"]
+
+                elif self._rotate_side_cmbx.get_active_index() == "facing":
+                    SETTING["rotate facing"] = comboboxr.get_active_index()
+
+                else:
+                    SETTING["rotate reverse"] = comboboxr.get_active_index()
+
+                if r2button.get_active():
+                    if self._rotate_side_cmbx2.get_active_index() == "facing":
+                        SETTING["rotate facing"] = comboboxr2.get_active_index()
+
+                    else:
+                        SETTING["rotate reverse"] = comboboxr2.get_active_index()
+
+            logger.info("rotate facing %s", SETTING["rotate facing"])
+            logger.info("rotate reverse %s", SETTING["rotate reverse"])
+            SETTING["unpaper on scan"] = ubutton.get_active()
+            logger.info("unpaper %s", SETTING["unpaper on scan"])
+            SETTING["udt_on_scan"] = udtbutton.get_active()
+            SETTING["current_udt"] = widget.comboboxudt.get_active_text()
+            logger.info("UDT %s", SETTING["udt_on_scan"])
+            if "current_udt" in SETTING:
+                logger.info("Current UDT %s", SETTING["current_udt"])
+
+            SETTING["OCR on scan"] = obutton.get_active()
+            logger.info("OCR %s", SETTING["OCR on scan"])
+            if SETTING["OCR on scan"]:
+                SETTING["ocr engine"] = comboboxe.get_active_index()
+                if SETTING["ocr engine"] is None:
+                    SETTING["ocr engine"] = ocr_engine[0][0]
+                logger.info("ocr engine %s", SETTING["ocr engine"])
+                if SETTING["ocr engine"] == "tesseract":
+                    SETTING["ocr language"] = comboboxtl.get_active_index()
+                    logger.info("ocr language %s", SETTING["ocr language"])
+
+                SETTING["threshold-before-ocr"] = tbutton.get_active()
+                logger.info("threshold-before-ocr %s", SETTING["threshold-before-ocr"])
+                SETTING["threshold tool"] = tsb.get_value()
+
+        widget.connect("clicked-scan-button", clicked_scan_button_cb)
+
+        def show_callback(_w):
+            i = comboboxe.get_active()
+            if i > -1 and hboxtl is not None and ocr_engine[i][0] != "tesseract":
+                hboxtl.hide()
+
+        widget.connect("show", show_callback)
+        # self->{notebook}->get_nth_page(1)->show_all;
 
     def changed_device_callback(self, widget, device):
         "callback for changed device"
@@ -4352,6 +4260,99 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         else:
             self._windows = None
 
+    def add_postprocessing_rotate(self, vbox):
+        "Adds post-processing rotation options to the given vbox."
+        hboxr = Gtk.HBox()
+        vbox.pack_start(hboxr, False, False, 0)
+        rbutton = Gtk.CheckButton(label=_("Rotate"))
+        rbutton.set_tooltip_text(_("Rotate image after scanning"))
+        hboxr.pack_start(rbutton, True, True, 0)
+        side = [
+            ["both", _("Both sides"), _("Both sides.")],
+            ["facing", _("Facing side"), _("Facing side.")],
+            ["reverse", _("Reverse side"), _("Reverse side.")],
+        ]
+        self._rotate_side_cmbx = ComboBoxText(data=side)
+        self._rotate_side_cmbx.set_tooltip_text(_("Select side to rotate"))
+        hboxr.pack_start(self._rotate_side_cmbx, True, True, 0)
+        rotate = [
+            [_90_DEGREES, _("90"), _("Rotate image 90 degrees clockwise.")],
+            [_180_DEGREES, _("180"), _("Rotate image 180 degrees clockwise.")],
+            [_270_DEGREES, _("270"), _("Rotate image 90 degrees anticlockwise.")],
+        ]
+        comboboxr = ComboBoxText(data=rotate)
+        comboboxr.set_tooltip_text(_("Select direction of rotation"))
+        hboxr.pack_end(comboboxr, True, True, 0)
+        hboxr = Gtk.HBox()
+        vbox.pack_start(hboxr, False, False, 0)
+        r2button = Gtk.CheckButton(label=_("Rotate"))
+        r2button.set_tooltip_text(_("Rotate image after scanning"))
+        hboxr.pack_start(r2button, True, True, 0)
+        self._rotate_side_cmbx2 = Gtk.ComboBoxText()
+        self._rotate_side_cmbx2.set_tooltip_text(_("Select side to rotate"))
+        hboxr.pack_start(self._rotate_side_cmbx2, True, True, 0)
+        comboboxr2 = ComboBoxText(data=rotate)
+        comboboxr2.set_tooltip_text(_("Select direction of rotation"))
+        hboxr.pack_end(comboboxr2, True, True, 0)
+
+        def toggled_rotate_callback():
+            if rbutton.get_active():
+                if side[self._rotate_side_cmbx.get_active()][0] != "both":
+                    hboxr.set_sensitive(True)
+            else:
+                hboxr.set_sensitive(False)
+
+        rbutton.connect("toggled", toggled_rotate_callback)
+
+        def toggled_rotate_side_callback(_arg):
+            if side[self._rotate_side_cmbx.get_active()][0] == "both":
+                hboxr.set_sensitive(False)
+                r2button.set_active(False)
+            else:
+                if rbutton.get_active():
+                    hboxr.set_sensitive(True)
+
+                    # Empty combobox
+                while self._rotate_side_cmbx2.get_active() > EMPTY_LIST:
+                    self._rotate_side_cmbx2.remove(0)
+                    self._rotate_side_cmbx2.set_active(0)
+
+                side2 = []
+                for s in side:
+                    if (
+                        s[0] != "both"
+                        and s[0] != side[self._rotate_side_cmbx.get_active()][0]
+                    ):
+                        side2.append(s)
+
+                self._rotate_side_cmbx2.append_text(side2[0][1])
+                self._rotate_side_cmbx2.set_active(0)
+
+        self._rotate_side_cmbx.connect("changed", toggled_rotate_side_callback)
+
+        # In case it isn't set elsewhere
+        comboboxr2.set_active_index(_90_DEGREES)
+        if SETTING["rotate facing"] or SETTING["rotate reverse"]:
+            rbutton.set_active(True)
+
+        if SETTING["rotate facing"] == SETTING["rotate reverse"]:
+            self._rotate_side_cmbx.set_active_index("both")
+            comboboxr.set_active_index(SETTING["rotate facing"])
+
+        elif SETTING["rotate facing"]:
+            self._rotate_side_cmbx.set_active_index("facing")
+            comboboxr.set_active_index(SETTING["rotate facing"])
+            if SETTING["rotate reverse"]:
+                r2button.set_active(True)
+                self._rotate_side_cmbx2.set_active_index("reverse")
+                comboboxr2.set_active_index(SETTING["rotate reverse"])
+
+        else:
+            self._rotate_side_cmbx.set_active_index("reverse")
+            comboboxr.set_active_index(SETTING["rotate reverse"])
+
+        return rbutton, r2button, comboboxr, comboboxr2
+
     def update_postprocessing_options_callback(
         self, widget, _option_name=None, _option_val=None, _uuid=None
     ):
@@ -4361,12 +4362,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         increment = widget.page_number_increment
         if options is not None:
             if increment != 1 or options.can_duplex():
-                rotate_side_cmbx.show()
-                rotate_side_cmbx2.show()
+                self._rotate_side_cmbx.show()
+                self._rotate_side_cmbx2.show()
 
             else:
-                rotate_side_cmbx.hide()
-                rotate_side_cmbx2.hide()
+                self._rotate_side_cmbx.hide()
+                self._rotate_side_cmbx2.hide()
 
     def reloaded_scan_options_callback(self, widget):  # widget is windows
         "This should only be called the first time after loading the available options"
