@@ -181,7 +181,6 @@ menubar = None
 toolbar = None
 ocr_engine = []
 view = None
-message_dialog = None
 # GooCanvas for text layer
 canvas = None
 ocr_text_hbox = None
@@ -326,7 +325,7 @@ def check_dependencies():
                 + SPACE
                 + _("Please switch to ImageMagick in case of problems.")
             )
-            show_message_dialog(
+            app.window.show_message_dialog(
                 parent=app.window,
                 message_type="warning",
                 buttons=Gtk.ButtonsType.OK,
@@ -385,7 +384,7 @@ def check_dependencies():
 
                 if msg:
                     del dependencies[name]
-                    show_message_dialog(
+                    app.window.show_message_dialog(
                         parent=app.window,
                         message_type="warning",
                         buttons=Gtk.ButtonsType.OK,
@@ -780,7 +779,7 @@ def error_callback(response):
     if "page" in args[0]:
         page = slist.data[slist.find_page_by_uuid(args[0]["page"].uuid)][0]
 
-    options = {
+    kwargs = {
         "parent": app.window,
         "message_type": "error",
         "buttons": Gtk.ButtonsType.CLOSE,
@@ -798,7 +797,7 @@ def error_callback(response):
         """Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
         return immediately in order to allow it to work on subsequent pages
         despite errors on previous ones"""
-        show_message_dialog(**options)
+        app.window.show_message_dialog(**kwargs)
 
     GLib.idle_add(show_message_dialog_wrapper)
     app.window._pp_progress.hide()
@@ -1590,7 +1589,7 @@ def file_writable(chooser, filename):
         os.path.dirname(filename), os.W_OK
     ):  # FIXME: replace with try/except
         text = _("Directory %s is read-only") % (os.path.dirname(filename))
-        show_message_dialog(
+        app.window.show_message_dialog(
             parent=chooser,
             message_type="error",
             buttons=Gtk.ButtonsType.CLOSE,
@@ -1602,7 +1601,7 @@ def file_writable(chooser, filename):
         filename, os.W_OK
     ):  # FIXME: replace with try/except
         text = _("File %s is read-only") % (filename)
-        show_message_dialog(
+        app.window.show_message_dialog(
             parent=chooser,
             message_type="error",
             buttons=Gtk.ButtonsType.CLOSE,
@@ -1650,7 +1649,7 @@ def save_image(uuids):
                 current_filename = f"${filename}_%0${w}d.{SETTING['image type']}" % (i)
                 if os.path.isfile(current_filename):
                     text = _("This operation would overwrite %s") % (current_filename)
-                    show_message_dialog(
+                    app.window.show_message_dialog(
                         parent=file_chooser,
                         message_type="error",
                         buttons=Gtk.ButtonsType.CLOSE,
@@ -2181,7 +2180,7 @@ def process_error_callback(widget, process, msg, signal):
         # for ignore, we do nothing
         return
 
-    show_message_dialog(
+    app.window.show_message_dialog(
         parent=widget,
         message_type="error",
         buttons=Gtk.ButtonsType.CLOSE,
@@ -2734,7 +2733,7 @@ def renumber_dialog(_action, _param):
     app.window.renumber_dialog.connect("before-renumber", lambda x: take_snapshot())
     app.window.renumber_dialog.connect(
         "error",
-        lambda msg: show_message_dialog(
+        lambda msg: app.window.show_message_dialog(
             parent=app.window.renumber_dialog,
             message_type="error",
             buttons=Gtk.ButtonsType.CLOSE,
@@ -3501,7 +3500,7 @@ def take_snapshot():
         )
         if df < SETTING["available-tmp-warning"]:
             text = _("%dMb free in %s.") % (df, session.name)
-            show_message_dialog(
+            app.window.show_message_dialog(
                 parent=app.window,
                 message_type="warning",
                 buttons=Gtk.ButtonsType.CLOSE,
@@ -4017,33 +4016,6 @@ def ask_question(**kwargs):
     return response
 
 
-def show_message_dialog(**options):
-    "Displays a message dialog with the given options."
-    global message_dialog
-    if message_dialog is None:
-        message_dialog = MultipleMessage(
-            title=_("Messages"), transient_for=options["parent"]
-        )
-        message_dialog.set_default_size(
-            SETTING["message_window_width"], SETTING["message_window_height"]
-        )
-
-    options["responses"] = SETTING["message"]
-    message_dialog.add_message(options)
-    response = None
-    if message_dialog.grid_rows > 1:
-        message_dialog.show_all()
-        response = message_dialog.run()
-
-    if message_dialog is not None:  # could be undefined for multiple calls
-        message_dialog.store_responses(response, SETTING["message"])
-        SETTING["message_window_width"], SETTING["message_window_height"] = (
-            message_dialog.get_size()
-        )
-        message_dialog.destroy()
-        message_dialog = None
-
-
 def recursive_slurp(files):
     """
     Recursively processes a list of files and directories, logging the contents
@@ -4187,6 +4159,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._pre_flight()
         self.print_settings = None
         self.renumber_dialog = None
+        self._message_dialog = None
         self._windowc = None
         self._windowo = None
         self._windowu = None
@@ -4829,7 +4802,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Put up warning if needed
         if msg != EMPTY:
             msg = _("Warning: missing packages") + f"\n{msg}"
-            show_message_dialog(
+            self.show_message_dialog(
                 parent=self,
                 message_type="warning",
                 buttons=Gtk.ButtonsType.OK,
@@ -5052,6 +5025,31 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # If the scan dialog has already been drawn, update the start page spinbutton
         if windows:
             windows._update_start_page()
+
+    def show_message_dialog(self, **kwargs):
+        "Displays a message dialog with the given options."
+        if self._message_dialog is None:
+            self._message_dialog = MultipleMessage(
+                title=_("Messages"), transient_for=kwargs["parent"]
+            )
+            self._message_dialog.set_default_size(
+                SETTING["message_window_width"], SETTING["message_window_height"]
+            )
+
+        kwargs["responses"] = SETTING["message"]
+        self._message_dialog.add_message(kwargs)
+        response = None
+        if self._message_dialog.grid_rows > 1:
+            self._message_dialog.show_all()
+            response = self._message_dialog.run()
+
+        if self._message_dialog is not None:  # could be undefined for multiple calls
+            self._message_dialog.store_responses(response, SETTING["message"])
+            SETTING["message_window_width"], SETTING["message_window_height"] = (
+                self._message_dialog.get_size()
+            )
+            self._message_dialog.destroy()
+            self._message_dialog = None
 
     def properties(self, _action, _param):
         "Display and manage the properties dialog for setting X and Y resolution."
@@ -5478,7 +5476,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                 status = exec_command(["xdg-email", "--attach", pdf, "x@y"])
                 if status:
-                    show_message_dialog(
+                    self.show_message_dialog(
                         parent=self,
                         message_type="error",
                         buttons=Gtk.ButtonsType.CLOSE,
@@ -5561,7 +5559,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             except:
                 msg = _("Invalid regex. Try without special characters such as '*'")
                 logger.warning(msg)
-                show_message_dialog(
+                self.show_message_dialog(
                     parent=self._windowr,
                     message_type="error",
                     buttons=Gtk.ButtonsType.CLOSE,
