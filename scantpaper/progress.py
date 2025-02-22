@@ -14,6 +14,7 @@ class Progress(Gtk.HBox):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._signal = None
         self._pbar = Gtk.ProgressBar()
         self._pbar.set_show_text(True)
         self.add(self._pbar)
@@ -35,3 +36,63 @@ class Progress(Gtk.HBox):
     def pulse(self):
         "Pulse progress bar"
         self._pbar.pulse()
+
+    def queued(self, response):  # , pid
+        "Helper function to set up progress bar"
+        process_name, num_completed, total = (
+            response.request.process,
+            response.num_completed_jobs,
+            response.total_jobs,
+        )
+        if total and process_name is not None:
+            self.set_text(
+                _("Process %i of %i (%s)") % (num_completed + 1, total, process_name)
+            )
+            self.set_fraction((num_completed + 0.5) / total)
+            self.show_all()
+
+            def cancel_process():
+                """Pass the signal back to:
+                1. be able to cancel it when the process has finished
+                2. flag that the progress bar has been set up
+                and avoid the race condition where the callback is
+                entered before the num_completed and total variables have caught up"""
+                # slist.cancel([pid])
+                self.hide()
+
+            self._signal = self.connect("clicked", cancel_process)
+
+    def update(self, response):
+        "Helper function to update progress bar"
+        if response and response.total_jobs:
+            if response.request.process:
+                # if  "message"  in options :
+                #     options["process"] += f" - {options['message']}"
+                self.set_text(
+                    _("Process %i of %i (%s)")
+                    % (
+                        response.num_completed_jobs + 1,
+                        response.total_jobs,
+                        response.request.process,
+                    )
+                )
+
+            else:
+                self.set_text(
+                    _("Process %i of %i")
+                    % (response.num_completed_jobs + 1, response.total_jobs)
+                )
+
+            # if  "progress"  in options :
+            #     tpbar.set_fraction(
+            #     ( options["jobs_completed"] + options["progress"] ) / options["jobs_total"] )
+            # else :
+            self.set_fraction((response.num_completed_jobs + 0.5) / response.total_jobs)
+            self.show_all()
+
+    def finish(self, response):
+        "Helper function to hide progress bar and disconnect signals"
+        if not response.pending:
+            self.hide()
+        if self._signal is not None:
+            self.disconnect(self._signal)

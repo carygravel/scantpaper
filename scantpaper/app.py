@@ -202,8 +202,6 @@ option_visibility_list = None
 comboboxudt = None
 global SETTING
 SETTING = None
-global signal
-signal = None
 actions = {}
 
 
@@ -795,7 +793,7 @@ def error_callback(response):
         app.window.show_message_dialog(**kwargs)
 
     GLib.idle_add(show_message_dialog_wrapper)
-    app.window._pp_progress.hide()
+    app.window.post_process_progress.hide()
 
 
 def open_session_file(filename):
@@ -830,74 +828,6 @@ def open_session(sesdir):
     "open session"
     logger.info("Restoring session in %s", session)
     slist.open_session(dir=sesdir, delete=False, error_callback=error_callback)
-
-
-def setup_tpbar(response):  # , pid
-    "Helper function to set up thread progress bar"
-    logger.debug("setup_tpbar( %s )", response)
-    pid = None
-    process_name, num_completed, total = (
-        response.request.process,
-        response.num_completed_jobs,
-        response.total_jobs,
-    )
-    if total and process_name is not None:
-        app.window._pp_progress.set_text(
-            _("Process %i of %i (%s)") % (num_completed + 1, total, process_name)
-        )
-        app.window._pp_progress.set_fraction((num_completed + HALF) / total)
-        app.window._pp_progress.show_all()
-
-        def cancel_process():
-            """Pass the signal back to:
-            1. be able to cancel it when the process has finished
-            2. flag that the progress bar has been set up
-               and avoid the race condition where the callback is
-               entered before the num_completed and total variables have caught up"""
-            slist.cancel([pid])
-            app.window._pp_progress.hide()
-
-        global signal
-        signal = app.window._pp_progress.connect("clicked", cancel_process)
-
-
-def update_tpbar(response):
-    "Helper function to update thread progress bar"
-    if response and response.total_jobs:
-        if response.request.process:
-            # if  "message"  in options :
-            #     options["process"] += f" - {options['message']}"
-            app.window._pp_progress.set_text(
-                _("Process %i of %i (%s)")
-                % (
-                    response.num_completed_jobs + 1,
-                    response.total_jobs,
-                    response.request.process,
-                )
-            )
-
-        else:
-            app.window._pp_progress.set_text(
-                _("Process %i of %i")
-                % (response.num_completed_jobs + 1, response.total_jobs)
-            )
-
-        # if  "progress"  in options :
-        #     tpbar.set_fraction(
-        #     ( options["jobs_completed"] + options["progress"] ) / options["jobs_total"] )
-        # else :
-        app.window._pp_progress.set_fraction(
-            (response.num_completed_jobs + HALF) / response.total_jobs
-        )
-        app.window._pp_progress.show_all()
-
-
-def finish_tpbar(response):
-    "Helper function to update thread progress bar"
-    if not response.pending:
-        app.window._pp_progress.hide()
-    if signal is not None:
-        app.window._pp_progress.disconnect(signal)
 
 
 def open_dialog(_action, _param):
@@ -981,7 +911,7 @@ def import_files_password_callback(filename):
 def import_files_finished_callback(response):
     "import_files finished callback"
     logger.debug("finished import_files(%s)", response)
-    finish_tpbar(response)
+    app.window.post_process_progress.finish(response)
     # slist.save_session()
 
 
@@ -1000,9 +930,9 @@ def import_files(filenames, all_pages=False):
     options = {
         "paths": filenames,
         "password_callback": import_files_password_callback,
-        "queued_callback": setup_tpbar,
-        "started_callback": update_tpbar,
-        "running_callback": update_tpbar,
+        "queued_callback": app.window.post_process_progress.queued,
+        "started_callback": app.window.post_process_progress.update,
+        "running_callback": app.window.post_process_progress.update,
         "finished_callback": import_files_finished_callback,
         "metadata_callback": import_files_metadata_callback,
         "error_callback": error_callback,
@@ -1134,7 +1064,7 @@ def save_tiff(filename, ps, uuids):
     def save_tiff_finished_callback(response):
         filename = response.request.args[0]["path"]
         uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-        finish_tpbar(response)
+        app.window.post_process_progress.finish(response)
         mark_pages(uuids)
         file = ps if ps is not None else filename
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
@@ -1146,9 +1076,9 @@ def save_tiff(filename, ps, uuids):
         path=filename,
         list_of_pages=uuids,
         options=options,
-        queued_callback=setup_tpbar,
-        started_callback=update_tpbar,
-        running_callback=update_tpbar,
+        queued_callback=app.window.post_process_progress.queued,
+        started_callback=app.window.post_process_progress.update,
+        running_callback=app.window.post_process_progress.update,
         finished_callback=save_tiff_finished_callback,
         error_callback=error_callback,
     )
@@ -1174,7 +1104,7 @@ def save_djvu(filename, uuids):
     def save_djvu_finished_callback(response):
         filename = response.request.args[0]["path"]
         uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-        finish_tpbar(response)
+        app.window.post_process_progress.finish(response)
         mark_pages(uuids)
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(filename)
@@ -1185,9 +1115,9 @@ def save_djvu(filename, uuids):
         list_of_pages=uuids,
         options=options,
         metadata=collate_metadata(SETTING, datetime.datetime.now()),
-        queued_callback=setup_tpbar,
-        started_callback=update_tpbar,
-        running_callback=update_tpbar,
+        queued_callback=app.window.post_process_progress.queued,
+        started_callback=app.window.post_process_progress.update,
+        running_callback=app.window.post_process_progress.update,
         finished_callback=save_djvu_finished_callback,
         error_callback=error_callback,
     )
@@ -1201,7 +1131,7 @@ def save_text(filename, uuids):
 
     def save_text_finished_callback(response):
 
-        finish_tpbar(response)
+        app.window.post_process_progress.finish(response)
         mark_pages(uuids)
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(filename)
@@ -1212,9 +1142,9 @@ def save_text(filename, uuids):
         path=filename,
         list_of_pages=uuids,
         options=options,
-        queued_callback=setup_tpbar,
-        started_callback=update_tpbar,
-        running_callback=update_tpbar,
+        queued_callback=app.window.post_process_progress.queued,
+        started_callback=app.window.post_process_progress.update,
+        running_callback=app.window.post_process_progress.update,
         finished_callback=save_text_finished_callback,
         error_callback=error_callback,
     )
@@ -1227,7 +1157,7 @@ def save_hocr(filename, uuids):
         options["post_save_hook"] = SETTING["current_psh"]
 
     def save_hocr_finished_callback(response):
-        finish_tpbar(response)
+        app.window.post_process_progress.finish(response)
         mark_pages(uuids)
         if "view files toggle" in SETTING and SETTING["view files toggle"]:
             launch_default_for_file(filename)
@@ -1238,9 +1168,9 @@ def save_hocr(filename, uuids):
         path=filename,
         list_of_pages=uuids,
         options=options,
-        queued_callback=setup_tpbar,
-        started_callback=update_tpbar,
-        running_callback=update_tpbar,
+        queued_callback=app.window.post_process_progress.queued,
+        started_callback=app.window.post_process_progress.update,
+        running_callback=app.window.post_process_progress.update,
         finished_callback=save_hocr_finished_callback,
         error_callback=error_callback,
     )
@@ -1272,7 +1202,7 @@ def import_scan_finished_callback(response):
     # Work out how to pass number of pending requests
     # We have two threads, the scan thread, and the document thread.
     # We should probably combine the results in one progress bar
-    # finish_tpbar(response)
+    # app.window.post_process_progress.finish(response)
     # slist.save_session()
 
 
@@ -1292,8 +1222,8 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
         "ocr": SETTING["OCR on scan"],
         "engine": SETTING["ocr engine"],
         "language": SETTING["ocr language"],
-        "queued_callback": setup_tpbar,
-        "started_callback": update_tpbar,
+        "queued_callback": app.window.post_process_progress.queued,
+        "started_callback": app.window.post_process_progress.update,
         "finished_callback": import_scan_finished_callback,
         "error_callback": error_callback,
         "image_object": image_object,
@@ -1628,10 +1558,10 @@ def rotate(angle, pagelist):
         slist.rotate(
             angle=angle,
             page=page,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
-            finished_callback=finish_tpbar,
+            queued_callback=app.window.post_process_progress.queued,
+            started_callback=app.window.post_process_progress.update,
+            running_callback=app.window.post_process_progress.update,
+            finished_callback=app.window.post_process_progress.finish,
             error_callback=error_callback,
             display_callback=display_callback,
         )
@@ -1667,7 +1597,7 @@ def analyse(select_blank, select_dark):
     if len(pages_to_analyse) > 0:
 
         def analyse_finished_callback(response):
-            finish_tpbar(response)
+            app.window.post_process_progress.finish(response)
             if select_blank:
                 select_blank_pages()
             if select_dark:
@@ -1677,9 +1607,9 @@ def analyse(select_blank, select_dark):
 
         slist.analyse(
             list_of_pages=pages_to_analyse,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
+            queued_callback=app.window.post_process_progress.queued,
+            started_callback=app.window.post_process_progress.update,
+            running_callback=app.window.post_process_progress.update,
             finished_callback=analyse_finished_callback,
             error_callback=error_callback,
         )
@@ -1727,15 +1657,15 @@ def threshold(_action, _param):
             page += 1
 
             def threshold_finished_callback(response):
-                finish_tpbar(response)
+                app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
             slist.threshold(
                 threshold=SETTING["threshold tool"],
                 page=slist.data[i][2].uuid,
-                queued_callback=setup_tpbar,
-                started_callback=update_tpbar,
-                running_callback=update_tpbar,
+                queued_callback=app.window.post_process_progress.queued,
+                started_callback=app.window.post_process_progress.update,
+                running_callback=app.window.post_process_progress.update,
                 finished_callback=threshold_finished_callback,
                 error_callback=error_callback,
                 display_callback=display_callback,
@@ -1797,16 +1727,16 @@ def brightness_contrast(_action, _param):
         for i in pagelist:
 
             def brightness_contrast_finished_callback(response):
-                finish_tpbar(response)
+                app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
             slist.brightness_contrast(
                 brightness=SETTING["brightness tool"],
                 contrast=SETTING["contrast tool"],
                 page=slist.data[i][2].uuid,
-                queued_callback=setup_tpbar,
-                started_callback=update_tpbar,
-                running_callback=update_tpbar,
+                queued_callback=app.window.post_process_progress.queued,
+                started_callback=app.window.post_process_progress.update,
+                running_callback=app.window.post_process_progress.update,
                 finished_callback=brightness_contrast_finished_callback,
                 error_callback=error_callback,
                 display_callback=display_callback,
@@ -1842,14 +1772,14 @@ def negate(_action, _param):
         for i in pagelist:
 
             def negate_finished_callback(response):
-                finish_tpbar(response)
+                app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
             slist.negate(
                 page=slist.data[i][2].uuid,
-                queued_callback=setup_tpbar,
-                started_callback=update_tpbar,
-                running_callback=update_tpbar,
+                queued_callback=app.window.post_process_progress.queued,
+                started_callback=app.window.post_process_progress.update,
+                running_callback=app.window.post_process_progress.update,
                 finished_callback=negate_finished_callback,
                 error_callback=error_callback,
                 display_callback=display_callback,
@@ -1942,7 +1872,7 @@ def unsharp(_action, _param):
         for i in pagelist:
 
             def unsharp_finished_callback(response):
-                finish_tpbar(response)
+                app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
             slist.unsharp(
@@ -1950,9 +1880,9 @@ def unsharp(_action, _param):
                 radius=SETTING["unsharp radius"],
                 percent=SETTING["unsharp percentage"],
                 threshold=SETTING["unsharp threshold"],
-                queued_callback=setup_tpbar,
-                started_callback=update_tpbar,
-                running_callback=update_tpbar,
+                queued_callback=app.window.post_process_progress.queued,
+                started_callback=app.window.post_process_progress.update,
+                running_callback=app.window.post_process_progress.update,
                 finished_callback=unsharp_finished_callback,
                 error_callback=error_callback,
                 display_callback=display_callback,
@@ -1980,7 +1910,7 @@ def crop_selection(_action, _param, pagelist=None):
     for i in pagelist:
 
         def crop_finished_callback(response):
-            finish_tpbar(response)
+            app.window.post_process_progress.finish(response)
             # slist.save_session()
 
         slist.crop(
@@ -1989,9 +1919,9 @@ def crop_selection(_action, _param, pagelist=None):
             y=SETTING["selection"].y,
             w=SETTING["selection"].width,
             h=SETTING["selection"].height,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
+            queued_callback=app.window.post_process_progress.queued,
+            started_callback=app.window.post_process_progress.update,
+            running_callback=app.window.post_process_progress.update,
             finished_callback=crop_finished_callback,
             error_callback=error_callback,
             display_callback=display_callback,
@@ -2093,16 +2023,16 @@ def split_dialog(_action, _param):
             page += 1
 
             def split_finished_callback(response):
-                finish_tpbar(response)
+                app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
             slist.split_page(
                 direction=SETTING["split-direction"],
                 position=SETTING["split-position"],
                 page=slist.data[i][2].uuid,
-                queued_callback=setup_tpbar,
-                started_callback=update_tpbar,
-                running_callback=update_tpbar,
+                queued_callback=app.window.post_process_progress.queued,
+                started_callback=app.window.post_process_progress.update,
+                running_callback=app.window.post_process_progress.update,
                 finished_callback=split_finished_callback,
                 error_callback=error_callback,
                 display_callback=display_callback,
@@ -2181,15 +2111,15 @@ def user_defined_tool(pages, cmd):
     for page in pages:
 
         def user_defined_finished_callback(response):
-            finish_tpbar(response)
+            app.window.post_process_progress.finish(response)
             # slist.save_session()
 
         slist.user_defined(
             page=page,
             command=cmd,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
+            queued_callback=app.window.post_process_progress.queued,
+            started_callback=app.window.post_process_progress.update,
+            running_callback=app.window.post_process_progress.update,
             finished_callback=user_defined_finished_callback,
             error_callback=error_callback,
             display_callback=display_callback,
@@ -2206,15 +2136,15 @@ def unpaper_page(pages, options):
     for pageobject in pages:
 
         def unpaper_finished_callback(response):
-            finish_tpbar(response)
+            app.window.post_process_progress.finish(response)
             # slist.save_session()
 
         slist.unpaper(
             page=pageobject,
             options=options,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
+            queued_callback=app.window.post_process_progress.queued,
+            started_callback=app.window.post_process_progress.update,
+            running_callback=app.window.post_process_progress.update,
             finished_callback=unpaper_finished_callback,
             error_callback=error_callback,
             display_callback=display_callback,
@@ -2245,7 +2175,7 @@ def add_tess_languages(vbox):
 
 def ocr_finished_callback(response):
     "Callback function to be executed when OCR processing is finished."
-    finish_tpbar(response)
+    app.window.post_process_progress.finish(response)
     # slist.save_session()
 
 
@@ -2267,9 +2197,9 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
         SETTING["ocr language"] = tesslang
 
     kwargs = {
-        "queued_callback": setup_tpbar,
-        "started_callback": update_tpbar,
-        "running_callback": update_tpbar,
+        "queued_callback": app.window.post_process_progress.queued,
+        "started_callback": app.window.post_process_progress.update,
+        "running_callback": app.window.post_process_progress.update,
         "finished_callback": ocr_finished_callback,
         "error_callback": error_callback,
         "display_callback": ocr_display_callback,
@@ -3532,8 +3462,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         phbox.show()
         self._scan_progress = Progress()
         phbox.add(self._scan_progress)
-        self._pp_progress = Progress()
-        phbox.add(self._pp_progress)
+        self.post_process_progress = Progress()
+        phbox.add(self.post_process_progress)
 
         # OCR text editing interface
         ocr_text_hbox.show()
@@ -5214,14 +5144,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Create the PDF
         logger.debug("Started saving %s", filename)
-        signal = None
 
         def save_pdf_finished_callback(response):
-            if not response.pending:
-                self._pp_progress.hide()
-            if signal is not None:
-                self._pp_progress.disconnect(signal)
-
+            self.post_process_progress.finish(response)
             mark_pages(list_of_page_uuids)
             if "view files toggle" in SETTING and SETTING["view files toggle"]:
                 if "ps" in options:
@@ -5236,9 +5161,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             list_of_pages=list_of_page_uuids,
             metadata=collate_metadata(SETTING, datetime.datetime.now()),
             options=options,
-            queued_callback=setup_tpbar,
-            started_callback=update_tpbar,
-            running_callback=update_tpbar,
+            queued_callback=app.window.post_process_progress.queued,
+            started_callback=app.window.post_process_progress.update,
+            running_callback=app.window.post_process_progress.update,
             finished_callback=save_pdf_finished_callback,
             error_callback=error_callback,
         )
@@ -5313,15 +5238,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # Create the image
             logger.debug("Started saving %s", filename)
-            signal = None
 
             def save_image_finished_callback(response):
                 filename = response.request.args[0]["path"]
                 uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-                if not response.pending:
-                    app.window._pp_progress.hide()
-                if signal is not None:
-                    app.window._pp_progress.disconnect(signal)
+                self.post_process_progress.finish(response)
 
                 mark_pages(uuids)
                 if "view files toggle" in SETTING and SETTING["view files toggle"]:
@@ -5337,9 +5258,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             slist.save_image(
                 path=filename,
                 list_of_pages=uuids,
-                queued_callback=setup_tpbar,
-                started_callback=update_tpbar,
-                running_callback=update_tpbar,
+                queued_callback=app.window.post_process_progress.queued,
+                started_callback=app.window.post_process_progress.update,
+                running_callback=app.window.post_process_progress.update,
                 finished_callback=save_image_finished_callback,
                 error_callback=error_callback,
             )
@@ -5448,7 +5369,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # Create the PDF
 
             def email_finished_callback(response):
-                finish_tpbar(response)
+                app.window.post_process_progress.finish(response)
                 mark_pages(uuids)
                 if "view files toggle" in SETTING and SETTING["view files toggle"]:
                     launch_default_for_file(pdf)
@@ -5467,9 +5388,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 list_of_pages=uuids,
                 metadata=collate_metadata(SETTING, datetime.datetime.now()),
                 options=options,
-                queued_callback=setup_tpbar,
-                started_callback=update_tpbar,
-                running_callback=update_tpbar,
+                queued_callback=app.window.post_process_progress.queued,
+                started_callback=app.window.post_process_progress.update,
+                running_callback=app.window.post_process_progress.update,
                 finished_callback=email_finished_callback,
                 error_callback=error_callback,
             )
