@@ -12,7 +12,7 @@
 # fix progress bar, including during scan
 # restore last used scan settings
 # use pathlib for all paths
-# refactor methods using slist.clipboard
+# refactor methods using self.slist.clipboard
 # persist data with sqlite
 # fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # migrate to Gtk4
@@ -169,9 +169,6 @@ PERCENT = "%"
 ASTERISK = "*"
 logger = logging.getLogger(__name__)
 
-# Define application-wide variables here so that they can be referenced
-# in the menu callbacks
-slist = None
 save_button = None
 dependencies = {}
 menubar = None
@@ -265,7 +262,7 @@ def parse_arguments():
 
 def selection_changed_callback(_selection):
     "Handle selection change"
-    selection = slist.get_selected_indices()
+    selection = app.window.slist.get_selected_indices()
 
     # Display the new image
     # When editing the page number, there is a race condition where the page
@@ -273,9 +270,11 @@ def selection_changed_callback(_selection):
     if selection:
         i = selection.pop(0)
         path = Gtk.TreePath.new_from_indices([i])
-        slist.scroll_to_cell(path, slist.get_column(0), True, HALF, HALF)
+        app.window.slist.scroll_to_cell(
+            path, app.window.slist.get_column(0), True, HALF, HALF
+        )
         sel = view.get_selection()
-        display_image(slist.data[i][2])
+        display_image(app.window.slist.data[i][2])
         if sel is not None:
             view.set_selection(sel)
     else:
@@ -319,11 +318,11 @@ def drag_motion_callback(tree, context, x, y, t):
 def display_callback(response):
     "Find the page from the input uuid and display it"
     uuid = response.request.args[0]["page"].uuid
-    i = slist.find_page_by_uuid(uuid)
+    i = app.window.slist.find_page_by_uuid(uuid)
     if i is None:
         logger.error("Can't display page with uuid %s: page not found", uuid)
     else:
-        display_image(slist.data[i][2])
+        display_image(app.window.slist.data[i][2])
 
 
 def display_image(page):
@@ -406,7 +405,7 @@ def edit_tools_callback(_action, current):
 
 def scans_saved(message):
     "Check that all pages have been saved"
-    if not slist.scans_saved():
+    if not app.window.slist.scans_saved():
         response = ask_question(
             parent=app.window,
             type="question",
@@ -433,20 +432,24 @@ def new(_action, _param):
 
     # in certain circumstances, before v2.5.5, having deleted one of several
     # pages, pressing the new button would cause some sort of race condition
-    # between the tied array of the slist and the callbacks displaying the
+    # between the tied array of the app.window.slist and the callbacks displaying the
     # thumbnails, so block this whilst clearing the array.
-    slist.get_model().handler_block(slist.row_changed_signal)
-    slist.get_selection().handler_block(slist.selection_changed_signal)
+    app.window.slist.get_model().handler_block(app.window.slist.row_changed_signal)
+    app.window.slist.get_selection().handler_block(
+        app.window.slist.selection_changed_signal
+    )
 
     # Depopulate the thumbnail list
-    slist.data = []
+    app.window.slist.data = []
 
-    # Unblock slist signals now finished
-    slist.get_selection().handler_unblock(slist.selection_changed_signal)
-    slist.get_model().handler_unblock(slist.row_changed_signal)
+    # Unblock app.window.slist signals now finished
+    app.window.slist.get_selection().handler_unblock(
+        app.window.slist.selection_changed_signal
+    )
+    app.window.slist.get_model().handler_unblock(app.window.slist.row_changed_signal)
 
     # Now we have to clear everything manually
-    slist.get_selection().unselect_all()
+    app.window.slist.get_selection().unselect_all()
     view.set_pixbuf(None)
     app.window.t_canvas.clear_text()
     app.window.a_canvas.clear_text()
@@ -492,7 +495,9 @@ def error_callback(response):
     message = response.status
     page = None
     if "page" in args[0]:
-        page = slist.data[slist.find_page_by_uuid(args[0]["page"].uuid)][0]
+        page = app.window.slist.data[
+            app.window.slist.find_page_by_uuid(args[0]["page"].uuid)
+        ][0]
 
     kwargs = {
         "parent": app.window,
@@ -521,7 +526,7 @@ def error_callback(response):
 def open_session_file(filename):
     "open session"
     logger.info("Restoring session in %s", app.window.session)
-    slist.open_session_file(info=filename, error_callback=error_callback)
+    app.window.slist.open_session_file(info=filename, error_callback=error_callback)
 
 
 def open_session_action(_action):
@@ -549,7 +554,9 @@ def open_session_action(_action):
 def open_session(sesdir):
     "open session"
     logger.info("Restoring session in %s", app.window.session)
-    slist.open_session(dir=sesdir, delete=False, error_callback=error_callback)
+    app.window.slist.open_session(
+        dir=sesdir, delete=False, error_callback=error_callback
+    )
 
 
 def open_dialog(_action, _param):
@@ -706,7 +713,7 @@ def import_files(filenames, all_pages=False):
 
         options["pagerange_callback"] = select_pagerange_callback
 
-    slist.import_files(**options)
+    app.window.slist.import_files(**options)
 
 
 def launch_default_for_file(filename):
@@ -722,10 +729,10 @@ def launch_default_for_file(filename):
 
 def list_of_page_uuids():
     "Compile list of pages"
-    pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
+    pagelist = app.window.slist.get_page_index(SETTING["Page range"], error_callback)
     if not pagelist:
         return []
-    return [slist.data[i][2].uuid for i in pagelist]
+    return [app.window.slist.data[i][2].uuid for i in pagelist]
 
 
 def file_exists(chooser, filename):
@@ -794,7 +801,7 @@ def save_tiff(filename, ps, uuids):
 
         logger.debug("Finished saving %s", file)
 
-    slist.save_tiff(
+    app.window.slist.save_tiff(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -832,7 +839,7 @@ def save_djvu(filename, uuids):
             launch_default_for_file(filename)
         logger.debug("Finished saving %s", filename)
 
-    slist.save_djvu(
+    app.window.slist.save_djvu(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -860,7 +867,7 @@ def save_text(filename, uuids):
 
         logger.debug("Finished saving %s", filename)
 
-    slist.save_text(
+    app.window.slist.save_text(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -886,7 +893,7 @@ def save_hocr(filename, uuids):
 
         logger.debug("Finished saving %s", filename)
 
-    slist.save_hocr(
+    app.window.slist.save_hocr(
         path=filename,
         list_of_pages=uuids,
         options=options,
@@ -901,8 +908,10 @@ def save_hocr(filename, uuids):
 def changed_side_to_scan_callback(widget, _arg):
     "Callback function to handle the event when the side to scan is changed."
     logger.debug("changed_side_to_scan_callback( %s, %s )", widget, _arg)
-    if len(slist.data) - 1 > EMPTY_LIST:
-        widget.page_number_start = slist.data[len(slist.data) - 1][0] + 1
+    if len(app.window.slist.data) - 1 > EMPTY_LIST:
+        widget.page_number_start = (
+            app.window.slist.data[len(app.window.slist.data) - 1][0] + 1
+        )
     else:
         widget.page_number_start = 1
 
@@ -962,7 +971,7 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
 
     logger.info("Importing scan with resolution=%s,%s", xresolution, yresolution)
 
-    slist.import_scan(**options)
+    app.window.slist.import_scan(**options)
 
 
 def restart():
@@ -1063,7 +1072,9 @@ def add_postprocessing_ocr(vbox):
 def print_dialog(_action, _param):
     "print"
     os.chdir(SETTING["cwd"])
-    print_op = PrintOperation(settings=app.window.print_settings, slist=slist)
+    print_op = PrintOperation(
+        settings=app.window.print_settings, slist=app.window.slist
+    )
     res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, app.window)
     if res == Gtk.PrintOperationResult.APPLY:
         app.window.print_settings = print_op.get_print_settings()
@@ -1072,26 +1083,28 @@ def print_dialog(_action, _param):
 
 def cut_selection(_action, _param):
     "Cut the selection"
-    slist.clipboard = slist.cut_selection()
+    app.window.slist.clipboard = app.window.slist.cut_selection()
     app.window.update_uimanager()
 
 
 def copy_selection(_action, _param):
     "Copy the selection"
-    slist.clipboard = slist.copy_selection(True)
+    app.window.slist.clipboard = app.window.slist.copy_selection(True)
     app.window.update_uimanager()
 
 
 def paste_selection(_action, _param):
     "Paste the selection"
-    if slist.clipboard is None:
+    if app.window.slist.clipboard is None:
         return
     take_snapshot()
-    pages = slist.get_selected_indices()
+    pages = app.window.slist.get_selected_indices()
     if pages:
-        slist.paste_selection(slist.clipboard, pages[-1], "after", True)
+        app.window.slist.paste_selection(
+            app.window.slist.clipboard, pages[-1], "after", True
+        )
     else:
-        slist.paste_selection(slist.clipboard, None, None, True)
+        app.window.slist.paste_selection(app.window.slist.clipboard, None, None, True)
     app.window.update_uimanager()
 
 
@@ -1099,7 +1112,7 @@ def delete_selection(_action, _param):
     "Delete the selected scans"
     # Update undo/redo buffers
     take_snapshot()
-    slist._delete_selection_extra()
+    app.window.slist._delete_selection_extra()
 
     # Reset start page in scan dialog
     if app.window._windows:
@@ -1115,7 +1128,7 @@ def select_all(_action, _param):
     # }
     # else {
 
-    slist.get_selection().select_all()
+    app.window.slist.get_selection().select_all()
 
     # }
 
@@ -1123,29 +1136,29 @@ def select_all(_action, _param):
 def select_odd_even(odd):
     "Select all odd(0) or even(1) scans"
     selection = []
-    for i, row in enumerate(slist.data):
+    for i, row in enumerate(app.window.slist.data):
         if row[0] % 2 ^ odd:
             selection.append(i)
 
-    slist.get_selection().unselect_all()
-    slist.select(selection)
+    app.window.slist.get_selection().unselect_all()
+    app.window.slist.select(selection)
 
 
 def select_invert(_action, _param):
     "Invert selection"
-    selection = slist.get_selected_indices()
+    selection = app.window.slist.get_selected_indices()
     inverted = []
-    for i in range(len(slist.data)):
+    for i in range(len(app.window.slist.data)):
         if i not in selection:
             inverted.append(_)
-    slist.get_selection().unselect_all()
-    slist.select(inverted)
+    app.window.slist.get_selection().unselect_all()
+    app.window.slist.select(inverted)
 
 
 def select_modified_since_ocr(_action, _param):
     "Selects pages that have been modified since the last OCR process."
     selection = []
-    for page in range(len(slist.data)):
+    for page in range(len(app.window.slist.data)):
         dirty_time = (
             page.dirty_time
             if hasattr(page, "dirty_time")
@@ -1160,19 +1173,19 @@ def select_modified_since_ocr(_action, _param):
         if ocr_flag and (ocr_time <= dirty_time):
             selection.append(_)
 
-    slist.get_selection().unselect_all()
-    slist.select(selection)
+    app.window.slist.get_selection().unselect_all()
+    app.window.slist.select(selection)
 
 
 def select_no_ocr(_action, _param):
     "Select pages with no ocr output"
     selection = []
-    for i, row in enumerate(slist.data):
+    for i, row in enumerate(app.window.slist.data):
         if not hasattr(row[2], "text_layer") or row[2].text_layer is None:
             selection.append(i)
 
-    slist.get_selection().unselect_all()
-    slist.select(selection)
+    app.window.slist.get_selection().unselect_all()
+    app.window.slist.select(selection)
 
 
 def clear_ocr(_action, _param):
@@ -1182,9 +1195,9 @@ def clear_ocr(_action, _param):
 
     # Clear the existing canvas
     app.window.t_canvas.clear_text()
-    selection = slist.get_selected_indices()
+    selection = app.window.slist.get_selected_indices()
     for i in selection:
-        slist.data[i][2].text_layer = None
+        app.window.slist.data[i][2].text_layer = None
 
     # slist.save_session()
 
@@ -1196,15 +1209,15 @@ def select_blank(_action, _param):
 
 def select_blank_pages():
     "Select blank pages"
-    for page in slist.data:
+    for page in app.window.slist.data:
 
         # compare Std Dev to threshold
         # std_dev is a list -- 1 value per channel
         if sum(page[2].std_dev) / len(page[2].std_dev) <= SETTING["Blank threshold"]:
-            slist.select(page)
+            app.window.slist.select(page)
             logger.info("Selecting blank page")
         else:
-            slist.unselect(page)
+            app.window.slist.unselect(page)
             logger.info("Unselecting non-blank page")
 
         logger.info(
@@ -1221,15 +1234,15 @@ def select_dark(_action, _param):
 
 def select_dark_pages():
     "Select dark pages"
-    for page in slist.data:
+    for page in app.window.slist.data:
 
         # compare Mean to threshold
         # mean is a list -- 1 value per channel
         if sum(page[2].mean) / len(page[2].std_dev) <= SETTING["Dark threshold"]:
-            slist.select(page)
+            app.window.slist.select(page)
             logger.info("Selecting dark page")
         else:
-            slist.unselect(page)
+            app.window.slist.unselect(page)
             logger.info("Unselecting non-dark page")
 
         logger.info(
@@ -1247,7 +1260,7 @@ def renumber_dialog(_action, _param):
 
     app.window.renumber_dialog = Renumber(
         transient_for=app.window,
-        document=slist,
+        document=app.window.slist,
         hide_on_delete=False,
     )
     app.window.renumber_dialog.connect("before-renumber", lambda x: take_snapshot())
@@ -1267,7 +1280,7 @@ def indices2pages(indices):
     "Helper function to convert an array of indices into an array of Gscan2pdf::Page objects"
     pages = []
     for i in indices:
-        pages.append(slist.data[i][2].uuid)
+        pages.append(app.window.slist.data[i][2].uuid)
     return pages
 
 
@@ -1277,7 +1290,7 @@ def rotate(angle, pagelist):
     # Update undo/redo buffers
     take_snapshot()
     for page in pagelist:
-        slist.rotate(
+        app.window.slist.rotate(
             angle=angle,
             page=page,
             queued_callback=app.window.post_process_progress.queued,
@@ -1295,7 +1308,7 @@ def analyse(select_blank, select_dark):
     # Update undo/redo buffers
     take_snapshot()
     pages_to_analyse = []
-    for row in slist.data:
+    for row in app.window.slist.data:
         page = row[2]
         dirty_time = (
             page.dirty_time
@@ -1327,7 +1340,7 @@ def analyse(select_blank, select_dark):
 
         # slist.save_session()
 
-        slist.analyse(
+        app.window.slist.analyse(
             list_of_pages=pages_to_analyse,
             queued_callback=app.window.post_process_progress.queued,
             started_callback=app.window.post_process_progress.update,
@@ -1371,7 +1384,9 @@ def threshold(_action, _param):
         take_snapshot()
         SETTING["threshold tool"] = spinbutton.get_value()
         SETTING["Page range"] = windowt.page_range
-        pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
+        pagelist = app.window.slist.get_page_index(
+            SETTING["Page range"], error_callback
+        )
         if not pagelist:
             return
         page = 0
@@ -1382,9 +1397,9 @@ def threshold(_action, _param):
                 app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
-            slist.threshold(
+            app.window.slist.threshold(
                 threshold=SETTING["threshold tool"],
-                page=slist.data[i][2].uuid,
+                page=app.window.slist.data[i][2].uuid,
                 queued_callback=app.window.post_process_progress.queued,
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
@@ -1443,7 +1458,9 @@ def brightness_contrast(_action, _param):
         SETTING["brightness tool"] = spinbuttonb.get_value()
         SETTING["contrast tool"] = spinbuttonc.get_value()
         SETTING["Page range"] = windowt.page_range
-        pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
+        pagelist = app.window.slist.get_page_index(
+            SETTING["Page range"], error_callback
+        )
         if not pagelist:
             return
         for i in pagelist:
@@ -1452,10 +1469,10 @@ def brightness_contrast(_action, _param):
                 app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
-            slist.brightness_contrast(
+            app.window.slist.brightness_contrast(
                 brightness=SETTING["brightness tool"],
                 contrast=SETTING["contrast tool"],
-                page=slist.data[i][2].uuid,
+                page=app.window.slist.data[i][2].uuid,
                 queued_callback=app.window.post_process_progress.queued,
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
@@ -1488,7 +1505,9 @@ def negate(_action, _param):
         # Update undo/redo buffers
         take_snapshot()
         SETTING["Page range"] = windowt.page_range
-        pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
+        pagelist = app.window.slist.get_page_index(
+            SETTING["Page range"], error_callback
+        )
         if not pagelist:
             return
         for i in pagelist:
@@ -1497,8 +1516,8 @@ def negate(_action, _param):
                 app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
-            slist.negate(
-                page=slist.data[i][2].uuid,
+            app.window.slist.negate(
+                page=app.window.slist.data[i][2].uuid,
                 queued_callback=app.window.post_process_progress.queued,
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
@@ -1588,7 +1607,9 @@ def unsharp(_action, _param):
         SETTING["unsharp percentage"] = int(spinbuttons.get_value())
         SETTING["unsharp threshold"] = int(spinbuttont.get_value())
         SETTING["Page range"] = windowum.page_range
-        pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
+        pagelist = app.window.slist.get_page_index(
+            SETTING["Page range"], error_callback
+        )
         if not pagelist:
             return
         for i in pagelist:
@@ -1597,8 +1618,8 @@ def unsharp(_action, _param):
                 app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
-            slist.unsharp(
-                page=slist.data[i][2].uuid,
+            app.window.slist.unsharp(
+                page=app.window.slist.data[i][2].uuid,
                 radius=SETTING["unsharp radius"],
                 percent=SETTING["unsharp percentage"],
                 threshold=SETTING["unsharp threshold"],
@@ -1624,7 +1645,7 @@ def crop_selection(_action, _param, pagelist=None):
     # Update undo/redo buffers
     take_snapshot()
     if not pagelist:
-        pagelist = slist.get_selected_indices()
+        pagelist = app.window.slist.get_selected_indices()
 
     if not pagelist:
         return
@@ -1635,8 +1656,8 @@ def crop_selection(_action, _param, pagelist=None):
             app.window.post_process_progress.finish(response)
             # slist.save_session()
 
-        slist.crop(
-            page=slist.data[i][2].uuid,
+        app.window.slist.crop(
+            page=app.window.slist.data[i][2].uuid,
             x=SETTING["selection"].x,
             y=SETTING["selection"].y,
             w=SETTING["selection"].width,
@@ -1737,7 +1758,9 @@ def split_dialog(_action, _param):
         SETTING["split-direction"] = direction[combob.get_active()][0]
         SETTING["split-position"] = sb_pos.get_value()
         SETTING["Page range"] = windowsp.page_range
-        pagelist = slist.get_page_index(SETTING["Page range"], error_callback)
+        pagelist = app.window.slist.get_page_index(
+            SETTING["Page range"], error_callback
+        )
         if not pagelist:
             return
         page = 0
@@ -1748,10 +1771,10 @@ def split_dialog(_action, _param):
                 app.window.post_process_progress.finish(response)
                 # slist.save_session()
 
-            slist.split_page(
+            app.window.slist.split_page(
                 direction=SETTING["split-direction"],
                 position=SETTING["split-position"],
-                page=slist.data[i][2].uuid,
+                page=app.window.slist.data[i][2].uuid,
                 queued_callback=app.window.post_process_progress.queued,
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
@@ -1811,7 +1834,7 @@ def user_defined_dialog(_action, _param):
     def udt_apply_callback():
         SETTING["Page range"] = windowudt.page_range
         pagelist = indices2pages(
-            slist.get_page_index(SETTING["Page range"], error_callback)
+            app.window.slist.get_page_index(SETTING["Page range"], error_callback)
         )
         if not pagelist:
             return
@@ -1836,7 +1859,7 @@ def user_defined_tool(pages, cmd):
             app.window.post_process_progress.finish(response)
             # slist.save_session()
 
-        slist.user_defined(
+        app.window.slist.user_defined(
             page=page,
             command=cmd,
             queued_callback=app.window.post_process_progress.queued,
@@ -1861,7 +1884,7 @@ def unpaper_page(pages, options):
             app.window.post_process_progress.finish(response)
             # slist.save_session()
 
-        slist.unpaper(
+        app.window.slist.unpaper(
             page=pageobject,
             options=options,
             queued_callback=app.window.post_process_progress.queued,
@@ -1904,13 +1927,13 @@ def ocr_finished_callback(response):
 def ocr_display_callback(response):
     "Callback function to handle the display of OCR (Optical Character Recognition) results."
     uuid = response.request.args[0]["page"].uuid
-    i = slist.find_page_by_uuid(uuid)
+    i = app.window.slist.find_page_by_uuid(uuid)
     if i is None:
         logger.error("Can't display page with uuid %s: page not found", uuid)
     else:
-        page = slist.get_selected_indices()
+        page = app.window.slist.get_selected_indices()
         if page and i == page[0]:
-            create_txt_canvas(slist.data[i][2])
+            create_txt_canvas(app.window.slist.data[i][2])
 
 
 def run_ocr(engine, tesslang, threshold_flag, threshold):
@@ -1938,12 +1961,12 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
     # depending on which radiobutton is active
     SETTING["Page range"] = app.windwo._windowo.page_range
     pagelist = indices2pages(
-        slist.get_page_index(SETTING["Page range"], error_callback)
+        app.window.slist.get_page_index(SETTING["Page range"], error_callback)
     )
     if not pagelist:
         return
     kwargs["pages"] = pagelist
-    slist.ocr_pages(**kwargs)
+    app.window.slist.ocr_pages(**kwargs)
     app.window._windowo.hide()
 
 
@@ -1966,7 +1989,7 @@ def view_html(_action, _param):
 
 def take_snapshot():
     "Update undo/redo buffers before doing something"
-    slist.take_snapshot()
+    app.window.slist.take_snapshot()
 
     # Unghost Undo/redo
     actions["undo"].set_enabled(True)
@@ -1994,7 +2017,7 @@ def take_snapshot():
 def undo(_action, _param):
     "Put things back to last snapshot after updating redo buffer"
     logger.info("Undoing")
-    slist.undo()
+    app.window.slist.undo()
 
     # Update menus/buttons
     app.window.update_uimanager()
@@ -2005,7 +2028,7 @@ def undo(_action, _param):
 def unundo(_action, _param):
     "Put things back to last snapshot after updating redo buffer"
     logger.info("Redoing")
-    slist.unundo()
+    app.window.slist.unundo()
 
     # Update menus/buttons
     app.window.update_uimanager()
@@ -2027,13 +2050,13 @@ def register_icon(iconfactory, stock_id, path):
 
 def mark_pages(pages):
     "marked page list as saved"
-    slist.get_model().handler_block(slist.row_changed_signal)
+    app.window.slist.get_model().handler_block(app.window.slist.row_changed_signal)
     for p in pages:
-        i = slist.find_page_by_uuid(p)
+        i = app.window.slist.find_page_by_uuid(p)
         if i is not None:
-            slist.data[i][2].saved = True
+            app.window.slist.data[i][2].saved = True
 
-    slist.get_model().handler_unblock(slist.row_changed_signal)
+    app.window.slist.get_model().handler_unblock(app.window.slist.row_changed_signal)
 
 
 def _preferences_scan_options(border_width):
@@ -2408,23 +2431,26 @@ The other variable available is:
 
 def get_selected_properties():
     "Helper function for properties()"
-    page = slist.get_selected_indices()
+    page = app.window.slist.get_selected_indices()
     xresolution = None
     yresolution = None
     if len(page) > 0:
         i = page.pop(0)
-        xresolution, yresolution, _units = slist.data[i][2].resolution
+        xresolution, yresolution, _units = app.window.slist.data[i][2].resolution
         logger.debug(
-            "Page %s has resolutions %s,%s", slist.data[i][0], xresolution, yresolution
+            "Page %s has resolutions %s,%s",
+            app.window.slist.data[i][0],
+            xresolution,
+            yresolution,
         )
 
     for i in page:
-        if slist.data[i][2].resolution[0] != xresolution:
+        if app.window.slist.data[i][2].resolution[0] != xresolution:
             xresolution = None
             break
 
     for i in page:
-        if slist.data[i][2].resolution[0] != yresolution:
+        if app.window.slist.data[i][2].resolution[0] != yresolution:
             yresolution = None
             break
 
@@ -2533,17 +2559,17 @@ def zoom_out(_action, _param):
 
 def rotate_90(_action, _param):
     "Rotates the selected pages by 90 degrees"
-    rotate(_90_DEGREES, indices2pages(slist.get_selected_indices()))
+    rotate(_90_DEGREES, indices2pages(app.window.slist.get_selected_indices()))
 
 
 def rotate_180(_action, _param):
     "Rotates the selected pages by 180 degrees"
-    rotate(_180_DEGREES, indices2pages(slist.get_selected_indices()))
+    rotate(_180_DEGREES, indices2pages(app.window.slist.get_selected_indices()))
 
 
 def rotate_270(_action, _param):
     "Rotates the selected pages by 270 degrees"
-    rotate(_270_DEGREES, indices2pages(slist.get_selected_indices()))
+    rotate(_270_DEGREES, indices2pages(app.window.slist.get_selected_indices()))
 
 
 class ApplicationWindow(Gtk.ApplicationWindow):
@@ -2563,6 +2589,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._args = None  # GooCanvas for text layer
         self.t_canvas = None  # GooCanvas for annotation layer
         self.a_canvas = None
+        self.slist = None
 
         # These will be in the window group and have the "win" prefix
         for name, function in [
@@ -2781,15 +2808,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         - Opens the scan dialog in the background if auto-open is enabled.
         - Handles command line options for importing files.
         """
-        global slist
         main_vbox = Gtk.VBox()
         self.add(main_vbox)
 
         # Set up a SimpleList
-        slist = Document()
+        self.slist = Document()
 
         # Update list in Document so that it can be used by get_resolution()
-        slist.set_paper_sizes(SETTING["Paper"])
+        self.slist.set_paper_sizes(SETTING["Paper"])
 
         # The temp directory has to be available before we start checking for
         # dependencies in order to be used for the pdftk check.
@@ -2813,12 +2839,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         scwin_thumbs.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
 
         # If dragged below the bottom of the window, scroll it.
-        slist.connect("drag-motion", drag_motion_callback)
+        self.slist.connect("drag-motion", drag_motion_callback)
 
         # Set up callback for right mouse clicks.
-        slist.connect("button-press-event", self.handle_clicks)
-        slist.connect("button-release-event", self.handle_clicks)
-        scwin_thumbs.add(slist)
+        self.slist.connect("button-press-event", self.handle_clicks)
+        self.slist.connect("button-release-event", self.handle_clicks)
+        scwin_thumbs.add(self.slist)
 
         # Notebook, split panes for detail view and OCR output
         self._vnotebook = Gtk.Notebook()
@@ -3152,7 +3178,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._pack_viewer_tools()
 
         # Set up call back for list selection to update detail view
-        slist.selection_changed_signal = slist.get_selection().connect(
+        self.slist.selection_changed_signal = self.slist.get_selection().connect(
             "changed", selection_changed_callback
         )
 
@@ -3456,7 +3482,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "ocr",
             "user-defined",
         ]
-        enabled = bool(slist.get_selected_indices())
+        enabled = bool(self.slist.get_selected_indices())
         for action_name in action_names:
             if action_name in actions:
                 actions[action_name].set_enabled(enabled)
@@ -3471,7 +3497,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if not dependencies["ocr"]:
             actions["ocr"].set_enabled(False)
 
-        if len(slist.data) > 0:
+        if len(self.slist.data) > 0:
             if dependencies["xdg"]:
                 actions["email"].set_enabled(True)
 
@@ -3491,7 +3517,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if save_button is not None:
                 save_button.set_sensitive(False)
 
-        actions["paste"].set_enabled(bool(slist.clipboard))
+        actions["paste"].set_enabled(bool(self.slist.clipboard))
 
         # If the scan dialog has already been drawn, update the start page spinbutton
         if self._windows:
@@ -3520,9 +3546,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     )
                 )
 
-            slist.set_dir(self.session.name)
+            self.slist.set_dir(self.session.name)
             self.create_lockfile()
-            slist.save_session()
+            self.slist.save_session()
             logger.info("Using %s for temporary files", self.session.name)
             tmpdir = os.path.dirname(self.session.name)
             if "TMPDIR" in SETTING and SETTING["TMPDIR"] != tmpdir:
@@ -3768,7 +3794,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if selected is not None:
                 self.session = crashed[selected]
                 self.create_lockfile()
-                slist.set_dir(self.session)
+                self.slist.set_dir(self.session)
                 open_session(self.session)
 
     def show_message_dialog(self, **kwargs):
@@ -3839,23 +3865,27 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             xspinbutton.set_value(xresolution)
             yspinbutton.set_value(yresolution)
 
-        slist.get_selection().connect("changed", selection_changed_callback)
+        self.slist.get_selection().connect("changed", selection_changed_callback)
 
         def properties_apply_callback():
             self._windowp.hide()
             xresolution = xspinbutton.get_value()
             yresolution = yspinbutton.get_value()
-            slist.get_model().handler_block(slist.row_changed_signal)
-            for i in slist.get_selected_indices():
+            self.slist.get_model().handler_block(self.slist.row_changed_signal)
+            for i in self.slist.get_selected_indices():
                 logger.debug(
                     "setting resolution %s,%s for page %s",
                     xresolution,
                     yresolution,
-                    slist.data[i][0],
+                    self.slist.data[i][0],
                 )
-                slist.data[i][2].resolution = xresolution, yresolution, "PixelsPerInch"
+                self.slist.data[i][2].resolution = (
+                    xresolution,
+                    yresolution,
+                    "PixelsPerInch",
+                )
 
-            slist.get_model().handler_unblock(slist.row_changed_signal)
+            self.slist.get_model().handler_unblock(self.slist.row_changed_signal)
 
         self._windowp.add_actions(
             [("gtk-ok", properties_apply_callback), ("gtk-cancel", self._windowp.hide)]
@@ -3882,7 +3912,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "paper_formats": SETTING["Paper"],
             "allow_batch_flatbed": SETTING["allow-batch-flatbed"],
             "adf_defaults_scan_all_pages": SETTING["adf-defaults-scan-all-pages"],
-            "document": slist,
+            "document": self.slist,
             "ignore_duplex_capabilities": SETTING["ignore-duplex-capabilities"],
             "cycle_sane_handle": SETTING["cycle sane handle"],
             "cancel_between_pages": (
@@ -4538,7 +4568,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             crop_selection(
                 None,  # action
                 None,  # param
-                slist.get_page_index(SETTING["Page range"], error_callback),
+                self.slist.get_page_index(SETTING["Page range"], error_callback),
             )
 
         self._windowc.add_actions(
@@ -4573,7 +4603,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # run unpaper
             pagelist = indices2pages(
-                slist.get_page_index(SETTING["Page range"], error_callback)
+                self.slist.get_page_index(SETTING["Page range"], error_callback)
             )
             if not pagelist:
                 return
@@ -5104,7 +5134,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     self.save_pdf(filename, "ps", uuids)
 
             elif filetype == "gs2p":
-                slist.save_session(filename, VERSION)
+                self.slist.save_session(filename, VERSION)
 
             if self._windowi is not None and SETTING["close_dialog_on_save"]:
                 self._windowi.hide()
@@ -5155,7 +5185,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             logger.debug("Finished saving %s", filename)
 
-        slist.save_pdf(
+        self.slist.save_pdf(
             path=filename,
             list_of_pages=list_of_page_uuids,
             metadata=collate_metadata(SETTING, datetime.datetime.now()),
@@ -5254,7 +5284,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                 logger.debug("Finished saving %s", filename)
 
-            slist.save_image(
+            self.slist.save_image(
                 path=filename,
                 list_of_pages=uuids,
                 queued_callback=app.window.post_process_progress.queued,
@@ -5382,7 +5412,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                         text=_("Error creating email"),
                     )
 
-            slist.save_pdf(
+            self.slist.save_pdf(
                 path=pdf,
                 list_of_pages=uuids,
                 metadata=collate_metadata(SETTING, datetime.datetime.now()),
@@ -5556,7 +5586,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Write config file
         config.write_config(app.window._configfile, SETTING)
         logger.info("Killing document thread(s)")
-        slist.thread.quit()
+        self.slist.thread.quit()
         logger.debug("Quitting")
 
         # compress log file if we have xz
