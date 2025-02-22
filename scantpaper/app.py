@@ -178,8 +178,6 @@ menubar = None
 toolbar = None
 ocr_engine = []
 view = None
-# GooCanvas for text layer
-canvas = None
 ocr_text_hbox = None
 ocr_textbuffer = None
 ocr_textview = None
@@ -411,7 +409,7 @@ def selection_changed_callback(_selection):
             view.set_selection(sel)
     else:
         view.set_pixbuf(None)
-        canvas.clear_text()
+        app.window.t_canvas.clear_text()
         app.window.a_canvas.clear_text()
         app.window._current_page = None
 
@@ -631,7 +629,7 @@ def display_image(page):
     if app.window._current_page.text_layer:
         create_txt_canvas(app.window._current_page)
     else:
-        canvas.clear_text()
+        app.window.t_canvas.clear_text()
 
     if app.window._current_page.annotations:
         create_ann_canvas(app.window._current_page)
@@ -642,16 +640,16 @@ def display_image(page):
 def create_txt_canvas(page, finished_callback=None):
     "Create the text canvas"
     offset = view.get_offset()
-    canvas.set_text(
+    app.window.t_canvas.set_text(
         page=page,
         layer="text_layer",
         edit_callback=app.window.edit_ocr_text,
         idle=True,
         finished_callback=finished_callback,
     )
-    canvas.set_scale(view.get_zoom())
-    canvas.set_offset(offset.x, offset.y)
-    canvas.show()
+    app.window.t_canvas.set_scale(view.get_zoom())
+    app.window.t_canvas.set_offset(offset.x, offset.y)
+    app.window.t_canvas.show()
 
 
 def create_ann_canvas(page, finished_callback=None):
@@ -724,7 +722,7 @@ def new(_action, _param):
     # Now we have to clear everything manually
     slist.get_selection().unselect_all()
     view.set_pixbuf(None)
-    canvas.clear_text()
+    app.window.t_canvas.clear_text()
     app.window.a_canvas.clear_text()
     app.window._current_page = None
 
@@ -1457,7 +1455,7 @@ def clear_ocr(_action, _param):
     take_snapshot()
 
     # Clear the existing canvas
-    canvas.clear_text()
+    app.window.t_canvas.clear_text()
     selection = slist.get_selected_indices()
     for i in selection:
         slist.data[i][2].text_layer = None
@@ -2836,6 +2834,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._rotate_side_cmbx = None
         self._rotate_side_cmbx2 = None
         self._args = None
+        # GooCanvas for text layer
+        self.t_canvas = None
         # GooCanvas for annotation layer
         self.a_canvas = None
 
@@ -3118,20 +3118,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         view.connect("button-release-event", self.handle_clicks)
 
         def view_zoom_changed_callback(_view, zoom):
-            if canvas is not None:
-                canvas.handler_block(canvas.zoom_changed_signal)
-                canvas.set_scale(zoom)
-                canvas.handler_unblock(canvas.zoom_changed_signal)
+            if self.t_canvas is not None:
+                self.t_canvas.handler_block(self.t_canvas.zoom_changed_signal)
+                self.t_canvas.set_scale(zoom)
+                self.t_canvas.handler_unblock(self.t_canvas.zoom_changed_signal)
 
         view.zoom_changed_signal = view.connect(
             "zoom-changed", view_zoom_changed_callback
         )
 
         def view_offset_changed_callback(_view, x, y):
-            if canvas is not None:
-                canvas.handler_block(canvas.offset_changed_signal)
-                canvas.set_offset(x, y)
-                canvas.handler_unblock(canvas.offset_changed_signal)
+            if self.t_canvas is not None:
+                self.t_canvas.handler_block(self.t_canvas.offset_changed_signal)
+                self.t_canvas.set_offset(x, y)
+                self.t_canvas.handler_unblock(self.t_canvas.offset_changed_signal)
 
         view.offset_changed_signal = view.connect(
             "offset-changed", view_offset_changed_callback
@@ -3150,26 +3150,25 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "selection-changed", view_selection_changed_callback
         )
 
-        # Goo.Canvas for text layer
-        global canvas
-        canvas = Canvas()
+        # GooCanvas for text layer
+        self.t_canvas = Canvas()
 
         def text_zoom_changed_callback(canvas, _zoom):
             view.handler_block(view.zoom_changed_signal)
             view.set_zoom(canvas.get_scale())
             view.handler_unblock(view.zoom_changed_signal)
 
-        canvas.zoom_changed_signal = canvas.connect(
+        self.t_canvas.zoom_changed_signal = self.t_canvas.connect(
             "zoom-changed", text_zoom_changed_callback
         )
 
         def text_offset_changed_callback():
             view.handler_block(view.offset_changed_signal)
-            offset = canvas.get_offset()
+            offset = self.t_canvas.get_offset()
             view.set_offset(offset["x"], offset["y"])
             view.handler_unblock(view.offset_changed_signal)
 
-        canvas.offset_changed_signal = canvas.connect(
+        self.t_canvas.offset_changed_signal = self.t_canvas.connect(
             "offset-changed", text_offset_changed_callback
         )
 
@@ -3212,7 +3211,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_fbutton.set_tooltip_text(_("Go to least confident text"))
         ocr_text_fbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(canvas.get_first_bbox())
+            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_first_bbox())
         )
         ocr_text_pbutton = Gtk.Button()
         ocr_text_pbutton.set_image(
@@ -3220,7 +3219,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_pbutton.set_tooltip_text(_("Go to previous text"))
         ocr_text_pbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(canvas.get_previous_bbox())
+            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_previous_bbox())
         )
         ocr_index = [
             [
@@ -3235,9 +3234,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def changed_text_sort_method(_arg):
             if ocr_index[ocr_text_scmbx.get_active()][0] == "confidence":
-                canvas.sort_by_confidence()
+                self.t_canvas.sort_by_confidence()
             else:
-                canvas.sort_by_position()
+                self.t_canvas.sort_by_position()
 
         ocr_text_scmbx.connect("changed", changed_text_sort_method)
         ocr_text_scmbx.set_active(0)
@@ -3247,7 +3246,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_nbutton.set_tooltip_text(_("Go to next text"))
         ocr_text_nbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(canvas.get_next_bbox())
+            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_next_bbox())
         )
         ocr_text_lbutton = Gtk.Button()
         ocr_text_lbutton.set_image(
@@ -3255,7 +3254,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_lbutton.set_tooltip_text(_("Go to most confident text"))
         ocr_text_lbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(canvas.get_last_bbox())
+            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_last_bbox())
         )
         ocr_text_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
         ocr_text_obutton.set_tooltip_text(_("Accept corrections"))
@@ -3265,7 +3264,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             text = ocr_textbuffer.text
             logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
             self._current_ocr_bbox.update_box(text, view.get_selection())
-            self._current_page.import_hocr(canvas.hocr())
+            self._current_page.import_hocr(self.t_canvas.hocr())
             self.edit_ocr_text(self._current_ocr_bbox)
 
         ocr_text_obutton.connect("clicked", ocr_text_button_clicked)
@@ -3276,10 +3275,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_ubutton.set_tooltip_text(_("Duplicate text"))
 
         def ocr_text_copy(_widget):
-            self._current_ocr_bbox = canvas.add_box(
+            self._current_ocr_bbox = self.t_canvas.add_box(
                 text=ocr_textbuffer.text, bbox=view.get_selection()
             )
-            self._current_page.import_hocr(canvas.hocr())
+            self._current_page.import_hocr(self.t_canvas.hocr())
             self.edit_ocr_text(self._current_ocr_bbox)
 
         ocr_text_ubutton.connect("clicked", ocr_text_copy)
@@ -3299,10 +3298,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             selection = view.get_selection()
             if hasattr(self._current_page, "text_layer"):
                 logger.info("Added '%s'", text)
-                self._current_ocr_bbox = canvas.add_box(
+                self._current_ocr_bbox = self.t_canvas.add_box(
                     text=text, bbox=view.get_selection()
                 )
-                self._current_page.import_hocr(canvas.hocr())
+                self._current_page.import_hocr(self.t_canvas.hocr())
                 self.edit_ocr_text(self._current_ocr_bbox)
             else:
                 logger.info("Creating new text layer with '%s'", text)
@@ -3321,7 +3320,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 )
 
                 def ocr_new_page(_widget):
-                    self._current_ocr_bbox = canvas.get_first_bbox()
+                    self._current_ocr_bbox = self.t_canvas.get_first_bbox()
                     self.edit_ocr_text(self._current_ocr_bbox)
 
                 create_txt_canvas(self._current_page, ocr_new_page)
@@ -3332,8 +3331,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ocr_text_delete(_widget):
             self._current_ocr_bbox.delete_box()
-            self._current_page.import_hocr(canvas.hocr())
-            self.edit_ocr_text(canvas.get_current_bbox())
+            self._current_page.import_hocr(self.t_canvas.hocr())
+            self.edit_ocr_text(self.t_canvas.get_current_bbox())
 
         ocr_text_dbutton.connect("clicked", ocr_text_delete)
         ocr_text_hbox.pack_start(ocr_text_fbutton, False, False, 0)
@@ -3417,7 +3416,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def ann_text_delete(_widget):
             self._current_ann_bbox.delete_box()
             self._current_page.import_hocr(self.a_canvas.hocr())
-            self.edit_annotation(canvas.get_bbox_by_index())
+            self.edit_annotation(self.t_canvas.get_bbox_by_index())
 
         ann_dbutton.connect("clicked", ann_text_delete)
         ann_hbox.pack_start(ann_textview, False, False, 0)
@@ -3567,7 +3566,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Pack widgets according to viewer_tools"
         if SETTING["viewer_tools"] == "tabbed":
             self._vnotebook.append_page(view, Gtk.Label(label=_("Image")))
-            self._vnotebook.append_page(canvas, Gtk.Label(label=_("Text layer")))
+            self._vnotebook.append_page(self.t_canvas, Gtk.Label(label=_("Text layer")))
             self._vnotebook.append_page(
                 self.a_canvas, Gtk.Label(label=_("Annotations"))
             )
@@ -3575,13 +3574,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._vnotebook.show_all()
         elif SETTING["viewer_tools"] == "horizontal":
             self._hpanei.pack1(view, True, True)
-            self._hpanei.pack2(canvas, True, True)
+            self._hpanei.pack2(self.t_canvas, True, True)
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
             self._vpaned.pack1(self._hpanei, True, True)
         else:  # vertical
             self._vpanei.pack1(view, True, True)
-            self._vpanei.pack2(canvas, True, True)
+            self._vpanei.pack2(self.t_canvas, True, True)
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
             self._vpaned.pack1(self._vpanei, True, True)
@@ -3644,15 +3643,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if SETTING["viewer_tools"] == "tabbed":
             self._vpaned.remove(self._vnotebook)
             self._vnotebook.remove(view)
-            self._vnotebook.remove(canvas)
+            self._vnotebook.remove(self.t_canvas)
         elif SETTING["viewer_tools"] == "horizontal":
             self._vpaned.remove(self._hpanei)
             self._hpanei.remove(view)
-            self._hpanei.remove(canvas)
+            self._hpanei.remove(self.t_canvas)
         else:  # vertical
             self._vpaned.remove(self._vpanei)
             self._vpanei.remove(view)
-            self._vpanei.remove(canvas)
+            self._vpanei.remove(self.t_canvas)
             self._vpanei.remove(self.a_canvas)
 
         SETTING["viewer_tools"] = parameter.get_string()
@@ -3673,10 +3672,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         view.set_zoom_to_fit(False)
         view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
-            canvas.pointer_ungrab(widget, ev.time())
+            self.t_canvas.pointer_ungrab(widget, ev.time())
 
         if bbox:
-            canvas.set_index_by_bbox(bbox)
+            self.t_canvas.set_index_by_bbox(bbox)
 
     def edit_annotation(self, widget, _target=None, ev=None, bbox=None):
         "Edit annotation"
