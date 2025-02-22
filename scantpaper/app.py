@@ -184,8 +184,6 @@ ocr_textview = None
 ann_hbox = None
 ann_textbuffer = None
 ann_textview = None
-# session dir
-session = None
 # filehandle for session lockfile
 lockfh = None
 # Temp::File object for PDF to be emailed
@@ -265,133 +263,6 @@ def parse_arguments():
     return args
 
 
-def check_dependencies():
-    "Check for presence of various packages"
-
-    dependencies["tesseract"] = tesserocr.tesseract_version()
-    dependencies["tesserocr"] = tesserocr.__version__
-    if dependencies["tesseract"]:
-        logger.info(
-            "Found tesserocr %s, %s",
-            dependencies["tesserocr"],
-            dependencies["tesseract"],
-        )
-    dependencies["unpaper"] = Unpaper().program_version()
-    if dependencies["unpaper"]:
-        logger.info("Found unpaper %s", dependencies["unpaper"])
-
-    dependency_rules = [
-        [
-            "imagemagick",
-            "stdout",
-            r"Version:\sImageMagick\s([\d.-]+)",
-            ["convert", "--version"],
-        ],
-        ["graphicsmagick", "stdout", r"GraphicsMagick\s([\d.-]+)", ["gm", "-version"]],
-        ["xdg", "stdout", r"xdg-email\s([^\n]+)", ["xdg-email", "--version"]],
-        ["djvu", "stderr", r"DjVuLibre-([\d.]+)", ["cjb2", "--version"]],
-        ["libtiff", "both", r"LIBTIFF,\sVersion\s([\d.]+)", ["tiffcp", "-h"]],
-        # pdftops and pdfunite are both in poppler-utils, and so the version is
-        # the version is the same.
-        # Both are needed, though to update %dependencies
-        ["pdftops", "stderr", r"pdftops\sversion\s([\d.]+)", ["pdftops", "-v"]],
-        ["pdfunite", "stderr", r"pdfunite\sversion\s([\d.]+)", ["pdfunite", "-v"]],
-        ["pdf2ps", "stdout", r"([\d.]+)", ["gs", "--version"]],
-        ["pdftk", "stdout", r"([\d.]+)", ["pdftk", "--version"]],
-        ["xz", "stdout", r"([\d.]+)", ["xz", "--version"]],
-    ]
-
-    for name, stream, regex, cmd in dependency_rules:
-        dependencies[name] = program_version(stream, regex, cmd)
-        if dependencies[name] and dependencies[name] == "-1":
-            del dependencies[name]
-
-        if not dependencies["imagemagick"] and dependencies["graphicsmagick"]:
-            msg = (
-                _("GraphicsMagick is being used in ImageMagick compatibility mode.")
-                + SPACE
-                + _("Whilst this might work, it is not currently supported.")
-                + SPACE
-                + _("Please switch to ImageMagick in case of problems.")
-            )
-            app.window.show_message_dialog(
-                parent=app.window,
-                message_type="warning",
-                buttons=Gtk.ButtonsType.OK,
-                text=msg,
-                store_response=True,
-            )
-            dependencies["imagemagick"] = dependencies["graphicsmagick"]
-
-        if dependencies[name]:
-            logger.info("Found %s %s", name, dependencies[name])
-            if name == "pdftk":
-
-                # Don't create PDF  directly with imagemagick, as
-                # some distros configure imagemagick not to write PDFs
-                with tempfile.NamedTemporaryFile(
-                    dir=session.name, suffix=".jpg"
-                ) as tempimg:
-                    exec_command(["convert", "rose:", tempimg.name])
-                with tempfile.NamedTemporaryFile(
-                    dir=session.name, suffix=".pdf"
-                ) as temppdf:
-                    # pdfobj = PDF.Builder( -file = temppdf )
-                    # page   = pdfobj.page()
-                    # size   = Gscan2pdf.Document.POINTS_PER_INCH
-                    # page.mediabox( size, size )
-                    # gfx    = page.gfx()
-                    # imgobj = pdfobj.image_jpeg(tempimg)
-                    # gfx.image( imgobj, 0, 0, size, size )
-                    # pdfobj.save()
-                    # pdfobj.end()
-                    proc = exec_command([name, temppdf.name, "dump_data"])
-                msg = None
-                if re.search(
-                    r"Error:[ ]could[ ]not[ ]load[ ]a[ ]required[ ]library",
-                    proc.stdout,
-                    re.MULTILINE | re.DOTALL | re.VERBOSE,
-                ):
-                    msg = _(
-                        "pdftk is installed, but seems to be missing required dependencies:\n%s"
-                    ) % (proc.stdout)
-
-                # elif not re.search(r"NumberOfPages",proc.stdout,
-                #                    re.MULTILINE|re.DOTALL|re.VERBOSE):
-                #     logger.debug(f"before msg {_}")
-                #     msg = _(
-                # 'pdftk is installed, but cannot access the directory used for temporary files.'
-                #                       )                       + _(
-                # 'One reason for this might be that pdftk was installed via snap.'
-                #                       )                       + _(
-                # 'In this case, removing pdftk, and reinstalling without using '
-                #   'snap would allow gscan2pdf to use pdftk.'
-                #                       )                       + _(
-                # 'Another workaround would be to select a temporary directory under '
-                #  'your home directory in Edit/Preferences.'
-                #                       )
-
-                if msg:
-                    del dependencies[name]
-                    app.window.show_message_dialog(
-                        parent=app.window,
-                        message_type="warning",
-                        buttons=Gtk.ButtonsType.OK,
-                        text=msg,
-                        store_response=True,
-                    )
-
-    # OCR engine options
-    if dependencies["tesseract"]:
-        ocr_engine.append(
-            ["tesseract", _("Tesseract"), _("Process image with Tesseract.")]
-        )
-
-    # Build a look-up table of all true-type fonts installed
-    proc = exec_command(["fc-list", ":", "family", "style", "file"])
-    app._fonts = parse_truetype_fonts(proc.stdout)
-
-
 def selection_changed_callback(_selection):
     "Handle selection change"
     selection = slist.get_selected_indices()
@@ -443,151 +314,6 @@ def drag_motion_callback(tree, context, x, y, t):
         v = value - step
         m = adj.get_lower()
         adj.set_value(m if v < m else v)
-
-
-def create_temp_directory():
-    "Create a temporary directory for the session"
-    global session
-    app.tmpdir = get_tmp_dir(SETTING["TMPDIR"], r"gscan2pdf-\w\w\w\w")
-    find_crashed_sessions(app.tmpdir)
-
-    # Create temporary directory if necessary
-    if session is None:
-        if app.tmpdir is not None and app.tmpdir != EMPTY:
-            if not os.path.isdir(app.tmpdir):
-                os.mkdir(app.tmpdir)
-            try:
-                session = tempfile.TemporaryDirectory(
-                    prefix="gscan2pdf-", dir=app.tmpdir
-                )
-            except:
-                session = tempfile.TemporaryDirectory(prefix="gscan2pdf-")
-        else:
-            session = (
-                tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
-                    prefix="gscan2pdf-"
-                )
-            )
-
-        slist.set_dir(session.name)
-        create_lockfile()
-        slist.save_session()
-        logger.info("Using %s for temporary files", session.name)
-        app.tmpdir = os.path.dirname(session.name)
-        if "TMPDIR" in SETTING and SETTING["TMPDIR"] != app.tmpdir:
-            logger.warning(
-                _(
-                    "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-                ),
-                SETTING["TMPDIR"],
-                app.tmpdir,
-            )
-            SETTING["TMPDIR"] = app.tmpdir
-
-
-def create_lockfile():
-    "create a lockfile in the session directory"
-    with open(os.path.join(session.name, "lockfile"), "w", encoding="utf-8") as lockfh:
-        fcntl.lockf(lockfh, fcntl.LOCK_EX)
-
-
-def find_crashed_sessions(tmpdir):
-    "Look for crashed sessions"
-    if tmpdir is None or tmpdir == EMPTY:
-        tmpdir = tempfile.gettempdir()
-
-    logger.info("Checking %s for crashed sessions", tmpdir)
-    sessions = glob.glob(os.path.join(tmpdir, "gscan2pdf-????"))
-    crashed, selected = [], []
-
-    # Forget those used by running sessions
-    for session in sessions:
-        try:
-            create_lockfile()
-            crashed.append(session)
-        except Exception as e:
-            logger.warning("Error opening lockfile %s (%s)", lockfh, str(e))
-
-    # Flag those with no session file
-    missing = []
-    for i, session in enumerate(crashed):
-        if not os.access(os.path.join(session, "session"), os.R_OK):
-            missing.append(session)
-            del crashed[i]
-
-    if missing:
-        logger.info("Unrestorable sessions: %s", SPACE.join(missing))
-        dialog = Gtk.Dialog(
-            title=_("Crashed sessions"),
-            transient_for=app.window,
-            modal=True,
-        )
-        dialog.add_buttons(
-            Gtk.STOCK_DELETE,
-            Gtk.ResponseType.OK,
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-        )
-        text = Gtk.TextView()
-        text.set_wrap_mode("word")
-        text.get_buffer().set_text(
-            _("The following list of sessions cannot be restored.")
-            + SPACE
-            + _("Please retrieve any images you require from them.")
-            + SPACE
-            + _("Selected sessions will be deleted.")
-        )
-        dialog.get_content_area().add(text)
-        columns = {_("Session"): "text"}
-        sessionlist = SimpleList(**columns)
-        sessionlist.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
-        sessionlist.data.append(missing)
-        dialog.get_content_area().add(sessionlist)
-        (button) = dialog.get_action_area().get_children()
-
-        def changed_selection_callback():
-            button.set_sensitive(len(sessionlist.get_selected_indices()) > 0)
-
-        sessionlist.get_selection().connect("changed", changed_selection_callback)
-        sessionlist.get_selection().select_all()
-        dialog.show_all()
-        if dialog.run() == Gtk.ResponseType.OK:
-            selected = sessionlist.get_selected_indices()
-            for i, _v in enumerate(selected):
-                selected[i] = missing[i]
-            logger.info("Selected for deletion: %s", SPACE.join(selected))
-            if selected:
-                shutil.rmtree(selected)
-        else:
-            logger.info("None selected")
-
-        dialog.destroy()
-
-    # Allow user to pick a crashed session to restore
-    if crashed:
-        dialog = Gtk.Dialog(
-            title=_("Pick crashed session to restore"),
-            transient_for=app.window,
-            modal=True,
-        )
-        dialog.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
-        label = Gtk.Label(label=_("Pick crashed session to restore"))
-        box = dialog.get_content_area()
-        box.add(label)
-        columns = {_("Session"): "text"}
-        sessionlist = SimpleList(**columns)
-        sessionlist.data.append(crashed)
-        box.add(sessionlist)
-        dialog.show_all()
-        if dialog.run() == Gtk.ResponseType.OK:
-            selected = sessionlist.get_selected_indices()
-
-        dialog.destroy()
-        if selected is not None:
-            session = crashed[selected]
-            create_lockfile()
-            slist.set_dir(session)
-            open_session(session)
 
 
 def display_callback(response):
@@ -794,7 +520,7 @@ def error_callback(response):
 
 def open_session_file(filename):
     "open session"
-    logger.info("Restoring session in %s", session)
+    logger.info("Restoring session in %s", app.window.session)
     slist.open_session_file(info=filename, error_callback=error_callback)
 
 
@@ -822,7 +548,7 @@ def open_session_action(_action):
 
 def open_session(sesdir):
     "open session"
-    logger.info("Restoring session in %s", session)
+    logger.info("Restoring session in %s", app.window.session)
     slist.open_session(dir=sesdir, delete=False, error_callback=error_callback)
 
 
@@ -862,7 +588,7 @@ def open_dialog(_action, _param):
     if file_chooser.run() == Gtk.ResponseType.OK:
 
         # cd back to tempdir to import
-        os.chdir(session.name)
+        os.chdir(app.window.session.name)
 
         # Update undo/redo buffers
         take_snapshot()
@@ -876,7 +602,7 @@ def open_dialog(_action, _param):
         file_chooser.destroy()
 
     # cd back to tempdir
-    os.chdir(session.name)
+    os.chdir(app.window.session.name)
 
 
 def import_files_password_callback(filename):
@@ -1084,7 +810,7 @@ def save_djvu(filename, uuids):
     "Save a list of pages as a DjVu file."
 
     # cd back to tempdir
-    os.chdir(session.name)
+    os.chdir(app.window.session.name)
 
     # Create the DjVu
     logger.debug("Started saving %s", filename)
@@ -1212,7 +938,7 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
     rotate = SETTING["rotate facing"] if page_number % 2 else SETTING["rotate reverse"]
     options = {
         "page": page_number,
-        "dir": session.name,
+        "dir": app.window.session.name,
         "to_png": SETTING["to_png"],
         "rotate": rotate,
         "ocr": SETTING["OCR on scan"],
@@ -1341,7 +1067,7 @@ def print_dialog(_action, _param):
     res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, app.window)
     if res == Gtk.PrintOperationResult.APPLY:
         app.window.print_settings = print_op.get_print_settings()
-    os.chdir(session.name)
+    os.chdir(app.window.session.name)
 
 
 def cut_selection(_action, _param):
@@ -2246,17 +1972,17 @@ def take_snapshot():
     actions["undo"].set_enabled(True)
 
     # Check free space in session directory
-    df = shutil.disk_usage(session.name)
+    df = shutil.disk_usage(app.window.session.name)
     if df:
         df = df.free / 1024 / 1024
         logger.debug(
             "Free space in %s (Mb): %s (warning at %s)",
-            session.name,
+            app.window.session.name,
             df,
             SETTING["available-tmp-warning"],
         )
         if df < SETTING["available-tmp-warning"]:
-            text = _("%dMb free in %s.") % (df, session.name)
+            text = _("%dMb free in %s.") % (df, app.window.session.name)
             app.window.show_message_dialog(
                 parent=app.window,
                 message_type="warning",
@@ -2504,7 +2230,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     hbox.pack_start(label, False, False, 0)
     tmpentry = Gtk.Entry()
     hbox.add(tmpentry)
-    tmpentry.set_text(os.path.dirname(session.name))
+    tmpentry.set_text(os.path.dirname(app.window.session.name))
     button = Gtk.Button(label=_("Browse"))
 
     def choose_temp_dir():
@@ -2833,10 +2559,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._prevent_image_tool_update = False
         self._rotate_side_cmbx = None
         self._rotate_side_cmbx2 = None
-        self._args = None
-        # GooCanvas for text layer
-        self.t_canvas = None
-        # GooCanvas for annotation layer
+        self.session = None  # session dir
+        self._args = None  # GooCanvas for text layer
+        self.t_canvas = None  # GooCanvas for annotation layer
         self.a_canvas = None
 
         # These will be in the window group and have the "win" prefix
@@ -3068,7 +2793,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # The temp directory has to be available before we start checking for
         # dependencies in order to be used for the pdftk check.
-        create_temp_directory()
+        self.create_temp_directory()
 
         # Create the toolbar
         main_vbox.pack_start(self.create_toolbar(), False, False, 0)
@@ -3481,7 +3206,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Create the menu bar, initialize its menus, and return the menu bar"
 
         # Check for presence of various packages
-        check_dependencies()
+        self.check_dependencies()
 
         # Ghost save image item if imagemagick not available
         msg = EMPTY
@@ -3772,6 +3497,280 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if self._windows:
             self._windows._update_start_page()
 
+    def create_temp_directory(self):
+        "Create a temporary directory for the session"
+        tmpdir = get_tmp_dir(SETTING["TMPDIR"], r"gscan2pdf-\w\w\w\w")
+        self.find_crashed_sessions(tmpdir)
+
+        # Create temporary directory if necessary
+        if self.session is None:
+            if tmpdir is not None and tmpdir != EMPTY:
+                if not os.path.isdir(tmpdir):
+                    os.mkdir(tmpdir)
+                try:
+                    self.session = tempfile.TemporaryDirectory(
+                        prefix="gscan2pdf-", dir=tmpdir
+                    )
+                except:
+                    self.session = tempfile.TemporaryDirectory(prefix="gscan2pdf-")
+            else:
+                self.session = (
+                    tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
+                        prefix="gscan2pdf-"
+                    )
+                )
+
+            slist.set_dir(self.session.name)
+            self.create_lockfile()
+            slist.save_session()
+            logger.info("Using %s for temporary files", self.session.name)
+            tmpdir = os.path.dirname(self.session.name)
+            if "TMPDIR" in SETTING and SETTING["TMPDIR"] != tmpdir:
+                logger.warning(
+                    _(
+                        "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+                    ),
+                    SETTING["TMPDIR"],
+                    tmpdir,
+                )
+                SETTING["TMPDIR"] = tmpdir
+
+    def create_lockfile(self):
+        "create a lockfile in the session directory"
+        with open(
+            os.path.join(self.session.name, "lockfile"), "w", encoding="utf-8"
+        ) as lockfh:
+            fcntl.lockf(lockfh, fcntl.LOCK_EX)
+
+    def check_dependencies(self):
+        "Check for presence of various packages"
+
+        dependencies["tesseract"] = tesserocr.tesseract_version()
+        dependencies["tesserocr"] = tesserocr.__version__
+        if dependencies["tesseract"]:
+            logger.info(
+                "Found tesserocr %s, %s",
+                dependencies["tesserocr"],
+                dependencies["tesseract"],
+            )
+        dependencies["unpaper"] = Unpaper().program_version()
+        if dependencies["unpaper"]:
+            logger.info("Found unpaper %s", dependencies["unpaper"])
+
+        dependency_rules = [
+            [
+                "imagemagick",
+                "stdout",
+                r"Version:\sImageMagick\s([\d.-]+)",
+                ["convert", "--version"],
+            ],
+            [
+                "graphicsmagick",
+                "stdout",
+                r"GraphicsMagick\s([\d.-]+)",
+                ["gm", "-version"],
+            ],
+            ["xdg", "stdout", r"xdg-email\s([^\n]+)", ["xdg-email", "--version"]],
+            ["djvu", "stderr", r"DjVuLibre-([\d.]+)", ["cjb2", "--version"]],
+            ["libtiff", "both", r"LIBTIFF,\sVersion\s([\d.]+)", ["tiffcp", "-h"]],
+            # pdftops and pdfunite are both in poppler-utils, and so the version is
+            # the version is the same.
+            # Both are needed, though to update %dependencies
+            ["pdftops", "stderr", r"pdftops\sversion\s([\d.]+)", ["pdftops", "-v"]],
+            ["pdfunite", "stderr", r"pdfunite\sversion\s([\d.]+)", ["pdfunite", "-v"]],
+            ["pdf2ps", "stdout", r"([\d.]+)", ["gs", "--version"]],
+            ["pdftk", "stdout", r"([\d.]+)", ["pdftk", "--version"]],
+            ["xz", "stdout", r"([\d.]+)", ["xz", "--version"]],
+        ]
+
+        for name, stream, regex, cmd in dependency_rules:
+            dependencies[name] = program_version(stream, regex, cmd)
+            if dependencies[name] and dependencies[name] == "-1":
+                del dependencies[name]
+
+            if not dependencies["imagemagick"] and dependencies["graphicsmagick"]:
+                msg = (
+                    _("GraphicsMagick is being used in ImageMagick compatibility mode.")
+                    + SPACE
+                    + _("Whilst this might work, it is not currently supported.")
+                    + SPACE
+                    + _("Please switch to ImageMagick in case of problems.")
+                )
+                self.show_message_dialog(
+                    parent=self,
+                    message_type="warning",
+                    buttons=Gtk.ButtonsType.OK,
+                    text=msg,
+                    store_response=True,
+                )
+                dependencies["imagemagick"] = dependencies["graphicsmagick"]
+
+            if dependencies[name]:
+                logger.info("Found %s %s", name, dependencies[name])
+                if name == "pdftk":
+
+                    # Don't create PDF  directly with imagemagick, as
+                    # some distros configure imagemagick not to write PDFs
+                    with tempfile.NamedTemporaryFile(
+                        dir=self.session.name, suffix=".jpg"
+                    ) as tempimg:
+                        exec_command(["convert", "rose:", tempimg.name])
+                    with tempfile.NamedTemporaryFile(
+                        dir=self.session.name, suffix=".pdf"
+                    ) as temppdf:
+                        # pdfobj = PDF.Builder( -file = temppdf )
+                        # page   = pdfobj.page()
+                        # size   = Gscan2pdf.Document.POINTS_PER_INCH
+                        # page.mediabox( size, size )
+                        # gfx    = page.gfx()
+                        # imgobj = pdfobj.image_jpeg(tempimg)
+                        # gfx.image( imgobj, 0, 0, size, size )
+                        # pdfobj.save()
+                        # pdfobj.end()
+                        proc = exec_command([name, temppdf.name, "dump_data"])
+                    msg = None
+                    if re.search(
+                        r"Error:[ ]could[ ]not[ ]load[ ]a[ ]required[ ]library",
+                        proc.stdout,
+                        re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    ):
+                        msg = _(
+                            "pdftk is installed, but seems to be missing required dependencies:\n%s"
+                        ) % (proc.stdout)
+
+                    # elif not re.search(r"NumberOfPages",proc.stdout,
+                    #                    re.MULTILINE|re.DOTALL|re.VERBOSE):
+                    #     logger.debug(f"before msg {_}")
+                    #     msg = _(
+                    # 'pdftk is installed, but cannot access the directory used for temporary files.'
+                    #                       )                       + _(
+                    # 'One reason for this might be that pdftk was installed via snap.'
+                    #                       )                       + _(
+                    # 'In this case, removing pdftk, and reinstalling without using '
+                    #   'snap would allow gscan2pdf to use pdftk.'
+                    #                       )                       + _(
+                    # 'Another workaround would be to select a temporary directory under '
+                    #  'your home directory in Edit/Preferences.'
+                    #                       )
+
+                    if msg:
+                        del dependencies[name]
+                        self.show_message_dialog(
+                            parent=self,
+                            message_type="warning",
+                            buttons=Gtk.ButtonsType.OK,
+                            text=msg,
+                            store_response=True,
+                        )
+
+        # OCR engine options
+        if dependencies["tesseract"]:
+            ocr_engine.append(
+                ["tesseract", _("Tesseract"), _("Process image with Tesseract.")]
+            )
+
+        # Build a look-up table of all true-type fonts installed
+        proc = exec_command(["fc-list", ":", "family", "style", "file"])
+        app._fonts = parse_truetype_fonts(proc.stdout)
+
+    def find_crashed_sessions(self, tmpdir):
+        "Look for crashed sessions"
+        if tmpdir is None or tmpdir == EMPTY:
+            tmpdir = tempfile.gettempdir()
+
+        logger.info("Checking %s for crashed sessions", tmpdir)
+        sessions = glob.glob(os.path.join(tmpdir, "gscan2pdf-????"))
+        crashed, selected = [], []
+
+        # Forget those used by running sessions
+        for session in sessions:
+            try:
+                self.create_lockfile()
+                crashed.append(session)
+            except Exception as e:
+                logger.warning("Error opening lockfile %s (%s)", lockfh, str(e))
+
+        # Flag those with no session file
+        missing = []
+        for i, session in enumerate(crashed):
+            if not os.access(os.path.join(session, "session"), os.R_OK):
+                missing.append(session)
+                del crashed[i]
+
+        if missing:
+            logger.info("Unrestorable sessions: %s", SPACE.join(missing))
+            dialog = Gtk.Dialog(
+                title=_("Crashed sessions"),
+                transient_for=self,
+                modal=True,
+            )
+            dialog.add_buttons(
+                Gtk.STOCK_DELETE,
+                Gtk.ResponseType.OK,
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+            )
+            text = Gtk.TextView()
+            text.set_wrap_mode("word")
+            text.get_buffer().set_text(
+                _("The following list of sessions cannot be restored.")
+                + SPACE
+                + _("Please retrieve any images you require from them.")
+                + SPACE
+                + _("Selected sessions will be deleted.")
+            )
+            dialog.get_content_area().add(text)
+            columns = {_("Session"): "text"}
+            sessionlist = SimpleList(**columns)
+            sessionlist.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
+            sessionlist.data.append(missing)
+            dialog.get_content_area().add(sessionlist)
+            (button) = dialog.get_action_area().get_children()
+
+            def changed_selection_callback():
+                button.set_sensitive(len(sessionlist.get_selected_indices()) > 0)
+
+            sessionlist.get_selection().connect("changed", changed_selection_callback)
+            sessionlist.get_selection().select_all()
+            dialog.show_all()
+            if dialog.run() == Gtk.ResponseType.OK:
+                selected = sessionlist.get_selected_indices()
+                for i, _v in enumerate(selected):
+                    selected[i] = missing[i]
+                logger.info("Selected for deletion: %s", SPACE.join(selected))
+                if selected:
+                    shutil.rmtree(selected)
+            else:
+                logger.info("None selected")
+
+            dialog.destroy()
+
+        # Allow user to pick a crashed session to restore
+        if crashed:
+            dialog = Gtk.Dialog(
+                title=_("Pick crashed session to restore"),
+                transient_for=self,
+                modal=True,
+            )
+            dialog.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+            label = Gtk.Label(label=_("Pick crashed session to restore"))
+            box = dialog.get_content_area()
+            box.add(label)
+            columns = {_("Session"): "text"}
+            sessionlist = SimpleList(**columns)
+            sessionlist.data.append(crashed)
+            box.add(sessionlist)
+            dialog.show_all()
+            if dialog.run() == Gtk.ResponseType.OK:
+                selected = sessionlist.get_selected_indices()
+
+            dialog.destroy()
+            if selected is not None:
+                self.session = crashed[selected]
+                self.create_lockfile()
+                slist.set_dir(self.session)
+                open_session(self.session)
+
     def show_message_dialog(self, **kwargs):
         "Displays a message dialog with the given options."
         if self._message_dialog is None:
@@ -3878,7 +3877,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         kwargs = {
             "transient_for": app.window,
             "title": _("Scan Document"),
-            "dir": session,
+            "dir": self.session,
             "hide_on_delete": True,
             "paper_formats": SETTING["Paper"],
             "allow_batch_flatbed": SETTING["allow-batch-flatbed"],
@@ -4856,7 +4855,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.show()
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
 
         elif SETTING["image type"] == "djvu":
             self._windowi.update_config_dict(SETTING)
@@ -4898,7 +4897,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.show()
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
 
         elif SETTING["image type"] == "tif":
             SETTING["tiff compression"] = self._windowi.tiff_compression
@@ -4929,7 +4928,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.show()
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
 
         elif SETTING["image type"] == "txt":
 
@@ -4958,7 +4957,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.show()
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
 
         elif SETTING["image type"] == "hocr":
 
@@ -4987,7 +4986,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.show()
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
 
         elif SETTING["image type"] == "ps":
             SETTING["ps_backend"] = self._windowi.ps_backend
@@ -5018,7 +5017,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.show()
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
 
         elif SETTING["image type"] == "session":
 
@@ -5047,7 +5046,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.show()
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
 
         elif SETTING["image type"] == "jpg":
             SETTING["quality"] = self._windowi.jpeg_quality
@@ -5098,7 +5097,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             elif filetype == "ps":
                 if SETTING["ps_backend"] == "libtiff":
-                    tif = tempfile.TemporaryFile(dir=session, suffix=".tif")
+                    tif = tempfile.TemporaryFile(dir=self.session, suffix=".tif")
                     save_tiff(tif.filename(), filename, uuids)
 
                 else:
@@ -5201,7 +5200,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             SETTING["cwd"] = os.path.dirname(filename)
 
             # cd back to tempdir
-            os.chdir(session.name)
+            os.chdir(self.session.name)
             if len(uuids) > 1:
                 w = len(uuids)
                 for i in range(1, len(uuids) + 1):
@@ -5364,7 +5363,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
             if re.search(r"^\s+$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE):
                 filename = "document"
-            pdf = f"{session}/{filename}.pdf"
+            pdf = f"{self.session}/{filename}.pdf"
 
             # Create the PDF
 
@@ -5503,7 +5502,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             update_list_user_defined_tools(
                 vboxt, [comboboxudt, self._windows.comboboxudt]
             )
-            tmp = os.path.abspath(os.path.join(session.name, ".."))  # Up a level
+            tmp = os.path.abspath(os.path.join(self.session.name, ".."))  # Up a level
 
             # Expand tildes in the filename
             newdir = get_tmp_dir(
@@ -5540,9 +5539,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         os.chdir(SETTING["cwd"])
 
         # Remove temporary files
-        for file in glob.glob(session.name + "/*"):
+        for file in glob.glob(self.session.name + "/*"):
             os.remove(file)
-        os.rmdir(session.name)
+        os.rmdir(self.session.name)
         # Write window state to settings
         SETTING["window_width"], SETTING["window_height"] = app.window.get_size()
         SETTING["window_x"], SETTING["window_y"] = app.window.get_position()
@@ -5613,8 +5612,6 @@ class Application(Gtk.Application):
         self.builder.connect_signals(self)
         self.detail_popup = self.builder.get_object("detail_popup")
         self._fonts = None
-        # dir below session dir
-        self.tmpdir = None
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
