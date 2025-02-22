@@ -182,7 +182,6 @@ dependencies = {}
 menubar = None
 toolbar = None
 ocr_engine = []
-windowr = None
 view = None
 windowp = None
 message_dialog = None
@@ -3605,130 +3604,6 @@ def mark_pages(pages):
     slist.get_model().handler_unblock(slist.row_changed_signal)
 
 
-def preferences(_action, _param):
-    "Preferences dialog"
-    global windowr
-    if windowr is not None:
-        windowr.present()
-        return
-
-    windowr = Dialog(
-        transient_for=app.window,
-        title=_("Preferences"),
-        hide_on_delete=True,
-    )
-    vbox = windowr.get_content_area()
-
-    # Notebook for scan and general options
-    notebook = Gtk.Notebook()
-    vbox.pack_start(notebook, True, True, 0)
-    (
-        vbox1,
-        cbo,
-        blacklist,
-        cbcsh,
-        cb_batch_flatbed,
-        cb_cancel_btw_pages,
-        cb_adf_all_pages,
-        cb_cache_device_list,
-        cb_ignore_duplex,
-    ) = _preferences_scan_options(windowr.get_border_width())
-    notebook.append_page(vbox1, Gtk.Label(label=_("Scan options")))
-    (
-        vbox2,
-        fileentry,
-        cbw,
-        cbtz,
-        cbtm,
-        cbts,
-        cbtp,
-        tmpentry,
-        spinbuttonw,
-        spinbuttonb,
-        spinbuttond,
-        _ocr_function,
-        comboo,
-        cbv,
-        cbb,
-        vboxt,
-    ) = _preferences_general_options(windowr.get_border_width())
-    notebook.append_page(vbox2, Gtk.Label(label=_("General options")))
-
-    def preferences_apply_callback():
-        windowr.hide()
-
-        SETTING["auto-open-scan-dialog"] = cbo.get_active()
-        try:
-            text = blacklist.get_text()
-            re.search(text, "dummy_device", re.MULTILINE | re.DOTALL | re.VERBOSE)
-        except:
-            msg = _("Invalid regex. Try without special characters such as '*'")
-            logger.warning(msg)
-            show_message_dialog(
-                parent=windowr,
-                message_type="error",
-                buttons=Gtk.ButtonsType.CLOSE,
-                text=msg,
-                store_response=True,
-            )
-            blacklist.set_text(SETTING["device blacklist"])
-
-        SETTING["device blacklist"] = blacklist.get_text()
-        SETTING["cycle sane handle"] = cbcsh.get_active()
-        SETTING["allow-batch-flatbed"] = cb_batch_flatbed.get_active()
-        SETTING["cancel-between-pages"] = cb_cancel_btw_pages.get_active()
-        SETTING["adf-defaults-scan-all-pages"] = cb_adf_all_pages.get_active()
-        SETTING["cache-device-list"] = cb_cache_device_list.get_active()
-        SETTING["ignore-duplex-capabilities"] = cb_ignore_duplex.get_active()
-        SETTING["default filename"] = fileentry.get_text()
-        SETTING["restore window"] = cbw.get_active()
-        SETTING["use_timezone"] = cbtz.get_active()
-        SETTING["use_time"] = cbtm.get_active()
-        SETTING["set_timestamp"] = cbts.get_active()
-        SETTING["to_png"] = cbtp.get_active()
-        SETTING["convert whitespace to underscores"] = cbb.get_active()
-        if windows:
-            windows.cycle_sane_handle = SETTING["cycle sane handle"]
-            windows.cancel_between_pages = SETTING["cancel-between-pages"]
-            windows.allow_batch_flatbed = SETTING["allow-batch-flatbed"]
-            windows.ignore_duplex_capabilities = SETTING["ignore-duplex-capabilities"]
-
-        if windowi is not None:
-            windowi.include_time = SETTING["use_time"]
-
-        SETTING["available-tmp-warning"] = spinbuttonw.get_value()
-        SETTING["Blank threshold"] = spinbuttonb.get_value()
-        SETTING["Dark threshold"] = spinbuttond.get_value()
-        SETTING["OCR output"] = comboo.get_active_index()
-
-        # Store viewer preferences
-        SETTING["view files toggle"] = cbv.get_active()
-        update_list_user_defined_tools(vboxt, [comboboxudt, windows.comboboxudt])
-        tmp = os.path.abspath(os.path.join(session.name, ".."))  # Up a level
-
-        # Expand tildes in the filename
-        newdir = get_tmp_dir(
-            str(pathlib.Path(tmpentry.get_text()).expanduser()), r"gscan2pdf-\w\w\w\w"
-        )
-        if newdir != tmp:
-            SETTING["TMPDIR"] = newdir
-            response = ask_question(
-                parent=app.window,
-                type="question",
-                buttons=Gtk.ButtonsType.OK_CANCEL,
-                text=_("Changes will only take effect after restarting gscan2pdf.")
-                + SPACE
-                + _("Restart gscan2pdf now?"),
-            )
-            if response == Gtk.ResponseType.OK:
-                restart()
-
-    windowr.add_actions(
-        [("gtk-ok", preferences_apply_callback), ("gtk-cancel", windowr.hide)]
-    )
-    windowr.show_all()
-
-
 def _preferences_scan_options(border_width):
 
     vbox = Gtk.VBox()
@@ -3929,7 +3804,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     def choose_temp_dir():
         file_chooser = Gtk.FileChooserDialog(
             title=_("Select temporary directory"),
-            parent=windowr,
+            parent=app.window._windowr,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
         )
         file_chooser.add_buttons(
@@ -4390,7 +4265,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("select-no-ocr", select_no_ocr),
             ("clear-ocr", clear_ocr),
             ("properties", properties),
-            ("preferences", preferences),
+            ("preferences", self.preferences),
             ("zoom-100", zoom_100),
             ("zoom-to-fit", zoom_to_fit),
             ("zoom-in", zoom_in),
@@ -4431,6 +4306,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowc = None
         self._windowo = None
         self._windowe = None
+        self._windowr = None
         self.connect("delete-event", lambda w, e: not ask_quit())
 
         def window_state_event_callback(_w, event):
@@ -5630,6 +5506,131 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             [("gtk-ok", email_callback), ("gtk-cancel", self._windowe.hide)]
         )
         self._windowe.show_all()
+
+    def preferences(self, _action, _param):
+        "Preferences dialog"
+        if self._windowr is not None:
+            self._windowr.present()
+            return
+
+        self._windowr = Dialog(
+            transient_for=app.window,
+            title=_("Preferences"),
+            hide_on_delete=True,
+        )
+        vbox = self._windowr.get_content_area()
+
+        # Notebook for scan and general options
+        notebook = Gtk.Notebook()
+        vbox.pack_start(notebook, True, True, 0)
+        (
+            vbox1,
+            cbo,
+            blacklist,
+            cbcsh,
+            cb_batch_flatbed,
+            cb_cancel_btw_pages,
+            cb_adf_all_pages,
+            cb_cache_device_list,
+            cb_ignore_duplex,
+        ) = _preferences_scan_options(self._windowr.get_border_width())
+        notebook.append_page(vbox1, Gtk.Label(label=_("Scan options")))
+        (
+            vbox2,
+            fileentry,
+            cbw,
+            cbtz,
+            cbtm,
+            cbts,
+            cbtp,
+            tmpentry,
+            spinbuttonw,
+            spinbuttonb,
+            spinbuttond,
+            _ocr_function,
+            comboo,
+            cbv,
+            cbb,
+            vboxt,
+        ) = _preferences_general_options(self._windowr.get_border_width())
+        notebook.append_page(vbox2, Gtk.Label(label=_("General options")))
+
+        def preferences_apply_callback():
+            self._windowr.hide()
+
+            SETTING["auto-open-scan-dialog"] = cbo.get_active()
+            try:
+                text = blacklist.get_text()
+                re.search(text, "dummy_device", re.MULTILINE | re.DOTALL | re.VERBOSE)
+            except:
+                msg = _("Invalid regex. Try without special characters such as '*'")
+                logger.warning(msg)
+                show_message_dialog(
+                    parent=self._windowr,
+                    message_type="error",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    text=msg,
+                    store_response=True,
+                )
+                blacklist.set_text(SETTING["device blacklist"])
+
+            SETTING["device blacklist"] = blacklist.get_text()
+            SETTING["cycle sane handle"] = cbcsh.get_active()
+            SETTING["allow-batch-flatbed"] = cb_batch_flatbed.get_active()
+            SETTING["cancel-between-pages"] = cb_cancel_btw_pages.get_active()
+            SETTING["adf-defaults-scan-all-pages"] = cb_adf_all_pages.get_active()
+            SETTING["cache-device-list"] = cb_cache_device_list.get_active()
+            SETTING["ignore-duplex-capabilities"] = cb_ignore_duplex.get_active()
+            SETTING["default filename"] = fileentry.get_text()
+            SETTING["restore window"] = cbw.get_active()
+            SETTING["use_timezone"] = cbtz.get_active()
+            SETTING["use_time"] = cbtm.get_active()
+            SETTING["set_timestamp"] = cbts.get_active()
+            SETTING["to_png"] = cbtp.get_active()
+            SETTING["convert whitespace to underscores"] = cbb.get_active()
+            if windows:
+                windows.cycle_sane_handle = SETTING["cycle sane handle"]
+                windows.cancel_between_pages = SETTING["cancel-between-pages"]
+                windows.allow_batch_flatbed = SETTING["allow-batch-flatbed"]
+                windows.ignore_duplex_capabilities = SETTING[
+                    "ignore-duplex-capabilities"
+                ]
+
+            if windowi is not None:
+                windowi.include_time = SETTING["use_time"]
+
+            SETTING["available-tmp-warning"] = spinbuttonw.get_value()
+            SETTING["Blank threshold"] = spinbuttonb.get_value()
+            SETTING["Dark threshold"] = spinbuttond.get_value()
+            SETTING["OCR output"] = comboo.get_active_index()
+
+            # Store viewer preferences
+            SETTING["view files toggle"] = cbv.get_active()
+            update_list_user_defined_tools(vboxt, [comboboxudt, windows.comboboxudt])
+            tmp = os.path.abspath(os.path.join(session.name, ".."))  # Up a level
+
+            # Expand tildes in the filename
+            newdir = get_tmp_dir(
+                str(pathlib.Path(tmpentry.get_text()).expanduser()),
+                r"gscan2pdf-\w\w\w\w",
+            )
+            if newdir != tmp:
+                SETTING["TMPDIR"] = newdir
+                response = ask_question(
+                    parent=app.window,
+                    type="question",
+                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                    text=_("Changes will only take effect after restarting gscan2pdf.")
+                    + SPACE
+                    + _("Restart gscan2pdf now?"),
+                )
+                if response == Gtk.ResponseType.OK:
+                    restart()
+
+        self._windowr.add_actions(
+            [("gtk-ok", preferences_apply_callback), ("gtk-cancel", self._windowr.hide)]
+        )
+        self._windowr.show_all()
 
 
 class Application(Gtk.Application):
