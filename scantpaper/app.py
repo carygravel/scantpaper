@@ -183,7 +183,6 @@ menubar = None
 toolbar = None
 ocr_engine = []
 view = None
-windowp = None
 message_dialog = None
 # GooCanvas for text layer
 canvas = None
@@ -3993,72 +3992,6 @@ def update_post_save_hooks():
         windowi.comboboxpsh.set_active_by_text(SETTING["current_psh"])
 
 
-def properties(_action, _param):
-    "Display and manage the properties dialog for setting X and Y resolution."
-    global windowp
-    if windowp is not None:
-        windowp.present()
-        return
-
-    windowp = Dialog(
-        transient_for=app.window,
-        title=_("Properties"),
-        hide_on_delete=True,
-    )
-    vbox = windowp.get_content_area()
-    hbox = Gtk.HBox()
-    vbox.pack_start(hbox, True, True, 0)
-    label = Gtk.Label(label=d_sane("X Resolution"))
-    hbox.pack_start(label, False, False, 0)
-    xspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
-    xspinbutton.set_digits(1)
-    hbox.pack_start(xspinbutton, True, True, 0)
-    label = Gtk.Label(label=_("dpi"))
-    hbox.pack_end(label, False, False, 0)
-    hbox = Gtk.HBox()
-    vbox.pack_start(hbox, True, True, 0)
-    label = Gtk.Label(label=d_sane("Y Resolution"))
-    hbox.pack_start(label, False, False, 0)
-    yspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
-    yspinbutton.set_digits(1)
-    hbox.pack_start(yspinbutton, True, True, 0)
-    label = Gtk.Label(label=_("dpi"))
-    hbox.pack_end(label, False, False, 0)
-    xresolution, yresolution = get_selected_properties()
-    logger.debug("get_selected_properties returned %s,%s", xresolution, yresolution)
-    xspinbutton.set_value(xresolution)
-    yspinbutton.set_value(yresolution)
-
-    def selection_changed_callback():
-        xresolution, yresolution = get_selected_properties()
-        logger.debug("get_selected_properties returned %s,%s", xresolution, yresolution)
-        xspinbutton.set_value(xresolution)
-        yspinbutton.set_value(yresolution)
-
-    slist.get_selection().connect("changed", selection_changed_callback)
-
-    def properties_apply_callback():
-        windowp.hide()
-        xresolution = xspinbutton.get_value()
-        yresolution = yspinbutton.get_value()
-        slist.get_model().handler_block(slist.row_changed_signal)
-        for i in slist.get_selected_indices():
-            logger.debug(
-                "setting resolution %s,%s for page %s",
-                xresolution,
-                yresolution,
-                slist.data[i][0],
-            )
-            slist.data[i][2].resolution = xresolution, yresolution, "PixelsPerInch"
-
-        slist.get_model().handler_unblock(slist.row_changed_signal)
-
-    windowp.add_actions(
-        [("gtk-ok", properties_apply_callback), ("gtk-cancel", windowp.hide)]
-    )
-    windowp.show_all()
-
-
 def get_selected_properties():
     "Helper function for properties()"
     page = slist.get_selected_indices()
@@ -4264,7 +4197,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("select-modified", select_modified_since_ocr),
             ("select-no-ocr", select_no_ocr),
             ("clear-ocr", clear_ocr),
-            ("properties", properties),
+            ("properties", self.properties),
             ("preferences", self.preferences),
             ("zoom-100", zoom_100),
             ("zoom-to-fit", zoom_to_fit),
@@ -4307,6 +4240,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowo = None
         self._windowe = None
         self._windowr = None
+        self._windowp = None
         self.connect("delete-event", lambda w, e: not ask_quit())
 
         def window_state_event_callback(_w, event):
@@ -5168,6 +5102,72 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if windows:
             windows._update_start_page()
 
+    def properties(self, _action, _param):
+        "Display and manage the properties dialog for setting X and Y resolution."
+        if self._windowp is not None:
+            self._windowp.present()
+            return
+
+        self._windowp = Dialog(
+            transient_for=self,
+            title=_("Properties"),
+            hide_on_delete=True,
+        )
+        vbox = self._windowp.get_content_area()
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
+        label = Gtk.Label(label=d_sane("X Resolution"))
+        hbox.pack_start(label, False, False, 0)
+        xspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
+        xspinbutton.set_digits(1)
+        hbox.pack_start(xspinbutton, True, True, 0)
+        label = Gtk.Label(label=_("dpi"))
+        hbox.pack_end(label, False, False, 0)
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
+        label = Gtk.Label(label=d_sane("Y Resolution"))
+        hbox.pack_start(label, False, False, 0)
+        yspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
+        yspinbutton.set_digits(1)
+        hbox.pack_start(yspinbutton, True, True, 0)
+        label = Gtk.Label(label=_("dpi"))
+        hbox.pack_end(label, False, False, 0)
+        xresolution, yresolution = get_selected_properties()
+        logger.debug("get_selected_properties returned %s,%s", xresolution, yresolution)
+        xspinbutton.set_value(xresolution)
+        yspinbutton.set_value(yresolution)
+
+        def selection_changed_callback():
+            xresolution, yresolution = get_selected_properties()
+            logger.debug(
+                "get_selected_properties returned %s,%s", xresolution, yresolution
+            )
+            xspinbutton.set_value(xresolution)
+            yspinbutton.set_value(yresolution)
+
+        slist.get_selection().connect("changed", selection_changed_callback)
+
+        def properties_apply_callback():
+            self._windowp.hide()
+            xresolution = xspinbutton.get_value()
+            yresolution = yspinbutton.get_value()
+            slist.get_model().handler_block(slist.row_changed_signal)
+            for i in slist.get_selected_indices():
+                logger.debug(
+                    "setting resolution %s,%s for page %s",
+                    xresolution,
+                    yresolution,
+                    slist.data[i][0],
+                )
+                slist.data[i][2].resolution = xresolution, yresolution, "PixelsPerInch"
+
+            slist.get_model().handler_unblock(slist.row_changed_signal)
+
+        self._windowp.add_actions(
+            [("gtk-ok", properties_apply_callback), ("gtk-cancel", self._windowp.hide)]
+        )
+        self._windowp.show_all()
+
     def about(self, _action, _param):
         "Display about dialog"
         about = Gtk.AboutDialog()
@@ -5274,7 +5274,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         about.set_logo(
             GdkPixbuf.Pixbuf.new_from_file(f"{self._iconpath}/gscan2pdf.svg")
         )
-        about.set_transient_for(self.window)
+        about.set_transient_for(self)
         about.run()
         about.destroy()
 
@@ -5321,7 +5321,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             return
 
         self._windowo = Dialog(
-            transient_for=app.window,
+            transient_for=self,
             title=_("OCR"),
             hide_on_delete=True,
         )
@@ -5514,7 +5514,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             return
 
         self._windowr = Dialog(
-            transient_for=app.window,
+            transient_for=self,
             title=_("Preferences"),
             hide_on_delete=True,
         )
@@ -5808,7 +5808,7 @@ class Application(Gtk.Application):
 
     def on_properties(self, _widget):
         "displays the properties dialog."
-        properties(None, None)
+        self.window.properties(None, None)
 
     def on_quit(self, _action, _param):
         "Handles the quit action."
