@@ -158,10 +158,6 @@ GLib.set_prgname("net.sourceforge.gscan2pdf")
 prog_name = GLib.get_application_name()
 VERSION = "3.0.0"
 
-# Image border to ensure that a scaled to fit image gets no scrollbars
-border = 1
-
-debug = False
 EMPTY = ""
 SPACE = " "
 DOT = "."
@@ -169,10 +165,7 @@ PERCENT = "%"
 ASTERISK = "*"
 logger = logging.getLogger(__name__)
 
-save_button = None
 dependencies = {}
-menubar = None
-toolbar = None
 ocr_engine = []
 ocr_text_hbox = None
 ocr_textbuffer = None
@@ -186,8 +179,6 @@ lockfh = None
 # Define here to make sure that it doesn't get deleted until the next email
 # is created or we quit
 pdf = None
-# SimpleList in preferences dialog
-option_visibility_list = None
 # Comboboxes for user-defined tools and rotate buttons
 comboboxudt = None
 actions = {}
@@ -2621,7 +2612,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def _pre_flight(self):
         """
-        Pre-flight initialization function that sets up global variables,
+        Pre-flight initialization function that initialises variables,
         captures warnings, reads configuration, logs system information,
         and initializes various components.
         """
@@ -3188,7 +3179,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "user-defined",
         ]:
             actions[action].set_enabled(False)
-        # uimanager.get_widget('/MenuBar/Tools/User-defined').set_sensitive(False)
 
         if not dependencies["unpaper"]:
             msg += _("unpaper missing\n")
@@ -3424,8 +3414,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             actions["print"].set_enabled(True)
             actions["save"].set_enabled(True)
-            if save_button is not None:
-                save_button.set_sensitive(True)
 
         else:
             if dependencies["xdg"]:
@@ -3435,8 +3423,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             actions["print"].set_enabled(False)
             actions["save"].set_enabled(False)
-            if save_button is not None:
-                save_button.set_sensitive(False)
 
         actions["paste"].set_enabled(bool(self.slist.clipboard))
 
