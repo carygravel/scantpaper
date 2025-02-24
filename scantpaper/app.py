@@ -163,9 +163,7 @@ logger = logging.getLogger(__name__)
 
 dependencies = {}
 ocr_engine = []
-ocr_textview = None
 ann_textbuffer = None
-ann_textview = None
 # filehandle for session lockfile
 lockfh = None
 # Temp::File object for PDF to be emailed
