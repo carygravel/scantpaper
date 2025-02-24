@@ -163,7 +163,6 @@ logger = logging.getLogger(__name__)
 
 dependencies = {}
 ocr_engine = []
-ocr_textbuffer = None
 ocr_textview = None
 ann_textbuffer = None
 ann_textview = None
@@ -2483,6 +2482,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.t_canvas = None  # GooCanvas for annotation layer
         self.a_canvas = None
         self._ocr_text_hbox = None
+        self._ocr_textbuffer = None
         self._ann_hbox = None
         self.slist = None
 
@@ -2855,7 +2855,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         edit_vbox.pack_start(self._ocr_text_hbox, True, True, 0)
         ocr_textview = Gtk.TextView()
         ocr_textview.set_tooltip_text(_("Text layer"))
-        ocr_textbuffer = ocr_textview.get_buffer()
+        self._ocr_textbuffer = ocr_textview.get_buffer()
         ocr_text_fbutton = Gtk.Button()
         ocr_text_fbutton.set_image(
             Gtk.Image.new_from_icon_name("go-first", Gtk.IconSize.BUTTON)
@@ -2912,7 +2912,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ocr_text_button_clicked(_widget):
             take_snapshot()
-            text = ocr_textbuffer.text
+            text = self._ocr_textbuffer.get_text(
+                self._ocr_textbuffer.get_start_iter(),
+                self._ocr_textbuffer.get_end_iter(),
+                False,
+            )
             logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
             self._current_ocr_bbox.update_box(text, self.view.get_selection())
             self._current_page.import_hocr(self.t_canvas.hocr())
@@ -2927,7 +2931,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ocr_text_copy(_widget):
             self._current_ocr_bbox = self.t_canvas.add_box(
-                text=ocr_textbuffer.text, bbox=self.view.get_selection()
+                text=self._ocr_textbuffer.get_text(
+                    self._ocr_textbuffer.get_start_iter(),
+                    self._ocr_textbuffer.get_end_iter(),
+                    False,
+                ),
+                bbox=self.view.get_selection(),
             )
             self._current_page.import_hocr(self.t_canvas.hocr())
             self.edit_ocr_text(self._current_ocr_bbox)
@@ -2941,8 +2950,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def ocr_text_add(_widget):
             take_snapshot()
-            text = ocr_textbuffer.text
-            if (text is None) or text == EMPTY:
+            text = self._ocr_textbuffer.get_text(
+                self._ocr_textbuffer.get_start_iter(),
+                self._ocr_textbuffer.get_end_iter(),
+                False,
+            )
+            if text is None or text == EMPTY:
                 text = _("my-new-word")
 
             # If we don't yet have a canvas, create one
@@ -3322,6 +3335,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
         "Edit OCR text"
+        logger.debug("edit_ocr_text(%s, %s, %s, %s)", widget, _target, ev, bbox)
         if not ev:
             bbox = widget
 
@@ -3329,7 +3343,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             return
 
         self._current_ocr_bbox = bbox
-        ocr_textbuffer.text = bbox.text
+        self._ocr_textbuffer.set_text(bbox.text)
         self._ocr_text_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.set_zoom_to_fit(False)
