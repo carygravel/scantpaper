@@ -187,7 +187,19 @@
       </item>
     </section>
     <section>
-    <item>
+      <item>
+        <attribute name="label" translatable="yes">Edit text layer</attribute>
+        <attribute name="action">win.editmode</attribute>
+        <attribute name="target">text</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Edit annotations</attribute>
+        <attribute name="action">win.editmode</attribute>
+        <attribute name="target">annotation</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="action">win.zoom-100</attribute>
         <attribute name="label" translatable="yes">Zoom _100%</attribute>
       </item>
