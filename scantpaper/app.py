@@ -136,11 +136,7 @@ _270_DEGREES = 270
 DRAGGER_TOOL = 10
 SELECTOR_TOOL = 20
 SELECTORDRAGGER_TOOL = 30
-TABBED_VIEW = 100
-SPLIT_VIEW_H = 101
-SPLIT_VIEW_V = 102
 EDIT_TEXT = 200
-EDIT_ANNOTATION = 201
 EMPTY_LIST = -1
 _100_PERCENT = 100
 MAX_DPI = 2400
@@ -167,10 +163,8 @@ logger = logging.getLogger(__name__)
 
 dependencies = {}
 ocr_engine = []
-ocr_text_hbox = None
 ocr_textbuffer = None
 ocr_textview = None
-ann_hbox = None
 ann_textbuffer = None
 ann_textview = None
 # filehandle for session lockfile
@@ -378,17 +372,6 @@ def create_ann_canvas(page, finished_callback=None):
     app.window.a_canvas.set_scale(app.window.view.get_zoom())
     app.window.a_canvas.set_offset(offset.x, offset.y)
     app.window.a_canvas.show()
-
-
-def edit_tools_callback(_action, current):
-    "Show/hide the edit tools"
-    if current.get_current_value() == EDIT_TEXT:
-        ocr_text_hbox.show()
-        ann_hbox.hide()
-        return
-
-    ocr_text_hbox.hide()
-    ann_hbox.show()
 
 
 def scans_saved(message):
@@ -2499,6 +2482,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.view = None
         self.t_canvas = None  # GooCanvas for annotation layer
         self.a_canvas = None
+        self._ocr_text_hbox = None
+        self._ann_hbox = None
         self.slist = None
 
         # These will be in the window group and have the "win" prefix
@@ -2560,8 +2545,19 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         actions["viewtype"] = Gio.SimpleAction.new_stateful(
             "viewtype", GLib.VariantType.new("s"), GLib.Variant.new_string("tabbed")
         )
-        app = self.get_application()
-        app.set_menubar(app.builder.get_object("menubar"))
+        actions["editmode"] = Gio.SimpleAction.new_stateful(
+            "editmode", GLib.VariantType.new("s"), GLib.Variant.new_string("text")
+        )
+
+        # add the actions to the window that have window-classed callbacks
+        self.add_action(actions["tooltype"])
+        self.add_action(actions["viewtype"])
+        self.add_action(actions["editmode"])
+
+        # connect the action callback for tools and view
+        actions["tooltype"].connect("activate", self._change_image_tool_cb)
+        actions["viewtype"].connect("activate", self._change_view_cb)
+        actions["editmode"].connect("activate", self._edit_mode_callback)
 
         self._pre_flight()
         self.print_settings = None
@@ -2656,21 +2652,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         logger.info("sane.__version__ %s", sane.__version__)
         logger.info("sane.init() %s", sane.init())
 
-        # add the actions to the window that have window-classed callbacks
-        app.add_action(actions["tooltype"])
-        app.add_action(actions["viewtype"])
-
-        # connect the action callback for tools and view
-        actions["tooltype"].connect("activate", self._change_image_tool_cb)
-        actions["viewtype"].connect("activate", self._change_view_cb)
-
         # initialise image control tool radio button setting
         self._change_image_tool_cb(
             actions["tooltype"], GLib.Variant("s", self.settings["image_control_tool"])
         )
+
+        app = self.get_application()
         app.builder.get_object(
             "context_" + self.settings["image_control_tool"]
         ).set_active(True)
+        app.set_menubar(app.builder.get_object("menubar"))
 
     def _read_config(self):
         "Read the configuration file"
@@ -2858,10 +2849,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._vpaned = Gtk.VPaned()
         self._hpaned.pack2(self._vpaned, True, True)
         self._vpaned.show()
-        ocr_text_hbox = Gtk.HBox()
+        self._ocr_text_hbox = Gtk.HBox()
         edit_vbox = Gtk.HBox()
         self._vpaned.pack2(edit_vbox, False, True)
-        edit_vbox.pack_start(ocr_text_hbox, True, True, 0)
+        edit_vbox.pack_start(self._ocr_text_hbox, True, True, 0)
         ocr_textview = Gtk.TextView()
         ocr_textview.set_tooltip_text(_("Text layer"))
         ocr_textbuffer = ocr_textview.get_buffer()
@@ -2930,7 +2921,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_obutton.connect("clicked", ocr_text_button_clicked)
         ocr_text_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ocr_text_cbutton.set_tooltip_text(_("Cancel corrections"))
-        ocr_text_cbutton.connect("clicked", lambda _: ocr_text_hbox.hide())
+        ocr_text_cbutton.connect("clicked", lambda _: self._ocr_text_hbox.hide())
         ocr_text_ubutton = Gtk.Button.new_with_mnemonic(label=_("_Copy"))
         ocr_text_ubutton.set_tooltip_text(_("Duplicate text"))
 
@@ -2995,21 +2986,21 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.edit_ocr_text(self.t_canvas.get_current_bbox())
 
         ocr_text_dbutton.connect("clicked", ocr_text_delete)
-        ocr_text_hbox.pack_start(ocr_text_fbutton, False, False, 0)
-        ocr_text_hbox.pack_start(ocr_text_pbutton, False, False, 0)
-        ocr_text_hbox.pack_start(ocr_text_scmbx, False, False, 0)
-        ocr_text_hbox.pack_start(ocr_text_nbutton, False, False, 0)
-        ocr_text_hbox.pack_start(ocr_text_lbutton, False, False, 0)
-        ocr_text_hbox.pack_start(ocr_textview, False, False, 0)
-        ocr_text_hbox.pack_end(ocr_text_dbutton, False, False, 0)
-        ocr_text_hbox.pack_end(ocr_text_cbutton, False, False, 0)
-        ocr_text_hbox.pack_end(ocr_text_obutton, False, False, 0)
-        ocr_text_hbox.pack_end(ocr_text_ubutton, False, False, 0)
-        ocr_text_hbox.pack_end(ocr_text_abutton, False, False, 0)
+        self._ocr_text_hbox.pack_start(ocr_text_fbutton, False, False, 0)
+        self._ocr_text_hbox.pack_start(ocr_text_pbutton, False, False, 0)
+        self._ocr_text_hbox.pack_start(ocr_text_scmbx, False, False, 0)
+        self._ocr_text_hbox.pack_start(ocr_text_nbutton, False, False, 0)
+        self._ocr_text_hbox.pack_start(ocr_text_lbutton, False, False, 0)
+        self._ocr_text_hbox.pack_start(ocr_textview, False, False, 0)
+        self._ocr_text_hbox.pack_end(ocr_text_dbutton, False, False, 0)
+        self._ocr_text_hbox.pack_end(ocr_text_cbutton, False, False, 0)
+        self._ocr_text_hbox.pack_end(ocr_text_obutton, False, False, 0)
+        self._ocr_text_hbox.pack_end(ocr_text_ubutton, False, False, 0)
+        self._ocr_text_hbox.pack_end(ocr_text_abutton, False, False, 0)
 
         # split panes for detail view/text layer canvas and text layer dialog
-        ann_hbox = Gtk.HBox()
-        edit_vbox.pack_start(ann_hbox, True, True, 0)
+        self._ann_hbox = Gtk.HBox()
+        edit_vbox.pack_start(self._ann_hbox, True, True, 0)
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
         ann_textbuffer = ann_textview.get_buffer()
@@ -3026,7 +3017,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_obutton.connect("clicked", ann_text_ok)
         ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ann_cbutton.set_tooltip_text(_("Cancel corrections"))
-        ann_cbutton.connect("clicked", ann_hbox.hide)
+        ann_cbutton.connect("clicked", self._ann_hbox.hide)
         ann_abutton = Gtk.Button()
         ann_abutton.set_image(
             Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
@@ -3079,11 +3070,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.edit_annotation(self.t_canvas.get_bbox_by_index())
 
         ann_dbutton.connect("clicked", ann_text_delete)
-        ann_hbox.pack_start(ann_textview, False, False, 0)
-        ann_hbox.pack_end(ann_dbutton, False, False, 0)
-        ann_hbox.pack_end(ann_cbutton, False, False, 0)
-        ann_hbox.pack_end(ann_obutton, False, False, 0)
-        ann_hbox.pack_end(ann_abutton, False, False, 0)
+        self._ann_hbox.pack_start(ann_textview, False, False, 0)
+        self._ann_hbox.pack_end(ann_dbutton, False, False, 0)
+        self._ann_hbox.pack_end(ann_cbutton, False, False, 0)
+        self._ann_hbox.pack_end(ann_obutton, False, False, 0)
+        self._ann_hbox.pack_end(ann_abutton, False, False, 0)
         self._pack_viewer_tools()
 
         # Set up call back for list selection to update detail view
@@ -3124,8 +3115,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         phbox.add(self.post_process_progress)
 
         # OCR text editing interface
-        ocr_text_hbox.show()
-        ann_hbox.hide()
+        self._ocr_text_hbox.show()
+        self._ann_hbox.hide()
 
         # Open scan dialog in background
         if self.settings["auto-open-scan-dialog"]:
@@ -3319,6 +3310,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.settings["viewer_tools"] = parameter.get_string()
         self._pack_viewer_tools()
 
+    def _edit_mode_callback(self, action, parameter):
+        "Show/hide the edit tools"
+        action.set_state(parameter)
+        if parameter.get_string() == "text":
+            self._ocr_text_hbox.show()
+            self._ann_hbox.hide()
+            return
+        self._ocr_text_hbox.hide()
+        self._ann_hbox.show()
+
     def edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
         "Edit OCR text"
         if not ev:
@@ -3329,7 +3330,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self._current_ocr_bbox = bbox
         ocr_textbuffer.text = bbox.text
-        ocr_text_hbox.show_all()
+        self._ocr_text_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.set_zoom_to_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
@@ -3346,7 +3347,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self._current_ann_bbox = bbox
         ann_textbuffer.text = bbox.text
-        ann_hbox.show_all()
+        self._ann_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.set_zoom_to_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
@@ -3375,6 +3376,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "properties",
             "tooltype",
             "viewtype",
+            "editmode",
             "zoom-100",
             "zoom-to-fit",
             "zoom-in",
