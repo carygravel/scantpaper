@@ -269,7 +269,7 @@ class Canvas(
         self._drag_start = {}
         self._pixbuf_size = None
 
-        # allow the widget to accessed via CSS
+        # allow the widget to be accessed via CSS
         self.set_name("gscan2pdf-ocr-canvas")
 
     def get_max_color_hsv(self):
