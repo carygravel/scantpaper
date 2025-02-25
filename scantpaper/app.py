@@ -164,10 +164,6 @@ logger = logging.getLogger(__name__)
 
 dependencies = {}
 ocr_engine = []
-# Temp::File object for PDF to be emailed
-# Define here to make sure that it doesn't get deleted until the next email
-# is created or we quit
-pdf = None
 # Comboboxes for user-defined tools and rotate buttons
 comboboxudt = None
 actions = {}
@@ -2483,6 +2479,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ann_textbuffer = None
         self._lockfd = None
         self.slist = None
+
+        # Temp::File object for PDF to be emailed
+        # Define here to make sure that it doesn't get deleted until the next email
+        # is created or we quit
+        self._pdf_email = None
 
         # These will be in the window group and have the "win" prefix
         for name, function in [
@@ -5449,7 +5450,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
             if re.search(r"^\s+$", filename, re.MULTILINE | re.DOTALL | re.VERBOSE):
                 filename = "document"
-            pdf = f"{self.session}/{filename}.pdf"
+            self._pdf_email = f"{self.session.name}/{filename}.pdf"
 
             # Create the PDF
 
@@ -5460,9 +5461,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     "view files toggle" in self.settings
                     and self.settings["view files toggle"]
                 ):
-                    launch_default_for_file(pdf)
+                    launch_default_for_file(self._pdf_email)
 
-                status = exec_command(["xdg-email", "--attach", pdf, "x@y"])
+                status = exec_command(["xdg-email", "--attach", self._pdf_email, "x@y"])
                 if status:
                     self.show_message_dialog(
                         parent=self,
@@ -5472,7 +5473,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     )
 
             self.slist.save_pdf(
-                path=pdf,
+                path=self._pdf_email,
                 list_of_pages=uuids,
                 metadata=collate_metadata(self.settings, datetime.datetime.now()),
                 options=options,
