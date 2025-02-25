@@ -165,7 +165,6 @@ logger = logging.getLogger(__name__)
 dependencies = {}
 ocr_engine = []
 # Comboboxes for user-defined tools and rotate buttons
-comboboxudt = None
 actions = {}
 
 
@@ -1711,42 +1710,6 @@ def update_view_position(direction, position, width, height):
     app.window.view.set_selection(selection)
 
 
-def user_defined_dialog(_action, _param):
-    "Displays a dialog for selecting and applying user-defined tools."
-    windowudt = Dialog(
-        transient_for=app.window,
-        title=_("User-defined tools"),
-        hide_on_delete=True,
-    )
-
-    # Frame for page range
-    windowudt.add_page_range()
-    hbox = Gtk.HBox()
-    vbox = windowudt.get_content_area()
-    vbox.pack_start(hbox, False, False, 0)
-    label = Gtk.Label(label=_("Selected tool"))
-    hbox.pack_start(label, False, True, 0)
-    comboboxudt = app.window.add_udt_combobox(hbox)
-
-    def udt_apply_callback():
-        app.window.settings["Page range"] = windowudt.page_range
-        pagelist = indices2pages(
-            app.window.slist.get_page_index(
-                app.window.settings["Page range"], error_callback
-            )
-        )
-        if not pagelist:
-            return
-        app.window.settings["current_udt"] = comboboxudt.get_active_text()
-        user_defined_tool(pagelist, app.window.settings["current_udt"])
-        windowudt.hide()
-
-    windowudt.add_actions(
-        [("gtk-ok", udt_apply_callback), ("gtk-cancel", windowudt.hide)]
-    )
-    windowudt.show_all()
-
-
 def user_defined_tool(pages, cmd):
     "Run a user-defined tool on the selected images"
 
@@ -2225,11 +2188,13 @@ All document date codes use strftime codes with a leading D, e.g.:
 
     def clicked_add_udt(_action):
         add_user_defined_tool_entry(
-            vboxt, [comboboxudt, app.window._windows.comboboxudt], "my-tool %i %o"
+            vboxt,
+            [app.window._comboboxudt, app.window._windows.comboboxudt],
+            "my-tool %i %o",
         )
         vboxt.reorder_child(abutton, EMPTY_LIST)
         update_list_user_defined_tools(
-            vboxt, [comboboxudt, app.window._windows.comboboxudt]
+            vboxt, [app.window._comboboxudt, app.window._windows.comboboxudt]
         )
 
     abutton.connect("clicked", clicked_add_udt)
@@ -2478,6 +2443,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ann_hbox = None
         self._ann_textbuffer = None
         self._lockfd = None
+        self._comboboxudt = None
         self.slist = None
 
         # Temp::File object for PDF to be emailed
@@ -2529,7 +2495,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("split", split_dialog),
             ("unpaper", self.unpaper),
             ("ocr", self.ocr_dialog),
-            ("user-defined", user_defined_dialog),
+            ("user-defined", self.user_defined_dialog),
             ("help", view_html),
             ("about", self.about),
         ]:
@@ -4751,6 +4717,41 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if hboxtl is not None and ocr_engine[combobe.get_active()][0] != "tesseract":
             hboxtl.hide()
 
+    def user_defined_dialog(self, _action, _param):
+        "Displays a dialog for selecting and applying user-defined tools."
+        windowudt = Dialog(
+            transient_for=app.window,
+            title=_("User-defined tools"),
+            hide_on_delete=True,
+        )
+
+        # Frame for page range
+        windowudt.add_page_range()
+        hbox = Gtk.HBox()
+        vbox = windowudt.get_content_area()
+        vbox.pack_start(hbox, False, False, 0)
+        label = Gtk.Label(label=_("Selected tool"))
+        hbox.pack_start(label, False, True, 0)
+        self._comboboxudt = app.window.add_udt_combobox(hbox)
+
+        def udt_apply_callback():
+            app.window.settings["Page range"] = windowudt.page_range
+            pagelist = indices2pages(
+                app.window.slist.get_page_index(
+                    app.window.settings["Page range"], error_callback
+                )
+            )
+            if not pagelist:
+                return
+            app.window.settings["current_udt"] = self._comboboxudt.get_active_text()
+            user_defined_tool(pagelist, app.window.settings["current_udt"])
+            windowudt.hide()
+
+        windowudt.add_actions(
+            [("gtk-ok", udt_apply_callback), ("gtk-cancel", windowudt.hide)]
+        )
+        windowudt.show_all()
+
     def save_dialog(self, _action, _param):
         "Display page selector and on save a fileselector."
         if self._windowi is not None:
@@ -5592,7 +5593,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # Store viewer preferences
             self.settings["view files toggle"] = cbv.get_active()
             update_list_user_defined_tools(
-                vboxt, [comboboxudt, self._windows.comboboxudt]
+                vboxt, [self._comboboxudt, self._windows.comboboxudt]
             )
             tmp = os.path.abspath(os.path.join(self.session.name, ".."))  # Up a level
 
