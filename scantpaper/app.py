@@ -164,8 +164,6 @@ logger = logging.getLogger(__name__)
 
 dependencies = {}
 ocr_engine = []
-# filehandle for session lockfile
-lockfh = None
 # Temp::File object for PDF to be emailed
 # Define here to make sure that it doesn't get deleted until the next email
 # is created or we quit
@@ -2483,6 +2481,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ocr_textbuffer = None
         self._ann_hbox = None
         self._ann_textbuffer = None
+        self._lockfd = None
         self.slist = None
 
         # These will be in the window group and have the "win" prefix
@@ -3477,7 +3476,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 )
 
             self.slist.set_dir(self.session.name)
-            self.create_lockfile()
+            self._lockfd = self.create_lockfile()
             self.slist.save_session()
             logger.info("Using %s for temporary files", self.session.name)
             tmpdir = os.path.dirname(self.session.name)
@@ -3493,10 +3492,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def create_lockfile(self):
         "create a lockfile in the session directory"
-        with open(
+        lockfd = open(
             os.path.join(self.session.name, "lockfile"), "w", encoding="utf-8"
-        ) as lockfh:
-            fcntl.lockf(lockfh, fcntl.LOCK_EX)
+        )
+        fcntl.lockf(lockfd, fcntl.LOCK_EX)
+        return lockfd
 
     def check_dependencies(self):
         "Check for presence of various packages"
@@ -3644,7 +3644,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.create_lockfile()
                 crashed.append(session)
             except Exception as e:
-                logger.warning("Error opening lockfile %s (%s)", lockfh, str(e))
+                logger.warning("Error opening lockfile %s", str(e))
 
         # Flag those with no session file
         missing = []
@@ -5650,6 +5650,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         logger.info("Killing document thread(s)")
         self.slist.thread.quit()
         logger.debug("Quitting")
+
+        # remove lock
+        fcntl.lockf(self._lockfd, fcntl.LOCK_UN)
 
         # compress log file if we have xz
         if self._args.log and dependencies["xz"]:
