@@ -13,6 +13,7 @@
 # restore last used scan settings
 # use pathlib for all paths
 # refactor methods using self.slist.clipboard
+# refactor ocr & annotation manipulation into single class
 # persist data with sqlite
 # fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # migrate to Gtk4
@@ -163,7 +164,6 @@ logger = logging.getLogger(__name__)
 
 dependencies = {}
 ocr_engine = []
-ann_textbuffer = None
 # filehandle for session lockfile
 lockfh = None
 # Temp::File object for PDF to be emailed
@@ -2482,6 +2482,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ocr_text_hbox = None
         self._ocr_textbuffer = None
         self._ann_hbox = None
+        self._ann_textbuffer = None
         self.slist = None
 
         # These will be in the window group and have the "win" prefix
@@ -3014,12 +3015,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         edit_vbox.pack_start(self._ann_hbox, True, True, 0)
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
-        ann_textbuffer = ann_textview.get_buffer()
+        self._ann_textbuffer = ann_textview.get_buffer()
         ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
         ann_obutton.set_tooltip_text(_("Accept corrections"))
 
         def ann_text_ok(_widget):
-            text = ann_textbuffer.text
+            text = self._ann_textbuffer.get_text(
+                self._ann_textbuffer.get_start_iter(),
+                self._ann_textbuffer.get_end_iter(),
+                False,
+            )
             logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
             self._current_ann_bbox.update_box(text, self.view.get_selection())
             self._current_page.import_annotations(self.a_canvas.hocr())
@@ -3036,14 +3041,18 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ann_abutton.set_tooltip_text(_("Add annotation"))
 
         def ann_text_new(_widget):
-            text = ann_textbuffer.text
+            text = self._ann_textbuffer.get_text(
+                self._ann_textbuffer.get_start_iter(),
+                self._ann_textbuffer.get_end_iter(),
+                False,
+            )
             if text is None or text == EMPTY:
                 text = _("my-new-annotation")
 
             # If we don't yet have a canvas, create one
             selection = self.view.get_selection()
             if hasattr(self._current_page, "text_layer"):
-                logger.info("Added '%s'", ann_textbuffer.text)
+                logger.info("Added '%s'", text)
                 self._current_ann_bbox = self.a_canvas.add_box(
                     text=text, bbox=self.view.get_selection()
                 )
@@ -3358,7 +3367,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             bbox = widget
 
         self._current_ann_bbox = bbox
-        ann_textbuffer.text = bbox.text
+        self._ann_textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.set_zoom_to_fit(False)
