@@ -289,59 +289,6 @@ def add_filter(file_chooser, name, file_extensions):
     file_chooser.add_filter(ffilter)
 
 
-def open_dialog(_action, _param):
-    "Throw up file selector and open selected file"
-    # cd back to cwd to get filename
-    os.chdir(app.window.settings["cwd"])
-    file_chooser = Gtk.FileChooserDialog(
-        title=_("Open image"),
-        parent=app.window,
-        action=Gtk.FileChooserAction.OPEN,
-    )
-    file_chooser.add_buttons(
-        Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK
-    )
-    file_chooser.set_select_multiple(True)
-    file_chooser.set_default_response(Gtk.ResponseType.OK)
-    file_chooser.set_current_folder(app.window.settings["cwd"])
-    add_filter(
-        file_chooser,
-        _("Image files"),
-        [
-            "jpg",
-            "png",
-            "pnm",
-            "ppm",
-            "pbm",
-            "gif",
-            "tif",
-            "tiff",
-            "pdf",
-            "djvu",
-            "ps",
-            "gs2p",
-        ],
-    )
-    if file_chooser.run() == Gtk.ResponseType.OK:
-
-        # cd back to tempdir to import
-        os.chdir(app.window.session.name)
-
-        # Update undo/redo buffers
-        take_snapshot()
-        filenames = file_chooser.get_filenames()
-        file_chooser.destroy()
-
-        # Update cwd
-        app.window.settings["cwd"] = os.path.dirname(filenames[0])
-        import_files(filenames)
-    else:
-        file_chooser.destroy()
-
-    # cd back to tempdir
-    os.chdir(app.window.session.name)
-
-
 def import_files_password_callback(filename):
     "Ask for password for encrypted PDF"
     text = _("Enter user password for PDF %s") % (filename)
@@ -2223,7 +2170,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # These will be in the window group and have the "win" prefix
         for name, function in [
             ("new", self._new),
-            ("open", open_dialog),
+            ("open", self._open_dialog),
             ("open-session", self.open_session_action),
             ("scan", self.scan_dialog),
             ("save", self.save_dialog),
@@ -3546,6 +3493,61 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Reset start page in scan dialog
         self._windows._reset_start_page()
+
+    def _open_dialog(self, _action, _param):
+        "Throw up file selector and open selected file"
+        # cd back to cwd to get filename
+        os.chdir(self.settings["cwd"])
+        file_chooser = Gtk.FileChooserDialog(
+            title=_("Open image"),
+            parent=self,
+            action=Gtk.FileChooserAction.OPEN,
+        )
+        file_chooser.add_buttons(
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN,
+            Gtk.ResponseType.OK,
+        )
+        file_chooser.set_select_multiple(True)
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
+        file_chooser.set_current_folder(app.window.settings["cwd"])
+        add_filter(
+            file_chooser,
+            _("Image files"),
+            [
+                "jpg",
+                "png",
+                "pnm",
+                "ppm",
+                "pbm",
+                "gif",
+                "tif",
+                "tiff",
+                "pdf",
+                "djvu",
+                "ps",
+                "gs2p",
+            ],
+        )
+        if file_chooser.run() == Gtk.ResponseType.OK:
+
+            # cd back to tempdir to import
+            os.chdir(self.session.name)
+
+            # Update undo/redo buffers
+            take_snapshot()
+            filenames = file_chooser.get_filenames()
+            file_chooser.destroy()
+
+            # Update cwd
+            self.settings["cwd"] = os.path.dirname(filenames[0])
+            import_files(filenames)
+        else:
+            file_chooser.destroy()
+
+        # cd back to tempdir
+        os.chdir(self.session.name)
 
     def open_session_file(self, filename):
         "open session"
