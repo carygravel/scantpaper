@@ -289,46 +289,12 @@ def add_filter(file_chooser, name, file_extensions):
     file_chooser.add_filter(ffilter)
 
 
-def error_callback(response):
-    "Handle errors"
-    args = response.request.args
-    process = response.request.process
-    stage = response.type.name.lower()
-    message = response.status
-    page = None
-    if "page" in args[0]:
-        page = app.window.slist.data[
-            app.window.slist.find_page_by_uuid(args[0]["page"].uuid)
-        ][0]
-
-    kwargs = {
-        "parent": app.window,
-        "message_type": "error",
-        "buttons": Gtk.ButtonsType.CLOSE,
-        "process": process,
-        "text": message,
-        "store-response": True,
-        "page": page,
-    }
-
-    logger.error(
-        "Error running '%s' callback for '%s' process: %s", stage, process, message
-    )
-
-    def show_message_dialog_wrapper():
-        """Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
-        return immediately in order to allow it to work on subsequent pages
-        despite errors on previous ones"""
-        app.window.show_message_dialog(**kwargs)
-
-    GLib.idle_add(show_message_dialog_wrapper)
-    app.window.post_process_progress.hide()
-
-
 def open_session_file(filename):
     "open session"
     logger.info("Restoring session in %s", app.window.session)
-    app.window.slist.open_session_file(info=filename, error_callback=error_callback)
+    app.window.slist.open_session_file(
+        info=filename, error_callback=app.window.error_callback
+    )
 
 
 def open_session_action(_action):
@@ -357,7 +323,7 @@ def open_session(sesdir):
     "open session"
     logger.info("Restoring session in %s", app.window.session)
     app.window.slist.open_session(
-        dir=sesdir, delete=False, error_callback=error_callback
+        dir=sesdir, delete=False, error_callback=app.window.error_callback
     )
 
 
@@ -466,7 +432,7 @@ def import_files(filenames, all_pages=False):
         "running_callback": app.window.post_process_progress.update,
         "finished_callback": import_files_finished_callback,
         "metadata_callback": import_files_metadata_callback,
-        "error_callback": error_callback,
+        "error_callback": app.window.error_callback,
     }
     if all_pages:
 
@@ -532,7 +498,7 @@ def launch_default_for_file(filename):
 def list_of_page_uuids():
     "Compile list of pages"
     pagelist = app.window.slist.get_page_index(
-        app.window.settings["Page range"], error_callback
+        app.window.settings["Page range"], app.window.error_callback
     )
     if not pagelist:
         return []
@@ -616,7 +582,7 @@ def save_tiff(filename, ps, uuids):
         started_callback=app.window.post_process_progress.update,
         running_callback=app.window.post_process_progress.update,
         finished_callback=save_tiff_finished_callback,
-        error_callback=error_callback,
+        error_callback=app.window.error_callback,
     )
 
 
@@ -658,7 +624,7 @@ def save_djvu(filename, uuids):
         started_callback=app.window.post_process_progress.update,
         running_callback=app.window.post_process_progress.update,
         finished_callback=save_djvu_finished_callback,
-        error_callback=error_callback,
+        error_callback=app.window.error_callback,
     )
 
 
@@ -688,7 +654,7 @@ def save_text(filename, uuids):
         started_callback=app.window.post_process_progress.update,
         running_callback=app.window.post_process_progress.update,
         finished_callback=save_text_finished_callback,
-        error_callback=error_callback,
+        error_callback=app.window.error_callback,
     )
 
 
@@ -717,7 +683,7 @@ def save_hocr(filename, uuids):
         started_callback=app.window.post_process_progress.update,
         running_callback=app.window.post_process_progress.update,
         finished_callback=save_hocr_finished_callback,
-        error_callback=error_callback,
+        error_callback=app.window.error_callback,
     )
 
 
@@ -776,7 +742,7 @@ def new_scan_callback(_self, image_object, page_number, xresolution, yresolution
         "queued_callback": app.window.post_process_progress.queued,
         "started_callback": app.window.post_process_progress.update,
         "finished_callback": import_scan_finished_callback,
-        "error_callback": error_callback,
+        "error_callback": app.window.error_callback,
         "image_object": image_object,
         "resolution": (xresolution, yresolution, "PixelsPerInch"),
     }
@@ -1034,7 +1000,7 @@ def rotate(angle, pagelist):
             started_callback=app.window.post_process_progress.update,
             running_callback=app.window.post_process_progress.update,
             finished_callback=app.window.post_process_progress.finish,
-            error_callback=error_callback,
+            error_callback=app.window.error_callback,
             display_callback=app.window.display_callback,
         )
 
@@ -1083,7 +1049,7 @@ def analyse(select_blank, select_dark):
             started_callback=app.window.post_process_progress.update,
             running_callback=app.window.post_process_progress.update,
             finished_callback=analyse_finished_callback,
-            error_callback=error_callback,
+            error_callback=app.window.error_callback,
         )
 
     else:
@@ -1122,7 +1088,7 @@ def threshold(_action, _param):
         app.window.settings["threshold tool"] = spinbutton.get_value()
         app.window.settings["Page range"] = windowt.page_range
         pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], error_callback
+            app.window.settings["Page range"], app.window.error_callback
         )
         if not pagelist:
             return
@@ -1141,7 +1107,7 @@ def threshold(_action, _param):
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=threshold_finished_callback,
-                error_callback=error_callback,
+                error_callback=app.window.error_callback,
                 display_callback=app.window.display_callback,
             )
 
@@ -1196,7 +1162,7 @@ def brightness_contrast(_action, _param):
         app.window.settings["contrast tool"] = spinbuttonc.get_value()
         app.window.settings["Page range"] = windowt.page_range
         pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], error_callback
+            app.window.settings["Page range"], app.window.error_callback
         )
         if not pagelist:
             return
@@ -1214,7 +1180,7 @@ def brightness_contrast(_action, _param):
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=brightness_contrast_finished_callback,
-                error_callback=error_callback,
+                error_callback=app.window.error_callback,
                 display_callback=app.window.display_callback,
             )
 
@@ -1243,7 +1209,7 @@ def negate(_action, _param):
         take_snapshot()
         app.window.settings["Page range"] = windowt.page_range
         pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], error_callback
+            app.window.settings["Page range"], app.window.error_callback
         )
         if not pagelist:
             return
@@ -1259,7 +1225,7 @@ def negate(_action, _param):
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=negate_finished_callback,
-                error_callback=error_callback,
+                error_callback=app.window.error_callback,
                 display_callback=app.window.display_callback,
             )
 
@@ -1345,7 +1311,7 @@ def unsharp(_action, _param):
         app.window.settings["unsharp threshold"] = int(spinbuttont.get_value())
         app.window.settings["Page range"] = windowum.page_range
         pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], error_callback
+            app.window.settings["Page range"], app.window.error_callback
         )
         if not pagelist:
             return
@@ -1364,7 +1330,7 @@ def unsharp(_action, _param):
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=unsharp_finished_callback,
-                error_callback=error_callback,
+                error_callback=app.window.error_callback,
                 display_callback=app.window.display_callback,
             )
 
@@ -1403,7 +1369,7 @@ def crop_selection(_action, _param, pagelist=None):
             started_callback=app.window.post_process_progress.update,
             running_callback=app.window.post_process_progress.update,
             finished_callback=crop_finished_callback,
-            error_callback=error_callback,
+            error_callback=app.window.error_callback,
             display_callback=app.window.display_callback,
         )
 
@@ -1496,7 +1462,7 @@ def split_dialog(_action, _param):
         app.window.settings["split-position"] = sb_pos.get_value()
         app.window.settings["Page range"] = windowsp.page_range
         pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], error_callback
+            app.window.settings["Page range"], app.window.error_callback
         )
         if not pagelist:
             return
@@ -1516,7 +1482,7 @@ def split_dialog(_action, _param):
                 started_callback=app.window.post_process_progress.update,
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=split_finished_callback,
-                error_callback=error_callback,
+                error_callback=app.window.error_callback,
                 display_callback=app.window.display_callback,
             )
 
@@ -1569,7 +1535,7 @@ def user_defined_tool(pages, cmd):
             started_callback=app.window.post_process_progress.update,
             running_callback=app.window.post_process_progress.update,
             finished_callback=user_defined_finished_callback,
-            error_callback=error_callback,
+            error_callback=app.window.error_callback,
             display_callback=app.window.display_callback,
         )
 
@@ -1594,7 +1560,7 @@ def unpaper_page(pages, options):
             started_callback=app.window.post_process_progress.update,
             running_callback=app.window.post_process_progress.update,
             finished_callback=unpaper_finished_callback,
-            error_callback=error_callback,
+            error_callback=app.window.error_callback,
             display_callback=app.window.display_callback,
         )
 
@@ -1627,7 +1593,7 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
         "started_callback": app.window.post_process_progress.update,
         "running_callback": app.window.post_process_progress.update,
         "finished_callback": ocr_finished_callback,
-        "error_callback": error_callback,
+        "error_callback": app.window.error_callback,
         "display_callback": ocr_display_callback,
         "engine": engine,
         "language": app.window.settings["ocr language"],
@@ -1643,7 +1609,7 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
     app.window.settings["Page range"] = app.windwo._windowo.page_range
     pagelist = indices2pages(
         app.window.slist.get_page_index(
-            app.window.settings["Page range"], error_callback
+            app.window.settings["Page range"], app.window.error_callback
         )
     )
     if not pagelist:
@@ -4416,6 +4382,41 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.a_canvas.set_offset(offset.x, offset.y)
         self.a_canvas.show()
 
+    def error_callback(self, response):
+        "Handle errors"
+        args = response.request.args
+        process = response.request.process
+        stage = response.type.name.lower()
+        message = response.status
+        page = None
+        if "page" in args[0]:
+            page = self.slist.data[self.slist.find_page_by_uuid(args[0]["page"].uuid)][
+                0
+            ]
+
+        kwargs = {
+            "parent": self,
+            "message_type": "error",
+            "buttons": Gtk.ButtonsType.CLOSE,
+            "process": process,
+            "text": message,
+            "store-response": True,
+            "page": page,
+        }
+
+        logger.error(
+            "Error running '%s' callback for '%s' process: %s", stage, process, message
+        )
+
+        def show_message_dialog_wrapper():
+            """Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
+            return immediately in order to allow it to work on subsequent pages
+            despite errors on previous ones"""
+            self.show_message_dialog(**kwargs)
+
+        GLib.idle_add(show_message_dialog_wrapper)
+        self.post_process_progress.hide()
+
     def about(self, _action, _param):
         "Display about dialog"
         about = Gtk.AboutDialog()
@@ -4554,7 +4555,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             crop_selection(
                 None,  # action
                 None,  # param
-                self.slist.get_page_index(self.settings["Page range"], error_callback),
+                self.slist.get_page_index(
+                    self.settings["Page range"], self.error_callback
+                ),
             )
 
         self._windowc.add_actions(
@@ -4589,7 +4592,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # run unpaper
             pagelist = indices2pages(
-                self.slist.get_page_index(self.settings["Page range"], error_callback)
+                self.slist.get_page_index(
+                    self.settings["Page range"], self.error_callback
+                )
             )
             if not pagelist:
                 return
@@ -4708,7 +4713,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def udt_apply_callback():
             self.settings["Page range"] = windowudt.page_range
             pagelist = indices2pages(
-                self.slist.get_page_index(self.settings["Page range"], error_callback)
+                self.slist.get_page_index(
+                    self.settings["Page range"], self.error_callback
+                )
             )
             if not pagelist:
                 return
@@ -5218,7 +5225,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_pdf_finished_callback,
-            error_callback=error_callback,
+            error_callback=self.error_callback,
         )
 
     def save_image(self, uuids):
@@ -5318,7 +5325,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
                 finished_callback=save_image_finished_callback,
-                error_callback=error_callback,
+                error_callback=self.error_callback,
             )
             if self._windowi is not None:
                 self._windowi.hide()
@@ -5451,7 +5458,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
                 finished_callback=email_finished_callback,
-                error_callback=error_callback,
+                error_callback=self.error_callback,
             )
             self._windowe.hide()
 
