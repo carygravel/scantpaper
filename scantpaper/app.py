@@ -261,16 +261,6 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(m if v < m else v)
 
 
-def display_callback(response):
-    "Find the page from the input uuid and display it"
-    uuid = response.request.args[0]["page"].uuid
-    i = app.window.slist.find_page_by_uuid(uuid)
-    if i is None:
-        logger.error("Can't display page with uuid %s: page not found", uuid)
-    else:
-        display_image(app.window.slist.data[i][2])
-
-
 def display_image(page):
     "Display the image in the view"
     app.window._current_page = page
@@ -1168,7 +1158,7 @@ def rotate(angle, pagelist):
             running_callback=app.window.post_process_progress.update,
             finished_callback=app.window.post_process_progress.finish,
             error_callback=error_callback,
-            display_callback=display_callback,
+            display_callback=app.window.display_callback,
         )
 
 
@@ -1275,7 +1265,7 @@ def threshold(_action, _param):
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=threshold_finished_callback,
                 error_callback=error_callback,
-                display_callback=display_callback,
+                display_callback=app.window.display_callback,
             )
 
     windowt.add_actions(
@@ -1348,7 +1338,7 @@ def brightness_contrast(_action, _param):
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=brightness_contrast_finished_callback,
                 error_callback=error_callback,
-                display_callback=display_callback,
+                display_callback=app.window.display_callback,
             )
 
     windowt.add_actions(
@@ -1393,7 +1383,7 @@ def negate(_action, _param):
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=negate_finished_callback,
                 error_callback=error_callback,
-                display_callback=display_callback,
+                display_callback=app.window.display_callback,
             )
 
     windowt.add_actions(
@@ -1498,7 +1488,7 @@ def unsharp(_action, _param):
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=unsharp_finished_callback,
                 error_callback=error_callback,
-                display_callback=display_callback,
+                display_callback=app.window.display_callback,
             )
 
     windowum.add_actions(
@@ -1537,7 +1527,7 @@ def crop_selection(_action, _param, pagelist=None):
             running_callback=app.window.post_process_progress.update,
             finished_callback=crop_finished_callback,
             error_callback=error_callback,
-            display_callback=display_callback,
+            display_callback=app.window.display_callback,
         )
 
 
@@ -1650,7 +1640,7 @@ def split_dialog(_action, _param):
                 running_callback=app.window.post_process_progress.update,
                 finished_callback=split_finished_callback,
                 error_callback=error_callback,
-                display_callback=display_callback,
+                display_callback=app.window.display_callback,
             )
 
     def split_cancel_callback():
@@ -1703,7 +1693,7 @@ def user_defined_tool(pages, cmd):
             running_callback=app.window.post_process_progress.update,
             finished_callback=user_defined_finished_callback,
             error_callback=error_callback,
-            display_callback=display_callback,
+            display_callback=app.window.display_callback,
         )
 
 
@@ -1728,7 +1718,7 @@ def unpaper_page(pages, options):
             running_callback=app.window.post_process_progress.update,
             finished_callback=unpaper_finished_callback,
             error_callback=error_callback,
-            display_callback=display_callback,
+            display_callback=app.window.display_callback,
         )
 
 
@@ -4441,6 +4431,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     widget.side_to_scan = side
 
             GLib.idle_add(prompt_reverse_sides)
+
+    def display_callback(self, response):
+        "Find the page from the input uuid and display it"
+        uuid = response.request.args[0]["page"].uuid
+        i = self.slist.find_page_by_uuid(uuid)
+        if i is None:
+            logger.error("Can't display page with uuid %s: page not found", uuid)
+        else:
+            display_image(self.slist.data[i][2])
 
     def about(self, _action, _param):
         "Display about dialog"
