@@ -289,110 +289,6 @@ def add_filter(file_chooser, name, file_extensions):
     file_chooser.add_filter(ffilter)
 
 
-def import_files_password_callback(filename):
-    "Ask for password for encrypted PDF"
-    text = _("Enter user password for PDF %s") % (filename)
-    dialog = Gtk.MessageDialog(
-        app.window,
-        ["destroy-with-parent", "modal"],
-        "question",
-        Gtk.ButtonsType.OK_CANCEL,
-        text,
-    )
-    dialog.set_title(text)
-    vbox = dialog.get_content_area()
-    entry = Gtk.Entry()
-    entry.set_visibility(False)
-    entry.set_invisible_char(ASTERISK)
-    vbox.pack_end(entry, False, False, 0)
-    dialog.show_all()
-    response = dialog.run()
-    text = entry.get_text()
-    dialog.destroy()
-    if response == Gtk.ResponseType.OK and text != EMPTY:
-        return text
-    return None
-
-
-def import_files_finished_callback(response):
-    "import_files finished callback"
-    logger.debug("finished import_files(%s)", response)
-    app.window.post_process_progress.finish(response)
-    # slist.save_session()
-
-
-def import_files_metadata_callback(metadata):
-    "Update the metadata from the imported file"
-    logger.debug("import_files_metadata_callback(%s)", metadata)
-    for dialog in (app.window._windowi, app.window._windowe):
-        if dialog is not None:
-            dialog.update_from_import_metadata(metadata)
-    config.update_config_from_imported_metadata(app.window.settings, metadata)
-
-
-def import_files(filenames, all_pages=False):
-    "Import given files"
-    # FIXME: import_files() now returns an array of pids.
-    options = {
-        "paths": filenames,
-        "password_callback": import_files_password_callback,
-        "queued_callback": app.window.post_process_progress.queued,
-        "started_callback": app.window.post_process_progress.update,
-        "running_callback": app.window.post_process_progress.update,
-        "finished_callback": import_files_finished_callback,
-        "metadata_callback": import_files_metadata_callback,
-        "error_callback": app.window.error_callback,
-    }
-    if all_pages:
-
-        def all_pages_callback(info):
-
-            return 1, info["pages"]
-
-        options["pagerange_callback"] = all_pages_callback
-
-    else:
-
-        def select_pagerange_callback(info):
-
-            dialog = Gtk.Dialog(
-                title=_("Pages to extract"),
-                transient_for=app.window,
-                modal=True,
-                destroy_with_parent=True,
-            )
-            dialog.add_buttons(
-                Gtk.STOCK_OK,
-                Gtk.ResponseType.OK,
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-            )
-            vbox = dialog.get_content_area()
-            hbox = Gtk.HBox()
-            vbox.pack_start(hbox, True, True, 0)
-            label = Gtk.Label(label=_("First page to extract"))
-            hbox.pack_start(label, False, False, 0)
-            spinbuttonf = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
-            hbox.pack_end(spinbuttonf, False, False, 0)
-            hbox = Gtk.HBox()
-            vbox.pack_start(hbox, True, True, 0)
-            label = Gtk.Label(label=_("Last page to extract"))
-            hbox.pack_start(label, False, False, 0)
-            spinbuttonl = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
-            spinbuttonl.set_value(info["pages"])
-            hbox.pack_end(spinbuttonl, False, False, 0)
-            dialog.show_all()
-            response = dialog.run()
-            dialog.destroy()
-            if response == Gtk.ResponseType.OK:
-                return int(spinbuttonf.get_value()), int(spinbuttonl.get_value())
-            return None, None
-
-        options["pagerange_callback"] = select_pagerange_callback
-
-    app.window.slist.import_files(**options)
-
-
 def launch_default_for_file(filename):
     "Launch default viewer for file"
     uri = GLib.filename_to_uri(os.path.abspath(filename), None)
@@ -2826,9 +2722,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Deal with --import command line option
         if self._args.import_files is not None:
-            import_files(self._args.import_files)
+            self._import_files(self._args.import_files)
         if self._args.import_all is not None:
-            import_files(self._args.import_all, True)
+            self._import_files(self._args.import_all, True)
 
     def create_toolbar(self):
         "Create the menu bar, initialize its menus, and return the menu bar"
@@ -3542,12 +3438,104 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # Update cwd
             self.settings["cwd"] = os.path.dirname(filenames[0])
-            import_files(filenames)
+            self._import_files(filenames)
         else:
             file_chooser.destroy()
 
         # cd back to tempdir
         os.chdir(self.session.name)
+
+    def _select_pagerange_callback(self, info):
+        dialog = Gtk.Dialog(
+            title=_("Pages to extract"),
+            transient_for=self,
+            modal=True,
+            destroy_with_parent=True,
+        )
+        dialog.add_buttons(
+            Gtk.STOCK_OK,
+            Gtk.ResponseType.OK,
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+        )
+        vbox = dialog.get_content_area()
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
+        label = Gtk.Label(label=_("First page to extract"))
+        hbox.pack_start(label, False, False, 0)
+        spinbuttonf = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
+        hbox.pack_end(spinbuttonf, False, False, 0)
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
+        label = Gtk.Label(label=_("Last page to extract"))
+        hbox.pack_start(label, False, False, 0)
+        spinbuttonl = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
+        spinbuttonl.set_value(info["pages"])
+        hbox.pack_end(spinbuttonl, False, False, 0)
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK:
+            return int(spinbuttonf.get_value()), int(spinbuttonl.get_value())
+        return None, None
+
+    def _import_files_password_callback(self, filename):
+        "Ask for password for encrypted PDF"
+        text = _("Enter user password for PDF %s") % (filename)
+        dialog = Gtk.MessageDialog(
+            self,
+            ["destroy-with-parent", "modal"],
+            "question",
+            Gtk.ButtonsType.OK_CANCEL,
+            text,
+        )
+        dialog.set_title(text)
+        vbox = dialog.get_content_area()
+        entry = Gtk.Entry()
+        entry.set_visibility(False)
+        entry.set_invisible_char(ASTERISK)
+        vbox.pack_end(entry, False, False, 0)
+        dialog.show_all()
+        response = dialog.run()
+        text = entry.get_text()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK and text != EMPTY:
+            return text
+        return None
+
+    def _import_files_finished_callback(self, response):
+        "import_files finished callback"
+        logger.debug("finished import_files(%s)", response)
+        self.post_process_progress.finish(response)
+        # slist.save_session()
+
+    def _import_files_metadata_callback(self, metadata):
+        "Update the metadata from the imported file"
+        logger.debug("import_files_metadata_callback(%s)", metadata)
+        for dialog in (self._windowi, self._windowe):
+            if dialog is not None:
+                dialog.update_from_import_metadata(metadata)
+        config.update_config_from_imported_metadata(self.settings, metadata)
+
+    def _import_files(self, filenames, all_pages=False):
+        "Import given files"
+        # FIXME: import_files() now returns an array of pids.
+        options = {
+            "paths": filenames,
+            "password_callback": self._import_files_password_callback,
+            "queued_callback": self.post_process_progress.queued,
+            "started_callback": self.post_process_progress.update,
+            "running_callback": self.post_process_progress.update,
+            "finished_callback": self._import_files_finished_callback,
+            "metadata_callback": self._import_files_metadata_callback,
+            "error_callback": self.error_callback,
+        }
+        if all_pages:
+            options["pagerange_callback"] = lambda info: (1, info["pages"])
+        else:
+            options["pagerange_callback"] = self._select_pagerange_callback
+
+        self.slist.import_files(**options)
 
     def open_session_file(self, filename):
         "open session"
