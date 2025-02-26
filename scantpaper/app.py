@@ -261,43 +261,6 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(m if v < m else v)
 
 
-def display_image(page):
-    "Display the image in the view"
-    app.window._current_page = page
-    app.window.view.set_pixbuf(app.window._current_page.get_pixbuf(), True)
-    xresolution, yresolution, _units = app.window._current_page.resolution
-    app.window.view.set_resolution_ratio(xresolution / yresolution)
-
-    # Get image dimensions to constrain selector spinbuttons on crop dialog
-    width, height = app.window._current_page.get_size()
-
-    # Update the ranges on the crop dialog
-    if app.window._windowc is not None and app.window._current_page is not None:
-        app.window._windowc.page_width = width
-        app.window._windowc.page_height = height
-        app.window.settings["selection"] = app.window._windowc.selection
-        app.window.view.set_selection(app.window.settings["selection"])
-
-    # Delete OCR output if it has become corrupted
-    if app.window._current_page.text_layer is not None:
-        bbox = Bboxtree(app.window._current_page.text_layer)
-        if not bbox.valid():
-            logger.error(
-                "deleting corrupt text layer: %s", app.window._current_page.text_layer
-            )
-            app.window._current_page.text_layer = None
-
-    if app.window._current_page.text_layer:
-        create_txt_canvas(app.window._current_page)
-    else:
-        app.window.t_canvas.clear_text()
-
-    if app.window._current_page.annotations:
-        create_ann_canvas(app.window._current_page)
-    else:
-        app.window.a_canvas.clear_text()
-
-
 def create_txt_canvas(page, finished_callback=None):
     "Create the text canvas"
     offset = app.window.view.get_offset()
@@ -3272,7 +3235,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             path = Gtk.TreePath.new_from_indices([i])
             self.slist.scroll_to_cell(path, self.slist.get_column(0), True, HALF, HALF)
             sel = self.view.get_selection()
-            display_image(self.slist.data[i][2])
+            self._display_image(self.slist.data[i][2])
             if sel is not None:
                 self.view.set_selection(sel)
         else:
@@ -4439,7 +4402,43 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if i is None:
             logger.error("Can't display page with uuid %s: page not found", uuid)
         else:
-            display_image(self.slist.data[i][2])
+            self._display_image(self.slist.data[i][2])
+
+    def _display_image(self, page):
+        "Display the image in the view"
+        self._current_page = page
+        self.view.set_pixbuf(self._current_page.get_pixbuf(), True)
+        xresolution, yresolution, _units = self._current_page.resolution
+        self.view.set_resolution_ratio(xresolution / yresolution)
+
+        # Get image dimensions to constrain selector spinbuttons on crop dialog
+        width, height = self._current_page.get_size()
+
+        # Update the ranges on the crop dialog
+        if self._windowc is not None and self._current_page is not None:
+            self._windowc.page_width = width
+            self._windowc.page_height = height
+            self.settings["selection"] = self._windowc.selection
+            self.view.set_selection(self.settings["selection"])
+
+        # Delete OCR output if it has become corrupted
+        if self._current_page.text_layer is not None:
+            bbox = Bboxtree(self._current_page.text_layer)
+            if not bbox.valid():
+                logger.error(
+                    "deleting corrupt text layer: %s", self._current_page.text_layer
+                )
+                self._current_page.text_layer = None
+
+        if self._current_page.text_layer:
+            create_txt_canvas(self._current_page)
+        else:
+            self.t_canvas.clear_text()
+
+        if self._current_page.annotations:
+            create_ann_canvas(self._current_page)
+        else:
+            self.a_canvas.clear_text()
 
     def about(self, _action, _param):
         "Display about dialog"
@@ -4716,7 +4715,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def user_defined_dialog(self, _action, _param):
         "Displays a dialog for selecting and applying user-defined tools."
         windowudt = Dialog(
-            transient_for=app.window,
+            transient_for=self,
             title=_("User-defined tools"),
             hide_on_delete=True,
         )
@@ -4728,19 +4727,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         vbox.pack_start(hbox, False, False, 0)
         label = Gtk.Label(label=_("Selected tool"))
         hbox.pack_start(label, False, True, 0)
-        self._comboboxudt = app.window.add_udt_combobox(hbox)
+        self._comboboxudt = self.add_udt_combobox(hbox)
 
         def udt_apply_callback():
-            app.window.settings["Page range"] = windowudt.page_range
+            self.settings["Page range"] = windowudt.page_range
             pagelist = indices2pages(
-                app.window.slist.get_page_index(
-                    app.window.settings["Page range"], error_callback
-                )
+                self.slist.get_page_index(self.settings["Page range"], error_callback)
             )
             if not pagelist:
                 return
-            app.window.settings["current_udt"] = self._comboboxudt.get_active_text()
-            user_defined_tool(pagelist, app.window.settings["current_udt"])
+            self.settings["current_udt"] = self._comboboxudt.get_active_text()
+            user_defined_tool(pagelist, self.settings["current_udt"])
             windowudt.hide()
 
         windowudt.add_actions(
