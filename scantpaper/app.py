@@ -315,42 +315,6 @@ def file_exists(chooser, filename):
     return False
 
 
-def save_tiff(filename, ps, uuids):
-    "Save a list of pages as a TIFF file with specified options"
-    options = {
-        "compression": app.window.settings["tiff compression"],
-        "quality": app.window.settings["quality"],
-        "ps": ps,
-    }
-    if app.window.settings["post_save_hook"]:
-        options["post_save_hook"] = app.window.settings["current_psh"]
-
-    def save_tiff_finished_callback(response):
-        filename = response.request.args[0]["path"]
-        uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-        app.window.post_process_progress.finish(response)
-        mark_pages(uuids)
-        file = ps if ps is not None else filename
-        if (
-            "view files toggle" in app.window.settings
-            and app.window.settings["view files toggle"]
-        ):
-            launch_default_for_file(file)
-
-        logger.debug("Finished saving %s", file)
-
-    app.window.slist.save_tiff(
-        path=filename,
-        list_of_pages=uuids,
-        options=options,
-        queued_callback=app.window.post_process_progress.queued,
-        started_callback=app.window.post_process_progress.update,
-        running_callback=app.window.post_process_progress.update,
-        finished_callback=save_tiff_finished_callback,
-        error_callback=app.window.error_callback,
-    )
-
-
 def save_djvu(filename, uuids):
     "Save a list of pages as a DjVu file."
 
@@ -5093,13 +5057,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # Update cwd
             self.settings["cwd"] = os.path.dirname(filename)
             if re.search(r"pdf", filetype):
-                self.save_pdf(filename, filetype, uuids)
+                self._save_pdf(filename, filetype, uuids)
 
             elif filetype == "djvu":
                 save_djvu(filename, uuids)
 
             elif filetype == "tif":
-                save_tiff(filename, None, uuids)
+                self._save_tiff(filename, None, uuids)
 
             elif filetype == "txt":
                 save_text(filename, uuids)
@@ -5110,10 +5074,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             elif filetype == "ps":
                 if self.settings["ps_backend"] == "libtiff":
                     tif = tempfile.TemporaryFile(dir=self.session, suffix=".tif")
-                    save_tiff(tif.filename(), filename, uuids)
-
+                    self._save_tiff(tif.filename(), filename, uuids)
                 else:
-                    self.save_pdf(filename, "ps", uuids)
+                    self._save_pdf(filename, "ps", uuids)
 
             elif filetype == "gs2p":
                 self.slist.save_session(filename, VERSION)
@@ -5152,7 +5115,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         return False
 
-    def save_pdf(self, filename, option, list_of_page_uuids):
+    def _save_pdf(self, filename, option, list_of_page_uuids):
         "Save selected pages as PDF under given name."
 
         # Compile options
@@ -5208,6 +5171,41 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_pdf_finished_callback,
+            error_callback=self.error_callback,
+        )
+
+    def _save_tiff(self, filename, ps, uuids):
+        "Save a list of pages as a TIFF file with specified options"
+        options = {
+            "compression": self.settings["tiff compression"],
+            "quality": self.settings["quality"],
+            "ps": ps,
+        }
+        if self.settings["post_save_hook"]:
+            options["post_save_hook"] = self.settings["current_psh"]
+
+        def save_tiff_finished_callback(response):
+            filename = response.request.args[0]["path"]
+            uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
+            self.post_process_progress.finish(response)
+            mark_pages(uuids)
+            file = ps if ps is not None else filename
+            if (
+                "view files toggle" in self.settings
+                and self.settings["view files toggle"]
+            ):
+                launch_default_for_file(file)
+
+            logger.debug("Finished saving %s", file)
+
+        self.slist.save_tiff(
+            path=filename,
+            list_of_pages=uuids,
+            options=options,
+            queued_callback=self.post_process_progress.queued,
+            started_callback=self.post_process_progress.update,
+            running_callback=self.post_process_progress.update,
+            finished_callback=save_tiff_finished_callback,
             error_callback=self.error_callback,
         )
 
