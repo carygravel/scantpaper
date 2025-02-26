@@ -289,44 +289,6 @@ def add_filter(file_chooser, name, file_extensions):
     file_chooser.add_filter(ffilter)
 
 
-def open_session_file(filename):
-    "open session"
-    logger.info("Restoring session in %s", app.window.session)
-    app.window.slist.open_session_file(
-        info=filename, error_callback=app.window.error_callback
-    )
-
-
-def open_session_action(_action):
-    "open session"
-    file_chooser = Gtk.FileChooserDialog(
-        title=_("Open crashed session"),
-        parent=app.window,
-        action=Gtk.FileChooserAction.SELECT_FOLDER,
-    )
-    file_chooser.add_buttons(
-        Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK
-    )
-    file_chooser.set_default_response(Gtk.ResponseType.OK)
-    file_chooser.set_current_folder(app.window.settings["cwd"])
-    if file_chooser.run() == Gtk.ResponseType.OK:
-
-        # Update undo/redo buffers
-        take_snapshot()
-        filename = file_chooser.get_filenames()
-        open_session(filename[0])
-
-    file_chooser.destroy()
-
-
-def open_session(sesdir):
-    "open session"
-    logger.info("Restoring session in %s", app.window.session)
-    app.window.slist.open_session(
-        dir=sesdir, delete=False, error_callback=app.window.error_callback
-    )
-
-
 def open_dialog(_action, _param):
     "Throw up file selector and open selected file"
     # cd back to cwd to get filename
@@ -2262,7 +2224,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         for name, function in [
             ("new", self._new),
             ("open", open_dialog),
-            ("open-session", open_session_action),
+            ("open-session", self.open_session_action),
             ("scan", self.scan_dialog),
             ("save", self.save_dialog),
             ("email", self.email),
@@ -3522,7 +3484,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.session = crashed[selected]
                 self.create_lockfile()
                 self.slist.set_dir(self.session)
-                open_session(self.session)
+                self.open_session(self.session)
 
     def show_message_dialog(self, **kwargs):
         "Displays a message dialog with the given options."
@@ -3584,6 +3546,39 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Reset start page in scan dialog
         self._windows._reset_start_page()
+
+    def open_session_file(self, filename):
+        "open session"
+        logger.info("Restoring session in %s", self.session)
+        self.slist.open_session_file(info=filename, error_callback=self.error_callback)
+
+    def open_session_action(self, _action):
+        "open session"
+        file_chooser = Gtk.FileChooserDialog(
+            title=_("Open crashed session"),
+            parent=self,
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+        )
+        file_chooser.add_buttons(
+            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK
+        )
+        file_chooser.set_default_response(Gtk.ResponseType.OK)
+        file_chooser.set_current_folder(self.settings["cwd"])
+        if file_chooser.run() == Gtk.ResponseType.OK:
+
+            # Update undo/redo buffers
+            take_snapshot()
+            filename = file_chooser.get_filenames()
+            self.open_session(filename[0])
+
+        file_chooser.destroy()
+
+    def open_session(self, sesdir):
+        "open session"
+        logger.info("Restoring session in %s", self.session)
+        self.slist.open_session(
+            dir=sesdir, delete=False, error_callback=self.error_callback
+        )
 
     def properties(self, _action, _param):
         "Display and manage the properties dialog for setting X and Y resolution."
