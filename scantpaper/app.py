@@ -325,36 +325,6 @@ def file_exists(chooser, filename):
     return False
 
 
-def file_writable(chooser, filename):
-    "Check if a file or its directory is writable and show an error dialog if not."
-
-    if not os.access(
-        os.path.dirname(filename), os.W_OK
-    ):  # FIXME: replace with try/except
-        text = _("Directory %s is read-only") % (os.path.dirname(filename))
-        app.window.show_message_dialog(
-            parent=chooser,
-            message_type="error",
-            buttons=Gtk.ButtonsType.CLOSE,
-            text=text,
-        )
-        return True
-
-    elif os.path.isfile(filename) and not os.access(
-        filename, os.W_OK
-    ):  # FIXME: replace with try/except
-        text = _("File %s is read-only") % (filename)
-        app.window.show_message_dialog(
-            parent=chooser,
-            message_type="error",
-            buttons=Gtk.ButtonsType.CLOSE,
-            text=text,
-        )
-        return True
-
-    return False
-
-
 def save_tiff(filename, ps, uuids):
     "Save a list of pages as a TIFF file with specified options"
     options = {
@@ -5118,7 +5088,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 if file_exists(dialog, filename):
                     return
 
-            if file_writable(dialog, filename):
+            if self._file_writable(dialog, filename):
                 return
 
             # Update cwd
@@ -5153,6 +5123,35 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._windowi.hide()
 
         dialog.destroy()
+
+    def _file_writable(self, chooser, filename):
+        "Check if a file or its directory is writable and show an error dialog if not."
+
+        if not os.access(
+            os.path.dirname(filename), os.W_OK
+        ):  # FIXME: replace with try/except
+            text = _("Directory %s is read-only") % (os.path.dirname(filename))
+            self.show_message_dialog(
+                parent=chooser,
+                message_type="error",
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=text,
+            )
+            return True
+
+        if os.path.isfile(filename) and not os.access(
+            filename, os.W_OK
+        ):  # FIXME: replace with try/except
+            text = _("File %s is read-only") % (filename)
+            self.show_message_dialog(
+                parent=chooser,
+                message_type="error",
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=text,
+            )
+            return True
+
+        return False
 
     def save_pdf(self, filename, option, list_of_page_uuids):
         "Save selected pages as PDF under given name."
@@ -5278,7 +5277,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     if file_exists(file_chooser, filename):
                         return
 
-                if file_writable(file_chooser, filename):
+                if self._file_writable(file_chooser, filename):
                     return
 
             # Create the image
