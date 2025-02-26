@@ -8,6 +8,7 @@
 # fix editing text layer
 # deleting last page produces TypeError
 # saving a scan profile produced TypeError
+# fix importing tiff
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
@@ -313,48 +314,6 @@ def file_exists(chooser, filename):
         return True
 
     return False
-
-
-def save_djvu(filename, uuids):
-    "Save a list of pages as a DjVu file."
-
-    # cd back to tempdir
-    os.chdir(app.window.session.name)
-
-    # Create the DjVu
-    logger.debug("Started saving %s", filename)
-    options = {
-        "set_timestamp": app.window.settings["set_timestamp"],
-        "convert whitespace to underscores": app.window.settings[
-            "convert whitespace to underscores"
-        ],
-    }
-    if app.window.settings["post_save_hook"]:
-        options["post_save_hook"] = app.window.settings["current_psh"]
-
-    def save_djvu_finished_callback(response):
-        filename = response.request.args[0]["path"]
-        uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
-        app.window.post_process_progress.finish(response)
-        mark_pages(uuids)
-        if (
-            "view files toggle" in app.window.settings
-            and app.window.settings["view files toggle"]
-        ):
-            launch_default_for_file(filename)
-        logger.debug("Finished saving %s", filename)
-
-    app.window.slist.save_djvu(
-        path=filename,
-        list_of_pages=uuids,
-        options=options,
-        metadata=collate_metadata(app.window.settings, datetime.datetime.now()),
-        queued_callback=app.window.post_process_progress.queued,
-        started_callback=app.window.post_process_progress.update,
-        running_callback=app.window.post_process_progress.update,
-        finished_callback=save_djvu_finished_callback,
-        error_callback=app.window.error_callback,
-    )
 
 
 def save_text(filename, uuids):
@@ -708,8 +667,10 @@ def renumber_dialog(_action, _param):
     app.window.renumber_dialog.show_all()
 
 
-def indices2pages(indices):
-    "Helper function to convert an array of indices into an array of Gscan2pdf::Page objects"
+def indices2pages(
+    indices,
+):  # FIXME: this should go in slist somewhere and should be a list comprehension
+    "Helper function to convert an array of indices into an array of uuids"
     pages = []
     for i in indices:
         pages.append(app.window.slist.data[i][2].uuid)
@@ -5060,7 +5021,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._save_pdf(filename, filetype, uuids)
 
             elif filetype == "djvu":
-                save_djvu(filename, uuids)
+                self._save_djvu(filename, uuids)
 
             elif filetype == "tif":
                 self._save_tiff(filename, None, uuids)
@@ -5171,6 +5132,47 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_pdf_finished_callback,
+            error_callback=self.error_callback,
+        )
+
+    def _save_djvu(self, filename, uuids):
+        "Save a list of pages as a DjVu file."
+
+        # cd back to tempdir
+        os.chdir(self.session.name)
+
+        # Create the DjVu
+        logger.debug("Started saving %s", filename)
+        options = {
+            "set_timestamp": self.settings["set_timestamp"],
+            "convert whitespace to underscores": self.settings[
+                "convert whitespace to underscores"
+            ],
+        }
+        if self.settings["post_save_hook"]:
+            options["post_save_hook"] = self.settings["current_psh"]
+
+        def save_djvu_finished_callback(response):
+            filename = response.request.args[0]["path"]
+            uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
+            self.post_process_progress.finish(response)
+            mark_pages(uuids)
+            if (
+                "view files toggle" in self.settings
+                and self.settings["view files toggle"]
+            ):
+                launch_default_for_file(filename)
+            logger.debug("Finished saving %s", filename)
+
+        self.slist.save_djvu(
+            path=filename,
+            list_of_pages=uuids,
+            options=options,
+            metadata=collate_metadata(self.settings, datetime.datetime.now()),
+            queued_callback=self.post_process_progress.queued,
+            started_callback=self.post_process_progress.update,
+            running_callback=self.post_process_progress.update,
+            finished_callback=save_djvu_finished_callback,
             error_callback=self.error_callback,
         )
 
