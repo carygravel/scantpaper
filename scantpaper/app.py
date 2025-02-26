@@ -300,16 +300,6 @@ def launch_default_for_file(filename):
         logger.error("Unable to launch viewer: %s", e)
 
 
-def list_of_page_uuids():
-    "Compile list of pages"
-    pagelist = app.window.slist.get_page_index(
-        app.window.settings["Page range"], app.window.error_callback
-    )
-    if not pagelist:
-        return []
-    return [app.window.slist.data[i][2].uuid for i in pagelist]
-
-
 def file_exists(chooser, filename):
     "Check if a file exists and prompt the user for confirmation if it does."
 
@@ -4787,7 +4777,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Compile list of pages
         self.settings["Page range"] = self._windowi.page_range
-        uuids = list_of_page_uuids()
+        uuids = self._list_of_page_uuids()
 
         # dig out the image type, compression and quality
         self.settings["image type"] = self._windowi.image_type
@@ -5067,6 +5057,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         else:
             self.save_image(uuids)
+
+    def _list_of_page_uuids(self):
+        "Compile list of pages"
+        pagelist = self.slist.get_page_index(
+            self.settings["Page range"], self.error_callback
+        )
+        if not pagelist:
+            return []
+        return [self.slist.data[i][2].uuid for i in pagelist]
 
     def file_chooser_response_callback(self, dialog, response, data):
         "Callback for file chooser dialog"
@@ -5380,7 +5379,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # Compile list of pages
             self.settings["Page range"] = self._windowe.page_range
-            uuids = list_of_page_uuids()
+            uuids = self._list_of_page_uuids()
 
             # dig out the compression
             self.settings["downsample"] = self._windowe.downsample
