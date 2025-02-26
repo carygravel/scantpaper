@@ -261,21 +261,6 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(m if v < m else v)
 
 
-def create_ann_canvas(page, finished_callback=None):
-    "Create the annotation canvas"
-    offset = app.window.view.get_offset()
-    app.window.a_canvas.set_text(
-        page=page,
-        layer="annotations",
-        edit_callback=app.window.edit_annotation,
-        idle=True,
-        finished_callback=finished_callback,
-    )
-    app.window.a_canvas.set_scale(app.window.view.get_zoom())
-    app.window.a_canvas.set_offset(offset.x, offset.y)
-    app.window.a_canvas.show()
-
-
 def scans_saved(message):
     "Check that all pages have been saved"
     if not app.window.slist.scans_saved():
@@ -2956,7 +2941,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     self._current_ann_bbox = self.a_canvas.get_first_bbox()
                     self.edit_annotation(self._current_ann_bbox)
 
-                create_ann_canvas(self._current_page, ann_text_new_page)
+                self.create_ann_canvas(self._current_page, ann_text_new_page)
 
         ann_abutton.connect("clicked", ann_text_new)
         ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
@@ -4421,7 +4406,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.t_canvas.clear_text()
 
         if self._current_page.annotations:
-            create_ann_canvas(self._current_page)
+            self.create_ann_canvas(self._current_page)
         else:
             self.a_canvas.clear_text()
 
@@ -4438,6 +4423,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.t_canvas.set_scale(self.view.get_zoom())
         self.t_canvas.set_offset(offset.x, offset.y)
         self.t_canvas.show()
+
+    def create_ann_canvas(self, page, finished_callback=None):
+        "Create the annotation canvas"
+        offset = self.view.get_offset()
+        self.a_canvas.set_text(
+            page=page,
+            layer="annotations",
+            edit_callback=self.edit_annotation,
+            idle=True,
+            finished_callback=finished_callback,
+        )
+        self.a_canvas.set_scale(self.view.get_zoom())
+        self.a_canvas.set_offset(offset.x, offset.y)
+        self.a_canvas.show()
 
     def about(self, _action, _param):
         "Display about dialog"
