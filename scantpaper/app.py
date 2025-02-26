@@ -261,26 +261,9 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(m if v < m else v)
 
 
-def scans_saved(message):
-    "Check that all pages have been saved"
-    if not app.window.slist.scans_saved():
-        response = ask_question(
-            parent=app.window,
-            type="question",
-            buttons=Gtk.ButtonsType.OK_CANCEL,
-            text=message,
-            store_response=True,
-            stored_responses=[Gtk.ResponseType.OK],
-        )
-        if response != Gtk.ResponseType.OK:
-            return False
-
-    return True
-
-
 def new(_action, _param):
     "Deletes all scans after warning"
-    if not scans_saved(
+    if not app.window.scans_saved(
         _("Some pages have not been saved.\nDo you really want to clear all pages?")
     ):
         return
@@ -5613,7 +5596,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def can_quit(self):
         "Remove temporary files, note window state, save settings and quit."
-        if not scans_saved(
+        if not self.scans_saved(
             _("Some pages have not been saved.\nDo you really want to quit?")
         ):
             return False
@@ -5651,6 +5634,21 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if self._args.log and dependencies["xz"]:
             exec_command(["xz", "-f", self._args.log])
 
+        return True
+
+    def scans_saved(self, message):
+        "Check that all pages have been saved"
+        if not self.slist.scans_saved():
+            response = ask_question(
+                parent=self,
+                type="question",
+                buttons=Gtk.ButtonsType.OK_CANCEL,
+                text=message,
+                store_response=True,
+                stored_responses=[Gtk.ResponseType.OK],
+            )
+            if response != Gtk.ResponseType.OK:
+                return False
         return True
 
 
