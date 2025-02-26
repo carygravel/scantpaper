@@ -261,21 +261,6 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(m if v < m else v)
 
 
-def create_txt_canvas(page, finished_callback=None):
-    "Create the text canvas"
-    offset = app.window.view.get_offset()
-    app.window.t_canvas.set_text(
-        page=page,
-        layer="text_layer",
-        edit_callback=app.window.edit_ocr_text,
-        idle=True,
-        finished_callback=finished_callback,
-    )
-    app.window.t_canvas.set_scale(app.window.view.get_zoom())
-    app.window.t_canvas.set_offset(offset.x, offset.y)
-    app.window.t_canvas.show()
-
-
 def create_ann_canvas(page, finished_callback=None):
     "Create the annotation canvas"
     offset = app.window.view.get_offset()
@@ -1700,7 +1685,7 @@ def ocr_display_callback(response):
     else:
         page = app.window.slist.get_selected_indices()
         if page and i == page[0]:
-            create_txt_canvas(app.window.slist.data[i][2])
+            app.window.create_txt_canvas(app.window.slist.data[i][2])
 
 
 def run_ocr(engine, tesslang, threshold_flag, threshold):
@@ -2879,7 +2864,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     self._current_ocr_bbox = self.t_canvas.get_first_bbox()
                     self.edit_ocr_text(self._current_ocr_bbox)
 
-                create_txt_canvas(self._current_page, ocr_new_page)
+                self.create_txt_canvas(self._current_page, ocr_new_page)
 
         ocr_text_abutton.connect("clicked", ocr_text_add)
         ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
@@ -4431,7 +4416,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._current_page.text_layer = None
 
         if self._current_page.text_layer:
-            create_txt_canvas(self._current_page)
+            self.create_txt_canvas(self._current_page)
         else:
             self.t_canvas.clear_text()
 
@@ -4439,6 +4424,20 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             create_ann_canvas(self._current_page)
         else:
             self.a_canvas.clear_text()
+
+    def create_txt_canvas(self, page, finished_callback=None):
+        "Create the text canvas"
+        offset = self.view.get_offset()
+        self.t_canvas.set_text(
+            page=page,
+            layer="text_layer",
+            edit_callback=self.edit_ocr_text,
+            idle=True,
+            finished_callback=finished_callback,
+        )
+        self.t_canvas.set_scale(self.view.get_zoom())
+        self.t_canvas.set_offset(offset.x, offset.y)
+        self.t_canvas.show()
 
     def about(self, _action, _param):
         "Display about dialog"
