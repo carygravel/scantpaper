@@ -232,32 +232,6 @@ def parse_arguments():
     return args
 
 
-def selection_changed_callback(_selection):
-    "Handle selection change"
-    selection = app.window.slist.get_selected_indices()
-
-    # Display the new image
-    # When editing the page number, there is a race condition where the page
-    # can be undefined
-    if selection:
-        i = selection.pop(0)
-        path = Gtk.TreePath.new_from_indices([i])
-        app.window.slist.scroll_to_cell(
-            path, app.window.slist.get_column(0), True, HALF, HALF
-        )
-        sel = app.window.view.get_selection()
-        display_image(app.window.slist.data[i][2])
-        if sel is not None:
-            app.window.view.set_selection(sel)
-    else:
-        app.window.view.set_pixbuf(None)
-        app.window.t_canvas.clear_text()
-        app.window.a_canvas.clear_text()
-        app.window._current_page = None
-
-    app.window.update_uimanager()
-
-
 def drag_motion_callback(tree, context, x, y, t):
     "Handle drag motion"
     try:
@@ -3065,7 +3039,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Set up call back for list selection to update detail view
         self.slist.selection_changed_signal = self.slist.get_selection().connect(
-            "changed", selection_changed_callback
+            "changed", self._page_selection_changed_callback
         )
 
         # Without these, the imageviewer and page list steal -/+/ctrl x/c/v keys
@@ -3295,6 +3269,29 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.settings["viewer_tools"] = parameter.get_string()
         self._pack_viewer_tools()
+
+    def _page_selection_changed_callback(self, _selection):
+        "Handle selection change"
+        selection = self.slist.get_selected_indices()
+
+        # Display the new image
+        # When editing the page number, there is a race condition where the page
+        # can be undefined
+        if selection:
+            i = selection.pop(0)
+            path = Gtk.TreePath.new_from_indices([i])
+            self.slist.scroll_to_cell(path, self.slist.get_column(0), True, HALF, HALF)
+            sel = self.view.get_selection()
+            display_image(self.slist.data[i][2])
+            if sel is not None:
+                self.view.set_selection(sel)
+        else:
+            self.view.set_pixbuf(None)
+            self.t_canvas.clear_text()
+            self.a_canvas.clear_text()
+            self._current_page = None
+
+        self.update_uimanager()
 
     def _edit_mode_callback(self, action, parameter):
         "Show/hide the edit tools"
