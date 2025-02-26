@@ -261,45 +261,6 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(m if v < m else v)
 
 
-def new(_action, _param):
-    "Deletes all scans after warning"
-    if not app.window.scans_saved(
-        _("Some pages have not been saved.\nDo you really want to clear all pages?")
-    ):
-        return
-
-    # Update undo/redo buffers
-    take_snapshot()
-
-    # in certain circumstances, before v2.5.5, having deleted one of several
-    # pages, pressing the new button would cause some sort of race condition
-    # between the tied array of the app.window.slist and the callbacks displaying the
-    # thumbnails, so block this whilst clearing the array.
-    app.window.slist.get_model().handler_block(app.window.slist.row_changed_signal)
-    app.window.slist.get_selection().handler_block(
-        app.window.slist.selection_changed_signal
-    )
-
-    # Depopulate the thumbnail list
-    app.window.slist.data = []
-
-    # Unblock app.window.slist signals now finished
-    app.window.slist.get_selection().handler_unblock(
-        app.window.slist.selection_changed_signal
-    )
-    app.window.slist.get_model().handler_unblock(app.window.slist.row_changed_signal)
-
-    # Now we have to clear everything manually
-    app.window.slist.get_selection().unselect_all()
-    app.window.view.set_pixbuf(None)
-    app.window.t_canvas.clear_text()
-    app.window.a_canvas.clear_text()
-    app.window._current_page = None
-
-    # Reset start page in scan dialog
-    app.window._windows._reset_start_page()
-
-
 def add_filter(file_chooser, name, file_extensions):
     "Create a file filter to show only supported file types in FileChooser dialog"
     ffilter = Gtk.FileFilter()
@@ -2333,7 +2294,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # These will be in the window group and have the "win" prefix
         for name, function in [
-            ("new", new),
+            ("new", self._new),
             ("open", open_dialog),
             ("open-session", open_session_action),
             ("scan", self.scan_dialog),
@@ -3623,6 +3584,40 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ) = self._message_dialog.get_size()
             self._message_dialog.destroy()
             self._message_dialog = None
+
+    def _new(self, _action, _param):
+        "Deletes all scans after warning"
+        if not self.scans_saved(
+            _("Some pages have not been saved.\nDo you really want to clear all pages?")
+        ):
+            return
+
+        # Update undo/redo buffers
+        take_snapshot()
+
+        # in certain circumstances, before v2.5.5, having deleted one of several
+        # pages, pressing the new button would cause some sort of race condition
+        # between the tied array of the self.slist and the callbacks displaying the
+        # thumbnails, so block this whilst clearing the array.
+        self.slist.get_model().handler_block(self.slist.row_changed_signal)
+        self.slist.get_selection().handler_block(self.slist.selection_changed_signal)
+
+        # Depopulate the thumbnail list
+        self.slist.data = []
+
+        # Unblock self.slist signals now finished
+        self.slist.get_selection().handler_unblock(self.slist.selection_changed_signal)
+        self.slist.get_model().handler_unblock(self.slist.row_changed_signal)
+
+        # Now we have to clear everything manually
+        self.slist.get_selection().unselect_all()
+        self.view.set_pixbuf(None)
+        self.t_canvas.clear_text()
+        self.a_canvas.clear_text()
+        self._current_page = None
+
+        # Reset start page in scan dialog
+        self._windows._reset_start_page()
 
     def properties(self, _action, _param):
         "Display and manage the properties dialog for setting X and Y resolution."
