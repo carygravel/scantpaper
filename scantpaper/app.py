@@ -328,48 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def negate(_action, _param):
-    "Display page selector and on apply negate accordingly"
-    windowt = Dialog(
-        transient_for=app.window,
-        title=_("Negate"),
-    )
-
-    # Frame for page range
-    windowt.add_page_range()
-
-    def negate_callback():
-        # HBox for buttons
-        # Update undo/redo buffers
-        take_snapshot()
-        app.window.settings["Page range"] = windowt.page_range
-        pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], app.window.error_callback
-        )
-        if not pagelist:
-            return
-        for i in pagelist:
-
-            def negate_finished_callback(response):
-                app.window.post_process_progress.finish(response)
-                # slist.save_session()
-
-            app.window.slist.negate(
-                page=app.window.slist.data[i][2].uuid,
-                queued_callback=app.window.post_process_progress.queued,
-                started_callback=app.window.post_process_progress.update,
-                running_callback=app.window.post_process_progress.update,
-                finished_callback=negate_finished_callback,
-                error_callback=app.window.error_callback,
-                display_callback=app.window.display_callback,
-            )
-
-    windowt.add_actions(
-        [("gtk-apply", negate_callback), ("gtk-cancel", windowt.destroy)]
-    )
-    windowt.show_all()
-
-
 def unsharp(_action, _param):
     "Display page selector and on apply unsharp accordingly"
     windowum = Dialog(
@@ -1429,7 +1387,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("rotate-270", rotate_270),
             ("threshold", self._threshold),
             ("brightness-contrast", self._brightness_contrast),
-            ("negate", negate),
+            ("negate", self._negate),
             ("unsharp", unsharp),
             ("crop-dialog", self.crop_dialog),
             ("crop-selection", crop_selection),
@@ -5598,6 +5556,47 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 ("gtk-apply", brightness_contrast_callback),
                 ("gtk-cancel", windowt.destroy),
             ]
+        )
+        windowt.show_all()
+
+    def _negate(self, _action, _param):
+        "Display page selector and on apply negate accordingly"
+        windowt = Dialog(
+            transient_for=self,
+            title=_("Negate"),
+        )
+
+        # Frame for page range
+        windowt.add_page_range()
+
+        def negate_callback():
+            # HBox for buttons
+            # Update undo/redo buffers
+            take_snapshot()
+            self.settings["Page range"] = windowt.page_range
+            pagelist = self.slist.get_page_index(
+                self.settings["Page range"], self.error_callback
+            )
+            if not pagelist:
+                return
+            for i in pagelist:
+
+                def negate_finished_callback(response):
+                    self.post_process_progress.finish(response)
+                    # slist.save_session()
+
+                self.slist.negate(
+                    page=self.slist.data[i][2].uuid,
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=negate_finished_callback,
+                    error_callback=self.error_callback,
+                    display_callback=self.display_callback,
+                )
+
+        windowt.add_actions(
+            [("gtk-apply", negate_callback), ("gtk-cancel", windowt.destroy)]
         )
         windowt.show_all()
 
