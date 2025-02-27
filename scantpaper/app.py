@@ -328,45 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def cut_selection(_action, _param):
-    "Cut the selection"
-    app.window.slist.clipboard = app.window.slist.cut_selection()
-    app.window.update_uimanager()
-
-
-def copy_selection(_action, _param):
-    "Copy the selection"
-    app.window.slist.clipboard = app.window.slist.copy_selection(True)
-    app.window.update_uimanager()
-
-
-def paste_selection(_action, _param):
-    "Paste the selection"
-    if app.window.slist.clipboard is None:
-        return
-    take_snapshot()
-    pages = app.window.slist.get_selected_indices()
-    if pages:
-        app.window.slist.paste_selection(
-            app.window.slist.clipboard, pages[-1], "after", True
-        )
-    else:
-        app.window.slist.paste_selection(app.window.slist.clipboard, None, None, True)
-    app.window.update_uimanager()
-
-
-def delete_selection(_action, _param):
-    "Delete the selected scans"
-    # Update undo/redo buffers
-    take_snapshot()
-    app.window.slist._delete_selection_extra()
-
-    # Reset start page in scan dialog
-    if app.window._windows:
-        app.window._windows._reset_start_page()
-    app.window.update_uimanager()
-
-
 def select_all(_action, _param):
     "Select all scans"
     # if ($textview -> has_focus) {
@@ -1822,10 +1783,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("quit", quit_app),
             ("undo", undo),
             ("redo", unundo),
-            ("cut", cut_selection),
-            ("copy", copy_selection),
-            ("paste", paste_selection),
-            ("delete", delete_selection),
+            ("cut", self.cut_selection),
+            ("copy", self.copy_selection),
+            ("paste", self.paste_selection),
+            ("delete", self.delete_selection),
             ("renumber", renumber_dialog),
             ("select-all", select_all),
             ("select-odd", select_odd),
@@ -2437,7 +2398,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # Let the keypress propagate
             if event.keyval != Gdk.KEY_Delete:
                 return Gdk.EVENT_PROPAGATE
-            delete_selection(None, None)
+            self.delete_selection(None, None)
             return Gdk.EVENT_STOP
 
         # _after ensures that Editables get first bite
@@ -5439,6 +5400,39 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.print_settings = print_op.get_print_settings()
         os.chdir(self.session.name)
 
+    def cut_selection(self, _action, _param):
+        "Cut the selection"
+        self.slist.clipboard = self.slist.cut_selection()
+        self.update_uimanager()
+
+    def copy_selection(self, _action, _param):
+        "Copy the selection"
+        self.slist.clipboard = self.slist.copy_selection(True)
+        self.update_uimanager()
+
+    def paste_selection(self, _action, _param):
+        "Paste the selection"
+        if self.slist.clipboard is None:
+            return
+        take_snapshot()
+        pages = self.slist.get_selected_indices()
+        if pages:
+            self.slist.paste_selection(self.slist.clipboard, pages[-1], "after", True)
+        else:
+            self.slist.paste_selection(self.slist.clipboard, None, None, True)
+        self.update_uimanager()
+
+    def delete_selection(self, _action, _param):
+        "Delete the selected scans"
+        # Update undo/redo buffers
+        take_snapshot()
+        self.slist._delete_selection_extra()
+
+        # Reset start page in scan dialog
+        if self._windows:
+            self._windows._reset_start_page()
+        self.update_uimanager()
+
     def preferences(self, _action, _param):
         "Preferences dialog"
         if self._windowr is not None:
@@ -5784,19 +5778,19 @@ class Application(Gtk.Application):
 
     def on_cut(self, _widget):
         "cuts the selected pages to the clipboard."
-        cut_selection(None, None)
+        self.window.cut_selection(None, None)
 
     def on_copy(self, _widget):
         "copies the selected pages to the clipboard."
-        copy_selection(None, None)
+        self.window.copy_selection(None, None)
 
     def on_paste(self, _widget):
         "pastes the copied pages."
-        paste_selection(None, None)
+        self.window.paste_selection(None, None)
 
     def on_delete(self, _widget):
         "deletes the selected pages."
-        delete_selection(None, None)
+        self.window.delete_selection(None, None)
 
     def on_clear_ocr(self, _widget):
         "Clears the OCR (Optical Character Recognition) data."
