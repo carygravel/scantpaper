@@ -317,17 +317,6 @@ def file_exists(chooser, filename):
     return False
 
 
-def changed_side_to_scan_callback(widget, _arg):
-    "Callback function to handle the event when the side to scan is changed."
-    logger.debug("changed_side_to_scan_callback( %s, %s )", widget, _arg)
-    if len(app.window.slist.data) - 1 > EMPTY_LIST:
-        widget.page_number_start = (
-            app.window.slist.data[len(app.window.slist.data) - 1][0] + 1
-        )
-    else:
-        widget.page_number_start = 1
-
-
 def changed_progress_callback(_widget, progress, message):
     "Updates the progress bar based on the given progress value and message."
     if progress is not None and (0 <= progress <= 1):
@@ -3510,7 +3499,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windows.connect(
             "changed-page-number-increment", self.update_postprocessing_options_callback
         )
-        self._windows.connect("changed-side-to-scan", changed_side_to_scan_callback)
+        self._windows.connect(
+            "changed-side-to-scan", self._changed_side_to_scan_callback
+        )
         signal = None
 
         def started_progress_callback(_widget, message):
@@ -3867,6 +3858,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         else:
             self._windows = None
+
+    def _changed_side_to_scan_callback(self, widget, _arg):
+        "Callback function to handle the event when the side to scan is changed."
+        logger.debug("changed_side_to_scan_callback( %s, %s )", widget, _arg)
+        if len(self.slist.data) > 0:
+            widget.page_number_start = self.slist.data[len(self.slist.data) - 1][0] + 1
+        else:
+            widget.page_number_start = 1
 
     def add_postprocessing_rotate(self, vbox):
         "Adds post-processing rotation options to the given vbox."
