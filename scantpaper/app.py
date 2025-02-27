@@ -324,113 +324,8 @@ def import_scan_finished_callback(response):
     # Work out how to pass number of pending requests
     # We have two threads, the scan thread, and the document thread.
     # We should probably combine the results in one progress bar
-    # app.window.post_process_progress.finish(response)
+    # self.post_process_progress.finish(response)
     # slist.save_session()
-
-
-def unsharp(_action, _param):
-    "Display page selector and on apply unsharp accordingly"
-    windowum = Dialog(
-        transient_for=app.window,
-        title=_("Unsharp mask"),
-    )
-
-    # Frame for page range
-
-    windowum.add_page_range()
-    spinbuttonr = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-    spinbuttons = Gtk.SpinButton.new_with_range(0, 2 * _100_PERCENT, 1)
-    spinbuttont = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-    layout = [
-        [
-            _("Radius"),
-            spinbuttonr,
-            _("pixels"),
-            app.window.settings["unsharp radius"],
-            _("Blur Radius."),
-        ],
-        [
-            _("Percentage"),
-            spinbuttons,
-            _("%"),
-            app.window.settings["unsharp percentage"],
-            _("Unsharp strength, in percent."),
-        ],
-        [
-            _("Threshold"),
-            spinbuttont,
-            None,
-            app.window.settings["unsharp threshold"],
-            _(
-                "Threshold controls the minimum brightness change that will be sharpened."
-            ),
-        ],
-    ]
-
-    # grid for layout
-    grid = Gtk.Grid()
-    vbox = windowum.get_content_area()
-    vbox.pack_start(grid, True, True, 0)
-    for i, row in enumerate(layout):
-        col = 0
-        hbox = Gtk.HBox()
-        label = Gtk.Label(label=row[col])
-        grid.attach(hbox, col, i, 1, 1)
-        col += 1
-        hbox.pack_start(label, False, True, 0)
-        hbox = Gtk.HBox()
-        hbox.pack_end(row[col], True, True, 0)
-        grid.attach(hbox, col, i, 1, 1)
-        col += 1
-        if col in row:
-            hbox = Gtk.HBox()
-            grid.attach(hbox, col, i, 1, 1)
-            label = Gtk.Label(label=row[col])
-            hbox.pack_start(label, False, True, 0)
-
-        col += 1
-        if col in row:
-            row[1].set_value(row[col])
-
-        col += 1
-        row[1].set_tooltip_text(row[col])
-
-    def unsharp_callback():
-        # HBox for buttons
-        # Update undo/redo buffers
-        take_snapshot()
-        app.window.settings["unsharp radius"] = spinbuttonr.get_value()
-        app.window.settings["unsharp percentage"] = int(spinbuttons.get_value())
-        app.window.settings["unsharp threshold"] = int(spinbuttont.get_value())
-        app.window.settings["Page range"] = windowum.page_range
-        pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], app.window.error_callback
-        )
-        if not pagelist:
-            return
-        for i in pagelist:
-
-            def unsharp_finished_callback(response):
-                app.window.post_process_progress.finish(response)
-                # slist.save_session()
-
-            app.window.slist.unsharp(
-                page=app.window.slist.data[i][2].uuid,
-                radius=app.window.settings["unsharp radius"],
-                percent=app.window.settings["unsharp percentage"],
-                threshold=app.window.settings["unsharp threshold"],
-                queued_callback=app.window.post_process_progress.queued,
-                started_callback=app.window.post_process_progress.update,
-                running_callback=app.window.post_process_progress.update,
-                finished_callback=unsharp_finished_callback,
-                error_callback=app.window.error_callback,
-                display_callback=app.window.display_callback,
-            )
-
-    windowum.add_actions(
-        [("gtk-apply", unsharp_callback), ("gtk-cancel", windowum.destroy)]
-    )
-    windowum.show_all()
 
 
 def crop_selection(_action, _param, pagelist=None):
@@ -1388,7 +1283,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("threshold", self._threshold),
             ("brightness-contrast", self._brightness_contrast),
             ("negate", self._negate),
-            ("unsharp", unsharp),
+            ("unsharp", self._unsharp),
             ("crop-dialog", self.crop_dialog),
             ("crop-selection", crop_selection),
             ("split", split_dialog),
@@ -4044,7 +3939,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def udt_apply_callback():
             self.settings["Page range"] = windowudt.page_range
-            pagelist = app.window.slist.indices2pages(
+            pagelist = self.slist.indices2pages(
                 self.slist.get_page_index(
                     self.settings["Page range"], self.error_callback
                 )
@@ -5599,6 +5494,110 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             [("gtk-apply", negate_callback), ("gtk-cancel", windowt.destroy)]
         )
         windowt.show_all()
+
+    def _unsharp(self, _action, _param):
+        "Display page selector and on apply unsharp accordingly"
+        windowum = Dialog(
+            transient_for=self,
+            title=_("Unsharp mask"),
+        )
+
+        # Frame for page range
+
+        windowum.add_page_range()
+        spinbuttonr = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
+        spinbuttons = Gtk.SpinButton.new_with_range(0, 2 * _100_PERCENT, 1)
+        spinbuttont = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
+        layout = [
+            [
+                _("Radius"),
+                spinbuttonr,
+                _("pixels"),
+                self.settings["unsharp radius"],
+                _("Blur Radius."),
+            ],
+            [
+                _("Percentage"),
+                spinbuttons,
+                _("%"),
+                self.settings["unsharp percentage"],
+                _("Unsharp strength, in percent."),
+            ],
+            [
+                _("Threshold"),
+                spinbuttont,
+                None,
+                self.settings["unsharp threshold"],
+                _(
+                    "Threshold controls the minimum brightness change that will be sharpened."
+                ),
+            ],
+        ]
+
+        # grid for layout
+        grid = Gtk.Grid()
+        vbox = windowum.get_content_area()
+        vbox.pack_start(grid, True, True, 0)
+        for i, row in enumerate(layout):
+            col = 0
+            hbox = Gtk.HBox()
+            label = Gtk.Label(label=row[col])
+            grid.attach(hbox, col, i, 1, 1)
+            col += 1
+            hbox.pack_start(label, False, True, 0)
+            hbox = Gtk.HBox()
+            hbox.pack_end(row[col], True, True, 0)
+            grid.attach(hbox, col, i, 1, 1)
+            col += 1
+            if col in row:
+                hbox = Gtk.HBox()
+                grid.attach(hbox, col, i, 1, 1)
+                label = Gtk.Label(label=row[col])
+                hbox.pack_start(label, False, True, 0)
+
+            col += 1
+            if col in row:
+                row[1].set_value(row[col])
+
+            col += 1
+            row[1].set_tooltip_text(row[col])
+
+        def unsharp_callback():
+            # HBox for buttons
+            # Update undo/redo buffers
+            take_snapshot()
+            self.settings["unsharp radius"] = spinbuttonr.get_value()
+            self.settings["unsharp percentage"] = int(spinbuttons.get_value())
+            self.settings["unsharp threshold"] = int(spinbuttont.get_value())
+            self.settings["Page range"] = windowum.page_range
+            pagelist = self.slist.get_page_index(
+                self.settings["Page range"], self.error_callback
+            )
+            if not pagelist:
+                return
+            for i in pagelist:
+
+                def unsharp_finished_callback(response):
+                    self.post_process_progress.finish(response)
+                    # slist.save_session()
+
+                self.slist.unsharp(
+                    page=self.slist.data[i][2].uuid,
+                    radius=self.settings["unsharp radius"],
+                    percent=self.settings["unsharp percentage"],
+                    threshold=self.settings["unsharp threshold"],
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=unsharp_finished_callback,
+                    error_callback=self.error_callback,
+                    display_callback=self.display_callback,
+                )
+
+        windowum.add_actions(
+            [("gtk-apply", unsharp_callback), ("gtk-cancel", windowum.destroy)]
+        )
+        windowum.show_all()
 
 
 class Application(Gtk.Application):
