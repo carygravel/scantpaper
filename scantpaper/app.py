@@ -328,79 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def brightness_contrast(_action, _param):
-    "Display page selector and on apply brightness & contrast accordingly"
-    windowt = Dialog(
-        transient_for=app.window,
-        title=_("Brightness / Contrast"),
-    )
-    hbox, label = None, None
-
-    # Frame for page range
-    windowt.add_page_range()
-
-    # SpinButton for brightness
-    hbox = Gtk.HBox()
-    vbox = windowt.get_content_area()
-    vbox.pack_start(hbox, False, True, 0)
-    label = Gtk.Label(label=_("Brightness"))
-    hbox.pack_start(label, False, True, 0)
-    label = Gtk.Label(label=PERCENT)
-    hbox.pack_end(label, False, True, 0)
-    spinbuttonb = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-    spinbuttonb.set_value(app.window.settings["brightness tool"])
-    hbox.pack_end(spinbuttonb, False, True, 0)
-
-    # SpinButton for contrast
-    hbox = Gtk.HBox()
-    vbox.pack_start(hbox, False, True, 0)
-    label = Gtk.Label(label=_("Contrast"))
-    hbox.pack_start(label, False, True, 0)
-    label = Gtk.Label(label=PERCENT)
-    hbox.pack_end(label, False, True, 0)
-    spinbuttonc = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-    spinbuttonc.set_value(app.window.settings["contrast tool"])
-    hbox.pack_end(spinbuttonc, False, True, 0)
-
-    def brightness_contrast_callback():
-        # HBox for buttons
-        # Update undo/redo buffers
-        take_snapshot()
-        app.window.settings["brightness tool"] = spinbuttonb.get_value()
-        app.window.settings["contrast tool"] = spinbuttonc.get_value()
-        app.window.settings["Page range"] = windowt.page_range
-        pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], app.window.error_callback
-        )
-        if not pagelist:
-            return
-        for i in pagelist:
-
-            def brightness_contrast_finished_callback(response):
-                app.window.post_process_progress.finish(response)
-                # slist.save_session()
-
-            app.window.slist.brightness_contrast(
-                brightness=app.window.settings["brightness tool"],
-                contrast=app.window.settings["contrast tool"],
-                page=app.window.slist.data[i][2].uuid,
-                queued_callback=app.window.post_process_progress.queued,
-                started_callback=app.window.post_process_progress.update,
-                running_callback=app.window.post_process_progress.update,
-                finished_callback=brightness_contrast_finished_callback,
-                error_callback=app.window.error_callback,
-                display_callback=app.window.display_callback,
-            )
-
-    windowt.add_actions(
-        [
-            ("gtk-apply", brightness_contrast_callback),
-            ("gtk-cancel", windowt.destroy),
-        ]
-    )
-    windowt.show_all()
-
-
 def negate(_action, _param):
     "Display page selector and on apply negate accordingly"
     windowt = Dialog(
@@ -1501,7 +1428,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("rotate-180", rotate_180),
             ("rotate-270", rotate_270),
             ("threshold", self._threshold),
-            ("brightness-contrast", brightness_contrast),
+            ("brightness-contrast", self._brightness_contrast),
             ("negate", negate),
             ("unsharp", unsharp),
             ("crop-dialog", self.crop_dialog),
@@ -5597,6 +5524,78 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         windowt.add_actions(
             [
                 ("gtk-apply", threshold_apply_callback),
+                ("gtk-cancel", windowt.destroy),
+            ]
+        )
+        windowt.show_all()
+
+    def _brightness_contrast(self, _action, _param):
+        "Display page selector and on apply brightness & contrast accordingly"
+        windowt = Dialog(
+            transient_for=self,
+            title=_("Brightness / Contrast"),
+        )
+        hbox, label = None, None
+
+        # Frame for page range
+        windowt.add_page_range()
+
+        # SpinButton for brightness
+        hbox = Gtk.HBox()
+        vbox = windowt.get_content_area()
+        vbox.pack_start(hbox, False, True, 0)
+        label = Gtk.Label(label=_("Brightness"))
+        hbox.pack_start(label, False, True, 0)
+        label = Gtk.Label(label=PERCENT)
+        hbox.pack_end(label, False, True, 0)
+        spinbuttonb = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
+        spinbuttonb.set_value(self.settings["brightness tool"])
+        hbox.pack_end(spinbuttonb, False, True, 0)
+
+        # SpinButton for contrast
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, False, True, 0)
+        label = Gtk.Label(label=_("Contrast"))
+        hbox.pack_start(label, False, True, 0)
+        label = Gtk.Label(label=PERCENT)
+        hbox.pack_end(label, False, True, 0)
+        spinbuttonc = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
+        spinbuttonc.set_value(self.settings["contrast tool"])
+        hbox.pack_end(spinbuttonc, False, True, 0)
+
+        def brightness_contrast_callback():
+            # HBox for buttons
+            # Update undo/redo buffers
+            take_snapshot()
+            self.settings["brightness tool"] = spinbuttonb.get_value()
+            self.settings["contrast tool"] = spinbuttonc.get_value()
+            self.settings["Page range"] = windowt.page_range
+            pagelist = self.slist.get_page_index(
+                self.settings["Page range"], self.error_callback
+            )
+            if not pagelist:
+                return
+            for i in pagelist:
+
+                def brightness_contrast_finished_callback(response):
+                    self.post_process_progress.finish(response)
+                    # slist.save_session()
+
+                self.slist.brightness_contrast(
+                    brightness=self.settings["brightness tool"],
+                    contrast=self.settings["contrast tool"],
+                    page=self.slist.data[i][2].uuid,
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=brightness_contrast_finished_callback,
+                    error_callback=self.error_callback,
+                    display_callback=self.display_callback,
+                )
+
+        windowt.add_actions(
+            [
+                ("gtk-apply", brightness_contrast_callback),
                 ("gtk-cancel", windowt.destroy),
             ]
         )
