@@ -328,18 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def print_dialog(_action, _param):
-    "print"
-    os.chdir(app.window.settings["cwd"])
-    print_op = PrintOperation(
-        settings=app.window.print_settings, slist=app.window.slist
-    )
-    res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, app.window)
-    if res == Gtk.PrintOperationResult.APPLY:
-        app.window.print_settings = print_op.get_print_settings()
-    os.chdir(app.window.session.name)
-
-
 def cut_selection(_action, _param):
     "Cut the selection"
     app.window.slist.clipboard = app.window.slist.cut_selection()
@@ -1830,7 +1818,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("scan", self.scan_dialog),
             ("save", self.save_dialog),
             ("email", self.email),
-            ("print", print_dialog),
+            ("print", self.print_dialog),
             ("quit", quit_app),
             ("undo", undo),
             ("redo", unundo),
@@ -5442,6 +5430,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         self._windowe.show_all()
 
+    def print_dialog(self, _action, _param):
+        "print"
+        os.chdir(self.settings["cwd"])
+        print_op = PrintOperation(settings=self.print_settings, slist=self.slist)
+        res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, self)
+        if res == Gtk.PrintOperationResult.APPLY:
+            self.print_settings = print_op.get_print_settings()
+        os.chdir(self.session.name)
+
     def preferences(self, _action, _param):
         "Preferences dialog"
         if self._windowr is not None:
@@ -5759,7 +5756,7 @@ class Application(Gtk.Application):
 
     def on_print(self, _widget):
         "displays the print dialog."
-        print_dialog(None, None)
+        self.window.print_dialog(None, None)
 
     def on_renumber(self, _widget):
         "Displays the renumber dialog."
