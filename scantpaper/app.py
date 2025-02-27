@@ -328,67 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def threshold(_action, _param):
-    "Display page selector and on apply threshold accordingly"
-    windowt = Dialog(
-        transient_for=app.window,
-        title=_("Threshold"),
-    )
-
-    # Frame for page range
-    windowt.add_page_range()
-
-    # SpinButton for threshold
-    hboxt = Gtk.HBox()
-    vbox = windowt.get_content_area()
-    vbox.pack_start(hboxt, False, True, 0)
-    label = Gtk.Label(label=_("Threshold"))
-    hboxt.pack_start(label, False, True, 0)
-    labelp = Gtk.Label(label=PERCENT)
-    hboxt.pack_end(labelp, False, True, 0)
-    spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-    spinbutton.set_value(app.window.settings["threshold tool"])
-    hboxt.pack_end(spinbutton, False, True, 0)
-
-    def threshold_apply_callback():
-        # HBox for buttons
-        # Update undo/redo buffers
-        take_snapshot()
-        app.window.settings["threshold tool"] = spinbutton.get_value()
-        app.window.settings["Page range"] = windowt.page_range
-        pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], app.window.error_callback
-        )
-        if not pagelist:
-            return
-        page = 0
-        for i in pagelist:
-            page += 1
-
-            def threshold_finished_callback(response):
-                app.window.post_process_progress.finish(response)
-                # slist.save_session()
-
-            app.window.slist.threshold(
-                threshold=app.window.settings["threshold tool"],
-                page=app.window.slist.data[i][2].uuid,
-                queued_callback=app.window.post_process_progress.queued,
-                started_callback=app.window.post_process_progress.update,
-                running_callback=app.window.post_process_progress.update,
-                finished_callback=threshold_finished_callback,
-                error_callback=app.window.error_callback,
-                display_callback=app.window.display_callback,
-            )
-
-    windowt.add_actions(
-        [
-            ("gtk-apply", threshold_apply_callback),
-            ("gtk-cancel", windowt.destroy),
-        ]
-    )
-    windowt.show_all()
-
-
 def brightness_contrast(_action, _param):
     "Display page selector and on apply brightness & contrast accordingly"
     windowt = Dialog(
@@ -1561,7 +1500,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("rotate-90", rotate_90),
             ("rotate-180", rotate_180),
             ("rotate-270", rotate_270),
-            ("threshold", threshold),
+            ("threshold", self._threshold),
             ("brightness-contrast", brightness_contrast),
             ("negate", negate),
             ("unsharp", unsharp),
@@ -5602,6 +5541,66 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 error_callback=self.error_callback,
                 display_callback=self.display_callback,
             )
+
+    def _threshold(self, _action, _param):
+        "Display page selector and on apply threshold accordingly"
+        windowt = Dialog(
+            transient_for=self,
+            title=_("Threshold"),
+        )
+
+        # Frame for page range
+        windowt.add_page_range()
+
+        # SpinButton for threshold
+        hboxt = Gtk.HBox()
+        vbox = windowt.get_content_area()
+        vbox.pack_start(hboxt, False, True, 0)
+        label = Gtk.Label(label=_("Threshold"))
+        hboxt.pack_start(label, False, True, 0)
+        labelp = Gtk.Label(label=PERCENT)
+        hboxt.pack_end(labelp, False, True, 0)
+        spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
+        spinbutton.set_value(self.settings["threshold tool"])
+        hboxt.pack_end(spinbutton, False, True, 0)
+
+        def threshold_apply_callback():
+            # HBox for buttons
+            # Update undo/redo buffers
+            take_snapshot()
+            self.settings["threshold tool"] = spinbutton.get_value()
+            self.settings["Page range"] = windowt.page_range
+            pagelist = self.slist.get_page_index(
+                self.settings["Page range"], self.error_callback
+            )
+            if not pagelist:
+                return
+            page = 0
+            for i in pagelist:
+                page += 1
+
+                def threshold_finished_callback(response):
+                    self.post_process_progress.finish(response)
+                    # slist.save_session()
+
+                self.slist.threshold(
+                    threshold=self.settings["threshold tool"],
+                    page=self.slist.data[i][2].uuid,
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=threshold_finished_callback,
+                    error_callback=self.error_callback,
+                    display_callback=self.display_callback,
+                )
+
+        windowt.add_actions(
+            [
+                ("gtk-apply", threshold_apply_callback),
+                ("gtk-cancel", windowt.destroy),
+            ]
+        )
+        windowt.show_all()
 
 
 class Application(Gtk.Application):
