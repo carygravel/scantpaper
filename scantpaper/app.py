@@ -317,35 +317,6 @@ def file_exists(chooser, filename):
     return False
 
 
-def save_hocr(filename, uuids):
-    "Save HOCR (HTML OCR) data to a file"
-    options = {}
-    if app.window.settings["post_save_hook"]:
-        options["post_save_hook"] = app.window.settings["current_psh"]
-
-    def save_hocr_finished_callback(response):
-        app.window.post_process_progress.finish(response)
-        mark_pages(uuids)
-        if (
-            "view files toggle" in app.window.settings
-            and app.window.settings["view files toggle"]
-        ):
-            launch_default_for_file(filename)
-
-        logger.debug("Finished saving %s", filename)
-
-    app.window.slist.save_hocr(
-        path=filename,
-        list_of_pages=uuids,
-        options=options,
-        queued_callback=app.window.post_process_progress.queued,
-        started_callback=app.window.post_process_progress.update,
-        running_callback=app.window.post_process_progress.update,
-        finished_callback=save_hocr_finished_callback,
-        error_callback=app.window.error_callback,
-    )
-
-
 def changed_side_to_scan_callback(widget, _arg):
     "Callback function to handle the event when the side to scan is changed."
     logger.debug("changed_side_to_scan_callback( %s, %s )", widget, _arg)
@@ -5001,7 +4972,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._save_text(filename, uuids)
 
             elif filetype == "hocr":
-                save_hocr(filename, uuids)
+                self._save_hocr(filename, uuids)
 
             elif filetype == "ps":
                 if self.settings["ps_backend"] == "libtiff":
@@ -5208,6 +5179,34 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_text_finished_callback,
+            error_callback=self.error_callback,
+        )
+
+    def _save_hocr(self, filename, uuids):
+        "Save HOCR (HTML OCR) data to a file"
+        options = {}
+        if self.settings["post_save_hook"]:
+            options["post_save_hook"] = self.settings["current_psh"]
+
+        def save_hocr_finished_callback(response):
+            self.post_process_progress.finish(response)
+            mark_pages(uuids)
+            if (
+                "view files toggle" in self.settings
+                and self.settings["view files toggle"]
+            ):
+                launch_default_for_file(filename)
+
+            logger.debug("Finished saving %s", filename)
+
+        self.slist.save_hocr(
+            path=filename,
+            list_of_pages=uuids,
+            options=options,
+            queued_callback=self.post_process_progress.queued,
+            started_callback=self.post_process_progress.update,
+            running_callback=self.post_process_progress.update,
+            finished_callback=save_hocr_finished_callback,
             error_callback=self.error_callback,
         )
 
