@@ -439,6 +439,10 @@ class Document(BaseDocument):
         # Reselect the pages to display the detail view
         self.select(self._redo_selection)
 
+    def indices2pages(self, list_of_indices):
+        "Helper function to convert an array of indices into an array of uuids"
+        return map(lambda x: str(self.data[x][2].uuid), list_of_indices)
+
 
 def _extract_metadata(info):
     metadata = {}

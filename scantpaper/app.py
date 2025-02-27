@@ -328,16 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def indices2pages(
-    indices,
-):  # FIXME: this should go in slist somewhere and should be a list comprehension
-    "Helper function to convert an array of indices into an array of uuids"
-    pages = []
-    for i in indices:
-        pages.append(app.window.slist.data[i][2].uuid)
-    return pages
-
-
 def rotate(angle, pagelist):
     "Rotate selected images"
 
@@ -904,7 +894,7 @@ def run_ocr(engine, tesslang, threshold_flag, threshold):
     # fill pagelist with filenames
     # depending on which radiobutton is active
     app.window.settings["Page range"] = app.windwo._windowo.page_range
-    pagelist = indices2pages(
+    pagelist = app.window.slist.indices2pages(
         app.window.slist.get_page_index(
             app.window.settings["Page range"], app.window.error_callback
         )
@@ -1500,17 +1490,26 @@ def zoom_out(_action, _param):
 
 def rotate_90(_action, _param):
     "Rotates the selected pages by 90 degrees"
-    rotate(_90_DEGREES, indices2pages(app.window.slist.get_selected_indices()))
+    rotate(
+        _90_DEGREES,
+        app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
+    )
 
 
 def rotate_180(_action, _param):
     "Rotates the selected pages by 180 degrees"
-    rotate(_180_DEGREES, indices2pages(app.window.slist.get_selected_indices()))
+    rotate(
+        _180_DEGREES,
+        app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
+    )
 
 
 def rotate_270(_action, _param):
     "Rotates the selected pages by 270 degrees"
-    rotate(_270_DEGREES, indices2pages(app.window.slist.get_selected_indices()))
+    rotate(
+        _270_DEGREES,
+        app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
+    )
 
 
 class ApplicationWindow(Gtk.ApplicationWindow):
@@ -4118,7 +4117,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.settings["Page range"] = self._windowu.page_range
 
             # run unpaper
-            pagelist = indices2pages(
+            pagelist = app.window.slist.indices2pages(
                 self.slist.get_page_index(
                     self.settings["Page range"], self.error_callback
                 )
@@ -4239,7 +4238,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def udt_apply_callback():
             self.settings["Page range"] = windowudt.page_range
-            pagelist = indices2pages(
+            pagelist = app.window.slist.indices2pages(
                 self.slist.get_page_index(
                     self.settings["Page range"], self.error_callback
                 )
