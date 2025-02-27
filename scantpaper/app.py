@@ -328,12 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def restart():
-    "Restart the application"
-    app.window.can_quit()
-    os.execv(sys.executable, ["python"] + sys.argv)
-
-
 def print_dialog(_action, _param):
     "print"
     os.chdir(app.window.settings["cwd"])
@@ -4073,7 +4067,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             elif response == "rescan":
                 self.scan_dialog(None, None, False, True)
             elif response == "restart":
-                restart()
+                self._restart()
 
             # for ignore, we do nothing
             return
@@ -5570,7 +5564,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     + _("Restart gscan2pdf now?"),
                 )
                 if response == Gtk.ResponseType.OK:
-                    restart()
+                    self._restart()
 
         self._windowr.add_actions(
             [("gtk-ok", preferences_apply_callback), ("gtk-cancel", self._windowr.hide)]
@@ -5618,6 +5612,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             exec_command(["xz", "-f", self._args.log])
 
         return True
+
+    def _restart(self):
+        "Restart the application"
+        self.can_quit()
+        os.execv(sys.executable, ["python"] + sys.argv)
 
     def scans_saved(self, message):
         "Check that all pages have been saved"
