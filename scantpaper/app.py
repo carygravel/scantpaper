@@ -328,47 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def new_scan_callback(_self, image_object, page_number, xresolution, yresolution):
-    "Callback function to handle a new scan."
-    if image_object is None:
-        return
-
-    # Update undo/redo buffers
-    take_snapshot()
-    rotate = (
-        app.window.settings["rotate facing"]
-        if page_number % 2
-        else app.window.settings["rotate reverse"]
-    )
-    options = {
-        "page": page_number,
-        "dir": app.window.session.name,
-        "to_png": app.window.settings["to_png"],
-        "rotate": rotate,
-        "ocr": app.window.settings["OCR on scan"],
-        "engine": app.window.settings["ocr engine"],
-        "language": app.window.settings["ocr language"],
-        "queued_callback": app.window.post_process_progress.queued,
-        "started_callback": app.window.post_process_progress.update,
-        "finished_callback": import_scan_finished_callback,
-        "error_callback": app.window.error_callback,
-        "image_object": image_object,
-        "resolution": (xresolution, yresolution, "PixelsPerInch"),
-    }
-    if app.window.settings["unpaper on scan"]:
-        options["unpaper"] = app.window._unpaper
-
-    if app.window.settings["threshold-before-ocr"]:
-        options["threshold"] = app.window.settings["threshold tool"]
-
-    if app.window.settings["udt_on_scan"]:
-        options["udt"] = app.window.settings["current_udt"]
-
-    logger.info("Importing scan with resolution=%s,%s", xresolution, yresolution)
-
-    app.window.slist.import_scan(**options)
-
-
 def restart():
     "Restart the application"
     app.window.can_quit()
@@ -3450,7 +3409,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Scan"
         if self._windows:
             self._windows.show_all()
-            self.update_postprocessing_options_callback(self._windows)
+            self._update_postprocessing_options_callback(self._windows)
             return
 
         # If device not set by config and there is a default device, then set it
@@ -3487,7 +3446,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Update default device
         self._windows.connect("changed-device", self.changed_device_callback)
         self._windows.connect(
-            "changed-page-number-increment", self.update_postprocessing_options_callback
+            "changed-page-number-increment",
+            self._update_postprocessing_options_callback,
         )
         self._windows.connect(
             "changed-side-to-scan", self._changed_side_to_scan_callback
@@ -3553,14 +3513,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.settings["Paper"] = formats
 
         self._windows.connect("changed-paper-formats", changed_paper_formats_callback)
-        self._windows.connect("new-scan", new_scan_callback)
+        self._windows.connect("new-scan", self._new_scan_callback)
         self._windows.connect(
-            "changed-scan-option", self.update_postprocessing_options_callback
+            "changed-scan-option", self._update_postprocessing_options_callback
         )
         self.add_postprocessing_options(self._windows)
         if not hidden:
             self._windows.show_all()
-        self.update_postprocessing_options_callback(self._windows)
+        self._update_postprocessing_options_callback(self._windows)
         if self._args.device:
             device_list = []
             for d in self._args.device:
@@ -3959,7 +3919,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         return rbutton, r2button, comboboxr, comboboxr2
 
-    def update_postprocessing_options_callback(
+    def _update_postprocessing_options_callback(
         self, widget, _option_name=None, _option_val=None, _uuid=None
     ):
         "update the visibility of post-processing options based on the widget's scan options."
@@ -3974,6 +3934,47 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             else:
                 self._rotate_side_cmbx.hide()
                 self._rotate_side_cmbx2.hide()
+
+    def _new_scan_callback(
+        self, _widget, image_object, page_number, xresolution, yresolution
+    ):
+        "Callback function to handle a new scan."
+        if image_object is None:
+            return
+
+        # Update undo/redo buffers
+        take_snapshot()
+        rotate = (
+            self.settings["rotate facing"]
+            if page_number % 2
+            else self.settings["rotate reverse"]
+        )
+        options = {
+            "page": page_number,
+            "dir": self.session.name,
+            "to_png": self.settings["to_png"],
+            "rotate": rotate,
+            "ocr": self.settings["OCR on scan"],
+            "engine": self.settings["ocr engine"],
+            "language": self.settings["ocr language"],
+            "queued_callback": self.post_process_progress.queued,
+            "started_callback": self.post_process_progress.update,
+            "finished_callback": import_scan_finished_callback,
+            "error_callback": self.error_callback,
+            "image_object": image_object,
+            "resolution": (xresolution, yresolution, "PixelsPerInch"),
+        }
+        if self.settings["unpaper on scan"]:
+            options["unpaper"] = self._unpaper
+
+        if self.settings["threshold-before-ocr"]:
+            options["threshold"] = self.settings["threshold tool"]
+
+        if self.settings["udt_on_scan"]:
+            options["udt"] = self.settings["current_udt"]
+
+        logger.info("Importing scan with resolution=%s,%s", xresolution, yresolution)
+        self.slist.import_scan(**options)
 
     def reloaded_scan_options_callback(self, widget):  # widget is windows
         "This should only be called the first time after loading the available options"
@@ -3990,7 +3991,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         elif profiles:
             widget.profile = profiles[0]
 
-        self.update_postprocessing_options_callback(widget)
+        self._update_postprocessing_options_callback(widget)
 
     def process_error_callback(self, widget, process, msg, signal):
         "Callback function to handle process errors."
