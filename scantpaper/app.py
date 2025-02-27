@@ -328,40 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def crop_selection(_action, _param, pagelist=None):
-    "Crop the selected area of the specified pages."
-    if not app.window.settings["selection"]:
-        return
-
-    # Update undo/redo buffers
-    take_snapshot()
-    if not pagelist:
-        pagelist = app.window.slist.get_selected_indices()
-
-    if not pagelist:
-        return
-
-    for i in pagelist:
-
-        def crop_finished_callback(response):
-            app.window.post_process_progress.finish(response)
-            # slist.save_session()
-
-        app.window.slist.crop(
-            page=app.window.slist.data[i][2].uuid,
-            x=app.window.settings["selection"].x,
-            y=app.window.settings["selection"].y,
-            w=app.window.settings["selection"].width,
-            h=app.window.settings["selection"].height,
-            queued_callback=app.window.post_process_progress.queued,
-            started_callback=app.window.post_process_progress.update,
-            running_callback=app.window.post_process_progress.update,
-            finished_callback=crop_finished_callback,
-            error_callback=app.window.error_callback,
-            display_callback=app.window.display_callback,
-        )
-
-
 def split_dialog(_action, _param):
     "Display page selector and on apply crop accordingly"
 
@@ -1284,8 +1250,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("brightness-contrast", self._brightness_contrast),
             ("negate", self._negate),
             ("unsharp", self._unsharp),
-            ("crop-dialog", self.crop_dialog),
-            ("crop-selection", crop_selection),
+            ("crop-dialog", self._crop_dialog),
+            ("crop-selection", self.crop_selection),
             ("split", split_dialog),
             ("unpaper", self.unpaper),
             ("ocr", self.ocr_dialog),
@@ -3754,44 +3720,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         about.run()
         about.destroy()
 
-    def crop_dialog(self, _action, _param):
-        "Display page selector and on apply crop accordingly"
-        if self._windowc is not None:
-            self._windowc.present()
-            return
-
-        width, height = self._current_page.get_size()
-        self._windowc = Crop(transient_for=self, page_width=width, page_height=height)
-
-        def on_changed_selection(_widget, selection):
-            # copy required here because somehow the garbage collection
-            # destroys the Gdk.Rectangle too early and afterwards, the
-            # contents are corrupt.
-            self.settings["selection"] = selection.copy()
-            self.view.handler_block(self.view.selection_changed_signal)
-            self.view.set_selection(selection)
-            self.view.handler_unblock(self.view.selection_changed_signal)
-
-        self._windowc.connect("changed-selection", on_changed_selection)
-
-        if self.settings["selection"]:
-            self._windowc.selection = self.settings["selection"]
-
-        def crop_callback():
-            self.settings["Page range"] = self._windowc.page_range
-            crop_selection(
-                None,  # action
-                None,  # param
-                self.slist.get_page_index(
-                    self.settings["Page range"], self.error_callback
-                ),
-            )
-
-        self._windowc.add_actions(
-            [("gtk-apply", crop_callback), ("gtk-cancel", self._windowc.hide)]
-        )
-        self._windowc.show_all()
-
     def unpaper(self, _action, _param):
         "Run unpaper to clean up scan."
         if self._windowu is not None:
@@ -5599,6 +5527,77 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         windowum.show_all()
 
+    def _crop_dialog(self, _action, _param):
+        "Display page selector and on apply crop accordingly"
+        if self._windowc is not None:
+            self._windowc.present()
+            return
+
+        width, height = self._current_page.get_size()
+        self._windowc = Crop(transient_for=self, page_width=width, page_height=height)
+
+        def on_changed_selection(_widget, selection):
+            # copy required here because somehow the garbage collection
+            # destroys the Gdk.Rectangle too early and afterwards, the
+            # contents are corrupt.
+            self.settings["selection"] = selection.copy()
+            self.view.handler_block(self.view.selection_changed_signal)
+            self.view.set_selection(selection)
+            self.view.handler_unblock(self.view.selection_changed_signal)
+
+        self._windowc.connect("changed-selection", on_changed_selection)
+
+        if self.settings["selection"]:
+            self._windowc.selection = self.settings["selection"]
+
+        def crop_callback():
+            self.settings["Page range"] = self._windowc.page_range
+            self.crop_selection(
+                None,  # action
+                None,  # param
+                self.slist.get_page_index(
+                    self.settings["Page range"], self.error_callback
+                ),
+            )
+
+        self._windowc.add_actions(
+            [("gtk-apply", crop_callback), ("gtk-cancel", self._windowc.hide)]
+        )
+        self._windowc.show_all()
+
+    def crop_selection(self, _action, _param, pagelist=None):
+        "Crop the selected area of the specified pages."
+        if not self.settings["selection"]:
+            return
+
+        # Update undo/redo buffers
+        take_snapshot()
+        if not pagelist:
+            pagelist = self.slist.get_selected_indices()
+
+        if not pagelist:
+            return
+
+        for i in pagelist:
+
+            def crop_finished_callback(response):
+                self.post_process_progress.finish(response)
+                # slist.save_session()
+
+            self.slist.crop(
+                page=self.slist.data[i][2].uuid,
+                x=self.settings["selection"].x,
+                y=self.settings["selection"].y,
+                w=self.settings["selection"].width,
+                h=self.settings["selection"].height,
+                queued_callback=self.post_process_progress.queued,
+                started_callback=self.post_process_progress.update,
+                running_callback=self.post_process_progress.update,
+                finished_callback=crop_finished_callback,
+                error_callback=self.error_callback,
+                display_callback=self.display_callback,
+            )
+
 
 class Application(Gtk.Application):
     "Application class"
@@ -5749,7 +5748,7 @@ class Application(Gtk.Application):
 
     def on_crop(self, _widget):
         "Displays the crop dialog."
-        crop_selection(None, None)
+        self.window.crop_selection(None, None)
 
     def on_cut(self, _widget):
         "cuts the selected pages to the clipboard."
