@@ -328,144 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def select_all(_action, _param):
-    "Select all scans"
-    # if ($textview -> has_focus) {
-    #  my ($start, $end) = $textbuffer->get_bounds;
-    #  $textbuffer->select_range ($start, $end);
-    # }
-    # else {
-
-    app.window.slist.get_selection().select_all()
-
-    # }
-
-
-def select_odd_even(odd):
-    "Select all odd(0) or even(1) scans"
-    selection = []
-    for i, row in enumerate(app.window.slist.data):
-        if row[0] % 2 ^ odd:
-            selection.append(i)
-
-    app.window.slist.get_selection().unselect_all()
-    app.window.slist.select(selection)
-
-
-def select_invert(_action, _param):
-    "Invert selection"
-    selection = app.window.slist.get_selected_indices()
-    inverted = []
-    for i in range(len(app.window.slist.data)):
-        if i not in selection:
-            inverted.append(_)
-    app.window.slist.get_selection().unselect_all()
-    app.window.slist.select(inverted)
-
-
-def select_modified_since_ocr(_action, _param):
-    "Selects pages that have been modified since the last OCR process."
-    selection = []
-    for page in range(len(app.window.slist.data)):
-        dirty_time = (
-            page.dirty_time
-            if hasattr(page, "dirty_time")
-            else datetime.datetime(1970, 1, 1)
-        )
-        ocr_time = (
-            page.ocr_time
-            if hasattr(page, "ocr_time")
-            else datetime.datetime(1970, 1, 1)
-        )
-        ocr_flag = page.ocr_flag if hasattr(page, "ocr_flag") else False
-        if ocr_flag and (ocr_time <= dirty_time):
-            selection.append(_)
-
-    app.window.slist.get_selection().unselect_all()
-    app.window.slist.select(selection)
-
-
-def select_no_ocr(_action, _param):
-    "Select pages with no ocr output"
-    selection = []
-    for i, row in enumerate(app.window.slist.data):
-        if not hasattr(row[2], "text_layer") or row[2].text_layer is None:
-            selection.append(i)
-
-    app.window.slist.get_selection().unselect_all()
-    app.window.slist.select(selection)
-
-
-def clear_ocr(_action, _param):
-    "Clear the OCR output from selected pages"
-    # Update undo/redo buffers
-    take_snapshot()
-
-    # Clear the existing canvas
-    app.window.t_canvas.clear_text()
-    selection = app.window.slist.get_selected_indices()
-    for i in selection:
-        app.window.slist.data[i][2].text_layer = None
-
-    # slist.save_session()
-
-
-def select_blank(_action, _param):
-    "Analyse and select blank pages"
-    analyse(True, False)
-
-
-def select_blank_pages():
-    "Select blank pages"
-    for page in app.window.slist.data:
-
-        # compare Std Dev to threshold
-        # std_dev is a list -- 1 value per channel
-        if (
-            sum(page[2].std_dev) / len(page[2].std_dev)
-            <= app.window.settings["Blank threshold"]
-        ):
-            app.window.slist.select(page)
-            logger.info("Selecting blank page")
-        else:
-            app.window.slist.unselect(page)
-            logger.info("Unselecting non-blank page")
-
-        logger.info(
-            "StdDev: %s threshold: %s",
-            page[2].std_dev,
-            app.window.settings["Blank threshold"],
-        )
-
-
-def select_dark(_action, _param):
-    "Analyse and select dark pages"
-    analyse(False, True)
-
-
-def select_dark_pages():
-    "Select dark pages"
-    for page in app.window.slist.data:
-
-        # compare Mean to threshold
-        # mean is a list -- 1 value per channel
-        if (
-            sum(page[2].mean) / len(page[2].std_dev)
-            <= app.window.settings["Dark threshold"]
-        ):
-            app.window.slist.select(page)
-            logger.info("Selecting dark page")
-        else:
-            app.window.slist.unselect(page)
-            logger.info("Unselecting non-dark page")
-
-        logger.info(
-            "mean: %s threshold: %s",
-            page[2].mean,
-            app.window.settings["Dark threshold"],
-        )
-
-
 def renumber_dialog(_action, _param):
     "Dialog for renumber"
     if app.window.renumber_dialog is not None:
@@ -516,60 +378,6 @@ def rotate(angle, pagelist):
             error_callback=app.window.error_callback,
             display_callback=app.window.display_callback,
         )
-
-
-def analyse(select_blank, select_dark):
-    "Analyse selected images"
-
-    # Update undo/redo buffers
-    take_snapshot()
-    pages_to_analyse = []
-    for row in app.window.slist.data:
-        page = row[2]
-        dirty_time = (
-            page.dirty_time
-            if hasattr(page, "dirty_time")
-            else datetime.datetime(1970, 1, 1)
-        )
-        analyse_time = (
-            page.analyse_time
-            if hasattr(page, "analyse_time")
-            else datetime.datetime(1970, 1, 1)
-        )
-        if analyse_time <= dirty_time:
-            logger.info(
-                "Updating: %s analyse_time: %s dirty_time: %s",
-                row[0],
-                analyse_time,
-                dirty_time,
-            )
-            pages_to_analyse.append(page.uuid)
-
-    if len(pages_to_analyse) > 0:
-
-        def analyse_finished_callback(response):
-            app.window.post_process_progress.finish(response)
-            if select_blank:
-                select_blank_pages()
-            if select_dark:
-                select_dark_pages()
-
-        # slist.save_session()
-
-        app.window.slist.analyse(
-            list_of_pages=pages_to_analyse,
-            queued_callback=app.window.post_process_progress.queued,
-            started_callback=app.window.post_process_progress.update,
-            running_callback=app.window.post_process_progress.update,
-            finished_callback=analyse_finished_callback,
-            error_callback=app.window.error_callback,
-        )
-
-    else:
-        if select_blank:
-            select_blank_pages()
-        if select_dark:
-            select_dark_pages()
 
 
 def threshold(_action, _param):
@@ -1694,16 +1502,6 @@ def quit_app(_action, _param):
         app.quit()
 
 
-def select_odd(_action, _param):
-    "Selects odd-numbered pages"
-    select_odd_even(0)
-
-
-def select_even(_action, _param):
-    "Selects even-numbered pages"
-    select_odd_even(1)
-
-
 def zoom_100(_action, _param):
     "Sets the zoom level of the view to 100%."
     app.window.view.set_zoom(1.0)
@@ -1788,15 +1586,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("paste", self.paste_selection),
             ("delete", self.delete_selection),
             ("renumber", renumber_dialog),
-            ("select-all", select_all),
-            ("select-odd", select_odd),
-            ("select-even", select_even),
-            ("select-invert", select_invert),
-            ("select-blank", select_blank),
-            ("select-dark", select_dark),
-            ("select-modified", select_modified_since_ocr),
-            ("select-no-ocr", select_no_ocr),
-            ("clear-ocr", clear_ocr),
+            ("select-all", self.select_all),
+            ("select-odd", self.select_odd),
+            ("select-even", self.select_even),
+            ("select-invert", self.select_invert),
+            ("select-blank", self.select_blank),
+            ("select-dark", self.select_dark),
+            ("select-modified", self.select_modified_since_ocr),
+            ("select-no-ocr", self.select_no_ocr),
+            ("clear-ocr", self.clear_ocr),
             ("properties", self.properties),
             ("preferences", self.preferences),
             ("zoom-100", zoom_100),
@@ -5433,6 +5231,195 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._windows._reset_start_page()
         self.update_uimanager()
 
+    def select_all(self, _action, _param):
+        "Select all scans"
+        # if ($textview -> has_focus) {
+        #  my ($start, $end) = $textbuffer->get_bounds;
+        #  $textbuffer->select_range ($start, $end);
+        # }
+        # else {
+
+        self.slist.get_selection().select_all()
+
+        # }
+
+    def select_odd_even(self, odd):
+        "Select all odd(0) or even(1) scans"
+        selection = []
+        for i, row in enumerate(self.slist.data):
+            if row[0] % 2 ^ odd:
+                selection.append(i)
+
+        self.slist.get_selection().unselect_all()
+        self.slist.select(selection)
+
+    def select_invert(self, _action, _param):
+        "Invert selection"
+        selection = self.slist.get_selected_indices()
+        inverted = []
+        for i in range(len(self.slist.data)):
+            if i not in selection:
+                inverted.append(_)
+        self.slist.get_selection().unselect_all()
+        self.slist.select(inverted)
+
+    def select_modified_since_ocr(self, _action, _param):
+        "Selects pages that have been modified since the last OCR process."
+        selection = []
+        for page in range(len(self.slist.data)):
+            dirty_time = (
+                page.dirty_time
+                if hasattr(page, "dirty_time")
+                else datetime.datetime(1970, 1, 1)
+            )
+            ocr_time = (
+                page.ocr_time
+                if hasattr(page, "ocr_time")
+                else datetime.datetime(1970, 1, 1)
+            )
+            ocr_flag = page.ocr_flag if hasattr(page, "ocr_flag") else False
+            if ocr_flag and (ocr_time <= dirty_time):
+                selection.append(_)
+
+        self.slist.get_selection().unselect_all()
+        self.slist.select(selection)
+
+    def select_no_ocr(self, _action, _param):
+        "Select pages with no ocr output"
+        selection = []
+        for i, row in enumerate(self.slist.data):
+            if not hasattr(row[2], "text_layer") or row[2].text_layer is None:
+                selection.append(i)
+
+        self.slist.get_selection().unselect_all()
+        self.slist.select(selection)
+
+    def clear_ocr(self, _action, _param):
+        "Clear the OCR output from selected pages"
+        # Update undo/redo buffers
+        take_snapshot()
+
+        # Clear the existing canvas
+        self.t_canvas.clear_text()
+        selection = self.slist.get_selected_indices()
+        for i in selection:
+            self.slist.data[i][2].text_layer = None
+
+        # slist.save_session()
+
+    def select_blank(self, _action, _param):
+        "Analyse and select blank pages"
+        self.analyse(True, False)
+
+    def select_odd(self, _action, _param):
+        "Selects odd-numbered pages"
+        self.select_odd_even(0)
+
+    def select_even(self, _action, _param):
+        "Selects even-numbered pages"
+        self.select_odd_even(1)
+
+    def select_blank_pages(self):
+        "Select blank pages"
+        for page in self.slist.data:
+
+            # compare Std Dev to threshold
+            # std_dev is a list -- 1 value per channel
+            if (
+                sum(page[2].std_dev) / len(page[2].std_dev)
+                <= self.settings["Blank threshold"]
+            ):
+                self.slist.select(page)
+                logger.info("Selecting blank page")
+            else:
+                self.slist.unselect(page)
+                logger.info("Unselecting non-blank page")
+
+            logger.info(
+                "StdDev: %s threshold: %s",
+                page[2].std_dev,
+                self.settings["Blank threshold"],
+            )
+
+    def select_dark(self, _action, _param):
+        "Analyse and select dark pages"
+        self.analyse(False, True)
+
+    def select_dark_pages(self):
+        "Select dark pages"
+        for page in self.slist.data:
+
+            # compare Mean to threshold
+            # mean is a list -- 1 value per channel
+            if (
+                sum(page[2].mean) / len(page[2].std_dev)
+                <= self.settings["Dark threshold"]
+            ):
+                self.slist.select(page)
+                logger.info("Selecting dark page")
+            else:
+                self.slist.unselect(page)
+                logger.info("Unselecting non-dark page")
+
+            logger.info(
+                "mean: %s threshold: %s",
+                page[2].mean,
+                self.settings["Dark threshold"],
+            )
+
+    def analyse(self, select_blank, select_dark):
+        "Analyse selected images"
+
+        # Update undo/redo buffers
+        take_snapshot()
+        pages_to_analyse = []
+        for row in self.slist.data:
+            page = row[2]
+            dirty_time = (
+                page.dirty_time
+                if hasattr(page, "dirty_time")
+                else datetime.datetime(1970, 1, 1)
+            )
+            analyse_time = (
+                page.analyse_time
+                if hasattr(page, "analyse_time")
+                else datetime.datetime(1970, 1, 1)
+            )
+            if analyse_time <= dirty_time:
+                logger.info(
+                    "Updating: %s analyse_time: %s dirty_time: %s",
+                    row[0],
+                    analyse_time,
+                    dirty_time,
+                )
+                pages_to_analyse.append(page.uuid)
+
+        if len(pages_to_analyse) > 0:
+
+            def analyse_finished_callback(response):
+                self.post_process_progress.finish(response)
+                if select_blank:
+                    self.select_blank_pages()
+                if select_dark:
+                    self.select_dark_pages()
+
+            # slist.save_session()
+
+            self.slist.analyse(
+                list_of_pages=pages_to_analyse,
+                queued_callback=self.post_process_progress.queued,
+                started_callback=self.post_process_progress.update,
+                running_callback=self.post_process_progress.update,
+                finished_callback=analyse_finished_callback,
+                error_callback=self.error_callback,
+            )
+
+        else:
+            if select_blank:
+                self.select_blank_pages()
+            if select_dark:
+                self.select_dark_pages()
+
     def preferences(self, _action, _param):
         "Preferences dialog"
         if self._windowr is not None:
@@ -5758,19 +5745,19 @@ class Application(Gtk.Application):
 
     def on_select_all(self, _widget):
         "selects all pages."
-        select_all(None, None)
+        self.window.select_all(None, None)
 
     def on_select_odd(self, _widget):
         "selects the pages with odd numbers."
-        select_odd_even(0)
+        self.window.select_odd_even(0)
 
     def on_select_even(self, _widget):
         "selects the pages with even numbers."
-        select_odd_even(1)
+        self.window.select_odd_even(1)
 
     def on_invert_selection(self, _widget):
         "Inverts the current selection."
-        select_invert(None, None)
+        self.window.select_invert(None, None)
 
     def on_crop(self, _widget):
         "Displays the crop dialog."
@@ -5794,7 +5781,7 @@ class Application(Gtk.Application):
 
     def on_clear_ocr(self, _widget):
         "Clears the OCR (Optical Character Recognition) data."
-        clear_ocr(None, None)
+        self.window.clear_ocr(None, None)
 
     def on_properties(self, _widget):
         "displays the properties dialog."
