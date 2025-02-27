@@ -317,16 +317,6 @@ def file_exists(chooser, filename):
     return False
 
 
-def changed_progress_callback(_widget, progress, message):
-    "Updates the progress bar based on the given progress value and message."
-    if progress is not None and (0 <= progress <= 1):
-        app.window._scan_progress.set_fraction(progress)
-    else:
-        app.window._scan_progress.pulse()
-    if message is not None:
-        app.window._scan_progress.set_text(message)
-
-
 def import_scan_finished_callback(response):
     "Callback function to handle the completion of a scan import process."
     logger.debug("import_scan_finished_callback( %s )", response)
@@ -3511,6 +3501,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._scan_progress.show_all()
             nonlocal signal
             signal = self._scan_progress.connect("clicked", self._windows.cancel_scan)
+
+        def changed_progress_callback(_widget, progress, message):
+            "Updates the progress bar based on the given progress value and message."
+            if progress is not None and (0 <= progress <= 1):
+                self._scan_progress.set_fraction(progress)
+            else:
+                self._scan_progress.pulse()
+            if message is not None:
+                self._scan_progress.set_text(message)
 
         self._windows.connect("started-process", started_progress_callback)
         self._windows.connect("changed-progress", changed_progress_callback)
