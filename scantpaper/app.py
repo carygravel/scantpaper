@@ -328,24 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def rotate(angle, pagelist):
-    "Rotate selected images"
-
-    # Update undo/redo buffers
-    take_snapshot()
-    for page in pagelist:
-        app.window.slist.rotate(
-            angle=angle,
-            page=page,
-            queued_callback=app.window.post_process_progress.queued,
-            started_callback=app.window.post_process_progress.update,
-            running_callback=app.window.post_process_progress.update,
-            finished_callback=app.window.post_process_progress.finish,
-            error_callback=app.window.error_callback,
-            display_callback=app.window.display_callback,
-        )
-
-
 def threshold(_action, _param):
     "Display page selector and on apply threshold accordingly"
     windowt = Dialog(
@@ -1490,7 +1472,7 @@ def zoom_out(_action, _param):
 
 def rotate_90(_action, _param):
     "Rotates the selected pages by 90 degrees"
-    rotate(
+    app.window.rotate(
         _90_DEGREES,
         app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
     )
@@ -1498,7 +1480,7 @@ def rotate_90(_action, _param):
 
 def rotate_180(_action, _param):
     "Rotates the selected pages by 180 degrees"
-    rotate(
+    app.window.rotate(
         _180_DEGREES,
         app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
     )
@@ -1506,7 +1488,7 @@ def rotate_180(_action, _param):
 
 def rotate_270(_action, _param):
     "Rotates the selected pages by 270 degrees"
-    rotate(
+    app.window.rotate(
         _270_DEGREES,
         app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
     )
@@ -5603,6 +5585,23 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if response != Gtk.ResponseType.OK:
                 return False
         return True
+
+    def rotate(self, angle, pagelist):
+        "Rotate selected images"
+
+        # Update undo/redo buffers
+        take_snapshot()
+        for page in pagelist:
+            self.slist.rotate(
+                angle=angle,
+                page=page,
+                queued_callback=self.post_process_progress.queued,
+                started_callback=self.post_process_progress.update,
+                running_callback=self.post_process_progress.update,
+                finished_callback=self.post_process_progress.finish,
+                error_callback=self.error_callback,
+                display_callback=self.display_callback,
+            )
 
 
 class Application(Gtk.Application):
