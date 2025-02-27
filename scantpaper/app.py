@@ -9,6 +9,7 @@
 # deleting last page produces TypeError
 # saving a scan profile produced TypeError
 # fix importing tiff
+# save text for page without text produces: can only concatenate str (not "NoneType") to str
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
@@ -314,36 +315,6 @@ def file_exists(chooser, filename):
         return True
 
     return False
-
-
-def save_text(filename, uuids):
-    "Save OCR text"
-    options = {}
-    if app.window.settings["post_save_hook"]:
-        options["post_save_hook"] = app.window.settings["current_psh"]
-
-    def save_text_finished_callback(response):
-
-        app.window.post_process_progress.finish(response)
-        mark_pages(uuids)
-        if (
-            "view files toggle" in app.window.settings
-            and app.window.settings["view files toggle"]
-        ):
-            launch_default_for_file(filename)
-
-        logger.debug("Finished saving %s", filename)
-
-    app.window.slist.save_text(
-        path=filename,
-        list_of_pages=uuids,
-        options=options,
-        queued_callback=app.window.post_process_progress.queued,
-        started_callback=app.window.post_process_progress.update,
-        running_callback=app.window.post_process_progress.update,
-        finished_callback=save_text_finished_callback,
-        error_callback=app.window.error_callback,
-    )
 
 
 def save_hocr(filename, uuids):
@@ -5027,7 +4998,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._save_tiff(filename, None, uuids)
 
             elif filetype == "txt":
-                save_text(filename, uuids)
+                self._save_text(filename, uuids)
 
             elif filetype == "hocr":
                 save_hocr(filename, uuids)
@@ -5208,6 +5179,35 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_tiff_finished_callback,
+            error_callback=self.error_callback,
+        )
+
+    def _save_text(self, filename, uuids):
+        "Save OCR text"
+        options = {}
+        if self.settings["post_save_hook"]:
+            options["post_save_hook"] = self.settings["current_psh"]
+
+        def save_text_finished_callback(response):
+
+            self.post_process_progress.finish(response)
+            mark_pages(uuids)
+            if (
+                "view files toggle" in self.settings
+                and self.settings["view files toggle"]
+            ):
+                launch_default_for_file(filename)
+
+            logger.debug("Finished saving %s", filename)
+
+        self.slist.save_text(
+            path=filename,
+            list_of_pages=uuids,
+            options=options,
+            queued_callback=self.post_process_progress.queued,
+            started_callback=self.post_process_progress.update,
+            running_callback=self.post_process_progress.update,
+            finished_callback=save_text_finished_callback,
             error_callback=self.error_callback,
         )
 
