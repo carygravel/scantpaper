@@ -328,30 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def renumber_dialog(_action, _param):
-    "Dialog for renumber"
-    if app.window.renumber_dialog is not None:
-        app.window.renumber_dialog.present()
-        return
-
-    app.window.renumber_dialog = Renumber(
-        transient_for=app.window,
-        document=app.window.slist,
-        hide_on_delete=False,
-    )
-    app.window.renumber_dialog.connect("before-renumber", lambda x: take_snapshot())
-    app.window.renumber_dialog.connect(
-        "error",
-        lambda msg: app.window.show_message_dialog(
-            parent=app.window.renumber_dialog,
-            message_type="error",
-            buttons=Gtk.ButtonsType.CLOSE,
-            text=msg,
-        ),
-    )
-    app.window.renumber_dialog.show_all()
-
-
 def indices2pages(
     indices,
 ):  # FIXME: this should go in slist somewhere and should be a list comprehension
@@ -1585,7 +1561,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("copy", self.copy_selection),
             ("paste", self.paste_selection),
             ("delete", self.delete_selection),
-            ("renumber", renumber_dialog),
+            ("renumber", self.renumber_dialog),
             ("select-all", self.select_all),
             ("select-odd", self.select_odd),
             ("select-even", self.select_even),
@@ -1644,7 +1620,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self._pre_flight()
         self.print_settings = None
-        self.renumber_dialog = None
         self._message_dialog = None
         self._windows = None
         self._windowc = None
@@ -5231,6 +5206,25 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._windows._reset_start_page()
         self.update_uimanager()
 
+    def renumber_dialog(self, _action, _param):
+        "Dialog for renumber"
+        dialog = Renumber(
+            transient_for=self,
+            document=self.slist,
+            hide_on_delete=False,
+        )
+        dialog.connect("before-renumber", lambda x: take_snapshot())
+        dialog.connect(
+            "error",
+            lambda msg: self.show_message_dialog(
+                parent=dialog,
+                message_type="error",
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=msg,
+            ),
+        )
+        dialog.show_all()
+
     def select_all(self, _action, _param):
         "Select all scans"
         # if ($textview -> has_focus) {
@@ -5741,7 +5735,7 @@ class Application(Gtk.Application):
 
     def on_renumber(self, _widget):
         "Displays the renumber dialog."
-        renumber_dialog(None, None)
+        self.window.renumber_dialog(None, None)
 
     def on_select_all(self, _widget):
         "selects all pages."
