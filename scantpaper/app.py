@@ -379,50 +379,6 @@ def recursive_slurp(files):
                 logger.info(output)
 
 
-def zoom_100(_action, _param):
-    "Sets the zoom level of the view to 100%."
-    app.window.view.set_zoom(1.0)
-
-
-def zoom_to_fit(_action, _param):
-    "Adjusts the view to fit the content within the visible area."
-    app.window.view.zoom_to_fit()
-
-
-def zoom_in(_action, _param):
-    "Zooms in the current view"
-    app.window.view.zoom_in()
-
-
-def zoom_out(_action, _param):
-    "Zooms out the current view"
-    app.window.view.zoom_out()
-
-
-def rotate_90(_action, _param):
-    "Rotates the selected pages by 90 degrees"
-    app.window.rotate(
-        _90_DEGREES,
-        app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
-    )
-
-
-def rotate_180(_action, _param):
-    "Rotates the selected pages by 180 degrees"
-    app.window.rotate(
-        _180_DEGREES,
-        app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
-    )
-
-
-def rotate_270(_action, _param):
-    "Rotates the selected pages by 270 degrees"
-    app.window.rotate(
-        _270_DEGREES,
-        app.window.slist.indices2pages(app.window.slist.get_selected_indices()),
-    )
-
-
 class ApplicationWindow(Gtk.ApplicationWindow):
     "ApplicationWindow class"
 
@@ -483,13 +439,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("clear-ocr", self.clear_ocr),
             ("properties", self.properties),
             ("preferences", self.preferences),
-            ("zoom-100", zoom_100),
-            ("zoom-to-fit", zoom_to_fit),
-            ("zoom-in", zoom_in),
-            ("zoom-out", zoom_out),
-            ("rotate-90", rotate_90),
-            ("rotate-180", rotate_180),
-            ("rotate-270", rotate_270),
+            ("zoom-100", self.zoom_100),
+            ("zoom-to-fit", self.zoom_to_fit),
+            ("zoom-in", self.zoom_in),
+            ("zoom-out", self.zoom_out),
+            ("rotate-90", self.rotate_90),
+            ("rotate-180", self.rotate_180),
+            ("rotate-270", self.rotate_270),
             ("threshold", self._threshold),
             ("brightness-contrast", self._brightness_contrast),
             ("negate", self._negate),
@@ -4780,6 +4736,43 @@ The other variable available is:
                 return False
         return True
 
+    def zoom_100(self, _action, _param):
+        "Sets the zoom level of the view to 100%."
+        self.view.set_zoom(1.0)
+
+    def zoom_to_fit(self, _action, _param):
+        "Adjusts the view to fit the content within the visible area."
+        self.view.zoom_to_fit()
+
+    def zoom_in(self, _action, _param):
+        "Zooms in the current view"
+        self.view.zoom_in()
+
+    def zoom_out(self, _action, _param):
+        "Zooms out the current view"
+        self.view.zoom_out()
+
+    def rotate_90(self, _action, _param):
+        "Rotates the selected pages by 90 degrees"
+        self.rotate(
+            _90_DEGREES,
+            self.slist.indices2pages(self.slist.get_selected_indices()),
+        )
+
+    def rotate_180(self, _action, _param):
+        "Rotates the selected pages by 180 degrees"
+        self.rotate(
+            _180_DEGREES,
+            self.slist.indices2pages(self.slist.get_selected_indices()),
+        )
+
+    def rotate_270(self, _action, _param):
+        "Rotates the selected pages by 270 degrees"
+        self.rotate(
+            _270_DEGREES,
+            self.slist.indices2pages(self.slist.get_selected_indices()),
+        )
+
     def rotate(self, angle, pagelist):
         "Rotate selected images"
 
@@ -5617,31 +5610,31 @@ class Application(Gtk.Application):
 
     def on_zoom_100(self, _widget):
         "Zooms the current page to 100%"
-        zoom_100(None, None)
+        self.window.zoom_100(None, None)
 
     def on_zoom_to_fit(self, _widget):
         "Zooms the current page so that it fits the viewing pane."
-        zoom_to_fit(None, None)
+        self.window.zoom_to_fit(None, None)
 
     def on_zoom_in(self, _widget):
         "Zooms in the current page."
-        zoom_in(None, None)
+        self.window.zoom_in(None, None)
 
     def on_zoom_out(self, _widget):
         "Zooms out the current page."
-        zoom_out(None, None)
+        self.window.zoom_out(None, None)
 
     def on_rotate_90(self, _widget):
         "Rotate the selected pages by 90 degrees."
-        rotate_90(None, None)
+        self.window.rotate_90(None, None)
 
     def on_rotate_180(self, _widget):
         "Rotate the selected pages by 180 degrees."
-        rotate_180(None, None)
+        self.window.rotate_180(None, None)
 
     def on_rotate_270(self, _widget):
         "Rotate the selected pages by 270 degrees."
-        rotate_270(None, None)
+        self.window.rotate_270(None, None)
 
     def on_save(self, _widget):
         "Displays the save dialog."
@@ -5716,7 +5709,6 @@ class Application(Gtk.Application):
 
 
 if __name__ == "__main__":
-    global app
     app = Application()
     # app.run(sys.argv)
     app.run()
