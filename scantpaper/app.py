@@ -364,35 +364,6 @@ def _cb_array_append(combobox_array, text):
             combobox.append_text(text)
 
 
-def get_selected_properties():
-    "Helper function for properties()"
-    page = app.window.slist.get_selected_indices()
-    xresolution = None
-    yresolution = None
-    if len(page) > 0:
-        i = page.pop(0)
-        xresolution, yresolution, _units = app.window.slist.data[i][2].resolution
-        logger.debug(
-            "Page %s has resolutions %s,%s",
-            app.window.slist.data[i][0],
-            xresolution,
-            yresolution,
-        )
-
-    for i in page:
-        if app.window.slist.data[i][2].resolution[0] != xresolution:
-            xresolution = None
-            break
-
-    for i in page:
-        if app.window.slist.data[i][2].resolution[0] != yresolution:
-            yresolution = None
-            break
-
-    # round the value to a sensible number of significant figures
-    return xresolution, yresolution
-
-
 def recursive_slurp(files):
     """
     Recursively processes a list of files and directories, logging the contents
@@ -2072,16 +2043,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         hbox.pack_start(yspinbutton, True, True, 0)
         label = Gtk.Label(label=_("dpi"))
         hbox.pack_end(label, False, False, 0)
-        xresolution, yresolution = get_selected_properties()
-        logger.debug("get_selected_properties returned %s,%s", xresolution, yresolution)
+        xresolution, yresolution = self.slist.get_selected_properties()
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
 
         def selection_changed_callback():
-            xresolution, yresolution = get_selected_properties()
-            logger.debug(
-                "get_selected_properties returned %s,%s", xresolution, yresolution
-            )
+            xresolution, yresolution = self.slist.get_selected_properties()
             xspinbutton.set_value(xresolution)
             yspinbutton.set_value(yresolution)
 
