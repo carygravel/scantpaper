@@ -328,136 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def split_dialog(_action, _param):
-    "Display page selector and on apply crop accordingly"
-
-    # Until we have a separate tool for the divider, kill the whole
-    #        sub { $windowsp->hide }
-    #    if ( defined $windowsp ) {
-    #        $windowsp->present;
-    #        return;
-    #    }
-
-    windowsp = Dialog(
-        transient_for=app.window,
-        title=_("Split"),
-        hide_on_delete=True,
-    )
-
-    # Frame for page range
-    windowsp.add_page_range()
-    hbox = Gtk.HBox()
-    vbox = windowsp.get_content_area()
-    vbox.pack_start(hbox, False, False, 0)
-    label = Gtk.Label(label=_("Direction"))
-    hbox.pack_start(label, False, True, 0)
-    direction = [
-        [
-            "v",
-            _("Vertically"),
-            _("Split the page vertically into left and right pages."),
-        ],
-        [
-            "h",
-            _("Horizontally"),
-            _("Split the page horizontally into top and bottom pages."),
-        ],
-    ]
-    combob = ComboBoxText(data=direction)
-    width, height = app.window._current_page.get_size()
-    sb_pos = Gtk.SpinButton.new_with_range(0, width, 1)
-
-    def changed_split_direction(_widget):
-        if direction[combob.get_active()][0] == "v":
-            sb_pos.set_range(0, width)
-
-        else:
-            sb_pos.set_range(0, height)
-
-        update_view_position(
-            direction[combob.get_active()][0], sb_pos.get_value(), width, height
-        )
-
-    combob.connect("changed", changed_split_direction)
-    combob.set_active_index("v")
-    hbox.pack_end(combob, False, True, 0)
-
-    # SpinButton for position
-    hbox = Gtk.HBox()
-    vbox.pack_start(hbox, False, True, 0)
-    label = Gtk.Label(label=_("Position"))
-    hbox.pack_start(label, False, True, 0)
-    hbox.pack_end(sb_pos, False, True, 0)
-
-    def changed_split_position_sb_value(_widget):
-        update_view_position(
-            direction[combob.get_active()][0], sb_pos.get_value(), width, height
-        )
-
-    sb_pos.connect("value-changed", changed_split_position_sb_value)
-    sb_pos.set_value(width / 2)
-
-    def changed_split_position_selection(_widget, sel):
-        if sel:
-            if direction[combob.get_active()][0] == "v":
-                sb_pos.set_value(sel.x + sel.width)
-            else:
-                sb_pos.set_value(sel.y + sel.height)
-
-    app.window.view.position_changed_signal = app.window.view.connect(
-        "selection-changed", changed_split_position_selection
-    )
-
-    def split_apply_callback():
-
-        # Update undo/redo buffers
-        take_snapshot()
-        app.window.settings["split-direction"] = direction[combob.get_active()][0]
-        app.window.settings["split-position"] = sb_pos.get_value()
-        app.window.settings["Page range"] = windowsp.page_range
-        pagelist = app.window.slist.get_page_index(
-            app.window.settings["Page range"], app.window.error_callback
-        )
-        if not pagelist:
-            return
-        page = 0
-        for i in pagelist:
-            page += 1
-
-            def split_finished_callback(response):
-                app.window.post_process_progress.finish(response)
-                # slist.save_session()
-
-            app.window.slist.split_page(
-                direction=app.window.settings["split-direction"],
-                position=app.window.settings["split-position"],
-                page=app.window.slist.data[i][2].uuid,
-                queued_callback=app.window.post_process_progress.queued,
-                started_callback=app.window.post_process_progress.update,
-                running_callback=app.window.post_process_progress.update,
-                finished_callback=split_finished_callback,
-                error_callback=app.window.error_callback,
-                display_callback=app.window.display_callback,
-            )
-
-    def split_cancel_callback():
-        app.window.view.disconnect(app.window.view.position_changed_signal)
-        windowsp.destroy()
-
-    windowsp.add_actions(
-        [
-            ("gtk-apply", split_apply_callback),
-            (
-                "gtk-cancel",
-                # Until we have a separate tool for the divider, kill the whole
-                #        sub { $windowsp->hide }
-                split_cancel_callback,
-            ),
-        ]
-    )
-    windowsp.show_all()
-
-
 def update_view_position(direction, position, width, height):
     "Updates the view's selection rectangle based on the given direction and dimensions."
     selection = Gdk.Rectangle()
@@ -1252,9 +1122,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("unsharp", self._unsharp),
             ("crop-dialog", self._crop_dialog),
             ("crop-selection", self.crop_selection),
-            ("split", split_dialog),
-            ("unpaper", self.unpaper),
-            ("ocr", self.ocr_dialog),
+            ("split", self._split_dialog),
+            ("unpaper", self._unpaper_dialog),
+            ("ocr", self._ocr_dialog),
             ("user-defined", self.user_defined_dialog),
             ("help", view_html),
             ("about", self.about),
@@ -3720,169 +3590,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         about.run()
         about.destroy()
 
-    def unpaper(self, _action, _param):
-        "Run unpaper to clean up scan."
-        if self._windowu is not None:
-            self._windowu.present()
-            return
-
-        self._windowu = Dialog(
-            transient_for=self,
-            title=_("unpaper"),
-            hide_on_delete=True,
-        )
-
-        # Frame for page range
-        self._windowu.add_page_range()
-
-        # add unpaper options
-        vbox = self._windowu.get_content_area()
-        self._unpaper.add_options(vbox)
-
-        def unpaper_apply_callback():
-
-            # Update $self.settings
-            self.settings["unpaper options"] = self._unpaper.get_options()
-            self.settings["Page range"] = self._windowu.page_range
-
-            # run unpaper
-            pagelist = app.window.slist.indices2pages(
-                self.slist.get_page_index(
-                    self.settings["Page range"], self.error_callback
-                )
-            )
-            if not pagelist:
-                return
-            unpaper_page(
-                pagelist,
-                {
-                    "command": self._unpaper.get_cmdline(),
-                    "direction": self._unpaper.get_option("direction"),
-                },
-            )
-            self._windowu.hide()
-
-        self._windowu.add_actions(
-            [("gtk-ok", unpaper_apply_callback), ("gtk-cancel", self._windowu.hide)]
-        )
-        self._windowu.show_all()
-
-    def ocr_dialog(self, _action, _parma):
-        "Run OCR on current page and display result"
-        if self._windowo is not None:
-            self._windowo.present()
-            return
-
-        self._windowo = Dialog(
-            transient_for=self,
-            title=_("OCR"),
-            hide_on_delete=True,
-        )
-
-        # Frame for page range
-        self._windowo.add_page_range()
-
-        # OCR engine selection
-        hboxe = Gtk.HBox()
-        vbox = self._windowo.get_content_area()
-        vbox.pack_start(hboxe, False, True, 0)
-        label = Gtk.Label(label=_("OCR Engine"))
-        hboxe.pack_start(label, False, True, 0)
-        combobe = ComboBoxText(data=ocr_engine)
-        combobe.set_active_index(self.settings["ocr engine"])
-        hboxe.pack_end(combobe, False, True, 0)
-        comboboxtl, hboxtl, tesslang = None, None, []
-        if dependencies["tesseract"]:
-            hboxtl, comboboxtl, tesslang = self.add_tess_languages(vbox)
-
-            def changed_ocr_engine():
-                if ocr_engine[combobe.get_active()][0] == "tesseract":
-                    hboxtl.show_all()
-                else:
-                    hboxtl.hide()
-
-            combobe.connect("changed", changed_ocr_engine)
-
-        # Checkbox & SpinButton for threshold
-        hboxt = Gtk.HBox()
-        vbox.pack_start(hboxt, False, True, 0)
-        cbto = Gtk.CheckButton(label=_("Threshold before OCR"))
-        cbto.set_tooltip_text(
-            _(
-                "Threshold the image before performing OCR. "
-                + "This only affects the image passed to the OCR engine, and not the image stored."
-            )
-        )
-        if "threshold-before-ocr" in self.settings:
-            cbto.set_active(self.settings["threshold-before-ocr"])
-
-        hboxt.pack_start(cbto, False, True, 0)
-        labelp = Gtk.Label(label=PERCENT)
-        hboxt.pack_end(labelp, False, True, 0)
-        spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-        spinbutton.set_value(self.settings["threshold tool"])
-        spinbutton.set_sensitive(cbto.get_active())
-        hboxt.pack_end(spinbutton, False, True, 0)
-
-        def toggled_threshold_ocr():
-            spinbutton.set_sensitive(cbto.get_active())
-
-        cbto.connect("toggled", toggled_threshold_ocr)
-
-        def ocr_apply_callback():
-            lang = None
-            if comboboxtl is not None:
-                lang = tesslang[comboboxtl.get_active()][0]
-
-            run_ocr(
-                ocr_engine[combobe.get_active()][0],
-                lang,
-                cbto.get_active(),
-                spinbutton.get_value(),
-            )
-
-        self._windowo.add_actions(
-            [("gtk-ok", ocr_apply_callback), ("gtk-cancel", self._windowo.hide)]
-        )
-        self._windowo.show_all()
-        if hboxtl is not None and ocr_engine[combobe.get_active()][0] != "tesseract":
-            hboxtl.hide()
-
-    def user_defined_dialog(self, _action, _param):
-        "Displays a dialog for selecting and applying user-defined tools."
-        windowudt = Dialog(
-            transient_for=self,
-            title=_("User-defined tools"),
-            hide_on_delete=True,
-        )
-
-        # Frame for page range
-        windowudt.add_page_range()
-        hbox = Gtk.HBox()
-        vbox = windowudt.get_content_area()
-        vbox.pack_start(hbox, False, False, 0)
-        label = Gtk.Label(label=_("Selected tool"))
-        hbox.pack_start(label, False, True, 0)
-        self._comboboxudt = self.add_udt_combobox(hbox)
-
-        def udt_apply_callback():
-            self.settings["Page range"] = windowudt.page_range
-            pagelist = self.slist.indices2pages(
-                self.slist.get_page_index(
-                    self.settings["Page range"], self.error_callback
-                )
-            )
-            if not pagelist:
-                return
-            self.settings["current_udt"] = self._comboboxudt.get_active_text()
-            user_defined_tool(pagelist, self.settings["current_udt"])
-            windowudt.hide()
-
-        windowudt.add_actions(
-            [("gtk-ok", udt_apply_callback), ("gtk-cancel", windowudt.hide)]
-        )
-        windowudt.show_all()
-
     def save_dialog(self, _action, _param):
         "Display page selector and on save a fileselector."
         if self._windowi is not None:
@@ -5597,6 +5304,298 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 error_callback=self.error_callback,
                 display_callback=self.display_callback,
             )
+
+    def _split_dialog(self, _action, _param):
+        "Display page selector and on apply crop accordingly"
+
+        # Until we have a separate tool for the divider, kill the whole
+        #        sub { $windowsp->hide }
+        #    if ( defined $windowsp ) {
+        #        $windowsp->present;
+        #        return;
+        #    }
+
+        windowsp = Dialog(
+            transient_for=self,
+            title=_("Split"),
+            hide_on_delete=True,
+        )
+
+        # Frame for page range
+        windowsp.add_page_range()
+        hbox = Gtk.HBox()
+        vbox = windowsp.get_content_area()
+        vbox.pack_start(hbox, False, False, 0)
+        label = Gtk.Label(label=_("Direction"))
+        hbox.pack_start(label, False, True, 0)
+        direction = [
+            [
+                "v",
+                _("Vertically"),
+                _("Split the page vertically into left and right pages."),
+            ],
+            [
+                "h",
+                _("Horizontally"),
+                _("Split the page horizontally into top and bottom pages."),
+            ],
+        ]
+        combob = ComboBoxText(data=direction)
+        width, height = self._current_page.get_size()
+        sb_pos = Gtk.SpinButton.new_with_range(0, width, 1)
+
+        def changed_split_direction(_widget):
+            if direction[combob.get_active()][0] == "v":
+                sb_pos.set_range(0, width)
+
+            else:
+                sb_pos.set_range(0, height)
+
+            update_view_position(
+                direction[combob.get_active()][0], sb_pos.get_value(), width, height
+            )
+
+        combob.connect("changed", changed_split_direction)
+        combob.set_active_index("v")
+        hbox.pack_end(combob, False, True, 0)
+
+        # SpinButton for position
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, False, True, 0)
+        label = Gtk.Label(label=_("Position"))
+        hbox.pack_start(label, False, True, 0)
+        hbox.pack_end(sb_pos, False, True, 0)
+
+        def changed_split_position_sb_value(_widget):
+            update_view_position(
+                direction[combob.get_active()][0], sb_pos.get_value(), width, height
+            )
+
+        sb_pos.connect("value-changed", changed_split_position_sb_value)
+        sb_pos.set_value(width / 2)
+
+        def changed_split_position_selection(_widget, sel):
+            if sel:
+                if direction[combob.get_active()][0] == "v":
+                    sb_pos.set_value(sel.x + sel.width)
+                else:
+                    sb_pos.set_value(sel.y + sel.height)
+
+        self.view.position_changed_signal = self.view.connect(
+            "selection-changed", changed_split_position_selection
+        )
+
+        def split_apply_callback():
+
+            # Update undo/redo buffers
+            take_snapshot()
+            self.settings["split-direction"] = direction[combob.get_active()][0]
+            self.settings["split-position"] = sb_pos.get_value()
+            self.settings["Page range"] = windowsp.page_range
+            pagelist = self.slist.get_page_index(
+                self.settings["Page range"], self.error_callback
+            )
+            if not pagelist:
+                return
+            page = 0
+            for i in pagelist:
+                page += 1
+
+                def split_finished_callback(response):
+                    self.post_process_progress.finish(response)
+                    # slist.save_session()
+
+                self.slist.split_page(
+                    direction=self.settings["split-direction"],
+                    position=self.settings["split-position"],
+                    page=self.slist.data[i][2].uuid,
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=split_finished_callback,
+                    error_callback=self.error_callback,
+                    display_callback=self.display_callback,
+                )
+
+        def split_cancel_callback():
+            self.view.disconnect(self.view.position_changed_signal)
+            windowsp.destroy()
+
+        windowsp.add_actions(
+            [
+                ("gtk-apply", split_apply_callback),
+                (
+                    "gtk-cancel",
+                    # Until we have a separate tool for the divider, kill the whole
+                    #        sub { $windowsp->hide }
+                    split_cancel_callback,
+                ),
+            ]
+        )
+        windowsp.show_all()
+
+    def _unpaper_dialog(self, _action, _param):
+        "Run unpaper to clean up scan."
+        if self._windowu is not None:
+            self._windowu.present()
+            return
+
+        self._windowu = Dialog(
+            transient_for=self,
+            title=_("unpaper"),
+            hide_on_delete=True,
+        )
+
+        # Frame for page range
+        self._windowu.add_page_range()
+
+        # add unpaper options
+        vbox = self._windowu.get_content_area()
+        self._unpaper.add_options(vbox)
+
+        def unpaper_apply_callback():
+
+            # Update $self.settings
+            self.settings["unpaper options"] = self._unpaper.get_options()
+            self.settings["Page range"] = self._windowu.page_range
+
+            # run unpaper
+            pagelist = app.window.slist.indices2pages(
+                self.slist.get_page_index(
+                    self.settings["Page range"], self.error_callback
+                )
+            )
+            if not pagelist:
+                return
+            unpaper_page(
+                pagelist,
+                {
+                    "command": self._unpaper.get_cmdline(),
+                    "direction": self._unpaper.get_option("direction"),
+                },
+            )
+            self._windowu.hide()
+
+        self._windowu.add_actions(
+            [("gtk-ok", unpaper_apply_callback), ("gtk-cancel", self._windowu.hide)]
+        )
+        self._windowu.show_all()
+
+    def _ocr_dialog(self, _action, _parma):
+        "Run OCR on current page and display result"
+        if self._windowo is not None:
+            self._windowo.present()
+            return
+
+        self._windowo = Dialog(
+            transient_for=self,
+            title=_("OCR"),
+            hide_on_delete=True,
+        )
+
+        # Frame for page range
+        self._windowo.add_page_range()
+
+        # OCR engine selection
+        hboxe = Gtk.HBox()
+        vbox = self._windowo.get_content_area()
+        vbox.pack_start(hboxe, False, True, 0)
+        label = Gtk.Label(label=_("OCR Engine"))
+        hboxe.pack_start(label, False, True, 0)
+        combobe = ComboBoxText(data=ocr_engine)
+        combobe.set_active_index(self.settings["ocr engine"])
+        hboxe.pack_end(combobe, False, True, 0)
+        comboboxtl, hboxtl, tesslang = None, None, []
+        if dependencies["tesseract"]:
+            hboxtl, comboboxtl, tesslang = self.add_tess_languages(vbox)
+
+            def changed_ocr_engine():
+                if ocr_engine[combobe.get_active()][0] == "tesseract":
+                    hboxtl.show_all()
+                else:
+                    hboxtl.hide()
+
+            combobe.connect("changed", changed_ocr_engine)
+
+        # Checkbox & SpinButton for threshold
+        hboxt = Gtk.HBox()
+        vbox.pack_start(hboxt, False, True, 0)
+        cbto = Gtk.CheckButton(label=_("Threshold before OCR"))
+        cbto.set_tooltip_text(
+            _(
+                "Threshold the image before performing OCR. "
+                + "This only affects the image passed to the OCR engine, and not the image stored."
+            )
+        )
+        if "threshold-before-ocr" in self.settings:
+            cbto.set_active(self.settings["threshold-before-ocr"])
+
+        hboxt.pack_start(cbto, False, True, 0)
+        labelp = Gtk.Label(label=PERCENT)
+        hboxt.pack_end(labelp, False, True, 0)
+        spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
+        spinbutton.set_value(self.settings["threshold tool"])
+        spinbutton.set_sensitive(cbto.get_active())
+        hboxt.pack_end(spinbutton, False, True, 0)
+
+        def toggled_threshold_ocr():
+            spinbutton.set_sensitive(cbto.get_active())
+
+        cbto.connect("toggled", toggled_threshold_ocr)
+
+        def ocr_apply_callback():
+            lang = None
+            if comboboxtl is not None:
+                lang = tesslang[comboboxtl.get_active()][0]
+
+            run_ocr(
+                ocr_engine[combobe.get_active()][0],
+                lang,
+                cbto.get_active(),
+                spinbutton.get_value(),
+            )
+
+        self._windowo.add_actions(
+            [("gtk-ok", ocr_apply_callback), ("gtk-cancel", self._windowo.hide)]
+        )
+        self._windowo.show_all()
+        if hboxtl is not None and ocr_engine[combobe.get_active()][0] != "tesseract":
+            hboxtl.hide()
+
+    def user_defined_dialog(self, _action, _param):
+        "Displays a dialog for selecting and applying user-defined tools."
+        windowudt = Dialog(
+            transient_for=self,
+            title=_("User-defined tools"),
+            hide_on_delete=True,
+        )
+
+        # Frame for page range
+        windowudt.add_page_range()
+        hbox = Gtk.HBox()
+        vbox = windowudt.get_content_area()
+        vbox.pack_start(hbox, False, False, 0)
+        label = Gtk.Label(label=_("Selected tool"))
+        hbox.pack_start(label, False, True, 0)
+        self._comboboxudt = self.add_udt_combobox(hbox)
+
+        def udt_apply_callback():
+            self.settings["Page range"] = windowudt.page_range
+            pagelist = self.slist.indices2pages(
+                self.slist.get_page_index(
+                    self.settings["Page range"], self.error_callback
+                )
+            )
+            if not pagelist:
+                return
+            self.settings["current_udt"] = self._comboboxudt.get_active_text()
+            user_defined_tool(pagelist, self.settings["current_udt"])
+            windowudt.hide()
+
+        windowudt.add_actions(
+            [("gtk-ok", udt_apply_callback), ("gtk-cancel", windowudt.hide)]
+        )
+        windowudt.show_all()
 
 
 class Application(Gtk.Application):
