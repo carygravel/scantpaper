@@ -357,17 +357,6 @@ def register_icon(iconfactory, stock_id, path):
         logger.warning("Unable to load icon `%s': %s", path, err)
 
 
-def mark_pages(pages):
-    "marked page list as saved"
-    app.window.slist.get_model().handler_block(app.window.slist.row_changed_signal)
-    for p in pages:
-        i = app.window.slist.find_page_by_uuid(p)
-        if i is not None:
-            app.window.slist.data[i][2].saved = True
-
-    app.window.slist.get_model().handler_unblock(app.window.slist.row_changed_signal)
-
-
 def _preferences_scan_options(border_width):
 
     vbox = Gtk.VBox()
@@ -3985,7 +3974,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def save_pdf_finished_callback(response):
             self.post_process_progress.finish(response)
-            mark_pages(list_of_page_uuids)
+            self.slist.mark_pages(list_of_page_uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -4030,7 +4019,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             filename = response.request.args[0]["path"]
             uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
             self.post_process_progress.finish(response)
-            mark_pages(uuids)
+            self.slist.mark_pages(uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -4064,7 +4053,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             filename = response.request.args[0]["path"]
             uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
             self.post_process_progress.finish(response)
-            mark_pages(uuids)
+            self.slist.mark_pages(uuids)
             file = ps if ps is not None else filename
             if (
                 "view files toggle" in self.settings
@@ -4092,9 +4081,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             options["post_save_hook"] = self.settings["current_psh"]
 
         def save_text_finished_callback(response):
-
             self.post_process_progress.finish(response)
-            mark_pages(uuids)
+            self.slist.mark_pages(uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -4122,7 +4110,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         def save_hocr_finished_callback(response):
             self.post_process_progress.finish(response)
-            mark_pages(uuids)
+            self.slist.mark_pages(uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -4217,8 +4205,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 filename = response.request.args[0]["path"]
                 uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
                 self.post_process_progress.finish(response)
-
-                mark_pages(uuids)
+                self.slist.mark_pages(uuids)
                 if (
                     "view files toggle" in self.settings
                     and self.settings["view files toggle"]
@@ -4344,10 +4331,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._pdf_email = f"{self.session.name}/{filename}.pdf"
 
             # Create the PDF
-
             def email_finished_callback(response):
                 self.post_process_progress.finish(response)
-                mark_pages(uuids)
+                self.slist.mark_pages(uuids)
                 if (
                     "view files toggle" in self.settings
                     and self.settings["view files toggle"]

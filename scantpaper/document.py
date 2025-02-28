@@ -443,6 +443,15 @@ class Document(BaseDocument):
         "Helper function to convert an array of indices into an array of uuids"
         return map(lambda x: str(self.data[x][2].uuid), list_of_indices)
 
+    def mark_pages(self, pages):
+        "marked page list as saved"
+        self.get_model().handler_block(self.row_changed_signal)
+        for p in pages:
+            i = self.find_page_by_uuid(p)
+            if i is not None:
+                self.data[i][2].saved = True
+        self.get_model().handler_unblock(self.row_changed_signal)
+
 
 def _extract_metadata(info):
     metadata = {}
