@@ -364,57 +364,6 @@ def _cb_array_append(combobox_array, text):
             combobox.append_text(text)
 
 
-def update_list_user_defined_tools(vbox, combobox_array):
-    "Update list of user-defined tools"
-    tools = []
-    for combobox in combobox_array:
-        if combobox is not None:
-            while combobox.get_num_rows() > 0:
-                combobox.remove(0)
-
-    for hbox in vbox.get_children():
-        if isinstance(hbox, Gtk.HBox):
-            for widget in hbox.get_children():
-                if isinstance(widget, Gtk.Entry):
-                    text = widget.get_text()
-                    tools.append(text)
-                    _cb_array_append(combobox_array, text)
-
-    app.window.settings["user_defined_tools"] = tools
-    app.window.update_post_save_hooks()
-    for combobox in combobox_array:
-        if combobox is not None:
-            combobox.set_active_by_text(app.window.settings["current_udt"])
-
-
-def add_user_defined_tool_entry(vbox, combobox_array, tool):
-    "Add user-defined tool entry"
-    _cb_array_append(combobox_array, tool)
-    hbox = Gtk.HBox()
-    vbox.pack_start(hbox, True, True, 0)
-    entry = Gtk.Entry()
-    entry.set_text(tool)
-    entry.set_tooltip_text(
-        _(
-            """Use %i and %o for the input and output filenames respectively,
-or a single %i if the image is to be modified in-place.
-
-The other variable available is:
-%r resolution"""
-        )
-    )
-    hbox.pack_start(entry, True, True, 0)
-    button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
-
-    def delete_udt():
-        hbox.destroy()
-        update_list_user_defined_tools(vbox, combobox_array)
-
-    button.connect("clicked", delete_udt)
-    hbox.pack_end(button, False, False, 0)
-    hbox.show_all()
-
-
 def get_selected_properties():
     "Helper function for properties()"
     page = app.window.slist.get_selected_indices()
@@ -4401,7 +4350,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # Store viewer preferences
             self.settings["view files toggle"] = cbv.get_active()
-            update_list_user_defined_tools(
+            self._update_list_user_defined_tools(
                 vboxt, [self._comboboxudt, self._windows.comboboxudt]
             )
             tmp = os.path.abspath(os.path.join(self.session.name, ".."))  # Up a level
@@ -4718,20 +4667,20 @@ All document date codes use strftime codes with a leading D, e.g.:
         vboxt.set_border_width(border_width)
         frame.add(vboxt)
         for tool in self.settings["user_defined_tools"]:
-            add_user_defined_tool_entry(vboxt, [], tool)
+            self._add_user_defined_tool_entry(vboxt, [], tool)
 
         abutton = Gtk.Button()
         abutton.set_image(Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
         vboxt.pack_start(abutton, True, True, 0)
 
         def clicked_add_udt(_action):
-            add_user_defined_tool_entry(
+            self._add_user_defined_tool_entry(
                 vboxt,
                 [self._comboboxudt, self._windows.comboboxudt],
                 "my-tool %i %o",
             )
             vboxt.reorder_child(abutton, EMPTY_LIST)
-            update_list_user_defined_tools(
+            self._update_list_user_defined_tools(
                 vboxt, [self._comboboxudt, self._windows.comboboxudt]
             )
 
@@ -4754,6 +4703,55 @@ All document date codes use strftime codes with a leading D, e.g.:
             cbb,
             vboxt,
         )
+
+    def _update_list_user_defined_tools(self, vbox, combobox_array):
+        "Update list of user-defined tools"
+        tools = []
+        for combobox in combobox_array:
+            if combobox is not None:
+                while combobox.get_num_rows() > 0:
+                    combobox.remove(0)
+
+        for hbox in vbox.get_children():
+            if isinstance(hbox, Gtk.HBox):
+                for widget in hbox.get_children():
+                    if isinstance(widget, Gtk.Entry):
+                        text = widget.get_text()
+                        tools.append(text)
+                        _cb_array_append(combobox_array, text)
+
+        self.settings["user_defined_tools"] = tools
+        self.update_post_save_hooks()
+        for combobox in combobox_array:
+            if combobox is not None:
+                combobox.set_active_by_text(self.settings["current_udt"])
+
+    def _add_user_defined_tool_entry(self, vbox, combobox_array, tool):
+        "Add user-defined tool entry"
+        _cb_array_append(combobox_array, tool)
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
+        entry = Gtk.Entry()
+        entry.set_text(tool)
+        entry.set_tooltip_text(
+            _(
+                """Use %i and %o for the input and output filenames respectively,
+or a single %i if the image is to be modified in-place.
+
+The other variable available is:
+%r resolution"""
+            )
+        )
+        hbox.pack_start(entry, True, True, 0)
+        button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
+
+        def delete_udt():
+            hbox.destroy()
+            self._update_list_user_defined_tools(vbox, combobox_array)
+
+        button.connect("clicked", delete_udt)
+        hbox.pack_end(button, False, False, 0)
+        hbox.show_all()
 
     def can_quit(self):
         "Remove temporary files, note window state, save settings and quit."
