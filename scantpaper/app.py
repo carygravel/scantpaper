@@ -345,33 +345,6 @@ def view_html(_action, _param):
     Gio.AppInfo.launch_default_for_uri(uri, context)
 
 
-def take_snapshot():
-    "Update undo/redo buffers before doing something"
-    app.window.slist.take_snapshot()
-
-    # Unghost Undo/redo
-    actions["undo"].set_enabled(True)
-
-    # Check free space in session directory
-    df = shutil.disk_usage(app.window.session.name)
-    if df:
-        df = df.free / 1024 / 1024
-        logger.debug(
-            "Free space in %s (Mb): %s (warning at %s)",
-            app.window.session.name,
-            df,
-            app.window.settings["available-tmp-warning"],
-        )
-        if df < app.window.settings["available-tmp-warning"]:
-            text = _("%dMb free in %s.") % (df, app.window.session.name)
-            app.window.show_message_dialog(
-                parent=app.window,
-                message_type="warning",
-                buttons=Gtk.ButtonsType.CLOSE,
-                text=text,
-            )
-
-
 def undo(_action, _param):
     "Put things back to last snapshot after updating redo buffer"
     logger.info("Undoing")
@@ -1390,7 +1363,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_obutton.set_tooltip_text(_("Accept corrections"))
 
         def ocr_text_button_clicked(_widget):
-            take_snapshot()
+            self._take_snapshot()
             text = self._ocr_textbuffer.get_text(
                 self._ocr_textbuffer.get_start_iter(),
                 self._ocr_textbuffer.get_end_iter(),
@@ -1428,7 +1401,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ocr_text_abutton.set_tooltip_text(_("Add text"))
 
         def ocr_text_add(_widget):
-            take_snapshot()
+            self._take_snapshot()
             text = self._ocr_textbuffer.get_text(
                 self._ocr_textbuffer.get_start_iter(),
                 self._ocr_textbuffer.get_end_iter(),
@@ -2258,6 +2231,32 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._message_dialog.destroy()
             self._message_dialog = None
 
+    def _take_snapshot(self):
+        "Update undo/redo buffers before doing something"
+        self.slist.take_snapshot()
+
+        # Unghost Undo/redo
+        actions["undo"].set_enabled(True)
+
+        # Check free space in session directory
+        df = shutil.disk_usage(self.session.name)
+        if df:
+            df = df.free / 1024 / 1024
+            logger.debug(
+                "Free space in %s (Mb): %s (warning at %s)",
+                self.session.name,
+                df,
+                self.settings["available-tmp-warning"],
+            )
+            if df < self.settings["available-tmp-warning"]:
+                text = _("%dMb free in %s.") % (df, self.session.name)
+                self.show_message_dialog(
+                    parent=self,
+                    message_type="warning",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    text=text,
+                )
+
     def _new(self, _action, _param):
         "Deletes all scans after warning"
         if not self.scans_saved(
@@ -2266,7 +2265,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             return
 
         # Update undo/redo buffers
-        take_snapshot()
+        self._take_snapshot()
 
         # in certain circumstances, before v2.5.5, having deleted one of several
         # pages, pressing the new button would cause some sort of race condition
@@ -2309,7 +2308,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         file_chooser.set_select_multiple(True)
         file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(app.window.settings["cwd"])
+        file_chooser.set_current_folder(self.settings["cwd"])
         add_filter(
             file_chooser,
             _("Image files"),
@@ -2334,7 +2333,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             os.chdir(self.session.name)
 
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             filenames = file_chooser.get_filenames()
             file_chooser.destroy()
 
@@ -2459,7 +2458,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if file_chooser.run() == Gtk.ResponseType.OK:
 
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             filename = file_chooser.get_filenames()
             self.open_session(filename[0])
 
@@ -3080,7 +3079,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             return
 
         # Update undo/redo buffers
-        take_snapshot()
+        self._take_snapshot()
         rotate = (
             self.settings["rotate facing"]
             if page_number % 2
@@ -4407,7 +4406,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Paste the selection"
         if self.slist.clipboard is None:
             return
-        take_snapshot()
+        self._take_snapshot()
         pages = self.slist.get_selected_indices()
         if pages:
             self.slist.paste_selection(self.slist.clipboard, pages[-1], "after", True)
@@ -4418,7 +4417,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def delete_selection(self, _action, _param):
         "Delete the selected scans"
         # Update undo/redo buffers
-        take_snapshot()
+        self._take_snapshot()
         self.slist._delete_selection_extra()
 
         # Reset start page in scan dialog
@@ -4433,7 +4432,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             document=self.slist,
             hide_on_delete=False,
         )
-        dialog.connect("before-renumber", lambda x: take_snapshot())
+        dialog.connect("before-renumber", lambda x: self._take_snapshot())
         dialog.connect(
             "error",
             lambda msg: self.show_message_dialog(
@@ -4511,7 +4510,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def clear_ocr(self, _action, _param):
         "Clear the OCR output from selected pages"
         # Update undo/redo buffers
-        take_snapshot()
+        self._take_snapshot()
 
         # Clear the existing canvas
         self.t_canvas.clear_text()
@@ -4585,7 +4584,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Analyse selected images"
 
         # Update undo/redo buffers
-        take_snapshot()
+        self._take_snapshot()
         pages_to_analyse = []
         for row in self.slist.data:
             page = row[2]
@@ -4829,7 +4828,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Rotate selected images"
 
         # Update undo/redo buffers
-        take_snapshot()
+        self._take_snapshot()
         for page in pagelist:
             self.slist.rotate(
                 angle=angle,
@@ -4867,7 +4866,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def threshold_apply_callback():
             # HBox for buttons
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             self.settings["threshold tool"] = spinbutton.get_value()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
@@ -4939,7 +4938,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def brightness_contrast_callback():
             # HBox for buttons
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             self.settings["brightness tool"] = spinbuttonb.get_value()
             self.settings["contrast tool"] = spinbuttonc.get_value()
             self.settings["Page range"] = windowt.page_range
@@ -4987,7 +4986,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def negate_callback():
             # HBox for buttons
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self.error_callback
@@ -5085,7 +5084,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def unsharp_callback():
             # HBox for buttons
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             self.settings["unsharp radius"] = spinbuttonr.get_value()
             self.settings["unsharp percentage"] = int(spinbuttons.get_value())
             self.settings["unsharp threshold"] = int(spinbuttont.get_value())
@@ -5163,7 +5162,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             return
 
         # Update undo/redo buffers
-        take_snapshot()
+        self._take_snapshot()
         if not pagelist:
             pagelist = self.slist.get_selected_indices()
 
@@ -5270,7 +5269,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def split_apply_callback():
 
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             self.settings["split-direction"] = direction[combob.get_active()][0]
             self.settings["split-position"] = sb_pos.get_value()
             self.settings["Page range"] = windowsp.page_range
@@ -5362,7 +5361,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 return
 
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             for pageobject in pagelist:
 
                 def unpaper_finished_callback(response):
@@ -5548,7 +5547,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.settings["current_udt"] = self._comboboxudt.get_active_text()
 
             # Update undo/redo buffers
-            take_snapshot()
+            self._take_snapshot()
             for page in pagelist:
 
                 def user_defined_finished_callback(response):
