@@ -328,19 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def update_view_position(direction, position, width, height):
-    "Updates the view's selection rectangle based on the given direction and dimensions."
-    selection = Gdk.Rectangle()
-    if direction == "v":
-        selection.width = position
-        selection.height = height
-    else:
-        selection.width = width
-        selection.height = position
-
-    app.window.view.set_selection(selection)
-
-
 def user_defined_tool(pages, cmd):
     "Run a user-defined tool on the selected images"
 
@@ -5347,11 +5334,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def changed_split_direction(_widget):
             if direction[combob.get_active()][0] == "v":
                 sb_pos.set_range(0, width)
-
             else:
                 sb_pos.set_range(0, height)
-
-            update_view_position(
+            self._update_view_position(
                 direction[combob.get_active()][0], sb_pos.get_value(), width, height
             )
 
@@ -5365,13 +5350,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         label = Gtk.Label(label=_("Position"))
         hbox.pack_start(label, False, True, 0)
         hbox.pack_end(sb_pos, False, True, 0)
-
-        def changed_split_position_sb_value(_widget):
-            update_view_position(
+        sb_pos.connect(
+            "value-changed",
+            lambda _: self._update_view_position(
                 direction[combob.get_active()][0], sb_pos.get_value(), width, height
-            )
-
-        sb_pos.connect("value-changed", changed_split_position_sb_value)
+            ),
+        )
         sb_pos.set_value(width / 2)
 
         def changed_split_position_selection(_widget, sel):
@@ -5434,6 +5418,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         windowsp.show_all()
 
+    def _update_view_position(self, direction, position, width, height):
+        "Updates the view's selection rectangle based on the given direction and dimensions."
+        selection = Gdk.Rectangle()
+        if direction == "v":
+            selection.width = position
+            selection.height = height
+        else:
+            selection.width = width
+            selection.height = position
+        self.view.set_selection(selection)
+
     def _unpaper_dialog(self, _action, _param):
         "Run unpaper to clean up scan."
         if self._windowu is not None:
@@ -5460,7 +5455,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.settings["Page range"] = self._windowu.page_range
 
             # run unpaper
-            pagelist = app.window.slist.indices2pages(
+            pagelist = self.slist.indices2pages(
                 self.slist.get_page_index(
                     self.settings["Page range"], self.error_callback
                 )
