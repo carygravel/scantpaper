@@ -452,6 +452,34 @@ class Document(BaseDocument):
                 self.data[i][2].saved = True
         self.get_model().handler_unblock(self.row_changed_signal)
 
+    def get_selected_properties(self):
+        "Helper function for properties()"
+        page = self.get_selected_indices()
+        xresolution = None
+        yresolution = None
+        if len(page) > 0:
+            i = page.pop(0)
+            xresolution, yresolution, _units = self.data[i][2].resolution
+            logger.debug(
+                "Page %s has resolutions %s,%s",
+                self.data[i][0],
+                xresolution,
+                yresolution,
+            )
+
+        for i in page:
+            if self.data[i][2].resolution[0] != xresolution:
+                xresolution = None
+                break
+
+        for i in page:
+            if self.data[i][2].resolution[0] != yresolution:
+                yresolution = None
+                break
+
+        # round the value to a sensible number of significant figures
+        return xresolution, yresolution
+
 
 def _extract_metadata(info):
     metadata = {}
