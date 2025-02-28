@@ -379,12 +379,6 @@ def recursive_slurp(files):
                 logger.info(output)
 
 
-def quit_app(_action, _param):
-    "Handle the quit action for the application."
-    if app.window.can_quit():
-        app.quit()
-
-
 def zoom_100(_action, _param):
     "Sets the zoom level of the view to 100%."
     app.window.view.set_zoom(1.0)
@@ -470,7 +464,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("save", self.save_dialog),
             ("email", self.email),
             ("print", self.print_dialog),
-            ("quit", quit_app),
+            ("quit", self._quit_app),
             ("undo", self._undo),
             ("redo", self._unundo),
             ("cut", self.cut_selection),
@@ -545,7 +539,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowe = None
         self._windowr = None
         self._windowp = None
-        self.connect("delete-event", lambda w, e: not self.can_quit())
+        self.connect("delete-event", lambda w, e: not self._can_quit())
 
         def window_state_event_callback(_w, event):
             "Note when the window is maximised or not"
@@ -4719,7 +4713,12 @@ The other variable available is:
         hbox.pack_end(button, False, False, 0)
         hbox.show_all()
 
-    def can_quit(self):
+    def _quit_app(self, _action, _param):
+        "Handle the quit action for the application."
+        if self._can_quit():
+            self.get_application().quit()
+
+    def _can_quit(self):
         "Remove temporary files, note window state, save settings and quit."
         if not self.scans_saved(
             _("Some pages have not been saved.\nDo you really want to quit?")
@@ -4763,7 +4762,7 @@ The other variable available is:
 
     def _restart(self):
         "Restart the application"
-        self.can_quit()
+        self._can_quit()
         os.execv(sys.executable, ["python"] + sys.argv)
 
     def scans_saved(self, message):
