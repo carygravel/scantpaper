@@ -328,29 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def user_defined_tool(pages, cmd):
-    "Run a user-defined tool on the selected images"
-
-    # Update undo/redo buffers
-    take_snapshot()
-    for page in pages:
-
-        def user_defined_finished_callback(response):
-            app.window.post_process_progress.finish(response)
-            # slist.save_session()
-
-        app.window.slist.user_defined(
-            page=page,
-            command=cmd,
-            queued_callback=app.window.post_process_progress.queued,
-            started_callback=app.window.post_process_progress.update,
-            running_callback=app.window.post_process_progress.update,
-            finished_callback=user_defined_finished_callback,
-            error_callback=app.window.error_callback,
-            display_callback=app.window.display_callback,
-        )
-
-
 def unpaper_page(pages, options):
     "queue $page to be processed by unpaper"
     if options is None:
@@ -5584,7 +5561,25 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if not pagelist:
                 return
             self.settings["current_udt"] = self._comboboxudt.get_active_text()
-            user_defined_tool(pagelist, self.settings["current_udt"])
+
+            # Update undo/redo buffers
+            take_snapshot()
+            for page in pagelist:
+
+                def user_defined_finished_callback(response):
+                    self.post_process_progress.finish(response)
+                    # slist.save_session()
+
+                self.slist.user_defined(
+                    page=page,
+                    command=self.settings["current_udt"],
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=user_defined_finished_callback,
+                    error_callback=self.error_callback,
+                    display_callback=self.display_callback,
+                )
             windowudt.hide()
 
         windowudt.add_actions(
