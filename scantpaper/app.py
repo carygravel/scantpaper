@@ -328,31 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def unpaper_page(pages, options):
-    "queue $page to be processed by unpaper"
-    if options is None:
-        options = {}
-
-    # Update undo/redo buffers
-    take_snapshot()
-    for pageobject in pages:
-
-        def unpaper_finished_callback(response):
-            app.window.post_process_progress.finish(response)
-            # slist.save_session()
-
-        app.window.slist.unpaper(
-            page=pageobject,
-            options=options,
-            queued_callback=app.window.post_process_progress.queued,
-            started_callback=app.window.post_process_progress.update,
-            running_callback=app.window.post_process_progress.update,
-            finished_callback=unpaper_finished_callback,
-            error_callback=app.window.error_callback,
-            display_callback=app.window.display_callback,
-        )
-
-
 def ocr_finished_callback(response):
     "Callback function to be executed when OCR processing is finished."
     app.window.post_process_progress.finish(response)
@@ -5439,13 +5414,28 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
             if not pagelist:
                 return
-            unpaper_page(
-                pagelist,
-                {
-                    "command": self._unpaper.get_cmdline(),
-                    "direction": self._unpaper.get_option("direction"),
-                },
-            )
+
+            # Update undo/redo buffers
+            take_snapshot()
+            for pageobject in pagelist:
+
+                def unpaper_finished_callback(response):
+                    self.post_process_progress.finish(response)
+                    # slist.save_session()
+
+                self.slist.unpaper(
+                    page=pageobject,
+                    options={
+                        "command": self._unpaper.get_cmdline(),
+                        "direction": self._unpaper.get_option("direction"),
+                    },
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=unpaper_finished_callback,
+                    error_callback=self.error_callback,
+                    display_callback=self.display_callback,
+                )
             self._windowu.hide()
 
         self._windowu.add_actions(
