@@ -345,28 +345,6 @@ def view_html(_action, _param):
     Gio.AppInfo.launch_default_for_uri(uri, context)
 
 
-def undo(_action, _param):
-    "Put things back to last snapshot after updating redo buffer"
-    logger.info("Undoing")
-    app.window.slist.undo()
-
-    # Update menus/buttons
-    app.window.update_uimanager()
-    actions["undo"].set_enabled(False)
-    actions["redo"].set_enabled(True)
-
-
-def unundo(_action, _param):
-    "Put things back to last snapshot after updating redo buffer"
-    logger.info("Redoing")
-    app.window.slist.unundo()
-
-    # Update menus/buttons
-    app.window.update_uimanager()
-    actions["undo"].set_enabled(True)
-    actions["redo"].set_enabled(False)
-
-
 def register_icon(iconfactory, stock_id, path):
     "Add icons"
     try:
@@ -949,8 +927,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("email", self.email),
             ("print", self.print_dialog),
             ("quit", quit_app),
-            ("undo", undo),
-            ("redo", unundo),
+            ("undo", self._undo),
+            ("redo", self._unundo),
             ("cut", self.cut_selection),
             ("copy", self.copy_selection),
             ("paste", self.paste_selection),
@@ -2230,6 +2208,26 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ) = self._message_dialog.get_size()
             self._message_dialog.destroy()
             self._message_dialog = None
+
+    def _undo(self, _action, _param):
+        "Put things back to last snapshot after updating redo buffer"
+        logger.info("Undoing")
+        self.slist.undo()
+
+        # Update menus/buttons
+        self.update_uimanager()
+        actions["undo"].set_enabled(False)
+        actions["redo"].set_enabled(True)
+
+    def _unundo(self, _action, _param):
+        "Put things back to last snapshot after updating redo buffer"
+        logger.info("Redoing")
+        self.slist.unundo()
+
+        # Update menus/buttons
+        self.update_uimanager()
+        actions["undo"].set_enabled(True)
+        actions["redo"].set_enabled(False)
 
     def _take_snapshot(self):
         "Update undo/redo buffers before doing something"
