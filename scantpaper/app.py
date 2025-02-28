@@ -328,60 +328,6 @@ def import_scan_finished_callback(response):
     # slist.save_session()
 
 
-def ocr_finished_callback(response):
-    "Callback function to be executed when OCR processing is finished."
-    app.window.post_process_progress.finish(response)
-    # slist.save_session()
-
-
-def ocr_display_callback(response):
-    "Callback function to handle the display of OCR (Optical Character Recognition) results."
-    uuid = response.request.args[0]["page"].uuid
-    i = app.window.slist.find_page_by_uuid(uuid)
-    if i is None:
-        logger.error("Can't display page with uuid %s: page not found", uuid)
-    else:
-        page = app.window.slist.get_selected_indices()
-        if page and i == page[0]:
-            app.window.create_txt_canvas(app.window.slist.data[i][2])
-
-
-def run_ocr(engine, tesslang, threshold_flag, threshold):
-    "Run OCR on a set of pages"
-    if engine == "tesseract":
-        app.window.settings["ocr language"] = tesslang
-
-    kwargs = {
-        "queued_callback": app.window.post_process_progress.queued,
-        "started_callback": app.window.post_process_progress.update,
-        "running_callback": app.window.post_process_progress.update,
-        "finished_callback": ocr_finished_callback,
-        "error_callback": app.window.error_callback,
-        "display_callback": ocr_display_callback,
-        "engine": engine,
-        "language": app.window.settings["ocr language"],
-    }
-    app.window.settings["ocr engine"] = engine
-    app.window.settings["threshold-before-ocr"] = threshold_flag
-    if threshold_flag:
-        app.window.settings["threshold tool"] = threshold
-        kwargs["threshold"] = threshold
-
-    # fill pagelist with filenames
-    # depending on which radiobutton is active
-    app.window.settings["Page range"] = app.windwo._windowo.page_range
-    pagelist = app.window.slist.indices2pages(
-        app.window.slist.get_page_index(
-            app.window.settings["Page range"], app.window.error_callback
-        )
-    )
-    if not pagelist:
-        return
-    kwargs["pages"] = pagelist
-    app.window.slist.ocr_pages(**kwargs)
-    app.window._windowo.hide()
-
-
 def view_html(_action, _param):
     "Perhaps we should use gtk and mallard for this in the future"
     # Or possibly https://github.com/ultrabug/mkdocs-static-i18n
@@ -1064,7 +1010,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             ("split", self._split_dialog),
             ("unpaper", self._unpaper_dialog),
             ("ocr", self._ocr_dialog),
-            ("user-defined", self.user_defined_dialog),
+            ("user-defined", self._user_defined_dialog),
             ("help", view_html),
             ("about", self.about),
         ]:
@@ -5510,7 +5456,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if comboboxtl is not None:
                 lang = tesslang[comboboxtl.get_active()][0]
 
-            run_ocr(
+            self._run_ocr(
                 ocr_engine[combobe.get_active()][0],
                 lang,
                 cbto.get_active(),
@@ -5524,7 +5470,56 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if hboxtl is not None and ocr_engine[combobe.get_active()][0] != "tesseract":
             hboxtl.hide()
 
-    def user_defined_dialog(self, _action, _param):
+    def _run_ocr(self, engine, tesslang, threshold_flag, threshold):
+        "Run OCR on a set of pages"
+        if engine == "tesseract":
+            self.settings["ocr language"] = tesslang
+
+        kwargs = {
+            "queued_callback": self.post_process_progress.queued,
+            "started_callback": self.post_process_progress.update,
+            "running_callback": self.post_process_progress.update,
+            "finished_callback": self._ocr_finished_callback,
+            "error_callback": self.error_callback,
+            "display_callback": self._ocr_display_callback,
+            "engine": engine,
+            "language": self.settings["ocr language"],
+        }
+        self.settings["ocr engine"] = engine
+        self.settings["threshold-before-ocr"] = threshold_flag
+        if threshold_flag:
+            self.settings["threshold tool"] = threshold
+            kwargs["threshold"] = threshold
+
+        # fill pagelist with filenames
+        # depending on which radiobutton is active
+        self.settings["Page range"] = self._windowo.page_range
+        pagelist = self.slist.indices2pages(
+            self.slist.get_page_index(self.settings["Page range"], self.error_callback)
+        )
+        if not pagelist:
+            return
+        kwargs["pages"] = pagelist
+        self.slist.ocr_pages(**kwargs)
+        self._windowo.hide()
+
+    def _ocr_finished_callback(self, response):
+        "Callback function to be executed when OCR processing is finished."
+        self.post_process_progress.finish(response)
+        # slist.save_session()
+
+    def _ocr_display_callback(self, response):
+        "Callback function to handle the display of OCR (Optical Character Recognition) results."
+        uuid = response.request.args[0]["page"].uuid
+        i = self.slist.find_page_by_uuid(uuid)
+        if i is None:
+            logger.error("Can't display page with uuid %s: page not found", uuid)
+        else:
+            page = self.slist.get_selected_indices()
+            if page and i == page[0]:
+                self.create_txt_canvas(self.slist.data[i][2])
+
+    def _user_defined_dialog(self, _action, _param):
         "Displays a dialog for selecting and applying user-defined tools."
         windowudt = Dialog(
             transient_for=self,
