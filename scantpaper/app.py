@@ -393,54 +393,6 @@ def get_selected_properties():
     return xresolution, yresolution
 
 
-def ask_question(**kwargs):
-    "Helper function to display a message dialog, wait for a response, and return it"
-
-    # replace any numbers with metacharacters to compare to filter
-    text = filter_message(kwargs["text"])
-    if response_stored(text, app.window.settings["message"]):
-        logger.debug(
-            f"Skipped MessageDialog with '{kwargs['text']}', "
-            + f"automatically replying '{app.window.settings['message'][text]['response']}'"
-        )
-        return app.window.settings["message"][text]["response"]
-
-    cb = None
-    dialog = Gtk.MessageDialog(
-        parent=kwargs["parent"],
-        modal=True,
-        destroy_with_parent=True,
-        message_type=kwargs["type"],
-        buttons=kwargs["buttons"],
-        text=kwargs["text"],
-    )
-    logger.debug("Displayed MessageDialog with '%s'", kwargs["text"])
-    if "store-response" in kwargs:
-        cb = Gtk.CheckButton.new_with_label(_("Don't show this message again"))
-        dialog.get_message_area().add(cb)
-
-    if "default-response" in kwargs:
-        dialog.set_default_response(kwargs["default-response"])
-
-    dialog.show_all()
-    response = dialog.run()
-    dialog.destroy()
-    if "store-response" in kwargs and cb.get_active():
-        flag = True
-        if kwargs["stored-responses"]:
-            flag = False
-            for i in kwargs["stored-responses"]:
-                if i == response:
-                    flag = True
-                    break
-
-        if flag:
-            app.window.settings["message"][text]["response"] = response
-
-    logger.debug("Replied '%s'", response)
-    return response
-
-
 def recursive_slurp(files):
     """
     Recursively processes a list of files and directories, logging the contents
@@ -2861,7 +2813,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     message = _("Finished scanning reverse pages. Scan facing pages?")
                     side = "facing"
 
-                response = ask_question(
+                response = self._ask_question(
                     parent=widget,
                     type="question",
                     buttons=Gtk.ButtonsType.OK_CANCEL,
@@ -2982,6 +2934,53 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         GLib.idle_add(show_message_dialog_wrapper)
         self.post_process_progress.hide()
+
+    def _ask_question(self, **kwargs):
+        "Helper function to display a message dialog, wait for a response, and return it"
+
+        # replace any numbers with metacharacters to compare to filter
+        text = filter_message(kwargs["text"])
+        if response_stored(text, self.settings["message"]):
+            logger.debug(
+                f"Skipped MessageDialog with '{kwargs['text']}', "
+                + f"automatically replying '{self.settings['message'][text]['response']}'"
+            )
+            return self.settings["message"][text]["response"]
+
+        cb = None
+        dialog = Gtk.MessageDialog(
+            parent=kwargs["parent"],
+            modal=True,
+            destroy_with_parent=True,
+            message_type=kwargs["type"],
+            buttons=kwargs["buttons"],
+            text=kwargs["text"],
+        )
+        logger.debug("Displayed MessageDialog with '%s'", kwargs["text"])
+        if "store-response" in kwargs:
+            cb = Gtk.CheckButton.new_with_label(_("Don't show this message again"))
+            dialog.get_message_area().add(cb)
+
+        if "default-response" in kwargs:
+            dialog.set_default_response(kwargs["default-response"])
+
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+        if "store-response" in kwargs and cb.get_active():
+            flag = True
+            if kwargs["stored-responses"]:
+                flag = False
+                for i in kwargs["stored-responses"]:
+                    if i == response:
+                        flag = True
+                        break
+
+            if flag:
+                self.settings["message"][text]["response"] = response
+
+        logger.debug("Replied '%s'", response)
+        return response
 
     def about(self, _action, _param):
         "Display about dialog"
@@ -4362,7 +4361,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
             if newdir != tmp:
                 self.settings["TMPDIR"] = newdir
-                response = ask_question(
+                response = self._ask_question(
                     parent=self,
                     type="question",
                     buttons=Gtk.ButtonsType.OK_CANCEL,
@@ -4803,7 +4802,7 @@ The other variable available is:
     def scans_saved(self, message):
         "Check that all pages have been saved"
         if not self.slist.scans_saved():
-            response = ask_question(
+            response = self._ask_question(
                 parent=self,
                 type="question",
                 buttons=Gtk.ButtonsType.OK_CANCEL,
