@@ -404,6 +404,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ann_textbuffer = None
         self._lockfd = None
         self._comboboxudt = None
+        self._fonts = None
         self.slist = None
 
         # Temp::File object for PDF to be emailed
@@ -1574,7 +1575,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Build a look-up table of all true-type fonts installed
         proc = exec_command(["fc-list", ":", "family", "style", "file"])
-        app._fonts = parse_truetype_fonts(proc.stdout)
+        self._fonts = parse_truetype_fonts(proc.stdout)
 
     def _find_crashed_sessions(self, tmpdir):
         "Look for crashed sessions"
@@ -3060,7 +3061,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             downsample_dpi=self.settings["downsample dpi"],
             downsample=self.settings["downsample"],
             pdf_compression=self.settings["pdf compression"],
-            available_fonts=app._fonts,
+            available_fonts=self._fonts,
             text_position=self.settings["text_position"],
             pdf_font=self.settings["pdf font"],
             can_encrypt_pdf="pdftk" in dependencies,
@@ -5670,7 +5671,6 @@ class Application(Gtk.Application):
                 ("crop", "crop.svg"),
             ],
         )
-        self._fonts = None
 
     def do_startup(self, *args, **kwargs):
         Gtk.Application.do_startup(self)
