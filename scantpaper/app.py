@@ -2626,9 +2626,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self._scan_progress.hide()
         if process == "open_device" and re.search(
-            r"(Invalid[ ]argument|Device[ ]busy)",
-            msg,
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
+            r"(Invalid[ ]argument|Device[ ]busy)", msg
         ):
             error_name = "error opening device"
             response = None
@@ -2637,7 +2635,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 and self.settings["message"][error_name]["response"] == "ignore"
             ):
                 response = self.settings["message"][error_name]["response"]
-
             else:
                 dialog = Gtk.MessageDialog(
                     parent=self,
@@ -2656,10 +2653,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     None, label=_("Whoops! I forgot to turn it on. Try again now.")
                 )
                 area.add(radio1)
-                radio2 = Gtk.RadioButton.new_with_label_from_widget(
-                    radio1, label=_("Rescan for devices")
+                area.add(
+                    Gtk.RadioButton.new_with_label_from_widget(
+                        radio1, label=_("Rescan for devices")
+                    )
                 )
-                area.add(radio2)
                 radio3 = Gtk.RadioButton.new_with_label_from_widget(
                     radio1, label=_("Restart gscan2pdf.")
                 )
