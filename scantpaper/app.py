@@ -5584,7 +5584,7 @@ class Application(Gtk.Application):
 
     # It's a shame that we have to define these here, but I can't see a way
     # to connect the actions in a context menu in app.ui otherwise
-    def on_dragger(self, _widget):
+    def _on_dragger(self, _widget):
         "Handles the event when the dragger tool is selected."
         # builder calls this the first time before the window is defined
         if self.window:
@@ -5592,7 +5592,7 @@ class Application(Gtk.Application):
                 actions["tooltype"], GLib.Variant("s", "dragger")
             )
 
-    def on_selector(self, _widget):
+    def _on_selector(self, _widget):
         "Handles the event when the selector tool is selected."
         # builder calls this the first time before the window is defined
         if self.window:
@@ -5600,7 +5600,7 @@ class Application(Gtk.Application):
                 actions["tooltype"], GLib.Variant("s", "selector")
             )
 
-    def on_selectordragger(self, _widget):
+    def _on_selectordragger(self, _widget):
         "Handles the event when the selector dragger tool is selected."
         # builder calls this the first time before the window is defined
         if self.window:
@@ -5608,95 +5608,95 @@ class Application(Gtk.Application):
                 actions["tooltype"], GLib.Variant("s", "selectordragger")
             )
 
-    def on_zoom_100(self, _widget):
+    def _on_zoom_100(self, _widget):
         "Zooms the current page to 100%"
         self.window.zoom_100(None, None)
 
-    def on_zoom_to_fit(self, _widget):
+    def _on_zoom_to_fit(self, _widget):
         "Zooms the current page so that it fits the viewing pane."
         self.window.zoom_to_fit(None, None)
 
-    def on_zoom_in(self, _widget):
+    def _on_zoom_in(self, _widget):
         "Zooms in the current page."
         self.window.zoom_in(None, None)
 
-    def on_zoom_out(self, _widget):
+    def _on_zoom_out(self, _widget):
         "Zooms out the current page."
         self.window.zoom_out(None, None)
 
-    def on_rotate_90(self, _widget):
+    def _on_rotate_90(self, _widget):
         "Rotate the selected pages by 90 degrees."
         self.window.rotate_90(None, None)
 
-    def on_rotate_180(self, _widget):
+    def _on_rotate_180(self, _widget):
         "Rotate the selected pages by 180 degrees."
         self.window.rotate_180(None, None)
 
-    def on_rotate_270(self, _widget):
+    def _on_rotate_270(self, _widget):
         "Rotate the selected pages by 270 degrees."
         self.window.rotate_270(None, None)
 
-    def on_save(self, _widget):
+    def _on_save(self, _widget):
         "Displays the save dialog."
         self.window.save_dialog(None, None)
 
-    def on_email(self, _widget):
+    def _on_email(self, _widget):
         "displays the email dialog."
         self.window.email(None, None)
 
-    def on_print(self, _widget):
+    def _on_print(self, _widget):
         "displays the print dialog."
         self.window.print_dialog(None, None)
 
-    def on_renumber(self, _widget):
+    def _on_renumber(self, _widget):
         "Displays the renumber dialog."
         self.window.renumber_dialog(None, None)
 
-    def on_select_all(self, _widget):
+    def _on_select_all(self, _widget):
         "selects all pages."
         self.window.select_all(None, None)
 
-    def on_select_odd(self, _widget):
+    def _on_select_odd(self, _widget):
         "selects the pages with odd numbers."
         self.window.select_odd_even(0)
 
-    def on_select_even(self, _widget):
+    def _on_select_even(self, _widget):
         "selects the pages with even numbers."
         self.window.select_odd_even(1)
 
-    def on_invert_selection(self, _widget):
+    def _on_invert_selection(self, _widget):
         "Inverts the current selection."
         self.window.select_invert(None, None)
 
-    def on_crop(self, _widget):
+    def _on_crop(self, _widget):
         "Displays the crop dialog."
         self.window.crop_selection(None, None)
 
-    def on_cut(self, _widget):
+    def _on_cut(self, _widget):
         "cuts the selected pages to the clipboard."
         self.window.cut_selection(None, None)
 
-    def on_copy(self, _widget):
+    def _on_copy(self, _widget):
         "copies the selected pages to the clipboard."
         self.window.copy_selection(None, None)
 
-    def on_paste(self, _widget):
+    def _on_paste(self, _widget):
         "pastes the copied pages."
         self.window.paste_selection(None, None)
 
-    def on_delete(self, _widget):
+    def _on_delete(self, _widget):
         "deletes the selected pages."
         self.window.delete_selection(None, None)
 
-    def on_clear_ocr(self, _widget):
+    def _on_clear_ocr(self, _widget):
         "Clears the OCR (Optical Character Recognition) data."
         self.window.clear_ocr(None, None)
 
-    def on_properties(self, _widget):
+    def _on_properties(self, _widget):
         "displays the properties dialog."
         self.window.properties(None, None)
 
-    def on_quit(self, _action, _param):
+    def _on_quit(self, _action, _param):
         "Handles the quit action."
         self.quit()
 
