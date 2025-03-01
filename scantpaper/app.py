@@ -1440,7 +1440,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def _create_lockfile(self):
         "create a lockfile in the session directory"
-        lockfd = open(
+        lockfd = open(  # pylint: disable=consider-using-with
             os.path.join(self.session.name, "lockfile"), "w", encoding="utf-8"
         )
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
