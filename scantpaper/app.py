@@ -2088,17 +2088,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             nonlocal signal
             signal = self._scan_progress.connect("clicked", self._windows.cancel_scan)
 
-        def changed_progress_callback(_widget, progress, message):
-            "Updates the progress bar based on the given progress value and message."
-            if progress is not None and (0 <= progress <= 1):
-                self._scan_progress.set_fraction(progress)
-            else:
-                self._scan_progress.pulse()
-            if message is not None:
-                self._scan_progress.set_text(message)
-
         self._windows.connect("started-process", started_progress_callback)
-        self._windows.connect("changed-progress", changed_progress_callback)
+        self._windows.connect("changed-progress", self._changed_progress_callback)
         self._windows.connect("finished-process", self._finished_process_callback)
         self._windows.connect("process-error", self._process_error_callback, signal)
 
@@ -2112,15 +2103,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 ),
             )
 
-        def changed_profile_callback(_widget, profile):
-            self.settings["default profile"] = profile
-
-        self._windows.connect("changed-profile", changed_profile_callback)
-
-        def added_profile_callback(_widget, name, profile):
-            self.settings["profile"][name] = profile.get()
-
-        self._windows.connect("added-profile", added_profile_callback)
+        self._windows.connect("changed-profile", self._changed_profile_callback)
+        self._windows.connect("added-profile", self._added_profile_callback)
 
         def removed_profile_callback(_widget, profile):
             del self.settings["profile"][profile]
@@ -2562,6 +2546,21 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             else:
                 self._rotate_side_cmbx.hide()
                 self._rotate_side_cmbx2.hide()
+
+    def _changed_progress_callback(self, _widget, progress, message):
+        "Updates the progress bar based on the given progress value and message."
+        if progress is not None and (0 <= progress <= 1):
+            self._scan_progress.set_fraction(progress)
+        else:
+            self._scan_progress.pulse()
+        if message is not None:
+            self._scan_progress.set_text(message)
+
+    def _changed_profile_callback(self, _widget, profile):
+        self.settings["default profile"] = profile
+
+    def _added_profile_callback(self, _widget, name, profile):
+        self.settings["profile"][name] = profile.get()
 
     def _new_scan_callback(
         self, _widget, image_object, page_number, xresolution, yresolution
