@@ -299,104 +299,104 @@
     <child>
       <object class="GtkRadioMenuItem" id="context_dragger">
         <property name="label" translatable="yes">_Pan</property>
-        <signal name="toggled" handler="on_dragger"/>
+        <signal name="toggled" handler="_on_dragger"/>
       </object>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="context_selector">
         <property name="label" translatable="yes">_Select</property>
         <property name="group">context_dragger</property>
-        <signal name="toggled" handler="on_selector"/>
+        <signal name="toggled" handler="_on_selector"/>
       </object>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="context_selectordragger">
         <property name="label" translatable="yes">_Select &amp; pan</property>
         <property name="group">context_dragger</property>
-        <signal name="toggled" handler="on_selectordragger"/>
+        <signal name="toggled" handler="_on_selectordragger"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom _100%</property>
-        <signal name="activate" handler="on_zoom_100"/>
+        <signal name="activate" handler="_on_zoom_100"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom to _fit</property>
-        <signal name="activate" handler="on_zoom_to_fit"/>
+        <signal name="activate" handler="_on_zoom_to_fit"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom _in</property>
-        <signal name="activate" handler="on_zoom_in"/>
+        <signal name="activate" handler="_on_zoom_in"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom _out</property>
-        <signal name="activate" handler="on_zoom_out"/>
+        <signal name="activate" handler="_on_zoom_out"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Rotate 90° clockwise</property>
-        <signal name="activate" handler="on_rotate_90"/>
+        <signal name="activate" handler="_on_rotate_90"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Rotate 180°</property>
-        <signal name="activate" handler="on_rotate_180"/>
+        <signal name="activate" handler="_on_rotate_180"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
-        <signal name="activate" handler="on_rotate_270"/>
+        <signal name="activate" handler="_on_rotate_270"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Crop</property>
-        <signal name="activate" handler="on_crop"/>
+        <signal name="activate" handler="_on_crop"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Cut</property>
-        <signal name="activate" handler="on_cut"/>
+        <signal name="activate" handler="_on_cut"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Copy</property>
-        <signal name="activate" handler="on_copy"/>
+        <signal name="activate" handler="_on_copy"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Paste</property>
-        <signal name="activate" handler="on_paste"/>
+        <signal name="activate" handler="_on_paste"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Delete</property>
-        <signal name="activate" handler="on_delete"/>
+        <signal name="activate" handler="_on_delete"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Properties</property>
-        <signal name="activate" handler="on_properties"/>
+        <signal name="activate" handler="_on_properties"/>
       </object>
     </child>
   </object>
@@ -404,115 +404,115 @@
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Save</property>
-        <signal name="activate" handler="on_save"/>
+        <signal name="activate" handler="_on_save"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Email as PDF</property>
-        <signal name="activate" handler="on_email"/>
+        <signal name="activate" handler="_on_email"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Print</property>
-        <signal name="activate" handler="on_print"/>
+        <signal name="activate" handler="_on_print"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Renumber</property>
-        <signal name="activate" handler="on_renumber"/>
+        <signal name="activate" handler="_on_renumber"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Select All</property>
-        <signal name="activate" handler="on_select_all"/>
+        <signal name="activate" handler="_on_select_all"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Select Odd</property>
-        <signal name="activate" handler="on_select_odd"/>
+        <signal name="activate" handler="_on_select_odd"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Select Even</property>
-        <signal name="activate" handler="on_select_even"/>
+        <signal name="activate" handler="_on_select_even"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Invert selection</property>
-        <signal name="activate" handler="on_invert_selection"/>
+        <signal name="activate" handler="_on_invert_selection"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Rotate 90° clockwise</property>
-        <signal name="activate" handler="on_rotate_90"/>
+        <signal name="activate" handler="_on_rotate_90"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Rotate 180°</property>
-        <signal name="activate" handler="on_rotate_180"/>
+        <signal name="activate" handler="_on_rotate_180"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
-        <signal name="activate" handler="on_rotate_270"/>
+        <signal name="activate" handler="_on_rotate_270"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Crop</property>
-        <signal name="activate" handler="on_crop"/>
+        <signal name="activate" handler="_on_crop"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Cut</property>
-        <signal name="activate" handler="on_cut"/>
+        <signal name="activate" handler="_on_cut"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Copy</property>
-        <signal name="activate" handler="on_copy"/>
+        <signal name="activate" handler="_on_copy"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Paste</property>
-        <signal name="activate" handler="on_paste"/>
+        <signal name="activate" handler="_on_paste"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Delete</property>
-        <signal name="activate" handler="on_delete"/>
+        <signal name="activate" handler="_on_delete"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Clear OCR</property>
-        <signal name="activate" handler="on_clear_ocr"/>
+        <signal name="activate" handler="_on_clear_ocr"/>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Properties</property>
-        <signal name="activate" handler="on_properties"/>
+        <signal name="activate" handler="_on_properties"/>
       </object>
     </child>
   </object>
