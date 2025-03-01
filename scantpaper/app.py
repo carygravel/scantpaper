@@ -689,82 +689,32 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.view.connect("button-press-event", self._handle_clicks)
         self.view.connect("button-release-event", self._handle_clicks)
-
-        def view_zoom_changed_callback(_view, zoom):
-            if self.t_canvas is not None:
-                self.t_canvas.handler_block(self.t_canvas.zoom_changed_signal)
-                self.t_canvas.set_scale(zoom)
-                self.t_canvas.handler_unblock(self.t_canvas.zoom_changed_signal)
-
         self.view.zoom_changed_signal = self.view.connect(
-            "zoom-changed", view_zoom_changed_callback
+            "zoom-changed", self._view_zoom_changed_callback
         )
-
-        def view_offset_changed_callback(_view, x, y):
-            if self.t_canvas is not None:
-                self.t_canvas.handler_block(self.t_canvas.offset_changed_signal)
-                self.t_canvas.set_offset(x, y)
-                self.t_canvas.handler_unblock(self.t_canvas.offset_changed_signal)
-
         self.view.offset_changed_signal = self.view.connect(
-            "offset-changed", view_offset_changed_callback
+            "offset-changed", self._view_offset_changed_callback
         )
-
-        def view_selection_changed_callback(_view, sel):
-            "Callback if the selection changes"
-            # copy required here because somehow the garbage collection
-            # destroys the Gdk.Rectangle too early and afterwards, the
-            # contents are corrupt.
-            self.settings["selection"] = sel.copy()
-            if sel is not None and self._windowc is not None:
-                self._windowc.selection = self.settings["selection"]
-
         self.view.selection_changed_signal = self.view.connect(
-            "selection-changed", view_selection_changed_callback
+            "selection-changed", self._view_selection_changed_callback
         )
 
         # GooCanvas for text layer
         self.t_canvas = Canvas()
-
-        def text_zoom_changed_callback(canvas, _zoom):
-            self.view.handler_block(self.view.zoom_changed_signal)
-            self.view.set_zoom(canvas.get_scale())
-            self.view.handler_unblock(self.view.zoom_changed_signal)
-
         self.t_canvas.zoom_changed_signal = self.t_canvas.connect(
-            "zoom-changed", text_zoom_changed_callback
+            "zoom-changed", self._text_zoom_changed_callback
         )
-
-        def text_offset_changed_callback():
-            self.view.handler_block(self.view.offset_changed_signal)
-            offset = self.t_canvas.get_offset()
-            self.view.set_offset(offset["x"], offset["y"])
-            self.view.handler_unblock(self.view.offset_changed_signal)
-
         self.t_canvas.offset_changed_signal = self.t_canvas.connect(
-            "offset-changed", text_offset_changed_callback
+            "offset-changed", self._text_offset_changed_callback
         )
 
         # GooCanvas for annotation layer
         self.a_canvas = Canvas()
-
-        def ann_zoom_changed_callback():
-            self.view.handler_block(self.view.zoom_changed_signal)
-            self.view.set_zoom(self.a_canvas.get_scale())
-            self.view.handler_unblock(self.view.zoom_changed_signal)
-
         self.a_canvas.zoom_changed_signal = self.a_canvas.connect(
-            "zoom-changed", ann_zoom_changed_callback
+            "zoom-changed", self._ann_zoom_changed_callback
         )
-
-        def ann_offset_changed_callback():
-            self.view.handler_block(self.view.offset_changed_signal)
-            offset = self.a_canvas.get_offset()
-            self.view.set_offset(offset["x"], offset["y"])
-            self.view.handler_unblock(self.view.offset_changed_signal)
-
         self.a_canvas.offset_changed_signal = self.a_canvas.connect(
-            "offset-changed", ann_offset_changed_callback
+            "offset-changed", self._ann_offset_changed_callback
         )
 
         # split panes for detail view/text layer canvas and text layer dialog
@@ -831,96 +781,22 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
         ocr_text_obutton.set_tooltip_text(_("Accept corrections"))
-
-        def ocr_text_button_clicked(_widget):
-            self._take_snapshot()
-            text = self._ocr_textbuffer.get_text(
-                self._ocr_textbuffer.get_start_iter(),
-                self._ocr_textbuffer.get_end_iter(),
-                False,
-            )
-            logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
-            self._current_ocr_bbox.update_box(text, self.view.get_selection())
-            self._current_page.import_hocr(self.t_canvas.hocr())
-            self._edit_ocr_text(self._current_ocr_bbox)
-
-        ocr_text_obutton.connect("clicked", ocr_text_button_clicked)
+        ocr_text_obutton.connect("clicked", self._ocr_text_button_clicked)
         ocr_text_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ocr_text_cbutton.set_tooltip_text(_("Cancel corrections"))
         ocr_text_cbutton.connect("clicked", lambda _: self._ocr_text_hbox.hide())
         ocr_text_ubutton = Gtk.Button.new_with_mnemonic(label=_("_Copy"))
         ocr_text_ubutton.set_tooltip_text(_("Duplicate text"))
-
-        def ocr_text_copy(_widget):
-            self._current_ocr_bbox = self.t_canvas.add_box(
-                text=self._ocr_textbuffer.get_text(
-                    self._ocr_textbuffer.get_start_iter(),
-                    self._ocr_textbuffer.get_end_iter(),
-                    False,
-                ),
-                bbox=self.view.get_selection(),
-            )
-            self._current_page.import_hocr(self.t_canvas.hocr())
-            self._edit_ocr_text(self._current_ocr_bbox)
-
-        ocr_text_ubutton.connect("clicked", ocr_text_copy)
+        ocr_text_ubutton.connect("clicked", self._ocr_text_copy)
         ocr_text_abutton = Gtk.Button()
         ocr_text_abutton.set_image(
             Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
         )
         ocr_text_abutton.set_tooltip_text(_("Add text"))
-
-        def ocr_text_add(_widget):
-            self._take_snapshot()
-            text = self._ocr_textbuffer.get_text(
-                self._ocr_textbuffer.get_start_iter(),
-                self._ocr_textbuffer.get_end_iter(),
-                False,
-            )
-            if text is None or text == EMPTY:
-                text = _("my-new-word")
-
-            # If we don't yet have a canvas, create one
-            selection = self.view.get_selection()
-            if hasattr(self._current_page, "text_layer"):
-                logger.info("Added '%s'", text)
-                self._current_ocr_bbox = self.t_canvas.add_box(
-                    text=text, bbox=self.view.get_selection()
-                )
-                self._current_page.import_hocr(self.t_canvas.hocr())
-                self._edit_ocr_text(self._current_ocr_bbox)
-            else:
-                logger.info("Creating new text layer with '%s'", text)
-                self._current_page.text_layer = (
-                    '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
-                    '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
-                    % (
-                        self._current_page["width"],
-                        self._current_page["height"],
-                        selection["x"],
-                        selection["y"],
-                        selection["x"] + selection["width"],
-                        selection["y"] + selection["height"],
-                        text,
-                    )
-                )
-
-                def ocr_new_page(_widget):
-                    self._current_ocr_bbox = self.t_canvas.get_first_bbox()
-                    self._edit_ocr_text(self._current_ocr_bbox)
-
-                self._create_txt_canvas(self._current_page, ocr_new_page)
-
-        ocr_text_abutton.connect("clicked", ocr_text_add)
+        ocr_text_abutton.connect("clicked", self._ocr_text_add)
         ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ocr_text_dbutton.set_tooltip_text(_("Delete text"))
-
-        def ocr_text_delete(_widget):
-            self._current_ocr_bbox.delete_box()
-            self._current_page.import_hocr(self.t_canvas.hocr())
-            self._edit_ocr_text(self.t_canvas.get_current_bbox())
-
-        ocr_text_dbutton.connect("clicked", ocr_text_delete)
+        ocr_text_dbutton.connect("clicked", self._ocr_text_delete)
         self._ocr_text_hbox.pack_start(ocr_text_fbutton, False, False, 0)
         self._ocr_text_hbox.pack_start(ocr_text_pbutton, False, False, 0)
         self._ocr_text_hbox.pack_start(ocr_text_scmbx, False, False, 0)
@@ -941,19 +817,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ann_textbuffer = ann_textview.get_buffer()
         ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
         ann_obutton.set_tooltip_text(_("Accept corrections"))
-
-        def ann_text_ok(_widget):
-            text = self._ann_textbuffer.get_text(
-                self._ann_textbuffer.get_start_iter(),
-                self._ann_textbuffer.get_end_iter(),
-                False,
-            )
-            logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
-            self._current_ann_bbox.update_box(text, self.view.get_selection())
-            self._current_page.import_annotations(self.a_canvas.hocr())
-            self._edit_annotation(self._current_ann_bbox)
-
-        ann_obutton.connect("clicked", ann_text_ok)
+        ann_obutton.connect("clicked", self._ann_text_ok)
         ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         ann_cbutton.set_tooltip_text(_("Cancel corrections"))
         ann_cbutton.connect("clicked", self._ann_hbox.hide)
@@ -962,57 +826,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
         )
         ann_abutton.set_tooltip_text(_("Add annotation"))
-
-        def ann_text_new(_widget):
-            text = self._ann_textbuffer.get_text(
-                self._ann_textbuffer.get_start_iter(),
-                self._ann_textbuffer.get_end_iter(),
-                False,
-            )
-            if text is None or text == EMPTY:
-                text = _("my-new-annotation")
-
-            # If we don't yet have a canvas, create one
-            selection = self.view.get_selection()
-            if hasattr(self._current_page, "text_layer"):
-                logger.info("Added '%s'", text)
-                self._current_ann_bbox = self.a_canvas.add_box(
-                    text=text, bbox=self.view.get_selection()
-                )
-                self._current_page.import_annotations(self.a_canvas.hocr())
-                self._edit_annotation(self._current_ann_bbox)
-            else:
-                logger.info("Creating new annotation canvas with '%s'", text)
-                self._current_page["annotations"] = (
-                    '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
-                    '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
-                    % (
-                        self._current_page["width"],
-                        self._current_page["height"],
-                        selection["x"],
-                        selection["y"],
-                        selection["x"] + selection["width"],
-                        selection["y"] + selection["height"],
-                        text,
-                    )
-                )
-
-                def ann_text_new_page(_widget):
-                    self._current_ann_bbox = self.a_canvas.get_first_bbox()
-                    self._edit_annotation(self._current_ann_bbox)
-
-                self._create_ann_canvas(self._current_page, ann_text_new_page)
-
-        ann_abutton.connect("clicked", ann_text_new)
+        ann_abutton.connect("clicked", self._ann_text_new)
         ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ann_dbutton.set_tooltip_text(_("Delete annotation"))
-
-        def ann_text_delete(_widget):
-            self._current_ann_bbox.delete_box()
-            self._current_page.import_hocr(self.a_canvas.hocr())
-            self._edit_annotation(self.t_canvas.get_bbox_by_index())
-
-        ann_dbutton.connect("clicked", ann_text_delete)
+        ann_dbutton.connect("clicked", self._ann_text_delete)
         self._ann_hbox.pack_start(ann_textview, False, False, 0)
         self._ann_hbox.pack_end(ann_dbutton, False, False, 0)
         self._ann_hbox.pack_end(ann_cbutton, False, False, 0)
@@ -1030,16 +847,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.connect("key-press-event", Gtk.Window.propagate_key_event)
         self.connect("key-release-event", Gtk.Window.propagate_key_event)
 
-        def on_key_press(_widget, event):
-
-            # Let the keypress propagate
-            if event.keyval != Gdk.KEY_Delete:
-                return Gdk.EVENT_PROPAGATE
-            self._delete_selection(None, None)
-            return Gdk.EVENT_STOP
-
         # _after ensures that Editables get first bite
-        self.connect_after("key-press-event", on_key_press)
+        self.connect_after("key-press-event", self.on_key_press)
 
         # If defined in the config file, set the current directory
         if "cwd" not in self.settings:
@@ -1194,6 +1003,183 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # allow event propagation
         return False
+
+    def _view_zoom_changed_callback(self, _view, zoom):
+        if self.t_canvas is not None:
+            self.t_canvas.handler_block(self.t_canvas.zoom_changed_signal)
+            self.t_canvas.set_scale(zoom)
+            self.t_canvas.handler_unblock(self.t_canvas.zoom_changed_signal)
+
+    def _view_offset_changed_callback(self, _view, x, y):
+        if self.t_canvas is not None:
+            self.t_canvas.handler_block(self.t_canvas.offset_changed_signal)
+            self.t_canvas.set_offset(x, y)
+            self.t_canvas.handler_unblock(self.t_canvas.offset_changed_signal)
+
+    def _view_selection_changed_callback(self, _view, sel):
+        "Callback if the selection changes"
+        # copy required here because somehow the garbage collection
+        # destroys the Gdk.Rectangle too early and afterwards, the
+        # contents are corrupt.
+        self.settings["selection"] = sel.copy()
+        if sel is not None and self._windowc is not None:
+            self._windowc.selection = self.settings["selection"]
+
+    def _text_zoom_changed_callback(self, canvas, _zoom):
+        self.view.handler_block(self.view.zoom_changed_signal)
+        self.view.set_zoom(canvas.get_scale())
+        self.view.handler_unblock(self.view.zoom_changed_signal)
+
+    def _text_offset_changed_callback(self):
+        self.view.handler_block(self.view.offset_changed_signal)
+        offset = self.t_canvas.get_offset()
+        self.view.set_offset(offset["x"], offset["y"])
+        self.view.handler_unblock(self.view.offset_changed_signal)
+
+    def _ann_zoom_changed_callback(self):
+        self.view.handler_block(self.view.zoom_changed_signal)
+        self.view.set_zoom(self.a_canvas.get_scale())
+        self.view.handler_unblock(self.view.zoom_changed_signal)
+
+    def _ann_offset_changed_callback(self):
+        self.view.handler_block(self.view.offset_changed_signal)
+        offset = self.a_canvas.get_offset()
+        self.view.set_offset(offset["x"], offset["y"])
+        self.view.handler_unblock(self.view.offset_changed_signal)
+
+    def _ocr_text_button_clicked(self, _widget):
+        self._take_snapshot()
+        text = self._ocr_textbuffer.get_text(
+            self._ocr_textbuffer.get_start_iter(),
+            self._ocr_textbuffer.get_end_iter(),
+            False,
+        )
+        logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
+        self._current_ocr_bbox.update_box(text, self.view.get_selection())
+        self._current_page.import_hocr(self.t_canvas.hocr())
+        self._edit_ocr_text(self._current_ocr_bbox)
+
+    def _ocr_text_copy(self, _widget):
+        self._current_ocr_bbox = self.t_canvas.add_box(
+            text=self._ocr_textbuffer.get_text(
+                self._ocr_textbuffer.get_start_iter(),
+                self._ocr_textbuffer.get_end_iter(),
+                False,
+            ),
+            bbox=self.view.get_selection(),
+        )
+        self._current_page.import_hocr(self.t_canvas.hocr())
+        self._edit_ocr_text(self._current_ocr_bbox)
+
+    def _ocr_text_add(self, _widget):
+        self._take_snapshot()
+        text = self._ocr_textbuffer.get_text(
+            self._ocr_textbuffer.get_start_iter(),
+            self._ocr_textbuffer.get_end_iter(),
+            False,
+        )
+        if text is None or text == EMPTY:
+            text = _("my-new-word")
+
+        # If we don't yet have a canvas, create one
+        selection = self.view.get_selection()
+        if hasattr(self._current_page, "text_layer"):
+            logger.info("Added '%s'", text)
+            self._current_ocr_bbox = self.t_canvas.add_box(
+                text=text, bbox=self.view.get_selection()
+            )
+            self._current_page.import_hocr(self.t_canvas.hocr())
+            self._edit_ocr_text(self._current_ocr_bbox)
+        else:
+            logger.info("Creating new text layer with '%s'", text)
+            self._current_page.text_layer = (
+                '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
+                '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
+                % (
+                    self._current_page["width"],
+                    self._current_page["height"],
+                    selection["x"],
+                    selection["y"],
+                    selection["x"] + selection["width"],
+                    selection["y"] + selection["height"],
+                    text,
+                )
+            )
+
+            def ocr_new_page(_widget):
+                self._current_ocr_bbox = self.t_canvas.get_first_bbox()
+                self._edit_ocr_text(self._current_ocr_bbox)
+
+            self._create_txt_canvas(self._current_page, ocr_new_page)
+
+    def _ocr_text_delete(self, _widget):
+        self._current_ocr_bbox.delete_box()
+        self._current_page.import_hocr(self.t_canvas.hocr())
+        self._edit_ocr_text(self.t_canvas.get_current_bbox())
+
+    def _ann_text_ok(self, _widget):
+        text = self._ann_textbuffer.get_text(
+            self._ann_textbuffer.get_start_iter(),
+            self._ann_textbuffer.get_end_iter(),
+            False,
+        )
+        logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
+        self._current_ann_bbox.update_box(text, self.view.get_selection())
+        self._current_page.import_annotations(self.a_canvas.hocr())
+        self._edit_annotation(self._current_ann_bbox)
+
+    def _ann_text_new(self, _widget):
+        text = self._ann_textbuffer.get_text(
+            self._ann_textbuffer.get_start_iter(),
+            self._ann_textbuffer.get_end_iter(),
+            False,
+        )
+        if text is None or text == EMPTY:
+            text = _("my-new-annotation")
+
+        # If we don't yet have a canvas, create one
+        selection = self.view.get_selection()
+        if hasattr(self._current_page, "text_layer"):
+            logger.info("Added '%s'", text)
+            self._current_ann_bbox = self.a_canvas.add_box(
+                text=text, bbox=self.view.get_selection()
+            )
+            self._current_page.import_annotations(self.a_canvas.hocr())
+            self._edit_annotation(self._current_ann_bbox)
+        else:
+            logger.info("Creating new annotation canvas with '%s'", text)
+            self._current_page["annotations"] = (
+                '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
+                '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
+                % (
+                    self._current_page["width"],
+                    self._current_page["height"],
+                    selection["x"],
+                    selection["y"],
+                    selection["x"] + selection["width"],
+                    selection["y"] + selection["height"],
+                    text,
+                )
+            )
+
+            def ann_text_new_page(_widget):
+                self._current_ann_bbox = self.a_canvas.get_first_bbox()
+                self._edit_annotation(self._current_ann_bbox)
+
+            self._create_ann_canvas(self._current_page, ann_text_new_page)
+
+    def _ann_text_delete(self, _widget):
+        self._current_ann_bbox.delete_box()
+        self._current_page.import_hocr(self.a_canvas.hocr())
+        self._edit_annotation(self.t_canvas.get_bbox_by_index())
+
+    def on_key_press(self, _widget, event):
+
+        # Let the keypress propagate
+        if event.keyval != Gdk.KEY_Delete:
+            return Gdk.EVENT_PROPAGATE
+        self._delete_selection(None, None)
+        return Gdk.EVENT_STOP
 
     def _change_image_tool_cb(self, action, value):
         "Callback for tool-changed signal ImageView"
