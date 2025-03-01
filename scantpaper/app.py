@@ -3408,18 +3408,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Callback for file chooser dialog"
         filetype, uuids = data
         suffix = filetype
-        if re.search(
-            r"pdf", suffix, re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE
-        ):
+        if re.search(r"pdf", suffix, re.IGNORECASE):
             suffix = "pdf"
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
             logger.debug("FileChooserDialog returned %s", filename)
-            if not re.search(
-                rf"[.]{suffix}$",
-                filename,
-                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
+            if not re.search(rf"[.]{suffix}$", filename, re.IGNORECASE):
                 filename = f"{filename}.{filetype}"
                 if file_exists(dialog, filename):
                     return
@@ -3429,30 +3423,22 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             # Update cwd
             self.settings["cwd"] = os.path.dirname(filename)
-            if re.search(r"pdf", filetype):
-                self._save_pdf(filename, filetype, uuids)
-
-            elif filetype == "djvu":
-                self._save_djvu(filename, uuids)
-
-            elif filetype == "tif":
-                self._save_tiff(filename, None, uuids)
-
-            elif filetype == "txt":
-                self._save_text(filename, uuids)
-
-            elif filetype == "hocr":
-                self._save_hocr(filename, uuids)
+            if re.search(r"pdf", filetype, re.IGNORECASE):
+                self._save_pdf(filename, uuids, filetype)
 
             elif filetype == "ps":
                 if self.settings["ps_backend"] == "libtiff":
                     tif = tempfile.TemporaryFile(dir=self.session, suffix=".tif")
-                    self._save_tiff(tif.filename(), filename, uuids)
+                    self._save_tif(tif.filename(), uuids, filename)
                 else:
-                    self._save_pdf(filename, "ps", uuids)
+                    self._save_pdf(filename, uuids, "ps")
 
             elif filetype == "gs2p":
                 self.slist.save_session(filename, VERSION)
+
+            elif filetype in ["djvu", "tif", "txt", "hocr"]:
+                method = getattr(self, f"_save_{filetype}")
+                method(filename, uuids)
 
             if self._windowi is not None and self.settings["close_dialog_on_save"]:
                 self._windowi.hide()
@@ -3488,7 +3474,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         return False
 
-    def _save_pdf(self, filename, option, list_of_page_uuids):
+    def _save_pdf(self, filename, list_of_page_uuids, option):
         "Save selected pages as PDF under given name."
 
         # Compile options
@@ -3588,7 +3574,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             error_callback=self._error_callback,
         )
 
-    def _save_tiff(self, filename, ps, uuids):
+    def _save_tif(self, filename, uuids, ps=None):
         "Save a list of pages as a TIFF file with specified options"
         options = {
             "compression": self.settings["tiff compression"],
@@ -3623,7 +3609,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             error_callback=self._error_callback,
         )
 
-    def _save_text(self, filename, uuids):
+    def _save_txt(self, filename, uuids):
         "Save OCR text"
         options = {}
         if self.settings["post_save_hook"]:
