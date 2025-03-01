@@ -411,6 +411,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # is created or we quit
         self._pdf_email = None
 
+        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(os.path.join(base_path, "app.ui"))
+        self.builder.connect_signals(self)
+        self.detail_popup = self.builder.get_object("detail_popup")
+
         # These will be in the window group and have the "win" prefix
         for name, function in [
             ("new", self._new),
@@ -525,7 +532,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 str(e),
             )
 
-        self._thumb_popup = app.builder.get_object("thumb_popup")
+        self._thumb_popup = self.builder.get_object("thumb_popup")
 
         # app.add_window(window)
         self.populate_main_window()
@@ -581,11 +588,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             actions["tooltype"], GLib.Variant("s", self.settings["image_control_tool"])
         )
 
-        app = self.get_application()
-        app.builder.get_object(
+        self.builder.get_object(
             "context_" + self.settings["image_control_tool"]
         ).set_active(True)
-        app.set_menubar(app.builder.get_object("menubar"))
+        self.get_application().set_menubar(self.builder.get_object("menubar"))
 
     def _read_config(self):
         "Read the configuration file"
@@ -1150,7 +1156,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
 
         # extract the toolbar
-        toolbar = app.builder.get_object("toolbar")
+        toolbar = self.builder.get_object("toolbar")
 
         # turn off labels
         settings = toolbar.get_settings()
@@ -1184,8 +1190,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Handle right-clicks"
         if event.button == 3:  # RIGHT_MOUSE_BUTTON
             if isinstance(widget, ImageView):  # main image
-                app.detail_popup.show_all()
-                app.detail_popup.popup_at_pointer(event)
+                self.detail_popup.show_all()
+                self.detail_popup.popup_at_pointer(event)
             else:  # Thumbnail simplelist
                 self.settings["Page range"] = "selected"
                 self._thumb_popup.show_all()
@@ -1212,7 +1218,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._prevent_image_tool_update = True
         action.set_state(value)
         value = value.get_string()
-        button = app.builder.get_object(f"context_{value}")
+        button = self.builder.get_object(f"context_{value}")
         button.set_active(True)
         self._prevent_image_tool_update = False
 
@@ -1368,7 +1374,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         for action_name in action_names:
             if action_name in actions:
                 actions[action_name].set_enabled(enabled)
-        app.detail_popup.set_sensitive(enabled)
+        self.detail_popup.set_sensitive(enabled)
 
         # Ghost unpaper item if unpaper not available
         if not dependencies["unpaper"]:
@@ -5520,6 +5526,117 @@ The other variable available is:
         )
         windowudt.show_all()
 
+    # It's a shame that we have to define these here, but I can't see a way
+    # to connect the actions in a context menu in app.ui otherwise
+    def _on_dragger(self, _widget):
+        "Handles the event when the dragger tool is selected."
+        # builder calls this the first time before the window is defined
+        self._change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "dragger"))
+
+    def _on_selector(self, _widget):
+        "Handles the event when the selector tool is selected."
+        # builder calls this the first time before the window is defined
+        self._change_image_tool_cb(actions["tooltype"], GLib.Variant("s", "selector"))
+
+    def _on_selectordragger(self, _widget):
+        "Handles the event when the selector dragger tool is selected."
+        # builder calls this the first time before the window is defined
+        self._change_image_tool_cb(
+            actions["tooltype"], GLib.Variant("s", "selectordragger")
+        )
+
+    def _on_zoom_100(self, _widget):
+        "Zooms the current page to 100%"
+        self.zoom_100(None, None)
+
+    def _on_zoom_to_fit(self, _widget):
+        "Zooms the current page so that it fits the viewing pane."
+        self.zoom_to_fit(None, None)
+
+    def _on_zoom_in(self, _widget):
+        "Zooms in the current page."
+        self.zoom_in(None, None)
+
+    def _on_zoom_out(self, _widget):
+        "Zooms out the current page."
+        self.zoom_out(None, None)
+
+    def _on_rotate_90(self, _widget):
+        "Rotate the selected pages by 90 degrees."
+        self.rotate_90(None, None)
+
+    def _on_rotate_180(self, _widget):
+        "Rotate the selected pages by 180 degrees."
+        self.rotate_180(None, None)
+
+    def _on_rotate_270(self, _widget):
+        "Rotate the selected pages by 270 degrees."
+        self.rotate_270(None, None)
+
+    def _on_save(self, _widget):
+        "Displays the save dialog."
+        self.save_dialog(None, None)
+
+    def _on_email(self, _widget):
+        "displays the email dialog."
+        self.email(None, None)
+
+    def _on_print(self, _widget):
+        "displays the print dialog."
+        self.print_dialog(None, None)
+
+    def _on_renumber(self, _widget):
+        "Displays the renumber dialog."
+        self.renumber_dialog(None, None)
+
+    def _on_select_all(self, _widget):
+        "selects all pages."
+        self.select_all(None, None)
+
+    def _on_select_odd(self, _widget):
+        "selects the pages with odd numbers."
+        self.select_odd_even(0)
+
+    def _on_select_even(self, _widget):
+        "selects the pages with even numbers."
+        self.select_odd_even(1)
+
+    def _on_invert_selection(self, _widget):
+        "Inverts the current selection."
+        self.select_invert(None, None)
+
+    def _on_crop(self, _widget):
+        "Displays the crop dialog."
+        self.crop_selection(None, None)
+
+    def _on_cut(self, _widget):
+        "cuts the selected pages to the clipboard."
+        self.cut_selection(None, None)
+
+    def _on_copy(self, _widget):
+        "copies the selected pages to the clipboard."
+        self.copy_selection(None, None)
+
+    def _on_paste(self, _widget):
+        "pastes the copied pages."
+        self.paste_selection(None, None)
+
+    def _on_delete(self, _widget):
+        "deletes the selected pages."
+        self.delete_selection(None, None)
+
+    def _on_clear_ocr(self, _widget):
+        "Clears the OCR (Optical Character Recognition) data."
+        self.clear_ocr(None, None)
+
+    def _on_properties(self, _widget):
+        "displays the properties dialog."
+        self.properties(None, None)
+
+    def _on_quit(self, _action, _param):
+        "Handles the quit action."
+        self.get_application().quit()
+
 
 class Application(Gtk.Application):
     "Application class"
@@ -5559,13 +5676,6 @@ class Application(Gtk.Application):
                 ("crop", "crop.svg"),
             ],
         )
-
-        # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
-        base_path = os.path.abspath(os.path.dirname(__file__))
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file(os.path.join(base_path, "app.ui"))
-        self.builder.connect_signals(self)
-        self.detail_popup = self.builder.get_object("detail_popup")
         self._fonts = None
 
     def do_startup(self):
@@ -5581,124 +5691,6 @@ class Application(Gtk.Application):
                 application=self, title=f"{prog_name} v{VERSION}"
             )
         self.window.present()
-
-    # It's a shame that we have to define these here, but I can't see a way
-    # to connect the actions in a context menu in app.ui otherwise
-    def _on_dragger(self, _widget):
-        "Handles the event when the dragger tool is selected."
-        # builder calls this the first time before the window is defined
-        if self.window:
-            self.window._change_image_tool_cb(
-                actions["tooltype"], GLib.Variant("s", "dragger")
-            )
-
-    def _on_selector(self, _widget):
-        "Handles the event when the selector tool is selected."
-        # builder calls this the first time before the window is defined
-        if self.window:
-            self.window._change_image_tool_cb(
-                actions["tooltype"], GLib.Variant("s", "selector")
-            )
-
-    def _on_selectordragger(self, _widget):
-        "Handles the event when the selector dragger tool is selected."
-        # builder calls this the first time before the window is defined
-        if self.window:
-            self.window._change_image_tool_cb(
-                actions["tooltype"], GLib.Variant("s", "selectordragger")
-            )
-
-    def _on_zoom_100(self, _widget):
-        "Zooms the current page to 100%"
-        self.window.zoom_100(None, None)
-
-    def _on_zoom_to_fit(self, _widget):
-        "Zooms the current page so that it fits the viewing pane."
-        self.window.zoom_to_fit(None, None)
-
-    def _on_zoom_in(self, _widget):
-        "Zooms in the current page."
-        self.window.zoom_in(None, None)
-
-    def _on_zoom_out(self, _widget):
-        "Zooms out the current page."
-        self.window.zoom_out(None, None)
-
-    def _on_rotate_90(self, _widget):
-        "Rotate the selected pages by 90 degrees."
-        self.window.rotate_90(None, None)
-
-    def _on_rotate_180(self, _widget):
-        "Rotate the selected pages by 180 degrees."
-        self.window.rotate_180(None, None)
-
-    def _on_rotate_270(self, _widget):
-        "Rotate the selected pages by 270 degrees."
-        self.window.rotate_270(None, None)
-
-    def _on_save(self, _widget):
-        "Displays the save dialog."
-        self.window.save_dialog(None, None)
-
-    def _on_email(self, _widget):
-        "displays the email dialog."
-        self.window.email(None, None)
-
-    def _on_print(self, _widget):
-        "displays the print dialog."
-        self.window.print_dialog(None, None)
-
-    def _on_renumber(self, _widget):
-        "Displays the renumber dialog."
-        self.window.renumber_dialog(None, None)
-
-    def _on_select_all(self, _widget):
-        "selects all pages."
-        self.window.select_all(None, None)
-
-    def _on_select_odd(self, _widget):
-        "selects the pages with odd numbers."
-        self.window.select_odd_even(0)
-
-    def _on_select_even(self, _widget):
-        "selects the pages with even numbers."
-        self.window.select_odd_even(1)
-
-    def _on_invert_selection(self, _widget):
-        "Inverts the current selection."
-        self.window.select_invert(None, None)
-
-    def _on_crop(self, _widget):
-        "Displays the crop dialog."
-        self.window.crop_selection(None, None)
-
-    def _on_cut(self, _widget):
-        "cuts the selected pages to the clipboard."
-        self.window.cut_selection(None, None)
-
-    def _on_copy(self, _widget):
-        "copies the selected pages to the clipboard."
-        self.window.copy_selection(None, None)
-
-    def _on_paste(self, _widget):
-        "pastes the copied pages."
-        self.window.paste_selection(None, None)
-
-    def _on_delete(self, _widget):
-        "deletes the selected pages."
-        self.window.delete_selection(None, None)
-
-    def _on_clear_ocr(self, _widget):
-        "Clears the OCR (Optical Character Recognition) data."
-        self.window.clear_ocr(None, None)
-
-    def _on_properties(self, _widget):
-        "displays the properties dialog."
-        self.window.properties(None, None)
-
-    def _on_quit(self, _action, _param):
-        "Handles the quit action."
-        self.quit()
 
     def _init_icons(self, icons):
         "Initialise iconfactory"
