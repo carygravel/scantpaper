@@ -473,13 +473,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # action with a state created (name, parameter type, initial state)
         actions["tooltype"] = Gio.SimpleAction.new_stateful(
-            "tooltype", GLib.VariantType.new("s"), GLib.Variant.new_string("dragger")
+            "tooltype", GLib.VariantType("s"), GLib.Variant.new_string("dragger")
         )
         actions["viewtype"] = Gio.SimpleAction.new_stateful(
-            "viewtype", GLib.VariantType.new("s"), GLib.Variant.new_string("tabbed")
+            "viewtype", GLib.VariantType("s"), GLib.Variant.new_string("tabbed")
         )
         actions["editmode"] = Gio.SimpleAction.new_stateful(
-            "editmode", GLib.VariantType.new("s"), GLib.Variant.new_string("text")
+            "editmode", GLib.VariantType("s"), GLib.Variant.new_string("text")
         )
 
         # add the actions to the window that have window-classed callbacks
