@@ -1602,52 +1602,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 del crashed[i]
 
         if missing:
-            logger.info("Unrestorable sessions: %s", SPACE.join(missing))
-            dialog = Gtk.Dialog(
-                title=_("Crashed sessions"),
-                transient_for=self,
-                modal=True,
-            )
-            dialog.add_buttons(
-                Gtk.STOCK_DELETE,
-                Gtk.ResponseType.OK,
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-            )
-            text = Gtk.TextView()
-            text.set_wrap_mode("word")
-            text.get_buffer().set_text(
-                _("The following list of sessions cannot be restored.")
-                + SPACE
-                + _("Please retrieve any images you require from them.")
-                + SPACE
-                + _("Selected sessions will be deleted.")
-            )
-            dialog.get_content_area().add(text)
-            columns = {_("Session"): "text"}
-            sessionlist = SimpleList(**columns)
-            sessionlist.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
-            sessionlist.data.append(missing)
-            dialog.get_content_area().add(sessionlist)
-            (button) = dialog.get_action_area().get_children()
-
-            def changed_selection_callback():
-                button.set_sensitive(len(sessionlist.get_selected_indices()) > 0)
-
-            sessionlist.get_selection().connect("changed", changed_selection_callback)
-            sessionlist.get_selection().select_all()
-            dialog.show_all()
-            if dialog.run() == Gtk.ResponseType.OK:
-                selected = sessionlist.get_selected_indices()
-                for i, _v in enumerate(selected):
-                    selected[i] = missing[i]
-                logger.info("Selected for deletion: %s", SPACE.join(selected))
-                if selected:
-                    shutil.rmtree(selected)
-            else:
-                logger.info("None selected")
-
-            dialog.destroy()
+            self._list_unrestorable_sessions(missing)
 
         # Allow user to pick a crashed session to restore
         if crashed:
@@ -1674,6 +1629,54 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._create_lockfile()
                 self.slist.set_dir(self.session)
                 self._open_session(self.session)
+
+    def _list_unrestorable_sessions(self, missing):
+        logger.info("Unrestorable sessions: %s", SPACE.join(missing))
+        dialog = Gtk.Dialog(
+            title=_("Crashed sessions"),
+            transient_for=self,
+            modal=True,
+        )
+        dialog.add_buttons(
+            Gtk.STOCK_DELETE,
+            Gtk.ResponseType.OK,
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+        )
+        text = Gtk.TextView()
+        text.set_wrap_mode("word")
+        text.get_buffer().set_text(
+            _("The following list of sessions cannot be restored.")
+            + SPACE
+            + _("Please retrieve any images you require from them.")
+            + SPACE
+            + _("Selected sessions will be deleted.")
+        )
+        dialog.get_content_area().add(text)
+        columns = {_("Session"): "text"}
+        sessionlist = SimpleList(**columns)
+        sessionlist.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
+        sessionlist.data.append(missing)
+        dialog.get_content_area().add(sessionlist)
+        button = dialog.get_action_area().get_children()
+
+        def changed_selection_callback():
+            button.set_sensitive(len(sessionlist.get_selected_indices()) > 0)
+
+        sessionlist.get_selection().connect("changed", changed_selection_callback)
+        sessionlist.get_selection().select_all()
+        dialog.show_all()
+        if dialog.run() == Gtk.ResponseType.OK:
+            selected = sessionlist.get_selected_indices()
+            for i, _v in enumerate(selected):
+                selected[i] = missing[i]
+            logger.info("Selected for deletion: %s", SPACE.join(selected))
+            if selected:
+                shutil.rmtree(selected)
+        else:
+            logger.info("None selected")
+
+        dialog.destroy()
 
     def _show_message_dialog(self, **kwargs):
         "Displays a message dialog with the given options."
