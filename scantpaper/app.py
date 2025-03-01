@@ -382,35 +382,35 @@ def recursive_slurp(files):
 class ApplicationWindow(Gtk.ApplicationWindow):
     "ApplicationWindow class"
 
+    settings = None
+    _configfile = None
+    _current_page = None
+    _current_ocr_bbox = None
+    _current_ann_bbox = None
+    _prevent_image_tool_update = False
+    _rotate_side_cmbx = None
+    _rotate_side_cmbx2 = None
+    session = None  # session dir
+    _args = None  # GooCanvas for text layer
+    view = None
+    t_canvas = None  # GooCanvas for annotation layer
+    a_canvas = None
+    _ocr_text_hbox = None
+    _ocr_textbuffer = None
+    _ann_hbox = None
+    _ann_textbuffer = None
+    _lockfd = None
+    _comboboxudt = None
+    _fonts = None
+    slist = None
+
+    # Temp::File object for PDF to be emailed
+    # Define here to make sure that it doesn't get deleted until the next email
+    # is created or we quit
+    _pdf_email = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.settings = None
-        self._configfile = None
-        self._current_page = None
-        self._current_ocr_bbox = None
-        self._current_ann_bbox = None
-        self._prevent_image_tool_update = False
-        self._rotate_side_cmbx = None
-        self._rotate_side_cmbx2 = None
-        self.session = None  # session dir
-        self._args = None  # GooCanvas for text layer
-        self.view = None
-        self.t_canvas = None  # GooCanvas for annotation layer
-        self.a_canvas = None
-        self._ocr_text_hbox = None
-        self._ocr_textbuffer = None
-        self._ann_hbox = None
-        self._ann_textbuffer = None
-        self._lockfd = None
-        self._comboboxudt = None
-        self._fonts = None
-        self.slist = None
-
-        # Temp::File object for PDF to be emailed
-        # Define here to make sure that it doesn't get deleted until the next email
-        # is created or we quit
-        self._pdf_email = None
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
         base_path = os.path.abspath(os.path.dirname(__file__))
@@ -504,14 +504,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowr = None
         self._windowp = None
         self.connect("delete-event", lambda w, e: not self._can_quit())
-
-        def window_state_event_callback(_w, event):
-            "Note when the window is maximised or not"
-            self.settings["window_maximize"] = bool(
-                event.new_window_state & Gdk.WindowState.MAXIMIZED
-            )
-
-        self.connect("window-state-event", window_state_event_callback)
+        self.connect("window-state-event", self._window_state_event_callback)
 
         # If defined in the config file, set the window state, size and position
         if self.settings["restore window"]:
@@ -537,6 +530,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # app.add_window(window)
         self._populate_main_window()
+
+    def _window_state_event_callback(self, _w, event):
+        "Note when the window is maximised or not"
+        self.settings["window_maximize"] = bool(
+            event.new_window_state & Gdk.WindowState.MAXIMIZED
+        )
 
     def _pre_flight(self):
         """
