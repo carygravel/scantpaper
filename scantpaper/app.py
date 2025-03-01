@@ -5678,10 +5678,10 @@ class Application(Gtk.Application):
         )
         self._fonts = None
 
-    def do_startup(self):
+    def do_startup(self, *args, **kwargs):
         Gtk.Application.do_startup(self)
 
-    def do_activate(self):
+    def do_activate(self, *args, **kwargs):
         "only allow a single window and raise any existing ones"
 
         # Windows are associated with the application
