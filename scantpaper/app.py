@@ -422,49 +422,49 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         for name, function in [
             ("new", self._new),
             ("open", self._open_dialog),
-            ("open-session", self.open_session_action),
-            ("scan", self.scan_dialog),
-            ("save", self.save_dialog),
-            ("email", self.email),
-            ("print", self.print_dialog),
+            ("open-session", self._open_session_action),
+            ("scan", self._scan_dialog),
+            ("save", self._save_dialog),
+            ("email", self._email),
+            ("print", self._print_dialog),
             ("quit", self._quit_app),
             ("undo", self._undo),
             ("redo", self._unundo),
-            ("cut", self.cut_selection),
-            ("copy", self.copy_selection),
-            ("paste", self.paste_selection),
-            ("delete", self.delete_selection),
-            ("renumber", self.renumber_dialog),
-            ("select-all", self.select_all),
-            ("select-odd", self.select_odd),
-            ("select-even", self.select_even),
-            ("select-invert", self.select_invert),
-            ("select-blank", self.select_blank),
-            ("select-dark", self.select_dark),
-            ("select-modified", self.select_modified_since_ocr),
-            ("select-no-ocr", self.select_no_ocr),
-            ("clear-ocr", self.clear_ocr),
-            ("properties", self.properties),
-            ("preferences", self.preferences),
-            ("zoom-100", self.zoom_100),
-            ("zoom-to-fit", self.zoom_to_fit),
-            ("zoom-in", self.zoom_in),
-            ("zoom-out", self.zoom_out),
-            ("rotate-90", self.rotate_90),
-            ("rotate-180", self.rotate_180),
-            ("rotate-270", self.rotate_270),
+            ("cut", self._cut_selection),
+            ("copy", self._copy_selection),
+            ("paste", self._paste_selection),
+            ("delete", self._delete_selection),
+            ("renumber", self._renumber_dialog),
+            ("select-all", self._select_all),
+            ("select-odd", self._select_odd),
+            ("select-even", self._select_even),
+            ("select-invert", self._select_invert),
+            ("select-blank", self._select_blank),
+            ("select-dark", self._select_dark),
+            ("select-modified", self._select_modified_since_ocr),
+            ("select-no-ocr", self._select_no_ocr),
+            ("clear-ocr", self._clear_ocr),
+            ("properties", self._properties),
+            ("preferences", self._preferences),
+            ("zoom-100", self._zoom_100),
+            ("zoom-to-fit", self._zoom_to_fit),
+            ("zoom-in", self._zoom_in),
+            ("zoom-out", self._zoom_out),
+            ("rotate-90", self._rotate_90),
+            ("rotate-180", self._rotate_180),
+            ("rotate-270", self._rotate_270),
             ("threshold", self._threshold),
             ("brightness-contrast", self._brightness_contrast),
             ("negate", self._negate),
             ("unsharp", self._unsharp),
             ("crop-dialog", self._crop_dialog),
-            ("crop-selection", self.crop_selection),
+            ("crop-selection", self._crop_selection),
             ("split", self._split_dialog),
             ("unpaper", self._unpaper_dialog),
             ("ocr", self._ocr_dialog),
             ("user-defined", self._user_defined_dialog),
             ("help", view_html),
-            ("about", self.about),
+            ("about", self._about),
         ]:
             actions[name] = Gio.SimpleAction.new(name, None)
             actions[name].connect("activate", function)
@@ -535,7 +535,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._thumb_popup = self.builder.get_object("thumb_popup")
 
         # app.add_window(window)
-        self.populate_main_window()
+        self._populate_main_window()
 
     def _pre_flight(self):
         """
@@ -606,15 +606,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         config.add_defaults(self.settings)
         config.remove_invalid_paper(self.settings["Paper"])
 
-    def on_maximize_toggle(self, action, value):
-        "Toggles the maximized state of the window"
-        action.set_state(value)
-        if value.get_boolean():
-            self.maximize()
-        else:
-            self.unmaximize()
-
-    def populate_main_window(self):
+    def _populate_main_window(self):
         """
         Populates the main window with various UI components and sets up necessary callbacks.
 
@@ -650,10 +642,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # The temp directory has to be available before we start checking for
         # dependencies in order to be used for the pdftk check.
-        self.create_temp_directory()
+        self._create_temp_directory()
 
         # Create the toolbar
-        main_vbox.pack_start(self.create_toolbar(), False, False, 0)
+        main_vbox.pack_start(self._create_toolbar(), False, False, 0)
 
         # HPaned for thumbnails and detail view
         self._hpaned = Gtk.HPaned()
@@ -673,8 +665,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.slist.connect("drag-motion", drag_motion_callback)
 
         # Set up callback for right mouse clicks.
-        self.slist.connect("button-press-event", self.handle_clicks)
-        self.slist.connect("button-release-event", self.handle_clicks)
+        self.slist.connect("button-press-event", self._handle_clicks)
+        self.slist.connect("button-release-event", self._handle_clicks)
         scwin_thumbs.add(self.slist)
 
         # Notebook, split panes for detail view and OCR output
@@ -695,8 +687,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         else:
             self.view.set_tool(SelectorDragger(self.view))
 
-        self.view.connect("button-press-event", self.handle_clicks)
-        self.view.connect("button-release-event", self.handle_clicks)
+        self.view.connect("button-press-event", self._handle_clicks)
+        self.view.connect("button-release-event", self._handle_clicks)
 
         def view_zoom_changed_callback(_view, zoom):
             if self.t_canvas is not None:
@@ -792,7 +784,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_fbutton.set_tooltip_text(_("Go to least confident text"))
         ocr_text_fbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_first_bbox())
+            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_first_bbox())
         )
         ocr_text_pbutton = Gtk.Button()
         ocr_text_pbutton.set_image(
@@ -800,7 +792,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_pbutton.set_tooltip_text(_("Go to previous text"))
         ocr_text_pbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_previous_bbox())
+            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_previous_bbox())
         )
         ocr_index = [
             [
@@ -827,7 +819,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_nbutton.set_tooltip_text(_("Go to next text"))
         ocr_text_nbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_next_bbox())
+            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_next_bbox())
         )
         ocr_text_lbutton = Gtk.Button()
         ocr_text_lbutton.set_image(
@@ -835,7 +827,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         ocr_text_lbutton.set_tooltip_text(_("Go to most confident text"))
         ocr_text_lbutton.connect(
-            "clicked", lambda _: self.edit_ocr_text(self.t_canvas.get_last_bbox())
+            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_last_bbox())
         )
         ocr_text_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
         ocr_text_obutton.set_tooltip_text(_("Accept corrections"))
@@ -850,7 +842,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
             self._current_ocr_bbox.update_box(text, self.view.get_selection())
             self._current_page.import_hocr(self.t_canvas.hocr())
-            self.edit_ocr_text(self._current_ocr_bbox)
+            self._edit_ocr_text(self._current_ocr_bbox)
 
         ocr_text_obutton.connect("clicked", ocr_text_button_clicked)
         ocr_text_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
@@ -869,7 +861,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 bbox=self.view.get_selection(),
             )
             self._current_page.import_hocr(self.t_canvas.hocr())
-            self.edit_ocr_text(self._current_ocr_bbox)
+            self._edit_ocr_text(self._current_ocr_bbox)
 
         ocr_text_ubutton.connect("clicked", ocr_text_copy)
         ocr_text_abutton = Gtk.Button()
@@ -896,7 +888,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     text=text, bbox=self.view.get_selection()
                 )
                 self._current_page.import_hocr(self.t_canvas.hocr())
-                self.edit_ocr_text(self._current_ocr_bbox)
+                self._edit_ocr_text(self._current_ocr_bbox)
             else:
                 logger.info("Creating new text layer with '%s'", text)
                 self._current_page.text_layer = (
@@ -915,9 +907,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                 def ocr_new_page(_widget):
                     self._current_ocr_bbox = self.t_canvas.get_first_bbox()
-                    self.edit_ocr_text(self._current_ocr_bbox)
+                    self._edit_ocr_text(self._current_ocr_bbox)
 
-                self.create_txt_canvas(self._current_page, ocr_new_page)
+                self._create_txt_canvas(self._current_page, ocr_new_page)
 
         ocr_text_abutton.connect("clicked", ocr_text_add)
         ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
@@ -926,7 +918,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def ocr_text_delete(_widget):
             self._current_ocr_bbox.delete_box()
             self._current_page.import_hocr(self.t_canvas.hocr())
-            self.edit_ocr_text(self.t_canvas.get_current_bbox())
+            self._edit_ocr_text(self.t_canvas.get_current_bbox())
 
         ocr_text_dbutton.connect("clicked", ocr_text_delete)
         self._ocr_text_hbox.pack_start(ocr_text_fbutton, False, False, 0)
@@ -959,7 +951,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
             self._current_ann_bbox.update_box(text, self.view.get_selection())
             self._current_page.import_annotations(self.a_canvas.hocr())
-            self.edit_annotation(self._current_ann_bbox)
+            self._edit_annotation(self._current_ann_bbox)
 
         ann_obutton.connect("clicked", ann_text_ok)
         ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
@@ -988,7 +980,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     text=text, bbox=self.view.get_selection()
                 )
                 self._current_page.import_annotations(self.a_canvas.hocr())
-                self.edit_annotation(self._current_ann_bbox)
+                self._edit_annotation(self._current_ann_bbox)
             else:
                 logger.info("Creating new annotation canvas with '%s'", text)
                 self._current_page["annotations"] = (
@@ -1007,9 +999,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                 def ann_text_new_page(_widget):
                     self._current_ann_bbox = self.a_canvas.get_first_bbox()
-                    self.edit_annotation(self._current_ann_bbox)
+                    self._edit_annotation(self._current_ann_bbox)
 
-                self.create_ann_canvas(self._current_page, ann_text_new_page)
+                self._create_ann_canvas(self._current_page, ann_text_new_page)
 
         ann_abutton.connect("clicked", ann_text_new)
         ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
@@ -1018,7 +1010,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         def ann_text_delete(_widget):
             self._current_ann_bbox.delete_box()
             self._current_page.import_hocr(self.a_canvas.hocr())
-            self.edit_annotation(self.t_canvas.get_bbox_by_index())
+            self._edit_annotation(self.t_canvas.get_bbox_by_index())
 
         ann_dbutton.connect("clicked", ann_text_delete)
         self._ann_hbox.pack_start(ann_textview, False, False, 0)
@@ -1043,7 +1035,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # Let the keypress propagate
             if event.keyval != Gdk.KEY_Delete:
                 return Gdk.EVENT_PROPAGATE
-            self.delete_selection(None, None)
+            self._delete_selection(None, None)
             return Gdk.EVENT_STOP
 
         # _after ensures that Editables get first bite
@@ -1053,7 +1045,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if "cwd" not in self.settings:
             self.settings["cwd"] = os.getcwd()
         self._unpaper = Unpaper(self.settings["unpaper options"])
-        self.update_uimanager()
+        self._update_uimanager()
         self.show_all()
 
         # Progress bars below window
@@ -1071,7 +1063,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Open scan dialog in background
         if self.settings["auto-open-scan-dialog"]:
-            self.scan_dialog(None, None, True)
+            self._scan_dialog(None, None, True)
 
         # Deal with --import command line option
         if self._args.import_files is not None:
@@ -1079,11 +1071,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if self._args.import_all is not None:
             self._import_files(self._args.import_all, True)
 
-    def create_toolbar(self):
+    def _create_toolbar(self):
         "Create the menu bar, initialize its menus, and return the menu bar"
 
         # Check for presence of various packages
-        self.check_dependencies()
+        self._check_dependencies()
 
         # Ghost save image item if imagemagick not available
         msg = EMPTY
@@ -1147,7 +1139,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Put up warning if needed
         if msg != EMPTY:
             msg = _("Warning: missing packages") + f"\n{msg}"
-            self.show_message_dialog(
+            self._show_message_dialog(
                 parent=self,
                 message_type="warning",
                 buttons=Gtk.ButtonsType.OK,
@@ -1186,7 +1178,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._vnotebook.remove(self.a_canvas)
             self._vpaned.pack1(self._vpanei, True, True)
 
-    def handle_clicks(self, widget, event):
+    def _handle_clicks(self, widget, event):
         "Handle right-clicks"
         if event.button == 3:  # RIGHT_MOUSE_BUTTON
             if isinstance(widget, ImageView):  # main image
@@ -1282,7 +1274,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.a_canvas.clear_text()
             self._current_page = None
 
-        self.update_uimanager()
+        self._update_uimanager()
 
     def _edit_mode_callback(self, action, parameter):
         "Show/hide the edit tools"
@@ -1294,7 +1286,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ocr_text_hbox.hide()
         self._ann_hbox.show()
 
-    def edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
+    def _edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
         "Edit OCR text"
         logger.debug("edit_ocr_text(%s, %s, %s, %s)", widget, _target, ev, bbox)
         if not ev:
@@ -1315,7 +1307,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if bbox:
             self.t_canvas.set_index_by_bbox(bbox)
 
-    def edit_annotation(self, widget, _target=None, ev=None, bbox=None):
+    def _edit_annotation(self, widget, _target=None, ev=None, bbox=None):
         "Edit annotation"
         if not ev:
             bbox = widget
@@ -1332,7 +1324,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if bbox:
             self.a_canvas.set_index_by_bbox(bbox)
 
-    def update_uimanager(self):
+    def _update_uimanager(self):
         "ghost or unghost as necessary as # pages > 0 or not"
         action_names = [
             "cut",
@@ -1407,10 +1399,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         if self._windows:
             self._windows._update_start_page()
 
-    def create_temp_directory(self):
+    def _create_temp_directory(self):
         "Create a temporary directory for the session"
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"gscan2pdf-\w\w\w\w")
-        self.find_crashed_sessions(tmpdir)
+        self._find_crashed_sessions(tmpdir)
 
         # Create temporary directory if necessary
         if self.session is None:
@@ -1431,7 +1423,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 )
 
             self.slist.set_dir(self.session.name)
-            self._lockfd = self.create_lockfile()
+            self._lockfd = self._create_lockfile()
             self.slist.save_session()
             logger.info("Using %s for temporary files", self.session.name)
             tmpdir = os.path.dirname(self.session.name)
@@ -1445,7 +1437,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 )
                 self.settings["TMPDIR"] = tmpdir
 
-    def create_lockfile(self):
+    def _create_lockfile(self):
         "create a lockfile in the session directory"
         lockfd = open(
             os.path.join(self.session.name, "lockfile"), "w", encoding="utf-8"
@@ -1453,7 +1445,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
 
-    def check_dependencies(self):
+    def _check_dependencies(self):
         "Check for presence of various packages"
 
         dependencies["tesseract"] = tesserocr.tesseract_version()
@@ -1507,7 +1499,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                     + SPACE
                     + _("Please switch to ImageMagick in case of problems.")
                 )
-                self.show_message_dialog(
+                self._show_message_dialog(
                     parent=self,
                     message_type="warning",
                     buttons=Gtk.ButtonsType.OK,
@@ -1566,7 +1558,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                     if msg:
                         del dependencies[name]
-                        self.show_message_dialog(
+                        self._show_message_dialog(
                             parent=self,
                             message_type="warning",
                             buttons=Gtk.ButtonsType.OK,
@@ -1584,7 +1576,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         proc = exec_command(["fc-list", ":", "family", "style", "file"])
         app._fonts = parse_truetype_fonts(proc.stdout)
 
-    def find_crashed_sessions(self, tmpdir):
+    def _find_crashed_sessions(self, tmpdir):
         "Look for crashed sessions"
         if tmpdir is None or tmpdir == EMPTY:
             tmpdir = tempfile.gettempdir()
@@ -1596,7 +1588,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Forget those used by running sessions
         for session in sessions:
             try:
-                self.create_lockfile()
+                self._create_lockfile()
                 crashed.append(session)
             except Exception as e:
                 logger.warning("Error opening lockfile %s", str(e))
@@ -1678,11 +1670,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             dialog.destroy()
             if selected is not None:
                 self.session = crashed[selected]
-                self.create_lockfile()
+                self._create_lockfile()
                 self.slist.set_dir(self.session)
-                self.open_session(self.session)
+                self._open_session(self.session)
 
-    def show_message_dialog(self, **kwargs):
+    def _show_message_dialog(self, **kwargs):
         "Displays a message dialog with the given options."
         if self._message_dialog is None:
             self._message_dialog = MultipleMessage(
@@ -1715,7 +1707,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.slist.undo()
 
         # Update menus/buttons
-        self.update_uimanager()
+        self._update_uimanager()
         actions["undo"].set_enabled(False)
         actions["redo"].set_enabled(True)
 
@@ -1725,7 +1717,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.slist.unundo()
 
         # Update menus/buttons
-        self.update_uimanager()
+        self._update_uimanager()
         actions["undo"].set_enabled(True)
         actions["redo"].set_enabled(False)
 
@@ -1748,7 +1740,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             )
             if df < self.settings["available-tmp-warning"]:
                 text = _("%dMb free in %s.") % (df, self.session.name)
-                self.show_message_dialog(
+                self._show_message_dialog(
                     parent=self,
                     message_type="warning",
                     buttons=Gtk.ButtonsType.CLOSE,
@@ -1757,7 +1749,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def _new(self, _action, _param):
         "Deletes all scans after warning"
-        if not self.scans_saved(
+        if not self._scans_saved(
             _("Some pages have not been saved.\nDo you really want to clear all pages?")
         ):
             return
@@ -1927,7 +1919,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "running_callback": self.post_process_progress.update,
             "finished_callback": self._import_files_finished_callback,
             "metadata_callback": self._import_files_metadata_callback,
-            "error_callback": self.error_callback,
+            "error_callback": self._error_callback,
         }
         if all_pages:
             options["pagerange_callback"] = lambda info: (1, info["pages"])
@@ -1936,12 +1928,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self.slist.import_files(**options)
 
-    def open_session_file(self, filename):
+    def _open_session_file(self, filename):
         "open session"
         logger.info("Restoring session in %s", self.session)
-        self.slist.open_session_file(info=filename, error_callback=self.error_callback)
+        self.slist.open_session_file(info=filename, error_callback=self._error_callback)
 
-    def open_session_action(self, _action):
+    def _open_session_action(self, _action):
         "open session"
         file_chooser = Gtk.FileChooserDialog(
             title=_("Open crashed session"),
@@ -1958,18 +1950,18 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # Update undo/redo buffers
             self._take_snapshot()
             filename = file_chooser.get_filenames()
-            self.open_session(filename[0])
+            self._open_session(filename[0])
 
         file_chooser.destroy()
 
-    def open_session(self, sesdir):
+    def _open_session(self, sesdir):
         "open session"
         logger.info("Restoring session in %s", self.session)
         self.slist.open_session(
-            dir=sesdir, delete=False, error_callback=self.error_callback
+            dir=sesdir, delete=False, error_callback=self._error_callback
         )
 
-    def properties(self, _action, _param):
+    def _properties(self, _action, _param):
         "Display and manage the properties dialog for setting X and Y resolution."
         if self._windowp is not None:
             self._windowp.present()
@@ -2035,7 +2027,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         self._windowp.show_all()
 
-    def scan_dialog(self, _action, _param, hidden=False, scan=False):
+    def _scan_dialog(self, _action, _param, hidden=False, scan=False):
         "Scan"
         if self._windows:
             self._windows.show_all()
@@ -2071,10 +2063,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Can't set the device when creating the window,
         # as the list does not exist then
-        self._windows.connect("changed-device-list", self.changed_device_list_callback)
+        self._windows.connect("changed-device-list", self._changed_device_list_callback)
 
         # Update default device
-        self._windows.connect("changed-device", self.changed_device_callback)
+        self._windows.connect("changed-device", self._changed_device_callback)
         self._windows.connect(
             "changed-page-number-increment",
             self._update_postprocessing_options_callback,
@@ -2103,8 +2095,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self._windows.connect("started-process", started_progress_callback)
         self._windows.connect("changed-progress", changed_progress_callback)
-        self._windows.connect("finished-process", self.finished_process_callback)
-        self._windows.connect("process-error", self.process_error_callback, signal)
+        self._windows.connect("finished-process", self._finished_process_callback)
+        self._windows.connect("process-error", self._process_error_callback, signal)
 
         # Profiles
         for profile in self.settings["profile"].keys():
@@ -2147,7 +2139,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windows.connect(
             "changed-scan-option", self._update_postprocessing_options_callback
         )
-        self.add_postprocessing_options(self._windows)
+        self._add_postprocessing_options(self._windows)
         if not hidden:
             self._windows.show_all()
         self._update_postprocessing_options_callback(self._windows)
@@ -2167,7 +2159,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         else:
             self._windows.get_devices()
 
-    def add_postprocessing_options(self, widget):
+    def _add_postprocessing_options(self, widget):
         "Adds post-processing options to the dialog window."
         scwin = Gtk.ScrolledWindow()
         widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
@@ -2177,7 +2169,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         scwin.add(vboxp)
 
         # Rotate
-        rbutton, r2button, comboboxr, comboboxr2 = self.add_postprocessing_rotate(vboxp)
+        rbutton, r2button, comboboxr, comboboxr2 = self._add_postprocessing_rotate(
+            vboxp
+        )
 
         # CheckButton for unpaper
         hboxu = Gtk.HBox()
@@ -2218,9 +2212,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         button.connect("clicked", show_unpaper_options)
         # CheckButton for user-defined tool
-        udtbutton, widget.comboboxudt = self.add_postprocessing_udt(vboxp)
+        udtbutton, widget.comboboxudt = self._add_postprocessing_udt(vboxp)
         obutton, comboboxe, hboxtl, comboboxtl, tbutton, tsb = (
-            self.add_postprocessing_ocr(vboxp)
+            self._add_postprocessing_ocr(vboxp)
         )
 
         def clicked_scan_button_cb(w):
@@ -2281,7 +2275,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         widget.connect("show", show_callback)
         # self->{notebook}->get_nth_page(1)->show_all;
 
-    def add_postprocessing_udt(self, vboxp):
+    def _add_postprocessing_udt(self, vboxp):
         "Adds a user-defined tool (UDT) post-processing option to the given VBox."
         hboxudt = Gtk.HBox()
         vboxp.pack_start(hboxudt, False, False, 0)
@@ -2295,9 +2289,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         elif self.settings["udt_on_scan"]:
             udtbutton.set_active(True)
 
-        return udtbutton, self.add_udt_combobox(hboxudt)
+        return udtbutton, self._add_udt_combobox(hboxudt)
 
-    def add_udt_combobox(self, hbox):
+    def _add_udt_combobox(self, hbox):
         "Adds a ComboBoxText widget to the given hbox containing user-defined tools."
         toolarray = []
         for t in self.settings["user_defined_tools"]:
@@ -2308,7 +2302,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         hbox.pack_start(combobox, True, True, 0)
         return combobox
 
-    def add_postprocessing_ocr(self, vbox):
+    def _add_postprocessing_ocr(self, vbox):
         "Adds post-processing OCR options to the given vbox."
         hboxo = Gtk.HBox()
         vbox.pack_start(hboxo, False, False, 0)
@@ -2328,7 +2322,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         comboboxtl, hboxtl = None, None
 
         if dependencies["tesseract"]:
-            hboxtl, comboboxtl, _tesslang = self.add_tess_languages(vbox)
+            hboxtl, comboboxtl, _tesslang = self._add_tess_languages(vbox)
 
             def ocr_engine_changed_callback(comboboxe):
                 if comboboxe.get_active_text() == "tesseract":
@@ -2367,7 +2361,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         cbto.connect("toggled", lambda _: spinbutton.set_sensitive(cbto.get_active()))
         return obutton, comboboxe, hboxtl, comboboxtl, cbto, spinbutton
 
-    def add_tess_languages(self, vbox):
+    def _add_tess_languages(self, vbox):
         "Add hbox for tesseract languages"
         hbox = Gtk.HBox()
         vbox.pack_start(hbox, False, False, 0)
@@ -2388,7 +2382,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         hbox.pack_end(combobox, False, True, 0)
         return hbox, combobox, tesslang
 
-    def changed_device_callback(self, widget, device):
+    def _changed_device_callback(self, widget, device):
         "callback for changed device"
         # widget is windows
         if device != EMPTY:
@@ -2399,12 +2393,12 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # should only be called the first time after loading the available
             # options
             widget.reloaded_signal = widget.connect(
-                "reloaded-scan-options", self.reloaded_scan_options_callback
+                "reloaded-scan-options", self._reloaded_scan_options_callback
             )
         else:
             logger.info("signal 'changed-device' emitted with data: undef")
 
-    def changed_device_list_callback(self, widget, device_list):  # widget is windows
+    def _changed_device_list_callback(self, widget, device_list):  # widget is windows
         "callback for changed device list"
         logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
         if len(device_list):
@@ -2456,7 +2450,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         else:
             widget.page_number_start = 1
 
-    def add_postprocessing_rotate(self, vbox):
+    def _add_postprocessing_rotate(self, vbox):
         "Adds post-processing rotation options to the given vbox."
         hboxr = Gtk.HBox()
         vbox.pack_start(hboxr, False, False, 0)
@@ -2590,7 +2584,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "queued_callback": self.post_process_progress.queued,
             "started_callback": self.post_process_progress.update,
             "finished_callback": import_scan_finished_callback,
-            "error_callback": self.error_callback,
+            "error_callback": self._error_callback,
             "image_object": image_object,
             "resolution": (xresolution, yresolution, "PixelsPerInch"),
         }
@@ -2606,7 +2600,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         logger.info("Importing scan with resolution=%s,%s", xresolution, yresolution)
         self.slist.import_scan(**options)
 
-    def reloaded_scan_options_callback(self, widget):  # widget is windows
+    def _reloaded_scan_options_callback(self, widget):  # widget is windows
         "This should only be called the first time after loading the available options"
         widget.disconnect(widget.reloaded_signal)
         profiles = self.settings["profile"].keys()
@@ -2623,7 +2617,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         self._update_postprocessing_options_callback(widget)
 
-    def process_error_callback(self, widget, process, msg, signal):
+    def _process_error_callback(self, widget, process, msg, signal):
         "Callback function to handle process errors."
         logger.info("signal 'process-error' emitted with data: %s %s", process, msg)
         if signal is not None:
@@ -2699,16 +2693,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             self._windows = None  # force scan dialog to be rebuilt
             if response == "reopen":
-                self.scan_dialog(None, None)
+                self._scan_dialog(None, None)
             elif response == "rescan":
-                self.scan_dialog(None, None, False, True)
+                self._scan_dialog(None, None, False, True)
             elif response == "restart":
                 self._restart()
 
             # for ignore, we do nothing
             return
 
-        self.show_message_dialog(
+        self._show_message_dialog(
             parent=widget,
             message_type="error",
             buttons=Gtk.ButtonsType.CLOSE,
@@ -2718,7 +2712,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             store_response=True,
         )
 
-    def finished_process_callback(self, widget, process, button_signal=None):
+    def _finished_process_callback(self, widget, process, button_signal=None):
         "Callback function to handle the completion of a process."
         logger.debug("signal 'finished-process' emitted with data: %s", process)
         if button_signal is not None:
@@ -2750,7 +2744,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             GLib.idle_add(prompt_reverse_sides)
 
-    def display_callback(self, response):
+    def _display_callback(self, response):
         "Find the page from the input uuid and display it"
         uuid = response.request.args[0]["page"].uuid
         i = self.slist.find_page_by_uuid(uuid)
@@ -2786,22 +2780,22 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self._current_page.text_layer = None
 
         if self._current_page.text_layer:
-            self.create_txt_canvas(self._current_page)
+            self._create_txt_canvas(self._current_page)
         else:
             self.t_canvas.clear_text()
 
         if self._current_page.annotations:
-            self.create_ann_canvas(self._current_page)
+            self._create_ann_canvas(self._current_page)
         else:
             self.a_canvas.clear_text()
 
-    def create_txt_canvas(self, page, finished_callback=None):
+    def _create_txt_canvas(self, page, finished_callback=None):
         "Create the text canvas"
         offset = self.view.get_offset()
         self.t_canvas.set_text(
             page=page,
             layer="text_layer",
-            edit_callback=self.edit_ocr_text,
+            edit_callback=self._edit_ocr_text,
             idle=True,
             finished_callback=finished_callback,
         )
@@ -2809,13 +2803,13 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.t_canvas.set_offset(offset.x, offset.y)
         self.t_canvas.show()
 
-    def create_ann_canvas(self, page, finished_callback=None):
+    def _create_ann_canvas(self, page, finished_callback=None):
         "Create the annotation canvas"
         offset = self.view.get_offset()
         self.a_canvas.set_text(
             page=page,
             layer="annotations",
-            edit_callback=self.edit_annotation,
+            edit_callback=self._edit_annotation,
             idle=True,
             finished_callback=finished_callback,
         )
@@ -2823,7 +2817,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.a_canvas.set_offset(offset.x, offset.y)
         self.a_canvas.show()
 
-    def error_callback(self, response):
+    def _error_callback(self, response):
         "Handle errors"
         args = response.request.args
         process = response.request.process
@@ -2853,7 +2847,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             """Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
             return immediately in order to allow it to work on subsequent pages
             despite errors on previous ones"""
-            self.show_message_dialog(**kwargs)
+            self._show_message_dialog(**kwargs)
 
         GLib.idle_add(show_message_dialog_wrapper)
         self.post_process_progress.hide()
@@ -2905,7 +2899,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         logger.debug("Replied '%s'", response)
         return response
 
-    def about(self, _action, _param):
+    def _about(self, _action, _param):
         "Display about dialog"
         about = Gtk.AboutDialog()
 
@@ -3015,7 +3009,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         about.run()
         about.destroy()
 
-    def save_dialog(self, _action, _param):
+    def _save_dialog(self, _action, _param):
         "Display page selector and on save a fileselector."
         if self._windowi is not None:
             self._windowi.present()
@@ -3087,7 +3081,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         vbox = self._windowi.get_content_area()
         vbox.pack_start(pshbutton, False, True, 0)
-        self.update_post_save_hooks()
+        self._update_post_save_hooks()
         vbox.pack_start(self._windowi.comboboxpsh, False, True, 0)
         pshbutton.connect(
             "toggled",
@@ -3106,7 +3100,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             [
                 (
                     "gtk-save",
-                    lambda: self.save_button_clicked_callback(kbutton, pshbutton),
+                    lambda: self._save_button_clicked_callback(kbutton, pshbutton),
                 ),
                 ("gtk-cancel", self._windowi.hide),
             ]
@@ -3114,7 +3108,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windowi.show_all()
         self._windowi.resize(1, 1)
 
-    def save_button_clicked_callback(self, kbutton, pshbutton):
+    def _save_button_clicked_callback(self, kbutton, pshbutton):
         "Save selected pages"
 
         # Compile list of pages
@@ -3194,7 +3188,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.set_default_response(Gtk.ResponseType.OK)
             file_chooser.connect(
                 "response",
-                self.file_chooser_response_callback,
+                self._file_chooser_response_callback,
                 [self.settings["image type"], uuids],
             )
             file_chooser.show()
@@ -3237,7 +3231,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             add_filter(file_chooser, _("DjVu files"), ["djvu"])
             file_chooser.set_do_overwrite_confirmation(True)
             file_chooser.connect(
-                "response", self.file_chooser_response_callback, ["djvu", uuids]
+                "response", self._file_chooser_response_callback, ["djvu", uuids]
             )
             file_chooser.show()
 
@@ -3268,7 +3262,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             add_filter(file_chooser, _("Image files"), [self.settings["image type"]])
             file_chooser.set_do_overwrite_confirmation(True)
             file_chooser.connect(
-                "response", self.file_chooser_response_callback, ["tif", uuids]
+                "response", self._file_chooser_response_callback, ["tif", uuids]
             )
             file_chooser.show()
 
@@ -3297,7 +3291,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             add_filter(file_chooser, _("Text files"), ["txt"])
             file_chooser.set_do_overwrite_confirmation(True)
             file_chooser.connect(
-                "response", self.file_chooser_response_callback, ["txt", uuids]
+                "response", self._file_chooser_response_callback, ["txt", uuids]
             )
             file_chooser.show()
 
@@ -3326,7 +3320,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             file_chooser.set_do_overwrite_confirmation(True)
             add_filter(file_chooser, _("hOCR files"), ["hocr"])
             file_chooser.connect(
-                "response", self.file_chooser_response_callback, ["hocr", uuids]
+                "response", self._file_chooser_response_callback, ["hocr", uuids]
             )
             file_chooser.show()
 
@@ -3357,7 +3351,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             add_filter(file_chooser, _("Postscript files"), ["ps"])
             file_chooser.set_do_overwrite_confirmation(True)
             file_chooser.connect(
-                "response", self.file_chooser_response_callback, ["ps", uuids]
+                "response", self._file_chooser_response_callback, ["ps", uuids]
             )
             file_chooser.show()
 
@@ -3386,7 +3380,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             add_filter(file_chooser, _("gscan2pdf session files"), ["gs2p"])
             file_chooser.set_do_overwrite_confirmation(True)
             file_chooser.connect(
-                "response", self.file_chooser_response_callback, ["gs2p"]
+                "response", self._file_chooser_response_callback, ["gs2p"]
             )
             file_chooser.show()
 
@@ -3395,21 +3389,21 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         elif self.settings["image type"] == "jpg":
             self.settings["quality"] = self._windowi.jpeg_quality
-            self.save_image(uuids)
+            self._save_image(uuids)
 
         else:
-            self.save_image(uuids)
+            self._save_image(uuids)
 
     def _list_of_page_uuids(self):
         "Compile list of pages"
         pagelist = self.slist.get_page_index(
-            self.settings["Page range"], self.error_callback
+            self.settings["Page range"], self._error_callback
         )
         if not pagelist:
             return []
         return [self.slist.data[i][2].uuid for i in pagelist]
 
-    def file_chooser_response_callback(self, dialog, response, data):
+    def _file_chooser_response_callback(self, dialog, response, data):
         "Callback for file chooser dialog"
         filetype, uuids = data
         suffix = filetype
@@ -3471,7 +3465,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             os.path.dirname(filename), os.W_OK
         ):  # FIXME: replace with try/except
             text = _("Directory %s is read-only") % (os.path.dirname(filename))
-            self.show_message_dialog(
+            self._show_message_dialog(
                 parent=chooser,
                 message_type="error",
                 buttons=Gtk.ButtonsType.CLOSE,
@@ -3483,7 +3477,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             filename, os.W_OK
         ):  # FIXME: replace with try/except
             text = _("File %s is read-only") % (filename)
-            self.show_message_dialog(
+            self._show_message_dialog(
                 parent=chooser,
                 message_type="error",
                 buttons=Gtk.ButtonsType.CLOSE,
@@ -3549,7 +3543,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_pdf_finished_callback,
-            error_callback=self.error_callback,
+            error_callback=self._error_callback,
         )
 
     def _save_djvu(self, filename, uuids):
@@ -3590,7 +3584,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_djvu_finished_callback,
-            error_callback=self.error_callback,
+            error_callback=self._error_callback,
         )
 
     def _save_tiff(self, filename, ps, uuids):
@@ -3625,7 +3619,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_tiff_finished_callback,
-            error_callback=self.error_callback,
+            error_callback=self._error_callback,
         )
 
     def _save_text(self, filename, uuids):
@@ -3653,7 +3647,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_text_finished_callback,
-            error_callback=self.error_callback,
+            error_callback=self._error_callback,
         )
 
     def _save_hocr(self, filename, uuids):
@@ -3681,10 +3675,10 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
             finished_callback=save_hocr_finished_callback,
-            error_callback=self.error_callback,
+            error_callback=self._error_callback,
         )
 
-    def save_image(self, uuids):
+    def _save_image(self, uuids):
         "Save selected pages as image under given name."
 
         # cd back to cwd to save
@@ -3728,7 +3722,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                         text = _("This operation would overwrite %s") % (
                             current_filename
                         )
-                        self.show_message_dialog(
+                        self._show_message_dialog(
                             parent=file_chooser,
                             message_type="error",
                             buttons=Gtk.ButtonsType.CLOSE,
@@ -3780,14 +3774,14 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
                 finished_callback=save_image_finished_callback,
-                error_callback=self.error_callback,
+                error_callback=self._error_callback,
             )
             if self._windowi is not None:
                 self._windowi.hide()
 
         file_chooser.destroy()
 
-    def update_post_save_hooks(self):
+    def _update_post_save_hooks(self):
         "Updates the post-save hooks"
         if self._windowi is not None:
             if hasattr(self._windowi, "comboboxpsh"):
@@ -3807,7 +3801,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
             self._windowi.comboboxpsh.set_active_by_text(self.settings["current_psh"])
 
-    def email(self, _action, _param):
+    def _email(self, _action, _param):
         "Display page selector and email."
         if self._windowe is not None:
             self._windowe.present()
@@ -3896,7 +3890,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
                 status = exec_command(["xdg-email", "--attach", self._pdf_email, "x@y"])
                 if status:
-                    self.show_message_dialog(
+                    self._show_message_dialog(
                         parent=self,
                         message_type="error",
                         buttons=Gtk.ButtonsType.CLOSE,
@@ -3912,7 +3906,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
                 finished_callback=email_finished_callback,
-                error_callback=self.error_callback,
+                error_callback=self._error_callback,
             )
             self._windowe.hide()
 
@@ -3921,7 +3915,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         self._windowe.show_all()
 
-    def print_dialog(self, _action, _param):
+    def _print_dialog(self, _action, _param):
         "print"
         os.chdir(self.settings["cwd"])
         print_op = PrintOperation(settings=self.print_settings, slist=self.slist)
@@ -3930,17 +3924,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.print_settings = print_op.get_print_settings()
         os.chdir(self.session.name)
 
-    def cut_selection(self, _action, _param):
+    def _cut_selection(self, _action, _param):
         "Cut the selection"
         self.slist.clipboard = self.slist.cut_selection()
-        self.update_uimanager()
+        self._update_uimanager()
 
-    def copy_selection(self, _action, _param):
+    def _copy_selection(self, _action, _param):
         "Copy the selection"
         self.slist.clipboard = self.slist.copy_selection(True)
-        self.update_uimanager()
+        self._update_uimanager()
 
-    def paste_selection(self, _action, _param):
+    def _paste_selection(self, _action, _param):
         "Paste the selection"
         if self.slist.clipboard is None:
             return
@@ -3950,9 +3944,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.slist.paste_selection(self.slist.clipboard, pages[-1], "after", True)
         else:
             self.slist.paste_selection(self.slist.clipboard, None, None, True)
-        self.update_uimanager()
+        self._update_uimanager()
 
-    def delete_selection(self, _action, _param):
+    def _delete_selection(self, _action, _param):
         "Delete the selected scans"
         # Update undo/redo buffers
         self._take_snapshot()
@@ -3961,9 +3955,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # Reset start page in scan dialog
         if self._windows:
             self._windows._reset_start_page()
-        self.update_uimanager()
+        self._update_uimanager()
 
-    def renumber_dialog(self, _action, _param):
+    def _renumber_dialog(self, _action, _param):
         "Dialog for renumber"
         dialog = Renumber(
             transient_for=self,
@@ -3973,7 +3967,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         dialog.connect("before-renumber", lambda x: self._take_snapshot())
         dialog.connect(
             "error",
-            lambda msg: self.show_message_dialog(
+            lambda msg: self._show_message_dialog(
                 parent=dialog,
                 message_type="error",
                 buttons=Gtk.ButtonsType.CLOSE,
@@ -3982,7 +3976,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
         dialog.show_all()
 
-    def select_all(self, _action, _param):
+    def _select_all(self, _action, _param):
         "Select all scans"
         # if ($textview -> has_focus) {
         #  my ($start, $end) = $textbuffer->get_bounds;
@@ -3994,7 +3988,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # }
 
-    def select_odd_even(self, odd):
+    def _select_odd_even(self, odd):
         "Select all odd(0) or even(1) scans"
         selection = []
         for i, row in enumerate(self.slist.data):
@@ -4004,7 +3998,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def select_invert(self, _action, _param):
+    def _select_invert(self, _action, _param):
         "Invert selection"
         selection = self.slist.get_selected_indices()
         inverted = []
@@ -4014,7 +4008,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.slist.get_selection().unselect_all()
         self.slist.select(inverted)
 
-    def select_modified_since_ocr(self, _action, _param):
+    def _select_modified_since_ocr(self, _action, _param):
         "Selects pages that have been modified since the last OCR process."
         selection = []
         for page in range(len(self.slist.data)):
@@ -4035,7 +4029,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def select_no_ocr(self, _action, _param):
+    def _select_no_ocr(self, _action, _param):
         "Select pages with no ocr output"
         selection = []
         for i, row in enumerate(self.slist.data):
@@ -4045,7 +4039,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def clear_ocr(self, _action, _param):
+    def _clear_ocr(self, _action, _param):
         "Clear the OCR output from selected pages"
         # Update undo/redo buffers
         self._take_snapshot()
@@ -4058,19 +4052,19 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # slist.save_session()
 
-    def select_blank(self, _action, _param):
+    def _select_blank(self, _action, _param):
         "Analyse and select blank pages"
-        self.analyse(True, False)
+        self._analyse(True, False)
 
-    def select_odd(self, _action, _param):
+    def _select_odd(self, _action, _param):
         "Selects odd-numbered pages"
-        self.select_odd_even(0)
+        self._select_odd_even(0)
 
-    def select_even(self, _action, _param):
+    def _select_even(self, _action, _param):
         "Selects even-numbered pages"
-        self.select_odd_even(1)
+        self._select_odd_even(1)
 
-    def select_blank_pages(self):
+    def _select_blank_pages(self):
         "Select blank pages"
         for page in self.slist.data:
 
@@ -4092,11 +4086,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.settings["Blank threshold"],
             )
 
-    def select_dark(self, _action, _param):
+    def _select_dark(self, _action, _param):
         "Analyse and select dark pages"
-        self.analyse(False, True)
+        self._analyse(False, True)
 
-    def select_dark_pages(self):
+    def _select_dark_pages(self):
         "Select dark pages"
         for page in self.slist.data:
 
@@ -4118,7 +4112,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.settings["Dark threshold"],
             )
 
-    def analyse(self, select_blank, select_dark):
+    def _analyse(self, select_blank, select_dark):
         "Analyse selected images"
 
         # Update undo/redo buffers
@@ -4150,9 +4144,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             def analyse_finished_callback(response):
                 self.post_process_progress.finish(response)
                 if select_blank:
-                    self.select_blank_pages()
+                    self._select_blank_pages()
                 if select_dark:
-                    self.select_dark_pages()
+                    self._select_dark_pages()
 
             # slist.save_session()
 
@@ -4162,16 +4156,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
                 finished_callback=analyse_finished_callback,
-                error_callback=self.error_callback,
+                error_callback=self._error_callback,
             )
 
         else:
             if select_blank:
-                self.select_blank_pages()
+                self._select_blank_pages()
             if select_dark:
-                self.select_dark_pages()
+                self._select_dark_pages()
 
-    def preferences(self, _action, _param):
+    def _preferences(self, _action, _param):
         "Preferences dialog"
         if self._windowr is not None:
             self._windowr.present()
@@ -4229,7 +4223,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             except:
                 msg = _("Invalid regex. Try without special characters such as '*'")
                 logger.warning(msg)
-                self.show_message_dialog(
+                self._show_message_dialog(
                     parent=self._windowr,
                     message_type="error",
                     buttons=Gtk.ButtonsType.CLOSE,
@@ -4643,7 +4637,7 @@ All document date codes use strftime codes with a leading D, e.g.:
                         _cb_array_append(combobox_array, text)
 
         self.settings["user_defined_tools"] = tools
-        self.update_post_save_hooks()
+        self._update_post_save_hooks()
         for combobox in combobox_array:
             if combobox is not None:
                 combobox.set_active_by_text(self.settings["current_udt"])
@@ -4682,7 +4676,7 @@ The other variable available is:
 
     def _can_quit(self):
         "Remove temporary files, note window state, save settings and quit."
-        if not self.scans_saved(
+        if not self._scans_saved(
             _("Some pages have not been saved.\nDo you really want to quit?")
         ):
             return False
@@ -4727,7 +4721,7 @@ The other variable available is:
         self._can_quit()
         os.execv(sys.executable, ["python"] + sys.argv)
 
-    def scans_saved(self, message):
+    def _scans_saved(self, message):
         "Check that all pages have been saved"
         if not self.slist.scans_saved():
             response = self._ask_question(
@@ -4742,44 +4736,44 @@ The other variable available is:
                 return False
         return True
 
-    def zoom_100(self, _action, _param):
+    def _zoom_100(self, _action, _param):
         "Sets the zoom level of the view to 100%."
         self.view.set_zoom(1.0)
 
-    def zoom_to_fit(self, _action, _param):
+    def _zoom_to_fit(self, _action, _param):
         "Adjusts the view to fit the content within the visible area."
         self.view.zoom_to_fit()
 
-    def zoom_in(self, _action, _param):
+    def _zoom_in(self, _action, _param):
         "Zooms in the current view"
         self.view.zoom_in()
 
-    def zoom_out(self, _action, _param):
+    def _zoom_out(self, _action, _param):
         "Zooms out the current view"
         self.view.zoom_out()
 
-    def rotate_90(self, _action, _param):
+    def _rotate_90(self, _action, _param):
         "Rotates the selected pages by 90 degrees"
-        self.rotate(
+        self._rotate(
             _90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def rotate_180(self, _action, _param):
+    def _rotate_180(self, _action, _param):
         "Rotates the selected pages by 180 degrees"
-        self.rotate(
+        self._rotate(
             _180_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def rotate_270(self, _action, _param):
+    def _rotate_270(self, _action, _param):
         "Rotates the selected pages by 270 degrees"
-        self.rotate(
+        self._rotate(
             _270_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def rotate(self, angle, pagelist):
+    def _rotate(self, angle, pagelist):
         "Rotate selected images"
 
         # Update undo/redo buffers
@@ -4792,8 +4786,8 @@ The other variable available is:
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
                 finished_callback=self.post_process_progress.finish,
-                error_callback=self.error_callback,
-                display_callback=self.display_callback,
+                error_callback=self._error_callback,
+                display_callback=self._display_callback,
             )
 
     def _threshold(self, _action, _param):
@@ -4825,7 +4819,7 @@ The other variable available is:
             self.settings["threshold tool"] = spinbutton.get_value()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
-                self.settings["Page range"], self.error_callback
+                self.settings["Page range"], self._error_callback
             )
             if not pagelist:
                 return
@@ -4844,8 +4838,8 @@ The other variable available is:
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
                     finished_callback=threshold_finished_callback,
-                    error_callback=self.error_callback,
-                    display_callback=self.display_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
                 )
 
         windowt.add_actions(
@@ -4898,7 +4892,7 @@ The other variable available is:
             self.settings["contrast tool"] = spinbuttonc.get_value()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
-                self.settings["Page range"], self.error_callback
+                self.settings["Page range"], self._error_callback
             )
             if not pagelist:
                 return
@@ -4916,8 +4910,8 @@ The other variable available is:
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
                     finished_callback=brightness_contrast_finished_callback,
-                    error_callback=self.error_callback,
-                    display_callback=self.display_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
                 )
 
         windowt.add_actions(
@@ -4944,7 +4938,7 @@ The other variable available is:
             self._take_snapshot()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
-                self.settings["Page range"], self.error_callback
+                self.settings["Page range"], self._error_callback
             )
             if not pagelist:
                 return
@@ -4960,8 +4954,8 @@ The other variable available is:
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
                     finished_callback=negate_finished_callback,
-                    error_callback=self.error_callback,
-                    display_callback=self.display_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
                 )
 
         windowt.add_actions(
@@ -5045,7 +5039,7 @@ The other variable available is:
             self.settings["unsharp threshold"] = int(spinbuttont.get_value())
             self.settings["Page range"] = windowum.page_range
             pagelist = self.slist.get_page_index(
-                self.settings["Page range"], self.error_callback
+                self.settings["Page range"], self._error_callback
             )
             if not pagelist:
                 return
@@ -5064,8 +5058,8 @@ The other variable available is:
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
                     finished_callback=unsharp_finished_callback,
-                    error_callback=self.error_callback,
-                    display_callback=self.display_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
                 )
 
         windowum.add_actions(
@@ -5098,11 +5092,11 @@ The other variable available is:
 
         def crop_callback():
             self.settings["Page range"] = self._windowc.page_range
-            self.crop_selection(
+            self._crop_selection(
                 None,  # action
                 None,  # param
                 self.slist.get_page_index(
-                    self.settings["Page range"], self.error_callback
+                    self.settings["Page range"], self._error_callback
                 ),
             )
 
@@ -5111,7 +5105,7 @@ The other variable available is:
         )
         self._windowc.show_all()
 
-    def crop_selection(self, _action, _param, pagelist=None):
+    def _crop_selection(self, _action, _param, pagelist=None):
         "Crop the selected area of the specified pages."
         if not self.settings["selection"]:
             return
@@ -5140,8 +5134,8 @@ The other variable available is:
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
                 finished_callback=crop_finished_callback,
-                error_callback=self.error_callback,
-                display_callback=self.display_callback,
+                error_callback=self._error_callback,
+                display_callback=self._display_callback,
             )
 
     def _split_dialog(self, _action, _param):
@@ -5229,7 +5223,7 @@ The other variable available is:
             self.settings["split-position"] = sb_pos.get_value()
             self.settings["Page range"] = windowsp.page_range
             pagelist = self.slist.get_page_index(
-                self.settings["Page range"], self.error_callback
+                self.settings["Page range"], self._error_callback
             )
             if not pagelist:
                 return
@@ -5249,8 +5243,8 @@ The other variable available is:
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
                     finished_callback=split_finished_callback,
-                    error_callback=self.error_callback,
-                    display_callback=self.display_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
                 )
 
         def split_cancel_callback():
@@ -5309,7 +5303,7 @@ The other variable available is:
             # run unpaper
             pagelist = self.slist.indices2pages(
                 self.slist.get_page_index(
-                    self.settings["Page range"], self.error_callback
+                    self.settings["Page range"], self._error_callback
                 )
             )
             if not pagelist:
@@ -5333,8 +5327,8 @@ The other variable available is:
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
                     finished_callback=unpaper_finished_callback,
-                    error_callback=self.error_callback,
-                    display_callback=self.display_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
                 )
             self._windowu.hide()
 
@@ -5369,7 +5363,7 @@ The other variable available is:
         hboxe.pack_end(combobe, False, True, 0)
         comboboxtl, hboxtl, tesslang = None, None, []
         if dependencies["tesseract"]:
-            hboxtl, comboboxtl, tesslang = self.add_tess_languages(vbox)
+            hboxtl, comboboxtl, tesslang = self._add_tess_languages(vbox)
 
             def changed_ocr_engine():
                 if ocr_engine[combobe.get_active()][0] == "tesseract":
@@ -5434,7 +5428,7 @@ The other variable available is:
             "started_callback": self.post_process_progress.update,
             "running_callback": self.post_process_progress.update,
             "finished_callback": self._ocr_finished_callback,
-            "error_callback": self.error_callback,
+            "error_callback": self._error_callback,
             "display_callback": self._ocr_display_callback,
             "engine": engine,
             "language": self.settings["ocr language"],
@@ -5449,7 +5443,7 @@ The other variable available is:
         # depending on which radiobutton is active
         self.settings["Page range"] = self._windowo.page_range
         pagelist = self.slist.indices2pages(
-            self.slist.get_page_index(self.settings["Page range"], self.error_callback)
+            self.slist.get_page_index(self.settings["Page range"], self._error_callback)
         )
         if not pagelist:
             return
@@ -5471,7 +5465,7 @@ The other variable available is:
         else:
             page = self.slist.get_selected_indices()
             if page and i == page[0]:
-                self.create_txt_canvas(self.slist.data[i][2])
+                self._create_txt_canvas(self.slist.data[i][2])
 
     def _user_defined_dialog(self, _action, _param):
         "Displays a dialog for selecting and applying user-defined tools."
@@ -5488,13 +5482,13 @@ The other variable available is:
         vbox.pack_start(hbox, False, False, 0)
         label = Gtk.Label(label=_("Selected tool"))
         hbox.pack_start(label, False, True, 0)
-        self._comboboxudt = self.add_udt_combobox(hbox)
+        self._comboboxudt = self._add_udt_combobox(hbox)
 
         def udt_apply_callback():
             self.settings["Page range"] = windowudt.page_range
             pagelist = self.slist.indices2pages(
                 self.slist.get_page_index(
-                    self.settings["Page range"], self.error_callback
+                    self.settings["Page range"], self._error_callback
                 )
             )
             if not pagelist:
@@ -5516,8 +5510,8 @@ The other variable available is:
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
                     finished_callback=user_defined_finished_callback,
-                    error_callback=self.error_callback,
-                    display_callback=self.display_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
                 )
             windowudt.hide()
 
@@ -5547,91 +5541,91 @@ The other variable available is:
 
     def _on_zoom_100(self, _widget):
         "Zooms the current page to 100%"
-        self.zoom_100(None, None)
+        self._zoom_100(None, None)
 
     def _on_zoom_to_fit(self, _widget):
         "Zooms the current page so that it fits the viewing pane."
-        self.zoom_to_fit(None, None)
+        self._zoom_to_fit(None, None)
 
     def _on_zoom_in(self, _widget):
         "Zooms in the current page."
-        self.zoom_in(None, None)
+        self._zoom_in(None, None)
 
     def _on_zoom_out(self, _widget):
         "Zooms out the current page."
-        self.zoom_out(None, None)
+        self._zoom_out(None, None)
 
     def _on_rotate_90(self, _widget):
         "Rotate the selected pages by 90 degrees."
-        self.rotate_90(None, None)
+        self._rotate_90(None, None)
 
     def _on_rotate_180(self, _widget):
         "Rotate the selected pages by 180 degrees."
-        self.rotate_180(None, None)
+        self._rotate_180(None, None)
 
     def _on_rotate_270(self, _widget):
         "Rotate the selected pages by 270 degrees."
-        self.rotate_270(None, None)
+        self._rotate_270(None, None)
 
     def _on_save(self, _widget):
         "Displays the save dialog."
-        self.save_dialog(None, None)
+        self._save_dialog(None, None)
 
     def _on_email(self, _widget):
         "displays the email dialog."
-        self.email(None, None)
+        self._email(None, None)
 
     def _on_print(self, _widget):
         "displays the print dialog."
-        self.print_dialog(None, None)
+        self._print_dialog(None, None)
 
     def _on_renumber(self, _widget):
         "Displays the renumber dialog."
-        self.renumber_dialog(None, None)
+        self._renumber_dialog(None, None)
 
     def _on_select_all(self, _widget):
         "selects all pages."
-        self.select_all(None, None)
+        self._select_all(None, None)
 
     def _on_select_odd(self, _widget):
         "selects the pages with odd numbers."
-        self.select_odd_even(0)
+        self._select_odd_even(0)
 
     def _on_select_even(self, _widget):
         "selects the pages with even numbers."
-        self.select_odd_even(1)
+        self._select_odd_even(1)
 
     def _on_invert_selection(self, _widget):
         "Inverts the current selection."
-        self.select_invert(None, None)
+        self._select_invert(None, None)
 
     def _on_crop(self, _widget):
         "Displays the crop dialog."
-        self.crop_selection(None, None)
+        self._crop_selection(None, None)
 
     def _on_cut(self, _widget):
         "cuts the selected pages to the clipboard."
-        self.cut_selection(None, None)
+        self._cut_selection(None, None)
 
     def _on_copy(self, _widget):
         "copies the selected pages to the clipboard."
-        self.copy_selection(None, None)
+        self._copy_selection(None, None)
 
     def _on_paste(self, _widget):
         "pastes the copied pages."
-        self.paste_selection(None, None)
+        self._paste_selection(None, None)
 
     def _on_delete(self, _widget):
         "deletes the selected pages."
-        self.delete_selection(None, None)
+        self._delete_selection(None, None)
 
     def _on_clear_ocr(self, _widget):
         "Clears the OCR (Optical Character Recognition) data."
-        self.clear_ocr(None, None)
+        self._clear_ocr(None, None)
 
     def _on_properties(self, _widget):
         "displays the properties dialog."
-        self.properties(None, None)
+        self._properties(None, None)
 
     def _on_quit(self, _action, _param):
         "Handles the quit action."
