@@ -104,6 +104,7 @@ from unpaper import Unpaper
 from canvas import Canvas
 from bboxtree import Bboxtree
 from imageview import ImageView, Selector, Dragger, SelectorDragger
+from rotate_controls import RotateControls
 from simplelist import SimpleList
 from print_operation import PrintOperation
 from progress import Progress
@@ -388,8 +389,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     _current_ocr_bbox = None
     _current_ann_bbox = None
     _prevent_image_tool_update = False
-    _rotate_side_cmbx = None
-    _rotate_side_cmbx2 = None
+    _rotate_controls = None
     session = None  # session dir
     _args = None  # GooCanvas for text layer
     view = None
@@ -2142,9 +2142,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         scwin.add(vboxp)
 
         # Rotate
-        rbutton, r2button, comboboxr, comboboxr2 = self._add_postprocessing_rotate(
-            vboxp
+        self._rotate_controls = RotateControls(
+            rotate_facing=self.settings["rotate facing"],
+            rotate_reverse=self.settings["rotate reverse"],
         )
+        vboxp.pack_start(self._rotate_controls, False, False, 0)
 
         # CheckButton for unpaper
         hboxu = Gtk.HBox()
@@ -2161,29 +2163,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         button = Gtk.Button(label=_("Options"))
         button.set_tooltip_text(_("Set unpaper options"))
         hboxu.pack_end(button, True, True, 0)
+        button.connect("clicked", self._show_unpaper_options)
 
-        def show_unpaper_options():
-            windowuo = Dialog(
-                transient_for=self,
-                title=_("unpaper options"),
-            )
-            self._unpaper.add_options(windowuo.get_content_area())
-
-            def unpaper_options_callback():
-
-                # Update $self.settings
-                self.settings["unpaper options"] = self._unpaper.get_options()
-                windowuo.destroy()
-
-            windowuo.add_actions(
-                [
-                    ("gtk-ok", unpaper_options_callback),
-                    ("gtk-cancel", windowuo.destroy),
-                ]
-            )
-            windowuo.show_all()
-
-        button.connect("clicked", show_unpaper_options)
         # CheckButton for user-defined tool
         udtbutton, widget.comboboxudt = self._add_postprocessing_udt(vboxp)
         obutton, comboboxe, hboxtl, comboboxtl, tbutton, tsb = (
@@ -2191,26 +2172,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         )
 
         def clicked_scan_button_cb(w):
-            self.settings["rotate facing"] = 0
-            self.settings["rotate reverse"] = 0
-            if rbutton.get_active():
-                if self._rotate_side_cmbx.get_active_index() == "both":
-                    self.settings["rotate facing"] = comboboxr.get_active_index()
-                    self.settings["rotate reverse"] = self.settings["rotate facing"]
-
-                elif self._rotate_side_cmbx.get_active_index() == "facing":
-                    self.settings["rotate facing"] = comboboxr.get_active_index()
-
-                else:
-                    self.settings["rotate reverse"] = comboboxr.get_active_index()
-
-                if r2button.get_active():
-                    if self._rotate_side_cmbx2.get_active_index() == "facing":
-                        self.settings["rotate facing"] = comboboxr2.get_active_index()
-
-                    else:
-                        self.settings["rotate reverse"] = comboboxr2.get_active_index()
-
+            self.settings["rotate facing"] = self._rotate_controls.rotate_facing
+            self.settings["rotate reverse"] = self._rotate_controls.rotate_reverse
             logger.info("rotate facing %s", self.settings["rotate facing"])
             logger.info("rotate reverse %s", self.settings["rotate reverse"])
             self.settings["unpaper on scan"] = ubutton.get_active()
@@ -2247,6 +2210,25 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         widget.connect("show", show_callback)
         # self->{notebook}->get_nth_page(1)->show_all;
+
+    def _show_unpaper_options(self):
+        windowuo = Dialog(
+            transient_for=self,
+            title=_("unpaper options"),
+        )
+        self._unpaper.add_options(windowuo.get_content_area())
+
+        def unpaper_options_callback():
+            self.settings["unpaper options"] = self._unpaper.get_options()
+            windowuo.destroy()
+
+        windowuo.add_actions(
+            [
+                ("gtk-ok", unpaper_options_callback),
+                ("gtk-cancel", windowuo.destroy),
+            ]
+        )
+        windowuo.show_all()
 
     def _add_postprocessing_udt(self, vboxp):
         "Adds a user-defined tool (UDT) post-processing option to the given VBox."
@@ -2423,99 +2405,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         else:
             widget.page_number_start = 1
 
-    def _add_postprocessing_rotate(self, vbox):
-        "Adds post-processing rotation options to the given vbox."
-        hboxr = Gtk.HBox()
-        vbox.pack_start(hboxr, False, False, 0)
-        rbutton = Gtk.CheckButton(label=_("Rotate"))
-        rbutton.set_tooltip_text(_("Rotate image after scanning"))
-        hboxr.pack_start(rbutton, True, True, 0)
-        side = [
-            ["both", _("Both sides"), _("Both sides.")],
-            ["facing", _("Facing side"), _("Facing side.")],
-            ["reverse", _("Reverse side"), _("Reverse side.")],
-        ]
-        self._rotate_side_cmbx = ComboBoxText(data=side)
-        self._rotate_side_cmbx.set_tooltip_text(_("Select side to rotate"))
-        hboxr.pack_start(self._rotate_side_cmbx, True, True, 0)
-        rotate = [
-            [_90_DEGREES, _("90"), _("Rotate image 90 degrees clockwise.")],
-            [_180_DEGREES, _("180"), _("Rotate image 180 degrees clockwise.")],
-            [_270_DEGREES, _("270"), _("Rotate image 90 degrees anticlockwise.")],
-        ]
-        comboboxr = ComboBoxText(data=rotate)
-        comboboxr.set_tooltip_text(_("Select direction of rotation"))
-        hboxr.pack_end(comboboxr, True, True, 0)
-        hboxr = Gtk.HBox()
-        vbox.pack_start(hboxr, False, False, 0)
-        r2button = Gtk.CheckButton(label=_("Rotate"))
-        r2button.set_tooltip_text(_("Rotate image after scanning"))
-        hboxr.pack_start(r2button, True, True, 0)
-        self._rotate_side_cmbx2 = Gtk.ComboBoxText()
-        self._rotate_side_cmbx2.set_tooltip_text(_("Select side to rotate"))
-        hboxr.pack_start(self._rotate_side_cmbx2, True, True, 0)
-        comboboxr2 = ComboBoxText(data=rotate)
-        comboboxr2.set_tooltip_text(_("Select direction of rotation"))
-        hboxr.pack_end(comboboxr2, True, True, 0)
-
-        def toggled_rotate_callback():
-            if rbutton.get_active():
-                if side[self._rotate_side_cmbx.get_active()][0] != "both":
-                    hboxr.set_sensitive(True)
-            else:
-                hboxr.set_sensitive(False)
-
-        rbutton.connect("toggled", toggled_rotate_callback)
-
-        def toggled_rotate_side_callback(_arg):
-            if side[self._rotate_side_cmbx.get_active()][0] == "both":
-                hboxr.set_sensitive(False)
-                r2button.set_active(False)
-            else:
-                if rbutton.get_active():
-                    hboxr.set_sensitive(True)
-
-                    # Empty combobox
-                while self._rotate_side_cmbx2.get_active() > EMPTY_LIST:
-                    self._rotate_side_cmbx2.remove(0)
-                    self._rotate_side_cmbx2.set_active(0)
-
-                side2 = []
-                for s in side:
-                    if (
-                        s[0] != "both"
-                        and s[0] != side[self._rotate_side_cmbx.get_active()][0]
-                    ):
-                        side2.append(s)
-
-                self._rotate_side_cmbx2.append_text(side2[0][1])
-                self._rotate_side_cmbx2.set_active(0)
-
-        self._rotate_side_cmbx.connect("changed", toggled_rotate_side_callback)
-
-        # In case it isn't set elsewhere
-        comboboxr2.set_active_index(_90_DEGREES)
-        if self.settings["rotate facing"] or self.settings["rotate reverse"]:
-            rbutton.set_active(True)
-
-        if self.settings["rotate facing"] == self.settings["rotate reverse"]:
-            self._rotate_side_cmbx.set_active_index("both")
-            comboboxr.set_active_index(self.settings["rotate facing"])
-
-        elif self.settings["rotate facing"]:
-            self._rotate_side_cmbx.set_active_index("facing")
-            comboboxr.set_active_index(self.settings["rotate facing"])
-            if self.settings["rotate reverse"]:
-                r2button.set_active(True)
-                self._rotate_side_cmbx2.set_active_index("reverse")
-                comboboxr2.set_active_index(self.settings["rotate reverse"])
-
-        else:
-            self._rotate_side_cmbx.set_active_index("reverse")
-            comboboxr.set_active_index(self.settings["rotate reverse"])
-
-        return rbutton, r2button, comboboxr, comboboxr2
-
     def _update_postprocessing_options_callback(
         self, widget, _option_name=None, _option_val=None, _uuid=None
     ):
@@ -2525,12 +2414,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         increment = widget.page_number_increment
         if options is not None:
             if increment != 1 or options.can_duplex():
-                self._rotate_side_cmbx.show()
-                self._rotate_side_cmbx2.show()
-
+                self._rotate_controls.can_duplex = True
             else:
-                self._rotate_side_cmbx.hide()
-                self._rotate_side_cmbx2.hide()
+                self._rotate_controls.can_duplex = False
 
     def _changed_progress_callback(self, _widget, progress, message):
         "Updates the progress bar based on the given progress value and message."
