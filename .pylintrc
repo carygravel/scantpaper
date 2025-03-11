@@ -3,5 +3,5 @@
 # system, and so shouldn't trigger E1101 when accessed. Python regular
 # expressions are accepted.
 
-# false positives (not dynamically created) in ComboBoxText
-generated-members=[gs]et_active_index
+# false positives (not dynamically created) in ComboBoxText, dynamically created in BaseDocument
+generated-members=[gs]et_active_index,save_(pdf|djvu|tiff|text|hocr)
