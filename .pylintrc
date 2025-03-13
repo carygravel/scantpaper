@@ -5,5 +5,4 @@
 
 # false positives (not dynamically created) in ComboBoxText
 # false positives dynamically created in BaseDocument
-# false positives dynamically created in ImageView
 generated-members=[gs]et_active_index,save_(djvu|hocr|image|pdf|text|tiff),(rotate|threshold|brightness_contrast|negate|unsharp|crop)
