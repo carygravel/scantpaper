@@ -848,7 +848,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.connect("key-release-event", Gtk.Window.propagate_key_event)
 
         # _after ensures that Editables get first bite
-        self.connect_after("key-press-event", self.on_key_press)
+        self.connect_after("key-press-event", self._on_key_press)
 
         # If defined in the config file, set the current directory
         if "cwd" not in self.settings:
@@ -1173,7 +1173,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_page.import_hocr(self.a_canvas.hocr())
         self._edit_annotation(self.t_canvas.get_current_bbox())
 
-    def on_key_press(self, _widget, event):
+    def _on_key_press(self, _widget, event):
 
         # Let the keypress propagate
         if event.keyval != Gdk.KEY_Delete:
