@@ -1171,7 +1171,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def _ann_text_delete(self, _widget):
         self._current_ann_bbox.delete_box()
         self._current_page.import_hocr(self.a_canvas.hocr())
-        self._edit_annotation(self.t_canvas.get_bbox_by_index())
+        self._edit_annotation(self.t_canvas.get_current_bbox())
 
     def on_key_press(self, _widget, event):
 
