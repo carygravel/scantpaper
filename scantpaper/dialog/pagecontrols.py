@@ -174,10 +174,10 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         # Update the start spinbutton if the page number is been edited.
         if newval:
             newval.get_model().connect(
-                "row-changed", lambda x, y, z: self._update_start_page()
+                "row-changed", lambda x, y, z: self.update_start_page()
             )
             newval.get_model().connect(
-                "row-inserted", lambda x, y, z: self._update_start_page()
+                "row-inserted", lambda x, y, z: self.update_start_page()
             )
 
     def __init__(self, *args, **kwargs):
@@ -356,7 +356,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
     def _do_start_page_changed(self, spin_buttons):
         self.page_number_start = spin_buttons.get_value()
-        self._update_start_page()
+        self.update_start_page()
 
     def _do_changed_page_number_start(self, _self, value, spin_buttons):
         spin_buttons.set_value(value)
@@ -432,7 +432,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         if 0 <= num <= self.max_pages:
             self.num_pages = num
 
-    def _update_start_page(self):
+    def update_start_page(self):
         """Called either from changed-value signal of spinbutton,
         or row-changed signal of simplelist"""
         slist = self.document
