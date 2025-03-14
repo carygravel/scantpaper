@@ -1285,7 +1285,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ocr_textbuffer.set_text(bbox.text)
         self._ocr_text_hbox.show_all()
         self.view.set_selection(bbox.bbox)
-        self.view.set_zoom_to_fit(False)
+        self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
             self.t_canvas.pointer_ungrab(widget, ev.time())
@@ -1302,7 +1302,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ann_textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
         self.view.set_selection(bbox.bbox)
-        self.view.set_zoom_to_fit(False)
+        self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
             self.a_canvas.pointer_ungrab(widget, ev.time())
