@@ -400,7 +400,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     _ann_hbox = None
     _ann_textbuffer = None
     _lockfd = None
-    _comboboxudt = None
+    _pref_udt_cmbx = None
+    _scan_udt_cmbx = None
     _fonts = None
     slist = None
 
@@ -2166,7 +2167,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         button.connect("clicked", self._show_unpaper_options)
 
         # CheckButton for user-defined tool
-        udtbutton, widget.comboboxudt = self._add_postprocessing_udt(vboxp)
+        udtbutton, self._scan_udt_cmbx = self._add_postprocessing_udt(vboxp)
         obutton, comboboxe, hboxtl, comboboxtl, tbutton, tsb = (
             self._add_postprocessing_ocr(vboxp)
         )
@@ -2179,7 +2180,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.settings["unpaper on scan"] = ubutton.get_active()
             logger.info("unpaper %s", self.settings["unpaper on scan"])
             self.settings["udt_on_scan"] = udtbutton.get_active()
-            self.settings["current_udt"] = widget.comboboxudt.get_active_text()
+            self.settings["current_udt"] = self._scan_udt_cmbx.get_active_text()
             logger.info("UDT %s", self.settings["udt_on_scan"])
             if "current_udt" in self.settings:
                 logger.info("Current UDT %s", self.settings["current_udt"])
@@ -4125,7 +4126,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             # Store viewer preferences
             self.settings["view files toggle"] = cbv.get_active()
             self._update_list_user_defined_tools(
-                vboxt, [self._comboboxudt, self._windows.comboboxudt]
+                vboxt, [self._pref_udt_cmbx, self._scan_udt_cmbx]
             )
             tmp = os.path.abspath(os.path.join(self.session.name, ".."))  # Up a level
 
@@ -4450,12 +4451,12 @@ All document date codes use strftime codes with a leading D, e.g.:
         def clicked_add_udt(_action):
             self._add_user_defined_tool_entry(
                 vboxt,
-                [self._comboboxudt, self._windows.comboboxudt],
+                [self._pref_udt_cmbx, self._scan_udt_cmbx],
                 "my-tool %i %o",
             )
             vboxt.reorder_child(abutton, EMPTY_LIST)
             self._update_list_user_defined_tools(
-                vboxt, [self._comboboxudt, self._windows.comboboxudt]
+                vboxt, [self._pref_udt_cmbx, self._scan_udt_cmbx]
             )
 
         abutton.connect("clicked", clicked_add_udt)
@@ -5340,7 +5341,7 @@ The other variable available is:
         vbox.pack_start(hbox, False, False, 0)
         label = Gtk.Label(label=_("Selected tool"))
         hbox.pack_start(label, False, True, 0)
-        self._comboboxudt = self._add_udt_combobox(hbox)
+        self._pref_udt_cmbx = self._add_udt_combobox(hbox)
 
         def udt_apply_callback():
             self.settings["Page range"] = windowudt.page_range
@@ -5351,7 +5352,7 @@ The other variable available is:
             )
             if not pagelist:
                 return
-            self.settings["current_udt"] = self._comboboxudt.get_active_text()
+            self.settings["current_udt"] = self._pref_udt_cmbx.get_active_text()
 
             # Update undo/redo buffers
             self._take_snapshot()
