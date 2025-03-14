@@ -1384,7 +1384,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # If the scan dialog has already been drawn, update the start page spinbutton
         if self._windows:
-            self._windows._update_start_page()
+            self._windows.update_start_page()
 
     def _create_temp_directory(self):
         "Create a temporary directory for the session"
