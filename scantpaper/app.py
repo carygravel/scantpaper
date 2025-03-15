@@ -104,7 +104,7 @@ from unpaper import Unpaper
 from canvas import Canvas
 from bboxtree import Bboxtree
 from imageview import ImageView, Selector, Dragger, SelectorDragger
-from rotate_controls import RotateControls
+from postprocess_controls import RotateControls, OCRControls
 from simplelist import SimpleList
 from print_operation import PrintOperation
 from progress import Progress
@@ -118,7 +118,7 @@ from helpers import (
     expand_metadata_pattern,
     collate_metadata,
 )
-from tesseract import languages, locale_installed, get_tesseract_codes
+from tesseract import locale_installed, get_tesseract_codes
 import sane  # To get SANE_* enums
 
 gi.require_version("Gtk", "3.0")
@@ -2160,11 +2160,17 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # CheckButton for user-defined tool
         udtbutton, self._scan_udt_cmbx = self._add_postprocessing_udt(vboxp)
-        obutton, comboboxe, hboxtl, comboboxtl, tbutton, tsb = (
-            self._add_postprocessing_ocr(vboxp)
+        ocr_controls = OCRControls(
+            available_engines=ocr_engine,
+            engine=self.settings["ocr engine"],
+            language=self.settings["ocr language"],
+            active=self.settings["OCR on scan"],
+            threshold=self.settings["threshold-before-ocr"],
+            threshold_value=self.settings["threshold tool"],
         )
+        vboxp.pack_start(ocr_controls, False, False, 0)
 
-        def clicked_scan_button_cb(w):
+        def clicked_scan_button_cb(_w):
             self.settings["rotate facing"] = self._rotate_controls.rotate_facing
             self.settings["rotate reverse"] = self._rotate_controls.rotate_reverse
             logger.info("rotate facing %s", self.settings["rotate facing"])
@@ -2177,31 +2183,24 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             if "current_udt" in self.settings:
                 logger.info("Current UDT %s", self.settings["current_udt"])
 
-            self.settings["OCR on scan"] = obutton.get_active()
+            self.settings["OCR on scan"] = ocr_controls.active
             logger.info("OCR %s", self.settings["OCR on scan"])
             if self.settings["OCR on scan"]:
-                self.settings["ocr engine"] = comboboxe.get_active_index()
+                self.settings["ocr engine"] = ocr_controls.engine
                 if self.settings["ocr engine"] is None:
                     self.settings["ocr engine"] = ocr_engine[0][0]
                 logger.info("ocr engine %s", self.settings["ocr engine"])
                 if self.settings["ocr engine"] == "tesseract":
-                    self.settings["ocr language"] = comboboxtl.get_active_index()
+                    self.settings["ocr language"] = ocr_controls.language
                     logger.info("ocr language %s", self.settings["ocr language"])
 
-                self.settings["threshold-before-ocr"] = tbutton.get_active()
+                self.settings["threshold-before-ocr"] = ocr_controls.threshold
                 logger.info(
                     "threshold-before-ocr %s", self.settings["threshold-before-ocr"]
                 )
-                self.settings["threshold tool"] = tsb.get_value()
+                self.settings["threshold tool"] = ocr_controls.threshold_value
 
         widget.connect("clicked-scan-button", clicked_scan_button_cb)
-
-        def show_callback(_w):
-            i = comboboxe.get_active()
-            if i > -1 and hboxtl is not None and ocr_engine[i][0] != "tesseract":
-                hboxtl.hide()
-
-        widget.connect("show", show_callback)
         # self->{notebook}->get_nth_page(1)->show_all;
 
     def _show_unpaper_options(self):
@@ -2249,86 +2248,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         combobox.set_active_index(self.settings["current_udt"])
         hbox.pack_start(combobox, True, True, 0)
         return combobox
-
-    def _add_postprocessing_ocr(self, vbox):
-        "Adds post-processing OCR options to the given vbox."
-        hboxo = Gtk.HBox()
-        vbox.pack_start(hboxo, False, False, 0)
-        obutton = Gtk.CheckButton(label=_("OCR scanned pages"))
-        obutton.set_tooltip_text(_("OCR scanned pages"))
-        if not dependencies["ocr"]:
-            hboxo.set_sensitive(False)
-            obutton.set_active(False)
-
-        elif self.settings["OCR on scan"]:
-            obutton.set_active(True)
-
-        hboxo.pack_start(obutton, True, True, 0)
-        comboboxe = ComboBoxText(data=ocr_engine)
-        comboboxe.set_tooltip_text(_("Select OCR engine"))
-        hboxo.pack_end(comboboxe, True, True, 0)
-        comboboxtl, hboxtl = None, None
-
-        if dependencies["tesseract"]:
-            hboxtl, comboboxtl, _tesslang = self._add_tess_languages(vbox)
-
-            def ocr_engine_changed_callback(comboboxe):
-                if comboboxe.get_active_text() == "tesseract":
-                    hboxtl.show_all()
-                else:
-                    hboxtl.hide()
-
-            comboboxe.connect("changed", ocr_engine_changed_callback)
-            if not obutton.get_active():
-                hboxtl.set_sensitive(False)
-
-            obutton.connect("toggled", lambda x: hboxtl.set_sensitive(x.get_active()))
-
-        comboboxe.set_active_index(self.settings["ocr engine"])
-        if len(ocr_engine) > 0 and comboboxe.get_active_index() is None:
-            comboboxe.set_active(0)
-
-        # Checkbox & SpinButton for threshold
-        hboxt = Gtk.HBox()
-        vbox.pack_start(hboxt, False, True, 0)
-        cbto = Gtk.CheckButton(label=_("Threshold before OCR"))
-        cbto.set_tooltip_text(
-            _(
-                "Threshold the image before performing OCR. "
-                + "This only affects the image passed to the OCR engine, and not the image stored."
-            )
-        )
-        cbto.set_active(self.settings["threshold-before-ocr"])
-        hboxt.pack_start(cbto, False, True, 0)
-        labelp = Gtk.Label(label=PERCENT)
-        hboxt.pack_end(labelp, False, True, 0)
-        spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-        spinbutton.set_value(self.settings["threshold tool"])
-        spinbutton.set_sensitive(cbto.get_active())
-        hboxt.pack_end(spinbutton, False, True, 0)
-        cbto.connect("toggled", lambda _: spinbutton.set_sensitive(cbto.get_active()))
-        return obutton, comboboxe, hboxtl, comboboxtl, cbto, spinbutton
-
-    def _add_tess_languages(self, vbox):
-        "Add hbox for tesseract languages"
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, False, False, 0)
-        label = Gtk.Label(label=_("Language to recognise"))
-        hbox.pack_start(label, False, True, 0)
-
-        # Tesseract language files
-        tesslang = []
-        tesscodes = get_tesseract_codes()
-        langs = languages(tesscodes)
-        for lang in sorted(tesscodes):
-            tesslang.append([lang, langs[lang]])
-
-        combobox = ComboBoxText(data=tesslang)
-        combobox.set_active_index(self.settings["ocr language"])
-        if not combobox.get_active_index():
-            combobox.set_active(0)
-        hbox.pack_end(combobox, False, True, 0)
-        return hbox, combobox, tesslang
 
     def _changed_device_callback(self, widget, device):
         "callback for changed device"
@@ -5206,70 +5125,29 @@ The other variable available is:
         self._windowo.add_page_range()
 
         # OCR engine selection
-        hboxe = Gtk.HBox()
-        vbox = self._windowo.get_content_area()
-        vbox.pack_start(hboxe, False, True, 0)
-        label = Gtk.Label(label=_("OCR Engine"))
-        hboxe.pack_start(label, False, True, 0)
-        combobe = ComboBoxText(data=ocr_engine)
-        combobe.set_active_index(self.settings["ocr engine"])
-        hboxe.pack_end(combobe, False, True, 0)
-        comboboxtl, hboxtl, tesslang = None, None, []
-        if dependencies["tesseract"]:
-            hboxtl, comboboxtl, tesslang = self._add_tess_languages(vbox)
-
-            def changed_ocr_engine():
-                if ocr_engine[combobe.get_active()][0] == "tesseract":
-                    hboxtl.show_all()
-                else:
-                    hboxtl.hide()
-
-            combobe.connect("changed", changed_ocr_engine)
-
-        # Checkbox & SpinButton for threshold
-        hboxt = Gtk.HBox()
-        vbox.pack_start(hboxt, False, True, 0)
-        cbto = Gtk.CheckButton(label=_("Threshold before OCR"))
-        cbto.set_tooltip_text(
-            _(
-                "Threshold the image before performing OCR. "
-                + "This only affects the image passed to the OCR engine, and not the image stored."
-            )
+        ocr_controls = OCRControls(
+            available_engines=ocr_engine,
+            engine=self.settings["ocr engine"],
+            language=self.settings["ocr language"],
+            active=self.settings["OCR on scan"],
+            threshold=self.settings["threshold-before-ocr"],
+            threshold_value=self.settings["threshold tool"],
         )
-        if "threshold-before-ocr" in self.settings:
-            cbto.set_active(self.settings["threshold-before-ocr"])
-
-        hboxt.pack_start(cbto, False, True, 0)
-        labelp = Gtk.Label(label=PERCENT)
-        hboxt.pack_end(labelp, False, True, 0)
-        spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
-        spinbutton.set_value(self.settings["threshold tool"])
-        spinbutton.set_sensitive(cbto.get_active())
-        hboxt.pack_end(spinbutton, False, True, 0)
-
-        def toggled_threshold_ocr():
-            spinbutton.set_sensitive(cbto.get_active())
-
-        cbto.connect("toggled", toggled_threshold_ocr)
+        vbox = self._windowo.get_content_area()
+        vbox.pack_start(ocr_controls, False, True, 0)
 
         def ocr_apply_callback():
-            lang = None
-            if comboboxtl is not None:
-                lang = tesslang[comboboxtl.get_active()][0]
-
             self._run_ocr(
-                ocr_engine[combobe.get_active()][0],
-                lang,
-                cbto.get_active(),
-                spinbutton.get_value(),
+                ocr_controls.engine,
+                ocr_controls.language,
+                ocr_controls.threshold,
+                ocr_controls.threshold_value,
             )
 
         self._windowo.add_actions(
             [("gtk-ok", ocr_apply_callback), ("gtk-cancel", self._windowo.hide)]
         )
         self._windowo.show_all()
-        if hboxtl is not None and ocr_engine[combobe.get_active()][0] != "tesseract":
-            hboxtl.hide()
 
     def _run_ocr(self, engine, tesslang, threshold_flag, threshold):
         "Run OCR on a set of pages"
