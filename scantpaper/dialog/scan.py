@@ -345,6 +345,10 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     combobp = None
 
     def __init__(self, *args, **kwargs):
+        profiles = {}
+        if "profiles" in kwargs:
+            profiles = kwargs["profiles"]
+            del kwargs["profiles"]
         super().__init__(*args, **kwargs)
 
         self.ignored_paper_formats = []
@@ -365,7 +369,14 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         vboxsp.set_border_width(border_width)
         framesp.add(vboxsp)
         self.combobsp = ComboBoxText()
-
+        for profile in profiles.keys():
+            self._add_profile(
+                profile,
+                Profile(
+                    frontend=profiles[profile]["frontend"],
+                    backend=profiles[profile]["backend"],
+                ),
+            )
         self.combobsp_changed_signal = self.combobsp.connect(
             "changed", self._do_profile_changed
         )
