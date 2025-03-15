@@ -1769,7 +1769,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._current_page = None
 
         # Reset start page in scan dialog
-        self._windows._reset_start_page()
+        self._windows.reset_start_page()
 
     def _open_dialog(self, _action, _param):
         "Throw up file selector and open selected file"
@@ -3813,7 +3813,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # Reset start page in scan dialog
         if self._windows:
-            self._windows._reset_start_page()
+            self._windows.reset_start_page()
         self._update_uimanager()
 
     def _renumber_dialog(self, _action, _param):
