@@ -2044,6 +2044,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.settings["allow-batch-flatbed"]
                 and self.settings["cancel-between-pages"]
             ),
+            "profiles": self.settings["profile"],
         }
         if self.settings["scan_window_width"]:
             kwargs["default_width"] = self.settings["scan_window_width"]
@@ -2078,17 +2079,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._windows.connect("changed-progress", self._changed_progress_callback)
         self._windows.connect("finished-process", self._finished_process_callback)
         self._windows.connect("process-error", self._process_error_callback, signal)
-
-        # Profiles
-        for profile in self.settings["profile"].keys():
-            self._windows._add_profile(
-                profile,
-                Profile(
-                    frontend=self.settings["profile"][profile]["frontend"],
-                    backend=self.settings["profile"][profile]["backend"],
-                ),
-            )
-
         self._windows.connect("changed-profile", self._changed_profile_callback)
         self._windows.connect("added-profile", self._added_profile_callback)
 
