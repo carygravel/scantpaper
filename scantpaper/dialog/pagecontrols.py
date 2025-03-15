@@ -456,7 +456,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self._previous_start = value
         self._update_num_pages()
 
-    def _reset_start_page(self):
+    def reset_start_page(self):
         """Reset start page number after delete or new"""
         slist = self.document
         if slist is None:
