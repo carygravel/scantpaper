@@ -519,11 +519,11 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                 self.maximize()
 
         try:
-            self.set_icon_from_file(f"{self.get_application()._iconpath}/gscan2pdf.svg")
+            self.set_icon_from_file(f"{self.get_application().iconpath}/gscan2pdf.svg")
         except Exception as e:
             logger.warning(
                 "Unable to load icon `%s/gscan2pdf.svg': %s",
-                self.get_application()._iconpath,
+                self.get_application().iconpath,
                 str(e),
             )
 
@@ -2866,7 +2866,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         about.set_translator_credits(translators)
         about.set_artists(["lodp, Andreas E."])
         about.set_logo(
-            GdkPixbuf.Pixbuf.new_from_file(f"{self._iconpath}/gscan2pdf.svg")
+            GdkPixbuf.Pixbuf.new_from_file(
+                f"{self.get_application().iconpath}/gscan2pdf.svg"
+            )
         )
         about.set_transient_for(self)
         about.run()
@@ -5503,9 +5505,9 @@ class Application(Gtk.Application):
 
         # Add extra icons early to be available for Gtk.Builder
         if os.path.isdir("/usr/share/gscan2pdf"):
-            self._iconpath = "/usr/share/gscan2pdf"
+            self.iconpath = "/usr/share/gscan2pdf"
         else:
-            self._iconpath = "icons"
+            self.iconpath = "icons"
         self._init_icons(
             [
                 ("rotate90", "stock-rotate-90.svg"),
@@ -5538,7 +5540,7 @@ class Application(Gtk.Application):
         "Initialise iconfactory"
         iconfactory = Gtk.IconFactory()
         for iconname, filename in icons:
-            register_icon(iconfactory, iconname, self._iconpath + "/" + filename)
+            register_icon(iconfactory, iconname, self.iconpath + "/" + filename)
         iconfactory.add_default()
 
 
