@@ -430,7 +430,7 @@ class BaseDocument(SimpleList):
     def cut_selection(self):
         "Cut the selection"
         data = self.copy_selection(False)
-        self._delete_selection_extra()
+        self.delete_selection_extra()
         return data
 
     def copy_selection(self, clone):
@@ -525,7 +525,7 @@ class BaseDocument(SimpleList):
                 itr = model.get_iter(path)
                 model.remove(itr)
 
-    def _delete_selection_extra(self):
+    def delete_selection_extra(self):
         "wrapper for delete_selection()"
         page = self.get_selected_indices()
         npages = len(page)

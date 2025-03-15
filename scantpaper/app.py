@@ -3801,7 +3801,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         "Delete the selected scans"
         # Update undo/redo buffers
         self._take_snapshot()
-        self.slist._delete_selection_extra()
+        self.slist.delete_selection_extra()
 
         # Reset start page in scan dialog
         if self._windows:
