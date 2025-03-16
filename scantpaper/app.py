@@ -2142,21 +2142,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         vboxp.pack_start(self._rotate_controls, False, False, 0)
 
         # CheckButton for unpaper
-        hboxu = Gtk.HBox()
-        vboxp.pack_start(hboxu, False, False, 0)
-        ubutton = Gtk.CheckButton(label=_("Clean up images"))
-        ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
-        hboxu.pack_start(ubutton, True, True, 0)
-        if not dependencies["unpaper"]:
-            ubutton.set_sensitive(False)
-            ubutton.set_active(False)
-        elif self.settings["unpaper on scan"]:
-            ubutton.set_active(True)
-
-        button = Gtk.Button(label=_("Options"))
-        button.set_tooltip_text(_("Set unpaper options"))
-        hboxu.pack_end(button, True, True, 0)
-        button.connect("clicked", self._show_unpaper_options)
+        ubutton = self._add_postprocessing_unpaper(vboxp)
 
         # CheckButton for user-defined tool
         udtbutton, self._scan_udt_cmbx = self._add_postprocessing_udt(vboxp)
@@ -2203,7 +2189,25 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         widget.connect("clicked-scan-button", clicked_scan_button_cb)
         # self->{notebook}->get_nth_page(1)->show_all;
 
-    def _show_unpaper_options(self):
+    def _add_postprocessing_unpaper(self, vboxp):
+        hboxu = Gtk.HBox()
+        vboxp.pack_start(hboxu, False, False, 0)
+        ubutton = Gtk.CheckButton(label=_("Clean up images"))
+        ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
+        hboxu.pack_start(ubutton, True, True, 0)
+        if not dependencies["unpaper"]:
+            ubutton.set_sensitive(False)
+            ubutton.set_active(False)
+        elif self.settings["unpaper on scan"]:
+            ubutton.set_active(True)
+
+        button = Gtk.Button(label=_("Options"))
+        button.set_tooltip_text(_("Set unpaper options"))
+        hboxu.pack_end(button, True, True, 0)
+        button.connect("clicked", self._show_unpaper_options)
+        return ubutton
+
+    def _show_unpaper_options(self, _button):
         windowuo = Dialog(
             transient_for=self,
             title=_("unpaper options"),
