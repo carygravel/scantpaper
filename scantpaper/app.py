@@ -96,6 +96,7 @@ from dialog.renumber import Renumber
 from dialog.save import Save as SaveDialog
 from dialog.sane import SaneScanDialog
 from dialog.crop import Crop
+from dialog.preferences import PreferencesDialog
 from comboboxtext import ComboBoxText
 from document import Document
 from basedocument import slurp
@@ -131,7 +132,6 @@ from gi.repository import (  # pylint: disable=wrong-import-position
 )
 
 HALF = 0.5
-UNIT_SLIDER_STEP = 0.001
 SIGMA_STEP = 0.1
 MAX_SIGMA = 5
 _90_DEGREES = 90
@@ -150,7 +150,6 @@ HELP_WINDOW_HEIGHT = 600
 HELP_WINDOW_DIVIDER_POS = 200
 _1KB = 1024
 _1MB = _1KB * _1KB
-_100_000MB = 100_000
 ZOOM_CONTEXT_FACTOR = 0.5
 
 GLib.set_application_name("gscan2pdf")
@@ -356,13 +355,6 @@ def register_icon(iconfactory, stock_id, path):
             iconfactory.add(stock_id, Gtk.IconSet.new_from_pixbuf(icon))
     except Exception as err:
         logger.warning("Unable to load icon `%s': %s", path, err)
-
-
-def _cb_array_append(combobox_array, text):
-
-    for combobox in combobox_array:
-        if combobox is not None:
-            combobox.append_text(text)
 
 
 def recursive_slurp(files):
@@ -3947,503 +3939,54 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self._windowr.present()
             return
 
-        self._windowr = Dialog(
-            transient_for=self,
-            title=_("Preferences"),
-            hide_on_delete=True,
-        )
-        vbox = self._windowr.get_content_area()
-
-        # Notebook for scan and general options
-        notebook = Gtk.Notebook()
-        vbox.pack_start(notebook, True, True, 0)
-        (
-            vbox1,
-            cbo,
-            blacklist,
-            cbcsh,
-            cb_batch_flatbed,
-            cb_cancel_btw_pages,
-            cb_adf_all_pages,
-            cb_cache_device_list,
-            cb_ignore_duplex,
-        ) = self._preferences_scan_options(self._windowr.get_border_width())
-        notebook.append_page(vbox1, Gtk.Label(label=_("Scan options")))
-        (
-            vbox2,
-            fileentry,
-            cbw,
-            cbtz,
-            cbtm,
-            cbts,
-            cbtp,
-            tmpentry,
-            spinbuttonw,
-            spinbuttonb,
-            spinbuttond,
-            _ocr_function,
-            comboo,
-            cbv,
-            cbb,
-            vboxt,
-        ) = self._preferences_general_options(self._windowr.get_border_width())
-        notebook.append_page(vbox2, Gtk.Label(label=_("General options")))
-
-        def preferences_apply_callback():
-            self._windowr.hide()
-
-            self.settings["auto-open-scan-dialog"] = cbo.get_active()
-            try:
-                text = blacklist.get_text()
-                re.search(text, "dummy_device", re.MULTILINE | re.DOTALL | re.VERBOSE)
-            except:
-                msg = _("Invalid regex. Try without special characters such as '*'")
-                logger.warning(msg)
-                self._show_message_dialog(
-                    parent=self._windowr,
-                    message_type="error",
-                    buttons=Gtk.ButtonsType.CLOSE,
-                    text=msg,
-                    store_response=True,
-                )
-                blacklist.set_text(self.settings["device blacklist"])
-
-            self.settings["device blacklist"] = blacklist.get_text()
-            self.settings["cycle sane handle"] = cbcsh.get_active()
-            self.settings["allow-batch-flatbed"] = cb_batch_flatbed.get_active()
-            self.settings["cancel-between-pages"] = cb_cancel_btw_pages.get_active()
-            self.settings["adf-defaults-scan-all-pages"] = cb_adf_all_pages.get_active()
-            self.settings["cache-device-list"] = cb_cache_device_list.get_active()
-            self.settings["ignore-duplex-capabilities"] = cb_ignore_duplex.get_active()
-            self.settings["default filename"] = fileentry.get_text()
-            self.settings["restore window"] = cbw.get_active()
-            self.settings["use_timezone"] = cbtz.get_active()
-            self.settings["use_time"] = cbtm.get_active()
-            self.settings["set_timestamp"] = cbts.get_active()
-            self.settings["to_png"] = cbtp.get_active()
-            self.settings["convert whitespace to underscores"] = cbb.get_active()
-            if self._windows:
-                self._windows.cycle_sane_handle = self.settings["cycle sane handle"]
-                self._windows.cancel_between_pages = self.settings[
-                    "cancel-between-pages"
-                ]
-                self._windows.allow_batch_flatbed = self.settings["allow-batch-flatbed"]
-                self._windows.ignore_duplex_capabilities = self.settings[
-                    "ignore-duplex-capabilities"
-                ]
-
-            if self._windowi is not None:
-                self._windowi.include_time = self.settings["use_time"]
-
-            self.settings["available-tmp-warning"] = spinbuttonw.get_value()
-            self.settings["Blank threshold"] = spinbuttonb.get_value()
-            self.settings["Dark threshold"] = spinbuttond.get_value()
-            self.settings["OCR output"] = comboo.get_active_index()
-
-            # Store viewer preferences
-            self.settings["view files toggle"] = cbv.get_active()
-            self._update_list_user_defined_tools(
-                vboxt, [self._pref_udt_cmbx, self._scan_udt_cmbx]
-            )
-            tmp = os.path.abspath(os.path.join(self.session.name, ".."))  # Up a level
-
-            # Expand tildes in the filename
-            newdir = get_tmp_dir(
-                str(pathlib.Path(tmpentry.get_text()).expanduser()),
-                r"gscan2pdf-\w\w\w\w",
-            )
-            if newdir != tmp:
-                self.settings["TMPDIR"] = newdir
-                response = self._ask_question(
-                    parent=self,
-                    type="question",
-                    buttons=Gtk.ButtonsType.OK_CANCEL,
-                    text=_("Changes will only take effect after restarting gscan2pdf.")
-                    + SPACE
-                    + _("Restart gscan2pdf now?"),
-                )
-                if response == Gtk.ResponseType.OK:
-                    self._restart()
-
-        self._windowr.add_actions(
-            [("gtk-ok", preferences_apply_callback), ("gtk-cancel", self._windowr.hide)]
-        )
+        self._windowr = PreferencesDialog(transient_for=self, settings=self.settings)
+        self._windowr.connect("changed-preferences", self._changed_preferences)
         self._windowr.show_all()
 
-    def _preferences_scan_options(self, border_width):
+    def _changed_preferences(self, _widget, settings):
+        logger.debug("Preferences changed %s", settings)
+        if self._windows:
+            self._windows.cycle_sane_handle = self.settings["cycle sane handle"]
+            self._windows.cancel_between_pages = self.settings["cancel-between-pages"]
+            self._windows.allow_batch_flatbed = self.settings["allow-batch-flatbed"]
+            self._windows.ignore_duplex_capabilities = self.settings[
+                "ignore-duplex-capabilities"
+            ]
 
-        vbox = Gtk.VBox()
-        vbox.set_border_width(border_width)
-        cbo = Gtk.CheckButton(label=_("Open scanner at program start"))
-        cbo.set_tooltip_text(
-            _(
-                "Automatically open the scan dialog in the background at program start. "
-                "This saves time clicking the scan button and waiting for the "
-                "program to find the list of scanners"
+        if self._windowi:
+            self._windowi.include_time = self.settings["use_time"]
+
+        self._update_list_user_defined_tools([self._pref_udt_cmbx, self._scan_udt_cmbx])
+
+        if settings["TMPDIR"] != self.settings["TMPDIR"]:
+            self.settings = settings
+            response = self._ask_question(
+                parent=self,
+                type="question",
+                buttons=Gtk.ButtonsType.OK_CANCEL,
+                text=_("Changes will only take effect after restarting gscan2pdf.")
+                + " "
+                + _("Restart gscan2pdf now?"),
             )
-        )
-        if "auto-open-scan-dialog" in self.settings:
-            cbo.set_active(self.settings["auto-open-scan-dialog"])
+            if response == Gtk.ResponseType.OK:
+                self._restart()
+        self.settings = settings
 
-        vbox.pack_start(cbo, True, True, 0)
-
-        # Device blacklist
-        hboxb = Gtk.HBox()
-        vbox.pack_start(hboxb, False, False, 0)
-        label = Gtk.Label(label=_("Device blacklist"))
-        hboxb.pack_start(label, False, False, 0)
-        blacklist = Gtk.Entry()
-        hboxb.add(blacklist)
-        hboxb.set_tooltip_text(_("Device blacklist (regular expression)"))
-        if (
-            "device blacklist" in self.settings
-            and self.settings["device blacklist"] is not None
-        ):
-            blacklist.set_text(self.settings["device blacklist"])
-
-        # Cycle SANE handle after scan
-        cbcsh = Gtk.CheckButton(label=_("Cycle SANE handle after scan"))
-        cbcsh.set_tooltip_text(
-            _("Some ADFs do not feed out the last page if this is not enabled")
-        )
-        if "cycle sane handle" in self.settings:
-            cbcsh.set_active(self.settings["cycle sane handle"])
-
-        vbox.pack_start(cbcsh, False, False, 0)
-
-        # Allow batch scanning from flatbed
-        cb_batch_flatbed = Gtk.CheckButton(label=_("Allow batch scanning from flatbed"))
-        cb_batch_flatbed.set_tooltip_text(
-            _(
-                "If not set, switching to a flatbed scanner will force # pages to "
-                "1 and single-sided mode."
-            )
-        )
-        cb_batch_flatbed.set_active(self.settings["allow-batch-flatbed"])
-        vbox.pack_start(cb_batch_flatbed, False, False, 0)
-
-        # Ignore duplex capabilities
-        cb_ignore_duplex = Gtk.CheckButton(
-            label=_("Ignore duplex capabilities of scanner")
-        )
-        cb_ignore_duplex.set_tooltip_text(
-            _(
-                "If set, any duplex capabilities are ignored, and facing/reverse "
-                "widgets are displayed to allow manual interleaving of pages."
-            )
-        )
-        cb_ignore_duplex.set_active(self.settings["ignore-duplex-capabilities"])
-        vbox.pack_start(cb_ignore_duplex, False, False, 0)
-
-        # Force new scan job between pages
-        cb_cancel_btw_pages = Gtk.CheckButton(
-            label=_("Force new scan job between pages")
-        )
-        cb_cancel_btw_pages.set_tooltip_text(
-            _(
-                "Otherwise, some Brother scanners report out of documents, "
-                "despite scanning from flatbed."
-            )
-        )
-        cb_cancel_btw_pages.set_active(self.settings["cancel-between-pages"])
-        vbox.pack_start(cb_cancel_btw_pages, False, False, 0)
-        cb_cancel_btw_pages.set_sensitive(self.settings["allow-batch-flatbed"])
-        cb_batch_flatbed.connect(
-            "toggled",
-            lambda _: cb_cancel_btw_pages.set_sensitive(cb_batch_flatbed.get_active()),
-        )
-
-        # Select num-pages = all on selecting ADF
-        cb_adf_all_pages = Gtk.CheckButton(
-            label=_("Select # pages = all on selecting ADF")
-        )
-        cb_adf_all_pages.set_tooltip_text(
-            _(
-                "If this option is enabled, when switching to source=ADF, # pages = all is selected"
-            )
-        )
-        cb_adf_all_pages.set_active(self.settings["adf-defaults-scan-all-pages"])
-        vbox.pack_start(cb_adf_all_pages, False, False, 0)
-
-        # Cache device list
-        cb_cache_device_list = Gtk.CheckButton(label=_("Cache device list"))
-        cb_cache_device_list.set_tooltip_text(
-            _(
-                "If this option is enabled, opening the scanner is quicker, "
-                "as gscan2pdf does not first search for available devices."
-            )
-            + _(
-                "This is only effective if the device names do not change between sessions."
-            )
-        )
-        cb_cache_device_list.set_active(self.settings["cache-device-list"])
-        vbox.pack_start(cb_cache_device_list, False, False, 0)
-
-        return (
-            vbox,
-            cbo,
-            blacklist,
-            cbcsh,
-            cb_batch_flatbed,
-            cb_cancel_btw_pages,
-            cb_adf_all_pages,
-            cb_cache_device_list,
-            cb_ignore_duplex,
-        )
-
-    def _preferences_general_options(self, border_width):
-
-        vbox = Gtk.VBox()
-        vbox.set_border_width(border_width)
-
-        # Restore window setting
-        cbw = Gtk.CheckButton(label=_("Restore window settings on startup"))
-        cbw.set_active(self.settings["restore window"])
-        vbox.pack_start(cbw, True, True, 0)
-
-        # View saved files
-        cbv = Gtk.CheckButton(label=_("View files on saving"))
-        cbv.set_active(self.settings["view files toggle"])
-        vbox.pack_start(cbv, True, True, 0)
-
-        # Default filename
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
-        label = Gtk.Label(label=_("Default PDF & DjVu filename"))
-        hbox.pack_start(label, False, False, 0)
-        fileentry = Gtk.Entry()
-        fileentry.set_tooltip_text(
-            _(
-                """strftime codes, e.g.:
-%Y	current year
-
-with the following additions:
-%Da	author
-%De	filename extension
-%Dk	keywords
-%Ds	subject
-%Dt	title
-
-All document date codes use strftime codes with a leading D, e.g.:
-%DY	document year
-%Dm	document month
-%Dd	document day
-"""
-            )
-        )
-        hbox.add(fileentry)
-        fileentry.set_text(self.settings["default filename"])
-
-        # Replace whitespace in filenames with underscores
-        cbb = Gtk.CheckButton.new_with_label(
-            _("Replace whitespace in filenames with underscores")
-        )
-        cbb.set_active(self.settings["convert whitespace to underscores"])
-        vbox.pack_start(cbb, True, True, 0)
-
-        # Timezone
-        cbtz = Gtk.CheckButton.new_with_label(_("Use timezone from locale"))
-        cbtz.set_active(self.settings["use_timezone"])
-        vbox.pack_start(cbtz, True, True, 0)
-
-        # Time
-        cbtm = Gtk.CheckButton.new_with_label(_("Specify time as well as date"))
-        cbtm.set_active(self.settings["use_time"])
-        vbox.pack_start(cbtm, True, True, 0)
-
-        # Set file timestamp with metadata
-        cbts = Gtk.CheckButton.new_with_label(
-            _("Set access and modification times to metadata date")
-        )
-        cbts.set_active(self.settings["set_timestamp"])
-        vbox.pack_start(cbts, True, True, 0)
-
-        # Convert scans from PNM to PNG
-        cbtp = Gtk.CheckButton.new_with_label(
-            _("Convert scanned images to PNG before further processing")
-        )
-        cbtp.set_active(self.settings["to_png"])
-        vbox.pack_start(cbtp, True, True, 0)
-
-        # Temporary directory settings
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
-        label = Gtk.Label(label=_("Temporary directory"))
-        hbox.pack_start(label, False, False, 0)
-        tmpentry = Gtk.Entry()
-        hbox.add(tmpentry)
-        tmpentry.set_text(os.path.dirname(self.session.name))
-        button = Gtk.Button(label=_("Browse"))
-
-        def choose_temp_dir():
-            file_chooser = Gtk.FileChooserDialog(
-                title=_("Select temporary directory"),
-                parent=self._windowr,
-                action=Gtk.FileChooserAction.SELECT_FOLDER,
-            )
-            file_chooser.add_buttons(
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OK,
-                Gtk.ResponseType.OK,
-            )
-            file_chooser.set_current_folder(tmpentry.get_text())
-            if file_chooser.run() == Gtk.ResponseType.OK:
-                tmpentry.set_text(
-                    get_tmp_dir(file_chooser.get_filename(), r"gscan2pdf-\w\w\w\w")
-                )
-
-            file_chooser.destroy()
-
-        button.connect("clicked", choose_temp_dir)
-        hbox.pack_end(button, True, True, 0)
-
-        # Available space in temporary directory
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
-        label = Gtk.Label(label=_("Warn if available space less than (Mb)"))
-        hbox.pack_start(label, False, False, 0)
-        spinbuttonw = Gtk.SpinButton.new_with_range(0, _100_000MB, 1)
-        spinbuttonw.set_value(self.settings["available-tmp-warning"])
-        spinbuttonw.set_tooltip_text(
-            _(
-                "Warn if the available space in the temporary directory is less than this value"
-            )
-        )
-        hbox.add(spinbuttonw)
-
-        # Blank page standard deviation threshold
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
-        label = Gtk.Label(label=_("Blank threshold"))
-        hbox.pack_start(label, False, False, 0)
-        spinbuttonb = Gtk.SpinButton.new_with_range(0, 1, UNIT_SLIDER_STEP)
-        spinbuttonb.set_value(self.settings["Blank threshold"])
-        spinbuttonb.set_tooltip_text(_("Threshold used for selecting blank pages"))
-        hbox.add(spinbuttonb)
-
-        # Dark page mean threshold
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
-        label = Gtk.Label(label=_("Dark threshold"))
-        hbox.pack_start(label, False, False, 0)
-        spinbuttond = Gtk.SpinButton.new_with_range(0, 1, UNIT_SLIDER_STEP)
-        spinbuttond.set_value(self.settings["Dark threshold"])
-        spinbuttond.set_tooltip_text(_("Threshold used for selecting dark pages"))
-        hbox.add(spinbuttond)
-
-        # OCR output
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
-        label = Gtk.Label(label=_("OCR output"))
-        hbox.pack_start(label, False, False, 0)
-        ocr_function = [
-            [
-                "replace",
-                _("Replace"),
-                _(
-                    "Replace the contents of the text buffer with that from the OCR output."
-                ),
-            ],
-            ["prepend", _("Prepend"), _("Prepend the OCR output to the text buffer.")],
-            ["append", _("Append"), _("Append the OCR output to the text buffer.")],
-        ]
-        comboo = ComboBoxText(data=ocr_function)
-        comboo.set_active_index(self.settings["OCR output"])
-        hbox.pack_end(comboo, True, True, 0)
-
-        # Manage user-defined tools
-        frame = Gtk.Frame(label=_("Manage user-defined tools"))
-        vbox.pack_start(frame, True, True, 0)
-        vboxt = Gtk.VBox()
-        vboxt.set_border_width(border_width)
-        frame.add(vboxt)
-        for tool in self.settings["user_defined_tools"]:
-            self._add_user_defined_tool_entry(vboxt, [], tool)
-
-        abutton = Gtk.Button()
-        abutton.set_image(Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
-        vboxt.pack_start(abutton, True, True, 0)
-
-        def clicked_add_udt(_action):
-            self._add_user_defined_tool_entry(
-                vboxt,
-                [self._pref_udt_cmbx, self._scan_udt_cmbx],
-                "my-tool %i %o",
-            )
-            vboxt.reorder_child(abutton, EMPTY_LIST)
-            self._update_list_user_defined_tools(
-                vboxt, [self._pref_udt_cmbx, self._scan_udt_cmbx]
-            )
-
-        abutton.connect("clicked", clicked_add_udt)
-        return (
-            vbox,
-            fileentry,
-            cbw,
-            cbtz,
-            cbtm,
-            cbts,
-            cbtp,
-            tmpentry,
-            spinbuttonw,
-            spinbuttonb,
-            spinbuttond,
-            ocr_function,
-            comboo,
-            cbv,
-            cbb,
-            vboxt,
-        )
-
-    def _update_list_user_defined_tools(self, vbox, combobox_array):
-        "Update list of user-defined tools"
-        tools = []
+    def _update_list_user_defined_tools(self, combobox_array):
         for combobox in combobox_array:
             if combobox is not None:
                 while combobox.get_num_rows() > 0:
                     combobox.remove(0)
 
-        for hbox in vbox.get_children():
-            if isinstance(hbox, Gtk.HBox):
-                for widget in hbox.get_children():
-                    if isinstance(widget, Gtk.Entry):
-                        text = widget.get_text()
-                        tools.append(text)
-                        _cb_array_append(combobox_array, text)
+        for tool in self.settings["user_defined_tools"]:
+            for combobox in combobox_array:
+                if combobox is not None:
+                    combobox.append_text(tool)
 
-        self.settings["user_defined_tools"] = tools
         self._update_post_save_hooks()
         for combobox in combobox_array:
             if combobox is not None:
                 combobox.set_active_by_text(self.settings["current_udt"])
-
-    def _add_user_defined_tool_entry(self, vbox, combobox_array, tool):
-        "Add user-defined tool entry"
-        _cb_array_append(combobox_array, tool)
-        hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
-        entry = Gtk.Entry()
-        entry.set_text(tool)
-        entry.set_tooltip_text(
-            _(
-                """Use %i and %o for the input and output filenames respectively,
-or a single %i if the image is to be modified in-place.
-
-The other variable available is:
-%r resolution"""
-            )
-        )
-        hbox.pack_start(entry, True, True, 0)
-        button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
-
-        def delete_udt():
-            hbox.destroy()
-            self._update_list_user_defined_tools(vbox, combobox_array)
-
-        button.connect("clicked", delete_udt)
-        hbox.pack_end(button, False, False, 0)
-        hbox.show_all()
 
     def _quit_app(self, _action, _param):
         "Handle the quit action for the application."
