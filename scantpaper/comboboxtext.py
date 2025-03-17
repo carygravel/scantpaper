@@ -8,6 +8,7 @@ from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
 
 class ComboBoxText(Gtk.ComboBoxText):
     "a ComboBoxText widget with an index"
+
     index_column = GObject.Property(
         type=int,
         minimum=0,
@@ -28,8 +29,7 @@ class ComboBoxText(Gtk.ComboBoxText):
     def __init__(self, *args, **kwargs):
         data = None
         if "data" in kwargs:
-            data = kwargs["data"]
-            del kwargs["data"]
+            data = kwargs.pop("data")
         super().__init__(*args, **kwargs)
         if data is not None:
             col = self.text_column

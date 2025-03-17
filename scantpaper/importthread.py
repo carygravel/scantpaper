@@ -305,7 +305,9 @@ class Importhread(BaseThread):
                         args["last"] - args["first"] + 1,
                     )
                     tif = None
-                    with tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".tif") as tif:
+                    with tempfile.NamedTemporaryFile(
+                        dir=args["dir"], suffix=".tif"
+                    ) as tif:
                         subprocess.run(
                             ["tiffcp", f"{args['info']['path']},{i}", tif.name],
                             check=True,
@@ -583,6 +585,5 @@ def _note_callbacks(kwargs):
     ]:
         name = callback + "_callback"
         if name in kwargs:
-            callbacks[name] = kwargs[name]
-            del kwargs[name]
+            callbacks[name] = kwargs.pop(name)
     return callbacks
