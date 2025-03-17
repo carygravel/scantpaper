@@ -347,8 +347,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     def __init__(self, *args, **kwargs):
         profiles = {}
         if "profiles" in kwargs:
-            profiles = kwargs["profiles"]
-            del kwargs["profiles"]
+            profiles = kwargs.pop("profiles")
         super().__init__(*args, **kwargs)
 
         self.ignored_paper_formats = []
