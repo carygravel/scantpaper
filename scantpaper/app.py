@@ -3945,6 +3945,22 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def _changed_preferences(self, _widget, settings):
         logger.debug("Preferences changed %s", settings)
+
+        if settings["device blacklist"] != self.settings["device blacklist"]:
+            try:
+                re.search(settings["device blacklist"], "dummy_device")
+            except re.error:
+                msg = _("Invalid regex. Try without special characters such as '*'")
+                logger.warning(msg)
+                self._show_message_dialog(
+                    parent=self,
+                    message_type="error",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    text=msg,
+                    store_response=True,
+                )
+                settings["device blacklist"] = self.settings["device blacklist"]
+
         if self._windows:
             self._windows.cycle_sane_handle = self.settings["cycle sane handle"]
             self._windows.cancel_between_pages = self.settings["cancel-between-pages"]

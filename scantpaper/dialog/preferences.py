@@ -1,6 +1,5 @@
 "dialogue for setting preferences"
 
-import re
 import logging
 import pathlib
 import gi
@@ -371,21 +370,6 @@ The other variable available is:
         self.hide()
 
         self.settings["auto-open-scan-dialog"] = self._cbo.get_active()
-        try:
-            text = self._blacklist.get_text()
-            re.search(text, "dummy_device", re.MULTILINE | re.DOTALL | re.VERBOSE)
-        except:
-            msg = _("Invalid regex. Try without special characters such as '*'")
-            logger.warning(msg)
-            self.get_parent()._show_message_dialog(
-                parent=self,
-                message_type="error",
-                buttons=Gtk.ButtonsType.CLOSE,
-                text=msg,
-                store_response=True,
-            )
-            self._blacklist.set_text(self.settings["device blacklist"])
-
         self.settings["device blacklist"] = self._blacklist.get_text()
         self.settings["cycle sane handle"] = self._cbcsh.get_active()
         self.settings["allow-batch-flatbed"] = self._cb_batch_flatbed.get_active()
