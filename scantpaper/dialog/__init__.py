@@ -137,8 +137,10 @@ class MultipleMessage(Dialog):
     def add_row(self, row):
         "add a row with a new message"
         self.grid.insert_row(self.grid_rows)
-        self.grid.attach(Gtk.Label(label=row["page"]), 0, self.grid_rows, 1, 1)
-        self.grid.attach(Gtk.Label(label=row["process"]), 1, self.grid_rows, 1, 1)
+        if "page" in row:
+            self.grid.attach(Gtk.Label(label=row["page"]), 0, self.grid_rows, 1, 1)
+        if "process" in row:
+            self.grid.attach(Gtk.Label(label=row["process"]), 1, self.grid_rows, 1, 1)
         self.grid.attach(
             Gtk.Label(label=TYPES[row["message_type"]]), 2, self.grid_rows, 1, 1
         )
