@@ -1522,20 +1522,29 @@ class ApplicationWindow(Gtk.ApplicationWindow):
                             "pdftk is installed, but seems to be missing required dependencies:\n%s"
                         ) % (proc.stdout)
 
-                    # elif not re.search(r"NumberOfPages",proc.stdout,
-                    #                    re.MULTILINE|re.DOTALL|re.VERBOSE):
+                    # elif not re.search(
+                    #     r"NumberOfPages",
+                    #     proc.stdout,
+                    #     re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    # ):
                     #     logger.debug(f"before msg {_}")
-                    #     msg = _(
-                    # 'pdftk is installed, but cannot access the directory used for temporary files.'
-                    #                       )                       + _(
-                    # 'One reason for this might be that pdftk was installed via snap.'
-                    #                       )                       + _(
-                    # 'In this case, removing pdftk, and reinstalling without using '
-                    #   'snap would allow gscan2pdf to use pdftk.'
-                    #                       )                       + _(
-                    # 'Another workaround would be to select a temporary directory under '
-                    #  'your home directory in Edit/Preferences.'
-                    #                       )
+                    #     msg = (
+                    #         _(
+                    #             "pdftk is installed, but cannot access the "
+                    #             "directory used for temporary files."
+                    #         )
+                    #         + _(
+                    #             "One reason for this might be that pdftk was installed via snap."
+                    #         )
+                    #         + _(
+                    #             "In this case, removing pdftk, and reinstalling without using "
+                    #             "snap would allow gscan2pdf to use pdftk."
+                    #         )
+                    #         + _(
+                    #             "Another workaround would be to select a temporary directory "
+                    #             "under your home directory in Edit/Preferences."
+                    #         )
+                    #     )
 
                     if msg:
                         del dependencies[name]
