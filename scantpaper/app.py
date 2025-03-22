@@ -626,8 +626,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         - Opens the scan dialog in the background if auto-open is enabled.
         - Handles command line options for importing files.
         """
-        main_vbox = Gtk.VBox()
-        self.add(main_vbox)
 
         # Set up a SimpleList
         self.slist = Document()
@@ -639,13 +637,72 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # dependencies in order to be used for the pdftk check.
         self._create_temp_directory()
 
+        main_vbox = Gtk.VBox()
+        self.add(main_vbox)
+
+        self._populate_panes()
+
         # Create the toolbar
         main_vbox.pack_start(self._create_toolbar(), False, False, 0)
+        main_vbox.pack_start(self._hpaned, True, True, 0)
+
+        self._add_text_view_layers()
+
+        # Set up call back for list selection to update detail view
+        self.slist.selection_changed_signal = self.slist.get_selection().connect(
+            "changed", self._page_selection_changed_callback
+        )
+
+        # Without these, the imageviewer and page list steal -/+/ctrl x/c/v keys
+        # from the OCR textview
+        self.connect("key-press-event", Gtk.Window.propagate_key_event)
+        self.connect("key-release-event", Gtk.Window.propagate_key_event)
+
+        # _after ensures that Editables get first bite
+        self.connect_after("key-press-event", self._on_key_press)
+
+        # If defined in the config file, set the current directory
+        if "cwd" not in self.settings:
+            self.settings["cwd"] = os.getcwd()
+        self._unpaper = Unpaper(self.settings["unpaper options"])
+        self._update_uimanager()
+        self.show_all()
+
+        # Progress bars below window
+        phbox = Gtk.HBox()
+        main_vbox.pack_end(phbox, False, False, 0)
+        phbox.show()
+        self._scan_progress = Progress()
+        phbox.add(self._scan_progress)
+        self.post_process_progress = Progress()
+        phbox.add(self.post_process_progress)
+
+        # OCR text editing interface
+        self._ocr_text_hbox.show()
+        self._ann_hbox.hide()
+
+        # Open scan dialog in background
+        if self.settings["auto-open-scan-dialog"]:
+            self._scan_dialog(None, None, True)
+
+        # Deal with --import command line option
+        if self._args.import_files is not None:
+            self._import_files(self._args.import_files)
+        if self._args.import_all is not None:
+            self._import_files(self._args.import_all, True)
+
+    def _changed_text_sort_method(self, _widget, data):
+        ocr_index, ocr_text_scmbx = data
+        if ocr_index[ocr_text_scmbx.get_active()][0] == "confidence":
+            self.t_canvas.sort_by_confidence()
+        else:
+            self.t_canvas.sort_by_position()
+
+    def _populate_panes(self):
 
         # HPaned for thumbnails and detail view
         self._hpaned = Gtk.HPaned()
         self._hpaned.set_position(self.settings["thumb panel"])
-        main_vbox.pack_start(self._hpaned, True, True, 0)
 
         # Scrolled window for thumbnails
         scwin_thumbs = Gtk.ScrolledWindow()
@@ -712,6 +769,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             "offset-changed", self._ann_offset_changed_callback
         )
 
+    def _add_text_view_layers(self):
         # split panes for detail view/text layer canvas and text layer dialog
         self._vpaned = Gtk.VPaned()
         self._hpaned.pack2(self._vpaned, True, True)
@@ -749,14 +807,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         ]
         ocr_text_scmbx = ComboBoxText(data=ocr_index)
         ocr_text_scmbx.set_tooltip_text(_("Select sort method for OCR boxes"))
-
-        def changed_text_sort_method(_arg):
-            if ocr_index[ocr_text_scmbx.get_active()][0] == "confidence":
-                self.t_canvas.sort_by_confidence()
-            else:
-                self.t_canvas.sort_by_position()
-
-        ocr_text_scmbx.connect("changed", changed_text_sort_method)
+        ocr_text_scmbx.connect(
+            "changed", self._changed_text_sort_method, [ocr_index, ocr_text_scmbx]
+        )
         ocr_text_scmbx.set_active(0)
         ocr_text_nbutton = Gtk.Button()
         ocr_text_nbutton.set_image(
@@ -831,49 +884,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ann_hbox.pack_end(ann_obutton, False, False, 0)
         self._ann_hbox.pack_end(ann_abutton, False, False, 0)
         self._pack_viewer_tools()
-
-        # Set up call back for list selection to update detail view
-        self.slist.selection_changed_signal = self.slist.get_selection().connect(
-            "changed", self._page_selection_changed_callback
-        )
-
-        # Without these, the imageviewer and page list steal -/+/ctrl x/c/v keys
-        # from the OCR textview
-        self.connect("key-press-event", Gtk.Window.propagate_key_event)
-        self.connect("key-release-event", Gtk.Window.propagate_key_event)
-
-        # _after ensures that Editables get first bite
-        self.connect_after("key-press-event", self._on_key_press)
-
-        # If defined in the config file, set the current directory
-        if "cwd" not in self.settings:
-            self.settings["cwd"] = os.getcwd()
-        self._unpaper = Unpaper(self.settings["unpaper options"])
-        self._update_uimanager()
-        self.show_all()
-
-        # Progress bars below window
-        phbox = Gtk.HBox()
-        main_vbox.pack_end(phbox, False, False, 0)
-        phbox.show()
-        self._scan_progress = Progress()
-        phbox.add(self._scan_progress)
-        self.post_process_progress = Progress()
-        phbox.add(self.post_process_progress)
-
-        # OCR text editing interface
-        self._ocr_text_hbox.show()
-        self._ann_hbox.hide()
-
-        # Open scan dialog in background
-        if self.settings["auto-open-scan-dialog"]:
-            self._scan_dialog(None, None, True)
-
-        # Deal with --import command line option
-        if self._args.import_files is not None:
-            self._import_files(self._args.import_files)
-        if self._args.import_all is not None:
-            self._import_files(self._args.import_all, True)
 
     def _create_toolbar(self):
         "Create the menu bar, initialize its menus, and return the menu bar"
