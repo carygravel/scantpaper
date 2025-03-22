@@ -2917,6 +2917,8 @@ class ApplicationWindow(Gtk.ApplicationWindow):
             self.settings["current_psh"] = self._windowi.comboboxpsh.get_active_text()
 
         if re.search(r"pdf", self.settings["image type"]):
+            if self.settings["image type"] == "pdf":  # not for pre/append or email
+                self._windowi.update_config_dict(self.settings)
 
             # dig out the compression
             self.settings["downsample"] = self._windowi.downsample
