@@ -637,14 +637,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # dependencies in order to be used for the pdftk check.
         self._create_temp_directory()
 
-        main_vbox = Gtk.VBox()
+        main_vbox = self.builder.get_object("main_vbox")
         self.add(main_vbox)
 
         self._populate_panes()
+        main_vbox.set_child_packing(self._hpaned, True, True, 0, Gtk.PackType.START)
 
         # Create the toolbar
-        main_vbox.pack_start(self._create_toolbar(), False, False, 0)
-        main_vbox.pack_start(self._hpaned, True, True, 0)
+        toolbar = self._create_toolbar()
+        #main_vbox.set_child_packing(toolbar, False, False, 0, Gtk.PackType.START)
 
         self._add_text_view_layers()
 
@@ -669,8 +670,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.show_all()
 
         # Progress bars below window
-        phbox = Gtk.HBox()
-        main_vbox.pack_end(phbox, False, False, 0)
+        phbox = self.builder.get_object("progress_hbox")
         phbox.show()
         self._scan_progress = Progress()
         phbox.add(self._scan_progress)
@@ -701,17 +701,16 @@ class ApplicationWindow(Gtk.ApplicationWindow):
     def _populate_panes(self):
 
         # HPaned for thumbnails and detail view
-        self._hpaned = Gtk.HPaned()
+        self._hpaned = self.builder.get_object("hpaned")
         self._hpaned.set_position(self.settings["thumb panel"])
 
         # Scrolled window for thumbnails
-        scwin_thumbs = Gtk.ScrolledWindow()
+        scwin_thumbs = self.builder.get_object("scwin_thumbs")
 
         # resize = FALSE to stop the panel expanding on being resized
         # (Debian #507032)
-        self._hpaned.pack1(scwin_thumbs, False, True)
-        scwin_thumbs.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scwin_thumbs.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        # self._hpaned.pack1(scwin_thumbs, False, True)
+        # self._hpaned.set_child_packing(scwin_thumbs, False, False, 0, Gtk.PackType.START)
 
         # If dragged below the bottom of the window, scroll it.
         self.slist.connect("drag-motion", drag_motion_callback)
@@ -722,7 +721,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         scwin_thumbs.add(self.slist)
 
         # Notebook, split panes for detail view and OCR output
-        self._vnotebook = Gtk.Notebook()
+        self._vnotebook = self.builder.get_object("vnotebook")
         self._hpanei = Gtk.HPaned()
         self._vpanei = Gtk.VPaned()
         self._hpanei.show()
@@ -771,13 +770,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def _add_text_view_layers(self):
         # split panes for detail view/text layer canvas and text layer dialog
-        self._vpaned = Gtk.VPaned()
-        self._hpaned.pack2(self._vpaned, True, True)
+        self._vpaned = self.builder.get_object("vpaned")
         self._vpaned.show()
-        self._ocr_text_hbox = Gtk.HBox()
-        edit_vbox = Gtk.HBox()
-        self._vpaned.pack2(edit_vbox, False, True)
-        edit_vbox.pack_start(self._ocr_text_hbox, True, True, 0)
+        self._ocr_text_hbox = self.builder.get_object("ocr_text_hbox")
         ocr_textview = Gtk.TextView()
         ocr_textview.set_tooltip_text(_("Text layer"))
         self._ocr_textbuffer = ocr_textview.get_buffer()
@@ -858,8 +853,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._ocr_text_hbox.pack_end(ocr_text_abutton, False, False, 0)
 
         # split panes for detail view/text layer canvas and text layer dialog
-        self._ann_hbox = Gtk.HBox()
-        edit_vbox.pack_start(self._ann_hbox, True, True, 0)
+        self._ann_hbox = self.builder.get_object("ann_hbox")
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
         self._ann_textbuffer = ann_textview.get_buffer()
