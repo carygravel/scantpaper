@@ -813,8 +813,8 @@
               <object class="GtkNotebook" id="vnotebook"></object>
             </child>
             <child>
-              <object class="GtkBox" id="edit_vbox">
-                <property name="orientation">vertical</property>
+              <object class="GtkBox" id="edit_hbox">
+                <property name="orientation">horizontal</property>
                 <child>
                   <object class="GtkBox" id="ocr_text_hbox">
                     <property name="orientation">horizontal</property>
@@ -832,11 +832,14 @@
           </object>
         </child>
       </object>
+      <packing>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+      </packing>
     </child>
     <child>
       <object class="GtkBox" id="progress_hbox">
         <property name="orientation">horizontal</property>
-        <!-- Add buttons and other widgets for OCR text editing here -->
       </object>
     </child>
   </object>
