@@ -816,12 +816,6 @@
               <object class="GtkBox" id="edit_hbox">
                 <property name="orientation">horizontal</property>
                 <child>
-                  <object class="GtkBox" id="ocr_text_hbox">
-                    <property name="orientation">horizontal</property>
-                    <!-- Add buttons and other widgets for OCR text editing here -->
-                  </object>
-                </child>
-                <child>
                   <object class="GtkBox" id="ann_hbox">
                     <property name="orientation">horizontal</property>
                     <!-- Add buttons and other widgets for annotation editing here -->
