@@ -641,11 +641,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self.add(main_vbox)
 
         self._populate_panes()
-        main_vbox.set_child_packing(self._hpaned, True, True, 0, Gtk.PackType.START)
 
         # Create the toolbar
         toolbar = self._create_toolbar()
-        #main_vbox.set_child_packing(toolbar, False, False, 0, Gtk.PackType.START)
 
         self._add_text_view_layers()
 
@@ -709,8 +707,9 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
         # resize = FALSE to stop the panel expanding on being resized
         # (Debian #507032)
-        # self._hpaned.pack1(scwin_thumbs, False, True)
-        # self._hpaned.set_child_packing(scwin_thumbs, False, False, 0, Gtk.PackType.START)
+        # controls in pack1/2 don't seem to be available via UI XML in Gtk4
+        self._hpaned.remove(scwin_thumbs)
+        self._hpaned.pack1(scwin_thumbs, False)
 
         # If dragged below the bottom of the window, scroll it.
         self.slist.connect("drag-motion", drag_motion_callback)
@@ -721,7 +720,15 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         scwin_thumbs.add(self.slist)
 
         # Notebook, split panes for detail view and OCR output
+        # controls in pack1/2 don't seem to be available via UI XML in Gtk4
+        self._vpaned = self.builder.get_object("vpaned")
         self._vnotebook = self.builder.get_object("vnotebook")
+        self._vpaned.remove(self._vnotebook)
+        self._vpaned.pack1(self._vnotebook, True)
+        edit_hbox = self.builder.get_object("edit_hbox")
+        self._vpaned.remove(edit_hbox)
+        self._vpaned.pack1(edit_hbox, False)
+
         self._hpanei = Gtk.HPaned()
         self._vpanei = Gtk.VPaned()
         self._hpanei.show()
@@ -770,8 +777,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def _add_text_view_layers(self):
         # split panes for detail view/text layer canvas and text layer dialog
-        self._vpaned = self.builder.get_object("vpaned")
-        self._vpaned.show()
         self._ocr_text_hbox = self.builder.get_object("ocr_text_hbox")
         ocr_textview = Gtk.TextView()
         ocr_textview.set_tooltip_text(_("Text layer"))
