@@ -109,6 +109,7 @@ from postprocess_controls import RotateControls, OCRControls
 from simplelist import SimpleList
 from print_operation import PrintOperation
 from progress import Progress
+from text_layer_control import TextLayerControls
 import config
 from i18n import _, d_sane
 from helpers import (
@@ -777,85 +778,28 @@ class ApplicationWindow(Gtk.ApplicationWindow):
 
     def _add_text_view_layers(self):
         # split panes for detail view/text layer canvas and text layer dialog
-        self._ocr_text_hbox = self.builder.get_object("ocr_text_hbox")
-        ocr_textview = Gtk.TextView()
-        ocr_textview.set_tooltip_text(_("Text layer"))
-        self._ocr_textbuffer = ocr_textview.get_buffer()
-        ocr_text_fbutton = Gtk.Button()
-        ocr_text_fbutton.set_image(
-            Gtk.Image.new_from_icon_name("go-first", Gtk.IconSize.BUTTON)
+        self._ocr_text_hbox = TextLayerControls()
+        self.builder.get_object("edit_hbox").pack_start(
+            self._ocr_text_hbox, False, False, 0
         )
-        ocr_text_fbutton.set_tooltip_text(_("Go to least confident text"))
-        ocr_text_fbutton.connect(
-            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_first_bbox())
+        self._ocr_text_hbox.connect(
+            "go-to-first", lambda _: self._edit_ocr_text(self.t_canvas.get_first_bbox())
         )
-        ocr_text_pbutton = Gtk.Button()
-        ocr_text_pbutton.set_image(
-            Gtk.Image.new_from_icon_name("go-previous", Gtk.IconSize.BUTTON)
+        self._ocr_text_hbox.connect(
+            "go-to-previous",
+            lambda _: self._edit_ocr_text(self.t_canvas.get_previous_bbox()),
         )
-        ocr_text_pbutton.set_tooltip_text(_("Go to previous text"))
-        ocr_text_pbutton.connect(
-            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_previous_bbox())
+        self._ocr_text_hbox.connect("sort-changed", self._changed_text_sort_method)
+        self._ocr_text_hbox.connect(
+            "go-to-next", lambda _: self._edit_ocr_text(self.t_canvas.get_next_bbox())
         )
-        ocr_index = [
-            [
-                "confidence",
-                _("Sort by confidence"),
-                _("Sort OCR text boxes by confidence."),
-            ],
-            ["position", _("Sort by position"), _("Sort OCR text boxes by position.")],
-        ]
-        ocr_text_scmbx = ComboBoxText(data=ocr_index)
-        ocr_text_scmbx.set_tooltip_text(_("Select sort method for OCR boxes"))
-        ocr_text_scmbx.connect(
-            "changed", self._changed_text_sort_method, [ocr_index, ocr_text_scmbx]
+        self._ocr_text_hbox.connect(
+            "go-to-last", lambda _: self._edit_ocr_text(self.t_canvas.get_last_bbox())
         )
-        ocr_text_scmbx.set_active(0)
-        ocr_text_nbutton = Gtk.Button()
-        ocr_text_nbutton.set_image(
-            Gtk.Image.new_from_icon_name("go-next", Gtk.IconSize.BUTTON)
-        )
-        ocr_text_nbutton.set_tooltip_text(_("Go to next text"))
-        ocr_text_nbutton.connect(
-            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_next_bbox())
-        )
-        ocr_text_lbutton = Gtk.Button()
-        ocr_text_lbutton.set_image(
-            Gtk.Image.new_from_icon_name("go-last", Gtk.IconSize.BUTTON)
-        )
-        ocr_text_lbutton.set_tooltip_text(_("Go to most confident text"))
-        ocr_text_lbutton.connect(
-            "clicked", lambda _: self._edit_ocr_text(self.t_canvas.get_last_bbox())
-        )
-        ocr_text_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
-        ocr_text_obutton.set_tooltip_text(_("Accept corrections"))
-        ocr_text_obutton.connect("clicked", self._ocr_text_button_clicked)
-        ocr_text_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
-        ocr_text_cbutton.set_tooltip_text(_("Cancel corrections"))
-        ocr_text_cbutton.connect("clicked", lambda _: self._ocr_text_hbox.hide())
-        ocr_text_ubutton = Gtk.Button.new_with_mnemonic(label=_("_Copy"))
-        ocr_text_ubutton.set_tooltip_text(_("Duplicate text"))
-        ocr_text_ubutton.connect("clicked", self._ocr_text_copy)
-        ocr_text_abutton = Gtk.Button()
-        ocr_text_abutton.set_image(
-            Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
-        )
-        ocr_text_abutton.set_tooltip_text(_("Add text"))
-        ocr_text_abutton.connect("clicked", self._ocr_text_add)
-        ocr_text_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
-        ocr_text_dbutton.set_tooltip_text(_("Delete text"))
-        ocr_text_dbutton.connect("clicked", self._ocr_text_delete)
-        self._ocr_text_hbox.pack_start(ocr_text_fbutton, False, False, 0)
-        self._ocr_text_hbox.pack_start(ocr_text_pbutton, False, False, 0)
-        self._ocr_text_hbox.pack_start(ocr_text_scmbx, False, False, 0)
-        self._ocr_text_hbox.pack_start(ocr_text_nbutton, False, False, 0)
-        self._ocr_text_hbox.pack_start(ocr_text_lbutton, False, False, 0)
-        self._ocr_text_hbox.pack_start(ocr_textview, False, False, 0)
-        self._ocr_text_hbox.pack_end(ocr_text_dbutton, False, False, 0)
-        self._ocr_text_hbox.pack_end(ocr_text_cbutton, False, False, 0)
-        self._ocr_text_hbox.pack_end(ocr_text_obutton, False, False, 0)
-        self._ocr_text_hbox.pack_end(ocr_text_ubutton, False, False, 0)
-        self._ocr_text_hbox.pack_end(ocr_text_abutton, False, False, 0)
+        self._ocr_text_hbox.connect("ok-clicked", self._ocr_text_button_clicked)
+        self._ocr_text_hbox.connect("copy-clicked", self._ocr_text_copy)
+        self._ocr_text_hbox.connect("add-clicked", self._ocr_text_add)
+        self._ocr_text_hbox.connect("delete-clicked", self._ocr_text_delete)
 
         # split panes for detail view/text layer canvas and text layer dialog
         self._ann_hbox = self.builder.get_object("ann_hbox")
