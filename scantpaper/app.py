@@ -643,7 +643,7 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         self._populate_panes()
 
         # Create the toolbar
-        toolbar = self._create_toolbar()
+        self._create_toolbar()
 
         self._add_text_view_layers()
 
@@ -966,7 +966,6 @@ class ApplicationWindow(Gtk.ApplicationWindow):
         # turn off labels
         settings = toolbar.get_settings()
         settings.gtk_toolbar_style = "icons"  # only icons
-        return toolbar
 
     def _pack_viewer_tools(self):
         "Pack widgets according to viewer_tools"
