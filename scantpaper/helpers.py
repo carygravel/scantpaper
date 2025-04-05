@@ -1,5 +1,6 @@
 "Various helper functions"
 
+import glob
 import re
 import os
 from dataclasses import dataclass
@@ -194,3 +195,24 @@ def get_tmp_dir(dirname, pattern):
     while re.search(pattern, dirname):
         dirname = os.path.dirname(dirname)
     return dirname
+
+
+def slurp(file):
+    "slurp file"
+    with open(file, "r", encoding="utf-8") as fhd:
+        return fhd.read()
+
+
+def recursive_slurp(files):
+    """
+    Recursively processes a list of files and directories, logging the contents
+    of each file.
+    """
+    for file in files:
+        if os.path.isdir(file):
+            recursive_slurp(glob.glob(f"{file}/*"))
+        else:
+            output = slurp(file)
+            if output is not None:
+                output = output.rstrip()
+                logger.info(output)

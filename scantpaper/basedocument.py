@@ -11,6 +11,7 @@ import signal
 import tarfile
 import gi
 from simplelist import SimpleList
+from helpers import slurp
 from i18n import _
 from docthread import DocThread
 from page import Page
@@ -899,9 +900,3 @@ def drag_data_received_callback(  # pylint: disable=too-many-positional-argument
 
     else:
         context.abort()
-
-
-def slurp(file):
-    "slurp file"
-    with open(file, "r", encoding="utf-8") as fhd:
-        return fhd.read()

@@ -12,7 +12,7 @@ from config import (
     update_config_from_imported_metadata,
     DEFAULTS,
 )
-from basedocument import slurp
+from helpers import slurp
 
 
 class MockedDateTime(datetime):

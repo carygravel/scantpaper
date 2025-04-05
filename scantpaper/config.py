@@ -5,7 +5,7 @@ import json
 import logging
 from types import SimpleNamespace
 import datetime
-from basedocument import slurp
+from helpers import slurp
 from i18n import _
 from gi.repository import Gdk
 
