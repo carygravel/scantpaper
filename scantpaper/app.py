@@ -86,16 +86,6 @@ from gi.repository import (  # pylint: disable=wrong-import-position
     Gio,
 )
 
-SIGMA_STEP = 0.1
-MAX_SIGMA = 5
-EDIT_TEXT = 200
-BITS_PER_BYTE = 8
-HELP_WINDOW_WIDTH = 800
-HELP_WINDOW_HEIGHT = 600
-HELP_WINDOW_DIVIDER_POS = 200
-
-EMPTY = ""
-DOT = "."
 logger = logging.getLogger(__name__)
 
 
