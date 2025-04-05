@@ -10,11 +10,12 @@ import tempfile
 import gi
 import tesserocr
 from bboxtree import Bboxtree
-from const import EMPTY, SPACE
+from const import EMPTY, SPACE, ZOOM_CONTEXT_FACTOR
 from dialog import filter_message, response_stored
 from helpers import get_tmp_dir, program_version, exec_command, parse_truetype_fonts
 from i18n import _
 from simplelist import SimpleList
+from text_layer_control import TextLayerControls
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
@@ -501,19 +502,295 @@ class SessionMixins:
         logger.debug("Replied '%s'", response)
         return response
 
-    def _zoom_100(self, _action, _param):
+    def _add_text_view_layers(self):
+        # split panes for detail view/text layer canvas and text layer dialog
+        self._ocr_text_hbox = TextLayerControls()
+        self.builder.get_object("edit_hbox").pack_start(
+            self._ocr_text_hbox, False, False, 0
+        )
+        self._ocr_text_hbox.connect(
+            "go-to-first", lambda _: self._edit_ocr_text(self.t_canvas.get_first_bbox())
+        )
+        self._ocr_text_hbox.connect(
+            "go-to-previous",
+            lambda _: self._edit_ocr_text(self.t_canvas.get_previous_bbox()),
+        )
+        self._ocr_text_hbox.connect("sort-changed", self._changed_text_sort_method)
+        self._ocr_text_hbox.connect(
+            "go-to-next", lambda _: self._edit_ocr_text(self.t_canvas.get_next_bbox())
+        )
+        self._ocr_text_hbox.connect(
+            "go-to-last", lambda _: self._edit_ocr_text(self.t_canvas.get_last_bbox())
+        )
+        self._ocr_text_hbox.connect("ok-clicked", self._ocr_text_button_clicked)
+        self._ocr_text_hbox.connect("copy-clicked", self._ocr_text_copy)
+        self._ocr_text_hbox.connect("add-clicked", self._ocr_text_add)
+        self._ocr_text_hbox.connect("delete-clicked", self._ocr_text_delete)
+
+        # split panes for detail view/text layer canvas and text layer dialog
+        self._ann_hbox = self.builder.get_object("ann_hbox")
+        ann_textview = Gtk.TextView()
+        ann_textview.set_tooltip_text(_("Annotations"))
+        self._ann_textbuffer = ann_textview.get_buffer()
+        ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
+        ann_obutton.set_tooltip_text(_("Accept corrections"))
+        ann_obutton.connect("clicked", self._ann_text_ok)
+        ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
+        ann_cbutton.set_tooltip_text(_("Cancel corrections"))
+        ann_cbutton.connect("clicked", self._ann_hbox.hide)
+        ann_abutton = Gtk.Button()
+        ann_abutton.set_image(
+            Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
+        )
+        ann_abutton.set_tooltip_text(_("Add annotation"))
+        ann_abutton.connect("clicked", self._ann_text_new)
+        ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
+        ann_dbutton.set_tooltip_text(_("Delete annotation"))
+        ann_dbutton.connect("clicked", self._ann_text_delete)
+        self._ann_hbox.pack_start(ann_textview, False, False, 0)
+        self._ann_hbox.pack_end(ann_dbutton, False, False, 0)
+        self._ann_hbox.pack_end(ann_cbutton, False, False, 0)
+        self._ann_hbox.pack_end(ann_obutton, False, False, 0)
+        self._ann_hbox.pack_end(ann_abutton, False, False, 0)
+        self._pack_viewer_tools()
+
+    def _text_zoom_changed_callback(self, canvas, _zoom):
+        self.view.handler_block(self.view.zoom_changed_signal)
+        self.view.set_zoom(canvas.get_scale())
+        self.view.handler_unblock(self.view.zoom_changed_signal)
+
+    def _text_offset_changed_callback(self):
+        self.view.handler_block(self.view.offset_changed_signal)
+        offset = self.t_canvas.get_offset()
+        self.view.set_offset(offset["x"], offset["y"])
+        self.view.handler_unblock(self.view.offset_changed_signal)
+
+    def _ann_zoom_changed_callback(self):
+        self.view.handler_block(self.view.zoom_changed_signal)
+        self.view.set_zoom(self.a_canvas.get_scale())
+        self.view.handler_unblock(self.view.zoom_changed_signal)
+
+    def _ann_offset_changed_callback(self):
+        self.view.handler_block(self.view.offset_changed_signal)
+        offset = self.a_canvas.get_offset()
+        self.view.set_offset(offset["x"], offset["y"])
+        self.view.handler_unblock(self.view.offset_changed_signal)
+
+    def _ocr_text_button_clicked(self, _widget):
+        self._take_snapshot()
+        text = self._ocr_textbuffer.get_text(
+            self._ocr_textbuffer.get_start_iter(),
+            self._ocr_textbuffer.get_end_iter(),
+            False,
+        )
+        logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
+        self._current_ocr_bbox.update_box(text, self.view.get_selection())
+        self._current_page.import_hocr(self.t_canvas.hocr())
+        self._edit_ocr_text(self._current_ocr_bbox)
+
+    def _ocr_text_copy(self, _widget):
+        self._current_ocr_bbox = self.t_canvas.add_box(
+            text=self._ocr_textbuffer.get_text(
+                self._ocr_textbuffer.get_start_iter(),
+                self._ocr_textbuffer.get_end_iter(),
+                False,
+            ),
+            bbox=self.view.get_selection(),
+        )
+        self._current_page.import_hocr(self.t_canvas.hocr())
+        self._edit_ocr_text(self._current_ocr_bbox)
+
+    def _ocr_text_add(self, _widget):
+        self._take_snapshot()
+        text = self._ocr_textbuffer.get_text(
+            self._ocr_textbuffer.get_start_iter(),
+            self._ocr_textbuffer.get_end_iter(),
+            False,
+        )
+        if text is None or text == EMPTY:
+            text = _("my-new-word")
+
+        # If we don't yet have a canvas, create one
+        selection = self.view.get_selection()
+        if hasattr(self._current_page, "text_layer"):
+            logger.info("Added '%s'", text)
+            self._current_ocr_bbox = self.t_canvas.add_box(
+                text=text, bbox=self.view.get_selection()
+            )
+            self._current_page.import_hocr(self.t_canvas.hocr())
+            self._edit_ocr_text(self._current_ocr_bbox)
+        else:
+            logger.info("Creating new text layer with '%s'", text)
+            self._current_page.text_layer = (
+                '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
+                '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
+                % (
+                    self._current_page["width"],
+                    self._current_page["height"],
+                    selection["x"],
+                    selection["y"],
+                    selection["x"] + selection["width"],
+                    selection["y"] + selection["height"],
+                    text,
+                )
+            )
+
+            def ocr_new_page(_widget):
+                self._current_ocr_bbox = self.t_canvas.get_first_bbox()
+                self._edit_ocr_text(self._current_ocr_bbox)
+
+            self._create_txt_canvas(self._current_page, ocr_new_page)
+
+    def _ocr_text_delete(self, _widget):
+        self._current_ocr_bbox.delete_box()
+        self._current_page.import_hocr(self.t_canvas.hocr())
+        self._edit_ocr_text(self.t_canvas.get_current_bbox())
+
+    def _ann_text_ok(self, _widget):
+        text = self._ann_textbuffer.get_text(
+            self._ann_textbuffer.get_start_iter(),
+            self._ann_textbuffer.get_end_iter(),
+            False,
+        )
+        logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
+        self._current_ann_bbox.update_box(text, self.view.get_selection())
+        self._current_page.import_annotations(self.a_canvas.hocr())
+        self._edit_annotation(self._current_ann_bbox)
+
+    def _ann_text_new(self, _widget):
+        text = self._ann_textbuffer.get_text(
+            self._ann_textbuffer.get_start_iter(),
+            self._ann_textbuffer.get_end_iter(),
+            False,
+        )
+        if text is None or text == EMPTY:
+            text = _("my-new-annotation")
+
+        # If we don't yet have a canvas, create one
+        selection = self.view.get_selection()
+        if hasattr(self._current_page, "text_layer"):
+            logger.info("Added '%s'", text)
+            self._current_ann_bbox = self.a_canvas.add_box(
+                text=text, bbox=self.view.get_selection()
+            )
+            self._current_page.import_annotations(self.a_canvas.hocr())
+            self._edit_annotation(self._current_ann_bbox)
+        else:
+            logger.info("Creating new annotation canvas with '%s'", text)
+            self._current_page["annotations"] = (
+                '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
+                '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
+                % (
+                    self._current_page["width"],
+                    self._current_page["height"],
+                    selection["x"],
+                    selection["y"],
+                    selection["x"] + selection["width"],
+                    selection["y"] + selection["height"],
+                    text,
+                )
+            )
+
+            def ann_text_new_page(_widget):
+                self._current_ann_bbox = self.a_canvas.get_first_bbox()
+                self._edit_annotation(self._current_ann_bbox)
+
+            self._create_ann_canvas(self._current_page, ann_text_new_page)
+
+    def _ann_text_delete(self, _widget):
+        self._current_ann_bbox.delete_box()
+        self._current_page.import_hocr(self.a_canvas.hocr())
+        self._edit_annotation(self.t_canvas.get_current_bbox())
+
+    def _edit_mode_callback(self, action, parameter):
+        "Show/hide the edit tools"
+        action.set_state(parameter)
+        if parameter.get_string() == "text":
+            self._ocr_text_hbox.show()
+            self._ann_hbox.hide()
+            return
+        self._ocr_text_hbox.hide()
+        self._ann_hbox.show()
+
+    def _edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
+        "Edit OCR text"
+        logger.debug("edit_ocr_text(%s, %s, %s, %s)", widget, _target, ev, bbox)
+        if not ev:
+            bbox = widget
+
+        if bbox is None:
+            return
+
+        self._current_ocr_bbox = bbox
+        self._ocr_textbuffer.set_text(bbox.text)
+        self._ocr_text_hbox.show_all()
+        self.view.set_selection(bbox.bbox)
+        self.view.setzoom_is_fit(False)
+        self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+        if ev:
+            self.t_canvas.pointer_ungrab(widget, ev.time())
+
+        if bbox:
+            self.t_canvas.set_index_by_bbox(bbox)
+
+    def _edit_annotation(self, widget, _target=None, ev=None, bbox=None):
+        "Edit annotation"
+        if not ev:
+            bbox = widget
+
+        self._current_ann_bbox = bbox
+        self._ann_textbuffer.set_text(bbox.text)
+        self._ann_hbox.show_all()
+        self.view.set_selection(bbox.bbox)
+        self.view.setzoom_is_fit(False)
+        self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+        if ev:
+            self.a_canvas.pointer_ungrab(widget, ev.time())
+
+        if bbox:
+            self.a_canvas.set_index_by_bbox(bbox)
+
+    def _create_txt_canvas(self, page, finished_callback=None):
+        "Create the text canvas"
+        offset = self.view.get_offset()
+        self.t_canvas.set_text(
+            page=page,
+            layer="text_layer",
+            edit_callback=self._edit_ocr_text,
+            idle=True,
+            finished_callback=finished_callback,
+        )
+        self.t_canvas.set_scale(self.view.get_zoom())
+        self.t_canvas.set_offset(offset.x, offset.y)
+        self.t_canvas.show()
+
+    def _create_ann_canvas(self, page, finished_callback=None):
+        "Create the annotation canvas"
+        offset = self.view.get_offset()
+        self.a_canvas.set_text(
+            page=page,
+            layer="annotations",
+            edit_callback=self._edit_annotation,
+            idle=True,
+            finished_callback=finished_callback,
+        )
+        self.a_canvas.set_scale(self.view.get_zoom())
+        self.a_canvas.set_offset(offset.x, offset.y)
+        self.a_canvas.show()
+
+    def zoom_100(self, _action, _param):
         "Sets the zoom level of the view to 100%."
         self.view.set_zoom(1.0)
 
-    def _zoom_to_fit(self, _action, _param):
+    def zoom_to_fit(self, _action, _param):
         "Adjusts the view to fit the content within the visible area."
         self.view.zoom_to_fit()
 
-    def _zoom_in(self, _action, _param):
+    def zoom_in(self, _action, _param):
         "Zooms in the current view"
         self.view.zoom_in()
 
-    def _zoom_out(self, _action, _param):
+    def zoom_out(self, _action, _param):
         "Zooms out the current view"
         self.view.zoom_out()
 
@@ -542,87 +819,87 @@ class SessionMixins:
 
     def _on_zoom_100(self, _widget):
         "Zooms the current page to 100%"
-        self._zoom_100(None, None)
+        self.zoom_100(None, None)
 
     def _on_zoom_to_fit(self, _widget):
         "Zooms the current page so that it fits the viewing pane."
-        self._zoom_to_fit(None, None)
+        self.zoom_to_fit(None, None)
 
     def _on_zoom_in(self, _widget):
         "Zooms in the current page."
-        self._zoom_in(None, None)
+        self.zoom_in(None, None)
 
     def _on_zoom_out(self, _widget):
         "Zooms out the current page."
-        self._zoom_out(None, None)
+        self.zoom_out(None, None)
 
     def _on_rotate_90(self, _widget):
         "Rotate the selected pages by 90 degrees."
-        self._rotate_90(None, None)
+        self.rotate_90(None, None)
 
     def _on_rotate_180(self, _widget):
         "Rotate the selected pages by 180 degrees."
-        self._rotate_180(None, None)
+        self.rotate_180(None, None)
 
     def _on_rotate_270(self, _widget):
         "Rotate the selected pages by 270 degrees."
-        self._rotate_270(None, None)
+        self.rotate_270(None, None)
 
     def _on_save(self, _widget):
         "Displays the save dialog."
-        self._save_dialog(None, None)
+        self.save_dialog(None, None)
 
     def _on_email(self, _widget):
         "displays the email dialog."
-        self._email(None, None)
+        self.email(None, None)
 
     def _on_print(self, _widget):
         "displays the print dialog."
-        self._print_dialog(None, None)
+        self.print_dialog(None, None)
 
     def _on_renumber(self, _widget):
         "Displays the renumber dialog."
-        self._renumber_dialog(None, None)
+        self.renumber_dialog(None, None)
 
     def _on_select_all(self, _widget):
         "selects all pages."
-        self._select_all(None, None)
+        self.select_all(None, None)
 
     def _on_select_odd(self, _widget):
         "selects the pages with odd numbers."
-        self._select_odd_even(0)
+        self.select_odd_even(0)
 
     def _on_select_even(self, _widget):
         "selects the pages with even numbers."
-        self._select_odd_even(1)
+        self.select_odd_even(1)
 
     def _on_invert_selection(self, _widget):
         "Inverts the current selection."
-        self._select_invert(None, None)
+        self.select_invert(None, None)
 
     def _on_crop(self, _widget):
         "Displays the crop dialog."
-        self._crop_selection(None, None)
+        self.crop_selection(None, None)
 
     def _on_cut(self, _widget):
         "cuts the selected pages to the clipboard."
-        self._cut_selection(None, None)
+        self.cut_selection(None, None)
 
     def _on_copy(self, _widget):
         "copies the selected pages to the clipboard."
-        self._copy_selection(None, None)
+        self.copy_selection(None, None)
 
     def _on_paste(self, _widget):
         "pastes the copied pages."
-        self._paste_selection(None, None)
+        self.paste_selection(None, None)
 
     def _on_delete(self, _widget):
         "deletes the selected pages."
-        self._delete_selection(None, None)
+        self.delete_selection(None, None)
 
     def _on_clear_ocr(self, _widget):
         "Clears the OCR (Optical Character Recognition) data."
-        self._clear_ocr(None, None)
+        self.clear_ocr(None, None)
 
     def _on_properties(self, _widget):
         "displays the properties dialog."

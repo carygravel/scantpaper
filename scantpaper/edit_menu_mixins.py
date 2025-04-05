@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class EditMenuMixins:
     "provide methods called from edit menu"
 
-    def _undo(self, _action, _param):
+    def undo(self, _action, _param):
         "Put things back to last snapshot after updating redo buffer"
         logger.info("Undoing")
         self.slist.undo()
@@ -29,7 +29,7 @@ class EditMenuMixins:
         self._actions["undo"].set_enabled(False)
         self._actions["redo"].set_enabled(True)
 
-    def _unundo(self, _action, _param):
+    def unundo(self, _action, _param):
         "Put things back to last snapshot after updating redo buffer"
         logger.info("Redoing")
         self.slist.unundo()
@@ -39,7 +39,7 @@ class EditMenuMixins:
         self._actions["undo"].set_enabled(True)
         self._actions["redo"].set_enabled(False)
 
-    def _properties(self, _action, _param):
+    def properties(self, _action, _param):
         "Display and manage the properties dialog for setting X and Y resolution."
         if self._windowp is not None:
             self._windowp.present()
@@ -105,17 +105,17 @@ class EditMenuMixins:
         )
         self._windowp.show_all()
 
-    def _cut_selection(self, _action, _param):
+    def cut_selection(self, _action, _param):
         "Cut the selection"
         self.slist.clipboard = self.slist.cut_selection()
         self._update_uimanager()
 
-    def _copy_selection(self, _action, _param):
+    def copy_selection(self, _action, _param):
         "Copy the selection"
         self.slist.clipboard = self.slist.copy_selection(True)
         self._update_uimanager()
 
-    def _paste_selection(self, _action, _param):
+    def paste_selection(self, _action, _param):
         "Paste the selection"
         if self.slist.clipboard is None:
             return
@@ -127,7 +127,7 @@ class EditMenuMixins:
             self.slist.paste_selection(self.slist.clipboard, None, None, True)
         self._update_uimanager()
 
-    def _delete_selection(self, _action, _param):
+    def delete_selection(self, _action, _param):
         "Delete the selected scans"
         # Update undo/redo buffers
         self._take_snapshot()
@@ -138,7 +138,7 @@ class EditMenuMixins:
             self._windows.reset_start_page()
         self._update_uimanager()
 
-    def _renumber_dialog(self, _action, _param):
+    def renumber_dialog(self, _action, _param):
         "Dialog for renumber"
         dialog = Renumber(
             transient_for=self,
@@ -157,7 +157,7 @@ class EditMenuMixins:
         )
         dialog.show_all()
 
-    def _select_all(self, _action, _param):
+    def select_all(self, _action, _param):
         "Select all scans"
         # if ($textview -> has_focus) {
         #  my ($start, $end) = $textbuffer->get_bounds;
@@ -169,7 +169,7 @@ class EditMenuMixins:
 
         # }
 
-    def _select_odd_even(self, odd):
+    def select_odd_even(self, odd):
         "Select all odd(0) or even(1) scans"
         selection = []
         for i, row in enumerate(self.slist.data):
@@ -179,7 +179,7 @@ class EditMenuMixins:
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def _select_invert(self, _action, _param):
+    def select_invert(self, _action, _param):
         "Invert selection"
         selection = self.slist.get_selected_indices()
         inverted = []
@@ -189,7 +189,7 @@ class EditMenuMixins:
         self.slist.get_selection().unselect_all()
         self.slist.select(inverted)
 
-    def _select_modified_since_ocr(self, _action, _param):
+    def select_modified_since_ocr(self, _action, _param):
         "Selects pages that have been modified since the last OCR process."
         selection = []
         for page in range(len(self.slist.data)):
@@ -210,7 +210,7 @@ class EditMenuMixins:
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def _select_no_ocr(self, _action, _param):
+    def select_no_ocr(self, _action, _param):
         "Select pages with no ocr output"
         selection = []
         for i, row in enumerate(self.slist.data):
@@ -220,7 +220,7 @@ class EditMenuMixins:
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def _clear_ocr(self, _action, _param):
+    def clear_ocr(self, _action, _param):
         "Clear the OCR output from selected pages"
         # Update undo/redo buffers
         self._take_snapshot()
@@ -233,19 +233,19 @@ class EditMenuMixins:
 
         # slist.save_session()
 
-    def _select_blank(self, _action, _param):
+    def select_blank(self, _action, _param):
         "Analyse and select blank pages"
-        self._analyse(True, False)
+        self.analyse(True, False)
 
     def _select_odd(self, _action, _param):
         "Selects odd-numbered pages"
-        self._select_odd_even(0)
+        self.select_odd_even(0)
 
     def _select_even(self, _action, _param):
         "Selects even-numbered pages"
-        self._select_odd_even(1)
+        self.select_odd_even(1)
 
-    def _select_blank_pages(self):
+    def select_blank_pages(self):
         "Select blank pages"
         for page in self.slist.data:
 
@@ -267,11 +267,11 @@ class EditMenuMixins:
                 self.settings["Blank threshold"],
             )
 
-    def _select_dark(self, _action, _param):
+    def select_dark(self, _action, _param):
         "Analyse and select dark pages"
-        self._analyse(False, True)
+        self.analyse(False, True)
 
-    def _select_dark_pages(self):
+    def select_dark_pages(self):
         "Select dark pages"
         for page in self.slist.data:
 
@@ -293,7 +293,7 @@ class EditMenuMixins:
                 self.settings["Dark threshold"],
             )
 
-    def _analyse(self, select_blank, select_dark):
+    def analyse(self, select_blank, select_dark):
         "Analyse selected images"
 
         # Update undo/redo buffers
@@ -325,9 +325,9 @@ class EditMenuMixins:
             def analyse_finished_callback(response):
                 self.post_process_progress.finish(response)
                 if select_blank:
-                    self._select_blank_pages()
+                    self.select_blank_pages()
                 if select_dark:
-                    self._select_dark_pages()
+                    self.select_dark_pages()
 
             # slist.save_session()
 
@@ -342,11 +342,11 @@ class EditMenuMixins:
 
         else:
             if select_blank:
-                self._select_blank_pages()
+                self.select_blank_pages()
             if select_dark:
-                self._select_dark_pages()
+                self.select_dark_pages()
 
-    def _preferences(self, _action, _param):
+    def preferences(self, _action, _param):
         "Preferences dialog"
         if self._windowr is not None:
             self._windowr.present()

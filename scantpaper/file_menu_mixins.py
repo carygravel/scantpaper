@@ -80,7 +80,7 @@ def launch_default_for_file(filename):
 class FileMenuMixins:
     "provide methods called from file menu"
 
-    def _new(self, _action, _param):
+    def new(self, _action, _param):
         "Deletes all scans after warning"
         if not self._scans_saved(
             _("Some pages have not been saved.\nDo you really want to clear all pages?")
@@ -114,7 +114,7 @@ class FileMenuMixins:
         # Reset start page in scan dialog
         self._windows.reset_start_page()
 
-    def _open_dialog(self, _action, _param):
+    def open_dialog(self, _action, _param):
         "Throw up file selector and open selected file"
         # cd back to cwd to get filename
         os.chdir(self.settings["cwd"])
@@ -294,7 +294,7 @@ class FileMenuMixins:
             dir=sesdir, delete=False, error_callback=self._error_callback
         )
 
-    def _save_dialog(self, _action, _param):
+    def save_dialog(self, _action, _param):
         "Display page selector and on save a fileselector."
         if self._windowi is not None:
             self._windowi.present()
@@ -908,7 +908,7 @@ class FileMenuMixins:
 
             self._windowi.comboboxpsh.set_active_by_text(self.settings["current_psh"])
 
-    def _print_dialog(self, _action, _param):
+    def print_dialog(self, _action, _param):
         "print"
         os.chdir(self.settings["cwd"])
         print_op = PrintOperation(settings=self.print_settings, slist=self.slist)
@@ -917,7 +917,7 @@ class FileMenuMixins:
             self.print_settings = print_op.get_print_settings()
         os.chdir(self.session.name)
 
-    def _quit_app(self, _action, _param):
+    def quit_app(self, _action, _param):
         "Handle the quit action for the application."
         if self._can_quit():
             self.get_application().quit()
