@@ -33,7 +33,7 @@ def import_scan_finished_callback(response):
 class ScanMenuItemMixins:
     "provide methods called from scan menu item"
 
-    def _scan_dialog(self, _action, _param, hidden=False, scan=False):
+    def scan_dialog(self, _action, _param, hidden=False, scan=False):
         "Scan"
         if self._windows:
             self._windows.show_all()
@@ -119,7 +119,7 @@ class ScanMenuItemMixins:
         self._windows.connect(
             "changed-scan-option", self._update_postprocessing_options_callback
         )
-        self._add_postprocessing_options(self._windows)
+        self.add_postprocessing_options(self._windows)
         if not hidden:
             self._windows.show_all()
         self._update_postprocessing_options_callback(self._windows)
@@ -139,7 +139,7 @@ class ScanMenuItemMixins:
         else:
             self._windows.get_devices()
 
-    def _add_postprocessing_options(self, widget):
+    def add_postprocessing_options(self, widget):
         "Adds post-processing options to the dialog window."
         scwin = Gtk.ScrolledWindow()
         widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))

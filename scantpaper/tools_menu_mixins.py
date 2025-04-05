@@ -35,21 +35,21 @@ logger = logging.getLogger(__name__)
 class ToolsMenuMixins:
     "provide methods called from tools menu"
 
-    def _rotate_90(self, _action, _param):
+    def rotate_90(self, _action, _param):
         "Rotates the selected pages by 90 degrees"
         self._rotate(
             _90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def _rotate_180(self, _action, _param):
+    def rotate_180(self, _action, _param):
         "Rotates the selected pages by 180 degrees"
         self._rotate(
             _180_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def _rotate_270(self, _action, _param):
+    def rotate_270(self, _action, _param):
         "Rotates the selected pages by 270 degrees"
         self._rotate(
             _270_DEGREES,
@@ -73,7 +73,7 @@ class ToolsMenuMixins:
                 display_callback=self._display_callback,
             )
 
-    def _threshold(self, _action, _param):
+    def threshold(self, _action, _param):
         "Display page selector and on apply threshold accordingly"
         windowt = Dialog(
             transient_for=self,
@@ -133,7 +133,7 @@ class ToolsMenuMixins:
         )
         windowt.show_all()
 
-    def _brightness_contrast(self, _action, _param):
+    def brightness_contrast(self, _action, _param):
         "Display page selector and on apply brightness & contrast accordingly"
         windowt = Dialog(
             transient_for=self,
@@ -205,7 +205,7 @@ class ToolsMenuMixins:
         )
         windowt.show_all()
 
-    def _negate(self, _action, _param):
+    def negate(self, _action, _param):
         "Display page selector and on apply negate accordingly"
         windowt = Dialog(
             transient_for=self,
@@ -246,7 +246,7 @@ class ToolsMenuMixins:
         )
         windowt.show_all()
 
-    def _unsharp(self, _action, _param):
+    def unsharp(self, _action, _param):
         "Display page selector and on apply unsharp accordingly"
         windowum = Dialog(
             transient_for=self,
@@ -350,7 +350,7 @@ class ToolsMenuMixins:
         )
         windowum.show_all()
 
-    def _crop_dialog(self, _action, _param):
+    def crop_dialog(self, _action, _param):
         "Display page selector and on apply crop accordingly"
         if self._windowc is not None:
             self._windowc.present()
@@ -375,7 +375,7 @@ class ToolsMenuMixins:
 
         def crop_callback():
             self.settings["Page range"] = self._windowc.page_range
-            self._crop_selection(
+            self.crop_selection(
                 None,  # action
                 None,  # param
                 self.slist.get_page_index(
@@ -388,7 +388,7 @@ class ToolsMenuMixins:
         )
         self._windowc.show_all()
 
-    def _crop_selection(self, _action, _param, pagelist=None):
+    def crop_selection(self, _action, _param, pagelist=None):
         "Crop the selected area of the specified pages."
         if not self.settings["selection"]:
             return
@@ -421,7 +421,7 @@ class ToolsMenuMixins:
                 display_callback=self._display_callback,
             )
 
-    def _split_dialog(self, _action, _param):
+    def split_dialog(self, _action, _param):
         "Display page selector and on apply crop accordingly"
 
         # Until we have a separate tool for the divider, kill the whole
@@ -558,7 +558,7 @@ class ToolsMenuMixins:
             selection.height = position
         self.view.set_selection(selection)
 
-    def _unpaper_dialog(self, _action, _param):
+    def unpaper_dialog(self, _action, _param):
         "Run unpaper to clean up scan."
         if self._windowu is not None:
             self._windowu.present()
@@ -620,7 +620,7 @@ class ToolsMenuMixins:
         )
         self._windowu.show_all()
 
-    def _ocr_dialog(self, _action, _parma):
+    def ocr_dialog(self, _action, _parma):
         "Run OCR on current page and display result"
         if self._windowo is not None:
             self._windowo.present()
@@ -709,7 +709,7 @@ class ToolsMenuMixins:
             if page and i == page[0]:
                 self._create_txt_canvas(self.slist.data[i][2])
 
-    def _user_defined_dialog(self, _action, _param):
+    def user_defined_dialog(self, _action, _param):
         "Displays a dialog for selecting and applying user-defined tools."
         windowudt = Dialog(
             transient_for=self,
@@ -762,7 +762,7 @@ class ToolsMenuMixins:
         )
         windowudt.show_all()
 
-    def _email(self, _action, _param):
+    def email(self, _action, _param):
         "Display page selector and email."
         if self._windowe is not None:
             self._windowe.present()
@@ -876,7 +876,7 @@ class ToolsMenuMixins:
         )
         self._windowe.show_all()
 
-    def _about(self, _action, _param):
+    def about(self, _action, _param):
         "Display about dialog"
         about = Gtk.AboutDialog()
 

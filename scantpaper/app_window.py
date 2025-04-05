@@ -17,7 +17,6 @@ from unpaper import Unpaper
 from canvas import Canvas
 from imageview import ImageView, Selector, Dragger, SelectorDragger
 from progress import Progress
-from text_layer_control import TextLayerMixins
 from file_menu_mixins import FileMenuMixins
 from session_mixins import SessionMixins
 from scan_menu_item_mixins import ScanMenuItemMixins
@@ -152,7 +151,6 @@ def view_html(_action, _param):
 
 class ApplicationWindow(
     Gtk.ApplicationWindow,
-    TextLayerMixins,
     SessionMixins,
     FileMenuMixins,
     ScanMenuItemMixins,
@@ -202,51 +200,51 @@ class ApplicationWindow(
         # These will be in the window group and have the "win" prefix
         self._actions = {}
         for name, function in [
-            ("new", self._new),
-            ("open", self._open_dialog),
+            ("new", self.new),
+            ("open", self.open_dialog),
             ("open-session", self._open_session_action),
-            ("scan", self._scan_dialog),
-            ("save", self._save_dialog),
-            ("email", self._email),
-            ("print", self._print_dialog),
-            ("quit", self._quit_app),
-            ("undo", self._undo),
-            ("redo", self._unundo),
-            ("cut", self._cut_selection),
-            ("copy", self._copy_selection),
-            ("paste", self._paste_selection),
-            ("delete", self._delete_selection),
-            ("renumber", self._renumber_dialog),
-            ("select-all", self._select_all),
+            ("scan", self.scan_dialog),
+            ("save", self.save_dialog),
+            ("email", self.email),
+            ("print", self.print_dialog),
+            ("quit", self.quit_app),
+            ("undo", self.undo),
+            ("redo", self.unundo),
+            ("cut", self.cut_selection),
+            ("copy", self.copy_selection),
+            ("paste", self.paste_selection),
+            ("delete", self.delete_selection),
+            ("renumber", self.renumber_dialog),
+            ("select-all", self.select_all),
             ("select-odd", self._select_odd),
             ("select-even", self._select_even),
-            ("select-invert", self._select_invert),
-            ("select-blank", self._select_blank),
-            ("select-dark", self._select_dark),
-            ("select-modified", self._select_modified_since_ocr),
-            ("select-no-ocr", self._select_no_ocr),
-            ("clear-ocr", self._clear_ocr),
-            ("properties", self._properties),
-            ("preferences", self._preferences),
-            ("zoom-100", self._zoom_100),
-            ("zoom-to-fit", self._zoom_to_fit),
-            ("zoom-in", self._zoom_in),
-            ("zoom-out", self._zoom_out),
-            ("rotate-90", self._rotate_90),
-            ("rotate-180", self._rotate_180),
-            ("rotate-270", self._rotate_270),
-            ("threshold", self._threshold),
-            ("brightness-contrast", self._brightness_contrast),
-            ("negate", self._negate),
-            ("unsharp", self._unsharp),
-            ("crop-dialog", self._crop_dialog),
-            ("crop-selection", self._crop_selection),
-            ("split", self._split_dialog),
-            ("unpaper", self._unpaper_dialog),
-            ("ocr", self._ocr_dialog),
-            ("user-defined", self._user_defined_dialog),
+            ("select-invert", self.select_invert),
+            ("select-blank", self.select_blank),
+            ("select-dark", self.select_dark),
+            ("select-modified", self.select_modified_since_ocr),
+            ("select-no-ocr", self.select_no_ocr),
+            ("clear-ocr", self.clear_ocr),
+            ("properties", self.properties),
+            ("preferences", self.preferences),
+            ("zoom-100", self.zoom_100),
+            ("zoom-to-fit", self.zoom_to_fit),
+            ("zoom-in", self.zoom_in),
+            ("zoom-out", self.zoom_out),
+            ("rotate-90", self.rotate_90),
+            ("rotate-180", self.rotate_180),
+            ("rotate-270", self.rotate_270),
+            ("threshold", self.threshold),
+            ("brightness-contrast", self.brightness_contrast),
+            ("negate", self.negate),
+            ("unsharp", self.unsharp),
+            ("crop-dialog", self.crop_dialog),
+            ("crop-selection", self.crop_selection),
+            ("split", self.split_dialog),
+            ("unpaper", self.unpaper_dialog),
+            ("ocr", self.ocr_dialog),
+            ("user-defined", self.user_defined_dialog),
             ("help", view_html),
-            ("about", self._about),
+            ("about", self.about),
         ]:
             self._actions[name] = Gio.SimpleAction.new(name, None)
             self._actions[name].connect("activate", function)
@@ -449,7 +447,7 @@ class ApplicationWindow(
 
         # Open scan dialog in background
         if self.settings["auto-open-scan-dialog"]:
-            self._scan_dialog(None, None, True)
+            self.scan_dialog(None, None, True)
 
         # Deal with --import command line option
         if self._args.import_files is not None:
@@ -688,7 +686,7 @@ class ApplicationWindow(
         # Let the keypress propagate
         if event.keyval != Gdk.KEY_Delete:
             return Gdk.EVENT_PROPAGATE
-        self._delete_selection(None, None)
+        self.delete_selection(None, None)
         return Gdk.EVENT_STOP
 
     def _change_image_tool_cb(self, action, value):
@@ -945,9 +943,9 @@ class ApplicationWindow(
 
             self._windows = None  # force scan dialog to be rebuilt
             if response == "reopen":
-                self._scan_dialog(None, None)
+                self.scan_dialog(None, None)
             elif response == "rescan":
-                self._scan_dialog(None, None, False, True)
+                self.scan_dialog(None, None, False, True)
             elif response == "restart":
                 self._restart()
 
