@@ -41,7 +41,8 @@ class SessionMixins:
                     self.session = tempfile.TemporaryDirectory(
                         prefix="gscan2pdf-", dir=tmpdir
                     )
-                except:
+                except (FileNotFoundError, PermissionError) as e:
+                    logger.error("Error creating temporary directory: %s", e)
                     self.session = tempfile.TemporaryDirectory(prefix="gscan2pdf-")
             else:
                 self.session = (
@@ -87,7 +88,7 @@ class SessionMixins:
             try:
                 self._create_lockfile()
                 crashed.append(session)
-            except Exception as e:
+            except (OSError, IOError) as e:
                 logger.warning("Error opening lockfile %s", str(e))
 
         # Flag those with no session file

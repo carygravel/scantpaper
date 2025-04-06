@@ -43,7 +43,7 @@ def drag_motion_callback(tree, context, x, y, t):
     "Handle drag motion"
     try:
         path, how = tree.get_dest_row_at_pos(x, y)
-    except:
+    except AttributeError:
         return
     scroll = tree.get_parent()
 
@@ -245,7 +245,7 @@ class ApplicationWindow(
 
         try:
             self.set_icon_from_file(f"{self.get_application().iconpath}/gscan2pdf.svg")
-        except Exception as e:
+        except (FileNotFoundError, OSError) as e:
             logger.warning(
                 "Unable to load icon `%s/gscan2pdf.svg': %s",
                 self.get_application().iconpath,

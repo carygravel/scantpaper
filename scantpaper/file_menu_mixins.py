@@ -73,7 +73,7 @@ def launch_default_for_file(filename):
     context = Gio.AppLaunchContext()
     try:
         Gio.AppInfo.launch_default_for_uri(uri, context)
-    except Exception as e:
+    except Gio.Error as e:
         logger.error("Unable to launch viewer: %s", e)
 
 
