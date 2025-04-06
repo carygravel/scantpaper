@@ -199,6 +199,65 @@ class ApplicationWindow(
 
         # These will be in the window group and have the "win" prefix
         self._actions = {}
+        self._init_actions()
+
+        # add the actions to the window that have window-classed callbacks
+        self.add_action(self._actions["tooltype"])
+        self.add_action(self._actions["viewtype"])
+        self.add_action(self._actions["editmode"])
+
+        # connect the action callback for tools and view
+        self._actions["tooltype"].connect("activate", self._change_image_tool_cb)
+        self._actions["viewtype"].connect("activate", self._change_view_cb)
+        self._actions["editmode"].connect("activate", self._edit_mode_callback)
+
+        self._dependencies = {}
+        self._ocr_engine = []
+        self._pre_flight()
+        self.print_settings = None
+        self._message_dialog = None
+        self._windows = None
+        self._windowc = None
+        self._windowo = None
+        self._windowu = None
+        self._windowi = None
+        self._windowe = None
+        self._windowr = None
+        self._windowp = None
+        self._hpaned = self.builder.get_object("hpaned")
+        self._vpaned = self.builder.get_object("vpaned")
+        self._vnotebook = self.builder.get_object("vnotebook")
+        self._hpanei = Gtk.HPaned()
+        self._vpanei = Gtk.VPaned()
+        self.connect("delete-event", lambda w, e: not self._can_quit())
+        self.connect("window-state-event", self._window_state_event_callback)
+
+        # If defined in the config file, set the window state, size and position
+        if self.settings["restore window"]:
+            self.set_default_size(
+                self.settings["window_width"], self.settings["window_height"]
+            )
+            if "window_x" in self.settings and "window_y" in self.settings:
+                self.move(self.settings["window_x"], self.settings["window_y"])
+
+            if self.settings["window_maximize"]:
+                self.maximize()
+
+        try:
+            self.set_icon_from_file(f"{self.get_application().iconpath}/gscan2pdf.svg")
+        except Exception as e:
+            logger.warning(
+                "Unable to load icon `%s/gscan2pdf.svg': %s",
+                self.get_application().iconpath,
+                str(e),
+            )
+
+        self._thumb_popup = self.builder.get_object("thumb_popup")
+
+        # app.add_window(window)
+        self._populate_main_window()
+
+    def _init_actions(self):
         for name, function in [
             ("new", self.new),
             ("open", self.open_dialog),
@@ -260,57 +319,6 @@ class ApplicationWindow(
         self._actions["editmode"] = Gio.SimpleAction.new_stateful(
             "editmode", GLib.VariantType("s"), GLib.Variant.new_string("text")
         )
-
-        # add the actions to the window that have window-classed callbacks
-        self.add_action(self._actions["tooltype"])
-        self.add_action(self._actions["viewtype"])
-        self.add_action(self._actions["editmode"])
-
-        # connect the action callback for tools and view
-        self._actions["tooltype"].connect("activate", self._change_image_tool_cb)
-        self._actions["viewtype"].connect("activate", self._change_view_cb)
-        self._actions["editmode"].connect("activate", self._edit_mode_callback)
-
-        self._dependencies = {}
-        self._ocr_engine = []
-        self._pre_flight()
-        self.print_settings = None
-        self._message_dialog = None
-        self._windows = None
-        self._windowc = None
-        self._windowo = None
-        self._windowu = None
-        self._windowi = None
-        self._windowe = None
-        self._windowr = None
-        self._windowp = None
-        self.connect("delete-event", lambda w, e: not self._can_quit())
-        self.connect("window-state-event", self._window_state_event_callback)
-
-        # If defined in the config file, set the window state, size and position
-        if self.settings["restore window"]:
-            self.set_default_size(
-                self.settings["window_width"], self.settings["window_height"]
-            )
-            if "window_x" in self.settings and "window_y" in self.settings:
-                self.move(self.settings["window_x"], self.settings["window_y"])
-
-            if self.settings["window_maximize"]:
-                self.maximize()
-
-        try:
-            self.set_icon_from_file(f"{self.get_application().iconpath}/gscan2pdf.svg")
-        except Exception as e:
-            logger.warning(
-                "Unable to load icon `%s/gscan2pdf.svg': %s",
-                self.get_application().iconpath,
-                str(e),
-            )
-
-        self._thumb_popup = self.builder.get_object("thumb_popup")
-
-        # app.add_window(window)
-        self._populate_main_window()
 
     def _window_state_event_callback(self, _w, event):
         "Note when the window is maximised or not"
@@ -465,7 +473,6 @@ class ApplicationWindow(
     def _populate_panes(self):
 
         # HPaned for thumbnails and detail view
-        self._hpaned = self.builder.get_object("hpaned")
         self._hpaned.set_position(self.settings["thumb panel"])
 
         # Scrolled window for thumbnails
@@ -487,16 +494,11 @@ class ApplicationWindow(
 
         # Notebook, split panes for detail view and OCR output
         # controls in pack1/2 don't seem to be available via UI XML in Gtk4
-        self._vpaned = self.builder.get_object("vpaned")
-        self._vnotebook = self.builder.get_object("vnotebook")
         self._vpaned.remove(self._vnotebook)
         self._vpaned.pack1(self._vnotebook, True)
         edit_hbox = self.builder.get_object("edit_hbox")
         self._vpaned.remove(edit_hbox)
         self._vpaned.pack1(edit_hbox, False)
-
-        self._hpanei = Gtk.HPaned()
-        self._vpanei = Gtk.VPaned()
         self._hpanei.show()
         self._vpanei.show()
 
