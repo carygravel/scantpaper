@@ -43,7 +43,7 @@ def drag_motion_callback(tree, context, x, y, t):
     "Handle drag motion"
     try:
         path, how = tree.get_dest_row_at_pos(x, y)
-    except AttributeError:
+    except TypeError:  # for NoneType, which can't be unpacked
         return
     scroll = tree.get_parent()
 
