@@ -5,14 +5,7 @@ import re
 import logging
 import gi
 from comboboxtext import ComboBoxText
-from const import (
-    PERCENT,
-    VERSION,
-    _90_DEGREES,
-    _180_DEGREES,
-    _270_DEGREES,
-    _100_PERCENT,
-)
+from const import PERCENT, VERSION, _90_DEGREES, _180_DEGREES, _100_PERCENT
 from dialog import Dialog
 from dialog.crop import Crop
 from dialog.save import Save as SaveDialog
@@ -38,7 +31,7 @@ class ToolsMenuMixins:
     def rotate_90(self, _action, _param):
         "Rotates the selected pages by 90 degrees"
         self._rotate(
-            _90_DEGREES,
+            -_90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
@@ -52,7 +45,7 @@ class ToolsMenuMixins:
     def rotate_270(self, _action, _param):
         "Rotates the selected pages by 270 degrees"
         self._rotate(
-            _270_DEGREES,
+            _90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
