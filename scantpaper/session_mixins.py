@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class SessionMixins:
     "provide methods around session files"
+    # pylint: disable=too-many-instance-attributes
 
     def _create_temp_directory(self):
         "Create a temporary directory for the session"
