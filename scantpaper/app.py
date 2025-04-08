@@ -1,7 +1,6 @@
 "main application"
 
 # TODO:
-# rotate icons wrong way round
 # save_pdf landscape squashes into portrait
 # fix TypeErrors when dragging edges of selection
 # fix panning text layer
