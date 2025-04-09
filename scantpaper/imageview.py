@@ -178,7 +178,6 @@ class Selector(Tool):
         "react to button_release events from the view"
         self.dragging = False
         self.view().update_cursor(event.x, event.y)
-        self._update_selection(event)
 
     def motion(self, event):
         "react to motion events from the view"
@@ -292,19 +291,15 @@ class Selector(Tool):
                     setattr(self, edge, "upper")
                 else:
                     setattr(self, edge, "lower")
-
             else:
                 self.drag_start[direction] = s2
                 setattr(self, edge, "lower")
-
         elif getattr(self, edge) == "upper":
-            if direction in self.drag_start:
+            if direction in self.drag_start and self.drag_start[direction] is not None:
                 if s < self.drag_start[direction]:
                     setattr(self, edge, "lower")
-
                 else:
                     setattr(self, edge, "upper")
-
             else:
                 self.drag_start[direction] = s1
                 setattr(self, edge, "upper")
