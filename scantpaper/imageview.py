@@ -452,7 +452,7 @@ class ImageView(Gtk.DrawingArea):
         "/documentation/pycairo/3/reference/constants.html#cairo-filter",
     )
 
-    def do_draw(self, context):
+    def do_draw(self, context, **kwargs):  # pylint: disable=arguments-differ
         "respond to the draw signal"
         allocation = self.get_allocation()
         style = self.get_style_context()
@@ -522,20 +522,26 @@ class ImageView(Gtk.DrawingArea):
 
         return True
 
-    def do_button_press_event(self, event):
+    def do_button_press_event(
+        self, event, **kwargs
+    ):  # pylint: disable=arguments-differ
         "respond to the button_press event"
         return self.get_tool().button_pressed(event)
 
-    def do_button_release_event(self, event):
+    def do_button_release_event(
+        self, event, **kwargs
+    ):  # pylint: disable=arguments-differ
         "respond to the button_release event"
         self.get_tool().button_released(event)
 
-    def do_motion_notify_event(self, event):
+    def do_motion_notify_event(
+        self, event, **kwargs
+    ):  # pylint: disable=arguments-differ
         "respond to the motion_notify event"
         self.update_cursor(event.x, event.y)
         self.get_tool().motion(event)
 
-    def do_scroll_event(self, event):
+    def do_scroll_event(self, event, **kwargs):  # pylint: disable=arguments-differ
         "respond to the scroll event"
         center_x, center_y = self.to_image_coords(event.x, event.y)
         if center_x is None:
@@ -548,7 +554,7 @@ class ImageView(Gtk.DrawingArea):
             zoom = self.get_zoom() / self.zoom_step
         self._set_zoom_with_center(zoom, center_x, center_y)
 
-    def do_configure_event(self, _event):
+    def do_configure_event(self, _event, **kwargs):  # pylint: disable=arguments-differ
         "respond to the configure event"
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
