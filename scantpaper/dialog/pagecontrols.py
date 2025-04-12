@@ -221,31 +221,28 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         # Entry button
         hboxn = Gtk.HBox()
         vboxn.pack_start(hboxn, True, True, 0)
-        bscannum = Gtk.RadioButton.new_with_label_from_widget(bscanall, "#:")
-        bscannum.set_tooltip_text(_("Set number of pages to scan"))
-        hboxn.pack_start(bscannum, False, False, 0)
+        self._bscannum = Gtk.RadioButton.new_with_label_from_widget(bscanall, "#:")
+        self._bscannum.set_tooltip_text(_("Set number of pages to scan"))
+        hboxn.pack_start(self._bscannum, False, False, 0)
 
         # Number of pages
         spin_buttonn = Gtk.SpinButton.new_with_range(1, MAX_PAGES, 1)
         spin_buttonn.set_tooltip_text(_("Set number of pages to scan"))
         hboxn.pack_end(spin_buttonn, False, False, 0)
-        bscannum.connect("clicked", self._do_clicked_scan_number, spin_buttonn)
+        self._bscannum.connect("clicked", self._do_clicked_scan_number, spin_buttonn)
         self.connect(
             "changed-num-pages",
             self._do_changed_num_pages,
             bscanall,
-            bscannum,
+            self._bscannum,
             spin_buttonn,
-        )
-        self.connect(
-            "changed-scan-option", self._changed_scan_option_callback, bscannum
         )
 
         # Actively set a radio button to synchronise GUI and properties
         if self.num_pages > 0:
-            bscannum.set_active(True)
+            self._bscannum.set_active(True)
         else:
-            bscanall.set_active(True)
+            self._bscanall.set_active(True)
 
         # vbox for duplex/simplex page numbering in order to be able to show/hide
         # them together.
@@ -260,7 +257,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         hbox.pack_end(self.checkx, False, False, 0)
         self._vboxx.pack_start(hbox, False, False, 0)
 
-        self._create_extended_mode(spin_buttonn, bscannum)
+        self._create_extended_mode(spin_buttonn, self._bscannum)
 
     def _create_extended_mode(self, spin_buttonn, bscannum):
 
@@ -466,32 +463,9 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
             start_page = self.page_number_start
             step = self.page_number_increment
             if start_page > slist.data[num_pages - 1][0] + step:
-                self.page_number_start = slist
+                self.page_number_start = len(slist)
         else:
             self.page_number_start = 1
-
-    def _changed_scan_option_callback(self, _dialog, name, value, _uuid, bscannum):
-        options = self.available_scan_options
-        opt = options.by_name("source")
-        if opt is not None and name == opt.name:
-            if self.allow_batch_flatbed or not options.flatbed_selected(
-                self.thread.device_handle
-            ):
-                self.framen.set_sensitive(True)
-            else:
-                bscannum.set_active(True)
-                self.num_pages = 1
-                self.sided = "single"
-                self.framen.set_sensitive(False)
-
-            if self.adf_defaults_scan_all_pages and re.search(
-                r"(ADF|Automatic[ ]Document[ ]Feeder)",
-                value,
-                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                self.num_pages = 0
-
-        self._flatbed_or_duplex_callback()
 
     def _flatbed_or_duplex_callback(self):
 

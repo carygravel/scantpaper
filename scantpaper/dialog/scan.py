@@ -415,6 +415,9 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         # several times. Tested by t/06198_Dialog_Scan_Image_Sane.t
         self.setting_profile = []
         self.setting_current_scan_options = []
+        self.connect(
+            "changed-scan-option", self._changed_scan_option_callback, self._bscannum
+        )
 
     def _add_device_combobox(self):
         self.hboxd = Gtk.HBox()
@@ -1313,6 +1316,29 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             if isinstance(child, Gtk.Label):
                 return child.get_text()
         return None
+
+    def _changed_scan_option_callback(self, _dialog, name, value, _uuid, bscannum):
+        options = self.available_scan_options
+        opt = options.by_name("source")
+        if opt is not None and name == opt.name:
+            if self.allow_batch_flatbed or not options.flatbed_selected(
+                self.thread.device_handle
+            ):
+                self.framen.set_sensitive(True)
+            else:
+                bscannum.set_active(True)
+                self.num_pages = 1
+                self.sided = "single"
+                self.framen.set_sensitive(False)
+
+            if self.adf_defaults_scan_all_pages and re.search(
+                r"(ADF|Automatic[ ]Document[ ]Feeder)",
+                value,
+                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+            ):
+                self.num_pages = 0
+
+        self._flatbed_or_duplex_callback()
 
 
 def _remove_paper_callback(slist, _window):

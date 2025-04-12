@@ -1,5 +1,9 @@
 "test dialog"
+import subprocess
+import tempfile
 from dialog import Dialog
+from dialog.pagecontrols import PageControls
+from document import Document
 import gi
 
 gi.require_version("Gdk", "3.0")
@@ -7,11 +11,9 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, Gtk  # pylint: disable=wrong-import-position
 
 
-def test_1():
+def test_dialog():
     "test dialog"
-    # Translation.set_domain('gscan2pdf')
     window = Gtk.Window()
-
     dialog = Dialog(title="title", transient_for=window)
     assert isinstance(dialog, Dialog), "Created dialog"
 
@@ -68,3 +70,27 @@ def test_1():
     dialog.add_actions([("gtk-close", on_close)])
     dialog.response(Gtk.ResponseType.NONE)
     assert True, "no crash due to undefined response"
+
+
+def test_page_controls(mainloop_with_timeout):
+    "test PageControls"
+    dialog = PageControls(title="title", transient_for=Gtk.Window())
+    assert isinstance(dialog, PageControls), "Created PageControls dialog"
+
+    slist = Document()
+    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    with tempfile.TemporaryDirectory() as tempdir:
+        kwargs = {
+            "filename": "test.pnm",
+            "resolution": 72,
+            "page": 1,
+            "dir": tempdir,
+        }
+        slist.import_scan(**kwargs)
+        loop1 = mainloop_with_timeout()
+        kwargs["finished_callback"] = lambda response: loop1.quit()
+        loop1.run()
+        dialog.page_number_start = 5
+        dialog.document = slist
+        dialog.reset_start_page()
+        assert dialog.page_number_start == 2, "PageControls.reset_start_page()"
