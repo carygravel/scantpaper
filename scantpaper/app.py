@@ -2,7 +2,6 @@
 
 # TODO:
 # save_pdf landscape squashes into portrait
-# fix TypeErrors when dragging edges of selection
 # fix panning text layer
 # fix editing text layer
 # deleting last page produces TypeError

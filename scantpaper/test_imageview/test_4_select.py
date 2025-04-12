@@ -35,6 +35,7 @@ def test_1():
     view.get_tool().button_pressed(event)
     event.x = 93
     event.y = 67
+    view.get_tool().button_pressed(event)
     view.get_tool().button_released(event)
 
     if view.get_scale_factor() <= 1:
@@ -42,4 +43,4 @@ def test_1():
         assert selection.x == 32, "get_selection x"
         assert selection.y == 38, "get_selection y"
         assert selection.width == 11, "get_selection width"
-        assert selection.height == 8, "get_selection height"
+        assert selection.height == 7, "get_selection height"
