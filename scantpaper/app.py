@@ -4,7 +4,6 @@
 # save_pdf landscape squashes into portrait
 # fix panning text layer
 # fix editing text layer
-# saving a scan profile produced TypeError
 # fix importing tiff
 # save text for page without text produces: can only concatenate str (not "NoneType") to str
 # lint
