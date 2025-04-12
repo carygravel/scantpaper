@@ -1368,13 +1368,13 @@ def _value_for_active_option(value, opt):
 
 
 def _save_profile_callback(_widget, parent):
-
     dialog = Gtk.Dialog(
         _("Name of scan profile"),
-        parent,
-        "destroy-with-parent",
-        gtk_save="ok",
-        gtk_cancel="cancel",
+        parent=parent,
+        destroy_with_parent=True,
+    )
+    dialog.add_buttons(
+        Gtk.STOCK_OK, Gtk.ResponseType.OK, Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL
     )
     hbox = Gtk.HBox()
     label = Gtk.Label(label=_("Name of scan profile"))
@@ -1383,11 +1383,11 @@ def _save_profile_callback(_widget, parent):
     entry.set_activates_default(True)
     hbox.pack_end(entry, True, True, 0)
     dialog.get_content_area().add(hbox)
-    dialog.set_default_response("ok")
+    dialog.set_default_response(Gtk.ResponseType.OK)
     dialog.show_all()
     flag = True
     while flag:
-        if dialog.run() == "ok":
+        if dialog.run() == Gtk.ResponseType.OK:
             name = entry.get_text()
             if not re.search(r"^\s*$", name, re.MULTILINE | re.DOTALL | re.VERBOSE):
                 if name in parent.profiles:
