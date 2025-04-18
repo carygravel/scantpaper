@@ -566,10 +566,10 @@ def _write_image_object(page, options):
         if options["options"]["downsample dpi"] < min(
             page.resolution[0], page.resolution[1]
         ):
-            width = (
+            width = int(
                 page.width * options["options"]["downsample dpi"] // page.resolution[0]
             )
-            height = (
+            height = int(
                 page.height * options["options"]["downsample dpi"] // page.resolution[1]
             )
             image = image.resize((width, height))

@@ -191,6 +191,8 @@ class Page:
             # for some reason PIL reports TIFFs e.g. in test 11271 as resolution==1
             if key in self.image_object.info and self.image_object.info[key][0] > 1:
                 xresolution, yresolution = self.image_object.info[key]
+            if not isinstance(xresolution, float):
+                xresolution, yresolution = float(xresolution), float(yresolution)
 
         if (
             "jfif_unit" in self.image_object.info
