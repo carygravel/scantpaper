@@ -67,7 +67,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     def started_cb(response):
         nonlocal asserts
-        assert response.request.process == "get_file_info"
+        assert response.request.process in ["get_file_info", "import_file"]
         asserts += 1
 
     def metadata_cb(response):
@@ -90,7 +90,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert asserts == 2, "callbacks all run"
+    assert asserts == 3, "callbacks all run"
 
     assert slist.data[0][2].image_object.mode == "RGB", "DjVu imported correctly"
     expected = f"""<?xml version="1.0" encoding="UTF-8"?>
