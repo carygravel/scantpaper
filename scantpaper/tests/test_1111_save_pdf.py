@@ -28,7 +28,7 @@ def test_1(clean_up_files):
         # FIXME: add support for completed/total
         # assert completed== 0, 'completed counter starts at 0'
         # assert total==     2, 'total counter starts at 2'
-        assert response.request.process == "get_file_info"
+        assert response.request.process in ["get_file_info", "import_file"]
         asserts += 1
 
     def import_files_finished_cb(response):
@@ -79,7 +79,7 @@ def test_1(clean_up_files):
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    assert asserts == 4, "ran all callbacks"
+    assert asserts == 5, "ran all callbacks"
 
     capture = subprocess.check_output(["identify", "test-1.ppm"], text=True)
     assert re.search(

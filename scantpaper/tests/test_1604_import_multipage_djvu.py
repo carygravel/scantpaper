@@ -1,4 +1,4 @@
-"Test importing DjVu"
+"Test importing multipage DjVu"
 
 import subprocess
 import tempfile
@@ -9,7 +9,7 @@ from document import Document
 
 
 def test_1(clean_up_files):
-    "Test importing DjVu"
+    "Test importing multipage DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
@@ -29,7 +29,7 @@ def test_1(clean_up_files):
 
     def started_cb(response):
         nonlocal asserts
-        assert response.request.process == "get_file_info"
+        assert response.request.process in ["get_file_info", "import_file"]
         asserts += 1
 
     def error_cb(response):
@@ -44,7 +44,7 @@ def test_1(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert asserts == 1, "callbacks all run"
+    assert asserts == 2, "callbacks all run"
     assert len(slist.data) == 2, "imported 2 pages"
 
     #########################

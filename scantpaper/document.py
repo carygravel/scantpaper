@@ -172,38 +172,28 @@ class Document(BaseDocument):
                 **options,
             )
 
-    def import_file(self, password=None, **options):
+    def import_file(self, **kwargs):
         "import file"
         # File in which to store the process ID
         # so that it can be killed if necessary
-        pidfile = self.create_pidfile(options)
-        if pidfile is None:
+        kwargs["pidfile"] = self.create_pidfile(kwargs)
+        if kwargs["pidfile"] is None:
             return
-        dirname = EMPTY
+        kwargs["dir"] = EMPTY
         if self.dir is not None:
-            dirname = self.dir
+            kwargs["dir"] = self.dir
+        kwargs["first"] = kwargs.pop("first_page")
+        kwargs["last"] = kwargs.pop("last_page")
 
         def _import_file_data_callback(response):
             try:
                 self.add_page(response.info, None)
             except AttributeError:
-                if "logger_callback" in options:
-                    options["logger_callback"](response)
+                if "logger_callback" in kwargs:
+                    kwargs["logger_callback"](response)
 
-        def _import_file_finished_callback(response):
-            if "finished_callback" in options:
-                options["finished_callback"](response)
-
-        self.thread.import_file(
-            info=options["info"],
-            password=password,
-            first=options["first_page"],
-            last=options["last_page"],
-            dir=dirname,
-            pidfile=pidfile,
-            data_callback=_import_file_data_callback,
-            finished_callback=_import_file_finished_callback,
-        )
+        kwargs["data_callback"] = _import_file_data_callback
+        self.thread.import_file(**kwargs)
 
     def _post_process_rotate(self, page, options):
         def rotate_finished_callback(_response):
