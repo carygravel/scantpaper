@@ -1,4 +1,5 @@
 "object and helper methods to manipulate scan options"
+
 import re
 from collections import defaultdict, namedtuple
 from types import SimpleNamespace
@@ -239,7 +240,7 @@ class Options(GObject.Object):
             option.constraint_type = "CONSTRAINT_NONE"
             option.constraint = None
             option.val = None
-            values = r"(?:(?:[ ]|[[]=[(])([^[].*?)(?:[)]\])?)?"
+            values = r"(?:(?:[ ]|[\[]=[(])([^[].*?)(?:[)]\])?)?"
 
             # parse group
             regex = re.search(
@@ -260,7 +261,7 @@ class Options(GObject.Object):
                       {values}      # optionally followed by the possible values
                         # optionally a space,
                         # followed by the current value in square brackets
-                      (?:[ ][[](.*?)[]])?
+                      (?:[ ][\[](.*?)[\]])?
                       [ ]*\n     # the rest of the line
                       (.*) # the rest of the output
                     """,
