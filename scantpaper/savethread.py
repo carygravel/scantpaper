@@ -376,6 +376,8 @@ class SaveThread(Importhread):
         with open(options["path"], "w", encoding="utf-8") as fhd:
             fhd.write(string)
 
+        if "options" not in options:
+            options["options"] = None
         _post_save_hook(options["path"], options["options"])
 
     def save_hocr(self, **kwargs):

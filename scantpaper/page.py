@@ -113,7 +113,7 @@ class Page:
     def export_text(self):
         "export simple text"
         if self.text_layer is None:
-            return None
+            return ""
         return Bboxtree(self.text_layer).to_text()
 
     def import_pdftotext(self, html):

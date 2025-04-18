@@ -4,7 +4,7 @@
 # save_pdf landscape squashes into portrait
 # fix panning text layer
 # fix editing text layer
-# save text for page without text produces: can only concatenate str (not "NoneType") to str
+# group tests better
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
