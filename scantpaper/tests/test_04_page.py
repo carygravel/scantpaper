@@ -140,7 +140,7 @@ def test_1():
     #########################
 
     assert page.export_djvu_txt() is None, "export_djvu_txt() without bboxes"
-    assert page.export_text() is None, "export_text() without bboxes"
+    assert page.export_text() == "", "export_text() without bboxes"
     assert page.export_djvu_ann() is None, "export_djvu_ann() without bboxes"
 
 
