@@ -5,6 +5,7 @@
 # fix panning text layer
 # fix editing text layer
 # group tests better
+# package pytest-black for Debian
 # lint
 # fix progress bar, including during scan
 # restore last used scan settings
