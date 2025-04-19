@@ -1,4 +1,5 @@
 "Classes and methods for reading and writing the bounding box trees from HOCR files"
+
 import re
 import html
 from html.parser import HTMLParser
@@ -177,7 +178,7 @@ class Bboxtree:
             if line == "":
                 continue
             regex = re.search(
-                fr"""[(]maparea\s+\".*\" # url
+                rf"""[(]maparea\s+\".*\" # url
 \s+\"(.*)\" # text field enclosed in inverted commas
 \s+[(]rect\s+{BBOX_REGEX}[)] # bounding box
 \s+{HILITE_REGEX} # highlight color
@@ -228,7 +229,7 @@ class Bboxtree:
             if line == "":
                 continue
             regex = re.search(
-                fr"^\s*([(]+)(\w+)\s+{BBOX_REGEX}(.*?)([)]*)$",
+                rf"^\s*([(]+)(\w+)\s+{BBOX_REGEX}(.*?)([)]*)$",
                 line,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
@@ -384,7 +385,7 @@ class HOCRParser(HTMLParser):
         data = {}
 
         regex = re.search(
-            fr"\bbbox\s+{BBOX_REGEX}", title, re.MULTILINE | re.DOTALL | re.VERBOSE
+            rf"\bbbox\s+{BBOX_REGEX}", title, re.MULTILINE | re.DOTALL | re.VERBOSE
         )
         if regex:
             if regex.group(1) != regex.group(3) and regex.group(2) != regex.group(4):

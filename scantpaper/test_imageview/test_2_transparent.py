@@ -1,4 +1,4 @@
-""" Test transparency """
+"Test transparency"
 
 from imageview import ImageView
 import gi

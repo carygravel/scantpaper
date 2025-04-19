@@ -1,4 +1,5 @@
 "Tests for bboxtree"
+
 from bboxtree import Bboxtree, VERSION, HOCR_HEADER
 import pytest
 

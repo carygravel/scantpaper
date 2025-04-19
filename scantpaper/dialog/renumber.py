@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class Renumber(Dialog):
     "Renumber dialog"
+
     __gsignals__ = {
         "changed-start": (GObject.SignalFlags.RUN_FIRST, None, (int,)),
         "changed-increment": (GObject.SignalFlags.RUN_FIRST, None, (int,)),

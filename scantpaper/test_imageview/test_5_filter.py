@@ -1,4 +1,4 @@
-" Test interpolation (filters) "
+"Test interpolation (filters)"
 
 import cairo
 from imageview import ImageView

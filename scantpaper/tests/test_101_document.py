@@ -1,4 +1,5 @@
 "Tests for document.py"
+
 from collections import defaultdict
 import re
 import os

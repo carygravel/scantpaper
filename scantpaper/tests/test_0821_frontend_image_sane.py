@@ -1,4 +1,5 @@
 "test frontend/image_sane.py"
+
 from frontend.image_sane import SaneThread
 import PIL
 from gi.repository import GLib

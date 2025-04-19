@@ -81,6 +81,7 @@ TIFF_COMPRESSION_ALGS = [
 
 class Save(Dialog):
     "subclass dialog for save options"
+
     _meta_datetime = None
     _meta_datetime_widget = None
 

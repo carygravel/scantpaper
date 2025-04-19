@@ -1,4 +1,4 @@
-""" main file """
+"main file"
 
 import sys
 import os

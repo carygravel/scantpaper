@@ -45,7 +45,9 @@ def test_1(import_in_mainloop, clean_up_files):
     assert asserts == 1, "all callbacks run"
 
     import_in_mainloop(slist, ["test.tif"])
-    assert slist.data[0][2].image_object.mode == "RGB", "TIFF imported correctly after cancelling previous import"
+    assert (
+        slist.data[0][2].image_object.mode == "RGB"
+    ), "TIFF imported correctly after cancelling previous import"
 
     #########################
 

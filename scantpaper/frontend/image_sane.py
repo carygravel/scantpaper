@@ -1,4 +1,5 @@
 "subclass basethread for SANE"
+
 import math
 import logging
 from types import SimpleNamespace

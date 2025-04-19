@@ -1,4 +1,5 @@
 "options from test backend"
+
 from scanner.options import Options, Option, within_tolerance
 import pytest
 from frontend import enums

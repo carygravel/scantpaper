@@ -1,4 +1,5 @@
 "test scan dialog"
+
 from types import SimpleNamespace
 from scanner.profile import Profile
 

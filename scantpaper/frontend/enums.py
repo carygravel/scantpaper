@@ -1,5 +1,6 @@
-""" inject enums from sane dynamically to avoid linter warnings in each module
-    from which they are imported"""
+"""inject enums from sane dynamically to avoid linter warnings in each module
+from which they are imported"""
+
 import sane
 
 # Seed enums to avoid no-member warnings from pylint

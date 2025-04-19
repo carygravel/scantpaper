@@ -1,4 +1,5 @@
 "options from snapscan backend"
+
 from scanner.options import Options, Option
 import pytest
 from frontend import enums

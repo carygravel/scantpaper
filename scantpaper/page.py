@@ -1,4 +1,5 @@
 "Class of data and methods for handling page objects"
+
 import locale
 import re
 import tempfile
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 class Page:
     "Class of data and methods for handling page objects"
+
     width = None
     height = None
     size = (None, None, None)

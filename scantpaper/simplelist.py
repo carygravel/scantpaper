@@ -1,4 +1,5 @@
 "A simple interface to Gtk's complex MVC list widget"
+
 from warnings import warn
 import gi
 

@@ -1,4 +1,4 @@
-""" Test selector tool """
+"Test selector tool"
 
 from dataclasses import dataclass
 import gi
@@ -11,6 +11,7 @@ from gi.repository import Gtk, GdkPixbuf  # pylint: disable=wrong-import-positio
 @dataclass
 class MockEvent:
     "mock enough of the event class to test it"
+
     button: int
     x: int  # pylint: disable=invalid-name
     y: int  # pylint: disable=invalid-name

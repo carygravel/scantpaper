@@ -1,4 +1,5 @@
 "test scan dialog"
+
 from scanner.profile import Profile
 
 

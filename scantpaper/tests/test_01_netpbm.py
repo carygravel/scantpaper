@@ -1,4 +1,5 @@
 "tests for NetPBM"
+
 import os
 import subprocess
 import re

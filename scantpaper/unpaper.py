@@ -570,7 +570,9 @@ class Unpaper:
 
         for key in sorted(hashref[option]["options"].keys()):
             if default:
-                hashref[option]["options"][key]["widget"].set_value(float(default.pop(0)))
+                hashref[option]["options"][key]["widget"].set_value(
+                    float(default.pop(0))
+                )
 
     def set_options(self, options):
         "set options"

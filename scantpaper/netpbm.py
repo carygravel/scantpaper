@@ -1,4 +1,5 @@
 "methods to deal with NetPBM files"
+
 import math
 import re
 
