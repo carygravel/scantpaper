@@ -1,4 +1,4 @@
-""" Basic tests for imageview """
+"Basic tests for imageview"
 
 import tempfile
 import subprocess

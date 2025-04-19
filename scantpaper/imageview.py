@@ -1,4 +1,4 @@
-" Image viewer widget that can zoom, pan, select "
+"Image viewer widget that can zoom, pan, select"
 
 import cairo
 import gi

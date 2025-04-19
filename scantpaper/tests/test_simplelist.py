@@ -1,4 +1,5 @@
 "tests for SimpleList"
+
 import pytest
 import gi
 

@@ -1,4 +1,5 @@
 "test scanner option profiles"
+
 from scanner.profile import Profile, _synonyms
 import pytest
 

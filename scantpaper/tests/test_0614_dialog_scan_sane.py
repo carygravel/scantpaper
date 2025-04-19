@@ -1,4 +1,5 @@
 "test scan dialog"
+
 import pytest
 from scanner.profile import Profile
 

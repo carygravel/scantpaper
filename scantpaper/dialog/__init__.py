@@ -1,4 +1,5 @@
 "subclass Gtk.Dialog to add some boilerplate"
+
 import re
 from pagerange import PageRange
 import gi
@@ -11,6 +12,7 @@ from gi.repository import Gdk, Gtk, GObject  # pylint: disable=wrong-import-posi
 
 class Dialog(Gtk.Dialog):
     "subclass Gtk.Dialog to add some boilerplate"
+
     hide_on_delete = GObject.Property(
         type=bool,
         default=False,

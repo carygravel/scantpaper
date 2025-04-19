@@ -1,4 +1,5 @@
 "options from data"
+
 from scanner.options import Options, Option
 from frontend import enums
 

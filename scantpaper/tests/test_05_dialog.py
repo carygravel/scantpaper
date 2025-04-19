@@ -1,4 +1,5 @@
 "test dialog"
+
 import subprocess
 import tempfile
 from dialog import Dialog

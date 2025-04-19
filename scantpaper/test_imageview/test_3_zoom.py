@@ -1,4 +1,4 @@
-""" Test zoom """
+"Test zoom"
 
 import pytest
 from imageview import ImageView

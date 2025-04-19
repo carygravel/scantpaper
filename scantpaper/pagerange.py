@@ -1,4 +1,5 @@
 "pagerange widget"
+
 import gi
 from i18n import _
 
@@ -11,6 +12,7 @@ from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
 
 class PageRange(Gtk.VBox):
     "pagerange widget"
+
     __gsignals__ = {
         "changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
