@@ -2,9 +2,11 @@
 from collections import defaultdict
 import re
 import os
+import glob
 import datetime
 import subprocess
 import tempfile
+import gi
 import pytest
 from page import Page
 from const import VERSION
@@ -12,6 +14,9 @@ from document import (
     Document,
     _extract_metadata,
 )
+from docthread import DocThread
+from dialog.scan import Scan
+from basethread import Request
 from savethread import prepare_output_metadata, _set_timestamp, _bbox2markup
 from helpers import (
     exec_command,
@@ -21,6 +26,9 @@ from helpers import (
     collate_metadata,
     parse_truetype_fonts,
 )
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
 def get_page_index_all_callback(_uuid, _process, _message):
@@ -545,16 +553,12 @@ def test_helpers():
 
 def test_parse_truetype_fonts():
     "test parse_truetype_fonts()"
-    fclist = """/usr/local/share/fonts/Cairo-ExtraLight.ttf: Cairo,Cairo ExtraLight:style=ExtraLight,Regular
-/usr/local/share/fonts/FaustinaVFBeta-Italic.ttf: Faustina VF Beta
+    fclist = """/usr/share/fonts/Cairo-Light.ttf: Cairo,Cairo Light:style=Light,Regular
+/usr/share/fonts/FaustinaVFBeta-Italic.ttf: Faustina VF Beta
 """
     assert parse_truetype_fonts(fclist) == {
-        "by_family": {
-            "Cairo": {"ExtraLight": "/usr/local/share/fonts/Cairo-ExtraLight.ttf"}
-        },
-        "by_file": {
-            "/usr/local/share/fonts/Cairo-ExtraLight.ttf": ("Cairo", "ExtraLight")
-        },
+        "by_family": {"Cairo": {"Light": "/usr/share/fonts/Cairo-Light.ttf"}},
+        "by_file": {"/usr/share/fonts/Cairo-Light.ttf": ("Cairo", "Light")},
     }, "parse_truetype_fonts() only returns fonts for which we have a style"
 
 
@@ -563,3 +567,248 @@ def test_bbox2markup():
     assert _bbox2markup(300, 300, 500, [0, 0, 452, 57]) == pytest.approx(
         [0.0, 486.32, 108.48, 486.32, 0.0, 500.0, 108.48, 500.0], abs=0.01
     ), "converted bbox to markup coords"
+
+
+def test_docthread(clean_up_files):
+    "tests for DocThread"
+    # Gscan2pdf.Translation.set_domain('gscan2pdf')
+    # logger = Log.Log4perl.get_logger
+    # Gscan2pdf.Document.setup(logger)
+
+    thread = DocThread()
+    thread.start()
+
+    with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
+        os.remove(tif.name)
+        with pytest.raises(FileNotFoundError):
+            request = Request("get_file_info", (tif.name, None), thread.responses)
+            thread.do_get_file_info(request)
+
+        with pytest.raises(RuntimeError):
+            subprocess.run(["touch", tif.name], check=True)
+            request = Request("get_file_info", (tif.name, None), thread.responses)
+            thread.do_get_file_info(request)
+
+        subprocess.run(["convert", "rose:", tif.name], check=True)  # Create test image
+        tgz = "test.tgz"
+        subprocess.run(["tar", "cfz", tgz, tif.name], check=True)  # Create test tarball
+        request = Request("get_file_info", (tgz, None), thread.responses)
+        assert thread.do_get_file_info(request) == {
+            "format": "session file",
+            "path": "test.tgz",
+        }, "do_get_file_info + tgz"
+
+        pbm = "test.pbm"
+        cjb2 = "test.cjb2"
+        djvu = "test.djvu"
+        subprocess.run(["convert", "rose:", pbm], check=True)  # Create test image
+        subprocess.run(["cjb2", pbm, cjb2], check=True)
+        subprocess.run(["djvm", "-c", djvu, cjb2, cjb2], check=True)
+        request = Request("get_file_info", (djvu, None), thread.responses)
+        assert thread.do_get_file_info(request) == {
+            "format": "DJVU",
+            "path": "test.djvu",
+            "width": [70, 70],
+            "height": [46, 46],
+            "ppi": [300, 300],
+            "pages": 2,
+        }, "do_get_file_info + djvu"
+
+        pdf = "test.pdf"
+        subprocess.run(["tiff2pdf", "-o", pdf, tif.name], check=True)
+        request = Request("get_file_info", (pdf, None), thread.responses)
+        info = thread.do_get_file_info(request)
+        del info["datetime"]
+        assert info == {
+            "format": "Portable Document Format",
+            "path": "test.pdf",
+            "page_size": [16.8, 11.04, "pts"],
+            "pages": 1,
+        }, "do_get_file_info + pdf"
+
+        info = {
+            "format": "Tagged Image File Format",
+            "width": [70],
+            "height": [46],
+            "pages": 1,
+        }
+        request = Request("get_file_info", (tif.name, None), thread.responses)
+        example = thread.do_get_file_info(request)
+        del example["path"]
+        assert example == info, "do_get_file_info + tiff"
+        # do_import_file() no longer returns a page object, as it can return
+        # multiple pages, which are passed via the log queue
+        # request = Request(
+        #     "import_file",
+        #     ({"info": info, "first": 1, "last": 1, "dir": None},),
+        #     thread.responses,
+        # )
+        # assert isinstance(thread.do_import_file(request), Page), "do_import_file + tiff"
+
+        png = "test.png"
+        subprocess.run(["convert", "rose:", png], check=True)  # Create test image
+        request = Request("get_file_info", (png, None), thread.responses)
+        assert thread.do_get_file_info(request) == {
+            "format": "PNG",
+            "path": png,
+            "width": [70],
+            "height": [46],
+            "pages": 1,
+            "xresolution": 72.0,
+            "yresolution": 72.0,
+        }, "do_get_file_info + png"
+
+        def get_file_info_callback(response):
+            assert (
+                response.request.process == "get_file_info"
+            ), "get_file_info_finished_callback"
+            del response.info["path"]
+            assert response.info == info, "get_file_info"
+
+        thread.get_file_info(tif.name, None, finished_callback=get_file_info_callback)
+        for _ in range(4):
+            thread.monitor(block=True)
+
+        clean_up_files([cjb2, djvu, pbm, pdf, png, tgz])
+
+
+def test_document():
+    "tests for Document()"
+    tiff = "test.tif"
+    subprocess.run(["convert", "rose:", tiff], check=True)  # Create test image
+
+    tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist = Document(dir=tempdir.name)
+    dialog = Scan(
+        title="title",
+        transient_for=Gtk.Window(),
+        document=slist,
+        # logger        = logger,
+    )  # dir for temporary files
+
+    ran_callback = False
+
+    def finished_callback(_result):
+        nonlocal ran_callback
+        ran_callback = True
+        clipboard = slist.copy_selection(True)
+        slist.paste_selection(clipboard[0], 0, "after", True)  # copy-paste page 1->2
+        assert slist.data[0][2].uuid != slist.data[1][2].uuid, "different uuid"
+        assert slist.data[1][0] == 2, "new page is number 2"
+        assert slist.get_selected_indices() == [1], "pasted page selected"
+        dialog.page_number_start = 3
+        clipboard = slist.cut_selection()
+        assert len(clipboard) == 1, "cut 1 page to clipboard"
+        assert len(slist.data) == 1, "1 page left in list"
+        assert slist.get_selected_indices() == [0], "selection changed to previous page"
+        # TODO = "Don't know how to trigger update of page-number-start from Document"
+        # assert dialog.page_number_start== 2,               'page-number-start after cut'
+        slist.paste_selection(clipboard[0], 0, "before")  # paste page before 1
+        assert len(slist.data) == 2, "2 pages now in list"
+        assert (
+            slist.data[0][2].uuid == clipboard[0][2].uuid
+        ), "cut page pasted at page 1"
+        assert slist.data[0][0] == 1, "cut page renumbered to page 1"
+        assert slist.get_selected_indices() == [
+            1
+        ], "pasted page not selected, as parameter not TRUE"
+        assert dialog.page_number_start == 3, "page-number-start after paste"
+        slist.select([0, 1])
+        assert slist.get_selected_indices() == [0, 1], "selected all pages"
+
+        slist.take_snapshot()
+        # pylint: disable=protected-access
+        assert len(slist._undo_buffer) == 2, "snapshot taken"
+        assert slist._undo_selection == [0, 1], "snapshot selection"
+
+        slist.delete_selection()
+        assert len(slist.data) == 0, "deleted all pages"
+
+        slist.undo()
+        assert len(slist.data) == 2, "undo delete"
+        assert len(slist._undo_buffer) == 0, "can't undo twice"
+        assert slist._undo_selection == [], "can't undo selection"
+        assert len(slist._redo_buffer) == 0, "redo buffer empty"
+        assert slist._undo_selection == [], "redo selection empty"
+
+        slist.unundo()
+        assert len(slist.data) == 0, "redo delete"
+        assert len(slist._undo_buffer) == 2, "can't undo twice"
+        assert slist._undo_selection == [0, 1], "can't undo selection"
+        assert len(slist._redo_buffer) == 0, "redo buffer empty"
+        assert slist._undo_selection == [], "redo selection empty"
+        # pylint: enable=protected-access
+
+        # TODO/FIXME: test drag-and-drop callbacks for move
+        # TODO/FIXME: test drag-and-drop callbacks for copy
+
+    slist.import_files(paths=[tiff], finished_callback=finished_callback)
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert ran_callback, "ran finished callback"
+    os.remove(tiff)
+
+
+def test_import_scan(
+    clean_up_files,
+):  # FIXME: not sure we need this anymore, now we are passed Image objects around
+    "test Document.import_scan()"
+    pytest.skip("Skip until we are sure we need this")
+
+    slist = Document()
+
+    # dir for temporary files
+    tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist.set_dir(tempdir)
+
+    # build a cropped (i.e. too little data compared with header) pnm
+    # to test padding code
+    subprocess.run(["convert", "rose:", "test.ppm"], check=True)
+    old = subprocess.check_output(
+        ["identify", "-format", "%m %G %g %z-bit %r", "test.ppm"]
+    )
+
+    # To avoid piping one into the other. See
+    # https://stackoverflow.com/questions/13332268/how-to-use-subprocess-command-with-pipes
+    with subprocess.Popen(("convert", "rose:", "-"), stdout=subprocess.PIPE) as rose:
+        # rose = subprocess.Popen(("convert", "rose:", "-"), stdout=subprocess.PIPE)
+        output = subprocess.check_output(("head", "-c", "-1K"), stdin=rose.stdout)
+        rose.wait()
+        with open("test.pnm", "wb") as image_file:
+            image_file.write(output)
+
+    asserts = 0
+    mlp = GLib.MainLoop()
+
+    def _finished_callback(_response):
+        subprocess.run(["convert", slist.data[0][2].filename, "test2.ppm"], check=True)
+        assert (
+            subprocess.check_output(
+                ["identify", "-format", "%m %G %g %z-bit %r", "test2.ppm"]
+            )
+            == old
+        ), "padded pnm imported correctly (as PNG)"
+        nonlocal asserts
+        asserts += 1
+        assert os.path.getsize("test2.ppm") == os.path.getsize(
+            "test.ppm"
+        ), "padded pnm correct size"
+        asserts += 1
+        mlp.quit()
+
+    slist.import_scan(
+        filename="test.pnm",
+        page=1,
+        delete=True,
+        resolution=70,
+        dir=tempdir.name,
+        finished_callback=_finished_callback,
+    )
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert asserts == 2, "all tests run"
+
+    #########################
+
+    clean_up_files(["test.ppm", "test2.ppm", "test.pnm"] + glob.glob(f"{dir}/*"))
