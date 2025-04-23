@@ -4,6 +4,7 @@ import datetime
 import glob
 import locale
 import os
+import queue
 import re
 import subprocess
 import shutil
@@ -11,6 +12,41 @@ import tempfile
 import pytest
 from gi.repository import GLib
 from document import Document
+from docthread import DocThread
+from basethread import Request
+from page import Page
+
+
+def test_do_save_pdf(clean_up_files):
+    "Test writing basic PDF"
+
+    # Create test image
+    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+
+    thread = DocThread()
+    tdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    options = {
+        "dir": tdir.name,
+        "path": "test.pdf",
+        "list_of_pages": [
+            Page(
+                filename="test.pnm",
+                dir=tdir.name,
+                delete=True,
+                format="Portable anymap",
+                resolution=(72, 72, "PixelsPerInch"),
+                width=70,
+                height=46,
+            )
+        ],
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), queue.Queue())
+    thread.do_save_pdf(request)
+    capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+    assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
+
+    clean_up_files(["test.pnm", "test.pdf"])
 
 
 def test_save_pdf(clean_up_files):
@@ -566,6 +602,69 @@ def test_save_pdf_g4(import_in_mainloop, clean_up_files):
     clean_up_files(["test.png", "test.pdf"] + glob.glob("x-000.p*m"))
 
 
+def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
+    "Test writing PDF with group 4 compression"
+
+    subprocess.run(
+        [
+            "convert",
+            "rose:",
+            "-define",
+            "tiff:rows-per-strip=1",
+            "-compress",
+            "group4",
+            "test.tif",
+        ],
+        check=True,
+    )
+
+    slist = Document()
+
+    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist.set_dir(dirname.name)
+
+    import_in_mainloop(slist, ["test.tif"])
+
+    mlp = GLib.MainLoop()
+    slist.save_pdf(
+        path="test.pdf",
+        list_of_pages=[slist.data[0][2].uuid],
+        options={
+            "compression": "g4",
+        },
+        finished_callback=lambda response: mlp.quit(),
+    )
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+
+    subprocess.run(
+        [
+            "gs",
+            "-q",
+            "-dNOPAUSE",
+            "-dBATCH",
+            "-sDEVICE=pnggray",
+            "-g70x46",
+            "-dPDFFitPage",
+            "-dUseCropBox",
+            "-sOutputFile=test.png",
+            "test.pdf",
+        ],
+        check=True,
+    )
+    example = subprocess.check_output(
+        ["convert", "test.png", "-depth", "1", "-alpha", "off", "txt:-"], text=True
+    )
+    expected = subprocess.check_output(
+        ["convert", "test.tif", "-depth", "1", "-alpha", "off", "txt:-"], text=True
+    )
+    assert example == expected, "valid G4 PDF created from multi-strip TIFF"
+
+    #########################
+
+    clean_up_files(["test.tif", "test.png", "test.pdf"])
+
+
 def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
     "Test writing PDF with text layer right of the image, rather than behind it"
 
@@ -758,3 +857,122 @@ def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files([pnm, pdf])
+
+
+def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
+    "Test writing PDF with downsampled image"
+
+    subprocess.run(
+        [
+            "convert",
+            "+matte",
+            "-depth",
+            "1",
+            "-colorspace",
+            "Gray",
+            "-family",
+            "DejaVu Sans",
+            "-pointsize",
+            "12",
+            "-density",
+            "300",
+            "label:The quick brown fox",
+            "test.png",
+        ],
+        check=True,
+    )
+
+    slist = Document()
+
+    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist.set_dir(dirname.name)
+
+    import_in_mainloop(slist, ["test.png"])
+
+    mlp = GLib.MainLoop()
+    slist.save_pdf(
+        path="test.pdf",
+        list_of_pages=[slist.data[0][2].uuid],
+        finished_callback=lambda response: mlp.quit(),
+    )
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+
+    mlp = GLib.MainLoop()
+    slist.save_pdf(
+        path="test2.pdf",
+        list_of_pages=[slist.data[0][2].uuid],
+        options={
+            "downsample": True,
+            "downsample dpi": 150,
+        },
+        finished_callback=lambda response: mlp.quit(),
+    )
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+
+    assert os.path.getsize("test.pdf") > os.path.getsize(
+        "test2.pdf"
+    ), "downsampled PDF smaller than original"
+
+    subprocess.run(["pdfimages", "test2.pdf", "x"], check=True)
+    example = subprocess.check_output(
+        ["identify", "-format", "%m %G %g %z-bit %r", "x-000.pbm"], text=True
+    )
+    assert re.search(
+        r"PBM 2\d\dx[23]\d 2\d\dx[23]\d[+]0[+]0 1-bit DirectClass Gray", example
+    ), "downsampled"
+
+    #########################
+
+    clean_up_files(["test.png", "test.pdf", "test2.pdf", "x-000.pbm"])
+
+
+def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
+    "Test writing PDF with downsampled image"
+
+    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+
+    slist = Document()
+
+    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist.set_dir(dirname.name)
+
+    import_in_mainloop(slist, ["test.pnm"])
+
+    def finished_callback(_response):
+        assert False, "Finished callback"
+
+    mlp = GLib.MainLoop()
+    called = False
+
+    def cancelled_callback(_response):
+        nonlocal called
+        called = True
+        mlp.quit()
+
+    slist.save_pdf(
+        path="test.pdf",
+        list_of_pages=[slist.data[0][2].uuid],
+        finished_callback=finished_callback,
+    )
+    slist.cancel(cancelled_callback)
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+
+    slist.save_image(
+        path="test.jpg",
+        list_of_pages=[slist.data[0][2].uuid],
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+
+    assert subprocess.check_output(
+        ["identify", "test.jpg"], text=True
+    ), "can create a valid JPG after cancelling save PDF process"
+
+    #########################
+
+    clean_up_files(["test.pnm", "test.pdf", "test.jpg"])
