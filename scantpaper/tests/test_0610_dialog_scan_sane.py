@@ -1,6 +1,7 @@
 "test scan dialog"
 
 from types import SimpleNamespace
+import pytest
 from dialog.sane import SaneScanDialog
 from scanner.options import Options
 from scanner.profile import Profile
@@ -534,3 +535,431 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
     ), "current-scan-options unchanged if invalid option requested"
     assert callbacks == 1, "all callbacks executed"
     dialog.thread.quit()
+
+
+def test_profile_unset(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
+    "test basic functionality of scan dialog with sane backend"
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    loop = mainloop_with_timeout()
+    callbacks = 0
+    dialog._add_profile("my profile", Profile(backend=[("resolution", 52)]))
+
+    def changed_scan_option_cb(_widget, option, value, uuid):
+        dialog.disconnect(dialog.option_signal)
+        assert dialog.current_scan_options == Profile(
+            backend=[("resolution", 52)]
+        ), "current-scan-options"
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    def changed_profile_cb(_widget, profile):
+        dialog.disconnect(dialog.signal)
+        assert profile == "my profile", "changed-profile"
+        nonlocal callbacks
+        callbacks += 1
+
+    dialog.option_signal = dialog.connect("changed-scan-option", changed_scan_option_cb)
+    dialog.signal = dialog.connect("changed-profile", changed_profile_cb)
+    dialog.profile = "my profile"
+    loop.run()
+
+    loop = mainloop_with_timeout()
+
+    def reloaded_scan_options_cb(_arg):
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    dialog.connect("reloaded-scan-options", reloaded_scan_options_cb)
+    dialog.scan_options("test:0")
+    loop.run()
+
+    assert dialog.profile is None, "reloading scan options unsets profile"
+    assert callbacks == 3, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
+    "test basic functionality of scan dialog with sane backend"
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    callbacks = 0
+
+    def changed_paper_formats(_widget, _formats):
+        assert dialog.ignored_paper_formats == ["large"], "ignored paper formats"
+        nonlocal callbacks
+        callbacks += 1
+
+    dialog.connect("changed-paper-formats", changed_paper_formats)
+    dialog.paper_formats = {
+        "large": {
+            "l": 0,
+            "y": 3000,
+            "x": 3000,
+            "t": 0,
+        },
+        "small": {
+            "l": 0,
+            "y": 30,
+            "x": 30,
+            "t": 0,
+        },
+    }
+
+    def changed_paper(_widget, paper):
+        assert paper == "small", "do not change paper if it is too big"
+        nonlocal callbacks
+        callbacks += 1
+
+    dialog.connect("changed-paper", changed_paper)
+
+    def changed_scan_option_cb(widget, option, value, _data):
+
+        if option == "br-y":
+            nonlocal callbacks
+            dialog.disconnect(dialog.signal)
+            callbacks += 1
+            loop.quit()
+
+    dialog.signal = dialog.connect("changed-scan-option", changed_scan_option_cb)
+    loop = mainloop_with_timeout()
+    dialog.paper = "large"
+    dialog.paper = "small"
+    loop.run()
+
+    ######################################
+
+    def changed_scan_option_cb2(_widget, option, _value, _data):
+        dialog.disconnect(dialog.signal)
+        assert (
+            option == "resolution"
+        ), "set other options after ignoring non-existant one"
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    dialog.signal = dialog.connect("changed-scan-option", changed_scan_option_cb2)
+    options = dialog.available_scan_options
+    dialog.set_option(options.by_name("non-existant option"), "dummy")
+    dialog.set_option(options.by_name("resolution"), 51)
+    loop = mainloop_with_timeout()
+    loop.run()
+
+    assert callbacks == 4, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+def test_change_current_scan_option_signal(
+    sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
+    "test basic functionality of scan dialog with sane backend"
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    callbacks = 0
+
+    def changed_current_scan_options_cb(_widget, profile, _uuid):
+        nonlocal callbacks
+        dialog.disconnect(dialog.signal)
+        assert profile == Profile(
+            backend=[("resolution", 51)]
+        ), "emitted changed-current-scan-options"
+        callbacks += 1
+        loop.quit()
+
+    dialog.signal = dialog.connect(
+        "changed-current-scan-options", changed_current_scan_options_cb
+    )
+    options = dialog.available_scan_options
+    dialog.set_option(options.by_name("resolution"), 51)
+    loop = mainloop_with_timeout()
+    loop.run()
+
+    assert callbacks == 1, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+@pytest.mark.skip(
+    reason="Until https://github.com/python-pillow/Sane/issues/92 is fixed, we cannot push buttons"
+)
+def test_button(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
+    "test button"
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    callbacks = 0
+    loop = mainloop_with_timeout()
+
+    def changed_scan_option_cb(widget, option, value, _data):
+        nonlocal callbacks
+        dialog.disconnect(dialog.signal)
+        assert dialog.current_scan_options == Profile(
+            backend=[("enable-test-options", True)]
+        ), "enabled test options"
+        callbacks += 1
+        loop.quit()
+
+    dialog.signal = dialog.connect("changed-scan-option", changed_scan_option_cb)
+    options = dialog.available_scan_options
+    dialog.set_option(options.by_name("enable-test-options"), True)
+    loop.run()
+
+    loop = mainloop_with_timeout()
+
+    def changed_scan_option_cb2(_widget, _option, _value, _data):
+        nonlocal callbacks
+        dialog.disconnect(dialog.signal)
+        assert dialog.current_scan_options == Profile(
+            backend=[("enable-test-options", True), ("button", None)],
+        ), "enabled test options"
+        callbacks += 1
+        loop.quit()
+
+    dialog.signal = dialog.connect("changed-scan-option", changed_scan_option_cb2)
+    options = dialog.available_scan_options
+    dialog.set_option(options.by_name("button"), None)
+    loop.run()
+
+    assert callbacks == 2, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+def test_option_dependency(
+    sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
+    """There are some backends where the paper-width and -height options are
+    only valid when the ADF is active. Therefore, changing the paper size
+    when the flatbed is active tries to set these options, causing an
+    "invalid argument" error, which is normally not possible, as the
+    option is ghosted.
+    Test this by setting up a profile with "bool-soft-select-soft-detect"
+    and then a valid option. Check that:
+    a. no error message is produced
+    b. the rest of the profile is correctly applied
+    c. the appropriate signals are still emitted."""
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    dialog._add_profile(
+        "my profile",
+        Profile(backend=[("bool-soft-select-soft-detect", True), ("mode", "Color")]),
+    )
+    loop = mainloop_with_timeout()
+    callbacks = 0
+
+    def process_error_cb(response):
+        assert False, "Should not throw error"
+
+    def changed_profile_cb(_widget, profile):
+        dialog.disconnect(dialog.profile_signal)
+        assert dialog.current_scan_options == Profile(
+            backend=[("mode", "Color")]
+        ), "correctly set rest of profile"
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    dialog.connect("process-error", process_error_cb)
+    dialog.profile_signal = dialog.connect("changed-profile", changed_profile_cb)
+    dialog.profile = "my profile"
+    loop.run()
+
+    assert callbacks == 1, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
+    """Setting a profile means setting a series of options; setting the
+    first, waiting for it to finish, setting the second, and so on. If one
+    of the settings is already applied, and therefore does not fire a
+    signal, then there is a danger that the rest of the profile is not
+    set."""
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    dialog._add_profile(
+        "g51",
+        Profile(backend=[("page-height", 297), ("y", 297), ("resolution", 51)]),
+    )
+    dialog._add_profile(
+        "c50",
+        Profile(backend=[("page-height", 297), ("y", 297), ("resolution", 50)]),
+    )
+    callbacks = 0
+    loop = mainloop_with_timeout()
+
+    def changed_profile_cb(_widget, profile):
+        dialog.disconnect(dialog.profile_signal)
+        assert (
+            dialog.thread.device_handle.resolution == 51.0
+        ), "correctly updated widget"
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    dialog.profile_signal = dialog.connect("changed-profile", changed_profile_cb)
+    dialog.profile = "g51"
+    loop.run()
+    loop = mainloop_with_timeout()
+
+    def changed_profile_cb2(_widget, _profile):
+        dialog.disconnect(dialog.profile_signal)
+        assert dialog.current_scan_options == Profile(
+            backend=[("page-height", 297), ("resolution", 50), ("br-y", 200.0)]
+        ), "fired signal and set profile"
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    dialog.profile_signal = dialog.connect("changed-profile", changed_profile_cb2)
+    dialog.profile = "c50"
+    loop.run()
+
+    assert callbacks == 2, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
+    """The test backend conveniently gives us
+    Source = Automatic Document Feeder,
+    which returns SANE_STATUS_NO_DOCS after the 10th scan.
+    Test that we catch this.
+    this should also unblock num-page to allow-batch-flatbed."""
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    callbacks = 0
+    n = 0
+    loop = mainloop_with_timeout()
+
+    def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
+        nonlocal n
+        n += 1
+        if pagenumber == 10:
+            nonlocal callbacks
+            callbacks += 1
+        elif pagenumber > 10:
+            assert False, "new-scan emitted 10 times"
+            callbacks = 0
+            loop.quit()
+
+    def finished_process_cb(_widget, process):
+        if process == "scan_pages":
+            assert n == 10, "new-scan emitted 10 times"
+            nonlocal callbacks
+            callbacks += 1
+
+    def changed_scan_option_cb(widget, option, value, _data):
+        dialog.num_pages = 0
+        dialog.scan()
+        nonlocal callbacks
+        callbacks += 1
+
+    dialog.connect("new-scan", new_scan_cb)
+    dialog.connect("finished-process", finished_process_cb)
+    dialog.connect("changed-scan-option", changed_scan_option_cb)
+    dialog.set_option(
+        dialog.available_scan_options.by_name("source"), "Automatic Document Feeder"
+    )
+    loop.run()
+
+    assert callbacks == 3, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+def test_scan_reverse_pages(
+    sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
+    """The test backend conveniently gives us
+    Source = Automatic Document Feeder,
+    which returns SANE_STATUS_NO_DOCS after the 10th scan.
+    Test that we catch this.
+    this should also unblock num-page to allow-batch-flatbed."""
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+    callbacks = 0
+    n = 0
+    loop = mainloop_with_timeout()
+
+    def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
+        nonlocal n
+        n += 1
+        if pagenumber == 2:
+            nonlocal callbacks
+            callbacks += 1
+        elif pagenumber < 2:
+            assert False, "new-scan emitted 10 times"
+            callbacks = 0
+            loop.quit()
+
+    def changed_scan_option_cb(widget, option, value, _data):
+        dialog.num_pages = 0
+        dialog.page_number_increment = -2
+        dialog.scan()
+        nonlocal callbacks
+        callbacks += 1
+
+    def finished_process_cb(_widget, process):
+        if process == "scan_pages":
+            assert n == 10, "new-scan emitted 10 times"
+            nonlocal callbacks
+            callbacks += 1
+
+    def error_process_cb(_widget, process):
+        nonlocal callbacks
+        callbacks = 0
+        assert False, "Should not throw error"
+
+    dialog.connect("new-scan", new_scan_cb)
+    dialog.connect("finished-process", finished_process_cb)
+    dialog.connect("process-error", error_process_cb)
+    dialog.connect("changed-scan-option", changed_scan_option_cb)
+    dialog.side_to_scan = "reverse"
+    dialog.page_number_start = 20
+    dialog.max_pages = 10
+    dialog.set_option(
+        dialog.available_scan_options.by_name("source"), "Automatic Document Feeder"
+    )
+    loop.run()
+
+    assert callbacks == 3, "all callbacks executed"
+
+    dialog.thread.quit()
+
+
+def test_empty_device_list(mocker, sane_scan_dialog, mainloop_with_timeout):
+    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
+    asserts = 0
+
+    def mocked_do_get_devices(_cls, _request):
+        nonlocal asserts
+        asserts += 1
+        return []
+
+    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
+
+    dlg = sane_scan_dialog
+
+    def changed_device_list_cb(self, devices):
+        assert devices == [], "changed-device-list called with empty array"
+        nonlocal asserts
+        asserts += 1
+
+    dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
+    loop = mainloop_with_timeout()
+    dlg.get_devices()
+
+    loop.run()
+    assert asserts == 2, "all callbacks runs"
