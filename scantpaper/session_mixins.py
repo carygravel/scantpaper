@@ -10,7 +10,14 @@ import tempfile
 import gi
 import tesserocr
 from bboxtree import Bboxtree
-from const import EMPTY, SPACE, ZOOM_CONTEXT_FACTOR
+from const import (
+    EMPTY,
+    SPACE,
+    ZOOM_CONTEXT_FACTOR,
+    DRAGGER_TOOL,
+    SELECTOR_TOOL,
+    SELECTORDRAGGER_TOOL,
+)
 from dialog import filter_message, response_stored
 from helpers import get_tmp_dir, program_version, exec_command, parse_truetype_fonts
 from i18n import _
@@ -534,7 +541,7 @@ class SessionMixins:
         self._ann_hbox = self.builder.get_object("ann_hbox")
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
-        self._ann_textbuffer = ann_textview.get_buffer()
+        self._ann_hbox._textbuffer = ann_textview.get_buffer()
         ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
         ann_obutton.set_tooltip_text(_("Accept corrections"))
         ann_obutton.connect("clicked", self._ann_text_ok)
@@ -581,9 +588,9 @@ class SessionMixins:
 
     def _ocr_text_button_clicked(self, _widget):
         self._take_snapshot()
-        text = self._ocr_textbuffer.get_text(
-            self._ocr_textbuffer.get_start_iter(),
-            self._ocr_textbuffer.get_end_iter(),
+        text = self._ocr_text_hbox._textbuffer.get_text(
+            self._ocr_text_hbox._textbuffer.get_start_iter(),
+            self._ocr_text_hbox._textbuffer.get_end_iter(),
             False,
         )
         logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
@@ -593,9 +600,9 @@ class SessionMixins:
 
     def _ocr_text_copy(self, _widget):
         self._current_ocr_bbox = self.t_canvas.add_box(
-            text=self._ocr_textbuffer.get_text(
-                self._ocr_textbuffer.get_start_iter(),
-                self._ocr_textbuffer.get_end_iter(),
+            text=self._ocr_text_hbox._textbuffer.get_text(
+                self._ocr_text_hbox._textbuffer.get_start_iter(),
+                self._ocr_text_hbox._textbuffer.get_end_iter(),
                 False,
             ),
             bbox=self.view.get_selection(),
@@ -605,9 +612,9 @@ class SessionMixins:
 
     def _ocr_text_add(self, _widget):
         self._take_snapshot()
-        text = self._ocr_textbuffer.get_text(
-            self._ocr_textbuffer.get_start_iter(),
-            self._ocr_textbuffer.get_end_iter(),
+        text = self._ocr_text_hbox._textbuffer.get_text(
+            self._ocr_text_hbox._textbuffer.get_start_iter(),
+            self._ocr_text_hbox._textbuffer.get_end_iter(),
             False,
         )
         if text is None or text == EMPTY:
@@ -650,9 +657,9 @@ class SessionMixins:
         self._edit_ocr_text(self.t_canvas.get_current_bbox())
 
     def _ann_text_ok(self, _widget):
-        text = self._ann_textbuffer.get_text(
-            self._ann_textbuffer.get_start_iter(),
-            self._ann_textbuffer.get_end_iter(),
+        text = self._ann_hbox._textbuffer.get_text(
+            self._ann_hbox._textbuffer.get_start_iter(),
+            self._ann_hbox._textbuffer.get_end_iter(),
             False,
         )
         logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
@@ -661,9 +668,9 @@ class SessionMixins:
         self._edit_annotation(self._current_ann_bbox)
 
     def _ann_text_new(self, _widget):
-        text = self._ann_textbuffer.get_text(
-            self._ann_textbuffer.get_start_iter(),
-            self._ann_textbuffer.get_end_iter(),
+        text = self._ann_hbox._textbuffer.get_text(
+            self._ann_hbox._textbuffer.get_start_iter(),
+            self._ann_hbox._textbuffer.get_end_iter(),
             False,
         )
         if text is None or text == EMPTY:
@@ -722,16 +729,17 @@ class SessionMixins:
             bbox = widget
 
         if bbox is None:
+            logger.debug("edit_ocr_text returning as no bbox")
             return
 
         self._current_ocr_bbox = bbox
-        self._ocr_textbuffer.set_text(bbox.text)
+        self._ocr_text_hbox._textbuffer.set_text(bbox.text)
         self._ocr_text_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
-            self.t_canvas.pointer_ungrab(widget, ev.time())
+            self.t_canvas.pointer_ungrab(widget, ev.time)
 
         if bbox:
             self.t_canvas.set_index_by_bbox(bbox)
@@ -742,7 +750,7 @@ class SessionMixins:
             bbox = widget
 
         self._current_ann_bbox = bbox
-        self._ann_textbuffer.set_text(bbox.text)
+        self._ann_hbox._textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.setzoom_is_fit(False)
@@ -803,21 +811,21 @@ class SessionMixins:
         "Handles the event when the dragger tool is selected."
         # builder calls this the first time before the window is defined
         self._change_image_tool_cb(
-            self._actions["tooltype"], GLib.Variant("s", "dragger")
+            self._actions["tooltype"], GLib.Variant("s", DRAGGER_TOOL)
         )
 
     def _on_selector(self, _widget):
         "Handles the event when the selector tool is selected."
         # builder calls this the first time before the window is defined
         self._change_image_tool_cb(
-            self._actions["tooltype"], GLib.Variant("s", "selector")
+            self._actions["tooltype"], GLib.Variant("s", SELECTOR_TOOL)
         )
 
     def _on_selectordragger(self, _widget):
         "Handles the event when the selector dragger tool is selected."
         # builder calls this the first time before the window is defined
         self._change_image_tool_cb(
-            self._actions["tooltype"], GLib.Variant("s", "selectordragger")
+            self._actions["tooltype"], GLib.Variant("s", SELECTORDRAGGER_TOOL)
         )
 
     def _on_zoom_100(self, _widget):

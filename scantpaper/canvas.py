@@ -201,23 +201,64 @@ class Canvas(
             ),
         ),
     }
-    max_color = GObject.Property(
+
+    @GObject.Property(
+        type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y"
+    )
+    def offset(self):  # pylint: disable=method-hidden
+        "getter for offset attribute"
+        return self._offset
+
+    @offset.setter
+    def offset(self, newval):
+        "setter for offset attribute"
+        if newval.x != self._offset.x or newval.y != self._offset.y:
+            self._offset = newval
+            self.scroll_to(-newval.x, -newval.y)
+            self.emit("offset-changed", newval.x, newval.y)
+
+    _max_color = "black"
+
+    @GObject.Property(
         type=str,
         default="black",
         nick="Maximum color",
         blurb="Color for maximum confidence",
     )
+    def max_color(self):
+        "getter for max_color attribute"
+        return self._max_color
+
+    @max_color.setter
+    def max_color(self, newval):
+        "setter for max_color attribute"
+        self._max_color = newval
+        self.max_color_hsv = string2hsv(self._max_color)
+
     max_color_hsv = GObject.Property(
         type=object,
         nick="Maximum color (HSV)",
         blurb="HSV Color for maximum confidence",
     )
-    min_color = GObject.Property(
+
+    _min_color = "red"
+
+    @GObject.Property(
         type=str,
         default="red",
         nick="Minimum color",
         blurb="Color for minimum confidence",
     )
+    def min_color(self):
+        "getter for min_color attribute"
+        return self._min_color
+
+    @min_color.setter
+    def min_color(self, newval):
+        "setter for min_color attribute"
+        self._min_color = newval
+        self.min_color_hsv = string2hsv(self._min_color)
+
     min_color_hsv = GObject.Property(
         type=object,
         nick="Minimum color (HSV)",
@@ -433,8 +474,10 @@ class Canvas(
         self.set_bounds(
             min_x, min_y, pixbuf_size["width"] - min_x, pixbuf_size["height"] - min_y
         )
-        self._offset = {"x": offset_x, "y": offset_y}
-        return
+        offset = Gdk.Rectangle()
+        offset.x = offset_x
+        offset.y = offset_y
+        self.offset = offset
 
     def get_offset(self):
         "return the offset"
@@ -499,6 +542,7 @@ class Canvas(
                     "button-press-event",
                     bbox.button_press_callback,
                     kwargs["edit_callback"],
+                    bbox,
                 )
 
         return bbox
@@ -589,7 +633,7 @@ class Canvas(
             self._boxed_text(kwargs)
 
     def hocr(self):
-        """Convert the canvas into hocr"""
+        "Convert the canvas into hocr"
         if self.get_pixbuf_size() is None:
             return ""
         root = self.get_root_item()
@@ -603,12 +647,12 @@ class Canvas(
         )
 
     def _to_image_distance(self, x, y):
-        """convert x, y in widget distance to image distance"""
+        "convert x, y in widget distance to image distance"
         zoom = self.get_scale()
         return x / zoom, y / zoom
 
     def _set_zoom_with_center(self, zoom, center_x, center_y):
-        """set zoom with centre in image coordinates"""
+        "set zoom with centre in image coordinates"
         zoom = min(zoom, MAX_ZOOM)
         allocation = self.get_allocation()
         offset_x = allocation.width / 2 / zoom - center_x
@@ -784,11 +828,11 @@ class Bbox(GooCanvas.CanvasGroup):
 
             self.transform_text(scale, angle)
 
-    def button_press_callback(self, _self, target, event, edit_callback):
+    def button_press_callback(self, _self, target, event, edit_callback, bbox):
         "button press callback"
-        if event.button() == 1:
-            self.parent.get_parent()["dragging"] = False
-            edit_callback(self, target, event)
+        if event.button == 1:
+            self.parent.get_parent()._dragging = False
+            edit_callback(self, target, event, bbox)
 
     def get_stack_index_by_position(self, bbox):
         """given a parent bbox and a new box, return the index
@@ -1204,9 +1248,7 @@ class TreeIter:
     the current box (position -1) and the page box (position 0)
 
     self._iter is a list of the positions (i.e. which sibling) of the aboves
-    boxes in the hierarchy
-
-    """
+    boxes in the hierarchy"""
 
     def __init__(self, bbox):
         if not isinstance(bbox, Bbox):

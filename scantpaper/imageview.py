@@ -480,10 +480,8 @@ class ImageView(Gtk.DrawingArea):
                 # why need a special class 'transparent' to match the correct area
                 # inside the image where both image and color work.
                 style.add_class("transparent")
-                (x1, y1) = self.to_widget_coords(0, 0)
-                (x2, y2) = self.to_widget_coords(
-                    pixbuf.get_width(), pixbuf.get_height()
-                )
+                x1, y1 = self.to_widget_coords(0, 0)
+                x2, y2 = self.to_widget_coords(pixbuf.get_width(), pixbuf.get_height())
                 Gtk.render_background(style, context, x1, y1, x2 - x1, y2 - y1)
                 style.restore()
 

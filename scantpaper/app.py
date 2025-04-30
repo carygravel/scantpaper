@@ -2,9 +2,10 @@
 
 # TODO:
 # save_pdf landscape squashes into portrait
-# fix panning text layer
+# fix centering text layer whilst zooming
 # fix editing text layer
-# group tests better
+# fix Warning: value "0.000488" of type 'gdouble' is invalid or out of range for
+#     property 'zoom' of type 'gdouble', caused by LC_NUMERIC with decimal comma
 # package pytest-black for Debian
 # lint
 # fix progress bar, including during scan
@@ -13,6 +14,7 @@
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # persist data with sqlite
+# various improvements from StackOverflow
 # fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # migrate to Gtk4
 # remaining FIXMEs and TODOs

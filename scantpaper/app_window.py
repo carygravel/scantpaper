@@ -311,13 +311,13 @@ class ApplicationWindow(
 
         # action with a state created (name, parameter type, initial state)
         self._actions["tooltype"] = Gio.SimpleAction.new_stateful(
-            "tooltype", GLib.VariantType("s"), GLib.Variant.new_string("dragger")
+            "tooltype", GLib.VariantType("s"), GLib.Variant("s", DRAGGER_TOOL)
         )
         self._actions["viewtype"] = Gio.SimpleAction.new_stateful(
-            "viewtype", GLib.VariantType("s"), GLib.Variant.new_string("tabbed")
+            "viewtype", GLib.VariantType("s"), GLib.Variant("s", "tabbed")
         )
         self._actions["editmode"] = Gio.SimpleAction.new_stateful(
-            "editmode", GLib.VariantType("s"), GLib.Variant.new_string("text")
+            "editmode", GLib.VariantType("s"), GLib.Variant("s", "text")
         )
 
     def _window_state_event_callback(self, _w, event):

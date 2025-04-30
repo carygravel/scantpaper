@@ -6,6 +6,7 @@ import logging
 from types import SimpleNamespace
 import datetime
 from helpers import slurp
+from const import SELECTORDRAGGER_TOOL
 from i18n import _
 from gi.repository import Gdk
 
@@ -17,7 +18,7 @@ DEFAULTS = {
     "window_y": 0,
     "thumb panel": 100,
     "viewer_tools": 100,
-    "image_control_tool": 30,
+    "image_control_tool": SELECTORDRAGGER_TOOL,
     "scan_window_width": None,
     "scan_window_height": None,
     "message_window_width": 600,
