@@ -362,6 +362,7 @@ class SelectorDragger(Tool):
         return self._tool.cursor_type_at_point(x, y)
 
 
+MIN_ZOOM = 0.001
 MAX_ZOOM = 100
 
 
@@ -404,8 +405,8 @@ class ImageView(Gtk.DrawingArea):
     )
     zoom = GObject.Property(
         type=float,
-        minimum=0.001,
-        maximum=100,
+        minimum=MIN_ZOOM,
+        maximum=MAX_ZOOM,
         default=1,
         nick="zoom",
         blurb="zoom level",
@@ -439,8 +440,8 @@ class ImageView(Gtk.DrawingArea):
     zoom_to_fit_limit = GObject.Property(
         type=float,
         minimum=0.0001,
-        maximum=100,
-        default=100,
+        maximum=MAX_ZOOM,
+        default=MAX_ZOOM,
         nick="Zoom to fit limit",
         blurb="When zooming automatically, don't zoom more than this",
     )
@@ -599,6 +600,7 @@ class ImageView(Gtk.DrawingArea):
 
     def _set_zoom(self, zoom):
         zoom = min(zoom, MAX_ZOOM)
+        zoom = max(zoom, MIN_ZOOM)
         self.zoom = zoom
         self.emit("zoom-changed", zoom)
         self.queue_draw()

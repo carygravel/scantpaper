@@ -4,8 +4,6 @@
 # save_pdf landscape squashes into portrait
 # fix centering text layer whilst zooming
 # fix editing text layer
-# fix Warning: value "0.000488" of type 'gdouble' is invalid or out of range for
-#     property 'zoom' of type 'gdouble', caused by LC_NUMERIC with decimal comma
 # package pytest-black for Debian
 # lint
 # fix progress bar, including during scan
