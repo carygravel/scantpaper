@@ -564,26 +564,24 @@ class SessionMixins:
         self._ann_hbox.pack_end(ann_abutton, False, False, 0)
         self._pack_viewer_tools()
 
-    def _text_zoom_changed_callback(self, canvas, _zoom):
+    def _text_zoom_changed_callback(self, _widget, zoom):
         self.view.handler_block(self.view.zoom_changed_signal)
-        self.view.set_zoom(canvas.get_scale())
+        self.view.set_zoom(zoom)
         self.view.handler_unblock(self.view.zoom_changed_signal)
 
-    def _text_offset_changed_callback(self):
+    def _text_offset_changed_callback(self, _widget, x, y):
         self.view.handler_block(self.view.offset_changed_signal)
-        offset = self.t_canvas.get_offset()
-        self.view.set_offset(offset["x"], offset["y"])
+        self.view.set_offset(x, y)
         self.view.handler_unblock(self.view.offset_changed_signal)
 
-    def _ann_zoom_changed_callback(self):
+    def _ann_zoom_changed_callback(self, _widget, zoom):
         self.view.handler_block(self.view.zoom_changed_signal)
-        self.view.set_zoom(self.a_canvas.get_scale())
+        self.view.set_zoom(zoom)
         self.view.handler_unblock(self.view.zoom_changed_signal)
 
-    def _ann_offset_changed_callback(self):
+    def _ann_offset_changed_callback(self, _widget, x, y):
         self.view.handler_block(self.view.offset_changed_signal)
-        offset = self.a_canvas.get_offset()
-        self.view.set_offset(offset["x"], offset["y"])
+        self.view.set_offset(x, y)
         self.view.handler_unblock(self.view.offset_changed_signal)
 
     def _ocr_text_button_clicked(self, _widget):
