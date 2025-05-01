@@ -2,7 +2,6 @@
 
 # TODO:
 # save_pdf landscape squashes into portrait
-# fix centering text layer whilst zooming
 # fix editing text layer
 # package pytest-black for Debian
 # lint

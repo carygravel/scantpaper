@@ -542,8 +542,8 @@ class ImageView(Gtk.DrawingArea):
 
     def do_scroll_event(self, event, **kwargs):  # pylint: disable=arguments-differ
         "respond to the scroll event"
-        center_x, center_y = self.to_image_coords(event.x, event.y)
-        if center_x is None:
+        image_x, image_y = self.to_image_coords(event.x, event.y)
+        if image_x is None:
             return
         zoom = None
         self.setzoom_is_fit(False)
@@ -551,7 +551,15 @@ class ImageView(Gtk.DrawingArea):
             zoom = self.get_zoom() * self.zoom_step
         else:
             zoom = self.get_zoom() / self.zoom_step
-        self._set_zoom_with_center(zoom, center_x, center_y)
+
+        # set the offset so that the point under the mouse stays under the mouse
+        # after the zoom
+        self._set_zoom(zoom)
+        ratio = self.get_resolution_ratio()
+        factor = self.get_scale_factor()
+        offset_x = event.x / zoom * factor * ratio - image_x
+        offset_y = event.y / zoom * factor - image_y
+        self.set_offset(offset_x, offset_y)
 
     def do_configure_event(self, _event, **kwargs):  # pylint: disable=arguments-differ
         "respond to the configure event"

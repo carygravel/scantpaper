@@ -695,14 +695,20 @@ class Canvas(
         return True
 
     def _scroll(self, _self, event):
-        center_x, center_y = self.convert_from_pixels(event.x, event.y)
+        image_x, image_y = self.convert_from_pixels(event.x, event.y)
         zoom = None
         if event.direction == Gdk.ScrollDirection.UP:
             zoom = self.get_scale() * 2
         else:
             zoom = self.get_scale() / 2
 
-        self._set_zoom_with_center(zoom, center_x, center_y)
+        # set the offset so that the point under the mouse stays under the mouse
+        # after the zoom
+        self.set_scale(zoom)
+        factor = self.get_scale_factor()
+        offset_x = event.x / zoom * factor - image_x
+        offset_y = event.y / zoom * factor - image_y
+        self.set_offset(offset_x, offset_y)
 
         # don't allow the event to propagate, as this pans it in y
         return True
