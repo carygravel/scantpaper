@@ -228,7 +228,7 @@ class OCRControls(Gtk.VBox):
             hboxo.set_sensitive(False)
             self._active_button.set_active(False)
         elif self.active:
-            self._active_button.set_active(True)
+            self._active_button.set_active(self.active)
 
         hboxo.pack_start(self._active_button, True, True, 0)
         comboboxe = ComboBoxText(data=self.available_engines)
@@ -254,9 +254,7 @@ class OCRControls(Gtk.VBox):
             if not self._active_button.get_active():
                 hboxtl.set_sensitive(False)
 
-            self._active_button.connect(
-                "toggled", lambda x: hboxtl.set_sensitive(x.get_active())
-            )
+            self._active_button.connect("toggled", self.on_toggled_active, hboxtl)
 
         comboboxe.set_active_index(self.engine)
         if len(self.available_engines) > 0 and comboboxe.get_active_index() is None:
@@ -288,6 +286,11 @@ class OCRControls(Gtk.VBox):
                 hboxtl.hide()
 
         self.connect("show", show_callback)
+
+    def on_toggled_active(self, checkbox, hboxtl):
+        "callback for OCR active checkbox"
+        self.active = checkbox.get_active()
+        hboxtl.set_sensitive(self.active)
 
     def on_toggled_threshold(self, checkbox, spinbutton):
         "callback for threshold checkbox"
