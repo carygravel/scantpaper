@@ -515,9 +515,8 @@ class SessionMixins:
     def _add_text_view_layers(self):
         # split panes for detail view/text layer canvas and text layer dialog
         self._ocr_text_hbox = TextLayerControls()
-        self.builder.get_object("edit_hbox").pack_start(
-            self._ocr_text_hbox, False, False, 0
-        )
+        edit_hbox = self.builder.get_object("edit_hbox")
+        edit_hbox.pack_start(self._ocr_text_hbox, True, True, 0)
         self._ocr_text_hbox.connect(
             "go-to-first", lambda _: self._edit_ocr_text(self.t_canvas.get_first_bbox())
         )
@@ -538,7 +537,8 @@ class SessionMixins:
         self._ocr_text_hbox.connect("delete-clicked", self._ocr_text_delete)
 
         # split panes for detail view/text layer canvas and text layer dialog
-        self._ann_hbox = self.builder.get_object("ann_hbox")
+        self._ann_hbox = TextLayerControls()
+        edit_hbox.pack_start(self._ann_hbox, True, True, 0)
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
         self._ann_hbox._textbuffer = ann_textview.get_buffer()

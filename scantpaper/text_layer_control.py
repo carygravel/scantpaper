@@ -87,7 +87,7 @@ class TextLayerControls(Gtk.HBox):
         self.pack_start(sort_cmbx, False, False, 0)
         self.pack_start(nbutton, False, False, 0)
         self.pack_start(lbutton, False, False, 0)
-        self.pack_start(textview, False, False, 0)
+        self.pack_start(textview, True, True, 0)
         self.pack_end(dbutton, False, False, 0)
         self.pack_end(cbutton, False, False, 0)
         self.pack_end(obutton, False, False, 0)

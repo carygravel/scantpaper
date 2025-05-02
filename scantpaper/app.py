@@ -2,7 +2,6 @@
 
 # TODO:
 # save_pdf landscape squashes into portrait
-# fix editing text layer
 # package pytest-black for Debian
 # lint
 # fix progress bar, including during scan

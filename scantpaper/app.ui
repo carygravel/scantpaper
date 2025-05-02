@@ -815,12 +815,6 @@
             <child>
               <object class="GtkBox" id="edit_hbox">
                 <property name="orientation">horizontal</property>
-                <child>
-                  <object class="GtkBox" id="ann_hbox">
-                    <property name="orientation">horizontal</property>
-                    <!-- Add buttons and other widgets for annotation editing here -->
-                  </object>
-                </child>
               </object>
             </child>
           </object>

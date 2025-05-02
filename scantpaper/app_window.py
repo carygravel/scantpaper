@@ -445,12 +445,12 @@ class ApplicationWindow(
         phbox = self.builder.get_object("progress_hbox")
         phbox.show()
         self._scan_progress = Progress()
-        phbox.add(self._scan_progress)
+        phbox.pack_start(self._scan_progress, True, True, 0)
         self.post_process_progress = Progress()
-        phbox.add(self.post_process_progress)
+        phbox.pack_start(self.post_process_progress, True, True, 0)
 
         # OCR text editing interface
-        self._ocr_text_hbox.show()
+        self._ocr_text_hbox.hide()
         self._ann_hbox.hide()
 
         # Open scan dialog in background
@@ -498,7 +498,7 @@ class ApplicationWindow(
         self._vpaned.pack1(self._vnotebook, True)
         edit_hbox = self.builder.get_object("edit_hbox")
         self._vpaned.remove(edit_hbox)
-        self._vpaned.pack1(edit_hbox, False)
+        self._vpaned.pack2(edit_hbox, False)
         self._hpanei.show()
         self._vpanei.show()
 
