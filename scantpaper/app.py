@@ -4,7 +4,6 @@
 # save_pdf landscape squashes into portrait
 # package pytest-black for Debian
 # lint
-# fix progress bar, including during scan
 # restore last used scan settings
 # use pathlib for all paths
 # refactor methods using self.slist.clipboard

@@ -19,17 +19,6 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 logger = logging.getLogger(__name__)
 
 
-def import_scan_finished_callback(response):
-    "Callback function to handle the completion of a scan import process."
-    logger.debug("import_scan_finished_callback( %s )", response)
-    # FIXME: response is hard-coded to None in _post_process_scan().
-    # Work out how to pass number of pending requests
-    # We have two threads, the scan thread, and the document thread.
-    # We should probably combine the results in one progress bar
-    # self.post_process_progress.finish(response)
-    # slist.save_session()
-
-
 class ScanMenuItemMixins:
     "provide methods called from scan menu item"
 
@@ -387,7 +376,7 @@ class ScanMenuItemMixins:
             "language": self.settings["ocr language"],
             "queued_callback": self.post_process_progress.queued,
             "started_callback": self.post_process_progress.update,
-            "finished_callback": import_scan_finished_callback,
+            "finished_callback": self._import_scan_finished_callback,
             "error_callback": self._error_callback,
             "image_object": image_object,
             "resolution": (xresolution, yresolution, "PixelsPerInch"),
@@ -420,3 +409,8 @@ class ScanMenuItemMixins:
             widget.profile = profiles[0]
 
         self._update_postprocessing_options_callback(widget)
+
+    def _import_scan_finished_callback(self, response):
+        "Callback function to handle the completion of a scan import process."
+        self.post_process_progress.finish(response)
+        # slist.save_session()

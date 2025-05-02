@@ -92,7 +92,7 @@ class Progress(Gtk.HBox):
 
     def finish(self, response):
         "Helper function to hide progress bar and disconnect signals"
-        if not response.pending:
+        if not response or not response.pending:
             self.hide()
         if self._signal is not None:
             self.disconnect(self._signal)
