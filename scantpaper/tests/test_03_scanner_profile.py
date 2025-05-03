@@ -65,6 +65,14 @@ def test_1():
 
     #########################
 
+    profile = Profile({"frontend": {"num_pages": 1}, "backend": [("br-x", "297")]})
+    assert profile.get() == {
+        "backend": [("br-x", "297")],
+        "frontend": {"num_pages": 1},
+    }, "basic functionality new_from_data with dict"
+
+    #########################
+
     itr = profile.each_frontend_option()
     assert next(itr) == "num_pages", "basic functionality each_frontend_option"
     assert (

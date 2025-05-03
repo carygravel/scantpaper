@@ -15,6 +15,12 @@ class Profile(GObject.Object):
 
     def __init__(self, frontend=None, backend=None, uid=None):
         super().__init__()
+        if isinstance(frontend, dict):
+            if "frontend" in frontend:
+                backend = frontend["backend"]
+            if "frontend" in frontend:
+                frontend = frontend["frontend"]
+
         if frontend is None:
             self.frontend = {}
         else:

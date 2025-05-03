@@ -397,7 +397,10 @@ class ScanMenuItemMixins:
         "This should only be called the first time after loading the available options"
         widget.disconnect(widget.reloaded_signal)
         profiles = self.settings["profile"].keys()
-        if "default profile" in self.settings:
+        if (
+            "default profile" in self.settings
+            and self.settings["default profile"] is not None
+        ):
             widget.profile = self.settings["default profile"]
 
         elif "default-scan-options" in self.settings:
