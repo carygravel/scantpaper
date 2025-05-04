@@ -271,6 +271,29 @@ class SqliteView(Gtk.TreeView):
         )
         self._con.commit()
 
+    def find_page_by_number(self, number):
+        "find a page by its page number using binary search"
+        l = 0
+        r = len(self.data) - 1
+        while l <= r:
+            mid = (l + r) // 2
+            if self.data[mid][0] == number:
+                return mid
+            if self.data[mid][0] < number:
+                l = mid + 1
+            else:
+                r = mid - 1
+        return None
+
+    def delete_page(self, number):
+        "delete a page from the database"
+        i = self.find_page_by_number(number)
+        if i is None:
+            raise ValueError(f"Page number {number} not found")
+        del self.data[i]
+        self._cur.execute("DELETE FROM page WHERE number = ?", (number,))
+        self._con.commit()
+
 
 class TiedRow(list):
     "TiedRow is the lowest-level tie, allowing you to treat a row as an array of column data."

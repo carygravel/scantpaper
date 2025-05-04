@@ -193,4 +193,8 @@ def test_db(clean_up_files):
     model = view.get_model()
     assert model[model.iter_nth_child(None, 0)][0] == 1, "load from db"
 
+    view.add_page(2, Page(image_object=Image.new("RGB", (210, 297))))
+    view.delete_page(1)
+    assert model[model.iter_nth_child(None, 0)][0] == 2, "delete page"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
