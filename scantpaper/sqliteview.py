@@ -1,5 +1,6 @@
 "A simple interface to Gtk's complex MVC list widget"
 
+import io
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -35,9 +36,14 @@ column_types = {
     },
 }
 
+THUMBNAIL = 100  # pixels
+
 
 class SqliteView(Gtk.TreeView):
     "Gtk.TreeView persisted to a SQLite database"
+
+    heightt = THUMBNAIL
+    widtht = THUMBNAIL
 
     def __init__(self, **kwargs):
         """In order to allow use to be able to undo/redo changes,
@@ -230,6 +236,27 @@ class SqliteView(Gtk.TreeView):
     def get_column_types(cls):
         "return column types"
         return column_types
+
+    def add_page(self, number, page):
+        "add a page to the database"
+        thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
+        self.data.append([number, thumb])
+        img_byte_arr = io.BytesIO()
+        page.image_object.save(img_byte_arr, format="PNG")
+        img_byte_arr = img_byte_arr.getvalue()
+        self._cur.execute(
+            """INSERT INTO page (number, image, x_res, y_res, text, annotations)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                number,
+                img_byte_arr,
+                page.resolution[0],
+                page.resolution[1],
+                page.text_layer,
+                page.annotations,
+            ),
+        )
+        self._con.commit()
 
 
 class TiedRow(list):

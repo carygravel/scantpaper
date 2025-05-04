@@ -174,7 +174,7 @@ class Page:
             return self.resolution
 
         units = "PixelsPerInch"
-        if re.search(
+        if self.image_object.format is not None and re.search(
             r"^P.M$", self.image_object.format, re.MULTILINE | re.DOTALL | re.VERBOSE
         ):
             # Return the first match based on the format

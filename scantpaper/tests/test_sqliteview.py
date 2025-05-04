@@ -4,7 +4,9 @@ from pathlib import Path
 import subprocess
 import tempfile
 import pytest
+from PIL import Image
 import gi
+from page import Page
 from sqliteview import SqliteView
 
 gi.require_version("Gdk", "3.0")
@@ -176,5 +178,15 @@ def test_signals(clean_up_files):
     cell_renderer = column.get_cells()
     cell_renderer[0].emit("edited", 0, 2)
     assert view.data[0][0] == 2, "edited"
+
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
+
+
+def test_db(clean_up_files):
+    "test database access"
+    view = SqliteView()
+    view.add_page(1, Page(image_object=Image.new("RGB", (210, 297))))
+    model = view.get_model()
+    assert model[model.iter_nth_child(None, 0)][0] == 1, "append"
 
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
