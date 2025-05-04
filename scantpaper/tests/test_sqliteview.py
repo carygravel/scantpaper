@@ -197,4 +197,7 @@ def test_db(clean_up_files):
     view.delete_page(1)
     assert model[model.iter_nth_child(None, 0)][0] == 2, "delete page"
 
+    page = view.get_page(2)
+    assert isinstance(page, Page), "get_page"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
