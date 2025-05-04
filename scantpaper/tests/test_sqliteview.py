@@ -189,4 +189,8 @@ def test_db(clean_up_files):
     model = view.get_model()
     assert model[model.iter_nth_child(None, 0)][0] == 1, "append"
 
+    view = SqliteView(db=Path(tempfile.gettempdir()) / "document.db")
+    model = view.get_model()
+    assert model[model.iter_nth_child(None, 0)][0] == 1, "load from db"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
