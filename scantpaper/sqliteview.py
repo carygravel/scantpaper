@@ -4,8 +4,10 @@ import io
 from pathlib import Path
 import sqlite3
 import tempfile
+from PIL import Image
 import gi
 from i18n import _
+from page import Page
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf  # pylint: disable=wrong-import-position
@@ -49,19 +51,13 @@ class SqliteView(Gtk.TreeView):
         """In order to allow use to be able to undo/redo changes,
         we split the page data from the thumbnails"""
         super().__init__()
+        if "db" in kwargs:
+            kwargs["db"] = Path(kwargs["db"])
+            kwargs["dir"] = kwargs["db"].parent
         if "dir" not in kwargs:
             kwargs["dir"] = Path(tempfile.gettempdir())
-        self._con = sqlite3.connect(kwargs["dir"] / "document.db")
-        self._cur = self._con.cursor()
-        self._cur.execute(
-            """CREATE TABLE page(
-                                number integer primary key, 
-                                image blob, 
-                                x_res float, 
-                                y_res float, 
-                                text text, 
-                                annotations text)"""
-        )
+        if "db" not in kwargs:
+            kwargs["db"] = kwargs["dir"] / "document.db"
 
         columns = {"#": "int", _("Thumbnails"): "pixbuf"}
         column_info = []
@@ -108,15 +104,7 @@ class SqliteView(Gtk.TreeView):
                     **attr,
                 )
                 self.append_column(column)
-                if col["attr"] == "active":
-                    # make boolean columns respond to editing.
-                    row = column.get_cells()[0]
-                    row.activatable = True
-                    row.connect("toggled", self.do_toggled)
-                    col["renderer"].column = i
-                    i += 1
-
-                elif col["attr"] == "text":
+                if col["attr"] == "text":
                     # attach a decent 'edited' callback to any
                     # columns using a text renderer.  we do NOT
                     # turn on editing by default.
@@ -126,6 +114,31 @@ class SqliteView(Gtk.TreeView):
                     )
                     col["renderer"].column = i
                     i += 1
+
+        self._con = sqlite3.connect(kwargs["db"])
+        self._cur = self._con.cursor()
+        self._cur.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
+        )
+        if self._cur.fetchone():
+            self._cur.execute(
+                """SELECT number, image, x_res, y_res, text, annotations
+                   FROM page ORDER BY number"""
+            )
+            for row in self._cur.fetchall():
+                page = Page(image_object=Image.open(io.BytesIO(row[1])))
+                thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
+                self.data.append([row[0], thumb])
+        else:
+            self._cur.execute(
+                """CREATE TABLE page(
+                                    number integer primary key, 
+                                    image blob, 
+                                    x_res float, 
+                                    y_res float, 
+                                    text text, 
+                                    annotations text)"""
+            )
 
     def __iter__(self, *args, **kwargs):
         return iter(self.get_model(), *args, **kwargs)
