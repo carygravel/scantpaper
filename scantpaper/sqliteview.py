@@ -294,6 +294,22 @@ class SqliteView(Gtk.TreeView):
         self._cur.execute("DELETE FROM page WHERE number = ?", (number,))
         self._con.commit()
 
+    def get_page(self, number):
+        "get a page from the database"
+        self._cur.execute(
+            "SELECT image, x_res, y_res, text, annotations FROM page WHERE number = ?",
+            (number,),
+        )
+        row = self._cur.fetchone()
+        print(f"row {row}")
+        if row is None:
+            raise ValueError(f"Page number {number} not found")
+        page = Page(image_object=Image.open(io.BytesIO(row[0])))
+        page.resolution = (row[1], row[2])
+        page.text_layer = row[3]
+        page.annotations = row[4]
+        return page
+
 
 class TiedRow(list):
     "TiedRow is the lowest-level tie, allowing you to treat a row as an array of column data."
