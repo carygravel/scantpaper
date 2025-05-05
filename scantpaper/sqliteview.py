@@ -20,7 +20,7 @@ def scalar_cell_renderer(_tree_column, cell, model, itr, i):
 
 
 column_types = {
-    "hidden": {"type": str, "attr": "hidden"},
+    "hidden": {"type": int, "attr": "hidden"},
     "text": {"type": str, "renderer": Gtk.CellRendererText(), "attr": "text"},
     "markup": {"type": str, "renderer": Gtk.CellRendererText(), "attr": "markup"},
     "int": {"type": int, "renderer": Gtk.CellRendererText(), "attr": "text"},
@@ -59,7 +59,7 @@ class SqliteView(Gtk.TreeView):
         if "db" not in kwargs:
             kwargs["db"] = kwargs["dir"] / "document.db"
 
-        columns = {"#": "int", _("Thumbnails"): "pixbuf"}
+        columns = {"#": "int", _("Thumbnails"): "pixbuf", "id": "hidden"}
         column_info = []
         for name, typekey in columns.items():
             column_info.append(
@@ -122,22 +122,22 @@ class SqliteView(Gtk.TreeView):
         )
         if self._cur.fetchone():
             self._cur.execute(
-                """SELECT number, image, x_res, y_res, text, annotations
-                   FROM page ORDER BY number"""
+                """SELECT id, image, x_res, y_res, text, annotations
+                   FROM page ORDER BY id"""
             )
             for row in self._cur.fetchall():
                 page = Page(image_object=Image.open(io.BytesIO(row[1])))
                 thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
-                self.data.append([row[0], thumb])
+                self.data.append([row[0], thumb, row[0]])
         else:
             self._cur.execute(
                 """CREATE TABLE page(
-                                    number integer primary key, 
-                                    image blob, 
-                                    x_res float, 
-                                    y_res float, 
-                                    text text, 
-                                    annotations text)"""
+                    id INTEGER PRIMARY KEY, 
+                    image BLOB, 
+                    x_res FLOAT, 
+                    y_res FLOAT, 
+                    text TEXT, 
+                    annotations TEXT)"""
             )
 
     def __iter__(self, *args, **kwargs):
@@ -253,15 +253,13 @@ class SqliteView(Gtk.TreeView):
     def add_page(self, number, page):
         "add a page to the database"
         thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
-        self.data.append([number, thumb])
         img_byte_arr = io.BytesIO()
         page.image_object.save(img_byte_arr, format="PNG")
         img_byte_arr = img_byte_arr.getvalue()
         self._cur.execute(
-            """INSERT INTO page (number, image, x_res, y_res, text, annotations)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO page (id, image, x_res, y_res, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?)""",
             (
-                number,
                 img_byte_arr,
                 page.resolution[0],
                 page.resolution[1],
@@ -269,6 +267,7 @@ class SqliteView(Gtk.TreeView):
                 page.annotations,
             ),
         )
+        self.data.append([number, thumb, self._cur.lastrowid])
         self._con.commit()
 
     def find_page_by_number(self, number):
@@ -290,18 +289,20 @@ class SqliteView(Gtk.TreeView):
         i = self.find_page_by_number(number)
         if i is None:
             raise ValueError(f"Page number {number} not found")
-        del self.data[i]
-        self._cur.execute("DELETE FROM page WHERE number = ?", (number,))
+        self._cur.execute("DELETE FROM page WHERE id = ?", (self.data[i][2],))
         self._con.commit()
+        del self.data[i]
 
     def get_page(self, number):
         "get a page from the database"
+        i = self.find_page_by_number(number)
+        if i is None:
+            raise ValueError(f"Page number {number} not found")
         self._cur.execute(
-            "SELECT image, x_res, y_res, text, annotations FROM page WHERE number = ?",
-            (number,),
+            "SELECT image, x_res, y_res, text, annotations FROM page WHERE id = ?",
+            (self.data[i][2],),
         )
         row = self._cur.fetchone()
-        print(f"row {row}")
         if row is None:
             raise ValueError(f"Page number {number} not found")
         page = Page(image_object=Image.open(io.BytesIO(row[0])))
