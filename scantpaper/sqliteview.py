@@ -126,7 +126,7 @@ class SqliteView(Gtk.TreeView):
                    FROM page ORDER BY id"""
             )
             for row in self._cur.fetchall():
-                self.data.append([row[0], self.bytes_to_pixbuf(row[2]), row[0]])
+                self.data.append([row[0], self._bytes_to_pixbuf(row[2]), row[0]])
         else:
             self._cur.execute(
                 """CREATE TABLE page(
@@ -267,7 +267,7 @@ class SqliteView(Gtk.TreeView):
                VALUES (NULL, ?, ?, ?, ?, ?, ?)""",
             (
                 page.to_bytes(),
-                self.pixbuf_to_bytes(thumb),
+                self._pixbuf_to_bytes(thumb),
                 x_res,
                 y_res,
                 page.text_layer,
@@ -355,26 +355,45 @@ class SqliteView(Gtk.TreeView):
         rows = []
         for row in self._cur.fetchall():
             row = list(row)
-            row[1] = self.bytes_to_pixbuf(row[1])
+            row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
         return rows
 
-    def pixbuf_to_bytes(self, pixbuf):
+    def _pixbuf_to_bytes(self, pixbuf):
         "given a pixbuf, return the equivalent bytes, in order to store them as a blob"
         with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as temp:
             pixbuf.savev(temp.name, "png")
             return temp.read()
 
-    def bytes_to_pixbuf(self, blob):
+    def _bytes_to_pixbuf(self, blob):
         "given a stream of bytes, return the equivalent pixbuf"
         with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as temp:
             temp.write(blob)
             temp.flush()
             return GdkPixbuf.Pixbuf.new_from_file(temp.name)
 
+    def can_undo(self):
+        "checks whether undo is possible"
+        self._cur.execute("SELECT min(action_id) FROM page_number")
+        return self._cur.fetchone()[0] < self._action_id
+
+    def can_redo(self):
+        "checks whether redo is possible"
+        self._cur.execute("SELECT max(action_id) FROM page_number")
+        return self._cur.fetchone()[0] > self._action_id
+
     def undo(self):
         "restore the state of the last snapshot"
+        if not self.can_undo():
+            raise ValueError("No more undo steps possible")
         self._action_id -= 1
+        self.data = self._get_snapshot(self._action_id)
+
+    def redo(self):
+        "restore the state of the last snapshot"
+        if not self.can_redo():
+            raise ValueError("No more redo steps possible")
+        self._action_id += 1
         self.data = self._get_snapshot(self._action_id)
 
 
