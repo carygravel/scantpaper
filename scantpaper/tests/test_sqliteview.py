@@ -203,4 +203,7 @@ def test_db(clean_up_files):
     view.undo()
     assert view.data[0][0] == 1, "undo"
 
+    view.redo()
+    assert view.data[0][0] == 2, "redo"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
