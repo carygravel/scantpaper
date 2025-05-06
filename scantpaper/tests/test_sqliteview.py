@@ -186,23 +186,21 @@ def test_db(clean_up_files):
     "test database access"
     view = SqliteView()
     view.add_page(1, Page(image_object=Image.new("RGB", (210, 297))))
-    model = view.get_model()
-    assert model[model.iter_nth_child(None, 0)][0] == 1, "append"
+    assert view.data[0][0] == 1, "add page"
 
     view = SqliteView(db=Path(tempfile.gettempdir()) / "document.db")
-    model = view.get_model()
-    assert model[model.iter_nth_child(None, 0)][0] == 1, "load from db"
+    assert view.data[0][0] == 1, "load from db"
 
+    view.take_snapshot()
     view.add_page(2, Page(image_object=Image.new("RGB", (210, 297))))
     view.delete_page(1)
-    assert model[model.iter_nth_child(None, 0)][0] == 2, "delete page"
+    assert view.data[0][0] == 2, "delete page"
 
     page = view.get_page(2)
     assert isinstance(page, Page), "get_page"
 
     view.take_snapshot()
-    snapshot = view._get_snapshot(1)  # pylint: disable=protected-access
-    assert snapshot[0][0] == 2, "snapshot page number"
-    assert snapshot[0][2] == 2, "snapshot page id"
+    view.undo()
+    assert view.data[0][0] == 1, "undo"
 
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
