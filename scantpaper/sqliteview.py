@@ -296,8 +296,11 @@ class SqliteView(Gtk.TreeView):
         i = self.find_page_by_number(number)
         if i is None:
             raise ValueError(f"Page number {number} not found")
-        self._cur.execute("DELETE FROM page WHERE id = ?", (self.data[i][2],))
-        self._con.commit()
+
+        # Don't delete the page from the database directly, in case we want to undo it.
+        # We rely on take_snapshot() to delete the page when it falls off the undo stack.
+        # self._cur.execute("DELETE FROM page WHERE id = ?", (self.data[i][2],))
+        # self._con.commit()
         del self.data[i]
 
     def get_page(self, number):
@@ -368,6 +371,11 @@ class SqliteView(Gtk.TreeView):
             temp.write(blob)
             temp.flush()
             return GdkPixbuf.Pixbuf.new_from_file(temp.name)
+
+    def undo(self):
+        "restore the state of the last snapshot"
+        self._action_id -= 1
+        self.data = self._get_snapshot(self._action_id)
 
 
 class TiedRow(list):
