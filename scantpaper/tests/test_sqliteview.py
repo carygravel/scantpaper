@@ -200,4 +200,9 @@ def test_db(clean_up_files):
     page = view.get_page(2)
     assert isinstance(page, Page), "get_page"
 
+    view.take_snapshot()
+    assert view._get_snapshot(1) == [  # pylint: disable=protected-access
+        (2, 2)
+    ], "take_snapshot"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
