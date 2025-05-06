@@ -191,6 +191,12 @@ def test_db(clean_up_files):
     view = SqliteView(db=Path(tempfile.gettempdir()) / "document.db")
     assert view.data[0][0] == 1, "load from db"
 
+    with pytest.raises(StopIteration):
+        view.undo()
+
+    with pytest.raises(StopIteration):
+        view.redo()
+
     view.take_snapshot()
     view.add_page(2, Page(image_object=Image.new("RGB", (210, 297))))
     view.delete_page(1)
