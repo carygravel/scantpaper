@@ -256,8 +256,9 @@ class SqliteView(Gtk.TreeView):
         "return column types"
         return column_types
 
-    def add_page(self, number, page):
-        "add a page to the database"
+    def _insert_page(self, page):
+        "insert a page to the database"
+
         x_res, y_res = None, None
         if page.resolution:
             x_res, y_res = page.resolution[0], page.resolution[1]
@@ -274,8 +275,27 @@ class SqliteView(Gtk.TreeView):
                 page.annotations,
             ),
         )
-        self.data.append([number, thumb, self._cur.lastrowid])
         self._con.commit()
+        return thumb
+
+    def add_page(self, number, page):
+        "add a page to the database"
+
+        if self.find_page_by_number(number):
+            raise ValueError(f"Page {number} already exists")
+
+        thumb = self._insert_page(page)
+        self.data.append([number, thumb, self._cur.lastrowid])
+
+    def replace_page(self, number, page):
+        "replace a page in the database"
+
+        i = self.find_page_by_number(number)
+        if i is None:
+            raise ValueError(f"Page {number} does not exist")
+
+        thumb = self._insert_page(page)
+        self.data[i] = [number, thumb, self._cur.lastrowid]
 
     def find_page_by_number(self, number):
         "find a page by its page number using binary search"
@@ -356,6 +376,15 @@ class SqliteView(Gtk.TreeView):
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
         return rows
+
+    def _get_snapshots(self):
+        "fetch the snapshot of the document with the given action id"
+        self._cur.execute(
+            """SELECT action_id, page_number, page_id
+                FROM page_number
+                ORDER BY action_id, page_number"""
+        )
+        return self._cur.fetchall()
 
     def _pixbuf_to_bytes(self, pixbuf):
         "given a pixbuf, return the equivalent bytes, in order to store them as a blob"
@@ -456,12 +485,16 @@ class TiedList(list):
         self.model = model
 
     def __getitem__(self, index):
+        if index < 0:
+            index = len(self.model) + index
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
             raise IndexError("list index out of range")
         return TiedRow(self.model, itr)
 
     def __setitem__(self, index, value):
+        if index < 0:
+            index = len(self.model) + index
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
             raise IndexError("list index out of range")
