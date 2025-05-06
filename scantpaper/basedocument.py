@@ -10,7 +10,7 @@ import queue
 import signal
 import tarfile
 import gi
-from simplelist import SimpleList
+from sqliteview import SqliteView
 from helpers import slurp
 from i18n import _
 from docthread import DocThread
@@ -26,11 +26,9 @@ INFINITE = -1
 
 logger = logging.getLogger(__name__)
 
-SimpleList.add_column_type(hstring={"type": object, "attr": "hidden"})
 
-
-class BaseDocument(SimpleList):
-    "a Document is a simple list of pages"
+class BaseDocument(SqliteView):
+    "a Document is a simple list of pages, back by SQLite"
 
     jobs_completed = 0
     jobs_total = 0
@@ -47,7 +45,7 @@ class BaseDocument(SimpleList):
         selection = self.get_selected_indices()
         uuids = []
         for i in selection:
-            uuids.append(self.data[i][2].uuid)
+            uuids.append(self.data[i][2])
 
         self.get_model().handler_block(self.row_changed_signal)
 
@@ -281,6 +279,7 @@ class BaseDocument(SimpleList):
 
             num += 1
 
+    # TODO: now we have SQLite, probably more efficient to write a query
     def find_page_by_uuid(self, uid):
         "return page index given uuid"
         if uid is None:
@@ -288,7 +287,7 @@ class BaseDocument(SimpleList):
             return None
 
         for i, row in enumerate(self.data):
-            if str(uid) == str(row[2].uuid):
+            if uid == row[2]:
                 return i
         return None
 
@@ -320,16 +319,15 @@ class BaseDocument(SimpleList):
             self.get_model().handler_block(self.row_changed_signal)
 
         xresolution, yresolution, units = new_page.get_resolution(self.paper_sizes)
-        thumb = new_page.get_pixbuf_at_scale(self.heightt, self.widtht)
 
         # Add to the page list
         if ref is None:
             if pagenum is None:
                 pagenum = len(self.data) + 1
-            self.data.append([pagenum, thumb, new_page])
+            super(BaseDocument, self).add_page(pagenum, new_page)
             logger.info(
                 "Added %s at page %s with resolution %s,%s",
-                new_page.uuid,
+                self.data[-1][2],
                 pagenum,
                 xresolution,
                 yresolution,
@@ -339,24 +337,23 @@ class BaseDocument(SimpleList):
             if i is None:
                 raise FileNotFoundError("Requested page does not exist.")
             if "replace" in ref:
-                pagenum = self.data[i][0]
+                old_id = self.data[i][2]
+                self.replace_page(self.data[i][0], new_page)
                 logger.info(
                     "Replaced %s at page %s with %s, resolution %s,%s",
-                    self.data[i][2].uuid,
-                    pagenum,
-                    new_page.uuid,
+                    old_id,
+                    self.data[i][0],
+                    self.data[i][2],
                     xresolution,
                     yresolution,
                 )
-                self.data[i][1] = thumb
-                self.data[i][2] = new_page
 
             elif "insert-after" in ref:
                 pagenum = self.data[i][0] + 1
-                self.data.insert(i + 1, [pagenum, thumb, new_page])
+                super(BaseDocument, self).add_page(pagenum, new_page)
                 logger.info(
                     "Inserted %s at page %s with resolution %s,%s,%s",
-                    new_page.uuid,
+                    self.data[-1][2],
                     pagenum,
                     xresolution,
                     yresolution,
@@ -407,7 +404,7 @@ class BaseDocument(SimpleList):
     def _manual_sort_by_column(self, sortcol):
         """Helpers:
 
-        Manual one-time sorting of the simplelist's data"""
+        Manual one-time sorting of the SqliteView's data"""
         self._remove_corrupted_pages()
 
         # The sort function depends on the column type
@@ -418,7 +415,7 @@ class BaseDocument(SimpleList):
         #     float : compare_numeric_col,
         # }
 
-        # Remember, this relies on the fact that simplelist keeps model
+        # Remember, this relies on the fact that SqliteView keeps model
         # and view column indices aligned.
         # sortfunc = sortfuncs[ self.get_model().get_column_type(sortcol) ]
 
