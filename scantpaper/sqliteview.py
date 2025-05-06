@@ -299,8 +299,6 @@ class SqliteView(Gtk.TreeView):
 
         # Don't delete the page from the database directly, in case we want to undo it.
         # We rely on take_snapshot() to delete the page when it falls off the undo stack.
-        # self._cur.execute("DELETE FROM page WHERE id = ?", (self.data[i][2],))
-        # self._con.commit()
         del self.data[i]
 
     def get_page(self, number):
@@ -375,24 +373,26 @@ class SqliteView(Gtk.TreeView):
     def can_undo(self):
         "checks whether undo is possible"
         self._cur.execute("SELECT min(action_id) FROM page_number")
-        return self._cur.fetchone()[0] < self._action_id
+        min_action_id = self._cur.fetchone()[0]
+        return min_action_id is not None and min_action_id < self._action_id
 
     def can_redo(self):
         "checks whether redo is possible"
         self._cur.execute("SELECT max(action_id) FROM page_number")
-        return self._cur.fetchone()[0] > self._action_id
+        max_action_id = self._cur.fetchone()[0]
+        return max_action_id is not None and max_action_id > self._action_id
 
     def undo(self):
         "restore the state of the last snapshot"
         if not self.can_undo():
-            raise ValueError("No more undo steps possible")
+            raise StopIteration("No more undo steps possible")
         self._action_id -= 1
         self.data = self._get_snapshot(self._action_id)
 
     def redo(self):
         "restore the state of the last snapshot"
         if not self.can_redo():
-            raise ValueError("No more redo steps possible")
+            raise StopIteration("No more redo steps possible")
         self._action_id += 1
         self.data = self._get_snapshot(self._action_id)
 
