@@ -46,6 +46,8 @@ class SqliteView(Gtk.TreeView):
 
     heightt = THUMBNAIL
     widtht = THUMBNAIL
+    _action_id = 0
+    number_undo_steps = 1
 
     def __init__(self, **kwargs):
         """In order to allow use to be able to undo/redo changes,
@@ -138,6 +140,13 @@ class SqliteView(Gtk.TreeView):
                     y_res FLOAT, 
                     text TEXT, 
                     annotations TEXT)"""
+            )
+            self._cur.execute(
+                """CREATE TABLE page_numbers(
+                    action_id INTEGER PRIMARY KEY, 
+                    page_number INTEGER NOT NULL,
+                    page_id INTEGER NOT NULL, 
+                    FOREIGN KEY (page_id) REFERENCES page(id))"""
             )
 
     def __iter__(self, *args, **kwargs):
@@ -310,6 +319,41 @@ class SqliteView(Gtk.TreeView):
         page.text_layer = row[3]
         page.annotations = row[4]
         return page
+
+    def take_snapshot(self):
+        "take a snapshot of the current state of the document"
+
+        # in case the user has undone one or more action, before taking a
+        # snapshot, remove the redo steps
+        self._cur.execute(
+            "DELETE FROM page_numbers WHERE action_id > ?", (self._action_id,)
+        )
+        self._action_id += 1
+
+        # save current pages
+        for row in self.data:
+            self._cur.execute(
+                "INSERT INTO page_numbers (action_id, page_number, page_id) VALUES (?, ?, ?)",
+                (self._action_id, row[0], row[2]),
+            )
+
+        # delete those outside the undo limit
+        self._cur.execute(
+            "DELETE FROM page_numbers WHERE action_id < ?",
+            (self._action_id - self.number_undo_steps,),
+        )
+        self._con.commit()
+
+    def _get_snapshot(self, action_id):
+        "fetch the snapshot of the document with the given action id"
+        self._cur.execute(
+            """SELECT page_number, page_id
+                FROM page_numbers
+                WHERE action_id = ?
+                ORDER BY page_number""",
+            (action_id,),
+        )
+        return self._cur.fetchall()
 
 
 class TiedRow(list):
