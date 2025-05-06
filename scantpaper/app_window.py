@@ -401,7 +401,7 @@ class ApplicationWindow(
     def _populate_main_window(self):
         "Populates the main window with various UI components and sets up necessary callbacks"
 
-        # Set up a SimpleList
+        # Set up an SqliteView
         self.slist = Document()
 
         # Update list in Document so that it can be used by get_resolution()
@@ -652,7 +652,7 @@ class ApplicationWindow(
             if isinstance(widget, ImageView):  # main image
                 self.detail_popup.show_all()
                 self.detail_popup.popup_at_pointer(event)
-            else:  # Thumbnail simplelist
+            else:  # Thumbnail SqliteView
                 self.settings["Page range"] = "selected"
                 self._thumb_popup.show_all()
                 self._thumb_popup.popup_at_pointer(event)

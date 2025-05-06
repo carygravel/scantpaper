@@ -1,10 +1,11 @@
 "Tests for document.py"
 
 from collections import defaultdict
-import re
-import os
-import glob
 import datetime
+import glob
+import os
+from pathlib import Path
+import re
 import subprocess
 import tempfile
 import gi
@@ -52,7 +53,7 @@ def get_page_index_all_callback2(_uuid, _process, _message):
     assert False, "no error in all"
 
 
-def test_basics():
+def test_basics(clean_up_files):
     "test basics"
     slist = Document()
     assert (
@@ -129,16 +130,18 @@ def test_basics():
     #########################
 
     slist.renumber(1, 1, "all")
-    assert slist.data == [
-        [1, None, None],
-        [2, None, None],
-        [3, None, None],
-    ], "renumber start 1 step 1"
+    assert (slist.data[0][0], slist.data[1][0], slist.data[2][0]) == (
+        1,
+        2,
+        3,
+    ), "renumber start 1 step 1"
 
     #########################
 
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
-def test_indexing():
+
+def test_indexing(clean_up_files):
     "test indexing"
 
     slist = Document()
@@ -149,21 +152,17 @@ def test_indexing():
 
     #########################
 
-    png = "test.png"
-    subprocess.run(["convert", "rose:", png], check=True)  # Create test image
-    tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    page = Page(filename=png, format="Portable Network Graphics", dir=tempdir.name)
     slist.data = [
-        [1, None, page],
-        [3, None, page.clone()],
-        [5, None, page.clone()],
-        [7, None, page.clone()],
-        [9, None, page.clone()],
-        [11, None, page.clone()],
-        [13, None, page.clone()],
-        [15, None, page.clone()],
-        [17, None, page.clone()],
-        [19, None, page.clone()],
+        [1, None, 1],
+        [3, None, 2],
+        [5, None, 3],
+        [7, None, 4],
+        [9, None, 5],
+        [11, None, 6],
+        [13, None, 7],
+        [15, None, 8],
+        [17, None, 9],
+        [19, None, 10],
     ]
     assert (
         slist.index_for_page(12, 0, 11, 1) == -1
@@ -178,17 +177,18 @@ def test_indexing():
 
     #########################
 
-    slist.data = [[1, None, page], [2, None, page.clone()]]
+    slist.data = [[1, None, 1], [2, None, 2]]
     slist.select(0)
     slist.get_model().handler_unblock(slist.row_changed_signal)
     slist.data[0][0] = 3
     assert slist.get_selected_indices() == [
         1
     ], "correctly selected page after manual renumber"
-    os.remove(png)
+
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
 
-def test_file_dates():
+def test_file_dates(clean_up_files):
     "test file dates"
     filename = "test.txt"
     subprocess.run(["touch", filename], check=True)
@@ -214,7 +214,8 @@ def test_file_dates():
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 9, 10, 0, 0
     ), "timestamp with timezone"
-    os.remove(filename)
+
+    clean_up_files([filename])
 
 
 def test_helpers():
@@ -572,15 +573,12 @@ def test_bbox2markup():
 
 def test_docthread(clean_up_files):
     "tests for DocThread"
-    # Gscan2pdf.Translation.set_domain('gscan2pdf')
-    # logger = Log.Log4perl.get_logger
-    # Gscan2pdf.Document.setup(logger)
 
     thread = DocThread()
     thread.start()
 
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
-        os.remove(tif.name)
+        clean_up_files([tif.name])
         with pytest.raises(FileNotFoundError):
             request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
@@ -673,7 +671,7 @@ def test_docthread(clean_up_files):
         clean_up_files([cjb2, djvu, pbm, pdf, png, tgz])
 
 
-def test_document():
+def test_document(clean_up_files):
     "tests for Document()"
     tiff = "test.tif"
     subprocess.run(["convert", "rose:", tiff], check=True)  # Create test image
@@ -748,7 +746,7 @@ def test_document():
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert ran_callback, "ran finished callback"
-    os.remove(tiff)
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", tiff])
 
 
 def test_import_scan(
@@ -812,4 +810,12 @@ def test_import_scan(
 
     #########################
 
-    clean_up_files(["test.ppm", "test2.ppm", "test.pnm"] + glob.glob(f"{dir}/*"))
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.ppm",
+            "test2.ppm",
+            "test.pnm",
+        ]
+        + glob.glob(f"{tempdir}/*")
+    )
