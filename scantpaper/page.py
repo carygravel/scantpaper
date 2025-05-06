@@ -1,5 +1,6 @@
 "Class of data and methods for handling page objects"
 
+import io
 import locale
 import re
 import tempfile
@@ -83,6 +84,21 @@ class Page:
             self.image_object.mode,
             self.uuid,
         )
+
+    def to_bytes(self):
+        "return the image as bytes, e.g. suitable for storing as a blob in SQLite"
+        img_byte_arr = io.BytesIO()
+        self.image_object.save(img_byte_arr, format="PNG")
+        return img_byte_arr.getvalue()
+
+    @classmethod
+    def from_bytes(cls, blob, **kwargs):
+        "create a page from bytes"
+        page = Page(image_object=Image.open(io.BytesIO(blob)))
+        for key in ["resolution", "text_layer", "annotations"]:
+            if key in kwargs and kwargs[key] is not None:
+                setattr(page, key, kwargs[key])
+        return page
 
     def clone(self, copy_image=False):
         "clone the page"

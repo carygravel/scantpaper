@@ -1,10 +1,8 @@
 "A simple interface to Gtk's complex MVC list widget"
 
-import io
 from pathlib import Path
 import sqlite3
 import tempfile
-from PIL import Image
 import gi
 from i18n import _
 from page import Page
@@ -128,24 +126,27 @@ class SqliteView(Gtk.TreeView):
                    FROM page ORDER BY id"""
             )
             for row in self._cur.fetchall():
-                page = Page(image_object=Image.open(io.BytesIO(row[1])))
+                page = Page.from_bytes(row[1])
                 thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
                 self.data.append([row[0], thumb, row[0]])
         else:
+
+            # ideally, we would cache the thumbnail in the database, but it
+            # seems non-trivial to create a blob from a pixbuf and vice-versa.
             self._cur.execute(
                 """CREATE TABLE page(
-                    id INTEGER PRIMARY KEY, 
-                    image BLOB, 
-                    x_res FLOAT, 
-                    y_res FLOAT, 
-                    text TEXT, 
+                    id INTEGER PRIMARY KEY,
+                    image BLOB,
+                    x_res FLOAT,
+                    y_res FLOAT,
+                    text TEXT,
                     annotations TEXT)"""
             )
             self._cur.execute(
                 """CREATE TABLE page_numbers(
-                    action_id INTEGER PRIMARY KEY, 
+                    action_id INTEGER PRIMARY KEY,
                     page_number INTEGER NOT NULL,
-                    page_id INTEGER NOT NULL, 
+                    page_id INTEGER NOT NULL,
                     FOREIGN KEY (page_id) REFERENCES page(id))"""
             )
 
@@ -261,21 +262,15 @@ class SqliteView(Gtk.TreeView):
 
     def add_page(self, number, page):
         "add a page to the database"
-        thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
-        img_byte_arr = io.BytesIO()
-        page.image_object.save(img_byte_arr, format="PNG")
-        img_byte_arr = img_byte_arr.getvalue()
+        x_res, y_res = None, None
+        if page.resolution:
+            x_res, y_res = page.resolution[0], page.resolution[1]
         self._cur.execute(
             """INSERT INTO page (id, image, x_res, y_res, text, annotations)
                VALUES (NULL, ?, ?, ?, ?, ?)""",
-            (
-                img_byte_arr,
-                page.resolution[0],
-                page.resolution[1],
-                page.text_layer,
-                page.annotations,
-            ),
+            (page.to_bytes(), x_res, y_res, page.text_layer, page.annotations),
         )
+        thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
         self.data.append([number, thumb, self._cur.lastrowid])
         self._con.commit()
 
@@ -314,11 +309,9 @@ class SqliteView(Gtk.TreeView):
         row = self._cur.fetchone()
         if row is None:
             raise ValueError(f"Page number {number} not found")
-        page = Page(image_object=Image.open(io.BytesIO(row[0])))
-        page.resolution = (row[1], row[2])
-        page.text_layer = row[3]
-        page.annotations = row[4]
-        return page
+        return Page.from_bytes(
+            row[0], resolution=(row[1], row[2]), text_layer=row[3], annotations=row[4]
+        )
 
     def take_snapshot(self):
         "take a snapshot of the current state of the document"
