@@ -53,11 +53,11 @@ class SqliteView(Gtk.TreeView):
         super().__init__()
         if "db" in kwargs:
             kwargs["db"] = Path(kwargs["db"])
-            kwargs["dir"] = kwargs["db"].parent
+            self.dir = kwargs["db"].parent
         if "dir" not in kwargs:
-            kwargs["dir"] = Path(tempfile.gettempdir())
+            self.dir = Path(tempfile.gettempdir())
         if "db" not in kwargs:
-            kwargs["db"] = kwargs["dir"] / "document.db"
+            kwargs["db"] = self.dir / "document.db"
 
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "id": "hidden"}
         column_info = []
@@ -122,28 +122,24 @@ class SqliteView(Gtk.TreeView):
         )
         if self._cur.fetchone():
             self._cur.execute(
-                """SELECT id, image, x_res, y_res, text, annotations
+                """SELECT id, image, thumb, x_res, y_res, text, annotations
                    FROM page ORDER BY id"""
             )
             for row in self._cur.fetchall():
-                page = Page.from_bytes(row[1])
-                thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
-                self.data.append([row[0], thumb, row[0]])
+                self.data.append([row[0], self.bytes_to_pixbuf(row[2]), row[0]])
         else:
-
-            # ideally, we would cache the thumbnail in the database, but it
-            # seems non-trivial to create a blob from a pixbuf and vice-versa.
             self._cur.execute(
                 """CREATE TABLE page(
                     id INTEGER PRIMARY KEY,
                     image BLOB,
+                    thumb BLOB,
                     x_res FLOAT,
                     y_res FLOAT,
                     text TEXT,
                     annotations TEXT)"""
             )
             self._cur.execute(
-                """CREATE TABLE page_numbers(
+                """CREATE TABLE page_number(
                     action_id INTEGER PRIMARY KEY,
                     page_number INTEGER NOT NULL,
                     page_id INTEGER NOT NULL,
@@ -265,12 +261,19 @@ class SqliteView(Gtk.TreeView):
         x_res, y_res = None, None
         if page.resolution:
             x_res, y_res = page.resolution[0], page.resolution[1]
-        self._cur.execute(
-            """INSERT INTO page (id, image, x_res, y_res, text, annotations)
-               VALUES (NULL, ?, ?, ?, ?, ?)""",
-            (page.to_bytes(), x_res, y_res, page.text_layer, page.annotations),
-        )
         thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
+        self._cur.execute(
+            """INSERT INTO page (id, image, thumb, x_res, y_res, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?, ?)""",
+            (
+                page.to_bytes(),
+                self.pixbuf_to_bytes(thumb),
+                x_res,
+                y_res,
+                page.text_layer,
+                page.annotations,
+            ),
+        )
         self.data.append([number, thumb, self._cur.lastrowid])
         self._con.commit()
 
@@ -319,20 +322,20 @@ class SqliteView(Gtk.TreeView):
         # in case the user has undone one or more action, before taking a
         # snapshot, remove the redo steps
         self._cur.execute(
-            "DELETE FROM page_numbers WHERE action_id > ?", (self._action_id,)
+            "DELETE FROM page_number WHERE action_id > ?", (self._action_id,)
         )
         self._action_id += 1
 
         # save current pages
         for row in self.data:
             self._cur.execute(
-                "INSERT INTO page_numbers (action_id, page_number, page_id) VALUES (?, ?, ?)",
+                "INSERT INTO page_number (action_id, page_number, page_id) VALUES (?, ?, ?)",
                 (self._action_id, row[0], row[2]),
             )
 
         # delete those outside the undo limit
         self._cur.execute(
-            "DELETE FROM page_numbers WHERE action_id < ?",
+            "DELETE FROM page_number WHERE action_id < ?",
             (self._action_id - self.number_undo_steps,),
         )
         self._con.commit()
@@ -340,13 +343,31 @@ class SqliteView(Gtk.TreeView):
     def _get_snapshot(self, action_id):
         "fetch the snapshot of the document with the given action id"
         self._cur.execute(
-            """SELECT page_number, page_id
-                FROM page_numbers
-                WHERE action_id = ?
+            """SELECT page_number, thumb, page_id
+                FROM page_number, page
+                WHERE action_id = ? and page_id = page.id
                 ORDER BY page_number""",
             (action_id,),
         )
-        return self._cur.fetchall()
+        rows = []
+        for row in self._cur.fetchall():
+            row = list(row)
+            row[1] = self.bytes_to_pixbuf(row[1])
+            rows.append(row)
+        return rows
+
+    def pixbuf_to_bytes(self, pixbuf):
+        "given a pixbuf, return the equivalent bytes, in order to store them as a blob"
+        with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as temp:
+            pixbuf.savev(temp.name, "png")
+            return temp.read()
+
+    def bytes_to_pixbuf(self, blob):
+        "given a stream of bytes, return the equivalent pixbuf"
+        with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as temp:
+            temp.write(blob)
+            temp.flush()
+            return GdkPixbuf.Pixbuf.new_from_file(temp.name)
 
 
 class TiedRow(list):
