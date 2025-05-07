@@ -1,6 +1,6 @@
 "Test importing scan"
 
-import os
+from pathlib import Path
 import subprocess
 import tempfile
 import pytest
@@ -14,7 +14,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, Gtk  # pylint: disable=wrong-import-position
 
 
-def test_1():
+def test_1(clean_up_files):
     "Test importing scan"
     pytest.skip("This has got to wait for test_06* to be finished")
     window = Gtk.Window()
@@ -22,3 +22,5 @@ def test_1():
     slist = Document()
     dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
     slist.set_dir(dirname.name)
+
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])

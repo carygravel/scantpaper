@@ -3,6 +3,7 @@
 import codecs
 import datetime
 import os
+from pathlib import Path
 import re
 import shutil
 import subprocess
@@ -50,7 +51,14 @@ def test_save_djvu(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.djvu", "test2.png"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.pnm",
+            "test.djvu",
+            "test2.png",
+        ]
+    )
 
 
 def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
@@ -88,7 +96,9 @@ def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.djvu"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.djvu"]
+    )
 
 
 def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
@@ -149,7 +159,9 @@ def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.djvu"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.djvu"]
+    )
 
 
 def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
@@ -211,7 +223,14 @@ def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.djvu", "test.jpg"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.pnm",
+            "test.djvu",
+            "test.jpg",
+        ]
+    )
 
 
 def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
@@ -271,7 +290,9 @@ def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.djvu"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.djvu"]
+    )
 
 
 def test_save_djvu_with_float_resolution(import_in_mainloop, clean_up_files):
@@ -303,7 +324,9 @@ def test_save_djvu_with_float_resolution(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png", "test.djvu"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.djvu"]
+    )
 
 
 def test_save_djvu_different_resolutions(import_in_mainloop, clean_up_files):
@@ -337,7 +360,9 @@ def test_save_djvu_different_resolutions(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png", "test.djvu"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.djvu"]
+    )
 
 
 def test_save_djvu_with_metadata(import_in_mainloop, clean_up_files):
@@ -383,7 +408,7 @@ def test_save_djvu_with_metadata(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([pnm, djvu])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", pnm, djvu])
 
 
 def test_save_djvu_with_old_metadata(import_in_mainloop, clean_up_files):
@@ -433,4 +458,4 @@ def test_save_djvu_with_old_metadata(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([pnm, djvu])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", pnm, djvu])

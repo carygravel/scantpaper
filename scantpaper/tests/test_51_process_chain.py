@@ -1,6 +1,6 @@
 "Test process chain"
 
-import os
+from pathlib import Path
 import subprocess
 import tempfile
 import shutil
@@ -83,7 +83,7 @@ def test_process_chain(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm"])
 
 
 @pytest.mark.skipif(
@@ -132,7 +132,7 @@ def test_process_chain2(clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pnm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -178,7 +178,7 @@ def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
 
     #########################
 
-    clean_up_files([rotated_qbfox_image])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", rotated_qbfox_image])
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -253,11 +253,11 @@ def test_error_in_process_chain(rotated_qbfox_image):
 
     #########################
 
-    os.remove(rotated_qbfox_image)
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", rotated_qbfox_image])
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain2(rotated_qbfox_image):
+def test_error_in_process_chain2(rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
     dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
@@ -304,4 +304,4 @@ def test_error_in_process_chain2(rotated_qbfox_image):
 
     #########################
 
-    os.remove(rotated_qbfox_image)
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", rotated_qbfox_image])

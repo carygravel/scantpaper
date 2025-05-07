@@ -1,5 +1,6 @@
 "Test importing PPM"
 
+from pathlib import Path
 import subprocess
 import tempfile
 from gi.repository import GLib
@@ -29,7 +30,7 @@ def test_import_ppm(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.ppm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.ppm"])
 
 
 def test_import_corrupt_png(clean_up_files):
@@ -70,4 +71,4 @@ def test_import_corrupt_png(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.png"])

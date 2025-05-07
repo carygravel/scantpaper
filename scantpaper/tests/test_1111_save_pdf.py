@@ -4,6 +4,7 @@ import datetime
 import glob
 import locale
 import os
+from pathlib import Path
 import queue
 import re
 import subprocess
@@ -110,7 +111,7 @@ def test_save_pdf(clean_up_files):
 
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "pdftoppm %i test",
             "post_save_hook_options": "fg",
@@ -130,7 +131,15 @@ def test_save_pdf(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.pdf", "test-1.ppm"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.png",
+            "test.pnm",
+            "test.pdf",
+            "test-1.ppm",
+        ]
+    )
 
 
 def test_save_pdf_with_locale(import_in_mainloop, clean_up_files):
@@ -151,7 +160,7 @@ def test_save_pdf_with_locale(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=mlp.quit,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -164,7 +173,9 @@ def test_save_pdf_with_locale(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
+    )
 
 
 def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
@@ -211,7 +222,7 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         error_callback=error_callback2,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -221,7 +232,9 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
+    )
 
 
 def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):
@@ -241,7 +254,7 @@ def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -254,7 +267,9 @@ def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
+    )
 
 
 def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
@@ -278,7 +293,7 @@ def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
     slist.save_pdf(
         path="test.pdf",
         options={"user-password": "123"},
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -287,7 +302,9 @@ def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_output(["pdfinfo", "test.pdf"])
 
-    clean_up_files(["test.jpg", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.jpg", "test.pdf"]
+    )
 
 
 def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
@@ -363,7 +380,7 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -392,7 +409,9 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
+    )
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -436,7 +455,7 @@ def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={"options": options},
         finished_callback=lambda response: mlp.quit(),
     )
@@ -450,7 +469,9 @@ def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
+    )
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -475,7 +496,7 @@ def test_save_pdf_with_non_utf8(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -486,7 +507,9 @@ def test_save_pdf_with_non_utf8(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
+    )
 
 
 def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
@@ -504,7 +527,7 @@ def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -516,7 +539,10 @@ def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pbm", "test.pdf"] + glob.glob("x-000.p*m"))
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pbm", "test.pdf"]
+        + glob.glob("x-000.p*m")
+    )
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -550,7 +576,7 @@ def test_save_pdf_without_font(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={"options": {"font": "removed"}},
         error_callback=error_callback,
         finished_callback=lambda response: mlp.quit(),
@@ -564,7 +590,9 @@ def test_save_pdf_without_font(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
+    )
 
 
 def test_save_pdf_g4(import_in_mainloop, clean_up_files):
@@ -582,7 +610,7 @@ def test_save_pdf_g4(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "compression": "g4",
         },
@@ -599,7 +627,10 @@ def test_save_pdf_g4(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png", "test.pdf"] + glob.glob("x-000.p*m"))
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
+        + glob.glob("x-000.p*m")
+    )
 
 
 def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
@@ -628,7 +659,7 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "compression": "g4",
         },
@@ -662,7 +693,14 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.tif", "test.png", "test.pdf"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.tif",
+            "test.png",
+            "test.pdf",
+        ]
+    )
 
 
 def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
@@ -736,7 +774,7 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={"text_position": "right"},
         finished_callback=lambda response: mlp.quit(),
     )
@@ -761,7 +799,9 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
+    )
 
 
 def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
@@ -786,7 +826,7 @@ def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path=pdf,
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
         finished_callback=lambda response: mlp.quit(),
@@ -807,7 +847,7 @@ def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([pnm, pdf])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", pnm, pdf])
 
 
 def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
@@ -838,7 +878,7 @@ def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path=pdf,
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
         finished_callback=lambda response: mlp.quit(),
@@ -856,7 +896,7 @@ def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([pnm, pdf])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", pnm, pdf])
 
 
 def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
@@ -892,7 +932,7 @@ def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -901,7 +941,7 @@ def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test2.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "downsample": True,
             "downsample dpi": 150,
@@ -925,7 +965,15 @@ def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png", "test.pdf", "test2.pdf", "x-000.pbm"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.png",
+            "test.pdf",
+            "test2.pdf",
+            "x-000.pbm",
+        ]
+    )
 
 
 def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
@@ -953,7 +1001,7 @@ def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
 
     slist.save_pdf(
         path="test.pdf",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=finished_callback,
     )
     slist.cancel(cancelled_callback)
@@ -962,7 +1010,7 @@ def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
 
     slist.save_image(
         path="test.jpg",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -975,4 +1023,11 @@ def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.pnm", "test.pdf", "test.jpg"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.pnm",
+            "test.pdf",
+            "test.jpg",
+        ]
+    )
