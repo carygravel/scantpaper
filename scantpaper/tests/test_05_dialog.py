@@ -1,5 +1,6 @@
 "test dialog"
 
+from pathlib import Path
 import subprocess
 import tempfile
 from dialog import Dialog
@@ -73,7 +74,7 @@ def test_dialog():
     assert True, "no crash due to undefined response"
 
 
-def test_page_controls(mainloop_with_timeout):
+def test_page_controls(mainloop_with_timeout, clean_up_files):
     "test PageControls"
     dialog = PageControls(title="title", transient_for=Gtk.Window())
     assert isinstance(dialog, PageControls), "Created PageControls dialog"
@@ -95,3 +96,5 @@ def test_page_controls(mainloop_with_timeout):
         dialog.document = slist
         dialog.reset_start_page()
         assert dialog.page_number_start == 2, "PageControls.reset_start_page()"
+
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])

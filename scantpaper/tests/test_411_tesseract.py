@@ -1,5 +1,6 @@
 "Test tesseract helper functions"
 
+from pathlib import Path
 import re
 import shutil
 import subprocess
@@ -84,4 +85,4 @@ def test_tesseract_in_thread(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.png"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.png"])

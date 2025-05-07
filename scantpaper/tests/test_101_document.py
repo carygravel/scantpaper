@@ -746,6 +746,7 @@ def test_document(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert ran_callback, "ran finished callback"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", tiff])
 
 

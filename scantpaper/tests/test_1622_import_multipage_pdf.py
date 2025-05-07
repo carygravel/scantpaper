@@ -2,6 +2,7 @@
 
 import datetime
 import os
+from pathlib import Path
 import re
 import subprocess
 import shutil
@@ -36,7 +37,14 @@ def test_import_multipage_pdf(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.tif", "test2.tif", "test2.pdf"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.tif",
+            "test2.tif",
+            "test2.pdf",
+        ]
+    )
 
 
 def test_import_multipage_pdf_with_not_enough_images(clean_up_files):
@@ -148,7 +156,15 @@ startxref
 
     #########################
 
-    clean_up_files(["page1.tif", "page1.pdf", "page2.pdf", "test.pdf"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "page1.tif",
+            "page1.pdf",
+            "page2.pdf",
+            "test.pdf",
+        ]
+    )
 
 
 def test_import_pdf_bw(clean_up_files):
@@ -196,7 +212,14 @@ def test_import_pdf_bw(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.tif", "test.png", "test.pdf"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.tif",
+            "test.png",
+            "test.pdf",
+        ]
+    )
 
 
 def test_import_pdf_with_error(clean_up_files):
@@ -243,7 +266,14 @@ def test_import_pdf_with_error(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.tif", "test2.tif", "test2.pdf"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.tif",
+            "test2.tif",
+            "test2.pdf",
+        ]
+    )
 
 
 def test_import_encrypted_pdf(clean_up_files):
@@ -295,7 +325,14 @@ def test_import_encrypted_pdf(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.tif", "input.pdf", "output.pdf"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.tif",
+            "input.pdf",
+            "output.pdf",
+        ]
+    )
 
 
 def test_import_pdf_with_metadata(clean_up_files):
@@ -353,4 +390,11 @@ def test_import_pdf_with_metadata(clean_up_files):
 
     #########################
 
-    clean_up_files(["test.tif", "test2.tif", "test2.pdf"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.tif",
+            "test2.tif",
+            "test2.pdf",
+        ]
+    )
