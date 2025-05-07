@@ -39,6 +39,8 @@ column_types = {
 THUMBNAIL = 100  # pixels
 
 
+# inherit from SimpleList to simplify class
+# will require changes to SimpleList to allow hidden integer columns
 class SqliteView(Gtk.TreeView):
     "Gtk.TreeView persisted to a SQLite database"
 
@@ -449,6 +451,22 @@ class SqliteView(Gtk.TreeView):
                 WHERE saved = 0 and page_id = id"""
         )
         return self._cur.fetchone()[0] == 0
+
+    def get_text(self, page_id):
+        "gets the text layer for the given page"
+        self._cur.execute("SELECT text FROM page WHERE id = ?", (page_id,))
+        return self._cur.fetchone()[0]
+
+    def set_text(self, page_id, text):
+        "sets the text layer for the given page"
+        self._cur.execute(
+            "UPDATE page SET text = ? WHERE id = ?",
+            (
+                text,
+                page_id,
+            ),
+        )
+        self._con.commit()
 
 
 class TiedRow(list):

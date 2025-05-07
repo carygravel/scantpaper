@@ -221,4 +221,7 @@ def test_db(clean_up_files):
     view.mark_saved(2)
     assert view.pages_saved(), "all pages saved"
 
+    view.set_text(2, "text")
+    assert view.get_text(2) == "text", "g/set_text()"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
