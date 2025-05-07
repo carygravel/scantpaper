@@ -135,6 +135,7 @@ class SqliteView(Gtk.TreeView):
                     thumb BLOB,
                     x_res FLOAT,
                     y_res FLOAT,
+                    saved BOOL,
                     text TEXT,
                     annotations TEXT)"""
             )
@@ -264,8 +265,8 @@ class SqliteView(Gtk.TreeView):
             x_res, y_res = page.resolution[0], page.resolution[1]
         thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
         self._cur.execute(
-            """INSERT INTO page (id, image, thumb, x_res, y_res, text, annotations)
-               VALUES (NULL, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO page (id, image, thumb, x_res, y_res, saved, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, 0, ?, ?)""",
             (
                 page.to_bytes(),
                 self._pixbuf_to_bytes(thumb),
@@ -341,7 +342,10 @@ class SqliteView(Gtk.TreeView):
         if row is None:
             raise ValueError(f"Page id {page_id} not found")
         return Page.from_bytes(
-            row[0], resolution=(row[1], row[2]), text_layer=row[3], annotations=row[4]
+            row[0],
+            resolution=(row[1], row[2], "PixelsPerInch"),
+            text_layer=row[3],
+            annotations=row[4],
         )
 
     def take_snapshot(self):
@@ -373,7 +377,7 @@ class SqliteView(Gtk.TreeView):
         self._cur.execute(
             """SELECT page_number, thumb, page_id
                 FROM page_number, page
-                WHERE action_id = ? and page_id = page.id
+                WHERE action_id = ? and page_id = id
                 ORDER BY page_number""",
             (action_id,),
         )
@@ -431,6 +435,20 @@ class SqliteView(Gtk.TreeView):
             raise StopIteration("No more redo steps possible")
         self._action_id += 1
         self.data = self._get_snapshot(self._action_id)
+
+    def mark_saved(self, page_id):
+        "mark given page as saved"
+        self._cur.execute("UPDATE page SET saved = 1 WHERE id = ?", (page_id,))
+        self._con.commit()
+
+    def pages_saved(self):
+        "Check that all pages have been saved"
+        self._cur.execute(
+            """SELECT COUNT(id)
+                FROM page_number, page
+                WHERE saved = 0 and page_id = id"""
+        )
+        return self._cur.fetchone()[0] == 0
 
 
 class TiedRow(list):
