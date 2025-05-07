@@ -1,6 +1,6 @@
 "Test user-defined tools"
 
-import os
+from pathlib import Path
 import re
 import subprocess
 import tempfile
@@ -59,7 +59,7 @@ def test_udt(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pnm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
 
 
 def test_udt_in_place(import_in_mainloop, clean_up_files):
@@ -95,7 +95,7 @@ def test_udt_in_place(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pnm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
 
 
 def test_udt_page_size(import_in_mainloop, clean_up_files):
@@ -145,7 +145,7 @@ def test_udt_page_size(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pnm", "test.pdf"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm", "test.pdf"])
 
 
 def test_udt_resolution(import_in_mainloop, clean_up_files):
@@ -178,7 +178,7 @@ def test_udt_resolution(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pnm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
 
 
 def test_udt_error(import_in_mainloop, clean_up_files):
@@ -223,4 +223,4 @@ def test_udt_error(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pnm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])

@@ -1,5 +1,6 @@
 "Test rotating"
 
+from pathlib import Path
 import re
 import subprocess
 import tempfile
@@ -44,7 +45,7 @@ def test_rotate(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.jpg"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
 
 
 def test_analyse_blank(import_in_mainloop, clean_up_files):
@@ -71,7 +72,7 @@ def test_analyse_blank(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pgm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pgm"])
 
 
 def test_analyse_dark(import_in_mainloop, clean_up_files):
@@ -98,7 +99,7 @@ def test_analyse_dark(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["black.pgm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "black.pgm"])
 
 
 def test_threshold(import_in_mainloop, clean_up_files):
@@ -142,7 +143,7 @@ def test_threshold(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.jpg"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
 
 
 def test_negate(import_in_mainloop, clean_up_files):
@@ -194,7 +195,7 @@ def test_negate(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["white.pnm"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
 
 
 def test_unsharp_mask(import_in_mainloop, clean_up_files):
@@ -257,7 +258,7 @@ def test_unsharp_mask(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.jpg"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
 
 
 def test_crop(import_in_mainloop, clean_up_files):
@@ -337,7 +338,7 @@ def test_crop(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.gif"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.gif"])
 
 
 def test_split(import_in_mainloop, clean_up_files):
@@ -437,7 +438,7 @@ def test_split(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.gif"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.gif"])
 
 
 def test_brightness_contrast(import_in_mainloop, clean_up_files):
@@ -489,4 +490,4 @@ def test_brightness_contrast(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(["test.jpg"])
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])

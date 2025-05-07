@@ -1,6 +1,6 @@
 "test Renumber class"
 
-import os
+from pathlib import Path
 import subprocess
 import tempfile
 import gi
@@ -11,13 +11,15 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-def test_1(mainloop_with_timeout):
+def test_1(mainloop_with_timeout, clean_up_files):
     "basic tests for Renumber class"
     slist = Document()
     dialog = Renumber(document=slist, transient_for=Gtk.Window())
     assert isinstance(dialog, Renumber)
     assert dialog.start == 1, "default start for empty document"
     assert dialog.increment == 1, "default step for empty document"
+
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
     #########################
 
@@ -79,4 +81,4 @@ def test_1(mainloop_with_timeout):
 
     #########################
 
-    os.remove("test.pnm")
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm"])
