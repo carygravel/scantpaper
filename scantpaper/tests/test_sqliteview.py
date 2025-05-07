@@ -202,8 +202,11 @@ def test_db(clean_up_files):
     view.delete_page(1)
     assert view.data[0][0] == 2, "delete page"
 
-    page = view.get_page(2)
-    assert isinstance(page, Page), "get_page"
+    page = view.get_page(number=2)
+    assert isinstance(page, Page), "get_page by number"
+
+    page = view.get_page(id=2)
+    assert isinstance(page, Page), "get_page by id"
 
     view.take_snapshot()
     view.undo()
