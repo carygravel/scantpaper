@@ -281,7 +281,7 @@ class SqliteView(Gtk.TreeView):
     def add_page(self, number, page):
         "add a page to the database"
 
-        if self.find_page_by_number(number):
+        if self.find_page_index_by_page_number(number):
             raise ValueError(f"Page {number} already exists")
 
         thumb = self._insert_page(page)
@@ -290,14 +290,14 @@ class SqliteView(Gtk.TreeView):
     def replace_page(self, number, page):
         "replace a page in the database"
 
-        i = self.find_page_by_number(number)
+        i = self.find_page_index_by_page_number(number)
         if i is None:
             raise ValueError(f"Page {number} does not exist")
 
         thumb = self._insert_page(page)
         self.data[i] = [number, thumb, self._cur.lastrowid]
 
-    def find_page_by_number(self, number):
+    def find_page_index_by_page_number(self, number):
         "find a page by its page number using binary search"
         l = 0
         r = len(self.data) - 1
@@ -313,7 +313,7 @@ class SqliteView(Gtk.TreeView):
 
     def delete_page(self, number):
         "delete a page from the database"
-        i = self.find_page_by_number(number)
+        i = self.find_page_index_by_page_number(number)
         if i is None:
             raise ValueError(f"Page number {number} not found")
 
@@ -321,18 +321,25 @@ class SqliteView(Gtk.TreeView):
         # We rely on take_snapshot() to delete the page when it falls off the undo stack.
         del self.data[i]
 
-    def get_page(self, number):
+    def get_page(self, **kwargs):
         "get a page from the database"
-        i = self.find_page_by_number(number)
-        if i is None:
-            raise ValueError(f"Page number {number} not found")
+        page_id = None
+        if "number" in kwargs:
+            i = self.find_page_index_by_page_number(kwargs["number"])
+            if i is None:
+                raise ValueError(f"Page number {kwargs['number']} not found")
+            page_id = self.data[i][2]
+        else:
+            page_id = kwargs.get("id")
+        if page_id is None:
+            raise ValueError("Please specify either page number or page id")
         self._cur.execute(
             "SELECT image, x_res, y_res, text, annotations FROM page WHERE id = ?",
-            (self.data[i][2],),
+            (page_id,),
         )
         row = self._cur.fetchone()
         if row is None:
-            raise ValueError(f"Page number {number} not found")
+            raise ValueError(f"Page id {page_id} not found")
         return Page.from_bytes(
             row[0], resolution=(row[1], row[2]), text_layer=row[3], annotations=row[4]
         )
