@@ -468,6 +468,23 @@ class SqliteView(Gtk.TreeView):
         )
         self._con.commit()
 
+    def get_resolution(self, page_id):
+        "gets the resolution for the given page"
+        self._cur.execute("SELECT x_res, y_res FROM page WHERE id = ?", (page_id,))
+        return self._cur.fetchone()
+
+    def set_resolution(self, page_id, x_res, y_res):
+        "sets the resolution for the given page"
+        self._cur.execute(
+            "UPDATE page SET x_res = ?, y_res = ? WHERE id = ?",
+            (
+                x_res,
+                y_res,
+                page_id,
+            ),
+        )
+        self._con.commit()
+
 
 class TiedRow(list):
     "TiedRow is the lowest-level tie, allowing you to treat a row as an array of column data."
