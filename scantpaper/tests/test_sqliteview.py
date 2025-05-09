@@ -233,4 +233,7 @@ def test_db(clean_up_files):
     view.set_mean_std_dev(2, 2.5, 3.4)
     assert view.get_mean_std_dev(2) == (2.5, 3.4), "g/set_mean_std_dev()"
 
+    view.set_mean_std_dev(2, [2.5], [3.4])
+    assert view.get_mean_std_dev(2) == ([2.5], [3.4]), "g/set_mean_std_dev() as list"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
