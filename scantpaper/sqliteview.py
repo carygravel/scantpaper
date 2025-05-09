@@ -3,6 +3,7 @@
 from pathlib import Path
 import sqlite3
 import tempfile
+import json
 import gi
 from i18n import _
 from page import Page
@@ -137,8 +138,8 @@ class SqliteView(Gtk.TreeView):
                     thumb BLOB,
                     x_res FLOAT,
                     y_res FLOAT,
-                    std_dev FLOAT,
-                    mean FLOAT,
+                    std_dev TEXT,
+                    mean TEXT,
                     saved BOOL,
                     text TEXT,
                     annotations TEXT)"""
@@ -349,8 +350,8 @@ class SqliteView(Gtk.TreeView):
             row[0],
             id=page_id,
             resolution=(row[1], row[2], "PixelsPerInch"),
-            mean=row[3],
-            std_dev=row[4],
+            mean=None if row[3] is None else json.loads(row[3], strict=False),
+            std_dev=None if row[4] is None else json.loads(row[4], strict=False),
             text_layer=row[5],
             annotations=row[6],
         )
@@ -509,15 +510,18 @@ class SqliteView(Gtk.TreeView):
     def get_mean_std_dev(self, page_id):
         "gets the mean and std_dev for the given page"
         self._cur.execute("SELECT mean, std_dev FROM page WHERE id = ?", (page_id,))
-        return self._cur.fetchone()
+        mean, std_dev = self._cur.fetchone()
+        mean = json.loads(mean, strict=False)
+        std_dev = json.loads(std_dev, strict=False)
+        return mean, std_dev
 
     def set_mean_std_dev(self, page_id, mean, std_dev):
         "sets the mean and std_dev for the given page"
         self._cur.execute(
             "UPDATE page SET mean = ?, std_dev = ? WHERE id = ?",
             (
-                mean,
-                std_dev,
+                json.dumps(mean),
+                json.dumps(std_dev),
                 page_id,
             ),
         )
