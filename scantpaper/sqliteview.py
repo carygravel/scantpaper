@@ -137,6 +137,8 @@ class SqliteView(Gtk.TreeView):
                     thumb BLOB,
                     x_res FLOAT,
                     y_res FLOAT,
+                    std_dev FLOAT,
+                    mean FLOAT,
                     saved BOOL,
                     text TEXT,
                     annotations TEXT)"""
@@ -337,7 +339,7 @@ class SqliteView(Gtk.TreeView):
         if page_id is None:
             raise ValueError("Please specify either page number or page id")
         self._cur.execute(
-            "SELECT image, x_res, y_res, text, annotations FROM page WHERE id = ?",
+            "SELECT image, x_res, y_res, mean, std_dev, text, annotations FROM page WHERE id = ?",
             (page_id,),
         )
         row = self._cur.fetchone()
@@ -345,9 +347,12 @@ class SqliteView(Gtk.TreeView):
             raise ValueError(f"Page id {page_id} not found")
         return Page.from_bytes(
             row[0],
+            id=page_id,
             resolution=(row[1], row[2], "PixelsPerInch"),
-            text_layer=row[3],
-            annotations=row[4],
+            mean=row[3],
+            std_dev=row[4],
+            text_layer=row[5],
+            annotations=row[6],
         )
 
     def take_snapshot(self):
@@ -496,6 +501,23 @@ class SqliteView(Gtk.TreeView):
             (
                 x_res,
                 y_res,
+                page_id,
+            ),
+        )
+        self._con.commit()
+
+    def get_mean_std_dev(self, page_id):
+        "gets the mean and std_dev for the given page"
+        self._cur.execute("SELECT mean, std_dev FROM page WHERE id = ?", (page_id,))
+        return self._cur.fetchone()
+
+    def set_mean_std_dev(self, page_id, mean, std_dev):
+        "sets the mean and std_dev for the given page"
+        self._cur.execute(
+            "UPDATE page SET mean = ?, std_dev = ? WHERE id = ?",
+            (
+                mean,
+                std_dev,
                 page_id,
             ),
         )
