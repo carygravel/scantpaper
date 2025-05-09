@@ -224,4 +224,7 @@ def test_db(clean_up_files):
     view.set_text(2, "text")
     assert view.get_text(2) == "text", "g/set_text()"
 
+    view.set_resolution(2, 299.9, 199.9)
+    assert view.get_resolution(2) == (299.9, 199.9), "g/set_resolution()"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
