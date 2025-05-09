@@ -230,4 +230,7 @@ def test_db(clean_up_files):
     view.set_resolution(2, 299.9, 199.9)
     assert view.get_resolution(2) == (299.9, 199.9), "g/set_resolution()"
 
+    view.set_mean_std_dev(2, 2.5, 3.4)
+    assert view.get_mean_std_dev(2) == (2.5, 3.4), "g/set_mean_std_dev()"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
