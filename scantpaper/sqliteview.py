@@ -468,6 +468,22 @@ class SqliteView(Gtk.TreeView):
         )
         self._con.commit()
 
+    def get_annotations(self, page_id):
+        "gets the annotations layer for the given page"
+        self._cur.execute("SELECT annotations FROM page WHERE id = ?", (page_id,))
+        return self._cur.fetchone()[0]
+
+    def set_annotations(self, page_id, annotations):
+        "sets the annotations layer for the given page"
+        self._cur.execute(
+            "UPDATE page SET annotations = ? WHERE id = ?",
+            (
+                annotations,
+                page_id,
+            ),
+        )
+        self._con.commit()
+
     def get_resolution(self, page_id):
         "gets the resolution for the given page"
         self._cur.execute("SELECT x_res, y_res FROM page WHERE id = ?", (page_id,))
