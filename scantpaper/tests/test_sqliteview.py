@@ -215,10 +215,10 @@ def test_db(clean_up_files):
     view.redo()
     assert view.data[0][0] == 2, "redo"
 
-    view.mark_saved(1)
+    view.set_saved(1)
     assert not view.pages_saved(), "not all pages saved"
 
-    view.mark_saved(2)
+    view.set_saved(2)
     assert view.pages_saved(), "all pages saved"
 
     view.set_text(2, "text")
