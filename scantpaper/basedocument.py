@@ -132,17 +132,12 @@ class BaseDocument(SqliteView):
     def _page_request_handler(self):
         "handle page requests"
         if not self.thread.page_requests.empty():
-            uid = self.thread.page_requests.get()
+            i = self.thread.page_requests.get()
 
-            if uid == "cancel":
+            if i == "cancel":
                 return GLib.SOURCE_CONTINUE
 
-            page = self.find_page_by_uuid(uid)
-            if page is None:
-                self.thread.pages.put(None)
-                return GLib.SOURCE_CONTINUE
-
-            self.thread.pages.put(self.data[page][2])
+            self.thread.pages.put(self.get_page(id=i))
         return GLib.SOURCE_CONTINUE
 
     def set_paper_sizes(self, paper_sizes=None):
@@ -305,6 +300,7 @@ class BaseDocument(SqliteView):
 
     def add_page(self, new_page, ref):
         "Add a new page to the document"
+        print(f"in add_page {new_page.text_layer}")
         pagenum = None
 
         # FIXME: This is really hacky to allow import_scan() to specify the page number
@@ -346,6 +342,16 @@ class BaseDocument(SqliteView):
                     self.data[i][2],
                     xresolution,
                     yresolution,
+                )
+                print(
+                    "Replaced %s at page %s with %s, resolution %s,%s"
+                    % (
+                        old_id,
+                        self.data[i][0],
+                        self.data[i][2],
+                        xresolution,
+                        yresolution,
+                    )
                 )
 
             elif "insert-after" in ref:
@@ -527,8 +533,8 @@ class BaseDocument(SqliteView):
         "wrapper for delete_selection()"
         page = self.get_selected_indices()
         npages = len(page)
-        uuids = map(lambda x: str(self.data[x][2].uuid), page)
-        logger.info("Deleting %s", " ".join(uuids))
+        ids = map(lambda x: str(self.data[x][2]), page)
+        logger.info("Deleting page ids %s", " ".join(ids))
         if self.selection_changed_signal is not None:
             self.get_selection().handler_block(self.selection_changed_signal)
 
@@ -570,13 +576,6 @@ class BaseDocument(SqliteView):
         for row in self.data:
             data.append([row[0], row[1], row[2].clone(True)])
         return data
-
-    def scans_saved(self):
-        "Check that all pages have been saved"
-        for row in self:
-            if not row[2].saved:
-                return False
-        return True
 
     def save_session(self, filename=None, version=None):
         """Dump $self to a file.
@@ -785,10 +784,8 @@ class BaseDocument(SqliteView):
         if "mark_saved" in kwargs and kwargs["mark_saved"]:
 
             def mark_saved_callback(_data):
-                # list_of_pages is frozen,
-                # so find the original pages from their uuids
                 for page in kwargs["list_of_pages"]:
-                    page.saved = True
+                    self.set_saved(page.id)
 
             kwargs["mark_saved_callback"] = mark_saved_callback
 
@@ -808,6 +805,7 @@ def _modify_method_generator(method_name):
 
         # FIXME: duplicate to _import_file_data_callback()
         def _data_callback(response):
+            print(f"in _data_callback {response.info}")
             if isinstance(response.info, dict) and "page" in response.info:
                 self.add_page(response.info["page"], response.info["info"])
             else:

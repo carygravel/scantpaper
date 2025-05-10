@@ -503,21 +503,15 @@ class SaveThread(Importhread):
                     dir=options["dir"],
                     format=image.format,
                     resolution=options["page"].resolution,
+                    text_layer = options["page"].text_layer,
                 )
 
-                # Copy the OCR output
-                try:
-                    new.bboxtree = options["page"].bboxtree
-                except AttributeError:
-                    pass
-
                 # reuse uuid so that the process chain can find it again
-                new.uuid = options["page"].uuid
                 request.data(
                     {
                         "type": "page",
                         "page": new,
-                        "info": {"replace": new.uuid},
+                        "info": {"replace": options["page"].id},
                     }
                 )
 
@@ -556,6 +550,7 @@ def prepare_output_metadata(ftype, metadata):
     return out
 
 
+# TODO: move this to the Page class
 def _write_image_object(page, options):
     image = page.image_object
     if (

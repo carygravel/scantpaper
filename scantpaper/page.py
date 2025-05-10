@@ -95,7 +95,16 @@ class Page:
     def from_bytes(cls, blob, **kwargs):
         "create a page from bytes"
         page = Page(image_object=Image.open(io.BytesIO(blob)))
-        for key in ["resolution", "text_layer", "annotations"]:
+        page.get_size()
+        for key in [
+            "id",
+            "resolution",
+            "mean",
+            "std_dev",
+            "saved",
+            "text_layer",
+            "annotations",
+        ]:
             if key in kwargs and kwargs[key] is not None:
                 setattr(page, key, kwargs[key])
         return page

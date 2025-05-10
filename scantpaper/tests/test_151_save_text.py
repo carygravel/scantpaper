@@ -20,17 +20,18 @@ def test_save_text(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].text_layer = (
+    slist.set_text(
+        1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]'
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
     )
 
     mlp = GLib.MainLoop()
     slist.save_text(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "cp %i test2.txt",
             "post_save_hook_options": "fg",
@@ -75,7 +76,7 @@ def test_save_no_text(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_text(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "cp %i test2.txt",
             "post_save_hook_options": "fg",
@@ -114,18 +115,19 @@ def test_save_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].text_layer = (
+    slist.set_text(
+        1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
         '{"bbox": [1, 14, 77, 48], "type": "word", "text": '
-        '"пени способствовала сохранению", "depth": 3}]'
+        '"пени способствовала сохранению", "depth": 3}]',
     )
 
     mlp = GLib.MainLoop()
     slist.save_text(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -178,12 +180,14 @@ def test_save_hocr_as_text(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_text(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -235,12 +239,14 @@ def test_save_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "cp %i test2.txt",
             "post_save_hook_options": "fg",
@@ -311,12 +317,14 @@ def test_save_hocr_with_encoding(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -366,13 +374,15 @@ def test_save_multipage_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
-    slist.data[1][2].import_hocr(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
+    slist.set_text(2, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid, slist.data[1][2].uuid],
+        list_of_pages=[slist.data[0][2], slist.data[1][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -489,12 +499,14 @@ def test_save_hocr_structure(import_in_mainloop, clean_up_files):
 </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
         path="test.txt",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging

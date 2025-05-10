@@ -26,7 +26,8 @@ def test_import_ppm(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert slist.data[0][2].image_object.mode == "RGB", "PPM imported correctly"
+    page = slist.get_page(id=1)
+    assert page.image_object.mode == "RGB", "PPM imported correctly"
 
     #########################
 

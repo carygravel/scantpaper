@@ -186,9 +186,8 @@ def test_unpaper(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    assert (
-        slist.data[0][2].resolution[0] == 25.74208754208754
-    ), "Resolution of imported image"
+    page = slist.get_page(number=1)
+    assert page.resolution[0] == 25.74208754208754, "Resolution of imported image"
 
     asserts = 0
 
@@ -199,7 +198,7 @@ def test_unpaper(import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.unpaper(
-        page=slist.data[0][2].uuid,
+        page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
@@ -208,9 +207,8 @@ def test_unpaper(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    assert (
-        slist.data[0][2].resolution[0] == 25.74208754208754
-    ), "Resolution of process image"
+    page = slist.get_page(number=1)
+    assert page.resolution[0] == 25.74208754208754, "Resolution of processed image"
 
     #########################
 
@@ -257,12 +255,12 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
+    page = slist.get_page(id=1)
+    assert page.resolution[0] == 72, "non-standard size pnm imports with 72 PPI"
+    slist.set_resolution(1, 300, 300)
+    page = slist.get_page(id=1)
     assert (
-        slist.data[0][2].resolution[0] == 72
-    ), "non-standard size pnm imports with 72 PPI"
-    slist.data[0][2].resolution = (300, 300, "PixelsPerInch")
-    assert (
-        slist.data[0][2].resolution[0] == 300
+        page.resolution[0] == 300
     ), "simulated having imported non-standard pnm with 300 PPI"
 
     asserts = 0
@@ -274,7 +272,7 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.unpaper(
-        page=slist.data[0][2].uuid,
+        page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
@@ -283,7 +281,8 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    assert slist.data[0][2].resolution[0] == 300, "Resolution of process image"
+    page = slist.get_page(number=1)
+    assert page.resolution[0] == 300, "Resolution of processed image"
 
     #########################
 
@@ -346,7 +345,8 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    assert slist.data[0][2].resolution[0] == 72, "Resolution of imported image"
+    page = slist.get_page(number=1)
+    assert page.resolution[0] == 72, "Resolution of imported image"
 
     asserts = 0
 
@@ -357,7 +357,7 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.unpaper(
-        page=slist.data[0][2].uuid,
+        page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
@@ -366,12 +366,22 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    assert slist.data[0][2].resolution[0] == 72, "Resolution of 1st page"
-    assert slist.data[1][2].resolution[0] == 72, "Resolution of 2nd page"
+    page = slist.get_page(number=1)
+    assert page.resolution[0] == 72, "Resolution of 1st page"
+    page = slist.get_page(number=2)
+    assert page.resolution[0] == 72, "Resolution of 2nd page"
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm", "1.pnm", "black.pnm", "2.pnm"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.pnm",
+            "1.pnm",
+            "black.pnm",
+            "2.pnm",
+        ]
+    )
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
@@ -458,7 +468,7 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.unpaper(
-        page=slist.data[0][2].uuid,
+        page=slist.data[0][2],
         options={
             "command": unpaper.get_cmdline(),
             "direction": unpaper.get_option("direction"),
@@ -474,7 +484,8 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
     level = []
     for i in [0, 1]:
         with tempfile.NamedTemporaryFile(suffix=".pnm") as filename:
-            slist.data[i][2].image_object.save(filename.name)
+            page = slist.get_page(number=i + 1)
+            page.image_object.save(filename.name)
             out = subprocess.check_output(
                 [
                     "convert",
@@ -494,4 +505,12 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pbm", "1.pbm", "2.pbm", "black.pbm"])
+    clean_up_files(
+        [
+            Path(tempfile.gettempdir()) / "document.db",
+            "test.pbm",
+            "1.pbm",
+            "2.pbm",
+            "black.pbm",
+        ]
+    )

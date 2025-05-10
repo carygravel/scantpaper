@@ -70,14 +70,15 @@ def test_tesseract_in_thread(import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.tesseract(
-        page=slist.data[0][2].uuid,
+        page=slist.data[0][2],
         language="eng",
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    hocr = slist.data[0][2].export_hocr()
+    page = slist.get_page(number=1)
+    hocr = page.export_hocr()
     assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
