@@ -146,10 +146,12 @@ class SqliteView(Gtk.TreeView):
             )
             self._cur.execute(
                 """CREATE TABLE page_number(
-                    action_id INTEGER PRIMARY KEY,
+                    action_id INTEGER NOT NULL,
+                    row_id INTEGER NOT NULL,
                     page_number INTEGER NOT NULL,
                     page_id INTEGER NOT NULL,
-                    FOREIGN KEY (page_id) REFERENCES page(id))"""
+                    FOREIGN KEY (page_id) REFERENCES page(id),
+                    PRIMARY KEY (action_id, row_id))"""
             )
 
     def __iter__(self, *args, **kwargs):
@@ -270,13 +272,17 @@ class SqliteView(Gtk.TreeView):
             x_res, y_res = page.resolution[0], page.resolution[1]
         thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
         self._cur.execute(
-            """INSERT INTO page (id, image, thumb, x_res, y_res, saved, text, annotations)
-               VALUES (NULL, ?, ?, ?, ?, 0, ?, ?)""",
+            """INSERT INTO page (
+                id, image, thumb, x_res, y_res, mean, std_dev, saved, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 page.to_bytes(),
                 self._pixbuf_to_bytes(thumb),
                 x_res,
                 y_res,
+                None if page.mean is None else json.dumps(page.mean),
+                None if page.std_dev is None else json.dumps(page.std_dev),
+                page.saved,
                 page.text_layer,
                 page.annotations,
             ),
@@ -291,7 +297,19 @@ class SqliteView(Gtk.TreeView):
             raise ValueError(f"Page {number} already exists")
 
         thumb = self._insert_page(page)
-        self.data.append([number, thumb, self._cur.lastrowid])
+        page_id = self._cur.lastrowid
+        self.data.append([number, thumb, page_id])
+        self._cur.execute(
+            """INSERT INTO page_number (action_id, row_id, page_number, page_id)
+               VALUES (?, ?, ?, ?)""",
+            (
+                self._action_id,
+                len(self.data) - 1,
+                number,
+                page_id,
+            ),
+        )
+        self._con.commit()
 
     def replace_page(self, number, page):
         "replace a page in the database"
@@ -301,7 +319,19 @@ class SqliteView(Gtk.TreeView):
             raise ValueError(f"Page {number} does not exist")
 
         thumb = self._insert_page(page)
-        self.data[i] = [number, thumb, self._cur.lastrowid]
+        page_id = self._cur.lastrowid
+        self.data[i] = [number, thumb, page_id]
+        self._cur.execute(
+            """UPDATE page_number SET page_number = ?, page_id = ?
+               WHERE action_id = ? AND row_id = ?""",
+            (
+                number,
+                page_id,
+                self._action_id,
+                i,
+            ),
+        )
+        self._con.commit()
 
     def find_page_index_by_page_number(self, number):
         "find a page by its page number using binary search"
@@ -367,10 +397,11 @@ class SqliteView(Gtk.TreeView):
         self._action_id += 1
 
         # save current pages
-        for row in self.data:
+        for i, row in enumerate(self.data):
             self._cur.execute(
-                "INSERT INTO page_number (action_id, page_number, page_id) VALUES (?, ?, ?)",
-                (self._action_id, row[0], row[2]),
+                """INSERT INTO page_number (action_id, row_id, page_number, page_id)
+                   VALUES (?, ?, ?, ?)""",
+                (self._action_id, i, row[0], row[2]),
             )
 
         # delete those outside the undo limit
