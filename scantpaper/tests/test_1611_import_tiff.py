@@ -29,7 +29,8 @@ def test_import_tiff(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert slist.data[0][2].image_object.mode == "RGB", "TIFF imported correctly"
+    page = slist.get_page(id=1)
+    assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
     #########################
 
@@ -66,7 +67,8 @@ def test_import_tiff_with_units(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert slist.data[0][2].image_object.mode == "RGB", "TIFF imported correctly"
+    page = slist.get_page(id=1)
+    assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
     #########################
 
@@ -182,7 +184,8 @@ def test_import_linked_tiff(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert slist.data[0][2].image_object.mode == "RGB", "TIFF imported correctly"
+    page = slist.get_page(id=1)
+    assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
     #########################
 
@@ -278,8 +281,9 @@ def test_cancel_import_tiff(import_in_mainloop, clean_up_files):
     assert asserts == 1, "all callbacks run"
 
     import_in_mainloop(slist, ["test.tif"])
+    page = slist.get_page(id=1)
     assert (
-        slist.data[0][2].image_object.mode == "RGB"
+        page.image_object.mode == "RGB"
     ), "TIFF imported correctly after cancelling previous import"
 
     #########################

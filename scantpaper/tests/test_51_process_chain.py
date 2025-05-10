@@ -73,9 +73,10 @@ def test_process_chain(clean_up_files):
     assert (
         asserts == 4
     ), "display callback called for import, rotate, unpaper, tesseract"
-    assert slist.data[0][2].resolution[0] == 300, "Resolution of imported image"
+    page = slist.get_page(number=1)
+    assert page.resolution[0] == 300, "Resolution of imported image"
 
-    hocr = slist.data[0][2].export_hocr()
+    hocr = page.export_hocr()
     assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
@@ -123,12 +124,13 @@ def test_process_chain2(clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.analyse(
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
 
-    assert slist.data[0][2].mean == [0.0], "User-defined with %i and %o"
+    page = slist.get_page(number=1)
+    assert page.mean == [0.0], "User-defined with %i and %o"
 
     #########################
 
@@ -168,9 +170,10 @@ def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
     mlp.run()
 
     assert asserts == 3, "display callback called for import, rotate, tesseract"
-    assert slist.data[0][2].resolution[0] == 300, "Resolution of imported image"
+    page = slist.get_page(number=1)
+    assert page.resolution[0] == 300, "Resolution of imported image"
 
-    hocr = slist.data[0][2].export_hocr()
+    hocr = page.export_hocr()
     assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'

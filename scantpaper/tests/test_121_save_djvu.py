@@ -30,7 +30,7 @@ def test_save_djvu(import_in_mainloop, clean_up_files):
 
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "convert %i test2.png",
             "post_save_hook_options": "fg",
@@ -42,7 +42,7 @@ def test_save_djvu(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert os.path.getsize("test.djvu") == 1054, "DjVu created with expected size"
-    assert slist.scans_saved() == 1, "pages tagged as saved"
+    assert slist.pages_saved(), "pages tagged as saved"
 
     capture = subprocess.check_output(["identify", "test2.png"], text=True)
     assert re.search(
@@ -76,15 +76,16 @@ def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].text_layer = (
+    slist.set_text(
+        1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]'
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
     )
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -136,11 +137,14 @@ def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
-    slist.data[0][2].import_annotations(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
+    page.import_annotations(hocr)
+    slist.set_annotations(1, page.annotations)
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -179,11 +183,12 @@ def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].text_layer = (
+    slist.set_text(
+        1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]'
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
     )
 
     def finished_callback(_response):
@@ -199,7 +204,7 @@ def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
 
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=finished_callback,
     )
     slist.cancel(cancelled_callback)
@@ -210,7 +215,7 @@ def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
 
     slist.save_image(
         path="test.jpg",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -264,7 +269,7 @@ def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         error_callback=error_callback1,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -309,11 +314,11 @@ def test_save_djvu_with_float_resolution(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.png"])
-    slist.data[0][2].resolution = 299.72, 299.72, "ppi"
+    slist.set_resolution(1, 299.72, 299.72)
 
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -346,7 +351,7 @@ def test_save_djvu_different_resolutions(import_in_mainloop, clean_up_files):
 
     slist.save_djvu(
         path="test.djvu",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -388,7 +393,7 @@ def test_save_djvu_with_metadata(import_in_mainloop, clean_up_files):
     }
     slist.save_djvu(
         path=djvu,
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
         finished_callback=lambda response: mlp.quit(),
@@ -440,7 +445,7 @@ def test_save_djvu_with_old_metadata(import_in_mainloop, clean_up_files):
     }
     slist.save_djvu(
         path=djvu,
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
         finished_callback=lambda response: mlp.quit(),

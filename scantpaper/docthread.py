@@ -31,7 +31,7 @@ class DocThread(SaveThread):
         "rotate page in thread"
         options = request.args[0]
         angle, page = options["angle"], options["page"]
-        logger.info("Rotating %s by %s degrees", page.uuid, angle)
+        logger.info("Rotating %s by %s degrees", page.id, angle)
         page.image_object = page.image_object.rotate(angle, expand=True)
 
         if self.cancel:
@@ -50,7 +50,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "page": page,
-                "info": {"replace": page.uuid},
+                "info": {"replace": page.id},
             }
         )
 
@@ -62,6 +62,7 @@ class DocThread(SaveThread):
     def do_analyse(self, request):
         "analyse page in thread"
         options = request.args[0]
+        print(f"do_analyse({options})")
         list_of_pages = options["list_of_pages"]
 
         i = 1
@@ -81,6 +82,7 @@ class DocThread(SaveThread):
             else:
                 page.mean = stat.mean
                 page.std_dev = stat.stddev
+            print("std dev: %s mean: %s" % (page.std_dev, page.mean))
             logger.info("std dev: %s mean: %s", page.std_dev, page.mean)
             if self.cancel:
                 raise CancelledError()
@@ -91,7 +93,13 @@ class DocThread(SaveThread):
             #   look at few vertical narrow slices of the image and get the Standard Deviation
             #   if most of the Std Dev are high, then it might be portrait
             page.analyse_time = datetime.datetime.now()
-            request.data(page)
+            request.data(
+                {
+                    "type": "page",
+                    "page": page,
+                    "info": {"replace": page.id},
+                }
+            )
 
     def threshold(self, **kwargs):
         "threshold page"
@@ -105,7 +113,7 @@ class DocThread(SaveThread):
 
         if self.cancel:
             raise CancelledError()
-        logger.info("Threshold %s with %s", page.uuid, threshold)
+        logger.info("Threshold %s with %s", page.id, threshold)
 
         # To grayscale
         page.image_object = page.image_object.convert("L")
@@ -127,7 +135,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "page": page,
-                "info": {"replace": page.uuid},
+                "info": {"replace": page.id},
             }
         )
 
@@ -147,7 +155,7 @@ class DocThread(SaveThread):
 
         logger.info(
             "Enhance %s with brightness %s, contrast %s",
-            page.uuid,
+            page.id,
             brightness,
             contrast,
         )
@@ -168,7 +176,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "page": page,
-                "info": {"replace": page.uuid},
+                "info": {"replace": page.id},
             }
         )
 
@@ -182,7 +190,7 @@ class DocThread(SaveThread):
         options = request.args[0]
         page = options["page"]
 
-        logger.info("Invert %s", page.uuid)
+        logger.info("Invert %s", page.id)
         page.image_object = ImageOps.invert(page.image_object)
 
         if self.cancel:
@@ -194,7 +202,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "page": page,
-                "info": {"replace": page.uuid},
+                "info": {"replace": page.id},
             }
         )
 
@@ -213,7 +221,7 @@ class DocThread(SaveThread):
 
         logger.info(
             "Unsharp mask %s radius %s percent %s threshold %s",
-            page.uuid,
+            page.id,
             radius,
             percent,
             threshold,
@@ -231,7 +239,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "page": page,
-                "info": {"replace": page.uuid},
+                "info": {"replace": page.id},
             }
         )
 
@@ -249,7 +257,7 @@ class DocThread(SaveThread):
         width = options["w"]
         height = options["h"]
 
-        logger.info("Crop %s x %s y %s w %s h %s", page.uuid, left, top, width, height)
+        logger.info("Crop %s x %s y %s w %s h %s", page.id, left, top, width, height)
 
         page.image_object = page.image_object.crop(
             (left, top, left + width, top + height)
@@ -271,7 +279,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "page": page,
-                "info": {"replace": page.uuid},
+                "info": {"replace": page.id},
             }
         )
 
@@ -291,8 +299,8 @@ class DocThread(SaveThread):
             "Splitting in direction %s @ %s -> %s + %s",
             options["direction"],
             options["position"],
-            page.uuid,
-            page.uuid,
+            page.id,
+            page.id,
         )
         # split the image
         boxes = _calculate_crop_tuples(options, image)
@@ -312,7 +320,6 @@ class DocThread(SaveThread):
             image_object=image2,
             dir=options["dir"],
             delete=True,
-            format=page.format,
             resolution=page.resolution,
             dirty_time=page.dirty_time,
         )
@@ -322,18 +329,20 @@ class DocThread(SaveThread):
             page.text_layer = bboxtree.crop(*boxes[0]).json()
             new2.text_layer = bboxtree2.crop(*boxes[2]).json()
 
+        # have to insert the extra page first, because after the replacing the
+        # input page, it won't exist any more.
         request.data(
             {
                 "type": "page",
-                "page": page,
-                "info": {"replace": page.uuid},
+                "page": new2,
+                "info": {"insert-after": page.id},
             }
         )
         request.data(
             {
                 "type": "page",
-                "page": new2,
-                "info": {"insert-after": page.uuid},
+                "page": page,
+                "info": {"replace": page.id},
             }
         )
 
@@ -369,6 +378,7 @@ class DocThread(SaveThread):
             path_hocr.unlink()
 
             page.import_hocr(hocr)
+            print(f"tesseract returned {hocr}")
             page.ocr_flag = True
             page.ocr_time = datetime.datetime.now()
 
@@ -379,7 +389,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "page": page,
-                "info": {"replace": page.uuid},
+                "info": {"replace": page.id},
             }
         )
 
@@ -457,7 +467,7 @@ class DocThread(SaveThread):
                 infile = temp.name
                 logger.debug(
                     "Writing %s -> %s for unpaper",
-                    options["page"].uuid,
+                    options["page"].id,
                     infile,
                 )
                 image.save(infile)
@@ -473,16 +483,12 @@ class DocThread(SaveThread):
                 delete=True,
                 format="Portable anymap",
                 resolution=options["page"].resolution,
-                uuid=options["page"].uuid,
+                uuid=options["page"].id,
                 dirty_time=datetime.datetime.now(),  # flag as dirty
             )
-            request.data(
-                {
-                    "type": "page",
-                    "page": new,
-                    "info": {"replace": options["page"].uuid},
-                }
-            )
+
+            # have to send the 2nd page 1st, as the page_id for the 1st will
+            # cease to exist after replacing it
             if out2:
                 new2 = Page(
                     filename=out2.name,
@@ -496,9 +502,16 @@ class DocThread(SaveThread):
                     {
                         "type": "page",
                         "page": new2,
-                        "info": {"insert-after": new.uuid},
+                        "info": {"insert-after": options["page"].id},
                     }
                 )
+            request.data(
+                {
+                    "type": "page",
+                    "page": new,
+                    "info": {"replace": options["page"].id},
+                }
+            )
 
         except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)

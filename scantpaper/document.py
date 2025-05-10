@@ -174,6 +174,7 @@ class Document(BaseDocument):
 
     def import_file(self, **kwargs):
         "import file"
+        print(f"import_file({kwargs})")
         # File in which to store the process ID
         # so that it can be killed if necessary
         kwargs["pidfile"] = self.create_pidfile(kwargs)
@@ -195,12 +196,15 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _import_file_data_callback
         self.thread.import_file(**kwargs)
 
-    def _post_process_rotate(self, page, options):
+    def _post_process_rotate(self, page_id, options):
+        print(f"_post_process_rotate {page_id}")
         def rotate_finished_callback(_response):
-            if page is None:
+            print(f"rotate_finished_callback {_response, _response.request}")
+            if page_id is None:
                 finished_page = None
             else:
-                finished_page = self.find_page_by_uuid(page.uuid)
+                finished_page = self.find_page_by_uuid(page_id)
+            print(f"finished_page {finished_page}")
             if finished_page is None:
                 if "finished_callback" in options and options["finished_callback"]:
                     options["finished_callback"](None)
@@ -209,16 +213,17 @@ class Document(BaseDocument):
 
         rotate_options = options.copy()
         rotate_options["angle"] = options["rotate"]
-        rotate_options["page"] = page.uuid
+        rotate_options["page"] = page_id
         rotate_options["finished_callback"] = rotate_finished_callback
         del options["rotate"]
         self.rotate(**rotate_options)  # pylint: disable=no-member
 
-    def _post_process_unpaper(self, page, options):
+    def _post_process_unpaper(self, page_id, options):
+        print(f"_post_process_unpaper {page_id}")
         def updated_page_callback(response):
             if isinstance(response.info, dict) and response.info["type"] == "page":
                 del options["unpaper"]
-                finished_page = self.find_page_by_uuid(page.uuid)
+                finished_page = self.find_page_by_uuid(page_id)
                 if finished_page is None:
                     self._post_process_scan(None, options)  # to fire finished_callback
                     return
@@ -229,14 +234,15 @@ class Document(BaseDocument):
             "command": options["unpaper"].get_cmdline(),
             "direction": options["unpaper"].get_option("direction"),
         }
-        unpaper_options["page"] = page.uuid
+        unpaper_options["page"] = page_id
         unpaper_options["updated_page_callback"] = updated_page_callback
         del unpaper_options["finished_callback"]
         self.unpaper(**unpaper_options)
 
-    def _post_process_udt(self, page, options):
+    def _post_process_udt(self, page_id, options):
+        print(f"_post_process_udt {page_id}")
         def udt_finished_callback(_response):
-            finished_page = self.find_page_by_uuid(page.uuid)
+            finished_page = self.find_page_by_uuid(page_id)
             if finished_page is None:
                 self._post_process_scan(None, options)  # to fire finished_callback
                 return
@@ -244,18 +250,19 @@ class Document(BaseDocument):
             self._post_process_scan(self.data[finished_page][2], options)
 
         udt_options = options.copy()
-        udt_options["page"] = page.uuid
+        udt_options["page"] = page_id
         udt_options["command"] = options["udt"]
         udt_options["finished_callback"] = udt_finished_callback
         self.user_defined(**udt_options)
 
-    def _post_process_ocr(self, page, options):
+    def _post_process_ocr(self, page_id, options):
+        print(f"_post_process_ocr {page_id}")
         def ocr_finished_callback(_response):
             del options["ocr"]
             self._post_process_scan(None, options)  # to fire finished_callback
 
         self.ocr_pages(
-            pages=[page.uuid],
+            pages=[page_id],
             threshold=options.get("threshold"),
             engine=options["engine"],
             language=options["language"],
@@ -266,23 +273,23 @@ class Document(BaseDocument):
             display_callback=options.get("display_callback"),
         )
 
-    def _post_process_scan(self, page, options):
+    def _post_process_scan(self, page_id, options):
         options = defaultdict(None, options)
 
         if "rotate" in options and options["rotate"]:
-            self._post_process_rotate(page, options)
+            self._post_process_rotate(page_id, options)
             return
 
         if "unpaper" in options and options["unpaper"]:
-            self._post_process_unpaper(page, options)
+            self._post_process_unpaper(page_id, options)
             return
 
         if "udt" in options and options["udt"]:
-            self._post_process_udt(page, options)
+            self._post_process_udt(page_id, options)
             return
 
         if "ocr" in options and options["ocr"]:
-            self._post_process_ocr(page, options)
+            self._post_process_ocr(page_id, options)
             return
 
         if "finished_callback" in options and options["finished_callback"]:
@@ -307,7 +314,7 @@ class Document(BaseDocument):
             if "display_callback" in kwargs:
                 kwargs["display_callback"](None)
 
-            self._post_process_scan(page, kwargs)
+            self._post_process_scan(self.data[index][2], kwargs)
 
     def split_page(self, **kwargs):
         """split the given page either vertically or horizontally, creating an
