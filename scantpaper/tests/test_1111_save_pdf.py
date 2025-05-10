@@ -76,7 +76,7 @@ def test_save_pdf(clean_up_files):
 
     def import_files_finished_cb(response):
         nonlocal asserts
-        assert not slist.scans_saved(), "pages not tagged as saved"
+        assert not slist.pages_saved(), "pages not tagged as saved"
         asserts += 1
         mlp.quit()
 
@@ -105,7 +105,7 @@ def test_save_pdf(clean_up_files):
         assert (
             re.search(r"Page size:\s+70 x 46 pts", capture) is not None
         ), "valid PDF created"
-        assert slist.scans_saved(), "pages tagged as saved"
+        assert slist.pages_saved(), "pages tagged as saved"
         asserts += 1
         mlp.quit()
 
@@ -374,7 +374,9 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
     #    slist.data[0][2].import_annotations(hocr)
 
     mlp = GLib.MainLoop()
@@ -392,9 +394,9 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
     # in the original, we cannot expect to be able to
     # round-trip the text layer. Here, at least we can check
     # that we have scaled the page size correctly.
+    page = slist.get_page(id=2)
     assert (
-        re.search(rf"bbox\s0\s0\s{width}\s{height}", slist.data[1][2].export_hocr())
-        is not None
+        re.search(rf"bbox\s0\s0\s{width}\s{height}", page.export_hocr()) is not None
     ), "import text layer"
     # assert re.search(r"The.+quick.+brown.+fox", slist.data[1][2].annotations) \
     #     is not None, 'import annotations'
@@ -444,12 +446,13 @@ def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].text_layer = (
+    slist.set_text(
+        1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
         '{"bbox": [1, 14, 77, 48], "type": "word", "text": '
-        '"пени способствовала сохранению", "depth": 3}]'
+        '"пени способствовала сохранению", "depth": 3}]',
     )
 
     mlp = GLib.MainLoop()
@@ -487,11 +490,12 @@ def test_save_pdf_with_non_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].text_layer = (
+    slist.set_text(
+        1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "P�e", "depth": 3}]'
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "P�e", "depth": 3}]',
     )
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -557,11 +561,12 @@ def test_save_pdf_without_font(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.data[0][2].text_layer = (
+    slist.set_text(
+        1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "äöü", "depth": 3}]'
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "äöü", "depth": 3}]',
     )
     asserts = 0
 
@@ -769,7 +774,9 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    slist.data[0][2].import_hocr(hocr)
+    page = slist.get_page(id=1)
+    page.import_hocr(hocr)
+    slist.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -792,9 +799,9 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
     # in the original, we cannot expect to be able to
     # round-trip the text layer. Here, at least we can check
     # that we have scaled the page size correctly.
-    example = slist.data[1][2].export_hocr()
+    page = slist.get_page(id=2)
     assert (
-        re.search(rf"bbox\s0\s0\s{width}\s{height}", example) is not None
+        re.search(rf"bbox\s0\s0\s{width}\s{height}", page.export_hocr()) is not None
     ), "import text layer"
 
     #########################

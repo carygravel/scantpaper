@@ -692,7 +692,7 @@ def test_document(clean_up_files):
         ran_callback = True
         clipboard = slist.copy_selection(True)
         slist.paste_selection(clipboard[0], 0, "after", True)  # copy-paste page 1->2
-        assert slist.data[0][2].uuid != slist.data[1][2].uuid, "different uuid"
+        assert slist.data[0][2] != slist.data[1][2], "different uuid"
         assert slist.data[1][0] == 2, "new page is number 2"
         assert slist.get_selected_indices() == [1], "pasted page selected"
         dialog.page_number_start = 3
@@ -704,9 +704,7 @@ def test_document(clean_up_files):
         # assert dialog.page_number_start== 2,               'page-number-start after cut'
         slist.paste_selection(clipboard[0], 0, "before")  # paste page before 1
         assert len(slist.data) == 2, "2 pages now in list"
-        assert (
-            slist.data[0][2].uuid == clipboard[0][2].uuid
-        ), "cut page pasted at page 1"
+        assert slist.data[0][2] == clipboard[0][2], "cut page pasted at page 1"
         assert slist.data[0][0] == 1, "cut page renumbered to page 1"
         assert slist.get_selected_indices() == [
             1

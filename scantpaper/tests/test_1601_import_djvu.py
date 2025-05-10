@@ -96,7 +96,8 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     assert asserts == 3, "callbacks all run"
 
-    assert slist.data[0][2].image_object.mode == "RGB", "DjVu imported correctly"
+    page = slist.get_page(id=1)
+    assert page.image_object.mode == "RGB", "DjVu imported correctly"
     expected = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -123,10 +124,10 @@ CreationDate	"2018-12-31 13:00:00+01:00"
  </body>
 </html>
 """
-    assert slist.data[0][2].export_hocr() == expected, "text layer"
+    assert page.export_hocr() == expected, "text layer"
     expected = """(maparea "" "()" (rect 157 3030 84 65) (hilite #cccf00) (xor))
 """
-    assert slist.data[0][2].export_djvu_ann() == expected, "annotation layer"
+    assert page.export_djvu_ann() == expected, "annotation layer"
 
     #########################
 
@@ -233,9 +234,8 @@ def test_import_djvu_with_error2(monkeypatch, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    assert (
-        slist.data[0][2].image_object.mode == "RGB"
-    ), "DjVu imported otherwise correctly"
+    page = slist.get_page(id=1)
+    assert page.image_object.mode == "RGB", "DjVu imported otherwise correctly"
 
     #########################
 

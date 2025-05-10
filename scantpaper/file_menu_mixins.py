@@ -82,7 +82,7 @@ class FileMenuMixins:
 
     def new(self, _action, _param):
         "Deletes all scans after warning"
-        if not self._scans_saved(
+        if not self._pages_saved(
             _("Some pages have not been saved.\nDo you really want to clear all pages?")
         ):
             return
@@ -522,7 +522,7 @@ class FileMenuMixins:
         )
         if not pagelist:
             return []
-        return [self.slist.data[i][2].uuid for i in pagelist]
+        return [self.slist.data[i][2] for i in pagelist]
 
     def _file_chooser_response_callback(self, dialog, response, data):
         "Callback for file chooser dialog"
@@ -672,7 +672,6 @@ class FileMenuMixins:
 
         def save_djvu_finished_callback(response):
             filename = response.request.args[0]["path"]
-            uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
             self.post_process_progress.finish(response)
             self.slist.mark_pages(uuids)
             if (
@@ -684,7 +683,7 @@ class FileMenuMixins:
 
         self.slist.save_djvu(
             path=filename,
-            list_of_pages=uuids,
+            list_of_pages=response.request.args[0]["list_of_pages"],
             options=options,
             metadata=collate_metadata(self.settings, datetime.datetime.now()),
             queued_callback=self.post_process_progress.queued,
@@ -706,7 +705,6 @@ class FileMenuMixins:
 
         def save_tiff_finished_callback(response):
             filename = response.request.args[0]["path"]
-            uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
             self.post_process_progress.finish(response)
             self.slist.mark_pages(uuids)
             file = ps if ps is not None else filename
@@ -720,7 +718,7 @@ class FileMenuMixins:
 
         self.slist.save_tiff(
             path=filename,
-            list_of_pages=uuids,
+            list_of_pages=response.request.args[0]["list_of_pages"],
             options=options,
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
@@ -858,7 +856,6 @@ class FileMenuMixins:
 
             def save_image_finished_callback(response):
                 filename = response.request.args[0]["path"]
-                uuids = [x.uuid for x in response.request.args[0]["list_of_pages"]]
                 self.post_process_progress.finish(response)
                 self.slist.mark_pages(uuids)
                 if (
@@ -876,7 +873,7 @@ class FileMenuMixins:
 
             self.slist.save_image(
                 path=filename,
-                list_of_pages=uuids,
+                list_of_pages=response.request.args[0]["list_of_pages"],
                 queued_callback=self.post_process_progress.queued,
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
@@ -924,7 +921,7 @@ class FileMenuMixins:
 
     def _can_quit(self):
         "Remove temporary files, note window state, save settings and quit."
-        if not self._scans_saved(
+        if not self._pages_saved(
             _("Some pages have not been saved.\nDo you really want to quit?")
         ):
             return False
@@ -969,9 +966,9 @@ class FileMenuMixins:
         self._can_quit()
         os.execv(sys.executable, ["python"] + sys.argv)
 
-    def _scans_saved(self, message):
+    def _pages_saved(self, message):
         "Check that all pages have been saved"
-        if not self.slist.scans_saved():
+        if not self.slist.pages_saved():
             response = self._ask_question(
                 parent=self,
                 type="question",

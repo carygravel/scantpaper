@@ -24,7 +24,7 @@ def test_save_tiff(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "convert %i test2.png",
             "post_save_hook_options": "fg",
@@ -83,7 +83,7 @@ def test_cancel_save_tiff(import_in_mainloop, clean_up_files):
 
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     slist.cancel(cancelled_callback)
@@ -94,7 +94,7 @@ def test_cancel_save_tiff(import_in_mainloop, clean_up_files):
 
     slist.save_image(
         path="test.jpg",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -143,7 +143,7 @@ def test_save_tiff_with_error(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         error_callback=error_callback1,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -211,7 +211,7 @@ def test_save_tiff_with_alpha(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "compression": "lzw",
         },
@@ -248,7 +248,7 @@ def test_save_tiff_as_ps(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2].uuid, slist.data[1][2].uuid],
+        list_of_pages=[slist.data[0][2], slist.data[1][2]],
         options={
             "ps": "te st.ps",
             "post_save_hook": "ps2pdf %i test.pdf",
@@ -302,7 +302,7 @@ def test_save_tiff_g4(import_in_mainloop, clean_up_files):
     mlp = GLib.MainLoop()
     slist.save_tiff(
         path="test.tif",
-        list_of_pages=[slist.data[0][2].uuid],
+        list_of_pages=[slist.data[0][2]],
         options={
             "compression": "g4",
         },
