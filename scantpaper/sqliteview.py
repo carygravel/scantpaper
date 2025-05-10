@@ -444,9 +444,15 @@ class SqliteView(Gtk.TreeView):
         self._action_id += 1
         self.data = self._get_snapshot(self._action_id)
 
-    def mark_saved(self, page_id):
+    def set_saved(self, page_id, saved=True):
         "mark given page as saved"
-        self._cur.execute("UPDATE page SET saved = 1 WHERE id = ?", (page_id,))
+        self._cur.execute(
+            "UPDATE page SET saved = ? WHERE id = ?",
+            (
+                saved,
+                page_id,
+            ),
+        )
         self._con.commit()
 
     def pages_saved(self):
