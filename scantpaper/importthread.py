@@ -40,41 +40,11 @@ class Importhread(BaseThread):
     def __init__(self):
         BaseThread.__init__(self)
         self.lock = threading.Lock()
-        self.page_requests = queue.Queue()
-        self.pages = queue.Queue()
         self.running_pids = []
         self.message = None
         self.progress = None
         self.cancel = False
         self.paper_sizes = {}
-
-    def input_handler(self, request):
-        "handle page requests"
-        if not request.args:
-            return request.args
-
-        args = list(request.args)
-
-        if "page" in args[0]:
-            self.page_requests.put(args[0]["page"])
-            page_request = self.pages.get()  # blocking get requested page
-            if page_request == "cancel":
-                return None
-            args[0]["page"] = page_request
-
-        elif "list_of_pages" in args[0]:
-            logger.error(f"input handler before list_of_pages {args[0]}")
-            for i, page in enumerate(args[0]["list_of_pages"]):
-                logger.error(f"i, page {i, page}")
-                self.page_requests.put(page)
-                page_request = self.pages.get()  # blocking get requested page
-                logger.error(f"page_request {page_request}")
-                if page_request == "cancel":
-                    return None
-
-                args[0]["list_of_pages"][i] = page_request
-        request.args = tuple(args)
-        return request.args
 
     def do_cancel(self, _request):
         "cancel running tasks"

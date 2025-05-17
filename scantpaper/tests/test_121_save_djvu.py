@@ -42,7 +42,7 @@ def test_save_djvu(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert os.path.getsize("test.djvu") == 1054, "DjVu created with expected size"
-    assert slist.pages_saved(), "pages tagged as saved"
+    assert slist.thread.pages_saved(), "pages tagged as saved"
 
     capture = subprocess.check_output(["identify", "test2.png"], text=True)
     assert re.search(
@@ -76,7 +76,7 @@ def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -137,11 +137,11 @@ def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
     page.import_annotations(hocr)
-    slist.set_annotations(1, page.annotations)
+    slist.thread.set_annotations(1, page.annotations)
     slist.save_djvu(
         path="test.djvu",
         list_of_pages=[slist.data[0][2]],
@@ -183,7 +183,7 @@ def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -314,7 +314,7 @@ def test_save_djvu_with_float_resolution(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.png"])
-    slist.set_resolution(1, 299.72, 299.72)
+    slist.thread.set_resolution(1, 299.72, 299.72)
 
     slist.save_djvu(
         path="test.djvu",

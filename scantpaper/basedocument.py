@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseDocument(SqliteView):
-    "a Document is a simple list of pages, back by SQLite"
+    "a Document is a simple list of pages, backed by SQLite"
 
     jobs_completed = 0
     jobs_total = 0
@@ -127,19 +127,6 @@ class BaseDocument(SqliteView):
             "row-changed", self._on_row_changed
         )
 
-        GLib.timeout_add(100, self._page_request_handler)
-
-    def _page_request_handler(self):
-        "handle page requests"
-        if not self.thread.page_requests.empty():
-            i = self.thread.page_requests.get()
-
-            if i == "cancel":
-                return GLib.SOURCE_CONTINUE
-
-            self.thread.pages.put(self.get_page(id=i))
-        return GLib.SOURCE_CONTINUE
-
     def set_paper_sizes(self, paper_sizes=None):
         "Set the paper sizes in the manager and worker threads"
         self.paper_sizes = paper_sizes
@@ -160,17 +147,6 @@ class BaseDocument(SqliteView):
                     pass
             except queue.Empty:
                 pass
-            try:
-                while self.thread.page_requests.get(False):
-                    pass
-            except queue.Empty:
-                pass
-            try:
-                while self.thread.pages.get(False):
-                    pass
-            except queue.Empty:
-                pass
-            self.thread.page_requests.put("cancel")
 
             # jobs_completed = 0
             # jobs_total = 0
@@ -320,10 +296,11 @@ class BaseDocument(SqliteView):
         if ref is None:
             if pagenum is None:
                 pagenum = len(self.data) + 1
-            super(BaseDocument, self).add_page(pagenum, new_page)
+            new_page_id = self.thread.add_page(pagenum, new_page)
+            self.data.append([pagenum, self.thread.get_thumb(new_page_id), new_page_id])
             logger.info(
                 "Added %s at page %s with resolution %s,%s",
-                self.data[-1][2],
+                new_page_id,
                 pagenum,
                 xresolution,
                 yresolution,
@@ -334,12 +311,12 @@ class BaseDocument(SqliteView):
                 raise FileNotFoundError("Requested page does not exist.")
             if "replace" in ref:
                 old_id = self.data[i][2]
-                self.replace_page(self.data[i][0], new_page)
+                new_page_id = self.thread.replace_page(self.data[i][0], new_page)
                 logger.info(
                     "Replaced %s at page %s with %s, resolution %s,%s",
                     old_id,
                     self.data[i][0],
-                    self.data[i][2],
+                    new_page_id,
                     xresolution,
                     yresolution,
                 )
@@ -348,7 +325,7 @@ class BaseDocument(SqliteView):
                     % (
                         old_id,
                         self.data[i][0],
-                        self.data[i][2],
+                        new_page_id,
                         xresolution,
                         yresolution,
                     )
@@ -356,10 +333,10 @@ class BaseDocument(SqliteView):
 
             elif "insert-after" in ref:
                 pagenum = self.data[i][0] + 1
-                super(BaseDocument, self).add_page(pagenum, new_page)
+                new_page_id = super(BaseDocument, self).add_page(pagenum, new_page)
                 logger.info(
                     "Inserted %s at page %s with resolution %s,%s,%s",
-                    self.data[-1][2],
+                    new_page_id,
                     pagenum,
                     xresolution,
                     yresolution,
@@ -393,7 +370,7 @@ class BaseDocument(SqliteView):
 
         self.select(page_selection)
         # if "display" in callback[process_uuid]:
-        #     callback[process_uuid]["display"](self.data[i][2])
+        #     callback[process_uuid]["display"](new_page_id)
 
         return page_selection[0]
 
@@ -785,7 +762,8 @@ class BaseDocument(SqliteView):
 
             def mark_saved_callback(_data):
                 for page in kwargs["list_of_pages"]:
-                    self.set_saved(page.id)
+                    # FIXME: writing to the db in the main thread is a bad idea
+                    self.thread.set_saved(page.id)
 
             kwargs["mark_saved_callback"] = mark_saved_callback
 

@@ -73,7 +73,7 @@ def test_process_chain(clean_up_files):
     assert (
         asserts == 4
     ), "display callback called for import, rotate, unpaper, tesseract"
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()
@@ -129,7 +129,7 @@ def test_process_chain2(clean_up_files):
     )
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean == [0.0], "User-defined with %i and %o"
 
     #########################
@@ -170,7 +170,7 @@ def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
     mlp.run()
 
     assert asserts == 3, "display callback called for import, rotate, tesseract"
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()
