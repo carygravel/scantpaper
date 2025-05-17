@@ -30,7 +30,7 @@ def test_save_multipage_pdf(import_in_mainloop, clean_up_files):
 
     pages = []
     for i in range(1, num + 1):
-        slist.set_text(
+        slist.thread.set_text(
             i,
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -98,7 +98,7 @@ def test_save_multipage_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     pages = []
     for i in range(1, num + 1):
-        slist.set_text(
+        slist.thread.set_text(
             i,
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '

@@ -8,6 +8,7 @@ import re
 import glob
 import logging
 import gettext
+import sqlite3
 import sys
 import warnings
 from const import DRAGGER_TOOL, EMPTY, HALF, SELECTOR_TOOL, SPACE, VERSION
@@ -373,6 +374,18 @@ class ApplicationWindow(
         )
         logger.info("sane.__version__ %s", sane.__version__)
         logger.info("sane.init() %s", sane.init())
+
+        logger.info(f"SQLite C library version: {sqlite3.sqlite_version}")
+        logger.info(f"sqlite3 module version: {sqlite3.version}")
+        logger.info(f"SQLite thread safety level: {sqlite3.threadsafety}")
+
+        if sqlite3.threadsafety != 3:
+            logger.warn(
+                "Warning: SQLite is not in Serialized mode (threadsafety != 3)."
+            )
+            logger.warn(
+                "Sharing connections with check_same_thread=False is not recommended."
+            )
 
         # initialise image control tool radio button setting
         self._change_image_tool_cb(

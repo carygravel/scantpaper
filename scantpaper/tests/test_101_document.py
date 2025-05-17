@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+from PIL import Image
 import gi
 import pytest
 from page import Page
@@ -669,6 +670,66 @@ def test_docthread(clean_up_files):
             thread.monitor(block=True)
 
         clean_up_files([cjb2, djvu, pbm, pdf, png, tgz])
+
+
+def test_db(clean_up_files):
+    "test database access"
+    thread = DocThread()
+    thread.start()
+    thread.add_page(1, Page(image_object=Image.new("RGB", (210, 297))))
+    page = thread.get_page(number=1)
+    assert page.id == 1, "add page"
+
+    thread = DocThread(db=Path(tempfile.gettempdir()) / "document.db")
+    page = thread.get_page(number=1)
+    assert page.id == 1, "load from db"
+
+    with pytest.raises(StopIteration):
+        thread.undo()
+
+    with pytest.raises(StopIteration):
+        thread.redo()
+
+    thread._take_snapshot()
+    thread.add_page(2, Page(image_object=Image.new("RGB", (210, 297))))
+    thread.delete_page(1)
+    assert thread.page_number_table()[0][0] == 2, "deleted page"
+
+    page = thread.get_page(number=2)
+    assert isinstance(page, Page), "get_page by number"
+
+    page = thread.get_page(id=2)
+    assert isinstance(page, Page), "get_page by id"
+
+    thread._take_snapshot()
+    thread.undo()
+    assert thread.page_number_table()[0][0] == 1, "undo"
+
+    thread.redo()
+    assert thread.page_number_table()[0][0] == 2, "redo"
+
+    thread.set_saved(1)
+    assert not thread.pages_saved(), "not all pages saved"
+
+    thread.set_saved(2)
+    assert thread.pages_saved(), "all pages saved"
+
+    thread.set_text(2, "text")
+    assert thread.get_text(2) == "text", "g/set_text()"
+
+    thread.set_annotations(2, "ann")
+    assert thread.get_annotations(2) == "ann", "g/set_annotations()"
+
+    thread.set_resolution(2, 299.9, 199.9)
+    assert thread.get_resolution(2) == (299.9, 199.9), "g/set_resolution()"
+
+    thread.set_mean_std_dev(2, 2.5, 3.4)
+    assert thread.get_mean_std_dev(2) == (2.5, 3.4), "g/set_mean_std_dev()"
+
+    thread.set_mean_std_dev(2, [2.5], [3.4])
+    assert thread.get_mean_std_dev(2) == ([2.5], [3.4]), "g/set_mean_std_dev() as list"
+
+    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
 
 def test_document(clean_up_files):

@@ -40,6 +40,7 @@ class SaveThread(Importhread):
     def do_save_pdf(self, request):
         "save PDF in thread"
         options = defaultdict(None, request.args[0])
+        print(f"do_save_pdf options {options}")
 
         self.message = _("Setting up PDF")
         outdir = pathlib.Path(options["dir"])
@@ -59,7 +60,9 @@ class SaveThread(Importhread):
         ) as fhd:  # turn off buffering
             filenames = []
             sizes = []
-            for page in options["list_of_pages"]:
+            for i, page_id in enumerate(options["list_of_pages"]):
+                options["list_of_pages"][i] = self.get_page(id=page_id)
+                page = options["list_of_pages"][i]
                 filenames.append(_write_image_object(page, options))
                 sizes += list(page.matching_paper_sizes(self.paper_sizes).keys())
             sizes = list(set(sizes))  # make the keys unique
@@ -124,7 +127,8 @@ class SaveThread(Importhread):
         args = request.args[0]
         i = 0
         filelist = []
-        for page in args["list_of_pages"]:
+        for page_id in args["list_of_pages"]:
+            page = self.get_page(id=page_id)
             i += 1
             self.progress = i / (len(args["list_of_pages"]) + 1)
             self.message = _("Writing page %i of %i") % (
@@ -244,7 +248,8 @@ class SaveThread(Importhread):
 
         i = 0
         filelist = []
-        for page in options["list_of_pages"]:
+        for page_id in options["list_of_pages"]:
+            page = self.get_page(id=page_id)
             self.progress = i / (len(options["list_of_pages"]) + 1)
             i += 1
             # self.message = _("Converting image %i of %i to TIFF") % (
@@ -344,7 +349,8 @@ class SaveThread(Importhread):
         options = defaultdict(None, request.args[0])
 
         i = 0
-        for page in options["list_of_pages"]:
+        for page_id in options["list_of_pages"]:
+            page = self.get_page(id=page_id)
             i += 1
             if len(options["list_of_pages"]) > 1:
                 filename = options["path"] % (i)
@@ -368,7 +374,8 @@ class SaveThread(Importhread):
         options = defaultdict(None, request.args[0])
 
         string = ""
-        for page in options["list_of_pages"]:
+        for page_id in options["list_of_pages"]:
+            page = self.get_page(id=page_id)
             string += page.export_text()
             if self.cancel:
                 raise CancelledError()
@@ -391,7 +398,8 @@ class SaveThread(Importhread):
 
         with open(options["path"], "w", encoding="utf-8") as fhd:
             written_header = False
-            for page in options["list_of_pages"]:
+            for page_id in options["list_of_pages"]:
+                page = self.get_page(id=page_id)
                 hocr = page.export_hocr()
                 regex = re.search(
                     r"([\s\S]*<body>)([\s\S]*)<\/body>",
@@ -438,6 +446,7 @@ class SaveThread(Importhread):
             ) as infile, tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=".png"
             ) as out:
+                options["page"] = self.get_page(id=options["page"])
                 options["page"].image_object.save(infile.name)
                 if re.search("%o", options["command"]):
                     options["command"] = re.sub(
@@ -503,7 +512,7 @@ class SaveThread(Importhread):
                     dir=options["dir"],
                     format=image.format,
                     resolution=options["page"].resolution,
-                    text_layer = options["page"].text_layer,
+                    text_layer=options["page"].text_layer,
                 )
 
                 # reuse uuid so that the process chain can find it again

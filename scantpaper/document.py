@@ -198,18 +198,20 @@ class Document(BaseDocument):
 
     def _post_process_rotate(self, page_id, options):
         print(f"_post_process_rotate {page_id}")
+
         def rotate_finished_callback(_response):
             print(f"rotate_finished_callback {_response, _response.request}")
-            if page_id is None:
-                finished_page = None
-            else:
-                finished_page = self.find_page_by_uuid(page_id)
-            print(f"finished_page {finished_page}")
-            if finished_page is None:
-                if "finished_callback" in options and options["finished_callback"]:
-                    options["finished_callback"](None)
-                return
-            self._post_process_scan(self.data[finished_page][2], options)
+            info = _response.info
+            print(f"info {info}")
+            if "type" in info and info["type"] == "page" and "replaces" in info:
+                for new_page_id, old_page_id in info["replaces"].items():
+                    print(f"new_page_id, old_page_id {new_page_id, old_page_id}")
+                    print(f"new_page_id {new_page_id}")
+                    if new_page_id is None:
+                        if "finished_callback" in options and options["finished_callback"]:
+                            options["finished_callback"](None)
+                        return
+                    self._post_process_scan(new_page_id, options)
 
         rotate_options = options.copy()
         rotate_options["angle"] = options["rotate"]
@@ -220,6 +222,7 @@ class Document(BaseDocument):
 
     def _post_process_unpaper(self, page_id, options):
         print(f"_post_process_unpaper {page_id}")
+
         def updated_page_callback(response):
             if isinstance(response.info, dict) and response.info["type"] == "page":
                 del options["unpaper"]
@@ -241,6 +244,7 @@ class Document(BaseDocument):
 
     def _post_process_udt(self, page_id, options):
         print(f"_post_process_udt {page_id}")
+
         def udt_finished_callback(_response):
             finished_page = self.find_page_by_uuid(page_id)
             if finished_page is None:
@@ -257,6 +261,7 @@ class Document(BaseDocument):
 
     def _post_process_ocr(self, page_id, options):
         print(f"_post_process_ocr {page_id}")
+
         def ocr_finished_callback(_response):
             del options["ocr"]
             self._post_process_scan(None, options)  # to fire finished_callback

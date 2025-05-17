@@ -26,20 +26,22 @@ def test_do_save_pdf(clean_up_files):
 
     thread = DocThread()
     tdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    page_id = thread.add_page(
+        1,
+        Page(
+            filename="test.pnm",
+            dir=tdir.name,
+            delete=True,
+            format="Portable anymap",
+            resolution=(72, 72, "PixelsPerInch"),
+            width=70,
+            height=46,
+        ),
+    )
     options = {
         "dir": tdir.name,
         "path": "test.pdf",
-        "list_of_pages": [
-            Page(
-                filename="test.pnm",
-                dir=tdir.name,
-                delete=True,
-                format="Portable anymap",
-                resolution=(72, 72, "PixelsPerInch"),
-                width=70,
-                height=46,
-            )
-        ],
+        "list_of_pages": [page_id],
         "options": {},
     }
     request = Request("save_pdf", (options,), queue.Queue())
@@ -47,7 +49,9 @@ def test_do_save_pdf(clean_up_files):
     capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
     assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
 
-    clean_up_files(["test.pnm", "test.pdf"])
+    clean_up_files(
+        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
+    )
 
 
 def test_save_pdf(clean_up_files):
@@ -76,7 +80,7 @@ def test_save_pdf(clean_up_files):
 
     def import_files_finished_cb(response):
         nonlocal asserts
-        assert not slist.pages_saved(), "pages not tagged as saved"
+        assert not slist.thread.pages_saved(), "pages not tagged as saved"
         asserts += 1
         mlp.quit()
 
@@ -105,7 +109,7 @@ def test_save_pdf(clean_up_files):
         assert (
             re.search(r"Page size:\s+70 x 46 pts", capture) is not None
         ), "valid PDF created"
-        assert slist.pages_saved(), "pages tagged as saved"
+        assert slist.thread.pages_saved(), "pages tagged as saved"
         asserts += 1
         mlp.quit()
 
@@ -122,7 +126,7 @@ def test_save_pdf(clean_up_files):
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    assert asserts == 5, "ran all callbacks"
+    assert asserts == 4, "ran all callbacks"
 
     capture = subprocess.check_output(["identify", "test-1.ppm"], text=True)
     assert re.search(
@@ -374,9 +378,9 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
     #    slist.data[0][2].import_annotations(hocr)
 
     mlp = GLib.MainLoop()
@@ -394,7 +398,7 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
     # in the original, we cannot expect to be able to
     # round-trip the text layer. Here, at least we can check
     # that we have scaled the page size correctly.
-    page = slist.get_page(id=2)
+    page = slist.thread.get_page(id=2)
     assert (
         re.search(rf"bbox\s0\s0\s{width}\s{height}", page.export_hocr()) is not None
     ), "import text layer"
@@ -446,7 +450,7 @@ def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -490,7 +494,7 @@ def test_save_pdf_with_non_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -561,7 +565,7 @@ def test_save_pdf_without_font(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -774,9 +778,9 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -799,7 +803,7 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
     # in the original, we cannot expect to be able to
     # round-trip the text layer. Here, at least we can check
     # that we have scaled the page size correctly.
-    page = slist.get_page(id=2)
+    page = slist.thread.get_page(id=2)
     assert (
         re.search(rf"bbox\s0\s0\s{width}\s{height}", page.export_hocr()) is not None
     ), "import text layer"
