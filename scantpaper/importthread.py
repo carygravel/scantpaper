@@ -269,7 +269,10 @@ class Importhread(BaseThread):
                     width=args["info"]["width"][0],
                     height=args["info"]["height"][0],
                 )
-                request.data(page)
+                request.data( {
+                        "type": "page",
+                        "row": self.add_page(page),
+                    })
 
             # Split the tiff into its pages and import them individually
             elif args["last"] >= args["first"] and args["first"] > 0:
@@ -296,7 +299,10 @@ class Importhread(BaseThread):
                             width=args["info"]["width"][i - 1],
                             height=args["info"]["height"][i - 1],
                         )
-                        request.data(page)
+                        request.data( {
+                                "type": "page",
+                                "row": self.add_page(page),
+                            })
 
         elif re.search(rf"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
             try:
@@ -312,7 +318,10 @@ class Importhread(BaseThread):
                         "PixelsPerInch",
                     ),
                 )
-                request.data(page)
+                request.data( {
+                        "type": "page",
+                        "row": self.add_page(page),
+                    })
             except (PermissionError, IOError) as err:
                 logger.error("Caught error writing to %s: %s", args["dir"], err)
                 request.error(f"Error: unable to write to {args['dir']}.")
@@ -326,7 +335,10 @@ class Importhread(BaseThread):
                 height=args["info"]["height"][0],
             )
             page.get_resolution(self.paper_sizes)
-            request.data(page)
+            request.data( {
+                    "type": "page",
+                    "row": self.add_page(page),
+                })
 
     def get_file_info(self, path, password, **kwargs):
         "get file info"
@@ -406,7 +418,10 @@ class Importhread(BaseThread):
                         )
                         request.error("Error: parsing DjVU annotation layer")
 
-                    request.data(page)
+                    request.data( {
+                            "type": "page",
+                            "row": self.add_page(page),
+                        })
 
     def _do_import_pdf(self, request):
         args = request.args[0]
@@ -478,7 +493,10 @@ class Importhread(BaseThread):
                     )
                     page.import_pdftotext(self._extract_text_from_pdf(request, i))
                     print(f"after import_pdftotext {page.export_hocr()}")
-                    request.data(page)
+                    request.data( {
+                            "type": "page",
+                            "row": self.add_page(page),
+                        })
                     os.remove(fname)
                 except (PermissionError, IOError) as err:
                     logger.error("Caught error importing PDF: %s", err)

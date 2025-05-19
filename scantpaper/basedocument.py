@@ -262,85 +262,59 @@ class BaseDocument(SqliteView):
                 return i
         return None
 
-    def _find_page_by_ref(self, ref):
-        if ref:
-            for key in ["replace", "insert-after"]:
-                if key in ref and ref[key]:
-                    uid = ref[key]
-                    i = self.find_page_by_uuid(uid)
-                    if i is None:
-                        logger.error("Requested page %s does not exist.", uid)
-                        return None
-                    return i
-        return None
+    def _find_page_by_ref(self, uid):
+        i = self.find_page_by_uuid(uid)
+        if i is None:
+            logger.error("Requested page %s does not exist.", uid)
+            return None
+        return i
 
-    def add_page(self, new_page, ref):
+    def add_page(self, number, thumb, page_id, replace=None, insert_after=None):
         "Add a new page to the document"
-        print(f"in add_page {new_page.text_layer}")
-        pagenum = None
-
-        # FIXME: This is really hacky to allow import_scan() to specify the page number
-        if not isinstance(ref, dict):
-            pagenum = ref
-            ref = None
-
-        i = self._find_page_by_ref(ref)
+        print(f"in add_page {number, thumb, page_id, replace, insert_after}")
+        ref = insert_after if replace is None else replace
+        i = None
+        if ref is not None:
+            print(f"before _find_page_by_ref({ref})")
+            i = self._find_page_by_ref(ref)
+            print(f"after _find_page_by_ref({i})")
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal:
             self.get_model().handler_block(self.row_changed_signal)
 
-        xresolution, yresolution, units = new_page.get_resolution(self.paper_sizes)
-
         # Add to the page list
-        if ref is None:
-            if pagenum is None:
-                pagenum = len(self.data) + 1
-            new_page_id = self.thread.add_page(pagenum, new_page)
-            self.data.append([pagenum, self.thread.get_thumb(new_page_id), new_page_id])
+        if i is None:
+            self.data.append([number, thumb, page_id])
             logger.info(
-                "Added %s at page %s with resolution %s,%s",
-                new_page_id,
-                pagenum,
-                xresolution,
-                yresolution,
+                "Added page id %s at page number %s", page_id, number,
             )
 
         else:
-            if i is None:
-                raise FileNotFoundError("Requested page does not exist.")
-            if "replace" in ref:
+            if replace is not None:
                 old_id = self.data[i][2]
-                new_page_id = self.thread.replace_page(self.data[i][0], new_page)
+                self.data[i] = [number, thumb, page_id]
                 logger.info(
-                    "Replaced %s at page %s with %s, resolution %s,%s",
+                    "Replaced page id %s at page number %s with page id %s",
                     old_id,
                     self.data[i][0],
-                    new_page_id,
-                    xresolution,
-                    yresolution,
+                    page_id,
                 )
                 print(
-                    "Replaced %s at page %s with %s, resolution %s,%s"
+                    "Replaced %s at page %s with %s"
                     % (
                         old_id,
                         self.data[i][0],
-                        new_page_id,
-                        xresolution,
-                        yresolution,
+                        page_id,
                     )
                 )
 
-            elif "insert-after" in ref:
-                pagenum = self.data[i][0] + 1
-                new_page_id = super(BaseDocument, self).add_page(pagenum, new_page)
+            elif insert_after is not None:
+                self.data.insert(i+1,[number, thumb, page_id])
                 logger.info(
-                    "Inserted %s at page %s with resolution %s,%s,%s",
-                    new_page_id,
-                    pagenum,
-                    xresolution,
-                    yresolution,
-                    units,
+                    "Inserted %s at page %s",
+                    page_id,
+                    number,
                 )
 
         # Block selection_changed_signal
@@ -364,7 +338,7 @@ class BaseDocument(SqliteView):
         # error importing.
         while (
             page_selection[0] < len(self.data) - 1
-            and self.data[page_selection[0]][0] != pagenum
+            and self.data[page_selection[0]][0] != number
         ):
             page_selection[0] += 1
 
@@ -783,12 +757,13 @@ def _modify_method_generator(method_name):
 
         # FIXME: duplicate to _import_file_data_callback()
         def _data_callback(response):
-            print(f"in _data_callback {response.info}")
+            print(f"in _data_callback {response.info, kwargs}")
             if isinstance(response.info, dict) and "page" in response.info:
                 self.add_page(response.info["page"], response.info["info"])
             else:
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
+            print(f"leaving _data_callback")
 
         kwargs["data_callback"] = _data_callback
         self._note_callbacks(kwargs)
@@ -819,6 +794,7 @@ for method_name_ in [
     "crop",
     "to_png",
     "tesseract",
+    "user_defined",
 ]:
     setattr(BaseDocument, method_name_, _modify_method_generator(method_name_))
 
