@@ -27,10 +27,10 @@ def test_udt(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["white.pnm"])
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -54,11 +54,12 @@ def test_udt(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean == [0.0], "User-defined with %i and %o"
     assert page.resolution[0] == 25.4, "Resolution of converted image"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not page.saved, "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
@@ -94,7 +95,7 @@ def test_udt_in_place(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean == [0.0], "User-defined with %i"
 
     #########################
@@ -121,7 +122,7 @@ def test_udt_page_size(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["white.pnm"])
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
 
     mlp = GLib.MainLoop()
@@ -166,7 +167,7 @@ def test_udt_resolution(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["white.pnm"])
-    slist.set_resolution(1, 10, 10)
+    slist.thread.set_resolution(1, 10, 10)
 
     mlp = GLib.MainLoop()
     slist.user_defined(
@@ -177,7 +178,7 @@ def test_udt_resolution(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution == (
         10,
         10,
@@ -227,7 +228,7 @@ def test_udt_error(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean == [0.0], "User-defined after error"
 
     #########################
