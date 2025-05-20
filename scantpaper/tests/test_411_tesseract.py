@@ -77,7 +77,7 @@ def test_tesseract_in_thread(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     hocr = page.export_hocr()
     assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'

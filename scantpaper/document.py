@@ -188,7 +188,6 @@ class Document(BaseDocument):
 
         def _import_file_data_callback(response):
             try:
-                print(f"_import_file_data_callback before add_page{response.info, None}")
                 self.add_page(*response.info["row"])
             except AttributeError:
                 if "logger_callback" in kwargs:
@@ -211,7 +210,7 @@ class Document(BaseDocument):
                     "insert-after",
                 ]:
                     if key in info:
-                        args.append( info[key])
+                        args.append(info[key])
                 print(f"before add_page {args}")
                 self.add_page(*args)
                 page_id = args[2]
@@ -240,7 +239,7 @@ class Document(BaseDocument):
                     "insert-after",
                 ]:
                     if key in info:
-                        args.append( info[key])
+                        args.append(info[key])
                 print(f"before add_page {args}")
                 self.add_page(*args)
                 page_id = args[2]
@@ -262,7 +261,6 @@ class Document(BaseDocument):
         print(f"_post_process_udt {page_id}")
 
         def updated_page_callback(response):
-            print(f"_post_process_udt updated_page_callback {response, response.request}")
             info = response.info
             print(f"info {info}")
             if info and "type" in info and info["type"] == "page":
@@ -272,7 +270,7 @@ class Document(BaseDocument):
                     "insert-after",
                 ]:
                     if key in info:
-                        args.append( info[key])
+                        args.append(info[key])
                 print(f"before add_page {args}")
                 self.add_page(*args)
                 page_id = args[2]
@@ -284,9 +282,6 @@ class Document(BaseDocument):
         udt_options["page"] = page_id
         udt_options["command"] = options["udt"]
         udt_options["updated_page_callback"] = updated_page_callback
-        #udt_options["finished_callback"] = updated_page_callback
-        #udt_options["data_callback"] = updated_page_callback
-        #del udt_options["finished_callback"]
         self.user_defined(**udt_options)
 
     def _post_process_ocr(self, page_id, options):
@@ -353,7 +348,7 @@ class Document(BaseDocument):
                     "insert-after",
                 ]:
                     if key in response.info:
-                        args.append( response.info[key])
+                        args.append(response.info[key])
                 print(f"before add_page {args}")
                 self.add_page(*args)
                 page_id = args[2]
@@ -364,7 +359,6 @@ class Document(BaseDocument):
         import_scan_kwargs["data_callback"] = _import_scan_data_callback
         del import_scan_kwargs["finished_callback"]
         self.thread.import_page(**import_scan_kwargs)
-
 
     def split_page(self, **kwargs):
         """split the given page either vertically or horizontally, creating an
@@ -417,7 +411,7 @@ class Document(BaseDocument):
                     "insert-after",
                 ]:
                     if key in response.info:
-                        args.append( response.info[key])
+                        args.append(response.info[key])
                 print(f"before add_page {args}")
                 self.add_page(*args)
                 print(f"after add_page")
