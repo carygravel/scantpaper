@@ -179,7 +179,11 @@ class Page:
 
     def get_resolution(self, paper_sizes=None):
         "get the resolution"
-        if self.resolution is not None:
+        if (
+            isinstance(self.resolution, int)
+            or isinstance(self.resolution, float)
+            or (isinstance(self.resolution, tuple) and self.resolution[0] is not None)
+        ):
             return self.resolution
 
         locale.setlocale(locale.LC_NUMERIC, "C")
