@@ -676,7 +676,7 @@ def test_db(clean_up_files):
     "test database access"
     thread = DocThread()
     thread.start()
-    thread.add_page(1, Page(image_object=Image.new("RGB", (210, 297))))
+    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 1)
     page = thread.get_page(number=1)
     assert page.id == 1, "add page"
 
@@ -691,8 +691,8 @@ def test_db(clean_up_files):
         thread.redo()
 
     thread._take_snapshot()
-    thread.add_page(2, Page(image_object=Image.new("RGB", (210, 297))))
-    thread.delete_page(1)
+    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
+    thread.delete_page(number=1)
     assert thread.page_number_table()[0][0] == 2, "deleted page"
 
     page = thread.get_page(number=2)

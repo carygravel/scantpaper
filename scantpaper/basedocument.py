@@ -39,29 +39,6 @@ class BaseDocument(SqliteView):
     selection_changed_signal = None
     paper_sizes = {}
 
-    def _on_row_changed(self, _path, _iter, _data):
-        "Set-up the callback when the page number has been edited."
-        # Note uuids for selected pages
-        selection = self.get_selected_indices()
-        uuids = []
-        for i in selection:
-            uuids.append(self.data[i][2])
-
-        self.get_model().handler_block(self.row_changed_signal)
-
-        # Sort pages
-        self._manual_sort_by_column(0)
-
-        # And make sure there are no duplicates
-        self.renumber()
-        self.get_model().handler_unblock(self.row_changed_signal)
-
-        # Select the renumbered pages via uuid
-        selection = []
-        for i in uuids:
-            selection.append(self.find_page_by_uuid(i))
-        self.select(selection)
-
     def __init__(self, **kwargs):
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page Data": "hstring"}
         super().__init__(**columns)
@@ -126,6 +103,36 @@ class BaseDocument(SqliteView):
         self.row_changed_signal = self.get_model().connect(
             "row-changed", self._on_row_changed
         )
+        self.row_deleted_signal = self.get_model().connect(
+            "row-deleted", self._on_row_deleted
+        )
+
+    def _on_row_changed(self, _self, _path, _iter):
+        "Set-up the callback when the page number has been edited."
+        # Note uuids for selected pages
+        selection = self.get_selected_indices()
+        uuids = []
+        for i in selection:
+            uuids.append(self.data[i][2])
+
+        self.get_model().handler_block(self.row_changed_signal)
+
+        # Sort pages
+        self._manual_sort_by_column(0)
+
+        # And make sure there are no duplicates
+        self.renumber()
+        self.get_model().handler_unblock(self.row_changed_signal)
+
+        # Select the renumbered pages via uuid
+        selection = []
+        for i in uuids:
+            selection.append(self.find_page_by_uuid(i))
+        self.select(selection)
+
+    def _on_row_deleted(self, _self, path):
+        for i in path.get_indices():
+            self.thread.delete_page(row_id=i)
 
     def set_paper_sizes(self, paper_sizes=None):
         "Set the paper sizes in the manager and worker threads"
@@ -282,12 +289,16 @@ class BaseDocument(SqliteView):
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal:
             self.get_model().handler_block(self.row_changed_signal)
+        if self.row_deleted_signal:
+            self.get_model().handler_block(self.row_deleted_signal)
 
         # Add to the page list
         if i is None:
             self.data.append([number, thumb, page_id])
             logger.info(
-                "Added page id %s at page number %s", page_id, number,
+                "Added page id %s at page number %s",
+                page_id,
+                number,
             )
 
         else:
@@ -310,7 +321,7 @@ class BaseDocument(SqliteView):
                 )
 
             elif insert_after is not None:
-                self.data.insert(i+1,[number, thumb, page_id])
+                self.data.insert(i + 1, [number, thumb, page_id])
                 logger.info(
                     "Inserted %s at page %s",
                     page_id,
@@ -328,6 +339,8 @@ class BaseDocument(SqliteView):
         if self.selection_changed_signal:
             self.get_selection().handler_unblock(self.selection_changed_signal)
 
+        if self.row_deleted_signal:
+            self.get_model().handler_unblock(self.row_deleted_signal)
         if self.row_changed_signal:
             self.get_model().handler_unblock(self.row_changed_signal)
 

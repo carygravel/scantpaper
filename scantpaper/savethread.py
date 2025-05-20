@@ -518,12 +518,16 @@ class SaveThread(Importhread):
                     text_layer=options["page"].text_layer,
                 )
                 print(f"output image {new}")
-                row = self.replace_page(new, self.find_page_number_by_page_id(options["page"].id))
-                request.data( {
+                row = self.replace_page(
+                    new, self.find_page_number_by_page_id(options["page"].id)
+                )
+                request.data(
+                    {
                         "type": "page",
                         "row": row,
                         "replace": options["page"].id,
-                        })
+                    }
+                )
                 print(f"after data callback {row}")
 
         except (PermissionError, IOError) as err:

@@ -180,14 +180,20 @@ class DocThread(SaveThread):
         self._con.commit()
         return number, thumb, page_id
 
-    def delete_page(self, number):
+    def delete_page(self, **kwargs):
         "delete a page from the database"
 
-        i = self.find_row_id_by_page_number(number)
-        if i is None:
-            raise ValueError(f"Page {number} does not exist")
+        row_id = None
+        if "number" in kwargs:
+            row_id = self.find_row_id_by_page_number(kwargs["number"])
+            if row_id is None:
+                raise ValueError(f"Page {kwargs['number']} does not exist")
+        elif "row_id" in kwargs:
+            row_id = kwargs["row_id"]
+        if row_id is None:
+            raise ValueError("Specify either row_id or number")
 
-        self._cur.execute("DELETE FROM number WHERE page_number = ?", (number,))
+        self._cur.execute("DELETE FROM number WHERE row_id = ?", (row_id,))
         self._con.commit()
 
     def find_row_id_by_page_number(self, number):
@@ -462,11 +468,15 @@ class DocThread(SaveThread):
                 page.resolution[2],
             )
         print(f"before replace_page {page.id}")
-        request.data( {
+        request.data(
+            {
                 "type": "page",
-                "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                "row": self.replace_page(
+                    page, self.find_page_number_by_page_id(page.id)
+                ),
                 "replace": page.id,
-                })
+            }
+        )
 
     def analyse(self, **kwargs):
         "analyse page"
@@ -508,11 +518,15 @@ class DocThread(SaveThread):
             #   look at few vertical narrow slices of the image and get the Standard Deviation
             #   if most of the Std Dev are high, then it might be portrait
             page.analyse_time = datetime.datetime.now()
-            request.data( {
+            request.data(
+                {
                     "type": "page",
-                    "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                    "row": self.replace_page(
+                        page, self.find_page_number_by_page_id(page.id)
+                    ),
                     "replace": page.id,
-                    })
+                }
+            )
             print(f"page {page.id} analysed")
 
     def threshold(self, **kwargs):
@@ -545,11 +559,15 @@ class DocThread(SaveThread):
             raise CancelledError()
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        request.data( {
+        request.data(
+            {
                 "type": "page",
-                "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                "row": self.replace_page(
+                    page, self.find_page_number_by_page_id(page.id)
+                ),
                 "replace": page.id,
-                })
+            }
+        )
 
     def brightness_contrast(self, **kwargs):
         "adjust brightness and contrast"
@@ -580,11 +598,15 @@ class DocThread(SaveThread):
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        request.data( {
+        request.data(
+            {
                 "type": "page",
-                "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                "row": self.replace_page(
+                    page, self.find_page_number_by_page_id(page.id)
+                ),
                 "replace": page.id,
-                })
+            }
+        )
 
     def negate(self, **kwargs):
         "negate page"
@@ -604,11 +626,15 @@ class DocThread(SaveThread):
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        request.data( {
+        request.data(
+            {
                 "type": "page",
-                "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                "row": self.replace_page(
+                    page, self.find_page_number_by_page_id(page.id)
+                ),
                 "replace": page.id,
-                })
+            }
+        )
 
     def unsharp(self, **kwargs):
         "run unsharp mask"
@@ -639,11 +665,15 @@ class DocThread(SaveThread):
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        request.data( {
+        request.data(
+            {
                 "type": "page",
-                "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                "row": self.replace_page(
+                    page, self.find_page_number_by_page_id(page.id)
+                ),
                 "replace": page.id,
-                })
+            }
+        )
 
     def crop(self, **kwargs):
         "crop page"
@@ -677,11 +707,15 @@ class DocThread(SaveThread):
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        request.data( {
+        request.data(
+            {
                 "type": "page",
-                "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                "row": self.replace_page(
+                    page, self.find_page_number_by_page_id(page.id)
+                ),
                 "replace": page.id,
-                })
+            }
+        )
 
     def split_page(self, **kwargs):
         "split page"
@@ -735,15 +769,17 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row":self.add_page(page, number + 1),
+                "row": self.add_page(page, number + 1),
                 "insert-after": page.id,
             }
         )
-        request.data( {
+        request.data(
+            {
                 "type": "page",
                 "row": self.replace_page(page, number),
                 "replace": page.id,
-                })
+            }
+        )
 
     def tesseract(self, **kwargs):
         "run tesseract"
@@ -784,11 +820,15 @@ class DocThread(SaveThread):
         if self.cancel:
             raise CancelledError()
 
-        request.data( {
+        request.data(
+            {
                 "type": "page",
-                "row": self.replace_page(page, self.find_page_number_by_page_id(page.id)),
+                "row": self.replace_page(
+                    page, self.find_page_number_by_page_id(page.id)
+                ),
                 "replace": page.id,
-                })
+            }
+        )
 
     def unpaper(self, **kwargs):
         "run unpaper"
@@ -904,11 +944,13 @@ class DocThread(SaveThread):
                         "insert-after": page.id,
                     }
                 )
-            request.data( {
-                "type": "page",
-                "row": self.replace_page(new, number),
-                "replace": page.id,
-                })
+            request.data(
+                {
+                    "type": "page",
+                    "row": self.replace_page(new, number),
+                    "replace": page.id,
+                }
+            )
 
         except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
@@ -924,7 +966,7 @@ class DocThread(SaveThread):
         kwargs = request.args[0]
         pagenum = kwargs["page"]
         page = Page(**kwargs)
-        xresolution,            yresolution,            units = page.get_resolution()
+        xresolution, yresolution, units = page.get_resolution()
         row = self.add_page(page, pagenum)
         page_id = row[0]
         logger.info(
