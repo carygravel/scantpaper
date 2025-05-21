@@ -367,8 +367,16 @@ class Document(BaseDocument):
 
         # FIXME: duplicate to _import_file_data_callback()
         def _split_page_data_callback(response):
-            if response.info["type"] == "page":
-                self.add_page(response.info["page"], response.info["info"])
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                kwargs = {}
+                for key in [
+                    "replace",
+                    "insert-after",
+                ]:
+                    if key in info:
+                        kwargs[key] = info[key]
+                self.add_page(*info["row"], **kwargs)
             else:
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)

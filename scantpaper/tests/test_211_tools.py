@@ -20,7 +20,7 @@ def test_rotate(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.set_saved(1, True)
+    slist.thread.set_saved(1, True)
 
     asserts = 0
 
@@ -39,11 +39,10 @@ def test_rotate(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    print(f"after rotate {slist.data}")
     assert asserts == 1, "all callbacks run"
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.image_object.mode == "RGB", "valid JPG created"
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
@@ -70,7 +69,7 @@ def test_analyse_blank(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.std_dev == [0.0], "Found blank page"
 
     #########################
@@ -98,7 +97,7 @@ def test_analyse_dark(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean == [0.0], "Found dark page"
 
     #########################
@@ -117,8 +116,8 @@ def test_threshold(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.set_saved(1, True)
-    slist.set_text(
+    slist.thread.set_saved(1, True)
+    slist.thread.set_text(
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -142,10 +141,10 @@ def test_threshold(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert len(page.mean) == 1, "depth == 1"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
@@ -163,8 +162,8 @@ def test_negate(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["white.pnm"])
-    slist.set_saved(1, True)
-    slist.set_text(
+    slist.thread.set_saved(1, True)
+    slist.thread.set_text(
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -178,7 +177,7 @@ def test_negate(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert min(page.mean) == 255, "mean before"
 
     mlp = GLib.MainLoop()
@@ -197,10 +196,10 @@ def test_negate(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert max(page.mean) == 0, "mean afterwards"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
@@ -218,8 +217,8 @@ def test_unsharp_mask(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.set_saved(1, True)
-    slist.set_text(
+    slist.thread.set_saved(1, True)
+    slist.thread.set_text(
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -233,7 +232,7 @@ def test_unsharp_mask(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean == [
         145.5391304347826,
         89.22546583850932,
@@ -259,14 +258,14 @@ def test_unsharp_mask(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean != [
         145.5391304347826,
         89.22546583850932,
         80.40186335403726,
     ], "mean after"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
@@ -285,11 +284,11 @@ def test_crop(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.gif"])
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
-    slist.set_saved(1, True)
+    slist.thread.set_saved(1, True)
     hocr = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -310,9 +309,9 @@ def test_crop(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.crop(
@@ -325,7 +324,7 @@ def test_crop(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.width == 10, "page width after crop"
     assert page.height == 10, "page height after crop"
     image = page.image_object
@@ -350,7 +349,7 @@ def test_crop(import_in_mainloop, clean_up_files):
 </html>
 """
     assert page.export_hocr() == hocr, "cropped hocr"
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
@@ -358,7 +357,7 @@ def test_crop(import_in_mainloop, clean_up_files):
 
 
 def test_split(import_in_mainloop, clean_up_files):
-    "Test brightness contrast"
+    "Test split"
 
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
 
@@ -369,11 +368,11 @@ def test_split(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.gif"])
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
-    slist.set_saved(1, True)
+    slist.thread.set_saved(1, True)
     hocr = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -393,7 +392,7 @@ def test_split(import_in_mainloop, clean_up_files):
 </html>
 """
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.split_page(
@@ -404,12 +403,13 @@ def test_split(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.width == 35, "1st page width after split"
     assert page.height == 46, "1st page height after split"
+    assert page.id == 3, "1st page id after split"
     image = page.image_object
-    assert image.width == 35, "1st image width after crop"
-    assert image.height == 46, "1st image height after crop"
+    assert image.width == 35, "1st image width after split"
+    assert image.height == 46, "1st image height after split"
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -429,12 +429,13 @@ def test_split(import_in_mainloop, clean_up_files):
 """
     assert page.export_hocr() == hocr, "split hocr"
 
-    page = slist.get_page(number=2)
+    page = slist.thread.get_page(number=2)
     assert page.width == 35, "2nd page width after split"
     assert page.height == 46, "2nd page height after split"
+    assert page.id == 2, "2nd page id after split"
     image = page.image_object
-    assert image.width == 35, "2nd image width after crop"
-    assert image.height == 46, "2nd image height after crop"
+    assert image.width == 35, "2nd image width after split"
+    assert image.height == 46, "2nd image height after split"
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -454,7 +455,7 @@ def test_split(import_in_mainloop, clean_up_files):
 """
     assert page.export_hocr() == hocr, "split hocr"
 
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
@@ -472,8 +473,8 @@ def test_brightness_contrast(import_in_mainloop, clean_up_files):
     slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.set_saved(1, True)
-    slist.set_text(
+    slist.thread.set_saved(1, True)
+    slist.thread.set_text(
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -487,7 +488,7 @@ def test_brightness_contrast(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     mean = [145.5391304347826, 89.22546583850932, 80.40186335403726]
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean == mean, "mean before"
 
     mlp = GLib.MainLoop()
@@ -506,10 +507,10 @@ def test_brightness_contrast(import_in_mainloop, clean_up_files):
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.mean != mean, "mean after"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
-    assert not slist.pages_saved(), "modification removed saved tag"
+    assert not slist.thread.pages_saved(), "modification removed saved tag"
 
     #########################
 
