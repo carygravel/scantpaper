@@ -276,10 +276,14 @@ class BaseDocument(SqliteView):
             return None
         return i
 
-    def add_page(self, number, thumb, page_id, replace=None, insert_after=None):
+    def add_page(self, number, thumb, page_id, **kwargs):
         "Add a new page to the document"
-        print(f"in add_page {number, thumb, page_id, replace, insert_after}")
-        ref = insert_after if replace is None else replace
+        print(f"in add_page {number, thumb, page_id, kwargs}")
+        ref = None
+        if "insert-after" in kwargs:
+            ref = kwargs["insert-after"]
+        elif "replace" in kwargs:
+            ref = kwargs["replace"]
         i = None
         if ref is not None:
             print(f"before _find_page_by_ref({ref})")
@@ -302,7 +306,7 @@ class BaseDocument(SqliteView):
             )
 
         else:
-            if replace is not None:
+            if "replace" in kwargs:
                 old_id = self.data[i][2]
                 self.data[i] = [number, thumb, page_id]
                 logger.info(
@@ -320,7 +324,7 @@ class BaseDocument(SqliteView):
                     )
                 )
 
-            elif insert_after is not None:
+            elif "insert-after" in kwargs:
                 self.data.insert(i + 1, [number, thumb, page_id])
                 logger.info(
                     "Inserted %s at page %s",
@@ -770,13 +774,19 @@ def _modify_method_generator(method_name):
 
         # FIXME: duplicate to _import_file_data_callback()
         def _data_callback(response):
-            print(f"in _data_callback {response.info, kwargs}")
-            if isinstance(response.info, dict) and "page" in response.info:
-                self.add_page(response.info["page"], response.info["info"])
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                kwargs = {}
+                for key in [
+                    "replace",
+                    "insert-after",
+                ]:
+                    if key in info:
+                        kwargs[key] = info[key]
+                self.add_page(*info["row"], **kwargs)
             else:
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
-            print(f"leaving _data_callback")
 
         kwargs["data_callback"] = _data_callback
         self._note_callbacks(kwargs)

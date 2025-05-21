@@ -769,7 +769,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.add_page(page, number + 1),
+                "row": self.add_page(new2, number + 1),
                 "insert-after": page.id,
             }
         )
