@@ -208,7 +208,9 @@ def test_import_pdf_bw(clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert slist.get_page(id=1).image_object.mode == "1", "BW PDF imported correctly"
+    assert (
+        slist.thread.get_page(id=1).image_object.mode == "1"
+    ), "BW PDF imported correctly"
 
     #########################
 
