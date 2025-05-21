@@ -750,7 +750,7 @@ class BaseDocument(SqliteView):
             def mark_saved_callback(_data):
                 for page in kwargs["list_of_pages"]:
                     # FIXME: writing to the db in the main thread is a bad idea
-                    self.thread.set_saved(page.id)
+                    self.thread.set_saved(page)
 
             kwargs["mark_saved_callback"] = mark_saved_callback
 
