@@ -4,10 +4,10 @@
 # save_pdf landscape squashes into portrait
 # package pytest-black for Debian
 # lint
+# fail tests that hit mainloop timeouts
 # use pathlib for all paths
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
-# persist data with sqlite
 # various improvements from StackOverflow
 # fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # migrate to Gtk4

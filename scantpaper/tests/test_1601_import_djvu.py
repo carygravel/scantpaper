@@ -96,7 +96,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     assert asserts == 3, "callbacks all run"
 
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     assert page.image_object.mode == "RGB", "DjVu imported correctly"
     expected = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -234,7 +234,7 @@ def test_import_djvu_with_error2(monkeypatch, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     assert page.image_object.mode == "RGB", "DjVu imported otherwise correctly"
 
     #########################

@@ -189,7 +189,7 @@ class Document(BaseDocument):
         def _import_file_data_callback(response):
             try:
                 self.add_page(*response.info["row"])
-            except AttributeError:
+            except (AttributeError, TypeError):
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
 
