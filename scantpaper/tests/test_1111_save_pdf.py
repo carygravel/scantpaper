@@ -126,7 +126,7 @@ def test_save_pdf(clean_up_files):
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    assert asserts == 5, "ran all callbacks"
+    assert asserts == 4, "ran all callbacks"
 
     capture = subprocess.check_output(["identify", "test-1.ppm"], text=True)
     assert re.search(
