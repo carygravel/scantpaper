@@ -449,9 +449,7 @@ class DocThread(SaveThread):
     def do_rotate(self, request):
         "rotate page in thread"
         options = request.args[0]
-        print(f"do_rotate options {options}")
         page = self.get_page(id=options["page"])
-        print(f"page {page}")
         logger.info("Rotating %s by %s degrees", page.id, options["angle"])
         page.image_object = page.image_object.rotate(options["angle"], expand=True)
 
@@ -467,7 +465,6 @@ class DocThread(SaveThread):
                 page.resolution[0],
                 page.resolution[2],
             )
-        print(f"before replace_page {page.id}")
         request.data(
             {
                 "type": "page",
@@ -486,7 +483,6 @@ class DocThread(SaveThread):
     def do_analyse(self, request):
         "analyse page in thread"
         options = request.args[0]
-        print(f"do_analyse({options})")
         list_of_pages = options["list_of_pages"]
 
         i = 1
@@ -507,7 +503,6 @@ class DocThread(SaveThread):
             else:
                 page.mean = stat.mean
                 page.std_dev = stat.stddev
-            print("std dev: %s mean: %s" % (page.std_dev, page.mean))
             logger.info("std dev: %s mean: %s", page.std_dev, page.mean)
             if self.cancel:
                 raise CancelledError()
@@ -527,7 +522,6 @@ class DocThread(SaveThread):
                     "replace": page.id,
                 }
             )
-            print(f"page {page.id} analysed")
 
     def threshold(self, **kwargs):
         "threshold page"
@@ -813,7 +807,6 @@ class DocThread(SaveThread):
             path_hocr.unlink()
 
             page.import_hocr(hocr)
-            print(f"tesseract returned {hocr}")
             page.ocr_flag = True
             page.ocr_time = datetime.datetime.now()
 

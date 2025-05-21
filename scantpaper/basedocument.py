@@ -278,7 +278,6 @@ class BaseDocument(SqliteView):
 
     def add_page(self, number, thumb, page_id, **kwargs):
         "Add a new page to the document"
-        print(f"in add_page {number, thumb, page_id, kwargs}")
         ref = None
         if "insert-after" in kwargs:
             ref = kwargs["insert-after"]
@@ -286,9 +285,7 @@ class BaseDocument(SqliteView):
             ref = kwargs["replace"]
         i = None
         if ref is not None:
-            print(f"before _find_page_by_ref({ref})")
             i = self._find_page_by_ref(ref)
-            print(f"after _find_page_by_ref({i})")
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal:
@@ -315,15 +312,6 @@ class BaseDocument(SqliteView):
                     self.data[i][0],
                     page_id,
                 )
-                print(
-                    "Replaced %s at page %s with %s"
-                    % (
-                        old_id,
-                        self.data[i][0],
-                        page_id,
-                    )
-                )
-
             elif "insert-after" in kwargs:
                 self.data.insert(i + 1, [number, thumb, page_id])
                 logger.info(
@@ -776,14 +764,7 @@ def _modify_method_generator(method_name):
         def _data_callback(response):
             info = response.info
             if info and "type" in info and info["type"] == "page":
-                kwargs = {}
-                for key in [
-                    "replace",
-                    "insert-after",
-                ]:
-                    if key in info:
-                        kwargs[key] = info[key]
-                self.add_page(*info["row"], **kwargs)
+                self.add_page(*info["row"], **info)
             else:
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
