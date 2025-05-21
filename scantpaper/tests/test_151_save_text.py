@@ -20,7 +20,7 @@ def test_save_text(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -115,7 +115,7 @@ def test_save_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.set_text(
+    slist.thread.set_text(
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -180,9 +180,9 @@ def test_save_hocr_as_text(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_text(
@@ -239,9 +239,9 @@ def test_save_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
@@ -317,9 +317,9 @@ def test_save_hocr_with_encoding(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
@@ -374,10 +374,10 @@ def test_save_multipage_hocr(import_in_mainloop, clean_up_files):
  </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
-    slist.set_text(2, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
+    slist.thread.set_text(2, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
@@ -499,9 +499,9 @@ def test_save_hocr_structure(import_in_mainloop, clean_up_files):
 </body>
 </html>
 """
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.set_text(1, page.text_layer)
+    slist.thread.set_text(1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
