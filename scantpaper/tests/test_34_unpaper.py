@@ -186,7 +186,7 @@ def test_unpaper(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of imported image"
 
     asserts = 0
@@ -207,7 +207,7 @@ def test_unpaper(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of processed image"
 
     #########################
@@ -255,10 +255,10 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    page = slist.get_page(id=1)
+    page = slist.thread.get_page(id=1)
     assert page.resolution[0] == 72, "non-standard size pnm imports with 72 PPI"
-    slist.set_resolution(1, 300, 300)
-    page = slist.get_page(id=1)
+    slist.thread.set_resolution(1, 300, 300)
+    page = slist.thread.get_page(id=1)
     assert (
         page.resolution[0] == 300
     ), "simulated having imported non-standard pnm with 300 PPI"
@@ -281,7 +281,7 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 300, "Resolution of processed image"
 
     #########################
@@ -345,7 +345,7 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 72, "Resolution of imported image"
 
     asserts = 0
@@ -366,9 +366,9 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.get_page(number=1)
+    page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 72, "Resolution of 1st page"
-    page = slist.get_page(number=2)
+    page = slist.thread.get_page(number=2)
     assert page.resolution[0] == 72, "Resolution of 2nd page"
 
     #########################
@@ -484,7 +484,7 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
     level = []
     for i in [0, 1]:
         with tempfile.NamedTemporaryFile(suffix=".pnm") as filename:
-            page = slist.get_page(number=i + 1)
+            page = slist.thread.get_page(number=i + 1)
             page.image_object.save(filename.name)
             out = subprocess.check_output(
                 [

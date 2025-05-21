@@ -921,7 +921,6 @@ class DocThread(SaveThread):
                 delete=True,
                 format="Portable anymap",
                 resolution=page.resolution,
-                uuid=page.id,
                 dirty_time=datetime.datetime.now(),  # flag as dirty
             )
 
@@ -934,7 +933,7 @@ class DocThread(SaveThread):
                     dir=options["dir"],
                     delete=True,
                     format="Portable anymap",
-                    resolution=options["page"].resolution,
+                    resolution=page.resolution,
                     dirty_time=datetime.datetime.now(),  # flag as dirty
                 )
                 request.data(
