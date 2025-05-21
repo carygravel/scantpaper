@@ -1,11 +1,13 @@
 "main application"
 
 # TODO:
+# no need for SQLiteView. remove
 # save_pdf landscape squashes into portrait
 # package pytest-black for Debian
 # lint
 # fail tests that hit mainloop timeouts
 # use pathlib for all paths
+# add db metadata to allow migrations
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # various improvements from StackOverflow

@@ -248,9 +248,7 @@ class Importhread(BaseThread):
 
     def do_import_file(self, request):
         "import file in thread"
-        print(f"do_import_file({request})")
         args = request.args[0]
-        print(f"args({args})")
         if args["info"]["format"] == "DJVU":
             self._do_import_djvu(request)
 
@@ -435,7 +433,6 @@ class Importhread(BaseThread):
 
     def _do_import_pdf(self, request):
         args = request.args[0]
-        print(f"_do_import_pdf({request, args})")
 
         # Extract images from PDF
         warning_flag, xresolution, yresolution = False, None, None
@@ -455,10 +452,8 @@ class Importhread(BaseThread):
                 ),
                 text=True,
             )
-            print(f"out {out}")
             for line in re.split(r"\n", out):
                 xresolution, yresolution = line[70:75], line[76:81]
-                print(f"xresolution, yresolution {xresolution, yresolution}")
                 if re.search(r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE):
                     xresolution, yresolution = float(xresolution), float(yresolution)
                     break
@@ -502,7 +497,6 @@ class Importhread(BaseThread):
                         resolution=(xresolution, yresolution, "PixelsPerInch"),
                     )
                     page.import_pdftotext(self._extract_text_from_pdf(request, i))
-                    print(f"after import_pdftotext {page.export_hocr()}")
                     request.data(
                         {
                             "type": "page",

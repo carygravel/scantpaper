@@ -40,7 +40,6 @@ class SaveThread(Importhread):
     def do_save_pdf(self, request):
         "save PDF in thread"
         options = defaultdict(None, request.args[0])
-        print(f"do_save_pdf options {options}")
 
         self.message = _("Setting up PDF")
         outdir = pathlib.Path(options["dir"])
@@ -440,7 +439,6 @@ class SaveThread(Importhread):
     def do_user_defined(self, request):
         "run user defined command on page in thread"
         options = request.args[0]
-        print(f"do_user_defined request {options}")
         try:
             with tempfile.NamedTemporaryFile(
                 dir=options["dir"], suffix=".png"
@@ -448,9 +446,7 @@ class SaveThread(Importhread):
                 dir=options["dir"], suffix=".png"
             ) as out:
                 options["page"] = self.get_page(id=options["page"])
-                print(f"got page object {options['page'].id}")
                 options["page"].image_object.save(infile.name)
-                print(f"saved page object")
                 if re.search("%o", options["command"]):
                     options["command"] = re.sub(
                         r"%o",
@@ -517,7 +513,6 @@ class SaveThread(Importhread):
                     resolution=options["page"].resolution,
                     text_layer=options["page"].text_layer,
                 )
-                print(f"output image {new}")
                 row = self.replace_page(
                     new, self.find_page_number_by_page_id(options["page"].id)
                 )
@@ -528,7 +523,6 @@ class SaveThread(Importhread):
                         "replace": options["page"].id,
                     }
                 )
-                print(f"after data callback {row}")
 
         except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)

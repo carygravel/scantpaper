@@ -174,7 +174,6 @@ class Document(BaseDocument):
 
     def import_file(self, **kwargs):
         "import file"
-        print(f"import_file({kwargs})")
         # File in which to store the process ID
         # so that it can be killed if necessary
         kwargs["pidfile"] = self.create_pidfile(kwargs)
@@ -197,26 +196,13 @@ class Document(BaseDocument):
         self.thread.import_file(**kwargs)
 
     def _post_process_rotate(self, page_id, options):
-        print(f"_post_process_rotate {page_id}")
 
         def updated_page_callback(response):
-            print(f"updated_page_callback {response, response.request}")
             info = response.info
-            print(f"info {info}")
             if info and "type" in info and info["type"] == "page":
-                args = list(info["row"])
-                for key in [
-                    "replace",
-                    "insert-after",
-                ]:
-                    if key in info:
-                        args.append(info[key])
-                print(f"before add_page {args}")
-                self.add_page(*args)
-                page_id = args[2]
-                print(f"page_id {page_id}")
+                self.add_page(*info["row"], **info)
                 del options["rotate"]
-                self._post_process_scan(page_id, options)
+                self._post_process_scan(info["row"][2], options)
 
         rotate_options = options.copy()
         rotate_options["angle"] = options["rotate"]
@@ -226,26 +212,13 @@ class Document(BaseDocument):
         self.rotate(**rotate_options)  # pylint: disable=no-member
 
     def _post_process_unpaper(self, page_id, options):
-        print(f"_post_process_unpaper {page_id}")
 
         def updated_page_callback(response):
-            print(f"unpaper updated_page_callback {response, response.request}")
             info = response.info
-            print(f"info {info}")
             if info and "type" in info and info["type"] == "page":
-                args = list(info["row"])
-                for key in [
-                    "replace",
-                    "insert-after",
-                ]:
-                    if key in info:
-                        args.append(info[key])
-                print(f"before add_page {args}")
-                self.add_page(*args)
-                page_id = args[2]
-                print(f"page_id {page_id}")
+                self.add_page(*info["row"], **info)
                 del options["unpaper"]
-                self._post_process_scan(page_id, options)
+                self._post_process_scan(info["row"][2], options)
 
         unpaper_options = options.copy()
         unpaper_options["options"] = {
@@ -258,25 +231,13 @@ class Document(BaseDocument):
         self.unpaper(**unpaper_options)
 
     def _post_process_udt(self, page_id, options):
-        print(f"_post_process_udt {page_id}")
 
         def updated_page_callback(response):
             info = response.info
-            print(f"info {info}")
             if info and "type" in info and info["type"] == "page":
-                args = list(info["row"])
-                for key in [
-                    "replace",
-                    "insert-after",
-                ]:
-                    if key in info:
-                        args.append(info[key])
-                print(f"before add_page {args}")
-                self.add_page(*args)
-                page_id = args[2]
-                print(f"page_id {page_id}")
+                self.add_page(*info["row"], **info)
                 del options["udt"]
-                self._post_process_scan(page_id, options)
+                self._post_process_scan(info["row"][2], options)
 
         udt_options = options.copy()
         udt_options["page"] = page_id
@@ -285,7 +246,6 @@ class Document(BaseDocument):
         self.user_defined(**udt_options)
 
     def _post_process_ocr(self, page_id, options):
-        print(f"_post_process_ocr {page_id}")
 
         def ocr_finished_callback(_response):
             del options["ocr"]
@@ -340,20 +300,11 @@ class Document(BaseDocument):
         # FIXME: duplicate to _import_file_data_callback(), apart from the
         # post-processing chain
         def _import_scan_data_callback(response):
-            print(f"_import_page_data_callback {response, response.info}")
-            if response.info["type"] == "page":
-                args = list(response.info["row"])
-                for key in [
-                    "replace",
-                    "insert-after",
-                ]:
-                    if key in response.info:
-                        args.append(response.info[key])
-                print(f"before add_page {args}")
-                self.add_page(*args)
-                page_id = args[2]
-                print(f"page_id {page_id}")
-                self._post_process_scan(page_id, kwargs)
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                self.add_page(*info["row"], **info)
+                page_id = info["row"][2]
+                self._post_process_scan(info["row"][2], kwargs)
 
         import_scan_kwargs = kwargs.copy()
         import_scan_kwargs["data_callback"] = _import_scan_data_callback
@@ -369,14 +320,7 @@ class Document(BaseDocument):
         def _split_page_data_callback(response):
             info = response.info
             if info and "type" in info and info["type"] == "page":
-                kwargs = {}
-                for key in [
-                    "replace",
-                    "insert-after",
-                ]:
-                    if key in info:
-                        kwargs[key] = info[key]
-                self.add_page(*info["row"], **kwargs)
+                self.add_page(*info["row"], **info)
             else:
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
