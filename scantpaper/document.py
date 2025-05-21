@@ -412,18 +412,9 @@ class Document(BaseDocument):
 
         # FIXME: duplicate to _import_file_data_callback()
         def _user_defined_data_callback(response):
-            print(f"_user_defined_data_callback {response, response.info}")
-            if response.info["type"] == "page":
-                args = list(response.info["row"])
-                for key in [
-                    "replace",
-                    "insert-after",
-                ]:
-                    if key in response.info:
-                        args.append(response.info[key])
-                print(f"before add_page {args}")
-                self.add_page(*args)
-                print(f"after add_page")
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                self.add_page(*info["row"], **info)
             else:
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
