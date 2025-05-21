@@ -397,8 +397,9 @@ class Document(BaseDocument):
 
         # FIXME: duplicate to _import_file_data_callback()
         def _unpaper_data_callback(response):
-            if isinstance(response.info, dict) and "page" in response.info:
-                self.add_page(response.info["page"], response.info["info"])
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                self.add_page(*info["row"], **info)
             else:
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
