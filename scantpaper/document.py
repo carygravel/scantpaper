@@ -357,7 +357,8 @@ class Document(BaseDocument):
 
         import_scan_kwargs = kwargs.copy()
         import_scan_kwargs["data_callback"] = _import_scan_data_callback
-        del import_scan_kwargs["finished_callback"]
+        if "finished_callback" in import_scan_kwargs:
+            del import_scan_kwargs["finished_callback"]
         self.thread.import_page(**import_scan_kwargs)
 
     def split_page(self, **kwargs):

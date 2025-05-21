@@ -82,15 +82,14 @@ def test_page_controls(mainloop_with_timeout, clean_up_files):
     slist = Document()
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
     with tempfile.TemporaryDirectory() as tempdir:
-        kwargs = {
-            "filename": "test.pnm",
-            "resolution": 72,
-            "page": 1,
-            "dir": tempdir,
-        }
-        slist.import_scan(**kwargs)
+        slist.import_scan(
+            filename="test.pnm",
+            resolution=72,
+            page=1,
+            dir=tempdir,
+            finished_callback=lambda response: loop1.quit(),
+        )
         loop1 = mainloop_with_timeout()
-        kwargs["finished_callback"] = lambda response: loop1.quit()
         loop1.run()
         dialog.page_number_start = 5
         dialog.document = slist
