@@ -968,7 +968,7 @@ class FileMenuMixins:
 
     def _pages_saved(self, message):
         "Check that all pages have been saved"
-        if not self.slist.pages_saved():
+        if not self.slist.thread.pages_saved():
             response = self._ask_question(
                 parent=self,
                 type="question",
