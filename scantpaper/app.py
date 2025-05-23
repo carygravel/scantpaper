@@ -1,7 +1,6 @@
 "main application"
 
 # TODO:
-# no need for SQLiteView. remove
 # save_pdf landscape squashes into portrait
 # package pytest-black for Debian
 # lint

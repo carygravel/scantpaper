@@ -1,7 +1,6 @@
 "Base document methods"
 
 from collections import defaultdict
-import uuid
 import re
 import os
 import logging
@@ -10,7 +9,7 @@ import queue
 import signal
 import tarfile
 import gi
-from sqliteview import SqliteView
+from simplelist import SimpleList
 from helpers import slurp
 from i18n import _
 from docthread import DocThread
@@ -27,12 +26,11 @@ INFINITE = -1
 logger = logging.getLogger(__name__)
 
 
-class BaseDocument(SqliteView):
+class BaseDocument(SimpleList):
     "a Document is a simple list of pages, backed by SQLite"
 
     jobs_completed = 0
     jobs_total = 0
-    uuid_object = uuid.uuid1()
     # Default thumbnail sizes
     heightt = THUMBNAIL
     widtht = THUMBNAIL
@@ -40,7 +38,7 @@ class BaseDocument(SqliteView):
     paper_sizes = {}
 
     def __init__(self, **kwargs):
-        columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page Data": "hstring"}
+        columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page ID": "hint"}
         super().__init__(**columns)
         self.thread = DocThread()
         self.thread.register_callback("mark_saved", "before", "finished")
@@ -366,7 +364,7 @@ class BaseDocument(SqliteView):
     def _manual_sort_by_column(self, sortcol):
         """Helpers:
 
-        Manual one-time sorting of the SqliteView's data"""
+        Manual one-time sorting of the SimpleList's data"""
         self._remove_corrupted_pages()
 
         # The sort function depends on the column type
@@ -377,7 +375,7 @@ class BaseDocument(SqliteView):
         #     float : compare_numeric_col,
         # }
 
-        # Remember, this relies on the fact that SqliteView keeps model
+        # Remember, this relies on the fact that SimpleList keeps model
         # and view column indices aligned.
         # sortfunc = sortfuncs[ self.get_model().get_column_type(sortcol) ]
 
