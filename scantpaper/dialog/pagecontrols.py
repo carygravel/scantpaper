@@ -431,7 +431,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
     def update_start_page(self):
         """Called either from changed-value signal of spinbutton,
-        or row-changed signal of SqliteView"""
+        or row-changed signal of SimpleList"""
         slist = self.document
         if not slist:
             return
