@@ -629,7 +629,7 @@ class FileMenuMixins:
 
         def save_pdf_finished_callback(response):
             self.post_process_progress.finish(response)
-            self.slist.mark_pages(list_of_page_uuids)
+            self.slist.thread.set_saved(list_of_page_uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -673,7 +673,7 @@ class FileMenuMixins:
         def save_djvu_finished_callback(response):
             filename = response.request.args[0]["path"]
             self.post_process_progress.finish(response)
-            self.slist.mark_pages(uuids)
+            self.slist.thread.set_saved(uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -706,7 +706,7 @@ class FileMenuMixins:
         def save_tiff_finished_callback(response):
             filename = response.request.args[0]["path"]
             self.post_process_progress.finish(response)
-            self.slist.mark_pages(uuids)
+            self.slist.thread.set_saved(uuids)
             file = ps if ps is not None else filename
             if (
                 "view files toggle" in self.settings
@@ -735,7 +735,7 @@ class FileMenuMixins:
 
         def save_text_finished_callback(response):
             self.post_process_progress.finish(response)
-            self.slist.mark_pages(uuids)
+            self.slist.thread.set_saved(uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -763,7 +763,7 @@ class FileMenuMixins:
 
         def save_hocr_finished_callback(response):
             self.post_process_progress.finish(response)
-            self.slist.mark_pages(uuids)
+            self.slist.thread.set_saved(uuids)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
@@ -857,7 +857,7 @@ class FileMenuMixins:
             def save_image_finished_callback(response):
                 filename = response.request.args[0]["path"]
                 self.post_process_progress.finish(response)
-                self.slist.mark_pages(uuids)
+                self.slist.thread.set_saved(uuids)
                 if (
                     "view files toggle" in self.settings
                     and self.settings["view files toggle"]

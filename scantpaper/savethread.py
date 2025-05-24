@@ -54,14 +54,15 @@ class SaveThread(Importhread):
         if "metadata" in options and "ps" not in options:
             metadata = prepare_output_metadata("PDF", options["metadata"])
 
+        list_of_pages = []
         with open(
             outdir / "origin_pre.pdf", "wb", buffering=0
         ) as fhd:  # turn off buffering
             filenames = []
             sizes = []
-            for i, page_id in enumerate(options["list_of_pages"]):
-                options["list_of_pages"][i] = self.get_page(id=page_id)
-                page = options["list_of_pages"][i]
+            for page_id in options["list_of_pages"]:
+                page = self.get_page(id=page_id)
+                list_of_pages.append(page)
                 filenames.append(_write_image_object(page, options))
                 sizes += list(page.matching_paper_sizes(self.paper_sizes).keys())
             sizes = list(set(sizes))  # make the keys unique
@@ -77,7 +78,7 @@ class SaveThread(Importhread):
             language="eng",
             skip_text=True,
         )
-        for pagenr, page in enumerate(options["list_of_pages"]):
+        for pagenr, page in enumerate(list_of_pages):
             if page.text_layer:
                 with open(
                     outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w", encoding="utf-8"
@@ -86,7 +87,7 @@ class SaveThread(Importhread):
             self.progress = pagenr / (len(options["list_of_pages"]) + 1)
             self.message = _("Saving page %i of %i") % (
                 pagenr,
-                len(options["list_of_pages"]),
+                len(list_of_pages),
             )
             if self.cancel:
                 raise CancelledError()
