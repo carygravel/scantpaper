@@ -93,7 +93,10 @@ class Bboxtree:
         "write bboxtree to string for djvu text"
         string = ""
         prev_depth, height = None, None
-        for bbox in self.each_bbox():
+        bbox_list = list(
+            self.each_bbox()
+        )  # Convert generator to list for depth comparison
+        for i, bbox in enumerate(bbox_list):
             if prev_depth is not None:
                 while prev_depth >= bbox["depth"]:
                     prev_depth -= 1
@@ -113,7 +116,6 @@ class Bboxtree:
                 )
                 if regex:
                     bbox_type = regex.group(1)
-
                 else:
                     bbox_type = "line"
 
@@ -129,7 +131,11 @@ class Bboxtree:
                 x_2,
                 height - y_1,
             )
-            if "text" in bbox:
+
+            # Only include text if the box does not have children
+            if "text" in bbox and (
+                i == len(bbox_list) - 1 or bbox_list[i + 1]["depth"] <= bbox["depth"]
+            ):
                 string += (
                     " " + DOUBLE_QUOTES + _escape_text(bbox["text"]) + DOUBLE_QUOTES
                 )
@@ -474,7 +480,6 @@ def _prune_empty_branches(boxes):
 
         if len(boxes) > 0 and not ("contents" in child or "text" in child):
             del boxes[i]
-
         else:
             i += 1
 
