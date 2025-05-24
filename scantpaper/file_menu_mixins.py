@@ -683,7 +683,7 @@ class FileMenuMixins:
 
         self.slist.save_djvu(
             path=filename,
-            list_of_pages=response.request.args[0]["list_of_pages"],
+            list_of_pages=uuids,
             options=options,
             metadata=collate_metadata(self.settings, datetime.datetime.now()),
             queued_callback=self.post_process_progress.queued,
@@ -718,7 +718,7 @@ class FileMenuMixins:
 
         self.slist.save_tiff(
             path=filename,
-            list_of_pages=response.request.args[0]["list_of_pages"],
+            list_of_pages=uuids,
             options=options,
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
@@ -873,7 +873,7 @@ class FileMenuMixins:
 
             self.slist.save_image(
                 path=filename,
-                list_of_pages=response.request.args[0]["list_of_pages"],
+                list_of_pages=uuids,
                 queued_callback=self.post_process_progress.queued,
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
