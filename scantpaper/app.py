@@ -1,6 +1,8 @@
 "main application"
 
 # TODO:
+# apply fix for list of pages from save_pdf to other types
+# delete db when quitting app
 # save_pdf landscape squashes into portrait
 # package pytest-black for Debian
 # lint

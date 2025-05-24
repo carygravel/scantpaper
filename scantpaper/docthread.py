@@ -9,13 +9,13 @@ import subprocess
 import datetime
 import glob
 import tempfile
+import sqlite3
 from PIL import ImageStat, ImageEnhance, ImageOps, ImageFilter
 from importthread import CancelledError, _note_callbacks
 from savethread import SaveThread
 from i18n import _
 from page import Page
 from bboxtree import Bboxtree
-import sqlite3
 import tesserocr
 import gi
 
@@ -202,6 +202,7 @@ class DocThread(SaveThread):
         row = self._cur.fetchone()
         if row:
             return row[0]
+        return None
 
     def find_page_number_by_page_id(self, page_id):
         "find a page id by its page number"
@@ -211,11 +212,13 @@ class DocThread(SaveThread):
         row = self._cur.fetchone()
         if row:
             return row[0]
+        return None
 
     def page_number_table(self):
         "get data for page number/thumb table"
         self._cur.execute(
-            "SELECT page_number, thumb, page_id FROM number, page WHERE page_id = page.id ORDER BY page_number"
+            """SELECT page_number, thumb, page_id
+               FROM number, page WHERE page_id = page.id ORDER BY page_number"""
         )
         return self._cur.fetchall()
 
@@ -223,19 +226,21 @@ class DocThread(SaveThread):
         "get a page from the database"
         if "number" in kwargs:
             self._cur.execute(
-                "SELECT image, x_res, y_res, mean, std_dev, text, annotations, id FROM page, number WHERE id = page_id AND page_number = ?",
+                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, id
+                   FROM page, number WHERE id = page_id AND page_number = ?""",
                 (kwargs["number"],),
             )
         elif "id" in kwargs:
             self._cur.execute(
-                "SELECT image, x_res, y_res, mean, std_dev, text, annotations, page_number FROM page, number WHERE id = page_id AND page_id = ?",
+                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page_number
+                   FROM page, number WHERE id = page_id AND page_id = ?""",
                 (kwargs["id"],),
             )
         else:
             raise ValueError("Please specify either page number or page id")
         row = self._cur.fetchone()
         if row is None:
-            raise ValueError(f"Page not found")
+            raise ValueError("Page not found")
         return Page.from_bytes(
             row[0],
             id=row[7] if "number" in kwargs else kwargs["id"],
@@ -349,11 +354,13 @@ class DocThread(SaveThread):
 
     def set_saved(self, page_id, saved=True):
         "mark given page as saved"
+        if not isinstance(page_id, list):
+            page_id = [page_id]
         self._cur.execute(
-            "UPDATE page SET saved = ? WHERE id = ?",
+            f"UPDATE page SET saved = ? WHERE id IN ({", ".join(["?"]*len(page_id))})",
             (
                 saved,
-                page_id,
+                *page_id,
             ),
         )
         self._con.commit()
@@ -978,7 +985,6 @@ class DocThread(SaveThread):
 
 
 def _calculate_crop_tuples(options, image):
-
     if options["direction"] == "v":
         width = options["position"]
         height = image.height
