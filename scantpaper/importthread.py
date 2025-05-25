@@ -1,7 +1,6 @@
 "Threading model for the Document class"
 
 import threading
-import queue
 import pathlib
 import logging
 import re
@@ -10,17 +9,12 @@ import subprocess
 import glob
 import tempfile
 from PIL import Image
-import img2pdf
 from basethread import BaseThread
 from page import Page
 from i18n import _
 from helpers import exec_command
 
 logger = logging.getLogger(__name__)
-
-PNG = r"Portable[ ]Network[ ]Graphics"
-JPG = r"JPEG"
-GIF = r"CompuServe[ ]graphics[ ]interchange[ ]format"
 
 image_format = {
     "pnm": "Portable anymap",
@@ -88,12 +82,6 @@ class Importhread(BaseThread):
             logger.info("Format %s", info["format"])
             info["width"] = [image.width]
             info["height"] = [image.height]
-            dpi = image.info.get("dpi")
-            if dpi is None:
-                info["xresolution"], info["yresolution"] = (
-                    img2pdf.default_dpi,
-                    img2pdf.default_dpi,
-                )
             info["pages"] = 1
 
         info["path"] = path
@@ -305,30 +293,6 @@ class Importhread(BaseThread):
                                 "row": self.add_page(page),
                             }
                         )
-
-        elif re.search(rf"(?:{PNG}|{JPG}|{GIF})", args["info"]["format"]):
-            try:
-                page = Page(
-                    filename=args["info"]["path"],
-                    dir=args["dir"],
-                    format=args["info"]["format"],
-                    width=args["info"]["width"][0],
-                    height=args["info"]["height"][0],
-                    resolution=(
-                        args["info"]["xresolution"],
-                        args["info"]["yresolution"],
-                        "PixelsPerInch",
-                    ),
-                )
-                request.data(
-                    {
-                        "type": "page",
-                        "row": self.add_page(page),
-                    }
-                )
-            except (PermissionError, IOError) as err:
-                logger.error("Caught error writing to %s: %s", args["dir"], err)
-                request.error(f"Error: unable to write to {args['dir']}.")
 
         else:
             page = Page(

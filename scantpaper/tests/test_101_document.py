@@ -636,27 +636,32 @@ def test_docthread(clean_up_files):
         example = thread.do_get_file_info(request)
         del example["path"]
         assert example == info, "do_get_file_info + tiff"
-        # do_import_file() no longer returns a page object, as it can return
-        # multiple pages, which are passed via the log queue
-        # request = Request(
-        #     "import_file",
-        #     ({"info": info, "first": 1, "last": 1, "dir": None},),
-        #     thread.responses,
-        # )
-        # assert isinstance(thread.do_import_file(request), Page), "do_import_file + tiff"
 
         png = "test.png"
         subprocess.run(["convert", "rose:", png], check=True)  # Create test image
         request = Request("get_file_info", (png, None), thread.responses)
-        assert thread.do_get_file_info(request) == {
+        info = {
             "format": "PNG",
             "path": png,
             "width": [70],
             "height": [46],
             "pages": 1,
-            "xresolution": 72.0,
-            "yresolution": 72.0,
-        }, "do_get_file_info + png"
+        }
+        assert thread.do_get_file_info(request) == info, "do_get_file_info + png"
+
+        request = Request(
+            "import_file",
+            (
+                {
+                    "info": info,
+                    "dir": None,
+                },
+            ),
+            thread.responses,
+        )
+        thread.do_import_file(request)
+        page = thread.get_page(id=1)
+        assert isinstance(page, Page), "do_import_file + png"
 
         def get_file_info_callback(response):
             assert (
@@ -669,7 +674,17 @@ def test_docthread(clean_up_files):
         for _ in range(4):
             thread.monitor(block=True)
 
-        clean_up_files([cjb2, djvu, pbm, pdf, png, tgz])
+        clean_up_files(
+            [
+                cjb2,
+                djvu,
+                pbm,
+                pdf,
+                png,
+                tgz,
+                Path(tempfile.gettempdir()) / "document.db",
+            ]
+        )
 
 
 def test_db(clean_up_files):
