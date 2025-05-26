@@ -109,7 +109,7 @@ class ToolsMenuMixins:
 
                 self.slist.threshold(
                     threshold=self.settings["threshold tool"],
-                    page=self.slist.data[i][2].uuid,
+                    page=self.slist.data[i][2],
                     queued_callback=self.post_process_progress.queued,
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
@@ -181,7 +181,7 @@ class ToolsMenuMixins:
                 self.slist.brightness_contrast(
                     brightness=self.settings["brightness tool"],
                     contrast=self.settings["contrast tool"],
-                    page=self.slist.data[i][2].uuid,
+                    page=self.slist.data[i][2],
                     queued_callback=self.post_process_progress.queued,
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
@@ -225,7 +225,7 @@ class ToolsMenuMixins:
                     # slist.save_session()
 
                 self.slist.negate(
-                    page=self.slist.data[i][2].uuid,
+                    page=self.slist.data[i][2],
                     queued_callback=self.post_process_progress.queued,
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
@@ -326,7 +326,7 @@ class ToolsMenuMixins:
                     # slist.save_session()
 
                 self.slist.unsharp(
-                    page=self.slist.data[i][2].uuid,
+                    page=self.slist.data[i][2],
                     radius=self.settings["unsharp radius"],
                     percent=self.settings["unsharp percentage"],
                     threshold=self.settings["unsharp threshold"],
@@ -401,7 +401,7 @@ class ToolsMenuMixins:
                 # slist.save_session()
 
             self.slist.crop(
-                page=self.slist.data[i][2].uuid,
+                page=self.slist.data[i][2],
                 x=self.settings["selection"].x,
                 y=self.settings["selection"].y,
                 w=self.settings["selection"].width,
@@ -514,7 +514,7 @@ class ToolsMenuMixins:
                 self.slist.split_page(
                     direction=self.settings["split-direction"],
                     position=self.settings["split-position"],
-                    page=self.slist.data[i][2].uuid,
+                    page=self.slist.data[i][2],
                     queued_callback=self.post_process_progress.queued,
                     started_callback=self.post_process_progress.update,
                     running_callback=self.post_process_progress.update,
@@ -693,7 +693,7 @@ class ToolsMenuMixins:
 
     def _ocr_display_callback(self, response):
         "Callback function to handle the display of OCR (Optical Character Recognition) results."
-        uuid = response.request.args[0]["page"].uuid
+        uuid = response.request.args[0]["page"]
         i = self.slist.find_page_by_uuid(uuid)
         if i is None:
             logger.error("Can't display page with uuid %s: page not found", uuid)

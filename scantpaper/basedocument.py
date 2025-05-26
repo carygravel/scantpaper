@@ -42,7 +42,7 @@ class BaseDocument(SimpleList):
         super().__init__(**columns)
         self.thread = DocThread()
         self.thread.register_callback("mark_saved", "before", "finished")
-        self.thread.register_callback("display", "before", "finished")
+        self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
         self.thread.start()
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)

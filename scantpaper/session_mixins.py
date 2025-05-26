@@ -387,12 +387,13 @@ class SessionMixins:
 
     def _display_callback(self, response):
         "Find the page from the input uuid and display it"
-        uuid = response.request.args[0]["page"].uuid
-        i = self.slist.find_page_by_uuid(uuid)
-        if i is None:
-            logger.error("Can't display page with uuid %s: page not found", uuid)
-        else:
-            self._display_image(self.slist.data[i][2])
+        if response.info and "row" in response.info:
+            uuid = response.info["row"][2]
+            i = self.slist.find_page_by_uuid(uuid)
+            if i is None:
+                logger.error("Can't display page with uuid %s: page not found", uuid)
+            else:
+                self._display_image(self.slist.data[i][2])
 
     def _display_image(self, page):
         "Display the image in the view"
