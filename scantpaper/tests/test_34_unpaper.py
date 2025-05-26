@@ -193,8 +193,9 @@ def test_unpaper(import_in_mainloop, clean_up_files):
 
     def display_cb(response):
         nonlocal asserts
-        assert True, "Triggered display callback"
-        asserts += 1
+        if response.info and "row" in response.info:
+            assert True, "Triggered display callback"
+            asserts += 1
 
     mlp = GLib.MainLoop()
     slist.unpaper(
@@ -267,8 +268,9 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
 
     def display_cb(response):
         nonlocal asserts
-        assert True, "Triggered display callback"
-        asserts += 1
+        if response.info and "row" in response.info:
+            assert True, "Triggered display callback"
+            asserts += 1
 
     mlp = GLib.MainLoop()
     slist.unpaper(
@@ -352,8 +354,9 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
 
     def display_cb(response):
         nonlocal asserts
-        assert True, "Triggered display callback"
-        asserts += 1
+        if response.info and "row" in response.info:
+            assert True, "Triggered display callback"
+            asserts += 1
 
     mlp = GLib.MainLoop()
     slist.unpaper(
@@ -365,7 +368,7 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert asserts == 1, "all callbacks run"
+    assert asserts == 2, "all callbacks run"
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 72, "Resolution of 1st page"
     page = slist.thread.get_page(number=2)
@@ -463,8 +466,9 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
 
     def display_cb(response):
         nonlocal asserts
-        assert True, "Triggered display callback"
-        asserts += 1
+        if response.info and "row" in response.info:
+            assert True, "Triggered display callback"
+            asserts += 1
 
     mlp = GLib.MainLoop()
     slist.unpaper(
@@ -479,7 +483,7 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert asserts == 1, "all callbacks run"
+    assert asserts == 2, "all callbacks run"
 
     level = []
     for i in [0, 1]:

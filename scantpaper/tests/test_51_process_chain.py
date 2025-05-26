@@ -49,8 +49,9 @@ def test_process_chain(clean_up_files):
 
     def display_cb(response):
         nonlocal asserts
-        assert True, "Triggered display callback"
-        asserts += 1
+        if response.info and "row" in response.info:
+            assert True, "Triggered display callback"
+            asserts += 1
 
     mlp = GLib.MainLoop()
     slist.import_scan(

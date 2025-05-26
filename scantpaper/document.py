@@ -437,7 +437,7 @@ class Document(BaseDocument):
 
     def indices2pages(self, list_of_indices):
         "Helper function to convert an array of indices into an array of uuids"
-        return map(lambda x: str(self.data[x][2].uuid), list_of_indices)
+        return map(lambda x: str(self.data[x][2]), list_of_indices)
 
     def get_selected_properties(self):
         "Helper function for properties()"
