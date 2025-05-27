@@ -444,7 +444,7 @@ class Document(BaseDocument):
         yresolution = None
         if len(page) > 0:
             i = page.pop(0)
-            xresolution, yresolution, _units = self.data[i][2].resolution
+            xresolution, yresolution = self.thread.get_resolution(self.data[i][2])
             logger.debug(
                 "Page %s has resolutions %s,%s",
                 self.data[i][0],

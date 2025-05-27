@@ -913,7 +913,7 @@ class SessionMixins:
 
     def _on_properties(self, _widget):
         "displays the properties dialog."
-        self._properties(None, None)
+        self.properties(None, None)
 
     def _on_quit(self, _action, _param):
         "Handles the quit action."
