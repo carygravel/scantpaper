@@ -253,6 +253,38 @@ class DocThread(SaveThread):
             annotations=row[6],
         )
 
+    def clone_page(self, pageid, number):
+        "clone a page in the database"
+        self._cur.execute(
+            """SELECT image, thumb, x_res, y_res, mean, std_dev, text, annotations
+               FROM page, number WHERE id = page_id AND page_id = ?""",
+            (pageid,),
+        )
+        row = self._cur.fetchone()
+        self._cur.execute(
+            """INSERT INTO page (
+                id, image, thumb, x_res, y_res, mean, std_dev, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (*row,),
+        )
+        self._con.commit()
+        new_page_id = self._cur.lastrowid
+        self._cur.execute("SELECT MAX(row_id) FROM number")
+        max_row_id = self._cur.fetchone()[0]
+        if max_row_id is None:
+            max_row_id = -1
+        self._cur.execute(
+            """INSERT INTO number (row_id, page_number, page_id)
+               VALUES (?, ?, ?)""",
+            (
+                max_row_id + 1,
+                number,
+                new_page_id,
+            ),
+        )
+        self._con.commit()
+        return new_page_id
+
     def _take_snapshot(self):
         "take a snapshot of the current state of the document"
 

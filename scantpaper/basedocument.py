@@ -399,7 +399,8 @@ class BaseDocument(SimpleList):
         data = []
         for index in selection:
             page = self.data[index]
-            data.append([page[0], page[1], page[2].clone(clone)])
+            pageid = self.thread.clone_page(page[2], page[0] + 1)
+            data.append([page[0] + 1, page[1], pageid])
 
         logger.info("Copied %s%s pages", "and cloned " if clone else "", len(data))
         return data

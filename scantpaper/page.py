@@ -6,7 +6,6 @@ import re
 import tempfile
 import uuid
 import logging
-import copy
 from PIL import Image
 from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
 from bboxtree import Bboxtree
@@ -109,12 +108,6 @@ class Page:
                 setattr(page, key, kwargs[key])
         return page
 
-    def clone(self, copy_image=False):
-        "clone the page"
-        new = copy.deepcopy(self)
-        new.uuid = uuid.uuid1()
-        return new
-
     def import_hocr(self, hocr):
         "import hocr"
         bboxtree = Bboxtree()
@@ -179,10 +172,8 @@ class Page:
 
     def get_resolution(self, paper_sizes=None):
         "get the resolution"
-        if (
-            isinstance(self.resolution, int)
-            or isinstance(self.resolution, float)
-            or (isinstance(self.resolution, tuple) and self.resolution[0] is not None)
+        if isinstance(self.resolution, (int, float)) or (
+            isinstance(self.resolution, tuple) and self.resolution[0] is not None
         ):
             return self.resolution
 
