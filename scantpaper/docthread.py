@@ -240,7 +240,9 @@ class DocThread(SaveThread):
             raise ValueError("Please specify either page number or page id")
         row = self._cur.fetchone()
         if row is None:
-            raise ValueError("Page not found")
+            if "number" in kwargs:
+                raise ValueError(f"Page number {kwargs['number']} not found")
+            raise ValueError(f"Page id {kwargs['id']} not found")
         return Page.from_bytes(
             row[0],
             id=row[7] if "number" in kwargs else kwargs["id"],

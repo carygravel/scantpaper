@@ -8,7 +8,6 @@ import sys
 import os
 from i18n import _
 from basedocument import BaseDocument
-from page import Page
 from bboxtree import unescape_utf8
 
 logger = logging.getLogger(__name__)
@@ -303,7 +302,6 @@ class Document(BaseDocument):
             info = response.info
             if info and "type" in info and info["type"] == "page":
                 self.add_page(*info["row"], **info)
-                page_id = info["row"][2]
                 self._post_process_scan(info["row"][2], kwargs)
 
         import_scan_kwargs = kwargs.copy()
@@ -437,7 +435,7 @@ class Document(BaseDocument):
 
     def indices2pages(self, list_of_indices):
         "Helper function to convert an array of indices into an array of uuids"
-        return map(lambda x: str(self.data[x][2]), list_of_indices)
+        return map(lambda x: self.data[x][2], list_of_indices)
 
     def get_selected_properties(self):
         "Helper function for properties()"

@@ -178,6 +178,10 @@ def test_indexing(clean_up_files):
 
     #########################
 
+    assert list(slist.indices2pages([0, 9])) == [1, 10], "indices2pages"
+
+    #########################
+
     slist.data = [[1, None, 1], [2, None, 2]]
     slist.select(0)
     slist.get_model().handler_unblock(slist.row_changed_signal)

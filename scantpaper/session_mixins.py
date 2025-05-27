@@ -395,9 +395,9 @@ class SessionMixins:
             else:
                 self._display_image(self.slist.data[i][2])
 
-    def _display_image(self, page):
+    def _display_image(self, pageid):
         "Display the image in the view"
-        self._current_page = self.slist.thread.get_page(id=page)
+        self._current_page = self.slist.thread.get_page(id=pageid)
         self.view.set_pixbuf(self._current_page.get_pixbuf(), True)
         xresolution, yresolution, _units = self._current_page.resolution
         self.view.set_resolution_ratio(xresolution / yresolution)
