@@ -748,6 +748,9 @@ def test_db(clean_up_files):
     thread.set_mean_std_dev(2, [2.5], [3.4])
     assert thread.get_mean_std_dev(2) == ([2.5], [3.4]), "g/set_mean_std_dev() as list"
 
+    page = thread.clone_page(2, 3)
+    assert thread.get_text(3) == "text", "clone_page"
+
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
 
