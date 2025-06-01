@@ -14,9 +14,6 @@ def test_import_ppm(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     slist.import_files(
@@ -40,9 +37,6 @@ def test_import_corrupt_png(clean_up_files):
     subprocess.run(["touch", "test.png"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     mlp = GLib.MainLoop()
 

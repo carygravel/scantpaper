@@ -593,18 +593,10 @@ def test_docthread(clean_up_files):
             request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
 
-        subprocess.run(["convert", "rose:", tif.name], check=True)  # Create test image
-        tgz = "test.tgz"
-        subprocess.run(["tar", "cfz", tgz, tif.name], check=True)  # Create test tarball
-        request = Request("get_file_info", (tgz, None), thread.responses)
-        assert thread.do_get_file_info(request) == {
-            "format": "session file",
-            "path": "test.tgz",
-        }, "do_get_file_info + tgz"
-
         pbm = "test.pbm"
         cjb2 = "test.cjb2"
         djvu = "test.djvu"
+        subprocess.run(["convert", "rose:", tif.name], check=True)  # Create test image
         subprocess.run(["convert", "rose:", pbm], check=True)  # Create test image
         subprocess.run(["cjb2", pbm, cjb2], check=True)
         subprocess.run(["djvm", "-c", djvu, cjb2, cjb2], check=True)
@@ -685,7 +677,6 @@ def test_docthread(clean_up_files):
                 pbm,
                 pdf,
                 png,
-                tgz,
                 Path(tempfile.gettempdir()) / "document.db",
             ]
         )
@@ -838,10 +829,6 @@ def test_import_scan(
     pytest.skip("Skip until we are sure we need this")
 
     slist = Document()
-
-    # dir for temporary files
-    tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(tempdir)
 
     # build a cropped (i.e. too little data compared with header) pnm
     # to test padding code

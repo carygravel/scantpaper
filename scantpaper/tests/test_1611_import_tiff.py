@@ -17,9 +17,6 @@ def test_import_tiff(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     slist.import_files(
@@ -55,9 +52,6 @@ def test_import_tiff_with_units(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     slist.import_files(
@@ -81,9 +75,6 @@ def test_import_tiff_with_error(clean_up_files):
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     mlp = GLib.MainLoop()
 
@@ -140,9 +131,6 @@ def test_import_multipage_tiff(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     slist.import_files(
@@ -172,9 +160,6 @@ def test_import_linked_tiff(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     slist.import_files(
@@ -198,9 +183,6 @@ def test_import_multiple_tiffs_with_corrupt(clean_up_files):
     "Test importing TIFF"
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     subprocess.run(["convert", "rose:", "1.tif"], check=True)
     paths = ["1.tif"]
@@ -251,9 +233,6 @@ def test_cancel_import_tiff(import_in_mainloop, clean_up_files):
     )
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     mlp = GLib.MainLoop()
 

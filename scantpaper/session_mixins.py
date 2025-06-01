@@ -131,7 +131,6 @@ class SessionMixins:
             if selected is not None:
                 self.session = crashed[selected]
                 self._create_lockfile()
-                self.slist.set_dir(self.session)
                 self._open_session(self.session)
 
     def _list_unrestorable_sessions(self, missing):

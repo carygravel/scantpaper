@@ -16,9 +16,6 @@ def test_save_image(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     mlp = GLib.MainLoop()
@@ -67,9 +64,6 @@ def test_save_image_with_quote(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     os.mkdir("te'st")
@@ -102,9 +96,6 @@ def test_save_image_with_ampersand(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 

@@ -23,9 +23,6 @@ def test_save_multipage_pdf(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, files)
 
     pages = []
@@ -91,9 +88,6 @@ def test_save_multipage_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, files)
 
     pages = []
@@ -142,9 +136,6 @@ def test_save_multipage_pdf_as_ps(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
     slist.save_pdf(
@@ -187,9 +178,6 @@ def test_save_multipage_pdf_as_ps2(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
@@ -236,9 +224,6 @@ def test_prepend_pdf(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.save_pdf(
@@ -278,9 +263,6 @@ def test_append_pdf(import_in_mainloop, clean_up_files):
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -322,9 +304,6 @@ def test_prepend_with_space(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.save_pdf(
@@ -365,9 +344,6 @@ def test_prepend_with_inverted_comma(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.save_pdf(
@@ -407,9 +383,6 @@ def test_append_pdf_with_timestamp(import_in_mainloop, clean_up_files):
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 

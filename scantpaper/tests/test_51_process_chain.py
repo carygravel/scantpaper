@@ -40,10 +40,7 @@ def test_process_chain(clean_up_files):
         ],
         check=True,
     )
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-
     slist = Document()
-    slist.set_dir(dirname.name)
 
     asserts = 0
 
@@ -62,7 +59,6 @@ def test_process_chain(clean_up_files):
         ocr=True,
         resolution=300,
         delete=True,
-        dir=dirname.name,
         engine="tesseract",
         language="eng",
         display_callback=display_cb,
@@ -105,10 +101,7 @@ def test_process_chain2(clean_up_files):
         ],
         check=True,
     )
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-
     slist = Document()
-    slist.set_dir(dirname.name)
 
     mlp = GLib.MainLoop()
     slist.import_scan(
@@ -117,7 +110,6 @@ def test_process_chain2(clean_up_files):
         udt="convert %i -negate %o",
         resolution=300,
         delete=True,
-        dir=dirname.name,
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -142,10 +134,7 @@ def test_process_chain2(clean_up_files):
 def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
     "Test tesseract in process chain"
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-
     slist = Document()
-    slist.set_dir(dirname.name)
 
     asserts = 0
 
@@ -161,7 +150,6 @@ def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
         ocr=True,
         resolution=300,
         delete=True,
-        dir=dirname.name,
         engine="tesseract",
         language="eng",
         display_callback=display_cb,
@@ -189,10 +177,7 @@ def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
 def test_error_in_process_chain1(rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-
     slist = Document()
-    slist.set_dir(dirname.name)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -214,7 +199,6 @@ def test_error_in_process_chain1(rotated_qbfox_image, clean_up_files):
         ocr=True,
         resolution=300,
         delete=False,
-        dir=dirname.name,
         engine="tesseract",
         language="eng",
         started_callback=started_callback,
@@ -233,10 +217,7 @@ def test_error_in_process_chain1(rotated_qbfox_image, clean_up_files):
 def test_error_in_process_chain2(rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-
     slist = Document()
-    slist.set_dir(dirname.name)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -254,7 +235,6 @@ def test_error_in_process_chain2(rotated_qbfox_image, clean_up_files):
         ocr=True,
         resolution=300,
         delete=False,
-        dir=dirname.name,
         engine="tesseract",
         language="eng",
         error_callback=error_callback2,
@@ -272,10 +252,7 @@ def test_error_in_process_chain2(rotated_qbfox_image, clean_up_files):
 def test_error_in_process_chain3(rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-
     slist = Document()
-    slist.set_dir(dirname.name)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -301,7 +278,6 @@ def test_error_in_process_chain3(rotated_qbfox_image, clean_up_files):
         "ocr": True,
         "resolution": 300,
         "delete": False,
-        "dir": dirname.name,
         "engine": "tesseract",
         "language": "eng",
         "error_callback": error_callback,

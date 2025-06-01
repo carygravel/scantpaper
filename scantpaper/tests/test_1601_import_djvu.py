@@ -62,9 +62,6 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     asserts = 0
@@ -153,9 +150,6 @@ def test_import_djvu_with_error(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     asserts = 0
@@ -213,9 +207,6 @@ def test_import_djvu_with_error2(monkeypatch, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     asserts = 0
@@ -255,9 +246,6 @@ def test_import_multipage_djvu(clean_up_files):
     subprocess.run(["djvm", "-c", "test2.djvu", "test.djvu", "test.djvu"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     mlp = GLib.MainLoop()
 
