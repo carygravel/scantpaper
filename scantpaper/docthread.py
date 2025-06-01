@@ -60,15 +60,6 @@ class DocThread(SaveThread):
             "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
         )
         if not self._cur.fetchone():
-            #     self._cur.execute(
-            #         """SELECT id, image, thumb, x_res, y_res, std_dev, mean, text, annotations
-            #            FROM page ORDER BY id"""
-            #     )
-            #     for row in self._cur.fetchall():
-            #         self.data.append([row[0], self._bytes_to_pixbuf(row[2]), row[0]])
-            # else:
-            # self._cur.execute("DROP TABLE IF EXISTS page")
-            # self._cur.execute("DROP TABLE IF EXISTS undo_buffer")
             self._cur.execute(
                 """CREATE TABLE page(
                     id INTEGER PRIMARY KEY,
@@ -100,6 +91,17 @@ class DocThread(SaveThread):
                     FOREIGN KEY (page_id) REFERENCES page(id),
                     PRIMARY KEY (action_id, row_id))"""
             )
+
+    def open(self, db):
+        "open a saved database"
+        self._db = db
+        self._con = sqlite3.connect(self._db, check_same_thread=False)
+        self._cur = self._con.cursor()
+        self._cur.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
+        )
+        if not self._cur.fetchone():
+            raise TypeError(f"File '{self._db}' is not a gsscan2pdf document")
 
     def _insert_page(self, page):
         "insert a page to the database"
@@ -220,7 +222,10 @@ class DocThread(SaveThread):
             """SELECT page_number, thumb, page_id
                FROM number, page WHERE page_id = page.id ORDER BY page_number"""
         )
-        return self._cur.fetchall()
+        rows = []
+        for row in self._cur.fetchall():
+            rows.append([row[0], self._bytes_to_pixbuf(row[1]), row[2]])
+        return rows
 
     def get_page(self, **kwargs):
         "get a page from the database"

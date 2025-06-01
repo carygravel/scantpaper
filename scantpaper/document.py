@@ -146,7 +146,7 @@ class Document(BaseDocument):
             self._get_file_info_finished_callback2_multiple_files(info, options)
 
         elif info[0]["format"] == "session file":
-            self.open_session_file(info=info[0]["path"], **options)
+            self.open_session(db=info[0]["path"], **options)
 
         else:
             if options.get("metadata_callback"):

@@ -1,9 +1,11 @@
 "Base document methods"
 
 from collections import defaultdict
+import pathlib
 import re
 import os
 import logging
+import shutil
 import tempfile
 import queue
 import signal
@@ -52,6 +54,8 @@ class BaseDocument(SimpleList):
         self.clipboard = None
         for key, val in kwargs.items():
             setattr(self, key, val)
+        if self.dir and isinstance(self.dir, str):
+            self.dir = pathlib.Path(self.dir)
 
         dnd_source = Gtk.TargetEntry.new(
             "Glib::Scalar",  # some string representing the drag type
@@ -351,22 +355,10 @@ class BaseDocument(SimpleList):
 
         return page_selection[0]
 
-    def _remove_corrupted_pages(self):
-        "remove corrupt pages"
-        i = 0
-        while i < len(self.data):
-            if self.data[i][2] is None:
-                del self.data[i]
-
-            else:
-                i += 1
-
     def _manual_sort_by_column(self, sortcol):
         """Helpers:
 
         Manual one-time sorting of the SimpleList's data"""
-        self._remove_corrupted_pages()
-
         # The sort function depends on the column type
         #     sortfuncs = {
         #     object : compare_text_col,
@@ -537,106 +529,42 @@ class BaseDocument(SimpleList):
         If a filename is given, zip it up as a session file
         Pass version to allow us to mock different session version and to be able to
         test opening old sessions."""
-        self._remove_corrupted_pages()
-        session, filenamelist = {}, []
-        for row in self.data:
-            if row[0] not in session:
-                session[row[0]] = {}
-            session[row[0]]["filename"] = row[2].filename
-            filenamelist.append(row[2].filename)
-            for key in row[2].keys():
-                if key != "filename":
-                    session[row[0]][key] = row[2][key]
-
-        filenamelist.append(os.path.join(self.dir, "session"))
-        selection = self.get_selected_indices()
-        session["selection"] = selection
-        if version is not None:
-            session["version"] = version
-        # store(session, os.path.join(self.dir, "session"))
-        if filename is not None:
-            with tarfile.TarFile(filename, "w") as tar:
-                for file in filenamelist:
-                    tar.add(file)
-            for row in self.data:
-                row[2].saved = True
-
-    def open_session_file(self, **kwargs):
-        "open session file"
-        if "info" not in kwargs:
-            if kwargs["error_callback"]:
-                kwargs["error_callback"](
-                    None, "Open file", "Error: session file not supplied."
-                )
-
-            return
-
-        with tarfile.open(kwargs["info"], True) as tar:
-            filenamelist = tar.list_files()
-            sessionfile = [x for x in filenamelist if re.search(r"\/session$", x)]
-            sesdir = os.path.join(self.dir, os.path.dirname(sessionfile[0]))
-            for filename in filenamelist:
-                tar.extract_file(
-                    filename, os.path.join(sesdir, os.path.basename(filename))
-                )
-
-        self.open_session(dir=sesdir, delete=True, **kwargs)
-        if kwargs["finished_callback"]:
-            kwargs["finished_callback"]()
+        shutil.copy(self.dir / "document.db", filename)
+        logger.info("Saved document as %s", filename)
 
     def open_session(self, **kwargs):
         "open session file"
-        if "dir" not in kwargs:
+        if "db" not in kwargs:
             if kwargs["error_callback"]:
                 kwargs["error_callback"](
-                    None, "Open file", "Error: session folder not defined"
+                    None, "Open file", "Error: session file not defined"
                 )
             return
 
-        sessionfile = os.path.join(kwargs["dir"], "session")
-        if not os.access(sessionfile, os.R_OK):
+        db = pathlib.Path(kwargs["db"])
+        self.thread._con.close()
+        try:
+            shutil.copy(db, self.dir / "document.db")
+        except OSError:
             if kwargs["error_callback"]:
                 kwargs["error_callback"](
-                    None, "Open file", f"Error: Unable to read {sessionfile}"
+                    None, "Open file", f"Error: Unable to read {db}"
                 )
             return
-
-        # sessionref = retrieve(sessionfile)
-        sessionref = sessionfile  # until we've figured out how this is going to work
-        session = sessionref
-        logger.info("Restoring v%s->%s session file.", sessionref, session["version"])
 
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
-        selection = session["selection"]
-        del session["selection"]
-        if "version" in session:
-            del session["version"]
-        for pagenum in sorted(session.keys()):
-            # don't reuse session directory
-
-            session[pagenum]["dir"] = self.dir
-            session[pagenum]["delete"] = kwargs["delete"]
-
-            # correct the path now that it is relative to the current session dir
-
-            if kwargs["dir"] != self.dir:
-                session[pagenum]["filename"] = os.path.join(
-                    kwargs["dir"], os.path.basename(session[pagenum]["filename"])
-                )
-
-            # Populate the SimpleList
-            # page = Page(session[pagenum])
-            page = Page()
-            thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
-            self.data.append([pagenum, thumb, page])
+        self.thread.open(db)
+        self.data = self.thread.page_number_table()
+        logger.info("Opened document %s", db)
+        logger.info("Found %i pages", len(self.data))
 
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
 
-        self.select(selection)
+        self.select(0)
 
     def renumber(self, start=None, step=1, selection="all"):
         "Renumber pages"
@@ -726,10 +654,6 @@ class BaseDocument(SimpleList):
             if len(index) == 0:
                 error_callback(None, "Get page", _("No pages selected"))
         return index
-
-    def set_dir(self, dirname):
-        "Set session dir"
-        self.dir = dirname
 
     def _note_callbacks(self, kwargs):
         "create the mark_saved callback if necessary"

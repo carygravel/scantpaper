@@ -261,11 +261,6 @@ class FileMenuMixins:
 
         self.slist.import_files(**options)
 
-    def _open_session_file(self, filename):
-        "open session"
-        logger.info("Restoring session in %s", self.session)
-        self.slist.open_session_file(info=filename, error_callback=self._error_callback)
-
     def _open_session_action(self, _action):
         "open session"
         file_chooser = Gtk.FileChooserDialog(
@@ -553,7 +548,7 @@ class FileMenuMixins:
                 else:
                     self._save_pdf(filename, uuids, "ps")
 
-            elif filetype == "gs2p":
+            elif filetype == "session":
                 self.slist.save_session(filename, VERSION)
 
             elif filetype in ["djvu", "tif", "txt", "hocr"]:
