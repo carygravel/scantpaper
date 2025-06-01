@@ -60,9 +60,7 @@ class SessionMixins:
                     )
                 )
 
-            self.slist.set_dir(self.session.name)
             self._lockfd = self._create_lockfile()
-            self.slist.save_session()
             logger.info("Using %s for temporary files", self.session.name)
             tmpdir = os.path.dirname(self.session.name)
             if "TMPDIR" in self.settings and self.settings["TMPDIR"] != tmpdir:

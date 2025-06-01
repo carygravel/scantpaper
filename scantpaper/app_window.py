@@ -374,16 +374,14 @@ class ApplicationWindow(
         )
         logger.info("sane.__version__ %s", sane.__version__)
         logger.info("sane.init() %s", sane.init())
-
-        logger.info(f"SQLite C library version: {sqlite3.sqlite_version}")
-        logger.info(f"sqlite3 module version: {sqlite3.version}")
-        logger.info(f"SQLite thread safety level: {sqlite3.threadsafety}")
+        logger.info("SQLite C library version: %s", sqlite3.sqlite_version)
+        logger.info("SQLite thread safety level: %s", sqlite3.threadsafety)
 
         if sqlite3.threadsafety != 3:
-            logger.warn(
+            logger.warning(
                 "Warning: SQLite is not in Serialized mode (threadsafety != 3)."
             )
-            logger.warn(
+            logger.warning(
                 "Sharing connections with check_same_thread=False is not recommended."
             )
 
@@ -414,15 +412,15 @@ class ApplicationWindow(
     def _populate_main_window(self):
         "Populates the main window with various UI components and sets up necessary callbacks"
 
-        # Set up an SimpleList for the thumbnail view
-        self.slist = Document()
-
-        # Update list in Document so that it can be used by get_resolution()
-        self.slist.set_paper_sizes(self.settings["Paper"])
-
         # The temp directory has to be available before we start checking for
         # dependencies in order to be used for the pdftk check.
         self._create_temp_directory()
+
+        # Set up an SimpleList for the thumbnail view
+        self.slist = Document(dir=self.session.name)
+
+        # Update list in Document so that it can be used by get_resolution()
+        self.slist.set_paper_sizes(self.settings["Paper"])
 
         main_vbox = self.builder.get_object("main_vbox")
         self.add(main_vbox)
