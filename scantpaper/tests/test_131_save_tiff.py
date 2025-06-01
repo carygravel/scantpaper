@@ -16,9 +16,6 @@ def test_save_tiff(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     mlp = GLib.MainLoop()
@@ -67,9 +64,6 @@ def test_cancel_save_tiff(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -124,9 +118,6 @@ def test_save_tiff_with_error(import_in_mainloop, clean_up_files):
 
     slist = Document()
     asserts = 0
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -203,9 +194,6 @@ def test_save_tiff_with_alpha(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.png"])
 
     mlp = GLib.MainLoop()
@@ -239,9 +227,6 @@ def test_save_tiff_as_ps(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
@@ -293,9 +278,6 @@ def test_save_tiff_g4(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.png"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.png"])
 

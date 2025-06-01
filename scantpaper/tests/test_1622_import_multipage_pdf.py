@@ -21,9 +21,6 @@ def test_import_multipage_pdf(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     slist.import_files(
@@ -129,9 +126,6 @@ startxref
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     asserts = 0
@@ -196,9 +190,6 @@ def test_import_pdf_bw(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     slist.import_files(
@@ -231,9 +222,6 @@ def test_import_pdf_with_error(clean_up_files):
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     mlp = GLib.MainLoop()
 
@@ -301,9 +289,6 @@ def test_import_encrypted_pdf(clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     mlp = GLib.MainLoop()
 
     asserts = 0
@@ -361,9 +346,6 @@ def test_import_pdf_with_metadata(clean_up_files):
     subprocess.run(cmd, check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     mlp = GLib.MainLoop()
 

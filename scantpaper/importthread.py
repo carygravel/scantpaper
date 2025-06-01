@@ -58,7 +58,7 @@ class Importhread(BaseThread):
         if proc.stdout in ["very short file (no magic)", "empty"]:
             raise RuntimeError(_("Error importing zero-length file %s.") % (path,))
 
-        if re.search(r"gzip[ ]compressed[ ]data", proc.stdout):
+        if re.search(r"SQLite[ ]3.x[ ]database", proc.stdout):
             info["path"] = path
             info["format"] = "session file"
 

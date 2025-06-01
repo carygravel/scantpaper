@@ -20,7 +20,5 @@ def test_1(clean_up_files):
     window = Gtk.Window()
     dialog = Dialog(title="title", transient_for=window)
     slist = Document()
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])

@@ -20,9 +20,6 @@ def test_udt(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "-size", "210x297", "xc:white", "white.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
     slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, ["white.pnm"])
@@ -73,9 +70,6 @@ def test_udt_in_place(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["white.pnm"])
 
     mlp = GLib.MainLoop()
@@ -115,9 +109,6 @@ def test_udt_page_size(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "-size", "210x297", "xc:white", "white.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
     slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, ["white.pnm"])
@@ -163,9 +154,6 @@ def test_udt_resolution(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["white.pnm"])
     slist.thread.set_resolution(1, 10, 10)
 
@@ -196,9 +184,6 @@ def test_udt_error(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["white.pnm"])
 

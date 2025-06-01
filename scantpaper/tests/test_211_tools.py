@@ -16,9 +16,6 @@ def test_rotate(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.jpg"])
     slist.thread.set_saved(1, True)
 
@@ -56,9 +53,6 @@ def test_analyse_blank(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["white.pgm"])
 
     mlp = GLib.MainLoop()
@@ -84,9 +78,6 @@ def test_analyse_dark(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["black.pgm"])
 
     mlp = GLib.MainLoop()
@@ -111,9 +102,6 @@ def test_threshold(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
     slist.thread.set_saved(1, True)
@@ -157,9 +145,6 @@ def test_negate(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["white.pnm"])
     slist.thread.set_saved(1, True)
@@ -212,9 +197,6 @@ def test_unsharp_mask(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
     slist.thread.set_saved(1, True)
@@ -278,9 +260,6 @@ def test_crop(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.gif"])
 
@@ -362,9 +341,6 @@ def test_split(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.gif"])
 
@@ -468,9 +444,6 @@ def test_brightness_contrast(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
     slist.thread.set_saved(1, True)

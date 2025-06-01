@@ -15,9 +15,6 @@ def test_save_text(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.thread.set_text(
@@ -68,9 +65,6 @@ def test_save_no_text(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     mlp = GLib.MainLoop()
@@ -110,9 +104,6 @@ def test_save_utf8(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.thread.set_text(
@@ -151,9 +142,6 @@ def test_save_hocr_as_text(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -210,9 +198,6 @@ def test_save_hocr(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -280,9 +265,6 @@ def test_save_hocr_with_encoding(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -345,9 +327,6 @@ def test_save_multipage_hocr(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
@@ -442,9 +421,6 @@ def test_save_hocr_structure(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 

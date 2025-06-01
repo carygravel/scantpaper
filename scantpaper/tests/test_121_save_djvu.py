@@ -23,9 +23,6 @@ def test_save_djvu(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.save_djvu(
@@ -71,9 +68,6 @@ def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.thread.set_text(
@@ -111,9 +105,6 @@ def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -177,9 +168,6 @@ def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -252,7 +240,6 @@ def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
 
     # dir for temporary files
     dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -310,9 +297,6 @@ def test_save_djvu_with_float_resolution(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.png"])
     slist.thread.set_resolution(1, 299.72, 299.72)
 
@@ -343,9 +327,6 @@ def test_save_djvu_different_resolutions(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -381,9 +362,6 @@ def test_save_djvu_with_metadata(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", pnm], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, [pnm])
 
@@ -427,9 +405,6 @@ def test_save_djvu_with_old_metadata(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", pnm], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, [pnm])
 

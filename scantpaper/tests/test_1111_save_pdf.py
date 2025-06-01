@@ -62,10 +62,6 @@ def test_save_pdf(clean_up_files):
 
     slist = Document()
 
-    # dir for temporary files
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     asserts = 0
 
     # FIXME: add support for completed, total vars
@@ -155,10 +151,6 @@ def test_save_pdf_with_locale(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    # dir for temporary files
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     mlp = GLib.MainLoop()
@@ -190,10 +182,6 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
 
     slist = Document()
     asserts = 0
-
-    # dir for temporary files
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -249,10 +237,6 @@ def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    # dir for temporary files
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.png"])
 
     mlp = GLib.MainLoop()
@@ -286,10 +270,6 @@ def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
     slist = Document()
-
-    # dir for temporary files
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.jpg"])
 
@@ -345,10 +325,6 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
         width, height = regex.group(1), regex.group(2)
 
     slist = Document()
-
-    # dir for temporary files
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -445,9 +421,6 @@ def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.thread.set_text(
@@ -489,9 +462,6 @@ def test_save_pdf_with_non_utf8(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pnm"])
 
     slist.thread.set_text(
@@ -527,9 +497,6 @@ def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.pbm"])
 
     mlp = GLib.MainLoop()
@@ -560,8 +527,6 @@ def test_save_pdf_without_font(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -611,9 +576,6 @@ def test_save_pdf_g4(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.png"])
 
     mlp = GLib.MainLoop()
@@ -659,9 +621,6 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
     )
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.tif"])
 
@@ -746,9 +705,6 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.png"])
 
     hocr = """<?xml version="1.0" encoding="UTF-8"?>
@@ -824,9 +780,6 @@ def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, [pnm])
 
     metadata = {
@@ -869,9 +822,6 @@ def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", pnm], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, [pnm])
 
@@ -935,9 +885,6 @@ def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.png"])
 
     mlp = GLib.MainLoop()
@@ -993,9 +940,6 @@ def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 

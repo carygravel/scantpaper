@@ -63,9 +63,6 @@ def test_tesseract_in_thread(import_in_mainloop, clean_up_files):
 
     slist = Document()
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
-
     import_in_mainloop(slist, ["test.png"])
 
     mlp = GLib.MainLoop()

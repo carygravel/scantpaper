@@ -179,9 +179,6 @@ def test_unpaper(import_in_mainloop, clean_up_files):
         check=True,
     )
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
     slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, ["test.pnm"])
@@ -249,9 +246,6 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
         check=True,
     )
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
     slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, ["test.pnm"])
@@ -341,9 +335,6 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
         ["convert", "1.pnm", "black.pnm", "2.pnm", "+append", "test.pnm"], check=True
     )
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -456,9 +447,6 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
         check=True,
     )
     slist = Document()
-
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist.set_dir(dirname.name)
 
     import_in_mainloop(slist, ["test.pbm"])
 
