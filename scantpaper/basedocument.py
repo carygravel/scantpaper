@@ -16,7 +16,7 @@ from docthread import DocThread
 from page import Page
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk, Gdk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk, Gdk  # pylint: disable=wrong-import-position
 
 THUMBNAIL = 100  # pixels
 ID_PAGE = 1
@@ -40,7 +40,7 @@ class BaseDocument(SimpleList):
     def __init__(self, **kwargs):
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page ID": "hint"}
         super().__init__(**columns)
-        self.thread = DocThread()
+        self.thread = DocThread(**kwargs)
         self.thread.register_callback("mark_saved", "before", "finished")
         self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
