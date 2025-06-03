@@ -290,9 +290,8 @@ class Document(BaseDocument):
         page_kwargs = {
             "resolution": kwargs["resolution"],
             "format": "Portable anymap",
-            "dir": kwargs["dir"],
         }
-        for key in ["image_object", "filename"]:
+        for key in ["image_object", "filename", "dir"]:
             if key in kwargs:
                 page_kwargs[key] = kwargs[key]
 

@@ -180,7 +180,8 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    dirname = tempfile.TemporaryDirectory()
+    slist = Document(dir=dirname.name)
     asserts = 0
 
     import_in_mainloop(slist, ["test.pnm"])
@@ -224,9 +225,7 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
-    )
+    clean_up_files(["test.pnm", "test.pdf"])
 
 
 def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):

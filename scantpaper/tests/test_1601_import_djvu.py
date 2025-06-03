@@ -148,7 +148,8 @@ def test_import_djvu_with_error(clean_up_files):
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
     subprocess.run(["c44", "test.jpg", "test.djvu"], check=True)
 
-    slist = Document()
+    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist = Document(dir=dirname.name)
 
     mlp = GLib.MainLoop()
 

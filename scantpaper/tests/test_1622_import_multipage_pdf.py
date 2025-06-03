@@ -221,7 +221,8 @@ def test_import_pdf_with_error(clean_up_files):
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
 
-    slist = Document()
+    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist = Document(dir=dirname.name)
 
     mlp = GLib.MainLoop()
 

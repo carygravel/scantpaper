@@ -235,11 +235,9 @@ def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
-    asserts = 0
-
-    # dir for temporary files
     dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist = Document(dir=dirname.name)
+    asserts = 0
 
     import_in_mainloop(slist, ["test.pnm"])
 
