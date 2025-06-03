@@ -9,13 +9,11 @@ import shutil
 import tempfile
 import queue
 import signal
-import tarfile
 import gi
 from simplelist import SimpleList
 from helpers import slurp
 from i18n import _
 from docthread import DocThread
-from page import Page
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk  # pylint: disable=wrong-import-position
@@ -54,7 +52,9 @@ class BaseDocument(SimpleList):
         self.clipboard = None
         for key, val in kwargs.items():
             setattr(self, key, val)
-        if self.dir and isinstance(self.dir, str):
+        if not self.dir:
+            self.dir = self.thread._dir
+        if isinstance(self.dir, str):
             self.dir = pathlib.Path(self.dir)
 
         dnd_source = Gtk.TargetEntry.new(

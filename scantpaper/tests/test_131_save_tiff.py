@@ -116,7 +116,8 @@ def test_save_tiff_with_error(import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+    slist = Document(dir=dirname.name)
     asserts = 0
 
     import_in_mainloop(slist, ["test.pnm"])
