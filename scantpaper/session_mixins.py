@@ -396,7 +396,7 @@ class SessionMixins:
         "Display the image in the view"
         self._current_page = self.slist.thread.get_page(id=pageid)
         self.view.set_pixbuf(self._current_page.get_pixbuf(), True)
-        xresolution, yresolution, _units = self._current_page.resolution
+        xresolution, yresolution, _units = self._current_page.get_resolution()
         self.view.set_resolution_ratio(xresolution / yresolution)
 
         # Get image dimensions to constrain selector spinbuttons on crop dialog

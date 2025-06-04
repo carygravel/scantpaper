@@ -2,7 +2,6 @@
 
 # TODO:
 # apply fix for list of pages from save_pdf to other types
-# fix save/open session
 # fix un/redo
 # save_pdf landscape squashes into portrait
 # package pytest-black for Debian
