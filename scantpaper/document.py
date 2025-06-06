@@ -392,17 +392,12 @@ class Document(BaseDocument):
 
     def undo(self):
         "undo the last action"
-        self._redo_buffer = self.clone_data()
         self._redo_selection = self.get_selected_indices()
-        logger.debug("undo_buffer: %s", self._undo_buffer)
-        logger.debug("undo_selection: %s", self._undo_selection)
-        logger.debug("redo_buffer: %s", self._redo_buffer)
-        logger.debug("redo_selection: %s", self._redo_selection)
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)
         self.get_selection().handler_block(self.selection_changed_signal)
-        self.data = self._undo_buffer
+        self.data = self.thread.undo()
 
         # Unblock slist signals now finished
         self.get_selection().handler_unblock(self.selection_changed_signal)
@@ -413,17 +408,12 @@ class Document(BaseDocument):
 
     def unundo(self):
         "redo the last action"
-        self._undo_buffer = self.clone_data()
         self._undo_selection = self.get_selected_indices()
-        logger.debug("undo_buffer: %s", self._undo_buffer)
-        logger.debug("undo_selection: %s", self._undo_selection)
-        logger.debug("redo_buffer: %s", self._redo_buffer)
-        logger.debug("redo_selection: %s", self._redo_selection)
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)
         self.get_selection().handler_block(self.selection_changed_signal)
-        self.data = self._redo_buffer
+        self.data = self.thread.redo()
 
         # Unblock slist signals now finished
         self.get_selection().handler_unblock(self.selection_changed_signal)

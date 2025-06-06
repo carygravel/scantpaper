@@ -686,6 +686,13 @@ def test_db(clean_up_files):
     "test database access"
     thread = DocThread()
     thread.start()
+
+    with pytest.raises(StopIteration):
+        thread.undo()
+
+    with pytest.raises(StopIteration):
+        thread.redo()
+
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 1)
     page = thread.get_page(number=1)
     assert page.id == 1, "add page"
@@ -694,13 +701,6 @@ def test_db(clean_up_files):
     page = thread.get_page(number=1)
     assert page.id == 1, "load from db"
 
-    with pytest.raises(StopIteration):
-        thread.undo()
-
-    with pytest.raises(StopIteration):
-        thread.redo()
-
-    thread._take_snapshot()
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
     thread.delete_page(number=1)
     assert thread.page_number_table()[0][0] == 2, "deleted page"
@@ -711,7 +711,6 @@ def test_db(clean_up_files):
     page = thread.get_page(id=2)
     assert isinstance(page, Page), "get_page by id"
 
-    thread._take_snapshot()
     thread.undo()
     assert thread.page_number_table()[0][0] == 1, "undo"
 
@@ -870,7 +869,6 @@ def test_import_scan(
         page=1,
         delete=True,
         resolution=70,
-        dir=tempdir.name,
         finished_callback=_finished_callback,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -886,5 +884,4 @@ def test_import_scan(
             "test2.ppm",
             "test.pnm",
         ]
-        + glob.glob(f"{tempdir}/*")
     )
