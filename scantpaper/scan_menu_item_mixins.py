@@ -359,8 +359,6 @@ class ScanMenuItemMixins:
         if image_object is None:
             return
 
-        # Update undo/redo buffers
-        self._take_snapshot()
         rotate = (
             self.settings["rotate facing"]
             if page_number % 2

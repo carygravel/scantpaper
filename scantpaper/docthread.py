@@ -143,6 +143,7 @@ class DocThread(SaveThread):
         if self.find_row_id_by_page_number(number):
             raise ValueError(f"Page {number} already exists")
 
+        logger.error("add_page")
         self._take_snapshot()
 
         thumb = self._insert_page(page)
@@ -170,6 +171,7 @@ class DocThread(SaveThread):
         if i is None:
             raise ValueError(f"Page {number} does not exist")
 
+        logger.error("replace_page")
         self._take_snapshot()
 
         thumb = self._insert_page(page)
@@ -199,6 +201,7 @@ class DocThread(SaveThread):
         if row_id is None:
             raise ValueError("Specify either row_id or number")
 
+        logger.error("delete_page")
         self._take_snapshot()
         self._cur.execute("DELETE FROM number WHERE row_id = ?", (row_id,))
         self._con.commit()
@@ -265,6 +268,7 @@ class DocThread(SaveThread):
 
     def clone_page(self, pageid, number):
         "clone a page in the database"
+        logger.error("clone_page")
         self._take_snapshot()
         self._cur.execute(
             """SELECT image, thumb, x_res, y_res, mean, std_dev, text, annotations
@@ -298,6 +302,7 @@ class DocThread(SaveThread):
 
     def _take_snapshot(self):
         "take a snapshot of the current state of the document"
+        logger.error(f"entering _take_snapshot {self._get_snapshots()}")
 
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
@@ -320,6 +325,7 @@ class DocThread(SaveThread):
             (self._action_id - self.number_undo_steps,),
         )
         self._con.commit()
+        logger.error(f"leaving _take_snapshot {self._get_snapshots()}")
 
     def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"
@@ -363,12 +369,16 @@ class DocThread(SaveThread):
         "checks whether undo is possible"
         self._cur.execute("SELECT min(action_id) FROM undo_buffer")
         min_action_id = self._cur.fetchone()[0]
-        return min_action_id is not None and min_action_id < self._action_id
+        logger.error(f"can_redo min_action_id <= self._action_id {min_action_id} <= {self._action_id}")
+        logger.error(f"returning {min_action_id is not None and min_action_id <= self._action_id}")
+        return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self):
         "checks whether redo is possible"
         self._cur.execute("SELECT max(action_id) FROM undo_buffer")
         max_action_id = self._cur.fetchone()[0]
+        logger.error(f"can_redo max_action_id > self._action_id {max_action_id} > {self._action_id}")
+        logger.error(f"returning {max_action_id is not None and max_action_id > self._action_id}")
         return max_action_id is not None and max_action_id > self._action_id
 
     def _restore_snapshot(self):
@@ -385,6 +395,7 @@ class DocThread(SaveThread):
 
     def undo(self):
         "restore the state of the last snapshot"
+        logger.error(f"entering undo")
         if not self.can_undo():
             raise StopIteration("No more undo steps possible")
 
@@ -392,7 +403,10 @@ class DocThread(SaveThread):
         self._take_snapshot()
 
         self._action_id -= 1
+        logger.error(f"undo before _restore_snapshot {self.page_number_table()}")
         self._restore_snapshot()
+        logger.error(f"undo after _restore_snapshot {self.page_number_table()}")
+        logger.error(f"leaving undo")
         return self._get_snapshot()
 
     def redo(self):

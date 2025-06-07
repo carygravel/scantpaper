@@ -20,17 +20,20 @@ class EditMenuMixins:
     "provide methods called from edit menu"
 
     def undo(self, _action, _param):
-        "Put things back to last snapshot after updating redo buffer"
+        "Restore previous snapshot"
         logger.info("Undoing")
         self.slist.undo()
+        logger.info("after self.slist.undo()")
 
         # Update menus/buttons
         self._update_uimanager()
+        logger.info("after self._update_uimanager()")
         self._actions["undo"].set_enabled(False)
         self._actions["redo"].set_enabled(True)
+        logger.info("leaving undo")
 
     def unundo(self, _action, _param):
-        "Put things back to last snapshot after updating redo buffer"
+        "Restore next snapshot"
         logger.info("Redoing")
         self.slist.unundo()
 
@@ -119,7 +122,6 @@ class EditMenuMixins:
         "Paste the selection"
         if self.slist.clipboard is None:
             return
-        self._take_snapshot()
         pages = self.slist.get_selected_indices()
         if pages:
             self.slist.paste_selection(self.slist.clipboard, pages[-1], "after", True)
@@ -130,7 +132,6 @@ class EditMenuMixins:
     def delete_selection(self, _action, _param):
         "Delete the selected scans"
         # Update undo/redo buffers
-        self._take_snapshot()
         self.slist.delete_selection_extra()
 
         # Reset start page in scan dialog
@@ -222,8 +223,6 @@ class EditMenuMixins:
 
     def clear_ocr(self, _action, _param):
         "Clear the OCR output from selected pages"
-        # Update undo/redo buffers
-        self._take_snapshot()
 
         # Clear the existing canvas
         self.t_canvas.clear_text()
@@ -231,7 +230,7 @@ class EditMenuMixins:
         for i in selection:
             self.slist.data[i][2].text_layer = None
 
-        # slist.save_session()
+        slist.save_session()
 
     def select_blank(self, _action, _param):
         "Analyse and select blank pages"
@@ -296,8 +295,6 @@ class EditMenuMixins:
     def analyse(self, select_blank, select_dark):
         "Analyse selected images"
 
-        # Update undo/redo buffers
-        self._take_snapshot()
         pages_to_analyse = []
         for row in self.slist.data:
             page = row[2]

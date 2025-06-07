@@ -396,11 +396,13 @@ class Document(BaseDocument):
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)
+        self.get_model().handler_block(self.row_deleted_signal)
         self.get_selection().handler_block(self.selection_changed_signal)
         self.data = self.thread.undo()
 
         # Unblock slist signals now finished
         self.get_selection().handler_unblock(self.selection_changed_signal)
+        self.get_model().handler_unblock(self.row_deleted_signal)
         self.get_model().handler_unblock(self.row_changed_signal)
 
         # Reselect the pages to display the detail view
@@ -412,11 +414,13 @@ class Document(BaseDocument):
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)
+        self.get_model().handler_block(self.row_deleted_signal)
         self.get_selection().handler_block(self.selection_changed_signal)
         self.data = self.thread.redo()
 
         # Unblock slist signals now finished
         self.get_selection().handler_unblock(self.selection_changed_signal)
+        self.get_model().handler_unblock(self.row_deleted_signal)
         self.get_model().handler_unblock(self.row_changed_signal)
 
         # Reselect the pages to display the detail view

@@ -87,9 +87,6 @@ class FileMenuMixins:
         ):
             return
 
-        # Update undo/redo buffers
-        self._take_snapshot()
-
         # in certain circumstances, before v2.5.5, having deleted one of several
         # pages, pressing the new button would cause some sort of race condition
         # between the tied array of the self.slist and the callbacks displaying the
@@ -155,8 +152,6 @@ class FileMenuMixins:
             # cd back to tempdir to import
             os.chdir(self.session.name)
 
-            # Update undo/redo buffers
-            self._take_snapshot()
             filenames = file_chooser.get_filenames()
             file_chooser.destroy()
 
@@ -274,9 +269,6 @@ class FileMenuMixins:
         file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder(self.settings["cwd"])
         if file_chooser.run() == Gtk.ResponseType.OK:
-
-            # Update undo/redo buffers
-            self._take_snapshot()
             filename = file_chooser.get_filenames()
             self._open_session(filename[0])
 

@@ -183,7 +183,7 @@ class SessionMixins:
 
     def _take_snapshot(self):
         "Update undo/redo buffers before doing something"
-        self.slist.take_snapshot()
+        # self.slist.take_snapshot()
 
         # Unghost Undo/redo
         self._actions["undo"].set_enabled(True)

@@ -34,7 +34,6 @@ class BaseDocument(SimpleList):
     # Default thumbnail sizes
     heightt = THUMBNAIL
     widtht = THUMBNAIL
-    selection_changed_signal = None
     paper_sizes = {}
 
     def __init__(self, **kwargs):
@@ -108,6 +107,12 @@ class BaseDocument(SimpleList):
         self.row_deleted_signal = self.get_model().connect(
             "row-deleted", self._on_row_deleted
         )
+        self.selection_changed_signal = self.get_model().connect(
+            "row-deleted", self._on_row_deleted
+        )
+        self.selection_changed_signal = self.get_selection().connect(
+            "changed", self._on_selection_changed
+        )
 
     def _on_row_changed(self, _self, _path, _iter):
         "Set-up the callback when the page number has been edited."
@@ -135,6 +140,9 @@ class BaseDocument(SimpleList):
     def _on_row_deleted(self, _self, path):
         for i in path.get_indices():
             self.thread.delete_page(row_id=i)
+
+    def _on_selection_changed(self, selection):
+        self.thread.set_selection(selection)
 
     def set_paper_sizes(self, paper_sizes=None):
         "Set the paper sizes in the manager and worker threads"
