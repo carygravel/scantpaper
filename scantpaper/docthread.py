@@ -35,7 +35,7 @@ class DocThread(SaveThread):
     _action_id = 0
     _db = None
     _dir = None
-    number_undo_steps = 1
+    number_undo_steps = 10
 
     def __init__(self, *args, **kwargs):
         for key in ["dir", "db"]:
@@ -91,6 +91,11 @@ class DocThread(SaveThread):
                     FOREIGN KEY (page_id) REFERENCES page(id),
                     PRIMARY KEY (action_id, row_id))"""
             )
+            self._cur.execute(
+                """CREATE TABLE selection(
+                    action_id INTEGER PRIMARY KEY,
+                    row_ids TEXT NOT NULL)"""
+            )
 
     def open(self, db):
         "open a saved database"
@@ -143,6 +148,8 @@ class DocThread(SaveThread):
         if self.find_row_id_by_page_number(number):
             raise ValueError(f"Page {number} already exists")
 
+        self._take_snapshot()
+
         thumb = self._insert_page(page)
         page_id = self._cur.lastrowid
         self._cur.execute("SELECT MAX(row_id) FROM number")
@@ -167,6 +174,8 @@ class DocThread(SaveThread):
         i = self.find_row_id_by_page_number(number)
         if i is None:
             raise ValueError(f"Page {number} does not exist")
+
+        self._take_snapshot()
 
         thumb = self._insert_page(page)
         page_id = self._cur.lastrowid
@@ -195,6 +204,7 @@ class DocThread(SaveThread):
         if row_id is None:
             raise ValueError("Specify either row_id or number")
 
+        self._take_snapshot()
         self._cur.execute("DELETE FROM number WHERE row_id = ?", (row_id,))
         self._con.commit()
 
@@ -260,6 +270,7 @@ class DocThread(SaveThread):
 
     def clone_page(self, pageid, number):
         "clone a page in the database"
+        self._take_snapshot()
         self._cur.execute(
             """SELECT image, thumb, x_res, y_res, mean, std_dev, text, annotations
                FROM page, number WHERE id = page_id AND page_id = ?""",
@@ -315,14 +326,14 @@ class DocThread(SaveThread):
         )
         self._con.commit()
 
-    def _get_snapshot(self, action_id):
+    def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"
         self._cur.execute(
             """SELECT page_number, thumb, page_id
                 FROM undo_buffer, page
                 WHERE action_id = ? and page_id = id
                 ORDER BY page_number""",
-            (action_id,),
+            (self._action_id,),
         )
         rows = []
         for row in self._cur.fetchall():
@@ -357,7 +368,7 @@ class DocThread(SaveThread):
         "checks whether undo is possible"
         self._cur.execute("SELECT min(action_id) FROM undo_buffer")
         min_action_id = self._cur.fetchone()[0]
-        return min_action_id is not None and min_action_id < self._action_id
+        return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self):
         "checks whether redo is possible"
@@ -381,8 +392,13 @@ class DocThread(SaveThread):
         "restore the state of the last snapshot"
         if not self.can_undo():
             raise StopIteration("No more undo steps possible")
+
+        # take a snapshot first, so that we can restore it later if necessary
+        self._take_snapshot()
+
         self._action_id -= 1
         self._restore_snapshot()
+        return self._get_snapshot()
 
     def redo(self):
         "restore the state of the last snapshot"
@@ -390,6 +406,26 @@ class DocThread(SaveThread):
             raise StopIteration("No more redo steps possible")
         self._action_id += 1
         self._restore_snapshot()
+        return self._get_snapshot()
+
+    def get_selection(self):
+        "get the selected row ids for the current action_id"
+        self._cur.execute(
+            "SELECT row_ids FROM selection WHERE action_id = ?",
+            (self._action_id,),
+        )
+        row_ids = self._cur.fetchone()
+        return json.loads(row_ids[0]) if row_ids else []
+
+    def set_selection(self, row_ids):
+        "set the selected row ids for the current action_id"
+        row_ids = json.dumps(row_ids)
+        self._cur.execute(
+            """INSERT INTO selection (action_id, row_ids) VALUES (?, ?)
+                ON CONFLICT(action_id) DO UPDATE SET row_ids = ?""",
+            (self._action_id, row_ids, row_ids),
+        )
+        self._con.commit()
 
     def set_saved(self, page_id, saved=True):
         "mark given page as saved"

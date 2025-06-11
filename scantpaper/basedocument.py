@@ -34,7 +34,6 @@ class BaseDocument(SimpleList):
     # Default thumbnail sizes
     heightt = THUMBNAIL
     widtht = THUMBNAIL
-    selection_changed_signal = None
     paper_sizes = {}
 
     def __init__(self, **kwargs):
@@ -108,6 +107,12 @@ class BaseDocument(SimpleList):
         self.row_deleted_signal = self.get_model().connect(
             "row-deleted", self._on_row_deleted
         )
+        self.selection_changed_signal = self.get_selection().connect(
+            "changed", self._on_selection_changed
+        )
+
+        # selection changed signal is not being blocked correctly, so add an extra flag
+        self._block_signals = False
 
     def _on_row_changed(self, _self, _path, _iter):
         "Set-up the callback when the page number has been edited."
@@ -118,12 +123,14 @@ class BaseDocument(SimpleList):
             uuids.append(self.data[i][2])
 
         self.get_model().handler_block(self.row_changed_signal)
+        self.get_model().handler_block(self.row_deleted_signal)
 
         # Sort pages
         self._manual_sort_by_column(0)
 
         # And make sure there are no duplicates
         self.renumber()
+        self.get_model().handler_unblock(self.row_deleted_signal)
         self.get_model().handler_unblock(self.row_changed_signal)
 
         # Select the renumbered pages via uuid
@@ -132,9 +139,14 @@ class BaseDocument(SimpleList):
             selection.append(self.find_page_by_uuid(i))
         self.select(selection)
 
-    def _on_row_deleted(self, _self, path):
+    def _on_row_deleted(self, _model, path):
         for i in path.get_indices():
             self.thread.delete_page(row_id=i)
+
+    def _on_selection_changed(self, _selection):
+        if self._block_signals:
+            return
+        self.thread.set_selection(self.get_selected_indices())
 
     def set_paper_sizes(self, paper_sizes=None):
         "Set the paper sizes in the manager and worker threads"

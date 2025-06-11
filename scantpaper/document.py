@@ -42,10 +42,6 @@ class Document(BaseDocument):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._undo_buffer = []
-        self._undo_selection = []
-        self._redo_buffer = []
-        self._redo_selection = []
 
     def import_files(self, **options):
         """To avoid race condtions importing multiple files,
@@ -365,6 +361,7 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _user_defined_data_callback
         self.thread.user_defined(**kwargs)
 
+    # TODO: move this to DocThread
     def take_snapshot(self):
         "take a snapshot of the document"
 
@@ -392,45 +389,43 @@ class Document(BaseDocument):
 
     def undo(self):
         "undo the last action"
-        self._redo_buffer = self.clone_data()
-        self._redo_selection = self.get_selected_indices()
-        logger.debug("undo_buffer: %s", self._undo_buffer)
-        logger.debug("undo_selection: %s", self._undo_selection)
-        logger.debug("redo_buffer: %s", self._redo_buffer)
-        logger.debug("redo_selection: %s", self._redo_selection)
+        self.thread.set_selection(self.get_selected_indices())
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)
+        self.get_model().handler_block(self.row_deleted_signal)
         self.get_selection().handler_block(self.selection_changed_signal)
-        self.data = self._undo_buffer
+        self._block_signals = True
+        self.data = self.thread.undo()
+        self._block_signals = False
 
         # Unblock slist signals now finished
         self.get_selection().handler_unblock(self.selection_changed_signal)
+        self.get_model().handler_unblock(self.row_deleted_signal)
         self.get_model().handler_unblock(self.row_changed_signal)
 
         # Reselect the pages to display the detail view
-        self.select(self._undo_selection)
+        self.select(self.thread.get_selection())
 
     def unundo(self):
         "redo the last action"
-        self._undo_buffer = self.clone_data()
-        self._undo_selection = self.get_selected_indices()
-        logger.debug("undo_buffer: %s", self._undo_buffer)
-        logger.debug("undo_selection: %s", self._undo_selection)
-        logger.debug("redo_buffer: %s", self._redo_buffer)
-        logger.debug("redo_selection: %s", self._redo_selection)
+        self.thread.set_selection(self.get_selected_indices())
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)
+        self.get_model().handler_block(self.row_deleted_signal)
         self.get_selection().handler_block(self.selection_changed_signal)
-        self.data = self._redo_buffer
+        self._block_signals = True
+        self.data = self.thread.redo()
+        self._block_signals = False
 
         # Unblock slist signals now finished
         self.get_selection().handler_unblock(self.selection_changed_signal)
+        self.get_model().handler_unblock(self.row_deleted_signal)
         self.get_model().handler_unblock(self.row_changed_signal)
 
         # Reselect the pages to display the detail view
-        self.select(self._redo_selection)
+        self.select(self.thread.get_selection())
 
     def indices2pages(self, list_of_indices):
         "Helper function to convert an array of indices into an array of uuids"

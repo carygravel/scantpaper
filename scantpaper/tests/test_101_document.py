@@ -2,7 +2,6 @@
 
 from collections import defaultdict
 import datetime
-import glob
 import os
 from pathlib import Path
 import re
@@ -686,6 +685,13 @@ def test_db(clean_up_files):
     "test database access"
     thread = DocThread()
     thread.start()
+
+    with pytest.raises(StopIteration):
+        thread.undo()
+
+    with pytest.raises(StopIteration):
+        thread.redo()
+
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 1)
     page = thread.get_page(number=1)
     assert page.id == 1, "add page"
@@ -694,13 +700,6 @@ def test_db(clean_up_files):
     page = thread.get_page(number=1)
     assert page.id == 1, "load from db"
 
-    with pytest.raises(StopIteration):
-        thread.undo()
-
-    with pytest.raises(StopIteration):
-        thread.redo()
-
-    thread._take_snapshot()
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
     thread.delete_page(number=1)
     assert thread.page_number_table()[0][0] == 2, "deleted page"
@@ -711,7 +710,6 @@ def test_db(clean_up_files):
     page = thread.get_page(id=2)
     assert isinstance(page, Page), "get_page by id"
 
-    thread._take_snapshot()
     thread.undo()
     assert thread.page_number_table()[0][0] == 1, "undo"
 
@@ -741,6 +739,9 @@ def test_db(clean_up_files):
 
     page = thread.clone_page(2, 3)
     assert thread.get_text(3) == "text", "clone_page"
+
+    thread.set_selection([2])
+    assert thread.get_selection() == [2], "g/set_selection"
 
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
@@ -787,28 +788,14 @@ def test_document(clean_up_files):
         slist.select([0, 1])
         assert slist.get_selected_indices() == [0, 1], "selected all pages"
 
-        slist.take_snapshot()
-        # pylint: disable=protected-access
-        assert len(slist._undo_buffer) == 2, "snapshot taken"
-        assert slist._undo_selection == [0, 1], "snapshot selection"
-
         slist.delete_selection()
         assert len(slist.data) == 0, "deleted all pages"
 
         slist.undo()
         assert len(slist.data) == 2, "undo delete"
-        assert len(slist._undo_buffer) == 0, "can't undo twice"
-        assert slist._undo_selection == [], "can't undo selection"
-        assert len(slist._redo_buffer) == 0, "redo buffer empty"
-        assert slist._undo_selection == [], "redo selection empty"
 
         slist.unundo()
         assert len(slist.data) == 0, "redo delete"
-        assert len(slist._undo_buffer) == 2, "can't undo twice"
-        assert slist._undo_selection == [0, 1], "can't undo selection"
-        assert len(slist._redo_buffer) == 0, "redo buffer empty"
-        assert slist._undo_selection == [], "redo selection empty"
-        # pylint: enable=protected-access
 
         # TODO/FIXME: test drag-and-drop callbacks for move
         # TODO/FIXME: test drag-and-drop callbacks for copy
@@ -870,7 +857,6 @@ def test_import_scan(
         page=1,
         delete=True,
         resolution=70,
-        dir=tempdir.name,
         finished_callback=_finished_callback,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -886,5 +872,4 @@ def test_import_scan(
             "test2.ppm",
             "test.pnm",
         ]
-        + glob.glob(f"{tempdir}/*")
     )

@@ -2,7 +2,8 @@
 
 # TODO:
 # apply fix for list of pages from save_pdf to other types
-# fix un/redo
+# fix thumbnail on rotate
+# put blobs in separate table
 # save_pdf landscape squashes into portrait
 # package pytest-black for Debian
 # lint
