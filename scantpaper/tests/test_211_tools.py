@@ -18,6 +18,8 @@ def test_rotate(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.jpg"])
     slist.thread.set_saved(1, True)
+    assert slist.data[0][1].get_height() == 65, "thumbnail height before rotation"
+    assert slist.data[0][1].get_width() == 100, "thumbnail width before rotation"
 
     asserts = 0
 
@@ -28,7 +30,7 @@ def test_rotate(import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.rotate(
-        angle=90,
+        angle=-90,
         page=slist.data[0][2],
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
@@ -40,6 +42,8 @@ def test_rotate(import_in_mainloop, clean_up_files):
     page = slist.thread.get_page(number=1)
     assert page.image_object.mode == "RGB", "valid JPG created"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
+    assert slist.data[0][1].get_height() == 100, "thumbnail height after rotation"
+    assert slist.data[0][1].get_width() == 65, "thumbnail width after rotation"
 
     #########################
 

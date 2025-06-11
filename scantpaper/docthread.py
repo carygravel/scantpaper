@@ -540,7 +540,7 @@ class DocThread(SaveThread):
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
-        if options["angle"] in (90, 270):
+        if options["angle"] in (-90, 90):
             page.width, page.height = page.height, page.width
             page.resolution = (
                 page.resolution[1],
