@@ -61,17 +61,23 @@ class DocThread(SaveThread):
         )
         if not self._cur.fetchone():
             self._cur.execute(
-                """CREATE TABLE page(
+                """CREATE TABLE image(
                     id INTEGER PRIMARY KEY,
                     image BLOB,
-                    thumb BLOB,
+                    thumb BLOB)"""
+            )
+            self._cur.execute(
+                """CREATE TABLE page(
+                    id INTEGER PRIMARY KEY,
+                    image_id INTEGER NOT NULL,
                     x_res FLOAT,
                     y_res FLOAT,
                     std_dev TEXT,
                     mean TEXT,
                     saved BOOL,
                     text TEXT,
-                    annotations TEXT)"""
+                    annotations TEXT,
+                    FOREIGN KEY (image_id) REFERENCES image(id))"""
             )
             # TODO: the number table is just a buffer of part of undo_buffer and can be factored out
             self._cur.execute(
@@ -108,20 +114,45 @@ class DocThread(SaveThread):
         if not self._cur.fetchone():
             raise TypeError(f"File '{self._db}' is not a gsscan2pdf document")
 
-    def _insert_page(self, page):
+    def _insert_image(self, page, if_different_from=None):
+        "insert an image to the database"
+        bytes_image = page.to_bytes()
+        insert = True
+        if if_different_from is not None:
+            self._cur.execute(
+                "SELECT image, thumb FROM image WHERE id = ?",
+                (if_different_from,),
+            )
+            row = self._cur.fetchone()
+            if not row:
+                raise ValueError(f"Image id {if_different_from} not found")
+            if row[0] == bytes_image:
+                insert = False
+                thumb = self._bytes_to_pixbuf(row[1])
+        if insert:
+            thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
+            self._cur.execute(
+                "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
+                (
+                    bytes_image,
+                    self._pixbuf_to_bytes(thumb),
+                ),
+            )
+            return self._cur.lastrowid, thumb
+        return if_different_from, thumb
+
+    def _insert_page(self, page, image_id):
         "insert a page to the database"
 
         x_res, y_res = None, None
         if page.resolution:
             x_res, y_res = page.resolution[0], page.resolution[1]
-        thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
         self._cur.execute(
             """INSERT INTO page (
-                id, image, thumb, x_res, y_res, mean, std_dev, saved, text, annotations)
-               VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
-                page.to_bytes(),
-                self._pixbuf_to_bytes(thumb),
+                image_id,
                 x_res,
                 y_res,
                 None if page.mean is None else json.dumps(page.mean),
@@ -132,7 +163,7 @@ class DocThread(SaveThread):
             ),
         )
         self._con.commit()
-        return thumb
+        return self._cur.lastrowid
 
     def add_page(self, page, number=None):
         "add a page to the database"
@@ -150,8 +181,8 @@ class DocThread(SaveThread):
 
         self._take_snapshot()
 
-        thumb = self._insert_page(page)
-        page_id = self._cur.lastrowid
+        image_id, thumb = self._insert_image(page)
+        page_id = self._insert_page(page, image_id)
         self._cur.execute("SELECT MAX(row_id) FROM number")
         max_row_id = self._cur.fetchone()[0]
         if max_row_id is None:
@@ -177,8 +208,8 @@ class DocThread(SaveThread):
 
         self._take_snapshot()
 
-        thumb = self._insert_page(page)
-        page_id = self._cur.lastrowid
+        image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
+        page_id = self._insert_page(page, image_id)
         self._cur.execute(
             """UPDATE number SET page_number = ?, page_id = ?
                WHERE row_id = ?""",
@@ -230,7 +261,9 @@ class DocThread(SaveThread):
         "get data for page number/thumb table"
         self._cur.execute(
             """SELECT page_number, thumb, page_id
-               FROM number, page WHERE page_id = page.id ORDER BY page_number"""
+               FROM number, page, image
+               WHERE page_id = page.id AND image_id = image.id
+               ORDER BY page_number"""
         )
         rows = []
         for row in self._cur.fetchall():
@@ -241,14 +274,16 @@ class DocThread(SaveThread):
         "get a page from the database"
         if "number" in kwargs:
             self._cur.execute(
-                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, id
-                   FROM page, number WHERE id = page_id AND page_number = ?""",
+                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id
+                   FROM page, number, image
+                   WHERE page.id = page_id AND image_id = image.id AND page_number = ?""",
                 (kwargs["number"],),
             )
         elif "id" in kwargs:
             self._cur.execute(
                 """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page_number
-                   FROM page, number WHERE id = page_id AND page_id = ?""",
+                   FROM page, number, image
+                   WHERE page.id = page_id AND image_id = image.id AND page_id = ?""",
                 (kwargs["id"],),
             )
         else:
@@ -268,20 +303,31 @@ class DocThread(SaveThread):
             annotations=row[6],
         )
 
-    def clone_page(self, pageid, number):
+    def clone_page(self, page_id, number):
         "clone a page in the database"
         self._take_snapshot()
         self._cur.execute(
-            """SELECT image, thumb, x_res, y_res, mean, std_dev, text, annotations
-               FROM page, number WHERE id = page_id AND page_id = ?""",
-            (pageid,),
+            "SELECT * FROM page, number WHERE id = page_id AND page_id = ?",
+            (page_id,),
         )
-        row = self._cur.fetchone()
+        page_row = self._cur.fetchone()
+        page_row = list(page_row)
+        self._cur.execute(
+            "SELECT * FROM image WHERE id = ?",
+            (page_row[1],),
+        )
+        image_row = self._cur.fetchone()
+        self._cur.execute(
+            "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
+            (*image_row[1:],),
+        )
+        self._con.commit()
+        page_row[1] = self._cur.lastrowid  # new image id
         self._cur.execute(
             """INSERT INTO page (
-                id, image, thumb, x_res, y_res, mean, std_dev, text, annotations)
+                id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
                VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (*row,),
+            (*page_row[1:9],),
         )
         self._con.commit()
         new_page_id = self._cur.lastrowid
@@ -330,8 +376,8 @@ class DocThread(SaveThread):
         "fetch the snapshot of the document with the given action id"
         self._cur.execute(
             """SELECT page_number, thumb, page_id
-                FROM undo_buffer, page
-                WHERE action_id = ? and page_id = id
+                FROM undo_buffer, page, image
+                WHERE action_id = ? AND page_id = page.id AND image_id = image.id
                 ORDER BY page_number""",
             (self._action_id,),
         )
