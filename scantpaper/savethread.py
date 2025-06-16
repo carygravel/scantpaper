@@ -42,11 +42,11 @@ class SaveThread(Importhread):
         options = defaultdict(None, request.args[0])
 
         self.message = _("Setting up PDF")
-        outdir = pathlib.Path(options["dir"])
+        outdir = pathlib.Path(options.get("dir"))
         filename = options["path"]
         if _need_temp_pdf(options.get("options")):
             with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".pdf", delete=False
+                dir=options.get("dir"), suffix=".pdf", delete=False
             ) as temp:
                 filename = temp.name
 
@@ -116,6 +116,7 @@ class SaveThread(Importhread):
 
         else:
             _post_save_hook(filename, options.get("options"))
+        self.set_saved(options["list_of_pages"])
 
     def save_djvu(self, **kwargs):
         "save DjvU"
@@ -136,7 +137,7 @@ class SaveThread(Importhread):
                 len(args["list_of_pages"]),
             )
             with tempfile.NamedTemporaryFile(
-                dir=args["dir"], suffix=".djvu", delete=False
+                dir=args.get("dir"), suffix=".djvu", delete=False
             ) as djvu:
 
                 # logger.error("Caught error writing DjVu: %s", err)
@@ -174,8 +175,8 @@ class SaveThread(Importhread):
                     return
 
                 filelist.append(djvu.name)
-                _add_txt_to_djvu(djvu, args["dir"], page, request)
-                _add_ann_to_djvu(djvu, args["dir"], page, request)
+                _add_txt_to_djvu(djvu, args.get("dir"), page, request)
+                _add_ann_to_djvu(djvu, args.get("dir"), page, request)
 
         self.progress = 1
         self.message = _("Merging DjVu")
@@ -188,7 +189,8 @@ class SaveThread(Importhread):
 
         self._add_metadata_to_djvu(args)
         _set_timestamp(args)
-        _post_save_hook(args["path"], args["options"])
+        _post_save_hook(args["path"], args.get("options"))
+        self.set_saved(args["list_of_pages"])
 
     def _add_metadata_to_djvu(self, options):
         if "metadata" in options and options["metadata"] is not None:
@@ -196,7 +198,7 @@ class SaveThread(Importhread):
 
             # Write djvusedmetafile
             with tempfile.NamedTemporaryFile(
-                mode="w", dir=options["dir"], suffix=".txt", delete=False
+                mode="w", dir=options.get("dir"), suffix=".txt", delete=False
             ) as fhd:
                 djvusedmetafile = fhd.name
                 fhd.write("(metadata\n")
@@ -257,9 +259,9 @@ class SaveThread(Importhread):
             #     len(options["list_of_pages"]) - 1 + 1,
             # )
             with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".tif", delete=False
+                dir=options.get("dir"), suffix=".tif", delete=False
             ) as infile, tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".tif", delete=False
+                dir=options.get("dir"), suffix=".tif", delete=False
             ) as out:
                 page.image_object.save(infile.name)
                 xresolution, yresolution, units = page.resolution
@@ -338,6 +340,7 @@ class SaveThread(Importhread):
 
         else:
             _post_save_hook(options["path"], options["options"])
+        self.set_saved(options["list_of_pages"])
 
     def save_image(self, **kwargs):
         "save pages as image files"
@@ -363,6 +366,7 @@ class SaveThread(Importhread):
             #     request.error(_("Error saving image"))
 
             _post_save_hook(filename, options.get("options"))
+        self.set_saved(options["list_of_pages"])
 
     def save_text(self, **kwargs):
         "save text file"
@@ -442,9 +446,9 @@ class SaveThread(Importhread):
         options = request.args[0]
         try:
             with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".png"
+                dir=options.get("dir"), suffix=".png"
             ) as infile, tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=".png"
+                dir=options.get("dir"), suffix=".png"
             ) as out:
                 options["page"] = self.get_page(id=options["page"])
                 options["page"].image_object.save(infile.name)
@@ -509,7 +513,7 @@ class SaveThread(Importhread):
                 # assume the resolution hasn't changed
                 new = Page(
                     image_object=image,
-                    dir=options["dir"],
+                    dir=options.get("dir"),
                     format=image.format,
                     resolution=options["page"].resolution,
                     text_layer=options["page"].text_layer,
@@ -526,9 +530,9 @@ class SaveThread(Importhread):
                 )
 
         except (PermissionError, IOError) as err:
-            logger.error("Error creating file in %s: %s", options["dir"], err)
+            logger.error("Error creating file in %s: %s", options.get("dir"), err)
             request.error(
-                f"Error creating file in {options['dir']}: {err}.",
+                f"Error creating file in {options.get('dir')}: {err}.",
             )
 
 
@@ -595,7 +599,7 @@ def _write_image_object(page, options):
         # To mono
         image = image.convert("1")
     with tempfile.NamedTemporaryFile(
-        dir=options["dir"], suffix=".png", delete=False
+        dir=options.get("dir"), suffix=".png", delete=False
     ) as tmp:
         xresolution, yresolution, _units = page.get_resolution()
         image.save(tmp.name, dpi=(xresolution, yresolution))
@@ -688,7 +692,7 @@ def _convert_image_for_djvu(page, options, request):
     if image.mode == "1":
         compression = "cjb2"
         with tempfile.TemporaryFile(
-            dir=options["dir"], suffix=".pbm", delete=False
+            dir=options.get("dir"), suffix=".pbm", delete=False
         ) as pbm:
             err = image.save(pbm.name)
             if f"{err}":
@@ -702,7 +706,7 @@ def _convert_image_for_djvu(page, options, request):
     else:
         compression = "c44"
         with tempfile.NamedTemporaryFile(
-            dir=options["dir"], suffix=".pnm", delete=False
+            dir=options.get("dir"), suffix=".pnm", delete=False
         ) as pnm:
             image.save(pnm.name)
             filename = pnm.name

@@ -60,7 +60,6 @@ class Document(BaseDocument):
         pidfile = self.create_pidfile(options)
         if pidfile is None:
             return
-        # uid = _note_callbacks(options)
 
         def _select_next_finished_callback(response):
             if (
@@ -195,7 +194,6 @@ class Document(BaseDocument):
         def updated_page_callback(response):
             info = response.info
             if info and "type" in info and info["type"] == "page":
-                self.add_page(*info["row"], **info)
                 del options["rotate"]
                 self._post_process_scan(info["row"][2], options)
 
@@ -211,7 +209,6 @@ class Document(BaseDocument):
         def updated_page_callback(response):
             info = response.info
             if info and "type" in info and info["type"] == "page":
-                self.add_page(*info["row"], **info)
                 del options["unpaper"]
                 self._post_process_scan(info["row"][2], options)
 
@@ -230,7 +227,6 @@ class Document(BaseDocument):
         def updated_page_callback(response):
             info = response.info
             if info and "type" in info and info["type"] == "page":
-                self.add_page(*info["row"], **info)
                 del options["udt"]
                 self._post_process_scan(info["row"][2], options)
 
@@ -318,7 +314,6 @@ class Document(BaseDocument):
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
 
-        self._note_callbacks(kwargs)
         kwargs["data_callback"] = _split_page_data_callback
         self.thread.split_page(**kwargs)
 
@@ -341,7 +336,6 @@ class Document(BaseDocument):
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
 
-        self._note_callbacks(kwargs)
         kwargs["data_callback"] = _unpaper_data_callback
         self.thread.unpaper(**kwargs)
 
@@ -357,7 +351,6 @@ class Document(BaseDocument):
                 if "logger_callback" in kwargs:
                     kwargs["logger_callback"](response)
 
-        self._note_callbacks(kwargs)
         kwargs["data_callback"] = _user_defined_data_callback
         self.thread.user_defined(**kwargs)
 
@@ -389,7 +382,7 @@ class Document(BaseDocument):
 
     def undo(self):
         "undo the last action"
-        self.thread.set_selection(self.get_selected_indices())
+        self.thread.send("set_selection", self.get_selected_indices())
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)
@@ -409,7 +402,7 @@ class Document(BaseDocument):
 
     def unundo(self):
         "redo the last action"
-        self.thread.set_selection(self.get_selected_indices())
+        self.thread.send("set_selection", self.get_selected_indices())
 
         # Block slist signals whilst updating
         self.get_model().handler_block(self.row_changed_signal)

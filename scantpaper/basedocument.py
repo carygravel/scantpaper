@@ -40,7 +40,6 @@ class BaseDocument(SimpleList):
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page ID": "hint"}
         super().__init__(**columns)
         self.thread = DocThread(**kwargs)
-        self.thread.register_callback("mark_saved", "before", "finished")
         self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
         self.thread.start()
@@ -141,12 +140,12 @@ class BaseDocument(SimpleList):
 
     def _on_row_deleted(self, _model, path):
         for i in path.get_indices():
-            self.thread.delete_page(row_id=i)
+            self.thread.send("delete_page", row_id=i)
 
     def _on_selection_changed(self, _selection):
         if self._block_signals:
             return
-        self.thread.set_selection(self.get_selected_indices())
+        self.thread.send("set_selection", self.get_selected_indices())
 
     def set_paper_sizes(self, paper_sizes=None):
         "Set the paper sizes in the manager and worker threads"
@@ -287,7 +286,7 @@ class BaseDocument(SimpleList):
         i = self.find_page_by_uuid(uid)
         if i is None:
             logger.error("Requested page %s does not exist.", uid)
-            return None
+            raise ValueError(f"Requested page {uid} does not exist.")
         return i
 
     def add_page(self, number, thumb, page_id, **kwargs):
@@ -672,14 +671,6 @@ class BaseDocument(SimpleList):
         # File in which to store the process ID so that it can be killed if necessary
         kwargs["pidfile"] = self.create_pidfile(kwargs)
         kwargs["dir"] = self.dir
-        if "mark_saved" in kwargs and kwargs["mark_saved"]:
-
-            def mark_saved_callback(_data):
-                for page in kwargs["list_of_pages"]:
-                    # FIXME: writing to the db in the main thread is a bad idea
-                    self.thread.set_saved(page)
-
-            kwargs["mark_saved_callback"] = mark_saved_callback
 
 
 def _save_method_generator(method_name):

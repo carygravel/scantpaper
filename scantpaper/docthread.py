@@ -274,14 +274,14 @@ class DocThread(SaveThread):
         "get a page from the database"
         if "number" in kwargs:
             self._cur.execute(
-                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id
+                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id, image.id
                    FROM page, number, image
                    WHERE page.id = page_id AND image_id = image.id AND page_number = ?""",
                 (kwargs["number"],),
             )
         elif "id" in kwargs:
             self._cur.execute(
-                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page_number
+                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page_number, image.id
                    FROM page, number, image
                    WHERE page.id = page_id AND image_id = image.id AND page_id = ?""",
                 (kwargs["id"],),
@@ -301,6 +301,7 @@ class DocThread(SaveThread):
             std_dev=None if row[4] is None else json.loads(row[4], strict=False),
             text_layer=row[5],
             annotations=row[6],
+            image_id=row[8],
         )
 
     def clone_page(self, page_id, number):
@@ -874,7 +875,7 @@ class DocThread(SaveThread):
         # split doesn't change the resolution, so we can safely copy it
         new2 = Page(
             image_object=image2,
-            dir=options["dir"],
+            dir=options.get("dir"),
             delete=True,
             resolution=page.resolution,
             dirty_time=page.dirty_time,
@@ -959,9 +960,9 @@ class DocThread(SaveThread):
     def _run_unpaper_cmd(self, request):
         options = request.args[0]
         with tempfile.NamedTemporaryFile(
-            dir=options["dir"], suffix=".pnm", delete=False
+            dir=options.get("dir"), suffix=".pnm", delete=False
         ) as out, tempfile.NamedTemporaryFile(
-            dir=options["dir"], suffix=".pnm", delete=False
+            dir=options.get("dir"), suffix=".pnm", delete=False
         ) as out2:
             options["options"]["command"][-2] = out.name
 
@@ -1021,7 +1022,7 @@ class DocThread(SaveThread):
 
             # Temporary filename for new file
             with tempfile.NamedTemporaryFile(
-                dir=options["dir"], suffix=suffix, delete=False
+                dir=options.get("dir"), suffix=suffix, delete=False
             ) as temp:
                 infile = temp.name
                 logger.debug(
@@ -1038,7 +1039,7 @@ class DocThread(SaveThread):
             # unpaper doesn't change the resolution, so we can safely copy it
             new = Page(
                 filename=out.name,
-                dir=options["dir"],
+                dir=options.get("dir"),
                 delete=True,
                 format="Portable anymap",
                 resolution=page.resolution,
@@ -1051,7 +1052,7 @@ class DocThread(SaveThread):
             if out2:
                 new2 = Page(
                     filename=out2.name,
-                    dir=options["dir"],
+                    dir=options.get("dir"),
                     delete=True,
                     format="Portable anymap",
                     resolution=page.resolution,

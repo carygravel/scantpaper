@@ -835,7 +835,7 @@ class ToolsMenuMixins:
             # Create the PDF
             def email_finished_callback(response):
                 self.post_process_progress.finish(response)
-                self.slist.thread.set_saved(uuids)
+                self.slist.thread.send("set_saved", uuids)
                 if (
                     "view files toggle" in self.settings
                     and self.settings["view files toggle"]

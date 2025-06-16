@@ -47,6 +47,7 @@ class Page:
     _depth = None
     std_dev = None
     mean = None
+    image_id = None
 
     def __init__(self, **kwargs):
         if ("image_object" not in kwargs and "filename" not in kwargs) or (
@@ -97,6 +98,7 @@ class Page:
         page.get_size()
         for key in [
             "id",
+            "image_id",
             "resolution",
             "mean",
             "std_dev",

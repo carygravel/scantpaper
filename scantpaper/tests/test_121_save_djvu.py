@@ -13,7 +13,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_djvu(import_in_mainloop, clean_up_files):
+def test_save_djvu1(import_in_mainloop, clean_up_files):
     "Test saving a djvu"
 
     if shutil.which("cjb2") is None:
