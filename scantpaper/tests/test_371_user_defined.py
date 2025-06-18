@@ -125,6 +125,9 @@ def test_udt_page_size(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
+    page = slist.thread.get_page(number=1)
+    assert page.resolution[0] == 25.4, "Resolution of image after udt"
+
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path="test.pdf",

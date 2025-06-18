@@ -3,7 +3,6 @@
 # TODO:
 # apply fix for list of pages from save_pdf to other types
 # hook ocrmypdf progress into the GUI
-# save_pdf landscape squashes into portrait
 # package pytest-black for Debian
 # lint
 # fail tests that hit mainloop timeouts

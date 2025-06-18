@@ -59,18 +59,24 @@ class SaveThread(Importhread):
             outdir / "origin_pre.pdf", "wb", buffering=0
         ) as fhd:  # turn off buffering
             filenames = []
-            sizes = []
+            resolutions = []
             for page_id in options["list_of_pages"]:
                 page = self.get_page(id=page_id)
                 list_of_pages.append(page)
                 filenames.append(_write_image_object(page, options))
-                sizes += list(page.matching_paper_sizes(self.paper_sizes).keys())
-            sizes = list(set(sizes))  # make the keys unique
-            if sizes:
-                size = self.paper_sizes[sizes[0]]
-                metadata["layout_fun"] = img2pdf.get_layout_fun(
-                    (img2pdf.mm_to_pt(size["x"]), img2pdf.mm_to_pt(size["y"]))
-                )
+                xres, yres, _units = page.get_resolution(self.paper_sizes)
+                resolutions.append((xres, yres))
+            index = 0
+
+            def layout_fun(imgwidthpx, imgheightpx, _ndpi):
+                nonlocal index
+                xres, yres = resolutions[index]
+                index += 1
+                pagewidth = imgwidthpdf = img2pdf.px_to_pt(imgwidthpx, xres)
+                pageheight = imgheightpdf = img2pdf.px_to_pt(imgheightpx, yres)
+                return pagewidth, pageheight, imgwidthpdf, imgheightpdf
+
+            metadata["layout_fun"] = layout_fun
             fhd.write(img2pdf.convert(filenames, **metadata))
         ocrmypdf.api._pdf_to_hocr(
             outdir / "origin_pre.pdf",
