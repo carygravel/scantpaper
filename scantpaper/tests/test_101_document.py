@@ -753,14 +753,8 @@ def test_document(clean_up_files):
 
     tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
     slist = Document(dir=tempdir.name)
-    dialog = Scan(
-        title="title",
-        transient_for=Gtk.Window(),
-        document=slist,
-        # logger        = logger,
-    )  # dir for temporary files
-
     ran_callback = False
+    dialog = Scan(title="title", transient_for=Gtk.Window(), document=slist)
 
     def finished_callback(_result):
         nonlocal ran_callback
