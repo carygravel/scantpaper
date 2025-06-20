@@ -377,14 +377,6 @@ class ApplicationWindow(
         logger.info("SQLite C library version: %s", sqlite3.sqlite_version)
         logger.info("SQLite thread safety level: %s", sqlite3.threadsafety)
 
-        if sqlite3.threadsafety != 3:
-            logger.warning(
-                "Warning: SQLite is not in Serialized mode (threadsafety != 3)."
-            )
-            logger.warning(
-                "Sharing connections with check_same_thread=False is not recommended."
-            )
-
         # initialise image control tool radio button setting
         self._change_image_tool_cb(
             self._actions["tooltype"],

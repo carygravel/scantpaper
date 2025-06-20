@@ -10,6 +10,7 @@ import datetime
 import glob
 import tempfile
 import sqlite3
+import threading
 from PIL import ImageStat, ImageEnhance, ImageOps, ImageFilter
 from importthread import CancelledError, _note_callbacks
 from savethread import SaveThread
@@ -54,19 +55,20 @@ class DocThread(SaveThread):
         if self._db is None:
             self._db = self._dir / "document.db"
 
-        self._con = sqlite3.connect(self._db, check_same_thread=False)
-        self._cur = self._con.cursor()
-        self._cur.execute(
+        self._con = {}
+        self._cur = {}
+        self._connect()
+        self._execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
         )
-        if not self._cur.fetchone():
-            self._cur.execute(
+        if not self._fetchone():
+            self._execute(
                 """CREATE TABLE image(
                     id INTEGER PRIMARY KEY,
                     image BLOB,
                     thumb BLOB)"""
             )
-            self._cur.execute(
+            self._execute(
                 """CREATE TABLE page(
                     id INTEGER PRIMARY KEY,
                     image_id INTEGER NOT NULL,
@@ -80,7 +82,7 @@ class DocThread(SaveThread):
                     FOREIGN KEY (image_id) REFERENCES image(id))"""
             )
             # TODO: the number table is just a buffer of part of undo_buffer and can be factored out
-            self._cur.execute(
+            self._execute(
                 """CREATE TABLE number(
                     row_id INTEGER NOT NULL,
                     page_number INTEGER NOT NULL,
@@ -88,7 +90,7 @@ class DocThread(SaveThread):
                     FOREIGN KEY (page_id) REFERENCES page(id),
                     PRIMARY KEY (row_id))"""
             )
-            self._cur.execute(
+            self._execute(
                 """CREATE TABLE undo_buffer(
                     action_id INTEGER NOT NULL,
                     row_id INTEGER NOT NULL,
@@ -97,21 +99,41 @@ class DocThread(SaveThread):
                     FOREIGN KEY (page_id) REFERENCES page(id),
                     PRIMARY KEY (action_id, row_id))"""
             )
-            self._cur.execute(
+            self._execute(
                 """CREATE TABLE selection(
                     action_id INTEGER PRIMARY KEY,
                     row_ids TEXT NOT NULL)"""
             )
 
+    def _connect(self):
+        tid = threading.get_native_id()
+        if tid not in self._con:
+            logger.debug("Connecting to database %s in thread %s", self._db, tid)
+            self._con[tid] = sqlite3.connect(self._db)
+            self._cur[tid] = self._con[tid].cursor()
+
+    def _execute(self, query, params=None):
+        "execute a query on the database"
+        self._connect()
+        tid = threading.get_native_id()
+        if params is None:
+            self._cur[tid].execute(query)
+        else:
+            self._cur[tid].execute(query, params)
+
+    def _fetchone(self):
+        "fetch one row from the database"
+        tid = threading.get_native_id()
+        return self._cur[tid].fetchone()
+
     def open(self, db):
         "open a saved database"
         self._db = db
-        self._con = sqlite3.connect(self._db, check_same_thread=False)
-        self._cur = self._con.cursor()
-        self._cur.execute(
+        self._connect()
+        self._execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
         )
-        if not self._cur.fetchone():
+        if not self._fetchone():
             raise TypeError(f"File '{self._db}' is not a gsscan2pdf document")
 
     def _insert_image(self, page, if_different_from=None):
@@ -119,11 +141,11 @@ class DocThread(SaveThread):
         bytes_image = page.to_bytes()
         insert = True
         if if_different_from is not None:
-            self._cur.execute(
+            self._execute(
                 "SELECT image, thumb FROM image WHERE id = ?",
                 (if_different_from,),
             )
-            row = self._cur.fetchone()
+            row = self._fetchone()
             if not row:
                 raise ValueError(f"Image id {if_different_from} not found")
             if row[0] == bytes_image:
@@ -131,14 +153,14 @@ class DocThread(SaveThread):
                 thumb = self._bytes_to_pixbuf(row[1])
         if insert:
             thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
-            self._cur.execute(
+            self._execute(
                 "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
                 (
                     bytes_image,
                     self._pixbuf_to_bytes(thumb),
                 ),
             )
-            return self._cur.lastrowid, thumb
+            return self._cur[threading.get_native_id()].lastrowid, thumb
         return if_different_from, thumb
 
     def _insert_page(self, page, image_id):
@@ -147,7 +169,7 @@ class DocThread(SaveThread):
         x_res, y_res = None, None
         if page.resolution:
             x_res, y_res = page.resolution[0], page.resolution[1]
-        self._cur.execute(
+        self._execute(
             """INSERT INTO page (
                 id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
                VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -162,15 +184,16 @@ class DocThread(SaveThread):
                 page.annotations,
             ),
         )
-        self._con.commit()
-        return self._cur.lastrowid
+        tid = threading.get_native_id()
+        self._con[tid].commit()
+        return self._cur[tid].lastrowid
 
     def add_page(self, page, number=None):
         "add a page to the database"
 
         if number is None:
-            self._cur.execute("SELECT MAX(page_number) FROM number")
-            number = self._cur.fetchone()[0]
+            self._execute("SELECT MAX(page_number) FROM number")
+            number = self._fetchone()[0]
             if number is None:
                 number = 1
             else:
@@ -183,11 +206,11 @@ class DocThread(SaveThread):
 
         image_id, thumb = self._insert_image(page)
         page_id = self._insert_page(page, image_id)
-        self._cur.execute("SELECT MAX(row_id) FROM number")
-        max_row_id = self._cur.fetchone()[0]
+        self._execute("SELECT MAX(row_id) FROM number")
+        max_row_id = self._fetchone()[0]
         if max_row_id is None:
             max_row_id = -1
-        self._cur.execute(
+        self._execute(
             """INSERT INTO number (row_id, page_number, page_id)
                VALUES (?, ?, ?)""",
             (
@@ -196,7 +219,7 @@ class DocThread(SaveThread):
                 page_id,
             ),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
         return number, thumb, page_id
 
     def replace_page(self, page, number):
@@ -210,7 +233,7 @@ class DocThread(SaveThread):
 
         image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
         page_id = self._insert_page(page, image_id)
-        self._cur.execute(
+        self._execute(
             """UPDATE number SET page_number = ?, page_id = ?
                WHERE row_id = ?""",
             (
@@ -219,7 +242,7 @@ class DocThread(SaveThread):
                 i,
             ),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
         return number, thumb, page_id
 
     def delete_page(self, **kwargs):
@@ -236,51 +259,49 @@ class DocThread(SaveThread):
             raise ValueError("Specify either row_id or number")
 
         self._take_snapshot()
-        self._cur.execute("DELETE FROM number WHERE row_id = ?", (row_id,))
-        self._con.commit()
+        self._execute("DELETE FROM number WHERE row_id = ?", (row_id,))
+        self._con[threading.get_native_id()].commit()
 
     def find_row_id_by_page_number(self, number):
         "find a row id by its page number"
-        self._cur.execute("SELECT row_id FROM number WHERE page_number = ?", (number,))
-        row = self._cur.fetchone()
+        self._execute("SELECT row_id FROM number WHERE page_number = ?", (number,))
+        row = self._fetchone()
         if row:
             return row[0]
         return None
 
     def find_page_number_by_page_id(self, page_id):
         "find a page id by its page number"
-        self._cur.execute(
-            "SELECT page_number FROM number WHERE page_id = ?", (page_id,)
-        )
-        row = self._cur.fetchone()
+        self._execute("SELECT page_number FROM number WHERE page_id = ?", (page_id,))
+        row = self._fetchone()
         if row:
             return row[0]
         return None
 
     def page_number_table(self):
         "get data for page number/thumb table"
-        self._cur.execute(
+        self._execute(
             """SELECT page_number, thumb, page_id
                FROM number, page, image
                WHERE page_id = page.id AND image_id = image.id
                ORDER BY page_number"""
         )
         rows = []
-        for row in self._cur.fetchall():
+        for row in self._cur[threading.get_native_id()].fetchall():
             rows.append([row[0], self._bytes_to_pixbuf(row[1]), row[2]])
         return rows
 
     def get_page(self, **kwargs):
         "get a page from the database"
         if "number" in kwargs:
-            self._cur.execute(
+            self._execute(
                 """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id, image.id
                    FROM page, number, image
                    WHERE page.id = page_id AND image_id = image.id AND page_number = ?""",
                 (kwargs["number"],),
             )
         elif "id" in kwargs:
-            self._cur.execute(
+            self._execute(
                 """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page_number, image.id
                    FROM page, number, image
                    WHERE page.id = page_id AND image_id = image.id AND page_id = ?""",
@@ -288,7 +309,7 @@ class DocThread(SaveThread):
             )
         else:
             raise ValueError("Please specify either page number or page id")
-        row = self._cur.fetchone()
+        row = self._fetchone()
         if row is None:
             if "number" in kwargs:
                 raise ValueError(f"Page number {kwargs['number']} not found")
@@ -307,36 +328,37 @@ class DocThread(SaveThread):
     def clone_page(self, page_id, number):
         "clone a page in the database"
         self._take_snapshot()
-        self._cur.execute(
+        self._execute(
             "SELECT * FROM page, number WHERE id = page_id AND page_id = ?",
             (page_id,),
         )
-        page_row = self._cur.fetchone()
+        page_row = self._fetchone()
         page_row = list(page_row)
-        self._cur.execute(
+        self._execute(
             "SELECT * FROM image WHERE id = ?",
             (page_row[1],),
         )
-        image_row = self._cur.fetchone()
-        self._cur.execute(
+        image_row = self._fetchone()
+        self._execute(
             "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
             (*image_row[1:],),
         )
-        self._con.commit()
-        page_row[1] = self._cur.lastrowid  # new image id
-        self._cur.execute(
+        tid = threading.get_native_id()
+        self._con[tid].commit()
+        page_row[1] = self._cur[threading.get_native_id()].lastrowid  # new image id
+        self._execute(
             """INSERT INTO page (
                 id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
                VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (*page_row[1:9],),
         )
-        self._con.commit()
-        new_page_id = self._cur.lastrowid
-        self._cur.execute("SELECT MAX(row_id) FROM number")
-        max_row_id = self._cur.fetchone()[0]
+        self._con[tid].commit()
+        new_page_id = self._cur[threading.get_native_id()].lastrowid
+        self._execute("SELECT MAX(row_id) FROM number")
+        max_row_id = self._fetchone()[0]
         if max_row_id is None:
             max_row_id = -1
-        self._cur.execute(
+        self._execute(
             """INSERT INTO number (row_id, page_number, page_id)
                VALUES (?, ?, ?)""",
             (
@@ -345,7 +367,7 @@ class DocThread(SaveThread):
                 new_page_id,
             ),
         )
-        self._con.commit()
+        self._con[tid].commit()
         return new_page_id
 
     def _take_snapshot(self):
@@ -353,13 +375,11 @@ class DocThread(SaveThread):
 
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
-        self._cur.execute(
-            "DELETE FROM undo_buffer WHERE action_id > ?", (self._action_id,)
-        )
+        self._execute("DELETE FROM undo_buffer WHERE action_id > ?", (self._action_id,))
         self._action_id += 1
 
         # copy page numbers and order to buffer
-        self._cur.execute(
+        self._execute(
             """INSERT INTO undo_buffer (action_id, row_id, page_number, page_id)
                 SELECT ?, row_id, page_number, page_id
                 FROM number""",
@@ -367,15 +387,15 @@ class DocThread(SaveThread):
         )
 
         # delete those outside the undo limit
-        self._cur.execute(
+        self._execute(
             "DELETE FROM undo_buffer WHERE action_id < ?",
             (self._action_id - self.number_undo_steps,),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
 
     def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"
-        self._cur.execute(
+        self._execute(
             """SELECT page_number, thumb, page_id
                 FROM undo_buffer, page, image
                 WHERE action_id = ? AND page_id = page.id AND image_id = image.id
@@ -383,7 +403,7 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         rows = []
-        for row in self._cur.fetchall():
+        for row in self._cur[threading.get_native_id()].fetchall():
             row = list(row)
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
@@ -391,12 +411,12 @@ class DocThread(SaveThread):
 
     def _get_snapshots(self):
         "fetch the snapshot of the document with the given action id"
-        self._cur.execute(
+        self._execute(
             """SELECT action_id, page_number, page_id
                 FROM undo_buffer
                 ORDER BY action_id, page_number"""
         )
-        return self._cur.fetchall()
+        return self._cur[threading.get_native_id()].fetchall()
 
     def _pixbuf_to_bytes(self, pixbuf):
         "given a pixbuf, return the equivalent bytes, in order to store them as a blob"
@@ -413,21 +433,21 @@ class DocThread(SaveThread):
 
     def can_undo(self):
         "checks whether undo is possible"
-        self._cur.execute("SELECT min(action_id) FROM undo_buffer")
-        min_action_id = self._cur.fetchone()[0]
+        self._execute("SELECT min(action_id) FROM undo_buffer")
+        min_action_id = self._fetchone()[0]
         return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self):
         "checks whether redo is possible"
-        self._cur.execute("SELECT max(action_id) FROM undo_buffer")
-        max_action_id = self._cur.fetchone()[0]
+        self._execute("SELECT max(action_id) FROM undo_buffer")
+        max_action_id = self._fetchone()[0]
         return max_action_id is not None and max_action_id > self._action_id
 
     def _restore_snapshot(self):
         "restore the state of the last snapshot"
         # clear page number table and copy from buffer
-        self._cur.execute("DELETE FROM number")
-        self._cur.execute(
+        self._execute("DELETE FROM number")
+        self._execute(
             """INSERT INTO number (row_id, page_number, page_id)
                 SELECT row_id, page_number, page_id
                 FROM undo_buffer
@@ -457,90 +477,90 @@ class DocThread(SaveThread):
 
     def get_selection(self):
         "get the selected row ids for the current action_id"
-        self._cur.execute(
+        self._execute(
             "SELECT row_ids FROM selection WHERE action_id = ?",
             (self._action_id,),
         )
-        row_ids = self._cur.fetchone()
+        row_ids = self._fetchone()
         return json.loads(row_ids[0]) if row_ids else []
 
     def set_selection(self, row_ids):
         "set the selected row ids for the current action_id"
         row_ids = json.dumps(row_ids)
-        self._cur.execute(
+        self._execute(
             """INSERT INTO selection (action_id, row_ids) VALUES (?, ?)
                 ON CONFLICT(action_id) DO UPDATE SET row_ids = ?""",
             (self._action_id, row_ids, row_ids),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
 
     def set_saved(self, page_id, saved=True):
         "mark given page as saved"
         if not isinstance(page_id, list):
             page_id = [page_id]
-        self._cur.execute(
+        self._execute(
             f"UPDATE page SET saved = ? WHERE id IN ({", ".join(["?"]*len(page_id))})",
             (
                 saved,
                 *page_id,
             ),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
 
     def pages_saved(self):
         "Check that all pages have been saved"
-        self._cur.execute(
+        self._execute(
             """SELECT COUNT(id)
                 FROM number, page
                 WHERE saved = 0 and page_id = id"""
         )
-        return self._cur.fetchone()[0] == 0
+        return self._fetchone()[0] == 0
 
     def get_thumb(self, page_id):
         "gets the thumbnail for the given page_id"
-        self._cur.execute("SELECT thumb FROM page WHERE id = ?", (page_id,))
-        return self._bytes_to_pixbuf(self._cur.fetchone()[0])
+        self._execute("SELECT thumb FROM page WHERE id = ?", (page_id,))
+        return self._bytes_to_pixbuf(self._fetchone()[0])
 
     def get_text(self, page_id):
         "gets the text layer for the given page"
-        self._cur.execute("SELECT text FROM page WHERE id = ?", (page_id,))
-        return self._cur.fetchone()[0]
+        self._execute("SELECT text FROM page WHERE id = ?", (page_id,))
+        return self._fetchone()[0]
 
     def set_text(self, page_id, text):
         "sets the text layer for the given page"
-        self._cur.execute(
+        self._execute(
             "UPDATE page SET text = ? WHERE id = ?",
             (
                 text,
                 page_id,
             ),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
 
     def get_annotations(self, page_id):
         "gets the annotations layer for the given page"
-        self._cur.execute("SELECT annotations FROM page WHERE id = ?", (page_id,))
-        return self._cur.fetchone()[0]
+        self._execute("SELECT annotations FROM page WHERE id = ?", (page_id,))
+        return self._fetchone()[0]
 
     def set_annotations(self, page_id, annotations):
         "sets the annotations layer for the given page"
-        self._cur.execute(
+        self._execute(
             "UPDATE page SET annotations = ? WHERE id = ?",
             (
                 annotations,
                 page_id,
             ),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
 
     def get_resolution(self, page_id):
         "gets the resolution for the given page"
-        self._cur.execute("SELECT x_res, y_res FROM page WHERE id = ?", (page_id,))
-        return self._cur.fetchone()
+        self._execute("SELECT x_res, y_res FROM page WHERE id = ?", (page_id,))
+        return self._fetchone()
 
     def set_resolution(self, page_id, x_res, y_res):
         "sets the resolution for the given page"
-        self._cur.execute(
+        self._execute(
             "UPDATE page SET x_res = ?, y_res = ? WHERE id = ?",
             (
                 x_res,
@@ -548,19 +568,19 @@ class DocThread(SaveThread):
                 page_id,
             ),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
 
     def get_mean_std_dev(self, page_id):
         "gets the mean and std_dev for the given page"
-        self._cur.execute("SELECT mean, std_dev FROM page WHERE id = ?", (page_id,))
-        mean, std_dev = self._cur.fetchone()
+        self._execute("SELECT mean, std_dev FROM page WHERE id = ?", (page_id,))
+        mean, std_dev = self._fetchone()
         mean = json.loads(mean, strict=False)
         std_dev = json.loads(std_dev, strict=False)
         return mean, std_dev
 
     def set_mean_std_dev(self, page_id, mean, std_dev):
         "sets the mean and std_dev for the given page"
-        self._cur.execute(
+        self._execute(
             "UPDATE page SET mean = ?, std_dev = ? WHERE id = ?",
             (
                 json.dumps(mean),
@@ -568,7 +588,7 @@ class DocThread(SaveThread):
                 page_id,
             ),
         )
-        self._con.commit()
+        self._con[threading.get_native_id()].commit()
 
     def rotate(self, **kwargs):
         "rotate page"
