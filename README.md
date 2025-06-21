@@ -288,17 +288,23 @@ treeview.view rubberband,
 
 ## History
 
-I started writing gscan2pdf as a Perl & Gtk2 project in 2006.
+I started writing `gscan2pdf` as a Perl & Gtk2 project in 2006.
 Version 2 switched to Gtk3, but kept the basic software architecture.
 This stored the pages as temporary files with hashed names, which had a couple
 of major disadvantages:
 
-- It was impossible to create documents with more than a few hundred pages, as it ran out of open file handles.
 - Difficult to support PDF/A directly
-- In the event of a crash, it was tedious to recreate the document from the images files.
+- It was impossible to create documents with more than a few hundred pages, as
+it ran out of open file handles.
+- In the event of a crash, it was tedious to recreate the document from the image files.
 - AFAIK, Perl's support for Gtk4 never extended beyond that provided by introspection.
 
-Therefore I decided in 2022 to completely rewrite gscan2pdf in Python and renamed it for v3 scantpaper.
+Therefore I decided in 2022 to completely rewrite gscan2pdf in Python and renamed
+it for v3 `scantpaper`. The rewrite:
+
+- Supports PDF/A by using `ocrmypdf` to write PDFs
+- Stores all session data in a single Sqlite database
+- Should be simple to migrate to Gtk4
 
 ---
 
