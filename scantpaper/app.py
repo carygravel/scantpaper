@@ -1,13 +1,16 @@
 "main application"
 
 # TODO:
-# apply fix for list of pages from save_pdf to other types
+# undo doesn't work after deleting a page
+# profile not set on startup
+# fix readme
+# add db metadata to allow migrations
 # hook ocrmypdf progress into the GUI
+# package for Debian
 # package pytest-black for Debian
 # lint
 # fail tests that hit mainloop timeouts
 # use pathlib for all paths
-# add db metadata to allow migrations
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # various improvements from StackOverflow
@@ -19,17 +22,15 @@
 
 # Release procedure:
 #    Use
-#      make tidy
-#      TEST_AUTHOR=1 make test
+#      pytest -vv
 #    immediately before release so as not to affect any patches
 #    in between, and then consistently before each commit afterwards.
 # 0. Test scan in lineart, greyscale and colour.
 # 1. New screendump required? Print screen creates screenshot.png in Desktop.
 #    Download new translations (https://translations.launchpad.net/gscan2pdf)
 #    Update translators in credits (https://launchpad.net/gscan2pdf/+topcontributors)
-#    Check $VERSION. If necessary bump with something like
-#     xargs sed -i "s/\(\$VERSION *= \)'2\.13\.1'/\1'2.13.2'/" < MANIFEST
-#    Make appropriate updates to ../debian/changelog
+#    Update VERSION
+#    Make appropriate updates to debian/changelog
 # 2.  perl Makefile.PL
 #     Upload .pot
 # 3.  make remote-html

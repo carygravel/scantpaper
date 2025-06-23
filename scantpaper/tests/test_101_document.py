@@ -138,6 +138,7 @@ def test_basics(clean_up_files):
 
     #########################
 
+    slist.thread.quit()
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
 
@@ -701,7 +702,8 @@ def test_db(clean_up_files):
     assert page.id == 1, "load from db"
 
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
-    thread.delete_page(number=1)
+    request = Request("delete_pages", ({"numbers":[1]}, ), thread.responses)
+    thread.do_delete_pages(request)
     assert thread.page_number_table()[0][0] == 2, "deleted page"
 
     page = thread.get_page(number=2)
@@ -740,7 +742,8 @@ def test_db(clean_up_files):
     page = thread.clone_page(2, 3)
     assert thread.get_text(3) == "text", "clone_page"
 
-    thread.set_selection([2])
+    request = Request("set_selection", ([2], ), thread.responses)
+    thread.do_set_selection(request)
     assert thread.get_selection() == [2], "g/set_selection"
 
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])

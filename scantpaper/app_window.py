@@ -8,6 +8,7 @@ import re
 import glob
 import logging
 import gettext
+import shutil
 import sqlite3
 import sys
 import warnings
@@ -842,6 +843,29 @@ class ApplicationWindow(
             self._actions["save"].set_enabled(False)
 
         self._actions["paste"].set_enabled(bool(self.slist.clipboard))
+
+        # Un/ghost Undo/redo
+        self._actions["undo"].set_enabled(self.slist.thread.can_undo())
+        self._actions["redo"].set_enabled(self.slist.thread.can_redo())
+
+        # Check free space in session directory
+        df = shutil.disk_usage(self.session.name)
+        if df:
+            df = df.free / 1024 / 1024
+            logger.debug(
+                "Free space in %s (Mb): %s (warning at %s)",
+                self.session.name,
+                df,
+                self.settings["available-tmp-warning"],
+            )
+            if df < self.settings["available-tmp-warning"]:
+                text = _("%dMb free in %s.") % (df, self.session.name)
+                self._show_message_dialog(
+                    parent=self,
+                    message_type="warning",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    text=text,
+                )
 
         # If the scan dialog has already been drawn, update the start page spinbutton
         if self._windows:

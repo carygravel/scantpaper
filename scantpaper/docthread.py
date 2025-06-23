@@ -245,22 +245,33 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
         return number, thumb, page_id
 
-    def delete_page(self, **kwargs):
+    def do_delete_pages(self, request):
         "delete a page from the database"
+        logger.debug("do_delete_pages called with args: %s", request.args)
+        kwargs = request.args[0]
 
-        row_id = None
-        if "number" in kwargs:
-            row_id = self.find_row_id_by_page_number(kwargs["number"])
-            if row_id is None:
-                raise ValueError(f"Page {kwargs['number']} does not exist")
-        elif "row_id" in kwargs:
-            row_id = kwargs["row_id"]
-        if row_id is None:
+        row_ids = []
+        if "numbers" in kwargs:
+            for number in kwargs["numbers"]:
+                row_id = self.find_row_id_by_page_number(number)
+                if row_id is None:
+                    raise ValueError(f"Page {kwargs['number']} does not exist")
+                row_ids.append(self.find_row_id_by_page_number(number))
+        elif "row_ids" in kwargs:
+            row_ids = kwargs["row_ids"]
+        if not row_ids:
             raise ValueError("Specify either row_id or number")
 
         self._take_snapshot()
-        self._execute("DELETE FROM number WHERE row_id = ?", (row_id,))
+        self._execute(f"DELETE FROM number WHERE row_id IN ({", ".join(["?"]*len(row_ids))})", (*row_ids,))
         self._con[threading.get_native_id()].commit()
+        request.data(
+            {
+                "type": "page",
+                "remove": row_ids,
+            }
+        )
+        logger.debug("leaving do_delete_pages")
 
     def find_row_id_by_page_number(self, number):
         "find a row id by its page number"
@@ -293,6 +304,8 @@ class DocThread(SaveThread):
 
     def get_page(self, **kwargs):
         "get a page from the database"
+        logger.debug("get_page called with kwargs: %s", kwargs)
+        logger.debug("page_number_table: %s", self.page_number_table())
         if "number" in kwargs:
             self._execute(
                 """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id, image.id
@@ -372,6 +385,7 @@ class DocThread(SaveThread):
 
     def _take_snapshot(self):
         "take a snapshot of the current state of the document"
+        logger.debug(f"before _take_snapshot: action_id={self._action_id} buffer={self._get_snapshots()}")
 
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
@@ -387,11 +401,12 @@ class DocThread(SaveThread):
         )
 
         # delete those outside the undo limit
-        self._execute(
-            "DELETE FROM undo_buffer WHERE action_id < ?",
-            (self._action_id - self.number_undo_steps,),
-        )
+        # self._execute(
+        #     "DELETE FROM undo_buffer WHERE action_id < ?",
+        #     (self._action_id - self.number_undo_steps,),
+        # )
         self._con[threading.get_native_id()].commit()
+        logger.debug(f"after _take_snapshot: action_id={self._action_id} buffer={self._get_snapshots()}")
 
     def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"
@@ -407,6 +422,7 @@ class DocThread(SaveThread):
             row = list(row)
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
+        logger.debug("_get_snapshot() for action_id %s: %s", self._action_id, rows)
         return rows
 
     def _get_snapshots(self):
@@ -457,6 +473,7 @@ class DocThread(SaveThread):
 
     def undo(self):
         "restore the state of the last snapshot"
+        logger.debug(f"in undo: action_id={self._action_id}")
         if not self.can_undo():
             raise StopIteration("No more undo steps possible")
 
@@ -465,6 +482,7 @@ class DocThread(SaveThread):
 
         self._action_id -= 1
         self._restore_snapshot()
+        logger.debug(f"leaving undo: action_id={self._action_id}")
         return self._get_snapshot()
 
     def redo(self):
@@ -484,9 +502,9 @@ class DocThread(SaveThread):
         row_ids = self._fetchone()
         return json.loads(row_ids[0]) if row_ids else []
 
-    def set_selection(self, row_ids):
+    def do_set_selection(self, request):
         "set the selected row ids for the current action_id"
-        row_ids = json.dumps(row_ids)
+        row_ids = json.dumps(request.args[0])
         self._execute(
             """INSERT INTO selection (action_id, row_ids) VALUES (?, ?)
                 ON CONFLICT(action_id) DO UPDATE SET row_ids = ?""",

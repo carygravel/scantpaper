@@ -181,32 +181,6 @@ class SessionMixins:
 
         dialog.destroy()
 
-    def _take_snapshot(self):
-        "Update undo/redo buffers before doing something"
-        # self.slist.take_snapshot()
-
-        # Unghost Undo/redo
-        self._actions["undo"].set_enabled(True)
-
-        # Check free space in session directory
-        df = shutil.disk_usage(self.session.name)
-        if df:
-            df = df.free / 1024 / 1024
-            logger.debug(
-                "Free space in %s (Mb): %s (warning at %s)",
-                self.session.name,
-                df,
-                self.settings["available-tmp-warning"],
-            )
-            if df < self.settings["available-tmp-warning"]:
-                text = _("%dMb free in %s.") % (df, self.session.name)
-                self._show_message_dialog(
-                    parent=self,
-                    message_type="warning",
-                    buttons=Gtk.ButtonsType.CLOSE,
-                    text=text,
-                )
-
     def _check_dependencies(self):
         "Check for presence of various packages"
 

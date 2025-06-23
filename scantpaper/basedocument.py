@@ -103,9 +103,9 @@ class BaseDocument(SimpleList):
         self.row_changed_signal = self.get_model().connect(
             "row-changed", self._on_row_changed
         )
-        self.row_deleted_signal = self.get_model().connect(
-            "row-deleted", self._on_row_deleted
-        )
+        # self.row_deleted_signal = self.get_model().connect(
+        #     "row-deleted", self._on_row_deleted
+        # )
         self.selection_changed_signal = self.get_selection().connect(
             "changed", self._on_selection_changed
         )
@@ -122,14 +122,14 @@ class BaseDocument(SimpleList):
             uuids.append(self.data[i][2])
 
         self.get_model().handler_block(self.row_changed_signal)
-        self.get_model().handler_block(self.row_deleted_signal)
+        # self.get_model().handler_block(self.row_deleted_signal)
 
         # Sort pages
         self._manual_sort_by_column(0)
 
         # And make sure there are no duplicates
         self.renumber()
-        self.get_model().handler_unblock(self.row_deleted_signal)
+        # self.get_model().handler_unblock(self.row_deleted_signal)
         self.get_model().handler_unblock(self.row_changed_signal)
 
         # Select the renumbered pages via uuid
@@ -139,8 +139,8 @@ class BaseDocument(SimpleList):
         self.select(selection)
 
     def _on_row_deleted(self, _model, path):
-        for i in path.get_indices():
-            self.thread.send("delete_page", row_id=i)
+        logger.debug("_on_row_deleted: %s", path.get_indices())
+        self.thread.send("delete_pages", {"row_ids":path.get_indices()})
 
     def _on_selection_changed(self, _selection):
         if self._block_signals:
@@ -303,8 +303,8 @@ class BaseDocument(SimpleList):
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal:
             self.get_model().handler_block(self.row_changed_signal)
-        if self.row_deleted_signal:
-            self.get_model().handler_block(self.row_deleted_signal)
+        # if self.row_deleted_signal:
+        #     self.get_model().handler_block(self.row_deleted_signal)
 
         # Add to the page list
         if i is None:
@@ -344,8 +344,8 @@ class BaseDocument(SimpleList):
         if self.selection_changed_signal:
             self.get_selection().handler_unblock(self.selection_changed_signal)
 
-        if self.row_deleted_signal:
-            self.get_model().handler_unblock(self.row_deleted_signal)
+        # if self.row_deleted_signal:
+        #     self.get_model().handler_unblock(self.row_deleted_signal)
         if self.row_changed_signal:
             self.get_model().handler_unblock(self.row_changed_signal)
 
@@ -464,28 +464,35 @@ class BaseDocument(SimpleList):
         # self.save_session()
         logger.info("Pasted %s pages at position %s", len(data), dest)
 
-    def delete_selection(self, _self=None, _context=None):
+    def delete_selection(self, _self=None, context=None):
         "Delete the selected pages"
 
         # The drag-data-delete callback seems to be fired twice. Therefore, create
         # a hash of the context hashes and ignore the second drop. There must be a
         # less hacky way of solving this. FIXME
-        if _context is not None:
-            if hasattr(self, "_context") and _context in self._context:
+        if context is not None:
+            if hasattr(self, "_context") and context in self._context:
                 self._context = {}
                 return
 
             if not hasattr(self, "_context"):
                 self._context = {}
-            self._context[_context] = 1
+            self._context[context] = 1
+
+        def _data_callback(response):
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+
+                # Reverse the rows in order not to invalid the iters
+                if paths:
+                    for path in reversed(paths):
+                        itr = model.get_iter(path)
+                        model.remove(itr)
 
         model, paths = self.get_selection().get_selected_rows()
-
-        # Reverse the rows in order not to invalid the iters
-        if paths:
-            for path in reversed(paths):
-                itr = model.get_iter(path)
-                model.remove(itr)
+        ids = self.get_selected_indices()
+        logger.info(f"before delete_pages({ids})")
+        self.thread.send("delete_pages", {"row_ids":ids}, data_callback=_data_callback)
 
     def delete_selection_extra(self):
         "wrapper for delete_selection()"
