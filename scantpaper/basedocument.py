@@ -528,13 +528,6 @@ class BaseDocument(SimpleList):
         # self.save_session()
         logger.info("Deleted %s pages", npages)
 
-    def clone_data(self):
-        "for undo/redo"
-        data = []
-        for row in self.data:
-            data.append([row[0], row[1], row[2].clone(True)])
-        return data
-
     def save_session(self, filename=None, version=None):
         """Dump $self to a file.
         If a filename is given, zip it up as a session file
