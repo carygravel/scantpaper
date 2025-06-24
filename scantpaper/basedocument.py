@@ -42,7 +42,6 @@ class BaseDocument(SimpleList):
         self.thread = DocThread(**kwargs)
         self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
-        self.thread.start()
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
         self.set_reorderable(True)

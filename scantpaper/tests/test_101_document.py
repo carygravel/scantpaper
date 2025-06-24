@@ -138,7 +138,6 @@ def test_basics(clean_up_files):
 
     #########################
 
-    slist.thread.quit()
     clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
 
 
@@ -580,7 +579,6 @@ def test_docthread(clean_up_files):
     "tests for DocThread"
 
     thread = DocThread()
-    thread.start()
 
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
         clean_up_files([tif.name])
@@ -685,7 +683,6 @@ def test_docthread(clean_up_files):
 def test_db(clean_up_files):
     "test database access"
     thread = DocThread()
-    thread.start()
 
     with pytest.raises(StopIteration):
         thread.undo()

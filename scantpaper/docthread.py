@@ -21,7 +21,7 @@ import tesserocr
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GdkPixbuf  # pylint: disable=wrong-import-position
+from gi.repository import GLib, GdkPixbuf  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
 
@@ -57,53 +57,11 @@ class DocThread(SaveThread):
 
         self._con = {}
         self._cur = {}
-        self._connect()
-        self._execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
-        )
-        if not self._fetchone():
-            self._execute(
-                """CREATE TABLE image(
-                    id INTEGER PRIMARY KEY,
-                    image BLOB,
-                    thumb BLOB)"""
-            )
-            self._execute(
-                """CREATE TABLE page(
-                    id INTEGER PRIMARY KEY,
-                    image_id INTEGER NOT NULL,
-                    x_res FLOAT,
-                    y_res FLOAT,
-                    std_dev TEXT,
-                    mean TEXT,
-                    saved BOOL,
-                    text TEXT,
-                    annotations TEXT,
-                    FOREIGN KEY (image_id) REFERENCES image(id))"""
-            )
-            # TODO: the number table is just a buffer of part of undo_buffer and can be factored out
-            self._execute(
-                """CREATE TABLE number(
-                    row_id INTEGER NOT NULL,
-                    page_number INTEGER NOT NULL,
-                    page_id INTEGER NOT NULL,
-                    FOREIGN KEY (page_id) REFERENCES page(id),
-                    PRIMARY KEY (row_id))"""
-            )
-            self._execute(
-                """CREATE TABLE undo_buffer(
-                    action_id INTEGER NOT NULL,
-                    row_id INTEGER NOT NULL,
-                    page_number INTEGER NOT NULL,
-                    page_id INTEGER NOT NULL,
-                    FOREIGN KEY (page_id) REFERENCES page(id),
-                    PRIMARY KEY (action_id, row_id))"""
-            )
-            self._execute(
-                """CREATE TABLE selection(
-                    action_id INTEGER PRIMARY KEY,
-                    row_ids TEXT NOT NULL)"""
-            )
+        self.start()
+        mlp = GLib.MainLoop()
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        self.send("create", self._db, finished_callback=mlp.quit)
+        mlp.run()
 
     def _connect(self):
         tid = threading.get_native_id()
@@ -125,6 +83,58 @@ class DocThread(SaveThread):
         "fetch one row from the database"
         tid = threading.get_native_id()
         return self._cur[tid].fetchone()
+
+    def do_create(self, request):
+        "open a saved database"
+        self._db = request.args[0]
+        self._execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
+        )
+        if self._fetchone():
+            logger.warning("Database %s already exists, not creating it again", self._db)
+            return
+        self._execute(
+            """CREATE TABLE image(
+                id INTEGER PRIMARY KEY,
+                image BLOB,
+                thumb BLOB)"""
+        )
+        self._execute(
+            """CREATE TABLE page(
+                id INTEGER PRIMARY KEY,
+                image_id INTEGER NOT NULL,
+                x_res FLOAT,
+                y_res FLOAT,
+                std_dev TEXT,
+                mean TEXT,
+                saved BOOL,
+                text TEXT,
+                annotations TEXT,
+                FOREIGN KEY (image_id) REFERENCES image(id))"""
+        )
+        # TODO: the number table is just a buffer of part of undo_buffer and can be factored out
+        self._execute(
+            """CREATE TABLE number(
+                row_id INTEGER NOT NULL,
+                page_number INTEGER NOT NULL,
+                page_id INTEGER NOT NULL,
+                FOREIGN KEY (page_id) REFERENCES page(id),
+                PRIMARY KEY (row_id))"""
+        )
+        self._execute(
+            """CREATE TABLE undo_buffer(
+                action_id INTEGER NOT NULL,
+                row_id INTEGER NOT NULL,
+                page_number INTEGER NOT NULL,
+                page_id INTEGER NOT NULL,
+                FOREIGN KEY (page_id) REFERENCES page(id),
+                PRIMARY KEY (action_id, row_id))"""
+        )
+        self._execute(
+            """CREATE TABLE selection(
+                action_id INTEGER PRIMARY KEY,
+                row_ids TEXT NOT NULL)"""
+        )
 
     def open(self, db):
         "open a saved database"
