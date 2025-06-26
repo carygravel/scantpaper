@@ -699,7 +699,7 @@ def test_db(clean_up_files):
     assert page.id == 1, "load from db"
 
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
-    request = Request("delete_pages", ({"numbers":[1]}, ), thread.responses)
+    request = Request("delete_pages", ({"numbers": [1]},), thread.responses)
     thread.do_delete_pages(request)
     assert thread.page_number_table()[0][0] == 2, "deleted page"
 
@@ -739,7 +739,7 @@ def test_db(clean_up_files):
     page = thread.clone_page(2, 3)
     assert thread.get_text(3) == "text", "clone_page"
 
-    request = Request("set_selection", ([2], ), thread.responses)
+    request = Request("set_selection", ([2],), thread.responses)
     thread.do_set_selection(request)
     assert thread.get_selection() == [2], "g/set_selection"
 

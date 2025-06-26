@@ -60,7 +60,7 @@ class DocThread(SaveThread):
         self.start()
         mlp = GLib.MainLoop()
         GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-        self.send("create", self._db, finished_callback=mlp.quit)
+        self.send("create", self._db, finished_callback=lambda x: mlp.quit())
         mlp.run()
 
     def _connect(self):
@@ -91,7 +91,9 @@ class DocThread(SaveThread):
             "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
         )
         if self._fetchone():
-            logger.warning("Database %s already exists, not creating it again", self._db)
+            logger.warning(
+                "Database %s already exists, not creating it again", self._db
+            )
             return
         self._execute(
             """CREATE TABLE image(
@@ -273,7 +275,10 @@ class DocThread(SaveThread):
             raise ValueError("Specify either row_id or number")
 
         self._take_snapshot()
-        self._execute(f"DELETE FROM number WHERE row_id IN ({", ".join(["?"]*len(row_ids))})", (*row_ids,))
+        self._execute(
+            f"DELETE FROM number WHERE row_id IN ({", ".join(["?"]*len(row_ids))})",
+            (*row_ids,),
+        )
         self._con[threading.get_native_id()].commit()
         request.data(
             {
@@ -395,7 +400,6 @@ class DocThread(SaveThread):
 
     def _take_snapshot(self):
         "take a snapshot of the current state of the document"
-        logger.debug(f"before _take_snapshot: action_id={self._action_id} buffer={self._get_snapshots()}")
 
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
@@ -416,7 +420,6 @@ class DocThread(SaveThread):
         #     (self._action_id - self.number_undo_steps,),
         # )
         self._con[threading.get_native_id()].commit()
-        logger.debug(f"after _take_snapshot: action_id={self._action_id} buffer={self._get_snapshots()}")
 
     def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"

@@ -763,7 +763,10 @@ class ApplicationWindow(
             path = Gtk.TreePath.new_from_indices([i])
             self.slist.scroll_to_cell(path, self.slist.get_column(0), True, HALF, HALF)
             sel = self.view.get_selection()
-            self._display_image(self.slist.data[i][2])
+            try:
+                self._display_image(self.slist.data[i][2])
+            except ValueError:
+                pass # if a page is deleted this is still fired, so ignore it
             if sel is not None:
                 self.view.set_selection(sel)
         else:

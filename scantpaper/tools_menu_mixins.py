@@ -51,9 +51,6 @@ class ToolsMenuMixins:
 
     def _rotate(self, angle, pagelist):
         "Rotate selected images"
-
-        # Update undo/redo buffers
-        self._take_snapshot()
         for page in pagelist:
             self.slist.rotate(
                 angle=angle,
@@ -89,9 +86,6 @@ class ToolsMenuMixins:
         hboxt.pack_end(spinbutton, False, True, 0)
 
         def threshold_apply_callback():
-            # HBox for buttons
-            # Update undo/redo buffers
-            self._take_snapshot()
             self.settings["threshold tool"] = spinbutton.get_value()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
@@ -161,9 +155,6 @@ class ToolsMenuMixins:
         hbox.pack_end(spinbuttonc, False, True, 0)
 
         def brightness_contrast_callback():
-            # HBox for buttons
-            # Update undo/redo buffers
-            self._take_snapshot()
             self.settings["brightness tool"] = spinbuttonb.get_value()
             self.settings["contrast tool"] = spinbuttonc.get_value()
             self.settings["Page range"] = windowt.page_range
@@ -209,9 +200,6 @@ class ToolsMenuMixins:
         windowt.add_page_range()
 
         def negate_callback():
-            # HBox for buttons
-            # Update undo/redo buffers
-            self._take_snapshot()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self._error_callback
@@ -307,9 +295,6 @@ class ToolsMenuMixins:
             row[1].set_tooltip_text(row[col])
 
         def unsharp_callback():
-            # HBox for buttons
-            # Update undo/redo buffers
-            self._take_snapshot()
             self.settings["unsharp radius"] = spinbuttonr.get_value()
             self.settings["unsharp percentage"] = int(spinbuttons.get_value())
             self.settings["unsharp threshold"] = int(spinbuttont.get_value())
@@ -386,8 +371,6 @@ class ToolsMenuMixins:
         if not self.settings["selection"]:
             return
 
-        # Update undo/redo buffers
-        self._take_snapshot()
         if not pagelist:
             pagelist = self.slist.get_selected_indices()
 
@@ -492,9 +475,6 @@ class ToolsMenuMixins:
         )
 
         def split_apply_callback():
-
-            # Update undo/redo buffers
-            self._take_snapshot()
             self.settings["split-direction"] = direction[combob.get_active()][0]
             self.settings["split-position"] = sb_pos.get_value()
             self.settings["Page range"] = windowsp.page_range
@@ -585,8 +565,6 @@ class ToolsMenuMixins:
             if not pagelist:
                 return
 
-            # Update undo/redo buffers
-            self._take_snapshot()
             for pageobject in pagelist:
 
                 def unpaper_finished_callback(response):
@@ -730,8 +708,6 @@ class ToolsMenuMixins:
                 return
             self.settings["current_udt"] = self._pref_udt_cmbx.get_active_text()
 
-            # Update undo/redo buffers
-            self._take_snapshot()
             for page in pagelist:
 
                 def user_defined_finished_callback(response):

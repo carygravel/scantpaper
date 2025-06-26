@@ -128,7 +128,6 @@ class EditMenuMixins:
 
     def delete_selection(self, _action, _param):
         "Delete the selected scans"
-        # Update undo/redo buffers
         self.slist.delete_selection_extra()
 
         # Reset start page in scan dialog

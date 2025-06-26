@@ -139,7 +139,7 @@ class BaseDocument(SimpleList):
 
     def _on_row_deleted(self, _model, path):
         logger.debug("_on_row_deleted: %s", path.get_indices())
-        self.thread.send("delete_pages", {"row_ids":path.get_indices()})
+        self.thread.send("delete_pages", {"row_ids": path.get_indices()})
 
     def _on_selection_changed(self, _selection):
         if self._block_signals:
@@ -491,7 +491,7 @@ class BaseDocument(SimpleList):
         model, paths = self.get_selection().get_selected_rows()
         ids = self.get_selected_indices()
         logger.info(f"before delete_pages({ids})")
-        self.thread.send("delete_pages", {"row_ids":ids}, data_callback=_data_callback)
+        self.thread.send("delete_pages", {"row_ids": ids}, data_callback=_data_callback)
 
     def delete_selection_extra(self):
         "wrapper for delete_selection()"
