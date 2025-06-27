@@ -766,7 +766,7 @@ class ApplicationWindow(
             try:
                 self._display_image(self.slist.data[i][2])
             except ValueError:
-                pass # if a page is deleted this is still fired, so ignore it
+                pass  # if a page is deleted this is still fired, so ignore it
             if sel is not None:
                 self.view.set_selection(sel)
         else:
