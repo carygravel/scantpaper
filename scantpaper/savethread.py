@@ -18,6 +18,7 @@ from i18n import _
 from helpers import exec_command
 from bboxtree import Bboxtree
 from page import Page
+from basethread import Request
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +123,9 @@ class SaveThread(Importhread):
 
         else:
             _post_save_hook(filename, options.get("options"))
-        self.set_saved(options["list_of_pages"])
+        self.do_set_saved(
+            Request("set_saved", (options["list_of_pages"], True), self.responses)
+        )
 
     def save_djvu(self, **kwargs):
         "save DjvU"
@@ -196,7 +199,9 @@ class SaveThread(Importhread):
         self._add_metadata_to_djvu(args)
         _set_timestamp(args)
         _post_save_hook(args["path"], args.get("options"))
-        self.set_saved(args["list_of_pages"])
+        self.do_set_saved(
+            Request("set_saved", (args["list_of_pages"], True), self.responses)
+        )
 
     def _add_metadata_to_djvu(self, options):
         if "metadata" in options and options["metadata"] is not None:
@@ -346,7 +351,9 @@ class SaveThread(Importhread):
 
         else:
             _post_save_hook(options["path"], options["options"])
-        self.set_saved(options["list_of_pages"])
+        self.do_set_saved(
+            Request("set_saved", (options["list_of_pages"], True), self.responses)
+        )
 
     def save_image(self, **kwargs):
         "save pages as image files"
@@ -372,7 +379,9 @@ class SaveThread(Importhread):
             #     request.error(_("Error saving image"))
 
             _post_save_hook(filename, options.get("options"))
-        self.set_saved(options["list_of_pages"])
+        self.do_set_saved(
+            Request("set_saved", (options["list_of_pages"], True), self.responses)
+        )
 
     def save_text(self, **kwargs):
         "save text file"

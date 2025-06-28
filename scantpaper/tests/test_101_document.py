@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+import threading
 from PIL import Image
 import gi
 import pytest
@@ -653,6 +654,9 @@ def test_docthread(clean_up_files):
             ),
             thread.responses,
         )
+
+        # spoof the write thread check
+        thread._write_tid = threading.get_native_id()
         thread.do_import_file(request)
         page = thread.get_page(id=1)
         assert isinstance(page, Page), "do_import_file + png"
@@ -690,6 +694,8 @@ def test_db(clean_up_files):
     with pytest.raises(StopIteration):
         thread.redo()
 
+    # spoof the write thread check
+    thread._write_tid = threading.get_native_id()
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 1)
     page = thread.get_page(number=1)
     assert page.id == 1, "add page"
@@ -698,6 +704,8 @@ def test_db(clean_up_files):
     page = thread.get_page(number=1)
     assert page.id == 1, "load from db"
 
+    # spoof the write thread check
+    thread._write_tid = threading.get_native_id()
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
     request = Request("delete_pages", ({"numbers": [1]},), thread.responses)
     thread.do_delete_pages(request)
@@ -715,25 +723,31 @@ def test_db(clean_up_files):
     thread.redo()
     assert thread.page_number_table()[0][0] == 2, "redo"
 
-    thread.set_saved(1)
+    thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
     assert not thread.pages_saved(), "not all pages saved"
 
-    thread.set_saved(2)
+    thread.do_set_saved(Request("set_saved", (2, True), thread.responses))
     assert thread.pages_saved(), "all pages saved"
 
-    thread.set_text(2, "text")
+    thread.do_set_text(Request("set_text", (2, "text"), thread.responses))
     assert thread.get_text(2) == "text", "g/set_text()"
 
-    thread.set_annotations(2, "ann")
+    thread.do_set_annotations(Request("set_annotations", (2, "ann"), thread.responses))
     assert thread.get_annotations(2) == "ann", "g/set_annotations()"
 
-    thread.set_resolution(2, 299.9, 199.9)
+    thread.do_set_resolution(
+        Request("set_resolution", (2, 299.9, 199.9), thread.responses)
+    )
     assert thread.get_resolution(2) == (299.9, 199.9), "g/set_resolution()"
 
-    thread.set_mean_std_dev(2, 2.5, 3.4)
+    thread.do_set_mean_std_dev(
+        Request("set_mean_std_dev", (2, 2.5, 3.4), thread.responses)
+    )
     assert thread.get_mean_std_dev(2) == (2.5, 3.4), "g/set_mean_std_dev()"
 
-    thread.set_mean_std_dev(2, [2.5], [3.4])
+    thread.do_set_mean_std_dev(
+        Request("set_mean_std_dev", (2, [2.5], [3.4]), thread.responses)
+    )
     assert thread.get_mean_std_dev(2) == ([2.5], [3.4]), "g/set_mean_std_dev() as list"
 
     page = thread.clone_page(2, 3)

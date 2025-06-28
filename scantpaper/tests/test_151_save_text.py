@@ -8,7 +8,7 @@ from document import Document
 from bboxtree import VERSION
 
 
-def test_save_text(import_in_mainloop, clean_up_files):
+def test_save_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test saving text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -17,7 +17,8 @@ def test_save_text(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -97,7 +98,7 @@ def test_save_no_text(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_utf8(import_in_mainloop, clean_up_files):
+def test_save_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -106,7 +107,8 @@ def test_save_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -136,7 +138,7 @@ def test_save_utf8(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_hocr_as_text(import_in_mainloop, clean_up_files):
+def test_save_hocr_as_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test saving HOCR as text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -170,7 +172,7 @@ def test_save_hocr_as_text(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_text(
@@ -192,7 +194,7 @@ def test_save_hocr_as_text(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_hocr(import_in_mainloop, clean_up_files):
+def test_save_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -226,7 +228,7 @@ def test_save_hocr(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
@@ -258,7 +260,9 @@ def test_save_hocr(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_hocr_with_encoding(import_in_mainloop, clean_up_files):
+def test_save_hocr_with_encoding(
+    import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test writing text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -301,7 +305,7 @@ def test_save_hocr_with_encoding(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
@@ -321,7 +325,7 @@ def test_save_hocr_with_encoding(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_multipage_hocr(import_in_mainloop, clean_up_files):
+def test_save_multipage_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -355,8 +359,8 @@ def test_save_multipage_hocr(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
-    slist.thread.set_text(2, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
+    set_text_in_mainloop(slist, 2, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
@@ -415,7 +419,7 @@ def test_save_multipage_hocr(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_hocr_structure(import_in_mainloop, clean_up_files):
+def test_save_hocr_structure(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -477,7 +481,7 @@ def test_save_hocr_structure(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_hocr(

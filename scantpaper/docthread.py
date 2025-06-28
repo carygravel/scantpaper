@@ -57,6 +57,7 @@ class DocThread(SaveThread):
 
         self._con = {}
         self._cur = {}
+        self._write_tid = None
         self.start()
         mlp = GLib.MainLoop()
         GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -74,6 +75,7 @@ class DocThread(SaveThread):
         "execute a query on the database"
         self._connect()
         tid = threading.get_native_id()
+        logger.debug(f"_execute({query, params}) in tid {tid}")
         if params is None:
             self._cur[tid].execute(query)
         else:
@@ -84,8 +86,20 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         return self._cur[tid].fetchone()
 
+    def _check_write_tid(self):
+        tid = threading.get_native_id()
+        if self._write_tid:
+            if self._write_tid != tid:
+                raise RuntimeError(
+                    f'Attempted to write to database with tid {tid}, but the '
+                    f'database was created with tid {self._write_tid}'
+                )
+        else:
+            self._write_tid = tid
+
     def do_create(self, request):
         "open a saved database"
+        self._check_write_tid()
         self._db = request.args[0]
         self._execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
@@ -150,6 +164,7 @@ class DocThread(SaveThread):
 
     def _insert_image(self, page, if_different_from=None):
         "insert an image to the database"
+        self._check_write_tid()
         bytes_image = page.to_bytes()
         insert = True
         if if_different_from is not None:
@@ -177,7 +192,7 @@ class DocThread(SaveThread):
 
     def _insert_page(self, page, image_id):
         "insert a page to the database"
-
+        self._check_write_tid()
         x_res, y_res = None, None
         if page.resolution:
             x_res, y_res = page.resolution[0], page.resolution[1]
@@ -202,6 +217,7 @@ class DocThread(SaveThread):
 
     def add_page(self, page, number=None):
         "add a page to the database"
+        self._check_write_tid()
 
         if number is None:
             self._execute("SELECT MAX(page_number) FROM number")
@@ -236,6 +252,7 @@ class DocThread(SaveThread):
 
     def replace_page(self, page, number):
         "replace a page in the database"
+        self._check_write_tid()
 
         i = self.find_row_id_by_page_number(number)
         if i is None:
@@ -259,6 +276,7 @@ class DocThread(SaveThread):
 
     def do_delete_pages(self, request):
         "delete a page from the database"
+        self._check_write_tid()
         logger.debug("do_delete_pages called with args: %s", request.args)
         kwargs = request.args[0]
 
@@ -355,6 +373,7 @@ class DocThread(SaveThread):
 
     def clone_page(self, page_id, number):
         "clone a page in the database"
+        self._check_write_tid()
         self._take_snapshot()
         self._execute(
             "SELECT * FROM page, number WHERE id = page_id AND page_id = ?",
@@ -400,6 +419,7 @@ class DocThread(SaveThread):
 
     def _take_snapshot(self):
         "take a snapshot of the current state of the document"
+        self._check_write_tid()
 
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
@@ -474,6 +494,7 @@ class DocThread(SaveThread):
 
     def _restore_snapshot(self):
         "restore the state of the last snapshot"
+        self._check_write_tid()
         # clear page number table and copy from buffer
         self._execute("DELETE FROM number")
         self._execute(
@@ -517,6 +538,7 @@ class DocThread(SaveThread):
 
     def do_set_selection(self, request):
         "set the selected row ids for the current action_id"
+        self._check_write_tid()
         row_ids = json.dumps(request.args[0])
         self._execute(
             """INSERT INTO selection (action_id, row_ids) VALUES (?, ?)
@@ -525,8 +547,10 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
-    def set_saved(self, page_id, saved=True):
+    def do_set_saved(self, request):
         "mark given page as saved"
+        self._check_write_tid()
+        page_id, saved = request.args
         if not isinstance(page_id, list):
             page_id = [page_id]
         self._execute(
@@ -557,8 +581,10 @@ class DocThread(SaveThread):
         self._execute("SELECT text FROM page WHERE id = ?", (page_id,))
         return self._fetchone()[0]
 
-    def set_text(self, page_id, text):
+    def do_set_text(self, request):
         "sets the text layer for the given page"
+        self._check_write_tid()
+        page_id, text = request.args
         self._execute(
             "UPDATE page SET text = ? WHERE id = ?",
             (
@@ -573,8 +599,10 @@ class DocThread(SaveThread):
         self._execute("SELECT annotations FROM page WHERE id = ?", (page_id,))
         return self._fetchone()[0]
 
-    def set_annotations(self, page_id, annotations):
+    def do_set_annotations(self, request):
         "sets the annotations layer for the given page"
+        self._check_write_tid()
+        page_id, annotations = request.args
         self._execute(
             "UPDATE page SET annotations = ? WHERE id = ?",
             (
@@ -589,8 +617,10 @@ class DocThread(SaveThread):
         self._execute("SELECT x_res, y_res FROM page WHERE id = ?", (page_id,))
         return self._fetchone()
 
-    def set_resolution(self, page_id, x_res, y_res):
+    def do_set_resolution(self, request):
         "sets the resolution for the given page"
+        self._check_write_tid()
+        page_id, x_res, y_res = request.args
         self._execute(
             "UPDATE page SET x_res = ?, y_res = ? WHERE id = ?",
             (
@@ -609,8 +639,10 @@ class DocThread(SaveThread):
         std_dev = json.loads(std_dev, strict=False)
         return mean, std_dev
 
-    def set_mean_std_dev(self, page_id, mean, std_dev):
+    def do_set_mean_std_dev(self, request):
         "sets the mean and std_dev for the given page"
+        self._check_write_tid()
+        page_id, mean, std_dev = request.args
         self._execute(
             "UPDATE page SET mean = ?, std_dev = ? WHERE id = ?",
             (

@@ -58,7 +58,7 @@ def test_save_djvu1(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
+def test_save_djvu_text_layer(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test saving a djvu with text layer"
 
     if shutil.which("cjb2") is None:
@@ -70,7 +70,8 @@ def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -96,7 +97,12 @@ def test_save_djvu_text_layer(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
+def test_save_djvu_with_hocr(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    set_annotations_in_mainloop,
+    clean_up_files,
+):
     "Test saving a djvu with text layer from HOCR"
 
     if shutil.which("cjb2") is None:
@@ -130,9 +136,9 @@ def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
     page.import_annotations(hocr)
-    slist.thread.set_annotations(1, page.annotations)
+    set_annotations_in_mainloop(slist, 1, page.annotations)
     slist.save_djvu(
         path="test.djvu",
         list_of_pages=[slist.data[0][2]],
@@ -159,7 +165,7 @@ def test_save_djvu_with_hocr(import_in_mainloop, clean_up_files):
     )
 
 
-def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
+def test_cancel_save_djvu(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test cancel saving a DjVu"
 
     if shutil.which("cjb2") is None:
@@ -171,7 +177,8 @@ def test_cancel_save_djvu(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -285,7 +292,9 @@ def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_djvu_with_float_resolution(import_in_mainloop, clean_up_files):
+def test_save_djvu_with_float_resolution(
+    import_in_mainloop, set_resolution_in_mainloop, clean_up_files
+):
     "Test saving a djvu with resolution as float"
 
     if shutil.which("cjb2") is None:
@@ -296,7 +305,7 @@ def test_save_djvu_with_float_resolution(import_in_mainloop, clean_up_files):
     slist = Document()
 
     import_in_mainloop(slist, ["test.png"])
-    slist.thread.set_resolution(1, 299.72, 299.72)
+    set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
 
     slist.save_djvu(
         path="test.djvu",

@@ -11,7 +11,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_multipage_pdf(import_in_mainloop, clean_up_files):
+def test_save_multipage_pdf(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing multipage PDF"
 
     num = 3  # number of pages
@@ -27,8 +27,9 @@ def test_save_multipage_pdf(import_in_mainloop, clean_up_files):
 
     pages = []
     for i in range(1, num + 1):
-        slist.thread.set_text(
-            i,
+        set_text_in_mainloop(
+            slist,
+            1,
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
             '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -59,7 +60,7 @@ def test_save_multipage_pdf(import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_multipage_pdf_with_utf8(import_in_mainloop, clean_up_files):
+def test_save_multipage_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing multipage PDF with utf8"
 
     num = 3  # number of pages
@@ -92,8 +93,9 @@ def test_save_multipage_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     pages = []
     for i in range(1, num + 1):
-        slist.thread.set_text(
-            i,
+        set_text_in_mainloop(
+            slist,
+            1,
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
             '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '

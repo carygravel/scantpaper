@@ -214,7 +214,7 @@ def test_unpaper(import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper2(import_in_mainloop, clean_up_files):
+def test_unpaper2(import_in_mainloop, set_resolution_in_mainloop, clean_up_files):
     "Test unpaper"
 
     unpaper = Unpaper()
@@ -252,7 +252,8 @@ def test_unpaper2(import_in_mainloop, clean_up_files):
 
     page = slist.thread.get_page(id=1)
     assert page.resolution[0] == 72, "non-standard size pnm imports with 72 PPI"
-    slist.thread.set_resolution(1, 300, 300)
+
+    set_resolution_in_mainloop(slist, 1, 300, 300)
     page = slist.thread.get_page(id=1)
     assert (
         page.resolution[0] == 300

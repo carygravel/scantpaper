@@ -10,6 +10,7 @@ import re
 import subprocess
 import shutil
 import tempfile
+import threading
 import pytest
 from gi.repository import GLib
 from document import Document
@@ -25,6 +26,7 @@ def test_do_save_pdf(clean_up_files):
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
     thread = DocThread()
+    thread._write_tid = threading.get_native_id()
     tdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
     _number, _thumb, page_id = thread.add_page(
         Page(
@@ -290,7 +292,7 @@ def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing PDF with text layer from hocr"
 
     # Create test image
@@ -355,8 +357,8 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
-    #    slist.data[0][2].import_annotations(hocr)
+    set_text_in_mainloop(slist, 1, page.text_layer)
+    # slist.data[0][2].import_annotations(hocr)
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -396,7 +398,7 @@ def test_save_pdf_with_hocr(import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing PDF with utf8 in text layer"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -422,7 +424,8 @@ def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -454,7 +457,7 @@ def test_save_pdf_with_utf8(import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_with_non_utf8(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_non_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing PDF with non-utf8 in text layer"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -463,7 +466,8 @@ def test_save_pdf_with_non_utf8(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -520,7 +524,7 @@ def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_without_font(import_in_mainloop, clean_up_files):
+def test_save_pdf_without_font(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing PDF with non-existing font"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -529,7 +533,8 @@ def test_save_pdf_without_font(import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, ["test.pnm"])
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
@@ -670,7 +675,7 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_sbs_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test writing PDF with text layer right of the image, rather than behind it"
 
     subprocess.run(
@@ -735,7 +740,7 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(id=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.save_pdf(

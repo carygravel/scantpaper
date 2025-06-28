@@ -8,7 +8,7 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_udt(import_in_mainloop, clean_up_files):
+def test_udt(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
     paper_sizes = {
@@ -27,7 +27,8 @@ def test_udt(import_in_mainloop, clean_up_files):
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
 
-    slist.thread.set_text(
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -150,7 +151,7 @@ def test_udt_page_size(import_in_mainloop, clean_up_files):
     )
 
 
-def test_udt_resolution(import_in_mainloop, clean_up_files):
+def test_udt_resolution(import_in_mainloop, set_resolution_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
     subprocess.run(["convert", "-size", "210x297", "xc:white", "white.pnm"], check=True)
@@ -158,7 +159,7 @@ def test_udt_resolution(import_in_mainloop, clean_up_files):
     slist = Document()
 
     import_in_mainloop(slist, ["white.pnm"])
-    slist.thread.set_resolution(1, 10, 10)
+    set_resolution_in_mainloop(slist, 1, 10, 10)
 
     mlp = GLib.MainLoop()
     slist.user_defined(

@@ -43,6 +43,66 @@ def import_in_mainloop():
 
 
 @pytest.fixture
+def set_saved_in_mainloop():
+    "set_saved in a blocking mainloop"
+
+    def anonymous(slist, page_id, saved=True):
+        mlp = GLib.MainLoop()
+        slist.thread.send(
+            "set_saved", page_id, saved, finished_callback=lambda response: mlp.quit()
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
+
+    return anonymous
+
+
+@pytest.fixture
+def set_text_in_mainloop():
+    "set_text in a blocking mainloop"
+
+    def anonymous(slist, page_id, text):
+        mlp = GLib.MainLoop()
+        slist.thread.send(
+            "set_text", page_id, text, finished_callback=lambda response: mlp.quit()
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
+
+    return anonymous
+
+
+@pytest.fixture
+def set_annotations_in_mainloop():
+    "set_annotations in a blocking mainloop"
+
+    def anonymous(slist, page_id, annotations):
+        mlp = GLib.MainLoop()
+        slist.thread.send(
+            "set_annotations", page_id, annotations, finished_callback=lambda response: mlp.quit()
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
+
+    return anonymous
+
+
+@pytest.fixture
+def set_resolution_in_mainloop():
+    "set_resolution in a blocking mainloop"
+
+    def anonymous(slist, page_id, xres, yres):
+        mlp = GLib.MainLoop()
+        slist.thread.send(
+            "set_resolution", page_id, xres, yres, finished_callback=lambda response: mlp.quit()
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
+
+    return anonymous
+
+
+@pytest.fixture
 def mainloop_with_timeout(request):
     "start a mainloop with a timeout"
 

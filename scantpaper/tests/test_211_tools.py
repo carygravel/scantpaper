@@ -9,7 +9,7 @@ from document import Document
 from page import VERSION
 
 
-def test_rotate(import_in_mainloop, clean_up_files):
+def test_rotate(import_in_mainloop, set_saved_in_mainloop, clean_up_files):
     "Test rotating"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
@@ -17,7 +17,7 @@ def test_rotate(import_in_mainloop, clean_up_files):
     slist = Document()
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.thread.set_saved(1, True)
+    set_saved_in_mainloop(slist, 1, True)
     assert slist.data[0][1].get_height() == 65, "thumbnail height before rotation"
     assert slist.data[0][1].get_width() == 100, "thumbnail width before rotation"
 
@@ -50,7 +50,7 @@ def test_rotate(import_in_mainloop, clean_up_files):
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
 
 
-def test_analyse_blank(import_in_mainloop, clean_up_files):
+def test_analyse_blank(import_in_mainloop, set_saved_in_mainloop, clean_up_files):
     "Test analyse"
 
     subprocess.run(["convert", "-size", "10x10", "xc:white", "white.pgm"], check=True)
@@ -100,7 +100,9 @@ def test_analyse_dark(import_in_mainloop, clean_up_files):
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", "black.pgm"])
 
 
-def test_threshold(import_in_mainloop, clean_up_files):
+def test_threshold(
+    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test threshold"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
@@ -108,8 +110,9 @@ def test_threshold(import_in_mainloop, clean_up_files):
     slist = Document()
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.thread.set_saved(1, True)
-    slist.thread.set_text(
+    set_saved_in_mainloop(slist, 1, True)
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -143,7 +146,9 @@ def test_threshold(import_in_mainloop, clean_up_files):
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
 
 
-def test_negate(import_in_mainloop, clean_up_files):
+def test_negate(
+    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test negate"
 
     subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
@@ -151,8 +156,9 @@ def test_negate(import_in_mainloop, clean_up_files):
     slist = Document()
 
     import_in_mainloop(slist, ["white.pnm"])
-    slist.thread.set_saved(1, True)
-    slist.thread.set_text(
+    set_saved_in_mainloop(slist, 1, True)
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -195,7 +201,9 @@ def test_negate(import_in_mainloop, clean_up_files):
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
 
 
-def test_unsharp_mask(import_in_mainloop, clean_up_files):
+def test_unsharp_mask(
+    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test unsharp mask"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
@@ -203,8 +211,9 @@ def test_unsharp_mask(import_in_mainloop, clean_up_files):
     slist = Document()
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.thread.set_saved(1, True)
-    slist.thread.set_text(
+    set_saved_in_mainloop(slist, 1, True)
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
@@ -258,7 +267,9 @@ def test_unsharp_mask(import_in_mainloop, clean_up_files):
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
 
 
-def test_crop(import_in_mainloop, clean_up_files):
+def test_crop(
+    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test brightness contrast"
 
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
@@ -271,7 +282,7 @@ def test_crop(import_in_mainloop, clean_up_files):
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
-    slist.thread.set_saved(1, True)
+    set_saved_in_mainloop(slist, 1, True)
     hocr = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -294,7 +305,7 @@ def test_crop(import_in_mainloop, clean_up_files):
 """
     page = slist.thread.get_page(number=1)
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.crop(
@@ -339,7 +350,9 @@ def test_crop(import_in_mainloop, clean_up_files):
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.gif"])
 
 
-def test_split(import_in_mainloop, clean_up_files):
+def test_split(
+    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test split"
 
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
@@ -352,7 +365,7 @@ def test_split(import_in_mainloop, clean_up_files):
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
-    slist.thread.set_saved(1, True)
+    set_saved_in_mainloop(slist, 1, True)
     hocr = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -372,7 +385,7 @@ def test_split(import_in_mainloop, clean_up_files):
 </html>
 """
     page.import_hocr(hocr)
-    slist.thread.set_text(1, page.text_layer)
+    set_text_in_mainloop(slist, 1, page.text_layer)
 
     mlp = GLib.MainLoop()
     slist.split_page(
@@ -442,7 +455,9 @@ def test_split(import_in_mainloop, clean_up_files):
     clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.gif"])
 
 
-def test_brightness_contrast(import_in_mainloop, clean_up_files):
+def test_brightness_contrast(
+    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test brightness contrast"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
@@ -450,8 +465,9 @@ def test_brightness_contrast(import_in_mainloop, clean_up_files):
     slist = Document()
 
     import_in_mainloop(slist, ["test.jpg"])
-    slist.thread.set_saved(1, True)
-    slist.thread.set_text(
+    set_saved_in_mainloop(slist, 1, True)
+    set_text_in_mainloop(
+        slist,
         1,
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
