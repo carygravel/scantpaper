@@ -109,6 +109,8 @@ class DocThread(SaveThread):
                 "Database %s already exists, not creating it again", self._db
             )
             return
+        self._execute("PRAGMA journal_mode=WAL")
+        self.isolation_level = "IMMEDIATE"
         self._execute(
             """CREATE TABLE image(
                 id INTEGER PRIMARY KEY,
