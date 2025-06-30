@@ -1,8 +1,6 @@
 "Test process chain"
 
-from pathlib import Path
 import subprocess
-import tempfile
 import shutil
 import re
 import pytest
@@ -81,7 +79,7 @@ def test_process_chain(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm"])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(
@@ -127,7 +125,7 @@ def test_process_chain2(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
+    clean_up_files(slist.thread.db_files + ["white.pnm"])
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -170,7 +168,7 @@ def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -210,7 +208,7 @@ def test_error_in_process_chain1(rotated_qbfox_image, clean_up_files):
 
     assert asserts == 1, "Caught error trying to process deleted page"
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -245,7 +243,7 @@ def test_error_in_process_chain2(rotated_qbfox_image, clean_up_files):
 
     assert asserts == 0, "No error thrown"
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -290,4 +288,4 @@ def test_error_in_process_chain3(rotated_qbfox_image, clean_up_files):
 
     assert asserts > 0, "Didn't hang waiting for deleted page"
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])

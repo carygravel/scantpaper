@@ -28,7 +28,7 @@ def test_import_ppm(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.ppm"])
+    clean_up_files(slist.thread.db_files + ["test.ppm"])
 
 
 def test_import_corrupt_png(clean_up_files):
@@ -66,4 +66,4 @@ def test_import_corrupt_png(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.png"])
+    clean_up_files(slist.thread.db_files + ["test.png"])

@@ -1,7 +1,6 @@
 "Test importing TIFF"
 
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
@@ -31,7 +30,7 @@ def test_import_tiff(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.tif"])
+    clean_up_files(slist.thread.db_files + ["test.tif"])
 
 
 def test_import_tiff_with_units(clean_up_files):
@@ -66,7 +65,7 @@ def test_import_tiff_with_units(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.tif"])
+    clean_up_files(slist.thread.db_files + ["test.tif"])
 
 
 def test_import_tiff_with_error(clean_up_files):
@@ -121,7 +120,7 @@ def test_import_tiff_with_error(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.tif"])
+    clean_up_files(slist.thread.db_files + ["test.tif"])
 
 
 def test_import_multipage_tiff(clean_up_files):
@@ -145,9 +144,7 @@ def test_import_multipage_tiff(clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.tif", "test2.tif"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.tif", "test2.tif"])
 
 
 def test_import_linked_tiff(clean_up_files):
@@ -175,9 +172,7 @@ def test_import_linked_tiff(clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.tif", "test2.tif"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.tif", "test2.tif"])
 
 
 def test_import_multiple_tiffs_with_corrupt(clean_up_files):
@@ -219,10 +214,7 @@ def test_import_multiple_tiffs_with_corrupt(clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db"]
-        + [f"{i}.tif" for i in range(1, 11)]
-    )
+    clean_up_files(slist.thread.db_files + [f"{i}.tif" for i in range(1, 11)])
 
 
 def test_cancel_import_tiff(import_in_mainloop, clean_up_files):
@@ -268,4 +260,4 @@ def test_cancel_import_tiff(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.tif"])
+    clean_up_files(slist.thread.db_files + ["test.tif"])

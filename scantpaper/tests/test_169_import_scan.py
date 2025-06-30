@@ -1,8 +1,6 @@
 "Test importing scan"
 
-from pathlib import Path
 import subprocess
-import tempfile
 import pytest
 from gi.repository import GLib
 from document import Document
@@ -21,4 +19,4 @@ def test_1(clean_up_files):
     dialog = Dialog(title="title", transient_for=window)
     slist = Document()
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
+    clean_up_files(slist.thread.db_files)

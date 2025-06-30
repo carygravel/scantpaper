@@ -2,7 +2,6 @@
 
 import datetime
 import os
-from pathlib import Path
 import re
 import subprocess
 import shutil
@@ -35,8 +34,8 @@ def test_import_multipage_pdf(clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.tif",
             "test2.tif",
             "test2.pdf",
@@ -151,8 +150,8 @@ startxref
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "page1.tif",
             "page1.pdf",
             "page2.pdf",
@@ -206,8 +205,8 @@ def test_import_pdf_bw(clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.tif",
             "test.png",
             "test.pdf",
@@ -258,8 +257,8 @@ def test_import_pdf_with_error(clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.tif",
             "test2.tif",
             "test2.pdf",
@@ -314,8 +313,8 @@ def test_import_encrypted_pdf(clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.tif",
             "input.pdf",
             "output.pdf",
@@ -376,8 +375,8 @@ def test_import_pdf_with_metadata(clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.tif",
             "test2.tif",
             "test2.pdf",

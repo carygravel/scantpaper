@@ -1,7 +1,6 @@
 "Test writing TIFF"
 
 import os
-from pathlib import Path
 import re
 import subprocess
 import tempfile
@@ -49,8 +48,8 @@ def test_save_tiff(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "test2.png",
@@ -102,8 +101,8 @@ def test_cancel_save_tiff(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "test.jpg",
@@ -162,8 +161,8 @@ def test_save_tiff_with_error(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "test2.png",
@@ -217,9 +216,7 @@ def test_save_tiff_with_alpha(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.tif"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.png", "test.tif"])
 
 
 def test_save_tiff_as_ps(import_in_mainloop, clean_up_files):
@@ -263,8 +260,8 @@ def test_save_tiff_as_ps(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "te st.ps",
@@ -303,8 +300,8 @@ def test_save_tiff_g4(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.png",
             "test.tif",
             "test2.png",

@@ -2,10 +2,8 @@
 
 import datetime
 import os
-from pathlib import Path
 import re
 import subprocess
-import tempfile
 import pytest
 from gi.repository import GLib
 from document import Document
@@ -54,13 +52,14 @@ def test_save_multipage_pdf(import_in_mainloop, set_text_in_mainloop, clean_up_f
     #########################
 
     clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pdf"]
-        + [f"{i}.pnm" for i in range(1, num + 1)]
+        slist.thread.db_files + ["test.pdf"] + [f"{i}.pnm" for i in range(1, num + 1)]
     )
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_multipage_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_multipage_pdf_with_utf8(
+    import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test writing multipage PDF with utf8"
 
     num = 3  # number of pages
@@ -126,8 +125,7 @@ def test_save_multipage_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, 
     #########################
 
     clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pdf"]
-        + [f"{i}.pnm" for i in range(1, num + 1)]
+        slist.thread.db_files + ["test.pdf"] + [f"{i}.pnm" for i in range(1, num + 1)]
     )
 
 
@@ -164,8 +162,8 @@ def test_save_multipage_pdf_as_ps(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.pdf",
             "test2.ps",
@@ -207,8 +205,8 @@ def test_save_multipage_pdf_as_ps2(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.pdf",
             "test2.ps",
@@ -247,8 +245,8 @@ def test_prepend_pdf(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "test.pdf",
@@ -287,8 +285,8 @@ def test_append_pdf(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "test.pdf",
@@ -327,8 +325,8 @@ def test_prepend_with_space(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "te st.pdf",
@@ -367,8 +365,8 @@ def test_prepend_with_inverted_comma(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "te'st.pdf",
@@ -418,8 +416,8 @@ def test_append_pdf_with_timestamp(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.tif",
             "test.pdf",

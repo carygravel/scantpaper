@@ -1,6 +1,5 @@
 "test Renumber class"
 
-from pathlib import Path
 import subprocess
 import tempfile
 import gi
@@ -19,7 +18,7 @@ def test_1(mainloop_with_timeout, clean_up_files):
     assert dialog.start == 1, "default start for empty document"
     assert dialog.increment == 1, "default step for empty document"
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
+    clean_up_files(slist.thread.db_files)
 
     #########################
 
@@ -81,4 +80,4 @@ def test_1(mainloop_with_timeout, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm"])
+    clean_up_files(slist.thread.db_files + ["test.pnm"])

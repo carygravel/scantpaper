@@ -1,6 +1,5 @@
 "test dialog"
 
-from pathlib import Path
 import subprocess
 import tempfile
 from dialog import Dialog
@@ -96,4 +95,4 @@ def test_page_controls(mainloop_with_timeout, clean_up_files):
         dialog.reset_start_page()
         assert dialog.page_number_start == 2, "PageControls.reset_start_page()"
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
+    clean_up_files(slist.thread.db_files)

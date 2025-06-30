@@ -1,9 +1,7 @@
 "Test user-defined tools"
 
-from pathlib import Path
 import re
 import subprocess
-import tempfile
 from gi.repository import GLib
 from document import Document
 
@@ -61,7 +59,7 @@ def test_udt(import_in_mainloop, set_text_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
+    clean_up_files(slist.thread.db_files + ["white.pnm"])
 
 
 def test_udt_in_place(import_in_mainloop, clean_up_files):
@@ -95,7 +93,7 @@ def test_udt_in_place(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
+    clean_up_files(slist.thread.db_files + ["white.pnm"])
 
 
 def test_udt_page_size(import_in_mainloop, clean_up_files):
@@ -146,9 +144,7 @@ def test_udt_page_size(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "white.pnm", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["white.pnm", "test.pdf"])
 
 
 def test_udt_resolution(import_in_mainloop, set_resolution_in_mainloop, clean_up_files):
@@ -179,7 +175,7 @@ def test_udt_resolution(import_in_mainloop, set_resolution_in_mainloop, clean_up
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
+    clean_up_files(slist.thread.db_files + ["white.pnm"])
 
 
 def test_udt_error(import_in_mainloop, clean_up_files):
@@ -222,4 +218,4 @@ def test_udt_error(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
+    clean_up_files(slist.thread.db_files + ["white.pnm"])

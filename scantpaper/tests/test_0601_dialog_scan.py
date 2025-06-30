@@ -2,7 +2,6 @@
 
 import glob
 import os
-from pathlib import Path
 import subprocess
 import tempfile
 from types import SimpleNamespace
@@ -118,10 +117,7 @@ def test_doc_interaction(clean_up_files):
             dialog.max_pages == 3
         ), "selecting reverse should automatically limit the max number of pages to scan"
 
-        clean_up_files(
-            [Path(tempfile.gettempdir()) / "document.db", "test.pnm"]
-            + glob.glob(f"{tempdir}/*")
-        )
+        clean_up_files(slist.thread.db_files + ["test.pnm"] + glob.glob(f"{tempdir}/*"))
         os.rmdir(tempdir)
 
 

@@ -139,7 +139,7 @@ def test_basics(clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_indexing(clean_up_files):
@@ -190,7 +190,7 @@ def test_indexing(clean_up_files):
         1
     ], "correctly selected page after manual renumber"
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_file_dates(clean_up_files):
@@ -579,9 +579,10 @@ def test_bbox2markup():
 def test_docthread(clean_up_files):
     "tests for DocThread"
 
-    thread = DocThread()
-
-    with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
+    with tempfile.NamedTemporaryFile(suffix=".db") as db, tempfile.NamedTemporaryFile(
+        suffix=".tif"
+    ) as tif:
+        thread = DocThread(db=db.name)
         clean_up_files([tif.name])
         with pytest.raises(FileNotFoundError):
             request = Request("get_file_info", (tif.name, None), thread.responses)
@@ -673,91 +674,97 @@ def test_docthread(clean_up_files):
             thread.monitor(block=True)
 
         clean_up_files(
-            [
+            thread.db_files
+            + [
                 cjb2,
                 djvu,
                 pbm,
                 pdf,
                 png,
-                Path(tempfile.gettempdir()) / "document.db",
             ]
         )
 
 
 def test_db(clean_up_files):
     "test database access"
-    thread = DocThread()
+    with tempfile.NamedTemporaryFile(suffix=".db") as db:
+        thread = DocThread(db=db.name)
 
-    with pytest.raises(StopIteration):
+        with pytest.raises(StopIteration):
+            thread.undo()
+
+        with pytest.raises(StopIteration):
+            thread.redo()
+
+        # spoof the write thread check
+        thread._write_tid = threading.get_native_id()
+        thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 1)
+        page = thread.get_page(number=1)
+        assert page.id == 1, "add page"
+
+        thread = DocThread(db=Path(tempfile.gettempdir()) / "document.db")
+        page = thread.get_page(number=1)
+        assert page.id == 1, "load from db"
+
+        # spoof the write thread check
+        thread._write_tid = threading.get_native_id()
+        thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
+        request = Request("delete_pages", ({"numbers": [1]},), thread.responses)
+        thread.do_delete_pages(request)
+        assert thread.page_number_table()[0][0] == 2, "deleted page"
+
+        page = thread.get_page(number=2)
+        assert isinstance(page, Page), "get_page by number"
+
+        page = thread.get_page(id=2)
+        assert isinstance(page, Page), "get_page by id"
+
         thread.undo()
+        assert thread.page_number_table()[0][0] == 1, "undo"
 
-    with pytest.raises(StopIteration):
         thread.redo()
+        assert thread.page_number_table()[0][0] == 2, "redo"
 
-    # spoof the write thread check
-    thread._write_tid = threading.get_native_id()
-    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 1)
-    page = thread.get_page(number=1)
-    assert page.id == 1, "add page"
+        thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
+        assert not thread.pages_saved(), "not all pages saved"
 
-    thread = DocThread(db=Path(tempfile.gettempdir()) / "document.db")
-    page = thread.get_page(number=1)
-    assert page.id == 1, "load from db"
+        thread.do_set_saved(Request("set_saved", (2, True), thread.responses))
+        assert thread.pages_saved(), "all pages saved"
 
-    # spoof the write thread check
-    thread._write_tid = threading.get_native_id()
-    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
-    request = Request("delete_pages", ({"numbers": [1]},), thread.responses)
-    thread.do_delete_pages(request)
-    assert thread.page_number_table()[0][0] == 2, "deleted page"
+        thread.do_set_text(Request("set_text", (2, "text"), thread.responses))
+        assert thread.get_text(2) == "text", "g/set_text()"
 
-    page = thread.get_page(number=2)
-    assert isinstance(page, Page), "get_page by number"
+        thread.do_set_annotations(
+            Request("set_annotations", (2, "ann"), thread.responses)
+        )
+        assert thread.get_annotations(2) == "ann", "g/set_annotations()"
 
-    page = thread.get_page(id=2)
-    assert isinstance(page, Page), "get_page by id"
+        thread.do_set_resolution(
+            Request("set_resolution", (2, 299.9, 199.9), thread.responses)
+        )
+        assert thread.get_resolution(2) == (299.9, 199.9), "g/set_resolution()"
 
-    thread.undo()
-    assert thread.page_number_table()[0][0] == 1, "undo"
+        thread.do_set_mean_std_dev(
+            Request("set_mean_std_dev", (2, 2.5, 3.4), thread.responses)
+        )
+        assert thread.get_mean_std_dev(2) == (2.5, 3.4), "g/set_mean_std_dev()"
 
-    thread.redo()
-    assert thread.page_number_table()[0][0] == 2, "redo"
+        thread.do_set_mean_std_dev(
+            Request("set_mean_std_dev", (2, [2.5], [3.4]), thread.responses)
+        )
+        assert thread.get_mean_std_dev(2) == (
+            [2.5],
+            [3.4],
+        ), "g/set_mean_std_dev() as list"
 
-    thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
-    assert not thread.pages_saved(), "not all pages saved"
+        page = thread.clone_page(2, 3)
+        assert thread.get_text(3) == "text", "clone_page"
 
-    thread.do_set_saved(Request("set_saved", (2, True), thread.responses))
-    assert thread.pages_saved(), "all pages saved"
+        request = Request("set_selection", ([2],), thread.responses)
+        thread.do_set_selection(request)
+        assert thread.get_selection() == [2], "g/set_selection"
 
-    thread.do_set_text(Request("set_text", (2, "text"), thread.responses))
-    assert thread.get_text(2) == "text", "g/set_text()"
-
-    thread.do_set_annotations(Request("set_annotations", (2, "ann"), thread.responses))
-    assert thread.get_annotations(2) == "ann", "g/set_annotations()"
-
-    thread.do_set_resolution(
-        Request("set_resolution", (2, 299.9, 199.9), thread.responses)
-    )
-    assert thread.get_resolution(2) == (299.9, 199.9), "g/set_resolution()"
-
-    thread.do_set_mean_std_dev(
-        Request("set_mean_std_dev", (2, 2.5, 3.4), thread.responses)
-    )
-    assert thread.get_mean_std_dev(2) == (2.5, 3.4), "g/set_mean_std_dev()"
-
-    thread.do_set_mean_std_dev(
-        Request("set_mean_std_dev", (2, [2.5], [3.4]), thread.responses)
-    )
-    assert thread.get_mean_std_dev(2) == ([2.5], [3.4]), "g/set_mean_std_dev() as list"
-
-    page = thread.clone_page(2, 3)
-    assert thread.get_text(3) == "text", "clone_page"
-
-    request = Request("set_selection", ([2],), thread.responses)
-    thread.do_set_selection(request)
-    assert thread.get_selection() == [2], "g/set_selection"
-
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db"])
+        clean_up_files(thread.db_files)
 
 
 def test_document(clean_up_files):
@@ -814,7 +821,7 @@ def test_document(clean_up_files):
     mlp.run()
     assert ran_callback, "ran finished callback"
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", tiff])
+    clean_up_files(slist.thread.db_files + [tiff])
 
 
 def test_import_scan(
@@ -874,8 +881,8 @@ def test_import_scan(
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.ppm",
             "test2.ppm",
             "test.pnm",

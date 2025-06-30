@@ -55,6 +55,7 @@ class DocThread(SaveThread):
         if self._db is None:
             self._db = self._dir / "document.db"
 
+        self.db_files = [self._db.name, self._db.name + "-wal", self._db.name + "-shm"]
         self._con = {}
         self._cur = {}
         self._write_tid = None
@@ -91,8 +92,8 @@ class DocThread(SaveThread):
         if self._write_tid:
             if self._write_tid != tid:
                 raise RuntimeError(
-                    f'Attempted to write to database with tid {tid}, but the '
-                    f'database was created with tid {self._write_tid}'
+                    f"Attempted to write to database with tid {tid}, but the "
+                    f"database was created with tid {self._write_tid}"
                 )
         else:
             self._write_tid = tid

@@ -1,7 +1,6 @@
 "Test importing DjVu"
 
 import os
-from pathlib import Path
 import re
 import subprocess
 import tempfile
@@ -129,8 +128,8 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.jpg",
             "test.djvu",
             "text.txt",
@@ -184,9 +183,7 @@ def test_import_djvu_with_error(clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.jpg", "test.djvu"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.jpg", "test.djvu"])
 
 
 def mock_import_djvu_txt(self, _text):
@@ -231,9 +228,7 @@ def test_import_djvu_with_error2(monkeypatch, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.jpg", "test.djvu"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.jpg", "test.djvu"])
 
 
 def test_import_multipage_djvu(clean_up_files):
@@ -275,8 +270,8 @@ def test_import_multipage_djvu(clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.jpg",
             "test.djvu",
             "test2.djvu",

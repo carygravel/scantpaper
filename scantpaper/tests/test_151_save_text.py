@@ -1,8 +1,6 @@
 "Test saving text"
 
-from pathlib import Path
 import subprocess
-import tempfile
 from gi.repository import GLib
 from document import Document
 from bboxtree import VERSION
@@ -50,8 +48,8 @@ def test_save_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.txt",
             "test2.txt",
@@ -89,8 +87,8 @@ def test_save_no_text(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.txt",
             "test2.txt",
@@ -133,9 +131,7 @@ def test_save_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.txt"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "test.txt"])
 
 
 def test_save_hocr_as_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
@@ -189,9 +185,7 @@ def test_save_hocr_as_text(import_in_mainloop, set_text_in_mainloop, clean_up_fi
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.txt"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "test.txt"])
 
 
 def test_save_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
@@ -251,8 +245,8 @@ def test_save_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.txt",
             "test2.txt",
@@ -320,9 +314,7 @@ def test_save_hocr_with_encoding(
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.txt"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "test.txt"])
 
 
 def test_save_multipage_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
@@ -410,8 +402,8 @@ def test_save_multipage_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.txt",
             "test2.txt",
@@ -549,8 +541,8 @@ def test_save_hocr_structure(import_in_mainloop, set_text_in_mainloop, clean_up_
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.txt",
             "test2.txt",

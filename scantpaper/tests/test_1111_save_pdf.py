@@ -4,7 +4,6 @@ import datetime
 import glob
 import locale
 import os
-from pathlib import Path
 import queue
 import re
 import subprocess
@@ -51,9 +50,7 @@ def test_do_save_pdf(clean_up_files):
     capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
     assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
-    )
+    clean_up_files(thread.db_files + ["test.pnm", "test.pdf"])
 
 
 def test_save_pdf(clean_up_files):
@@ -134,8 +131,8 @@ def test_save_pdf(clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.png",
             "test.pnm",
             "test.pdf",
@@ -171,9 +168,7 @@ def test_save_pdf_with_locale(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
 
 
 def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
@@ -256,9 +251,7 @@ def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.png", "test.pdf"])
 
 
 def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
@@ -287,9 +280,7 @@ def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_output(["pdfinfo", "test.pdf"])
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.jpg", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.jpg", "test.pdf"])
 
 
 def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
@@ -392,9 +383,7 @@ def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_f
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.png", "test.pdf"])
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -451,13 +440,13 @@ def test_save_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_f
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_with_non_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_pdf_with_non_utf8(
+    import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test writing PDF with non-utf8 in text layer"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -488,9 +477,7 @@ def test_save_pdf_with_non_utf8(import_in_mainloop, set_text_in_mainloop, clean_
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
 
 
 def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
@@ -518,13 +505,14 @@ def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pbm", "test.pdf"]
-        + glob.glob("x-000.p*m")
+        slist.thread.db_files + ["test.pbm", "test.pdf"] + glob.glob("x-000.p*m")
     )
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_without_font(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_pdf_without_font(
+    import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test writing PDF with non-existing font"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
@@ -568,9 +556,7 @@ def test_save_pdf_without_font(import_in_mainloop, set_text_in_mainloop, clean_u
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
 
 
 def test_save_pdf_g4(import_in_mainloop, clean_up_files):
@@ -603,8 +589,7 @@ def test_save_pdf_g4(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
-        + glob.glob("x-000.p*m")
+        slist.thread.db_files + ["test.png", "test.pdf"] + glob.glob("x-000.p*m")
     )
 
 
@@ -666,8 +651,8 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.tif",
             "test.png",
             "test.pdf",
@@ -675,7 +660,9 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_pdf_with_sbs_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_pdf_with_sbs_hocr(
+    import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test writing PDF with text layer right of the image, rather than behind it"
 
     subprocess.run(
@@ -770,9 +757,7 @@ def test_save_pdf_with_sbs_hocr(import_in_mainloop, set_text_in_mainloop, clean_
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.png", "test.pdf"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.png", "test.pdf"])
 
 
 def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
@@ -815,7 +800,7 @@ def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", pnm, pdf])
+    clean_up_files(slist.thread.db_files + [pnm, pdf])
 
 
 def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
@@ -861,7 +846,7 @@ def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", pnm, pdf])
+    clean_up_files(slist.thread.db_files + [pnm, pdf])
 
 
 def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
@@ -928,8 +913,8 @@ def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.png",
             "test.pdf",
             "test2.pdf",
@@ -983,8 +968,8 @@ def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.pdf",
             "test.jpg",

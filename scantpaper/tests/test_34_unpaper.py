@@ -1,6 +1,5 @@
 "Test unpaper"
 
-from pathlib import Path
 import re
 import subprocess
 import tempfile
@@ -210,7 +209,7 @@ def test_unpaper(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm"])
+    clean_up_files(slist.thread.db_files + ["test.pnm"])
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
@@ -283,7 +282,7 @@ def test_unpaper2(import_in_mainloop, set_resolution_in_mainloop, clean_up_files
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm"])
+    clean_up_files(slist.thread.db_files + ["test.pnm"])
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
@@ -369,8 +368,8 @@ def test_unpaper3(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "1.pnm",
             "black.pnm",
@@ -499,8 +498,8 @@ def test_unpaper_rtl(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pbm",
             "1.pbm",
             "2.pbm",

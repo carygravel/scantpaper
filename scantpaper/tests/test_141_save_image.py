@@ -2,9 +2,7 @@
 
 import re
 import os
-from pathlib import Path
 import subprocess
-import tempfile
 from gi.repository import GLib
 from document import Document
 
@@ -48,8 +46,8 @@ def test_save_image(import_in_mainloop, clean_up_files):
     #########################
 
     clean_up_files(
-        [
-            Path(tempfile.gettempdir()) / "document.db",
+        slist.thread.db_files
+        + [
             "test.pnm",
             "test.jpg",
             "test2.png",
@@ -84,9 +82,7 @@ def test_save_image_with_quote(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        [Path(tempfile.gettempdir()) / "document.db", "test.pnm", "te'st/test.jpg"]
-    )
+    clean_up_files(slist.thread.db_files + ["test.pnm", "te'st/test.jpg"])
     os.rmdir("te'st")
 
 
@@ -117,4 +113,4 @@ def test_save_image_with_ampersand(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.pnm", path])
+    clean_up_files(slist.thread.db_files + ["test.pnm", path])

@@ -1,9 +1,7 @@
 "Test rotating"
 
-from pathlib import Path
 import re
 import subprocess
-import tempfile
 from gi.repository import GLib
 from document import Document
 from page import VERSION
@@ -47,10 +45,10 @@ def test_rotate(import_in_mainloop, set_saved_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
+    clean_up_files(slist.thread.db_files + ["test.jpg"])
 
 
-def test_analyse_blank(import_in_mainloop, set_saved_in_mainloop, clean_up_files):
+def test_analyse_blank(import_in_mainloop, clean_up_files):
     "Test analyse"
 
     subprocess.run(["convert", "-size", "10x10", "xc:white", "white.pgm"], check=True)
@@ -72,7 +70,7 @@ def test_analyse_blank(import_in_mainloop, set_saved_in_mainloop, clean_up_files
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pgm"])
+    clean_up_files(slist.thread.db_files + ["white.pgm"])
 
 
 def test_analyse_dark(import_in_mainloop, clean_up_files):
@@ -97,7 +95,7 @@ def test_analyse_dark(import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "black.pgm"])
+    clean_up_files(slist.thread.db_files + ["black.pgm"])
 
 
 def test_threshold(
@@ -143,7 +141,7 @@ def test_threshold(
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
+    clean_up_files(slist.thread.db_files + ["test.jpg"])
 
 
 def test_negate(
@@ -198,7 +196,7 @@ def test_negate(
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "white.pnm"])
+    clean_up_files(slist.thread.db_files + ["white.pnm"])
 
 
 def test_unsharp_mask(
@@ -264,7 +262,7 @@ def test_unsharp_mask(
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
+    clean_up_files(slist.thread.db_files + ["test.jpg"])
 
 
 def test_crop(
@@ -347,7 +345,7 @@ def test_crop(
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.gif"])
+    clean_up_files(slist.thread.db_files + ["test.gif"])
 
 
 def test_split(
@@ -452,7 +450,7 @@ def test_split(
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.gif"])
+    clean_up_files(slist.thread.db_files + ["test.gif"])
 
 
 def test_brightness_contrast(
@@ -507,4 +505,4 @@ def test_brightness_contrast(
 
     #########################
 
-    clean_up_files([Path(tempfile.gettempdir()) / "document.db", "test.jpg"])
+    clean_up_files(slist.thread.db_files + ["test.jpg"])
