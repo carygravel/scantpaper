@@ -79,7 +79,10 @@ def set_annotations_in_mainloop():
     def anonymous(slist, page_id, annotations):
         mlp = GLib.MainLoop()
         slist.thread.send(
-            "set_annotations", page_id, annotations, finished_callback=lambda response: mlp.quit()
+            "set_annotations",
+            page_id,
+            annotations,
+            finished_callback=lambda response: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
@@ -94,7 +97,11 @@ def set_resolution_in_mainloop():
     def anonymous(slist, page_id, xres, yres):
         mlp = GLib.MainLoop()
         slist.thread.send(
-            "set_resolution", page_id, xres, yres, finished_callback=lambda response: mlp.quit()
+            "set_resolution",
+            page_id,
+            xres,
+            yres,
+            finished_callback=lambda response: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
