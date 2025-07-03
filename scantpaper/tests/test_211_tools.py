@@ -48,12 +48,12 @@ def test_rotate(import_in_mainloop, set_saved_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test.jpg"])
 
 
-def test_analyse_blank(import_in_mainloop, clean_up_files):
+def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
     "Test analyse"
 
     subprocess.run(["convert", "-size", "10x10", "xc:white", "white.pgm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["white.pgm"])
 
@@ -73,12 +73,12 @@ def test_analyse_blank(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + ["white.pgm"])
 
 
-def test_analyse_dark(import_in_mainloop, clean_up_files):
+def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files):
     "Test analyse"
 
     subprocess.run(["convert", "xc:black", "black.pgm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["black.pgm"])
 
@@ -99,13 +99,17 @@ def test_analyse_dark(import_in_mainloop, clean_up_files):
 
 
 def test_threshold(
-    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_saved_in_mainloop,
+    set_text_in_mainloop,
+    temp_db,
+    clean_up_files,
 ):
     "Test threshold"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.jpg"])
     set_saved_in_mainloop(slist, 1, True)
@@ -145,13 +149,17 @@ def test_threshold(
 
 
 def test_negate(
-    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_saved_in_mainloop,
+    set_text_in_mainloop,
+    temp_db,
+    clean_up_files,
 ):
     "Test negate"
 
     subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["white.pnm"])
     set_saved_in_mainloop(slist, 1, True)
@@ -200,13 +208,17 @@ def test_negate(
 
 
 def test_unsharp_mask(
-    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_saved_in_mainloop,
+    set_text_in_mainloop,
+    temp_db,
+    clean_up_files,
 ):
     "Test unsharp mask"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.jpg"])
     set_saved_in_mainloop(slist, 1, True)
@@ -266,13 +278,17 @@ def test_unsharp_mask(
 
 
 def test_crop(
-    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_saved_in_mainloop,
+    set_text_in_mainloop,
+    temp_db,
+    clean_up_files,
 ):
     "Test brightness contrast"
 
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.gif"])
 
@@ -349,13 +365,17 @@ def test_crop(
 
 
 def test_split(
-    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_saved_in_mainloop,
+    set_text_in_mainloop,
+    temp_db,
+    clean_up_files,
 ):
     "Test split"
 
     subprocess.run(["convert", "rose:", "test.gif"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.gif"])
 
@@ -454,13 +474,17 @@ def test_split(
 
 
 def test_brightness_contrast(
-    import_in_mainloop, set_saved_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_saved_in_mainloop,
+    set_text_in_mainloop,
+    temp_db,
+    clean_up_files,
 ):
     "Test brightness contrast"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.jpg"])
     set_saved_in_mainloop(slist, 1, True)

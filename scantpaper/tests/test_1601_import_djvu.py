@@ -13,7 +13,7 @@ from bboxtree import VERSION
 from page import Page
 
 
-def test_import_djvu(clean_up_files):
+def test_import_djvu(clean_up_files, temp_db):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
@@ -59,7 +59,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
         ["djvused", "test.djvu", "-e", "set-meta text.txt", "-s"], check=True
     )
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 
@@ -191,7 +191,7 @@ def mock_import_djvu_txt(self, _text):
     raise ValueError("Error parsing djvu text")
 
 
-def test_import_djvu_with_error2(monkeypatch, clean_up_files):
+def test_import_djvu_with_error2(monkeypatch, temp_db, clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
@@ -203,7 +203,7 @@ def test_import_djvu_with_error2(monkeypatch, clean_up_files):
     # apply the monkeypatch for Page.import_djvu_txt to mock_import_djvu_txt
     monkeypatch.setattr(Page, "import_djvu_txt", mock_import_djvu_txt)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 

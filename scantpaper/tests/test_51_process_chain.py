@@ -13,7 +13,7 @@ from unpaper import Unpaper
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain(clean_up_files):
+def test_process_chain(temp_db, clean_up_files):
     "Test process chain"
 
     unpaper = Unpaper()
@@ -38,7 +38,7 @@ def test_process_chain(clean_up_files):
         ],
         check=True,
     )
-    slist = Document()
+    slist = Document(db=temp_db)
 
     asserts = 0
 
@@ -86,7 +86,7 @@ def test_process_chain(clean_up_files):
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain2(clean_up_files):
+def test_process_chain2(temp_db, clean_up_files):
     "Test process chain"
 
     subprocess.run(
@@ -99,7 +99,7 @@ def test_process_chain2(clean_up_files):
         ],
         check=True,
     )
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
     slist.import_scan(
@@ -129,10 +129,10 @@ def test_process_chain2(clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
+def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files):
     "Test tesseract in process chain"
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     asserts = 0
 
@@ -172,10 +172,10 @@ def test_tesseract_in_process_chain(rotated_qbfox_image, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain1(rotated_qbfox_image, clean_up_files):
+def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -212,10 +212,10 @@ def test_error_in_process_chain1(rotated_qbfox_image, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain2(rotated_qbfox_image, clean_up_files):
+def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -247,10 +247,10 @@ def test_error_in_process_chain2(rotated_qbfox_image, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain3(rotated_qbfox_image, clean_up_files):
+def test_error_in_process_chain3(temp_db, rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     asserts = 0
     mlp = GLib.MainLoop()

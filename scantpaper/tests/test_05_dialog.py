@@ -73,12 +73,12 @@ def test_dialog():
     assert True, "no crash due to undefined response"
 
 
-def test_page_controls(mainloop_with_timeout, clean_up_files):
+def test_page_controls(temp_db, mainloop_with_timeout, clean_up_files):
     "test PageControls"
     dialog = PageControls(title="title", transient_for=Gtk.Window())
     assert isinstance(dialog, PageControls), "Created PageControls dialog"
 
-    slist = Document()
+    slist = Document(db=temp_db)
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
     with tempfile.TemporaryDirectory() as tempdir:
         slist.import_scan(

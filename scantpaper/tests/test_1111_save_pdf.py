@@ -18,13 +18,13 @@ from basethread import Request
 from page import Page
 
 
-def test_do_save_pdf(clean_up_files):
+def test_do_save_pdf(temp_db, clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    thread = DocThread()
+    thread = DocThread(db=temp_db)
     thread._write_tid = threading.get_native_id()
     tdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
     _number, _thumb, page_id = thread.add_page(
@@ -53,13 +53,13 @@ def test_do_save_pdf(clean_up_files):
     clean_up_files(thread.db_files + ["test.pnm", "test.pdf"])
 
 
-def test_save_pdf(clean_up_files):
+def test_save_pdf(temp_pnm, temp_db, clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     asserts = 0
 
@@ -80,7 +80,7 @@ def test_save_pdf(clean_up_files):
         mlp.quit()
 
     slist.import_files(
-        paths=["test.pnm"],
+        paths=[temp_pnm],
         started_callback=import_files_started_cb,
         finished_callback=import_files_finished_cb,
     )
@@ -134,7 +134,7 @@ def test_save_pdf(clean_up_files):
         slist.thread.db_files
         + [
             "test.png",
-            "test.pnm",
+            temp_pnm,
             "test.pdf",
             "test-1.ppm",
         ]
@@ -283,10 +283,16 @@ def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test.jpg", "test.pdf"])
 
 
-def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_pdf_with_hocr(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_db,
+    temp_pdf,
+    temp_png,
+    clean_up_files,
+):
     "Test writing PDF with text layer from hocr"
 
-    # Create test image
     subprocess.run(
         [
             "convert",
@@ -306,21 +312,21 @@ def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_f
             "label:The quick brown fox",
             "-border",
             "20x10",
-            "test.png",
+            temp_png,
         ],
         check=True,
     )
-    info = subprocess.check_output(["identify", "test.png"], text=True)
+    info = subprocess.check_output(["identify", temp_png], text=True)
     width, height = None, None
     regex = re.search(r"(\d+)+x(\d+)", info)
     if regex:
         width, height = regex.group(1), regex.group(2)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png])
 
-    hocr = """<?xml version="1.0" encoding="UTF-8"?>
+    hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -331,7 +337,7 @@ def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_f
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word ocrp_wconf'/>
  </head>
  <body>
-  <div class='ocr_page' id='page_1' title='image "test.png"; bbox 0 0 550 80; ppageno 0'>
+  <div class='ocr_page' id='page_1' title='image "{temp_png}"; bbox 0 0 550 80; ppageno 0'>
    <div class='ocr_carea' id='block_1_1' title="bbox 20 19 527 67">
     <p class='ocr_par' id='par_1_1' lang='eng' title="bbox 20 19 527 67">
      <span class='ocr_line' id='line_1_1' title="bbox 20 19 527 67; baseline 0 -10; x_size 47; x_descenders 9; x_ascenders 10">
@@ -353,14 +359,14 @@ def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_f
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    import_in_mainloop(slist, ["test.pdf"])
+    import_in_mainloop(slist, [temp_pdf])
 
     # Because we cannot reproduce the exact typeface used
     # in the original, we cannot expect to be able to
@@ -373,7 +379,7 @@ def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_f
     # assert re.search(r"The.+quick.+brown.+fox", slist.data[1][2].annotations) \
     #     is not None, 'import annotations'
 
-    capture = subprocess.check_output(["pdftotext", "test.pdf", "-"], text=True)
+    capture = subprocess.check_output(["pdftotext", temp_pdf, "-"], text=True)
     assert re.search(
         r"The.*quick.*brown.*fox", capture, re.DOTALL
     ), "PDF with expected text"
@@ -383,7 +389,7 @@ def test_save_pdf_with_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_f
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.png", "test.pdf"])
+    clean_up_files(slist.thread.db_files + [temp_png, temp_pdf])
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -661,7 +667,12 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
 
 
 def test_save_pdf_with_sbs_hocr(
-    import_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_png,
+    temp_db,
+    temp_pdf,
+    clean_up_files,
 ):
     "Test writing PDF with text layer right of the image, rather than behind it"
 
@@ -684,21 +695,21 @@ def test_save_pdf_with_sbs_hocr(
             "label:The quick brown fox",
             "-border",
             "20x10",
-            "test.png",
+            temp_png,
         ],
         check=True,
     )
-    info = subprocess.check_output(["identify", "test.png"], text=True)
+    info = subprocess.check_output(["identify", temp_png], text=True)
     width, height = None, None
     regex = re.search(r"(\d+)+x(\d+)", info)
     if regex:
         width, height = regex.group(1), regex.group(2)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png])
 
-    hocr = """<?xml version="1.0" encoding="UTF-8"?>
+    hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -710,7 +721,7 @@ def test_save_pdf_with_sbs_hocr(
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'/>
 </head>
 <body>
-  <div class='ocr_page' id='page_1' title='image "test.png"; bbox 0 0 452 57; ppageno 0'>
+  <div class='ocr_page' id='page_1' title='image "{temp_png}"; bbox 0 0 452 57; ppageno 0'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 9 449 55">
     <p class='ocr_par' dir='ltr' id='par_1_1' title="bbox 1 9 449 55">
      <span class='ocr_line' id='line_1_1' title="bbox 1 9 449 55; baseline 0 -10">
@@ -731,7 +742,7 @@ def test_save_pdf_with_sbs_hocr(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf,
         list_of_pages=[slist.data[0][2]],
         options={"text_position": "right"},
         finished_callback=lambda response: mlp.quit(),
@@ -739,12 +750,12 @@ def test_save_pdf_with_sbs_hocr(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["pdftotext", "test.pdf", "-"], text=True)
+    example = subprocess.check_output(["pdftotext", temp_pdf, "-"], text=True)
     assert re.search(
         r"The.*quick.*brown.*fox", example, re.DOTALL
     ), "PDF with expected text"
 
-    import_in_mainloop(slist, ["test.pdf"])
+    import_in_mainloop(slist, [temp_pdf])
 
     # Because we cannot reproduce the exact typeface used
     # in the original, we cannot expect to be able to
@@ -757,7 +768,7 @@ def test_save_pdf_with_sbs_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.png", "test.pdf"])
+    clean_up_files(slist.thread.db_files + [temp_png, temp_pdf])
 
 
 def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):

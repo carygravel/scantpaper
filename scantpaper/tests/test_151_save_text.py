@@ -6,14 +6,21 @@ from document import Document
 from bboxtree import VERSION
 
 
-def test_save_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_text(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_txt,
+    clean_up_files,
+):
     "Test saving text"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -26,10 +33,10 @@ def test_save_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_text(
-        path="test.txt",
+        path=temp_txt,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": "cp %i test2.txt",
+            "post_save_hook": "cp %i test.txt",
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -38,11 +45,10 @@ def test_save_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     mlp.run()
 
     assert (
-        subprocess.check_output(["cat", "test.txt"], text=True) == "The quick brown fox"
+        subprocess.check_output(["cat", temp_txt], text=True) == "The quick brown fox"
     ), "saved ASCII"
     assert (
-        subprocess.check_output(["cat", "test2.txt"], text=True)
-        == "The quick brown fox"
+        subprocess.check_output(["cat", "test.txt"], text=True) == "The quick brown fox"
     ), "ran post-save hook"
 
     #########################
@@ -50,9 +56,9 @@ def test_save_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pnm",
+            temp_pnm,
+            temp_txt,
             "test.txt",
-            "test2.txt",
         ]
     )
 
@@ -96,14 +102,21 @@ def test_save_no_text(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_utf8(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_txt,
+    clean_up_files,
+):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -117,7 +130,7 @@ def test_save_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_text(
-        path="test.txt",
+        path=temp_txt,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -125,23 +138,30 @@ def test_save_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     mlp.run()
 
     assert (
-        subprocess.check_output(["cat", "test.txt"], text=True)
+        subprocess.check_output(["cat", temp_txt], text=True)
         == "пени способствовала сохранению"
     ), "saved ASCII"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.txt"])
+    clean_up_files(slist.thread.db_files + [temp_pnm, temp_txt])
 
 
-def test_save_hocr_as_text(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_hocr_as_text(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_txt,
+    clean_up_files,
+):
     "Test saving HOCR as text"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -172,7 +192,7 @@ def test_save_hocr_as_text(import_in_mainloop, set_text_in_mainloop, clean_up_fi
 
     mlp = GLib.MainLoop()
     slist.save_text(
-        path="test.txt",
+        path=temp_txt,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -180,22 +200,29 @@ def test_save_hocr_as_text(import_in_mainloop, set_text_in_mainloop, clean_up_fi
     mlp.run()
 
     assert (
-        subprocess.check_output(["cat", "test.txt"], text=True) == "The quick brown fox"
+        subprocess.check_output(["cat", temp_txt], text=True) == "The quick brown fox"
     ), "saved hOCR"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.txt"])
+    clean_up_files(slist.thread.db_files + [temp_pnm, temp_txt])
 
 
-def test_save_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_hocr(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_txt,
+    clean_up_files,
+):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -226,10 +253,10 @@ def test_save_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
-        path="test.txt",
+        path=temp_txt,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": "cp %i test2.txt",
+            "post_save_hook": "cp %i test.txt",
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -237,9 +264,9 @@ def test_save_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert subprocess.check_output(["cat", "test.txt"], text=True) == hocr, "saved hOCR"
+    assert subprocess.check_output(["cat", temp_txt], text=True) == hocr, "saved hOCR"
     assert (
-        subprocess.check_output(["cat", "test2.txt"], text=True) == hocr
+        subprocess.check_output(["cat", "test.txt"], text=True) == hocr
     ), "ran post-save hook"
 
     #########################
@@ -247,23 +274,28 @@ def test_save_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pnm",
+            temp_pnm,
+            temp_txt,
             "test.txt",
-            "test2.txt",
         ]
     )
 
 
 def test_save_hocr_with_encoding(
-    import_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_txt,
+    clean_up_files,
 ):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -303,28 +335,35 @@ def test_save_hocr_with_encoding(
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
-        path="test.txt",
+        path=temp_txt,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert subprocess.check_output(["cat", "test.txt"], text=True) == hocr, "saved hOCR"
+    assert subprocess.check_output(["cat", temp_txt], text=True) == hocr, "saved hOCR"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.txt"])
+    clean_up_files(slist.thread.db_files + [temp_pnm, temp_txt])
 
 
-def test_save_multipage_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_multipage_hocr(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_txt,
+    clean_up_files,
+):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm", "test.pnm"])
+    import_in_mainloop(slist, [temp_pnm, temp_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -356,7 +395,7 @@ def test_save_multipage_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
-        path="test.txt",
+        path=temp_txt,
         list_of_pages=[slist.data[0][2], slist.data[1][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -397,28 +436,34 @@ def test_save_multipage_hocr(import_in_mainloop, set_text_in_mainloop, clean_up_
  </body>
 </html>
 """
-    assert subprocess.check_output(["cat", "test.txt"], text=True) == hocr, "saved hOCR"
+    assert subprocess.check_output(["cat", temp_txt], text=True) == hocr, "saved hOCR"
 
     #########################
 
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pnm",
-            "test.txt",
-            "test2.txt",
+            temp_pnm,
+            temp_txt,
         ]
     )
 
 
-def test_save_hocr_structure(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_hocr_structure(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_txt,
+    clean_up_files,
+):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
@@ -477,7 +522,7 @@ def test_save_hocr_structure(import_in_mainloop, set_text_in_mainloop, clean_up_
 
     mlp = GLib.MainLoop()
     slist.save_hocr(
-        path="test.txt",
+        path=temp_txt,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -536,15 +581,14 @@ def test_save_hocr_structure(import_in_mainloop, set_text_in_mainloop, clean_up_
  </body>
 </html>
 """
-    assert subprocess.check_output(["cat", "test.txt"], text=True) == hocr, "saved hOCR"
+    assert subprocess.check_output(["cat", temp_txt], text=True) == hocr, "saved hOCR"
 
     #########################
 
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pnm",
-            "test.txt",
-            "test2.txt",
+            temp_pnm,
+            temp_txt,
         ]
     )

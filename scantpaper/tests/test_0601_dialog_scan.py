@@ -54,7 +54,7 @@ def test_basics():
     assert dialog.framen.is_sensitive(), "with no source, num-page gui not ghosted"
 
 
-def test_doc_interaction(clean_up_files):
+def test_doc_interaction(clean_up_files, temp_db):
     "test interaction of scan dialog and document"
 
     window = Gtk.Window()
@@ -63,7 +63,7 @@ def test_doc_interaction(clean_up_files):
         title="title",
         transient_for=window,
     )
-    slist = Document()
+    slist = Document(db=temp_db)
     dialog = Scan(
         title="title",
         transient_for=window,

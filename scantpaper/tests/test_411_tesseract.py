@@ -38,7 +38,7 @@ def test_get_tesseract_codes():
     assert isinstance(get_tesseract_codes(), list), "get_tesseract_codes() returns list"
 
 
-def test_tesseract_in_thread(import_in_mainloop, clean_up_files):
+def test_tesseract_in_thread(temp_db, import_in_mainloop, clean_up_files):
     "Test importing PDF"
 
     args = [
@@ -59,7 +59,7 @@ def test_tesseract_in_thread(import_in_mainloop, clean_up_files):
     ]
     subprocess.run(args, check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
 

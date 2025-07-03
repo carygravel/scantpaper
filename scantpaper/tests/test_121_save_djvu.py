@@ -12,23 +12,25 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_djvu1(import_in_mainloop, clean_up_files):
+def test_save_djvu1(
+    import_in_mainloop, temp_pnm, temp_png, temp_db, temp_djvu, clean_up_files
+):
     "Test saving a djvu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     slist.save_djvu(
-        path="test.djvu",
+        path=temp_djvu,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": "convert %i test2.png",
+            "post_save_hook": "convert %i " + temp_png,
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -37,12 +39,12 @@ def test_save_djvu1(import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert os.path.getsize("test.djvu") == 1054, "DjVu created with expected size"
+    assert os.path.getsize(temp_djvu) == 1054, "DjVu created with expected size"
     assert slist.thread.pages_saved(), "pages tagged as saved"
 
-    capture = subprocess.check_output(["identify", "test2.png"], text=True)
+    capture = subprocess.check_output(["identify", temp_png], text=True)
     assert re.search(
-        r"test2.png PNG 70x46 70x46\+0\+0 8-bit sRGB", capture
+        rf"{temp_png} PNG 70x46 70x46\+0\+0 8-bit sRGB", capture
     ), "ran post-save hook"
 
     #########################
@@ -50,24 +52,31 @@ def test_save_djvu1(import_in_mainloop, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pnm",
-            "test.djvu",
-            "test2.png",
+            temp_pnm,
+            temp_djvu,
+            temp_png,
         ]
     )
 
 
-def test_save_djvu_text_layer(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_djvu_text_layer(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_djvu,
+    clean_up_files,
+):
     "Test saving a djvu with text layer"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -78,7 +87,7 @@ def test_save_djvu_text_layer(import_in_mainloop, set_text_in_mainloop, clean_up
         '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
     )
     slist.save_djvu(
-        path="test.djvu",
+        path=temp_djvu,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -86,18 +95,21 @@ def test_save_djvu_text_layer(import_in_mainloop, set_text_in_mainloop, clean_up
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["djvutxt", "test.djvu"], text=True)
+    capture = subprocess.check_output(["djvutxt", temp_djvu], text=True)
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.djvu"])
+    clean_up_files(slist.thread.db_files + [temp_pnm, temp_djvu])
 
 
 def test_save_djvu_with_hocr(
     import_in_mainloop,
     set_text_in_mainloop,
     set_annotations_in_mainloop,
+    temp_pnm,
+    temp_db,
+    temp_djvu,
     clean_up_files,
 ):
     "Test saving a djvu with text layer from HOCR"
@@ -105,11 +117,11 @@ def test_save_djvu_with_hocr(
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm])
 
     hocr = """<!DOCTYPE html
  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
@@ -137,7 +149,7 @@ def test_save_djvu_with_hocr(
     page.import_annotations(hocr)
     set_annotations_in_mainloop(slist, 1, page.annotations)
     slist.save_djvu(
-        path="test.djvu",
+        path=temp_djvu,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -145,11 +157,11 @@ def test_save_djvu_with_hocr(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["djvutxt", "test.djvu"], text=True)
+    capture = subprocess.check_output(["djvutxt", temp_djvu], text=True)
     assert re.search(r"The quick — brown fox", capture), "DjVu with expected text"
 
     capture = subprocess.check_output(
-        ["djvused", "test.djvu", "-e", "select 1; print-ant"]
+        ["djvused", temp_djvu, "-e", "select 1; print-ant"]
     )
     assert re.search(
         r"The quick — brown fox", codecs.escape_decode(capture)[0].decode("utf-8")
@@ -157,7 +169,7 @@ def test_save_djvu_with_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.djvu"])
+    clean_up_files(slist.thread.db_files + [temp_pnm, temp_djvu])
 
 
 def test_cancel_save_djvu(import_in_mainloop, set_text_in_mainloop, clean_up_files):

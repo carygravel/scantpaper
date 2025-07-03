@@ -11,14 +11,14 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_import_multipage_pdf(clean_up_files):
+def test_import_multipage_pdf(temp_db, clean_up_files):
     "Test importing PDF"
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiffcp", "test.tif", "test.tif", "test2.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test2.pdf", "test2.tif"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 
@@ -160,7 +160,7 @@ startxref
     )
 
 
-def test_import_pdf_bw(clean_up_files):
+def test_import_pdf_bw(clean_up_files, temp_db):
     "Test importing PDF"
 
     options = [
@@ -187,7 +187,7 @@ def test_import_pdf_bw(clean_up_files):
         ["identify", "-format", "%m %G %g %z-bit %r", "test.png"], text=True
     )
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 

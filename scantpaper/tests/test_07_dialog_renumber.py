@@ -10,9 +10,9 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-def test_1(mainloop_with_timeout, clean_up_files):
+def test_1(mainloop_with_timeout, temp_db, clean_up_files):
     "basic tests for Renumber class"
-    slist = Document()
+    slist = Document(db=temp_db)
     dialog = Renumber(document=slist, transient_for=Gtk.Window())
     assert isinstance(dialog, Renumber)
     assert dialog.start == 1, "default start for empty document"

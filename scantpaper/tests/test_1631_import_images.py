@@ -7,12 +7,12 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_import_ppm(clean_up_files):
+def test_import_ppm(temp_db, clean_up_files):
     "Test importing PPM"
 
     subprocess.run(["convert", "rose:", "test.ppm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 
