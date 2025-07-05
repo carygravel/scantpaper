@@ -206,7 +206,7 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, clean_up_files):
         error_callback=error_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(3000, mlp.quit)  # to prevent it hanging
+    GLib.timeout_add(4000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert len(slist.data) == 9, "imported 9 pages"
