@@ -55,12 +55,12 @@ def test_save_image(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_image_with_quote(import_in_mainloop, clean_up_files):
+def test_save_image_with_quote(temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 
