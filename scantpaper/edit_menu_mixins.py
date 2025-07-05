@@ -26,8 +26,6 @@ class EditMenuMixins:
 
         # Update menus/buttons
         self._update_uimanager()
-        self._actions["undo"].set_enabled(False)
-        self._actions["redo"].set_enabled(True)
 
     def unundo(self, _action, _param):
         "Restore next snapshot"
@@ -36,8 +34,6 @@ class EditMenuMixins:
 
         # Update menus/buttons
         self._update_uimanager()
-        self._actions["undo"].set_enabled(True)
-        self._actions["redo"].set_enabled(False)
 
     def properties(self, _action, _param):
         "Display and manage the properties dialog for setting X and Y resolution."
