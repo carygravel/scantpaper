@@ -76,7 +76,7 @@ class DocThread(SaveThread):
         "execute a query on the database"
         self._connect()
         tid = threading.get_native_id()
-        logger.debug(f"_execute({query, params}) in tid {tid}")
+        logger.debug("_execute(%s, %s) in tid %s", query, params, tid)
         if params is None:
             self._cur[tid].execute(query)
         else:
@@ -284,7 +284,6 @@ class DocThread(SaveThread):
 
     def do_delete_pages(self, request):
         "delete a page from the database"
-        logger.debug("do_delete_pages called with args: %s", request.args)
         self._check_write_tid()
         self._take_snapshot()
         kwargs = request.args[0]
@@ -313,7 +312,6 @@ class DocThread(SaveThread):
                 "remove": row_ids,
             }
         )
-        logger.debug("leaving do_delete_pages")
 
     def find_row_id_by_page_number(self, number):
         "find a row id by its page number"
@@ -353,8 +351,6 @@ class DocThread(SaveThread):
 
     def get_page(self, **kwargs):
         "get a page from the database"
-        logger.debug("get_page called with kwargs: %s", kwargs)
-        logger.debug("page_number_table: %s", self.page_number_table())
         if "number" in kwargs:
             self._execute(
                 """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id, image.id
@@ -491,7 +487,6 @@ class DocThread(SaveThread):
             row = list(row)
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
-        logger.debug("_get_snapshot() for action_id %s: %s", self._action_id, rows)
         return rows
 
     def _get_snapshots(self):
@@ -530,12 +525,10 @@ class DocThread(SaveThread):
 
     def undo(self):
         "restore the state of the last snapshot"
-        logger.debug(f"in undo: action_id={self._action_id}")
         if not self.can_undo():
             raise StopIteration("No more undo steps possible")
 
         self._action_id -= 1
-        logger.debug(f"leaving undo: action_id={self._action_id}")
         return self._get_snapshot()
 
     def redo(self):

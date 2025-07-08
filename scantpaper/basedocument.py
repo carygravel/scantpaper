@@ -102,9 +102,6 @@ class BaseDocument(SimpleList):
         self.row_changed_signal = self.get_model().connect(
             "row-changed", self._on_row_changed
         )
-        # self.row_deleted_signal = self.get_model().connect(
-        #     "row-deleted", self._on_row_deleted
-        # )
         self.selection_changed_signal = self.get_selection().connect(
             "changed", self._on_selection_changed
         )
@@ -121,14 +118,12 @@ class BaseDocument(SimpleList):
             uuids.append(self.data[i][2])
 
         self.get_model().handler_block(self.row_changed_signal)
-        # self.get_model().handler_block(self.row_deleted_signal)
 
         # Sort pages
         self._manual_sort_by_column(0)
 
         # And make sure there are no duplicates
         self.renumber()
-        # self.get_model().handler_unblock(self.row_deleted_signal)
         self.get_model().handler_unblock(self.row_changed_signal)
 
         # Select the renumbered pages via uuid
@@ -302,8 +297,6 @@ class BaseDocument(SimpleList):
         # Block the row-changed signal whilst adding the scan (row) and sorting it.
         if self.row_changed_signal:
             self.get_model().handler_block(self.row_changed_signal)
-        # if self.row_deleted_signal:
-        #     self.get_model().handler_block(self.row_deleted_signal)
 
         # Add to the page list
         if i is None:
@@ -343,8 +336,6 @@ class BaseDocument(SimpleList):
         if self.selection_changed_signal:
             self.get_selection().handler_unblock(self.selection_changed_signal)
 
-        # if self.row_deleted_signal:
-        #     self.get_model().handler_unblock(self.row_deleted_signal)
         if self.row_changed_signal:
             self.get_model().handler_unblock(self.row_changed_signal)
 
@@ -490,7 +481,6 @@ class BaseDocument(SimpleList):
 
         model, paths = self.get_selection().get_selected_rows()
         ids = self.get_selected_indices()
-        logger.info(f"before delete_pages({ids})")
         self.thread.send("delete_pages", {"row_ids": ids}, data_callback=_data_callback)
 
     def delete_selection_extra(self):

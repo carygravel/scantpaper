@@ -1,7 +1,6 @@
 "main application"
 
 # TODO:
-# undo doesn't work after deleting a page
 # profile not set on startup
 # fix readme
 # add db metadata to allow migrations
