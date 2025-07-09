@@ -36,7 +36,7 @@ class DocThread(SaveThread):
     _action_id = 0
     _db = None
     _dir = None
-    number_undo_steps = 10
+    # number_undo_steps = 10
 
     def __init__(self, *args, **kwargs):
         for key in ["dir", "db"]:
@@ -109,7 +109,7 @@ class DocThread(SaveThread):
             logger.warning(
                 "Database %s already exists, not creating it again", self._db
             )
-            self._execute("SELECT MAX(action_id) FROM undo_buffer")
+            self._execute("SELECT MAX(action_id) FROM page_order")
             row = self._fetchone()
             if row:
                 self._action_id = row[0]
@@ -136,7 +136,7 @@ class DocThread(SaveThread):
                 FOREIGN KEY (image_id) REFERENCES image(id))"""
         )
         self._execute(
-            """CREATE TABLE undo_buffer(
+            """CREATE TABLE page_order(
                 action_id INTEGER NOT NULL,
                 row_id INTEGER NOT NULL,
                 page_number INTEGER NOT NULL,
@@ -159,7 +159,7 @@ class DocThread(SaveThread):
         )
         if not self._fetchone():
             raise TypeError(f"File '{self._db}' is not a gsscan2pdf document")
-        self._execute("SELECT MAX(action_id) FROM undo_buffer")
+        self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()
         if row:
             self._action_id = row[0]
@@ -224,7 +224,7 @@ class DocThread(SaveThread):
 
         if number is None:
             self._execute(
-                "SELECT MAX(page_number) FROM undo_buffer WHERE action_id = ?",
+                "SELECT MAX(page_number) FROM page_order WHERE action_id = ?",
                 (self._action_id,),
             )
             number = self._fetchone()[0]
@@ -239,14 +239,14 @@ class DocThread(SaveThread):
         image_id, thumb = self._insert_image(page)
         page_id = self._insert_page(page, image_id)
         self._execute(
-            "SELECT MAX(row_id) FROM undo_buffer WHERE action_id = ?",
+            "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
             (self._action_id,),
         )
         max_row_id = self._fetchone()[0]
         if max_row_id is None:
             max_row_id = -1
         self._execute(
-            """INSERT INTO undo_buffer (action_id, row_id, page_number, page_id)
+            """INSERT INTO page_order (action_id, row_id, page_number, page_id)
                VALUES (?, ?, ?, ?)""",
             (
                 self._action_id,
@@ -270,7 +270,7 @@ class DocThread(SaveThread):
         image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
         page_id = self._insert_page(page, image_id)
         self._execute(
-            """UPDATE undo_buffer SET page_number = ?, page_id = ?
+            """UPDATE page_order SET page_number = ?, page_id = ?
                WHERE row_id = ? AND action_id = ?""",
             (
                 number,
@@ -301,7 +301,7 @@ class DocThread(SaveThread):
             raise ValueError("Specify either row_id or number")
 
         self._execute(
-            f"""DELETE FROM undo_buffer
+            f"""DELETE FROM page_order
                 WHERE row_id IN ({", ".join(["?"]*len(row_ids))}) AND action_id = ?""",
             (*row_ids, self._action_id),
         )
@@ -316,7 +316,7 @@ class DocThread(SaveThread):
     def find_row_id_by_page_number(self, number):
         "find a row id by its page number"
         self._execute(
-            "SELECT row_id FROM undo_buffer WHERE page_number = ? AND action_id = ?",
+            "SELECT row_id FROM page_order WHERE page_number = ? AND action_id = ?",
             (number, self._action_id),
         )
         row = self._fetchone()
@@ -327,7 +327,7 @@ class DocThread(SaveThread):
     def find_page_number_by_page_id(self, page_id):
         "find a page id by its page number"
         self._execute(
-            "SELECT page_number FROM undo_buffer WHERE page_id = ? AND action_id = ?",
+            "SELECT page_number FROM page_order WHERE page_id = ? AND action_id = ?",
             (page_id, self._action_id),
         )
         row = self._fetchone()
@@ -339,7 +339,7 @@ class DocThread(SaveThread):
         "get data for page number/thumb table"
         self._execute(
             """SELECT page_number, thumb, page_id
-               FROM undo_buffer, page, image
+               FROM page_order, page, image
                WHERE page_id = page.id AND image_id = image.id AND action_id = ?
                ORDER BY page_number""",
             (self._action_id,),
@@ -354,7 +354,7 @@ class DocThread(SaveThread):
         if "number" in kwargs:
             self._execute(
                 """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id, image.id
-                   FROM page, undo_buffer, image
+                   FROM page, page_order, image
                    WHERE page.id = page_id
                     AND image_id = image.id
                     AND page_number = ?
@@ -365,7 +365,7 @@ class DocThread(SaveThread):
             self._execute(
                 """SELECT
                     image, x_res, y_res, mean, std_dev, text, annotations, page_number, image.id
-                   FROM page, undo_buffer, image
+                   FROM page, page_order, image
                    WHERE page.id = page_id
                     AND image_id = image.id
                     AND page_id = ?
@@ -395,7 +395,7 @@ class DocThread(SaveThread):
         self._check_write_tid()
         self._take_snapshot()
         self._execute(
-            """SELECT * FROM page, undo_buffer
+            """SELECT * FROM page, page_order
                 WHERE id = page_id AND page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
@@ -422,14 +422,14 @@ class DocThread(SaveThread):
         self._con[tid].commit()
         new_page_id = self._cur[threading.get_native_id()].lastrowid
         self._execute(
-            "SELECT MAX(row_id) FROM undo_buffer WHERE action_id = ?",
+            "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
             (self._action_id,),
         )
         max_row_id = self._fetchone()[0]
         if max_row_id is None:
             max_row_id = -1
         self._execute(
-            """INSERT INTO undo_buffer (action_id, row_id, page_number, page_id)
+            """INSERT INTO page_order (action_id, row_id, page_number, page_id)
                VALUES (?, ?, ?, ?)""",
             (
                 self._action_id,
@@ -447,12 +447,12 @@ class DocThread(SaveThread):
 
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
-        self._execute("DELETE FROM undo_buffer WHERE action_id > ?", (self._action_id,))
+        self._execute("DELETE FROM page_order WHERE action_id > ?", (self._action_id,))
 
         # copy page numbers and order to buffer
         self._execute(
             """SELECT row_id, page_number, page_id
-                FROM undo_buffer
+                FROM page_order
                 WHERE action_id = ?""",
             (self._action_id,),
         )
@@ -461,14 +461,17 @@ class DocThread(SaveThread):
         self._action_id += 1
         snapshot = [(self._action_id, *row) for row in snapshot]
         self._cur[tid].executemany(
-            """INSERT INTO undo_buffer (action_id, row_id, page_number, page_id)
+            """INSERT INTO page_order (action_id, row_id, page_number, page_id)
                VALUES (?, ?, ?, ?)""",
             snapshot,
         )
 
+        # TODO: implement set number_undo_steps depending on available disk space
+        # TODO: after deleting from selection, page_order, also delete rows in
+        # page & image that are no longer referenced.
         # delete those outside the undo limit
         # self._execute(
-        #     "DELETE FROM undo_buffer WHERE action_id < ?",
+        #     "DELETE FROM page_order WHERE action_id < ?",
         #     (self._action_id - self.number_undo_steps,),
         # )
         self._con[tid].commit()
@@ -477,7 +480,7 @@ class DocThread(SaveThread):
         "fetch the snapshot of the document with the given action id"
         self._execute(
             """SELECT page_number, thumb, page_id
-                FROM undo_buffer, page, image
+                FROM page_order, page, image
                 WHERE action_id = ? AND page_id = page.id AND image_id = image.id
                 ORDER BY page_number""",
             (self._action_id,),
@@ -493,7 +496,7 @@ class DocThread(SaveThread):
         "fetch the snapshot of the document with the given action id"
         self._execute(
             """SELECT action_id, page_number, page_id
-                FROM undo_buffer
+                FROM page_order
                 ORDER BY action_id, page_number"""
         )
         return self._cur[threading.get_native_id()].fetchall()
@@ -513,13 +516,13 @@ class DocThread(SaveThread):
 
     def can_undo(self):
         "checks whether undo is possible"
-        self._execute("SELECT min(action_id) FROM undo_buffer")
+        self._execute("SELECT min(action_id) FROM page_order")
         min_action_id = self._fetchone()[0]
         return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self):
         "checks whether redo is possible"
-        self._execute("SELECT max(action_id) FROM undo_buffer")
+        self._execute("SELECT max(action_id) FROM page_order")
         max_action_id = self._fetchone()[0]
         return max_action_id is not None and max_action_id > self._action_id
 
@@ -577,7 +580,7 @@ class DocThread(SaveThread):
         "Check that all pages have been saved"
         self._execute(
             """SELECT COUNT(id)
-                FROM undo_buffer, page
+                FROM page_order, page
                 WHERE saved = 0 and page_id = id AND action_id = ?""",
             (self._action_id,),
         )
