@@ -12,6 +12,7 @@ import tempfile
 import sqlite3
 import threading
 from PIL import ImageStat, ImageEnhance, ImageOps, ImageFilter
+from const import THUMBNAIL, APPLICATION_ID, USER_VERSION
 from importthread import CancelledError, _note_callbacks
 from savethread import SaveThread
 from i18n import _
@@ -24,8 +25,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, GdkPixbuf  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
-
-THUMBNAIL = 100  # pixels
 
 
 class DocThread(SaveThread):
@@ -102,19 +101,15 @@ class DocThread(SaveThread):
         "open a saved database"
         self._check_write_tid()
         self._db = request.args[0]
-        self._execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='page';"
-        )
-        if self._fetchone():
+        if pathlib.Path(self._db).exists() and os.path.getsize(self._db):
             logger.warning(
                 "Database %s already exists, not creating it again", self._db
             )
-            self._execute("SELECT MAX(action_id) FROM page_order")
-            row = self._fetchone()
-            if row:
-                self._action_id = row[0]
+            self.open(self._db)
             return
         self._execute("PRAGMA journal_mode=WAL")
+        self._execute(f"PRAGMA application_id={APPLICATION_ID}")
+        self._execute(f"PRAGMA user_version={USER_VERSION}")
         self.isolation_level = "IMMEDIATE"
         self._execute(
             """CREATE TABLE image(
@@ -154,11 +149,19 @@ class DocThread(SaveThread):
         "open a saved database"
         self._db = db
         self._connect()
-        self._execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='page'"
-        )
-        if not self._fetchone():
-            raise TypeError(f"File '{self._db}' is not a gsscan2pdf document")
+        self._execute("PRAGMA application_id")
+        application_id = self._fetchone()
+        if application_id and application_id[0]:
+            print(f"application_id {application_id}")
+            if application_id[0] != APPLICATION_ID:
+                raise TypeError("%s is not a gscan2pdf session file", self._db)
+        self._execute("PRAGMA user_version")
+        user_version = self._fetchone()
+        if user_version:
+            if user_version[0] > USER_VERSION:
+                logger.warning(
+                    "%s was created by a newer version of gscan2pdf.", self._db
+                )
         self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()
         if row:

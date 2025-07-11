@@ -17,12 +17,8 @@ def test_1(mainloop_with_timeout, temp_db, clean_up_files):
     assert isinstance(dialog, Renumber)
     assert dialog.start == 1, "default start for empty document"
     assert dialog.increment == 1, "default step for empty document"
+    assert dialog.range == "selected", "default range for empty document"
 
-    clean_up_files(slist.thread.db_files)
-
-    #########################
-
-    slist = Document()
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
     with tempfile.TemporaryDirectory() as tempdir:
         kwargs = {
@@ -39,8 +35,7 @@ def test_1(mainloop_with_timeout, temp_db, clean_up_files):
         loop1.run()
         slist.select(1)
         assert slist.get_selected_indices() == [1], "selected"
-        dialog.range = "selected"
-        dialog.document = slist
+        dialog.update()  # normally triggered by select()
         assert dialog.start == 2, "start for document with start clash"
         assert dialog.increment == 1, "step for document with start clash"
 
@@ -56,9 +51,8 @@ def test_1(mainloop_with_timeout, temp_db, clean_up_files):
         slist.import_scan(**kwargs)
         loop2.run()
         slist.select([2, 3])
-        selected = slist.get_selected_indices()
-        assert selected == [2, 3], "selected"
-        dialog.range = "selected"
+        assert slist.get_selected_indices() == [2, 3], "selected"
+        dialog.update()  # normally triggered by select()
         assert dialog.start == 4, "start for document with start and step clash"
         assert dialog.increment == 1, "step for document with start and step clash"
 

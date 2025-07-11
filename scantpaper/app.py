@@ -3,7 +3,6 @@
 # TODO:
 # profile not set on startup
 # fix readme
-# add db metadata to allow migrations
 # hook ocrmypdf progress into the GUI
 # package for Debian
 # package pytest-black for Debian

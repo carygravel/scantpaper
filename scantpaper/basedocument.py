@@ -18,7 +18,6 @@ from docthread import DocThread
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk  # pylint: disable=wrong-import-position
 
-THUMBNAIL = 100  # pixels
 ID_PAGE = 1
 ID_URI = 0
 INFINITE = -1
@@ -31,9 +30,6 @@ class BaseDocument(SimpleList):
 
     jobs_completed = 0
     jobs_total = 0
-    # Default thumbnail sizes
-    heightt = THUMBNAIL
-    widtht = THUMBNAIL
     paper_sizes = {}
 
     def __init__(self, **kwargs):

@@ -7,12 +7,12 @@ from document import Document
 from page import VERSION
 
 
-def test_rotate(import_in_mainloop, set_saved_in_mainloop, clean_up_files):
+def test_rotate(temp_db, import_in_mainloop, set_saved_in_mainloop, clean_up_files):
     "Test rotating"
 
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.jpg"])
     set_saved_in_mainloop(slist, 1, True)

@@ -141,14 +141,14 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
     )
 
 
-def test_save_pdf_with_locale(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_locale(temp_db, import_in_mainloop, clean_up_files):
     "Test with non-English locale"
     locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -225,13 +225,13 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
     clean_up_files(["test.pnm", "test.pdf"])
 
 
-def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):
+def test_save_pdf_different_resolutions(temp_db, import_in_mainloop, clean_up_files):
     "test saving a PDF with different resolutions in the height and width directions"
 
     # Create test image
     subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -254,7 +254,7 @@ def test_save_pdf_different_resolutions(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test.png", "test.pdf"])
 
 
-def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
+def test_save_encrypted_pdf(temp_db, import_in_mainloop, clean_up_files):
     "test saving an encrypted PDF"
     if shutil.which("pdftk") is None:
         pytest.skip("pdftk not found")
@@ -263,7 +263,7 @@ def test_save_encrypted_pdf(import_in_mainloop, clean_up_files):
     # Create test image
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.jpg"])
 
@@ -486,12 +486,12 @@ def test_save_pdf_with_non_utf8(
     clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
 
 
-def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_1bpp(temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with a 1bpp image"
 
     subprocess.run(["convert", "magick:netscape", "test.pbm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pbm"])
 
@@ -517,13 +517,13 @@ def test_save_pdf_with_1bpp(import_in_mainloop, clean_up_files):
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_without_font(
-    import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with non-existing font"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -565,12 +565,12 @@ def test_save_pdf_without_font(
     clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
 
 
-def test_save_pdf_g4(import_in_mainloop, clean_up_files):
+def test_save_pdf_g4(temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
 
     subprocess.run(["convert", "rose:", "test.png"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -599,7 +599,7 @@ def test_save_pdf_g4(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
+def test_save_pdf_g4_alpha(temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
 
     subprocess.run(
@@ -615,7 +615,7 @@ def test_save_pdf_g4_alpha(import_in_mainloop, clean_up_files):
         check=True,
     )
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.tif"])
 
@@ -771,14 +771,14 @@ def test_save_pdf_with_sbs_hocr(
     clean_up_files(slist.thread.db_files + [temp_png, temp_pdf])
 
 
-def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_metadata(temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with metadata"
 
     pnm = "test.pnm"
     pdf = "test.pdf"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, [pnm])
 
@@ -814,14 +814,14 @@ def test_save_pdf_with_metadata(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + [pnm, pdf])
 
 
-def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_old_metadata(temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with old metadata"
 
     pnm = "test.pnm"
     pdf = "test.pdf"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, [pnm])
 
@@ -860,7 +860,7 @@ def test_save_pdf_with_old_metadata(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + [pnm, pdf])
 
 
-def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_downsample(temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with downsampled image"
 
     subprocess.run(
@@ -883,7 +883,7 @@ def test_save_pdf_with_downsample(import_in_mainloop, clean_up_files):
         check=True,
     )
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
 
