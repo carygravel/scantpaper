@@ -63,12 +63,12 @@ def test_save_text(
     )
 
 
-def test_save_no_text(import_in_mainloop, clean_up_files):
+def test_save_no_text(temp_db, import_in_mainloop, clean_up_files):
     "Test saving text"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 

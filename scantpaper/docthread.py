@@ -27,6 +27,23 @@ from gi.repository import GLib, GdkPixbuf  # pylint: disable=wrong-import-positi
 logger = logging.getLogger(__name__)
 
 
+def _loggerise(vars):
+    logger_vars = None
+    if vars:
+        tuple_flag = False
+        if isinstance(vars, tuple):
+            tuple_flag = True
+        logger_vars = list(vars)
+        for i, item in enumerate(logger_vars):
+            if isinstance(item, (bytes, bytearray)):
+                logger_vars[i] = "binary data"
+            elif isinstance(item, (tuple, list)):
+                logger_vars[i] = _loggerise(logger_vars[i])
+        if tuple_flag:
+            logger_vars = tuple(logger_vars)
+    return logger_vars
+
+
 class DocThread(SaveThread):
     "subclass basethread for document"
 
@@ -75,16 +92,35 @@ class DocThread(SaveThread):
         "execute a query on the database"
         self._connect()
         tid = threading.get_native_id()
-        logger.debug("_execute(%s, %s) in tid %s", query, params, tid)
+        logger.debug("_execute(%s, %s) in tid %s", query, _loggerise(params), tid)
         if params is None:
             self._cur[tid].execute(query)
         else:
             self._cur[tid].execute(query, params)
 
+    def _executemany(self, query, params=None):
+        "execute a query on the database"
+        self._connect()
+        tid = threading.get_native_id()
+        logger.debug("_executemany(%s, %s) in tid %s", query, _loggerise(params), tid)
+        if params is None:
+            self._cur[tid].executemany(query)
+        else:
+            self._cur[tid].executemany(query, params)
+
     def _fetchone(self):
         "fetch one row from the database"
         tid = threading.get_native_id()
-        return self._cur[tid].fetchone()
+        result = self._cur[tid].fetchone()
+        logger.debug("_fetchone() in tid %s returned %s", tid, _loggerise(result))
+        return result
+
+    def _fetchall(self):
+        "fetch one row from the database"
+        tid = threading.get_native_id()
+        result = self._cur[tid].fetchall()
+        logger.debug("fetchall() in tid %s returned %s", tid, _loggerise(result))
+        return result
 
     def _check_write_tid(self):
         tid = threading.get_native_id()
@@ -308,7 +344,21 @@ class DocThread(SaveThread):
                 WHERE row_id IN ({", ".join(["?"]*len(row_ids))}) AND action_id = ?""",
             (*row_ids, self._action_id),
         )
+
+        # renumber remaining rows
+        self._execute(
+            "SELECT row_id, page_id, action_id FROM page_order WHERE action_id = ? ORDER BY row_id",
+            (self._action_id,),
+        )
+        page_order = self._fetchall()
+        for i, page in enumerate(page_order):
+            page_order[i] = [i, page[1], self._action_id]
+        self._executemany(
+            "UPDATE page_order SET row_id = ? WHERE page_id = ? AND action_id = ?",
+            page_order,
+        )
         self._con[threading.get_native_id()].commit()
+
         request.data(
             {
                 "type": "page",
@@ -348,7 +398,7 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         rows = []
-        for row in self._cur[threading.get_native_id()].fetchall():
+        for row in self._fetchall():
             rows.append([row[0], self._bytes_to_pixbuf(row[1]), row[2]])
         return rows
 
@@ -393,56 +443,117 @@ class DocThread(SaveThread):
             image_id=row[8],
         )
 
-    def clone_page(self, page_id, number):
-        "clone a page in the database"
+    def do_clone_pages(self, request):
+        "clone pages in the database"
         self._check_write_tid()
         self._take_snapshot()
+        kwargs = request.args[0]
+        page_ids = kwargs["page_ids"]
+        dest = kwargs["dest"]
         self._execute(
-            """SELECT * FROM page, page_order
-                WHERE id = page_id AND page_id = ? AND action_id = ?""",
-            (page_id, self._action_id),
+            f"""SELECT image_id, x_res, y_res, mean, std_dev, saved, text, annotations FROM page, page_order
+                WHERE action_id = ?
+                 AND id = page_id
+                 AND page_id IN ({", ".join(["?"]*len(page_ids))})""",
+            (self._action_id, *page_ids),
         )
-        page_row = self._fetchone()
-        page_row = list(page_row)
+        pages = self._fetchall()
+        image_ids = [page[0] for page in pages]
         self._execute(
-            "SELECT * FROM image WHERE id = ?",
-            (page_row[1],),
+            f"SELECT image, thumb FROM image WHERE id IN ({", ".join(["?"]*len(image_ids))})",
+            (*image_ids,),
         )
-        image_row = self._fetchone()
-        self._execute(
+        images = self._fetchall()
+        self._executemany(
             "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
-            (*image_row[1:],),
+            images,
         )
         tid = threading.get_native_id()
-        self._con[tid].commit()
-        page_row[1] = self._cur[threading.get_native_id()].lastrowid  # new image id
-        self._execute(
+        self._execute("SELECT last_insert_rowid()")
+        first_image_id = self._fetchone()[0] - len(pages) + 1
+        for i, page in enumerate(pages):
+            pages[i] = list(pages[i])
+            pages[i][0] = first_image_id + i  # new image id
+        self._executemany(
             """INSERT INTO page (
                 id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
                VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (*page_row[1:9],),
+            pages,
         )
-        self._con[tid].commit()
-        new_page_id = self._cur[threading.get_native_id()].lastrowid
+        self._execute("SELECT last_insert_rowid()")
+        first_page_id = self._fetchone()[0] - len(pages) + 1
         self._execute(
             "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
             (self._action_id,),
         )
         max_row_id = self._fetchone()[0]
-        if max_row_id is None:
-            max_row_id = -1
+
+        # if we are not adding the cloned pages to the end, renumber the rows after dest
+        if dest <= max_row_id:
+            self._execute(
+                "SELECT row_id, page_number, page_id, action_id FROM page_order WHERE action_id = ? AND row_id >= ? ORDER BY row_id",
+                (self._action_id, dest),
+            )
+            page_order = self._fetchall()
+            for i, page in enumerate(page_order):
+                page_order[i] = (
+                    page[0] + len(pages),
+                    page[1] + len(pages),
+                    page[2],
+                    self._action_id,
+                )
+            self._execute(
+                "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
+                (self._action_id,),
+            )
+            for page in reversed(
+                page_order
+            ):  # reverse list to prevent numbering conflicts during execution
+                self._execute(
+                    "UPDATE page_order SET row_id = ?, page_number = ? WHERE page_id = ? AND action_id = ?",
+                    page,
+                )
+            self._execute(
+                "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
+                (self._action_id,),
+            )
+            self._con[tid].commit()
+
+        new_pages = [
+            (self._action_id, dest + i, dest + i + 1, first_page_id + i)
+            for i in range(len(pages))
+        ]
         self._execute(
+            "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
+            (self._action_id,),
+        )
+        self._executemany(
             """INSERT INTO page_order (action_id, row_id, page_number, page_id)
                VALUES (?, ?, ?, ?)""",
-            (
-                self._action_id,
-                max_row_id + 1,
-                number,
-                new_page_id,
-            ),
+            new_pages,
         )
         self._con[tid].commit()
-        return new_page_id
+        self._execute(
+            "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
+            (self._action_id,),
+        )
+
+        self._execute(
+            f"""SELECT page_number, thumb, page_id
+                          FROM page_order, page, image
+                          WHERE action_id = ?
+                           AND page_id = page.id
+                           AND image_id = image.id
+                           AND page_id IN ({", ".join(["?"]*len(new_pages))})""",
+            (self._action_id, *[row[3] for row in new_pages]),
+        )
+        rows = []
+        for row in self._fetchall():
+            row = list(row)
+            row[1] = self._bytes_to_pixbuf(row[1])
+            rows.append(row)
+        request.data({"type": "page", "new_pages": rows})
+        return [dest + i for i in range(len(pages))]
 
     def _take_snapshot(self):
         "take a snapshot of the current state of the document"
@@ -459,11 +570,10 @@ class DocThread(SaveThread):
                 WHERE action_id = ?""",
             (self._action_id,),
         )
-        tid = threading.get_native_id()
-        snapshot = self._cur[tid].fetchall()
+        snapshot = self._fetchall()
         self._action_id += 1
         snapshot = [(self._action_id, *row) for row in snapshot]
-        self._cur[tid].executemany(
+        self._executemany(
             """INSERT INTO page_order (action_id, row_id, page_number, page_id)
                VALUES (?, ?, ?, ?)""",
             snapshot,
@@ -477,7 +587,7 @@ class DocThread(SaveThread):
         #     "DELETE FROM page_order WHERE action_id < ?",
         #     (self._action_id - self.number_undo_steps,),
         # )
-        self._con[tid].commit()
+        self._con[threading.get_native_id()].commit()
 
     def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"
@@ -489,7 +599,7 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         rows = []
-        for row in self._cur[threading.get_native_id()].fetchall():
+        for row in self._fetchall():
             row = list(row)
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
@@ -502,7 +612,7 @@ class DocThread(SaveThread):
                 FROM page_order
                 ORDER BY action_id, page_number"""
         )
-        return self._cur[threading.get_native_id()].fetchall()
+        return self._fetchall()
 
     def _pixbuf_to_bytes(self, pixbuf):
         "given a pixbuf, return the equivalent bytes, in order to store them as a blob"

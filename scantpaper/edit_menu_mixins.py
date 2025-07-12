@@ -117,9 +117,14 @@ class EditMenuMixins:
             return
         pages = self.slist.get_selected_indices()
         if pages:
-            self.slist.paste_selection(self.slist.clipboard, pages[-1], "after", True)
+            self.slist.paste_selection(
+                data=self.slist.clipboard,
+                dest=pages[-1],
+                how="after",
+                select_new_pages=True,
+            )
         else:
-            self.slist.paste_selection(self.slist.clipboard, None, None, True)
+            self.slist.paste_selection(data=self.slist.clipboard, select_new_pages=True)
         self._update_uimanager()
 
     def delete_selection(self, _action, _param):

@@ -8,12 +8,12 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_tiff(import_in_mainloop, clean_up_files):
+def test_save_tiff(temp_db, import_in_mainloop, clean_up_files):
     "Test writing TIFF"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -57,12 +57,12 @@ def test_save_tiff(import_in_mainloop, clean_up_files):
     )
 
 
-def test_cancel_save_tiff(import_in_mainloop, clean_up_files):
+def test_cancel_save_tiff(temp_db, import_in_mainloop, clean_up_files):
     "Test cancel saving a TIFF"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -170,7 +170,7 @@ def test_save_tiff_with_error(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_tiff_with_alpha(import_in_mainloop, clean_up_files):
+def test_save_tiff_with_alpha(temp_db, import_in_mainloop, clean_up_files):
     "Test writing TIFF with alpha layer"
 
     subprocess.run(
@@ -192,7 +192,7 @@ def test_save_tiff_with_alpha(import_in_mainloop, clean_up_files):
         check=True,
     )
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -219,12 +219,12 @@ def test_save_tiff_with_alpha(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test.png", "test.tif"])
 
 
-def test_save_tiff_as_ps(import_in_mainloop, clean_up_files):
+def test_save_tiff_as_ps(temp_db, import_in_mainloop, clean_up_files):
     "Test writing TIFF and postscript"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
@@ -270,12 +270,12 @@ def test_save_tiff_as_ps(import_in_mainloop, clean_up_files):
     )
 
 
-def test_save_tiff_g4(import_in_mainloop, clean_up_files):
+def test_save_tiff_g4(temp_db, import_in_mainloop, clean_up_files):
     "Test writing TIFF with group 4 compression"
 
     subprocess.run(["convert", "rose:", "test.png"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
 

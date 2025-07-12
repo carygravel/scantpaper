@@ -43,7 +43,7 @@ def test_import_multipage_pdf(temp_db, clean_up_files):
     )
 
 
-def test_import_multipage_pdf_with_not_enough_images(clean_up_files):
+def test_import_multipage_pdf_with_not_enough_images(temp_db, clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdfunite") is None:
@@ -123,7 +123,7 @@ startxref
         fhd.write(content)
     subprocess.run(["pdfunite", "page1.pdf", "page2.pdf", "test.pdf"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 
@@ -266,7 +266,7 @@ def test_import_pdf_with_error(clean_up_files):
     )
 
 
-def test_import_encrypted_pdf(clean_up_files):
+def test_import_encrypted_pdf(temp_db, clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdftk") is None:
@@ -287,7 +287,7 @@ def test_import_encrypted_pdf(clean_up_files):
         check=True,
     )
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 

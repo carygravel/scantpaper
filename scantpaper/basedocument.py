@@ -376,25 +376,23 @@ class BaseDocument(SimpleList):
 
     def cut_selection(self):
         "Cut the selection"
-        data = self.copy_selection(False)
+        data = self.copy_selection()
         self.delete_selection_extra()
         return data
 
-    def copy_selection(self, clone):
+    def copy_selection(self):
         "Copy the selection"
         selection = self.get_selected_indices()
+        logger.debug(f"copy_selection {selection}")
         if selection == []:
             return None
         data = []
         for index in selection:
-            page = self.data[index]
-            pageid = self.thread.clone_page(page[2], page[0] + 1)
-            data.append([page[0] + 1, page[1], pageid])
-
-        logger.info("Copied %s%s pages", "and cloned " if clone else "", len(data))
+            data.append([self.data[index][0], self.data[index][1], self.data[index][2]])
+        logger.info("Copied %s pages", len(data))
         return data
 
-    def paste_selection(self, data, path, how, select_new_pages=False):
+    def paste_selection(self, **kwargs):
         "Paste the selection"
 
         # Block row-changed signal so that the list can be updated before the sort
@@ -403,29 +401,49 @@ class BaseDocument(SimpleList):
             self.get_model().handler_block(self.row_changed_signal)
 
         dest = None
-        if path is not None:
-            path = int(path)
-            if how in (
+        if kwargs.get("dest") is None:
+            dest = len(self.data)
+
+            def _data_callback(response):
+                logger.debug(f"extend _data_callback({response})")
+                info = response.info
+                if info and "type" in info and info["type"] == "page":
+                    self.data.extend(info["new_pages"])
+
+            self.thread.send(
+                "clone_pages",
+                {"page_ids": [row[2] for row in kwargs["data"]], "dest": dest},
+                data_callback=_data_callback,
+            )
+        else:
+            dest = int(kwargs["dest"])
+            if kwargs["how"] in (
                 Gtk.TreeViewDropPosition.AFTER,
                 Gtk.TreeViewDropPosition.INTO_OR_AFTER,
             ):
-                path += 1
-            for row in data:
-                self.data.insert(path, row)
-            dest = path
-        else:
-            dest = len(self.data)
-            self.data.extend(data)
+                dest += 1
+
+            def _data_callback(response):
+                logger.debug(f"insert _data_callback({response})")
+                info = response.info
+                if info and "type" in info and info["type"] == "page":
+                    for row in info["new_pages"]:
+                        self.data.insert(dest, row)
+
+            self.thread.send(
+                "clone_pages",
+                {"page_ids": [row[2] for row in kwargs["data"]], "dest": dest},
+                data_callback=_data_callback,
+            )
 
         # Renumber the newly pasted rows
         start = None
         if dest == 0:
             start = 1
-
         else:
             start = self.data[dest - 1][0] + 1
 
-        for i in range(dest, dest + len(data) - 2):
+        for i in range(dest, dest + len(kwargs["data"]) - 2):
             self.data[i][0] = start
             start += 1
 
@@ -436,9 +454,9 @@ class BaseDocument(SimpleList):
         )
 
         # Select the new pages
-        if select_new_pages:
+        if kwargs.get("select_new_pages"):
             selection = []
-            for _ in range(dest, dest + len(data)):
+            for _ in range(dest, dest + len(kwargs["data"])):
                 selection.append(_)
 
             self.get_selection().unselect_all()
@@ -448,7 +466,7 @@ class BaseDocument(SimpleList):
             self.get_model().handler_unblock(self.row_changed_signal)
 
         # self.save_session()
-        logger.info("Pasted %s pages at position %s", len(data), dest)
+        logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
 
     def delete_selection(self, _self=None, context=None):
         "Delete the selected pages"
@@ -520,11 +538,8 @@ class BaseDocument(SimpleList):
         # self.save_session()
         logger.info("Deleted %s pages", npages)
 
-    def save_session(self, filename=None, version=None):
-        """Dump $self to a file.
-        If a filename is given, zip it up as a session file
-        Pass version to allow us to mock different session version and to be able to
-        test opening old sessions."""
+    def save_session(self, filename):
+        "copy session db to a file"
         shutil.copy(self.dir / "document.db", filename)
         logger.info("Saved document as %s", filename)
 
@@ -718,22 +733,23 @@ def drag_data_received_callback(  # pylint: disable=too-many-positional-argument
     tree, context, xpos, ypos, data, info, time
 ):
     "callback to receive DnD data"
-    delete = bool(context.get_actions() & Gdk.DragAction.MOVE)
 
     # This callback is fired twice, seemingly once for the drop flag,
-    # and once for the copy flag. If the drop flag is disabled, the URI
+    # and once for the copy flag,
+    # or possible once for the new data and once for the old data.
+    # If the drop flag is disabled, the URI
     # drop does not work. If the copy flag is disabled, the drag-with-copy
     # does not work. Therefore if copying, create a hash of the drop times
     # and ignore the second drop.
-    if not delete:
-        if hasattr(tree, "drops") and time in tree.drops:
-            tree.drops = {}
-            Gtk.drag_finish(context, True, delete, time)
-            return
+    # https://stackoverflow.com/questions/48469655/drop-file-in-python-gui-gtk
+    if hasattr(tree, "drops") and time in tree.drops:
+        tree.drops = {}
+        Gtk.drag_finish(context, True, False, time)
+        return
 
-        if not hasattr(tree, "drops"):
-            tree.drops = {}
-        tree.drops[time] = 1
+    if not hasattr(tree, "drops"):
+        tree.drops = {}
+    tree.drops[time] = 1
 
     if info == ID_URI:
         uris = data.get_uris()
@@ -746,21 +762,23 @@ def drag_data_received_callback(  # pylint: disable=too-many-positional-argument
         Gtk.drag_finish(context, True, False, time)
 
     elif info == ID_PAGE:
+        rows = tree.get_selected_indices()
+        if not rows:
+            return
+
         row = tree.get_dest_row_at_pos(xpos, ypos)
         path, how = None, None
         if row:
             path, how = row
             if path is not None:
                 path = path.to_string()
-        rows = tree.get_selected_indices()
-        if not rows:
-            return
-        selection = tree.copy_selection(not delete)
+
+        data = tree.copy_selection()
 
         # pasting without updating the selection
         # in order not to defeat the finish() call below.
-        tree.paste_selection(selection, path, how)
-        Gtk.drag_finish(context, True, delete, time)
+        tree.paste_selection(data=data, dest=path, how=how)
+        Gtk.drag_finish(context, True, False, time)
 
     else:
         context.abort()

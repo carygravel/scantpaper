@@ -934,12 +934,12 @@ def test_save_pdf_with_downsample(temp_db, import_in_mainloop, clean_up_files):
     )
 
 
-def test_cancel_save_pdf(import_in_mainloop, clean_up_files):
+def test_cancel_save_pdf(temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with downsampled image"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 

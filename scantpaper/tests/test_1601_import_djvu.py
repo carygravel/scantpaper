@@ -231,7 +231,7 @@ def test_import_djvu_with_error2(monkeypatch, temp_db, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test.jpg", "test.djvu"])
 
 
-def test_import_multipage_djvu(clean_up_files):
+def test_import_multipage_djvu(temp_db, clean_up_files):
     "Test importing multipage DjVu"
 
     if shutil.which("cjb2") is None:
@@ -241,7 +241,7 @@ def test_import_multipage_djvu(clean_up_files):
     subprocess.run(["c44", "test.jpg", "test.djvu"], check=True)
     subprocess.run(["djvm", "-c", "test2.djvu", "test.djvu", "test.djvu"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     mlp = GLib.MainLoop()
 

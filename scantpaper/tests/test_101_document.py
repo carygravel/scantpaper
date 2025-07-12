@@ -754,8 +754,14 @@ def test_db(clean_up_files, temp_db):
         [3.4],
     ), "g/set_mean_std_dev() as list"
 
-    page = thread.clone_page(2, 3)
-    assert thread.get_text(3) == "text", "clone_page"
+    request = Request("clone_pages", ({"page_ids": [2], "dest": 1},), thread.responses)
+    assert thread.do_clone_pages(request) == [1], "row_ids of cloned pages"
+    assert thread.get_text(3) == "text", "text in cloned page"
+    assert len(thread.page_number_table()) == 2, "cloned page in page number table"
+
+    request = Request("clone_pages", ({"page_ids": [2], "dest": 0},), thread.responses)
+    assert thread.do_clone_pages(request) == [0], "row_ids of inserted pages"
+    assert len(thread.page_number_table()) == 3, "inserted page in page number table"
 
     request = Request("set_selection", ([2],), thread.responses)
     thread.do_set_selection(request)
@@ -777,8 +783,10 @@ def test_document(clean_up_files):
     def finished_callback(_result):
         nonlocal ran_callback
         ran_callback = True
-        clipboard = slist.copy_selection(True)
-        slist.paste_selection(clipboard[0], 0, "after", True)  # copy-paste page 1->2
+        clipboard = slist.copy_selection()
+        slist.paste_selection(
+            data=clipboard[0], dest=0, how="after", select_new_pages=True
+        )  # copy-paste page 1->2
         assert slist.data[0][2] != slist.data[1][2], "different uuid"
         assert slist.data[1][0] == 2, "new page is number 2"
         assert slist.get_selected_indices() == [1], "pasted page selected"
@@ -789,7 +797,9 @@ def test_document(clean_up_files):
         assert slist.get_selected_indices() == [0], "selection changed to previous page"
         # TODO = "Don't know how to trigger update of page-number-start from Document"
         # assert dialog.page_number_start== 2,               'page-number-start after cut'
-        slist.paste_selection(clipboard[0], 0, "before")  # paste page before 1
+        slist.paste_selection(
+            data=clipboard[0], dest=0, how="before"
+        )  # paste page before 1
         assert len(slist.data) == 2, "2 pages now in list"
         assert slist.data[0][2] == clipboard[0][2], "cut page pasted at page 1"
         assert slist.data[0][0] == 1, "cut page renumbered to page 1"

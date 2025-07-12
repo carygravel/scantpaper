@@ -172,7 +172,9 @@ def test_save_djvu_with_hocr(
     clean_up_files(slist.thread.db_files + [temp_pnm, temp_djvu])
 
 
-def test_cancel_save_djvu(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_cancel_save_djvu(
+    temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test cancel saving a DjVu"
 
     if shutil.which("cjb2") is None:
@@ -180,7 +182,7 @@ def test_cancel_save_djvu(import_in_mainloop, set_text_in_mainloop, clean_up_fil
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -298,7 +300,7 @@ def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
 
 
 def test_save_djvu_with_float_resolution(
-    import_in_mainloop, set_resolution_in_mainloop, clean_up_files
+    temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
 ):
     "Test saving a djvu with resolution as float"
 
@@ -307,7 +309,7 @@ def test_save_djvu_with_float_resolution(
 
     subprocess.run(["convert", "rose:", "test.png"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
     set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
@@ -328,7 +330,7 @@ def test_save_djvu_with_float_resolution(
     clean_up_files(slist.thread.db_files + ["test.png", "test.djvu"])
 
 
-def test_save_djvu_different_resolutions(import_in_mainloop, clean_up_files):
+def test_save_djvu_different_resolutions(temp_db, import_in_mainloop, clean_up_files):
     "Test saving a djvu with different resolutions"
 
     if shutil.which("cjb2") is None:
@@ -336,7 +338,7 @@ def test_save_djvu_different_resolutions(import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -359,7 +361,7 @@ def test_save_djvu_different_resolutions(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test.png", "test.djvu"])
 
 
-def test_save_djvu_with_metadata(import_in_mainloop, clean_up_files):
+def test_save_djvu_with_metadata(temp_db, import_in_mainloop, clean_up_files):
     "Test saving a djvu with metadata"
 
     if shutil.which("cjb2") is None:
@@ -369,7 +371,7 @@ def test_save_djvu_with_metadata(import_in_mainloop, clean_up_files):
     pnm = "test.pnm"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, [pnm])
 
@@ -402,7 +404,7 @@ def test_save_djvu_with_metadata(import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files + [pnm, djvu])
 
 
-def test_save_djvu_with_old_metadata(import_in_mainloop, clean_up_files):
+def test_save_djvu_with_old_metadata(temp_db, import_in_mainloop, clean_up_files):
     "Test saving a djvu with old metadata"
 
     if shutil.which("cjb2") is None:
@@ -412,7 +414,7 @@ def test_save_djvu_with_old_metadata(import_in_mainloop, clean_up_files):
     pnm = "test.pnm"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, [pnm])
 

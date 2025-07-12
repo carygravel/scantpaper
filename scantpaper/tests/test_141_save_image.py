@@ -7,12 +7,12 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_image(import_in_mainloop, clean_up_files):
+def test_save_image(temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -86,12 +86,12 @@ def test_save_image_with_quote(temp_db, import_in_mainloop, clean_up_files):
     os.rmdir("te'st")
 
 
-def test_save_image_with_ampersand(import_in_mainloop, clean_up_files):
+def test_save_image_with_ampersand(temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document()
+    slist = Document(db=temp_db)
 
     import_in_mainloop(slist, ["test.pnm"])
 

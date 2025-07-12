@@ -2,6 +2,7 @@
 
 # TODO:
 # profile not set on startup
+# change page numbering to always run from 1-n with no gaps
 # fix readme
 # hook ocrmypdf progress into the GUI
 # package for Debian
