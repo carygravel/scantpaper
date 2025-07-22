@@ -11,7 +11,8 @@ A GUI to produce PDFs or DjVus from scanned documents.
 
 ## Usage
 
-1. Start the application with `python3 scantpaper/app.py`
+1. Start the application with `python3 scantpaper/app.py`.
+   Add `--debug|info|warn|error|fatal` to enable logging at the required level.
 1. Scan one or several pages with **File → Scan**.
 1. Create a PDF of selected pages with **File → Save**.
 
