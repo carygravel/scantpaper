@@ -226,7 +226,6 @@ class FileMenuMixins:
         "import_files finished callback"
         logger.debug("finished import_files(%s)", response)
         self.post_process_progress.finish(response)
-        # slist.save_session()
 
     def _import_files_metadata_callback(self, metadata):
         "Update the metadata from the imported file"

@@ -99,7 +99,6 @@ class ToolsMenuMixins:
 
                 def threshold_finished_callback(response):
                     self.post_process_progress.finish(response)
-                    # slist.save_session()
 
                 self.slist.threshold(
                     threshold=self.settings["threshold tool"],
@@ -167,7 +166,6 @@ class ToolsMenuMixins:
 
                 def brightness_contrast_finished_callback(response):
                     self.post_process_progress.finish(response)
-                    # slist.save_session()
 
                 self.slist.brightness_contrast(
                     brightness=self.settings["brightness tool"],
@@ -210,7 +208,6 @@ class ToolsMenuMixins:
 
                 def negate_finished_callback(response):
                     self.post_process_progress.finish(response)
-                    # slist.save_session()
 
                 self.slist.negate(
                     page=self.slist.data[i][2],
@@ -308,7 +305,6 @@ class ToolsMenuMixins:
 
                 def unsharp_finished_callback(response):
                     self.post_process_progress.finish(response)
-                    # slist.save_session()
 
                 self.slist.unsharp(
                     page=self.slist.data[i][2],
@@ -381,7 +377,6 @@ class ToolsMenuMixins:
 
             def crop_finished_callback(response):
                 self.post_process_progress.finish(response)
-                # slist.save_session()
 
             self.slist.crop(
                 page=self.slist.data[i][2],
@@ -489,7 +484,6 @@ class ToolsMenuMixins:
 
                 def split_finished_callback(response):
                     self.post_process_progress.finish(response)
-                    # slist.save_session()
 
                 self.slist.split_page(
                     direction=self.settings["split-direction"],
@@ -569,7 +563,6 @@ class ToolsMenuMixins:
 
                 def unpaper_finished_callback(response):
                     self.post_process_progress.finish(response)
-                    # slist.save_session()
 
                 self.slist.unpaper(
                     page=pageobject,
@@ -667,7 +660,6 @@ class ToolsMenuMixins:
     def _ocr_finished_callback(self, response):
         "Callback function to be executed when OCR processing is finished."
         self.post_process_progress.finish(response)
-        # slist.save_session()
 
     def _ocr_display_callback(self, response):
         "Callback function to handle the display of OCR (Optical Character Recognition) results."
@@ -712,7 +704,6 @@ class ToolsMenuMixins:
 
                 def user_defined_finished_callback(response):
                     self.post_process_progress.finish(response)
-                    # slist.save_session()
 
                 self.slist.user_defined(
                     page=page,

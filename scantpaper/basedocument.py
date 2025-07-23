@@ -465,7 +465,6 @@ class BaseDocument(SimpleList):
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
 
-        # self.save_session()
         logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
 
     def delete_selection(self, _self=None, context=None):
@@ -535,7 +534,6 @@ class BaseDocument(SimpleList):
         else:
             self.get_selection().emit("changed")
 
-        # self.save_session()
         logger.info("Deleted %s pages", npages)
 
     def save_session(self, filename):

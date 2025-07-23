@@ -227,8 +227,6 @@ class EditMenuMixins:
         for i in selection:
             self.slist.data[i][2].text_layer = None
 
-        # slist.save_session()
-
     def select_blank(self, _action, _param):
         "Analyse and select blank pages"
         self.analyse(True, False)
@@ -322,8 +320,6 @@ class EditMenuMixins:
                     self.select_blank_pages()
                 if select_dark:
                     self.select_dark_pages()
-
-            # slist.save_session()
 
             self.slist.analyse(
                 list_of_pages=pages_to_analyse,

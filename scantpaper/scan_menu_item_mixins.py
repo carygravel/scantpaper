@@ -414,4 +414,3 @@ class ScanMenuItemMixins:
     def _import_scan_finished_callback(self, response):
         "Callback function to handle the completion of a scan import process."
         self.post_process_progress.finish(response)
-        # slist.save_session()
