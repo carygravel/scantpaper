@@ -685,7 +685,7 @@ def test_docthread(clean_up_files):
         )
 
 
-def test_db(clean_up_files, temp_db):
+def test_db(temp_db, clean_up_files):
     "test database access"
     thread = DocThread(db=temp_db)
 

@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import tempfile
 import subprocess
 import os
+import pathlib
 import pytest
 from dialog.sane import SaneScanDialog
 import gi
@@ -235,42 +236,42 @@ def rotated_qbfox_image():
 @pytest.fixture
 def temp_db():
     "return a temporary db"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".db") as temp:
+    with tempfile.NamedTemporaryFile(suffix=".db") as temp:
         return temp.name
 
 
 @pytest.fixture
 def temp_djvu():
     "return a temporary djvu"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".djvu") as temp:
+    with tempfile.NamedTemporaryFile(suffix=".djvu") as temp:
         return temp.name
 
 
 @pytest.fixture
 def temp_pnm():
     "return a temporary pnm"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pnm") as temp:
+    with tempfile.NamedTemporaryFile(suffix=".pnm") as temp:
         return temp.name
 
 
 @pytest.fixture
 def temp_png():
     "return a temporary png"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp:
+    with tempfile.NamedTemporaryFile(suffix=".png") as temp:
         return temp.name
 
 
 @pytest.fixture
 def temp_pdf():
     "return a temporary pdf"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
         return temp.name
 
 
 @pytest.fixture
 def temp_txt():
     "return a temporary txt file"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp:
+    with tempfile.NamedTemporaryFile(suffix=".txt") as temp:
         return temp.name
 
 

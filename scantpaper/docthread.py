@@ -71,7 +71,11 @@ class DocThread(SaveThread):
         if self._db is None:
             self._db = self._dir / "document.db"
 
-        self.db_files = [self._db.name, self._db.name + "-wal", self._db.name + "-shm"]
+        self.db_files = [
+            self._db,
+            self._dir / pathlib.Path(self._db.name + "-wal"),
+            self._dir / pathlib.Path(self._db.name + "-shm"),
+        ]
         self._con = {}
         self._cur = {}
         self._write_tid = None
