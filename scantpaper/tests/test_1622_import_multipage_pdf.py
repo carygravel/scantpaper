@@ -382,3 +382,85 @@ def test_import_pdf_with_metadata(clean_up_files):
             "test2.pdf",
         ]
     )
+
+
+def test_import_pdf_with_2000_pages(temp_db, clean_up_files):
+    "Test importing PDF"
+    pytest.skip("Skip until this works interactively")
+    if shutil.which("pdfunite") is None:
+        pytest.skip("Please install pdfunite (poppler utils) to enable test")
+
+    # Create test image
+    subprocess.run(["convert", "rose:", "page1.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", "page1.pdf", "page1.tif"], check=True)
+    subprocess.run(
+        [
+            "pdfunite",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "page1.pdf",
+            "10.pdf",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "pdfunite",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "10.pdf",
+            "100.pdf",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "pdfunite",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "100.pdf",
+            "1000.pdf",
+        ],
+        check=True,
+    )
+    subprocess.run(["pdfunite", "1000.pdf", "1000.pdf", "2000.pdf"], check=True)
+
+    slist = Document(db=temp_db)
+
+    mlp = GLib.MainLoop()
+
+    slist.import_files(
+        paths=["2000.pdf"],
+        finished_callback=lambda response: mlp.quit(),
+    )
+    GLib.timeout_add(40000, mlp.quit)  # to prevent it hanging
+    mlp.run()
+    assert len(slist.data) == 2000, "imported 2000 images"
+
+    #########################
+
+    clean_up_files(
+        slist.thread.db_files
+        + ["page1.tif", "page1.pdf", "10.pdf", "100.pdf", "1000.pdf", "2000.pdf"]
+    )
