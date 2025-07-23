@@ -777,6 +777,10 @@ class ApplicationWindow(
 
         self._update_uimanager()
 
+        # Because changing the selection hits the database in the thread, we also
+        # have to ensure that any progress bars are hidden afterwards if neceesary.
+        self.post_process_progress.finish(None)
+
     def _update_uimanager(self):
         action_names = [
             "cut",

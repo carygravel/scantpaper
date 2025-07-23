@@ -748,8 +748,8 @@ class FileMenuMixins:
             options["post_save_hook"] = self.settings["current_psh"]
 
         def save_hocr_finished_callback(response):
-            self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
+            self.post_process_progress.finish(response)
             if (
                 "view files toggle" in self.settings
                 and self.settings["view files toggle"]
