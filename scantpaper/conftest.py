@@ -4,7 +4,6 @@ from types import SimpleNamespace
 import tempfile
 import subprocess
 import os
-import pathlib
 import pytest
 from dialog.sane import SaneScanDialog
 import gi
@@ -266,8 +265,7 @@ def temp_pdf():
 @pytest.fixture
 def temp_txt():
     "return a temporary txt file"
-    with tempfile.NamedTemporaryFile(suffix=".txt") as temp:
-        return temp.name
+    return tempfile.NamedTemporaryFile(suffix=".txt")
 
 
 @pytest.fixture

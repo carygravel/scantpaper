@@ -216,9 +216,8 @@ class SaveThread(Importhread):
 
             # Write djvusedmetafile
             with tempfile.NamedTemporaryFile(
-                mode="w", dir=options.get("dir"), suffix=".txt", delete=False
+                mode="wt", dir=options.get("dir"), suffix=".txt"
             ) as fhd:
-                djvusedmetafile = fhd.name
                 fhd.write("(metadata\n")
 
                 # Write the metadata
@@ -236,26 +235,27 @@ class SaveThread(Importhread):
                     fhd.write(f'{key} "{val}"\n')
 
                 fhd.write(")\n")
+                fhd.flush()
 
-            # Write djvusedmetafile
-            cmd = [
-                "djvused",
-                "-e",
-                f'"set-meta" {djvusedmetafile}',
-                options["path"],
-                "-s",
-            ]
-            subprocess.run(cmd, check=True)
-            if self.cancel:
-                raise CancelledError()
-            # if status:
-            #     logger.error("Error adding metadata info to DjVu file")
-            #     self._thread_throw_error(
-            #         options["uuid"],
-            #         options["page"]["uuid"],
-            #         "Save file",
-            #         _("Error adding metadata to DjVu"),
-            #     )
+                # Write djvusedmetafile
+                cmd = [
+                    "djvused",
+                    "-e",
+                    f'"set-meta" {fhd.name}',
+                    options["path"],
+                    "-s",
+                ]
+                subprocess.run(cmd, check=True)
+                if self.cancel:
+                    raise CancelledError()
+                # if status:
+                #     logger.error("Error adding metadata info to DjVu file")
+                #     self._thread_throw_error(
+                #         options["uuid"],
+                #         options["page"]["uuid"],
+                #         "Save file",
+                #         _("Error adding metadata to DjVu"),
+                #     )
 
     def save_tiff(self, **kwargs):
         "save TIFF"
@@ -735,26 +735,27 @@ def _add_txt_to_djvu(djvu, dirname, page, request):
         logger.debug(txt)
 
         # Write djvusedtxtfile
-        with tempfile.NamedTemporaryFile(
-            mode="w", dir=dirname, suffix=".txt", delete=False
-        ) as fhd:
-            djvusedtxtfile = fhd.name
+        with tempfile.NamedTemporaryFile(mode="wt", dir=dirname, suffix=".txt") as fhd:
             fhd.write(txt)
+            fhd.flush()
 
-        # Run djvusedtxtfile
-        cmd = [
-            "djvused",
-            djvu.name,
-            "-e",
-            f"select 1; set-txt {djvusedtxtfile}",
-            "-s",
-        ]
-        logger.info(cmd)
-        try:
-            subprocess.run(cmd, check=True)
-        except ValueError:
-            logger.error("Error adding text layer to DjVu page %s", page["page_number"])
-            request.error(_("Error adding text layer to DjVu"))
+            # Run djvusedtxtfile
+            cmd = [
+                "djvused",
+                djvu.name,
+                "-e",
+                f"select 1; set-txt {fhd.name}",
+                "-s",
+            ]
+            logger.info(cmd)
+            print(f"cmd {cmd}")
+            try:
+                subprocess.run(cmd, check=True)
+            except ValueError:
+                logger.error(
+                    "Error adding text layer to DjVu page %s", page["page_number"]
+                )
+                request.error(_("Error adding text layer to DjVu"))
 
 
 def _add_ann_to_djvu(djvu, dirname, page, request):
@@ -766,29 +767,27 @@ def _add_ann_to_djvu(djvu, dirname, page, request):
         logger.debug(ann)
 
         # Write djvusedtxtfile
-        with tempfile.NamedTemporaryFile(
-            mode="w", dir=dirname, suffix=".txt", delete=False
-        ) as fhd:
-            djvusedtxtfile = fhd.name
+        with tempfile.NamedTemporaryFile(mode="w", dir=dirname, suffix=".txt") as fhd:
             fhd.write(ann)
+            fhd.flush()
 
-        # Run djvusedtxtfile
-        cmd = [
-            "djvused",
-            djvu.name,
-            "-e",
-            f"select 1; set-ant {djvusedtxtfile}",
-            "-s",
-        ]
-        logger.info(cmd)
-        try:
-            subprocess.run(cmd, check=True)
-        except ValueError:
-            logger.error(
-                "Error adding annotations to DjVu page %s",
-                page["page_number"],
-            )
-            request.error(_("Error adding annotations to DjVu"))
+            # Run djvusedtxtfile
+            cmd = [
+                "djvused",
+                djvu.name,
+                "-e",
+                f"select 1; set-ant {fhd.name}",
+                "-s",
+            ]
+            logger.info(cmd)
+            try:
+                subprocess.run(cmd, check=True)
+            except ValueError:
+                logger.error(
+                    "Error adding annotations to DjVu page %s",
+                    page["page_number"],
+                )
+                request.error(_("Error adding annotations to DjVu"))
 
 
 def _encrypt_pdf(filename, options, request):
