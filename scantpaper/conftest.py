@@ -242,8 +242,7 @@ def temp_db():
 @pytest.fixture
 def temp_djvu():
     "return a temporary djvu"
-    with tempfile.NamedTemporaryFile(suffix=".djvu") as temp:
-        return temp.name
+    return tempfile.NamedTemporaryFile(suffix=".djvu")
 
 
 @pytest.fixture

@@ -27,7 +27,7 @@ def test_save_djvu1(
     import_in_mainloop(slist, [temp_pnm.name])
 
     slist.save_djvu(
-        path=temp_djvu,
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "convert %i " + temp_png.name,
@@ -39,7 +39,7 @@ def test_save_djvu1(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert os.path.getsize(temp_djvu) == 1054, "DjVu created with expected size"
+    assert os.path.getsize(temp_djvu.name) == 1054, "DjVu created with expected size"
     assert slist.thread.pages_saved(), "pages tagged as saved"
 
     capture = subprocess.check_output(["identify", temp_png.name], text=True)
@@ -49,12 +49,7 @@ def test_save_djvu1(
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            temp_djvu,
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_djvu_text_layer(
@@ -85,7 +80,7 @@ def test_save_djvu_text_layer(
         '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
     )
     slist.save_djvu(
-        path=temp_djvu,
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -93,12 +88,12 @@ def test_save_djvu_text_layer(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["djvutxt", temp_djvu], text=True)
+    capture = subprocess.check_output(["djvutxt", temp_djvu.name], text=True)
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_djvu])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_djvu_with_hocr(
@@ -147,7 +142,7 @@ def test_save_djvu_with_hocr(
     page.import_annotations(hocr)
     set_annotations_in_mainloop(slist, 1, page.annotations)
     slist.save_djvu(
-        path=temp_djvu,
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -155,11 +150,11 @@ def test_save_djvu_with_hocr(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["djvutxt", temp_djvu], text=True)
+    capture = subprocess.check_output(["djvutxt", temp_djvu.name], text=True)
     assert re.search(r"The quick — brown fox", capture), "DjVu with expected text"
 
     capture = subprocess.check_output(
-        ["djvused", temp_djvu, "-e", "select 1; print-ant"]
+        ["djvused", temp_djvu.name, "-e", "select 1; print-ant"]
     )
     assert re.search(
         r"The quick — brown fox", codecs.escape_decode(capture)[0].decode("utf-8")
@@ -167,7 +162,7 @@ def test_save_djvu_with_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_djvu])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_cancel_save_djvu(

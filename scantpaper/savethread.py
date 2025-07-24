@@ -145,57 +145,57 @@ class SaveThread(Importhread):
                 i,
                 len(args["list_of_pages"]),
             )
-            with tempfile.NamedTemporaryFile(
-                dir=args.get("dir"), suffix=".djvu", delete=False
-            ) as djvu:
+            djvu = tempfile.NamedTemporaryFile(dir=args.get("dir"), suffix=".djvu")
 
-                # logger.error("Caught error writing DjVu: %s", err)
-                # self._thread_throw_error(
-                #     args["uuid"],
-                #     args["page"]["uuid"],
-                #     "Save file",
-                #     f"Caught error writing DjVu: {_}.",
-                # )
-                # error = True
+            # logger.error("Caught error writing DjVu: %s", err)
+            # self._thread_throw_error(
+            #     args["uuid"],
+            #     args["page"]["uuid"],
+            #     "Save file",
+            #     f"Caught error writing DjVu: {_}.",
+            # )
+            # error = True
 
-                # if error:
-                #     return
-                compression, tempimage, resolution = _convert_image_for_djvu(
-                    page, args, request
+            # if error:
+            #     return
+            compression, tempimage, resolution = _convert_image_for_djvu(
+                page, args, request
+            )
+
+            # Create the djvu
+            proc = exec_command(
+                [
+                    compression,
+                    "-dpi",
+                    str(int(resolution)),
+                    tempimage.name,
+                    djvu.name,
+                ],
+                args["pidfile"],
+            )
+            size = os.path.getsize(djvu.name)
+            if self.cancel:
+                raise CancelledError()
+            if proc.returncode != 0 or size == 0:
+                logger.error(
+                    "Error writing image for page %s of DjVu (process "
+                    "returned %s, image size %s)",
+                    i,
+                    proc.returncode,
+                    size,
                 )
+                request.error(_("Error writing DjVu"))
+                return
 
-                # Create the djvu
-                proc = exec_command(
-                    [
-                        compression,
-                        "-dpi",
-                        str(int(resolution)),
-                        tempimage.name,
-                        djvu.name,
-                    ],
-                    args["pidfile"],
-                )
-                size = os.path.getsize(djvu.name)
-                if self.cancel:
-                    raise CancelledError()
-                if proc.returncode != 0 or size == 0:
-                    logger.error(
-                        "Error writing image for page %s of DjVu (process "
-                        "returned %s, image size %s)",
-                        i,
-                        proc.returncode,
-                        size,
-                    )
-                    request.error(_("Error writing DjVu"))
-                    return
-
-                filelist.append(djvu.name)
-                _add_txt_to_djvu(djvu, args.get("dir"), page, request)
-                _add_ann_to_djvu(djvu, args.get("dir"), page, request)
+            filelist.append(djvu)
+            _add_txt_to_djvu(djvu, args.get("dir"), page, request)
+            _add_ann_to_djvu(djvu, args.get("dir"), page, request)
 
         self.progress = 1
         self.message = _("Merging DjVu")
-        proc = exec_command(["djvm", "-c", args["path"], *filelist], args["pidfile"])
+        proc = exec_command(
+            ["djvm", "-c", args["path"], *[x.name for x in filelist]], args["pidfile"]
+        )
         if self.cancel:
             raise CancelledError()
         if proc.returncode:
