@@ -187,10 +187,7 @@ class BaseDocument(SimpleList):
         "create file in which to store the PID"
         options = defaultdict(None, options)
         try:
-            with tempfile.NamedTemporaryFile(
-                dir=self.dir, suffix=".pid", delete=False
-            ) as pidfile:
-                return pidfile.name
+            return tempfile.TemporaryFile(dir=self.dir, suffix=".pid", mode="wt")
         except (PermissionError, IOError) as err:
             logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:

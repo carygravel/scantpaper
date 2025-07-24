@@ -58,8 +58,6 @@ class Document(BaseDocument):
         # File in which to store the process ID
         # so that it can be killed if necessary
         pidfile = self.create_pidfile(options)
-        if pidfile is None:
-            return
 
         def _select_next_finished_callback(response):
             if (
@@ -80,8 +78,6 @@ class Document(BaseDocument):
 
         self.thread.get_file_info(
             path,
-            # "pidfile": f"{pidfile}",
-            # # "uuid": uid,
             options["passwords"][i] if i < len(options["passwords"]) else None,
             queued_callback=options.get("queued_callback"),
             started_callback=options.get("started_callback"),
@@ -171,8 +167,6 @@ class Document(BaseDocument):
         # File in which to store the process ID
         # so that it can be killed if necessary
         kwargs["pidfile"] = self.create_pidfile(kwargs)
-        if kwargs["pidfile"] is None:
-            return
         kwargs["dir"] = EMPTY
         if self.dir is not None:
             kwargs["dir"] = self.dir

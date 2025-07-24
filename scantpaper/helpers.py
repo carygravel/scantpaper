@@ -34,8 +34,7 @@ def exec_command(cmd, pidfile=None):
         ) as proc:
             logger.info("Spawned PID %s", proc.pid)
             if pidfile is not None:
-                with open(pidfile, "wt", encoding="utf-8") as fhd:
-                    fhd.write(str(proc.pid))
+                pidfile.write(str(proc.pid))
             stdout_data, stderr_data = proc.communicate()
             returncode = proc.returncode
     except FileNotFoundError as err:
