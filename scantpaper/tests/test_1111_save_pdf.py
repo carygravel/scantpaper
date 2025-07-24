@@ -358,14 +358,14 @@ def test_save_pdf_with_hocr(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path=temp_pdf,
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    import_in_mainloop(slist, [temp_pdf])
+    import_in_mainloop(slist, [temp_pdf.name])
 
     # Because we cannot reproduce the exact typeface used
     # in the original, we cannot expect to be able to
@@ -378,7 +378,7 @@ def test_save_pdf_with_hocr(
     # assert re.search(r"The.+quick.+brown.+fox", slist.data[1][2].annotations) \
     #     is not None, 'import annotations'
 
-    capture = subprocess.check_output(["pdftotext", temp_pdf, "-"], text=True)
+    capture = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(
         r"The.*quick.*brown.*fox", capture, re.DOTALL
     ), "PDF with expected text"
@@ -388,7 +388,7 @@ def test_save_pdf_with_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_pdf])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -741,7 +741,7 @@ def test_save_pdf_with_sbs_hocr(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path=temp_pdf,
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         options={"text_position": "right"},
         finished_callback=lambda response: mlp.quit(),
@@ -749,12 +749,12 @@ def test_save_pdf_with_sbs_hocr(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["pdftotext", temp_pdf, "-"], text=True)
+    example = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(
         r"The.*quick.*brown.*fox", example, re.DOTALL
     ), "PDF with expected text"
 
-    import_in_mainloop(slist, [temp_pdf])
+    import_in_mainloop(slist, [temp_pdf.name])
 
     # Because we cannot reproduce the exact typeface used
     # in the original, we cannot expect to be able to
@@ -767,19 +767,19 @@ def test_save_pdf_with_sbs_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_pdf])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_with_metadata(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_metadata(
+    temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
+):
     "Test writing PDF with metadata"
 
-    pnm = "test.pnm"
-    pdf = "test.pdf"
-    subprocess.run(["convert", "rose:", pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     metadata = {
         "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -788,7 +788,7 @@ def test_save_pdf_with_metadata(temp_db, import_in_mainloop, clean_up_files):
     }
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path=pdf,
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
@@ -797,32 +797,32 @@ def test_save_pdf_with_metadata(temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    info = subprocess.check_output(["pdfinfo", "-isodates", pdf], text=True)
+    info = subprocess.check_output(["pdfinfo", "-isodates", temp_pdf.name], text=True)
     assert re.search(r"metadata title", info) is not None, "metadata title in PDF"
 
     assert re.search(r"NONE", info) is None, "don't add blank metadata"
 
     assert re.search(r"2016-02-10T00:00:00Z", info), "metadata ModDate in PDF"
-    stb = os.stat(pdf)
+    stb = os.stat(temp_pdf.name)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 10, 0, 0, 0
     ), "timestamp"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [pnm, pdf])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_with_old_metadata(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_old_metadata(
+    temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
+):
     "Test writing PDF with old metadata"
 
-    pnm = "test.pnm"
-    pdf = "test.pdf"
-    subprocess.run(["convert", "rose:", pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     metadata = {
         "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -837,7 +837,7 @@ def test_save_pdf_with_old_metadata(temp_db, import_in_mainloop, clean_up_files)
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path=pdf,
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
@@ -849,17 +849,19 @@ def test_save_pdf_with_old_metadata(temp_db, import_in_mainloop, clean_up_files)
 
     assert called, "caught errors setting timestamp"
 
-    info = subprocess.check_output(["pdfinfo", "-isodates", pdf], text=True)
+    info = subprocess.check_output(["pdfinfo", "-isodates", temp_pdf.name], text=True)
     assert (
         re.search(r"1966-02-10T00:00:00Z", info) is not None
     ), "metadata ModDate in PDF"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [pnm, pdf])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_with_downsample(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_downsample(
+    temp_png, temp_pdf, temp_db, import_in_mainloop, clean_up_files
+):
     "Test writing PDF with downsampled image"
 
     subprocess.run(
@@ -877,18 +879,18 @@ def test_save_pdf_with_downsample(temp_db, import_in_mainloop, clean_up_files):
             "-density",
             "300",
             "label:The quick brown fox",
-            "test.png",
+            temp_png.name,
         ],
         check=True,
     )
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -908,7 +910,7 @@ def test_save_pdf_with_downsample(temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert os.path.getsize("test.pdf") > os.path.getsize(
+    assert os.path.getsize(temp_pdf.name) > os.path.getsize(
         "test2.pdf"
     ), "downsampled PDF smaller than original"
 
@@ -925,22 +927,22 @@ def test_save_pdf_with_downsample(temp_db, import_in_mainloop, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.png",
-            "test.pdf",
             "test2.pdf",
             "x-000.pbm",
         ]
     )
 
 
-def test_cancel_save_pdf(temp_db, import_in_mainloop, clean_up_files):
+def test_cancel_save_pdf(
+    temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
+):
     "Test writing PDF with downsampled image"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     def finished_callback(_response):
         assert False, "Finished callback"
@@ -954,7 +956,7 @@ def test_cancel_save_pdf(temp_db, import_in_mainloop, clean_up_files):
         mlp.quit()
 
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=finished_callback,
     )
@@ -980,8 +982,6 @@ def test_cancel_save_pdf(temp_db, import_in_mainloop, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pnm",
-            "test.pdf",
             "test.jpg",
         ]
     )

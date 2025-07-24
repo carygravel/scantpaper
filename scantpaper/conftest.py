@@ -260,8 +260,7 @@ def temp_png():
 @pytest.fixture
 def temp_pdf():
     "return a temporary pdf"
-    with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
-        return temp.name
+    return tempfile.NamedTemporaryFile(suffix=".pdf")
 
 
 @pytest.fixture

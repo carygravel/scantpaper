@@ -45,11 +45,12 @@ class SaveThread(Importhread):
         self.message = _("Setting up PDF")
         outdir = pathlib.Path(options.get("dir"))
         filename = options["path"]
+        temp_pdf = None
         if _need_temp_pdf(options.get("options")):
-            with tempfile.NamedTemporaryFile(
-                dir=options.get("dir"), suffix=".pdf", delete=False
-            ) as temp:
-                filename = temp.name
+            temp_pdf = tempfile.NamedTemporaryFile(
+                dir=options.get("dir"), suffix=".pdf"
+            )
+            filename = temp_pdf.name
 
         metadata = {}
         if "metadata" in options and "ps" not in options:
