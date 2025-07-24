@@ -1174,54 +1174,51 @@ class DocThread(SaveThread):
 
     def _run_unpaper_cmd(self, request):
         options = request.args[0]
-        with tempfile.NamedTemporaryFile(
-            dir=options.get("dir"), suffix=".pnm", delete=False
-        ) as out, tempfile.NamedTemporaryFile(
-            dir=options.get("dir"), suffix=".pnm", delete=False
-        ) as out2:
-            options["options"]["command"][-2] = out.name
+        out = tempfile.NamedTemporaryFile(dir=options.get("dir"), suffix=".pnm")
+        out2 = None
+        options["options"]["command"][-2] = out.name
 
-            index = options["options"]["command"].index("--output-pages")
-            if options["options"]["command"][index + 1] == "2":
-                options["options"]["command"][-1] = out2.name
-            else:
-                del options["options"]["command"][-1]
-                out2 = None
+        index = options["options"]["command"].index("--output-pages")
+        if options["options"]["command"][index + 1] == "2":
+            out2 = tempfile.NamedTemporaryFile(dir=options.get("dir"), suffix=".pnm")
+            options["options"]["command"][-1] = out2.name
+        else:
+            del options["options"]["command"][-1]
 
-            spo = subprocess.run(
-                options["options"]["command"],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            logger.info(spo.stdout)
-            if spo.stderr:
-                logger.error(spo.stderr)
-                request.data(spo.stderr)
-                if not os.path.getsize(out.name):
-                    raise subprocess.CalledProcessError
+        spo = subprocess.run(
+            options["options"]["command"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logger.info(spo.stdout)
+        if spo.stderr:
+            logger.error(spo.stderr)
+            request.data(spo.stderr)
+            if not os.path.getsize(out.name):
+                raise subprocess.CalledProcessError
 
-            if self.cancel:
-                raise CancelledError()
-            spo.stdout = re.sub(
-                r"Processing[ ]sheet.*[.]pnm\n",
-                r"",
-                spo.stdout,
-                count=1,
-                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if spo.stdout:
-                logger.warning(spo.stdout)
-                request.data(spo.stdout)
-                if not os.path.getsize(out.name):
-                    raise subprocess.CalledProcessError
+        if self.cancel:
+            raise CancelledError()
+        spo.stdout = re.sub(
+            r"Processing[ ]sheet.*[.]pnm\n",
+            r"",
+            spo.stdout,
+            count=1,
+            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+        )
+        if spo.stdout:
+            logger.warning(spo.stdout)
+            request.data(spo.stdout)
+            if not os.path.getsize(out.name):
+                raise subprocess.CalledProcessError
 
-            if (
-                options["options"]["command"][index + 1] == "2"
-                and options["options"].get("direction") == "rtl"
-            ):
-                out, out2 = out2, out
-            return out, out2
+        if (
+            options["options"]["command"][index + 1] == "2"
+            and options["options"].get("direction") == "rtl"
+        ):
+            out, out2 = out2, out
+        return out, out2
 
     def do_unpaper(self, request):
         "run unpaper in thread"
@@ -1237,56 +1234,53 @@ class DocThread(SaveThread):
 
             # Temporary filename for new file
             with tempfile.NamedTemporaryFile(
-                dir=options.get("dir"), suffix=suffix, delete=False
-            ) as temp:
-                infile = temp.name
+                dir=options.get("dir"), suffix=suffix
+            ) as infile:
                 logger.debug(
                     "Writing %s -> %s for unpaper",
                     page.id,
-                    infile,
+                    infile.name,
                 )
-                image.save(infile)
+                image.save(infile.name)
+                options["options"]["command"][-3] = infile.name
+                out, out2 = self._run_unpaper_cmd(request)
 
-            options["options"]["command"][-3] = infile
-
-            out, out2 = self._run_unpaper_cmd(request)
-
-            # unpaper doesn't change the resolution, so we can safely copy it
-            new = Page(
-                filename=out.name,
-                dir=options.get("dir"),
-                delete=True,
-                format="Portable anymap",
-                resolution=page.resolution,
-                dirty_time=datetime.datetime.now(),  # flag as dirty
-            )
-
-            # have to send the 2nd page 1st, as the page_id for the 1st will
-            # cease to exist after replacing it
-            number = self.find_page_number_by_page_id(page.id)
-            if out2:
-                new2 = Page(
-                    filename=out2.name,
+                # unpaper doesn't change the resolution, so we can safely copy it
+                new = Page(
+                    filename=out.name,
                     dir=options.get("dir"),
                     delete=True,
                     format="Portable anymap",
                     resolution=page.resolution,
                     dirty_time=datetime.datetime.now(),  # flag as dirty
                 )
+
+                # have to send the 2nd page 1st, as the page_id for the 1st will
+                # cease to exist after replacing it
+                number = self.find_page_number_by_page_id(page.id)
+                if out2:
+                    new2 = Page(
+                        filename=out2.name,
+                        dir=options.get("dir"),
+                        delete=True,
+                        format="Portable anymap",
+                        resolution=page.resolution,
+                        dirty_time=datetime.datetime.now(),  # flag as dirty
+                    )
+                    request.data(
+                        {
+                            "type": "page",
+                            "row": self.add_page(new2, number + 1),
+                            "insert-after": page.id,
+                        }
+                    )
                 request.data(
                     {
                         "type": "page",
-                        "row": self.add_page(new2, number + 1),
-                        "insert-after": page.id,
+                        "row": self.replace_page(new, number),
+                        "replace": page.id,
                     }
                 )
-            request.data(
-                {
-                    "type": "page",
-                    "row": self.replace_page(new, number),
-                    "replace": page.id,
-                }
-            )
 
         except (PermissionError, IOError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)

@@ -208,29 +208,29 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 @pytest.fixture
 def rotated_qbfox_image():
     "return an image with quick brown fox text"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pnm") as temp:
-        subprocess.run(
-            [
-                "convert",
-                "+matte",
-                "-depth",
-                "1",
-                "-colorspace",
-                "Gray",
-                "-family",
-                "DejaVu Sans",
-                "-pointsize",
-                "12",
-                "-density",
-                "300",
-                "label:The quick brown fox",
-                "-rotate",
-                "-90",
-                temp.name,
-            ],
-            check=True,
-        )
-        return temp.name
+    temp = tempfile.NamedTemporaryFile(suffix=".pnm")
+    subprocess.run(
+        [
+            "convert",
+            "+matte",
+            "-depth",
+            "1",
+            "-colorspace",
+            "Gray",
+            "-family",
+            "DejaVu Sans",
+            "-pointsize",
+            "12",
+            "-density",
+            "300",
+            "label:The quick brown fox",
+            "-rotate",
+            "-90",
+            temp.name,
+        ],
+        check=True,
+    )
+    return temp
 
 
 @pytest.fixture
@@ -250,8 +250,7 @@ def temp_djvu():
 @pytest.fixture
 def temp_pnm():
     "return a temporary pnm"
-    with tempfile.NamedTemporaryFile(suffix=".pnm") as temp:
-        return temp.name
+    return tempfile.NamedTemporaryFile(suffix=".pnm")
 
 
 @pytest.fixture

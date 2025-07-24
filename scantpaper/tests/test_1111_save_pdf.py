@@ -57,7 +57,7 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
@@ -80,7 +80,7 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
         mlp.quit()
 
     slist.import_files(
-        paths=[temp_pnm],
+        paths=[temp_pnm.name],
         started_callback=import_files_started_cb,
         finished_callback=import_files_finished_cb,
     )
@@ -134,7 +134,6 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
         slist.thread.db_files
         + [
             "test.png",
-            temp_pnm,
             "test.pdf",
             "test-1.ppm",
         ]

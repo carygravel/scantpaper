@@ -16,11 +16,11 @@ def test_save_text(
 ):
     "Test saving text"
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -56,7 +56,6 @@ def test_save_text(
     clean_up_files(
         slist.thread.db_files
         + [
-            temp_pnm,
             temp_txt,
             "test.txt",
         ]
@@ -112,11 +111,11 @@ def test_save_utf8(
 ):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -144,7 +143,7 @@ def test_save_utf8(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_pnm, temp_txt])
+    clean_up_files(slist.thread.db_files + [temp_txt])
 
 
 def test_save_hocr_as_text(
@@ -157,11 +156,11 @@ def test_save_hocr_as_text(
 ):
     "Test saving HOCR as text"
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -205,7 +204,7 @@ def test_save_hocr_as_text(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_pnm, temp_txt])
+    clean_up_files(slist.thread.db_files + [temp_txt])
 
 
 def test_save_hocr(
@@ -218,11 +217,11 @@ def test_save_hocr(
 ):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -274,7 +273,6 @@ def test_save_hocr(
     clean_up_files(
         slist.thread.db_files
         + [
-            temp_pnm,
             temp_txt,
             "test.txt",
         ]
@@ -291,11 +289,11 @@ def test_save_hocr_with_encoding(
 ):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -346,7 +344,7 @@ def test_save_hocr_with_encoding(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_pnm, temp_txt])
+    clean_up_files(slist.thread.db_files + [temp_txt])
 
 
 def test_save_multipage_hocr(
@@ -359,11 +357,11 @@ def test_save_multipage_hocr(
 ):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm, temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -443,7 +441,6 @@ def test_save_multipage_hocr(
     clean_up_files(
         slist.thread.db_files
         + [
-            temp_pnm,
             temp_txt,
         ]
     )
@@ -459,11 +456,11 @@ def test_save_hocr_structure(
 ):
     "Test writing text"
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
@@ -588,7 +585,6 @@ def test_save_hocr_structure(
     clean_up_files(
         slist.thread.db_files
         + [
-            temp_pnm,
             temp_txt,
         ]
     )

@@ -160,13 +160,19 @@ class SaveThread(Importhread):
 
                 # if error:
                 #     return
-                compression, filename, resolution = _convert_image_for_djvu(
+                compression, tempimage, resolution = _convert_image_for_djvu(
                     page, args, request
                 )
 
                 # Create the djvu
                 proc = exec_command(
-                    [compression, "-dpi", str(int(resolution)), filename, djvu.name],
+                    [
+                        compression,
+                        "-dpi",
+                        str(int(resolution)),
+                        tempimage.name,
+                        djvu.name,
+                    ],
                     args["pidfile"],
                 )
                 size = os.path.getsize(djvu.name)
@@ -697,7 +703,6 @@ def _post_save_hook(filename, options):
 
 def _convert_image_for_djvu(page, options, request):
     # Check the image depth to decide what sort of compression to use
-    compression = None
 
     # c44 and cjb2 do not support different resolutions in the x and y
     # directions, so resample
@@ -706,27 +711,21 @@ def _convert_image_for_djvu(page, options, request):
     # cjb2 can only use pnm and tif
     if image.mode == "1":
         compression = "cjb2"
-        with tempfile.TemporaryFile(
-            dir=options.get("dir"), suffix=".pbm", delete=False
-        ) as pbm:
-            err = image.save(pbm.name)
-            if f"{err}":
-                logger.error(err)
-                request.error(f"Error writing {pbm}: {err}.")
-                return None
-
-            filename = pbm.name
+        suffix = ".pbm"
 
     # c44 can only use pnm and jpg
     else:
         compression = "c44"
-        with tempfile.NamedTemporaryFile(
-            dir=options.get("dir"), suffix=".pnm", delete=False
-        ) as pnm:
-            image.save(pnm.name)
-            filename = pnm.name
+        suffix = ".pnm"
 
-    return compression, filename, resolution
+    tempimage = tempfile.NamedTemporaryFile(dir=options.get("dir"), suffix=suffix)
+    err = image.save(tempimage.name)
+    if err:
+        logger.error(err)
+        request.error(f"Error writing {tempimage.name}: {err}.")
+        return None
+
+    return compression, tempimage, resolution
 
 
 def _add_txt_to_djvu(djvu, dirname, page, request):

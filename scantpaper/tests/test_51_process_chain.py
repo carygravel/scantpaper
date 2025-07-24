@@ -13,7 +13,7 @@ from unpaper import Unpaper
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain(temp_db, clean_up_files):
+def test_process_chain(temp_db, temp_pnm, clean_up_files):
     "Test process chain"
 
     unpaper = Unpaper()
@@ -34,7 +34,7 @@ def test_process_chain(temp_db, clean_up_files):
             "label:The quick brown fox",
             "-rotate",
             "-90",
-            "test.pnm",
+            temp_pnm.name,
         ],
         check=True,
     )
@@ -50,7 +50,7 @@ def test_process_chain(temp_db, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.import_scan(
-        filename="test.pnm",
+        filename=temp_pnm.name,
         page=1,
         rotate=-90,
         unpaper=unpaper,
@@ -86,7 +86,7 @@ def test_process_chain(temp_db, clean_up_files):
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain2(temp_db, clean_up_files):
+def test_process_chain2(temp_db, temp_pnm, clean_up_files):
     "Test process chain"
 
     subprocess.run(
@@ -95,7 +95,7 @@ def test_process_chain2(temp_db, clean_up_files):
             "-size",
             "210x297",
             "xc:white",
-            "white.pnm",
+            temp_pnm.name,
         ],
         check=True,
     )
@@ -103,7 +103,7 @@ def test_process_chain2(temp_db, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.import_scan(
-        filename="white.pnm",
+        filename=temp_pnm.name,
         page=1,
         udt="convert %i -negate %o",
         resolution=300,
@@ -125,7 +125,7 @@ def test_process_chain2(temp_db, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pnm"])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -142,7 +142,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files
 
     mlp = GLib.MainLoop()
     slist.import_scan(
-        filename=rotated_qbfox_image,
+        filename=rotated_qbfox_image.name,
         page=1,
         rotate=-90,
         ocr=True,
@@ -168,7 +168,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -190,7 +190,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
         mlp.quit()
 
     slist.import_scan(
-        filename=rotated_qbfox_image,
+        filename=rotated_qbfox_image.name,
         page=2,
         to_png=True,
         rotate=-90,
@@ -208,7 +208,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
 
     assert asserts == 1, "Caught error trying to process deleted page"
 
-    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -226,7 +226,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
         mlp.quit()
 
     slist.import_scan(
-        filename=rotated_qbfox_image,
+        filename=rotated_qbfox_image.name,
         page=2,
         to_png=True,
         rotate=-90,
@@ -243,7 +243,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
 
     assert asserts == 0, "No error thrown"
 
-    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
@@ -270,7 +270,7 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_image, clean_up_files):
         mlp.quit()
 
     options = {
-        "filename": rotated_qbfox_image,
+        "filename": rotated_qbfox_image.name,
         "to_png": True,
         "rotate": -90,
         "ocr": True,
@@ -288,4 +288,4 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_image, clean_up_files):
 
     assert asserts > 0, "Didn't hang waiting for deleted page"
 
-    clean_up_files(slist.thread.db_files + [rotated_qbfox_image])
+    clean_up_files(slist.thread.db_files)

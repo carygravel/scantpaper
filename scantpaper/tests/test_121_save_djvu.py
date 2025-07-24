@@ -20,11 +20,11 @@ def test_save_djvu1(
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     slist.save_djvu(
         path=temp_djvu,
@@ -52,7 +52,6 @@ def test_save_djvu1(
     clean_up_files(
         slist.thread.db_files
         + [
-            temp_pnm,
             temp_djvu,
             temp_png,
         ]
@@ -72,11 +71,11 @@ def test_save_djvu_text_layer(
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -100,7 +99,7 @@ def test_save_djvu_text_layer(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_pnm, temp_djvu])
+    clean_up_files(slist.thread.db_files + [temp_djvu])
 
 
 def test_save_djvu_with_hocr(
@@ -117,11 +116,11 @@ def test_save_djvu_with_hocr(
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     hocr = """<!DOCTYPE html
  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
@@ -169,7 +168,7 @@ def test_save_djvu_with_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_pnm, temp_djvu])
+    clean_up_files(slist.thread.db_files + [temp_djvu])
 
 
 def test_cancel_save_djvu(
