@@ -12,7 +12,7 @@ def test_import_ppm(temp_db, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.ppm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 

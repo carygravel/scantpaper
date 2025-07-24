@@ -177,7 +177,7 @@ def test_unpaper(import_in_mainloop, temp_db, clean_up_files):
         ],
         check=True,
     )
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
     slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, ["test.pnm"])
@@ -246,7 +246,7 @@ def test_unpaper2(
         ],
         check=True,
     )
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
     slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, ["test.pnm"])
@@ -336,7 +336,7 @@ def test_unpaper3(temp_db, import_in_mainloop, clean_up_files):
     subprocess.run(
         ["convert", "1.pnm", "black.pnm", "2.pnm", "+append", "test.pnm"], check=True
     )
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -448,7 +448,7 @@ def test_unpaper_rtl(temp_db, import_in_mainloop, clean_up_files):
         ],
         check=True,
     )
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pbm"])
 

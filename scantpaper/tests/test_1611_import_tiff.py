@@ -14,7 +14,7 @@ def test_import_tiff(temp_db, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -49,7 +49,7 @@ def test_import_tiff_with_units(temp_db, clean_up_files):
         check=True,
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -129,7 +129,7 @@ def test_import_multipage_tiff(temp_db, clean_up_files):
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiffcp", "test.tif", "test.tif", "test2.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -156,7 +156,7 @@ def test_import_linked_tiff(temp_db, clean_up_files):
         ["identify", "-format", "%m %G %g %z-bit %r", "test.tif"], text=True
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -178,7 +178,7 @@ def test_import_linked_tiff(temp_db, clean_up_files):
 def test_import_multiple_tiffs_with_corrupt(temp_db, clean_up_files):
     "Test importing TIFF"
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     subprocess.run(["convert", "rose:", "1.tif"], check=True)
     paths = ["1.tif"]
@@ -225,7 +225,7 @@ def test_cancel_import_tiff(temp_db, import_in_mainloop, clean_up_files):
         ["identify", "-format", "%m %G %g %z-bit %r", "test.tif"], text=True
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 

@@ -12,7 +12,7 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 def test_1(mainloop_with_timeout, temp_db, clean_up_files):
     "basic tests for Renumber class"
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
     dialog = Renumber(document=slist, transient_for=Gtk.Window())
     assert isinstance(dialog, Renumber)
     assert dialog.start == 1, "default start for empty document"

@@ -59,7 +59,7 @@ def test_tesseract_in_thread(temp_db, import_in_mainloop, clean_up_files):
     ]
     subprocess.run(args, check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
 

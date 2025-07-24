@@ -13,7 +13,7 @@ def test_save_tiff(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -62,7 +62,7 @@ def test_cancel_save_tiff(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -192,7 +192,7 @@ def test_save_tiff_with_alpha(temp_db, import_in_mainloop, clean_up_files):
         check=True,
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -224,7 +224,7 @@ def test_save_tiff_as_ps(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
@@ -275,7 +275,7 @@ def test_save_tiff_g4(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.png"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
 

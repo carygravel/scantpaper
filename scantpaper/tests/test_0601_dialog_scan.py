@@ -63,7 +63,7 @@ def test_doc_interaction(clean_up_files, temp_db):
         title="title",
         transient_for=window,
     )
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
     dialog = Scan(
         title="title",
         transient_for=window,

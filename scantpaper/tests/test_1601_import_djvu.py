@@ -59,7 +59,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
         ["djvused", "test.djvu", "-e", "set-meta text.txt", "-s"], check=True
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -203,7 +203,7 @@ def test_import_djvu_with_error2(monkeypatch, temp_db, clean_up_files):
     # apply the monkeypatch for Page.import_djvu_txt to mock_import_djvu_txt
     monkeypatch.setattr(Page, "import_djvu_txt", mock_import_djvu_txt)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -241,7 +241,7 @@ def test_import_multipage_djvu(temp_db, clean_up_files):
     subprocess.run(["c44", "test.jpg", "test.djvu"], check=True)
     subprocess.run(["djvm", "-c", "test2.djvu", "test.djvu", "test.djvu"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 

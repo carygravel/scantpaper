@@ -687,7 +687,7 @@ def test_docthread(clean_up_files):
 
 def test_db(temp_db, clean_up_files):
     "test database access"
-    thread = DocThread(db=temp_db)
+    thread = DocThread(db=temp_db.name)
 
     with pytest.raises(StopIteration):
         thread.undo()
@@ -701,7 +701,7 @@ def test_db(temp_db, clean_up_files):
     page = thread.get_page(number=1)
     assert page.id == 1, "add page"
 
-    thread = DocThread(db=temp_db)
+    thread = DocThread(db=temp_db.name)
     page = thread.get_page(number=1)
     assert page.id == 1, "load from db"
 

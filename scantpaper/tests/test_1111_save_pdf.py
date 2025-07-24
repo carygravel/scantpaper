@@ -18,18 +18,18 @@ from basethread import Request
 from page import Page
 
 
-def test_do_save_pdf(temp_db, clean_up_files):
+def test_do_save_pdf(temp_pnm, temp_db, clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    thread = DocThread(db=temp_db)
+    thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
     tdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
     _number, _thumb, page_id = thread.add_page(
         Page(
-            filename="test.pnm",
+            filename=temp_pnm.name,
             dir=tdir.name,
             delete=True,
             format="Portable anymap",
@@ -50,7 +50,7 @@ def test_do_save_pdf(temp_db, clean_up_files):
     capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
     assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
 
-    clean_up_files(thread.db_files + ["test.pnm", "test.pdf"])
+    clean_up_files(thread.db_files + ["test.pdf"])
 
 
 def test_save_pdf(temp_pnm, temp_db, clean_up_files):
@@ -59,7 +59,7 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
     # Create test image
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     asserts = 0
 
@@ -147,7 +147,7 @@ def test_save_pdf_with_locale(temp_db, import_in_mainloop, clean_up_files):
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -230,7 +230,7 @@ def test_save_pdf_different_resolutions(temp_db, import_in_mainloop, clean_up_fi
     # Create test image
     subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -262,7 +262,7 @@ def test_save_encrypted_pdf(temp_db, import_in_mainloop, clean_up_files):
     # Create test image
     subprocess.run(["convert", "rose:", "test.jpg"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.jpg"])
 
@@ -321,7 +321,7 @@ def test_save_pdf_with_hocr(
     if regex:
         width, height = regex.group(1), regex.group(2)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_png.name])
 
@@ -490,7 +490,7 @@ def test_save_pdf_with_1bpp(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "magick:netscape", "test.pbm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pbm"])
 
@@ -522,7 +522,7 @@ def test_save_pdf_without_font(
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -569,7 +569,7 @@ def test_save_pdf_g4(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.png"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -614,7 +614,7 @@ def test_save_pdf_g4_alpha(temp_db, import_in_mainloop, clean_up_files):
         check=True,
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.tif"])
 
@@ -704,7 +704,7 @@ def test_save_pdf_with_sbs_hocr(
     if regex:
         width, height = regex.group(1), regex.group(2)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_png.name])
 
@@ -777,7 +777,7 @@ def test_save_pdf_with_metadata(temp_db, import_in_mainloop, clean_up_files):
     pdf = "test.pdf"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [pnm])
 
@@ -820,7 +820,7 @@ def test_save_pdf_with_old_metadata(temp_db, import_in_mainloop, clean_up_files)
     pdf = "test.pdf"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [pnm])
 
@@ -882,7 +882,7 @@ def test_save_pdf_with_downsample(temp_db, import_in_mainloop, clean_up_files):
         check=True,
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -938,7 +938,7 @@ def test_cancel_save_pdf(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 

@@ -18,7 +18,7 @@ def test_import_multipage_pdf(temp_db, clean_up_files):
     subprocess.run(["tiffcp", "test.tif", "test.tif", "test2.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test2.pdf", "test2.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -123,7 +123,7 @@ startxref
         fhd.write(content)
     subprocess.run(["pdfunite", "page1.pdf", "page2.pdf", "test.pdf"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -187,7 +187,7 @@ def test_import_pdf_bw(clean_up_files, temp_db):
         ["identify", "-format", "%m %G %g %z-bit %r", "test.png"], text=True
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -287,7 +287,7 @@ def test_import_encrypted_pdf(temp_db, clean_up_files):
         check=True,
     )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
@@ -446,7 +446,7 @@ def test_import_pdf_with_2000_pages(temp_db, clean_up_files):
     )
     subprocess.run(["pdfunite", "1000.pdf", "1000.pdf", "2000.pdf"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 

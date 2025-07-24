@@ -21,7 +21,7 @@ def test_save_multipage_pdf(
         subprocess.run(["convert", "rose:", filename], check=True)
         files.append(filename)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, files)
 
@@ -136,7 +136,7 @@ def test_save_multipage_pdf_as_ps(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
@@ -179,7 +179,7 @@ def test_save_multipage_pdf_as_ps2(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm", "test.pnm"])
 
@@ -224,7 +224,7 @@ def test_prepend_pdf(temp_db, import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -264,7 +264,7 @@ def test_append_pdf(temp_db, import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -304,7 +304,7 @@ def test_prepend_with_space(temp_db, import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "te st.pdf", "test.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -344,7 +344,7 @@ def test_prepend_with_inverted_comma(temp_db, import_in_mainloop, clean_up_files
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "te'st.pdf", "test.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -384,7 +384,7 @@ def test_append_pdf_with_timestamp(temp_db, import_in_mainloop, clean_up_files):
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 

@@ -38,7 +38,7 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files):
         ],
         check=True,
     )
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     asserts = 0
 
@@ -99,7 +99,7 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
         ],
         check=True,
     )
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
     slist.import_scan(
@@ -132,7 +132,7 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
 def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files):
     "Test tesseract in process chain"
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     asserts = 0
 
@@ -175,7 +175,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files
 def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -215,7 +215,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
 def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -250,7 +250,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
 def test_error_in_process_chain3(temp_db, rotated_qbfox_image, clean_up_files):
     "Test error handling in process chain"
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     asserts = 0
     mlp = GLib.MainLoop()

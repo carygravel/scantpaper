@@ -6,7 +6,9 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_udt(temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_udt(
+    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test user-defined tools"
 
     paper_sizes = {
@@ -15,12 +17,14 @@ def test_udt(temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files):
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
     }
 
-    subprocess.run(["convert", "-size", "210x297", "xc:white", "white.pnm"], check=True)
+    subprocess.run(
+        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+    )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
     slist.set_paper_sizes(paper_sizes)
 
-    import_in_mainloop(slist, ["white.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
@@ -59,17 +63,17 @@ def test_udt(temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pnm"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_udt_in_place(temp_db, import_in_mainloop, clean_up_files):
+def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
-    subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
+    subprocess.run(["convert", "xc:white", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["white.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     mlp = GLib.MainLoop()
     slist.user_defined(
@@ -93,10 +97,10 @@ def test_udt_in_place(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pnm"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_udt_page_size(temp_db, import_in_mainloop, clean_up_files):
+def test_udt_page_size(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
     paper_sizes = {
@@ -105,12 +109,14 @@ def test_udt_page_size(temp_db, import_in_mainloop, clean_up_files):
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
     }
 
-    subprocess.run(["convert", "-size", "210x297", "xc:white", "white.pnm"], check=True)
+    subprocess.run(
+        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+    )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
     slist.set_paper_sizes(paper_sizes)
 
-    import_in_mainloop(slist, ["white.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
@@ -144,19 +150,21 @@ def test_udt_page_size(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pnm", "test.pdf"])
+    clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
 def test_udt_resolution(
-    temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
+    temp_pnm, temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
 ):
     "Test user-defined tools"
 
-    subprocess.run(["convert", "-size", "210x297", "xc:white", "white.pnm"], check=True)
+    subprocess.run(
+        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+    )
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["white.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
     set_resolution_in_mainloop(slist, 1, 10, 10)
 
     mlp = GLib.MainLoop()
@@ -177,17 +185,17 @@ def test_udt_resolution(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pnm"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_udt_error(temp_db, import_in_mainloop, clean_up_files):
+def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
-    subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
+    subprocess.run(["convert", "xc:white", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["white.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     asserts = 0
 
@@ -220,4 +228,4 @@ def test_udt_error(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pnm"])
+    clean_up_files(slist.thread.db_files)

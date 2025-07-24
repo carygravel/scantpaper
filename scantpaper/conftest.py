@@ -236,8 +236,7 @@ def rotated_qbfox_image():
 @pytest.fixture
 def temp_db():
     "return a temporary db"
-    with tempfile.NamedTemporaryFile(suffix=".db") as temp:
-        return temp.name
+    return tempfile.NamedTemporaryFile(suffix=".db")
 
 
 @pytest.fixture

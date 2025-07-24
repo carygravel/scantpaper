@@ -12,7 +12,7 @@ def test_save_image(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -60,7 +60,7 @@ def test_save_image_with_quote(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -91,7 +91,7 @@ def test_save_image_with_ampersand(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 

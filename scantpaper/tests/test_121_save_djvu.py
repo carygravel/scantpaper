@@ -22,7 +22,7 @@ def test_save_djvu1(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -72,7 +72,7 @@ def test_save_djvu_text_layer(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -117,7 +117,7 @@ def test_save_djvu_with_hocr(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -180,7 +180,7 @@ def test_cancel_save_djvu(
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -307,7 +307,7 @@ def test_save_djvu_with_float_resolution(
 
     subprocess.run(["convert", "rose:", "test.png"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
     set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
@@ -336,7 +336,7 @@ def test_save_djvu_different_resolutions(temp_db, import_in_mainloop, clean_up_f
 
     subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.png"])
 
@@ -369,7 +369,7 @@ def test_save_djvu_with_metadata(temp_db, import_in_mainloop, clean_up_files):
     pnm = "test.pnm"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [pnm])
 
@@ -412,7 +412,7 @@ def test_save_djvu_with_old_metadata(temp_db, import_in_mainloop, clean_up_files
     pnm = "test.pnm"
     subprocess.run(["convert", "rose:", pnm], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [pnm])
 

@@ -18,7 +18,7 @@ def test_save_text(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -67,7 +67,7 @@ def test_save_no_text(temp_db, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, ["test.pnm"])
 
@@ -113,7 +113,7 @@ def test_save_utf8(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -158,7 +158,7 @@ def test_save_hocr_as_text(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -219,7 +219,7 @@ def test_save_hocr(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -291,7 +291,7 @@ def test_save_hocr_with_encoding(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -359,7 +359,7 @@ def test_save_multipage_hocr(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
 
@@ -458,7 +458,7 @@ def test_save_hocr_structure(
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    slist = Document(db=temp_db)
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
