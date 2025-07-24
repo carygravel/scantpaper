@@ -311,11 +311,11 @@ def test_save_pdf_with_hocr(
             "label:The quick brown fox",
             "-border",
             "20x10",
-            temp_png,
+            temp_png.name,
         ],
         check=True,
     )
-    info = subprocess.check_output(["identify", temp_png], text=True)
+    info = subprocess.check_output(["identify", temp_png.name], text=True)
     width, height = None, None
     regex = re.search(r"(\d+)+x(\d+)", info)
     if regex:
@@ -323,7 +323,7 @@ def test_save_pdf_with_hocr(
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_png])
+    import_in_mainloop(slist, [temp_png.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -336,7 +336,7 @@ def test_save_pdf_with_hocr(
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word ocrp_wconf'/>
  </head>
  <body>
-  <div class='ocr_page' id='page_1' title='image "{temp_png}"; bbox 0 0 550 80; ppageno 0'>
+  <div class='ocr_page' id='page_1' title='image "{temp_png.name}"; bbox 0 0 550 80; ppageno 0'>
    <div class='ocr_carea' id='block_1_1' title="bbox 20 19 527 67">
     <p class='ocr_par' id='par_1_1' lang='eng' title="bbox 20 19 527 67">
      <span class='ocr_line' id='line_1_1' title="bbox 20 19 527 67; baseline 0 -10; x_size 47; x_descenders 9; x_ascenders 10">
@@ -388,7 +388,7 @@ def test_save_pdf_with_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_png, temp_pdf])
+    clean_up_files(slist.thread.db_files + [temp_pdf])
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -694,11 +694,11 @@ def test_save_pdf_with_sbs_hocr(
             "label:The quick brown fox",
             "-border",
             "20x10",
-            temp_png,
+            temp_png.name,
         ],
         check=True,
     )
-    info = subprocess.check_output(["identify", temp_png], text=True)
+    info = subprocess.check_output(["identify", temp_png.name], text=True)
     width, height = None, None
     regex = re.search(r"(\d+)+x(\d+)", info)
     if regex:
@@ -706,7 +706,7 @@ def test_save_pdf_with_sbs_hocr(
 
     slist = Document(db=temp_db)
 
-    import_in_mainloop(slist, [temp_png])
+    import_in_mainloop(slist, [temp_png.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -720,7 +720,7 @@ def test_save_pdf_with_sbs_hocr(
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'/>
 </head>
 <body>
-  <div class='ocr_page' id='page_1' title='image "{temp_png}"; bbox 0 0 452 57; ppageno 0'>
+  <div class='ocr_page' id='page_1' title='image "{temp_png.name}"; bbox 0 0 452 57; ppageno 0'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 9 449 55">
     <p class='ocr_par' dir='ltr' id='par_1_1' title="bbox 1 9 449 55">
      <span class='ocr_line' id='line_1_1' title="bbox 1 9 449 55; baseline 0 -10">
@@ -767,7 +767,7 @@ def test_save_pdf_with_sbs_hocr(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [temp_png, temp_pdf])
+    clean_up_files(slist.thread.db_files + [temp_pdf])
 
 
 def test_save_pdf_with_metadata(temp_db, import_in_mainloop, clean_up_files):

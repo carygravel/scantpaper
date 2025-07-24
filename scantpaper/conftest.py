@@ -256,8 +256,7 @@ def temp_pnm():
 @pytest.fixture
 def temp_png():
     "return a temporary png"
-    with tempfile.NamedTemporaryFile(suffix=".png") as temp:
-        return temp.name
+    return tempfile.NamedTemporaryFile(suffix=".png")
 
 
 @pytest.fixture

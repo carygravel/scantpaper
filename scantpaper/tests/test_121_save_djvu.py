@@ -30,7 +30,7 @@ def test_save_djvu1(
         path=temp_djvu,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": "convert %i " + temp_png,
+            "post_save_hook": "convert %i " + temp_png.name,
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -42,9 +42,9 @@ def test_save_djvu1(
     assert os.path.getsize(temp_djvu) == 1054, "DjVu created with expected size"
     assert slist.thread.pages_saved(), "pages tagged as saved"
 
-    capture = subprocess.check_output(["identify", temp_png], text=True)
+    capture = subprocess.check_output(["identify", temp_png.name], text=True)
     assert re.search(
-        rf"{temp_png} PNG 70x46 70x46\+0\+0 8-bit sRGB", capture
+        rf"{temp_png.name} PNG 70x46 70x46\+0\+0 8-bit sRGB", capture
     ), "ran post-save hook"
 
     #########################
@@ -53,7 +53,6 @@ def test_save_djvu1(
         slist.thread.db_files
         + [
             temp_djvu,
-            temp_png,
         ]
     )
 

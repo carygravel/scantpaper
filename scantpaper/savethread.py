@@ -619,12 +619,10 @@ def _write_image_object(page, options):
         image = image.point(lambda p: 255 if p > threshold else 0)
         # To mono
         image = image.convert("1")
-    with tempfile.NamedTemporaryFile(
-        dir=options.get("dir"), suffix=".png", delete=False
-    ) as tmp:
-        xresolution, yresolution, _units = page.get_resolution()
-        image.save(tmp.name, dpi=(xresolution, yresolution))
-        return tmp.name
+    tmp = tempfile.NamedTemporaryFile(dir=options.get("dir"), suffix=".png")
+    xresolution, yresolution, _units = page.get_resolution()
+    image.save(tmp.name, dpi=(xresolution, yresolution))
+    return tmp
 
 
 def _append_pdf(filename, options, request):
