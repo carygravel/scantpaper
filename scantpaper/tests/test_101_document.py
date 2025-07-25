@@ -775,60 +775,62 @@ def test_document(clean_up_files):
     tiff = "test.tif"
     subprocess.run(["convert", "rose:", tiff], check=True)  # Create test image
 
-    tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist = Document(dir=tempdir.name)
-    ran_callback = False
-    dialog = Scan(title="title", transient_for=Gtk.Window(), document=slist)
+    with tempfile.TemporaryDirectory() as tempdir:
+        slist = Document(dir=tempdir)
+        ran_callback = False
+        dialog = Scan(title="title", transient_for=Gtk.Window(), document=slist)
 
-    def finished_callback(_result):
-        nonlocal ran_callback
-        ran_callback = True
-        clipboard = slist.copy_selection()
-        slist.paste_selection(
-            data=clipboard[0], dest=0, how="after", select_new_pages=True
-        )  # copy-paste page 1->2
-        assert slist.data[0][2] != slist.data[1][2], "different uuid"
-        assert slist.data[1][0] == 2, "new page is number 2"
-        assert slist.get_selected_indices() == [1], "pasted page selected"
-        dialog.page_number_start = 3
-        clipboard = slist.cut_selection()
-        assert len(clipboard) == 1, "cut 1 page to clipboard"
-        assert len(slist.data) == 1, "1 page left in list"
-        assert slist.get_selected_indices() == [0], "selection changed to previous page"
-        # TODO = "Don't know how to trigger update of page-number-start from Document"
-        # assert dialog.page_number_start== 2,               'page-number-start after cut'
-        slist.paste_selection(
-            data=clipboard[0], dest=0, how="before"
-        )  # paste page before 1
-        assert len(slist.data) == 2, "2 pages now in list"
-        assert slist.data[0][2] == clipboard[0][2], "cut page pasted at page 1"
-        assert slist.data[0][0] == 1, "cut page renumbered to page 1"
-        assert slist.get_selected_indices() == [
-            1
-        ], "pasted page not selected, as parameter not TRUE"
-        assert dialog.page_number_start == 3, "page-number-start after paste"
-        slist.select([0, 1])
-        assert slist.get_selected_indices() == [0, 1], "selected all pages"
+        def finished_callback(_result):
+            nonlocal ran_callback
+            ran_callback = True
+            clipboard = slist.copy_selection()
+            slist.paste_selection(
+                data=clipboard[0], dest=0, how="after", select_new_pages=True
+            )  # copy-paste page 1->2
+            assert slist.data[0][2] != slist.data[1][2], "different uuid"
+            assert slist.data[1][0] == 2, "new page is number 2"
+            assert slist.get_selected_indices() == [1], "pasted page selected"
+            dialog.page_number_start = 3
+            clipboard = slist.cut_selection()
+            assert len(clipboard) == 1, "cut 1 page to clipboard"
+            assert len(slist.data) == 1, "1 page left in list"
+            assert slist.get_selected_indices() == [
+                0
+            ], "selection changed to previous page"
+            # TODO = "Don't know how to trigger update of page-number-start from Document"
+            # assert dialog.page_number_start== 2,               'page-number-start after cut'
+            slist.paste_selection(
+                data=clipboard[0], dest=0, how="before"
+            )  # paste page before 1
+            assert len(slist.data) == 2, "2 pages now in list"
+            assert slist.data[0][2] == clipboard[0][2], "cut page pasted at page 1"
+            assert slist.data[0][0] == 1, "cut page renumbered to page 1"
+            assert slist.get_selected_indices() == [
+                1
+            ], "pasted page not selected, as parameter not TRUE"
+            assert dialog.page_number_start == 3, "page-number-start after paste"
+            slist.select([0, 1])
+            assert slist.get_selected_indices() == [0, 1], "selected all pages"
 
-        slist.delete_selection()
-        assert len(slist.data) == 0, "deleted all pages"
+            slist.delete_selection()
+            assert len(slist.data) == 0, "deleted all pages"
 
-        slist.undo()
-        assert len(slist.data) == 2, "undo delete"
+            slist.undo()
+            assert len(slist.data) == 2, "undo delete"
 
-        slist.unundo()
-        assert len(slist.data) == 0, "redo delete"
+            slist.unundo()
+            assert len(slist.data) == 0, "redo delete"
 
-        # TODO/FIXME: test drag-and-drop callbacks for move
-        # TODO/FIXME: test drag-and-drop callbacks for copy
+            # TODO/FIXME: test drag-and-drop callbacks for move
+            # TODO/FIXME: test drag-and-drop callbacks for copy
 
-    slist.import_files(paths=[tiff], finished_callback=finished_callback)
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
-    assert ran_callback, "ran finished callback"
+        slist.import_files(paths=[tiff], finished_callback=finished_callback)
+        mlp = GLib.MainLoop()
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
+        assert ran_callback, "ran finished callback"
 
-    clean_up_files(slist.thread.db_files + [tiff])
+        clean_up_files(slist.thread.db_files + [tiff])
 
 
 def test_import_scan(

@@ -73,54 +73,54 @@ def test_import_tiff_with_error(clean_up_files):
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist = Document(dir=dirname.name)
+    with tempfile.TemporaryDirectory() as dirname:
+        slist = Document(dir=dirname)
 
-    mlp = GLib.MainLoop()
+        mlp = GLib.MainLoop()
 
-    asserts = 0
-
-    # inject error during import file
-    os.chmod(dirname.name, 0o500)  # allow access
-
-    def error_cb(_page, _process, message):
-        nonlocal asserts
-        assert re.search(r"^Error", message), "error_cb"
-        asserts += 1
+        asserts = 0
 
         # inject error during import file
-        os.chmod(dirname.name, 0o700)  # allow write access
+        os.chmod(dirname, 0o500)  # allow access
 
-    slist.import_files(
-        paths=["test.tif"],
-        error_callback=error_cb,
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        def error_cb(_page, _process, message):
+            nonlocal asserts
+            assert re.search(r"^Error", message), "error_cb"
+            asserts += 1
 
-    def queued_cb(response):
-        nonlocal asserts
-        assert response.request.process == "get_file_info", "queued_cb"
-        asserts += 1
+            # inject error during import file
+            os.chmod(dirname, 0o700)  # allow write access
 
-        # inject error during import file
-        os.chmod(dirname.name, 0o500)  # no write access
+        slist.import_files(
+            paths=["test.tif"],
+            error_callback=error_cb,
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    slist.import_files(
-        paths=["test.tif"],
-        queued_callback=queued_cb,
-        error_callback=error_cb,
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        def queued_cb(response):
+            nonlocal asserts
+            assert response.request.process == "get_file_info", "queued_cb"
+            asserts += 1
 
-    assert asserts == 3, "all callbacks run"
+            # inject error during import file
+            os.chmod(dirname, 0o500)  # no write access
 
-    #########################
+        slist.import_files(
+            paths=["test.tif"],
+            queued_callback=queued_cb,
+            error_callback=error_cb,
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    clean_up_files(slist.thread.db_files + ["test.tif"])
+        assert asserts == 3, "all callbacks run"
+
+        #########################
+
+        clean_up_files(slist.thread.db_files + ["test.tif"])
 
 
 def test_import_multipage_tiff(temp_db, clean_up_files):

@@ -113,58 +113,58 @@ def test_save_tiff_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
-    dirname = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    slist = Document(dir=dirname.name)
-    asserts = 0
+    with tempfile.TemporaryDirectory() as dirname:
+        slist = Document(dir=dirname)
+        asserts = 0
 
-    import_in_mainloop(slist, [temp_pnm.name])
+        import_in_mainloop(slist, [temp_pnm.name])
 
-    # inject error before save_djvu
-    os.chmod(dirname.name, 0o500)  # no write access
+        # inject error before save_djvu
+        os.chmod(dirname, 0o500)  # no write access
 
-    def error_callback1(_page, _process, _message):
-        "no write access"
-        assert True, "caught error injected before save_tiff"
-        nonlocal asserts
-        asserts += 1
-        mlp.quit()
+        def error_callback1(_page, _process, _message):
+            "no write access"
+            assert True, "caught error injected before save_tiff"
+            nonlocal asserts
+            asserts += 1
+            mlp.quit()
 
-    mlp = GLib.MainLoop()
-    slist.save_tiff(
-        path="test.tif",
-        list_of_pages=[slist.data[0][2]],
-        error_callback=error_callback1,
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        mlp = GLib.MainLoop()
+        slist.save_tiff(
+            path="test.tif",
+            list_of_pages=[slist.data[0][2]],
+            error_callback=error_callback1,
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    def error_callback2(_page, _process, _message):
-        assert True, "save_djvu caught error injected in queue"
-        os.chmod(dirname.name, 0o700)  # allow write access
-        nonlocal asserts
-        asserts += 1
-        mlp.quit()
+        def error_callback2(_page, _process, _message):
+            assert True, "save_djvu caught error injected in queue"
+            os.chmod(dirname, 0o700)  # allow write access
+            nonlocal asserts
+            asserts += 1
+            mlp.quit()
 
-    mlp = GLib.MainLoop()
-    slist.save_tiff(
-        path="test.tif",
-        list_of_pages=[slist.data[0][2]],
-        error_callback=error_callback2,
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        mlp = GLib.MainLoop()
+        slist.save_tiff(
+            path="test.tif",
+            list_of_pages=[slist.data[0][2]],
+            error_callback=error_callback2,
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert asserts == 2, "ran all callbacks"
+        assert asserts == 2, "ran all callbacks"
 
-    #########################
+        #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.tif",
-            "test2.png",
-        ]
-    )
+        clean_up_files(
+            slist.thread.db_files
+            + [
+                "test.tif",
+                "test2.png",
+            ]
+        )
 
 
 def test_save_tiff_with_alpha(temp_png, temp_db, import_in_mainloop, clean_up_files):

@@ -22,15 +22,16 @@ def test_canvas_basics():
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    page = Page(
-        filename="test.pnm",
-        format="Portable anymap",
-        resolution=72,
-        dir=tempfile.mkdtemp(),
-    )
-    page.import_hocr(
-        HOCR_HEADER
-        + """ <body>
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename="test.pnm",
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+        page.import_hocr(
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 14 420 59">
     <p class='ocr_par'>
@@ -54,35 +55,35 @@ def test_canvas_basics():
  </body>
 </html>
 """
-    )
+        )
 
-    canvas = Canvas()
-    canvas.sort_by_confidence()
-    canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas = Canvas()
+        canvas.sort_by_confidence()
+        canvas.set_text(page=page, layer="text_layer", idle=False)
 
-    bbox = canvas.get_first_bbox()
-    assert bbox.text == "The—", "get_first_bbox"
-    canvas.set_index_by_bbox(bbox)
-    bbox = canvas.get_next_bbox()
-    assert bbox.text == "fox", "get_next_bbox"
-    assert canvas.get_previous_bbox().text == "The—", "get_previous_text"
-    bbox = canvas.get_last_bbox()
-    assert bbox.text == "brown", "get_last_text"
+        bbox = canvas.get_first_bbox()
+        assert bbox.text == "The—", "get_first_bbox"
+        canvas.set_index_by_bbox(bbox)
+        bbox = canvas.get_next_bbox()
+        assert bbox.text == "fox", "get_next_bbox"
+        assert canvas.get_previous_bbox().text == "The—", "get_previous_text"
+        bbox = canvas.get_last_bbox()
+        assert bbox.text == "brown", "get_last_text"
 
-    bbox.delete_box()
-    assert canvas.get_last_bbox().text == "quick", "get_last_bbox after deletion"
+        bbox.delete_box()
+        assert canvas.get_last_bbox().text == "quick", "get_last_bbox after deletion"
 
-    #########################
+        #########################
 
-    assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds"
-    assert canvas.get_scale() == 1, "get_scale"
-    canvas._set_zoom_with_center(2, 35, 26)
-    assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds after zoom"
-    assert canvas.convert_from_pixels(0, 0) == (0, 0), "convert_from_pixels"
-    width, height = page.get_size()
-    canvas.set_bounds(-10, -10, width + 10, height + 10)
-    assert canvas.get_bounds() == (-10, -10, 80, 56), "get_bounds after set"
-    assert canvas.convert_from_pixels(0, 0) == (-10, -10), "convert_from_pixels2"
+        assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds"
+        assert canvas.get_scale() == 1, "get_scale"
+        canvas._set_zoom_with_center(2, 35, 26)
+        assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds after zoom"
+        assert canvas.convert_from_pixels(0, 0) == (0, 0), "convert_from_pixels"
+        width, height = page.get_size()
+        canvas.set_bounds(-10, -10, width + 10, height + 10)
+        assert canvas.get_bounds() == (-10, -10, 80, 56), "get_bounds after set"
+        assert canvas.convert_from_pixels(0, 0) == (-10, -10), "convert_from_pixels2"
 
 
 def test_canvas_basics2():
@@ -91,15 +92,16 @@ def test_canvas_basics2():
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    page = Page(
-        filename="test.pnm",
-        format="Portable anymap",
-        resolution=72,
-        dir=tempfile.mkdtemp(),
-    )
-    page.import_hocr(
-        HOCR_HEADER
-        + """ <body>
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename="test.pnm",
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+        page.import_hocr(
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 14 420 59">
     <p class='ocr_par'>
@@ -123,26 +125,26 @@ def test_canvas_basics2():
  </body>
 </html>
 """
-    )
+        )
 
-    canvas = Canvas()
-    canvas.sort_by_confidence()
-    canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas = Canvas()
+        canvas.sort_by_confidence()
+        canvas.set_text(page=page, layer="text_layer", idle=False)
 
-    group = (
-        canvas.get_root_item()
-        .get_child(0)
-        .get_children()[0]
-        .get_children()[0]
-        .get_children()[0]
-    )
-    group.update_box("No", Rectangle(x=2, y=15, width=74, height=32))
+        group = (
+            canvas.get_root_item()
+            .get_child(0)
+            .get_children()[0]
+            .get_children()[0]
+            .get_children()[0]
+        )
+        group.update_box("No", Rectangle(x=2, y=15, width=74, height=32))
 
-    canvas.add_box(text="foo", bbox=Rectangle(x=355, y=15, width=74, height=32))
+        canvas.add_box(text="foo", bbox=Rectangle(x=355, y=15, width=74, height=32))
 
-    expected = (
-        HOCR_OUT_HEADER
-        + """ <body>
+        expected = (
+            HOCR_OUT_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
@@ -157,34 +159,34 @@ def test_canvas_basics2():
  </body>
 </html>
 """
-    )
+        )
 
-    assert canvas.hocr() == expected, "updated hocr"
+        assert canvas.hocr() == expected, "updated hocr"
 
-    canvas.sort_by_position()
-    bbox = canvas.get_first_bbox()
-    assert bbox.text == "No", "get_first_bbox position"
-    with pytest.raises(StopIteration):
-        canvas.get_previous_bbox()
-    bbox = canvas.get_next_bbox()
-    assert bbox.text == "quick", "get_next_bbox position"
-    bbox = canvas.get_previous_bbox()
-    assert bbox.text == "No", "get_previous_bbox position"
-    bbox = canvas.get_last_bbox()
-    assert bbox.text == "foo", "get_last_bbox position"
-    with pytest.raises(StopIteration):
-        canvas.get_next_bbox()
+        canvas.sort_by_position()
+        bbox = canvas.get_first_bbox()
+        assert bbox.text == "No", "get_first_bbox position"
+        with pytest.raises(StopIteration):
+            canvas.get_previous_bbox()
+        bbox = canvas.get_next_bbox()
+        assert bbox.text == "quick", "get_next_bbox position"
+        bbox = canvas.get_previous_bbox()
+        assert bbox.text == "No", "get_previous_bbox position"
+        bbox = canvas.get_last_bbox()
+        assert bbox.text == "foo", "get_last_bbox position"
+        with pytest.raises(StopIteration):
+            canvas.get_next_bbox()
 
-    #########################
+        #########################
 
-    # v2.10.0 had a bug where adding a word box manually where there was an overlap
-    # with another word box picked up the existing word box as the parent.
-    # A another bug prevented adding the text '0'
-    canvas.add_box(text="0", bbox=Rectangle(x=356, y=15, width=74, height=32))
+        # v2.10.0 had a bug where adding a word box manually where there was an overlap
+        # with another word box picked up the existing word box as the parent.
+        # A another bug prevented adding the text '0'
+        canvas.add_box(text="0", bbox=Rectangle(x=356, y=15, width=74, height=32))
 
-    expected = (
-        HOCR_OUT_HEADER
-        + """ <body>
+        expected = (
+            HOCR_OUT_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
@@ -200,38 +202,40 @@ def test_canvas_basics2():
  </body>
 </html>
 """
-    )
+        )
 
-    assert (
-        canvas.hocr() == expected
-    ), "the parent of a box should not be of the same class"
+        assert (
+            canvas.hocr() == expected
+        ), "the parent of a box should not be of the same class"
 
-    #########################
+        #########################
 
-    canvas.sort_by_confidence()
-    canvas.get_last_bbox().update_box("No", Rectangle(x=2, y=15, width=75, height=32))
-    assert (
-        canvas.get_last_bbox().text == "No"
-    ), "don't sort if confidence hasn't changed"
+        canvas.sort_by_confidence()
+        canvas.get_last_bbox().update_box(
+            "No", Rectangle(x=2, y=15, width=75, height=32)
+        )
+        assert (
+            canvas.get_last_bbox().text == "No"
+        ), "don't sort if confidence hasn't changed"
 
-    #########################
+        #########################
 
-    group.confidence = 100
-    canvas.max_confidence = 90
-    canvas.min_confidence = 50
-    assert group.confidence2color() == "black", "> max"
-    group.confidence = 70
-    assert group.confidence2color() == "#7fff3fff3fff", "mid way"
-    group.confidence = 40
-    assert group.confidence2color() == "red", "< min"
+        group.confidence = 100
+        canvas.max_confidence = 90
+        canvas.min_confidence = 50
+        assert group.confidence2color() == "black", "> max"
+        group.confidence = 70
+        assert group.confidence2color() == "#7fff3fff3fff", "mid way"
+        group.confidence = 40
+        assert group.confidence2color() == "red", "< min"
 
-    #########################
+        #########################
 
-    group.update_box("<em>No</em>", Rectangle(x=2, y=15, width=74, height=32))
+        group.update_box("<em>No</em>", Rectangle(x=2, y=15, width=74, height=32))
 
-    expected = (
-        HOCR_OUT_HEADER
-        + """ <body>
+        expected = (
+            HOCR_OUT_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
@@ -247,11 +251,11 @@ def test_canvas_basics2():
  </body>
 </html>
 """
-    )
+        )
 
-    assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
+        assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
 
-    os.remove("test.pnm")
+        os.remove("test.pnm")
 
 
 def test_hocr():
@@ -260,16 +264,17 @@ def test_hocr():
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    page = Page(
-        filename="test.pnm",
-        format="Portable anymap",
-        resolution=72,
-        dir=tempfile.mkdtemp(),
-    )
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename="test.pnm",
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
 
-    page.import_hocr(
-        HOCR_HEADER
-        + """ <body>
+        page.import_hocr(
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 204 288'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 14 202 286">
     <p class='ocr_par'>
@@ -297,15 +302,15 @@ def test_hocr():
  </body>
 </html>
 """
-    )
+        )
 
-    canvas = Canvas()
-    canvas.set_text(page=page, layer="text_layer", idle=False)
-    canvas.sort_by_confidence()
+        canvas = Canvas()
+        canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas.sort_by_confidence()
 
-    expected = (
-        HOCR_OUT_HEADER
-        + """ <body>
+        expected = (
+            HOCR_OUT_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 204 288'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 202 286'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 202 59; baseline 0.008 -9'>
@@ -321,51 +326,53 @@ def test_hocr():
  </body>
 </html>
 """
-    )
+        )
 
-    assert canvas.hocr() == expected  #  'updated hocr with extended hOCR properties'
+        assert (
+            canvas.hocr() == expected
+        )  #  'updated hocr with extended hOCR properties'
 
-    #########################
+        #########################
 
-    group = canvas.get_root_item()
+        group = canvas.get_root_item()
 
-    # get page 'page_1'
-    group = group.get_child(0)
+        # get page 'page_1'
+        group = group.get_child(0)
 
-    # get column/carea 'block_1'
-    group = group.get_child(1)
+        # get column/carea 'block_1'
+        group = group.get_child(1)
 
-    # get line 'line_1_2'
-    group = group.get_child(2)
+        # get line 'line_1_2'
+        group = group.get_child(2)
 
-    # get word 'word_1_3'
-    bbox = group.get_child(1)
+        # get word 'word_1_3'
+        bbox = group.get_child(1)
 
-    assert isinstance(bbox, Bbox)
-    assert bbox.textangle == 0, "word_1_3's textangle is 0"
-    assert bbox.transformation[0] == 90, "word_1_3's (inherited) rotation is 90"
-    textwidget = bbox.get_text_widget()
-    assert isinstance(textwidget, GooCanvas.CanvasText)
+        assert isinstance(bbox, Bbox)
+        assert bbox.textangle == 0, "word_1_3's textangle is 0"
+        assert bbox.transformation[0] == 90, "word_1_3's (inherited) rotation is 90"
+        textwidget = bbox.get_text_widget()
+        assert isinstance(textwidget, GooCanvas.CanvasText)
 
-    transform = textwidget.get_simple_transform()
+        transform = textwidget.get_simple_transform()
 
-    assert (
-        transform[-1] == 270
-    ), "word_1_3's text widget rotation matches the 90° rotation"
+        assert (
+            transform[-1] == 270
+        ), "word_1_3's text widget rotation matches the 90° rotation"
 
-    #########################
+        #########################
 
-    bbox = canvas.get_first_bbox()
-    bbox.delete_box()
-    bbox = canvas.get_next_bbox()
-    bbox.delete_box()
-    bbox = canvas.get_next_bbox()
-    bbox.delete_box()
-    bbox = canvas.get_next_bbox()
-    bbox.delete_box()
-    with pytest.raises(StopIteration):
-        canvas.get_last_bbox()
+        bbox = canvas.get_first_bbox()
+        bbox.delete_box()
+        bbox = canvas.get_next_bbox()
+        bbox.delete_box()
+        bbox = canvas.get_next_bbox()
+        bbox.delete_box()
+        bbox = canvas.get_next_bbox()
+        bbox.delete_box()
+        with pytest.raises(StopIteration):
+            canvas.get_last_bbox()
 
-    #########################
+        #########################
 
-    os.remove("test.pnm")
+        os.remove("test.pnm")

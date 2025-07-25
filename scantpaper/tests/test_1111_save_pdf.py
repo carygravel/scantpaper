@@ -26,31 +26,31 @@ def test_do_save_pdf(temp_pnm, temp_db, clean_up_files):
 
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
-    tdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
-    _number, _thumb, page_id = thread.add_page(
-        Page(
-            filename=temp_pnm.name,
-            dir=tdir.name,
-            delete=True,
-            format="Portable anymap",
-            resolution=(72, 72, "PixelsPerInch"),
-            width=70,
-            height=46,
-        ),
-        number=1,
-    )
-    options = {
-        "dir": tdir.name,
-        "path": "test.pdf",
-        "list_of_pages": [page_id],
-        "options": {},
-    }
-    request = Request("save_pdf", (options,), queue.Queue())
-    thread.do_save_pdf(request)
-    capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
-    assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
+    with tempfile.TemporaryDirectory() as tdir:
+        _number, _thumb, page_id = thread.add_page(
+            Page(
+                filename=temp_pnm.name,
+                dir=tdir,
+                delete=True,
+                format="Portable anymap",
+                resolution=(72, 72, "PixelsPerInch"),
+                width=70,
+                height=46,
+            ),
+            number=1,
+        )
+        options = {
+            "dir": tdir,
+            "path": "test.pdf",
+            "list_of_pages": [page_id],
+            "options": {},
+        }
+        request = Request("save_pdf", (options,), queue.Queue())
+        thread.do_save_pdf(request)
+        capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+        assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
 
-    clean_up_files(thread.db_files + ["test.pdf"])
+        clean_up_files(thread.db_files + ["test.pdf"])
 
 
 def test_save_pdf(temp_pnm, temp_db, clean_up_files):
@@ -176,52 +176,52 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
     # Create test image
     subprocess.run(["convert", "rose:", "test.pnm"], check=True)
 
-    dirname = tempfile.TemporaryDirectory()
-    slist = Document(dir=dirname.name)
-    asserts = 0
+    with tempfile.TemporaryDirectory() as dirname:
+        slist = Document(dir=dirname)
+        asserts = 0
 
-    import_in_mainloop(slist, ["test.pnm"])
+        import_in_mainloop(slist, ["test.pnm"])
 
-    # inject error before save_pdf
-    os.chmod(dirname.name, 0o500)  # no write access
+        # inject error before save_pdf
+        os.chmod(dirname, 0o500)  # no write access
 
-    def error_callback1(_page, _process, _message):
-        "no write access"
-        assert True, "caught error injected before save_pdf"
-        nonlocal asserts
-        asserts += 1
-        mlp.quit()
+        def error_callback1(_page, _process, _message):
+            "no write access"
+            assert True, "caught error injected before save_pdf"
+            nonlocal asserts
+            asserts += 1
+            mlp.quit()
 
-    mlp = GLib.MainLoop()
-    slist.save_pdf(
-        path="test.pdf",
-        list_of_pages=[slist.data[0][2]],
-        error_callback=error_callback1,
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        mlp = GLib.MainLoop()
+        slist.save_pdf(
+            path="test.pdf",
+            list_of_pages=[slist.data[0][2]],
+            error_callback=error_callback1,
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    def error_callback2(_page, _process, _message):
-        assert True, "save_pdf caught error injected in queue"
-        os.chmod(dirname.name, 0o700)  # allow write access
-        nonlocal asserts
-        asserts += 1
-        mlp.quit()
+        def error_callback2(_page, _process, _message):
+            assert True, "save_pdf caught error injected in queue"
+            os.chmod(dirname, 0o700)  # allow write access
+            nonlocal asserts
+            asserts += 1
+            mlp.quit()
 
-    mlp = GLib.MainLoop()
-    slist.save_pdf(
-        path="test.pdf",
-        list_of_pages=[slist.data[0][2]],
-        error_callback=error_callback2,
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        mlp = GLib.MainLoop()
+        slist.save_pdf(
+            path="test.pdf",
+            list_of_pages=[slist.data[0][2]],
+            error_callback=error_callback2,
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert asserts == 2, "ran all callbacks"
+        assert asserts == 2, "ran all callbacks"
 
-    #########################
+        #########################
 
-    clean_up_files(["test.pnm", "test.pdf"])
+        clean_up_files(["test.pnm", "test.pdf"])
 
 
 def test_save_pdf_different_resolutions(temp_db, import_in_mainloop, clean_up_files):
