@@ -10,7 +10,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-def test_1(mainloop_with_timeout, temp_db, clean_up_files):
+def test_1(temp_pnm, mainloop_with_timeout, temp_db, clean_up_files):
     "basic tests for Renumber class"
     slist = Document(db=temp_db.name)
     dialog = Renumber(document=slist, transient_for=Gtk.Window())
@@ -19,10 +19,10 @@ def test_1(mainloop_with_timeout, temp_db, clean_up_files):
     assert dialog.increment == 1, "default step for empty document"
     assert dialog.range == "selected", "default range for empty document"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     with tempfile.TemporaryDirectory() as tempdir:
         kwargs = {
-            "filename": "test.pnm",
+            "filename": temp_pnm.name,
             "resolution": 72,
             "page": 1,
             "dir": tempdir,
@@ -74,4 +74,4 @@ def test_1(mainloop_with_timeout, temp_db, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm"])
+    clean_up_files(slist.thread.db_files)

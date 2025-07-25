@@ -54,7 +54,7 @@ def test_basics():
     assert dialog.framen.is_sensitive(), "with no source, num-page gui not ghosted"
 
 
-def test_doc_interaction(clean_up_files, temp_db):
+def test_doc_interaction(temp_pnm, clean_up_files, temp_db):
     "test interaction of scan dialog and document"
 
     window = Gtk.Window()
@@ -69,10 +69,10 @@ def test_doc_interaction(clean_up_files, temp_db):
         transient_for=window,
         document=slist,
     )
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     with tempfile.TemporaryDirectory() as tempdir:
         options = {
-            "filename": "test.pnm",
+            "filename": temp_pnm.name,
             "resolution": (72, 72, "PixelsPerInch"),
             "page": 1,
             "dir": tempdir,
@@ -117,8 +117,7 @@ def test_doc_interaction(clean_up_files, temp_db):
             dialog.max_pages == 3
         ), "selecting reverse should automatically limit the max number of pages to scan"
 
-        clean_up_files(slist.thread.db_files + ["test.pnm"] + glob.glob(f"{tempdir}/*"))
-        os.rmdir(tempdir)
+        clean_up_files(slist.thread.db_files + glob.glob(f"{tempdir}/*"))
 
 
 def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):

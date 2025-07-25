@@ -834,6 +834,7 @@ def test_document(clean_up_files):
 
 
 def test_import_scan(
+    temp_pnm,
     clean_up_files,
 ):  # FIXME: not sure we need this anymore, now we are passed Image objects around
     "test Document.import_scan()"
@@ -851,11 +852,9 @@ def test_import_scan(
     # To avoid piping one into the other. See
     # https://stackoverflow.com/questions/13332268/how-to-use-subprocess-command-with-pipes
     with subprocess.Popen(("convert", "rose:", "-"), stdout=subprocess.PIPE) as rose:
-        # rose = subprocess.Popen(("convert", "rose:", "-"), stdout=subprocess.PIPE)
         output = subprocess.check_output(("head", "-c", "-1K"), stdin=rose.stdout)
         rose.wait()
-        with open("test.pnm", "wb") as image_file:
-            image_file.write(output)
+        temp_pnm.write(output)
 
     asserts = 0
     mlp = GLib.MainLoop()
@@ -877,7 +876,7 @@ def test_import_scan(
         mlp.quit()
 
     slist.import_scan(
-        filename="test.pnm",
+        filename=temp_pnm.name,
         page=1,
         delete=True,
         resolution=70,
@@ -889,11 +888,4 @@ def test_import_scan(
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.ppm",
-            "test2.ppm",
-            "test.pnm",
-        ]
-    )
+    clean_up_files(slist.thread.db_files + ["test.ppm", "test2.ppm"])

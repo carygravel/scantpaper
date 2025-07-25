@@ -9,17 +9,18 @@ from gi.repository import GdkPixbuf
 import pytest
 
 
-def test_1():
+def test_1(temp_pnm):
     "Tests for Page class"
     with tempfile.TemporaryDirectory() as dirname:
         with pytest.raises(ValueError):
             page = Page(dir=dirname)
         with pytest.raises(FileNotFoundError):
-            page = Page(filename="test.pnm", format="PBM", dir=dirname)
+            os.remove(temp_pnm.name)
+            page = Page(filename=temp_pnm.name, format="PBM", dir=dirname)
 
         # Create test image
         subprocess.run(
-            ["convert", "-size", "210x297", "xc:white", "test.pnm"], check=True
+            ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
         )
         image_object = Image.new("RGB", (210, 297))
 
@@ -51,9 +52,9 @@ def test_1():
             "A4": 25.4
         }, "from image object"
 
-        page = Page(filename="test.pnm", dir=dirname)
+        page = Page(filename=temp_pnm.name, dir=dirname)
         assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic portrait"
-        page = Page(filename="test.pnm", dir=dirname)
+        page = Page(filename=temp_pnm.name, dir=dirname)
         assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic landscape"
 
         #########################
@@ -137,22 +138,24 @@ def test_1():
         assert page.export_djvu_ann() is None, "export_djvu_ann() without bboxes"
 
 
-def test_2(clean_up_files):
+def test_2(temp_pnm, clean_up_files):
     "Tests for Page class"
 
-    subprocess.run(["convert", "-size", "210x297", "xc:white", "test.pnm"], check=True)
+    subprocess.run(
+        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+    )
 
     with tempfile.TemporaryDirectory() as dirname:
         with pytest.raises(ValueError):
             page = Page(
-                filename="test.pnm",
+                filename=temp_pnm.name,
                 dir=dirname,
                 size=[105, 148, "elephants"],
             )
             page.get_resolution()
 
         page = Page(
-            filename="test.pnm",
+            filename=temp_pnm.name,
             dir=dirname,
             size=[105, 148, "pts"],
         )
@@ -163,7 +166,7 @@ def test_2(clean_up_files):
         ), "from pdfinfo paper size"
 
         page = Page(
-            filename="test.pnm",
+            filename=temp_pnm.name,
             dir=dirname,
         )
         assert page.get_resolution() == (72, 72, "PixelsPerInch"), "default to 72"
@@ -303,4 +306,4 @@ def test_2(clean_up_files):
 
         #########################
 
-        clean_up_files(["test.pnm", "test.jpg"])
+        clean_up_files(["test.jpg"])

@@ -16,15 +16,15 @@ from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-
 )
 
 
-def test_canvas_basics():
+def test_canvas_basics(temp_pnm):
     "Basic tests"
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename="test.pnm",
+            filename=temp_pnm.name,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -86,15 +86,15 @@ def test_canvas_basics():
         assert canvas.convert_from_pixels(0, 0) == (-10, -10), "convert_from_pixels2"
 
 
-def test_canvas_basics2():
+def test_canvas_basics2(temp_pnm):
     "Basic tests"
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename="test.pnm",
+            filename=temp_pnm.name,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -255,18 +255,16 @@ def test_canvas_basics2():
 
         assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
 
-        os.remove("test.pnm")
 
-
-def test_hocr():
+def test_hocr(temp_pnm):
     "Tests hocr export"
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename="test.pnm",
+            filename=temp_pnm.name,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -372,7 +370,3 @@ def test_hocr():
         bbox.delete_box()
         with pytest.raises(StopIteration):
             canvas.get_last_bbox()
-
-        #########################
-
-        os.remove("test.pnm")

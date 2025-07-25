@@ -146,7 +146,7 @@ def test_1():
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper(import_in_mainloop, temp_db, clean_up_files):
+def test_unpaper(temp_pnm, import_in_mainloop, temp_db, clean_up_files):
     "Test unpaper"
 
     unpaper = Unpaper()
@@ -173,14 +173,14 @@ def test_unpaper(import_in_mainloop, temp_db, clean_up_files):
             "-density",
             "300",
             "label:The quick brown fox",
-            "test.pnm",
+            temp_pnm.name,
         ],
         check=True,
     )
     slist = Document(db=temp_db.name)
     slist.set_paper_sizes(paper_sizes)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of imported image"
@@ -209,12 +209,12 @@ def test_unpaper(import_in_mainloop, temp_db, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm"])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_unpaper2(
-    temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
+    temp_pnm, temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
 ):
     "Test unpaper"
 
@@ -242,14 +242,14 @@ def test_unpaper2(
             "-density",
             "300",
             "label:The quick brown fox",
-            "test.pnm",
+            temp_pnm.name,
         ],
         check=True,
     )
     slist = Document(db=temp_db.name)
     slist.set_paper_sizes(paper_sizes)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     page = slist.thread.get_page(id=1)
     assert page.resolution[0] == 72, "non-standard size pnm imports with 72 PPI"
@@ -284,11 +284,11 @@ def test_unpaper2(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm"])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper3(temp_db, import_in_mainloop, clean_up_files):
+def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test unpaper"
 
     unpaper = Unpaper({"output-pages": 2, "layout": "double"})
@@ -334,11 +334,11 @@ def test_unpaper3(temp_db, import_in_mainloop, clean_up_files):
     )
     subprocess.run(["convert", "-size", "100x100", "xc:black", "black.pnm"], check=True)
     subprocess.run(
-        ["convert", "1.pnm", "black.pnm", "2.pnm", "+append", "test.pnm"], check=True
+        ["convert", "1.pnm", "black.pnm", "2.pnm", "+append", temp_pnm.name], check=True
     )
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 72, "Resolution of imported image"
@@ -369,15 +369,7 @@ def test_unpaper3(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.pnm",
-            "1.pnm",
-            "black.pnm",
-            "2.pnm",
-        ]
-    )
+    clean_up_files(slist.thread.db_files + ["1.pnm", "black.pnm", "2.pnm"])
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")

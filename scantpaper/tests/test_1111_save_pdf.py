@@ -140,16 +140,16 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
     )
 
 
-def test_save_pdf_with_locale(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_locale(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test with non-English locale"
     locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -167,20 +167,20 @@ def test_save_pdf_with_locale(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
+    clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
-def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
+def test_save_pdf_with_error(temp_pnm, import_in_mainloop, clean_up_files):
     "Test saving a PDF and triggering an error"
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
         asserts = 0
 
-        import_in_mainloop(slist, ["test.pnm"])
+        import_in_mainloop(slist, [temp_pnm.name])
 
         # inject error before save_pdf
         os.chmod(dirname, 0o500)  # no write access
@@ -221,7 +221,7 @@ def test_save_pdf_with_error(import_in_mainloop, clean_up_files):
 
         #########################
 
-        clean_up_files(["test.pnm", "test.pdf"])
+        clean_up_files(["test.pdf"])
 
 
 def test_save_pdf_different_resolutions(temp_db, import_in_mainloop, clean_up_files):
@@ -392,10 +392,12 @@ def test_save_pdf_with_hocr(
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_files):
+def test_save_pdf_with_utf8(
+    temp_pnm, import_in_mainloop, set_text_in_mainloop, clean_up_files
+):
     "Test writing PDF with utf8 in text layer"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     options = {}
 
     # To avoid piping one into the other. See
@@ -416,7 +418,7 @@ def test_save_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_f
 
     slist = Document()
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -445,20 +447,20 @@ def test_save_pdf_with_utf8(import_in_mainloop, set_text_in_mainloop, clean_up_f
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
+    clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_non_utf8(
-    import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_pnm, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with non-utf8 in text layer"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document()
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -482,7 +484,7 @@ def test_save_pdf_with_non_utf8(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
+    clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
 def test_save_pdf_with_1bpp(temp_db, import_in_mainloop, clean_up_files):
@@ -516,15 +518,15 @@ def test_save_pdf_with_1bpp(temp_db, import_in_mainloop, clean_up_files):
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_without_font(
-    temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with non-existing font"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -561,7 +563,7 @@ def test_save_pdf_without_font(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "test.pdf"])
+    clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
 def test_save_pdf_g4(temp_db, import_in_mainloop, clean_up_files):

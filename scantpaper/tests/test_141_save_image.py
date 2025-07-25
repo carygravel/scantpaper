@@ -7,14 +7,14 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_image(temp_db, import_in_mainloop, clean_up_files):
+def test_save_image(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     mlp = GLib.MainLoop()
     slist.save_image(
@@ -48,21 +48,20 @@ def test_save_image(temp_db, import_in_mainloop, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pnm",
             "test.jpg",
             "test2.png",
         ]
     )
 
 
-def test_save_image_with_quote(temp_db, import_in_mainloop, clean_up_files):
+def test_save_image_with_quote(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     os.mkdir("te'st")
 
@@ -82,18 +81,20 @@ def test_save_image_with_quote(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", "te'st/test.jpg"])
+    clean_up_files(slist.thread.db_files + ["te'st/test.jpg"])
     os.rmdir("te'st")
 
 
-def test_save_image_with_ampersand(temp_db, import_in_mainloop, clean_up_files):
+def test_save_image_with_ampersand(
+    temp_pnm, temp_db, import_in_mainloop, clean_up_files
+):
     "Test writing image"
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     path = "sed & awk.png"
 
@@ -113,4 +114,4 @@ def test_save_image_with_ampersand(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pnm", path])
+    clean_up_files(slist.thread.db_files + [path])

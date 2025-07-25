@@ -166,18 +166,18 @@ def test_save_djvu_with_hocr(
 
 
 def test_cancel_save_djvu(
-    temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test cancel saving a DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pnm"])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -225,30 +225,23 @@ def test_cancel_save_djvu(
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.pnm",
-            "test.djvu",
-            "test.jpg",
-        ]
-    )
+    clean_up_files(slist.thread.db_files + ["test.djvu", "test.jpg"])
 
 
-def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
+def test_save_djvu_with_error(temp_pnm, import_in_mainloop, clean_up_files):
     "Test saving a djvu and triggering an error"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.pnm"], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
         asserts = 0
 
-        import_in_mainloop(slist, ["test.pnm"])
+        import_in_mainloop(slist, [temp_pnm.name])
 
         # inject error before save_djvu
         os.chmod(dirname, 0o500)  # no write access
@@ -289,7 +282,7 @@ def test_save_djvu_with_error(import_in_mainloop, clean_up_files):
 
         #########################
 
-        clean_up_files(slist.thread.db_files + ["test.pnm", "test.djvu"])
+        clean_up_files(slist.thread.db_files + ["test.djvu"])
 
 
 def test_save_djvu_with_float_resolution(
@@ -354,19 +347,18 @@ def test_save_djvu_different_resolutions(temp_db, import_in_mainloop, clean_up_f
     clean_up_files(slist.thread.db_files + ["test.png", "test.djvu"])
 
 
-def test_save_djvu_with_metadata(temp_db, import_in_mainloop, clean_up_files):
+def test_save_djvu_with_metadata(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test saving a djvu with metadata"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
     djvu = "test.djvu"
-    pnm = "test.pnm"
-    subprocess.run(["convert", "rose:", pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     metadata = {
         "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -394,22 +386,23 @@ def test_save_djvu_with_metadata(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [pnm, djvu])
+    clean_up_files(slist.thread.db_files + [djvu])
 
 
-def test_save_djvu_with_old_metadata(temp_db, import_in_mainloop, clean_up_files):
+def test_save_djvu_with_old_metadata(
+    temp_pnm, temp_db, import_in_mainloop, clean_up_files
+):
     "Test saving a djvu with old metadata"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
     djvu = "test.djvu"
-    pnm = "test.pnm"
-    subprocess.run(["convert", "rose:", pnm], check=True)
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [pnm])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     called = False
 
@@ -441,4 +434,4 @@ def test_save_djvu_with_old_metadata(temp_db, import_in_mainloop, clean_up_files
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [pnm, djvu])
+    clean_up_files(slist.thread.db_files + [djvu])
