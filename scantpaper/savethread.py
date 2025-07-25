@@ -277,10 +277,9 @@ class SaveThread(Importhread):
             #     len(options["list_of_pages"]) - 1 + 1,
             # )
             with tempfile.NamedTemporaryFile(
-                dir=options.get("dir"), suffix=".tif", delete=False
-            ) as infile, tempfile.NamedTemporaryFile(
-                dir=options.get("dir"), suffix=".tif", delete=False
-            ) as out:
+                dir=options.get("dir"), suffix=".tif"
+            ) as infile:
+                out = tempfile.NamedTemporaryFile(dir=options.get("dir"), suffix=".tif")
                 page.image_object.save(infile.name)
                 xresolution, yresolution, units = page.resolution
 
@@ -319,7 +318,7 @@ class SaveThread(Importhread):
                 #         _("Error writing TIFF"),
                 #     )
                 #     return
-                filelist.append(out.name)
+                filelist.append(out)
 
         compression = []
         if "compression" in options["options"]:
@@ -331,7 +330,7 @@ class SaveThread(Importhread):
         # Create the tiff
         self.progress = 1
         # self.message = _("Concatenating TIFFs")
-        cmd = ["tiffcp", *compression, *filelist, options["path"]]
+        cmd = ["tiffcp", *compression, *[x.name for x in filelist], options["path"]]
         subprocess.run(cmd, check=True)
         if self.cancel:
             raise CancelledError()
