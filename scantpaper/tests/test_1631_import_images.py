@@ -1,8 +1,6 @@
 "Test importing PPM"
 
-from pathlib import Path
 import subprocess
-import tempfile
 from gi.repository import GLib
 from document import Document
 
@@ -31,10 +29,8 @@ def test_import_ppm(temp_db, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test.ppm"])
 
 
-def test_import_corrupt_png(clean_up_files):
+def test_import_corrupt_png(temp_png, clean_up_files):
     "Test importing PNG"
-
-    subprocess.run(["touch", "test.png"], check=True)
 
     slist = Document()
 
@@ -45,7 +41,7 @@ def test_import_corrupt_png(clean_up_files):
     def error_cb(response):
         nonlocal asserts
         assert (
-            response.status == "Error importing zero-length file test.png."
+            response.status == f"Error importing zero-length file {temp_png.name}."
         ), "caught errors importing file"
         asserts += 1
         mlp.quit()
@@ -55,7 +51,7 @@ def test_import_corrupt_png(clean_up_files):
         mlp.quit()
 
     slist.import_files(
-        paths=["test.png"],
+        paths=[temp_png.name],
         error_callback=error_cb,
         finished_callback=finished_cb,
     )
@@ -66,4 +62,4 @@ def test_import_corrupt_png(clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.png"])
+    clean_up_files(slist.thread.db_files)

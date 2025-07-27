@@ -286,18 +286,18 @@ def test_save_djvu_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
 
 def test_save_djvu_with_float_resolution(
-    temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
+    temp_png, temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
 ):
     "Test saving a djvu with resolution as float"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.png"], check=True)
+    subprocess.run(["convert", "rose:", temp_png.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png.name])
     set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
 
     slist.save_djvu(
@@ -313,20 +313,24 @@ def test_save_djvu_with_float_resolution(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.png", "test.djvu"])
+    clean_up_files(slist.thread.db_files + ["test.djvu"])
 
 
-def test_save_djvu_different_resolutions(temp_db, import_in_mainloop, clean_up_files):
+def test_save_djvu_different_resolutions(
+    temp_png, temp_db, import_in_mainloop, clean_up_files
+):
     "Test saving a djvu with different resolutions"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
+    subprocess.run(
+        ["convert", "rose:", "-density", "100x200", temp_png.name], check=True
+    )
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png.name])
 
     slist.save_djvu(
         path="test.djvu",
@@ -344,7 +348,7 @@ def test_save_djvu_different_resolutions(temp_db, import_in_mainloop, clean_up_f
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.png", "test.djvu"])
+    clean_up_files(slist.thread.db_files + ["test.djvu"])
 
 
 def test_save_djvu_with_metadata(temp_pnm, temp_db, import_in_mainloop, clean_up_files):

@@ -38,7 +38,7 @@ def test_get_tesseract_codes():
     assert isinstance(get_tesseract_codes(), list), "get_tesseract_codes() returns list"
 
 
-def test_tesseract_in_thread(temp_db, import_in_mainloop, clean_up_files):
+def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_files):
     "Test importing PDF"
 
     args = [
@@ -55,13 +55,13 @@ def test_tesseract_in_thread(temp_db, import_in_mainloop, clean_up_files):
         "-density",
         "300",
         "label:The quick brown fox",
-        "test.png",
+        temp_png.name,
     ]
     subprocess.run(args, check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png.name])
 
     mlp = GLib.MainLoop()
     slist.tesseract(
@@ -81,4 +81,4 @@ def test_tesseract_in_thread(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.png"])
+    clean_up_files(slist.thread.db_files)

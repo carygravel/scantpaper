@@ -160,7 +160,7 @@ startxref
     )
 
 
-def test_import_pdf_bw(clean_up_files, temp_db):
+def test_import_pdf_bw(temp_png, clean_up_files, temp_db):
     "Test importing PDF"
 
     options = [
@@ -182,9 +182,9 @@ def test_import_pdf_bw(clean_up_files, temp_db):
     ]
     subprocess.run(options + ["test.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
-    subprocess.run(options + ["test.png"], check=True)
+    subprocess.run(options + [temp_png.name], check=True)
     subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", "test.png"], text=True
+        ["identify", "-format", "%m %G %g %z-bit %r", temp_png.name], text=True
     )
 
     slist = Document(db=temp_db.name)
@@ -208,7 +208,6 @@ def test_import_pdf_bw(clean_up_files, temp_db):
         slist.thread.db_files
         + [
             "test.tif",
-            "test.png",
             "test.pdf",
         ]
     )

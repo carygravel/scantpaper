@@ -576,7 +576,7 @@ def test_bbox2markup():
     ), "converted bbox to markup coords"
 
 
-def test_docthread(clean_up_files):
+def test_docthread(temp_png, clean_up_files):
     "tests for DocThread"
 
     with tempfile.NamedTemporaryFile(suffix=".db") as db, tempfile.NamedTemporaryFile(
@@ -633,12 +633,13 @@ def test_docthread(clean_up_files):
         del example["path"]
         assert example == info, "do_get_file_info + tiff"
 
-        png = "test.png"
-        subprocess.run(["convert", "rose:", png], check=True)  # Create test image
-        request = Request("get_file_info", (png, None), thread.responses)
+        subprocess.run(
+            ["convert", "rose:", temp_png.name], check=True
+        )  # Create test image
+        request = Request("get_file_info", (temp_png.name, None), thread.responses)
         info = {
             "format": "PNG",
-            "path": png,
+            "path": temp_png.name,
             "width": [70],
             "height": [46],
             "pages": 1,
@@ -680,7 +681,6 @@ def test_docthread(clean_up_files):
                 djvu,
                 pbm,
                 pdf,
-                png,
             ]
         )
 

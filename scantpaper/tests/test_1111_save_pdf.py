@@ -133,7 +133,6 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.png",
             "test.pdf",
             "test-1.ppm",
         ]
@@ -224,15 +223,19 @@ def test_save_pdf_with_error(temp_pnm, import_in_mainloop, clean_up_files):
         clean_up_files(["test.pdf"])
 
 
-def test_save_pdf_different_resolutions(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_different_resolutions(
+    temp_png, temp_db, import_in_mainloop, clean_up_files
+):
     "test saving a PDF with different resolutions in the height and width directions"
 
     # Create test image
-    subprocess.run(["convert", "rose:", "-density", "100x200", "test.png"], check=True)
+    subprocess.run(
+        ["convert", "rose:", "-density", "100x200", temp_png.name], check=True
+    )
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -250,7 +253,7 @@ def test_save_pdf_different_resolutions(temp_db, import_in_mainloop, clean_up_fi
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.png", "test.pdf"])
+    clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
 def test_save_encrypted_pdf(temp_db, import_in_mainloop, clean_up_files):
@@ -566,14 +569,14 @@ def test_save_pdf_without_font(
     clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
-def test_save_pdf_g4(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
 
-    subprocess.run(["convert", "rose:", "test.png"], check=True)
+    subprocess.run(["convert", "rose:", temp_png.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.png"])
+    import_in_mainloop(slist, [temp_png.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -595,12 +598,10 @@ def test_save_pdf_g4(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files + ["test.png", "test.pdf"] + glob.glob("x-000.p*m")
-    )
+    clean_up_files(slist.thread.db_files + ["test.pdf"] + glob.glob("x-000.p*m"))
 
 
-def test_save_pdf_g4_alpha(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_g4_alpha(temp_png, temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
 
     subprocess.run(
@@ -642,13 +643,13 @@ def test_save_pdf_g4_alpha(temp_db, import_in_mainloop, clean_up_files):
             "-g70x46",
             "-dPDFFitPage",
             "-dUseCropBox",
-            "-sOutputFile=test.png",
+            f"-sOutputFile={temp_png.name}",
             "test.pdf",
         ],
         check=True,
     )
     example = subprocess.check_output(
-        ["convert", "test.png", "-depth", "1", "-alpha", "off", "txt:-"], text=True
+        ["convert", temp_png.name, "-depth", "1", "-alpha", "off", "txt:-"], text=True
     )
     expected = subprocess.check_output(
         ["convert", "test.tif", "-depth", "1", "-alpha", "off", "txt:-"], text=True
@@ -661,7 +662,6 @@ def test_save_pdf_g4_alpha(temp_db, import_in_mainloop, clean_up_files):
         slist.thread.db_files
         + [
             "test.tif",
-            "test.png",
             "test.pdf",
         ]
     )
