@@ -490,14 +490,14 @@ def test_save_pdf_with_non_utf8(
     clean_up_files(slist.thread.db_files + ["test.pdf"])
 
 
-def test_save_pdf_with_1bpp(temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_1bpp(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
     "Test writing PDF with a 1bpp image"
 
-    subprocess.run(["convert", "magick:netscape", "test.pbm"], check=True)
+    subprocess.run(["convert", "magick:netscape", temp_pbm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pbm"])
+    import_in_mainloop(slist, [temp_pbm.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -514,9 +514,7 @@ def test_save_pdf_with_1bpp(temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files + ["test.pbm", "test.pdf"] + glob.glob("x-000.p*m")
-    )
+    clean_up_files(slist.thread.db_files + ["test.pdf"] + glob.glob("x-000.p*m"))
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")

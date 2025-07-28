@@ -3,7 +3,6 @@
 from collections import defaultdict
 import datetime
 import os
-from pathlib import Path
 import re
 import subprocess
 import tempfile
@@ -576,13 +575,11 @@ def test_bbox2markup():
     ), "converted bbox to markup coords"
 
 
-def test_docthread(temp_png, clean_up_files):
+def test_docthread(temp_db, temp_pbm, temp_png, clean_up_files):
     "tests for DocThread"
 
-    with tempfile.NamedTemporaryFile(suffix=".db") as db, tempfile.NamedTemporaryFile(
-        suffix=".tif"
-    ) as tif:
-        thread = DocThread(db=db.name)
+    with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
+        thread = DocThread(db=temp_db.name)
         clean_up_files([tif.name])
         with pytest.raises(FileNotFoundError):
             request = Request("get_file_info", (tif.name, None), thread.responses)
@@ -593,12 +590,13 @@ def test_docthread(temp_png, clean_up_files):
             request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
 
-        pbm = "test.pbm"
         cjb2 = "test.cjb2"
         djvu = "test.djvu"
         subprocess.run(["convert", "rose:", tif.name], check=True)  # Create test image
-        subprocess.run(["convert", "rose:", pbm], check=True)  # Create test image
-        subprocess.run(["cjb2", pbm, cjb2], check=True)
+        subprocess.run(
+            ["convert", "rose:", temp_pbm.name], check=True
+        )  # Create test image
+        subprocess.run(["cjb2", temp_pbm.name, cjb2], check=True)
         subprocess.run(["djvm", "-c", djvu, cjb2, cjb2], check=True)
         request = Request("get_file_info", (djvu, None), thread.responses)
         assert thread.do_get_file_info(request) == {
@@ -679,7 +677,6 @@ def test_docthread(temp_png, clean_up_files):
             + [
                 cjb2,
                 djvu,
-                pbm,
                 pdf,
             ]
         )

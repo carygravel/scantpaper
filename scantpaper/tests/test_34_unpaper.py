@@ -373,7 +373,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper_rtl(temp_db, import_in_mainloop, clean_up_files):
+def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
     "Test unpaper"
 
     unpaper = Unpaper({"output-pages": 2, "layout": "double", "direction": "rtl"})
@@ -436,13 +436,13 @@ def test_unpaper_rtl(temp_db, import_in_mainloop, clean_up_files):
             "black.pbm",
             "2.pbm",
             "+append",
-            "test.pbm",
+            temp_pbm.name,
         ],
         check=True,
     )
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.pbm"])
+    import_in_mainloop(slist, [temp_pbm.name])
 
     asserts = 0
 
@@ -494,7 +494,6 @@ def test_unpaper_rtl(temp_db, import_in_mainloop, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pbm",
             "1.pbm",
             "2.pbm",
             "black.pbm",
