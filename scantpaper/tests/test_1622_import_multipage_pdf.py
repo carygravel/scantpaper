@@ -11,11 +11,11 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_import_multipage_pdf(temp_db, clean_up_files):
+def test_import_multipage_pdf(temp_tif, temp_db, clean_up_files):
     "Test importing PDF"
 
-    subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiffcp", "test.tif", "test.tif", "test2.tif"], check=True)
+    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
+    subprocess.run(["tiffcp", temp_tif.name, temp_tif.name, "test2.tif"], check=True)
     subprocess.run(["tiff2pdf", "-o", "test2.pdf", "test2.tif"], check=True)
 
     slist = Document(db=temp_db.name)
@@ -36,7 +36,6 @@ def test_import_multipage_pdf(temp_db, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.tif",
             "test2.tif",
             "test2.pdf",
         ]
@@ -159,7 +158,7 @@ startxref
     )
 
 
-def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
+def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
     "Test importing PDF"
 
     options = [
@@ -179,8 +178,8 @@ def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
         "300",
         "label:The quick brown fox",
     ]
-    subprocess.run(options + ["test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
+    subprocess.run(options + [temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
     subprocess.run(options + [temp_png.name], check=True)
     subprocess.check_output(
         ["identify", "-format", "%m %G %g %z-bit %r", temp_png.name], text=True
@@ -203,19 +202,14 @@ def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.tif",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
-def test_import_pdf_with_error(temp_pdf, clean_up_files):
+def test_import_pdf_with_error(temp_tif, temp_pdf, clean_up_files):
     "Test importing PDF"
 
-    subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
+    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -256,21 +250,20 @@ def test_import_pdf_with_error(temp_pdf, clean_up_files):
         clean_up_files(
             slist.thread.db_files
             + [
-                "test.tif",
                 "test2.tif",
                 "test2.pdf",
             ]
         )
 
 
-def test_import_encrypted_pdf(temp_db, temp_pdf, clean_up_files):
+def test_import_encrypted_pdf(temp_tif, temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdftk") is None:
         pytest.skip("Please install pdftk to enable test")
 
-    subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
+    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
     subprocess.run(
         [
             "pdftk",
@@ -312,16 +305,15 @@ def test_import_encrypted_pdf(temp_db, temp_pdf, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.tif",
             "output.pdf",
         ]
     )
 
 
-def test_import_pdf_with_metadata(temp_pdf, clean_up_files):
+def test_import_pdf_with_metadata(temp_tif, temp_pdf, clean_up_files):
     "Test importing PDF"
 
-    subprocess.run(["convert", "rose:", "test.tif"], check=True)
+    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
     cmd = [
         "tiff2pdf",
         "-o",
@@ -336,7 +328,7 @@ def test_import_pdf_with_metadata(temp_pdf, clean_up_files):
         "Sübject",
         "-k",
         "Keywörds",
-        "test.tif",
+        temp_tif.name,
     ]
     cmd = [x.encode("latin") for x in cmd]  # tiff2pdf expects latin, not utf8
     subprocess.run(cmd, check=True)
@@ -373,7 +365,6 @@ def test_import_pdf_with_metadata(temp_pdf, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.tif",
             "test2.tif",
             "test2.pdf",
         ]

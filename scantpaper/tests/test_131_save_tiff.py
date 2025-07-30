@@ -8,7 +8,9 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_tiff(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_tiff(
+    temp_pnm, temp_db, temp_tif, temp_png, import_in_mainloop, clean_up_files
+):
     "Test writing TIFF"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
@@ -19,10 +21,10 @@ def test_save_tiff(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_tiff(
-        path="test.tif",
+        path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": "convert %i test2.png",
+            "post_save_hook": f"convert %i {temp_png.name}",
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -30,16 +32,18 @@ def test_save_tiff(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["identify", "test.tif"], text=True)
+    example = subprocess.check_output(["identify", temp_tif.name], text=True)
     assert (
-        re.search(r"test.tif TIFF 70x46 70x46\+0\+0 8-bit sRGB [.\d]+K?B", example)
+        re.search(
+            rf"{temp_tif.name} TIFF 70x46 70x46\+0\+0 8-bit sRGB [.\d]+K?B", example
+        )
         is not None
     ), "valid TIFF created"
 
-    example = subprocess.check_output(["identify", "test2.png"], text=True)
+    example = subprocess.check_output(["identify", temp_png.name], text=True)
     assert (
         re.search(
-            r"test2\.png PNG 70x46 70x46\+0\+0 8-bit sRGB \d+\.?\d*K?B 0\.\d+u 0:00\.\d+\b",
+            rf"{temp_png.name} PNG 70x46 70x46\+0\+0 8-bit sRGB \d+\.?\d*K?B 0\.\d+u 0:00\.\d+\b",
             example,
         )
         is not None
@@ -47,16 +51,12 @@ def test_save_tiff(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.tif",
-            "test2.png",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
-def test_cancel_save_tiff(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_cancel_save_tiff(
+    temp_pnm, temp_db, temp_tif, import_in_mainloop, clean_up_files
+):
     "Test cancel saving a TIFF"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
@@ -74,7 +74,7 @@ def test_cancel_save_tiff(temp_pnm, temp_db, import_in_mainloop, clean_up_files)
         mlp.quit()
 
     slist.save_tiff(
-        path="test.tif",
+        path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -102,13 +102,12 @@ def test_cancel_save_tiff(temp_pnm, temp_db, import_in_mainloop, clean_up_files)
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.tif",
             "test.jpg",
         ]
     )
 
 
-def test_save_tiff_with_error(temp_pnm, import_in_mainloop, clean_up_files):
+def test_save_tiff_with_error(temp_pnm, temp_tif, import_in_mainloop, clean_up_files):
     "Test writing TIFF and triggering an error"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
@@ -131,7 +130,7 @@ def test_save_tiff_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         mlp = GLib.MainLoop()
         slist.save_tiff(
-            path="test.tif",
+            path=temp_tif.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback1,
         )
@@ -147,7 +146,7 @@ def test_save_tiff_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         mlp = GLib.MainLoop()
         slist.save_tiff(
-            path="test.tif",
+            path=temp_tif.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback2,
         )
@@ -158,16 +157,12 @@ def test_save_tiff_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         #########################
 
-        clean_up_files(
-            slist.thread.db_files
-            + [
-                "test.tif",
-                "test2.png",
-            ]
-        )
+        clean_up_files(slist.thread.db_files)
 
 
-def test_save_tiff_with_alpha(temp_png, temp_db, import_in_mainloop, clean_up_files):
+def test_save_tiff_with_alpha(
+    temp_png, temp_db, temp_tif, import_in_mainloop, clean_up_files
+):
     "Test writing TIFF with alpha layer"
 
     subprocess.run(
@@ -195,7 +190,7 @@ def test_save_tiff_with_alpha(temp_png, temp_db, import_in_mainloop, clean_up_fi
 
     mlp = GLib.MainLoop()
     slist.save_tiff(
-        path="test.tif",
+        path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
         options={
             "compression": "lzw",
@@ -205,19 +200,21 @@ def test_save_tiff_with_alpha(temp_png, temp_db, import_in_mainloop, clean_up_fi
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["identify", "test.tif"], text=True)
+    example = subprocess.check_output(["identify", temp_tif.name], text=True)
     assert (
-        re.search(r"test.tif TIFF \d\d\dx\d\d \d\d\dx\d\d\+0\+0 8-bit sRGB", example)
+        re.search(
+            rf"{temp_tif.name} TIFF \d\d\dx\d\d \d\d\dx\d\d\+0\+0 8-bit sRGB", example
+        )
         is not None
     ), "valid TIFF created"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.tif"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_tiff_as_ps(
-    temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    temp_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test writing TIFF and postscript"
 
@@ -229,7 +226,7 @@ def test_save_tiff_as_ps(
 
     mlp = GLib.MainLoop()
     slist.save_tiff(
-        path="test.tif",
+        path=temp_tif.name,
         list_of_pages=[slist.data[0][2], slist.data[1][2]],
         options={
             "ps": "te st.ps",
@@ -261,13 +258,12 @@ def test_save_tiff_as_ps(
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.tif",
             "te st.ps",
         ]
     )
 
 
-def test_save_tiff_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
+def test_save_tiff_g4(temp_png, temp_db, temp_tif, import_in_mainloop, clean_up_files):
     "Test writing TIFF with group 4 compression"
 
     subprocess.run(["convert", "rose:", temp_png.name], check=True)
@@ -278,7 +274,7 @@ def test_save_tiff_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_tiff(
-        path="test.tif",
+        path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
         options={
             "compression": "g4",
@@ -288,18 +284,14 @@ def test_save_tiff_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["identify", "test.tif"], text=True)
+    example = subprocess.check_output(["identify", temp_tif.name], text=True)
     assert (
-        re.search(r"test.tif TIFF 70x46 70x46\+0\+0 1-bit Bilevel Gray", example)
+        re.search(
+            rf"{temp_tif.name} TIFF 70x46 70x46\+0\+0 1-bit Bilevel Gray", example
+        )
         is not None
     ), "valid TIFF created"
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.tif",
-            "test2.png",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)

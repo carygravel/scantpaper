@@ -258,7 +258,7 @@ def temp_pnm():
 
 @pytest.fixture
 def temp_ppm():
-    "return a temporary pnm"
+    "return a temporary ppm"
     return tempfile.NamedTemporaryFile(suffix=".ppm")
 
 
@@ -272,6 +272,12 @@ def temp_png():
 def temp_pdf():
     "return a temporary pdf"
     return tempfile.NamedTemporaryFile(suffix=".pdf")
+
+
+@pytest.fixture
+def temp_tif():
+    "return a temporary tif file"
+    return tempfile.NamedTemporaryFile(suffix=".tif")
 
 
 @pytest.fixture

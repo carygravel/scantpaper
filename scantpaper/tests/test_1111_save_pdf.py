@@ -608,7 +608,7 @@ def test_save_pdf_g4(temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
 
 
 def test_save_pdf_g4_alpha(
-    temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    temp_tif, temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test writing PDF with group 4 compression"
 
@@ -620,14 +620,14 @@ def test_save_pdf_g4_alpha(
             "tiff:rows-per-strip=1",
             "-compress",
             "group4",
-            "test.tif",
+            temp_tif.name,
         ],
         check=True,
     )
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.tif"])
+    import_in_mainloop(slist, [temp_tif.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -660,18 +660,13 @@ def test_save_pdf_g4_alpha(
         ["convert", temp_png.name, "-depth", "1", "-alpha", "off", "txt:-"], text=True
     )
     expected = subprocess.check_output(
-        ["convert", "test.tif", "-depth", "1", "-alpha", "off", "txt:-"], text=True
+        ["convert", temp_tif.name, "-depth", "1", "-alpha", "off", "txt:-"], text=True
     )
     assert example == expected, "valid G4 PDF created from multi-strip TIFF"
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.tif",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_pdf_with_sbs_hocr(
