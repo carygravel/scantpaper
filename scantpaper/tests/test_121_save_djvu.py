@@ -171,6 +171,7 @@ def test_cancel_save_djvu(
     temp_jpg,
     import_in_mainloop,
     set_text_in_mainloop,
+    temp_djvu,
     clean_up_files,
 ):
     "Test cancel saving a DjVu"
@@ -205,7 +206,7 @@ def test_cancel_save_djvu(
         mlp.quit()
 
     slist.save_djvu(
-        path="test.djvu",
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=finished_callback,
     )
@@ -230,10 +231,10 @@ def test_cancel_save_djvu(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.djvu"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_djvu_with_error(temp_pnm, import_in_mainloop, clean_up_files):
+def test_save_djvu_with_error(temp_pnm, temp_djvu, import_in_mainloop, clean_up_files):
     "Test saving a djvu and triggering an error"
 
     if shutil.which("cjb2") is None:
@@ -260,7 +261,7 @@ def test_save_djvu_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         mlp = GLib.MainLoop()
         slist.save_djvu(
-            path="test.djvu",
+            path=temp_djvu.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback1,
         )
@@ -276,7 +277,7 @@ def test_save_djvu_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         mlp = GLib.MainLoop()
         slist.save_djvu(
-            path="test.djvu",
+            path=temp_djvu.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback2,
         )
@@ -287,11 +288,16 @@ def test_save_djvu_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         #########################
 
-        clean_up_files(slist.thread.db_files + ["test.djvu"])
+        clean_up_files(slist.thread.db_files)
 
 
 def test_save_djvu_with_float_resolution(
-    temp_png, temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
+    temp_png,
+    temp_db,
+    temp_djvu,
+    import_in_mainloop,
+    set_resolution_in_mainloop,
+    clean_up_files,
 ):
     "Test saving a djvu with resolution as float"
 
@@ -306,7 +312,7 @@ def test_save_djvu_with_float_resolution(
     set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
 
     slist.save_djvu(
-        path="test.djvu",
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -314,15 +320,15 @@ def test_save_djvu_with_float_resolution(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    assert os.path.getsize("test.djvu") == 1054, "DjVu created with expected size"
+    assert os.path.getsize(temp_djvu.name) == 1054, "DjVu created with expected size"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.djvu"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_djvu_different_resolutions(
-    temp_png, temp_db, import_in_mainloop, clean_up_files
+    temp_png, temp_db, temp_djvu, import_in_mainloop, clean_up_files
 ):
     "Test saving a djvu with different resolutions"
 
@@ -338,7 +344,7 @@ def test_save_djvu_different_resolutions(
     import_in_mainloop(slist, [temp_png.name])
 
     slist.save_djvu(
-        path="test.djvu",
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -346,23 +352,24 @@ def test_save_djvu_different_resolutions(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["djvudump", "test.djvu"], text=True)
+    capture = subprocess.check_output(["djvudump", temp_djvu.name], text=True)
     assert re.search(
         r"DjVu 140x46, v24, 200 dpi, gamma=2.2", capture
     ), "created djvu with expect size and resolution"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.djvu"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_djvu_with_metadata(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_djvu_with_metadata(
+    temp_pnm, temp_db, temp_djvu, import_in_mainloop, clean_up_files
+):
     "Test saving a djvu with metadata"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    djvu = "test.djvu"
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
@@ -374,7 +381,7 @@ def test_save_djvu_with_metadata(temp_pnm, temp_db, import_in_mainloop, clean_up
         "title": "metadata title",
     }
     slist.save_djvu(
-        path=djvu,
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
@@ -384,29 +391,30 @@ def test_save_djvu_with_metadata(temp_pnm, temp_db, import_in_mainloop, clean_up
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    info = subprocess.check_output(["djvused", djvu, "-e", "print-meta"], text=True)
+    info = subprocess.check_output(
+        ["djvused", temp_djvu.name, "-e", "print-meta"], text=True
+    )
     assert re.search(r"metadata title", info) is not None, "metadata title in DjVu"
     assert re.search(r"2016-02-10", info) is not None, "metadata ModDate in DjVu"
 
-    stb = os.stat(djvu)
+    stb = os.stat(temp_djvu.name)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 10, 0, 0, 0
     ), "timestamp"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [djvu])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_djvu_with_old_metadata(
-    temp_pnm, temp_db, import_in_mainloop, clean_up_files
+    temp_pnm, temp_db, temp_djvu, import_in_mainloop, clean_up_files
 ):
     "Test saving a djvu with old metadata"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    djvu = "test.djvu"
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
@@ -424,7 +432,7 @@ def test_save_djvu_with_old_metadata(
         "title": "metadata title",
     }
     slist.save_djvu(
-        path=djvu,
+        path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
@@ -437,10 +445,12 @@ def test_save_djvu_with_old_metadata(
 
     assert called, "caught errors setting timestamp"
 
-    info = subprocess.check_output(["djvused", djvu, "-e", "print-meta"], text=True)
+    info = subprocess.check_output(
+        ["djvused", temp_djvu.name, "-e", "print-meta"], text=True
+    )
     assert re.search(r"metadata title", info) is not None, "metadata title in DjVu"
     assert re.search(r"1966-02-10", info) is not None, "metadata ModDate in DjVu"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [djvu])
+    clean_up_files(slist.thread.db_files)

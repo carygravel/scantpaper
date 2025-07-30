@@ -13,14 +13,14 @@ from bboxtree import VERSION
 from page import Page
 
 
-def test_import_djvu(temp_jpg, temp_txt, clean_up_files, temp_db):
+def test_import_djvu(temp_jpg, temp_djvu, temp_txt, clean_up_files, temp_db):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
     subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
+    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
     text = """(page 0 0 2236 3185
   (column 157 3011 1725 3105
     (para 157 3014 1725 3101
@@ -40,7 +40,7 @@ def test_import_djvu(temp_jpg, temp_txt, clean_up_files, temp_db):
     subprocess.run(
         [
             "djvused",
-            "test.djvu",
+            temp_djvu.name,
             "-e",
             f"select 1; set-txt {temp_txt.name}; set-ant ann.txt",
             "-s",
@@ -56,7 +56,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     with open("text.txt", "w", encoding="utf-8") as fhd:
         fhd.write(text)
     subprocess.run(
-        ["djvused", "test.djvu", "-e", "set-meta text.txt", "-s"], check=True
+        ["djvused", temp_djvu.name, "-e", "set-meta text.txt", "-s"], check=True
     )
 
     slist = Document(db=temp_db.name)
@@ -82,7 +82,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
         asserts += 1
 
     slist.import_files(
-        paths=["test.djvu"],
+        paths=[temp_djvu.name],
         started_callback=started_cb,
         metadata_callback=metadata_cb,
         finished_callback=lambda response: mlp.quit(),
@@ -130,21 +130,20 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.djvu",
             "text.txt",
             "ann.txt",
         ]
     )
 
 
-def test_import_djvu_with_error(temp_jpg, clean_up_files):
+def test_import_djvu_with_error(temp_jpg, temp_djvu, clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
     subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
+    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -170,7 +169,7 @@ def test_import_djvu_with_error(temp_jpg, clean_up_files):
             os.chmod(dirname, 0o700)  # no write access
 
         slist.import_files(
-            paths=["test.djvu"],
+            paths=[temp_djvu.name],
             queued_callback=queued_cb,
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
@@ -182,7 +181,7 @@ def test_import_djvu_with_error(temp_jpg, clean_up_files):
 
         #########################
 
-        clean_up_files(slist.thread.db_files + ["test.djvu"])
+        clean_up_files(slist.thread.db_files)
 
 
 def mock_import_djvu_txt(self, _text):
@@ -190,14 +189,16 @@ def mock_import_djvu_txt(self, _text):
     raise ValueError("Error parsing djvu text")
 
 
-def test_import_djvu_with_error2(monkeypatch, temp_jpg, temp_db, clean_up_files):
+def test_import_djvu_with_error2(
+    monkeypatch, temp_jpg, temp_djvu, temp_db, clean_up_files
+):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
     subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
+    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
 
     # apply the monkeypatch for Page.import_djvu_txt to mock_import_djvu_txt
     monkeypatch.setattr(Page, "import_djvu_txt", mock_import_djvu_txt)
@@ -214,7 +215,7 @@ def test_import_djvu_with_error2(monkeypatch, temp_jpg, temp_db, clean_up_files)
         asserts += 1
 
     slist.import_files(
-        paths=["test.djvu"],
+        paths=[temp_djvu.name],
         logger_callback=logger_cb,
         finished_callback=lambda response: mlp.quit(),
     )
@@ -227,18 +228,20 @@ def test_import_djvu_with_error2(monkeypatch, temp_jpg, temp_db, clean_up_files)
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.djvu"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_import_multipage_djvu(temp_jpg, temp_db, clean_up_files):
+def test_import_multipage_djvu(temp_jpg, temp_djvu, temp_db, clean_up_files):
     "Test importing multipage DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
     subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
-    subprocess.run(["djvm", "-c", "test2.djvu", "test.djvu", "test.djvu"], check=True)
+    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
+    subprocess.run(
+        ["djvm", "-c", "test2.djvu", temp_djvu.name, temp_djvu.name], check=True
+    )
 
     slist = Document(db=temp_db.name)
 
@@ -271,7 +274,6 @@ def test_import_multipage_djvu(temp_jpg, temp_db, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.djvu",
             "test2.djvu",
         ]
     )

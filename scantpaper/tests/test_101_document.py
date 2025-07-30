@@ -571,7 +571,9 @@ def test_bbox2markup():
     ), "converted bbox to markup coords"
 
 
-def test_docthread(temp_db, temp_cjb2, temp_pbm, temp_png, temp_pdf, clean_up_files):
+def test_docthread(
+    temp_db, temp_cjb2, temp_djvu, temp_pbm, temp_png, temp_pdf, clean_up_files
+):
     "tests for DocThread"
 
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
@@ -586,17 +588,18 @@ def test_docthread(temp_db, temp_cjb2, temp_pbm, temp_png, temp_pdf, clean_up_fi
             request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
 
-        djvu = "test.djvu"
         subprocess.run(["convert", "rose:", tif.name], check=True)  # Create test image
         subprocess.run(
             ["convert", "rose:", temp_pbm.name], check=True
         )  # Create test image
         subprocess.run(["cjb2", temp_pbm.name, temp_cjb2.name], check=True)
-        subprocess.run(["djvm", "-c", djvu, temp_cjb2.name, temp_cjb2.name], check=True)
-        request = Request("get_file_info", (djvu, None), thread.responses)
+        subprocess.run(
+            ["djvm", "-c", temp_djvu.name, temp_cjb2.name, temp_cjb2.name], check=True
+        )
+        request = Request("get_file_info", (temp_djvu.name, None), thread.responses)
         assert thread.do_get_file_info(request) == {
             "format": "DJVU",
-            "path": "test.djvu",
+            "path": temp_djvu.name,
             "width": [70, 70],
             "height": [46, 46],
             "ppi": [300, 300],
@@ -666,12 +669,7 @@ def test_docthread(temp_db, temp_cjb2, temp_pbm, temp_png, temp_pdf, clean_up_fi
         for _ in range(4):
             thread.monitor(block=True)
 
-        clean_up_files(
-            thread.db_files
-            + [
-                djvu,
-            ]
-        )
+        clean_up_files(thread.db_files)
 
 
 def test_db(temp_db, clean_up_files):
