@@ -239,6 +239,12 @@ def temp_db():
 
 
 @pytest.fixture
+def temp_cjb2():
+    "return a temporary cjb2"
+    return tempfile.NamedTemporaryFile(suffix=".cjb2")
+
+
+@pytest.fixture
 def temp_djvu():
     "return a temporary djvu"
     return tempfile.NamedTemporaryFile(suffix=".djvu")
