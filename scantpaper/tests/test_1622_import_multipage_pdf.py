@@ -43,7 +43,7 @@ def test_import_multipage_pdf(temp_db, clean_up_files):
     )
 
 
-def test_import_multipage_pdf_with_not_enough_images(temp_db, clean_up_files):
+def test_import_multipage_pdf_with_not_enough_images(temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdfunite") is None:
@@ -121,7 +121,7 @@ startxref
 """
     with open("page2.pdf", "wb") as fhd:
         fhd.write(content)
-    subprocess.run(["pdfunite", "page1.pdf", "page2.pdf", "test.pdf"], check=True)
+    subprocess.run(["pdfunite", "page1.pdf", "page2.pdf", temp_pdf.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -137,7 +137,7 @@ startxref
         asserts += 1
 
     slist.import_files(
-        paths=["test.pdf"],
+        paths=[temp_pdf.name],
         logger_callback=logger_cb,
         finished_callback=lambda response: mlp.quit(),
     )
@@ -155,12 +155,11 @@ startxref
             "page1.tif",
             "page1.pdf",
             "page2.pdf",
-            "test.pdf",
         ]
     )
 
 
-def test_import_pdf_bw(temp_png, clean_up_files, temp_db):
+def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
     "Test importing PDF"
 
     options = [
@@ -181,7 +180,7 @@ def test_import_pdf_bw(temp_png, clean_up_files, temp_db):
         "label:The quick brown fox",
     ]
     subprocess.run(options + ["test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
     subprocess.run(options + [temp_png.name], check=True)
     subprocess.check_output(
         ["identify", "-format", "%m %G %g %z-bit %r", temp_png.name], text=True
@@ -192,7 +191,7 @@ def test_import_pdf_bw(temp_png, clean_up_files, temp_db):
     mlp = GLib.MainLoop()
 
     slist.import_files(
-        paths=["test.pdf"],
+        paths=[temp_pdf.name],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -208,16 +207,15 @@ def test_import_pdf_bw(temp_png, clean_up_files, temp_db):
         slist.thread.db_files
         + [
             "test.tif",
-            "test.pdf",
         ]
     )
 
 
-def test_import_pdf_with_error(clean_up_files):
+def test_import_pdf_with_error(temp_pdf, clean_up_files):
     "Test importing PDF"
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -243,7 +241,7 @@ def test_import_pdf_with_error(clean_up_files):
             os.chmod(dirname, 0o700)  # allow write access
 
         slist.import_files(
-            paths=["test.pdf"],
+            paths=[temp_pdf.name],
             queued_callback=queued_cb,
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
@@ -265,18 +263,18 @@ def test_import_pdf_with_error(clean_up_files):
         )
 
 
-def test_import_encrypted_pdf(temp_db, clean_up_files):
+def test_import_encrypted_pdf(temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdftk") is None:
         pytest.skip("Please install pdftk to enable test")
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "input.pdf", "test.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
     subprocess.run(
         [
             "pdftk",
-            "input.pdf",
+            temp_pdf.name,
             "output",
             "output.pdf",
             "encrypt_128bit",
@@ -315,20 +313,19 @@ def test_import_encrypted_pdf(temp_db, clean_up_files):
         slist.thread.db_files
         + [
             "test.tif",
-            "input.pdf",
             "output.pdf",
         ]
     )
 
 
-def test_import_pdf_with_metadata(clean_up_files):
+def test_import_pdf_with_metadata(temp_pdf, clean_up_files):
     "Test importing PDF"
 
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
     cmd = [
         "tiff2pdf",
         "-o",
-        "test.pdf",
+        temp_pdf.name,
         "-e",
         "20181231120000",
         "-a",
@@ -362,7 +359,7 @@ def test_import_pdf_with_metadata(clean_up_files):
         asserts += 1
 
     slist.import_files(
-        paths=["test.pdf"],
+        paths=[temp_pdf.name],
         metadata_callback=metadata_cb,
         finished_callback=lambda response: mlp.quit(),
     )

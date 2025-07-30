@@ -18,7 +18,7 @@ from basethread import Request
 from page import Page
 
 
-def test_do_save_pdf(temp_pnm, temp_db, clean_up_files):
+def test_do_save_pdf(temp_pnm, temp_db, temp_pdf, clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
@@ -41,19 +41,19 @@ def test_do_save_pdf(temp_pnm, temp_db, clean_up_files):
         )
         options = {
             "dir": tdir,
-            "path": "test.pdf",
+            "path": temp_pdf.name,
             "list_of_pages": [page_id],
             "options": {},
         }
         request = Request("save_pdf", (options,), queue.Queue())
         thread.do_save_pdf(request)
-        capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+        capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
         assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
 
-        clean_up_files(thread.db_files + ["test.pdf"])
+        clean_up_files(thread.db_files)
 
 
-def test_save_pdf(temp_pnm, temp_db, clean_up_files):
+def test_save_pdf(temp_pnm, temp_db, temp_pdf, clean_up_files):
     "Test writing basic PDF"
 
     # Create test image
@@ -100,7 +100,7 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
 
     def save_pdf_finished_cb(result):
         nonlocal asserts
-        capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+        capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
         assert (
             re.search(r"Page size:\s+70 x 46 pts", capture) is not None
         ), "valid PDF created"
@@ -109,7 +109,7 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
         mlp.quit()
 
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "pdftoppm %i test",
@@ -133,13 +133,14 @@ def test_save_pdf(temp_pnm, temp_db, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.pdf",
             "test-1.ppm",
         ]
     )
 
 
-def test_save_pdf_with_locale(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_locale(
+    temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+):
     "Test with non-English locale"
     locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 
@@ -152,24 +153,24 @@ def test_save_pdf_with_locale(temp_pnm, temp_db, import_in_mainloop, clean_up_fi
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=mlp.quit,
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
     assert (
         re.search(r"Page size:\s+70 x 46 pts", capture) is not None
     ), "valid PDF created"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_with_error(temp_pnm, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_error(temp_pnm, temp_pdf, import_in_mainloop, clean_up_files):
     "Test saving a PDF and triggering an error"
 
     # Create test image
@@ -193,7 +194,7 @@ def test_save_pdf_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         mlp = GLib.MainLoop()
         slist.save_pdf(
-            path="test.pdf",
+            path=temp_pdf.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback1,
         )
@@ -209,7 +210,7 @@ def test_save_pdf_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         mlp = GLib.MainLoop()
         slist.save_pdf(
-            path="test.pdf",
+            path=temp_pdf.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback2,
         )
@@ -220,11 +221,11 @@ def test_save_pdf_with_error(temp_pnm, import_in_mainloop, clean_up_files):
 
         #########################
 
-        clean_up_files(["test.pdf"])
+        clean_up_files(slist.thread.db_files)
 
 
 def test_save_pdf_different_resolutions(
-    temp_png, temp_db, import_in_mainloop, clean_up_files
+    temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "test saving a PDF with different resolutions in the height and width directions"
 
@@ -239,24 +240,24 @@ def test_save_pdf_different_resolutions(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
     assert (
         re.search(r"Page size:\s+50.4 x 16.56 pts", capture) is not None
     ), "valid PDF created"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_encrypted_pdf(temp_db, import_in_mainloop, clean_up_files):
+def test_save_encrypted_pdf(temp_db, temp_pdf, import_in_mainloop, clean_up_files):
     "test saving an encrypted PDF"
     if shutil.which("pdftk") is None:
         pytest.skip("pdftk not found")
@@ -271,7 +272,7 @@ def test_save_encrypted_pdf(temp_db, import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         options={"user-password": "123"},
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
@@ -280,9 +281,9 @@ def test_save_encrypted_pdf(temp_db, import_in_mainloop, clean_up_files):
     mlp.run()
 
     with pytest.raises(subprocess.CalledProcessError):
-        subprocess.check_output(["pdfinfo", "test.pdf"])
+        subprocess.check_output(["pdfinfo", temp_pdf.name])
 
-    clean_up_files(slist.thread.db_files + ["test.jpg", "test.pdf"])
+    clean_up_files(slist.thread.db_files + ["test.jpg"])
 
 
 def test_save_pdf_with_hocr(
@@ -385,7 +386,7 @@ def test_save_pdf_with_hocr(
     assert re.search(
         r"The.*quick.*brown.*fox", capture, re.DOTALL
     ), "PDF with expected text"
-    # capture = subprocess.check_output(["cat","test.pdf"], text=True)
+    # capture = subprocess.check_output(["cat", temp_pdf.name], text=True)
     # assert re.search(r"/Type\s/Annot\s/Subtype\s/Highlight\s/C.+/Contents.+fox",
     #                  capture) is not None, 'PDF with expected annotation'
 
@@ -396,7 +397,7 @@ def test_save_pdf_with_hocr(
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_utf8(
-    temp_pnm, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with utf8 in text layer"
 
@@ -435,7 +436,7 @@ def test_save_pdf_with_utf8(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         options={"options": options},
         finished_callback=lambda response: mlp.quit(),
@@ -443,19 +444,19 @@ def test_save_pdf_with_utf8(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    out = subprocess.check_output(["pdftotext", "test.pdf", "-"], text=True)
+    out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert (
         re.search(r"пени способствовала сохранению", out) is not None
     ), "PDF with expected text"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_non_utf8(
-    temp_pnm, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with non-utf8 in text layer"
 
@@ -475,22 +476,24 @@ def test_save_pdf_with_non_utf8(
     )
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    out = subprocess.check_output(["pdftotext", "test.pdf", "-"], text=True)
+    out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(r"P■e■", out) is not None, "PDF with expected text"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_with_1bpp(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_1bpp(
+    temp_pbm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+):
     "Test writing PDF with a 1bpp image"
 
     subprocess.run(["convert", "magick:netscape", temp_pbm.name], check=True)
@@ -501,25 +504,30 @@ def test_save_pdf_with_1bpp(temp_pbm, temp_db, import_in_mainloop, clean_up_file
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    subprocess.run(["pdfimages", "test.pdf", "x"], check=True)
+    subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
     out = subprocess.check_output(["identify", "x-000.p*m"], text=True)
     assert re.search(r"1-bit Bilevel Gray", out), "PDF with 1bpp created"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"] + glob.glob("x-000.p*m"))
+    clean_up_files(slist.thread.db_files + glob.glob("x-000.p*m"))
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_without_font(
-    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_pnm,
+    temp_db,
+    temp_pdf,
+    import_in_mainloop,
+    set_text_in_mainloop,
+    clean_up_files,
 ):
     "Test writing PDF with non-existing font"
 
@@ -549,7 +557,7 @@ def test_save_pdf_without_font(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         options={"options": {"font": "removed"}},
         error_callback=error_callback,
@@ -558,16 +566,16 @@ def test_save_pdf_without_font(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    out = subprocess.check_output(["pdftotext", "test.pdf", "-"], text=True)
+    out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(r"äöü", out) is not None, "PDF with expected text"
     assert asserts == 1, "ran all callbacks"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_g4(temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
 
     subprocess.run(["convert", "rose:", temp_png.name], check=True)
@@ -578,7 +586,7 @@ def test_save_pdf_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         options={
             "compression": "g4",
@@ -588,7 +596,7 @@ def test_save_pdf_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    subprocess.run(["pdfimages", "test.pdf", "x"], check=True)
+    subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
     out = subprocess.check_output(["identify", "x-000.p*m"], text=True)
     assert (
         re.search(r"1-bit Bilevel Gray", out) is not None
@@ -596,10 +604,12 @@ def test_save_pdf_g4(temp_png, temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"] + glob.glob("x-000.p*m"))
+    clean_up_files(slist.thread.db_files + glob.glob("x-000.p*m"))
 
 
-def test_save_pdf_g4_alpha(temp_png, temp_db, import_in_mainloop, clean_up_files):
+def test_save_pdf_g4_alpha(
+    temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+):
     "Test writing PDF with group 4 compression"
 
     subprocess.run(
@@ -621,7 +631,7 @@ def test_save_pdf_g4_alpha(temp_png, temp_db, import_in_mainloop, clean_up_files
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         options={
             "compression": "g4",
@@ -642,7 +652,7 @@ def test_save_pdf_g4_alpha(temp_png, temp_db, import_in_mainloop, clean_up_files
             "-dPDFFitPage",
             "-dUseCropBox",
             f"-sOutputFile={temp_png.name}",
-            "test.pdf",
+            temp_pdf.name,
         ],
         check=True,
     )
@@ -660,7 +670,6 @@ def test_save_pdf_g4_alpha(temp_png, temp_db, import_in_mainloop, clean_up_files
         slist.thread.db_files
         + [
             "test.tif",
-            "test.pdf",
         ]
     )
 

@@ -100,7 +100,7 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
-def test_udt_page_size(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
     paper_sizes = {
@@ -135,7 +135,7 @@ def test_udt_page_size(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -143,14 +143,14 @@ def test_udt_page_size(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     mlp.run()
 
     new = subprocess.check_output(
-        ["pdfinfo", "test.pdf"],
+        ["pdfinfo", temp_pdf.name],
         text=True,
     )
     assert re.search("A4", new), "PDF is A4"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_udt_resolution(

@@ -10,7 +10,7 @@ from document import Document
 
 
 def test_save_multipage_pdf(
-    import_in_mainloop, set_text_in_mainloop, temp_db, clean_up_files
+    import_in_mainloop, set_text_in_mainloop, temp_db, temp_pdf, clean_up_files
 ):
     "Test writing multipage PDF"
 
@@ -39,7 +39,7 @@ def test_save_multipage_pdf(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=pages,
         finished_callback=lambda response: mlp.quit(),
     )
@@ -47,20 +47,20 @@ def test_save_multipage_pdf(
     mlp.run()
 
     assert (
-        len(subprocess.check_output(["pdffonts", "test.pdf"], text=True).splitlines())
+        len(
+            subprocess.check_output(["pdffonts", temp_pdf.name], text=True).splitlines()
+        )
         < 3
     ), "no fonts embedded in multipage PDF"
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files + ["test.pdf"] + [f"{i}.pnm" for i in range(1, num + 1)]
-    )
+    clean_up_files(slist.thread.db_files + [f"{i}.pnm" for i in range(1, num + 1)])
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_multipage_pdf_with_utf8(
-    import_in_mainloop, set_text_in_mainloop, clean_up_files
+    import_in_mainloop, set_text_in_mainloop, temp_pdf, clean_up_files
 ):
     "Test writing multipage PDF with utf8"
 
@@ -107,7 +107,7 @@ def test_save_multipage_pdf_with_utf8(
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=pages,
         options={"options": options},
         finished_callback=lambda response: mlp.quit(),
@@ -118,7 +118,8 @@ def test_save_multipage_pdf_with_utf8(
     assert (
         len(
             re.findall(
-                "TrueType", subprocess.check_output(["pdffonts", "test.pdf"], text=True)
+                "TrueType",
+                subprocess.check_output(["pdffonts", temp_pdf.name], text=True),
             )
         )
         == 1
@@ -126,13 +127,11 @@ def test_save_multipage_pdf_with_utf8(
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files + ["test.pdf"] + [f"{i}.pnm" for i in range(1, num + 1)]
-    )
+    clean_up_files(slist.thread.db_files + [f"{i}.pnm" for i in range(1, num + 1)])
 
 
 def test_save_multipage_pdf_as_ps(
-    temp_pnm, temp_db, import_in_mainloop, clean_up_files
+    temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test writing multipage PDF as Postscript"
 
@@ -143,7 +142,7 @@ def test_save_multipage_pdf_as_ps(
     import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
 
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[1, 2],
         # metadata and timestamp should be ignored: debian #962151
         metadata={},
@@ -165,11 +164,11 @@ def test_save_multipage_pdf_as_ps(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf", "test2.ps", "te st.ps"])
+    clean_up_files(slist.thread.db_files + ["test2.ps", "te st.ps"])
 
 
 def test_save_multipage_pdf_as_ps2(
-    temp_pnm, temp_db, import_in_mainloop, clean_up_files
+    temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test writing multipage PDF as Postscript"
 
@@ -180,7 +179,7 @@ def test_save_multipage_pdf_as_ps2(
     import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
 
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[1, 2],
         # metadata and timestamp should be ignored: debian #962151
         metadata={},
@@ -202,25 +201,25 @@ def test_save_multipage_pdf_as_ps2(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.pdf", "test2.ps", "te st.ps"])
+    clean_up_files(slist.thread.db_files + ["test2.ps", "te st.ps"])
 
 
-def test_prepend_pdf(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_prepend_pdf(temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
     "Test prepending a page to a PDF"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
 
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[1],
         options={
-            "prepend": "test.pdf",
+            "prepend": temp_pdf.name,
         },
         finished_callback=lambda response: mlp.quit(),
     )
@@ -228,31 +227,31 @@ def test_prepend_pdf(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
     assert re.search(r"Pages:\s+2", capture) is not None, "PDF prepended"
-    assert os.path.isfile("test.pdf.bak"), "Backed up original"
+    assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.tif", "test.pdf", "test.pdf.bak"])
+    clean_up_files(slist.thread.db_files + ["test.tif", f"{temp_pdf.name}.bak"])
 
 
-def test_append_pdf(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_append_pdf(temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
     "Test appending a page to a PDF"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
 
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[1],
         options={
-            "append": "test.pdf",
+            "append": temp_pdf.name,
         },
         finished_callback=lambda response: mlp.quit(),
     )
@@ -260,13 +259,13 @@ def test_append_pdf(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
     assert re.search(r"Pages:\s+2", capture) is not None, "PDF appended"
-    assert os.path.isfile("test.pdf.bak"), "Backed up original"
+    assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.tif", "test.pdf", "test.pdf.bak"])
+    clean_up_files(slist.thread.db_files + ["test.tif", f"{temp_pdf.name}.bak"])
 
 
 def test_prepend_with_space(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
@@ -336,20 +335,20 @@ def test_prepend_with_inverted_comma(
 
 
 def test_append_pdf_with_timestamp(
-    temp_pnm, temp_db, import_in_mainloop, clean_up_files
+    temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test appending a page to a PDF with a timestamp"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     subprocess.run(["convert", "rose:", "test.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "test.pdf", "test.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test.tif"], check=True)
 
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
     slist.save_pdf(
-        path="test.pdf",
+        path=temp_pdf.name,
         list_of_pages=[1],
         metadata={
             "datetime": datetime.datetime(
@@ -358,7 +357,7 @@ def test_append_pdf_with_timestamp(
             "title": "metadata title",
         },
         options={
-            "append": "test.pdf",
+            "append": temp_pdf.name,
             "set_timestamp": True,
         },
         finished_callback=lambda response: mlp.quit(),
@@ -367,14 +366,14 @@ def test_append_pdf_with_timestamp(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
     assert re.search(r"Pages:\s+2", capture), "PDF appended"
-    assert os.path.isfile("test.pdf.bak"), "Backed up original"
-    stb = os.stat("test.pdf")
+    assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
+    stb = os.stat(temp_pdf.name)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 10, 0, 0, 0
     ), "timestamp"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.tif", "test.pdf", "test.pdf.bak"])
+    clean_up_files(slist.thread.db_files + ["test.tif", f"{temp_pdf.name}.bak"])

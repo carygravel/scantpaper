@@ -216,7 +216,9 @@ def test_save_tiff_with_alpha(temp_png, temp_db, import_in_mainloop, clean_up_fi
     clean_up_files(slist.thread.db_files + ["test.tif"])
 
 
-def test_save_tiff_as_ps(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_tiff_as_ps(
+    temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+):
     "Test writing TIFF and postscript"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
@@ -231,7 +233,7 @@ def test_save_tiff_as_ps(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
         list_of_pages=[slist.data[0][2], slist.data[1][2]],
         options={
             "ps": "te st.ps",
-            "post_save_hook": "ps2pdf %i test.pdf",
+            "post_save_hook": f"ps2pdf %i {temp_pdf.name}",
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -245,7 +247,7 @@ def test_save_tiff_as_ps(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
         == "te st.ps: PostScript document text conforming DSC level 3.0, type EPS, Level 3\n"
     ), "valid postscript created"
 
-    example = subprocess.check_output(["pdfinfo", "test.pdf"], text=True)
+    example = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
     assert (
         re.search(
             r"tiff2ps",
@@ -261,7 +263,6 @@ def test_save_tiff_as_ps(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
         + [
             "test.tif",
             "te st.ps",
-            "test.pdf",
         ]
     )
 

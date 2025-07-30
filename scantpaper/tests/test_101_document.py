@@ -575,7 +575,7 @@ def test_bbox2markup():
     ), "converted bbox to markup coords"
 
 
-def test_docthread(temp_db, temp_pbm, temp_png, clean_up_files):
+def test_docthread(temp_db, temp_pbm, temp_png, temp_pdf, clean_up_files):
     "tests for DocThread"
 
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
@@ -608,14 +608,13 @@ def test_docthread(temp_db, temp_pbm, temp_png, clean_up_files):
             "pages": 2,
         }, "do_get_file_info + djvu"
 
-        pdf = "test.pdf"
-        subprocess.run(["tiff2pdf", "-o", pdf, tif.name], check=True)
-        request = Request("get_file_info", (pdf, None), thread.responses)
+        subprocess.run(["tiff2pdf", "-o", temp_pdf.name, tif.name], check=True)
+        request = Request("get_file_info", (temp_pdf.name, None), thread.responses)
         info = thread.do_get_file_info(request)
         del info["datetime"]
         assert info == {
             "format": "Portable Document Format",
-            "path": "test.pdf",
+            "path": temp_pdf.name,
             "page_size": [16.8, 11.04, "pts"],
             "pages": 1,
         }, "do_get_file_info + pdf"
@@ -677,7 +676,6 @@ def test_docthread(temp_db, temp_pbm, temp_png, clean_up_files):
             + [
                 cjb2,
                 djvu,
-                pdf,
             ]
         )
 
