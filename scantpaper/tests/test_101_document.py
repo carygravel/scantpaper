@@ -192,14 +192,12 @@ def test_indexing(clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
-def test_file_dates(clean_up_files):
+def test_file_dates(temp_txt):
     "test file dates"
-    filename = "test.txt"
-    subprocess.run(["touch", filename], check=True)
     options = defaultdict(
         None,
         {
-            "path": filename,
+            "path": temp_txt.name,
             "options": {"set_timestamp": True},
             "metadata": {
                 "datetime": datetime.datetime(
@@ -214,12 +212,10 @@ def test_file_dates(clean_up_files):
         },
     )
     _set_timestamp(options)  # pylint: disable=protected-access
-    stb = os.stat(filename)
+    stb = os.stat(temp_txt.name)
     assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
         2016, 2, 9, 10, 0, 0
     ), "timestamp with timezone"
-
-    clean_up_files([filename])
 
 
 def test_helpers():
