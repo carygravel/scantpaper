@@ -7,14 +7,16 @@ from document import Document
 from page import VERSION
 
 
-def test_rotate(temp_db, import_in_mainloop, set_saved_in_mainloop, clean_up_files):
+def test_rotate(
+    temp_jpg, temp_db, import_in_mainloop, set_saved_in_mainloop, clean_up_files
+):
     "Test rotating"
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.jpg"])
+    import_in_mainloop(slist, [temp_jpg.name])
     set_saved_in_mainloop(slist, 1, True)
     assert slist.data[0][1].get_height() == 65, "thumbnail height before rotation"
     assert slist.data[0][1].get_width() == 100, "thumbnail width before rotation"
@@ -45,7 +47,7 @@ def test_rotate(temp_db, import_in_mainloop, set_saved_in_mainloop, clean_up_fil
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.jpg"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
@@ -103,15 +105,16 @@ def test_threshold(
     set_saved_in_mainloop,
     set_text_in_mainloop,
     temp_db,
+    temp_jpg,
     clean_up_files,
 ):
     "Test threshold"
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.jpg"])
+    import_in_mainloop(slist, [temp_jpg.name])
     set_saved_in_mainloop(slist, 1, True)
     set_text_in_mainloop(
         slist,
@@ -145,7 +148,7 @@ def test_threshold(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.jpg"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_negate(
@@ -212,15 +215,16 @@ def test_unsharp_mask(
     set_saved_in_mainloop,
     set_text_in_mainloop,
     temp_db,
+    temp_jpg,
     clean_up_files,
 ):
     "Test unsharp mask"
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.jpg"])
+    import_in_mainloop(slist, [temp_jpg.name])
     set_saved_in_mainloop(slist, 1, True)
     set_text_in_mainloop(
         slist,
@@ -274,7 +278,7 @@ def test_unsharp_mask(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.jpg"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_crop(
@@ -478,15 +482,16 @@ def test_brightness_contrast(
     set_saved_in_mainloop,
     set_text_in_mainloop,
     temp_db,
+    temp_jpg,
     clean_up_files,
 ):
     "Test brightness contrast"
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.jpg"])
+    import_in_mainloop(slist, [temp_jpg.name])
     set_saved_in_mainloop(slist, 1, True)
     set_text_in_mainloop(
         slist,
@@ -529,4 +534,4 @@ def test_brightness_contrast(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.jpg"])
+    clean_up_files(slist.thread.db_files)

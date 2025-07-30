@@ -9,7 +9,7 @@ from gi.repository import GdkPixbuf
 import pytest
 
 
-def test_1(temp_pnm):
+def test_1(temp_pnm, temp_jpg):
     "Tests for Page class"
     with tempfile.TemporaryDirectory() as dirname:
         with pytest.raises(ValueError):
@@ -73,11 +73,11 @@ def test_1(temp_pnm):
                 "-density",
                 "300",
                 "xc:white",
-                "test.jpg",
+                temp_jpg.name,
             ],
             check=True,
         )
-        page = Page(filename="test.jpg", dir=dirname)
+        page = Page(filename=temp_jpg.name, dir=dirname)
         assert page.get_resolution(paper_sizes) == (
             300.0,
             300.0,
@@ -92,11 +92,11 @@ def test_1(temp_pnm):
                 "-density",
                 "118",
                 "xc:white",
-                "test.jpg",
+                temp_jpg.name,
             ],
             check=True,
         )
-        page = Page(filename="test.jpg", dir=dirname)
+        page = Page(filename=temp_jpg.name, dir=dirname)
         assert page.get_resolution(paper_sizes) == (
             299.72,
             299.72,
@@ -111,17 +111,16 @@ def test_1(temp_pnm):
                 "-density",
                 "300",
                 "xc:white",
-                "test.jpg",
+                temp_jpg.name,
             ],
             check=True,
         )
-        page = Page(filename="test.jpg", dir=dirname)
+        page = Page(filename=temp_jpg.name, dir=dirname)
         assert page.get_resolution(paper_sizes) == (
             300.0,
             300.0,
             "PixelsPerInch",
         ), "undefined"
-        os.remove("test.jpg")
 
         #########################
 
@@ -138,7 +137,7 @@ def test_1(temp_pnm):
         assert page.export_djvu_ann() is None, "export_djvu_ann() without bboxes"
 
 
-def test_2(temp_pnm, clean_up_files):
+def test_2(temp_pnm):
     "Tests for Page class"
 
     subprocess.run(
@@ -201,9 +200,9 @@ def test_2(temp_pnm, clean_up_files):
             page.text_layer
             == '[{"bbox": [0, 0, 422, 61], "type": "page", "id": "page_1", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "id": "block_1_1", "depth": 1}, '
-            '{"bbox": [1, 14, 420, 59], "baseline": [-0.003, -17], "type": "line", "id": "line_1_1", '
-            '"depth": 2}, {"bbox": [1, 14, 77, 48], "textangle": 90, "confidence": -3, "type": "word", '
-            '"id": "word_1_1", "text": "The", "depth": 3}, '
+            '{"bbox": [1, 14, 420, 59], "baseline": [-0.003, -17], "type": "line", '
+            '"id": "line_1_1", "depth": 2}, {"bbox": [1, 14, 77, 48], "textangle": 90, '
+            '"confidence": -3, "type": "word", "id": "word_1_1", "text": "The", "depth": 3}, '
             '{"bbox": [92, 14, 202, 59], "confidence": -3, "type": "word", "id": "word_1_2", '
             '"text": "quick", "depth": 3}, '
             '{"bbox": [214, 14, 341, 48], "confidence": -3, "type": "word", "id": "word_1_3", '
@@ -219,8 +218,8 @@ def test_2(temp_pnm, clean_up_files):
 """
         page.import_djvu_txt(djvu_txt)
         assert (
-            page.text_layer
-            == '[{"depth": 0, "type": "page", "bbox": [0, 0, 422, 61], "text": "The quick brown fox"}]'
+            page.text_layer == '[{"depth": 0, "type": "page", "bbox": [0, 0, 422, 61], '
+            '"text": "The quick brown fox"}]'
         ), "import_djvu_txt()"
         assert page.export_djvu_txt() == djvu_txt, "export_djvu_txt()"
 
@@ -303,7 +302,3 @@ def test_2(temp_pnm, clean_up_files):
         assert (
             page.get_pixbuf_at_scale(100, 100) is None
         ), "get_pixbuf_at_scale() doesn't fall over with an error"
-
-        #########################
-
-        clean_up_files(["test.jpg"])

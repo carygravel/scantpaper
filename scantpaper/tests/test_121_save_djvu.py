@@ -166,7 +166,12 @@ def test_save_djvu_with_hocr(
 
 
 def test_cancel_save_djvu(
-    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    temp_pnm,
+    temp_db,
+    temp_jpg,
+    import_in_mainloop,
+    set_text_in_mainloop,
+    clean_up_files,
 ):
     "Test cancel saving a DjVu"
 
@@ -211,7 +216,7 @@ def test_cancel_save_djvu(
     assert called, "Cancelled callback"
 
     slist.save_image(
-        path="test.jpg",
+        path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -220,12 +225,12 @@ def test_cancel_save_djvu(
     mlp.run()
 
     assert subprocess.check_output(
-        ["identify", "test.jpg"], text=True
+        ["identify", temp_jpg.name], text=True
     ), "can create a valid JPG after cancelling save PDF process"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.djvu", "test.jpg"])
+    clean_up_files(slist.thread.db_files + ["test.djvu"])
 
 
 def test_save_djvu_with_error(temp_pnm, import_in_mainloop, clean_up_files):

@@ -55,7 +55,7 @@ def test_save_tiff(
 
 
 def test_cancel_save_tiff(
-    temp_pnm, temp_db, temp_tif, import_in_mainloop, clean_up_files
+    temp_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop, clean_up_files
 ):
     "Test cancel saving a TIFF"
 
@@ -85,7 +85,7 @@ def test_cancel_save_tiff(
     assert called, "Cancelled callback"
 
     slist.save_image(
-        path="test.jpg",
+        path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -94,17 +94,12 @@ def test_cancel_save_tiff(
     mlp.run()
 
     assert subprocess.check_output(
-        ["identify", "test.jpg"], text=True
+        ["identify", temp_jpg.name], text=True
     ), "can create a valid JPG after cancelling save PDF process"
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.jpg",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_tiff_with_error(temp_pnm, temp_tif, import_in_mainloop, clean_up_files):

@@ -7,7 +7,9 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_save_image(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_image(
+    temp_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop, clean_up_files
+):
     "Test writing image"
 
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
@@ -18,10 +20,10 @@ def test_save_image(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     mlp = GLib.MainLoop()
     slist.save_image(
-        path="test.jpg",
+        path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": "convert %i test2.png",
+            "post_save_hook": f"convert %i {temp_png.name}",
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -29,15 +31,16 @@ def test_save_image(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    example = subprocess.check_output(["identify", "test.jpg"], text=True)
+    example = subprocess.check_output(["identify", temp_jpg.name], text=True)
     assert (
-        re.search(r"test.jpg JPEG 70x46 70x46\+0\+0 8-bit sRGB", example) is not None
+        re.search(rf"{temp_jpg.name} JPEG 70x46 70x46\+0\+0 8-bit sRGB", example)
+        is not None
     ), "valid JPG created"
 
-    example = subprocess.check_output(["identify", "test2.png"], text=True)
+    example = subprocess.check_output(["identify", temp_png.name], text=True)
     assert (
         re.search(
-            r"test2\.png PNG 70x46 70x46\+0\+0 8-bit sRGB \d+\.?\d*K?B 0\.\d+u 0:00\.\d+\b",
+            rf"{temp_png.name} PNG 70x46 70x46\+0\+0 8-bit sRGB \d+\.?\d*K?B 0\.\d+u 0:00\.\d+\b",
             example,
         )
         is not None
@@ -45,13 +48,7 @@ def test_save_image(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.jpg",
-            "test2.png",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_image_with_quote(temp_pnm, temp_db, import_in_mainloop, clean_up_files):

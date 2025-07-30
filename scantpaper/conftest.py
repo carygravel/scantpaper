@@ -245,6 +245,12 @@ def temp_djvu():
 
 
 @pytest.fixture
+def temp_jpg():
+    "return a temporary jpg"
+    return tempfile.NamedTemporaryFile(suffix=".jpg")
+
+
+@pytest.fixture
 def temp_pbm():
     "return a temporary pbm"
     return tempfile.NamedTemporaryFile(suffix=".pbm")
@@ -283,7 +289,7 @@ def temp_tif():
 @pytest.fixture
 def temp_txt():
     "return a temporary txt file"
-    return tempfile.NamedTemporaryFile(suffix=".txt")
+    return tempfile.NamedTemporaryFile(suffix=".txt", mode="wt")
 
 
 @pytest.fixture

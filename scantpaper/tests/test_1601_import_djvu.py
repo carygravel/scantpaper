@@ -13,14 +13,14 @@ from bboxtree import VERSION
 from page import Page
 
 
-def test_import_djvu(clean_up_files, temp_db):
+def test_import_djvu(temp_jpg, temp_txt, clean_up_files, temp_db):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
-    subprocess.run(["c44", "test.jpg", "test.djvu"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
+    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
     text = """(page 0 0 2236 3185
   (column 157 3011 1725 3105
     (para 157 3014 1725 3101
@@ -31,8 +31,8 @@ def test_import_djvu(clean_up_files, temp_db):
         (word 1229 3034 1365 3098 "DE")
         (word 1409 3031 1725 3101 "GANGE")))))
 """
-    with open("text.txt", "w", encoding="utf-8") as fhd:
-        fhd.write(text)
+    temp_txt.write(text)
+    temp_txt.flush()
     text = """(maparea "" "()" (rect 157 3030 84 65) (hilite #cccf00) (xor))
 """
     with open("ann.txt", "w", encoding="utf-8") as fhd:
@@ -42,7 +42,7 @@ def test_import_djvu(clean_up_files, temp_db):
             "djvused",
             "test.djvu",
             "-e",
-            "select 1; set-txt text.txt; set-ant ann.txt",
+            f"select 1; set-txt {temp_txt.name}; set-ant ann.txt",
             "-s",
         ],
         check=True,
@@ -130,7 +130,6 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.jpg",
             "test.djvu",
             "text.txt",
             "ann.txt",
@@ -138,14 +137,14 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     )
 
 
-def test_import_djvu_with_error(clean_up_files):
+def test_import_djvu_with_error(temp_jpg, clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
-    subprocess.run(["c44", "test.jpg", "test.djvu"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
+    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -183,7 +182,7 @@ def test_import_djvu_with_error(clean_up_files):
 
         #########################
 
-        clean_up_files(slist.thread.db_files + ["test.jpg", "test.djvu"])
+        clean_up_files(slist.thread.db_files + ["test.djvu"])
 
 
 def mock_import_djvu_txt(self, _text):
@@ -191,14 +190,14 @@ def mock_import_djvu_txt(self, _text):
     raise ValueError("Error parsing djvu text")
 
 
-def test_import_djvu_with_error2(monkeypatch, temp_db, clean_up_files):
+def test_import_djvu_with_error2(monkeypatch, temp_jpg, temp_db, clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
-    subprocess.run(["c44", "test.jpg", "test.djvu"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
+    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
 
     # apply the monkeypatch for Page.import_djvu_txt to mock_import_djvu_txt
     monkeypatch.setattr(Page, "import_djvu_txt", mock_import_djvu_txt)
@@ -228,17 +227,17 @@ def test_import_djvu_with_error2(monkeypatch, temp_db, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.jpg", "test.djvu"])
+    clean_up_files(slist.thread.db_files + ["test.djvu"])
 
 
-def test_import_multipage_djvu(temp_db, clean_up_files):
+def test_import_multipage_djvu(temp_jpg, temp_db, clean_up_files):
     "Test importing multipage DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
-    subprocess.run(["c44", "test.jpg", "test.djvu"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
+    subprocess.run(["c44", temp_jpg.name, "test.djvu"], check=True)
     subprocess.run(["djvm", "-c", "test2.djvu", "test.djvu", "test.djvu"], check=True)
 
     slist = Document(db=temp_db.name)
@@ -272,7 +271,6 @@ def test_import_multipage_djvu(temp_db, clean_up_files):
     clean_up_files(
         slist.thread.db_files
         + [
-            "test.jpg",
             "test.djvu",
             "test2.djvu",
         ]

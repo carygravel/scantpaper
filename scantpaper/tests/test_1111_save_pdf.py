@@ -257,18 +257,20 @@ def test_save_pdf_different_resolutions(
     clean_up_files(slist.thread.db_files)
 
 
-def test_save_encrypted_pdf(temp_db, temp_pdf, import_in_mainloop, clean_up_files):
+def test_save_encrypted_pdf(
+    temp_jpg, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+):
     "test saving an encrypted PDF"
     if shutil.which("pdftk") is None:
         pytest.skip("pdftk not found")
         return
 
     # Create test image
-    subprocess.run(["convert", "rose:", "test.jpg"], check=True)
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.jpg"])
+    import_in_mainloop(slist, [temp_jpg.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -283,7 +285,7 @@ def test_save_encrypted_pdf(temp_db, temp_pdf, import_in_mainloop, clean_up_file
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_output(["pdfinfo", temp_pdf.name])
 
-    clean_up_files(slist.thread.db_files + ["test.jpg"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_pdf_with_hocr(
@@ -938,7 +940,7 @@ def test_save_pdf_with_downsample(
 
 
 def test_cancel_save_pdf(
-    temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
+    temp_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainloop, clean_up_files
 ):
     "Test writing PDF with downsampled image"
 
@@ -969,7 +971,7 @@ def test_cancel_save_pdf(
     mlp.run()
 
     slist.save_image(
-        path="test.jpg",
+        path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
@@ -978,14 +980,9 @@ def test_cancel_save_pdf(
     mlp.run()
 
     assert subprocess.check_output(
-        ["identify", "test.jpg"], text=True
+        ["identify", temp_jpg.name], text=True
     ), "can create a valid JPG after cancelling save PDF process"
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test.jpg",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
