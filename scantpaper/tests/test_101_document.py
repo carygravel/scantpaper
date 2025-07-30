@@ -830,6 +830,7 @@ def test_document(clean_up_files):
 
 def test_import_scan(
     temp_pnm,
+    temp_ppm,
     clean_up_files,
 ):  # FIXME: not sure we need this anymore, now we are passed Image objects around
     "test Document.import_scan()"
@@ -839,9 +840,9 @@ def test_import_scan(
 
     # build a cropped (i.e. too little data compared with header) pnm
     # to test padding code
-    subprocess.run(["convert", "rose:", "test.ppm"], check=True)
+    subprocess.run(["convert", "rose:", temp_ppm.name], check=True)
     old = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", "test.ppm"]
+        ["identify", "-format", "%m %G %g %z-bit %r", temp_ppm.name]
     )
 
     # To avoid piping one into the other. See
@@ -865,7 +866,7 @@ def test_import_scan(
         nonlocal asserts
         asserts += 1
         assert os.path.getsize("test2.ppm") == os.path.getsize(
-            "test.ppm"
+            temp_ppm.name
         ), "padded pnm correct size"
         asserts += 1
         mlp.quit()
@@ -883,4 +884,4 @@ def test_import_scan(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.ppm", "test2.ppm"])
+    clean_up_files(slist.thread.db_files + ["test2.ppm"])

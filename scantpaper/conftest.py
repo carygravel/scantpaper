@@ -245,15 +245,21 @@ def temp_djvu():
 
 
 @pytest.fixture
+def temp_pbm():
+    "return a temporary pbm"
+    return tempfile.NamedTemporaryFile(suffix=".pbm")
+
+
+@pytest.fixture
 def temp_pnm():
     "return a temporary pnm"
     return tempfile.NamedTemporaryFile(suffix=".pnm")
 
 
 @pytest.fixture
-def temp_pbm():
-    "return a temporary pbm"
-    return tempfile.NamedTemporaryFile(suffix=".pbm")
+def temp_ppm():
+    "return a temporary pnm"
+    return tempfile.NamedTemporaryFile(suffix=".ppm")
 
 
 @pytest.fixture

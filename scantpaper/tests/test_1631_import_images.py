@@ -5,17 +5,17 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_import_ppm(temp_db, clean_up_files):
+def test_import_ppm(temp_db, temp_ppm, clean_up_files):
     "Test importing PPM"
 
-    subprocess.run(["convert", "rose:", "test.ppm"], check=True)
+    subprocess.run(["convert", "rose:", temp_ppm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
     slist.import_files(
-        paths=["test.ppm"],
+        paths=[temp_ppm.name],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -26,7 +26,7 @@ def test_import_ppm(temp_db, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.ppm"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_import_corrupt_png(temp_png, clean_up_files):
