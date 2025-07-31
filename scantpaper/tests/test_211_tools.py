@@ -286,15 +286,16 @@ def test_crop(
     set_saved_in_mainloop,
     set_text_in_mainloop,
     temp_db,
+    temp_gif,
     clean_up_files,
 ):
     "Test brightness contrast"
 
-    subprocess.run(["convert", "rose:", "test.gif"], check=True)
+    subprocess.run(["convert", "rose:", temp_gif.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.gif"])
+    import_in_mainloop(slist, [temp_gif.name])
 
     page = slist.thread.get_page(number=1)
     assert page.width == 70, "width before crop"
@@ -365,7 +366,7 @@ def test_crop(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.gif"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_split(
@@ -373,15 +374,16 @@ def test_split(
     set_saved_in_mainloop,
     set_text_in_mainloop,
     temp_db,
+    temp_gif,
     clean_up_files,
 ):
     "Test split"
 
-    subprocess.run(["convert", "rose:", "test.gif"], check=True)
+    subprocess.run(["convert", "rose:", temp_gif.name], check=True)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["test.gif"])
+    import_in_mainloop(slist, [temp_gif.name])
 
     page = slist.thread.get_page(number=1)
     assert page.width == 70, "width before crop"
@@ -474,7 +476,7 @@ def test_split(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test.gif"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_brightness_contrast(

@@ -251,6 +251,12 @@ def temp_djvu():
 
 
 @pytest.fixture
+def temp_gif():
+    "return a temporary gif"
+    return tempfile.NamedTemporaryFile(suffix=".gif")
+
+
+@pytest.fixture
 def temp_jpg():
     "return a temporary jpg"
     return tempfile.NamedTemporaryFile(suffix=".jpg")
