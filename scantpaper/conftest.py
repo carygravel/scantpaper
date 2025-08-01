@@ -233,6 +233,14 @@ def rotated_qbfox_image():
 
 
 @pytest.fixture
+def rose_pnm():
+    "return a pnm file with a rose image"
+    temp = tempfile.NamedTemporaryFile(suffix=".pnm")
+    subprocess.run(["convert", "rose:", temp.name], check=True)
+    return temp
+
+
+@pytest.fixture
 def temp_db():
     "return a temporary db"
     return tempfile.NamedTemporaryFile(suffix=".db")

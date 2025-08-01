@@ -8,15 +8,12 @@ from document import Document
 
 
 def test_save_image(
-    temp_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop, clean_up_files
+    rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop, clean_up_files
 ):
     "Test writing image"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     mlp = GLib.MainLoop()
     slist.save_image(
@@ -51,14 +48,11 @@ def test_save_image(
     clean_up_files(slist.thread.db_files)
 
 
-def test_save_image_with_quote(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     os.mkdir("te'st")
 
@@ -83,15 +77,12 @@ def test_save_image_with_quote(temp_pnm, temp_db, import_in_mainloop, clean_up_f
 
 
 def test_save_image_with_ampersand(
-    temp_pnm, temp_db, import_in_mainloop, clean_up_files
+    rose_pnm, temp_db, import_in_mainloop, clean_up_files
 ):
     "Test writing image"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     path = "sed & awk.png"
 

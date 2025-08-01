@@ -1,7 +1,5 @@
 "Test Canvas class"
 
-import os
-import subprocess
 import tempfile
 import pytest
 import gi
@@ -16,15 +14,11 @@ from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-
 )
 
 
-def test_canvas_basics(temp_pnm):
+def test_canvas_basics(rose_pnm):
     "Basic tests"
-
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=temp_pnm.name,
+            filename=rose_pnm.name,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -86,15 +80,11 @@ def test_canvas_basics(temp_pnm):
         assert canvas.convert_from_pixels(0, 0) == (-10, -10), "convert_from_pixels2"
 
 
-def test_canvas_basics2(temp_pnm):
+def test_canvas_basics2(rose_pnm):
     "Basic tests"
-
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=temp_pnm.name,
+            filename=rose_pnm.name,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -256,15 +246,11 @@ def test_canvas_basics2(temp_pnm):
         assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
 
 
-def test_hocr(temp_pnm):
+def test_hocr(rose_pnm):
     "Tests hocr export"
-
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=temp_pnm.name,
+            filename=rose_pnm.name,
             format="Portable anymap",
             resolution=72,
             dir=dirname,

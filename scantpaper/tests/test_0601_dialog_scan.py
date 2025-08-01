@@ -1,8 +1,6 @@
 "test scan dialog"
 
 import glob
-import os
-import subprocess
 import tempfile
 from types import SimpleNamespace
 import gi
@@ -54,7 +52,7 @@ def test_basics():
     assert dialog.framen.is_sensitive(), "with no source, num-page gui not ghosted"
 
 
-def test_doc_interaction(temp_pnm, clean_up_files, temp_db):
+def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
     "test interaction of scan dialog and document"
 
     window = Gtk.Window()
@@ -69,10 +67,9 @@ def test_doc_interaction(temp_pnm, clean_up_files, temp_db):
         transient_for=window,
         document=slist,
     )
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     with tempfile.TemporaryDirectory() as tempdir:
         options = {
-            "filename": temp_pnm.name,
+            "filename": rose_pnm.name,
             "resolution": (72, 72, "PixelsPerInch"),
             "page": 1,
             "dir": tempdir,

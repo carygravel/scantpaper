@@ -18,18 +18,14 @@ from basethread import Request
 from page import Page
 
 
-def test_do_save_pdf(temp_pnm, temp_db, temp_pdf, clean_up_files):
+def test_do_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     "Test writing basic PDF"
-
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
     with tempfile.TemporaryDirectory() as tdir:
         _number, _thumb, page_id = thread.add_page(
             Page(
-                filename=temp_pnm.name,
+                filename=rose_pnm.name,
                 dir=tdir,
                 delete=True,
                 format="Portable anymap",
@@ -53,12 +49,8 @@ def test_do_save_pdf(temp_pnm, temp_db, temp_pdf, clean_up_files):
         clean_up_files(thread.db_files)
 
 
-def test_save_pdf(temp_pnm, temp_db, temp_pdf, clean_up_files):
+def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     "Test writing basic PDF"
-
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
     asserts = 0
@@ -80,7 +72,7 @@ def test_save_pdf(temp_pnm, temp_db, temp_pdf, clean_up_files):
         mlp.quit()
 
     slist.import_files(
-        paths=[temp_pnm.name],
+        paths=[rose_pnm.name],
         started_callback=import_files_started_cb,
         finished_callback=import_files_finished_cb,
     )
@@ -139,17 +131,14 @@ def test_save_pdf(temp_pnm, temp_db, temp_pdf, clean_up_files):
 
 
 def test_save_pdf_with_locale(
-    temp_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test with non-English locale"
     locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -170,17 +159,13 @@ def test_save_pdf_with_locale(
     clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_with_error(temp_pnm, temp_pdf, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop, clean_up_files):
     "Test saving a PDF and triggering an error"
-
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
         asserts = 0
 
-        import_in_mainloop(slist, [temp_pnm.name])
+        import_in_mainloop(slist, [rose_pnm.name])
 
         # inject error before save_pdf
         os.chmod(dirname, 0o500)  # no write access
@@ -399,11 +384,9 @@ def test_save_pdf_with_hocr(
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_utf8(
-    temp_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    rose_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with utf8 in text layer"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     options = {}
 
     # To avoid piping one into the other. See
@@ -424,7 +407,7 @@ def test_save_pdf_with_utf8(
 
     slist = Document()
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -458,15 +441,12 @@ def test_save_pdf_with_utf8(
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_non_utf8(
-    temp_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    rose_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with non-utf8 in text layer"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document()
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -524,7 +504,7 @@ def test_save_pdf_with_1bpp(
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_without_font(
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_pdf,
     import_in_mainloop,
@@ -532,12 +512,9 @@ def test_save_pdf_without_font(
     clean_up_files,
 ):
     "Test writing PDF with non-existing font"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -777,15 +754,12 @@ def test_save_pdf_with_sbs_hocr(
 
 
 def test_save_pdf_with_metadata(
-    temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
 ):
     "Test writing PDF with metadata"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     metadata = {
         "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -820,15 +794,12 @@ def test_save_pdf_with_metadata(
 
 
 def test_save_pdf_with_old_metadata(
-    temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
 ):
     "Test writing PDF with old metadata"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     metadata = {
         "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -940,15 +911,12 @@ def test_save_pdf_with_downsample(
 
 
 def test_cancel_save_pdf(
-    temp_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainloop, clean_up_files
+    rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainloop, clean_up_files
 ):
     "Test writing PDF with downsampled image"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     def finished_callback(_response):
         assert False, "Finished callback"

@@ -1,6 +1,5 @@
 "test dialog"
 
-import subprocess
 import tempfile
 from dialog import Dialog
 from dialog.pagecontrols import PageControls
@@ -73,16 +72,15 @@ def test_dialog():
     assert True, "no crash due to undefined response"
 
 
-def test_page_controls(temp_pnm, temp_db, mainloop_with_timeout, clean_up_files):
+def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout, clean_up_files):
     "test PageControls"
     dialog = PageControls(title="title", transient_for=Gtk.Window())
     assert isinstance(dialog, PageControls), "Created PageControls dialog"
 
     slist = Document(db=temp_db.name)
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
     with tempfile.TemporaryDirectory() as tempdir:
         slist.import_scan(
-            filename=temp_pnm.name,
+            filename=rose_pnm.name,
             resolution=72,
             page=1,
             dir=tempdir,

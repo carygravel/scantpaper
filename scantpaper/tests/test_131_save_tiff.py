@@ -9,15 +9,12 @@ from document import Document
 
 
 def test_save_tiff(
-    temp_pnm, temp_db, temp_tif, temp_png, import_in_mainloop, clean_up_files
+    rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop, clean_up_files
 ):
     "Test writing TIFF"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     mlp = GLib.MainLoop()
     slist.save_tiff(
@@ -55,15 +52,12 @@ def test_save_tiff(
 
 
 def test_cancel_save_tiff(
-    temp_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop, clean_up_files
+    rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop, clean_up_files
 ):
     "Test cancel saving a TIFF"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     mlp = GLib.MainLoop()
     called = False
@@ -102,16 +96,13 @@ def test_cancel_save_tiff(
     clean_up_files(slist.thread.db_files)
 
 
-def test_save_tiff_with_error(temp_pnm, temp_tif, import_in_mainloop, clean_up_files):
+def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop, clean_up_files):
     "Test writing TIFF and triggering an error"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
         asserts = 0
 
-        import_in_mainloop(slist, [temp_pnm.name])
+        import_in_mainloop(slist, [rose_pnm.name])
 
         # inject error before save_djvu
         os.chmod(dirname, 0o500)  # no write access
@@ -209,15 +200,12 @@ def test_save_tiff_with_alpha(
 
 
 def test_save_tiff_as_ps(
-    temp_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop, clean_up_files
+    rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test writing TIFF and postscript"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name, rose_pnm.name])
 
     with tempfile.NamedTemporaryFile(suffix=".ps", prefix=" ") as temp_ps:
         mlp = GLib.MainLoop()

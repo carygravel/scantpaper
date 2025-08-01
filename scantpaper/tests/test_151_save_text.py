@@ -9,18 +9,15 @@ from bboxtree import VERSION
 def test_save_text(
     import_in_mainloop,
     set_text_in_mainloop,
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_txt,
     clean_up_files,
 ):
     "Test saving text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -57,14 +54,11 @@ def test_save_text(
     clean_up_files(slist.thread.db_files + ["test.txt"])
 
 
-def test_save_no_text(temp_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_files):
+def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_files):
     "Test saving text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     mlp = GLib.MainLoop()
     slist.save_text(
@@ -94,18 +88,15 @@ def test_save_no_text(temp_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_
 def test_save_utf8(
     import_in_mainloop,
     set_text_in_mainloop,
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_txt,
     clean_up_files,
 ):
     "Test writing text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     set_text_in_mainloop(
         slist,
@@ -139,18 +130,15 @@ def test_save_utf8(
 def test_save_hocr_as_text(
     import_in_mainloop,
     set_text_in_mainloop,
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_txt,
     clean_up_files,
 ):
     "Test saving HOCR as text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -201,18 +189,15 @@ def test_save_hocr_as_text(
 def test_save_hocr(
     import_in_mainloop,
     set_text_in_mainloop,
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_txt,
     clean_up_files,
 ):
     "Test writing text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -269,18 +254,15 @@ def test_save_hocr(
 def test_save_hocr_with_encoding(
     import_in_mainloop,
     set_text_in_mainloop,
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_txt,
     clean_up_files,
 ):
     "Test writing text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -339,18 +321,15 @@ def test_save_hocr_with_encoding(
 def test_save_multipage_hocr(
     import_in_mainloop,
     set_text_in_mainloop,
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_txt,
     clean_up_files,
 ):
     "Test writing text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name, rose_pnm.name])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -435,18 +414,15 @@ def test_save_multipage_hocr(
 def test_save_hocr_structure(
     import_in_mainloop,
     set_text_in_mainloop,
-    temp_pnm,
+    rose_pnm,
     temp_db,
     temp_txt,
     clean_up_files,
 ):
     "Test writing text"
-
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
-
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [rose_pnm.name])
 
     hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
