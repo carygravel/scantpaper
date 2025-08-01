@@ -4,6 +4,7 @@ import datetime
 import os
 import re
 import subprocess
+import tempfile
 import pytest
 from gi.repository import GLib
 from document import Document
@@ -141,30 +142,33 @@ def test_save_multipage_pdf_as_ps(
 
     import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
 
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[1, 2],
-        # metadata and timestamp should be ignored: debian #962151
-        metadata={},
-        options={
-            "ps": "te st.ps",
-            "pstool": "pdf2ps",
-            "post_save_hook": "cp %i test2.ps",
-            "post_save_hook_options": "fg",
-            "set_timestamp": True,
-        },
-        finished_callback=lambda response: mlp.quit(),
-    )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+    with tempfile.NamedTemporaryFile(
+        suffix=".ps", prefix=" "
+    ) as temp_ps, tempfile.NamedTemporaryFile(suffix=".ps") as temp_ps2:
+        slist.save_pdf(
+            path=temp_pdf.name,
+            list_of_pages=[1, 2],
+            # metadata and timestamp should be ignored: debian #962151
+            metadata={},
+            options={
+                "ps": temp_ps.name,
+                "pstool": "pdf2ps",
+                "post_save_hook": f"cp %i {temp_ps2.name}",
+                "post_save_hook_options": "fg",
+                "set_timestamp": True,
+            },
+            finished_callback=lambda response: mlp.quit(),
+        )
+        mlp = GLib.MainLoop()
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert os.path.getsize("te st.ps") > 194000, "non-empty postscript created"
-    assert os.path.getsize("test2.ps") > 194000, "ran post-save hook"
+        assert os.path.getsize(temp_ps.name) > 194000, "non-empty postscript created"
+        assert os.path.getsize(temp_ps2.name) > 194000, "ran post-save hook"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test2.ps", "te st.ps"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_multipage_pdf_as_ps2(
@@ -178,30 +182,33 @@ def test_save_multipage_pdf_as_ps2(
 
     import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
 
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[1, 2],
-        # metadata and timestamp should be ignored: debian #962151
-        metadata={},
-        options={
-            "ps": "te st.ps",
-            "pstool": "pdftops",
-            "post_save_hook": "cp %i test2.ps",
-            "post_save_hook_options": "fg",
-            "set_timestamp": True,
-        },
-        finished_callback=lambda response: mlp.quit(),
-    )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+    with tempfile.NamedTemporaryFile(
+        suffix=".ps", prefix=" "
+    ) as temp_ps, tempfile.NamedTemporaryFile(suffix=".ps") as temp_ps2:
+        slist.save_pdf(
+            path=temp_pdf.name,
+            list_of_pages=[1, 2],
+            # metadata and timestamp should be ignored: debian #962151
+            metadata={},
+            options={
+                "ps": temp_ps.name,
+                "pstool": "pdftops",
+                "post_save_hook": f"cp %i {temp_ps2.name}",
+                "post_save_hook_options": "fg",
+                "set_timestamp": True,
+            },
+            finished_callback=lambda response: mlp.quit(),
+        )
+        mlp = GLib.MainLoop()
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert os.path.getsize("te st.ps") > 15500, "non-empty postscript created"
-    assert os.path.getsize("test2.ps") > 15500, "ran post-save hook"
+        assert os.path.getsize(temp_ps.name) > 15500, "non-empty postscript created"
+        assert os.path.getsize(temp_ps2.name) > 15500, "ran post-save hook"
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test2.ps", "te st.ps"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_prepend_pdf(

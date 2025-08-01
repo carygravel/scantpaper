@@ -219,43 +219,34 @@ def test_save_tiff_as_ps(
 
     import_in_mainloop(slist, [temp_pnm.name, temp_pnm.name])
 
-    mlp = GLib.MainLoop()
-    slist.save_tiff(
-        path=temp_tif.name,
-        list_of_pages=[slist.data[0][2], slist.data[1][2]],
-        options={
-            "ps": "te st.ps",
-            "post_save_hook": f"ps2pdf %i {temp_pdf.name}",
-            "post_save_hook_options": "fg",
-        },
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
-
-    example = subprocess.check_output(["file", "te st.ps"], text=True)
-    assert (
-        example
-        == "te st.ps: PostScript document text conforming DSC level 3.0, type EPS, Level 3\n"
-    ), "valid postscript created"
-
-    example = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-    assert (
-        re.search(
-            r"tiff2ps",
-            example,
+    with tempfile.NamedTemporaryFile(suffix=".ps", prefix=" ") as temp_ps:
+        mlp = GLib.MainLoop()
+        slist.save_tiff(
+            path=temp_tif.name,
+            list_of_pages=[slist.data[0][2], slist.data[1][2]],
+            options={
+                "ps": temp_ps.name,
+                "post_save_hook": f"ps2pdf %i {temp_pdf.name}",
+                "post_save_hook_options": "fg",
+            },
+            finished_callback=lambda response: mlp.quit(),
         )
-        is not None
-    ), "ran post-save hook"
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    #########################
+        example = subprocess.check_output(["file", temp_ps.name], text=True)
+        assert (
+            example
+            == temp_ps.name
+            + ": PostScript document text conforming DSC level 3.0, type EPS, Level 3\n"
+        ), "valid postscript created"
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "te st.ps",
-        ]
-    )
+        example = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
+        assert re.search(r"tiff2ps", example) is not None, "ran post-save hook"
+
+        #########################
+
+        clean_up_files(slist.thread.db_files)
 
 
 def test_save_tiff_g4(temp_png, temp_db, temp_tif, import_in_mainloop, clean_up_files):
