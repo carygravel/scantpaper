@@ -43,90 +43,91 @@ class SaveThread(Importhread):
         options = defaultdict(None, request.args[0])
 
         self.message = _("Setting up PDF")
-        outdir = pathlib.Path(options.get("dir"))
-        filename = options["path"]
-        temp_pdf = None
-        if _need_temp_pdf(options.get("options")):
-            temp_pdf = tempfile.NamedTemporaryFile(
-                dir=options.get("dir"), suffix=".pdf"
+        with tempfile.TemporaryDirectory(dir=options.get("dir")) as tempdir:
+            outdir = pathlib.Path(tempdir)
+            filename = options["path"]
+            temp_pdf = None
+            if _need_temp_pdf(options.get("options")):
+                temp_pdf = tempfile.NamedTemporaryFile(
+                    dir=options.get("dir"), suffix=".pdf"
+                )
+                filename = temp_pdf.name
+
+            metadata = {}
+            if "metadata" in options and "ps" not in options:
+                metadata = prepare_output_metadata("PDF", options["metadata"])
+
+            list_of_pages = []
+            with open(
+                outdir / "origin_pre.pdf", "wb", buffering=0
+            ) as fhd:  # turn off buffering
+                filenames = []
+                resolutions = []
+                for page_id in options["list_of_pages"]:
+                    page = self.get_page(id=page_id)
+                    list_of_pages.append(page)
+                    filenames.append(_write_image_object(page, options))
+                    xres, yres, _units = page.get_resolution(self.paper_sizes)
+                    resolutions.append((xres, yres))
+                index = 0
+
+                def layout_fun(imgwidthpx, imgheightpx, _ndpi):
+                    nonlocal index
+                    xres, yres = resolutions[index]
+                    index += 1
+                    pagewidth = imgwidthpdf = img2pdf.px_to_pt(imgwidthpx, xres)
+                    pageheight = imgheightpdf = img2pdf.px_to_pt(imgheightpx, yres)
+                    return pagewidth, pageheight, imgwidthpdf, imgheightpdf
+
+                metadata["layout_fun"] = layout_fun
+                fhd.write(img2pdf.convert(filenames, **metadata))
+            ocrmypdf.api._pdf_to_hocr(
+                outdir / "origin_pre.pdf",
+                outdir,
+                language="eng",
+                skip_text=True,
             )
-            filename = temp_pdf.name
+            for pagenr, page in enumerate(list_of_pages):
+                if page.text_layer:
+                    with open(
+                        outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w", encoding="utf-8"
+                    ) as fhd:
+                        fhd.write(page.export_hocr())
+                self.progress = pagenr / (len(options["list_of_pages"]) + 1)
+                self.message = _("Saving page %i of %i") % (
+                    pagenr,
+                    len(list_of_pages),
+                )
+                if self.cancel:
+                    raise CancelledError()
 
-        metadata = {}
-        if "metadata" in options and "ps" not in options:
-            metadata = prepare_output_metadata("PDF", options["metadata"])
+            ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
 
-        list_of_pages = []
-        with open(
-            outdir / "origin_pre.pdf", "wb", buffering=0
-        ) as fhd:  # turn off buffering
-            filenames = []
-            resolutions = []
-            for page_id in options["list_of_pages"]:
-                page = self.get_page(id=page_id)
-                list_of_pages.append(page)
-                filenames.append(_write_image_object(page, options))
-                xres, yres, _units = page.get_resolution(self.paper_sizes)
-                resolutions.append((xres, yres))
-            index = 0
+            _append_pdf(filename, options, request)
 
-            def layout_fun(imgwidthpx, imgheightpx, _ndpi):
-                nonlocal index
-                xres, yres = resolutions[index]
-                index += 1
-                pagewidth = imgwidthpdf = img2pdf.px_to_pt(imgwidthpx, xres)
-                pageheight = imgheightpdf = img2pdf.px_to_pt(imgheightpx, yres)
-                return pagewidth, pageheight, imgwidthpdf, imgheightpdf
+            if options.get("options") and options["options"].get("user-password"):
+                if _encrypt_pdf(filename, options, request):
+                    return
 
-            metadata["layout_fun"] = layout_fun
-            fhd.write(img2pdf.convert(filenames, **metadata))
-        ocrmypdf.api._pdf_to_hocr(
-            outdir / "origin_pre.pdf",
-            outdir,
-            language="eng",
-            skip_text=True,
-        )
-        for pagenr, page in enumerate(list_of_pages):
-            if page.text_layer:
-                with open(
-                    outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w", encoding="utf-8"
-                ) as fhd:
-                    fhd.write(page.export_hocr())
-            self.progress = pagenr / (len(options["list_of_pages"]) + 1)
-            self.message = _("Saving page %i of %i") % (
-                pagenr,
-                len(list_of_pages),
+            _set_timestamp(options)
+            if options.get("options") and options["options"].get("ps"):
+                self.message = _("Converting to PS")
+                proc = exec_command(
+                    [options["options"]["pstool"], filename, options["options"]["ps"]],
+                    options["pidfile"],
+                )
+                if proc.returncode or proc.stderr:
+                    logger.info(proc.stderr)
+                    request.error(_("Error converting PDF to PS: %s") % (proc.stderr))
+                    return
+
+                _post_save_hook(options["options"]["ps"], options["options"])
+
+            else:
+                _post_save_hook(filename, options.get("options"))
+            self.do_set_saved(
+                Request("set_saved", (options["list_of_pages"], True), self.responses)
             )
-            if self.cancel:
-                raise CancelledError()
-
-        ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
-
-        _append_pdf(filename, options, request)
-
-        if options.get("options") and options["options"].get("user-password"):
-            if _encrypt_pdf(filename, options, request):
-                return
-
-        _set_timestamp(options)
-        if options.get("options") and options["options"].get("ps"):
-            self.message = _("Converting to PS")
-            proc = exec_command(
-                [options["options"]["pstool"], filename, options["options"]["ps"]],
-                options["pidfile"],
-            )
-            if proc.returncode or proc.stderr:
-                logger.info(proc.stderr)
-                request.error(_("Error converting PDF to PS: %s") % (proc.stderr))
-                return
-
-            _post_save_hook(options["options"]["ps"], options["options"])
-
-        else:
-            _post_save_hook(filename, options.get("options"))
-        self.do_set_saved(
-            Request("set_saved", (options["list_of_pages"], True), self.responses)
-        )
 
     def save_djvu(self, **kwargs):
         "save DjvU"
