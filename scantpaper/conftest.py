@@ -311,6 +311,13 @@ def rose_jpg(temp_jpg):
 
 
 @pytest.fixture
+def rose_png(temp_png):
+    "return a png file with a rose image"
+    subprocess.run(["convert", "rose:", temp_png.name], check=True)
+    return temp_png
+
+
+@pytest.fixture
 def rose_pnm(temp_pnm):
     "return a pnm file with a rose image"
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)

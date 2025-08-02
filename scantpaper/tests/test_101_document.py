@@ -572,7 +572,7 @@ def test_bbox2markup():
 
 
 def test_docthread(
-    temp_db, temp_cjb2, temp_djvu, temp_pbm, temp_png, temp_pdf, clean_up_files
+    temp_db, temp_cjb2, temp_djvu, temp_pbm, rose_png, temp_pdf, clean_up_files
 ):
     "tests for DocThread"
 
@@ -628,13 +628,10 @@ def test_docthread(
         del example["path"]
         assert example == info, "do_get_file_info + tiff"
 
-        subprocess.run(
-            ["convert", "rose:", temp_png.name], check=True
-        )  # Create test image
-        request = Request("get_file_info", (temp_png.name, None), thread.responses)
+        request = Request("get_file_info", (rose_png.name, None), thread.responses)
         info = {
             "format": "PNG",
-            "path": temp_png.name,
+            "path": rose_png.name,
             "width": [70],
             "height": [46],
             "pages": 1,

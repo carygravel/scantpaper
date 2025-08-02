@@ -1,8 +1,6 @@
 "Basic tests for imageview"
 
 from dataclasses import dataclass
-import subprocess
-import tempfile
 import cairo
 import gi
 import pytest
@@ -18,7 +16,7 @@ from gi.repository import (  # pylint: disable=wrong-import-position
 )
 
 
-def test_basics():
+def test_basics(rose_png):
     "Basic tests for imageview"
 
     view = ImageView()
@@ -31,10 +29,8 @@ def test_basics():
             assert offset_x == 0, "emitted offset-changed signal x"
             assert offset_y == 12, "emitted offset-changed signal y"
 
-    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
-        subprocess.run(["convert", "rose:", tmp.name], check=True)
-        signal = view.connect("offset-changed", on_offset_changed)
-        view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(tmp.name), True)
+    signal = view.connect("offset-changed", on_offset_changed)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), True)
 
     if view.get_scale_factor() <= 1:
         viewport = view.get_viewport()
@@ -69,14 +65,10 @@ def test_basics():
     view.set_zoom(1)
 
 
-def test_selection():
+def test_selection(rose_png):
     "Basic tests for imageview"
-
     view = ImageView()
-
-    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
-        subprocess.run(["convert", "rose:", tmp.name], check=True)
-        view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(tmp.name), True)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), True)
 
     def on_selection_changed(_widget, selection):
         view.disconnect(signal)
@@ -118,20 +110,14 @@ def test_selection():
     assert selection.height == 36, "selection cannot overlap bottom right border heigth"
 
 
-def test_viewport():
+def test_viewport(rose_png):
     "Basic tests for imageview"
-
     view = ImageView()
-
-    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
-        subprocess.run(["convert", "rose:", tmp.name], check=True)
-        view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(tmp.name), True)
-
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), True)
     view.set_resolution_ratio(2)
     assert view.get_resolution_ratio() == 2, "get/set_resolution_ratio()"
 
     if False:
-
         assert (
             Gtk.ImageView.Zoom.get_min_zoom() < Gtk.ImageView.Zoom.get_max_zoom()
         ), "Ensure that the gtkimageview.zooms_* functions are present and work as expected."

@@ -549,15 +549,10 @@ def test_save_pdf_without_font(
     clean_up_files(slist.thread.db_files)
 
 
-def test_save_pdf_g4(temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
+def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
-
-    subprocess.run(["convert", "rose:", temp_png.name], check=True)
-
     slist = Document(db=temp_db.name)
-
-    import_in_mainloop(slist, [temp_png.name])
-
+    import_in_mainloop(slist, [rose_png.name])
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path=temp_pdf.name,

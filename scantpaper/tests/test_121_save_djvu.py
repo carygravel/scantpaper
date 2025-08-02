@@ -281,7 +281,7 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_
 
 
 def test_save_djvu_with_float_resolution(
-    temp_png,
+    rose_png,
     temp_db,
     temp_djvu,
     import_in_mainloop,
@@ -293,11 +293,8 @@ def test_save_djvu_with_float_resolution(
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_png.name], check=True)
-
     slist = Document(db=temp_db.name)
-
-    import_in_mainloop(slist, [temp_png.name])
+    import_in_mainloop(slist, [rose_png.name])
     set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
 
     slist.save_djvu(
