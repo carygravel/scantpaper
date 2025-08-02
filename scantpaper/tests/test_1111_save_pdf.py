@@ -243,20 +243,15 @@ def test_save_pdf_different_resolutions(
 
 
 def test_save_encrypted_pdf(
-    temp_jpg, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    rose_jpg, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "test saving an encrypted PDF"
     if shutil.which("pdftk") is None:
         pytest.skip("pdftk not found")
         return
 
-    # Create test image
-    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-
     slist = Document(db=temp_db.name)
-
-    import_in_mainloop(slist, [temp_jpg.name])
-
+    import_in_mainloop(slist, [rose_jpg.name])
     mlp = GLib.MainLoop()
     slist.save_pdf(
         path=temp_pdf.name,

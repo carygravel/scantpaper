@@ -304,6 +304,13 @@ def rotated_qbfox_pnm(temp_pnm):
 
 
 @pytest.fixture
+def rose_jpg(temp_jpg):
+    "return a jpg file with a rose image"
+    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
+    return temp_jpg
+
+
+@pytest.fixture
 def rose_pnm(temp_pnm):
     "return a pnm file with a rose image"
     subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
@@ -312,7 +319,7 @@ def rose_pnm(temp_pnm):
 
 @pytest.fixture
 def rose_tif(temp_tif):
-    "return a pnm file with a rose image"
+    "return a tif file with a rose image"
     subprocess.run(["convert", "rose:", temp_tif.name], check=True)
     return temp_tif
 

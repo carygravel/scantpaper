@@ -13,14 +13,13 @@ from bboxtree import VERSION
 from page import Page
 
 
-def test_import_djvu(temp_jpg, temp_djvu, temp_txt, clean_up_files, temp_db):
+def test_import_djvu(rose_jpg, temp_djvu, temp_txt, clean_up_files, temp_db):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
+    subprocess.run(["c44", rose_jpg.name, temp_djvu.name], check=True)
     text = """(page 0 0 2236 3185
   (column 157 3011 1725 3105
     (para 157 3014 1725 3101
@@ -136,14 +135,13 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     )
 
 
-def test_import_djvu_with_error(temp_jpg, temp_djvu, clean_up_files):
+def test_import_djvu_with_error(rose_jpg, temp_djvu, clean_up_files):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
+    subprocess.run(["c44", rose_jpg.name, temp_djvu.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -190,15 +188,14 @@ def mock_import_djvu_txt(self, _text):
 
 
 def test_import_djvu_with_error2(
-    monkeypatch, temp_jpg, temp_djvu, temp_db, clean_up_files
+    monkeypatch, rose_jpg, temp_djvu, temp_db, clean_up_files
 ):
     "Test importing DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
+    subprocess.run(["c44", rose_jpg.name, temp_djvu.name], check=True)
 
     # apply the monkeypatch for Page.import_djvu_txt to mock_import_djvu_txt
     monkeypatch.setattr(Page, "import_djvu_txt", mock_import_djvu_txt)
@@ -231,14 +228,13 @@ def test_import_djvu_with_error2(
     clean_up_files(slist.thread.db_files)
 
 
-def test_import_multipage_djvu(temp_jpg, temp_djvu, temp_db, clean_up_files):
+def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
     "Test importing multipage DjVu"
 
     if shutil.which("cjb2") is None:
         pytest.skip("Please install cjb2 to enable test")
 
-    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
-    subprocess.run(["c44", temp_jpg.name, temp_djvu.name], check=True)
+    subprocess.run(["c44", rose_jpg.name, temp_djvu.name], check=True)
     subprocess.run(
         ["djvm", "-c", "test2.djvu", temp_djvu.name, temp_djvu.name], check=True
     )
