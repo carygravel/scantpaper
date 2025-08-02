@@ -757,10 +757,8 @@ def test_db(temp_db, clean_up_files):
     clean_up_files(thread.db_files)
 
 
-def test_document(temp_tif, clean_up_files):
+def test_document(rose_tif, clean_up_files):
     "tests for Document()"
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)  # Create test image
-
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
         ran_callback = False
@@ -810,7 +808,7 @@ def test_document(temp_tif, clean_up_files):
             # TODO/FIXME: test drag-and-drop callbacks for move
             # TODO/FIXME: test drag-and-drop callbacks for copy
 
-        slist.import_files(paths=[temp_tif.name], finished_callback=finished_callback)
+        slist.import_files(paths=[rose_tif.name], finished_callback=finished_callback)
         mlp = GLib.MainLoop()
         GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()

@@ -129,7 +129,7 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files):
+def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm, clean_up_files):
     "Test tesseract in process chain"
 
     slist = Document(db=temp_db.name)
@@ -142,7 +142,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files
 
     mlp = GLib.MainLoop()
     slist.import_scan(
-        filename=rotated_qbfox_image.name,
+        filename=rotated_qbfox_pnm.name,
         page=1,
         rotate=-90,
         ocr=True,
@@ -172,7 +172,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_image, clean_up_files
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
+def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
@@ -190,7 +190,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
         mlp.quit()
 
     slist.import_scan(
-        filename=rotated_qbfox_image.name,
+        filename=rotated_qbfox_pnm.name,
         page=2,
         to_png=True,
         rotate=-90,
@@ -212,7 +212,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_image, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
+def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
@@ -226,7 +226,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
         mlp.quit()
 
     slist.import_scan(
-        filename=rotated_qbfox_image.name,
+        filename=rotated_qbfox_pnm.name,
         page=2,
         to_png=True,
         rotate=-90,
@@ -247,7 +247,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_image, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain3(temp_db, rotated_qbfox_image, clean_up_files):
+def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
@@ -270,7 +270,7 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_image, clean_up_files):
         mlp.quit()
 
     options = {
-        "filename": rotated_qbfox_image.name,
+        "filename": rotated_qbfox_pnm.name,
         "to_png": True,
         "rotate": -90,
         "ocr": True,

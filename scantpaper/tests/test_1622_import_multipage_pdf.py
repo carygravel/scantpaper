@@ -11,19 +11,17 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_import_multipage_pdf(temp_tif, temp_db, clean_up_files):
+def test_import_multipage_pdf(rose_tif, temp_pdf, temp_db, clean_up_files):
     "Test importing PDF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiffcp", temp_tif.name, temp_tif.name, "test2.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "test2.pdf", "test2.tif"], check=True)
+    subprocess.run(["tiffcp", rose_tif.name, rose_tif.name, "test2.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test2.tif"], check=True)
 
     slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
     slist.import_files(
-        paths=["test2.pdf"],
+        paths=[temp_pdf.name],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -37,7 +35,6 @@ def test_import_multipage_pdf(temp_tif, temp_db, clean_up_files):
         slist.thread.db_files
         + [
             "test2.tif",
-            "test2.pdf",
         ]
     )
 
@@ -205,11 +202,9 @@ def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
     clean_up_files(slist.thread.db_files)
 
 
-def test_import_pdf_with_error(temp_tif, temp_pdf, clean_up_files):
+def test_import_pdf_with_error(rose_tif, temp_pdf, clean_up_files):
     "Test importing PDF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -247,23 +242,16 @@ def test_import_pdf_with_error(temp_tif, temp_pdf, clean_up_files):
 
         #########################
 
-        clean_up_files(
-            slist.thread.db_files
-            + [
-                "test2.tif",
-                "test2.pdf",
-            ]
-        )
+        clean_up_files(slist.thread.db_files)
 
 
-def test_import_encrypted_pdf(temp_tif, temp_db, temp_pdf, clean_up_files):
+def test_import_encrypted_pdf(rose_tif, temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
 
     if shutil.which("pdftk") is None:
         pytest.skip("Please install pdftk to enable test")
 
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
     subprocess.run(
         [
             "pdftk",
@@ -310,10 +298,8 @@ def test_import_encrypted_pdf(temp_tif, temp_db, temp_pdf, clean_up_files):
     )
 
 
-def test_import_pdf_with_metadata(temp_tif, temp_pdf, clean_up_files):
+def test_import_pdf_with_metadata(rose_tif, temp_pdf, clean_up_files):
     "Test importing PDF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
     cmd = [
         "tiff2pdf",
         "-o",
@@ -328,7 +314,7 @@ def test_import_pdf_with_metadata(temp_tif, temp_pdf, clean_up_files):
         "Sübject",
         "-k",
         "Keywörds",
-        temp_tif.name,
+        rose_tif.name,
     ]
     cmd = [x.encode("latin") for x in cmd]  # tiff2pdf expects latin, not utf8
     subprocess.run(cmd, check=True)
@@ -362,24 +348,17 @@ def test_import_pdf_with_metadata(temp_tif, temp_pdf, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test2.tif",
-            "test2.pdf",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
-def test_import_pdf_with_2000_pages(temp_db, clean_up_files):
+def test_import_pdf_with_2000_pages(rose_tif, temp_db, clean_up_files):
     "Test importing PDF"
     pytest.skip("Skip until this works interactively")
     if shutil.which("pdfunite") is None:
         pytest.skip("Please install pdfunite (poppler utils) to enable test")
 
     # Create test image
-    subprocess.run(["convert", "rose:", "page1.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "page1.pdf", "page1.tif"], check=True)
+    subprocess.run(["tiff2pdf", "-o", "page1.pdf", rose_tif.name], check=True)
     subprocess.run(
         [
             "pdfunite",
@@ -449,5 +428,5 @@ def test_import_pdf_with_2000_pages(temp_db, clean_up_files):
 
     clean_up_files(
         slist.thread.db_files
-        + ["page1.tif", "page1.pdf", "10.pdf", "100.pdf", "1000.pdf", "2000.pdf"]
+        + ["page1.pdf", "10.pdf", "100.pdf", "1000.pdf", "2000.pdf"]
     )

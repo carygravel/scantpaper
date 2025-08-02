@@ -205,42 +205,6 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 
 
 @pytest.fixture
-def rotated_qbfox_image():
-    "return an image with quick brown fox text"
-    temp = tempfile.NamedTemporaryFile(suffix=".pnm")
-    subprocess.run(
-        [
-            "convert",
-            "+matte",
-            "-depth",
-            "1",
-            "-colorspace",
-            "Gray",
-            "-family",
-            "DejaVu Sans",
-            "-pointsize",
-            "12",
-            "-density",
-            "300",
-            "label:The quick brown fox",
-            "-rotate",
-            "-90",
-            temp.name,
-        ],
-        check=True,
-    )
-    return temp
-
-
-@pytest.fixture
-def rose_pnm():
-    "return a pnm file with a rose image"
-    temp = tempfile.NamedTemporaryFile(suffix=".pnm")
-    subprocess.run(["convert", "rose:", temp.name], check=True)
-    return temp
-
-
-@pytest.fixture
 def temp_db():
     "return a temporary db"
     return tempfile.NamedTemporaryFile(suffix=".db")
@@ -310,6 +274,47 @@ def temp_tif():
 def temp_txt():
     "return a temporary txt file"
     return tempfile.NamedTemporaryFile(suffix=".txt", mode="wt")
+
+
+@pytest.fixture
+def rotated_qbfox_pnm(temp_pnm):
+    "return an image with quick brown fox text"
+    subprocess.run(
+        [
+            "convert",
+            "+matte",
+            "-depth",
+            "1",
+            "-colorspace",
+            "Gray",
+            "-family",
+            "DejaVu Sans",
+            "-pointsize",
+            "12",
+            "-density",
+            "300",
+            "label:The quick brown fox",
+            "-rotate",
+            "-90",
+            temp_pnm.name,
+        ],
+        check=True,
+    )
+    return temp_pnm
+
+
+@pytest.fixture
+def rose_pnm(temp_pnm):
+    "return a pnm file with a rose image"
+    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
+    return temp_pnm
+
+
+@pytest.fixture
+def rose_tif(temp_tif):
+    "return a pnm file with a rose image"
+    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
+    return temp_tif
 
 
 @pytest.fixture

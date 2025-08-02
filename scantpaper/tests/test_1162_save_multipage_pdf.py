@@ -206,11 +206,10 @@ def test_save_multipage_pdf_as_ps2(
 
 
 def test_prepend_pdf(
-    rose_pnm, temp_tif, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    rose_pnm, rose_tif, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test prepending a page to a PDF"
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -238,11 +237,10 @@ def test_prepend_pdf(
 
 
 def test_append_pdf(
-    rose_pnm, temp_tif, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    rose_pnm, rose_tif, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test appending a page to a PDF"
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -270,11 +268,10 @@ def test_append_pdf(
 
 
 def test_prepend_with_space(
-    rose_pnm, temp_tif, temp_db, import_in_mainloop, clean_up_files
+    rose_pnm, rose_tif, temp_db, import_in_mainloop, clean_up_files
 ):
     "Test prepending a page to a PDF with a space"
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", "te st.pdf", temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", "te st.pdf", rose_tif.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -302,11 +299,10 @@ def test_prepend_with_space(
 
 
 def test_prepend_with_inverted_comma(
-    rose_pnm, temp_tif, temp_db, import_in_mainloop, clean_up_files
+    rose_pnm, rose_tif, temp_db, import_in_mainloop, clean_up_files
 ):
     "Test prepending a page to a PDF"
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", "te'st.pdf", temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", "te'st.pdf", rose_tif.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -334,11 +330,10 @@ def test_prepend_with_inverted_comma(
 
 
 def test_append_pdf_with_timestamp(
-    rose_pnm, temp_tif, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    rose_pnm, rose_tif, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test appending a page to a PDF with a timestamp"
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
 
     slist = Document(db=temp_db.name)
 

@@ -9,17 +9,14 @@ from gi.repository import GLib
 from document import Document
 
 
-def test_import_tiff(temp_tif, temp_db, clean_up_files):
+def test_import_tiff(rose_tif, temp_db, clean_up_files):
     "Test importing basic TIFF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-
     slist = Document(db=temp_db.name)
 
     mlp = GLib.MainLoop()
 
     slist.import_files(
-        paths=[temp_tif.name],
+        paths=[rose_tif.name],
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -68,11 +65,8 @@ def test_import_tiff_with_units(temp_tif, temp_db, clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
-def test_import_tiff_with_error(temp_tif, clean_up_files):
+def test_import_tiff_with_error(rose_tif, clean_up_files):
     "Test importing TIFF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
 
@@ -92,7 +86,7 @@ def test_import_tiff_with_error(temp_tif, clean_up_files):
             os.chmod(dirname, 0o700)  # allow write access
 
         slist.import_files(
-            paths=[temp_tif.name],
+            paths=[rose_tif.name],
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
         )
@@ -108,7 +102,7 @@ def test_import_tiff_with_error(temp_tif, clean_up_files):
             os.chmod(dirname, 0o500)  # no write access
 
         slist.import_files(
-            paths=[temp_tif.name],
+            paths=[rose_tif.name],
             queued_callback=queued_cb,
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
@@ -123,11 +117,9 @@ def test_import_tiff_with_error(temp_tif, clean_up_files):
         clean_up_files(slist.thread.db_files)
 
 
-def test_import_multipage_tiff(temp_tif, temp_db, clean_up_files):
+def test_import_multipage_tiff(rose_tif, temp_db, clean_up_files):
     "Test importing TIFF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["tiffcp", temp_tif.name, temp_tif.name, "test2.tif"], check=True)
+    subprocess.run(["tiffcp", rose_tif.name, rose_tif.name, "test2.tif"], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -147,13 +139,11 @@ def test_import_multipage_tiff(temp_tif, temp_db, clean_up_files):
     clean_up_files(slist.thread.db_files + ["test2.tif"])
 
 
-def test_import_linked_tiff(temp_tif, temp_db, clean_up_files):
+def test_import_linked_tiff(rose_tif, temp_db, clean_up_files):
     "Test importing TIFF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
-    subprocess.run(["ln", "-s", temp_tif.name, "test2.tif"], check=True)
+    subprocess.run(["ln", "-s", rose_tif.name, "test2.tif"], check=True)
     subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", temp_tif.name], text=True
+        ["identify", "-format", "%m %G %g %z-bit %r", rose_tif.name], text=True
     )
 
     slist = Document(db=temp_db.name)
@@ -217,12 +207,10 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, clean_up_files):
     clean_up_files(slist.thread.db_files + [f"{i}.tif" for i in range(1, 11)])
 
 
-def test_cancel_import_tiff(temp_tif, temp_db, import_in_mainloop, clean_up_files):
+def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_files):
     "Test importing TIFF"
-
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
     subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", temp_tif.name], text=True
+        ["identify", "-format", "%m %G %g %z-bit %r", rose_tif.name], text=True
     )
 
     slist = Document(db=temp_db.name)
@@ -242,7 +230,7 @@ def test_cancel_import_tiff(temp_tif, temp_db, import_in_mainloop, clean_up_file
         mlp.quit()
 
     slist.import_files(
-        paths=[temp_tif.name],
+        paths=[rose_tif.name],
         finished_callback=finished_cb,
     )
     slist.cancel(cancelled_cb)
@@ -252,7 +240,7 @@ def test_cancel_import_tiff(temp_tif, temp_db, import_in_mainloop, clean_up_file
 
     assert asserts == 1, "all callbacks run"
 
-    import_in_mainloop(slist, [temp_tif.name])
+    import_in_mainloop(slist, [rose_tif.name])
     page = slist.thread.get_page(id=1)
     assert (
         page.image_object.mode == "RGB"
