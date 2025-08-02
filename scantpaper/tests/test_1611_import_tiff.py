@@ -1,8 +1,8 @@
 "Test importing TIFF"
 
 import os
+import pathlib
 import re
-import shutil
 import subprocess
 import tempfile
 from gi.repository import GLib
@@ -119,66 +119,62 @@ def test_import_tiff_with_error(rose_tif, clean_up_files):
 
 def test_import_multipage_tiff(rose_tif, temp_db, clean_up_files):
     "Test importing TIFF"
-    subprocess.run(["tiffcp", rose_tif.name, rose_tif.name, "test2.tif"], check=True)
+    with tempfile.NamedTemporaryFile(suffix=".tif") as temp_tif2:
+        subprocess.run(
+            ["tiffcp", rose_tif.name, rose_tif.name, temp_tif2.name], check=True
+        )
 
-    slist = Document(db=temp_db.name)
+        slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+        mlp = GLib.MainLoop()
 
-    slist.import_files(
-        paths=["test2.tif"],
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        slist.import_files(
+            paths=[temp_tif2.name],
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert len(slist.data) == 2, "imported 2 pages"
+        assert len(slist.data) == 2, "imported 2 pages"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files + ["test2.tif"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_import_linked_tiff(rose_tif, temp_db, clean_up_files):
     "Test importing TIFF"
-    subprocess.run(["ln", "-s", rose_tif.name, "test2.tif"], check=True)
-    subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", rose_tif.name], text=True
-    )
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_tif = pathlib.Path(temp_dir) / "test.tif"
+        subprocess.run(["ln", "-s", rose_tif.name, temp_tif], check=True)
+        subprocess.check_output(
+            ["identify", "-format", "%m %G %g %z-bit %r", rose_tif.name], text=True
+        )
 
-    slist = Document(db=temp_db.name)
+        slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+        mlp = GLib.MainLoop()
 
-    slist.import_files(
-        paths=["test2.tif"],
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        slist.import_files(
+            paths=[str(temp_tif)],
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    page = slist.thread.get_page(id=1)
-    assert page.image_object.mode == "RGB", "TIFF imported correctly"
+        page = slist.thread.get_page(id=1)
+        assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files + ["test2.tif"])
+    clean_up_files(slist.thread.db_files)
 
 
-def test_import_multiple_tiffs_with_corrupt(temp_db, clean_up_files):
+def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
     "Test importing TIFF"
 
     slist = Document(db=temp_db.name)
+    paths = [rose_tif.name for _ in range(9)]
 
-    subprocess.run(["convert", "rose:", "1.tif"], check=True)
-    paths = ["1.tif"]
-    for i in range(2, 11):
-        paths.append(f"{i}.tif")
-        if i != 5:
-            shutil.copy2("1.tif", f"{i}.tif")
-
-    # Create corrupt image
+    # insert a zero-length file
     subprocess.run(["touch", "5.tif"], check=True)
+    paths.insert(4, "5.tif")
 
     mlp = GLib.MainLoop()
 
@@ -204,7 +200,7 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [f"{i}.tif" for i in range(1, 11)])
+    clean_up_files(slist.thread.db_files + ["5.tif"])
 
 
 def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_files):

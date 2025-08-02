@@ -13,41 +13,41 @@ from document import Document
 
 def test_import_multipage_pdf(rose_tif, temp_pdf, temp_db, clean_up_files):
     "Test importing PDF"
-    subprocess.run(["tiffcp", rose_tif.name, rose_tif.name, "test2.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, "test2.tif"], check=True)
+    with tempfile.NamedTemporaryFile(suffix=".tif") as temp_tif2:
+        subprocess.run(
+            ["tiffcp", rose_tif.name, rose_tif.name, temp_tif2.name], check=True
+        )
+        subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif2.name], check=True)
 
-    slist = Document(db=temp_db.name)
+        slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+        mlp = GLib.MainLoop()
 
-    slist.import_files(
-        paths=[temp_pdf.name],
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        slist.import_files(
+            paths=[temp_pdf.name],
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert len(slist.data) == 2, "imported 2 pages"
+        assert len(slist.data) == 2, "imported 2 pages"
 
-    #########################
-
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test2.tif",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
-def test_import_multipage_pdf_with_not_enough_images(temp_db, temp_pdf, clean_up_files):
+def test_import_multipage_pdf_with_not_enough_images(
+    rose_tif, temp_db, temp_pdf, clean_up_files
+):
     "Test importing PDF"
 
     if shutil.which("pdfunite") is None:
         pytest.skip("Please install pdfunite (poppler utils) to enable test")
 
-    subprocess.run(["convert", "rose:", "page1.tif"], check=True)
-    subprocess.run(["tiff2pdf", "-o", "page1.pdf", "page1.tif"], check=True)
-    content = b"""%PDF-1.4
+    with tempfile.NamedTemporaryFile(
+        suffix=".pdf"
+    ) as page1, tempfile.NamedTemporaryFile(suffix=".pdf") as page2:
+        subprocess.run(["tiff2pdf", "-o", page1.name, rose_tif.name], check=True)
+        content = b"""%PDF-1.4
 1 0 obj
   << /Type /Catalog
       /Outlines 2 0 R
@@ -115,9 +115,9 @@ startxref
 618
 %%EOF
 """
-    with open("page2.pdf", "wb") as fhd:
-        fhd.write(content)
-    subprocess.run(["pdfunite", "page1.pdf", "page2.pdf", temp_pdf.name], check=True)
+        page2.write(content)
+        page2.flush()
+        subprocess.run(["pdfunite", page1.name, page2.name, temp_pdf.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -145,14 +145,7 @@ startxref
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "page1.tif",
-            "page1.pdf",
-            "page2.pdf",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
 def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
@@ -351,82 +344,48 @@ def test_import_pdf_with_metadata(rose_tif, temp_pdf, clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
-def test_import_pdf_with_2000_pages(rose_tif, temp_db, clean_up_files):
+def test_import_pdf_with_2000_pages(rose_tif, temp_pdf, temp_db, clean_up_files):
     "Test importing PDF"
     pytest.skip("Skip until this works interactively")
     if shutil.which("pdfunite") is None:
         pytest.skip("Please install pdfunite (poppler utils) to enable test")
 
-    # Create test image
-    subprocess.run(["tiff2pdf", "-o", "page1.pdf", rose_tif.name], check=True)
-    subprocess.run(
-        [
-            "pdfunite",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "page1.pdf",
-            "10.pdf",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        [
-            "pdfunite",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "10.pdf",
-            "100.pdf",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        [
-            "pdfunite",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "100.pdf",
-            "1000.pdf",
-        ],
-        check=True,
-    )
-    subprocess.run(["pdfunite", "1000.pdf", "1000.pdf", "2000.pdf"], check=True)
+    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
+    with tempfile.NamedTemporaryFile(
+        suffix=".pdf"
+    ) as page10, tempfile.NamedTemporaryFile(
+        suffix=".pdf"
+    ) as page100, tempfile.NamedTemporaryFile(
+        suffix=".pdf"
+    ) as page1000, tempfile.NamedTemporaryFile(
+        suffix=".pdf"
+    ) as page2000:
+        subprocess.run(
+            ["pdfunite"] + [temp_pdf.name] * 10 + [page10.name],
+            check=True,
+        )
+        subprocess.run(
+            ["pdfunite"] + [page10.name] * 10 + [page100.name],
+            check=True,
+        )
+        subprocess.run(
+            ["pdfunite"] + [page100.name] * 10 + [page1000.name],
+            check=True,
+        )
+        subprocess.run(
+            ["pdfunite", page1000.name, page1000.name, page2000.name], check=True
+        )
 
-    slist = Document(db=temp_db.name)
+        slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+        mlp = GLib.MainLoop()
 
-    slist.import_files(
-        paths=["2000.pdf"],
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(40000, mlp.quit)  # to prevent it hanging
-    mlp.run()
-    assert len(slist.data) == 2000, "imported 2000 images"
+        slist.import_files(
+            paths=[page2000.name],
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(40000, mlp.quit)  # to prevent it hanging
+        mlp.run()
+        assert len(slist.data) == 2000, "imported 2000 images"
 
-    #########################
-
-    clean_up_files(
-        slist.thread.db_files
-        + ["page1.pdf", "10.pdf", "100.pdf", "1000.pdf", "2000.pdf"]
-    )
+    clean_up_files(slist.thread.db_files)

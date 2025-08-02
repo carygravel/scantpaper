@@ -1,8 +1,8 @@
 "Test writing image"
 
 import re
-import os
 import subprocess
+import tempfile
 from gi.repository import GLib
 from document import Document
 
@@ -51,29 +51,24 @@ def test_save_image(
 def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
     slist = Document(db=temp_db.name)
-
     import_in_mainloop(slist, [rose_pnm.name])
+    with tempfile.NamedTemporaryFile(prefix="'", suffix=".jpg") as temp_jpg:
+        mlp = GLib.MainLoop()
+        slist.save_image(
+            path=temp_jpg.name,
+            list_of_pages=[slist.data[0][2]],
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    os.mkdir("te'st")
+        example = subprocess.check_output(["identify", temp_jpg.name], text=True)
+        assert (
+            re.search(rf"{temp_jpg.name} JPEG 70x46 70x46\+0\+0 8-bit sRGB", example)
+            is not None
+        ), "valid JPG created"
 
-    mlp = GLib.MainLoop()
-    slist.save_image(
-        path="te'st/test.jpg",
-        list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
-
-    example = subprocess.check_output(["identify", "te'st/test.jpg"], text=True)
-    assert (
-        re.search(r"test.jpg JPEG 70x46 70x46\+0\+0 8-bit sRGB", example) is not None
-    ), "valid JPG created"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files + ["te'st/test.jpg"])
-    os.rmdir("te'st")
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_image_with_ampersand(

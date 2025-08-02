@@ -842,20 +842,23 @@ def test_import_scan(
     mlp = GLib.MainLoop()
 
     def _finished_callback(_response):
-        subprocess.run(["convert", slist.data[0][2].filename, "test2.ppm"], check=True)
-        assert (
-            subprocess.check_output(
-                ["identify", "-format", "%m %G %g %z-bit %r", "test2.ppm"]
-            )
-            == old
-        ), "padded pnm imported correctly (as PNG)"
         nonlocal asserts
-        asserts += 1
-        assert os.path.getsize("test2.ppm") == os.path.getsize(
-            temp_ppm.name
-        ), "padded pnm correct size"
-        asserts += 1
-        mlp.quit()
+        with tempfile.NamedTemporaryFile(suffix=".ppm") as temp_ppm2:
+            subprocess.run(
+                ["convert", slist.data[0][2].filename, temp_ppm2.name], check=True
+            )
+            assert (
+                subprocess.check_output(
+                    ["identify", "-format", "%m %G %g %z-bit %r", temp_ppm2.name]
+                )
+                == old
+            ), "padded pnm imported correctly (as PNG)"
+            asserts += 1
+            assert os.path.getsize(temp_ppm2.name) == os.path.getsize(
+                temp_ppm.name
+            ), "padded pnm correct size"
+            asserts += 1
+            mlp.quit()
 
     slist.import_scan(
         filename=temp_pnm.name,
@@ -870,4 +873,4 @@ def test_import_scan(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["test2.ppm"])
+    clean_up_files(slist.thread.db_files)

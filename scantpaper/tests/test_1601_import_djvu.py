@@ -235,41 +235,35 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
         pytest.skip("Please install cjb2 to enable test")
 
     subprocess.run(["c44", rose_jpg.name, temp_djvu.name], check=True)
-    subprocess.run(
-        ["djvm", "-c", "test2.djvu", temp_djvu.name, temp_djvu.name], check=True
-    )
+    with tempfile.NamedTemporaryFile(suffix=".djvu") as temp_djvu2:
+        subprocess.run(
+            ["djvm", "-c", temp_djvu2.name, temp_djvu.name, temp_djvu.name], check=True
+        )
 
-    slist = Document(db=temp_db.name)
+        slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+        mlp = GLib.MainLoop()
 
-    asserts = 0
+        asserts = 0
 
-    def started_cb(response):
-        nonlocal asserts
-        assert response.request.process in ["get_file_info", "import_file"]
-        asserts += 1
+        def started_cb(response):
+            nonlocal asserts
+            assert response.request.process in ["get_file_info", "import_file"]
+            asserts += 1
 
-    def error_cb(response):
-        assert False, "error thrown importing multipage djvu"
+        def error_cb(response):
+            assert False, "error thrown importing multipage djvu"
 
-    slist.import_files(
-        paths=["test2.djvu"],
-        started_callback=started_cb,
-        error_callback=error_cb,
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+        slist.import_files(
+            paths=[temp_djvu2.name],
+            started_callback=started_cb,
+            error_callback=error_cb,
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert asserts == 2, "callbacks all run"
-    assert len(slist.data) == 2, "imported 2 pages"
+        assert asserts == 2, "callbacks all run"
+        assert len(slist.data) == 2, "imported 2 pages"
 
-    #########################
-
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test2.djvu",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)

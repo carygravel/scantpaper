@@ -1,6 +1,7 @@
 "Test saving text"
 
 import subprocess
+import tempfile
 from gi.repository import GLib
 from document import Document
 from bboxtree import VERSION
@@ -28,61 +29,59 @@ def test_save_text(
         '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
     )
 
-    mlp = GLib.MainLoop()
-    slist.save_text(
-        path=temp_txt.name,
-        list_of_pages=[slist.data[0][2]],
-        options={
-            "post_save_hook": "cp %i test.txt",
-            "post_save_hook_options": "fg",
-        },
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+    with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
+        mlp = GLib.MainLoop()
+        slist.save_text(
+            path=temp_txt.name,
+            list_of_pages=[slist.data[0][2]],
+            options={
+                "post_save_hook": f"cp %i {temp_txt2.name}",
+                "post_save_hook_options": "fg",
+            },
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True)
-        == "The quick brown fox"
-    ), "saved ASCII"
-    assert (
-        subprocess.check_output(["cat", "test.txt"], text=True) == "The quick brown fox"
-    ), "ran post-save hook"
+        assert (
+            subprocess.check_output(["cat", temp_txt.name], text=True)
+            == "The quick brown fox"
+        ), "saved ASCII"
+        assert (
+            subprocess.check_output(["cat", temp_txt2.name], text=True)
+            == "The quick brown fox"
+        ), "ran post-save hook"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files + ["test.txt"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_files):
     "Test saving text"
     slist = Document(db=temp_db.name)
-
     import_in_mainloop(slist, [rose_pnm.name])
 
-    mlp = GLib.MainLoop()
-    slist.save_text(
-        path=temp_txt.name,
-        list_of_pages=[slist.data[0][2]],
-        options={
-            "post_save_hook": "cp %i test2.txt",
-            "post_save_hook_options": "fg",
-        },
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+    with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
+        mlp = GLib.MainLoop()
+        slist.save_text(
+            path=temp_txt.name,
+            list_of_pages=[slist.data[0][2]],
+            options={
+                "post_save_hook": f"cp %i {temp_txt2.name}",
+                "post_save_hook_options": "fg",
+            },
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True) == ""
-    ), "saved ASCII"
-    assert (
-        subprocess.check_output(["cat", "test2.txt"], text=True) == ""
-    ), "ran post-save hook"
+        assert (
+            subprocess.check_output(["cat", temp_txt.name], text=True) == ""
+        ), "saved ASCII"
+        assert (
+            subprocess.check_output(["cat", temp_txt2.name], text=True) == ""
+        ), "ran post-save hook"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files + ["test2.txt"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_utf8(
@@ -226,29 +225,28 @@ def test_save_hocr(
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
-    mlp = GLib.MainLoop()
-    slist.save_hocr(
-        path=temp_txt.name,
-        list_of_pages=[slist.data[0][2]],
-        options={
-            "post_save_hook": "cp %i test.txt",
-            "post_save_hook_options": "fg",
-        },
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+    with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
+        mlp = GLib.MainLoop()
+        slist.save_hocr(
+            path=temp_txt.name,
+            list_of_pages=[slist.data[0][2]],
+            options={
+                "post_save_hook": f"cp %i {temp_txt2.name}",
+                "post_save_hook_options": "fg",
+            },
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
-    ), "saved hOCR"
-    assert (
-        subprocess.check_output(["cat", "test.txt"], text=True) == hocr
-    ), "ran post-save hook"
+        assert (
+            subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
+        ), "saved hOCR"
+        assert (
+            subprocess.check_output(["cat", temp_txt2.name], text=True) == hocr
+        ), "ran post-save hook"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files + ["test.txt"])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_hocr_with_encoding(

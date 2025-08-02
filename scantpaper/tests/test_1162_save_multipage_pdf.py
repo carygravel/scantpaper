@@ -23,7 +23,6 @@ def test_save_multipage_pdf(
     num = 3  # number of pages
     files = [rose_pnm.name for i in range(num)]
     slist = Document(db=temp_db.name)
-
     import_in_mainloop(slist, files)
 
     pages = []
@@ -56,21 +55,16 @@ def test_save_multipage_pdf(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [f"{i}.pnm" for i in range(1, num + 1)])
+    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_multipage_pdf_with_utf8(
-    import_in_mainloop, set_text_in_mainloop, temp_pdf, clean_up_files
+    rose_pnm, import_in_mainloop, set_text_in_mainloop, temp_pdf, clean_up_files
 ):
     "Test writing multipage PDF with utf8"
-
     num = 3  # number of pages
-    files = []
-    for i in range(1, num + 1):
-        filename = f"{i}.pnm"
-        subprocess.run(["convert", "rose:", filename], check=True)
-        files.append(filename)
+    files = [rose_pnm.name for i in range(num)]
 
     # To avoid piping one into the other. See
     # https://stackoverflow.com/questions/13332268/how-to-use-subprocess-command-with-pipes
@@ -94,7 +88,7 @@ def test_save_multipage_pdf_with_utf8(
     import_in_mainloop(slist, files)
 
     pages = []
-    for i in range(1, num + 1):
+    for i in range(num):
         set_text_in_mainloop(
             slist,
             1,
@@ -104,7 +98,7 @@ def test_save_multipage_pdf_with_utf8(
             '{"bbox": [1, 14, 77, 48], "type": "word", "text": '
             '"пени способствовала сохранению", "depth": 3}]',
         )
-        pages.append(i)
+        pages.append(i + 1)
 
     mlp = GLib.MainLoop()
     slist.save_pdf(
@@ -128,7 +122,7 @@ def test_save_multipage_pdf_with_utf8(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [f"{i}.pnm" for i in range(1, num + 1)])
+    clean_up_files(slist.thread.db_files)
 
 
 def test_save_multipage_pdf_as_ps(

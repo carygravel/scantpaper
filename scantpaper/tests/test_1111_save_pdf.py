@@ -864,40 +864,33 @@ def test_save_pdf_with_downsample(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
-    slist.save_pdf(
-        path="test2.pdf",
-        list_of_pages=[slist.data[0][2]],
-        options={
-            "downsample": True,
-            "downsample dpi": 150,
-        },
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf2:
+        mlp = GLib.MainLoop()
+        slist.save_pdf(
+            path=temp_pdf2.name,
+            list_of_pages=[slist.data[0][2]],
+            options={
+                "downsample": True,
+                "downsample dpi": 150,
+            },
+            finished_callback=lambda response: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+        mlp.run()
 
-    assert os.path.getsize(temp_pdf.name) > os.path.getsize(
-        "test2.pdf"
-    ), "downsampled PDF smaller than original"
+        assert os.path.getsize(temp_pdf.name) > os.path.getsize(
+            temp_pdf2.name
+        ), "downsampled PDF smaller than original"
 
-    subprocess.run(["pdfimages", "test2.pdf", "x"], check=True)
-    example = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", "x-000.pbm"], text=True
-    )
-    assert re.search(
-        r"PBM 2\d\dx[23]\d 2\d\dx[23]\d[+]0[+]0 1-bit DirectClass Gray", example
-    ), "downsampled"
+        subprocess.run(["pdfimages", temp_pdf2.name, "x"], check=True)
+        example = subprocess.check_output(
+            ["identify", "-format", "%m %G %g %z-bit %r", "x-000.pbm"], text=True
+        )
+        assert re.search(
+            r"PBM 2\d\dx[23]\d 2\d\dx[23]\d[+]0[+]0 1-bit DirectClass Gray", example
+        ), "downsampled"
 
-    #########################
-
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test2.pdf",
-            "x-000.pbm",
-        ]
-    )
+    clean_up_files(slist.thread.db_files + ["x-000.pbm"])
 
 
 def test_cancel_save_pdf(
