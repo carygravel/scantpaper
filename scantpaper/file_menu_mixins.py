@@ -941,10 +941,6 @@ class FileMenuMixins:
         # remove lock
         fcntl.lockf(self._lockfd, fcntl.LOCK_UN)
 
-        # compress log file if we have xz
-        if self._args.log and self._dependencies["xz"]:
-            exec_command(["xz", "-f", self._args.log])
-
         return True
 
     def _restart(self):

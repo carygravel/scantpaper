@@ -112,9 +112,10 @@ class ScanMenuItemMixins:
         if not hidden:
             self._windows.show_all()
         self._update_postprocessing_options_callback(self._windows)
-        if self._args.device:
+        args = self.get_application().args
+        if args.device:
             device_list = []
-            for d in self._args.device:
+            for d in args.device:
                 device_list.append(SimpleNamespace(name=d, label=d))
 
             self._windows.device_list = device_list

@@ -1,18 +1,15 @@
 "application window"
 
-import argparse
 import os
 import pathlib
 import locale
 import re
 import glob
 import logging
-import gettext
 import shutil
 import sqlite3
 import sys
-import warnings
-from const import DRAGGER_TOOL, EMPTY, HALF, SELECTOR_TOOL, SPACE, VERSION
+from const import DRAGGER_TOOL, EMPTY, HALF, SELECTOR_TOOL, VERSION, PROG_NAME
 from dialog import MultipleMessage
 from document import Document
 from unpaper import Unpaper
@@ -36,9 +33,8 @@ from gi.repository import Gdk, Gio, GLib, Gtk  # pylint: disable=wrong-import-po
 
 logger = logging.getLogger(__name__)
 
-GLib.set_application_name("gscan2pdf")
+GLib.set_application_name(PROG_NAME)
 GLib.set_prgname("net.sourceforge.gscan2pdf")
-prog_name = GLib.get_application_name()
 
 
 def drag_motion_callback(tree, context, x, y, t):
@@ -70,77 +66,13 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(m if v < m else v)
 
 
-def parse_arguments():
-    "parse command line arguments"
-    parser = argparse.ArgumentParser(
-        prog=prog_name, description="What the program does"
-    )
-    parser.add_argument("--device", nargs="+")
-    parser.add_argument("--import", nargs="+", dest="import_files")
-    parser.add_argument("--import-all", nargs="+")
-    parser.add_argument("--locale")
-    parser.add_argument("--log", type=argparse.FileType("w"))
-    parser.add_argument("--version", action="version", version="%(prog)s " + VERSION)
-    parser.add_argument(
-        "--debug",
-        action="store_const",
-        dest="log_level",
-        const=logging.DEBUG,
-        default=logging.WARNING,
-    )
-    parser.add_argument(
-        "--info", action="store_const", dest="log_level", const=logging.INFO
-    )
-    parser.add_argument(
-        "--warn", action="store_const", dest="log_level", const=logging.WARNING
-    )
-    parser.add_argument(
-        "--error", action="store_const", dest="log_level", const=logging.ERROR
-    )
-    parser.add_argument(
-        "--fatal", action="store_const", dest="log_level", const=logging.CRITICAL
-    )
-    args = parser.parse_args()
-
-    if args.log:
-        logging.basicConfig(filename=args.log, level=args.log_level)
-    else:
-        logging.basicConfig(level=args.log_level)
-
-    # if help is not None:
-    #     try:
-    #         subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0
-    #     except:
-    #         raise _('Error displaying help'), "\n"
-    logger.info("Starting %s %s", prog_name, VERSION)
-    logger.info("Called with %s", SPACE.join([sys.executable] + sys.argv))
-
-    # make sure argv has absolute paths in case we change directories
-    # and then restart the program
-    sys.argv = [os.path.abspath(path) for path in sys.argv if os.path.isfile(path)]
-
-    logger.info("Log level %s", args.log_level)
-    if args.locale is None:
-        gettext.bindtextdomain(f"{prog_name}")
-    else:
-        if re.search(r"^\/", args.locale, re.MULTILINE | re.DOTALL | re.VERBOSE):
-            gettext.bindtextdomain(f"{prog_name}", locale)
-        else:
-            gettext.bindtextdomain(f"{prog_name}", os.getcwd() + f"/{locale}")
-    gettext.textdomain(prog_name)
-
-    logger.info("Using %s locale", locale.setlocale(locale.LC_CTYPE))
-    logger.info("Startup LC_NUMERIC %s", locale.setlocale(locale.LC_NUMERIC))
-    return args
-
-
 def view_html(_action, _param):
     "Perhaps we should use gtk and mallard for this in the future"
     # Or possibly https://github.com/ultrabug/mkdocs-static-i18n
     # At the moment, we have no translations,
     # but when we do, replace C with locale
 
-    uri = f"/usr/share/help/C/{prog_name}/documentation.html"
+    uri = f"/usr/share/help/C/{PROG_NAME}/documentation.html"
     if pathlib.Path(uri).exists():
         uri = GLib.filename_to_uri(uri, None)  # undef => no hostname
     else:
@@ -189,7 +121,7 @@ class ApplicationWindow(
     _pdf_email = None
 
     def __init__(self, *args, **kwargs):
-        kwargs["title"] = f"{prog_name} v{VERSION}"
+        kwargs["title"] = f"{PROG_NAME} v{VERSION}"
         super().__init__(*args, **kwargs)
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
@@ -329,20 +261,8 @@ class ApplicationWindow(
         )
 
     def _pre_flight(self):
-        """
-        Pre-flight initialization function that initialises variables,
-        captures warnings, reads configuration, logs system information,
-        and initializes various components.
-        """
-        self._args = parse_arguments()
-
-        # Catch and log Python warnings
-        logging.captureWarnings(True)
-
-        # Suppress Warning: g_value_get_int: assertion 'G_VALUE_HOLDS_INT (value)' failed
-        # from dialog.save.Save._meta_datetime_widget.set_text()
-        # https://bugzilla.gnome.org/show_bug.cgi?id=708676
-        warnings.filterwarnings("ignore", ".*g_value_get_int.*", Warning)
+        """Initialise variables, read configuration, logs system information,
+        and initialise various components"""
 
         self._read_config()
         if self.settings["cwd"] is None:
@@ -397,7 +317,7 @@ class ApplicationWindow(
             if "XDG_CONFIG_HOME" in os.environ
             else f"{os.environ['HOME']}/.config"
         )
-        self._configfile = f"{rcdir}/{prog_name}rc"
+        self._configfile = f"{rcdir}/{PROG_NAME}rc"
         self.settings = config.read_config(self._configfile)
         config.add_defaults(self.settings)
         config.remove_invalid_paper(self.settings["Paper"])
@@ -462,10 +382,11 @@ class ApplicationWindow(
             self.scan_dialog(None, None, True)
 
         # Deal with --import command line option
-        if self._args.import_files is not None:
-            self._import_files(self._args.import_files)
-        if self._args.import_all is not None:
-            self._import_files(self._args.import_all, True)
+        args = self.get_application().args
+        if args.import_files is not None:
+            self._import_files(args.import_files)
+        if args.import_all is not None:
+            self._import_files(args.import_all, True)
 
     def _changed_text_sort_method(self, _widget, data):
         ocr_index, ocr_text_scmbx = data

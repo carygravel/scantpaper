@@ -2,6 +2,7 @@
 
 # TODO:
 # profile not set on startup
+# don't leave open tempfile handles whilst saving multi-page PDF, DjVu & TIFF
 # change page numbering to always run from 1-n with no gaps
 # fix readme
 # hook ocrmypdf progress into the GUI
@@ -68,9 +69,19 @@
 #       su - <user>
 #       xvfb-run prove -lv <tests>
 
-import os
+import argparse
+import atexit
+import gettext
+import locale
 import logging
+import lzma
+import os
+import re
+import shutil
+import sys
+import warnings
 from app_window import ApplicationWindow
+from const import SPACE, VERSION, PROG_NAME
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -80,11 +91,10 @@ from gi.repository import (  # pylint: disable=wrong-import-position
     Gio,
 )
 
-logger = logging.getLogger(__name__)
-
 
 def register_icon(iconfactory, stock_id, path):
     "Add icons"
+    logger = logging.getLogger(__name__)
     try:
         icon = GdkPixbuf.Pixbuf.new_from_file(path)
         if icon is None:
@@ -99,6 +109,7 @@ class Application(Gtk.Application):
     "Application class"
 
     def __init__(self, *args, **kwargs):
+        self.args = kwargs.pop("cmdline", None) or []
         super().__init__(
             *args,
             application_id="org.gscan2pdf",
@@ -154,7 +165,97 @@ class Application(Gtk.Application):
         iconfactory.add_default()
 
 
+def _parse_arguments():
+    "parse command line arguments"
+    parser = argparse.ArgumentParser(
+        prog=PROG_NAME, description="What the program does"
+    )
+    parser.add_argument("--device", nargs="+")
+    parser.add_argument("--import", nargs="+", dest="import_files")
+    parser.add_argument("--import-all", nargs="+")
+    parser.add_argument("--locale")
+    parser.add_argument("--log", type=str)
+    parser.add_argument("--version", action="version", version="%(prog)s " + VERSION)
+    parser.add_argument(
+        "--debug",
+        action="store_const",
+        dest="log_level",
+        const=logging.DEBUG,
+    )
+    parser.add_argument(
+        "--info", action="store_const", dest="log_level", const=logging.INFO
+    )
+    parser.add_argument(
+        "--warn", action="store_const", dest="log_level", const=logging.WARNING
+    )
+    parser.add_argument(
+        "--error", action="store_const", dest="log_level", const=logging.ERROR
+    )
+    parser.add_argument(
+        "--fatal", action="store_const", dest="log_level", const=logging.CRITICAL
+    )
+    args = parser.parse_args()
+
+    if args.log:
+        args.log = os.path.abspath(args.log)
+        if args.log_level is None:
+            args.log_level = logging.DEBUG
+        logging.basicConfig(filename=args.log, filemode="w", level=args.log_level)
+
+        def compress_log():
+            try:
+                with open(args.log, "rb") as f_in, lzma.open(
+                    args.log + ".xz", "wb"
+                ) as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+                os.remove(args.log)
+            except (OSError, lzma.LZMAError) as e:
+                logging.getLogger(__name__).error("Failed to compress log: %s", e)
+
+        atexit.register(compress_log)
+    else:
+        if args.log_level is None:
+            args.log_level = logging.WARNING
+        logging.basicConfig(level=args.log_level)
+
+    logger = logging.getLogger(__name__)
+
+    # if help is not None:
+    #     try:
+    #         subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0
+    #     except:
+    #         raise _('Error displaying help'), "\n"
+    logger.info("Starting %s %s", PROG_NAME, VERSION)
+    logger.info("Called with %s", SPACE.join([sys.executable] + sys.argv))
+
+    # make sure argv has absolute paths in case we change directories
+    # and then restart the program
+    sys.argv = [os.path.abspath(path) for path in sys.argv if os.path.isfile(path)]
+
+    logger.info("Log level %s", args.log_level)
+    if args.locale is None:
+        gettext.bindtextdomain(f"{PROG_NAME}")
+    else:
+        if re.search(r"^\/", args.locale, re.MULTILINE | re.DOTALL | re.VERBOSE):
+            gettext.bindtextdomain(f"{PROG_NAME}", locale)
+        else:
+            gettext.bindtextdomain(f"{PROG_NAME}", os.getcwd() + f"/{locale}")
+    gettext.textdomain(PROG_NAME)
+
+    logger.info("Using %s locale", locale.setlocale(locale.LC_CTYPE))
+    logger.info("Startup LC_NUMERIC %s", locale.setlocale(locale.LC_NUMERIC))
+
+    # Catch and log Python warnings
+    logging.captureWarnings(True)
+
+    # Suppress Warning: g_value_get_int: assertion 'G_VALUE_HOLDS_INT (value)' failed
+    # from dialog.save.Save._meta_datetime_widget.set_text()
+    # https://bugzilla.gnome.org/show_bug.cgi?id=708676
+    warnings.filterwarnings("ignore", ".*g_value_get_int.*", Warning)
+
+    return args
+
+
 if __name__ == "__main__":
-    app = Application()
-    # app.run(sys.argv)
+    app = Application(cmdline=_parse_arguments())
     app.run()

@@ -1,5 +1,7 @@
 "Constants that are used in multiple places"
 
+PROG_NAME = "gscan2pdf"
+
 ASTERISK = "*"
 DOT = "."
 EMPTY = ""
