@@ -4,7 +4,8 @@ import os
 import subprocess
 import tempfile
 from PIL import Image
-from page import Page, _prepare_scale, VERSION
+from const import VERSION
+from page import Page, _prepare_scale
 from gi.repository import GdkPixbuf
 import pytest
 

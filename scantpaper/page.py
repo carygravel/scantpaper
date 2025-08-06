@@ -3,12 +3,14 @@
 import io
 import locale
 import re
+import subprocess
 import tempfile
 import uuid
 import logging
 from PIL import Image
 from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
 from bboxtree import Bboxtree
+from helpers import exec_command
 import gi
 
 gi.require_version("GdkPixbuf", "2.0")
@@ -16,7 +18,6 @@ from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-positi
 
 
 PAGE_TOLERANCE = 0.02
-VERSION = "2.13.2"  # TODO: move to app or somewhere similar
 MODE2DEPTH = {
     "1": 1,
     "L": 8,
@@ -317,7 +318,7 @@ class Page:
             self._depth = MODE2DEPTH[self.image_object.mode]
         return self._depth
 
-    def equalize_resolution(self):
+    def _equalize_resolution(self):
         "c44 and cjb2 do not support different resolutions in the x and y directions, so resample"
         xresolution, yresolution, units = self.get_resolution()
         width, height = self.width, self.height
@@ -330,6 +331,167 @@ class Page:
                 (int(width), int(height)), resample=Image.BOX
             )
         return xresolution, self.image_object
+
+    def write_image_for_pdf(self, filename, options):
+        "write the image as a PNG file"
+        image = self.image_object
+        if (
+            options
+            and "options" in options
+            and options["options"]
+            and "downsample" in options["options"]
+            and options["options"]["downsample"]
+        ):
+            if options["options"]["downsample dpi"] < min(
+                self.resolution[0], self.resolution[1]
+            ):
+                width = int(
+                    self.width
+                    * options["options"]["downsample dpi"]
+                    // self.resolution[0]
+                )
+                height = int(
+                    self.height
+                    * options["options"]["downsample dpi"]
+                    // self.resolution[1]
+                )
+                image = image.resize((width, height))
+        if (
+            options
+            and "options" in options
+            and options["options"]
+            and "compression" in options["options"]
+            and options["options"]["compression"][0] == "g"  # g3 or g4
+        ):
+            # Grayscale
+            image = image.convert("L")
+            # Threshold
+            threshold = 0.4 * 255
+            image = image.point(lambda p: 255 if p > threshold else 0)
+            # To mono
+            image = image.convert("1")
+
+        xresolution, yresolution, _units = self.get_resolution()
+        image.save(filename, dpi=(xresolution, yresolution))
+
+    def write_image_for_djvu(self, filename, options):
+        "Save the image as a DjVu file."
+        # Check the image depth to decide what sort of compression to use
+
+        # c44 and cjb2 do not support different resolutions in the x and y
+        # directions, so resample
+        resolution, image = self._equalize_resolution()
+
+        # cjb2 can only use pnm and tif
+        if image.mode == "1":
+            compression = "cjb2"
+            suffix = ".pbm"
+
+        # c44 can only use pnm and jpg
+        else:
+            compression = "c44"
+            suffix = ".pnm"
+
+        with tempfile.NamedTemporaryFile(
+            dir=options.get("dir"), suffix=suffix
+        ) as tempimage:
+            image.save(tempimage.name)
+            exec_command(
+                [
+                    compression,
+                    "-dpi",
+                    str(int(resolution)),
+                    tempimage.name,
+                    filename,
+                ],
+                options["pidfile"],
+            )
+            self._add_txt_to_djvu(filename, options.get("dir"))
+            self._add_ann_to_djvu(filename, options.get("dir"))
+
+    def _add_txt_to_djvu(self, djvu, dirname):
+        if self.text_layer is not None:
+            txt = self.export_djvu_txt()
+            if txt == "":
+                return
+            logger.debug(txt)
+
+            # Write djvusedtxtfile
+            with tempfile.NamedTemporaryFile(
+                mode="wt", dir=dirname, suffix=".txt"
+            ) as fhd:
+                fhd.write(txt)
+                fhd.flush()
+
+                # Run djvusedtxtfile
+                cmd = [
+                    "djvused",
+                    djvu,
+                    "-e",
+                    f"select 1; set-txt {fhd.name}",
+                    "-s",
+                ]
+                logger.info(cmd)
+                subprocess.run(cmd, check=True)
+
+    def _add_ann_to_djvu(self, djvu, dirname):
+        """FIXME - refactor this together with _add_txt_to_djvu"""
+        if self.annotations is not None:
+            ann = self.export_djvu_ann()
+            if ann == "":
+                return
+            logger.debug(ann)
+
+            # Write djvusedtxtfile
+            with tempfile.NamedTemporaryFile(
+                mode="w", dir=dirname, suffix=".txt"
+            ) as fhd:
+                fhd.write(ann)
+                fhd.flush()
+
+                # Run djvusedtxtfile
+                cmd = [
+                    "djvused",
+                    djvu,
+                    "-e",
+                    f"select 1; set-ant {fhd.name}",
+                    "-s",
+                ]
+                logger.info(cmd)
+                subprocess.run(cmd, check=True)
+
+    def write_image_for_tiff(self, filename, options):
+        "Save the image as a TIFF file."
+        with tempfile.NamedTemporaryFile(
+            dir=options.get("dir"), suffix=".tif"
+        ) as infile:
+            self.image_object.save(infile.name)
+            xresolution, yresolution, units = self.resolution
+
+            # Convert to tiff
+            depth = []
+            if "compression" in options["options"]:
+                if options["options"]["compression"] == "jpeg":
+                    depth = ["-depth", "8"]
+
+                elif re.search(
+                    r"g[34]",
+                    options["options"]["compression"],
+                    re.MULTILINE | re.DOTALL | re.VERBOSE,
+                ):
+                    depth = ["-threshold", "40%", "-depth", "1"]
+
+            cmd = [
+                "convert",
+                infile.name,
+                "-units",
+                units,
+                "-density",
+                f"{xresolution}x{yresolution}",
+                *depth,
+                filename,
+            ]
+            subprocess.run(cmd, check=True)
 
 
 def _prepare_scale(image_width, image_height, res_ratio, max_width, max_height):

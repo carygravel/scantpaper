@@ -5,13 +5,12 @@ import html
 from html.parser import HTMLParser
 import json
 import codecs
-from const import ANNOTATION_COLOR, POINTS_PER_INCH
+from const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
 
 DOUBLE_QUOTES = '"'
 BBOX_REGEX = r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)"
 HILITE_REGEX = r"[(]hilite\s+[#][A-Fa-f\d]{6}[)]\s+[(]xor[)]"
 HALF = 0.5
-VERSION = "2.13.2"
 HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
