@@ -717,7 +717,6 @@ for method_name_ in [
     "negate",
     "unsharp",
     "crop",
-    "to_png",
     "tesseract",
     "user_defined",
 ]:

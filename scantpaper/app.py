@@ -2,6 +2,8 @@
 
 # TODO:
 # profile not set on startup
+# adding a tool in preferences doesn't show in the scan window until a restart
+# when adding udf tools to the scan window, check they are executable (and therefore also exist)
 # change page numbering to always run from 1-n with no gaps
 # fix readme
 # hook ocrmypdf progress into the GUI

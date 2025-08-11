@@ -192,7 +192,6 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
     slist.import_scan(
         filename=rotated_qbfox_pnm.name,
         page=2,
-        to_png=True,
         rotate=-90,
         ocr=True,
         resolution=300,
@@ -228,7 +227,6 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
     slist.import_scan(
         filename=rotated_qbfox_pnm.name,
         page=2,
-        to_png=True,
         rotate=-90,
         ocr=True,
         resolution=300,
@@ -271,7 +269,6 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
 
     options = {
         "filename": rotated_qbfox_pnm.name,
-        "to_png": True,
         "rotate": -90,
         "ocr": True,
         "resolution": 300,

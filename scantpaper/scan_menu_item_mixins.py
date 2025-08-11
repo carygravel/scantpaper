@@ -368,7 +368,6 @@ class ScanMenuItemMixins:
         options = {
             "page": page_number,
             "dir": self.session.name,
-            "to_png": self.settings["to_png"],
             "rotate": rotate,
             "ocr": self.settings["OCR on scan"],
             "engine": self.settings["ocr engine"],

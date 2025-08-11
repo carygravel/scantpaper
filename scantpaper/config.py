@@ -80,7 +80,6 @@ DEFAULTS = {
     "threshold tool": 80,
     "Blank threshold": 0.005,  # Blank page standard deviation threshold
     "Dark threshold": 0.12,  # Dark page mean threshold
-    "to_png": True,
     "OCR on scan": True,
     "ocr engine": "tesseract",
     "ocr language": None,

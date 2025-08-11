@@ -228,13 +228,6 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._cbts.set_active(self.settings["set_timestamp"])
         vbox.pack_start(self._cbts, True, True, 0)
 
-        # Convert scans from PNM to PNG
-        self._cbtp = Gtk.CheckButton.new_with_label(
-            _("Convert scanned images to PNG before further processing")
-        )
-        self._cbtp.set_active(self.settings["to_png"])
-        vbox.pack_start(self._cbtp, True, True, 0)
-
         # Temporary directory settings
         hbox = Gtk.HBox()
         vbox.pack_start(hbox, True, True, 0)
@@ -386,7 +379,6 @@ The other variable available is:
         self.settings["use_timezone"] = self._cbtz.get_active()
         self.settings["use_time"] = self._cbtm.get_active()
         self.settings["set_timestamp"] = self._cbts.get_active()
-        self.settings["to_png"] = self._cbtp.get_active()
         self.settings["convert whitespace to underscores"] = self._cbb.get_active()
         self.settings["available-tmp-warning"] = self._spinbuttonw.get_value()
         self.settings["Blank threshold"] = self._spinbuttonb.get_value()
