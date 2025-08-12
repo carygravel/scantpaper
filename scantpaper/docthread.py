@@ -464,7 +464,7 @@ class DocThread(SaveThread):
         pages = self._fetchall()
         image_ids = [page[0] for page in pages]
         self._execute(
-            f"SELECT image, thumb FROM image WHERE id IN ({", ".join(["?"]*len(image_ids))})",
+            f"SELECT image, thumb FROM image WHERE id IN ({', '.join(['?']*len(image_ids))})",
             (*image_ids,),
         )
         images = self._fetchall()
@@ -685,7 +685,7 @@ class DocThread(SaveThread):
         if not isinstance(page_id, list):
             page_id = [page_id]
         self._execute(
-            f"UPDATE page SET saved = ? WHERE id IN ({", ".join(["?"]*len(page_id))})",
+            f"UPDATE page SET saved = ? WHERE id IN ({', '.join(['?']*len(page_id))})",
             (
                 saved,
                 *page_id,
