@@ -36,6 +36,7 @@
 #     Upload .pot
 # 3.  make remote-html
 # 4. Build .deb for sf
+#     python3 -m build --sdist
 #     make signed_tardist
 #     sudo sbuild-update -udr sid-amd64-sbuild
 #     sbuild -sc sid-amd64-sbuild
@@ -81,16 +82,27 @@ import re
 import shutil
 import sys
 import warnings
+
+# check for pyinstaller
+if hasattr(sys, "frozen"):
+    base_dir = sys._MEIPASS  # pylint: disable=protected-access
+else:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, base_dir)
+
+# pylint: disable=wrong-import-position
 from app_window import ApplicationWindow
 from const import SPACE, VERSION, PROG_NAME
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position
+from gi.repository import (
     Gtk,
     GdkPixbuf,
     Gio,
 )
+
+# pylint: enable=wrong-import-position
 
 
 def register_icon(iconfactory, stock_id, path):
@@ -257,6 +269,11 @@ def _parse_arguments():
     return args
 
 
-if __name__ == "__main__":
+def main():
+    "main"
     app = Application(cmdline=_parse_arguments())
     app.run()
+
+
+if __name__ == "__main__":
+    main()

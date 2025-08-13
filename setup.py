@@ -97,7 +97,7 @@ single page image file.""",
             "images/scantpaper-icon/*.png",
             "images/scantpaper-icon/scantpaper.svg",
             "files/*.cfg",
-            "files/*.glade",
+            "app.ui",
             "files/*.lang",
             "files/*.xml",
         ]

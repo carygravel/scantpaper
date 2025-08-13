@@ -129,16 +129,28 @@ git clone https://github.com/carygravel/scantpaper.git
 
 ### Building from Source
 
+Run the app straight from the source directory:
 ```sh
-tar xvfz gscan2pdf-x.x.x.tar.gz
-cd gscan2pdf-x.x.x
-perl Makefile.PL
-make test
-make install
+tar xvfz scantpaper-x.x.x.tar.gz
+cd scantpaper-x.x.x
+# optionally run the tests
+pytest
+# before starting the app
+python3 scantpaper/app.py
+```
+
+Or build a wheel to install via `pip`:
+```sh
+# if necessary install build
+pip install build
+python3 -m build --wheel
+# which you can install with pip
+pip install scantpaper
+# and then start the app
+scantpaper
 ```
 
 Or build a package for debian:
-
 ```sh
 make debdist
 ```
