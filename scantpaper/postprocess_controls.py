@@ -267,7 +267,7 @@ class OCRControls(Gtk.VBox):
         cbto.set_tooltip_text(
             _(
                 "Threshold the image before performing OCR. "
-                + "This only affects the image passed to the OCR engine, and not the image stored."
+                "This only affects the image passed to the OCR engine, and not the image stored."
             )
         )
         cbto.set_active(self.threshold)

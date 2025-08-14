@@ -61,8 +61,8 @@
         <attribute name="accel">&lt;shift&gt;&lt;control&gt;z</attribute>
       </item>
     </section>
-  <section>
-  <item>
+    <section>
+      <item>
         <attribute name="action">win.cut</attribute>
         <attribute name="label" translatable="yes">Cu_t</attribute>
         <attribute name="accel">&lt;control&gt;x</attribute>
@@ -83,7 +83,7 @@
       </item>
     </section>
     <section>
-        <item>
+      <item>
         <attribute name="action">win.renumber</attribute>
         <attribute name="label" translatable="yes">_Renumber</attribute>
         <attribute name="accel">&lt;control&gt;r</attribute>
@@ -132,7 +132,7 @@
       </item>
     </submenu>
     <section>
-    <item>
+      <item>
         <attribute name="action">win.clear-ocr</attribute>
         <attribute name="label" translatable="yes">_Clear OCR</attribute>
       </item>

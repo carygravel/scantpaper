@@ -476,19 +476,19 @@ class ApplicationWindow(
         # Ghost save image item if imagemagick not available
         msg = EMPTY
         if not self._dependencies["imagemagick"]:
-            msg += _("Save image and Save as PDF both require imagemagick\n")
+            msg += _("Save image and Save as PDF both require imagemagick") + "\n"
 
         # Ghost save image item if libtiff not available
         if not self._dependencies["libtiff"]:
-            msg += _("Save image requires libtiff\n")
+            msg += _("Save image requires libtiff") + "\n"
 
         # Ghost djvu item if cjb2 not available
         if not self._dependencies["djvu"]:
-            msg += _("Save as DjVu requires djvulibre-bin\n")
+            msg += _("Save as DjVu requires djvulibre-bin") + "\n"
 
         # Ghost email item if xdg-email not available
         if not self._dependencies["xdg"]:
-            msg += _("Email as PDF requires xdg-email\n")
+            msg += _("Email as PDF requires xdg-email") + "\n"
 
         # Undo/redo, save & tools start off ghosted anyway-
         for action in [
@@ -511,11 +511,11 @@ class ApplicationWindow(
             self._actions[action].set_enabled(False)
 
         if not self._dependencies["unpaper"]:
-            msg += _("unpaper missing\n")
+            msg += _("unpaper missing") + "\n"
 
         self._dependencies["ocr"] = self._dependencies["tesseract"]
         if not self._dependencies["ocr"]:
-            msg += _("OCR requires tesseract\n")
+            msg += _("OCR requires tesseract") + "\n"
 
         if self._dependencies["tesseract"]:
             lc_messages = locale.setlocale(locale.LC_MESSAGES)
@@ -530,7 +530,7 @@ class ApplicationWindow(
                 msg += lang_msg
 
         if not self._dependencies["pdftk"]:
-            msg += _("PDF encryption requires pdftk\n")
+            msg += _("PDF encryption requires pdftk") + "\n"
 
         # Put up warning if needed
         if msg != EMPTY:
