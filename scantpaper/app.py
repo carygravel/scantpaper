@@ -16,6 +16,7 @@
 # refactor ocr & annotation manipulation into single class
 # various improvements from StackOverflow
 # fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
+# add type hints and turn on type checks in tox.ini
 # migrate to Gtk4
 # remaining FIXMEs and TODOs
 
@@ -69,7 +70,7 @@
 #       schroot -c sid-amd64-desktop -u root
 #       apt-get build-dep gscan2pdf
 #       su - <user>
-#       xvfb-run prove -lv <tests>
+#       pytest -vv
 
 import argparse
 import atexit

@@ -3,3 +3,5 @@ ocrmypdf>=15.4.3
 pycairo
 PyGObject
 python-sane
+tesserocr
+python-iso639
