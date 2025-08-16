@@ -134,7 +134,11 @@ def test_save_pdf_with_locale(
     rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test with non-English locale"
-    locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
+    try:
+        locale.setlocale(locale.LC_CTYPE, "de_DE.utf8")
+    except locale.Error:
+        pytest.skip("Locale de_DE.utf8 not available")
+        return
 
     slist = Document(db=temp_db.name)
 
