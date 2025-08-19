@@ -75,18 +75,16 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 - img2pdf
 - python3-gi
 - python3-gi-cairo
-- gobject-introspection gir1.2-gtk-3.0
+- python3-tesserocr
+- gir1.2-gtk-3.0
 - gir1.2-goocanvas-2.0
 - python3-sane
 - ocrmypdf
-- python-iso639
+- python3-iso639
 
 ### Optional
 
 - unpaper
-- tesseract-ocr-eng
-- tesseract-ocr-deu
-- python3-tesserocr
 
 ### Development
 
