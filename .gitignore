@@ -2,3 +2,7 @@ __pycache__
 .coverage
 .pytest_cache
 env/
+.eggs/
+node_modules/
+dist/
+.env
