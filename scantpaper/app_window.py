@@ -318,6 +318,9 @@ class ApplicationWindow(
             else f"{os.environ['HOME']}/.config"
         )
         self._configfile = f"{rcdir}/{PROG_NAME}rc"
+        old_configfile = f"{rcdir}/gscan2pdfrc"
+        if not os.path.exists(self._configfile) and os.path.exists(old_configfile):
+            shutil.copy(old_configfile, self._configfile)
         self.settings = config.read_config(self._configfile)
         config.add_defaults(self.settings)
         config.remove_invalid_paper(self.settings["Paper"])

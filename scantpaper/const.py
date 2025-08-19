@@ -1,6 +1,6 @@
 "Constants that are used in multiple places"
 
-PROG_NAME = "gscan2pdf"
+PROG_NAME = "scantpaper"
 AUTHOR = "Jeffrey Ratcliffe"
 AUTHOR_EMAIL = "jffry@posteo.net"
 URL = "https://github.com/carygravel/scantpaper"
