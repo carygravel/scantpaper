@@ -7,7 +7,9 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
 
 # does not yet work. see https://gitlab.gnome.org/GNOME/pygobject/-/issues/215
-# GObject.TypeModule.register_enum( 'Gscan2pdf::PageRange::Range',        ["selected","all"] )
+# GObject.TypeModule.register_enum( 'Gscan2pdf::PageRange::Range', ["selected","all"] )
+# TODO: can now be done. Workout which version of pygobject this was added in.
+# https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/400
 
 
 class PageRange(Gtk.VBox):
