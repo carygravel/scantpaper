@@ -15,7 +15,6 @@
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # various improvements from StackOverflow
-# fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # add type hints and turn on type checks in tox.ini
 # migrate to Gtk4
 # remaining FIXMEs and TODOs
@@ -99,24 +98,10 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import (
     Gtk,
-    GdkPixbuf,
     Gio,
 )
 
 # pylint: enable=wrong-import-position
-
-
-def register_icon(iconfactory, stock_id, path):
-    "Add icons"
-    logger = logging.getLogger(__name__)
-    try:
-        icon = GdkPixbuf.Pixbuf.new_from_file(path)
-        if icon is None:
-            logger.warning("Unable to load icon `%s'", path)
-        else:
-            iconfactory.add(stock_id, Gtk.IconSet.new_from_pixbuf(icon))
-    except (FileNotFoundError, OSError) as err:
-        logger.warning("Unable to load icon `%s': %s", path, err)
 
 
 class Application(Gtk.Application):
@@ -142,22 +127,10 @@ class Application(Gtk.Application):
 
         # Add extra icons early to be available for Gtk.Builder
         if os.path.isdir("/usr/share/gscan2pdf"):
-            self.iconpath = "/usr/share/gscan2pdf"
+            iconpath = "/usr/share/gscan2pdf"
         else:
-            self.iconpath = "icons"
-        self._init_icons(
-            [
-                ("rotate90", "stock-rotate-90.svg"),
-                ("rotate180", "180_degree.svg"),
-                ("rotate270", "stock-rotate-270.svg"),
-                ("scanner", "scanner.svg"),
-                ("pdf", "pdf.svg"),
-                ("selection", "stock-selection-all-16.png"),
-                ("hand-tool", "hand-tool.svg"),
-                ("mail-attach", "mail-attach.svg"),
-                ("crop", "crop.svg"),
-            ],
-        )
+            iconpath = "icons"
+        Gtk.IconTheme.get_default().prepend_search_path(iconpath)
 
     def do_startup(self, *args, **kwargs):
         Gtk.Application.do_startup(self)
@@ -170,13 +143,6 @@ class Application(Gtk.Application):
         if not self.window:
             self.window = ApplicationWindow(application=self)
         self.window.present()
-
-    def _init_icons(self, icons):
-        "Initialise iconfactory"
-        iconfactory = Gtk.IconFactory()
-        for iconname, filename in icons:
-            register_icon(iconfactory, iconname, self.iconpath + "/" + filename)
-        iconfactory.add_default()
 
 
 def _parse_arguments():
