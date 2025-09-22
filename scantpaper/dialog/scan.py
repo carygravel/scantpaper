@@ -361,7 +361,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.profiles = {}
         framesp = Gtk.Frame(label=_("Scan profiles"))
         self._notebook_pages[0].pack_start(framesp, False, False, 0)
-        vboxsp = Gtk.VBox()
+        vboxsp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         border_width = (
             self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
         )  # ._get('content-area-border')
@@ -936,7 +936,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         hboxl = Gtk.Box()
         vbox.pack_start(hboxl, False, False, 0)
-        vboxb = Gtk.VBox()
+        vboxb = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         hboxl.pack_start(vboxb, False, False, 0)
         icon = Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
         dbutton = Gtk.Button()

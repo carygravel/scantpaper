@@ -40,12 +40,12 @@ class PreferencesDialog(Dialog):
         notebook = Gtk.Notebook()
         vbox.pack_start(notebook, True, True, 0)
 
-        vbox1 = Gtk.VBox()
+        vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox1.set_border_width(self.get_border_width())
         self._add_scan_options(vbox1)
         notebook.append_page(vbox1, Gtk.Label(label=_("Scan options")))
 
-        vbox2 = Gtk.VBox()
+        vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox2.set_border_width(self.get_border_width())
         notebook.append_page(vbox2, Gtk.Label(label=_("General options")))
         self._add_general_options1(vbox2)
@@ -320,7 +320,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         # Manage user-defined tools
         frame = Gtk.Frame(label=_("Manage user-defined tools"))
         vbox.pack_start(frame, True, True, 0)
-        self._vboxt = Gtk.VBox()
+        self._vboxt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self._vboxt.set_border_width(self.get_border_width())
         frame.add(self._vboxt)
         for tool in self.settings["user_defined_tools"]:

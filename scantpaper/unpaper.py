@@ -243,7 +243,7 @@ class Unpaper:
         }
 
     def _add_notebook_page_1(self, vbox, options):
-        vbox1 = Gtk.VBox()
+        vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox1.set_border_width(vbox.get_border_width())
         dsbutton = self.add_widget(vbox1, options, "no-deskew")
 
@@ -269,7 +269,7 @@ class Unpaper:
         return vbox1
 
     def _add_notebook_page_2(self, vbox, options):
-        vbox2 = Gtk.VBox()
+        vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox2.set_border_width(vbox.get_border_width())
         bsbutton = self.add_widget(vbox2, options, "no-border-scan")
         babutton = self.add_widget(vbox2, options, "no-border-align")
@@ -352,7 +352,7 @@ class Unpaper:
         notebook.append_page(vbox2, Gtk.Label(label=_("Border")))
 
         # Notebook page 3
-        vbox3 = Gtk.VBox()
+        vbox3 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox3.set_border_width(vbox.get_border_width())
         notebook.append_page(vbox3, Gtk.Label(label=_("Filters")))
         self.add_widget(vbox3, options, "white-threshold")
@@ -409,7 +409,7 @@ class Unpaper:
     def _add_checkbuttongroup(self, vbox, hashref, option):
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.pack_start(widget, True, True, 0)
-        vboxf = Gtk.VBox()
+        vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxf.set_border_width(vbox.get_border_width())
         widget.add(vboxf)
         widget.set_tooltip_text(hashref[option]["tooltip"])
@@ -435,7 +435,7 @@ class Unpaper:
     def _add_spinbuttongroup(self, vbox, hashref, option):
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.pack_start(widget, True, True, 0)
-        vboxf = Gtk.VBox()
+        vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxf.set_border_width(vbox.get_border_width())
         widget.add(vboxf)
         for key in sorted(hashref[option]["options"].keys()):

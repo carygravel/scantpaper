@@ -196,7 +196,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
             child=scwin, tab_label=Gtk.Label(label=_("Page Options"))
         )
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        self._notebook_pages = [Gtk.VBox()]
+        self._notebook_pages = [Gtk.Box(orientation=Gtk.Orientation.VERTICAL)]
         border_width = (
             self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
         )  # ._get('content-area-border')
@@ -206,7 +206,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         # Frame for # pages
         self.framen = Gtk.Frame(label=_("# Pages"))
         self._notebook_pages[0].pack_start(self.framen, False, False, 0)
-        vboxn = Gtk.VBox()
+        vboxn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxn.set_border_width(border_width)
         self.framen.add(vboxn)
 
@@ -246,7 +246,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
         # vbox for duplex/simplex page numbering in order to be able to show/hide
         # them together.
-        self._vboxx = Gtk.VBox()
+        self._vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self._notebook_pages[0].pack_start(self._vboxx, False, False, 0)
 
         # Switch between basic and extended modes
@@ -264,7 +264,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         # Frame for extended mode
         self.framex = Gtk.Frame(label=_("Page number"))
         self._vboxx.pack_start(self.framex, False, False, 0)
-        vboxx = Gtk.VBox()
+        vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         border_width = (
             self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
         )  # ._get('content-area-border')
@@ -298,7 +298,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         # Frame for standard mode
         self.frames = Gtk.Frame(label=_("Source document"))
         self._vboxx.pack_start(self.frames, False, False, 0)
-        vboxs = Gtk.VBox()
+        vboxs = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxs.set_border_width(border_width)
         self.frames.add(vboxs)
 

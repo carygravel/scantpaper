@@ -170,7 +170,7 @@ class SaneScanDialog(Scan):
 
             # Notebook page for group
             if opt.type == enums.TYPE_GROUP or vbox is None:
-                vbox = Gtk.VBox()
+                vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                 # vbox.set_border_width( self.get_style_context().get_property(
                 #                                                 'content-area-border') )
                 text = (
