@@ -130,7 +130,7 @@ class Renumber(Dialog):
         framex.add(vboxx)
 
         # SpinButton for starting page number
-        hboxxs = Gtk.HBox()
+        hboxxs = Gtk.Box()
         vboxx.pack_start(hboxxs, False, False, 0)
         labelxs = Gtk.Label(label=_("Start"))
         hboxxs.pack_start(labelxs, False, False, 0)
@@ -143,7 +143,7 @@ class Renumber(Dialog):
         hboxxs.pack_end(spin_buttons, False, False, 0)
 
         # SpinButton for page number increment
-        hboxi = Gtk.HBox()
+        hboxi = Gtk.Box()
         vboxx.pack_start(hboxi, False, False, 0)
         labelxi = Gtk.Label(label=_("Increment"))
         hboxi.pack_start(labelxi, False, False, 0)

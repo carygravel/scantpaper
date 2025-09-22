@@ -70,7 +70,7 @@ class PreferencesDialog(Dialog):
         vbox.pack_start(self._cbo, True, True, 0)
 
         # Device blacklist
-        hboxb = Gtk.HBox()
+        hboxb = Gtk.Box()
         vbox.pack_start(hboxb, False, False, 0)
         label = Gtk.Label(label=_("Device blacklist"))
         hboxb.pack_start(label, False, False, 0)
@@ -177,7 +177,7 @@ class PreferencesDialog(Dialog):
         vbox.pack_start(self._cbv, True, True, 0)
 
         # Default filename
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Default PDF & DjVu filename"))
         hbox.pack_start(label, False, False, 0)
@@ -229,7 +229,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         vbox.pack_start(self._cbts, True, True, 0)
 
         # Temporary directory settings
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Temporary directory"))
         hbox.pack_start(label, False, False, 0)
@@ -262,7 +262,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     def _add_general_options2(self, vbox):
 
         # Available space in temporary directory
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Warn if available space less than (Mb)"))
         hbox.pack_start(label, False, False, 0)
@@ -276,7 +276,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         hbox.add(self._spinbuttonw)
 
         # Blank page standard deviation threshold
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Blank threshold"))
         hbox.pack_start(label, False, False, 0)
@@ -288,7 +288,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         hbox.add(self._spinbuttonb)
 
         # Dark page mean threshold
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Dark threshold"))
         hbox.pack_start(label, False, False, 0)
@@ -298,7 +298,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         hbox.add(self._spinbuttond)
 
         # OCR output
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("OCR output"))
         hbox.pack_start(label, False, False, 0)
@@ -336,7 +336,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 
     def _add_user_defined_tool_entry(self, tool):
         "Add user-defined tool entry"
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         self._vboxt.pack_start(hbox, True, True, 0)
         entry = Gtk.Entry()
         entry.set_text(tool)
@@ -388,7 +388,7 @@ The other variable available is:
         # Update list of user-defined tools
         tools = []
         for hbox in self._vboxt.get_children():
-            if isinstance(hbox, Gtk.HBox):
+            if isinstance(hbox, Gtk.Box) and hbox.get_orientation() == Gtk.Orientation.HORIZONTAL:
                 for widget in hbox.get_children():
                     if isinstance(widget, Gtk.Entry):
                         text = widget.get_text()

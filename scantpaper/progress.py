@@ -7,7 +7,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
 
 
-class Progress(Gtk.HBox):
+class Progress(Gtk.Box):
     "HBox with progress bar and cancel button"
 
     __gsignals__ = {"clicked": (GObject.SignalFlags.RUN_FIRST, None, ())}

@@ -377,7 +377,7 @@ class Unpaper:
         self.set_options(self.default)
 
     def _add_combobox(self, vbox, hashref, option):  # pylint: disable=no-self-use
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=hashref[option]["string"])
         hbox.pack_start(label, False, False, 0)
@@ -419,7 +419,7 @@ class Unpaper:
 
     def _add_spinbutton(self, vbox, hashref, option):
         default = self.default
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=hashref[option]["string"])
         hbox.pack_start(label, False, False, 0)

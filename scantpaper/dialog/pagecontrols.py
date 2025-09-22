@@ -219,7 +219,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         bscanall.connect("clicked", self._do_clicked_scan_all, bscanall)
 
         # Entry button
-        hboxn = Gtk.HBox()
+        hboxn = Gtk.Box()
         vboxn.pack_start(hboxn, True, True, 0)
         self._bscannum = Gtk.RadioButton.new_with_label_from_widget(bscanall, "#:")
         self._bscannum.set_tooltip_text(_("Set number of pages to scan"))
@@ -250,7 +250,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self._notebook_pages[0].pack_start(self._vboxx, False, False, 0)
 
         # Switch between basic and extended modes
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         label = Gtk.Label(label=_("Extended page numbering"))
         hbox.pack_start(label, False, False, 0)
         self.checkx = Gtk.Switch()
@@ -318,7 +318,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         vboxs.pack_start(self.buttond, False, False, 0)
 
         # Facing/reverse page button
-        hboxs = Gtk.HBox()
+        hboxs = Gtk.Box()
         vboxs.pack_start(hboxs, True, True, 0)
         labels = Gtk.Label(label=_("Side to scan"))
         hboxs.pack_start(labels, False, False, 0)
@@ -482,7 +482,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
 def spinbutton_in_hbox(vbox, label, vmin, vmax, step):
     "pack a label and a spinbutton in an hbox"
-    hbox = Gtk.HBox()
+    hbox = Gtk.Box()
     vbox.pack_start(hbox, False, False, 0)
     hbox.pack_start(Gtk.Label(label=label), False, False, 0)
     spin_button = Gtk.SpinButton.new_with_range(vmin, vmax, step)

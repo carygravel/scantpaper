@@ -323,7 +323,7 @@ class Save(Dialog):
         box = self.get_content_area()
 
         # it needs its own box to be able to hide it if necessary
-        self._meta_box_widget = Gtk.HBox()
+        self._meta_box_widget = Gtk.Box()
         box.pack_start(self._meta_box_widget, False, False, 0)
 
         # Frame for metadata
@@ -364,7 +364,7 @@ class Save(Dialog):
         )
         bspecify_dt.set_tooltip_text(_("Specify date and time"))
         vboxdt.pack_start(bspecify_dt, True, True, 0)
-        hboxe = Gtk.HBox()
+        hboxe = Gtk.Box()
         bspecify_dt.connect("clicked", self._clicked_specify_date_button, hboxe)
         self._meta_datetime_widget = Gtk.Entry()
         self._meta_datetime_widget.set_activates_default(True)
@@ -500,11 +500,11 @@ class Save(Dialog):
             ("subject", _("Subject")),
             ("keywords", _("Keywords")),
         ]:
-            hbox = Gtk.HBox()
+            hbox = Gtk.Box()
             grid.attach(hbox, 0, row, 1, 1)
             label = Gtk.Label(label=label)
             hbox.pack_start(label, False, True, 0)
-            hbox = Gtk.HBox()
+            hbox = Gtk.Box()
             grid.attach(hbox, 1, row, 1, 1)
             row += 1
             setattr(
@@ -536,7 +536,7 @@ class Save(Dialog):
         vbox = self.get_content_area()
 
         # Image type ComboBox
-        hboxi = Gtk.HBox()
+        hboxi = Gtk.Box()
         vbox.pack_start(hboxi, False, False, 0)
         label = Gtk.Label(label=_("Document type"))
         hboxi.pack_start(label, False, False, 0)
@@ -544,7 +544,7 @@ class Save(Dialog):
         hboxi.pack_end(combobi, False, False, 0)
 
         # Postscript backend
-        hboxps = Gtk.HBox()
+        hboxps = Gtk.Box()
         vbox.pack_start(hboxps, True, True, 0)
         label = Gtk.Label(label=_("Postscript backend"))
         hboxps.pack_start(label, False, False, 0)
@@ -560,7 +560,7 @@ class Save(Dialog):
         hboxps.pack_end(combops, True, True, 0)
 
         # Compression ComboBox
-        hboxc = Gtk.HBox()
+        hboxc = Gtk.Box()
         vbox.pack_start(hboxc, False, False, 0)
         label = Gtk.Label(label=_("Compression"))
         hboxc.pack_start(label, False, False, 0)
@@ -679,7 +679,7 @@ class Save(Dialog):
 
     def add_quality_spinbutton(self, vbox):
         """Set up quality spinbutton here so that it can be shown or hidden by callback"""
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("JPEG Quality"))
         hbox.pack_start(label, False, False, 0)
@@ -698,7 +698,7 @@ class Save(Dialog):
         self._add_pdf_downsample_options(vboxp)
 
         # Compression ComboBox
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vboxp.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Compression"))
         hbox.pack_start(label, False, False, 0)
@@ -713,7 +713,7 @@ class Save(Dialog):
 
         spinbuttonq.connect("value-changed", jpg_quality_changed_callback)
         hbox.pack_end(combob, False, False, 0)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vboxp.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Position of OCR output"))
         hbox.pack_start(label, False, False, 0)
@@ -741,7 +741,7 @@ class Save(Dialog):
         return vboxp, hboxq
 
     def _add_pdf_downsample_options(self, vboxp):
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vboxp.pack_start(hbox, False, False, 0)
         button = Gtk.CheckButton(label=_("Downsample to"))
         hbox.pack_start(button, False, False, 0)
@@ -782,7 +782,7 @@ class Save(Dialog):
         grid = Gtk.Grid()
         row = 0
         passvbox.pack_start(grid, True, True, 0)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         label = Gtk.Label(label=_("User password"))
         hbox.pack_start(label, False, False, 0)
         grid.attach(hbox, 0, row, 1, 1)
@@ -813,7 +813,7 @@ class Save(Dialog):
         # It would be nice to use a Gtk3::FontButton here, but as we can only use
         # TTF, and we have to know the filename of the font, we must filter the
         # list of fonts, and so we must use a Gtk3::FontChooserDialog
-        hboxf = Gtk.HBox()
+        hboxf = Gtk.Box()
         vboxp.pack_start(hboxf, True, True, 0)
         label = Gtk.Label(label=_("Font for non-ASCII text"))
         hboxf.pack_start(label, False, False, 0)
