@@ -12,7 +12,7 @@ from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
 # https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/400
 
 
-class PageRange(Gtk.VBox):
+class PageRange(Gtk.Box):
     "pagerange widget"
 
     __gsignals__ = {
@@ -33,7 +33,8 @@ class PageRange(Gtk.VBox):
             "selected": _("Selected"),
             "all": _("All"),
         }
-        vbox = Gtk.VBox()
+        self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(vbox)
 
         # the first radio button has to set the group,

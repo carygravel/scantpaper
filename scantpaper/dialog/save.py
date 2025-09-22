@@ -329,7 +329,7 @@ class Save(Dialog):
         # Frame for metadata
         frame = Gtk.Frame(label=_("Document Metadata"))
         self._meta_box_widget.pack_start(frame, True, True, 0)
-        box = Gtk.VBox()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.set_border_width(
             self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
         )  # ._get('content-area-border')
@@ -345,7 +345,7 @@ class Save(Dialog):
         grid.attach(frame, 0, row, 2, 1)
         row += 1
         frame.set_hexpand(True)
-        vboxdt = Gtk.VBox()
+        vboxdt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxdt.set_border_width(
             self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
         )  # ._get('content-area-border')
@@ -691,7 +691,7 @@ class Save(Dialog):
     def add_pdf_options(self):
         "add pdf options"
         # pack everything in one vbox to be able to show/hide them all at once
-        vboxp = Gtk.VBox()
+        vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox = self.get_content_area()
         vbox.pack_start(vboxp, False, False, 0)
 

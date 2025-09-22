@@ -26,7 +26,7 @@ def test_1():
 
     assert unpaper.get_option("direction") == "ltr", "default direction"
 
-    vbox = Gtk.VBox()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
     assert unpaper.get_cmdline() == [
         "unpaper",

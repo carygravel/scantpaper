@@ -134,7 +134,7 @@ class ScanMenuItemMixins:
         scwin = Gtk.ScrolledWindow()
         widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        vboxp = Gtk.VBox()
+        vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxp.set_border_width(widget.get_border_width())
         scwin.add(vboxp)
 

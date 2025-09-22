@@ -36,7 +36,7 @@ class RotateControlRow(Gtk.Box):
         self.pack_end(self.angle_cmbx, True, True, 0)
 
 
-class RotateControls(Gtk.VBox):
+class RotateControls(Gtk.Box):
     "provide postprocessing rotate controls for the scan dialog"
 
     _rotate_facing = 0
@@ -101,6 +101,7 @@ class RotateControls(Gtk.VBox):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         self._side1 = RotateControlRow()
         self.pack_start(self._side1, True, True, 0)
         self._side2 = RotateControlRow()
@@ -179,7 +180,7 @@ class RotateControls(Gtk.VBox):
             self._side1.angle_cmbx.set_active_index(self._rotate_reverse)
 
 
-class OCRControls(Gtk.VBox):
+class OCRControls(Gtk.Box):
     "Provides post-processing OCR options for the scan dialog."
 
     available_engines = GObject.Property(
@@ -220,6 +221,7 @@ class OCRControls(Gtk.VBox):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         hboxo = Gtk.Box()
         self.pack_start(hboxo, False, False, 0)
         self._active_button = Gtk.CheckButton(label=_("OCR scanned pages"))

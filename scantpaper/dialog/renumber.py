@@ -122,7 +122,7 @@ class Renumber(Dialog):
         # Frame for page numbering
         framex = Gtk.Frame(label=_("Page numbering"))
         vbox.pack_start(framex, False, False, 0)
-        vboxx = Gtk.VBox()
+        vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         border_width = (
             self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
         )  # ._get('content-area-border')
