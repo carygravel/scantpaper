@@ -194,7 +194,7 @@ class ScanMenuItemMixins:
         # self->{notebook}->get_nth_page(1)->show_all;
 
     def _add_postprocessing_unpaper(self, vboxp):
-        hboxu = Gtk.HBox()
+        hboxu = Gtk.Box()
         vboxp.pack_start(hboxu, False, False, 0)
         ubutton = Gtk.CheckButton(label=_("Clean up images"))
         ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
@@ -232,7 +232,7 @@ class ScanMenuItemMixins:
 
     def _add_postprocessing_udt(self, vboxp):
         "Adds a user-defined tool (UDT) post-processing option to the given VBox."
-        hboxudt = Gtk.HBox()
+        hboxudt = Gtk.Box()
         vboxp.pack_start(hboxudt, False, False, 0)
         udtbutton = Gtk.CheckButton(label=_("Process with user-defined tool"))
         udtbutton.set_tooltip_text(_("Process scanned images with user-defined tool"))

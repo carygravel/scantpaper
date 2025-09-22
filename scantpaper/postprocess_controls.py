@@ -20,7 +20,7 @@ ROTATE = [
 ]
 
 
-class RotateControlRow(Gtk.HBox):
+class RotateControlRow(Gtk.Box):
     "provide a row of postprocessing rotate controls for the scan dialog"
 
     def __init__(self, *args, **kwargs):
@@ -220,7 +220,7 @@ class OCRControls(Gtk.VBox):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        hboxo = Gtk.HBox()
+        hboxo = Gtk.Box()
         self.pack_start(hboxo, False, False, 0)
         self._active_button = Gtk.CheckButton(label=_("OCR scanned pages"))
         self._active_button.set_tooltip_text(_("OCR scanned pages"))
@@ -261,7 +261,7 @@ class OCRControls(Gtk.VBox):
             comboboxe.set_active(0)
 
         # Checkbox & SpinButton for threshold
-        hboxt = Gtk.HBox()
+        hboxt = Gtk.Box()
         self.pack_start(hboxt, False, True, 0)
         cbto = Gtk.CheckButton(label=_("Threshold before OCR"))
         cbto.set_tooltip_text(
@@ -306,7 +306,7 @@ class OCRControls(Gtk.VBox):
         self.language = widget.get_active_index()
 
     def _add_tess_languages(self):
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         self.pack_start(hbox, False, False, 0)
         label = Gtk.Label(label=_("Language to recognise"))
         hbox.pack_start(label, False, True, 0)

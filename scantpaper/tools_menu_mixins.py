@@ -74,7 +74,7 @@ class ToolsMenuMixins:
         windowt.add_page_range()
 
         # SpinButton for threshold
-        hboxt = Gtk.HBox()
+        hboxt = Gtk.Box()
         vbox = windowt.get_content_area()
         vbox.pack_start(hboxt, False, True, 0)
         label = Gtk.Label(label=_("Threshold"))
@@ -131,7 +131,7 @@ class ToolsMenuMixins:
         windowt.add_page_range()
 
         # SpinButton for brightness
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox = windowt.get_content_area()
         vbox.pack_start(hbox, False, True, 0)
         label = Gtk.Label(label=_("Brightness"))
@@ -143,7 +143,7 @@ class ToolsMenuMixins:
         hbox.pack_end(spinbuttonb, False, True, 0)
 
         # SpinButton for contrast
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, False, True, 0)
         label = Gtk.Label(label=_("Contrast"))
         hbox.pack_start(label, False, True, 0)
@@ -269,17 +269,17 @@ class ToolsMenuMixins:
         vbox.pack_start(grid, True, True, 0)
         for i, row in enumerate(layout):
             col = 0
-            hbox = Gtk.HBox()
+            hbox = Gtk.Box()
             label = Gtk.Label(label=row[col])
             grid.attach(hbox, col, i, 1, 1)
             col += 1
             hbox.pack_start(label, False, True, 0)
-            hbox = Gtk.HBox()
+            hbox = Gtk.Box()
             hbox.pack_end(row[col], True, True, 0)
             grid.attach(hbox, col, i, 1, 1)
             col += 1
             if col in row:
-                hbox = Gtk.HBox()
+                hbox = Gtk.Box()
                 grid.attach(hbox, col, i, 1, 1)
                 label = Gtk.Label(label=row[col])
                 hbox.pack_start(label, False, True, 0)
@@ -410,7 +410,7 @@ class ToolsMenuMixins:
 
         # Frame for page range
         windowsp.add_page_range()
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox = windowsp.get_content_area()
         vbox.pack_start(hbox, False, False, 0)
         label = Gtk.Label(label=_("Direction"))
@@ -445,7 +445,7 @@ class ToolsMenuMixins:
         hbox.pack_end(combob, False, True, 0)
 
         # SpinButton for position
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, False, True, 0)
         label = Gtk.Label(label=_("Position"))
         hbox.pack_start(label, False, True, 0)
@@ -682,7 +682,7 @@ class ToolsMenuMixins:
 
         # Frame for page range
         windowudt.add_page_range()
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox = windowudt.get_content_area()
         vbox.pack_start(hbox, False, False, 0)
         label = Gtk.Label(label=_("Selected tool"))

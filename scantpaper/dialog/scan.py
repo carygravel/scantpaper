@@ -380,7 +380,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             "changed", self._do_profile_changed
         )
         vboxsp.pack_start(self.combobsp, False, False, 0)
-        hboxsp = Gtk.HBox()
+        hboxsp = Gtk.Box()
         vboxsp.pack_end(hboxsp, False, False, 0)
 
         # Save button
@@ -420,7 +420,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         )
 
     def _add_device_combobox(self):
-        self.hboxd = Gtk.HBox()
+        self.hboxd = Gtk.Box()
         labeld = Gtk.Label(label=_("Device"))
         self.hboxd.pack_start(labeld, False, False, 0)
         self.combobd = ComboBoxText()
@@ -934,7 +934,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         )
         vbox = window.get_content_area()
 
-        hboxl = Gtk.HBox()
+        hboxl = Gtk.Box()
         vbox.pack_start(hboxl, False, False, 0)
         vboxb = Gtk.VBox()
         hboxl.pack_start(vboxb, False, False, 0)
@@ -955,7 +955,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         hboxl.pack_end(slist, False, False, 0)
 
         # Buttons
-        hboxb = Gtk.HBox()
+        hboxb = Gtk.Box()
         vbox.pack_start(hboxb, False, False, 0)
         abutton = Gtk.Button.new_with_label(_("Apply"))
 
@@ -1376,7 +1376,7 @@ def _save_profile_callback(_widget, parent):
     dialog.add_buttons(
         Gtk.STOCK_OK, Gtk.ResponseType.OK, Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL
     )
-    hbox = Gtk.HBox()
+    hbox = Gtk.Box()
     label = Gtk.Label(label=_("Name of scan profile"))
     hbox.pack_start(label, False, False, 0)
     entry = Gtk.Entry()
@@ -1496,7 +1496,7 @@ def _build_profile_table(profile, options, vbox):
         name, _val = profile.get_backend_option_by_index(i)
         opt = options.by_name(name)
         row = Gtk.ListBoxRow()
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         label = Gtk.Label(label=d_sane(opt.title))
         hbox.pack_start(label, False, True, 0)
         icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
@@ -1518,7 +1518,7 @@ def _build_profile_table(profile, options, vbox):
 
     for name in profile.each_frontend_option():
         row = Gtk.ListBoxRow()
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         label = Gtk.Label(label=name)
         hbox.pack_start(label, False, True, 0)
         icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)

@@ -20,7 +20,7 @@ INDEX = [
 ]
 
 
-class TextLayerControls(Gtk.HBox):
+class TextLayerControls(Gtk.Box):
     "provide controls for editing the text layer"
 
     __gsignals__ = {

@@ -204,11 +204,11 @@ class SaneScanDialog(Scan):
             # Define HBox for paper size here
             # so that it can be put before first geometry option
             if hboxp is None and _geometry_option(opt):
-                hboxp = Gtk.HBox()
+                hboxp = Gtk.Box()
                 vbox.pack_start(hboxp, False, False, 0)
 
             # HBox for option
-            hbox = Gtk.HBox()
+            hbox = Gtk.Box()
             vbox.pack_start(hbox, False, True, 0)
             if opt.cap & enums.CAP_INACTIVE or not opt.cap & enums.CAP_SOFT_SELECT:
                 hbox.set_sensitive(False)

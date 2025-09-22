@@ -47,7 +47,7 @@ class EditMenuMixins:
             hide_on_delete=True,
         )
         vbox = self._windowp.get_content_area()
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=d_sane("X Resolution"))
         hbox.pack_start(label, False, False, 0)
@@ -56,7 +56,7 @@ class EditMenuMixins:
         hbox.pack_start(xspinbutton, True, True, 0)
         label = Gtk.Label(label=_("dpi"))
         hbox.pack_end(label, False, False, 0)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=d_sane("Y Resolution"))
         hbox.pack_start(label, False, False, 0)
