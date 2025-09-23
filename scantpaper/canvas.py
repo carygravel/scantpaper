@@ -991,7 +991,7 @@ class Bbox(GooCanvas.CanvasGroup):
             )
             x2, y2 = (x + width, y + height)
             text_widget.set_simple_transform(0, 0, scale, angle)
-            bounds = text_widget.bounds
+            bounds = text_widget.get_bounds()
             x_offset = (x + x2 - bounds.x1 - bounds.x2) / 2
             y_offset = (y + y2 - bounds.y1 - bounds.y2) / 2
             text_widget.set_simple_transform(x_offset, y_offset, scale, angle)
