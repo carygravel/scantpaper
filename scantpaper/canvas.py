@@ -688,8 +688,8 @@ class Canvas(
         offset = self.get_offset()
         zoom = self.get_scale()
         _screen, x, y = self._device.get_position()
-        offset_x = offset["x"] + (x - self._drag_start["x"]) / zoom
-        offset_y = offset["y"] + (y - self._drag_start["y"]) / zoom
+        offset_x = offset.x + (x - self._drag_start["x"]) / zoom
+        offset_y = offset.y + (y - self._drag_start["y"]) / zoom
         self._drag_start["x"], self._drag_start["y"] = (x, y)
         self.set_offset(offset_x, offset_y)
         return True

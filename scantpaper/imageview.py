@@ -90,6 +90,9 @@ class Dragger(Tool):
         if not self.dragging:
             return
         offset = self.view().get_offset()
+        if offset is None:
+            # No image displayed
+            return
         zoom = self.view().get_zoom()
         ratio = self.view().get_resolution_ratio()
         offset_x = offset.x + (event.x - self.drag_start["x"]) / zoom * ratio
