@@ -181,6 +181,10 @@ def read_config(filename):
         )
         config["selection"] = selection
 
+    for k in "image_control_tool", "viewer_tools":
+        if k in config and isinstance(config[k], int):
+            del config[k]
+
     logger.debug(config)
     return config
 

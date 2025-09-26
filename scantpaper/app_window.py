@@ -322,9 +322,6 @@ class ApplicationWindow(
         if not os.path.exists(self._configfile) and os.path.exists(old_configfile):
             shutil.copy(old_configfile, self._configfile)
         self.settings = config.read_config(self._configfile)
-        for k in "image_control_tool", "viewer_tools":
-            if k in self.settings and isinstance(self.settings[k], int):
-                del self.settings[k]
         config.add_defaults(self.settings)
         config.remove_invalid_paper(self.settings["Paper"])
 

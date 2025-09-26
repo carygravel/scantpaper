@@ -54,6 +54,7 @@ def test_config():
     add_defaults(output)
     example = DEFAULTS.copy()
     example["version"] = "1.3.3"
+    example["viewer_tools"] = "tabbed"
     assert output == example, "add_defaults"
 
     #########################
@@ -108,6 +109,28 @@ def test_config():
     output = read_config(rc)
 
     assert output == example, "remove undefined profiles"
+
+
+def test_config_string_conversion():
+    "test that old integer-based settings are converted to strings"
+    rc = "test_string_conversion"
+
+    config = """{
+    "image_control_tool": 1,
+    "viewer_tools": 2
+}"""
+    with open(rc, "w", encoding="utf-8") as fh:
+        fh.write(config)
+
+    output = read_config(rc)
+    add_defaults(output)
+
+    assert isinstance(
+        output["image_control_tool"], str
+    ), "image_control_tool should be a string"
+    assert isinstance(output["viewer_tools"], str), "viewer_tools should be a string"
+
+    os.remove(rc)
 
 
 def test_config2(mocker):
