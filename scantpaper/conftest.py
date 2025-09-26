@@ -341,3 +341,9 @@ def clean_up_files():
                 os.remove(fname)
 
     return anonymous
+
+
+@pytest.fixture
+def datadir(request):
+    """Return the directory for test data"""
+    return os.path.join(request.fspath.dirname, "")

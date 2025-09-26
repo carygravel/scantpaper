@@ -179,7 +179,7 @@ def test_viewport(rose_png):
         # ), "Check GtkImageTransp enum."
 
 
-def test_transparency():
+def test_transparency(datadir):
     "Test transparency"
     window = Gtk.Window()
     window.set_size_request(300, 200)
@@ -188,19 +188,21 @@ def test_transparency():
         window.get_screen(), css_provider_alpha, 0  # pylint: disable=no-member
     )
     css_provider_alpha.load_from_data(
-        b"""
-    .imageview.transparent {
+        f"""
+    .imageview.transparent {{
         background-color: #ff0000;
         background-image: none;
-    }
-    .imageview {
-        background-image: url('scantpaper/tests/transp-blue.svg');
-    }
-"""
+    }}
+    .imageview {{
+        background-image: url('{datadir}transp-blue.svg');
+    }}
+""".encode(
+            "UTF-8"
+        )
     )
     view = ImageView()
     view.set_pixbuf(
-        GdkPixbuf.Pixbuf.new_from_file("scantpaper/tests/transp-green.svg"),
+        GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
         True,
     )
     window.add(view)  # pylint: disable=no-member
@@ -251,7 +253,7 @@ def test_transparency():
     assert found, "there is blue outside"
 
 
-def test_zoom():
+def test_zoom(datadir):
     "Test zoom"
     window = Gtk.Window()
     window.set_size_request(300, 200)
@@ -259,18 +261,18 @@ def test_zoom():
     scale = view.get_scale_factor()
     window.add(view)
     window.show_all()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file("scantpaper/tests/bigpic.svg"), True)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(f"{datadir}bigpic.svg"), True)
     assert view.get_zoom() == pytest.approx(0.2 * scale, 0.0001), "shrunk"
     view.set_zoom(1)
 
     # the transp-green picture is 100x100 which is less than 200.
     view.set_pixbuf(
-        GdkPixbuf.Pixbuf.new_from_file("scantpaper/tests/transp-green.svg"),
+        GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
         False,
     )
     assert view.get_zoom() == 1, "picture fully visible"
     view.set_pixbuf(
-        GdkPixbuf.Pixbuf.new_from_file("scantpaper/tests/transp-green.svg"),
+        GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
         True,
     )
     assert view.get_zoom() == 2 * scale, "zoomed"
@@ -296,7 +298,7 @@ class MockEvent:
     y: int  # pylint: disable=invalid-name
 
 
-def test_selector_tool():
+def test_selector_tool(datadir):
     "Test selector tool"
     window = Gtk.Window()
     window.set_size_request(300, 200)
@@ -304,7 +306,7 @@ def test_selector_tool():
     window.add(view)
     view.set_tool(Selector(view))
     view.set_pixbuf(
-        GdkPixbuf.Pixbuf.new_from_file("scantpaper/tests/transp-green.svg"),
+        GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
         True,
     )
     window.show_all()
@@ -326,12 +328,12 @@ def test_selector_tool():
         assert selection.height == 7, "get_selection height"
 
 
-def test_filter():
+def test_filter(datadir):
     "Test interpolation (filters)"
     window = Gtk.Window()
     window.set_size_request(300, 200)
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file("scantpaper/tests/2color.svg"), True)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(f"{datadir}2color.svg"), True)
     window.add(view)
     window.show_all()
     view.set_zoom(15)
