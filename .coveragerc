@@ -1,6 +1,6 @@
 [coverage:run]
 branch = True
-#omit = scantimage/test_*
+#omit = scantpaper/test_*
 
 [coverage-report]
 show_missing = True
