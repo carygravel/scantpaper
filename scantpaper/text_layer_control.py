@@ -55,7 +55,8 @@ class TextLayerControls(Gtk.Box):
         sort_cmbx = ComboBoxText(data=INDEX)
         sort_cmbx.set_tooltip_text(_("Select sort method for OCR boxes"))
         sort_cmbx.connect(
-            "changed", lambda _: self.emit("sort-changed", sort_cmbx.get_active_text())
+            "changed",
+            lambda _: self.emit("sort-changed", INDEX[sort_cmbx.get_active()][0]),
         )
         sort_cmbx.set_active(0)
         nbutton = Gtk.Button()

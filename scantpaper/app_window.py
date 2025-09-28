@@ -391,9 +391,8 @@ class ApplicationWindow(
         if args.import_all is not None:
             self._import_files(args.import_all, True)
 
-    def _changed_text_sort_method(self, _widget, data):
-        ocr_index, ocr_text_scmbx = data
-        if ocr_index[ocr_text_scmbx.get_active()][0] == "confidence":
+    def _changed_text_sort_method(self, _widget, sort_method):
+        if sort_method == "confidence":
             self.t_canvas.sort_by_confidence()
         else:
             self.t_canvas.sort_by_position()
