@@ -356,3 +356,57 @@ def test_hocr(rose_pnm):
         bbox.delete_box()
         with pytest.raises(StopIteration):
             canvas.get_last_bbox()
+
+
+def test_bbox_text_placement(rose_pnm):
+    "Test that hOCR text is placed correctly within its bounding box"
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm.name,
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+        page.import_hocr(
+            HOCR_HEADER
+            + """<body>
+<div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 204 288'>
+<div class='ocr_carea' id='block_1_1' title="bbox 1 14 202 286">
+<p class='ocr_par'>
+<span class='ocr_line' id='line_1_1' title="bbox 1 80 35 286">
+<span class='ocr_word' id='word_1_1' title="bbox 1 80 35 195">
+<span class='xocr_word' id='xword_1_1' title="x_wconf 4">fox</span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+ </html>
+ """
+        )
+        canvas = Canvas()
+        canvas.set_text(page=page, layer="text_layer", idle=False)
+
+        # Get the bbox for the word 'fox'
+        bbox = canvas.get_first_bbox()
+        assert bbox.text == "fox"
+
+        # Get the rectangle and text widgets
+        rect_widget = bbox.get_box_widget()
+        assert isinstance(
+            rect_widget, GooCanvas.CanvasRect
+        ), "Could not find rectangle widget in Bbox"
+        text_widget = bbox.get_text_widget()
+
+        # Get their bounds in the canvas coordinate system
+        rect_bounds = rect_widget.get_bounds()
+        text_bounds = text_widget.get_bounds()
+
+        # The text should be inside the rectangle.
+        # Allow for a small tolerance due to font rendering.
+        tolerance = 1.0
+        assert text_bounds.x1 >= rect_bounds.x1 - tolerance
+        assert text_bounds.y1 >= rect_bounds.y1 - tolerance
+        assert text_bounds.x2 <= rect_bounds.x2 + tolerance
+        assert text_bounds.y2 <= rect_bounds.y2 + tolerance
