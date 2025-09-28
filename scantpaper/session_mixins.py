@@ -557,7 +557,7 @@ class SessionMixins:
         self.view.handler_unblock(self.view.offset_changed_signal)
 
     def _ocr_text_button_clicked(self, _widget):
-        self._take_snapshot()
+        self.slist.thread._take_snapshot()
         text = self._ocr_text_hbox._textbuffer.get_text(
             self._ocr_text_hbox._textbuffer.get_start_iter(),
             self._ocr_text_hbox._textbuffer.get_end_iter(),
@@ -581,7 +581,7 @@ class SessionMixins:
         self._edit_ocr_text(self._current_ocr_bbox)
 
     def _ocr_text_add(self, _widget):
-        self._take_snapshot()
+        self.slist.thread._take_snapshot()
         text = self._ocr_text_hbox._textbuffer.get_text(
             self._ocr_text_hbox._textbuffer.get_start_iter(),
             self._ocr_text_hbox._textbuffer.get_end_iter(),
