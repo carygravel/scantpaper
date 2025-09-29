@@ -388,7 +388,10 @@ The other variable available is:
         # Update list of user-defined tools
         tools = []
         for hbox in self._vboxt.get_children():
-            if isinstance(hbox, Gtk.Box) and hbox.get_orientation() == Gtk.Orientation.HORIZONTAL:
+            if (
+                isinstance(hbox, Gtk.Box)
+                and hbox.get_orientation() == Gtk.Orientation.HORIZONTAL
+            ):
                 for widget in hbox.get_children():
                     if isinstance(widget, Gtk.Entry):
                         text = widget.get_text()
