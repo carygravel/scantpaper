@@ -108,7 +108,7 @@ class EditMenuMixins:
 
     def copy_selection(self, _action, _param):
         "Copy the selection"
-        self.slist.clipboard = self.slist.copy_selection(True)
+        self.slist.clipboard = self.slist.copy_selection()
         self._update_uimanager()
 
     def paste_selection(self, _action, _param):
