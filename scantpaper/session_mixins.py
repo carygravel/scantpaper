@@ -709,7 +709,7 @@ class SessionMixins:
         self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
-            self.t_canvas.pointer_ungrab(widget, ev.time)
+            self.t_canvas.pointer_ungrab(_target, ev.time)
 
         if bbox:
             self.t_canvas.set_index_by_bbox(bbox)
@@ -726,7 +726,7 @@ class SessionMixins:
         self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
-            self.a_canvas.pointer_ungrab(widget, ev.time())
+            self.a_canvas.pointer_ungrab(_target, ev.time())
 
         if bbox:
             self.a_canvas.set_index_by_bbox(bbox)
