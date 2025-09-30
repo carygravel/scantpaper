@@ -672,14 +672,17 @@ class Canvas(
             _screen, x, y = self._device.get_position()
             self._drag_start = {"x": x, "y": y}
             self._dragging = True
-
-        #    self.update_cursor( event.x, event.y );
+            win = self.get_window()
+            win.set_cursor(
+                Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grabbing")
+            )
 
     def _button_released(self, _self, event):
         if event.button == 2:
             self._dragging = False
+            win = self.get_window()
+            win.set_cursor(None)
 
-        #    self.update_cursor( event.x, event.y );
         return True
 
     def _motion(self, _self, _event):
