@@ -40,7 +40,7 @@ class PreferencesDialog(Dialog):
         notebook = Gtk.Notebook()
         vbox.pack_start(notebook, True, True, 0)
 
-        vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.START)
         vbox1.set_border_width(self.get_border_width())
         self._add_scan_options(vbox1)
         notebook.append_page(vbox1, Gtk.Label(label=_("Scan options")))
