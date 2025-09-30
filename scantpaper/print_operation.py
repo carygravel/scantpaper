@@ -40,7 +40,7 @@ class PrintOperation(Gtk.PrintOperation):
 
     def draw_page_callback(self, _self, context, page_number):
         "draw page"
-        page = self.slist.data[page_number][2]
+        page = self.slist.data[page_number]
         cr = context.get_cairo_context()
 
         # Context dimensions
@@ -48,8 +48,8 @@ class PrintOperation(Gtk.PrintOperation):
         pheight = context.get_height()
 
         # Image dimensions
-        pixbuf = page.get_pixbuf()
-        xresolution, yresolution, _units = page.resolution
+        pixbuf = page[1]
+        xresolution, yresolution = self.slist.get_selected_properties()
         ratio = xresolution / yresolution
         iwidth = pixbuf.get_width()
         iheight = pixbuf.get_height()
