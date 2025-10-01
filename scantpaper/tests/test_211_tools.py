@@ -3,6 +3,8 @@
 import re
 import subprocess
 from gi.repository import GLib
+from PIL import Image
+import pytest
 from document import Document
 from const import VERSION
 
@@ -143,20 +145,32 @@ def test_threshold(
     clean_up_files(slist.thread.db_files)
 
 
+image_types = [
+    ["pnm", "L", 255],
+    ["png", "RGBA", (255, 255, 255, 255)],
+]
+
+
+@pytest.mark.parametrize("suffix, mode, white", image_types)
 def test_negate(
     import_in_mainloop,
     set_saved_in_mainloop,
     set_text_in_mainloop,
     temp_db,
     clean_up_files,
+    suffix,
+    mode,
+    white,
 ):
     "Test negate"
 
-    subprocess.run(["convert", "xc:white", "white.pnm"], check=True)
+    image = f"white.{suffix}"
+    im = Image.new(mode, [1, 1], color=white)
+    im.save(image)
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, ["white.pnm"])
+    import_in_mainloop(slist, [image])
     set_saved_in_mainloop(slist, 1, True)
     set_text_in_mainloop(
         slist,
@@ -199,7 +213,7 @@ def test_negate(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pnm"])
+    clean_up_files(slist.thread.db_files + [image])
 
 
 def test_unsharp_mask(
