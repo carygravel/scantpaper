@@ -193,7 +193,7 @@ class ApplicationWindow(
 
     def _init_actions(self):
         for name, function in [
-            ("new", self.new),
+            ("new", self.new_),
             ("open", self.open_dialog),
             ("open-session", self._open_session_action),
             ("scan", self.scan_dialog),
