@@ -255,7 +255,7 @@ class FileMenuMixins:
 
         self.slist.import_files(**options)
 
-    def _open_session_action(self, _action):
+    def _open_session_action(self, _action, _param):
         "open session"
         file_chooser = Gtk.FileChooserDialog(
             title=_("Open crashed session"),
