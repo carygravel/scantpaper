@@ -80,7 +80,7 @@ def launch_default_for_file(filename):
 class FileMenuMixins:
     "provide methods called from file menu"
 
-    def new(self, _action, _param):
+    def new_(self, _action, _param):
         "Deletes all scans after warning"
         if not self._pages_saved(
             _("Some pages have not been saved.\nDo you really want to clear all pages?")
