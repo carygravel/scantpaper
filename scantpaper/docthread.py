@@ -956,6 +956,8 @@ class DocThread(SaveThread):
         page = self.get_page(id=options["page"])
 
         logger.info("Invert %s", page.id)
+        if page.image_object.mode == "P" or page.image_object.mode == "RGBA":
+            page.image_object = page.image_object.convert("RGB")
         page.image_object = ImageOps.invert(page.image_object)
 
         if self.cancel:
