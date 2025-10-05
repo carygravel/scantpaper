@@ -1,8 +1,8 @@
 "Test application"
 
-import gi
-import pytest
 from unittest.mock import MagicMock
+import pytest
+import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib  # pylint: disable=wrong-import-position
@@ -37,9 +37,7 @@ def test_application(mainloop_with_timeout):
 
 
 def test_text_layer_sort_combo_box():
-    """
-    Test that the text layer sort combo box calls the correct sorting method.
-    """
+    "Test the text layer sort combo box"
     app = Application()
     app.args = MagicMock()
     app.args.device = None
