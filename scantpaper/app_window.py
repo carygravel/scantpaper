@@ -177,14 +177,7 @@ class ApplicationWindow(
             if self.settings["window_maximize"]:
                 self.maximize()
 
-        try:
-            self.set_icon_from_file(f"{self.get_application().iconpath}/gscan2pdf.svg")
-        except (FileNotFoundError, OSError) as e:
-            logger.warning(
-                "Unable to load icon `%s/gscan2pdf.svg': %s",
-                self.get_application().iconpath,
-                str(e),
-            )
+        self.set_icon_name("gscan2pdf")
 
         self._thumb_popup = self.builder.get_object("thumb_popup")
 
