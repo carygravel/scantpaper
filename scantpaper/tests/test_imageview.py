@@ -403,3 +403,17 @@ def test_filter(datadir):
 
     assert fullblue_x < p_x, "sharp edge should be within blurred edge (1)"
     assert p_x < blurred_x, "sharp edge should be within blurred edge (2)"
+
+
+def test_drag_no_pixbuf():
+    "Test dragging without a pixbuf"
+    view = ImageView()
+    tool = view.get_tool()
+    event = MockEvent(button=1, x=10, y=10)
+    tool.button_pressed(event)
+    event.x = 20
+    event.y = 20
+    try:
+        tool.motion(event)
+    except AttributeError:
+        pytest.fail("Dragging without a pixbuf should not raise an AttributeError")
