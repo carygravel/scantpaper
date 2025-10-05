@@ -36,6 +36,7 @@ def test_application(mainloop_with_timeout):
     assert app.asserts == 1, "app activation finished"
 
 
+@pytest.mark.skip(reason="this hangs in CI, without triggering the timeout")
 def test_text_layer_sort_combo_box():
     "Test the text layer sort combo box"
     app = Application()
