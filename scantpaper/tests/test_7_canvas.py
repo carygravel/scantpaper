@@ -1,5 +1,6 @@
 "Test Canvas class"
 
+from dataclasses import dataclass
 import tempfile
 import pytest
 import gi
@@ -410,3 +411,54 @@ def test_bbox_text_placement(rose_pnm):
         assert text_bounds.y1 >= rect_bounds.y1 - tolerance
         assert text_bounds.x2 <= rect_bounds.x2 + tolerance
         assert text_bounds.y2 <= rect_bounds.y2 + tolerance
+
+
+def test_initialisation(mocker):
+    "Test initialisation"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    assert isinstance(canvas, Canvas)
+    assert canvas.max_color == "black", "max-color"
+    assert canvas.min_color == "red", "min-color"
+    assert canvas.max_confidence == 95, "max-confidence"
+    assert canvas.min_confidence == 50, "min-confidence"
+
+
+def test_drag_text_layer(mocker):
+    "Test dragging a text layer"
+
+    @dataclass
+    class MockEvent:
+        "mock enough of the event class to test it"
+
+        button: int
+        x: int  # pylint: disable=invalid-name
+        y: int  # pylint: disable=invalid-name
+
+    mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
+    mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.side_effect = [  # pylint: disable=line-too-long
+        (None, 10, 10),
+        (None, 20, 20),
+    ]
+    canvas = Canvas()
+    canvas.set_size_request(600, 800)
+    page = Bbox(
+        canvas=canvas,
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        transformation=[0, 0, 0],
+    )
+    canvas.set_root_item(page)
+    canvas._pixbuf_size = {  # pylint: disable=protected-access
+        "width": 100,
+        "height": 100,
+    }
+
+    event = MockEvent(button=2, x=10, y=10)
+    canvas._button_pressed(canvas, event)  # pylint: disable=protected-access
+    event.x = 20
+    event.y = 20
+    try:
+        canvas._motion(canvas, event)  # pylint: disable=protected-access
+    except TypeError:
+        pytest.fail("Dragging a text layer should not raise a TypeError")
