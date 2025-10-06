@@ -139,3 +139,57 @@ def test_text_layer_add_and_ok_buttons(mocker):
 
     # Assert that _take_snapshot was called again
     window.slist.thread._take_snapshot.assert_called_once()
+
+
+def test_edit_ocr_text_updates_selection(mocker):
+    "Test _edit_ocr_text"
+    mocker.patch("app_window.ApplicationWindow._populate_main_window")
+    mocker.patch("app_window.ApplicationWindow._create_temp_directory")
+    mocker.patch("config.read_config").return_value = {
+        "restore window": False,
+        "image_control_tool": "selector",
+        "Paper": {},
+        "cwd": ".",
+        "unpaper options": "",
+        "available-tmp-warning": 100,
+        "message": {},
+    }
+    mocker.patch("shutil.disk_usage", return_value=(1, 1, 1024 * 1024 * 200))
+
+    app = Application()
+    app.args = MagicMock()
+    app.args.device = None
+    app.args.import_files = None
+    app.args.import_all = None
+
+    mock_app = MagicMock()
+    mock_app.iconpath = "icons"
+    mocker.patch("app_window.ApplicationWindow.get_application", return_value=mock_app)
+
+    window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
+
+    # Mock dependencies for _edit_ocr_text
+    window._ocr_text_hbox = MagicMock()
+    window.view = MagicMock()
+    window.t_canvas = MagicMock()
+
+    # Create two distinct mock bboxes
+    mock_bbox1 = MagicMock()
+    mock_bbox1.text = "word1"
+    mock_bbox2 = MagicMock()
+    mock_bbox2.text = "word2"
+
+    mock_event = MagicMock()
+    mock_target = MagicMock()
+
+    # First call to _edit_ocr_text, simulating a click on the first box
+    window._edit_ocr_text(
+        widget=mock_bbox1, _target=mock_target, ev=mock_event, bbox=mock_bbox1
+    )
+    assert window._current_ocr_bbox == mock_bbox1
+
+    # Second call to _edit_ocr_text, simulating a click on the second box
+    window._edit_ocr_text(
+        widget=mock_bbox2, _target=mock_target, ev=mock_event, bbox=mock_bbox2
+    )
+    assert window._current_ocr_bbox == mock_bbox2
