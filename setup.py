@@ -93,15 +93,10 @@ single page image file.""",
     ],
     "package_data": {
         "scantpaper": [
-            "images/*.png",
-            "images/scantpaper-icon/*.png",
-            "images/scantpaper-icon/scantpaper.svg",
-            "files/*.cfg",
             "app.ui",
-            "files/*.lang",
-            "files/*.xml",
         ]
     },
+    "include_package_data": True,
     # "data_files": [
     #     ("share/applications", ["data/scantpaper.desktop"]),
     #     (

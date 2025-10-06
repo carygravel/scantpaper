@@ -37,8 +37,7 @@
 #     Upload .pot
 # 3.  make remote-html
 # 4. Build .deb for sf
-#     python3 -m build --sdist
-#     make signed_tardist
+#     tox -e signed_sdist
 #     sudo sbuild-update -udr sid-amd64-sbuild
 #     sbuild -sc sid-amd64-sbuild
 #     #debsign .changes
