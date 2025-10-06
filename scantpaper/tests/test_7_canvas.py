@@ -1,6 +1,7 @@
 "Test Canvas class"
 
 from dataclasses import dataclass
+from unittest.mock import MagicMock
 import tempfile
 import pytest
 import gi
@@ -10,6 +11,7 @@ from canvas import HOCR_HEADER as HOCR_OUT_HEADER
 from conftest import HOCR_HEADER
 
 gi.require_version("GooCanvas", "2.0")
+gi.require_version("Gdk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-module
     GooCanvas,
 )
@@ -436,11 +438,14 @@ def test_drag_text_layer(mocker):
         y: int  # pylint: disable=invalid-name
 
     mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
-    mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.side_effect = [  # pylint: disable=line-too-long
+    mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.side_effect = [
         (None, 10, 10),
         (None, 20, 20),
     ]
+    mocker.patch("gi.repository.Gdk.Cursor.new_from_name")
     canvas = Canvas()
+    mock_window = MagicMock()
+    canvas.get_window = MagicMock(return_value=mock_window)
     canvas.set_size_request(600, 800)
     page = Bbox(
         canvas=canvas,
@@ -462,3 +467,35 @@ def test_drag_text_layer(mocker):
         canvas._motion(canvas, event)  # pylint: disable=protected-access
     except TypeError:
         pytest.fail("Dragging a text layer should not raise a TypeError")
+
+
+def test_canvas_drag_cursor(mocker):
+    "Test that the cursor changes when dragging the canvas."
+    mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
+    mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.return_value = (
+        None,
+        10,
+        10,
+    )
+    mock_cursor_new = mocker.patch("gi.repository.Gdk.Cursor.new_from_name")
+
+    canvas = Canvas()
+    mock_window = MagicMock()
+    # We need to mock get_window() because the canvas is not in a real window
+    canvas.get_window = MagicMock(return_value=mock_window)
+
+    # 1. Test button press: cursor should change to "grabbing"
+    press_event = MagicMock()
+    press_event.button = 2
+    canvas._button_pressed(canvas, press_event)
+
+    mock_cursor_new.assert_called_once_with(mocker.ANY, "grabbing")
+    mock_window.set_cursor.assert_called_once_with(mock_cursor_new.return_value)
+
+    # 2. Test button release: cursor should change back to default
+    mock_window.set_cursor.reset_mock()
+    release_event = MagicMock()
+    release_event.button = 2
+    canvas._button_released(canvas, release_event)
+
+    mock_window.set_cursor.assert_called_once_with(None)
