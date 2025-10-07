@@ -180,7 +180,7 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         return app
 
     def test_new(self, app):
-        "new() resets state and clears data."
+        "new_() resets state and clears data."
         app.slist.data = [1, 2, 3]
         app.view.set_pixbuf = unittest.mock.Mock()
         app.t_canvas.clear_text = unittest.mock.Mock()
@@ -189,7 +189,7 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         app._windows.reset_start_page = unittest.mock.Mock()
         app._pages_saved = unittest.mock.Mock(return_value=True)
 
-        app.new(None, None)
+        app.new_(None, None)
 
         app._pages_saved.assert_called_once()
         assert app.slist.data == []
@@ -200,11 +200,11 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         app._windows.reset_start_page.assert_called_once()
 
     def test_new_cancel(self, app):
-        "Test new() does not clear data if pages not saved."
+        "Test new_() does not clear data if pages not saved."
         app.slist.data = [1, 2, 3]
         app._pages_saved = unittest.mock.Mock(return_value=False)
 
-        app.new(None, None)
+        app.new_(None, None)
 
         app._pages_saved.assert_called_once()
         assert app.slist.data == [1, 2, 3]
