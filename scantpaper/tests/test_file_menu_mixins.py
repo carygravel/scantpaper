@@ -496,15 +496,14 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
     @unittest.mock.patch("file_menu_mixins.Gtk")
     def test_open_session_action_ok(self, mock_gtk, app):
         "Test _open_session_action opens session on OK."
-        pytest.skip("does not yet pass")
         app._open_session = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = Gtk.ResponseType.OK
         mock_dialog.get_filenames.return_value = ["/path/to/session"]
         mock_gtk.FileChooserDialog.return_value = mock_dialog
-        mock_dialog.get_filenames.return_value = ["/path/to/session"]
+        mock_gtk.ResponseType.OK = Gtk.ResponseType.OK
 
-        app._open_session_action(None)
+        app._open_session_action(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
         mock_dialog.get_filenames.assert_called_once()
@@ -518,8 +517,9 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
         mock_gtk.FileChooserDialog.return_value = mock_dialog
+        mock_gtk.ResponseType.CANCEL = Gtk.ResponseType.CANCEL
 
-        app._open_session_action(None)
+        app._open_session_action(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
         app._open_session.assert_not_called()
