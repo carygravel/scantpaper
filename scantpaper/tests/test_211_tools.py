@@ -146,12 +146,17 @@ def test_threshold(
 
 
 image_types = [
-    ["pnm", "L", 255],
-    ["png", "RGBA", (255, 255, 255, 255)],
+    ["pnm", "L", 255, 255],
+    ["png", "RGBA", (255, 255, 255, 255), 255],
+]
+xfail_image_types = [
+    pytest.param("png", "P", 255, 1.0, marks=pytest.mark.xfail),
 ]
 
 
-@pytest.mark.parametrize("suffix, mode, white", image_types)
+@pytest.mark.parametrize(
+    "suffix, mode, white, expected_mean", image_types + xfail_image_types
+)
 def test_negate(
     import_in_mainloop,
     set_saved_in_mainloop,
@@ -161,6 +166,7 @@ def test_negate(
     suffix,
     mode,
     white,
+    expected_mean,
 ):
     "Test negate"
 
@@ -188,7 +194,7 @@ def test_negate(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     page = slist.thread.get_page(number=1)
-    assert min(page.mean) == 255, "mean before"
+    assert min(page.mean) == expected_mean, "mean before"
 
     mlp = GLib.MainLoop()
     slist.negate(
