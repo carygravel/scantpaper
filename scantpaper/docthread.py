@@ -680,7 +680,11 @@ class DocThread(SaveThread):
     def do_set_saved(self, request):
         "mark given page as saved"
         self._check_write_tid()
-        page_id, saved = request.args
+        if len(request.args) > 1:
+            page_id, saved = request.args
+        else:
+            page_id = request.args[0]
+            saved = True
         if not isinstance(page_id, list):
             page_id = [page_id]
         self._execute(
