@@ -12,6 +12,7 @@ import tempfile
 import threading
 import pytest
 from gi.repository import GLib
+import config
 from document import Document
 from docthread import DocThread
 from basethread import Request
@@ -220,7 +221,8 @@ def test_save_pdf_different_resolutions(
 
     # Create test image
     subprocess.run(
-        ["convert", "rose:", "-density", "100x200", temp_png.name], check=True
+        [config.CONVERT_COMMAND, "rose:", "-density", "100x200", temp_png.name],
+        check=True,
     )
 
     slist = Document(db=temp_db.name)
@@ -284,8 +286,10 @@ def test_save_pdf_with_hocr(
 
     subprocess.run(
         [
-            "convert",
-            "+matte",
+            config.CONVERT_COMMAND,
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
             "-depth",
             "1",
             "-colorspace",
@@ -298,7 +302,6 @@ def test_save_pdf_with_hocr(
             "PixelsPerInch",
             "-density",
             "300",
-            "label:The quick brown fox",
             "-border",
             "20x10",
             temp_png.name,
@@ -477,7 +480,9 @@ def test_save_pdf_with_1bpp(
 ):
     "Test writing PDF with a 1bpp image"
 
-    subprocess.run(["convert", "magick:netscape", temp_pbm.name], check=True)
+    subprocess.run(
+        [config.CONVERT_COMMAND, "magick:netscape", temp_pbm.name], check=True
+    )
 
     slist = Document(db=temp_db.name)
 
@@ -587,7 +592,7 @@ def test_save_pdf_g4_alpha(
 
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
             "rose:",
             "-define",
             "tiff:rows-per-strip=1",
@@ -630,10 +635,28 @@ def test_save_pdf_g4_alpha(
         check=True,
     )
     example = subprocess.check_output(
-        ["convert", temp_png.name, "-depth", "1", "-alpha", "off", "txt:-"], text=True
+        [
+            config.CONVERT_COMMAND,
+            temp_png.name,
+            "-depth",
+            "1",
+            "-alpha",
+            "off",
+            "txt:-",
+        ],
+        text=True,
     )
     expected = subprocess.check_output(
-        ["convert", temp_tif.name, "-depth", "1", "-alpha", "off", "txt:-"], text=True
+        [
+            config.CONVERT_COMMAND,
+            temp_tif.name,
+            "-depth",
+            "1",
+            "-alpha",
+            "off",
+            "txt:-",
+        ],
+        text=True,
     )
     assert example == expected, "valid G4 PDF created from multi-strip TIFF"
 
@@ -654,8 +677,10 @@ def test_save_pdf_with_sbs_hocr(
 
     subprocess.run(
         [
-            "convert",
-            "+matte",
+            config.CONVERT_COMMAND,
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
             "-depth",
             "1",
             "-colorspace",
@@ -668,7 +693,6 @@ def test_save_pdf_with_sbs_hocr(
             "PixelsPerInch",
             "-density",
             "300",
-            "label:The quick brown fox",
             "-border",
             "20x10",
             temp_png.name,
@@ -837,8 +861,10 @@ def test_save_pdf_with_downsample(
 
     subprocess.run(
         [
-            "convert",
-            "+matte",
+            config.CONVERT_COMMAND,
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
             "-depth",
             "1",
             "-colorspace",
@@ -849,7 +875,6 @@ def test_save_pdf_with_downsample(
             "12",
             "-density",
             "300",
-            "label:The quick brown fox",
             temp_png.name,
         ],
         check=True,

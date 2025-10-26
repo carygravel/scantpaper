@@ -3,6 +3,7 @@
 import re
 import subprocess
 from gi.repository import GLib
+import config
 from document import Document
 
 
@@ -18,7 +19,8 @@ def test_udt(
     }
 
     subprocess.run(
-        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+        [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
+        check=True,
     )
 
     slist = Document(db=temp_db.name)
@@ -69,7 +71,7 @@ def test_udt(
 def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
-    subprocess.run(["convert", "xc:white", temp_pnm.name], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -110,7 +112,8 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up
     }
 
     subprocess.run(
-        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+        [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
+        check=True,
     )
 
     slist = Document(db=temp_db.name)
@@ -159,7 +162,8 @@ def test_udt_resolution(
     "Test user-defined tools"
 
     subprocess.run(
-        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+        [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
+        check=True,
     )
 
     slist = Document(db=temp_db.name)
@@ -191,7 +195,7 @@ def test_udt_resolution(
 def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test user-defined tools"
 
-    subprocess.run(["convert", "xc:white", temp_pnm.name], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
 

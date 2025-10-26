@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 import pytest
 from gi.repository import GLib
+import config
 from document import Document
 
 
@@ -28,7 +29,7 @@ def test_save_djvu1(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": "convert %i " + temp_png.name,
+            "post_save_hook": f"{config.CONVERT_COMMAND} %i " + temp_png.name,
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
@@ -322,7 +323,8 @@ def test_save_djvu_different_resolutions(
         pytest.skip("Please install cjb2 to enable test")
 
     subprocess.run(
-        ["convert", "rose:", "-density", "100x200", temp_png.name], check=True
+        [config.CONVERT_COMMAND, "rose:", "-density", "100x200", temp_png.name],
+        check=True,
     )
 
     slist = Document(db=temp_db.name)

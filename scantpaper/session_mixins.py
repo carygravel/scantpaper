@@ -10,6 +10,7 @@ import tempfile
 import gi
 import tesserocr
 from bboxtree import Bboxtree
+import config
 from const import (
     EMPTY,
     SPACE,
@@ -201,7 +202,7 @@ class SessionMixins:
                 "imagemagick",
                 "stdout",
                 r"Version:\sImageMagick\s([\d.-]+)",
-                ["convert", "--version"],
+                [config.CONVERT_COMMAND, "--version"],
             ],
             [
                 "graphicsmagick",
@@ -256,7 +257,7 @@ class SessionMixins:
                     with tempfile.NamedTemporaryFile(
                         dir=self.session.name, suffix=".jpg"
                     ) as tempimg:
-                        exec_command(["convert", "rose:", tempimg.name])
+                        exec_command([config.CONVERT_COMMAND, "rose:", tempimg.name])
                     with tempfile.NamedTemporaryFile(
                         dir=self.session.name, suffix=".pdf"
                     ) as temppdf:

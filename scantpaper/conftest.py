@@ -5,6 +5,7 @@ import tempfile
 import subprocess
 import os
 import pytest
+from config import CONVERT_COMMAND
 from dialog.sane import SaneScanDialog
 import gi
 
@@ -281,8 +282,12 @@ def rotated_qbfox_pnm(temp_pnm):
     "return an image with quick brown fox text"
     subprocess.run(
         [
-            "convert",
-            "+matte",
+            CONVERT_COMMAND,
+            "-density",
+            "300",
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
             "-depth",
             "1",
             "-colorspace",
@@ -291,9 +296,6 @@ def rotated_qbfox_pnm(temp_pnm):
             "DejaVu Sans",
             "-pointsize",
             "12",
-            "-density",
-            "300",
-            "label:The quick brown fox",
             "-rotate",
             "-90",
             temp_pnm.name,
@@ -306,28 +308,28 @@ def rotated_qbfox_pnm(temp_pnm):
 @pytest.fixture
 def rose_jpg(temp_jpg):
     "return a jpg file with a rose image"
-    subprocess.run(["convert", "rose:", temp_jpg.name], check=True)
+    subprocess.run([CONVERT_COMMAND, "rose:", temp_jpg.name], check=True)
     return temp_jpg
 
 
 @pytest.fixture
 def rose_png(temp_png):
     "return a png file with a rose image"
-    subprocess.run(["convert", "rose:", temp_png.name], check=True)
+    subprocess.run([CONVERT_COMMAND, "rose:", temp_png.name], check=True)
     return temp_png
 
 
 @pytest.fixture
 def rose_pnm(temp_pnm):
     "return a pnm file with a rose image"
-    subprocess.run(["convert", "rose:", temp_pnm.name], check=True)
+    subprocess.run([CONVERT_COMMAND, "rose:", temp_pnm.name], check=True)
     return temp_pnm
 
 
 @pytest.fixture
 def rose_tif(temp_tif):
     "return a tif file with a rose image"
-    subprocess.run(["convert", "rose:", temp_tif.name], check=True)
+    subprocess.run([CONVERT_COMMAND, "rose:", temp_tif.name], check=True)
     return temp_tif
 
 

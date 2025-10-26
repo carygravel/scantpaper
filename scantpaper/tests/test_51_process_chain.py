@@ -5,6 +5,7 @@ import shutil
 import re
 import pytest
 from gi.repository import GLib
+import config
 from document import Document
 from unpaper import Unpaper
 
@@ -19,8 +20,12 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files):
     unpaper = Unpaper()
     subprocess.run(
         [
-            "convert",
-            "+matte",
+            config.CONVERT_COMMAND,
+            "-density",
+            "300",
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
             "-depth",
             "1",
             "-colorspace",
@@ -29,9 +34,6 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files):
             "DejaVu Sans",
             "-pointsize",
             "12",
-            "-density",
-            "300",
-            "label:The quick brown fox",
             "-rotate",
             "-90",
             temp_pnm.name,
@@ -91,10 +93,10 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
 
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
+            "xc:white",
             "-size",
             "210x297",
-            "xc:white",
             temp_pnm.name,
         ],
         check=True,
@@ -105,7 +107,7 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
     slist.import_scan(
         filename=temp_pnm.name,
         page=1,
-        udt="convert %i -negate %o",
+        udt=f"{config.CONVERT_COMMAND} %i -negate %o",
         resolution=300,
         delete=True,
         finished_callback=lambda response: mlp.quit(),

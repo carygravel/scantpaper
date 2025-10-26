@@ -4,6 +4,7 @@ import os
 import subprocess
 import re
 import tempfile
+import config
 import netpbm
 
 
@@ -19,50 +20,14 @@ def test_1():
 
                 with tempfile.NamedTemporaryFile(suffix=f".{suffix}") as file:
                     ftype = suffix.upper()
-                    if ftype == "PBM":
-                        cmd = [
-                            "pnmdepth",
-                            "-pbm",
-                            "-depth",
-                            str(depth),
-                            "-width",
-                            str(width),
-                            "-height",
-                            str(height),
-                            file.name,
-                        ]
-                    elif ftype == "PGM":
-                        cmd = [
-                            "pnmdepth",
-                            "-pgm",
-                            "-depth",
-                            str(depth),
-                            "-width",
-                            str(width),
-                            "-height",
-                            str(height),
-                            file.name,
-                        ]
-                    elif ftype == "PPM":
-                        cmd = [
-                            "pnmdepth",
-                            "-ppm",
-                            "-depth",
-                            str(depth),
-                            "-width",
-                            str(width),
-                            "-height",
-                            str(height),
-                            file.name,
-                        ]
                     subprocess.run(
                         [
-                            "convert",
+                            config.CONVERT_COMMAND,
+                            "rose:",
                             "-depth",
                             str(depth),
                             "-resize",
                             str(size),
-                            "rose:",
                             file.name,
                         ],
                         check=True,

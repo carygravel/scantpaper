@@ -2,13 +2,14 @@
 
 import subprocess
 from gi.repository import GLib
+import config
 from document import Document
 
 
 def test_import_ppm(temp_db, temp_ppm, clean_up_files):
     "Test importing PPM"
 
-    subprocess.run(["convert", "rose:", temp_ppm.name], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
 
     slist = Document(db=temp_db.name)
 

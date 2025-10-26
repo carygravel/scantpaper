@@ -6,6 +6,7 @@ import re
 import subprocess
 import tempfile
 from gi.repository import GLib
+import config
 from document import Document
 
 
@@ -35,7 +36,7 @@ def test_import_tiff_with_units(temp_tif, temp_db, clean_up_files):
 
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
             "rose:",
             "-units",
             "PixelsPerInch",

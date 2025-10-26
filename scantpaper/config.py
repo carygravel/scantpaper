@@ -3,6 +3,7 @@
 import os
 import json
 import logging
+import shutil
 from types import SimpleNamespace
 import datetime
 from helpers import slurp
@@ -121,6 +122,16 @@ DEFAULTS = {
     },
     "message": {},
 }
+
+
+def _get_convert_command():
+    """Determine the correct imagemagick command"""
+    if shutil.which("magick"):
+        return "magick"
+    return "convert"
+
+
+CONVERT_COMMAND = _get_convert_command()
 logger = logging.getLogger(__name__)
 
 

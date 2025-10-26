@@ -6,6 +6,7 @@ from gi.repository import GLib
 from PIL import Image
 import pytest
 from document import Document
+import config
 from const import VERSION
 
 
@@ -51,7 +52,9 @@ def test_rotate(
 def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
     "Test analyse"
 
-    subprocess.run(["convert", "-size", "10x10", "xc:white", "white.pgm"], check=True)
+    subprocess.run(
+        [config.CONVERT_COMMAND, "-size", "10x10", "xc:white", "white.pgm"], check=True
+    )
 
     slist = Document(db=temp_db.name)
 
@@ -76,7 +79,7 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
 def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files):
     "Test analyse"
 
-    subprocess.run(["convert", "xc:black", "black.pgm"], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "xc:black", "black.pgm"], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -299,7 +302,7 @@ def test_crop(
 ):
     "Test brightness contrast"
 
-    subprocess.run(["convert", "rose:", temp_gif.name], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
 
     slist = Document(db=temp_db.name)
 
@@ -387,7 +390,7 @@ def test_split(
 ):
     "Test split"
 
-    subprocess.run(["convert", "rose:", temp_gif.name], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
 
     slist = Document(db=temp_db.name)
 

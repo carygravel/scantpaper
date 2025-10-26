@@ -5,6 +5,7 @@ import re
 import subprocess
 import tempfile
 from gi.repository import GLib
+import config
 from document import Document
 
 
@@ -153,7 +154,7 @@ def test_save_tiff_with_alpha(
 
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
             "-fill",
             "lightblue",
             "-family",

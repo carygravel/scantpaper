@@ -4,6 +4,7 @@ import re
 import subprocess
 import tempfile
 from gi.repository import GLib
+import config
 from document import Document
 
 
@@ -20,7 +21,7 @@ def test_save_image(
         path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
         options={
-            "post_save_hook": f"convert %i {temp_png.name}",
+            "post_save_hook": f"{config.CONVERT_COMMAND} %i {temp_png.name}",
             "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),

@@ -12,6 +12,7 @@ from PIL import Image
 import gi
 import pytest
 from page import Page
+import config
 from const import VERSION
 from document import (
     Document,
@@ -587,7 +588,9 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
             request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
 
-        subprocess.run(["convert", "rose:", tif.name], check=True)  # Create test image
+        subprocess.run(
+            [config.CONVERT_COMMAND, "rose:", tif.name], check=True
+        )  # Create test image
         subprocess.run(["tiff2pdf", "-o", temp_pdf.name, tif.name], check=True)
         request = Request("get_file_info", (temp_pdf.name, None), thread.responses)
         info = thread.do_get_file_info(request)
@@ -655,7 +658,7 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
 def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm, clean_up_files):
     "tests for djvu DocThread"
     thread = DocThread(db=temp_db.name)
-    subprocess.run(["convert", "rose:", temp_pbm.name], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "rose:", temp_pbm.name], check=True)
     subprocess.run(["cjb2", temp_pbm.name, temp_cjb2.name], check=True)
     subprocess.run(
         ["djvm", "-c", temp_djvu.name, temp_cjb2.name, temp_cjb2.name], check=True
@@ -830,14 +833,16 @@ def test_import_scan(
 
     # build a cropped (i.e. too little data compared with header) pnm
     # to test padding code
-    subprocess.run(["convert", "rose:", temp_ppm.name], check=True)
+    subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
     old = subprocess.check_output(
         ["identify", "-format", "%m %G %g %z-bit %r", temp_ppm.name]
     )
 
     # To avoid piping one into the other. See
     # https://stackoverflow.com/questions/13332268/how-to-use-subprocess-command-with-pipes
-    with subprocess.Popen(("convert", "rose:", "-"), stdout=subprocess.PIPE) as rose:
+    with subprocess.Popen(
+        (config.CONVERT_COMMAND, "rose:", "-"), stdout=subprocess.PIPE
+    ) as rose:
         output = subprocess.check_output(("head", "-c", "-1K"), stdin=rose.stdout)
         rose.wait()
         temp_pnm.write(output)
@@ -849,7 +854,8 @@ def test_import_scan(
         nonlocal asserts
         with tempfile.NamedTemporaryFile(suffix=".ppm") as temp_ppm2:
             subprocess.run(
-                ["convert", slist.data[0][2].filename, temp_ppm2.name], check=True
+                [config.CONVERT_COMMAND, slist.data[0][2].filename, temp_ppm2.name],
+                check=True,
             )
             assert (
                 subprocess.check_output(

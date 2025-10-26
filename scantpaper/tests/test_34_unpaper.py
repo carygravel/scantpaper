@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import shutil
 import pytest
+import config
 from document import Document
 from unpaper import Unpaper
 import gi
@@ -146,7 +147,7 @@ def test_1():
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper(temp_pnm, import_in_mainloop, temp_db, clean_up_files):
+def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files):
     "Test unpaper"
 
     unpaper = Unpaper()
@@ -157,11 +158,12 @@ def test_unpaper(temp_pnm, import_in_mainloop, temp_db, clean_up_files):
     }
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
             "-size",
             "210x297",
             "-depth",
             "1",
+            "label:The quick brown fox",
             "-border",
             "2x2",
             "-bordercolor",
@@ -172,15 +174,14 @@ def test_unpaper(temp_pnm, import_in_mainloop, temp_db, clean_up_files):
             "12",
             "-density",
             "300",
-            "label:The quick brown fox",
-            temp_pnm.name,
+            temp_pbm.name,
         ],
         check=True,
     )
     slist = Document(db=temp_db.name)
     slist.set_paper_sizes(paper_sizes)
 
-    import_in_mainloop(slist, [temp_pnm.name])
+    import_in_mainloop(slist, [temp_pbm.name])
 
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of imported image"
@@ -226,7 +227,8 @@ def test_unpaper2(
     }
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
+            "label:The quick brown fox",
             "-size",
             "255x350",
             "-depth",
@@ -241,7 +243,6 @@ def test_unpaper2(
             "12",
             "-density",
             "300",
-            "label:The quick brown fox",
             temp_pnm.name,
         ],
         check=True,
@@ -294,7 +295,8 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     unpaper = Unpaper({"output-pages": 2, "layout": "double"})
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
+            "label:The quick brown fox",
             "-depth",
             "1",
             "-border",
@@ -307,14 +309,14 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
             "12",
             "-density",
             "300",
-            "label:The quick brown fox",
             "1.pnm",
         ],
         check=True,
     )
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
+            "label:The slower lazy dog",
             "-depth",
             "1",
             "-border",
@@ -327,14 +329,24 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
             "12",
             "-density",
             "300",
-            "label:The slower lazy dog",
             "2.pnm",
         ],
         check=True,
     )
-    subprocess.run(["convert", "-size", "100x100", "xc:black", "black.pnm"], check=True)
     subprocess.run(
-        ["convert", "1.pnm", "black.pnm", "2.pnm", "+append", temp_pnm.name], check=True
+        [config.CONVERT_COMMAND, "xc:black", "-size", "100x100", "black.pnm"],
+        check=True,
+    )
+    subprocess.run(
+        [
+            config.CONVERT_COMMAND,
+            "1.pnm",
+            "black.pnm",
+            "2.pnm",
+            "+append",
+            temp_pnm.name,
+        ],
+        check=True,
     )
     slist = Document(db=temp_db.name)
 
@@ -379,8 +391,10 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
     unpaper = Unpaper({"output-pages": 2, "layout": "double", "direction": "rtl"})
     subprocess.run(
         [
-            "convert",
-            "+matte",
+            config.CONVERT_COMMAND,
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
             "-depth",
             "1",
             "-border",
@@ -393,15 +407,16 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
             "12",
             "-density",
             "300",
-            "label:The quick brown fox",
             "1.pbm",
         ],
         check=True,
     )
     subprocess.run(
         [
-            "convert",
-            "+matte",
+            config.CONVERT_COMMAND,
+            "label:The slower lazy dog",
+            "-alpha",
+            "Off",
             "-depth",
             "1",
             "-border",
@@ -414,24 +429,23 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
             "12",
             "-density",
             "300",
-            "label:The slower lazy dog",
             "2.pbm",
         ],
         check=True,
     )
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
+            "xc:black",
             "-size",
             "100x100",
-            "xc:black",
             "black.pbm",
         ],
         check=True,
     )
     subprocess.run(
         [
-            "convert",
+            config.CONVERT_COMMAND,
             "1.pbm",
             "black.pbm",
             "2.pbm",
@@ -474,7 +488,7 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
             page.image_object.save(filename.name)
             out = subprocess.check_output(
                 [
-                    "convert",
+                    config.CONVERT_COMMAND,
                     filename.name,
                     "-depth",
                     "1",
@@ -486,7 +500,7 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
             )
         regex = re.search(r"gray\((\d{2,3}(\.\d+)?)%?\)", out)
         assert regex, f"valid PNM created for page {i+1}"
-        level.append(regex.group(1))
+        level.append(float(regex.group(1)))
     assert len(level) == 2 and level[1] > level[0], "rtl"
 
     #########################

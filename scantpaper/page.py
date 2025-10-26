@@ -8,6 +8,7 @@ import tempfile
 import uuid
 import logging
 from PIL import Image
+import config
 from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
 from bboxtree import Bboxtree
 from helpers import exec_command
@@ -482,7 +483,7 @@ class Page:
                     depth = ["-threshold", "40%", "-depth", "1"]
 
             cmd = [
-                "convert",
+                config.CONVERT_COMMAND,
                 infile.name,
                 "-units",
                 units,

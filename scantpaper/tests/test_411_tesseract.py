@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import pytest
 from gi.repository import GLib
+import config
 from document import Document
 from tesseract import languages, _iso639_1to3, locale_installed, get_tesseract_codes
 
@@ -42,8 +43,12 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_fil
     "Test importing PDF"
 
     args = [
-        "convert",
-        "+matte",
+        config.CONVERT_COMMAND,
+        "-density",
+        "300",
+        "label:The quick brown fox",
+        "-alpha",
+        "Off",
         "-depth",
         "1",
         "-colorspace",
@@ -52,9 +57,6 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_fil
         "DejaVu Sans",
         "-pointsize",
         "12",
-        "-density",
-        "300",
-        "label:The quick brown fox",
         temp_png.name,
     ]
     subprocess.run(args, check=True)

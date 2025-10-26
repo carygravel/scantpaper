@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import pytest
 from gi.repository import GLib
+import config
 from document import Document
 
 
@@ -152,8 +153,12 @@ def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
     "Test importing PDF"
 
     options = [
-        "convert",
-        "+matte",
+        config.CONVERT_COMMAND,
+        "-density",
+        "300",
+        "label:The quick brown fox",
+        "-alpha",
+        "Off",
         "-depth",
         "1",
         "-colorspace",
@@ -164,9 +169,6 @@ def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
         "DejaVu Sans",
         "-pointsize",
         "12",
-        "-density",
-        "300",
-        "label:The quick brown fox",
     ]
     subprocess.run(options + [temp_tif.name], check=True)
     subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)

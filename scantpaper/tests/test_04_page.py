@@ -4,6 +4,7 @@ import os
 import subprocess
 import tempfile
 from PIL import Image
+import config
 from const import VERSION
 from page import Page, _prepare_scale
 from gi.repository import GdkPixbuf
@@ -21,7 +22,8 @@ def test_1(temp_pnm, temp_jpg):
 
         # Create test image
         subprocess.run(
-            ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+            [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
+            check=True,
         )
         image_object = Image.new("RGB", (210, 297))
 
@@ -68,7 +70,7 @@ def test_1(temp_pnm, temp_jpg):
 
         subprocess.run(
             [
-                "convert",
+                config.CONVERT_COMMAND,
                 "-units",
                 "PixelsPerInch",
                 "-density",
@@ -87,7 +89,7 @@ def test_1(temp_pnm, temp_jpg):
 
         subprocess.run(
             [
-                "convert",
+                config.CONVERT_COMMAND,
                 "-units",
                 "PixelsPerCentimeter",
                 "-density",
@@ -106,7 +108,7 @@ def test_1(temp_pnm, temp_jpg):
 
         subprocess.run(
             [
-                "convert",
+                config.CONVERT_COMMAND,
                 "-units",
                 "Undefined",
                 "-density",
@@ -142,7 +144,8 @@ def test_2(temp_pnm):
     "Tests for Page class"
 
     subprocess.run(
-        ["convert", "-size", "210x297", "xc:white", temp_pnm.name], check=True
+        [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
+        check=True,
     )
 
     with tempfile.TemporaryDirectory() as dirname:
