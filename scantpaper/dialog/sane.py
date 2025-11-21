@@ -277,9 +277,11 @@ class SaneScanDialog(Scan):
         if val is not None and not opt.cap & enums.CAP_INACTIVE:
             widget.set_value(val)
 
-        def value_changed_spinbutton_cb():
+        def value_changed_spinbutton_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
             value = widget.get_value()
+            if opt.type == enums.TYPE_INT:
+                value = int(value)
             self.set_option(opt, value)
 
         widget.signal = widget.connect("value-changed", value_changed_spinbutton_cb)
