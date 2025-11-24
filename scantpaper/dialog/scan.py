@@ -1424,14 +1424,19 @@ def _edit_profile_callback(_widget, parent):
     msg, profile = None, None
     if (name is None) or name == "":
         msg = _("Editing current scan options")
-        profile = parent["current_scan_options"]
+        profile = parent.current_scan_options
 
     else:
         msg = _('Editing scan profile "%s"') % (name)
         profile = parent.profiles[name]
 
     dialog = Gtk.Dialog(
-        msg, parent, "destroy-with-parent", gtk_ok="ok", gtk_cancel="cancel"
+        title=msg,
+        transient_for=parent,
+        destroy_with_parent=True,
+    )
+    dialog.add_buttons(
+        _("OK"), Gtk.ResponseType.OK, _("Cancel"), Gtk.ResponseType.CANCEL
     )
     label = Gtk.Label(label=msg)
     dialog.get_content_area().pack_start(label, True, True, 0)
@@ -1441,11 +1446,11 @@ def _edit_profile_callback(_widget, parent):
     _build_profile_table(
         profile, parent.available_scan_options, dialog.get_content_area()
     )
-    dialog.set_default_response("ok")
+    dialog.set_default_response(Gtk.ResponseType.OK)
     dialog.show_all()
 
     # save the profile and reload
-    if dialog.run() == "ok":
+    if dialog.run() == Gtk.ResponseType.OK:
         if (name is None) or name == "":
             parent.set_current_scan_options(profile)
 
@@ -1490,7 +1495,7 @@ def _build_profile_table(profile, options, vbox):
 
     # listbox to align widgets
     listbox = Gtk.ListBox()
-    listbox.set_selection_mode("none")
+    listbox.set_selection_mode(Gtk.SelectionMode.NONE)
     frameb.add(listbox)
     for i in profile.each_backend_option():
         name, _val = profile.get_backend_option_by_index(i)
@@ -1513,7 +1518,7 @@ def _build_profile_table(profile, options, vbox):
         listbox.add(row)
 
     listbox = Gtk.ListBox()
-    listbox.set_selection_mode("none")
+    listbox.set_selection_mode(Gtk.SelectionMode.NONE)
     framef.add(listbox)
 
     for name in profile.each_frontend_option():
