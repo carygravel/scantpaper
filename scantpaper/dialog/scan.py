@@ -1393,16 +1393,20 @@ def _save_profile_callback(_widget, parent):
                 if name in parent.profiles:
                     warning = _("Profile '%s' exists. Overwrite?") % (name)
                     dialog2 = Gtk.Dialog(
-                        warning,
-                        dialog,
-                        "destroy-with-parent",
-                        gtk_ok="ok",
-                        gtk_cancel="cancel",
+                        title=warning,
+                        transient_for=dialog,
+                        destroy_with_parent=True,
+                    )
+                    dialog2.add_buttons(
+                        _("OK"),
+                        Gtk.ResponseType.OK,
+                        _("Cancel"),
+                        Gtk.ResponseType.CANCEL,
                     )
                     label = Gtk.Label(label=warning)
                     dialog2.get_content_area().add(label)
                     label.show()
-                    if dialog2.run() == "ok":
+                    if dialog2.run() == Gtk.ResponseType.OK:
                         parent.save_current_profile(entry.get_text())
                         flag = False
 
