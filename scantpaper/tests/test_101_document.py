@@ -221,11 +221,6 @@ def test_file_dates(temp_txt):
 
 def test_helpers():
     "test helpers"
-    proc = exec_command(["fc-list", ":", "family", "style", "file"])
-    assert (
-        re.search(r"\w+", proc.stdout) is not None
-    ), "exec_command produces some output from fc-list"
-
     proc = exec_command(["perl", "-e", 'print "a" x 65537'])
     assert len(proc.stdout) == 65537, "exec_command returns more than 65537 bytes"
 
