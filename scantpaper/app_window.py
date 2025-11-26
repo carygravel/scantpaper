@@ -112,7 +112,6 @@ class ApplicationWindow(
     _lockfd = None
     _pref_udt_cmbx = None
     _scan_udt_cmbx = None
-    _fonts = None
     slist = None
 
     # Temp::File object for PDF to be emailed

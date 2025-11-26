@@ -163,30 +163,6 @@ def show_message_dialog(**options):
         message_dialog.destroy()
 
 
-def parse_truetype_fonts(fclist):
-    "Build a look-up table of all true-type fonts installed"
-    fonts = {"by_file": {}, "by_family": {}}
-    regex_tailing_nl = re.compile(r"\n$")
-    regex_leading_space = re.compile(r"^\s+")
-    regex_tailing_comma = re.compile(r",.*$")
-    regex_leading_style = re.compile(r"^style=")
-    for font in fclist.split("\n"):
-        if re.search(r"ttf:[ ]", font):
-            file_family_style = font.split(":")
-            if len(file_family_style) == 3:
-                file, family, style = file_family_style
-                family = regex_leading_space.sub("", family)
-                family = regex_tailing_comma.sub("", family)
-                style = regex_tailing_nl.sub("", style)
-                style = regex_leading_style.sub("", style)
-                style = regex_tailing_comma.sub("", style)
-                fonts["by_file"][file] = (family, style)
-                if family not in fonts["by_family"]:
-                    fonts["by_family"][family] = {}
-                fonts["by_family"][family][style] = file
-    return fonts
-
-
 def get_tmp_dir(dirname, pattern):
     "If user selects session dir as tmp dir, return parent dir"
     if dirname is None:

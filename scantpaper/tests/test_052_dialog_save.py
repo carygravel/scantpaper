@@ -2,7 +2,6 @@
 
 from datetime import date, datetime, timedelta
 from dialog.save import Save
-from helpers import exec_command, parse_truetype_fonts
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -118,23 +117,3 @@ def test_now(mocker):
     assert (
         dialog.meta_datetime == now  # pylint: disable=comparison-with-callable
     ), "now"
-
-
-def test_fonts():
-    "test font functionality"
-    # Build a look-up table of all true-type fonts installed
-    proc = exec_command(["fc-list", ":", "family", "style", "file"])
-    fonts = parse_truetype_fonts(proc.stdout)
-
-    dialog = Save(
-        transient_for=Gtk.Window(),
-        image_types=[
-            ["pdf", "gif", "jpg", "png", "pnm", "ps", "tif", "txt", "hocr", "session"]
-        ],
-        ps_backends=[["libtiff", "pdf2ps", "pdftops"]],
-        available_fonts=fonts,
-        pdf_font="/does/not/exist",
-    )
-    dialog.add_image_type()
-    assert dialog.ps_backend == "pdftops", "default ps backend"
-    assert dialog.pdf_font != "/does/not/exist", "correct non-existant font"

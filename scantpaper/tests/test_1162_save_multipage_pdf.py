@@ -65,24 +65,6 @@ def test_save_multipage_pdf_with_utf8(
     "Test writing multipage PDF with utf8"
     num = 3  # number of pages
     files = [rose_pnm.name for i in range(num)]
-
-    # To avoid piping one into the other. See
-    # https://stackoverflow.com/questions/13332268/how-to-use-subprocess-command-with-pipes
-    options = {}
-    with subprocess.Popen(
-        ("fc-list", ":lang=ru", "file"), stdout=subprocess.PIPE
-    ) as fcl:
-        with subprocess.Popen(
-            ("grep", "ttf"), stdin=fcl.stdout, stdout=subprocess.PIPE
-        ) as grep:
-            options["font"] = subprocess.check_output(
-                ("head", "-n", "1"), stdin=grep.stdout, text=True
-            )
-            fcl.wait()
-            grep.wait()
-            options["font"] = options["font"].rstrip()
-            options["font"] = re.sub(r":\s*$", r"", options["font"], count=1)
-
     slist = Document()
 
     import_in_mainloop(slist, files)
@@ -104,7 +86,6 @@ def test_save_multipage_pdf_with_utf8(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=pages,
-        options={"options": options},
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging

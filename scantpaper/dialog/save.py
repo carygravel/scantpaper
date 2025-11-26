@@ -1,7 +1,6 @@
 "subclass dialog for save options"
 
 import datetime
-import pathlib
 import re
 from comboboxtext import ComboBoxText
 from dialog import Dialog
@@ -293,20 +292,11 @@ class Save(Dialog):
         nick="PDF compression",
         blurb="Currently selected PDF compression method",
     )
-    available_fonts = GObject.Property(
-        type=object, nick="Available fonts", blurb="Dict of true type fonts available"
-    )
     text_position = GObject.Property(
         type=str,
         default="behind",
         nick="Text position",
         blurb="Where to place the OCR output",
-    )
-    pdf_font = GObject.Property(
-        type=str,
-        default=None,
-        nick="PDF font",
-        blurb="Font with which to write hidden OCR layer of PDF",
     )
     can_encrypt_pdf = GObject.Property(
         type=bool,
@@ -725,7 +715,6 @@ class Save(Dialog):
         combot.connect("changed", ocr_position_changed_callback)
         combot.set_active_index(self.text_position)
         hbox.pack_end(combot, False, False, 0)
-        self.add_font_button(vboxp)
         if self.can_encrypt_pdf:
             passb = Gtk.Button(_("Encrypt PDF"))
             vboxp.pack_start(passb, True, True, 0)
@@ -807,79 +796,6 @@ class Save(Dialog):
             ]
         )
         passwin.show_all()
-
-    def add_font_button(self, vboxp):
-        "add font button"
-        # It would be nice to use a Gtk3::FontButton here, but as we can only use
-        # TTF, and we have to know the filename of the font, we must filter the
-        # list of fonts, and so we must use a Gtk3::FontChooserDialog
-        hboxf = Gtk.Box()
-        vboxp.pack_start(hboxf, True, True, 0)
-        label = Gtk.Label(label=_("Font for non-ASCII text"))
-        hboxf.pack_start(label, False, False, 0)
-        fontb = Gtk.Button(label="Font name goes here")
-        hboxf.pack_end(fontb, False, True, 0)
-        if (
-            self.pdf_font is None or not pathlib.Path(self.pdf_font).exists()
-        ) and self.available_fonts is not None:
-            self.pdf_font = list(self.available_fonts["by_file"].keys())[0]
-
-        if (
-            self.pdf_font is not None
-            and self.available_fonts is not None
-            and self.pdf_font in self.available_fonts["by_file"]
-        ):
-            family, style = self.available_fonts["by_file"][self.pdf_font]
-            fontb.set_label(f"{family} {style}")
-
-        else:
-            fontb.set_label(_("Core"))
-
-        def font_clicked_callback(_widget):
-            fontwin = Gtk.FontChooserDialog(
-                transient_for=self,
-            )
-
-            def font_filter_func(family, face):
-
-                family = family.get_name()
-                face = face.get_face_name()
-                if (
-                    family in self.available_fonts["by_family"]
-                    and face in self.available_fonts["by_family"][family]
-                ):
-                    return True
-                return False
-
-            fontwin.set_filter_func(font_filter_func)
-            if (
-                self.pdf_font is not None
-                and self.available_fonts is not None
-                and self.pdf_font in self.available_fonts["by_file"]
-            ):
-                family, style = self.available_fonts["by_file"][self.pdf_font]
-                font = family
-                if style is not None and style != "":
-                    font += f" {style}"
-
-                fontwin.set_font(font)
-
-            fontwin.show_all()
-            if fontwin.run() == "ok":
-                family = fontwin.get_font_family().get_name()
-                face = fontwin.get_font_face().get_face_name()
-                if (
-                    family in self.available_fonts["by_family"]
-                    and face in self.available_fonts["by_family"][family]
-                ):
-
-                    # also set local variable as a sort of cache
-                    self.pdf_font = self.available_fonts["by_family"][family][face]
-                    fontb.set_label(f"{family} {face}")
-
-            fontwin.destroy()
-
-        fontb.connect("clicked", font_clicked_callback)
 
     def update_config_dict(self, config):
         "update config based from instance metadata"

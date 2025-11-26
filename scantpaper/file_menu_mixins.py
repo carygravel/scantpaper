@@ -331,9 +331,7 @@ class FileMenuMixins:
             downsample_dpi=self.settings["downsample dpi"],
             downsample=self.settings["downsample"],
             pdf_compression=self.settings["pdf compression"],
-            available_fonts=self._fonts,
             text_position=self.settings["text_position"],
-            pdf_font=self.settings["pdf font"],
             can_encrypt_pdf="pdftk" in self._dependencies,
             tiff_compression=self.settings["tiff compression"],
         )
@@ -406,7 +404,6 @@ class FileMenuMixins:
             self.settings["pdf compression"] = self._windowi.pdf_compression
             self.settings["quality"] = self._windowi.jpeg_quality
             self.settings["text_position"] = self._windowi.text_position
-            self.settings["pdf font"] = self._windowi.pdf_font
             self._save_file_chooser(uuids)
         elif self.settings["image type"] == "djvu":
             self._windowi.update_config_dict(self.settings)
@@ -590,7 +587,6 @@ class FileMenuMixins:
             "downsample dpi": self.settings["downsample dpi"],
             "quality": self.settings["quality"],
             "text_position": self.settings["text_position"],
-            "font": self.settings["pdf font"],
             "user-password": self._windowi.pdf_user_password,
             "set_timestamp": self.settings["set_timestamp"],
             "convert whitespace to underscores": self.settings[

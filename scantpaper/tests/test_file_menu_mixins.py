@@ -81,7 +81,6 @@ class MockApp(
         self.session = unittest.mock.Mock()
         self.post_process_progress = unittest.mock.Mock()
         self._dependencies = {}
-        self._fonts = []
         self.print_settings = None
         self._configfile = None
         self._lockfd = None
@@ -145,7 +144,6 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
             "downsample dpi": 150,
             "quality": 80,
             "text_position": "above",
-            "pdf font": "Helvetica",
             "set_timestamp": True,
             "convert whitespace to underscores": True,
             "current_psh": "tool",
@@ -229,7 +227,6 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
                 self.session = unittest.mock.Mock()
                 self.post_process_progress = unittest.mock.Mock()
                 self._dependencies = {}
-                self._fonts = []
                 self.print_settings = None
                 self._configfile = None
                 self._lockfd = None
@@ -568,7 +565,6 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         app._windowi.pdf_compression = "jpeg"
         app._windowi.jpeg_quality = 80
         app._windowi.text_position = "above"
-        app._windowi.pdf_font = "Helvetica"
         app._windowi.comboboxpsh.get_active.return_value = 0
         app._windowi.comboboxpsh.get_active_text.return_value = "tool"
         app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
@@ -590,7 +586,6 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         assert app.settings["pdf compression"] == "jpeg"
         assert app.settings["quality"] == 80
         assert app.settings["text_position"] == "above"
-        assert app.settings["pdf font"] == "Helvetica"
         app._save_file_chooser.assert_called_with(["uuid1"])
 
     def test_save_button_clicked_callback_djvu(self, app):
@@ -1041,7 +1036,6 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
                 "downsample dpi": 150,
                 "quality": 80,
                 "text_position": "above",
-                "font": "Helvetica",
                 "user-password": "password",
                 "set_timestamp": True,
                 "convert whitespace to underscores": True,

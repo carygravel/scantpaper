@@ -28,7 +28,6 @@ from helpers import (
     Proc,
     expand_metadata_pattern,
     collate_metadata,
-    parse_truetype_fonts,
 )
 
 gi.require_version("Gtk", "3.0")
@@ -553,17 +552,6 @@ def test_helpers():
     assert (
         proc.stderr == "[Errno 2] No such file or directory: '/command/not/found'"
     ), "stderr running unknown command"
-
-
-def test_parse_truetype_fonts():
-    "test parse_truetype_fonts()"
-    fclist = """/usr/share/fonts/Cairo-Light.ttf: Cairo,Cairo Light:style=Light,Regular
-/usr/share/fonts/FaustinaVFBeta-Italic.ttf: Faustina VF Beta
-"""
-    assert parse_truetype_fonts(fclist) == {
-        "by_family": {"Cairo": {"Light": "/usr/share/fonts/Cairo-Light.ttf"}},
-        "by_file": {"/usr/share/fonts/Cairo-Light.ttf": ("Cairo", "Light")},
-    }, "parse_truetype_fonts() only returns fonts for which we have a style"
 
 
 def test_bbox2markup():

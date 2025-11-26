@@ -20,7 +20,7 @@ from const import (
     SELECTORDRAGGER_TOOL,
 )
 from dialog import filter_message, response_stored
-from helpers import get_tmp_dir, program_version, exec_command, parse_truetype_fonts
+from helpers import get_tmp_dir, program_version, exec_command
 from i18n import _
 from simplelist import SimpleList
 from text_layer_control import TextLayerControls
@@ -320,10 +320,6 @@ class SessionMixins:
             self._ocr_engine.append(
                 ["tesseract", _("Tesseract"), _("Process image with Tesseract.")]
             )
-
-        # Build a look-up table of all true-type fonts installed
-        proc = exec_command(["fc-list", ":", "family", "style", "file"])
-        self._fonts = parse_truetype_fonts(proc.stdout)
 
     def _finished_process_callback(self, widget, process, button_signal=None):
         "Callback function to handle the completion of a process."

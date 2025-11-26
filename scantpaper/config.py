@@ -50,7 +50,6 @@ DEFAULTS = {
     "pdf compression": "auto",
     "tiff compression": None,
     "text_position": "behind",
-    "pdf font": None,
     "quality": 75,
     "image type": None,
     "device": None,

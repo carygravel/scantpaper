@@ -392,24 +392,6 @@ def test_save_pdf_with_utf8(
     rose_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
     "Test writing PDF with utf8 in text layer"
-    options = {}
-
-    # To avoid piping one into the other. See
-    # https://stackoverflow.com/questions/13332268/how-to-use-subprocess-command-with-pipes
-    with subprocess.Popen(
-        ("fc-list", ":lang=ru", "file"), stdout=subprocess.PIPE
-    ) as fcl:
-        with subprocess.Popen(
-            ("grep", "ttf"), stdin=fcl.stdout, stdout=subprocess.PIPE
-        ) as grep:
-            options["font"] = subprocess.check_output(
-                ("head", "-n", "1"), stdin=grep.stdout, text=True
-            )
-            fcl.wait()
-            grep.wait()
-            options["font"] = options["font"].rstrip()
-            options["font"] = re.sub(r":\s*$", r"", options["font"], count=1)
-
     slist = Document()
 
     import_in_mainloop(slist, [rose_pnm.name])
@@ -428,7 +410,6 @@ def test_save_pdf_with_utf8(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
-        options={"options": options},
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
@@ -507,58 +488,6 @@ def test_save_pdf_with_1bpp(
     #########################
 
     clean_up_files(slist.thread.db_files + glob.glob("x-000.p*m"))
-
-
-@pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_without_font(
-    rose_pnm,
-    temp_db,
-    temp_pdf,
-    import_in_mainloop,
-    set_text_in_mainloop,
-    clean_up_files,
-):
-    "Test writing PDF with non-existing font"
-    slist = Document(db=temp_db.name)
-
-    import_in_mainloop(slist, [rose_pnm.name])
-
-    set_text_in_mainloop(
-        slist,
-        1,
-        '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
-        '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
-        '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "äöü", "depth": 3}]',
-    )
-    asserts = 0
-
-    def error_callback(response):
-        nonlocal asserts
-        assert response.info == "Save file", "expected process"
-        assert (
-            response.status == "Unable to find font 'removed'. Defaulting to core font."
-        ), "expected error message"
-        asserts += 1
-
-    mlp = GLib.MainLoop()
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[slist.data[0][2]],
-        options={"options": {"font": "removed"}},
-        error_callback=error_callback,
-        finished_callback=lambda response: mlp.quit(),
-    )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    mlp.run()
-
-    out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
-    assert re.search(r"äöü", out) is not None, "PDF with expected text"
-    assert asserts == 1, "ran all callbacks"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
