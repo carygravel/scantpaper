@@ -1,8 +1,10 @@
 "test scan dialog"
 
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 import pytest
 from dialog.sane import SaneScanDialog
+from frontend.enums import TYPE_INT
 from scanner.options import Options
 from scanner.profile import Profile
 
@@ -963,3 +965,34 @@ def test_empty_device_list(mocker, sane_scan_dialog, mainloop_with_timeout):
 
     loop.run()
     assert asserts == 2, "all callbacks runs"
+
+
+def test_integer_spinbutton(sane_scan_dialog, set_device_wait_reload):
+    "test that integer spinbuttons pass integer values"
+
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "test:0")
+
+    # Now, after setup, we can mock set_option and interact with widgets
+    dialog.set_option = MagicMock()
+
+    # find an integer spinbutton
+    opt = None
+    for i in range(dialog.available_scan_options.num_options()):
+        current_opt = dialog.available_scan_options.by_index(i)
+        if current_opt.type == TYPE_INT and isinstance(current_opt.constraint, tuple):
+            opt = current_opt
+            break
+    assert opt is not None, "Could not find an integer spinbutton option"
+
+    widget = dialog.option_widgets[opt.name]
+
+    # Set a new value to trigger the value-changed signal
+    # This should be the *only* call that leads to set_option being called
+    widget.set_value(51.0)
+
+    dialog.set_option.assert_called_once()
+    args, _kwargs = dialog.set_option.call_args
+    assert args[0].name == opt.name
+    assert isinstance(args[1], int)
+    dialog.thread.quit()
