@@ -4,6 +4,7 @@ import re
 from copy import copy
 import logging
 from gi.repository import Gdk, Gtk, GObject
+from . import Dialog
 from comboboxtext import ComboBoxText
 from dialog.paperlist import PaperList
 from dialog.pagecontrols import PageControls, MAX_PAGES
