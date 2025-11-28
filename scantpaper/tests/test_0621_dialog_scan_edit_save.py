@@ -57,6 +57,8 @@ sane_mock = Sane()
 class TestScan(Scan):
     "Test-friendly Scan class"
 
+    __test__ = False
+
     def __init__(self, *args, **kwargs):
         self.thread = MagicMock()
         self.thread.device_handle = MagicMock()
