@@ -4,7 +4,6 @@ import re
 from copy import copy
 import logging
 from gi.repository import Gdk, Gtk, GObject
-from . import Dialog
 from comboboxtext import ComboBoxText
 from dialog.paperlist import PaperList
 from dialog.pagecontrols import PageControls, MAX_PAGES
@@ -13,6 +12,7 @@ from scanner.options import Options, within_tolerance
 from i18n import _, d_sane
 from const import POINTS_PER_INCH
 from frontend import enums
+from . import Dialog
 
 PAPER_TOLERANCE = 1
 OPTION_TOLERANCE = 0.001
@@ -677,15 +677,15 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         }
         current["x"] = current["l"] + options.val("br-x", self.thread.device_handle)
         current["y"] = current["t"] + options.val("br-y", self.thread.device_handle)
-        for fmt in formats:
+        for name, value in formats.items():
             match = True
             for edge in ["l", "t", "x", "y"]:
-                if formats[fmt][edge] != current[edge]:
+                if value[edge] != current[edge]:
                     match = False
                     break
 
             if match:
-                return fmt
+                return name
         return None
 
     def _update_options(self, new_options):
