@@ -3,9 +3,9 @@
 from collections import defaultdict
 import datetime
 import os
-import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 from PIL import Image
@@ -221,8 +221,8 @@ def test_file_dates(temp_txt):
 
 def test_helpers():
     "test helpers"
-    proc = exec_command(["perl", "-e", 'print "a" x 65537'])
-    assert len(proc.stdout) == 65537, "exec_command returns more than 65537 bytes"
+    proc = exec_command([sys.executable, "-c", 'print("a" * 65537)'])
+    assert len(proc.stdout) == 65538, "exec_command returns more than 65536 bytes"
 
     #########################
 
