@@ -90,49 +90,51 @@ def test_edit_profile_dialog(mocker, available_scan_options):
     )
 
 
-@pytest.mark.skip(reason="does not work with the current mocking setup")
 def test_save_profile_overwrite_dialog(mocker):
     """
     Tests that the save profile overwrite dialog is created with the correct buttons.
     This covers changes from commit 1bd730e.
     """
-    parent = TestScan(document=MagicMock(), device="test")
+    parent = MagicMock(spec=Gtk.Window)
     parent.profiles = {"MyProfile": {}}
     parent.save_current_profile = MagicMock()
 
-    name_dialog_mock = MagicMock()
-
-    run_count = 0
-
-    def run_side_effect(*_args, **_kwargs):
-        nonlocal run_count
-        if run_count == 0:
-            run_count += 1
-            return Gtk.ResponseType.OK
-        return Gtk.ResponseType.CANCEL
-
-    name_dialog_mock.run.side_effect = run_side_effect
-
-    entry_mock = MagicMock()
+    entry_mock = MagicMock(spec=Gtk.Entry)
     entry_mock.get_text.return_value = "MyProfile"
-    name_dialog_mock.get_content_area.return_value.get_children.return_value = [
-        entry_mock
-    ]
+    mocker.patch("dialog.scan.Gtk.Entry", return_value=entry_mock)
+    mocker.patch("dialog.scan.Gtk.Box", return_value=MagicMock(spec=Gtk.Box))
+    mocker.patch("dialog.scan.Gtk.Label", return_value=MagicMock(spec=Gtk.Label))
+    # i18n is not initialised, so we have to mock this
+    mocker.patch("dialog.scan._", side_effect=lambda s: s)
 
-    overwrite_dialog_mock = MagicMock()
+    name_dialog_mock = MagicMock(spec=Gtk.Dialog)
+    overwrite_dialog_mock = MagicMock(spec=Gtk.Dialog)
+
+    # First call to run() on name_dialog returns OK, second returns CANCEL to exit loop.
+    name_dialog_mock.run.side_effect = [Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL]
     overwrite_dialog_mock.run.return_value = Gtk.ResponseType.OK
 
     def dialog_side_effect(*_args, **kwargs):
-        if "exists. Overwrite" in kwargs.get("title", ""):
+        if "exists. Overwrite?" in kwargs.get("title", ""):
             return overwrite_dialog_mock
         return name_dialog_mock
 
-    mocker.patch("dialog.scan.Gtk.Dialog", side_effect=dialog_side_effect)
+    dialog_mock = mocker.patch("dialog.scan.Gtk.Dialog", side_effect=dialog_side_effect)
 
     _save_profile_callback(None, parent)
 
-    assert overwrite_dialog_mock.add_buttons.called
-    overwrite_dialog_mock.add_buttons.assert_called_once_with(
-        "OK", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL
+    assert dialog_mock.call_count == 2
+    assert "Name of scan profile" in dialog_mock.call_args_list[0][0]
+    assert (
+        "Profile 'MyProfile' exists. Overwrite?"
+        in dialog_mock.call_args_list[1][1]["title"]
     )
+
+    overwrite_dialog_mock.add_buttons.assert_called_once_with(
+        "OK",
+        Gtk.ResponseType.OK,
+        "Cancel",
+        Gtk.ResponseType.CANCEL,
+    )
+
     parent.save_current_profile.assert_called_once_with("MyProfile")

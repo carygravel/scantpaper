@@ -1426,7 +1426,7 @@ def _edit_profile_callback(_widget, parent):
 
     name = parent.profile
     msg, profile = None, None
-    if (name is None) or name == "":
+    if name is None or name == "":
         msg = _("Editing current scan options")
         profile = parent.current_scan_options
 
