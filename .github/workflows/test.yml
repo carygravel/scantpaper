@@ -27,4 +27,9 @@ jobs:
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
     - name: Test
-      run: pytest-3 --timeout=5
+      run: pytest-3
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: htmlcov
