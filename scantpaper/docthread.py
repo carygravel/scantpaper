@@ -7,6 +7,7 @@ import re
 import os
 import subprocess
 import datetime
+import glob
 import tempfile
 import sqlite3
 import threading
@@ -1139,7 +1140,10 @@ class DocThread(SaveThread):
         if self.cancel:
             raise CancelledError()
 
-        with tesserocr.PyTessBaseAPI(lang=options["language"]) as api:
+        paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
+        if not paths:
+            request.error(_("tessdata directory not found"))
+        with tesserocr.PyTessBaseAPI(lang=options["language"], path=paths[-1]) as api:
             output = "image_out"
             api.SetVariable("tessedit_create_hocr", "T")
             api.SetVariable("hocr_font_info", "T")
