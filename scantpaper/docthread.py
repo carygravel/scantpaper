@@ -1140,6 +1140,8 @@ class DocThread(SaveThread):
         if self.cancel:
             raise CancelledError()
 
+        # path argument required by tesserocr v2.9.1;
+        # otherwise current directory is searched for tesseract files
         paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
         if not paths:
             request.error(_("tessdata directory not found"))
