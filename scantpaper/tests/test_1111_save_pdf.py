@@ -375,8 +375,8 @@ def test_save_pdf_with_hocr(
     #     is not None, 'import annotations'
 
     capture = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
-    assert re.search(
-        r"The.*quick.*brown.*fox", capture, re.DOTALL
+    assert re.search(  # some tesseract installations find an extra "r"
+        r"Thr?e.*quick.*brown.*fox", capture, re.DOTALL
     ), "PDF with expected text"
     # capture = subprocess.check_output(["cat", temp_pdf.name], text=True)
     # assert re.search(r"/Type\s/Annot\s/Subtype\s/Highlight\s/C.+/Contents.+fox",
@@ -683,8 +683,8 @@ def test_save_pdf_with_sbs_hocr(
     mlp.run()
 
     example = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
-    assert re.search(
-        r"The.*quick.*brown.*fox", example, re.DOTALL
+    assert re.search(  # some tesseract installations find an extra "r"
+        r"Thr?e.*quick.*brown.*fox", example, re.DOTALL
     ), "PDF with expected text"
 
     import_in_mainloop(slist, [temp_pdf.name])
