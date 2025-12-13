@@ -1140,12 +1140,18 @@ class DocThread(SaveThread):
         if self.cancel:
             raise CancelledError()
 
-        # path argument required by tesserocr v2.9.1;
+        # path argument required for systems where tessdata non-standard or not hardcoded;
         # otherwise current directory is searched for tesseract files
-        paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
-        if not paths:
-            request.error(_("tessdata directory not found"))
-        with tesserocr.PyTessBaseAPI(lang=options["language"], path=paths[-1]) as api:
+        path, _languages = tesserocr.get_languages()
+        if path == "./":
+
+            # some systems allow multiple tessdata dirs, e.g. parallel v4 & v5
+            paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
+            if len(paths) == 0:
+                request.error(_("tessdata directory not found"))
+            else:
+                path = paths[0]
+        with tesserocr.PyTessBaseAPI(lang=options["language"], path=path) as api:
             output = "image_out"
             api.SetVariable("tessedit_create_hocr", "T")
             api.SetVariable("hocr_font_info", "T")
