@@ -481,27 +481,38 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
 
     assert asserts == 2, "all callbacks run"
 
-    level = []
+    def level_for_file(name):
+        return subprocess.check_output(
+            [
+                config.CONVERT_COMMAND,
+                name,
+                "-depth",
+                "1",
+                "-resize",
+                "1x1",
+                "txt:-",
+            ],
+            text=True,
+        )
+
+    in_level = []
+    out_level = []
     for i in [0, 1]:
+        out = level_for_file(f"{i+1}.pbm")
+        regex = re.search(r"gray\((\d{2,3}(\.\d+)?)%?\)", out)
+        in_level.append(float(regex.group(1)))
         with tempfile.NamedTemporaryFile(suffix=".pnm") as filename:
             page = slist.thread.get_page(number=i + 1)
             page.image_object.save(filename.name)
-            out = subprocess.check_output(
-                [
-                    config.CONVERT_COMMAND,
-                    filename.name,
-                    "-depth",
-                    "1",
-                    "-resize",
-                    "1x1",
-                    "txt:-",
-                ],
-                text=True,
-            )
+            out = level_for_file(filename.name)
         regex = re.search(r"gray\((\d{2,3}(\.\d+)?)%?\)", out)
         assert regex, f"valid PNM created for page {i+1}"
-        level.append(float(regex.group(1)))
-    assert len(level) == 2 and level[1] > level[0], "rtl"
+        out_level.append(float(regex.group(1)))
+    assert (
+        len(in_level) == 2
+        and len(out_level) == 2
+        and ((in_level[0] > in_level[1]) == (out_level[1] > out_level[0]))
+    ), "rtl"
 
     #########################
 
