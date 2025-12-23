@@ -1,17 +1,16 @@
-"Test rotating"
+"Test Document tools"
 
 import re
 import subprocess
-import gi
-
-gi.require_version("Gtk", "3.0")  # Added
-from gi.repository import GLib, Gtk  # Modified
 from PIL import Image
 import pytest
 from document import Document
 import config
 from const import VERSION
-from tools_menu_mixins import ToolsMenuMixins  # Added
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib  # pylint: disable=wrong-import-position
 
 
 def test_rotate(
@@ -548,42 +547,3 @@ def test_brightness_contrast(
     #########################
 
     clean_up_files(slist.thread.db_files)
-
-
-def test_about_dialog_runs(mocker):
-    "Test that ToolsMenuMixins.about runs without error"
-
-    # Mock the Gtk.AboutDialog to avoid GUI interaction
-    mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
-
-    # Mock GdkPixbuf.Pixbuf.new_from_file to prevent file loading errors
-    mocker.patch("gi.repository.GdkPixbuf.Pixbuf.new_from_file")
-
-    # The 'about' method needs a 'self' that is a Gtk.Window
-    # and has a get_application().iconpath
-    mock_app = mocker.Mock()
-    mock_app.iconpath = "."
-
-    class TestContainer(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
-
-        def get_application(self):
-            "mock"
-            return mock_app
-
-    container = TestContainer()
-
-    # Call the method from the mixin on our container instance
-    container.about(None, None)
-
-    # Check that the dialog was created and shown
-    mock_about_dialog.assert_called_once()
-    instance = mock_about_dialog.return_value
-    instance.run.assert_called_once()
-    instance.destroy.assert_called_once()
-
-    # Check a few key properties were set
-    instance.set_program_name.assert_called()
-    instance.set_version.assert_called()
-    instance.set_website.assert_called()
-    instance.set_logo.assert_called()
