@@ -486,6 +486,74 @@ def test_crop_dialog(mocker):
     mock_window.destroy()
 
 
+def test_crop_dialog_selection_change(mocker):
+    "Test that selection changes in crop dialog update settings and view"
+
+    mock_crop_cls = mocker.patch("tools_menu_mixins.Crop")
+    mock_crop_instance = mock_crop_cls.return_value
+    mock_crop_instance.page_range = "selected"
+
+    # The method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        _windowc = None
+        _current_page = None
+        view = None
+        slist = None
+        settings = {"selection": None}
+        _error_callback = None
+        post_process_progress = None
+        _display_callback = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    mock_window = MockWindow()
+    mock_page = mocker.patch.object(mock_window, "_current_page")
+    mocker.patch.object(mock_page, "get_size", return_value=(100, 50))
+    mock_view = mocker.patch.object(mock_window, "view")
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.get_page_index.return_value = [0]
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+
+    # Call the method
+    mock_window.crop_dialog(None, None)
+
+    # Retrieve the callback
+    # connect is called with ("changed-selection", on_changed_selection)
+    # We iterate over call_args_list to find it.
+    on_changed_selection = None
+    for call in mock_crop_instance.connect.call_args_list:
+        if call[0][0] == "changed-selection":
+            on_changed_selection = call[0][1]
+            break
+
+    assert on_changed_selection is not None, "Could not find changed-selection callback"
+
+    # Simulate selection change
+    mock_selection = mocker.Mock()
+    mock_selection.copy.return_value = mock_selection  # Mock copy() to return self
+
+    # Call the callback
+    on_changed_selection(None, mock_selection)
+
+    # Verify settings updated
+    assert mock_window.settings["selection"] == mock_selection
+
+    # Verify view selection updated
+    # view.handler_block/unblock are called around set_selection
+    mock_view.handler_block.assert_called()
+    mock_view.set_selection.assert_called_with(mock_selection)
+    mock_view.handler_unblock.assert_called()
+
+    mock_window.destroy()
+
+
 def test_split_dialog(mocker):
     "Test the split dialog"
 
