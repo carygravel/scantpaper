@@ -278,18 +278,19 @@ class ToolsMenuMixins:
             hbox.pack_end(row[col], True, True, 0)
             grid.attach(hbox, col, i, 1, 1)
             col += 1
-            if col in row:
+            if len(row) > col and row[col] is not None:
                 hbox = Gtk.Box()
                 grid.attach(hbox, col, i, 1, 1)
                 label = Gtk.Label(label=row[col])
                 hbox.pack_start(label, False, True, 0)
 
             col += 1
-            if col in row:
+            if len(row) > col and row[col] is not None:
                 row[1].set_value(row[col])
 
             col += 1
-            row[1].set_tooltip_text(row[col])
+            if len(row) > col and row[col] is not None:
+                row[1].set_tooltip_text(row[col])
 
         def unsharp_callback():
             self.settings["unsharp radius"] = spinbuttonr.get_value()
