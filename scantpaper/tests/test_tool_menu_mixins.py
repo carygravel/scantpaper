@@ -7,47 +7,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-def test_about_dialog_runs(mocker):
-    "Test that ToolsMenuMixins.about runs without error"
-
-    # Mock the Gtk.AboutDialog to avoid GUI interaction
-    mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
-
-    # Mock GdkPixbuf.Pixbuf.new_from_file to prevent file loading errors
-    mocker.patch("gi.repository.GdkPixbuf.Pixbuf.new_from_file")
-
-    # The 'about' method needs a 'self' that is a Gtk.Window
-    # and has a get_application().iconpath
-    mock_app = mocker.Mock()
-    mock_app.iconpath = "."
-
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    container = MockWindow()
-
-    # Call the method from the mixin on our container instance
-    container.about(None, None)
-
-    # Check that the dialog was created and shown
-    mock_about_dialog.assert_called_once()
-    instance = mock_about_dialog.return_value
-    instance.run.assert_called_once()
-    instance.destroy.assert_called_once()
-
-    # Check a few key properties were set
-    instance.set_program_name.assert_called()
-    instance.set_version.assert_called()
-    instance.set_website.assert_called()
-    instance.set_logo.assert_called()
-
-    container.destroy()
-
-
 def test_threshold_dialog(mocker):
     "Test the threshold dialog"
 
@@ -654,3 +613,139 @@ def test_user_defined_dialog(mocker):
     assert call_kwargs["page"] == "pageobject"
 
     mock_window.destroy()
+
+
+def test_email_dialog(mocker):
+    "Test the email dialog"
+
+    import datetime  # pylint: disable=import-outside-toplevel
+
+    mock_save_dialog_cls = mocker.patch("tools_menu_mixins.SaveDialog")
+    mock_save_dialog_instance = mock_save_dialog_cls.return_value
+    mock_save_dialog_instance.pdf_user_password = "password"
+    mock_save_dialog_instance.page_range = "all"
+    mock_save_dialog_instance.downsample = False
+    mock_save_dialog_instance.downsample_dpi = 300
+    mock_save_dialog_instance.pdf_compression = "auto"
+    mock_save_dialog_instance.jpeg_quality = 75
+    mock_save_dialog_instance.meta_datetime = "now"
+
+    mocker.patch("tools_menu_mixins.expand_metadata_pattern", return_value="doc")
+    mocker.patch("tools_menu_mixins.collate_metadata", return_value={})
+
+    # The 'email' method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        _windowe = None
+        slist = None
+        settings = {
+            "Page range": "all",
+            "use_time": True,
+            "datetime offset": datetime.timedelta(0),
+            "title": "Title",
+            "title-suggestions": [],
+            "author": "Author",
+            "author-suggestions": [],
+            "subject": "Subject",
+            "subject-suggestions": [],
+            "keywords": "Keywords",
+            "keywords-suggestions": [],
+            "quality": 75,
+            "downsample dpi": 300,
+            "downsample": False,
+            "pdf compression": "auto",
+            "text_position": "hidden",
+            "default filename": "doc",
+            "convert whitespace to underscores": True,
+        }
+        _error_callback = None
+        post_process_progress = None
+        _display_callback = None
+        _dependencies = {}
+        session = mocker.Mock()
+        session.name = "session_name"
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+        def _list_of_page_uuids(self):
+            return ["uuid1", "uuid2"]
+
+    mock_window = MockWindow()
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+
+    # Call the method from the mixin on our container instance
+    mock_window.email(None, None)
+
+    # We expect SaveDialog to be instantiated
+    mock_save_dialog_cls.assert_called()
+
+    # We expect add_actions to be called. We need to retrieve the apply callback
+    args, _kwargs = mock_save_dialog_instance.add_actions.call_args
+    actions = args[0]
+    apply_callback = None
+    for action_name, callback in actions:
+        if action_name == "gtk-ok":
+            apply_callback = callback
+            break
+
+    assert apply_callback is not None, "Could not find gtk-ok callback"
+
+    # Simulate clicking apply
+    apply_callback()
+
+    # Verify that slist.save_pdf was called
+    mock_slist.save_pdf.assert_called_once()
+    call_kwargs = mock_slist.save_pdf.call_args[1]
+    assert call_kwargs["path"] == "session_name/doc.pdf"
+    assert call_kwargs["list_of_pages"] == ["uuid1", "uuid2"]
+    assert call_kwargs["options"]["user-password"] == "password"
+
+    mock_window.destroy()
+
+
+def test_about_dialog_runs(mocker):
+    "Test that ToolsMenuMixins.about runs without error"
+
+    # Mock the Gtk.AboutDialog to avoid GUI interaction
+    mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
+
+    # Mock GdkPixbuf.Pixbuf.new_from_file to prevent file loading errors
+    mocker.patch("gi.repository.GdkPixbuf.Pixbuf.new_from_file")
+
+    # The 'about' method needs a 'self' that is a Gtk.Window
+    # and has a get_application().iconpath
+    mock_app = mocker.Mock()
+    mock_app.iconpath = "."
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    container = MockWindow()
+
+    # Call the method from the mixin on our container instance
+    container.about(None, None)
+
+    # Check that the dialog was created and shown
+    mock_about_dialog.assert_called_once()
+    instance = mock_about_dialog.return_value
+    instance.run.assert_called_once()
+    instance.destroy.assert_called_once()
+
+    # Check a few key properties were set
+    instance.set_program_name.assert_called()
+    instance.set_version.assert_called()
+    instance.set_website.assert_called()
+    instance.set_logo.assert_called()
+
+    container.destroy()
