@@ -51,6 +51,8 @@ def test_about_dialog_runs(mocker):
 def test_split_dialog(mocker):
     "Test the split dialog"
 
+    mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
     # The 'split_dialog' method needs a 'self' that is a Gtk.Window
     mock_app = mocker.Mock()
 
@@ -81,11 +83,87 @@ def test_split_dialog(mocker):
     # Call the method from the mixin on our container instance
     mock_window.split_dialog(None, None)
 
-    split_dialog = mock_window._windowsp
-    assert split_dialog is not None, "split_dialog"
+    # We expect Dialog to be instantiated
+    mock_dialog_cls.assert_called()
 
-    # apply
-    split_dialog.response(Gtk.ResponseType.OK)
+    # We expect add_actions to be called. We need to retrieve the apply callback
+    # passed to add_actions to simulate clicking 'OK'.
+    # add_actions is called with a list of tuples: [("gtk-apply", cb), ("gtk-cancel", cb)]
+    args, _kwargs = mock_dialog_instance.add_actions.call_args
+    actions = args[0]
+    apply_callback = None
+    for action_name, callback in actions:
+        if action_name == "gtk-apply":
+            apply_callback = callback
+            break
+
+    assert apply_callback is not None, "Could not find gtk-apply callback"
+
+    # Simulate clicking apply
+    apply_callback()
     mock_slist.split_page.assert_called_once()
+
+    mock_window.destroy()
+
+
+def test_threshold_dialog(mocker):
+    "Test the threshold dialog"
+
+    mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    # mock get_content_area
+    mock_vbox = mocker.Mock()
+    mock_dialog_instance.get_content_area.return_value = mock_vbox
+
+    # The 'threshold' method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        slist = None
+        settings = {"threshold tool": 50}
+        _error_callback = None
+        post_process_progress = None
+        _display_callback = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    mock_window = MockWindow()
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.get_page_index.return_value = [0]
+    mock_slist.data = [[0, 0, "uuid"]]
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+
+    # Call the method from the mixin on our container instance
+    mock_window.threshold(None, None)
+
+    # We expect Dialog to be instantiated
+    mock_dialog_cls.assert_called()
+
+    # We expect add_actions to be called. We need to retrieve the apply callback
+    # passed to add_actions to simulate clicking 'OK'.
+    # add_actions is called with a list of tuples: [("gtk-apply", cb), ("gtk-cancel", cb)]
+    args, _kwargs = mock_dialog_instance.add_actions.call_args
+    actions = args[0]
+    apply_callback = None
+    for action_name, callback in actions:
+        if action_name == "gtk-apply":
+            apply_callback = callback
+            break
+
+    assert apply_callback is not None, "Could not find gtk-apply callback"
+
+    # Simulate clicking apply
+    apply_callback()
+
+    # Verify that slist.threshold was called
+    mock_slist.threshold.assert_called_once()
+    call_kwargs = mock_slist.threshold.call_args[1]
+    assert call_kwargs["threshold"] == 50
+    assert call_kwargs["page"] == "uuid"
 
     mock_window.destroy()

@@ -402,16 +402,16 @@ class ToolsMenuMixins:
         #        return;
         #    }
 
-        self._windowsp = Dialog(
+        windowsp = Dialog(
             transient_for=self,
             title=_("Split"),
             hide_on_delete=True,
         )
 
         # Frame for page range
-        self._windowsp.add_page_range()
+        windowsp.add_page_range()
         hbox = Gtk.Box()
-        vbox = self._windowsp.get_content_area()
+        vbox = windowsp.get_content_area()
         vbox.pack_start(hbox, False, False, 0)
         label = Gtk.Label(label=_("Direction"))
         hbox.pack_start(label, False, True, 0)
@@ -472,7 +472,7 @@ class ToolsMenuMixins:
         def split_apply_callback():
             self.settings["split-direction"] = direction[combob.get_active()][0]
             self.settings["split-position"] = sb_pos.get_value()
-            self.settings["Page range"] = self._windowsp.page_range
+            self.settings["Page range"] = windowsp.page_range
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self._error_callback
             )
@@ -499,9 +499,9 @@ class ToolsMenuMixins:
 
         def split_cancel_callback():
             self.view.disconnect(self.view.position_changed_signal)
-            self._windowsp.destroy()
+            windowsp.destroy()
 
-        self._windowsp.add_actions(
+        windowsp.add_actions(
             [
                 ("gtk-apply", split_apply_callback),
                 (
@@ -512,7 +512,7 @@ class ToolsMenuMixins:
                 ),
             ]
         )
-        self._windowsp.show_all()
+        windowsp.show_all()
 
     def _update_view_position(self, direction, position, width, height):
         "Updates the view's selection rectangle based on the given direction and dimensions."
