@@ -359,3 +359,78 @@ def test_unsharp(mocker):
     assert call_kwargs["page"] == "uuid"
 
     mock_window.destroy()
+
+
+def test_crop_dialog(mocker):
+    "Test the crop dialog"
+
+    mock_crop_cls = mocker.patch("tools_menu_mixins.Crop")
+    mock_crop_instance = mock_crop_cls.return_value
+    mock_crop_instance.page_range = "selected"
+
+    # The 'crop_dialog' method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        _windowc = None
+        _current_page = None
+        view = None
+        slist = None
+        settings = {"selection": None}
+        _error_callback = None
+        post_process_progress = None
+        _display_callback = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    mock_window = MockWindow()
+    mock_page = mocker.patch.object(mock_window, "_current_page")
+    mocker.patch.object(mock_page, "get_size", return_value=(100, 50))
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.get_page_index.return_value = [0]
+    mock_slist.data = [[0, 0, "uuid"]]
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+
+    # Set up selection
+    mock_selection = mocker.Mock()
+    mock_selection.x = 10
+    mock_selection.y = 10
+    mock_selection.width = 50
+    mock_selection.height = 50
+    mock_window.settings["selection"] = mock_selection
+
+    # Call the method from the mixin on our container instance
+    mock_window.crop_dialog(None, None)
+
+    # We expect Crop to be instantiated
+    mock_crop_cls.assert_called()
+
+    # We expect add_actions to be called. We need to retrieve the apply callback
+    args, _kwargs = mock_crop_instance.add_actions.call_args
+    actions = args[0]
+    apply_callback = None
+    for action_name, callback in actions:
+        if action_name == "gtk-apply":
+            apply_callback = callback
+            break
+
+    assert apply_callback is not None, "Could not find gtk-apply callback"
+
+    # Simulate clicking apply
+    apply_callback()
+
+    # Verify that slist.crop was called
+    mock_slist.crop.assert_called_once()
+    call_kwargs = mock_slist.crop.call_args[1]
+    assert call_kwargs["x"] == 10
+    assert call_kwargs["y"] == 10
+    assert call_kwargs["w"] == 50
+    assert call_kwargs["h"] == 50
+    assert call_kwargs["page"] == "uuid"
+
+    mock_window.destroy()
