@@ -586,3 +586,71 @@ def test_ocr_dialog(mocker):
     assert call_kwargs["pages"] == ["pageobject"]
 
     mock_window.destroy()
+
+
+def test_user_defined_dialog(mocker):
+    "Test the user_defined_dialog"
+
+    mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    # mock get_content_area
+    mock_vbox = mocker.Mock()
+    mock_dialog_instance.get_content_area.return_value = mock_vbox
+
+    # The 'user_defined_dialog' method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        slist = None
+        settings = {"current_udt": "", "Page range": "selected"}
+        _error_callback = None
+        post_process_progress = None
+        _display_callback = None
+        _pref_udt_cmbx = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+        def _add_udt_combobox(self, _hbox):
+            return self._pref_udt_cmbx
+
+    mock_window = MockWindow()
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.get_page_index.return_value = [0]
+    mock_slist.indices2pages.return_value = ["pageobject"]
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+    mock_combobox = mocker.Mock()
+    mock_combobox.get_active_text.return_value = "my-tool"
+    mock_window._pref_udt_cmbx = mock_combobox
+
+    # Call the method from the mixin on our container instance
+    mock_window.user_defined_dialog(None, None)
+
+    # We expect Dialog to be instantiated
+    mock_dialog_cls.assert_called()
+
+    # We expect add_actions to be called. We need to retrieve the apply callback
+    args, _kwargs = mock_dialog_instance.add_actions.call_args
+    actions = args[0]
+    apply_callback = None
+    for action_name, callback in actions:
+        if action_name == "gtk-ok":
+            apply_callback = callback
+            break
+
+    assert apply_callback is not None, "Could not find gtk-ok callback"
+
+    # Simulate clicking apply
+    apply_callback()
+
+    # Verify that slist.user_defined was called
+    mock_slist.user_defined.assert_called_once()
+    call_kwargs = mock_slist.user_defined.call_args[1]
+    assert call_kwargs["command"] == "my-tool"
+    assert call_kwargs["page"] == "pageobject"
+
+    mock_window.destroy()
