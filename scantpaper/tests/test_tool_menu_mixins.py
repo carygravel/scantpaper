@@ -7,6 +7,155 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
+def test_rotate_90(mocker):
+    "Test rotate_90"
+
+    from const import _90_DEGREES  # pylint: disable=import-outside-toplevel
+
+    # The method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        slist = None
+        post_process_progress = None
+        _display_callback = None
+        _error_callback = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    mock_window = MockWindow()
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.get_selected_indices.return_value = [0]
+    mock_slist.indices2pages.return_value = ["pageobject"]
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+
+    mock_window.rotate_90(None, None)
+
+    mock_slist.rotate.assert_called_once()
+    call_kwargs = mock_slist.rotate.call_args[1]
+    assert call_kwargs["angle"] == -_90_DEGREES
+    assert call_kwargs["page"] == "pageobject"
+
+    mock_window.destroy()
+
+
+def test_rotate_180(mocker):
+    "Test rotate_180"
+
+    from const import _180_DEGREES  # pylint: disable=import-outside-toplevel
+
+    # The method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        slist = None
+        post_process_progress = None
+        _display_callback = None
+        _error_callback = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    mock_window = MockWindow()
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.get_selected_indices.return_value = [0]
+    mock_slist.indices2pages.return_value = ["pageobject"]
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+
+    mock_window.rotate_180(None, None)
+
+    mock_slist.rotate.assert_called_once()
+    call_kwargs = mock_slist.rotate.call_args[1]
+    assert call_kwargs["angle"] == _180_DEGREES
+    assert call_kwargs["page"] == "pageobject"
+
+    mock_window.destroy()
+
+
+def test_rotate_270(mocker):
+    "Test rotate_270"
+
+    from const import _90_DEGREES  # pylint: disable=import-outside-toplevel
+
+    # The method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        slist = None
+        post_process_progress = None
+        _display_callback = None
+        _error_callback = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    mock_window = MockWindow()
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.get_selected_indices.return_value = [0]
+    mock_slist.indices2pages.return_value = ["pageobject"]
+    mocker.patch.object(mock_window, "post_process_progress")
+    mocker.patch.object(mock_window, "_display_callback")
+
+    mock_window.rotate_270(None, None)
+
+    mock_slist.rotate.assert_called_once()
+    call_kwargs = mock_slist.rotate.call_args[1]
+    assert call_kwargs["angle"] == _90_DEGREES
+    assert call_kwargs["page"] == "pageobject"
+
+    mock_window.destroy()
+
+
+def test_ocr_display_callback(mocker):
+    "Test _ocr_display_callback"
+
+    # The method needs a 'self' that is a Gtk.Window
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        slist = None
+        post_process_progress = None
+        _display_callback = None
+        _error_callback = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+        def _create_txt_canvas(self, page_uuid):
+            pass
+
+    mock_window = MockWindow()
+    mock_slist = mocker.patch.object(mock_window, "slist")
+    mock_slist.find_page_by_uuid.return_value = 0
+    mock_slist.get_selected_indices.return_value = [0]
+    mock_slist.data = [[None, None, "uuid"]]
+    mocker.patch.object(mock_window, "_create_txt_canvas")
+
+    mock_response = mocker.Mock()
+    mock_response.request.args = [{"page": "uuid"}]
+
+    mock_window._ocr_display_callback(mock_response)
+
+    mock_window._create_txt_canvas.assert_called_once_with("uuid")
+
+    mock_window.destroy()
+
+
 def test_threshold_dialog(mocker):
     "Test the threshold dialog"
 
