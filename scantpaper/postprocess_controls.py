@@ -324,6 +324,7 @@ class OCRControls(Gtk.Box):
         combobox.set_active_index(self.language)
         if not combobox.get_active_index():
             combobox.set_active(0)
+            self.language = combobox.get_active_index()
         combobox.connect("changed", self.on_language_changed)
         hbox.pack_end(combobox, False, True, 0)
         return hbox
