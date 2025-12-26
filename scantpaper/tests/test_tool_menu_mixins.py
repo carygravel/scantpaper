@@ -1,202 +1,141 @@
 "Test tool_menu_mixins.py"
 
+import pytest
 from tools_menu_mixins import ToolsMenuMixins
 import gi
+
+# pylint: disable=redefined-outer-name, protected-access
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-def test_rotate_90(mocker):
+@pytest.fixture
+def mock_tool_window(mocker):
+    "Fixture to provide a configured MockWindow"
+    mock_app = mocker.Mock()
+
+    class MockWindow(Gtk.Window, ToolsMenuMixins):
+        "Test class to hold mixin"
+
+        slist = None
+        post_process_progress = None
+        _display_callback = None
+        _error_callback = None
+        settings = {}
+
+        # Attributes often used across tests, defined here to avoid AttributeError
+        _windowc = None
+        _windowu = None
+        _windowo = None
+        _windowe = None
+        _current_page = None
+        view = None
+        _unpaper = None
+        _ocr_engine = None
+        _pref_udt_cmbx = None
+        _dependencies = {}
+        session = None
+
+        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+            "mock"
+            return mock_app
+
+    # Instantiate
+    window = MockWindow()
+
+    # Common mocks
+    window.slist = mocker.MagicMock()
+    window.post_process_progress = mocker.Mock()
+    window._display_callback = mocker.Mock()
+    window._error_callback = mocker.Mock()
+
+    yield window
+
+    window.destroy()
+
+
+def test_rotate_90(mock_tool_window):
     "Test rotate_90"
 
     from const import _90_DEGREES  # pylint: disable=import-outside-toplevel
 
-    # The method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.slist.get_selected_indices.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.rotate_90(None, None)
 
-        slist = None
-        post_process_progress = None
-        _display_callback = None
-        _error_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_selected_indices.return_value = [0]
-    mock_slist.indices2pages.return_value = ["pageobject"]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    mock_window.rotate_90(None, None)
-
-    mock_slist.rotate.assert_called_once()
-    call_kwargs = mock_slist.rotate.call_args[1]
+    mock_tool_window.slist.rotate.assert_called_once()
+    call_kwargs = mock_tool_window.slist.rotate.call_args[1]
     assert call_kwargs["angle"] == -_90_DEGREES
     assert call_kwargs["page"] == "pageobject"
 
-    mock_window.destroy()
 
-
-def test_rotate_180(mocker):
+def test_rotate_180(mock_tool_window):
     "Test rotate_180"
 
     from const import _180_DEGREES  # pylint: disable=import-outside-toplevel
 
-    # The method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.slist.get_selected_indices.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.rotate_180(None, None)
 
-        slist = None
-        post_process_progress = None
-        _display_callback = None
-        _error_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_selected_indices.return_value = [0]
-    mock_slist.indices2pages.return_value = ["pageobject"]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    mock_window.rotate_180(None, None)
-
-    mock_slist.rotate.assert_called_once()
-    call_kwargs = mock_slist.rotate.call_args[1]
+    mock_tool_window.slist.rotate.assert_called_once()
+    call_kwargs = mock_tool_window.slist.rotate.call_args[1]
     assert call_kwargs["angle"] == _180_DEGREES
     assert call_kwargs["page"] == "pageobject"
 
-    mock_window.destroy()
 
-
-def test_rotate_270(mocker):
+def test_rotate_270(mock_tool_window):
     "Test rotate_270"
 
     from const import _90_DEGREES  # pylint: disable=import-outside-toplevel
 
-    # The method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.slist.get_selected_indices.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.rotate_270(None, None)
 
-        slist = None
-        post_process_progress = None
-        _display_callback = None
-        _error_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_selected_indices.return_value = [0]
-    mock_slist.indices2pages.return_value = ["pageobject"]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    mock_window.rotate_270(None, None)
-
-    mock_slist.rotate.assert_called_once()
-    call_kwargs = mock_slist.rotate.call_args[1]
+    mock_tool_window.slist.rotate.assert_called_once()
+    call_kwargs = mock_tool_window.slist.rotate.call_args[1]
     assert call_kwargs["angle"] == _90_DEGREES
     assert call_kwargs["page"] == "pageobject"
 
-    mock_window.destroy()
 
-
-def test_ocr_display_callback(mocker):
+def test_ocr_display_callback(mocker, mock_tool_window):
     "Test _ocr_display_callback"
 
-    # The method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.slist.find_page_by_uuid.return_value = 0
+    mock_tool_window.slist.get_selected_indices.return_value = [0]
+    mock_tool_window.slist.data = [[None, None, "uuid"]]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
-
-        slist = None
-        post_process_progress = None
-        _display_callback = None
-        _error_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-        def _create_txt_canvas(self, page_uuid):
-            pass
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.find_page_by_uuid.return_value = 0
-    mock_slist.get_selected_indices.return_value = [0]
-    mock_slist.data = [[None, None, "uuid"]]
-    mocker.patch.object(mock_window, "_create_txt_canvas")
+    mock_tool_window._create_txt_canvas = mocker.Mock()
 
     mock_response = mocker.Mock()
     mock_response.request.args = [{"page": "uuid"}]
 
-    mock_window._ocr_display_callback(mock_response)
+    mock_tool_window._ocr_display_callback(mock_response)
 
-    mock_window._create_txt_canvas.assert_called_once_with("uuid")
-
-    mock_window.destroy()
+    mock_tool_window._create_txt_canvas.assert_called_once_with("uuid")
 
 
-def test_threshold_dialog(mocker):
+def test_threshold_dialog(mocker, mock_tool_window):
     "Test the threshold dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # mock get_content_area
     mock_vbox = mocker.Mock()
     mock_dialog_instance.get_content_area.return_value = mock_vbox
 
-    # The 'threshold' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {"threshold tool": 50}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.data = [[0, 0, "uuid"]]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.threshold(None, None)
 
-        slist = None
-        settings = {"threshold tool": 50}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.data = [[0, 0, "uuid"]]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Call the method from the mixin on our container instance
-    mock_window.threshold(None, None)
-
-    # We expect Dialog to be instantiated
     mock_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
-    # passed to add_actions to simulate clicking 'OK'.
-    # add_actions is called with a list of tuples: [("gtk-apply", cb), ("gtk-cancel", cb)]
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -207,58 +146,30 @@ def test_threshold_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-apply callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.threshold was called
-    mock_slist.threshold.assert_called_once()
-    call_kwargs = mock_slist.threshold.call_args[1]
+    mock_tool_window.slist.threshold.assert_called_once()
+    call_kwargs = mock_tool_window.slist.threshold.call_args[1]
     assert call_kwargs["threshold"] == 50
     assert call_kwargs["page"] == "uuid"
 
-    mock_window.destroy()
 
-
-def test_brightness_contrast_dialog(mocker):
+def test_brightness_contrast_dialog(mocker, mock_tool_window):
     "Test the brightness_contrast dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # mock get_content_area
     mock_vbox = mocker.Mock()
     mock_dialog_instance.get_content_area.return_value = mock_vbox
 
-    # The 'brightness_contrast' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {"brightness tool": 20, "contrast tool": 30}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.data = [[0, 0, "uuid"]]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.brightness_contrast(None, None)
 
-        slist = None
-        settings = {"brightness tool": 20, "contrast tool": 30}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.data = [[0, 0, "uuid"]]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Call the method from the mixin on our container instance
-    mock_window.brightness_contrast(None, None)
-
-    # We expect Dialog to be instantiated
     mock_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
-    # passed to add_actions to simulate clicking 'OK'.
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -269,59 +180,31 @@ def test_brightness_contrast_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-apply callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.brightness_contrast was called
-    mock_slist.brightness_contrast.assert_called_once()
-    call_kwargs = mock_slist.brightness_contrast.call_args[1]
+    mock_tool_window.slist.brightness_contrast.assert_called_once()
+    call_kwargs = mock_tool_window.slist.brightness_contrast.call_args[1]
     assert call_kwargs["brightness"] == 20
     assert call_kwargs["contrast"] == 30
     assert call_kwargs["page"] == "uuid"
 
-    mock_window.destroy()
 
-
-def test_negate_dialog(mocker):
+def test_negate_dialog(mocker, mock_tool_window):
     "Test the negate dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # mock get_content_area
     mock_vbox = mocker.Mock()
     mock_dialog_instance.get_content_area.return_value = mock_vbox
 
-    # The 'negate' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {"Page range": "selected"}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.data = [[0, 0, "uuid"]]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.negate(None, None)
 
-        slist = None
-        settings = {"Page range": "selected"}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.data = [[0, 0, "uuid"]]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Call the method from the mixin on our container instance
-    mock_window.negate(None, None)
-
-    # We expect Dialog to be instantiated
     mock_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
-    # passed to add_actions to simulate clicking 'OK'.
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -332,61 +215,34 @@ def test_negate_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-apply callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.negate was called
-    mock_slist.negate.assert_called_once()
-    call_kwargs = mock_slist.negate.call_args[1]
+    mock_tool_window.slist.negate.assert_called_once()
+    call_kwargs = mock_tool_window.slist.negate.call_args[1]
     assert call_kwargs["page"] == "uuid"
 
-    mock_window.destroy()
 
-
-def test_unsharp(mocker):
+def test_unsharp(mocker, mock_tool_window):
     "Test the unsharp dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # mock get_content_area
     mock_vbox = mocker.Mock()
     mock_dialog_instance.get_content_area.return_value = mock_vbox
 
-    # The 'unsharp' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {
+        "unsharp radius": 5.0,
+        "unsharp percentage": 100,
+        "unsharp threshold": 10,
+        "Page range": "selected",
+    }
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.data = [[0, 0, "uuid"]]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.unsharp(None, None)
 
-        slist = None
-        settings = {
-            "unsharp radius": 5.0,
-            "unsharp percentage": 100,
-            "unsharp threshold": 10,
-            "Page range": "selected",
-        }
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.data = [[0, 0, "uuid"]]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Call the method from the mixin on our container instance
-    mock_window.unsharp(None, None)
-
-    # We expect Dialog to be instantiated
     mock_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -397,70 +253,41 @@ def test_unsharp(mocker):
 
     assert apply_callback is not None, "Could not find gtk-apply callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.unsharp was called
-    mock_slist.unsharp.assert_called_once()
-    call_kwargs = mock_slist.unsharp.call_args[1]
+    mock_tool_window.slist.unsharp.assert_called_once()
+    call_kwargs = mock_tool_window.slist.unsharp.call_args[1]
     assert call_kwargs["radius"] == 5.0
     assert call_kwargs["percent"] == 100
     assert call_kwargs["threshold"] == 10
     assert call_kwargs["page"] == "uuid"
 
-    mock_window.destroy()
 
-
-def test_crop_dialog(mocker):
+def test_crop_dialog(mocker, mock_tool_window):
     "Test the crop dialog"
 
     mock_crop_cls = mocker.patch("tools_menu_mixins.Crop")
     mock_crop_instance = mock_crop_cls.return_value
     mock_crop_instance.page_range = "selected"
 
-    # The 'crop_dialog' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_page = mocker.Mock()
+    mock_page.get_size.return_value = (100, 50)
+    mock_tool_window._current_page = mock_page
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.data = [[0, 0, "uuid"]]
 
-        _windowc = None
-        _current_page = None
-        view = None
-        slist = None
-        settings = {"selection": None}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_page = mocker.patch.object(mock_window, "_current_page")
-    mocker.patch.object(mock_page, "get_size", return_value=(100, 50))
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.data = [[0, 0, "uuid"]]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Set up selection
     mock_selection = mocker.Mock()
     mock_selection.x = 10
     mock_selection.y = 10
     mock_selection.width = 50
     mock_selection.height = 50
-    mock_window.settings["selection"] = mock_selection
+    mock_tool_window.settings = {"selection": mock_selection}
 
-    # Call the method from the mixin on our container instance
-    mock_window.crop_dialog(None, None)
+    mock_tool_window.crop_dialog(None, None)
 
-    # We expect Crop to be instantiated
     mock_crop_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
     args, _kwargs = mock_crop_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -471,62 +298,34 @@ def test_crop_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-apply callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.crop was called
-    mock_slist.crop.assert_called_once()
-    call_kwargs = mock_slist.crop.call_args[1]
+    mock_tool_window.slist.crop.assert_called_once()
+    call_kwargs = mock_tool_window.slist.crop.call_args[1]
     assert call_kwargs["x"] == 10
     assert call_kwargs["y"] == 10
     assert call_kwargs["w"] == 50
     assert call_kwargs["h"] == 50
     assert call_kwargs["page"] == "uuid"
 
-    mock_window.destroy()
 
-
-def test_crop_dialog_selection_change(mocker):
+def test_crop_dialog_selection_change(mocker, mock_tool_window):
     "Test that selection changes in crop dialog update settings and view"
 
     mock_crop_cls = mocker.patch("tools_menu_mixins.Crop")
     mock_crop_instance = mock_crop_cls.return_value
     mock_crop_instance.page_range = "selected"
 
-    # The method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_page = mocker.Mock()
+    mock_page.get_size.return_value = (100, 50)
+    mock_tool_window._current_page = mock_page
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.view = mocker.Mock()
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.settings = {"selection": None}
 
-        _windowc = None
-        _current_page = None
-        view = None
-        slist = None
-        settings = {"selection": None}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
+    mock_tool_window.crop_dialog(None, None)
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_page = mocker.patch.object(mock_window, "_current_page")
-    mocker.patch.object(mock_page, "get_size", return_value=(100, 50))
-    mock_view = mocker.patch.object(mock_window, "view")
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Call the method
-    mock_window.crop_dialog(None, None)
-
-    # Retrieve the callback
-    # connect is called with ("changed-selection", on_changed_selection)
-    # We iterate over call_args_list to find it.
     on_changed_selection = None
     for call in mock_crop_instance.connect.call_args_list:
         if call[0][0] == "changed-selection":
@@ -535,66 +334,36 @@ def test_crop_dialog_selection_change(mocker):
 
     assert on_changed_selection is not None, "Could not find changed-selection callback"
 
-    # Simulate selection change
     mock_selection = mocker.Mock()
-    mock_selection.copy.return_value = mock_selection  # Mock copy() to return self
+    mock_selection.copy.return_value = mock_selection
 
-    # Call the callback
     on_changed_selection(None, mock_selection)
 
-    # Verify settings updated
-    assert mock_window.settings["selection"] == mock_selection
+    assert mock_tool_window.settings["selection"] == mock_selection
 
-    # Verify view selection updated
-    # view.handler_block/unblock are called around set_selection
-    mock_view.handler_block.assert_called()
-    mock_view.set_selection.assert_called_with(mock_selection)
-    mock_view.handler_unblock.assert_called()
-
-    mock_window.destroy()
+    mock_tool_window.view.handler_block.assert_called()
+    mock_tool_window.view.set_selection.assert_called_with(mock_selection)
+    mock_tool_window.view.handler_unblock.assert_called()
 
 
-def test_split_dialog(mocker):
+def test_split_dialog(mocker, mock_tool_window):
     "Test the split dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # The 'split_dialog' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_page = mocker.Mock()
+    mock_page.get_size.return_value = (100, 50)
+    mock_tool_window._current_page = mock_page
 
-        _current_page = None
-        view = None
-        slist = None
-        settings = {}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
+    mock_tool_window.view = mocker.Mock()
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.settings = {}
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
+    mock_tool_window.split_dialog(None, None)
 
-    mock_window = MockWindow()
-    mock_page = mocker.patch.object(mock_window, "_current_page")
-    mocker.patch.object(mock_page, "get_size", return_value=(100, 50))
-    mocker.patch.object(mock_window, "view")
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Call the method from the mixin on our container instance
-    mock_window.split_dialog(None, None)
-
-    # We expect Dialog to be instantiated
     mock_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
-    # passed to add_actions to simulate clicking 'OK'.
-    # add_actions is called with a list of tuples: [("gtk-apply", cb), ("gtk-cancel", cb)]
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -605,58 +374,32 @@ def test_split_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-apply callback"
 
-    # Simulate clicking apply
     apply_callback()
-    mock_slist.split_page.assert_called_once()
-
-    mock_window.destroy()
+    mock_tool_window.slist.split_page.assert_called_once()
 
 
-def test_unpaper_dialog(mocker):
+def test_unpaper_dialog(mocker, mock_tool_window):
     "Test the unpaper dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # mock get_content_area
     mock_vbox = mocker.Mock()
     mock_dialog_instance.get_content_area.return_value = mock_vbox
 
-    # The 'unpaper_dialog' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
-
-        _windowu = None
-        slist = None
-        settings = {}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-        _unpaper = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.indices2pages.return_value = ["pageobject"]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-    mock_unpaper = mocker.patch.object(mock_window, "_unpaper")
+    mock_unpaper = mocker.Mock()
     mock_unpaper.get_options.return_value = {}
     mock_unpaper.get_cmdline.return_value = ["unpaper"]
     mock_unpaper.get_option.return_value = "direction"
+    mock_tool_window._unpaper = mock_unpaper
 
-    # Call the method from the mixin on our container instance
-    mock_window.unpaper_dialog(None, None)
+    mock_tool_window.unpaper_dialog(None, None)
 
-    # We expect Dialog to be instantiated
     mock_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -667,29 +410,23 @@ def test_unpaper_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-ok callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.unpaper was called
-    mock_slist.unpaper.assert_called_once()
-    call_kwargs = mock_slist.unpaper.call_args[1]
+    mock_tool_window.slist.unpaper.assert_called_once()
+    call_kwargs = mock_tool_window.slist.unpaper.call_args[1]
     assert call_kwargs["options"]["command"] == ["unpaper"]
     assert call_kwargs["options"]["direction"] == "direction"
     assert call_kwargs["page"] == "pageobject"
 
-    mock_window.destroy()
 
-
-def test_ocr_dialog(mocker):
+def test_ocr_dialog(mocker, mock_tool_window):
     "Test the ocr dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # mock get_content_area
     mock_vbox = mocker.Mock()
     mock_dialog_instance.get_content_area.return_value = mock_vbox
 
-    # Mock OCRControls
     mock_ocr_controls_cls = mocker.patch("tools_menu_mixins.OCRControls")
     mock_ocr_controls_instance = mock_ocr_controls_cls.return_value
     mock_ocr_controls_instance.engine = "tesseract"
@@ -697,49 +434,25 @@ def test_ocr_dialog(mocker):
     mock_ocr_controls_instance.threshold = True
     mock_ocr_controls_instance.threshold_value = 50
 
-    # The 'ocr_dialog' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {
+        "ocr engine": "tesseract",
+        "ocr language": "eng",
+        "OCR on scan": False,
+        "threshold-before-ocr": False,
+        "threshold tool": 0,
+    }
+    mock_tool_window._ocr_engine = ["tesseract"]
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window._ocr_finished_callback = mocker.Mock()
+    mock_tool_window._ocr_display_callback = mocker.Mock()
 
-        _windowo = None
-        slist = None
-        settings = {
-            "ocr engine": "tesseract",
-            "ocr language": "eng",
-            "OCR on scan": False,
-            "threshold-before-ocr": False,
-            "threshold tool": 0,
-        }
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-        _ocr_engine = ["tesseract"]
+    mock_tool_window.ocr_dialog(None, None)
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.indices2pages.return_value = ["pageobject"]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-    mocker.patch.object(mock_window, "_ocr_finished_callback")
-    mocker.patch.object(mock_window, "_ocr_display_callback")
-
-    # Call the method from the mixin on our container instance
-    mock_window.ocr_dialog(None, None)
-
-    # We expect Dialog to be instantiated
     mock_dialog_cls.assert_called()
-
-    # We expect OCRControls to be instantiated
     mock_ocr_controls_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -750,66 +463,39 @@ def test_ocr_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-ok callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.ocr_pages was called
-    mock_slist.ocr_pages.assert_called_once()
-    call_kwargs = mock_slist.ocr_pages.call_args[1]
+    mock_tool_window.slist.ocr_pages.assert_called_once()
+    call_kwargs = mock_tool_window.slist.ocr_pages.call_args[1]
     assert call_kwargs["engine"] == "tesseract"
     assert call_kwargs["language"] == "eng"
     assert call_kwargs["threshold"] == 50
     assert call_kwargs["pages"] == ["pageobject"]
 
-    mock_window.destroy()
 
-
-def test_user_defined_dialog(mocker):
+def test_user_defined_dialog(mocker, mock_tool_window):
     "Test the user_defined_dialog"
 
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
-    # mock get_content_area
     mock_vbox = mocker.Mock()
     mock_dialog_instance.get_content_area.return_value = mock_vbox
 
-    # The 'user_defined_dialog' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {"current_udt": "", "Page range": "selected"}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
-
-        slist = None
-        settings = {"current_udt": "", "Page range": "selected"}
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-        _pref_udt_cmbx = None
-
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-        def _add_udt_combobox(self, _hbox):
-            return self._pref_udt_cmbx
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mock_slist.get_page_index.return_value = [0]
-    mock_slist.indices2pages.return_value = ["pageobject"]
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
     mock_combobox = mocker.Mock()
     mock_combobox.get_active_text.return_value = "my-tool"
-    mock_window._pref_udt_cmbx = mock_combobox
+    mock_tool_window._pref_udt_cmbx = mock_combobox
 
-    # Call the method from the mixin on our container instance
-    mock_window.user_defined_dialog(None, None)
+    # We can inject the method
+    mock_tool_window._add_udt_combobox = lambda _hbox: mock_tool_window._pref_udt_cmbx
 
-    # We expect Dialog to be instantiated
+    mock_tool_window.user_defined_dialog(None, None)
+
     mock_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -820,19 +506,15 @@ def test_user_defined_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-ok callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.user_defined was called
-    mock_slist.user_defined.assert_called_once()
-    call_kwargs = mock_slist.user_defined.call_args[1]
+    mock_tool_window.slist.user_defined.assert_called_once()
+    call_kwargs = mock_tool_window.slist.user_defined.call_args[1]
     assert call_kwargs["command"] == "my-tool"
     assert call_kwargs["page"] == "pageobject"
 
-    mock_window.destroy()
 
-
-def test_email_dialog(mocker):
+def test_email_dialog(mocker, mock_tool_window):
     "Test the email dialog"
 
     import datetime  # pylint: disable=import-outside-toplevel
@@ -850,60 +532,35 @@ def test_email_dialog(mocker):
     mocker.patch("tools_menu_mixins.expand_metadata_pattern", return_value="doc")
     mocker.patch("tools_menu_mixins.collate_metadata", return_value={})
 
-    # The 'email' method needs a 'self' that is a Gtk.Window
-    mock_app = mocker.Mock()
+    mock_tool_window.settings = {
+        "Page range": "all",
+        "use_time": True,
+        "datetime offset": datetime.timedelta(0),
+        "title": "Title",
+        "title-suggestions": [],
+        "author": "Author",
+        "author-suggestions": [],
+        "subject": "Subject",
+        "subject-suggestions": [],
+        "keywords": "Keywords",
+        "keywords-suggestions": [],
+        "quality": 75,
+        "downsample dpi": 300,
+        "downsample": False,
+        "pdf compression": "auto",
+        "text_position": "hidden",
+        "default filename": "doc",
+        "convert whitespace to underscores": True,
+    }
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.session = mocker.Mock()
+    mock_tool_window.session.name = "session_name"
+    mock_tool_window._list_of_page_uuids = mocker.Mock(return_value=["uuid1", "uuid2"])
 
-        _windowe = None
-        slist = None
-        settings = {
-            "Page range": "all",
-            "use_time": True,
-            "datetime offset": datetime.timedelta(0),
-            "title": "Title",
-            "title-suggestions": [],
-            "author": "Author",
-            "author-suggestions": [],
-            "subject": "Subject",
-            "subject-suggestions": [],
-            "keywords": "Keywords",
-            "keywords-suggestions": [],
-            "quality": 75,
-            "downsample dpi": 300,
-            "downsample": False,
-            "pdf compression": "auto",
-            "text_position": "hidden",
-            "default filename": "doc",
-            "convert whitespace to underscores": True,
-        }
-        _error_callback = None
-        post_process_progress = None
-        _display_callback = None
-        _dependencies = {}
-        session = mocker.Mock()
-        session.name = "session_name"
+    mock_tool_window.email(None, None)
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-        def _list_of_page_uuids(self):
-            return ["uuid1", "uuid2"]
-
-    mock_window = MockWindow()
-    mock_slist = mocker.patch.object(mock_window, "slist")
-    mocker.patch.object(mock_window, "post_process_progress")
-    mocker.patch.object(mock_window, "_display_callback")
-
-    # Call the method from the mixin on our container instance
-    mock_window.email(None, None)
-
-    # We expect SaveDialog to be instantiated
     mock_save_dialog_cls.assert_called()
 
-    # We expect add_actions to be called. We need to retrieve the apply callback
     args, _kwargs = mock_save_dialog_instance.add_actions.call_args
     actions = args[0]
     apply_callback = None
@@ -914,55 +571,31 @@ def test_email_dialog(mocker):
 
     assert apply_callback is not None, "Could not find gtk-ok callback"
 
-    # Simulate clicking apply
     apply_callback()
 
-    # Verify that slist.save_pdf was called
-    mock_slist.save_pdf.assert_called_once()
-    call_kwargs = mock_slist.save_pdf.call_args[1]
+    mock_tool_window.slist.save_pdf.assert_called_once()
+    call_kwargs = mock_tool_window.slist.save_pdf.call_args[1]
     assert call_kwargs["path"] == "session_name/doc.pdf"
     assert call_kwargs["list_of_pages"] == ["uuid1", "uuid2"]
     assert call_kwargs["options"]["user-password"] == "password"
 
-    mock_window.destroy()
 
-
-def test_about_dialog_runs(mocker):
+def test_about_dialog_runs(mocker, mock_tool_window):
     "Test that ToolsMenuMixins.about runs without error"
 
-    # Mock the Gtk.AboutDialog to avoid GUI interaction
     mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
-
-    # Mock GdkPixbuf.Pixbuf.new_from_file to prevent file loading errors
     mocker.patch("gi.repository.GdkPixbuf.Pixbuf.new_from_file")
 
-    # The 'about' method needs a 'self' that is a Gtk.Window
-    # and has a get_application().iconpath
-    mock_app = mocker.Mock()
-    mock_app.iconpath = "."
+    mock_tool_window.get_application().iconpath = "."
 
-    class MockWindow(Gtk.Window, ToolsMenuMixins):
-        "Test class to hold mixin"
+    mock_tool_window.about(None, None)
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
-    container = MockWindow()
-
-    # Call the method from the mixin on our container instance
-    container.about(None, None)
-
-    # Check that the dialog was created and shown
     mock_about_dialog.assert_called_once()
     instance = mock_about_dialog.return_value
     instance.run.assert_called_once()
     instance.destroy.assert_called_once()
 
-    # Check a few key properties were set
     instance.set_program_name.assert_called()
     instance.set_version.assert_called()
     instance.set_website.assert_called()
     instance.set_logo.assert_called()
-
-    container.destroy()
