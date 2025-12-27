@@ -546,7 +546,7 @@
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Scan document</property>
             <property name="action_name">win.scan</property>
-            <property name="stock_id">scanner</property>
+            <property name="icon-name">scanner</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -566,7 +566,7 @@
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Attach as PDF to a new email</property>
             <property name="action_name">win.email</property>
-            <property name="stock_id">mail-attach</property>
+            <property name="icon-name">mail-attach</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -671,7 +671,7 @@
             <property name="tooltip_text" translatable="yes">Use the pan tool</property>
             <property name="action_name">win.tooltype</property>
             <property name="action-target">'dragger'</property>
-            <property name="stock_id">hand-tool</property>
+            <property name="icon-name">hand-tool</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -683,7 +683,7 @@
             <property name="action_name">win.tooltype</property>
             <property name="group">toolbutton_dragger</property>
             <property name="action-target">'selector'</property>
-            <property name="stock_id">selection</property>
+            <property name="icon-name">stock-selection-all-16</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -747,7 +747,7 @@
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Rotate 90° clockwise</property>
             <property name="action_name">win.rotate-90</property>
-            <property name="stock_id">rotate90</property>
+            <property name="icon-name">stock-rotate-90</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -757,7 +757,7 @@
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Rotate 180°</property>
             <property name="action_name">win.rotate-180</property>
-            <property name="stock_id">rotate180</property>
+            <property name="icon-name">180_degree</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -767,7 +767,7 @@
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Rotate 90° anticlockwise</property>
             <property name="action_name">win.rotate-270</property>
-            <property name="stock_id">rotate270</property>
+            <property name="icon-name">stock-rotate-270</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -778,7 +778,7 @@
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Crop selection</property>
             <property name="action_name">win.crop-selection</property>
-            <property name="stock_id">crop</property>
+            <property name="icon-name">crop</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
