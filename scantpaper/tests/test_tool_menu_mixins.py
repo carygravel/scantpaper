@@ -2,6 +2,7 @@
 
 import pytest
 from tools_menu_mixins import ToolsMenuMixins
+from const import _90_DEGREES
 import gi
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -58,8 +59,6 @@ def mock_tool_window(mocker):
 def test_rotate_90(mock_tool_window):
     "Test rotate_90"
 
-    from const import _90_DEGREES  # pylint: disable=import-outside-toplevel
-
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
@@ -89,8 +88,6 @@ def test_rotate_180(mock_tool_window):
 
 def test_rotate_270(mock_tool_window):
     "Test rotate_270"
-
-    from const import _90_DEGREES  # pylint: disable=import-outside-toplevel
 
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
