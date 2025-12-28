@@ -177,3 +177,14 @@ def test_pixbuf():
     "test pixbuf column"
     slist = SimpleList(col="pixbuf")
     assert isinstance(slist, SimpleList), "Created simplelist"
+
+
+def test_shared_renderer_isolation():
+    "test that modifying one SimpleList does not affect another"
+    slist1 = SimpleList(col1="text")
+    slist1.set_column_editable(0, True)
+
+    slist2 = SimpleList(col1="text")
+    assert not slist2.get_column_editable(
+        0
+    ), "Second list should not inherit editability"

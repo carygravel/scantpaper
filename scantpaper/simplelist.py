@@ -16,19 +16,19 @@ def scalar_cell_renderer(_tree_column, cell, model, itr, i):
 column_types = {
     "hstring": {"type": str, "attr": "hidden"},
     "hint": {"type": int, "attr": "hidden"},
-    "text": {"type": str, "renderer": Gtk.CellRendererText(), "attr": "text"},
-    "markup": {"type": str, "renderer": Gtk.CellRendererText(), "attr": "markup"},
-    "int": {"type": int, "renderer": Gtk.CellRendererText(), "attr": "text"},
-    "double": {"type": float, "renderer": Gtk.CellRendererText(), "attr": "text"},
-    "bool": {"type": bool, "renderer": Gtk.CellRendererToggle(), "attr": "active"},
+    "text": {"type": str, "renderer": Gtk.CellRendererText, "attr": "text"},
+    "markup": {"type": str, "renderer": Gtk.CellRendererText, "attr": "markup"},
+    "int": {"type": int, "renderer": Gtk.CellRendererText, "attr": "text"},
+    "double": {"type": float, "renderer": Gtk.CellRendererText, "attr": "text"},
+    "bool": {"type": bool, "renderer": Gtk.CellRendererToggle, "attr": "active"},
     "scalar": {
         "type": object,
-        "renderer": Gtk.CellRendererText(),
+        "renderer": Gtk.CellRendererText,
         "attr": scalar_cell_renderer,
     },
     "pixbuf": {
         "type": GdkPixbuf.Pixbuf,
-        "renderer": Gtk.CellRendererPixbuf(),
+        "renderer": Gtk.CellRendererPixbuf,
         "attr": "pixbuf",
     },
 }
@@ -64,9 +64,14 @@ class SimpleList(Gtk.TreeView):
                     "title": name,
                     "type": column_types[typekey]["type"],
                     "renderer": (
-                        column_types[typekey]["renderer"]
+                        column_types[typekey]["renderer"]()
                         if "renderer" in column_types[typekey]
-                        else None
+                        and isinstance(column_types[typekey]["renderer"], type)
+                        else (
+                            column_types[typekey]["renderer"]
+                            if "renderer" in column_types[typekey]
+                            else None
+                        )
                     ),
                     "attr": (
                         column_types[typekey]["attr"]
