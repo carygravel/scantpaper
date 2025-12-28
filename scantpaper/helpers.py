@@ -3,6 +3,7 @@
 import glob
 import re
 import os
+import weakref
 from dataclasses import dataclass
 import logging
 import subprocess
@@ -13,6 +14,19 @@ from i18n import _
 logger = logging.getLogger(__name__)
 
 PROCESS_FAILED = -1
+
+
+def _weak_callback(obj, method_name):
+    "create a weak callback"
+    ref = weakref.ref(obj)
+
+    def callback(*args, **kwargs):
+        instance = ref()
+        if instance:
+            return getattr(instance, method_name)(*args, **kwargs)
+        return None
+
+    return callback
 
 
 @dataclass

@@ -9,9 +9,10 @@ import shutil
 import tempfile
 import queue
 import signal
+import weakref
 import gi
 from simplelist import SimpleList
-from helpers import slurp
+from helpers import slurp, _weak_callback
 from i18n import _
 from docthread import DocThread
 
@@ -38,6 +39,9 @@ class BaseDocument(SimpleList):
         self.thread = DocThread(**kwargs)
         self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
+        self._finalizer = weakref.finalize(
+            self, self.thread._cleanup_thread, self.thread.requests
+        )
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
         self.set_reorderable(True)
@@ -78,7 +82,7 @@ class BaseDocument(SimpleList):
             sel.set(sel.get_target(), 8, [])  # 8 == string format
 
         self.connect("drag-data-get", drag_data_get_callback)
-        self.connect("drag-data-delete", self.delete_selection)
+        self.connect("drag-data-delete", _weak_callback(self, "delete_selection"))
         self.connect("drag-data-received", drag_data_received_callback)
 
         def drag_drop_callback(tree, context, _x, _y, when):
@@ -96,10 +100,10 @@ class BaseDocument(SimpleList):
         # Set the page number to be editable
         self.set_column_editable(0, True)
         self.row_changed_signal = self.get_model().connect(
-            "row-changed", self._on_row_changed
+            "row-changed", _weak_callback(self, "_on_row_changed")
         )
         self.selection_changed_signal = self.get_selection().connect(
-            "changed", self._on_selection_changed
+            "changed", _weak_callback(self, "_on_selection_changed")
         )
 
         # selection changed signal is not being blocked correctly, so add an extra flag

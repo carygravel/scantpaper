@@ -2,6 +2,7 @@
 
 from warnings import warn
 import gi
+from helpers import _weak_callback
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf  # pylint: disable=wrong-import-position
@@ -110,7 +111,7 @@ class SimpleList(Gtk.TreeView):
                     # make boolean columns respond to editing.
                     row = column.get_cells()[0]
                     row.activatable = True
-                    row.connect("toggled", self.do_toggled)
+                    row.connect("toggled", _weak_callback(self, "do_toggled"))
                     col["renderer"].column = i
                     i += 1
 
@@ -120,7 +121,9 @@ class SimpleList(Gtk.TreeView):
                     # turn on editing by default.
                     row = column.get_cells()
                     col["renderer"].connect(
-                        "edited", self.do_text_cell_edited, col["type"]
+                        "edited",
+                        _weak_callback(self, "do_text_cell_edited"),
+                        col["type"],
                     )
                     col["renderer"].column = i
                     i += 1

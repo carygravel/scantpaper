@@ -1,6 +1,7 @@
 "Scan dialog"  # pylint: disable=too-many-lines
 
 import re
+import weakref
 from copy import copy
 import logging
 from gi.repository import Gdk, Gtk, GObject
@@ -12,6 +13,7 @@ from scanner.options import Options, within_tolerance
 from i18n import _, d_sane
 from const import POINTS_PER_INCH
 from frontend import enums
+from helpers import _weak_callback
 from . import Dialog
 
 PAPER_TOLERANCE = 1
@@ -378,24 +380,25 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 ),
             )
         self.combobsp_changed_signal = self.combobsp.connect(
-            "changed", self._do_profile_changed
+            "changed", _weak_callback(self, "_do_profile_changed")
         )
         vboxsp.pack_start(self.combobsp, False, False, 0)
         hboxsp = Gtk.Box()
         vboxsp.pack_end(hboxsp, False, False, 0)
 
         # Save button
+        ref = weakref.ref(self)
         icon = Gtk.Image.new_from_icon_name("document-save", Gtk.IconSize.BUTTON)
         vbutton = Gtk.Button()
         vbutton.set_image(icon)
-        vbutton.connect("clicked", _save_profile_callback, self)
+        vbutton.connect("clicked", lambda w: _save_profile_callback(w, ref()))
         hboxsp.pack_start(vbutton, True, True, 0)
 
         # Edit button
         icon = Gtk.Image.new_from_icon_name("document-edit", Gtk.IconSize.BUTTON)
         ebutton = Gtk.Button()
         ebutton.set_image(icon)
-        ebutton.connect("clicked", _edit_profile_callback, self)
+        ebutton.connect("clicked", lambda w: _edit_profile_callback(w, ref()))
         hboxsp.pack_start(ebutton, False, False, 0)
 
         # Delete button
@@ -403,7 +406,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         dbutton = Gtk.Button()
         dbutton.set_image(icon)
         dbutton.connect(
-            "clicked", lambda x: self._remove_profile(self.combobsp.get_active_text())
+            "clicked",
+            lambda x: ref() and ref()._remove_profile(ref().combobsp.get_active_text()),
         )
         hboxsp.pack_start(dbutton, False, False, 0)
 
@@ -427,7 +431,12 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.combobd = ComboBoxText()
         self.combobd.append_text(_("Rescan for devices"))
 
+        ref = weakref.ref(self)
+
         def do_device_dropdown_changed(_arg):
+            self = ref()
+            if self is None:
+                return
             index = self.combobd.get_active()
             device_list = self.device_list
             if index > len(device_list) - 1:

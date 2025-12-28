@@ -1,6 +1,7 @@
 "Scan dialog for SANE backend"
 
 import logging
+import weakref
 from gi.repository import GObject, Gtk
 from frontend import enums
 from frontend.image_sane import SaneThread
@@ -33,6 +34,9 @@ class SaneScanDialog(Scan):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.thread = SaneThread()
+        self._finalizer = weakref.finalize(
+            self, self.thread._cleanup_thread, self.thread.requests
+        )
         self.thread.start()
         self.geometry_boxes = None
         self._option_info = {}

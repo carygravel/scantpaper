@@ -21,10 +21,12 @@ def pytest_configure(config):
 @pytest.fixture
 def sane_scan_dialog():
     "return a SaneScanDialog instance"
-    return SaneScanDialog(
+    dialog = SaneScanDialog(
         title="title",
         transient_for=Gtk.Window(),
     )
+    yield dialog
+    dialog.destroy()
 
 
 @pytest.fixture

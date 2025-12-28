@@ -41,17 +41,18 @@ class Request:
 
     def put(self, info, rtype=ResponseType.FINISHED, status=None):
         "put a response on the return queue"
-        self.return_queue.put(
-            Response(
-                type=rtype,
-                request=self,
-                info=info,
-                status=status,
-                num_completed_jobs=None,
-                total_jobs=None,
-                pending=None,
+        if self.return_queue is not None:
+            self.return_queue.put(
+                Response(
+                    type=rtype,
+                    request=self,
+                    info=info,
+                    status=status,
+                    num_completed_jobs=None,
+                    total_jobs=None,
+                    pending=None,
+                )
             )
-        )
 
     def queued(self, info=None, status=None):
         "queued notification"
@@ -88,13 +89,24 @@ class BaseThread(threading.Thread):
         self.after = {}
         self.num_completed_jobs = 0
         self.total_jobs = 0
-        self._finalizer = weakref.finalize(self, self.quit)
+        self._finalizer = weakref.finalize(self, self._cleanup_thread, self.requests)
         for callback in CALLBACKS:
             self.before[callback] = set()
             self.after[callback] = set()
 
+    @staticmethod
+    def _cleanup_thread(requests_queue):
+        "cleanup function that does not hold a reference to self"
+        try:
+            # We don't need a response queue for finalization
+            request = Request("quit", [], None)
+            requests_queue.put(request)
+        except Exception:  # pylint: disable=broad-except
+            # If the interpreter is shutting down, queues might be closed/None
+            pass
+
     def quit(self):
-        "called automatically by weakref.finalize() when thread is destroyed"
+        "quit the thread"
         return self.send("quit")
 
     def input_handler(self, request):  # pylint: disable=no-self-use
