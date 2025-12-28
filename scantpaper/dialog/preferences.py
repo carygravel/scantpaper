@@ -51,9 +51,7 @@ class PreferencesDialog(Dialog):
         self._add_general_options1(vbox2)
         self._add_general_options2(vbox2)
 
-        self.add_actions(
-            [("gtk-ok", self._preferences_apply_callback), ("gtk-cancel", self.hide)]
-        )
+        self.add_actions([("gtk-ok", self._apply_callback), ("gtk-cancel", self.hide)])
         self.show_all()
 
     def _add_scan_options(self, vbox):
@@ -359,7 +357,7 @@ The other variable available is:
         hbox.pack_end(button, False, False, 0)
         hbox.show_all()
 
-    def _preferences_apply_callback(self):
+    def _apply_callback(self):
         self.hide()
 
         self.settings["auto-open-scan-dialog"] = self._cbo.get_active()
