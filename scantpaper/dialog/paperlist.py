@@ -18,14 +18,14 @@ class PaperList(SimpleList):
             _("Units"): "text",
         }
         super().__init__(**columns)
-        for size in formats.keys():
+        for name in formats:
             self.data.append(
                 [
-                    size,
-                    formats[size]["x"],
-                    formats[size]["y"],
-                    formats[size]["l"],
-                    formats[size]["t"],
+                    name,
+                    formats[name]["x"],
+                    formats[name]["y"],
+                    formats[name]["l"],
+                    formats[name]["t"],
                     "mm",
                 ]
             )
