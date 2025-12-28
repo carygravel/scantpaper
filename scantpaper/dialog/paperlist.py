@@ -18,7 +18,7 @@ class PaperList(SimpleList):
             _("Units"): "text",
         }
         super().__init__(**columns)
-        for size in formats.items():
+        for size in formats.keys():
             self.data.append(
                 [
                     size,
@@ -40,8 +40,8 @@ class PaperList(SimpleList):
     def do_add_clicked(self):
         "Add button callback"
         rows = self.get_selected_indices()
-        if not rows:
-            rows[0] = 0
+        if not rows and len(self.data) > 0:
+            rows = [0]
         name = self.data[rows[0]][0]
         version = 2
         i = 0
@@ -49,7 +49,6 @@ class PaperList(SimpleList):
             if self.data[i][0] == f"{name} ({version})":
                 version += 1
                 i = 0
-
             else:
                 i += 1
 
@@ -58,7 +57,6 @@ class PaperList(SimpleList):
         for i in range(1, len(columns)):
             line.append(self.data[rows[0]][i])
 
-        del self.data[rows[0] + 1]
         self.data.insert(rows[0] + 1, line)
 
     def do_remove_clicked(self):
@@ -71,13 +69,11 @@ class PaperList(SimpleList):
             del self.data[rows.pop(0)]
 
     def do_paper_sizes_row_changed(self, _model, path, _iter):
-        "Set-up the callback to check that no two Names are the same"
-        for _row in range(len(self.data)):
-            if (
-                _row != path.to_string()
-                and self.data[path.to_string()][0] == self.data[_][0]
-            ):
-                name = self.data[path.to_string()][0]
+        "Setup the callback to check that no two Names are the same"
+        path = int(path.to_string())
+        for index, row in enumerate(self.data):
+            if index != path and self.data[path][0] == row[0]:
+                name = row[0]
                 version = 2
                 regex = re.search(
                     r"""
@@ -91,7 +87,7 @@ class PaperList(SimpleList):
                 )
                 if regex:
                     name = regex.group(1)
-                    version = regex.group(2) + 1
+                    version = int(regex.group(2)) + 1
 
-                self.data[path.to_string()][0] = f"{name} ({version})"
+                self.data[path][0] = f"{name} ({version})"
                 return
