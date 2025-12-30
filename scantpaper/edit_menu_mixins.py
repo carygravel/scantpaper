@@ -183,14 +183,15 @@ class EditMenuMixins:
         inverted = []
         for i in range(len(self.slist.data)):
             if i not in selection:
-                inverted.append(_)
+                inverted.append(i)
         self.slist.get_selection().unselect_all()
         self.slist.select(inverted)
 
     def select_modified_since_ocr(self, _action, _param):
         "Selects pages that have been modified since the last OCR process."
         selection = []
-        for page in range(len(self.slist.data)):
+        for i, row in enumerate(self.slist.data):
+            page = row[2]
             dirty_time = (
                 page.dirty_time
                 if hasattr(page, "dirty_time")
@@ -203,7 +204,7 @@ class EditMenuMixins:
             )
             ocr_flag = page.ocr_flag if hasattr(page, "ocr_flag") else False
             if ocr_flag and (ocr_time <= dirty_time):
-                selection.append(_)
+                selection.append(i)
 
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
