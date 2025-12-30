@@ -51,7 +51,7 @@ class Progress(Gtk.Box):
             self.set_fraction((num_completed + 0.5) / total)
             self.show_all()
 
-            def cancel_process():
+            def cancel_process(_widget):
                 """Pass the signal back to:
                 1. be able to cancel it when the process has finished
                 2. flag that the progress bar has been set up
