@@ -14,6 +14,7 @@ class PrintOperation(Gtk.PrintOperation):
         if kwargs["settings"] is not None:
             self.set_print_settings(kwargs["settings"])
         self.slist = kwargs["slist"]
+        self.page_list = None
         self.connect("begin-print", self.begin_print_callback)
         # FIXME: check print preview works for pages with ratios other than 1.
         self.connect("draw-page", self.draw_page_callback)
@@ -22,24 +23,26 @@ class PrintOperation(Gtk.PrintOperation):
         "begin print"
         settings = self.get_print_settings()
         pages = settings.get_print_pages()
-        page_list = []
+        self.page_list = []
         if pages == Gtk.PrintPages.RANGES:
             page_set = set()
             ranges = settings.get_page_ranges()
             for r in ranges:
-                for i in range(r.start + 1, r.end + 1):
+                for i in range(r.start + 1, r.end + 2):
                     page_set.add(i)
 
             for i, row in enumerate(self.slist.data):
                 if row[0] in page_set:
-                    page_list.append(i)
+                    self.page_list.append(i)
         else:
-            page_list = [range(len(self.slist.data))]
+            self.page_list = list(range(len(self.slist.data)))
 
-        self.set_n_pages(len(page_list))
+        self.set_n_pages(len(self.page_list))
 
     def draw_page_callback(self, _self, context, page_number):
         "draw page"
+        if self.page_list is not None:
+            page_number = self.page_list[page_number]
         page = self.slist.data[page_number][2]
         cr = context.get_cairo_context()
 
