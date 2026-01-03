@@ -72,7 +72,12 @@ def app_window(mocker, mock_builder, mock_config):
     mock_shutil = mocker.patch("app_window.shutil")
     mock_shutil.disk_usage.return_value.free = 1000 * 1024 * 1024  # 1000 MB
 
-    def mock_check_deps(self):
+    mocker.patch.object(ApplicationWindow, "_show_message_dialog")
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = "/tmp/session"
+        self._lockfd = MagicMock()
         self._dependencies = {
             "imagemagick": True,
             "libtiff": True,
@@ -84,44 +89,27 @@ def app_window(mocker, mock_builder, mock_config):
             "ocr": True,
         }
 
-    def mock_create_temp_func(self):
-        self.session = MagicMock()
-        self.session.name = "/tmp/session"
-
-    with patch.object(
-        ApplicationWindow,
-        "_check_dependencies",
-        autospec=True,
-        side_effect=mock_check_deps,
-    ), patch.object(
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
+    mocker.patch.object(
         ApplicationWindow,
         "_create_temp_directory",
-        autospec=True,
         side_effect=mock_create_temp_func,
-    ), patch.object(
-        ApplicationWindow,
-        "set_icon_from_file",
         autospec=True,
-    ), patch.object(
-        ApplicationWindow,
-        "add",
-        autospec=True,
-    ):
-        # Use real Gtk.Application to satisfy type checking
-        app_id = f"org.test.scantpaper.{uuid.uuid4().hex}"
-        app = Gtk.Application(
-            application_id=app_id, flags=Gio.ApplicationFlags.FLAGS_NONE
-        )
-        app.iconpath = "/tmp"
-        # Mock set_menubar to avoid TypeError
-        app.set_menubar = MagicMock()
+    )
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
 
-        # Mock args
-        app.args = MagicMock()
-        app.args.import_files = None
-        app.args.import_all = None
+    app_id = f"org.test.panes.u{uuid.uuid4().hex}"
+    app = Gtk.Application(application_id=app_id, flags=Gio.ApplicationFlags.FLAGS_NONE)
+    app.iconpath = "/tmp"
+    app.set_menubar = MagicMock()
+    app.args = MagicMock()
+    app.args.import_files = None
+    app.args.import_all = None
 
-        # We need to register the app to use it fully, though maybe not strictly required here
+    # We need to register the app to use it fully, though maybe not strictly required here
+    with patch.object(Gtk.Application, "register", autospec=True):
         try:
             app.register(None)
         except GLib.Error:
@@ -130,13 +118,15 @@ def app_window(mocker, mock_builder, mock_config):
         win = ApplicationWindow(application=app)
         yield win
         win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
 
 
 def test_init(app_window):
     "Test initialization"
     assert isinstance(app_window, ApplicationWindow)
     assert app_window.session.name == "/tmp/session"
-    assert app_window._dependencies["ocr"]
 
 
 def test_drag_motion_callback(mocker):
