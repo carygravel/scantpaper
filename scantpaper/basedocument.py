@@ -170,7 +170,7 @@ class BaseDocument(SimpleList):
             self.thread.cancel = True
 
             # Kill all running processes in the thread
-            for pidfile in self.thread.running_pids:
+            for pidfile in list(self.thread.running_pids):
                 pid = slurp(pidfile)
                 if pid != "":
                     if pid == 1:
