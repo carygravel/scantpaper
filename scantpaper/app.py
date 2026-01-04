@@ -250,9 +250,9 @@ def _parse_arguments():
         gettext.bindtextdomain(f"{PROG_NAME}")
     else:
         if re.search(r"^\/", args.locale, re.MULTILINE | re.DOTALL | re.VERBOSE):
-            gettext.bindtextdomain(f"{PROG_NAME}", locale)
+            gettext.bindtextdomain(f"{PROG_NAME}", args.locale)
         else:
-            gettext.bindtextdomain(f"{PROG_NAME}", os.getcwd() + f"/{locale}")
+            gettext.bindtextdomain(f"{PROG_NAME}", os.getcwd() + f"/{args.locale}")
     gettext.textdomain(PROG_NAME)
 
     logger.info("Using %s locale", locale.setlocale(locale.LC_CTYPE))
