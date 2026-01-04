@@ -133,7 +133,7 @@ class Save(Dialog):
         self._meta_title = newval
         if self._meta_title_widget is not None:
             self._meta_title_widget.set_text(newval)
-            self._meta_title_widget.add_to_suggestions(newval)
+            self._meta_title_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
     def meta_title_suggestions(self):
@@ -164,7 +164,7 @@ class Save(Dialog):
         self._meta_author = newval
         if self._meta_author_widget is not None:
             self._meta_author_widget.set_text(newval)
-            self._meta_author_widget.add_to_suggestions(newval)
+            self._meta_author_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
     def meta_author_suggestions(self):
@@ -195,7 +195,7 @@ class Save(Dialog):
         self._meta_subject = newval
         if self._meta_subject_widget is not None:
             self._meta_subject_widget.set_text(newval)
-            self._meta_subject_widget.add_to_suggestions(newval)
+            self._meta_subject_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
     def meta_subject_suggestions(self):
@@ -226,7 +226,7 @@ class Save(Dialog):
         self._meta_keywords = newval
         if self._meta_keywords_widget is not None:
             self._meta_keywords_widget.set_text(newval)
-            self._meta_keywords_widget.add_to_suggestions(newval)
+            self._meta_keywords_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
     def meta_keywords_suggestions(self):
@@ -349,13 +349,15 @@ class Save(Dialog):
         vboxdt.pack_start(self.meta_now_widget, True, True, 0)
 
         # Specify button
-        bspecify_dt = Gtk.RadioButton.new_with_label_from_widget(
+        self._meta_specify_widget = Gtk.RadioButton.new_with_label_from_widget(
             self.meta_now_widget, _("Specify")
         )
-        bspecify_dt.set_tooltip_text(_("Specify date and time"))
-        vboxdt.pack_start(bspecify_dt, True, True, 0)
+        self._meta_specify_widget.set_tooltip_text(_("Specify date and time"))
+        vboxdt.pack_start(self._meta_specify_widget, True, True, 0)
         hboxe = Gtk.Box()
-        bspecify_dt.connect("clicked", self._clicked_specify_date_button, hboxe)
+        self._meta_specify_widget.connect(
+            "clicked", self._clicked_specify_date_button, hboxe
+        )
         self._meta_datetime_widget = Gtk.Entry()
         self._meta_datetime_widget.set_activates_default(True)
         self._meta_datetime_widget.set_tooltip_text(_("Year-Month-Day"))
@@ -377,11 +379,12 @@ class Save(Dialog):
         hboxe.set_no_show_all(True)
         self._meta_datetime_widget.show()
         button.show()
-        bspecify_dt.set_active(self.select_datetime)
+        self._meta_specify_widget.set_active(self.select_datetime)
         self._add_metadata_widgets(grid, row)
         self._on_toggle_include_time(self.include_time)
 
-        # set this after bspecify_dt.set_active() to prevent meta_now_widget overwriting it
+        # set this after self._meta_specify_widget.set_active() to prevent
+        # meta_now_widget overwriting it
         if self.meta_datetime is not None and self.meta_datetime != "":
             self._meta_datetime_widget.set_text(self.meta_datetime.isoformat())
 

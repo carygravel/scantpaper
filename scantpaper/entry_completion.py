@@ -49,3 +49,10 @@ class EntryCompletion(Gtk.Entry):
             model.foreach(is_duplicate, text)
             if not flag:
                 model.append([text])
+
+    def set_suggestions(self, suggestions):
+        "clear and set suggestions"
+        completion = self.get_completion()
+        model = completion.get_model()
+        model.clear()
+        self.add_to_suggestions(suggestions)
