@@ -139,6 +139,7 @@ class RotateControls(Gtk.Box):
                 if s[0] not in ["both", SIDE[side1_cmbx_i][0]]:
                     side2.append(s)
             self._side2.side_cmbx.append_text(side2[0][1])
+            self._side2.side_cmbx.data = side2
             self._side2.side_cmbx.set_active(0)
 
     def _update_attributes(self):
@@ -147,7 +148,7 @@ class RotateControls(Gtk.Box):
         if self._side1.cbutton.get_active():
             if self._side1.side_cmbx.get_active_index() == "both":
                 self._rotate_facing = self._side1.angle_cmbx.get_active_index()
-                self._rotate_reverse = self._rotate_reverse
+                self._rotate_reverse = self._rotate_facing
             elif self._side1.side_cmbx.get_active_index() == "facing":
                 self._rotate_facing = self._side1.angle_cmbx.get_active_index()
             else:
@@ -188,36 +189,91 @@ class OCRControls(Gtk.Box):
         nick="OCR engines",
         blurb="List of available OCR engines",
     )
-    engine = GObject.Property(
+    _engine = None
+
+    @GObject.Property(
         type=str,
         default=None,
         nick="OCR engine",
         blurb="Currently selected OCR engine",
     )
-    language = GObject.Property(
+    def engine(self):  # pylint: disable=method-hidden
+        "getter for engine attribute"
+        return self._engine
+
+    @engine.setter
+    def engine(self, newval):
+        self._engine = newval
+
+    _language = None
+
+    @GObject.Property(
         type=str,
         default=None,
         nick="OCR language",
         blurb="Currently selected OCR language",
     )
-    active = GObject.Property(
+    def language(self):  # pylint: disable=method-hidden
+        "getter for language attribute"
+        return self._language
+
+    @language.setter
+    def language(self, newval):
+        self._language = newval
+
+    _active = False
+
+    @GObject.Property(
         type=bool,
         default=False,
         nick="Active",
         blurb="Whether OCR will be automatically performed",
     )
-    threshold = GObject.Property(
+    def active(self):  # pylint: disable=method-hidden
+        "getter for active attribute"
+        return self._active
+
+    @active.setter
+    def active(self, newval):
+        self._active = newval
+        if hasattr(self, "_active_button"):
+            self._active_button.set_active(newval)
+
+    _threshold = False
+
+    @GObject.Property(
         type=bool,
         default=False,
         nick="Threshold",
         blurb="Whether to threshold before performing OCR",
     )
-    threshold_value = GObject.Property(
+    def threshold(self):  # pylint: disable=method-hidden
+        "getter for threshold attribute"
+        return self._threshold
+
+    @threshold.setter
+    def threshold(self, newval):
+        self._threshold = newval
+        if hasattr(self, "_threshold_button"):
+            self._threshold_button.set_active(newval)
+
+    _threshold_value = 80.0
+
+    @GObject.Property(
         type=float,
         default=80.0,
         nick="Threshold value",
         blurb="Pixels lighter than this percentage will be made white",
     )
+    def threshold_value(self):  # pylint: disable=method-hidden
+        "getter for threshold_value attribute"
+        return self._threshold_value
+
+    @threshold_value.setter
+    def threshold_value(self, newval):
+        self._threshold_value = newval
+        if hasattr(self, "_threshold_spin"):
+            self._threshold_spin.set_value(newval)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -265,23 +321,25 @@ class OCRControls(Gtk.Box):
         # Checkbox & SpinButton for threshold
         hboxt = Gtk.Box()
         self.pack_start(hboxt, False, True, 0)
-        cbto = Gtk.CheckButton(label=_("Threshold before OCR"))
-        cbto.set_tooltip_text(
+        self._threshold_button = Gtk.CheckButton(label=_("Threshold before OCR"))
+        self._threshold_button.set_tooltip_text(
             _(
                 "Threshold the image before performing OCR. "
                 "This only affects the image passed to the OCR engine, and not the image stored."
             )
         )
-        cbto.set_active(self.threshold)
-        hboxt.pack_start(cbto, False, True, 0)
+        self._threshold_button.set_active(self.threshold)
+        hboxt.pack_start(self._threshold_button, False, True, 0)
         labelp = Gtk.Label(label="%")
         hboxt.pack_end(labelp, False, True, 0)
-        spinbutton = Gtk.SpinButton.new_with_range(0, 100, 1)
-        spinbutton.set_value(self.threshold_value)
-        spinbutton.set_sensitive(self.threshold)
-        hboxt.pack_end(spinbutton, False, True, 0)
-        cbto.connect("toggled", self.on_toggled_threshold, spinbutton)
-        spinbutton.connect("value-changed", self.on_threshold_changed)
+        self._threshold_spin = Gtk.SpinButton.new_with_range(0, 100, 1)
+        self._threshold_spin.set_value(self.threshold_value)
+        self._threshold_spin.set_sensitive(self.threshold)
+        hboxt.pack_end(self._threshold_spin, False, True, 0)
+        self._threshold_button.connect(
+            "toggled", self.on_toggled_threshold, self._threshold_spin
+        )
+        self._threshold_spin.connect("value-changed", self.on_threshold_changed)
 
         def show_callback(_w):
             if self.engine != "tesseract":
