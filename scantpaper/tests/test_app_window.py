@@ -7,7 +7,61 @@ from app_window import ApplicationWindow, drag_motion_callback, view_html
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, Gio, GLib  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position
+    Gtk,
+    Gdk,
+    Gio,
+    GLib,
+    GObject,
+)
+
+
+class MockImageView(Gtk.DrawingArea):
+    "Mock ImageView class"
+
+    __gsignals__ = {
+        "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
+        "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
+        "selection-changed": (GObject.SignalFlags.RUN_LAST, None, (object,)),
+    }
+
+    def set_tool(self, tool):
+        "mock set_tool"
+
+    def set_pixbuf(self, pixbuf, *args):
+        "mock set_pixbuf"
+
+    def set_resolution_ratio(self, ratio):
+        "mock set_resolution_ratio"
+
+    def set_selection(self, selection):
+        "mock set_selection"
+
+    def get_selection(self):
+        "mock get_selection"
+        return None
+
+    def copy(self):
+        "mock copy"
+        return MagicMock()
+
+
+class MockCanvas(Gtk.DrawingArea):
+    "Mock Canvas class"
+
+    __gsignals__ = {
+        "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
+        "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
+    }
+
+    def clear_text(self):
+        "mock clear_text"
+
+    def sort_by_confidence(self):
+        "mock sort_by_confidence"
+
+    def sort_by_position(self):
+        "mock sort_by_position"
 
 
 @pytest.fixture
@@ -53,8 +107,10 @@ def app_window(mocker, mock_builder, mock_config):
     "Fixture to create an ApplicationWindow instance with mocked dependencies"
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
-    mocker.patch("app_window.Canvas")
-    mocker.patch("app_window.ImageView")
+
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+
     mocker.patch("app_window.Progress")
     mocker.patch("app_window.sane.init")
     mocker.patch("app_window.recursive_slurp")
@@ -252,3 +308,176 @@ def test_update_uimanager(app_window):
 
     assert app_window._actions["save"].get_enabled()
     assert app_window._actions["crop-dialog"].get_enabled()
+
+
+def test_window_state_event_callback(app_window):
+    "Test _window_state_event_callback"
+    event = MagicMock()
+    event.new_window_state = Gdk.WindowState.MAXIMIZED
+    app_window._window_state_event_callback(None, event)
+    assert app_window.settings["window_maximize"] is True
+
+    event.new_window_state = Gdk.WindowState.FOCUSED
+    app_window._window_state_event_callback(None, event)
+    assert app_window.settings["window_maximize"] is False
+
+
+def test_changed_text_sort_method(app_window):
+    "Test _changed_text_sort_method"
+    app_window.t_canvas = MagicMock()
+
+    app_window._changed_text_sort_method(None, "confidence")
+    app_window.t_canvas.sort_by_confidence.assert_called_once()
+
+    app_window._changed_text_sort_method(None, "position")
+    app_window.t_canvas.sort_by_position.assert_called_once()
+
+
+def test_handle_clicks(app_window, mocker):
+    "Test _handle_clicks"
+    event = MagicMock()
+    event.button = 3  # Right click
+
+    # Use instance of MockImageView
+    view_widget = MockImageView()
+    app_window.detail_popup = MagicMock()
+    assert app_window._handle_clicks(view_widget, event) is True
+    app_window.detail_popup.show_all.assert_called_once()
+    app_window.detail_popup.popup_at_pointer.assert_called_once_with(event)
+
+    # Mock other widget (e.g. Thumbnail list)
+    other_widget = MagicMock()
+    app_window._thumb_popup = MagicMock()
+    assert app_window._handle_clicks(other_widget, event) is True
+    assert app_window.settings["Page range"] == "selected"
+    app_window._thumb_popup.show_all.assert_called_once()
+    app_window._thumb_popup.popup_at_pointer.assert_called_once_with(event)
+
+    # Left click
+    event.button = 1
+    assert app_window._handle_clicks(view_widget, event) is False
+
+
+def test_view_zoom_changed_callback(app_window):
+    "Test _view_zoom_changed_callback"
+    app_window.t_canvas = MagicMock()
+    app_window.t_canvas.zoom_changed_signal = 123
+    app_window._view_zoom_changed_callback(None, 2.0)
+    app_window.t_canvas.handler_block.assert_called_once_with(123)
+    app_window.t_canvas.set_scale.assert_called_once_with(2.0)
+    app_window.t_canvas.handler_unblock.assert_called_once_with(123)
+
+
+def test_view_offset_changed_callback(app_window):
+    "Test _view_offset_changed_callback"
+    app_window.t_canvas = MagicMock()
+    app_window.t_canvas.offset_changed_signal = 456
+    app_window._view_offset_changed_callback(None, 10, 20)
+    app_window.t_canvas.handler_block.assert_called_once_with(456)
+    app_window.t_canvas.set_offset.assert_called_once_with(10, 20)
+    app_window.t_canvas.handler_unblock.assert_called_once_with(456)
+
+
+def test_view_selection_changed_callback(app_window):
+    "Test _view_selection_changed_callback"
+    sel = MagicMock()
+    copied_sel = MagicMock()
+    sel.copy.return_value = copied_sel
+
+    app_window._windowc = MagicMock()
+    app_window._view_selection_changed_callback(None, sel)
+
+    assert app_window.settings["selection"] == copied_sel
+    assert app_window._windowc.selection == copied_sel
+
+
+def test_on_key_press(app_window):
+    "Test _on_key_press"
+    app_window.delete_selection = MagicMock()
+
+    # Delete key
+    event = MagicMock()
+    event.keyval = Gdk.KEY_Delete
+    assert app_window._on_key_press(None, event) == Gdk.EVENT_STOP
+    app_window.delete_selection.assert_called_once()
+
+    # Other key
+    event.keyval = Gdk.KEY_a
+    assert app_window._on_key_press(None, event) == Gdk.EVENT_PROPAGATE
+
+
+def test_process_error_callback(app_window, mocker):
+    "Test _process_error_callback"
+    app_window._scan_progress = MagicMock()
+    app_window._show_message_dialog = MagicMock()
+
+    # Basic error
+    app_window._process_error_callback(None, "some_process", "some error", 123)
+    app_window._scan_progress.disconnect.assert_called_once_with(123)
+    app_window._scan_progress.hide.assert_called_once()
+    app_window._show_message_dialog.assert_called_once()
+
+    # open_device error - ignore
+    app_window._show_message_dialog.reset_mock()
+    app_window.settings["message"]["error opening device"] = {"response": "ignore"}
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+    app_window._show_message_dialog.assert_not_called()
+
+
+def test_page_selection_changed_callback(app_window, mocker):
+    "Test _page_selection_changed_callback"
+    app_window.view = MagicMock()
+    app_window.t_canvas = MagicMock()
+    app_window.a_canvas = MagicMock()
+    app_window.post_process_progress = MagicMock()
+    app_window._display_image = MagicMock()
+    app_window._update_uimanager = MagicMock()
+
+    # No selection
+    app_window.slist.get_selected_indices.return_value = []
+    app_window._page_selection_changed_callback(None)
+    app_window.view.set_pixbuf.assert_called_with(None)
+    app_window.t_canvas.clear_text.assert_called_once()
+    app_window.a_canvas.clear_text.assert_called_once()
+    app_window.post_process_progress.finish.assert_called_once()
+
+    app_window.post_process_progress.finish.reset_mock()
+
+    # With selection
+    app_window.slist.get_selected_indices.return_value = [0]
+    app_window.slist.data = [[1, None, "page_id"]]
+    app_window.slist.get_column.return_value = MagicMock()
+    app_window.view.get_selection.return_value = None
+
+    app_window._page_selection_changed_callback(None)
+    app_window._display_image.assert_called_with("page_id")
+    app_window._update_uimanager.assert_called()
+    app_window.post_process_progress.finish.assert_called_once()
+
+
+def test_pack_viewer_tools(app_window, mocker):
+    "Test _pack_viewer_tools"
+    app_window._vnotebook = MagicMock()
+    app_window._hpanei = MagicMock()
+    app_window._vpanei = MagicMock()
+    app_window._vpaned = MagicMock()
+    app_window.view = MagicMock()
+    app_window.t_canvas = MagicMock()
+    app_window.a_canvas = MagicMock()
+
+    # Tabbed
+    app_window.settings["viewer_tools"] = "tabbed"
+    app_window._pack_viewer_tools()
+    assert app_window._vnotebook.append_page.call_count == 3
+
+    # Horizontal
+    app_window.settings["viewer_tools"] = "horizontal"
+    app_window._pack_viewer_tools()
+    app_window._hpanei.pack1.assert_called_with(app_window.view, True, True)
+    app_window._hpanei.pack2.assert_called_with(app_window.t_canvas, True, True)
+
+    # Vertical
+    app_window.settings["viewer_tools"] = "vertical"
+    app_window._pack_viewer_tools()
+    app_window._vpanei.pack1.assert_called_with(app_window.view, True, True)
+    app_window._vpanei.pack2.assert_called_with(app_window.t_canvas, True, True)
