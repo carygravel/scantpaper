@@ -803,7 +803,7 @@ class FileMenuMixins:
                 w = len(uuids)
                 for i in range(1, len(uuids) + 1):
                     current_filename = (
-                        f"${filename}_%0${w}d.{self.settings['image type']}" % (i)
+                        f"{filename}_%0{w}d.{self.settings['image type']}" % (i)
                     )
                     if os.path.isfile(current_filename):
                         text = _("This operation would overwrite %s") % (
