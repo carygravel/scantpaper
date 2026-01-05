@@ -6,15 +6,34 @@ import tempfile
 import pytest
 import gi
 from page import Page
-from canvas import Canvas, Bbox, Rectangle
+from canvas import rgb2hsv, hsv2rgb, Canvas, Bbox, Rectangle
 from canvas import HOCR_HEADER as HOCR_OUT_HEADER
 from conftest import HOCR_HEADER
 
 gi.require_version("GooCanvas", "2.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-module
+    Gdk,
     GooCanvas,
+    GLib,
 )
+
+
+def assert_rgba_equal(c1, c2):
+    "Assert two Gdk.RGBA colors are equal"
+    assert c1.red == pytest.approx(c2.red)
+    assert c1.green == pytest.approx(c2.green)
+    assert c1.blue == pytest.approx(c2.blue)
+
+
+def test_color_functions():
+    "Test standalone color conversion functions"
+    # rgb2hsv
+    assert rgb2hsv(Gdk.RGBA(0, 0, 0)) == {"h": 0, "s": 0, "v": 0}
+    assert rgb2hsv(Gdk.RGBA(0.5, 0.5, 0.5)) == {"h": 0, "s": 0, "v": 0.5}
+
+    # hsv2rgb
+    assert_rgba_equal(hsv2rgb({"h": 0, "s": 0, "v": 1.0}), Gdk.RGBA(1.0, 1.0, 1.0))
 
 
 def test_canvas_basics(rose_pnm):
@@ -499,3 +518,23 @@ def test_canvas_drag_cursor(mocker):
     canvas._button_released(canvas, release_event)
 
     mock_window.set_cursor.assert_called_once_with(None)
+
+
+def test_canvas_set_text_idles(mocker):
+    "Test set_text with existing idles"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._old_idles = {"dummy": 1}
+    mocker.patch("gi.repository.GLib.Source.remove")
+    page = mocker.Mock()
+    page.get_size.return_value = (100, 100)
+    page.text_layer = "[]"
+    canvas.set_text(page=page, layer="text_layer", idle=False)
+    assert GLib.Source.remove.called
+
+
+def test_canvas_hocr_empty(mocker):
+    "Test Canvas.hocr when empty"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    assert canvas.hocr() == ""

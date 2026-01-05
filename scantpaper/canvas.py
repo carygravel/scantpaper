@@ -72,14 +72,7 @@ def rgb2hsv(rgb):
         hsv["h"] = 0  # undefined, maybe nan?
         return hsv
 
-    if maxv > 0:  # NOTE: if Max is == 0, this divide would cause a crash
-        hsv["s"] = delta / maxv
-    else:
-        # if max is 0, then r = g = b = 0
-        # s = 0, h is undefined
-        hsv["s"] = 0
-        hsv["h"] = 0  # undefined
-        return hsv
+    hsv["s"] = delta / maxv
 
     if rgb.red >= maxv:  # > is bogus, just keeps compiler happy
         hsv["h"] = (
@@ -118,12 +111,8 @@ def linear_interpolation(x1, x2, m):
 
 def hsv2rgb(hsv):
     "convert from hsv to rgb colour space"
-    out = Gdk.Color(0, 0, 0)
     if hsv["s"] <= 0.0:  # < is bogus, just shuts up warnings
-        out.red = hsv["v"]
-        out.green = hsv["v"]
-        out.blue = hsv["v"]
-        return out
+        return Gdk.RGBA(hsv["v"], hsv["v"], hsv["v"])
 
     hh = hsv["h"]
     if hh >= _360_DEGREES:
