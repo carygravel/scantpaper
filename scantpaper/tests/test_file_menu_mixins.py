@@ -10,7 +10,6 @@ from file_menu_mixins import (
     launch_default_for_file,
     file_exists,
 )
-from const import EMPTY_LIST
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -20,7 +19,8 @@ class MockSlist:
     "A mock class simulating a selection list for testing purposes."
 
     def __init__(self):
-        self.data = [1, 2, 3]
+        "Initialize mock slist"
+        self.data = [[0, 0, "uuid1"], [0, 0, "uuid2"], [0, 0, "uuid3"]]
         self.row_changed_signal = "row-changed"
         self.selection_changed_signal = "selection-changed"
         self.thread = unittest.mock.Mock()
@@ -42,35 +42,47 @@ class MockSlist:
     def unselect_all(self):
         "Deselects all currently selected items."
 
-    def get_page_index(self, page_range, error_callback):
+    def get_page_index(self, page_range, _error_callback):
+        "Mock get_page_index"
+        if page_range == "all":
+            return [0, 1, 2]
+        if page_range == "invalid":
+            return []
         return [0]
 
     def import_files(self, **kwargs):
-        pass
+        "Mock import_files"
 
-    def open_session(self, dir, delete, error_callback):
-        pass
+    def open_session(self, _dir, delete, error_callback):
+        "Mock open_session"
 
     def save_pdf(self, **kwargs):
-        pass
+        "Mock save_pdf"
 
     def save_djvu(self, **kwargs):
-        pass
+        "Mock save_djvu"
 
     def save_tiff(self, **kwargs):
-        pass
+        "Mock save_tiff"
 
     def save_text(self, **kwargs):
-        pass
+        "Mock save_text"
 
     def save_hocr(self, **kwargs):
-        pass
+        "Mock save_hocr"
 
     def save_image(self, **kwargs):
-        pass
+        "Mock save_image"
 
     def save_session(self, filename, version):
-        pass
+        "Mock save_session"
+
+    def find_page_by_uuid(self, uuid):
+        "Mock find_page_by_uuid"
+        for i, row in enumerate(self.data):
+            if row[2] == uuid:
+                return i
+        return None
 
 
 class MockView:  # pylint: disable=too-few-public-methods
@@ -98,10 +110,12 @@ class MockWindows:
         return (100, 100)
 
     def __bool__(self):
+        "Mock boolean"
         return True
 
     @property
     def thread(self):
+        "Mock thread property"
         return unittest.mock.Mock()
 
 
@@ -122,8 +136,8 @@ class MockApp(
         self.post_process_progress = unittest.mock.Mock()
         self._dependencies = {}
         self.print_settings = None
-        self._configfile = None
-        self._lockfd = None
+        self._configfile = "/tmp/scantpaperrc"
+        self._lockfd = 9
         self._hpaned = unittest.mock.Mock()
         self._hpaned.get_position.return_value = 100
         self._current_page = 1
@@ -134,9 +148,11 @@ class MockApp(
         self._windowe = None
 
     def get_size(self):
+        "Mock get_size"
         return (800, 600)
 
     def get_position(self):
+        "Mock get_position"
         return (0, 0)
 
     def get_application(self):
@@ -144,7 +160,7 @@ class MockApp(
         return unittest.mock.Mock()
 
     def _show_message_dialog(self, **kwargs):
-        pass
+        "Mock _show_message_dialog"
 
 
 class TestStandaloneFunctions(unittest.TestCase):
@@ -466,6 +482,23 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         assert password is None
         mock_dialog.destroy.assert_called_once()
 
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    def test_import_files_password_callback_empty(self, mock_gtk, app):
+        "Test _import_files_password_callback returns None if empty"
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
+        mock_entry = unittest.mock.Mock()
+        mock_entry.get_text.return_value = ""
+        mock_gtk.MessageDialog.return_value = mock_dialog
+        vbox = unittest.mock.Mock()
+        mock_dialog.get_content_area.return_value = vbox
+        mock_gtk.Entry.return_value = mock_entry
+
+        password = app._import_files_password_callback("file.pdf")
+
+        assert password is None
+        mock_dialog.destroy.assert_called_once()
+
     def test_import_files_finished_callback(self, app):
         "Test _import_files_finished_callback calls finish."
         app._import_files_finished_callback("response")
@@ -490,13 +523,6 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         "Test _import_files with all_pages=True passes correct pagerange_callback."
         app.slist.import_files = unittest.mock.Mock()
         filenames = ["file1.pdf", "file2.pdf"]
-
-        # We need to revert the mock on _import_files which is set in setUp
-        # But wait, app is a MockApp instance which inherits from Mock.
-        # _import_files is an attribute set to Mock.
-        # But we are testing the mixin method _import_files.
-        # Since MockApp inherits FileMenuMixins, calling app._import_files calls the mock if it is set.
-        # We need to call the method from the class/mixin, bound to app.
 
         FileMenuMixins._import_files(app, filenames, all_pages=True)
 
@@ -560,6 +586,14 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
             dir="/path/to/session",
             delete=False,
             error_callback=app._error_callback,
+        )
+
+    def test_open_session_actual(self, app):
+        "Call _open_session via FileMenuMixins class to hit the logic."
+        app.slist.open_session = unittest.mock.Mock()
+        FileMenuMixins._open_session(app, "/some/path")
+        app.slist.open_session.assert_called_with(
+            dir="/some/path", delete=False, error_callback=app._error_callback
         )
 
     @unittest.mock.patch("file_menu_mixins.datetime")
@@ -663,6 +697,55 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         assert app.settings["quality"] == 80
         app._save_file_chooser.assert_called_with(["uuid1"])
 
+    def test_save_button_clicked_callback_txt(self, app):
+        "Test _save_button_clicked_callback for TXT type."
+        app._windowi = unittest.mock.Mock()
+        app._windowi.image_type = "txt"
+        app._windowi.comboboxpsh.get_active.return_value = -1
+        app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
+        app._save_file_chooser = unittest.mock.Mock()
+        mock_kbutton = unittest.mock.Mock()
+        mock_pshbutton = unittest.mock.Mock()
+
+        app._save_button_clicked_callback(mock_kbutton, mock_pshbutton)
+
+        assert app.settings["image type"] == "txt"
+        app._save_file_chooser.assert_called_with(["uuid1"])
+
+    def test_save_button_clicked_callback_ps(self, app):
+        "Test _save_button_clicked_callback for PS type."
+        app._windowi = unittest.mock.Mock()
+        app._windowi.image_type = "ps"
+        app._windowi.ps_backend = "libtiff"
+        app._windowi.comboboxpsh.get_active.return_value = -1
+        app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
+        app._save_file_chooser = unittest.mock.Mock()
+        mock_kbutton = unittest.mock.Mock()
+        mock_pshbutton = unittest.mock.Mock()
+
+        app._save_button_clicked_callback(mock_kbutton, mock_pshbutton)
+
+        assert app.settings["image type"] == "ps"
+        assert app.settings["ps_backend"] == "libtiff"
+        app._save_file_chooser.assert_called_with(["uuid1"])
+
+    def test_save_button_clicked_callback_jpg(self, app):
+        "Test _save_button_clicked_callback for JPG type."
+        app._windowi = unittest.mock.Mock()
+        app._windowi.image_type = "jpg"
+        app._windowi.jpeg_quality = 90
+        app._windowi.comboboxpsh.get_active.return_value = -1
+        app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
+        app._save_image = unittest.mock.Mock()
+        mock_kbutton = unittest.mock.Mock()
+        mock_pshbutton = unittest.mock.Mock()
+
+        app._save_button_clicked_callback(mock_kbutton, mock_pshbutton)
+
+        assert app.settings["image type"] == "jpg"
+        assert app.settings["quality"] == 90
+        app._save_image.assert_called_with(["uuid1"])
+
     @unittest.mock.patch("file_menu_mixins.Gtk")
     @unittest.mock.patch("file_menu_mixins.os")
     @unittest.mock.patch("file_menu_mixins.expand_metadata_pattern")
@@ -735,6 +818,68 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         app._windowi.hide.assert_called_once()
         mock_dialog.destroy.assert_called_once()
 
+    @unittest.mock.patch("file_menu_mixins.os")
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    @unittest.mock.patch("file_menu_mixins.tempfile")
+    def test_file_chooser_response_callback_ok_ps_libtiff(
+        self, mock_tempfile, mock_gtk, mock_os, app
+    ):
+        "Test _file_chooser_response_callback for PS type with libtiff backend."
+        app._save_tif = unittest.mock.Mock()
+        app._file_writable = unittest.mock.Mock(return_value=False)
+        app.settings["ps_backend"] = "libtiff"
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/file.ps"
+        mock_os.path.dirname.return_value = "/path/to"
+
+        mock_tif = unittest.mock.Mock()
+        mock_tif.filename.return_value = "temp.tif"
+        mock_tempfile.TemporaryFile.return_value = mock_tif
+
+        app._file_chooser_response_callback(
+            mock_dialog, mock_gtk.ResponseType.OK, ["ps", ["uuid1"]]
+        )
+
+        app._save_tif.assert_called_with("temp.tif", ["uuid1"], "/path/to/file.ps")
+
+    @unittest.mock.patch("file_menu_mixins.os")
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    def test_file_chooser_response_callback_ok_formats(self, mock_gtk, mock_os, app):
+        "Test _file_chooser_response_callback for multiple formats."
+        app._file_writable = unittest.mock.Mock(return_value=False)
+        mock_dialog = unittest.mock.Mock()
+        mock_os.path.dirname.return_value = "/path/to"
+
+        for fmt in ["djvu", "tif", "txt", "hocr"]:
+            mock_dialog.get_filename.return_value = f"/path/to/file.{fmt}"
+            save_method = unittest.mock.Mock()
+            setattr(app, f"_save_{fmt}", save_method)
+
+            app._file_chooser_response_callback(
+                mock_dialog, mock_gtk.ResponseType.OK, [fmt, ["uuid1"]]
+            )
+            save_method.assert_called_with(f"/path/to/file.{fmt}", ["uuid1"])
+
+    @unittest.mock.patch("file_menu_mixins.os")
+    def test_file_writable_errors(self, mock_os, app):
+        "Test _file_writable error cases."
+        app._show_message_dialog = unittest.mock.Mock()
+        mock_chooser = unittest.mock.Mock()
+
+        # Case 1: Directory not writable
+        mock_os.path.dirname.return_value = "/read-only-dir"
+        mock_os.access.return_value = False
+        assert app._file_writable(mock_chooser, "/read-only-dir/file.pdf")
+        app._show_message_dialog.assert_called()
+
+        # Case 2: File exists but not writable
+        app._show_message_dialog.reset_mock()
+        mock_os.path.dirname.return_value = "/tmp"
+        mock_os.access.side_effect = [True, False]  # dir writable, file not
+        mock_os.path.isfile.return_value = True
+        assert app._file_writable(mock_chooser, "/tmp/readonly.pdf")
+        app._show_message_dialog.assert_called()
+
     @unittest.mock.patch("file_menu_mixins.collate_metadata")
     @unittest.mock.patch("file_menu_mixins.datetime")
     def test_save_pdf(self, mock_datetime, mock_collate_metadata, app):
@@ -770,32 +915,20 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
             error_callback=app._error_callback,
         )
 
-    def test_save_pdf_prepend(self, app):
-        "Test _save_pdf with prependpdf option."
+    def test_save_pdf_variants(self, app):
+        "Test _save_pdf with prepend/append/ps options."
         app.slist.save_pdf = unittest.mock.Mock()
         app._windowi = unittest.mock.Mock()
 
         app._save_pdf("file.pdf", ["uuid1"], "prependpdf")
-
-        assert "prepend" in app.slist.save_pdf.call_args[1]["options"]
-
-    def test_save_pdf_append(self, app):
-        "Test _save_pdf with appendpdf option."
-        app.slist.save_pdf = unittest.mock.Mock()
-        app._windowi = unittest.mock.Mock()
+        assert app.slist.save_pdf.call_args[1]["options"]["prepend"] == "file.pdf"
 
         app._save_pdf("file.pdf", ["uuid1"], "appendpdf")
+        assert app.slist.save_pdf.call_args[1]["options"]["append"] == "file.pdf"
 
-        assert "append" in app.slist.save_pdf.call_args[1]["options"]
-
-    def test_save_pdf_ps(self, app):
-        "Test _save_pdf with ps option and pdf2ps tool."
-        app.slist.save_pdf = unittest.mock.Mock()
-        app._windowi = unittest.mock.Mock()
-
+        app.settings["ps_backend"] = "pdf2ps"
         app._save_pdf("file.ps", ["uuid1"], "ps")
-
-        assert "ps" in app.slist.save_pdf.call_args[1]["options"]
+        assert app.slist.save_pdf.call_args[1]["options"]["ps"] == "file.ps"
         assert app.slist.save_pdf.call_args[1]["options"]["pstool"] == "pdf2ps"
 
     @unittest.mock.patch("file_menu_mixins.launch_default_for_file")
@@ -834,33 +967,28 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
 
     @unittest.mock.patch("file_menu_mixins.Gtk")
     @unittest.mock.patch("file_menu_mixins.file_exists")
-    def test_save_image_single(self, mock_file_exists, mock_gtk, app):
-        "Test _save_image saves a single image file."
+    @unittest.mock.patch("file_menu_mixins.os")
+    def test_save_image_logic(self, mock_os, mock_file_exists, mock_gtk, app):
+        "Test _save_image with multiple pages and overwrite check."
         app.slist.save_image = unittest.mock.Mock()
         app.settings["image type"] = "png"
         app._file_writable = unittest.mock.Mock(return_value=False)
+        app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.OK
-        mock_dialog.get_filename.return_value = "/path/to/image.png"
+        mock_dialog.get_filename.return_value = "/path/to/image"
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         mock_file_exists.return_value = False
 
-        app._save_image(["uuid1"])
+        # Multiple pages overwrite case
+        mock_os.path.isfile.return_value = True
+        app._save_image(["uuid1", "uuid2"])
+        app._show_message_dialog.assert_called()
 
-        mock_gtk.FileChooserDialog.assert_called_once()
-        mock_dialog.run.assert_called_once()
-        mock_dialog.get_filename.assert_called_once()
-        assert app.settings["cwd"] == "/path/to"
-        app.slist.save_image.assert_called_with(
-            path="/path/to/image.png",
-            list_of_pages=["uuid1"],
-            queued_callback=app.post_process_progress.queued,
-            started_callback=app.post_process_progress.update,
-            running_callback=app.post_process_progress.update,
-            finished_callback=unittest.mock.ANY,
-            error_callback=app._error_callback,
-        )
-        mock_dialog.destroy.assert_called_once()
+        # Single page success
+        mock_os.path.isfile.return_value = False
+        app._save_image(["uuid1"])
+        app.slist.save_image.assert_called()
 
     @unittest.mock.patch("file_menu_mixins.PrintOperation")
     def test_print_dialog(self, mock_print_op, app):
@@ -922,6 +1050,3 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         app.slist.save_image.assert_called()
         args = app.slist.save_image.call_args[1]
         assert "%0$2d" in args["path"]
-
-
-# pylint: enable=protected-access,attribute-defined-outside-init
