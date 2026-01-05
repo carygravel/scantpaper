@@ -129,8 +129,8 @@ class SessionMixins:
                 selected = sessionlist.get_selected_indices()
 
             dialog.destroy()
-            if selected is not None:
-                self.session = crashed[selected]
+            if selected:
+                self.session = crashed[selected[0]]
                 self._create_lockfile()
                 self._open_session(self.session)
 
@@ -148,7 +148,7 @@ class SessionMixins:
             Gtk.ResponseType.CANCEL,
         )
         text = Gtk.TextView()
-        text.set_wrap_mode("word")
+        text.set_wrap_mode(Gtk.WrapMode.WORD)
         text.get_buffer().set_text(
             _("The following list of sessions cannot be restored.")
             + SPACE
@@ -175,8 +175,8 @@ class SessionMixins:
             for i, _v in enumerate(selected):
                 selected[i] = missing[i]
             logger.info("Selected for deletion: %s", SPACE.join(selected))
-            if selected:
-                shutil.rmtree(selected)
+            for s in selected:
+                shutil.rmtree(s)
         else:
             logger.info("None selected")
 
@@ -197,6 +197,8 @@ class SessionMixins:
         if self._dependencies["unpaper"]:
             logger.info("Found unpaper %s", self._dependencies["unpaper"])
 
+        self._dependencies["imagemagick"] = None
+        self._dependencies["graphicsmagick"] = None
         dependency_rules = [
             [
                 "imagemagick",
@@ -474,6 +476,8 @@ class SessionMixins:
                         break
 
             if flag:
+                if text not in self.settings["message"]:
+                    self.settings["message"][text] = {}
                 self.settings["message"][text]["response"] = response
 
         logger.debug("Replied '%s'", response)
@@ -721,7 +725,7 @@ class SessionMixins:
         self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         if ev:
-            self.a_canvas.pointer_ungrab(_target, ev.time())
+            self.a_canvas.pointer_ungrab(_target, ev.time)
 
         if bbox:
             self.a_canvas.set_index_by_bbox(bbox)

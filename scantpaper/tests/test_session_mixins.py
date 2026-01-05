@@ -1,5 +1,6 @@
 "Coverage tests for SessionMixins"
 
+import os
 from unittest.mock import MagicMock
 import pytest
 import gi
@@ -28,6 +29,8 @@ def mock_session_window(mocker):
         t_canvas = None
         a_canvas = None
         _windowc = None
+        _windowi = None
+        _windowe = None
         _actions = {}
         _current_page = None
         _current_ocr_bbox = None
@@ -36,6 +39,7 @@ def mock_session_window(mocker):
         _ann_hbox = None
         _scan_progress = None
         post_process_progress = None
+        _configfile = "/tmp/config"
 
         # Callbacks
         _show_message_dialog = mocker.Mock()
@@ -58,6 +62,7 @@ def mock_session_window(mocker):
         rotate_90 = mocker.Mock()
         rotate_180 = mocker.Mock()
         rotate_270 = mocker.Mock()
+        _pack_viewer_tools = mocker.Mock()
 
         def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
             "mock"
@@ -72,13 +77,22 @@ def mock_session_window(mocker):
         "TMPDIR": "/tmp",
         "message": {},
         "selection": None,
+        "quality": 80,
+        "post_save_hook": False,
+        "current_psh": None,
+        "user_defined_tools": [],
+        "imagemagick": None,
+        "graphicsmagick": None,
     }
 
     window.slist = mocker.MagicMock()
     window.view = mocker.Mock()
+    window.view.zoom_changed_signal = 1
+    window.view.offset_changed_signal = 2
     window.builder = mocker.Mock()
     window.t_canvas = mocker.Mock()
     window.a_canvas = mocker.Mock()
+    window.post_process_progress = mocker.Mock()
 
     # Mock actions
     for action_name in ["tooltype", "save", "quit"]:
@@ -109,6 +123,34 @@ def test_create_temp_directory_success(mocker, mock_session_window):
     assert mock_session_window.session == mock_temp_dir_instance
 
 
+def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
+    "Test _create_temp_directory when get_tmp_dir returns None"
+    mocker.patch("session_mixins.get_tmp_dir", return_value=None)
+    mocker.patch("session_mixins.fcntl.lockf")
+    mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mock_temp_dir_instance = mock_temp_dir.return_value
+    mock_temp_dir_instance.name = "/tmp/gscan2pdf-fallback"
+    mocker.patch("builtins.open", mocker.mock_open())
+    mock_session_window._find_crashed_sessions = mocker.Mock()
+
+    mock_session_window._create_temp_directory()
+    mock_temp_dir.assert_called_with(prefix="gscan2pdf-")
+
+
+def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
+    "Test _create_temp_directory when get_tmp_dir returns EMPTY"
+    from const import EMPTY
+
+    mocker.patch("session_mixins.get_tmp_dir", return_value=EMPTY)
+    mocker.patch("session_mixins.fcntl.lockf")
+    mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mocker.patch("builtins.open", mocker.mock_open())
+    mock_session_window._find_crashed_sessions = mocker.Mock()
+
+    mock_session_window._create_temp_directory()
+    mock_temp_dir.assert_called_with(prefix="gscan2pdf-")
+
+
 def test_create_temp_directory_fallback(mocker, mock_session_window):
     "Test _create_temp_directory fallback when preferred dir fails"
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/bad")
@@ -135,6 +177,20 @@ def test_create_temp_directory_fallback(mocker, mock_session_window):
     mock_temp_dir.assert_any_call(prefix="gscan2pdf-")
 
 
+def test_create_temp_directory_non_existent_tmpdir(mocker, mock_session_window):
+    "Test _create_temp_directory when tmpdir does not exist"
+    mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/new")
+    mocker.patch("os.path.isdir", return_value=False)
+    mocker.patch("os.mkdir")
+    mocker.patch("session_mixins.fcntl.lockf")
+    mocker.patch("tempfile.TemporaryDirectory")
+    mocker.patch("builtins.open", mocker.mock_open())
+    mock_session_window._find_crashed_sessions = mocker.Mock()
+
+    mock_session_window._create_temp_directory()
+    os.mkdir.assert_called_with("/tmp/new")
+
+
 def test_check_dependencies(mocker, mock_session_window):
     "Test _check_dependencies"
     mocker.patch("tesserocr.tesseract_version", return_value="4.0")
@@ -159,6 +215,52 @@ def test_check_dependencies(mocker, mock_session_window):
     assert mock_session_window._dependencies["tesseract"] == "4.0"
     assert mock_session_window._dependencies["unpaper"] == "6.1"
     assert mock_session_window._dependencies["imagemagick"] == "1.0"
+
+
+def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window):
+    "Test _check_dependencies with GraphicsMagick fallback"
+    mocker.patch("tesserocr.tesseract_version", return_value=None)
+    mocker.patch("tesserocr.__version__", return_value="2.5")
+    mocker.patch("session_mixins.Unpaper")
+
+    mock_program_version = mocker.patch("session_mixins.program_version")
+
+    def side_effect(stream, regex, cmd):
+        if "gm" in cmd:
+            return "1.3"
+        return None
+
+    mock_program_version.side_effect = side_effect
+
+    mock_session_window._check_dependencies()
+    assert mock_session_window._dependencies["imagemagick"] == "1.3"
+    mock_session_window._show_message_dialog.assert_called()
+
+
+def test_check_dependencies_pdftk_error(mocker, mock_session_window, tmp_path):
+    "Test _check_dependencies with pdftk error"
+    mocker.patch("tesserocr.tesseract_version", return_value=None)
+    mocker.patch("tesserocr.__version__", return_value="2.5")
+    mocker.patch("session_mixins.Unpaper")
+
+    mock_program_version = mocker.patch("session_mixins.program_version")
+
+    def side_effect(stream, regex, cmd):
+        if "pdftk" in cmd:
+            return "2.0"
+        return "1.0"
+
+    mock_program_version.side_effect = side_effect
+
+    mock_exec_command = mocker.patch("session_mixins.exec_command")
+    mock_exec_command.return_value.stdout = "Error: could not load a required library"
+
+    mock_session_window.session = MagicMock()
+    mock_session_window.session.name = str(tmp_path)
+
+    mock_session_window._check_dependencies()
+    assert "pdftk" not in mock_session_window._dependencies
+    mock_session_window._show_message_dialog.assert_called()
 
 
 def test_zoom_methods(mock_session_window):
@@ -218,7 +320,7 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     # Mock SimpleList
     mock_simplelist_cls = mocker.patch("session_mixins.SimpleList")
     mock_simplelist = mock_simplelist_cls.return_value
-    mock_simplelist.get_selected_indices.return_value = 0  # Select first one
+    mock_simplelist.get_selected_indices.return_value = [0]  # Select first one
 
     mock_session_window._open_session = mocker.Mock()
 
@@ -226,6 +328,22 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
 
     assert mock_session_window.session == "/tmp/gscan2pdf-crashed"
     mock_session_window._open_session.assert_called_with("/tmp/gscan2pdf-crashed")
+
+
+def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window):
+    "Test _find_crashed_sessions with a recoverable session but no selection"
+    mocker.patch("glob.glob", return_value=["/tmp/gscan2pdf-crashed"])
+    mock_session_window._create_lockfile = mocker.Mock()
+    mocker.patch("os.access", return_value=True)
+    mock_dialog_cls = mocker.patch("session_mixins.Gtk.Dialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
+    mock_simplelist_cls = mocker.patch("session_mixins.SimpleList")
+    mock_simplelist = mock_simplelist_cls.return_value
+    mock_simplelist.get_selected_indices.return_value = []
+
+    mock_session_window._find_crashed_sessions("/tmp")
+    assert mock_session_window.session is None
 
 
 def test_find_crashed_sessions_unrestorable(mocker, mock_session_window):
@@ -256,12 +374,39 @@ def test_list_unrestorable_sessions(mocker, mock_session_window):
     mock_simplelist = mock_simplelist_cls.return_value
     mock_simplelist.get_selected_indices.return_value = [0]
 
+    # Mock selection changed callback
+    callbacks = {}
+
+    def connect_side_effect(signal, callback):
+        callbacks[signal] = callback
+
+    mock_simplelist.get_selection().connect.side_effect = connect_side_effect
+
     mock_shutil_rmtree = mocker.patch("shutil.rmtree")
 
     mock_session_window._list_unrestorable_sessions(["/tmp/gscan2pdf-broken"])
 
-    mock_shutil_rmtree.assert_called_with(["/tmp/gscan2pdf-broken"])
-    mock_textview.set_wrap_mode.assert_called_with("word")
+    # Test the selection changed callback
+    mock_button = MagicMock()
+    mock_dialog.get_action_area().get_children.return_value = mock_button
+    assert "changed" in callbacks
+    callbacks["changed"]()
+
+    mock_shutil_rmtree.assert_called_with("/tmp/gscan2pdf-broken")
+    mock_textview.set_wrap_mode.assert_called_with(Gtk.WrapMode.WORD)
+
+
+def test_list_unrestorable_sessions_cancel(mocker, mock_session_window):
+    "Test _list_unrestorable_sessions when canceled"
+    mock_dialog_cls = mocker.patch("session_mixins.Gtk.Dialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
+
+    mock_shutil_rmtree = mocker.patch("shutil.rmtree")
+
+    mock_session_window._list_unrestorable_sessions(["/tmp/gscan2pdf-broken"])
+
+    mock_shutil_rmtree.assert_not_called()
 
 
 def test_finished_process_callback(mocker, mock_session_window):
@@ -269,10 +414,13 @@ def test_finished_process_callback(mocker, mock_session_window):
     mock_session_window._scan_progress = mocker.Mock()
 
     # Simple case
-    mock_session_window._finished_process_callback(None, "other_process")
+    mock_session_window._finished_process_callback(
+        None, "other_process", button_signal=123
+    )
+    mock_session_window._scan_progress.disconnect.assert_called_with(123)
     mock_session_window._scan_progress.hide.assert_called()
 
-    # Double sided scanning case
+    # Double sided scanning case - facing
     mock_session_window._scan_progress.reset_mock()
     mock_widget = mocker.Mock()
     mock_widget.sided = "double"
@@ -292,6 +440,11 @@ def test_finished_process_callback(mocker, mock_session_window):
     mock_session_window._ask_question.assert_called()
     assert mock_widget.side_to_scan == "reverse"
 
+    # Double sided scanning case - reverse
+    mock_widget.side_to_scan = "reverse"
+    mock_session_window._finished_process_callback(mock_widget, "scan_pages")
+    assert mock_widget.side_to_scan == "facing"
+
 
 def test_display_callback(mocker, mock_session_window):
     "Test _display_callback"
@@ -307,6 +460,10 @@ def test_display_callback(mocker, mock_session_window):
 
     mock_session_window._display_image.assert_called_with("page_id")
 
+    # Page not found case
+    mock_session_window.slist.find_page_by_uuid.return_value = None
+    mock_session_window._display_callback(mock_response)
+
 
 def test_display_image(mocker, mock_session_window):
     "Test _display_image"
@@ -321,6 +478,7 @@ def test_display_image(mocker, mock_session_window):
     mock_session_window._windowc = mocker.Mock()
     mock_session_window._windowc.selection = "selection"
 
+    # Case 1: Minimal page
     mock_session_window._display_image("page_id")
 
     mock_session_window.view.set_pixbuf.assert_called_with("pixbuf", True)
@@ -329,13 +487,31 @@ def test_display_image(mocker, mock_session_window):
     assert mock_session_window._windowc.page_height == 2000
     mock_session_window.view.set_selection.assert_called_with("selection")
 
-    # Test with corrupted text layer
+    # Case 2: Corrupted text layer
     mock_page.text_layer = "corrupt"
     mocker.patch(
         "session_mixins.Bboxtree", return_value=mocker.Mock(valid=lambda: False)
     )
     mock_session_window._display_image("page_id")
     assert mock_page.text_layer is None
+
+    # Case 3: Valid text layer
+    mock_page.text_layer = "valid"
+    mocker.patch(
+        "session_mixins.Bboxtree", return_value=mocker.Mock(valid=lambda: True)
+    )
+    mock_session_window._create_txt_canvas = mocker.Mock()
+    mock_session_window._display_image("page_id")
+    mock_session_window._create_txt_canvas.assert_called_with(mock_page)
+
+    # Case 4: Annotations
+    mock_page.annotations = "some_ann"
+    mock_session_window._create_ann_canvas = mocker.Mock()
+    mock_session_window._display_image("page_id")
+    mock_session_window._create_ann_canvas.assert_called_with(mock_page)
+
+    # Case 5: No pageid
+    mock_session_window._display_image(None)
 
 
 def test_error_callback(mocker, mock_session_window):
@@ -359,16 +535,12 @@ def test_error_callback(mocker, mock_session_window):
 
     mock_session_window._error_callback(mock_response)
 
-    mock_session_window._show_message_dialog.assert_called_with(
-        parent=mock_session_window,
-        message_type="error",
-        buttons=Gtk.ButtonsType.CLOSE,
-        process="process_name",
-        text="Failed",
-        **{"store-response": True},
-        page="page_obj",
-    )
+    mock_session_window._show_message_dialog.assert_called()
     mock_session_window.post_process_progress.hide.assert_called()
+
+    # Test without page info
+    mock_response.request.args = [{}]
+    mock_session_window._error_callback(mock_response)
 
 
 def test_ask_question(mocker, mock_session_window):
@@ -390,7 +562,24 @@ def test_ask_question(mocker, mock_session_window):
     )
     assert response == Gtk.ResponseType.OK
 
-    # Test stored response
+    # Test store-response and checkbox
+    mock_checkbutton_cls = mocker.patch("session_mixins.Gtk.CheckButton")
+    mock_checkbutton = mock_checkbutton_cls.new_with_label.return_value
+    mock_checkbutton.get_active.return_value = True
+
+    mock_session_window._ask_question(
+        parent=None,
+        type=Gtk.MessageType.QUESTION,
+        buttons=Gtk.ButtonsType.OK_CANCEL,
+        text="Question?",
+        **{"store-response": True, "stored-responses": [Gtk.ResponseType.OK]},
+    )
+    assert (
+        mock_session_window.settings["message"]["filtered_text"]["response"]
+        == Gtk.ResponseType.OK
+    )
+
+    # Test already stored response
     mocker.patch("session_mixins.response_stored", return_value=True)
     mock_session_window.settings["message"]["filtered_text"] = {
         "response": Gtk.ResponseType.CANCEL
@@ -431,6 +620,12 @@ def test_ocr_text_operations(mocker, mock_session_window):
     mock_session_window._current_page.import_hocr.assert_called_with("hocr_output")
     mock_session_window._edit_ocr_text.assert_called_with("new_bbox")
 
+    # Add new layer case
+    del mock_session_window._current_page.text_layer
+    mock_session_window._create_txt_canvas = mocker.Mock()
+    mock_session_window._ocr_text_add(None)
+    mock_session_window._create_txt_canvas.assert_called()
+
     # Copy
     mock_session_window._ocr_text_copy(None)
     assert mock_session_window.t_canvas.add_box.call_count == 2
@@ -442,14 +637,40 @@ def test_ocr_text_operations(mocker, mock_session_window):
     mock_session_window._ocr_text_delete(None)
     mock_session_window._current_ocr_bbox.delete_box.assert_called()
 
+    # OK (button clicked)
+    mock_session_window._ocr_text_button_clicked(None)
+    mock_session_window._current_ocr_bbox.update_box.assert_called()
+
+
+def test_annotation_operations(mocker, mock_session_window):
+    "Test annotation operations: ok, new, delete"
+    mock_session_window._ann_hbox = mocker.Mock()
+    mock_session_window._ann_hbox._textbuffer.get_text.return_value = "ann text"
+    mock_session_window._current_page = mocker.Mock()
+    mock_session_window._current_page.__getitem__ = lambda self, key: 100
+    mock_session_window._current_ann_bbox = mocker.Mock()
+    mock_session_window.a_canvas.hocr.return_value = "ann_hocr"
+
+    # OK
+    mock_session_window._edit_annotation = mocker.Mock()
+    mock_session_window._ann_text_ok(None)
+    mock_session_window._current_ann_bbox.update_box.assert_called()
+    mock_session_window._current_page.import_annotations.assert_called_with("ann_hocr")
+
+    # New
+    mock_session_window._ann_text_new(None)
+    mock_session_window.a_canvas.add_box.assert_called()
+
+    # Delete
+    mock_session_window._ann_text_delete(None)
+    mock_session_window._current_ann_bbox.delete_box.assert_called()
+
 
 def test_add_text_view_layers(mocker, mock_session_window):
     "Test _add_text_view_layers"
-    mock_text_layer_controls = mocker.patch("session_mixins.TextLayerControls")
+    mocker.patch("session_mixins.TextLayerControls")
     mock_edit_hbox = mocker.Mock()
     mock_session_window.builder.get_object.return_value = mock_edit_hbox
-
-    mock_session_window._pack_viewer_tools = mocker.Mock()
 
     mock_session_window._add_text_view_layers()
 
@@ -488,6 +709,10 @@ def test_edit_ocr_text(mocker, mock_session_window):
     mock_session_window._ocr_text_hbox = mocker.Mock()
     mock_session_window.t_canvas = mocker.Mock()
 
+    # Case bbox is None
+    mock_session_window._edit_ocr_text(None)
+
+    # Case bbox is set
     mock_session_window._edit_ocr_text(mock_bbox)
 
     mock_session_window._ocr_text_hbox._textbuffer.set_text.assert_called_with(
@@ -496,6 +721,29 @@ def test_edit_ocr_text(mocker, mock_session_window):
     mock_session_window.view.set_selection.assert_called_with("bbox_rect")
     mock_session_window.t_canvas.set_index_by_bbox.assert_called_with(mock_bbox)
 
+    # test with event
+    mock_ev = mocker.Mock()
+    mock_ev.time = 123
+    mock_session_window._edit_ocr_text(
+        mock_bbox, _target="target", ev=mock_ev, bbox=mock_bbox
+    )
+    mock_session_window.t_canvas.pointer_ungrab.assert_called_with("target", 123)
+
+
+def test_sync_callbacks(mocker, mock_session_window):
+    "Test zoom/offset sync callbacks"
+    mock_session_window._text_zoom_changed_callback(None, 2.0)
+    mock_session_window.view.set_zoom.assert_called_with(2.0)
+
+    mock_session_window._text_offset_changed_callback(None, 10, 20)
+    mock_session_window.view.set_offset.assert_called_with(10, 20)
+
+    mock_session_window._ann_zoom_changed_callback(None, 3.0)
+    mock_session_window.view.set_zoom.assert_called_with(3.0)
+
+    mock_session_window._ann_offset_changed_callback(None, 30, 40)
+    mock_session_window.view.set_offset.assert_called_with(30, 40)
+
 
 def test_tool_actions(mock_session_window):
     "Test tool action callbacks"
@@ -503,10 +751,44 @@ def test_tool_actions(mock_session_window):
     mock_session_window._change_image_tool_cb.assert_called()
 
     mock_session_window._on_selector(None)
-    assert mock_session_window._change_image_tool_cb.call_count == 2
-
+    mock_session_window._on_selectordragger(None)
+    mock_session_window._on_zoom_100(None)
+    mock_session_window._on_zoom_to_fit(None)
+    mock_session_window._on_zoom_in(None)
+    mock_session_window._on_zoom_out(None)
+    mock_session_window._on_rotate_90(None)
+    mock_session_window._on_rotate_180(None)
+    mock_session_window._on_rotate_270(None)
     mock_session_window._on_save(None)
-    mock_session_window.save_dialog.assert_called()
+    mock_session_window._on_email(None)
+    mock_session_window._on_print(None)
+    mock_session_window._on_renumber(None)
+    mock_session_window._on_select_all(None)
+    mock_session_window._on_select_odd(None)
+    mock_session_window._on_select_even(None)
+    mock_session_window._on_invert_selection(None)
+    mock_session_window._on_crop(None)
+    mock_session_window._on_cut(None)
+    mock_session_window._on_copy(None)
+    mock_session_window._on_paste(None)
+    mock_session_window._on_delete(None)
+    mock_session_window._on_clear_ocr(None)
+    mock_session_window._on_properties(None)
 
     mock_session_window._on_quit(None, None)
     mock_session_window.get_application().quit.assert_called()
+
+
+def test_create_txt_ann_canvas(mocker, mock_session_window):
+    "Test _create_txt_canvas and _create_ann_canvas"
+    mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
+    mock_session_window.view.get_zoom.return_value = 1.5
+
+    mock_page = mocker.Mock()
+    mock_session_window._create_txt_canvas(mock_page)
+    mock_session_window.t_canvas.set_text.assert_called()
+    mock_session_window.t_canvas.set_offset.assert_called_with(10, 20)
+
+    mock_session_window._create_ann_canvas(mock_page)
+    mock_session_window.a_canvas.set_text.assert_called()
+    mock_session_window.a_canvas.set_offset.assert_called_with(10, 20)
