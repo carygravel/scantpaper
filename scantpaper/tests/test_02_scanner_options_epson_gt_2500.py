@@ -1,19 +1,18 @@
 "options from Epson_GT-2500 backend"
 
-from scanner.options import Options, Option
+from pathlib import Path
 import pytest
+from scanner.options import Options, Option
 from frontend import enums
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/Epson_GT-2500").exists(),
+    reason="source tree not found",
+)
 def test_1():
     "options from Epson_GT-2500 backend"
-    filename = "scantpaper/tests/scanners/Epson_GT-2500"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/Epson_GT-2500").read_text(encoding="utf-8")
     options = Options(output)
     that = [
         Option(

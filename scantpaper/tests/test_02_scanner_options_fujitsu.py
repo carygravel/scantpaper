@@ -1,20 +1,19 @@
 "options from fujitsu backend"
 
-from scanner.options import Options, Option
+from pathlib import Path
 import pytest
+from scanner.options import Options, Option
 from frontend import enums
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/fujitsu").exists(),
+    reason="source tree not found",
+)
 def test_1():
     "options from fujitsu backend"
 
-    filename = "scantpaper/tests/scanners/fujitsu"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/fujitsu").read_text(encoding="utf-8")
     options = Options(output)
     that = [
         Option(

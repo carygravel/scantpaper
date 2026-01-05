@@ -1,19 +1,18 @@
 "options from HP backends"
 
-from scanner.options import Options, Option
+from pathlib import Path
 import pytest
+from scanner.options import Options, Option
 from frontend import enums
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/hp_6200").exists(),
+    reason="source tree not found",
+)
 def test_6200():
     "options from hp_6200 backend"
-    filename = "scantpaper/tests/scanners/hp_6200"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/hp_6200").read_text(encoding="utf-8")
     options = Options(output)
     that = [
         Option(
@@ -223,15 +222,15 @@ def test_6200():
     assert options.can_duplex(), "can duplex"
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/hp_scanjet5300c").exists(),
+    reason="source tree not found",
+)
 def test_scanjet5300c():
     "options from hp_scanjet5300c backend"
-    filename = "scantpaper/tests/scanners/hp_scanjet5300c"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/hp_scanjet5300c").read_text(
+        encoding="utf-8"
+    )
     options = Options(output)
     that = [
         Option(
@@ -513,15 +512,15 @@ def test_scanjet5300c():
     assert options.device == "avision:libusb:001:005", "device name"
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/officejet_5500").exists(),
+    reason="source tree not found",
+)
 def test_officejet_5500():
     "options from officejet_5500 backend"
-    filename = "scantpaper/tests/scanners/officejet_5500"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/officejet_5500").read_text(
+        encoding="utf-8"
+    )
     options = Options(output)
     that = [
         Option(

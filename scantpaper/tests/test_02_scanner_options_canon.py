@@ -1,19 +1,18 @@
 "options from canon backends"
 
-from scanner.options import Options, Option
+from pathlib import Path
 import pytest
+from scanner.options import Options, Option
 from frontend import enums
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/canonLiDE25").exists(),
+    reason="source tree not found",
+)
 def test_canonlide25():
     "options from canonLiDE25 backend"
-    filename = "scantpaper/tests/scanners/canonLiDE25"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/canonLiDE25").read_text(encoding="utf-8")
     options = Options(output)
     that = [
         Option(
@@ -465,15 +464,15 @@ def test_canonlide25():
     assert options.device == "plustek:libusb:001:002", "device name"
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/canoscan_FB_630P").exists(),
+    reason="source tree not found",
+)
 def test_canoscan_fb_630p():
     "options from canoscan_FB_630P backend"
-    filename = "scantpaper/tests/scanners/canoscan_FB_630P"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/canoscan_FB_630P").read_text(
+        encoding="utf-8"
+    )
     options = Options(output)
     that = [
         Option(

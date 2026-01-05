@@ -1,19 +1,20 @@
 "options from Brother backends"
 
-from scanner.options import Options, Option
+from pathlib import Path
 import pytest
+from scanner.options import Options, Option
 from frontend import enums
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/Brother_DCP-7025").exists(),
+    reason="source tree not found",
+)
 def test_dcp_7025():
     "options from Brother_DCP-7025 backend"
-    filename = "scantpaper/tests/scanners/Brother_DCP-7025"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/Brother_DCP-7025").read_text(
+        encoding="utf-8"
+    )
     options = Options(output)
     that = [
         Option(
@@ -159,15 +160,15 @@ def test_dcp_7025():
     assert options.device == "brother2:bus5;dev1", "device name"
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/Brother_MFC_5100c").exists(),
+    reason="source tree not found",
+)
 def test_mfc_5100c():
     "options from Brother_MFC_5100c backend"
-    filename = "scantpaper/tests/scanners/Brother_MFC_5100c"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/Brother_MFC_5100c").read_text(
+        encoding="utf-8"
+    )
     options = Options(output)
     that = [
         Option(
@@ -324,15 +325,15 @@ def test_mfc_5100c():
     assert options.can_duplex() is False, "can duplex"
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/Brother_MFC-8860DN").exists(),
+    reason="source tree not found",
+)
 def test_mfc_8860dn():
     "options from Brother_MFC-8860DN backend"
-    filename = "scantpaper/tests/scanners/Brother_MFC-8860DN"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/Brother_MFC-8860DN").read_text(
+        encoding="utf-8"
+    )
     options = Options(output)
     that = [
         Option(
@@ -494,15 +495,13 @@ def test_mfc_8860dn():
     assert options.can_duplex(), "can duplex"
 
 
+@pytest.mark.skipif(
+    not Path("scantpaper/tests/scanners/brother").exists(),
+    reason="source tree not found",
+)
 def test_generic():
     "options from brother backend"
-    filename = "scantpaper/tests/scanners/brother"
-    try:
-        with open(filename, "r", encoding="utf-8") as fhd:
-            output = fhd.read()
-    except IOError:
-        pytest.skip("source tree not found")
-        return
+    output = Path("scantpaper/tests/scanners/brother").read_text(encoding="utf-8")
     options = Options(output)
     that = [
         # (index, name, title, desc, type, unit, size, cap, constraint)
