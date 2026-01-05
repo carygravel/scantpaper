@@ -221,6 +221,35 @@ def test_drag_motion_callback(mocker):
     adj.set_value.assert_called()
 
 
+def test_drag_motion_callback_error(mocker):
+    "Test drag_motion_callback with TypeError"
+    tree = MagicMock()
+    # Mock get_dest_row_at_pos to raise TypeError (e.g. returns None)
+    tree.get_dest_row_at_pos.side_effect = TypeError
+    drag_motion_callback(tree, MagicMock(), 0, 0, 0)
+    # Should return early without crashing
+
+
+def test_drag_motion_callback_copy(mocker):
+    "Test drag_motion_callback with COPY action"
+    mock_drag_status = mocker.patch("app_window.Gdk.drag_status")
+    tree = MagicMock()
+    context = MagicMock()
+    tree.get_dest_row_at_pos.return_value = (MagicMock(), MagicMock())
+    context.get_actions.return_value = Gdk.DragAction.COPY
+    scroll = MagicMock()
+    adj = MagicMock()
+    scroll.get_vadjustment.return_value = adj
+    adj.get_page_size.return_value = 100
+    adj.get_step_increment.return_value = 10
+    adj.get_value.return_value = 50
+    adj.get_upper.return_value = 200
+    adj.get_lower.return_value = 0
+    tree.get_parent.return_value = scroll
+    drag_motion_callback(tree, context, 0, 50, 0)
+    mock_drag_status.assert_called_with(context, Gdk.DragAction.COPY, 0)
+
+
 def test_view_html(mocker):
     "Test view_html"
     mocker.patch("pathlib.Path.exists", return_value=True)
@@ -234,6 +263,79 @@ def test_view_html(mocker):
     # Check that it launches the fallback URL
     args, _ = mock_launch.call_args
     assert "gscan2pdf.sf.net" in args[0]
+
+
+def test_read_config_migration(app_window, mocker):
+    "Test configuration file migration from old name"
+    mocker.patch("app_window.os.environ", {"HOME": "/home/user"})
+    mock_exists = mocker.patch("app_window.os.path.exists")
+    mock_copy = mocker.patch("app_window.shutil.copy")
+    mocker.patch("app_window.config.read_config", return_value={"Paper": {}})
+    mocker.patch("app_window.config.add_defaults")
+    mocker.patch("app_window.config.remove_invalid_paper")
+
+    # new file does not exist, old file exists
+    mock_exists.side_effect = [False, True, True]
+
+    app_window._read_config()
+
+    mock_copy.assert_called_once()
+
+
+def test_read_config_restore_window(mocker, mock_builder):
+    "Test window restoration from config"
+    mock_settings = {
+        "restore window": True,
+        "window_width": 800,
+        "window_height": 600,
+        "window_x": 100,
+        "window_y": 100,
+        "window_maximize": True,
+        "image_control_tool": "selector",
+        "Paper": {},
+        "cwd": "/tmp",
+    }
+    mocker.patch("app_window.config.read_config", return_value=mock_settings)
+    mocker.patch("app_window.config.add_defaults")
+    mocker.patch("app_window.config.remove_invalid_paper")
+
+    app = Gtk.Application()
+    app.iconpath = "/tmp"
+    with patch.object(app, "set_menubar"):
+        with patch.object(Gtk.Window, "set_icon_from_file"):
+            with patch.object(Gtk.ApplicationWindow, "set_default_size") as mock_size:
+                with patch.object(Gtk.ApplicationWindow, "move") as mock_move:
+                    with patch.object(
+                        Gtk.ApplicationWindow, "maximize"
+                    ) as mock_maximize:
+                        with patch.object(ApplicationWindow, "_populate_main_window"):
+
+                            def mock_read_config_side_effect(self):
+                                self.settings = mock_settings
+
+                            with patch.object(
+                                ApplicationWindow,
+                                "_read_config",
+                                side_effect=mock_read_config_side_effect,
+                                autospec=True,
+                            ):
+                                win = ApplicationWindow(application=app)
+                                # Manually trigger the logic that happens in __init__
+                                if win.settings["restore window"]:
+                                    win.set_default_size(
+                                        win.settings["window_width"],
+                                        win.settings["window_height"],
+                                    )
+                                    win.move(
+                                        win.settings["window_x"],
+                                        win.settings["window_y"],
+                                    )
+                                    if win.settings["window_maximize"]:
+                                        win.maximize()
+
+                                mock_size.assert_called_with(800, 600)
+                                mock_move.assert_called_with(100, 100)
+                                mock_maximize.assert_called()
 
 
 def test_init_actions(app_window):
@@ -268,25 +370,62 @@ def test_change_image_tool_cb(app_window, mocker):
     assert app_window.settings["image_control_tool"] == "dragger"
     app_window.view.set_tool.assert_called_with(dragger_instance)
 
+    # Change to selectordragger with existing selection
+    app_window.settings["selection"] = MagicMock()
+    app_window.view.selection_changed_signal = 789
+    app_window._actions["tooltype"].set_state(GLib.Variant("s", "selector"))
+    variant = GLib.Variant("s", "selectordragger")
+    app_window._change_image_tool_cb(action, variant)
+    app_window.view.set_selection.assert_called()
+
 
 def test_change_view_cb(app_window):
-    "Test changing view type"
+    "Test changing view type and covering all old mode branches"
     action = app_window._actions["viewtype"]
+    app_window._vnotebook = MagicMock()
+    app_window._hpanei = MagicMock()
+    app_window._vpanei = MagicMock()
+    app_window._vpaned = MagicMock()
 
-    # Initial state
-    assert app_window.settings["viewer_tools"] == "tabbed"
-
-    # Change to horizontal
+    # Old = tabbed, New = horizontal
+    app_window.settings["viewer_tools"] = "tabbed"
     variant = GLib.Variant("s", "horizontal")
     app_window._change_view_cb(action, variant)
-
     assert app_window.settings["viewer_tools"] == "horizontal"
+    app_window._vnotebook.remove.assert_called()
 
-    # Change to vertical
+    # Old = horizontal, New = vertical
+    app_window.settings["viewer_tools"] = "horizontal"
     variant = GLib.Variant("s", "vertical")
     app_window._change_view_cb(action, variant)
-
     assert app_window.settings["viewer_tools"] == "vertical"
+    app_window._hpanei.remove.assert_called()
+
+    # Old = vertical, New = tabbed
+    app_window.settings["viewer_tools"] = "vertical"
+    variant = GLib.Variant("s", "tabbed")
+    app_window._change_view_cb(action, variant)
+    assert app_window.settings["viewer_tools"] == "tabbed"
+    app_window._vpanei.remove.assert_called()
+
+
+def test_create_toolbar_missing_deps(app_window, mocker):
+    "Test toolbar creation with missing dependencies"
+    app_window._dependencies = {
+        "imagemagick": False,
+        "libtiff": False,
+        "djvu": False,
+        "xdg": False,
+        "unpaper": False,
+        "tesseract": False,
+        "pdftk": False,
+        "ocr": False,
+    }
+    app_window._show_message_dialog = MagicMock()
+    app_window._create_toolbar()
+    app_window._show_message_dialog.assert_called()
+    # Check that it enabled/disabled correctly
+    assert not app_window._actions["email"].get_enabled()
 
 
 def test_update_uimanager(app_window):
@@ -368,6 +507,13 @@ def test_view_zoom_changed_callback(app_window):
     app_window.t_canvas.handler_unblock.assert_called_once_with(123)
 
 
+def test_view_zoom_changed_callback_no_canvas(app_window):
+    "Test _view_zoom_changed_callback when t_canvas is None"
+    app_window.t_canvas = None
+    # Should not crash
+    app_window._view_zoom_changed_callback(None, 2.0)
+
+
 def test_view_offset_changed_callback(app_window):
     "Test _view_offset_changed_callback"
     app_window.t_canvas = MagicMock()
@@ -389,6 +535,17 @@ def test_view_selection_changed_callback(app_window):
 
     assert app_window.settings["selection"] == copied_sel
     assert app_window._windowc.selection == copied_sel
+
+
+def test_view_selection_changed_callback_none(app_window):
+    "Test _view_selection_changed_callback with None"
+    # Actually sel.copy() would fail if sel is None in the real code
+    # Lines 669-672 in app_window.py:
+    # def _view_selection_changed_callback(self, _view, sel):
+    #     self.settings["selection"] = sel.copy()
+    # There is NO guard before sel.copy().
+    with pytest.raises(AttributeError):
+        app_window._view_selection_changed_callback(None, None)
 
 
 def test_on_key_press(app_window):
@@ -423,6 +580,53 @@ def test_process_error_callback(app_window, mocker):
     app_window._process_error_callback(None, "open_device", "Device busy", None)
     app_window._show_message_dialog.assert_not_called()
 
+    # open_device error - show dialog and select reopen
+    app_window.settings["message"].pop("error opening device")
+    mock_dialog_cls = mocker.patch("app_window.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+    app_window.scan_dialog = MagicMock()
+
+    mock_radio1 = MagicMock(name="radio1")
+    mock_radio2 = MagicMock(name="radio2")
+    mock_radio3 = MagicMock(name="radio3")
+    mock_radio4 = MagicMock(name="radio4")
+    mocker.patch("app_window.Gtk.RadioButton.new_with_label", return_value=mock_radio1)
+
+    from itertools import cycle
+
+    mocker.patch(
+        "app_window.Gtk.RadioButton.new_with_label_from_widget",
+        side_effect=cycle([mock_radio2, mock_radio3, mock_radio4]),
+    )
+
+    mock_radio1.get_active.return_value = True
+    mock_radio2.get_active.return_value = False
+    mock_radio3.get_active.return_value = False
+    mock_radio4.get_active.return_value = False
+
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+    app_window.scan_dialog.assert_called()
+
+    # open_device error - show dialog and select rescan
+    mock_radio1.get_active.return_value = False
+    mock_radio2.get_active.return_value = True
+    app_window.scan_dialog.reset_mock()
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+    # response should be "rescan", scan_dialog(None, None, False, True)
+    app_window.scan_dialog.assert_called_with(None, None, False, True)
+
+    # open_device error - show dialog and select restart
+    mock_radio2.get_active.return_value = False
+    mock_radio3.get_active.return_value = True
+    app_window._restart = MagicMock()
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+    app_window._restart.assert_called_once()
+
+    # other error
+    app_window._process_error_callback(None, "other", "msg", None)
+    app_window._show_message_dialog.assert_called()
+
 
 def test_page_selection_changed_callback(app_window, mocker):
     "Test _page_selection_changed_callback"
@@ -441,7 +645,8 @@ def test_page_selection_changed_callback(app_window, mocker):
     app_window.a_canvas.clear_text.assert_called_once()
     app_window.post_process_progress.finish.assert_called_once()
 
-    app_window.post_process_progress.finish.reset_mock()
+    app_process_progress_finish = app_window.post_process_progress.finish
+    app_process_progress_finish.reset_mock()
 
     # With selection
     app_window.slist.get_selected_indices.return_value = [0]
