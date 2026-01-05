@@ -5,7 +5,6 @@ import datetime
 import re
 import logging
 import sys
-import os
 from i18n import _
 from basedocument import BaseDocument
 from bboxtree import unescape_utf8
