@@ -285,6 +285,7 @@ class ScanMenuItemMixins:
                 None,
                 "",
             ]:
+                initial_len = len(device_list)
                 i = 0
                 while i < len(device_list):
                     if re.search(
@@ -297,9 +298,8 @@ class ScanMenuItemMixins:
                     else:
                         i += 1
 
-                if len(device_list) < len(device_list):
+                if len(device_list) < initial_len:
                     widget.device_list = device_list
-                    return
 
             if self.settings["cache-device-list"]:
                 self.settings["device list"] = device_list
@@ -407,7 +407,7 @@ class ScanMenuItemMixins:
             )
 
         elif profiles:
-            widget.profile = profiles[0]
+            widget.profile = list(profiles)[0]
 
         self._update_postprocessing_options_callback(widget)
 
