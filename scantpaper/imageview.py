@@ -726,8 +726,9 @@ class ImageView(Gtk.DrawingArea):
         pixbuf_size = self.get_pixbuf_size()
         offset_x = _clamp_direction(offset_x, allocation.width, pixbuf_size.width)
         offset_y = _clamp_direction(offset_y, allocation.height, pixbuf_size.height)
-        self.offset = Gdk.Rectangle()
-        self.offset.x, self.offset.y = offset_x, offset_y
+        rect = Gdk.Rectangle()
+        rect.x, rect.y, rect.width, rect.height = int(offset_x), int(offset_y), 0, 0
+        self.set_property("offset", rect)
         self.emit("offset-changed", offset_x, offset_y)
         self.queue_draw()
 
