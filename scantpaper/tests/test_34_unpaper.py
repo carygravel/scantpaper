@@ -4,14 +4,55 @@ import re
 import subprocess
 import tempfile
 import shutil
+import unittest.mock
 import pytest
 import config
 from document import Document
-from unpaper import Unpaper
+from unpaper import Unpaper, _program_version, program_version
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
+
+
+def test_program_version_helper():
+    "Test _program_version standalone helper"
+
+    class MockOutput:
+        "Mock output class"
+
+        def __init__(self, stdout, stderr):
+            self.stdout = stdout
+            self.stderr = stderr
+
+    mock_output = MockOutput(stdout="unpaper 6.1", stderr="error output")
+
+    # stdout stream
+    assert _program_version("stdout", r"([\d.]+)", mock_output) == "6.1"
+    # stderr stream
+    assert _program_version("stderr", r"error ([\w]+)", mock_output) == "output"
+    # both stream
+    assert _program_version("both", r"unpaper ([\d.]+)", mock_output) == "6.1"
+    # unknown stream (should return None and log error)
+    with pytest.raises(TypeError):
+        _program_version("unknown", r".*", mock_output)
+
+
+def test_program_version_file_not_found():
+    "Test program_version when file not found"
+    with unittest.mock.patch("subprocess.run", side_effect=FileNotFoundError):
+        assert program_version("stdout", r".*", ["non-existent"]) is None
+
+
+def test_unpaper_program_version_lazy(mocker):
+    "Test Unpaper.program_version lazy loading"
+    unpaper = Unpaper()
+    assert unpaper._version is None
+    mocker.patch("unpaper.program_version", return_value="6.2")
+    assert unpaper.program_version() == "6.2"
+    assert unpaper._version == "6.2"
+    # Subsequent call should use cached version
+    assert unpaper.program_version() == "6.2"
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
@@ -524,3 +565,160 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
             "black.pbm",
         ]
     )
+
+
+def test_unpaper_ui_toggles():
+    "Test UI interaction and toggles in Unpaper"
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+
+    options = unpaper.options
+
+    # test dsbutton toggled (no-deskew)
+    dsbutton = options["no-deskew"]["widget"]
+    dframe = options["deskew-scan-direction"]["widget"]
+
+    dsbutton.set_active(True)
+    assert not dframe.get_sensitive()
+    dsbutton.set_active(False)
+    assert dframe.get_sensitive()
+
+    # test deskew_scan_direction_button_cb (at least one active)
+    checkbuttons = []
+
+    def find_checkbuttons(widget):
+        if isinstance(widget, Gtk.CheckButton):
+            checkbuttons.append(widget)
+        elif hasattr(widget, "get_children"):
+            for child in widget.get_children():
+                find_checkbuttons(child)
+
+    find_checkbuttons(dframe)
+
+    for b in checkbuttons:
+        b.set_active(False)
+    # The last one should have been forced back to active
+    assert any(b.get_active() for b in checkbuttons)
+
+    # test no-border-scan toggle
+    bsbutton = options["no-border-scan"]["widget"]
+    babutton = options["no-border-align"]["widget"]
+    bframe = options["border-align"]["widget"]
+
+    bsbutton.set_active(True)
+    assert not bframe.get_sensitive()
+    assert not babutton.get_sensitive()
+    bsbutton.set_active(False)
+    assert babutton.get_sensitive()
+
+    # test no-border-align toggle
+    babutton.set_active(True)
+    assert not bframe.get_sensitive()
+    babutton.set_active(False)
+    assert bframe.get_sensitive()
+
+
+def test_unpaper_ui_border_margins():
+    "Test border margin sensitivity based on alignment"
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+
+    options = unpaper.options
+    bframe = options["border-align"]["widget"]
+    bmframe = options["border-margin"]["widget"]
+
+    checkbuttons = []
+
+    def find_checkbuttons(widget):
+        if isinstance(widget, Gtk.CheckButton):
+            checkbuttons.append(widget)
+        elif hasattr(widget, "get_children"):
+            for child in widget.get_children():
+                find_checkbuttons(child)
+
+    find_checkbuttons(bframe)
+
+    # Deactivate all border align buttons
+    for b in checkbuttons:
+        b.set_active(False)
+
+    assert not bmframe.get_sensitive()
+
+    # Activate one
+    checkbuttons[0].set_active(True)
+    assert bmframe.get_sensitive()
+
+
+def test_unpaper_mask_scan_sync():
+    "Test no-mask-scan affecting no-mask-center sensitivity"
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+
+    options = unpaper.options
+    msbutton = options["no-mask-scan"]["widget"]
+    mcbutton = options["no-mask-center"]["widget"]
+
+    msbutton.set_active(True)
+    assert not mcbutton.get_sensitive()
+    msbutton.set_active(False)
+    assert mcbutton.get_sensitive()
+
+
+def test_combobox_tooltip():
+    "Test ComboBox tooltip change on selection"
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+
+    combobl = unpaper.options["layout"]["widget"]
+    # Select 'double' (index 1)
+    combobl.set_active(1)
+    combobl.emit("changed")
+
+    # test combobox_get_option returning None
+    combobl.set_active(-1)
+    assert unpaper._combobox_get_option("layout") is None
+
+
+def test_set_options_mixed_types():
+    "Test set_options with various types including group ones"
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+    unpaper.set_options(
+        {
+            "layout": "double",
+            "deskew-scan-direction": "top,bottom",
+            "border-margin": "5,10",
+        }
+    )
+    assert unpaper.get_option("layout") == "double"
+    assert unpaper.get_option("deskew-scan-direction") == "bottom,top"  # sorted
+    assert unpaper.get_option("border-margin") == "10.0,5.0"
+
+
+def test_get_cmdline_branches():
+    "Test get_cmdline branches"
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+    unpaper.set_options(
+        {
+            "no-deskew": True,
+            "black-threshold": 0.5,
+            "white-threshold": 0.8,
+            "layout": "double",
+            "output-pages": 2,
+        }
+    )
+    cmd = unpaper.get_cmdline()
+    assert "--no-deskew" in cmd
+    assert "--black-threshold" in cmd
+    assert "0.5" in cmd
+    assert "--white-threshold" in cmd
+    assert "0.8" in cmd
+    assert "--output-pages" in cmd
+    assert "2" in cmd

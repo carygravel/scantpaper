@@ -335,7 +335,7 @@ class Unpaper:
         combobw = self.add_widget(vbox, options, "direction")
 
         def outpages_changed_cb(_widget):
-            combobw.get_parent().set_sensitive(outpages.get_value() == 2)
+            combobw.get_parent().set_sensitive(outpages.get_value_as_int() == 2)
 
         outpages.connect("value-changed", outpages_changed_cb)
         combobw.get_parent().set_sensitive(False)
@@ -490,6 +490,8 @@ class Unpaper:
 
     def _spinbutton_get_option(self, option):
         "get option for spinbutton"
+        if self.options[option]["step"] >= 1:
+            return self.options[option]["widget"].get_value_as_int()
         return self.options[option]["widget"].get_value()
 
     def _spinbuttongroup_get_option(self, option):
@@ -505,30 +507,30 @@ class Unpaper:
 
     def get_option(self, option):
         "return given option"
-        hashref = self.options
+        options = self.options
         default = self.default
-        if "widget" in hashref[option] and hashref[option]["type"] in [
+        if "widget" in options[option] and options[option]["type"] in [
             "ComboBox",
             "CheckButton",
             "CheckButtonGroup",
             "SpinButton",
             "SpinButtonGroup",
         ]:
-            method_name = "_" + hashref[option]["type"].lower() + "_get_option"
+            method_name = "_" + options[option]["type"].lower() + "_get_option"
             method = getattr(self, method_name, None)
             return method(option)  # pylint: disable=not-callable
 
         if option in default:
             return default[option]
-        if option in hashref and "default" in hashref[option]:
-            return hashref[option]["default"]
+        if option in options and "default" in options[option]:
+            return options[option]["default"]
         return None
 
     def get_options(self):
         "return all options"
-        hashref = self.options
+        options = self.options
         default = self.default
-        for option in hashref:
+        for option in options:
             value = self.get_option(option)
             if value is not None:
                 default[option] = value
@@ -592,24 +594,21 @@ class Unpaper:
     def get_cmdline(self):
         "return list for unpaper subprocess call"
         hashref = self.options
-        default = self.get_options()
+        options = self.get_options()
         items = ["unpaper"]
         for option in sorted(hashref.keys()):
             if "export" in hashref[option] and not hashref[option]["export"]:
                 continue
 
             if hashref[option]["type"] == "CheckButton":
-                if option in default and default[option]:
+                if option in options and options[option]:
                     items.append(f"--{option}")
-            elif (
-                hashref[option]["type"] == "SpinButton" and hashref[option]["step"] >= 1
-            ):
-                if option in default:
-                    items += [f"--{option}", f"{int(default[option])}"]
+            elif hashref[option]["type"] == "SpinButton":
+                if option in options:
+                    items += [f"--{option}", f"{self.get_option(option)}"]
             else:
-                if option in default:
-                    items += [f"--{option}", f"{default[option]}"]
-
+                if option in options:
+                    items += [f"--{option}", f"{options[option]}"]
         return items + ["--overwrite", "%s", "%s", "%s"]
 
     def program_version(self):
