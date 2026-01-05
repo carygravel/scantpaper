@@ -143,7 +143,6 @@ class EditMenuMixins:
             document=self.slist,
             hide_on_delete=False,
         )
-        dialog.connect("before-renumber", lambda x: self._take_snapshot())
         dialog.connect(
             "error",
             lambda msg: self._show_message_dialog(

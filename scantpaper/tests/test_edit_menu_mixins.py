@@ -31,7 +31,6 @@ def mock_edit_window(mocker):
 
         # Callbacks and methods used by mixins
         _update_uimanager = mocker.Mock()
-        _take_snapshot = mocker.Mock()
         _show_message_dialog = mocker.Mock()
         _ask_question = mocker.Mock(return_value=Gtk.ResponseType.OK)
         _restart = mocker.Mock()
@@ -311,7 +310,7 @@ def test_renumber_dialog(mocker, mock_edit_window):
     mock_renumber_instance.show_all.assert_called_once()
 
     # Verify signal connection
-    assert mock_renumber_instance.connect.call_count >= 2
+    assert mock_renumber_instance.connect.call_count >= 1
 
 
 def test_preferences_dialog(mocker, mock_edit_window):

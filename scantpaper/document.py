@@ -348,32 +348,6 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _user_defined_data_callback
         self.thread.user_defined(**kwargs)
 
-    # TODO: move this to DocThread
-    def take_snapshot(self):
-        "take a snapshot of the document"
-
-        old_undo_files = list(map(lambda x: x[2].uuid, self._undo_buffer))
-
-        # Deep copy the tied data. Otherwise, very bad things happen.
-        self._undo_buffer = self.data.copy()
-        self._undo_selection = self.get_selected_indices()
-        logger.debug("Undo buffer %s", self._undo_buffer)
-        logger.debug("Undo selection %s", self._undo_selection)
-
-        # Clean up files that fall off the undo buffer
-        undo_files = {}
-        for i in self._undo_buffer:
-            undo_files[i[2].uuid] = True
-
-        delete_files = []
-        for file in old_undo_files:
-            if not undo_files[file]:
-                delete_files.append(file)
-
-        if delete_files:
-            logger.info("Cleaning up delete_files")
-            os.remove(delete_files)
-
     def undo(self):
         "undo the last action"
         self.thread.send("set_selection", self.get_selected_indices())
