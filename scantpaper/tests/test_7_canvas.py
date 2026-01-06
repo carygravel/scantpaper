@@ -1,12 +1,12 @@
 "Test Canvas class"
 
 from dataclasses import dataclass
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import tempfile
 import pytest
 import gi
 from page import Page
-from canvas import rgb2hsv, hsv2rgb, Canvas, Bbox, Rectangle
+from canvas import rgb2hsv, hsv2rgb, Canvas, Bbox, Rectangle, ListIter
 from canvas import HOCR_HEADER as HOCR_OUT_HEADER
 from conftest import HOCR_HEADER
 
@@ -34,6 +34,26 @@ def test_color_functions():
 
     # hsv2rgb
     assert_rgba_equal(hsv2rgb({"h": 0, "s": 0, "v": 1.0}), Gdk.RGBA(1.0, 1.0, 1.0))
+
+
+def test_hsv2rgb_coverage():
+    "Test hsv2rgb all branches"
+    # s=0
+    assert hsv2rgb({"h": 0, "s": 0, "v": 1.0}).red == 1.0
+
+    # sectors
+    def check_sector(h, r, g, b):
+        c = hsv2rgb({"h": h, "s": 1.0, "v": 1.0})
+        assert c.red == pytest.approx(r)
+        assert c.green == pytest.approx(g)
+        assert c.blue == pytest.approx(b)
+
+    check_sector(0, 1, 0, 0)  # i=0
+    check_sector(60, 1, 1, 0)  # i=1 (yellow)
+    check_sector(120, 0, 1, 0)  # i=2 (green)
+    check_sector(180, 0, 1, 1)  # i=3 (cyan)
+    check_sector(240, 0, 0, 1)  # i=4 (blue)
+    check_sector(300, 1, 0, 1)  # i=5 (magenta)
 
 
 def test_canvas_basics(rose_pnm):
@@ -266,6 +286,22 @@ def test_canvas_basics2(rose_pnm):
         )
 
         assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
+
+
+def test_canvas_clear_text(mocker):  # pylint: disable=unused-argument
+    "Test clearing text from canvas"
+    canvas_obj = Canvas()
+    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+        "width": 100,
+        "height": 100,
+    }
+    canvas_obj.set_root_item = MagicMock()
+
+    with patch("canvas.GooCanvas.CanvasGroup") as mock_group:
+        canvas_obj.clear_text()
+        assert canvas_obj.get_pixbuf_size() is None
+        mock_group.assert_called()
+        canvas_obj.set_root_item.assert_called()
 
 
 def test_hocr(rose_pnm):
@@ -538,3 +574,220 @@ def test_canvas_hocr_empty(mocker):
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
     assert canvas.hocr() == ""
+
+
+def test_canvas_set_offset_clamping(mocker):  # pylint: disable=unused-argument
+    "Test set_offset clamping logic"
+    canvas_obj = Canvas()
+    canvas_obj.scroll_to = MagicMock()
+
+    canvas_obj._pixbuf_size = None  # pylint: disable=protected-access
+    canvas_obj.set_offset(10, 10)
+    assert canvas_obj.offset.x == 0 and canvas_obj.offset.y == 0
+
+    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+        "width": 100,
+        "height": 100,
+    }
+
+    rect = Gdk.Rectangle()
+    rect.width = 200
+    rect.height = 200
+    canvas_obj.get_allocation = MagicMock(return_value=rect)
+
+    canvas_obj._to_image_distance = MagicMock(  # pylint: disable=protected-access
+        return_value=(200, 200)
+    )
+    canvas_obj.get_scale_factor = MagicMock(return_value=1)
+
+    canvas_obj.set_offset(0, 0)
+    assert canvas_obj.offset.x == 50
+    assert canvas_obj.offset.y == 50
+
+    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+        "width": 300,
+        "height": 300,
+    }
+    canvas_obj._to_image_distance = MagicMock(  # pylint: disable=protected-access
+        return_value=(200, 200)
+    )
+
+    canvas_obj.set_offset(10, 10)
+    assert canvas_obj.offset.x == 0
+    assert canvas_obj.offset.y == 0
+
+    canvas_obj.set_offset(-150, -150)
+    assert canvas_obj.offset.x == -100
+    assert canvas_obj.offset.y == -100
+
+
+def test_canvas_scroll(mocker):  # pylint: disable=unused-argument
+    "Test scroll event zooming"
+    canvas_obj = Canvas()
+    canvas_obj.set_scale(1.0)
+
+    canvas_obj.get_scale_factor = MagicMock(return_value=1)
+    canvas_obj.convert_from_pixels = MagicMock(return_value=(50, 50))
+
+    event = MagicMock()
+    event.x = 50
+    event.y = 50
+    event.direction = Gdk.ScrollDirection.UP
+
+    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+        "width": 1000,
+        "height": 1000,
+    }
+    rect = Gdk.Rectangle()
+    rect.width = 200
+    rect.height = 200
+    canvas_obj.get_allocation = MagicMock(return_value=rect)
+
+    with patch.object(
+        canvas_obj, "set_offset", wraps=canvas_obj.set_offset
+    ) as mock_set_offset:
+        canvas_obj.scroll_to = MagicMock()
+
+        canvas_obj._scroll(canvas_obj, event)  # pylint: disable=protected-access
+        assert canvas_obj.get_scale() == 2.0
+        mock_set_offset.assert_called()
+
+    event.direction = Gdk.ScrollDirection.DOWN
+    canvas_obj._scroll(canvas_obj, event)  # pylint: disable=protected-access
+    assert canvas_obj.get_scale() == 1.0
+
+
+def test_canvas_get_bbox_at(mocker):  # pylint: disable=unused-argument
+    "Test get_bbox_at"
+    canvas_obj = Canvas()
+
+    bbox_rect = Rectangle(x=10, y=10, width=20, height=20)
+
+    mock_item = MagicMock()
+    mock_item.type = "line"
+    canvas_obj.get_item_at = MagicMock(return_value=mock_item)
+
+    result = canvas_obj.get_bbox_at(bbox_rect)
+    assert result == mock_item
+
+    mock_word = MagicMock()
+    mock_word.type = "word"
+    mock_parent = MagicMock()
+    mock_parent.type = "line"
+    mock_word.get_parent.return_value = mock_parent
+    canvas_obj.get_item_at = MagicMock(return_value=mock_word)
+
+    result = canvas_obj.get_bbox_at(bbox_rect)
+    assert result == mock_parent
+
+    mock_orphan = MagicMock()
+    mock_orphan.type = "word"
+    mock_orphan.get_parent.return_value = None
+    canvas_obj.get_item_at = MagicMock(return_value=mock_orphan)
+    with pytest.raises(ReferenceError):
+        canvas_obj.get_bbox_at(bbox_rect)
+
+    canvas_obj.get_item_at = MagicMock(return_value=None)
+    with pytest.raises(ReferenceError):
+        canvas_obj.get_bbox_at(bbox_rect)
+
+
+def test_rectangle_init():
+    "Test Rectangle init checks"
+    with pytest.raises(AttributeError):
+        Rectangle(x=0, y=0, width=10)
+
+
+def test_list_iter_edge_cases():
+    "Test ListIter edge cases"
+    li = ListIter()
+
+    with pytest.raises(StopIteration):
+        li.get_current_bbox()
+
+    bbox1 = MagicMock()
+    bbox2 = MagicMock()
+
+    li.add_box_to_index(bbox1, 90)
+    li.add_box_to_index(bbox2, 80)
+
+    assert li.get_first_bbox() == bbox2
+    assert li.get_next_bbox() == bbox1
+    assert li.get_previous_bbox() == bbox2
+    assert li.get_last_bbox() == bbox1
+
+    li.remove_current_box_from_index()
+    assert li.get_current_bbox() == bbox2
+
+    li.remove_current_box_from_index()
+    assert len(li.list) == 0
+
+    with patch("canvas.logger") as mock_logger:
+        li.add_box_to_index(None, 100)
+        mock_logger.warning.assert_called()
+
+        li.insert_after_position(None, 0, 100)
+        mock_logger.warning.assert_called()
+
+        li.insert_after_position(bbox1, 100, 100)
+        mock_logger.warning.assert_called()
+
+
+def test_bbox_methods_via_canvas(mocker):  # pylint: disable=unused-argument
+    "Test Bbox methods by creating them on canvas"
+    # This avoids segfaults by letting Canvas manage hierarchy
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+
+    # 1. Test hierarchy and get_children
+    root = canvas_obj.get_root_item()
+
+    # Create 'page'
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    # Create 'parent' (line) attached to page
+    parent = canvas_obj.add_box(
+        text="parent",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="line",
+        parent=page,
+    )
+
+    # Add children to parent
+    child1 = canvas_obj.add_box(
+        text="c1",
+        bbox=Rectangle(x=10, y=10, width=10, height=10),
+        parent=parent,
+    )
+    child2 = canvas_obj.add_box(
+        text="c2",
+        bbox=Rectangle(x=30, y=10, width=10, height=10),
+        parent=parent,
+    )
+
+    assert parent.get_n_children() >= 2
+    children = parent.get_children()
+    # Note: get_children filters for Bbox instances. CanvasGroup might contain rect/text items.
+    assert len(children) == 2
+    assert children[0] == child1
+    assert children[1] == child2
+
+    assert parent.get_child_ordinal(child1) >= 0
+    assert parent.get_child_ordinal(child2) > parent.get_child_ordinal(child1)
+
+    # 2. Test walk_children
+    callback = MagicMock()
+    parent.walk_children(callback)
+    # child1 and child2 are leaves (words)
+    assert callback.call_count == 2
+    callback.assert_any_call(child1)
+    callback.assert_any_call(child2)
+
+    # 3. Test get_position_index
+    assert child1.get_position_index() == 0
+    assert child2.get_position_index() == 1
