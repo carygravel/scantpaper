@@ -119,9 +119,7 @@ class MockWindows:
         return unittest.mock.Mock()
 
 
-class MockApp(
-    unittest.mock.Mock, FileMenuMixins
-):  # pylint: disable=too-many-instance-attributes
+class MockApp(unittest.mock.Mock, FileMenuMixins):
     "A mock application class"
 
     def __init__(self, **kwargs):
@@ -237,8 +235,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         mock_logger.error.assert_called()
 
 
-# pylint: disable=protected-access,attribute-defined-outside-init
-class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
+class TestFileMenuMixins:
     "Test FileMenuMixins class and its methods."
 
     @pytest.fixture(autouse=True)
@@ -1050,3 +1047,198 @@ class TestFileMenuMixins:  # pylint: disable=too-many-public-methods
         app.slist.save_image.assert_called()
         args = app.slist.save_image.call_args[1]
         assert "%0$2d" in args["path"]
+
+    def test_update_post_save_hooks_filter(self, app):
+        "Test that tools with %o are filtered out."
+        app.settings["user_defined_tools"] = ["tool1", "tool2 %o"]
+        app._windowi = unittest.mock.Mock()
+        app._windowi.comboboxpsh = unittest.mock.Mock()
+        app._windowi.comboboxpsh.get_num_rows.return_value = 0
+
+        app._update_post_save_hooks()
+
+        app._windowi.comboboxpsh.append_text.assert_called_once_with("tool1")
+
+    def test_save_button_clicked_callback_session(self, app):
+        "Test _save_button_clicked_callback for session type."
+        app._windowi = unittest.mock.Mock()
+        app._windowi.image_type = "session"
+        app._windowi.comboboxpsh.get_active.return_value = -1
+        app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
+        app._save_file_chooser = unittest.mock.Mock()
+        mock_kbutton = unittest.mock.Mock()
+        mock_pshbutton = unittest.mock.Mock()
+
+        app._save_button_clicked_callback(mock_kbutton, mock_pshbutton)
+
+        assert app.settings["image type"] == "session"
+        app._save_file_chooser.assert_called_with(["uuid1"])
+
+    def test_save_button_clicked_callback_hocr(self, app):
+        "Test _save_button_clicked_callback for hocr type."
+        app._windowi = unittest.mock.Mock()
+        app._windowi.image_type = "hocr"
+        app._windowi.comboboxpsh.get_active.return_value = -1
+        app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
+        app._save_file_chooser = unittest.mock.Mock()
+        mock_kbutton = unittest.mock.Mock()
+        mock_pshbutton = unittest.mock.Mock()
+
+        app._save_button_clicked_callback(mock_kbutton, mock_pshbutton)
+
+        assert app.settings["image type"] == "hocr"
+        app._save_file_chooser.assert_called_with(["uuid1"])
+
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    def test_save_file_chooser_others(self, mock_gtk, app):
+        "Test save file chooser for other types."
+        app._windowi = unittest.mock.Mock()
+        mock_dialog = unittest.mock.Mock()
+        mock_gtk.FileChooserDialog.return_value = mock_dialog
+
+        for image_type in ["tif", "txt", "hocr", "ps", "session"]:
+            app.settings["image type"] = image_type
+            app._save_file_chooser(["uuid1"])
+            mock_gtk.FileChooserDialog.assert_called()
+            mock_gtk.FileChooserDialog.reset_mock()
+
+    @unittest.mock.patch("file_menu_mixins.file_exists")
+    @unittest.mock.patch("file_menu_mixins.os")
+    def test_file_chooser_response_callback_append_extension(
+        self, mock_os, mock_file_exists, app
+    ):
+        "Test appending extension if missing."
+        app._save_pdf = unittest.mock.Mock()
+        app._file_writable = unittest.mock.Mock(return_value=False)
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/file"
+        mock_os.path.dirname.return_value = "/path/to"
+        mock_file_exists.return_value = False
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
+        )
+
+        app._save_pdf.assert_called_with("/path/to/file.pdf", ["uuid1"], "pdf")
+
+    @unittest.mock.patch("file_menu_mixins.file_exists")
+    def test_file_chooser_response_callback_file_exists_abort(
+        self, mock_file_exists, app
+    ):
+        "Test abort if file exists and user cancels."
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/file.pdf"
+        mock_file_exists.return_value = True
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
+        )
+
+        app._save_pdf = unittest.mock.Mock()
+        app._save_pdf.assert_not_called()
+
+    @unittest.mock.patch("file_menu_mixins.os")
+    def test_file_chooser_response_callback_session(self, mock_os, app):
+        "Test saving session."
+        app.slist.save_session = unittest.mock.Mock()
+        app._file_writable = unittest.mock.Mock(return_value=False)
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/session.gs2p"
+        mock_os.path.dirname.return_value = "/path/to"
+        mock_os.path.isfile.return_value = False
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["session", []]
+        )
+
+        app.slist.save_session.assert_called()
+
+    @unittest.mock.patch("file_menu_mixins.launch_default_for_file")
+    def test_save_tif_finished_callback(self, mock_launch, app):
+        "Test finished callback for _save_tif."
+        response = unittest.mock.Mock()
+        response.request.args = [{"path": "file.tif"}]
+        app.slist.thread.send = unittest.mock.Mock()
+
+        def mock_save_tiff(finished_callback, **_kwargs):
+            finished_callback(response)
+
+        app.slist.save_tiff = mock_save_tiff
+
+        app._save_tif("file.tif", ["uuid1"])
+
+        app.post_process_progress.finish.assert_called_with(response)
+        app.slist.thread.send.assert_called_with("set_saved", ["uuid1"])
+        mock_launch.assert_called_with("file.tif")
+
+    @unittest.mock.patch("file_menu_mixins.launch_default_for_file")
+    def test_save_txt_finished_callback(self, mock_launch, app):
+        "Test finished callback for _save_txt."
+        response = unittest.mock.Mock()
+        app.slist.thread.send = unittest.mock.Mock()
+
+        def mock_save_text(finished_callback, **_kwargs):
+            finished_callback(response)
+
+        app.slist.save_text = mock_save_text
+
+        app._save_txt("file.txt", ["uuid1"])
+
+        app.post_process_progress.finish.assert_called_with(response)
+        mock_launch.assert_called_with("file.txt")
+
+    @unittest.mock.patch("file_menu_mixins.launch_default_for_file")
+    def test_save_hocr_finished_callback(self, mock_launch, app):
+        "Test finished callback for _save_hocr."
+        response = unittest.mock.Mock()
+        app.slist.thread.send = unittest.mock.Mock()
+
+        def mock_save_hocr(finished_callback, **_kwargs):
+            finished_callback(response)
+
+        app.slist.save_hocr = mock_save_hocr
+
+        app._save_hocr("file.hocr", ["uuid1"])
+
+        app.post_process_progress.finish.assert_called_with(response)
+        mock_launch.assert_called_with("file.hocr")
+
+    @unittest.mock.patch("file_menu_mixins.launch_default_for_file")
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    @unittest.mock.patch("file_menu_mixins.os")
+    def test_save_image_finished_callback(self, mock_os, mock_gtk, mock_launch, app):
+        "Test finished callback for _save_image."
+        response = unittest.mock.Mock()
+        response.request.args = [{"path": "file%d.jpg"}]
+        app.slist.thread.send = unittest.mock.Mock()
+
+        # Mock dialog to return success
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
+        mock_dialog.get_filename.return_value = "/path/to/file.jpg"
+        mock_gtk.FileChooserDialog.return_value = mock_dialog
+
+        mock_os.path.isfile.return_value = False
+        mock_os.path.dirname.return_value = "/path/to"
+        mock_os.access.return_value = True
+
+        def mock_save_image(finished_callback, **_kwargs):
+            finished_callback(response)
+
+        # Single file
+        app.slist.save_image = mock_save_image
+        app._save_image(["uuid1"])
+        mock_launch.assert_called_with("file%d.jpg")
+
+        # Multiple files
+        mock_launch.reset_mock()
+        # The callback logic uses the length of uuids captured in closure.
+        # calling _save_image(["uuid1", "uuid2"]) -> len(uuids) is 2.
+        # filename in launch_default_for_file(filename % (i))
+        app._save_image(["uuid1", "uuid2"])
+        assert mock_launch.call_count == 2
+
+    def test_list_of_page_uuids_empty(self, app):
+        "Test _list_of_page_uuids returning empty."
+        app.slist.get_page_index = unittest.mock.Mock(return_value=[])
+        assert app._list_of_page_uuids() == []
