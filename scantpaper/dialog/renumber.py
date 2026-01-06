@@ -206,7 +206,7 @@ class Renumber(Dialog):
         if slist is not None:
             while not slist.valid_renumber(start, step, self.range):
                 n = None
-                if range == "all":
+                if self.range == "all":
                     n = len(slist.data) - 1
                 else:
                     page = slist.get_selected_indices()
