@@ -1478,7 +1478,7 @@ def _edit_profile_callback(_widget, parent):
             parent.emit("added-profile", name, parent.profiles[name])
             signal = None
 
-            def do_parent_reloaded_scan_options():
+            def do_parent_reloaded_scan_options(_widget):
                 parent.disconnect(signal)
                 parent.set_profile(name)
 
