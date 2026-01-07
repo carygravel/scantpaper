@@ -233,6 +233,7 @@ def _parse_arguments():
 
     logger = logging.getLogger(__name__)
 
+    # FIXME: implement help display
     # if help is not None:
     #     try:
     #         subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0
