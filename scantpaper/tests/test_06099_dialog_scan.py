@@ -1,10 +1,13 @@
 "Tests for dialog.scan.Scan class coverage edge cases."
 
 import logging
+from types import SimpleNamespace
 import unittest.mock
+import pytest
 from gi.repository import Gtk, GObject
 from dialog.scan import Scan, _value_for_active_option
 from frontend import enums
+from scanner.options import Option
 from scanner.profile import Profile
 import gi
 
@@ -711,3 +714,168 @@ class TestScanDialog:
 
         scan._set_paper("A4")
         scan._add_current_scan_options.assert_called()
+
+
+def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
+    "Reproduce AttributeError: 'Dialog' object has no attribute 'parent'"
+
+    # Mocking necessary parts to get the Scan dialog to load options and create the paper widget
+
+    # 1. Mock SaneThread.do_get_devices
+    def mocked_do_get_devices(_cls, _request):
+        devices = [("mock_name", "", "", "")]
+        return [
+            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
+            for x in devices
+        ]
+
+    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
+
+    # 2. Mock SaneThread.do_open_device
+    def mocked_do_open_device(self, request):
+        self.device_handle = SimpleNamespace(tl_x=0, tl_y=0, br_x=100, br_y=100)
+        self.device = request.args[0]
+        request.data(f"opened device '{self.device}'")
+
+    mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
+
+    # 3. Mock SaneThread.do_get_options
+    # We need geometry options to trigger _create_paper_widget
+    raw_options = [
+        Option(
+            index=0,
+            name="",
+            title="Number of options",
+            desc="",
+            type=1,
+            unit=0,
+            size=4,
+            cap=4,
+            constraint=None,
+        ),
+        Option(
+            index=1,
+            name="tl-x",
+            title="Top-left x",
+            desc="",
+            type=2,
+            unit=3,
+            size=1,
+            cap=5,
+            constraint=(0, 215, 0),
+        ),
+        Option(
+            index=2,
+            name="tl-y",
+            title="Top-left y",
+            desc="",
+            type=2,
+            unit=3,
+            size=1,
+            cap=5,
+            constraint=(0, 297, 0),
+        ),
+        Option(
+            index=3,
+            name="br-x",
+            title="Bottom-right x",
+            desc="",
+            type=2,
+            unit=3,
+            size=1,
+            cap=5,
+            constraint=(0, 215, 0),
+        ),
+        Option(
+            index=4,
+            name="br-y",
+            title="Bottom-right y",
+            desc="",
+            type=2,
+            unit=3,
+            size=1,
+            cap=5,
+            constraint=(0, 297, 0),
+        ),
+    ]
+
+    def mocked_do_get_options(_self, _request):
+        return raw_options
+
+    mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
+
+    # 4. Mock SaneThread.do_set_option
+    def mocked_do_set_option(_self, _request):
+        return 0
+
+    mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
+
+    # Use the dialog from fixture
+    dialog = sane_scan_dialog
+
+    # Use helper fixture to set device and wait for reload
+    set_device_wait_reload(dialog, "mock_name")
+
+    # Now combobp should be present
+    assert hasattr(dialog, "combobp")
+    assert dialog.combobp is not None
+
+    # Setup paper formats so we have something to edit/remove
+    dialog.paper_formats = {"TestPaper": {"x": 100, "y": 100, "l": 0, "t": 0}}
+
+    # Find "Edit" index
+    model = dialog.combobp.get_model()
+    edit_index = -1
+    for row in model:
+        if row[0] == "Edit":
+            edit_index = row.path[0]
+            break
+
+    assert edit_index != -1
+
+    # Trigger Edit
+    dialog.combobp.set_active(edit_index)
+
+    # Wait for the dialog to be shown/processed.
+    # _edit_paper is called synchronously from combobox changed signal.
+    # The new dialog is created synchronously.
+
+    # Inspect toplevel windows
+    toplevels = Gtk.Window.list_toplevels()
+    edit_window = None
+    for win in toplevels:
+        if win.get_title() == "Edit paper size":
+            edit_window = win
+            break
+
+    assert edit_window is not None
+
+    # Find the remove button
+    def find_button_with_icon(container, icon_name):
+        children = container.get_children()
+        for child in children:
+            if isinstance(child, Gtk.Button):
+                image = child.get_image()
+                if isinstance(image, Gtk.Image):
+                    # In GTK3 get_icon_name might return None if set from stock or otherwise.
+                    # The code uses Gtk.Image.new_from_icon_name("list-remove", ...)
+                    storage_type = image.get_storage_type()
+                    if storage_type == Gtk.ImageType.ICON_NAME:
+                        if image.get_icon_name()[0] == icon_name:
+                            return child
+            if isinstance(child, Gtk.Container):
+                found = find_button_with_icon(child, icon_name)
+                if found:
+                    return found
+        return None
+
+    rbutton = find_button_with_icon(edit_window, "list-remove")
+    assert rbutton is not None
+
+    # Click the remove button
+    try:
+        rbutton.clicked()
+    except AttributeError as e:
+        pytest.fail(f"Raised AttributeError: {e}")
+
+    # If we get here, it passed
