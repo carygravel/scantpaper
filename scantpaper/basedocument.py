@@ -375,10 +375,10 @@ class BaseDocument(SimpleList):
         data = sorted(data, key=lambda row: row[sortcol])
         self.data = data
 
-    def cut_selection(self):
+    def cut_selection(self, **kwargs):
         "Cut the selection"
         data = self.copy_selection()
-        self.delete_selection_extra()
+        self.delete_selection_extra(**kwargs)
         return data
 
     def copy_selection(self):
@@ -401,6 +401,40 @@ class BaseDocument(SimpleList):
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
+        def _post_paste_logic(dest):
+            # Renumber the newly pasted rows
+            start = None
+            if dest == 0:
+                start = 1
+            else:
+                start = self.data[dest - 1][0] + 1
+
+            for i in range(dest, dest + len(kwargs["data"])):
+                self.data[i][0] = start
+                start += 1
+
+            # Update the start spinbutton if necessary
+            self.renumber()
+            self.get_model().emit(
+                "row-changed", Gtk.TreePath(), self.get_model().get_iter_first()
+            )
+
+            # Select the new pages
+            if kwargs.get("select_new_pages"):
+                selection = []
+                for _ in range(dest, dest + len(kwargs["data"])):
+                    selection.append(_)
+
+                self.get_selection().unselect_all()
+                self.select(selection)
+
+            if self.row_changed_signal is not None:
+                self.get_model().handler_unblock(self.row_changed_signal)
+
+            logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
+            if "finished_callback" in kwargs:
+                kwargs["finished_callback"]()
+
         dest = None
         if kwargs.get("dest") is None:
             dest = len(self.data)
@@ -410,6 +444,7 @@ class BaseDocument(SimpleList):
                 info = response.info
                 if info and "type" in info and info["type"] == "page":
                     self.data.extend(info["new_pages"])
+                    _post_paste_logic(dest)
 
             self.thread.send(
                 "clone_pages",
@@ -430,6 +465,7 @@ class BaseDocument(SimpleList):
                 if info and "type" in info and info["type"] == "page":
                     for row in info["new_pages"]:
                         self.data.insert(dest, row)
+                    _post_paste_logic(dest)
 
             self.thread.send(
                 "clone_pages",
@@ -437,38 +473,7 @@ class BaseDocument(SimpleList):
                 data_callback=_data_callback,
             )
 
-        # Renumber the newly pasted rows
-        start = None
-        if dest == 0:
-            start = 1
-        else:
-            start = self.data[dest - 1][0] + 1
-
-        for i in range(dest, dest + len(kwargs["data"]) - 2):
-            self.data[i][0] = start
-            start += 1
-
-        # Update the start spinbutton if necessary
-        self.renumber()
-        self.get_model().emit(
-            "row-changed", Gtk.TreePath(), self.get_model().get_iter_first()
-        )
-
-        # Select the new pages
-        if kwargs.get("select_new_pages"):
-            selection = []
-            for _ in range(dest, dest + len(kwargs["data"])):
-                selection.append(_)
-
-            self.get_selection().unselect_all()
-            self.select(selection)
-
-        if self.row_changed_signal is not None:
-            self.get_model().handler_unblock(self.row_changed_signal)
-
-        logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
-
-    def delete_selection(self, _self=None, context=None):
+    def delete_selection(self, _self=None, context=None, **kwargs):
         "Delete the selected pages"
 
         # The drag-data-delete callback seems to be fired twice. Therefore, create
@@ -493,11 +498,22 @@ class BaseDocument(SimpleList):
                         itr = model.get_iter(path)
                         model.remove(itr)
 
+            if "finished_callback" in kwargs:
+                kwargs["finished_callback"]()
+
         model, paths = self.get_selection().get_selected_rows()
         ids = self.get_selected_indices()
-        self.thread.send("delete_pages", {"row_ids": ids}, data_callback=_data_callback)
+        send_kwargs = kwargs.copy()
+        if "finished_callback" in send_kwargs:
+            del send_kwargs["finished_callback"]
+        self.thread.send(
+            "delete_pages",
+            {"row_ids": ids},
+            data_callback=_data_callback,
+            **send_kwargs,
+        )
 
-    def delete_selection_extra(self):
+    def delete_selection_extra(self, **kwargs):
         "wrapper for delete_selection()"
         page = self.get_selected_indices()
         npages = len(page)
@@ -506,36 +522,41 @@ class BaseDocument(SimpleList):
         if self.selection_changed_signal is not None:
             self.get_selection().handler_block(self.selection_changed_signal)
 
-        self.delete_selection()
-        if self.selection_changed_signal is not None:
-            self.get_selection().handler_unblock(self.selection_changed_signal)
+        def _after_delete():
+            # Select nearest page to last current page
+            if self.data and page:
+                old_selection = page[0]
 
-        # Select nearest page to last current page
-        if self.data and page:
-            old_selection = page[0]
+                # Select just the first one
+                new_sel = [page[0]]
+                if new_sel[0] > len(self.data) - 1:
+                    new_sel[0] = len(self.data) - 1
 
-            # Select just the first one
-            page = [page[0]]
-            if page[0] > len(self.data) - 1:
-                page[0] = len(self.data) - 1
+                self.select(new_sel)
 
-            self.select(page)
+                # If the index hasn't changed, the signal won't have emitted, so do it
+                # manually. Even if the index has changed, if it has the focus, the
+                # signal is still not fired (is this a bug in gtk+-3?), so do it here.
+                if old_selection == new_sel[0] or self.has_focus():
+                    self.get_selection().emit("changed")
 
-            # If the index hasn't changed, the signal won't have emitted, so do it
-            # manually. Even if the index has changed, if it has the focus, the
-            # signal is still not fired (is this a bug in gtk+-3?), so do it here.
-            if old_selection == page[0] or self.has_focus():
+            elif self.data:
+                self.get_selection().unselect_all()
+
+            # No pages left, and having blocked the selection_changed_signal,
+            # we've got to clear the image
+            else:
                 self.get_selection().emit("changed")
 
-        elif self.data:
-            self.get_selection().unselect_all()
+            if self.selection_changed_signal is not None:
+                self.get_selection().handler_unblock(self.selection_changed_signal)
 
-        # No pages left, and having blocked the selection_changed_signal,
-        # we've got to clear the image
-        else:
-            self.get_selection().emit("changed")
+            logger.info("Deleted %s pages", npages)
 
-        logger.info("Deleted %s pages", npages)
+            if "finished_callback" in kwargs:
+                kwargs["finished_callback"]()
+
+        self.delete_selection(finished_callback=_after_delete)
 
     def save_session(self, filename):
         "copy session db to a file"

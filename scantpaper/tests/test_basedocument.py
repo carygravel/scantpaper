@@ -112,10 +112,12 @@ def test_delete_selection_extra_edge_cases():
     slist.add_page(3, None, 103)
 
     # Mock delete_selection to actually remove the rows since we've mocked the thread
-    def mock_delete_selection(_self=None, context=None):
+    def mock_delete_selection(_self=None, context=None, **kwargs):
         indices = slist.get_selected_indices()
         for i in reversed(indices):
             del slist.data[i]
+        if "finished_callback" in kwargs:
+            kwargs["finished_callback"]()
 
     slist.delete_selection = mock_delete_selection
 

@@ -455,11 +455,9 @@ class DocThread(SaveThread):
         page_ids = kwargs["page_ids"]
         dest = kwargs["dest"]
         self._execute(
-            f"""SELECT image_id, x_res, y_res, mean, std_dev, saved, text, annotations FROM page, page_order
-                WHERE action_id = ?
-                 AND id = page_id
-                 AND page_id IN ({", ".join(["?"]*len(page_ids))})""",
-            (self._action_id, *page_ids),
+            f"""SELECT image_id, x_res, y_res, mean, std_dev, saved, text, annotations FROM page
+                WHERE id IN ({", ".join(["?"]*len(page_ids))})""",
+            (*page_ids,),
         )
         pages = self._fetchall()
         image_ids = [page[0] for page in pages]
@@ -566,6 +564,7 @@ class DocThread(SaveThread):
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
         self._execute("DELETE FROM page_order WHERE action_id > ?", (self._action_id,))
+        self._execute("DELETE FROM selection WHERE action_id > ?", (self._action_id,))
 
         # copy page numbers and order to buffer
         self._execute(
@@ -575,12 +574,27 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         snapshot = self._fetchall()
+
+        # Copy selection to buffer
+        self._execute(
+            "SELECT row_ids FROM selection WHERE action_id = ?",
+            (self._action_id,),
+        )
+        selection_row = self._fetchone()
+        row_ids = selection_row[0] if selection_row else "[]"
+
         self._action_id += 1
         snapshot = [(self._action_id, *row) for row in snapshot]
         self._executemany(
             """INSERT INTO page_order (action_id, row_id, page_number, page_id)
                VALUES (?, ?, ?, ?)""",
             snapshot,
+        )
+
+        # Insert selection for new action_id
+        self._execute(
+            "INSERT INTO selection (action_id, row_ids) VALUES (?, ?)",
+            (self._action_id, row_ids),
         )
 
         # TODO: implement set number_undo_steps depending on available disk space
@@ -634,13 +648,23 @@ class DocThread(SaveThread):
     def can_undo(self):
         "checks whether undo is possible"
         self._execute("SELECT min(action_id) FROM page_order")
-        min_action_id = self._fetchone()[0]
+        min_page = self._fetchone()[0]
+        self._execute("SELECT min(action_id) FROM selection")
+        min_sel = self._fetchone()[0]
+        # min_action_id = min(filter(None, [min_page, min_sel])) if any([min_page, min_sel]) else None
+        # Simpler:
+        ids = [x for x in [min_page, min_sel] if x is not None]
+        min_action_id = min(ids) if ids else None
         return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self):
         "checks whether redo is possible"
         self._execute("SELECT max(action_id) FROM page_order")
-        max_action_id = self._fetchone()[0]
+        max_page = self._fetchone()[0]
+        self._execute("SELECT max(action_id) FROM selection")
+        max_sel = self._fetchone()[0]
+        ids = [x for x in [max_page, max_sel] if x is not None]
+        max_action_id = max(ids) if ids else None
         return max_action_id is not None and max_action_id > self._action_id
 
     def undo(self):
