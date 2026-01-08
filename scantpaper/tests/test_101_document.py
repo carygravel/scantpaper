@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+from unittest.mock import MagicMock, patch
 from PIL import Image
 import gi
 import pytest
@@ -520,7 +521,7 @@ def test_helpers():
     assert (
         _program_version(
             "stdout",
-            r"Version:\sImageMagick\s([\d.-]+)",
+            r"Version:\\sImageMagick\\s([\\d.-]+)",
             Proc(0, "Version:ImageMagick 6.9.0-3 Q16", None),
         )
         is None
@@ -528,7 +529,7 @@ def test_helpers():
     assert (
         _program_version(
             "stdout",
-            r"Version:\sImageMagick\s([\d.-]+)",
+            r"Version:\\sImageMagick\\s([\\d.-]+)",
             Proc(-1, "", "convert: command not found"),
         )
         == -1
@@ -536,7 +537,7 @@ def test_helpers():
     assert (
         _program_version(
             "stdout",
-            r"Version:\sImageMagick\s([\d.-]+)",
+            r"Version:\\sImageMagick\\s([\\d.-]+)",
             Proc(-1, None, "convert: command not found"),
         )
         == -1
@@ -913,3 +914,213 @@ def test_import_scan(
     #########################
 
     clean_up_files(slist.thread.db_files)
+
+
+def test_import_files_encrypted():
+    "test import_files with encryption"
+    with patch("basedocument.DocThread") as mockdocthread:
+        mockdocthread.return_value._dir = "/tmp"
+        doc = Document()
+        doc.thread = mockdocthread.return_value
+
+        # Setup mocks
+        doc.create_pidfile = MagicMock()
+
+        paths = ["encrypted.pdf"]
+
+        # Scenario:
+        # 1. get_file_info called (no password)
+        # 2. callback called with encrypted=True
+        # 3. password_callback called
+        # 4. get_file_info called (with password)
+
+        def get_file_info_side_effect(path, password, **kwargs):
+            finished_callback = kwargs["finished_callback"]
+            response = MagicMock()
+            response.info = {"encrypted": True, "path": path}
+            if password == "secret":
+                response.info["encrypted"] = False
+                response.info["pages"] = 1
+                response.info["format"] = "PDF"
+
+            finished_callback(response)
+
+        doc.thread.get_file_info.side_effect = get_file_info_side_effect
+
+        password_callback = MagicMock(return_value="secret")
+
+        doc.import_files(paths=paths, password_callback=password_callback)
+
+        assert password_callback.called
+        assert doc.thread.get_file_info.call_count == 2
+        # verify second call had password
+        args, _ = doc.thread.get_file_info.call_args
+        assert args[1] == "secret"
+
+
+def test_import_files_multiple_errors():
+    "test import_files with multiple files and errors"
+    with patch("basedocument.DocThread") as mockdocthread:
+        mockdocthread.return_value._dir = "/tmp"
+        doc = Document()
+        doc.thread = mockdocthread.return_value
+        doc.create_pidfile = MagicMock()
+
+        error_callback = MagicMock()
+
+        # Case 1: Session file mixed
+        paths = ["file1", "session.db"]
+
+        def get_file_info_side_effect(path, _password, **kwargs):
+            finished_callback = kwargs["finished_callback"]
+            response = MagicMock()
+            if path == "file1":
+                response.info = {"format": "PDF", "pages": 1, "path": path}
+            else:
+                response.info = {"format": "session file", "pages": 1, "path": path}
+            finished_callback(response)
+
+        doc.thread.get_file_info.side_effect = get_file_info_side_effect
+
+        doc.import_files(paths=paths, error_callback=error_callback)
+
+        # Should verify error_callback called
+        assert error_callback.called
+        args, _ = error_callback.call_args
+        assert "session file" in args[2]
+
+        # Case 2: Multipage file mixed
+        error_callback.reset_mock()
+        doc.thread.get_file_info.reset_mock()
+        paths = ["file1", "multipage.pdf"]
+
+        def get_file_info_side_effect_2(path, _password, **kwargs):
+            finished_callback = kwargs["finished_callback"]
+            response = MagicMock()
+            if path == "file1":
+                response.info = {"format": "PDF", "pages": 1, "path": path}
+            else:
+                response.info = {"format": "PDF", "pages": 5, "path": path}
+            finished_callback(response)
+
+        doc.thread.get_file_info.side_effect = get_file_info_side_effect_2
+        doc.import_files(paths=paths, error_callback=error_callback)
+
+        assert error_callback.called
+        args, _ = error_callback.call_args
+        assert "multipage file" in args[2]
+
+
+def test_post_process_chain():
+    "test post process chain"
+    with patch("basedocument.DocThread") as mockdocthread:
+        mockdocthread.return_value._dir = "/tmp"
+        doc = Document()
+        doc.thread = mockdocthread.return_value
+        doc.create_pidfile = MagicMock()
+        doc.add_page = MagicMock()
+
+        # Methods to mock on doc to verify chain
+        doc.rotate = MagicMock()
+        doc.unpaper = MagicMock()
+        doc.user_defined = MagicMock()
+        doc.ocr_pages = MagicMock()
+
+        # 1. Rotate
+        # Setup import_scan to trigger callback
+        def import_page_side_effect(**kwargs):
+            data_callback = kwargs["data_callback"]
+            response = MagicMock()
+            response.info = {"type": "page", "row": [1, None, "uuid1"]}
+            data_callback(response)
+
+        doc.thread.import_page.side_effect = import_page_side_effect
+
+        # Setup rotate to trigger updated_page_callback
+        def rotate_side_effect(**kwargs):
+            callback = kwargs["updated_page_callback"]
+            response = MagicMock()
+            response.info = {"type": "page", "row": [1, None, "uuid1"]}
+            callback(response)
+
+        doc.rotate.side_effect = rotate_side_effect
+
+        doc.import_scan(resolution=300, rotate=90, finished_callback=MagicMock())
+
+        assert doc.rotate.called
+        assert doc.rotate.call_args[1]["angle"] == 90
+
+        # 2. Unpaper
+        doc.rotate.reset_mock()
+        # Setup unpaper mock object
+        mock_unpaper_obj = MagicMock()
+        mock_unpaper_obj.get_cmdline.return_value = "unpaper_cmd"
+        mock_unpaper_obj.get_option.return_value = "direction"
+
+        def unpaper_side_effect(**kwargs):
+            callback = kwargs["updated_page_callback"]
+            response = MagicMock()
+            response.info = {"type": "page", "row": [1, None, "uuid1"]}
+            callback(response)
+
+        doc.unpaper.side_effect = unpaper_side_effect
+
+        doc.import_scan(
+            resolution=300, unpaper=mock_unpaper_obj, finished_callback=MagicMock()
+        )
+        assert doc.unpaper.called
+
+        # 3. UDT
+        doc.unpaper.reset_mock()
+
+        def udt_side_effect(**kwargs):
+            callback = kwargs["updated_page_callback"]
+            response = MagicMock()
+            response.info = {"type": "page", "row": [1, None, "uuid1"]}
+            callback(response)
+
+        doc.user_defined.side_effect = udt_side_effect
+
+        doc.import_scan(resolution=300, udt="command", finished_callback=MagicMock())
+        assert doc.user_defined.called
+
+        # 4. OCR
+        doc.user_defined.reset_mock()
+
+        def ocr_side_effect(**kwargs):
+            callback = kwargs["finished_callback"]
+            callback(None)
+
+        doc.ocr_pages.side_effect = ocr_side_effect
+
+        finished_callback = MagicMock()
+        doc.import_scan(
+            resolution=300,
+            ocr=True,
+            engine="tesseract",
+            language="eng",
+            finished_callback=finished_callback,
+        )
+        assert doc.ocr_pages.called
+        assert finished_callback.called
+
+
+def test_split_page():
+    "test split_page"
+    with patch("basedocument.DocThread") as mockdocthread:
+        mockdocthread.return_value._dir = "/tmp"
+        doc = Document()
+        doc.thread = mockdocthread.return_value
+        doc.add_page = MagicMock()
+
+        def split_page_side_effect(**kwargs):
+            data_callback = kwargs["data_callback"]
+            response = MagicMock()
+            response.info = {"type": "page", "row": [1, None, "uuid1"]}
+            data_callback(response)
+
+        doc.thread.split_page.side_effect = split_page_side_effect
+
+        doc.split_page(page=1)
+        assert doc.thread.split_page.called
+        assert doc.add_page.called
