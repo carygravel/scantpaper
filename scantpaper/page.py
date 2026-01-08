@@ -7,12 +7,14 @@ import subprocess
 import tempfile
 import uuid
 import logging
-from PIL import Image
+from PIL import Image, ImageFile
 import config
 from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
 from bboxtree import Bboxtree
 from helpers import exec_command
 import gi
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-position
