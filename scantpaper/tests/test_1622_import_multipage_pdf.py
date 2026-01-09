@@ -36,13 +36,14 @@ def test_import_multipage_pdf(rose_tif, temp_pdf, temp_db, clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("pdfunite") is None,
+    reason="Please install pdfunite (poppler utils) to enable test",
+)
 def test_import_multipage_pdf_with_not_enough_images(
     rose_tif, temp_db, temp_pdf, clean_up_files
 ):
     "Test importing PDF"
-
-    if shutil.which("pdfunite") is None:
-        pytest.skip("Please install pdfunite (poppler utils) to enable test")
 
     with tempfile.NamedTemporaryFile(
         suffix=".pdf"
@@ -240,11 +241,11 @@ def test_import_pdf_with_error(rose_tif, temp_pdf, clean_up_files):
         clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("pdftk") is None, reason="Please install pdftk to enable test"
+)
 def test_import_encrypted_pdf(rose_tif, temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
-
-    if shutil.which("pdftk") is None:
-        pytest.skip("Please install pdftk to enable test")
 
     subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
     subprocess.run(
@@ -346,11 +347,13 @@ def test_import_pdf_with_metadata(rose_tif, temp_pdf, clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skip(reason="Skip until this works interactively")
+@pytest.mark.skipif(
+    shutil.which("pdfunite") is None,
+    reason="Please install pdfunite (poppler utils) to enable test",
+)
 def test_import_pdf_with_2000_pages(rose_tif, temp_pdf, temp_db, clean_up_files):
     "Test importing PDF"
-    pytest.skip("Skip until this works interactively")
-    if shutil.which("pdfunite") is None:
-        pytest.skip("Please install pdfunite (poppler utils) to enable test")
 
     subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
     with tempfile.NamedTemporaryFile(
