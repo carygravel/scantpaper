@@ -41,7 +41,10 @@ class Options(GObject.Object):
             raise ValueError("Error: no options supplied")
         if isinstance(options, list):
             for i, option in enumerate(options):
-                options[i] = Option(*option)
+                opt = Option(*option)
+                if opt.name is None:
+                    opt = opt._replace(cap=0)
+                options[i] = opt
             self.array = options
         else:
             self.array = self._parse_scanimage_output(options)

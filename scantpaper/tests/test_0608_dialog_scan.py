@@ -4,20 +4,33 @@ from types import SimpleNamespace
 from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile
-import pytest
+
+
+def mocked_do_get_devices(_cls, _request):
+    "mocked_do_get_devices"
+    devices = [("mock_name", "", "", "")]
+    return [
+        SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1]) for x in devices
+    ]
+
+
+def trigger_get_devices(dlg, mainloop_with_timeout):
+    "Trigger get_devices to cover mocked_do_get_devices"
+    loop = mainloop_with_timeout()
+
+    def reloaded_devices_cb(_arg1, _arg2):
+        loop.quit()
+
+    handler = dlg.connect("changed-device-list", reloaded_devices_cb)
+    dlg.get_devices()
+    loop.run()
+    dlg.disconnect(handler)
 
 
 def test_infinite_reloads(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
@@ -134,6 +147,7 @@ def test_infinite_reloads(
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
+    trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
     dlg.paper_formats = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
@@ -158,13 +172,6 @@ def test_changed_profile(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
@@ -281,6 +288,7 @@ def test_changed_profile(
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
+    trigger_get_devices(dlg, mainloop_with_timeout)
     dlg._add_profile(
         "my profile", Profile(backend=[("resolution", 100), ("source", "Flatbed")])
     )
@@ -310,13 +318,6 @@ def test_source_default(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
@@ -361,6 +362,7 @@ def test_source_default(
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
     dlg = sane_scan_dialog
+    trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
 
@@ -429,13 +431,6 @@ def test_inexact_quant(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
@@ -571,9 +566,11 @@ def test_inexact_quant(
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
+    trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_formats = {"A4": {"x": 210, "y": 279, "t": 0, "l": 0}}
+    # Use a paper that sets geometry to inexact values
+    dlg.paper_formats = {"A4": {"x": 210.1, "y": 279.1, "t": 0.1, "l": 0.1}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)
@@ -582,7 +579,11 @@ def test_inexact_quant(
     dlg.signal = dlg.connect("changed-paper", changed_paper_cb)
     dlg.set_current_scan_options(
         Profile(
-            backend=[("resolution", 100), ("source", "Flatbed"), ("swcrop", False)],
+            backend=[
+                ("resolution", 100),
+                ("source", "Flatbed"),
+                ("swcrop", False),
+            ],
             frontend={"paper": "A4"},
         )
     )
@@ -595,13 +596,6 @@ def test_button_press(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
@@ -693,7 +687,7 @@ def test_button_press(
             name="clear-calibration",
             type=4,
             index=8,
-            cap=69,
+            cap=5,
             size=1,
             desc="Clear calibration cache",
             title="Clear calibration",
@@ -725,6 +719,7 @@ def test_button_press(
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
+    trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
     dlg.paper_formats = {"A4": {"x": 210, "y": 279, "t": 0, "l": 0}}
@@ -763,8 +758,9 @@ def test_button_press(
     assert asserts == 1, "ran all callbacks"
 
 
-@pytest.mark.skip("not sure how to mock the backend behaviour")
-def test_get_invalid_option(mocker, sane_scan_dialog, set_device_wait_reload):
+def test_get_invalid_option(
+    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
     """test getting an invalid option (gscan2pdf bug #313).
     scanimage was segfaulting when retrieving the options from a Brother
     ADS-2800W via --help. xsane and simplescan worked.
@@ -773,13 +769,6 @@ def test_get_invalid_option(mocker, sane_scan_dialog, set_device_wait_reload):
     debugging help from someone with access to a similar scanner, it is
     hard to predict how the python sane module would react, so skipping
     this until we have a problem to reproduce."""
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
@@ -907,6 +896,7 @@ def test_get_invalid_option(mocker, sane_scan_dialog, set_device_wait_reload):
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
+    trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
 
     assert dlg.available_scan_options.by_index(7) == Option(
