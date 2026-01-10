@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 import logging
+import pytest
 from PIL import Image
 from scanner.options import Option
 from frontend import enums
@@ -293,3 +294,31 @@ def test_scan_resolution(
     loop.run()
 
     assert callbacks == 6, "changed-profile only called once"
+
+
+def test_scan_source_adf(
+    mocker,
+    sane_scan_dialog,
+    set_device_wait_reload,
+    set_option_in_mainloop,
+):
+    """Test setting source to ADF triggers reload options"""
+
+    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
+    mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
+    mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
+    mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
+    mocker.patch("dialog.sane.SaneThread.do_scan_page", mocked_do_scan_page)
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+
+    # This should trigger the first if branch in mocked_do_set_option
+    assert set_option_in_mainloop(
+        dialog, "source", "Automatic Document Feeder"
+    ), "set source to ADF"
+
+
+def test_scan_page_no_device():
+    """Test scanning without device raises ValueError"""
+    with pytest.raises(ValueError, match="must open device before starting scan"):
+        mocked_do_scan_page(SimpleNamespace(device_handle=None), None)
