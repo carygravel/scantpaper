@@ -1,5 +1,6 @@
 "test TextLayerControls widget"
 
+import os
 from unittest.mock import MagicMock
 from app import Application
 from app_window import ApplicationWindow
@@ -33,7 +34,9 @@ def test_text_layer_sort_combo_box(mocker):
     app.args.import_all = None
 
     mock_app = MagicMock()
-    mock_app.iconpath = "icons"
+    mock_app.iconpath = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../icons")
+    )
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=mock_app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
@@ -76,7 +79,9 @@ def test_text_layer_add_and_ok_buttons(mocker):
     app.args.import_all = None
 
     mock_app = MagicMock()
-    mock_app.iconpath = "icons"
+    mock_app.iconpath = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../icons")
+    )
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=mock_app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
@@ -134,7 +139,9 @@ def test_edit_ocr_text_updates_selection(mocker):
     app.args.import_all = None
 
     mock_app = MagicMock()
-    mock_app.iconpath = "icons"
+    mock_app.iconpath = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../icons")
+    )
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=mock_app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")

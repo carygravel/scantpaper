@@ -178,7 +178,7 @@ class ApplicationWindow(
 
         try:
             self.set_icon_from_file(f"{self.get_application().iconpath}/gscan2pdf.svg")
-        except (FileNotFoundError, OSError) as e:
+        except (FileNotFoundError, OSError, GLib.Error) as e:
             logger.warning(
                 "Unable to load icon `%s/gscan2pdf.svg': %s",
                 self.get_application().iconpath,
