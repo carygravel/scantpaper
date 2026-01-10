@@ -1259,12 +1259,14 @@ class TreeIter:
             self._iter.insert(0, parent.get_child_ordinal(bbox))
             self._bbox.insert(0, parent)
             bbox = parent
-        self._iter.insert(0, 1)  # for page
+        self._iter.insert(0, 0)  # for page
+        # Now _bbox and _iter have same length.
+        # Top of stacks are the initial bbox and its index in parent.
 
     def first_bbox(self):
         "return first bbox"
         self._bbox = [self._bbox[0]]
-        self._iter = [1]
+        self._iter = [0]
         return self._bbox[0]
 
     def first_word(self):
@@ -1277,33 +1279,38 @@ class TreeIter:
     def next_bbox(self):
         "return next word"
 
+        # Save state in case we need to restore it after StopIteration
+        old_bbox = self._bbox.copy()
+        old_iter = self._iter.copy()
+
         current = self._bbox[-1]
 
-        # look through children
+        # 1. Try to go down to first child
         n = current.get_n_children()
-        while self._iter[-1] < n:
-            child = current.get_child(self._iter[-1])
+        for i in range(n):
+            child = current.get_child(i)
             if isinstance(child, Bbox):
                 self._bbox.append(child)
-                self._iter.append(current.get_child_ordinal(child))
+                self._iter.append(i)
                 return child
 
-            self._iter[-1] += 1
+        # 2. No children, try to go to next sibling
+        while len(self._bbox) > 1:
+            self._bbox.pop()
+            last_idx = self._iter.pop()
+            parent = self._bbox[-1]
+            n_parent = parent.get_n_children()
 
-        # no children - look at next sibling
-        if len(self._bbox) > 1:
-            if self._bbox[-2].get_n_children() - 1 > self._iter[-1]:
-                self._bbox[-1] = self._bbox[-2].get_child(self._iter[-1])
-                return self._bbox[-1]
+            for i in range(last_idx + 1, n_parent):
+                sibling = parent.get_child(i)
+                if isinstance(sibling, Bbox):
+                    self._bbox.append(sibling)
+                    self._iter.append(i)
+                    return sibling
 
-            # traverse up until we can increment an index
-            while len(self._bbox) > 2:
-                self._bbox.pop()
-                self._iter.pop()
-                if self._bbox[-2].get_n_children() - 1 > self._iter[-1]:
-                    self._iter[-1] += 1
-                    self._bbox[-1] = self._bbox[-2].get_child(self._iter[-1])
-                    return self._bbox[-1]
+        # Restore state before raising
+        self._bbox = old_bbox
+        self._iter = old_iter
         raise StopIteration
 
     def next_word(self):
@@ -1323,26 +1330,23 @@ class TreeIter:
 
     def previous_bbox(self):
         "return previous bbox"
-        # if we're not on the first sibling
-        if self._iter[-1] > 1:
+        if len(self._bbox) <= 1:
+            raise StopIteration
 
-            # pick the previous sibling
-            while self._iter[-1] > 1:
-                self._iter[-1] -= 1
-                self._bbox[-1] = self._bbox[-2].get_child(self._iter[-1])
-                if isinstance(self._bbox[-1], Bbox):
-                    return self.last_leaf()
+        self._bbox.pop()
+        last_idx = self._iter.pop()
+        parent = self._bbox[-1]
 
-        # don't pop the root bbox
-        if len(self._bbox) > 1:
+        # Try to find a previous sibling
+        for i in range(last_idx - 1, -1, -1):
+            sibling = parent.get_child(i)
+            if isinstance(sibling, Bbox):
+                self._bbox.append(sibling)
+                self._iter.append(i)
+                return self.last_leaf()
 
-            # otherwise the previous box is just the parent
-            self._iter.pop()
-            self._bbox.pop()
-            if len(self._bbox) == 0:
-                raise StopIteration
-            return self._bbox[-1]
-        raise StopIteration
+        # No previous sibling, previous is the parent itself
+        return parent
 
     def previous_word(self):
         "return previous word"

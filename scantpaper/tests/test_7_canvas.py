@@ -1,14 +1,22 @@
 "Test Canvas class"
 
 from dataclasses import dataclass
+import json
 from unittest.mock import MagicMock, patch
 import tempfile
 import pytest
 import gi
 from page import Page
-from canvas import rgb2hsv, hsv2rgb, Canvas, Bbox, Rectangle, ListIter
-from canvas import HOCR_HEADER as HOCR_OUT_HEADER
-from conftest import HOCR_HEADER
+from canvas import (
+    rgb2hsv,
+    hsv2rgb,
+    Canvas,
+    Bbox,
+    Rectangle,
+    ListIter,
+    TreeIter,
+    HOCR_HEADER,
+)
 
 gi.require_version("GooCanvas", "2.0")
 gi.require_version("Gdk", "3.0")
@@ -26,14 +34,68 @@ def assert_rgba_equal(c1, c2):
     assert c1.blue == pytest.approx(c2.blue)
 
 
-def test_color_functions():
-    "Test standalone color conversion functions"
-    # rgb2hsv
-    assert rgb2hsv(Gdk.RGBA(0, 0, 0)) == {"h": 0, "s": 0, "v": 0}
+def test_color_functions_more():
+    "Test more branches in color conversion"
+    # rgb2hsv gray case (delta < tolerance)
     assert rgb2hsv(Gdk.RGBA(0.5, 0.5, 0.5)) == {"h": 0, "s": 0, "v": 0.5}
 
-    # hsv2rgb
-    assert_rgba_equal(hsv2rgb({"h": 0, "s": 0, "v": 1.0}), Gdk.RGBA(1.0, 1.0, 1.0))
+    # rgb2hsv green sector
+    res = rgb2hsv(Gdk.RGBA(0.1, 0.8, 0.1))
+    assert res["h"] == pytest.approx(120)
+
+    # rgb2hsv blue sector
+    res = rgb2hsv(Gdk.RGBA(0.1, 0.1, 0.8))
+    assert res["h"] == pytest.approx(240)
+
+    # rgb2hsv negative hue wrap
+    # (rgb.green - rgb.blue) / delta * 60
+    # if red is max, green < blue
+    res = rgb2hsv(Gdk.RGBA(0.8, 0.1, 0.2))
+    # delta = 0.7. (0.1-0.2)/0.7 * 60 = -8.57. wrap to 351.43
+    assert res["h"] == pytest.approx(360 - 60 * 0.1 / 0.7)
+
+    # hsv2rgb sectors
+    # already has some but let's be sure
+    # Sector 2: red=p, green=v, blue=t
+    c = hsv2rgb({"h": 120, "s": 1.0, "v": 1.0})
+    assert_rgba_equal(c, Gdk.RGBA(0, 1, 0))
+
+    # Sector 3: red=p, green=q, blue=v
+    c = hsv2rgb({"h": 180, "s": 1.0, "v": 1.0})
+    assert_rgba_equal(c, Gdk.RGBA(0, 1, 1))
+
+    # Sector 4: red=t, green=p, blue=v
+    c = hsv2rgb({"h": 240, "s": 1.0, "v": 1.0})
+    assert_rgba_equal(c, Gdk.RGBA(0, 0, 1))
+
+    # Else sector: red=v, green=p, blue=q
+    c = hsv2rgb({"h": 300, "s": 1.0, "v": 1.0})
+    assert_rgba_equal(c, Gdk.RGBA(1, 0, 1))
+
+
+def test_canvas_offset_setter_no_change(mocker):
+    "Test offset setter when values don't change"
+    canvas_obj = Canvas()
+    canvas_obj.emit = MagicMock()
+    canvas_obj.scroll_to = MagicMock()
+
+    rect = Gdk.Rectangle()
+    rect.x = 0
+    rect.y = 0
+    canvas_obj.offset = rect
+
+    canvas_obj.emit.reset_mock()
+    canvas_obj.offset = rect
+    canvas_obj.emit.assert_not_called()
+
+
+def test_canvas_boxed_text_wrapper_no_idle(mocker):
+    "Test _boxed_text_wrapper without idle"
+    canvas_obj = Canvas()
+    canvas_obj._boxed_text = MagicMock()
+    kwargs = {"idle": False}
+    canvas_obj._boxed_text_wrapper(kwargs)
+    canvas_obj._boxed_text.assert_called_with(kwargs)
 
 
 def test_hsv2rgb_coverage():
@@ -175,7 +237,7 @@ def test_canvas_basics2(rose_pnm):
         canvas.add_box(text="foo", bbox=Rectangle(x=355, y=15, width=74, height=32))
 
         expected = (
-            HOCR_OUT_HEADER
+            HOCR_HEADER
             + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
@@ -217,7 +279,7 @@ def test_canvas_basics2(rose_pnm):
         canvas.add_box(text="0", bbox=Rectangle(x=356, y=15, width=74, height=32))
 
         expected = (
-            HOCR_OUT_HEADER
+            HOCR_HEADER
             + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
@@ -266,7 +328,7 @@ def test_canvas_basics2(rose_pnm):
         group.update_box("<em>No</em>", Rectangle(x=2, y=15, width=74, height=32))
 
         expected = (
-            HOCR_OUT_HEADER
+            HOCR_HEADER
             + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
@@ -351,7 +413,7 @@ def test_hocr(rose_pnm):
         canvas.sort_by_confidence()
 
         expected = (
-            HOCR_OUT_HEADER
+            HOCR_HEADER
             + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 204 288'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 202 286'>
@@ -791,3 +853,618 @@ def test_bbox_methods_via_canvas(mocker):  # pylint: disable=unused-argument
     # 3. Test get_position_index
     assert child1.get_position_index() == 0
     assert child2.get_position_index() == 1
+
+
+def test_canvas_indices(mocker):
+    "Test Canvas indices switching and manipulation"
+    canvas_obj = Canvas()
+
+    # Mock indices
+    mock_confidence = MagicMock()
+    mock_position = MagicMock()
+    canvas_obj.confidence_index = mock_confidence
+    canvas_obj.position_index = mock_position
+
+    bbox = MagicMock()
+    bbox.confidence = 90
+
+    # Mock TreeIter to avoid TypeError: bbox is not a Bbox object
+    with patch("canvas.TreeIter") as mock_tree_iter:
+        mock_tree_iter.return_value = mock_position
+
+        # Test sort_by_confidence
+        canvas_obj.sort_by_confidence()
+        assert canvas_obj._current_index == "confidence"
+
+        # Test get_current_bbox delegation
+        canvas_obj.get_current_bbox()
+        mock_confidence.get_current_bbox.assert_called_once()
+        mock_tree_iter.assert_called()
+
+        # Test set_index_by_bbox
+        canvas_obj.set_index_by_bbox(bbox)
+        mock_confidence.set_index_by_bbox.assert_called_with(bbox, 90)
+
+        # Test set_other_index (swapping)
+        canvas_obj.set_other_index(bbox)
+        assert canvas_obj.position_index == mock_tree_iter.return_value
+
+        # Test sort_by_position
+        canvas_obj.sort_by_position()
+        assert canvas_obj._current_index == "position"
+
+        canvas_obj.get_current_bbox()
+        mock_position.get_current_bbox.assert_called_once()
+
+        # Test set_index_by_bbox (position)
+        canvas_obj.set_index_by_bbox(bbox)
+        assert canvas_obj.position_index == mock_tree_iter.return_value
+
+        # Test set_other_index (swapping back to confidence)
+        canvas_obj.set_other_index(bbox)
+        mock_confidence.set_index_by_bbox.assert_called_with(bbox, 90)
+
+
+def test_bbox_stack_index(mocker):
+    "Test get_stack_index_by_position logic"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    parent = canvas_obj.add_box(
+        text="parent",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+
+    # parent has 2 internal children: Rect and Text
+    assert parent.get_n_children() == 2
+
+    canvas_obj.add_box(
+        text="c1", bbox=Rectangle(x=10, y=0, width=10, height=10), parent=parent
+    )
+    canvas_obj.add_box(
+        text="c3", bbox=Rectangle(x=50, y=0, width=10, height=10), parent=parent
+    )
+
+    # Internal: 0:Rect, 1:Text, 2:c1, 3:c3
+    GooCanvas.CanvasRect(parent=parent, x=0, y=0, width=5, height=5)
+
+    # Internal: 0:Rect, 1:Text, 2:c1, 3:c3, 4:rect
+    new_bbox = MagicMock()
+    new_bbox.get_centroid.return_value = (35, 5)  # between c1(15) and c3(55)
+
+    idx = parent.get_stack_index_by_position(new_bbox)
+    # Binary search should skip non-Bbox items.
+    assert idx == 3
+
+
+def test_add_box_callbacks(mocker):
+    "Test add_box with callbacks and transformation"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    mock_edit = MagicMock()
+    parent = canvas_obj.add_box(
+        text="parent",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        parent=page,
+        textangle=10,
+    )
+
+    child = canvas_obj.add_box(
+        text="child",
+        bbox=Rectangle(x=10, y=10, width=20, height=20),
+        edit_callback=mock_edit,
+        parent=parent,
+    )
+
+    event = MagicMock()
+    event.button = 1
+    # Call callback directly to avoid GdkEvent conversion issues in tests
+    child.button_press_callback(child, None, event, mock_edit, child)
+    mock_edit.assert_called_once()
+
+
+def test_bbox_init_zero_width_text(mocker):
+    "Test Bbox init with zero width text"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    with patch("canvas.GooCanvas.CanvasText") as mock_text_cls:
+        mock_text = mock_text_cls.return_value
+        mock_bounds = MagicMock()
+        mock_bounds.x1 = 10
+        mock_bounds.x2 = 10
+        mock_text.get_bounds.return_value = mock_bounds
+
+        with patch("canvas.logger") as mock_logger:
+            canvas_obj.add_box(
+                text="zerowidth",
+                bbox=Rectangle(x=0, y=0, width=10, height=10),
+                parent=page,
+            )
+            mock_logger.error.assert_called_with(
+                "text '%s' has no width, skipping", "zerowidth"
+            )
+
+
+def test_tree_iter_navigation(mocker):
+    "Test TreeIter navigation methods"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    # Create page without text to keep it simple (no internal Text child)
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    # line without text
+    line = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+    w1 = canvas_obj.add_box(
+        text="word1",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=line,
+    )
+    w2 = canvas_obj.add_box(
+        text="word2",
+        bbox=Rectangle(x=20, y=0, width=10, height=10),
+        type="word",
+        parent=line,
+    )
+
+    # Test full navigation from page
+    ti = TreeIter(page)
+    assert ti.get_current_bbox() == page
+    assert ti.next_bbox() == line
+    assert ti.next_bbox() == w1
+    assert ti.next_bbox() == w2
+    with pytest.raises(StopIteration):
+        ti.next_bbox()
+
+    assert ti.previous_bbox() == w1
+    assert ti.previous_bbox() == line
+    assert ti.previous_bbox() == page
+    with pytest.raises(StopIteration):
+        ti.previous_bbox()
+
+    ti = TreeIter(w2)
+    assert ti.first_word() == w1
+    assert ti.last_word() == w2
+
+    ti = TreeIter(w1)
+    assert ti.next_word() == w2
+    with pytest.raises(StopIteration):
+        ti.next_word()
+
+
+def test_bbox_to_hocr_types(mocker):
+    "Test Bbox.to_hocr with different types"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    carea = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=50, height=50),
+        type="carea",
+        parent=page,
+    )
+    para = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=40, height=40),
+        type="para",
+        parent=carea,
+    )
+
+    hocr = carea.to_hocr()
+    assert "ocr_carea" in hocr
+    assert "<div" in hocr
+
+    hocr = para.to_hocr()
+    assert "ocr_par" in hocr
+    assert "<p" in hocr
+
+
+def test_canvas_event_handlers(mocker):
+    "Test Canvas event handlers for coverage"
+    mock_display = MagicMock(spec=Gdk.Display)
+    mocker.patch("gi.repository.Gdk.Display.get_default", return_value=mock_display)
+
+    canvas_obj = Canvas()
+    canvas_obj._device = MagicMock()
+    canvas_obj._device.get_position.return_value = (None, 100, 100)
+    canvas_obj.get_window = MagicMock()
+
+    # _button_pressed
+    event = MagicMock()
+    event.button = 2
+
+    with patch("gi.repository.Gdk.Cursor.new_from_name") as mock_cursor_new:
+        canvas_obj._button_pressed(None, event)
+        assert canvas_obj._dragging
+        assert canvas_obj._drag_start == {"x": 100, "y": 100}
+        mock_cursor_new.assert_called()
+
+    # _motion
+    canvas_obj.get_scale = MagicMock(return_value=1.0)
+    canvas_obj.get_offset = MagicMock(return_value=Gdk.Rectangle())
+    canvas_obj._device.get_position.return_value = (None, 110, 110)
+    canvas_obj.set_offset = MagicMock()
+
+    canvas_obj._motion(None, None)
+    canvas_obj.set_offset.assert_called()
+
+    # _button_released
+    canvas_obj._button_released(None, event)
+    assert not canvas_obj._dragging
+
+
+def test_bbox_update_box_empty_text(mocker):
+    "Test Bbox.update_box with empty text (deletes box)"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    line = canvas_obj.add_box(
+        text="line",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+    word = canvas_obj.add_box(
+        text="word",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=line,
+    )
+
+    canvas_obj.position_index = MagicMock()
+    word.delete_box = MagicMock()
+    word.update_box("", Rectangle(x=0, y=0, width=10, height=10))
+    word.delete_box.assert_called_once()
+
+
+def test_list_iter_more(mocker):
+    "Test ListIter additional methods"
+    li = ListIter()
+    bbox = MagicMock()
+    li.add_box_to_index(bbox, 50)
+
+    li.insert_before_position(bbox, 0, 40)
+    assert len(li.list) == 2
+    assert li.list[0][1] == 40
+
+    li.insert_after_position(bbox, 1, 60)
+    assert len(li.list) == 3
+    assert li.list[2][1] == 60
+
+    # Test set_index_by_bbox with multiple same values
+    bbox2 = MagicMock()
+    li.add_box_to_index(bbox2, 50)
+    li.set_index_by_bbox(bbox2, 50)
+    assert li.list[li.index][0] == bbox2
+
+
+def test_tree_iter_exceptions(mocker):  # pylint: disable=unused-argument
+    "Test TreeIter exceptions"
+
+    # Init with non-Bbox
+    with pytest.raises(TypeError):
+        TreeIter("not-a-bbox")
+
+    # Setup a simple tree
+    canvas_obj = Canvas()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    ti = TreeIter(page)
+
+    # next_bbox on leaf/empty
+    with pytest.raises(StopIteration):
+        ti.next_bbox()
+
+    # previous_bbox on root
+    with pytest.raises(StopIteration):
+        ti.previous_bbox()
+
+    # previous_word with no words
+    with pytest.raises(StopIteration):
+        ti.previous_word()
+
+
+def test_bbox_update_box_full(mocker):
+    "Test Bbox.update_box with more branches"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    line = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+    word = canvas_obj.add_box(
+        text="old",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=line,
+    )
+
+    # Update with new text and position
+    new_selection = Rectangle(x=5, y=5, width=15, height=15)
+    word.update_box("new", new_selection)
+
+    assert word.text == "new"
+    assert word.confidence == 100
+    assert word.bbox.x == 5
+
+    # Update with same text but different position to trigger move_child branch
+    # We need another child to see ordering change
+    word2 = canvas_obj.add_box(
+        text="word2", bbox=Rectangle(x=30, y=0, width=10, height=10), parent=line
+    )
+    # word is at x=5, word2 at x=30.
+    # Move word to x=40 (after word2)
+    word.update_box("new", Rectangle(x=40, y=5, width=15, height=15))
+    # word centroid x: 40 + 7.5 = 47.5
+    # word2 centroid x: 30 + 5 = 35.
+    # visually word2 < word
+    assert word2.get_centroid()[0] < word.get_centroid()[0]
+
+
+def test_bbox_transform_text_more(mocker):
+    "Test Bbox.transform_text more branches"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    # Test with rotation 90
+    word = canvas_obj.add_box(
+        text="rotated",
+        bbox=Rectangle(x=0, y=0, width=10, height=50),
+        parent=page,
+        textangle=90,
+    )
+    # This should have called transform_text in __init__
+    # We can call it again to test logic
+    word.transform_text(scale=2.0, angle=90)
+    # Check that text widget exists and has some properties set?
+    # Hard to check without deep GooCanvas introspection but we cover lines.
+
+
+def test_canvas_set_text_full(mocker, rose_pnm):
+    "Test Canvas.set_text with real-ish page"
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm.name,
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+        page.text_layer = json.dumps(
+            [
+                {
+                    "depth": 0,
+                    "bbox": (0, 0, 100, 100),
+                    "type": "page",
+                    "text": "page text",
+                }
+            ]
+        )
+
+        canvas_obj = Canvas()
+        # Test without idles
+        canvas_obj.set_text(page=page, layer="text_layer", idle=False)
+        assert canvas_obj.get_pixbuf_size() == {"width": 70, "height": 46}
+
+
+def test_canvas_set_offset_pixbuf_none(mocker):
+    "Test Canvas.set_offset when pixbuf_size is None"
+    canvas_obj = Canvas()
+    canvas_obj._pixbuf_size = None
+    canvas_obj.set_offset(10, 10)
+    # Should return early and not crash
+    assert canvas_obj.get_offset().x == 0
+
+
+def test_canvas_get_max_min_color_hsv(mocker):
+    "Test color HSV getters"
+    canvas_obj = Canvas()
+    hsv = canvas_obj.get_max_color_hsv()
+    assert "h" in hsv
+    hsv = canvas_obj.get_min_color_hsv()
+    assert "h" in hsv
+
+
+def test_bbox_button_press_callback(mocker):
+    "Test Bbox button_press_callback"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    mock_edit = MagicMock()
+    event = MagicMock()
+    event.button = 1
+
+    # We need a parent for the bbox that is NOT root to avoid _dragging check issue
+    parent = canvas_obj.add_box(
+        text="parent", bbox=Rectangle(x=0, y=0, width=100, height=100), parent=page
+    )
+    # canvas_obj is parent of parent? No, Bbox has parent.
+    # canvas_obj has _dragging.
+    # Bbox.button_press_callback: self.parent.get_parent()._dragging = False
+    # If self.parent is 'parent' (Bbox), then self.parent.get_parent() should be 'page' (Bbox).
+    # Then self.parent.get_parent().get_parent() should be 'root' (CanvasGroup).
+    # Then self.parent.get_parent().get_parent().get_parent() should be Canvas?
+
+    # Actually Bbox is child of CanvasGroup.
+    # Let's just make sure the hierarchy is deep enough to not crash.
+    child = canvas_obj.add_box(
+        text="c", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=parent
+    )
+    # child.parent = parent (Bbox)
+    # parent.parent = page (Bbox)
+    # page.parent = root (CanvasGroup)
+    # root.parent = canvas_obj? NO, root is root of canvas.
+
+    # In canvas.py: root = GooCanvas.CanvasGroup(); self.set_root_item(root)
+    # so root.get_parent() is None or something else.
+    # Actually GooCanvas root item parent is the canvas?
+
+    # Let's mock parent.get_parent()
+    with patch.object(parent, "get_parent") as mock_gp:
+        mock_gp.return_value = MagicMock()
+        child.button_press_callback(child, None, event, mock_edit, child)
+        mock_edit.assert_called_once()
+
+
+def test_bbox_walk_children(mocker):
+    "Test Bbox.walk_children"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    line = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+    word = canvas_obj.add_box(
+        text="w", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=line
+    )
+
+    visited = []
+
+    def callback(bbox):
+        visited.append(bbox)
+
+    page.walk_children(callback)
+    assert line in visited
+    assert word in visited
+
+
+def test_canvas_get_bbox_at_more(mocker):
+    "Test Canvas.get_bbox_at"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    line = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+
+    # get_bbox_at uses get_item_at(x, y)
+    # We should mock get_item_at to return our line
+    with patch.object(canvas_obj, "get_item_at", return_value=line):
+        res = canvas_obj.get_bbox_at(Rectangle(x=10, y=10, width=1, height=1))
+        assert res == line
+
+    # Case where it returns a word and we want the parent
+    word = canvas_obj.add_box(
+        text="w", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=line
+    )
+    with patch.object(canvas_obj, "get_item_at", return_value=word):
+        res = canvas_obj.get_bbox_at(Rectangle(x=5, y=5, width=1, height=1))
+        assert res == line
+
+
+def test_bbox_to_hocr_more(mocker):
+    "Test Bbox.to_hocr with extended properties"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        id="p1",
+        parent=root,
+    )
+    page.baseline = [0.1, 5]
+    page.confidence = 85
+    page.textangle = 90
+
+    hocr = page.to_hocr()
+    assert "id='p1'" in hocr
+    assert "baseline 0.1 5" in hocr
+    assert "x_wconf 85" in hocr
+    assert "textangle 90" in hocr
