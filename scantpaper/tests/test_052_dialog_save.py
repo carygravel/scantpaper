@@ -247,9 +247,8 @@ def test_date_entry_validation(mocker):
     dialog = Save(transient_for=Gtk.Window())
 
     entry = dialog._meta_datetime_widget
-    # Mock handler blocking/unblocking
-    entry.handler_block_by_func = mocker.Mock()
-    entry.handler_unblock_by_func = mocker.Mock()
+    # Mock stop_emission_by_name and insert_text
+    # We use mocker.patch.object to avoid RecursionError by keeping real block/unblock
     entry.stop_emission_by_name = mocker.Mock()
     entry.insert_text = mocker.Mock()
 
@@ -266,7 +265,8 @@ def test_date_entry_validation(mocker):
 
     # Test include_time=True
     dialog.include_time = True
-    entry.get_text.return_value = "2020-01-01 "
+    # Refresh entry text mock
+    mocker.patch.object(entry, "get_text", return_value="2020-01-01 ")
     dialog._insert_text_handler(entry, ":", 0, 11)
     entry.insert_text.assert_called_with(":", 11)
 
@@ -415,15 +415,172 @@ def test_datetime_setter():
     assert dialog._meta_datetime_widget.get_text() == "2023-03-23 12:00:00"
 
 
+def test_tiff_compression_selection(mocker):
+    "test tiff compression selection updates UI"
+    dialog = Save(
+        transient_for=Gtk.Window(),
+        image_types=["tif"],
+        ps_backends=["pdf2ps"],
+    )
+    dialog.resize = mocker.Mock()
+    dialog.add_image_type()
+
+    def find_widget_by_label(container, label_text, widget_type):
+        "Find a widget by its sibling label text"
+        for child in container.get_children():
+            if isinstance(child, Gtk.Box):
+                res = find_widget_by_label(child, label_text, widget_type)
+                if res:
+                    return res
+                grand_children = child.get_children()
+                has_label = any(
+                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                    for gc in grand_children
+                )
+                if has_label:
+                    for gc in grand_children:
+                        if isinstance(gc, widget_type):
+                            return gc
+        return None
+
+    content_area = dialog.get_content_area()
+    combobtc = find_widget_by_label(content_area, "Compression", Gtk.ComboBox)
+    assert combobtc is not None, "Could not find Compression ComboBox"
+
+    def find_box_containing_label(container, label_text):
+        for child in container.get_children():
+            if isinstance(child, Gtk.Box):
+                if any(
+                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                    for gc in child.get_children()
+                ):
+                    return child
+                res = find_box_containing_label(child, label_text)
+                if res:
+                    return res
+        return None
+
+    hboxtq = find_box_containing_label(content_area, "JPEG Quality")
+    assert hboxtq is not None, "Could not find JPEG Quality Box"
+
+    # Test setting to 'jpeg'
+    combobtc.set_active_index("jpeg")
+    assert dialog.tiff_compression == "jpeg"
+    assert hboxtq.get_visible()
+
+    # Test setting to 'lzw'
+    combobtc.set_active_index("lzw")
+    assert dialog.tiff_compression == "lzw"
+    assert not hboxtq.get_visible()
+    dialog.resize.assert_called()
+
+
+def test_other_save_dialog_callbacks(mocker):
+    "test other callbacks in Save dialog"
+    dialog = Save(
+        transient_for=Gtk.Window(),
+        image_types=["pdf", "ps"],
+        ps_backends=["pdf2ps", "pdftops"],
+    )
+    dialog.add_image_type()
+    content_area = dialog.get_content_area()
+
+    def find_widget_by_label(container, label_text, widget_type):
+        "Find a widget by its sibling label text"
+        for child in container.get_children():
+            if isinstance(child, Gtk.Box):
+                res = find_widget_by_label(child, label_text, widget_type)
+                if res:
+                    return res
+                grand_children = child.get_children()
+                has_label = any(
+                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                    for gc in grand_children
+                )
+                if has_label:
+                    for gc in grand_children:
+                        if isinstance(gc, widget_type):
+                            return gc
+        return None
+
+    # Test ps_backend_changed_callback
+    combops = find_widget_by_label(content_area, "Postscript backend", Gtk.ComboBox)
+    assert combops is not None
+    combops.set_active_index("pdf2ps")
+    assert dialog.ps_backend == "pdf2ps"
+
+    # Test ocr_position_changed_callback
+    combot = find_widget_by_label(content_area, "Position of OCR output", Gtk.ComboBox)
+    assert combot is not None
+    combot.set_active_index("right")
+    assert dialog.text_position == "right"
+
+    # Test downsample callbacks
+    def find_checkbutton(container, label_text):
+        for child in container.get_children():
+            if isinstance(child, Gtk.CheckButton) and child.get_label() == label_text:
+                return child
+            if isinstance(child, Gtk.Box):
+                res = find_checkbutton(child, label_text)
+                if res:
+                    return res
+        return None
+
+    downsample_btn = find_checkbutton(content_area, "Downsample to")
+    assert downsample_btn is not None
+
+    def find_all_spinbuttons_near_label(container, label_text):
+        found = []
+        for child in container.get_children():
+            if isinstance(child, Gtk.Box):
+                grand_children = child.get_children()
+                if any(
+                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                    for gc in grand_children
+                ):
+                    for gc in grand_children:
+                        if isinstance(gc, Gtk.SpinButton):
+                            found.append(gc)
+                found.extend(find_all_spinbuttons_near_label(child, label_text))
+        return found
+
+    downsample_spins = find_all_spinbuttons_near_label(content_area, "PPI")
+    assert len(downsample_spins) > 0
+    downsample_spin = downsample_spins[0]
+
+    downsample_btn.set_active(True)
+    assert dialog.downsample is True
+    assert downsample_spin.get_sensitive() is True
+
+    downsample_spin.set_value(300)
+    # Trigger the value-changed signal
+    downsample_spin.emit("value-changed")
+    assert dialog.downsample_dpi == 300
+
+    # Test jpg_quality_changed_callback
+    # Find all JPEG Quality spinbuttons and test the one that is NOT the TIFF one
+    quality_spins = find_all_spinbuttons_near_label(content_area, "JPEG Quality")
+    assert len(quality_spins) > 0
+
+    # Let's just test all of them and see if any updates jpeg_quality
+    # In PDF case, it should be one of them.
+    found_pdf_spin = False
+    for spin in quality_spins:
+        spin.set_value(95)
+        spin.emit("value-changed")
+        if dialog.jpeg_quality == 95:
+            found_pdf_spin = True
+            break
+    assert found_pdf_spin, "Could not find PDF JPEG Quality SpinButton"
+
+
 def test_date_entry_inc_dec(mocker):
     "test + and - keys in date entry"
     dialog = Save(transient_for=Gtk.Window())
     entry = dialog._meta_datetime_widget
     entry.set_text("2020-01-01")
 
-    # Mock handler blocking/unblocking
-    entry.handler_block_by_func = mocker.Mock()
-    entry.handler_unblock_by_func = mocker.Mock()
+    # Mock stop_emission_by_name but keep other behavior
     entry.stop_emission_by_name = mocker.Mock()
 
     # Test + key

@@ -749,7 +749,7 @@ class Save(Dialog):
 
         button.connect("toggled", downsample_toggled_callback)
 
-        def downsample_dpi_changed_callback():
+        def downsample_dpi_changed_callback(_widget):
             self.downsample_dpi = spinbutton.get_value()
 
         spinbutton.connect("value-changed", downsample_dpi_changed_callback)
