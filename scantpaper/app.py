@@ -100,6 +100,7 @@ from gi.repository import (
     Gtk,
     GdkPixbuf,
     Gio,
+    GLib,
 )
 
 # pylint: enable=wrong-import-position
@@ -114,7 +115,7 @@ def register_icon(iconfactory, stock_id, path):
             logger.warning("Unable to load icon `%s'", path)
         else:
             iconfactory.add(stock_id, Gtk.IconSet.new_from_pixbuf(icon))
-    except (FileNotFoundError, OSError) as err:
+    except (FileNotFoundError, OSError, GLib.GError) as err:
         logger.warning("Unable to load icon `%s': %s", path, err)
 
 
