@@ -32,12 +32,10 @@ def test_text_layer_sort_combo_box(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-
-    mock_app = MagicMock()
-    mock_app.iconpath = os.path.abspath(
+    app.iconpath = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../icons")
     )
-    mocker.patch("app_window.ApplicationWindow.get_application", return_value=mock_app)
+    mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
     window.t_canvas = MagicMock()
@@ -77,12 +75,10 @@ def test_text_layer_add_and_ok_buttons(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-
-    mock_app = MagicMock()
-    mock_app.iconpath = os.path.abspath(
+    app.iconpath = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../icons")
     )
-    mocker.patch("app_window.ApplicationWindow.get_application", return_value=mock_app)
+    mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
 
@@ -137,12 +133,10 @@ def test_edit_ocr_text_updates_selection(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-
-    mock_app = MagicMock()
-    mock_app.iconpath = os.path.abspath(
+    app.iconpath = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../icons")
     )
-    mocker.patch("app_window.ApplicationWindow.get_application", return_value=mock_app)
+    mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
 
