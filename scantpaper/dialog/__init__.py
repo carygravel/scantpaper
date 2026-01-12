@@ -109,7 +109,7 @@ class MultipleMessage(Dialog):
         self.get_content_area().pack_start(scwin, True, True, 0)
         self.grid = Gtk.Grid()
         self.grid_rows = 0
-        self.stored_responses = []
+        self.stored_responses = {}
         self.grid.attach(Gtk.Label(label=_("Page")), 0, self.grid_rows, 1, 1)
         self.grid.attach(Gtk.Label(label=_("Process")), 1, self.grid_rows, 1, 1)
         self.grid.attach(Gtk.Label(label=_("Message type")), 2, self.grid_rows, 1, 1)

@@ -1,7 +1,7 @@
 "test dialog"
 
 import tempfile
-from dialog import Dialog
+from dialog import Dialog, MultipleMessage
 from dialog.pagecontrols import PageControls
 from document import Document
 import gi
@@ -70,6 +70,64 @@ def test_dialog():
     dialog.add_actions([("gtk-close", on_close)])
     dialog.response(Gtk.ResponseType.NONE)
     assert True, "no crash due to undefined response"
+
+
+def test_multiple_message():
+    "test MultipleMessage"
+
+    dialog = MultipleMessage()
+
+    # row with store_response=True and stored_responses
+    row1 = {
+        "text": "message 1",
+        "message_type": "error",
+        "store_response": True,
+        "stored_responses": ["ok"],
+    }
+    dialog.add_message(row1)
+
+    # row with store_response=True and no stored_responses
+    row2 = {
+        "text": "message 2",
+        "message_type": "warning",
+        "store_response": True,
+    }
+    dialog.add_message(row2)
+
+    # row with store_response=False
+    row3 = {
+        "text": "message 3",
+        "message_type": "error",
+        "store_response": False,
+    }
+    dialog.add_message(row3)
+
+    # list_checkbuttons should return 2 buttons (for row1 and row2)
+    # row 3 doesn't have a checkbutton because store_response=False
+    cbs = dialog._list_checkbuttons()  # pylint: disable=protected-access
+    assert len(cbs) == 2, "2 checkbuttons"
+
+    # Activate all checkbuttons
+    for cb in cbs:
+        cb.set_active(True)
+
+    # If response is "ok", and message 1 has stored_responses ["ok"], it should be returned
+    # Message 2 has no stored_responses, so it should also be returned
+    messages = dialog.list_messages_to_ignore("ok")
+    assert "message 1" in messages
+    assert "message 2" in messages
+
+    # If response is "cancel", and message 1 has stored_responses ["ok"], it should NOT be returned
+    # Message 2 has no stored_responses, so it should still be returned
+    messages = dialog.list_messages_to_ignore("cancel")
+    assert "message 1" not in messages
+    assert "message 2" in messages
+
+    # Deactivate checkbutton for row 2
+    cbs[1].set_active(False)
+    messages = dialog.list_messages_to_ignore("ok")
+    assert "message 1" in messages
+    assert "message 2" not in messages
 
 
 def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout, clean_up_files):
