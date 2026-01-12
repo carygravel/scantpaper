@@ -727,6 +727,11 @@ class DocThread(SaveThread):
         self._execute("SELECT thumb FROM page WHERE id = ?", (page_id,))
         return self._bytes_to_pixbuf(self._fetchone()[0])
 
+    def check_cancelled(self):
+        "check if operation was cancelled"
+        if self.cancel:
+            raise CancelledError()
+
     def get_text(self, page_id):
         "gets the text layer for the given page"
         self._execute("SELECT text FROM page WHERE id = ?", (page_id,))
@@ -815,9 +820,7 @@ class DocThread(SaveThread):
         page = self.get_page(id=options["page"])
         logger.info("Rotating %s by %s degrees", page.id, options["angle"])
         page.image_object = page.image_object.rotate(options["angle"], expand=True)
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -855,9 +858,8 @@ class DocThread(SaveThread):
             self.progress = (i - 1) / total
             self.message = _("Analysing page %i of %i") % (i, total)
             i += 1
+            self.check_cancelled()
 
-            if self.cancel:
-                raise CancelledError()
             stat = ImageStat.Stat(page.image_object)
             # ImageStat seems to have a bug here. Working around it.
             if stat.count == [0]:
@@ -867,8 +869,7 @@ class DocThread(SaveThread):
                 page.mean = stat.mean
                 page.std_dev = stat.stddev
             logger.info("std dev: %s mean: %s", page.std_dev, page.mean)
-            if self.cancel:
-                raise CancelledError()
+            self.check_cancelled()
 
             # TODO add any other useful image analysis here e.g. is the page mis-oriented?
             #  detect mis-orientation possible algorithm:
@@ -895,9 +896,8 @@ class DocThread(SaveThread):
         "threshold page in thread"
         options = request.args[0]
         page = self.get_page(id=options["page"])
+        self.check_cancelled()
 
-        if self.cancel:
-            raise CancelledError()
         logger.info("Threshold %s with %s", page.id, options["threshold"])
 
         # To grayscale
@@ -908,12 +908,8 @@ class DocThread(SaveThread):
         )
         # To mono
         page.image_object = page.image_object.convert("1")
+        self.check_cancelled()
 
-        if self.cancel:
-            raise CancelledError()
-
-        if self.cancel:
-            raise CancelledError()
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
         request.data(
@@ -942,16 +938,13 @@ class DocThread(SaveThread):
             brightness,
             contrast,
         )
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         page.image_object = ImageEnhance.Brightness(page.image_object).enhance(
             brightness
         )
         page.image_object = ImageEnhance.Contrast(page.image_object).enhance(contrast)
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -979,9 +972,7 @@ class DocThread(SaveThread):
         if page.image_object.mode == "P" or page.image_object.mode == "RGBA":
             page.image_object = page.image_object.convert("RGB")
         page.image_object = ImageOps.invert(page.image_object)
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -1018,9 +1009,7 @@ class DocThread(SaveThread):
         page.image_object = page.image_object.filter(
             ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=threshold)
         )
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty
         page.saved = False
@@ -1053,9 +1042,7 @@ class DocThread(SaveThread):
         page.image_object = page.image_object.crop(
             (left, top, left + width, top + height)
         )
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         page.width = page.image_object.width
         page.height = page.image_object.height
@@ -1099,9 +1086,7 @@ class DocThread(SaveThread):
         boxes = _calculate_crop_tuples(options, image)
         page.image_object = image.crop(boxes[0])
         image2 = image2.crop(boxes[1])
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         # Write them
         page.width = page.image_object.width
@@ -1151,9 +1136,7 @@ class DocThread(SaveThread):
         page = self.get_page(id=options["page"])
         if options["language"] is None:
             raise ValueError(_("No tesseract language specified"))
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         # path argument required for systems where tessdata non-standard or not hardcoded;
         # otherwise current directory is searched for tesseract files
@@ -1182,9 +1165,7 @@ class DocThread(SaveThread):
             page.import_hocr(hocr)
             page.ocr_flag = True
             page.ocr_time = datetime.datetime.now()
-
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         request.data(
             {
@@ -1229,8 +1210,7 @@ class DocThread(SaveThread):
                     spo.returncode, options["options"]["command"]
                 )
 
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
         spo.stdout = re.sub(
             r"Processing[ ]sheet.*[.]pnm\n",
             r"",

@@ -1,8 +1,8 @@
 "Tests for DocThread"
 
 import threading
-import pytest
 import subprocess
+import pytest
 from const import APPLICATION_ID, USER_VERSION
 from docthread import DocThread, _calculate_crop_tuples
 from page import Page
