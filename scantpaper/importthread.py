@@ -44,6 +44,11 @@ class Importhread(BaseThread):
         "cancel running tasks"
         self.cancel = False
 
+    def check_cancelled(self):
+        "check if operation was cancelled"
+        if self.cancel:
+            raise CancelledError()
+
     def do_get_file_info(self, request):
         "get file info"
         path, password = request.args
@@ -75,8 +80,7 @@ class Importhread(BaseThread):
             # Get file type
             image = Image.open(path)
 
-            if self.cancel:
-                raise CancelledError()
+            self.check_cancelled()
             info["format"] = image.format
 
             logger.info("Format %s", info["format"])
@@ -99,8 +103,7 @@ class Importhread(BaseThread):
             )
 
         logger.info(proc.stdout)
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
         pages = 1
         regex = re.search(
             r"\s(\d+)\s+page", proc.stdout, re.MULTILINE | re.DOTALL | re.VERBOSE
@@ -137,8 +140,7 @@ class Importhread(BaseThread):
         # Dig out the metadata
         proc = exec_command(["djvused", path, "-e", "print-meta"])
         logger.info(proc.stdout)
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         # extract the metadata from the file
         _add_metadata_to_info(info, proc.stdout, r'\s+"([^"]+)')
@@ -195,8 +197,7 @@ class Importhread(BaseThread):
                 regex.group(3),
             )
 
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
 
         # extract the metadata from the file
         _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
@@ -205,8 +206,7 @@ class Importhread(BaseThread):
         "get TIFF info"
         info["format"] = "Tagged Image File Format"
         proc = exec_command(["tiffinfo", path])
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
         logger.info(info)
 
         # Count number of pages
@@ -278,8 +278,7 @@ class Importhread(BaseThread):
                             ["tiffcp", f"{args['info']['path']},{i}", tif.name],
                             check=True,
                         )
-                        if self.cancel:
-                            raise CancelledError()
+                        self.check_cancelled()
                         page = Page(
                             filename=tif.name,
                             dir=args["dir"],
@@ -358,8 +357,7 @@ class Importhread(BaseThread):
                         ],
                         text=True,
                     )
-                    if self.cancel:
-                        raise CancelledError()
+                    self.check_cancelled()
                     page = Page(
                         filename=tif.name,
                         dir=args["dir"],
@@ -440,8 +438,7 @@ class Importhread(BaseThread):
                 )
             except subprocess.CalledProcessError:
                 request.error(_("Error extracting images from PDF"))
-            if self.cancel:
-                raise CancelledError()
+            self.check_cancelled()
 
             # Import each image
             images = glob.glob("x-??*.???")
@@ -507,8 +504,7 @@ class Importhread(BaseThread):
                 capture_output=True,
                 text=True,
             )
-            if self.cancel:
-                raise CancelledError()
+            self.check_cancelled()
             if spo.returncode != 0:
                 request.error(_("Error extracting text layer from PDF"))
             return html.read()

@@ -13,7 +13,7 @@ import sqlite3
 import threading
 from PIL import ImageStat, ImageEnhance, ImageOps, ImageFilter
 from const import THUMBNAIL, APPLICATION_ID, USER_VERSION
-from importthread import CancelledError, _note_callbacks
+from importthread import _note_callbacks
 from savethread import SaveThread
 from i18n import _
 from page import Page
@@ -27,13 +27,13 @@ from gi.repository import GLib, GdkPixbuf  # pylint: disable=wrong-import-positi
 logger = logging.getLogger(__name__)
 
 
-def _loggerise(vars):
+def _loggerise(variables):
     logger_vars = None
-    if vars:
+    if variables:
         tuple_flag = False
-        if isinstance(vars, tuple):
+        if isinstance(variables, tuple):
             tuple_flag = True
-        logger_vars = list(vars)
+        logger_vars = list(variables)
         for i, item in enumerate(logger_vars):
             if isinstance(item, (bytes, bytearray)):
                 logger_vars[i] = "binary data"
@@ -726,11 +726,6 @@ class DocThread(SaveThread):
         "gets the thumbnail for the given page_id"
         self._execute("SELECT thumb FROM page WHERE id = ?", (page_id,))
         return self._bytes_to_pixbuf(self._fetchone()[0])
-
-    def check_cancelled(self):
-        "check if operation was cancelled"
-        if self.cancel:
-            raise CancelledError()
 
     def get_text(self, page_id):
         "gets the text layer for the given page"

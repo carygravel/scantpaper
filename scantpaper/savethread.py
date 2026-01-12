@@ -13,7 +13,7 @@ from PIL import Image
 import img2pdf
 import ocrmypdf
 from const import VERSION, POINTS_PER_INCH, ANNOTATION_COLOR
-from importthread import Importhread, CancelledError, _note_callbacks
+from importthread import Importhread, _note_callbacks
 from i18n import _
 from helpers import exec_command
 from bboxtree import Bboxtree
@@ -107,8 +107,7 @@ class SaveThread(Importhread):
                     pagenr,
                     len(list_of_pages),
                 )
-                if self.cancel:
-                    raise CancelledError()
+                self.check_cancelled()
 
             ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
 
@@ -178,8 +177,7 @@ class SaveThread(Importhread):
         proc = exec_command(["djvm", "-c", args["path"], *filelist], args["pidfile"])
         for filename in filelist:
             os.remove(filename)
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
         if proc.returncode:
             logger.error("Error merging DjVu")
             request.error(_("Error merging DjVu"))
@@ -227,8 +225,7 @@ class SaveThread(Importhread):
                     "-s",
                 ]
                 subprocess.run(cmd, check=True)
-                if self.cancel:
-                    raise CancelledError()
+                self.check_cancelled()
                 # if status:
                 #     logger.error("Error adding metadata info to DjVu file")
                 #     self._thread_throw_error(
@@ -261,8 +258,7 @@ class SaveThread(Importhread):
                 dir=options.get("dir"), suffix=".tif", delete=False
             ) as out:
                 page.write_image_for_tiff(out.name, options)
-                if self.cancel:
-                    raise CancelledError()
+                self.check_cancelled()
                 # if status:
                 #     logger.error("Error writing TIFF")
                 #     self._thread_throw_error(
@@ -288,8 +284,7 @@ class SaveThread(Importhread):
         subprocess.run(cmd, check=True)
         for filename in filelist:
             os.remove(filename)
-        if self.cancel:
-            raise CancelledError()
+        self.check_cancelled()
         # if status or error != EMPTY:
         #     logger.info(error)
         #     self._thread_throw_error(
@@ -335,8 +330,7 @@ class SaveThread(Importhread):
             else:
                 filename = options["path"]
             page.image_object.save(filename)
-            if self.cancel:
-                raise CancelledError()
+            self.check_cancelled()
             # if proc.returncode:
             #     request.error(_("Error saving image"))
 
@@ -358,8 +352,7 @@ class SaveThread(Importhread):
         for page_id in options["list_of_pages"]:
             page = self.get_page(id=page_id)
             string += page.export_text()
-            if self.cancel:
-                raise CancelledError()
+            self.check_cancelled()
 
         with open(options["path"], "w", encoding="utf-8") as fhd:
             fhd.write(string)
@@ -395,8 +388,7 @@ class SaveThread(Importhread):
                         written_header = True
 
                     fhd.write(hocr_page)
-                    if self.cancel:
-                        raise CancelledError()
+                    self.check_cancelled()
 
             if written_header:
                 fhd.write("</body>\n</html>\n")
@@ -469,8 +461,7 @@ class SaveThread(Importhread):
                     text=True,
                     shell=True,
                 )
-                if self.cancel:
-                    raise CancelledError()
+                self.check_cancelled()
                 logger.info("stdout: %s", sbp.stdout)
                 logger.info("stderr: %s", sbp.stderr)
 
