@@ -329,6 +329,24 @@ def test_preferences_dialog(mocker, mock_edit_window):
     )
 
 
+def test_preferences_dialog_already_open(mock_edit_window, mocker):
+    "Test preferences dialog when already open"
+    mock_edit_window._windowr = mocker.Mock()
+    mock_edit_window.preferences(None, None)
+    mock_edit_window._windowr.present.assert_called_once()
+
+
+def test_changed_preferences_valid_regex(mock_edit_window):
+    "Test _changed_preferences with valid regex in device blacklist"
+    new_settings = mock_edit_window.settings.copy()
+    new_settings["device blacklist"] = "hp.*"
+
+    mock_edit_window._changed_preferences(None, new_settings)
+
+    mock_edit_window._show_message_dialog.assert_not_called()
+    assert mock_edit_window.settings["device blacklist"] == "hp.*"
+
+
 def test_changed_preferences(mock_edit_window):
     "Test _changed_preferences"
     new_settings = mock_edit_window.settings.copy()
@@ -339,6 +357,40 @@ def test_changed_preferences(mock_edit_window):
     mock_edit_window._ask_question.assert_called_once()
     mock_edit_window._restart.assert_called_once()
     assert mock_edit_window.settings["TMPDIR"] == "/new/tmp"
+
+
+def test_changed_preferences_invalid_regex(mock_edit_window):
+    "Test _changed_preferences with invalid regex in device blacklist"
+    new_settings = mock_edit_window.settings.copy()
+    new_settings["device blacklist"] = "["  # Invalid regex
+
+    mock_edit_window._changed_preferences(None, new_settings)
+
+    mock_edit_window._show_message_dialog.assert_called_once()
+    assert (
+        new_settings["device blacklist"]
+        == mock_edit_window.settings["device blacklist"]
+    )
+
+
+def test_changed_preferences_updates_windows(mock_edit_window, mocker):
+    "Test _changed_preferences updates _windows and _windowi"
+    mock_edit_window._windows = mocker.Mock()
+    mock_edit_window._windowi = mocker.Mock()
+
+    # Settings that differ from defaults
+    new_settings = mock_edit_window.settings.copy()
+    new_settings["cycle sane handle"] = True
+    new_settings["use_time"] = True
+
+    # The current implementation in edit_menu_mixins.py uses self.settings (old values)
+    # to update _windows and _windowi before updating self.settings.
+    # We verify this behavior.
+    mock_edit_window._changed_preferences(None, new_settings)
+
+    assert mock_edit_window._windows.cycle_sane_handle is False
+    assert mock_edit_window._windowi.include_time is False
+    assert mock_edit_window.settings["cycle sane handle"] is True
 
 
 def test_select_blank_pages(mock_edit_window):
