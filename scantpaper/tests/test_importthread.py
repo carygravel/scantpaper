@@ -1,0 +1,53 @@
+"Tests for Importhread"
+
+from types import SimpleNamespace
+import pytest
+from importthread import Importhread
+from helpers import Proc
+
+
+def test_get_file_info_session(mocker, temp_db):
+    "Test that a SQLite database is identified as a session file"
+
+    # Mock exec_command to return SQLite signature
+    mock_exec = mocker.patch("importthread.exec_command")
+    mock_exec.return_value = Proc(
+        returncode=0,
+        stdout="SQLite 3.x database, last consolidated Tue Sep 14 10:23:44 2021",
+        stderr="",
+    )
+
+    thread = Importhread()
+
+    # path, password
+    request = SimpleNamespace(args=(temp_db.name, None))
+    info = thread.do_get_file_info(request)
+
+    assert info["format"] == "session file"
+    assert info["path"] == temp_db.name
+
+
+def test_get_file_info_file_not_found():
+    "Test that a non-existent file raises FileNotFoundError"
+
+    thread = Importhread()
+
+    request = SimpleNamespace(args=("/non/existent/file", None))
+    with pytest.raises(FileNotFoundError, match="File /non/existent/file not found"):
+        thread.do_get_file_info(request)
+
+
+def test_get_file_info_zero_length(mocker, tmp_path):
+    "Test that a zero-length file raises a RuntimeError"
+
+    empty_file = tmp_path / "empty.txt"
+    empty_file.write_text("", encoding="utf-8")
+
+    mock_exec = mocker.patch("importthread.exec_command")
+    mock_exec.return_value = Proc(returncode=0, stdout="empty", stderr="")
+
+    thread = Importhread()
+
+    request = SimpleNamespace(args=(str(empty_file), None))
+    with pytest.raises(RuntimeError, match="Error importing zero-length file"):
+        thread.do_get_file_info(request)
