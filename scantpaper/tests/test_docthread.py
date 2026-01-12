@@ -5,6 +5,7 @@ import subprocess
 import pytest
 from const import APPLICATION_ID, USER_VERSION
 from docthread import DocThread, _calculate_crop_tuples
+from importthread import CancelledError
 from page import Page
 
 
@@ -312,3 +313,16 @@ def test_run_unpaper_cmd_rtl_error(mocker):
     with pytest.raises(subprocess.CalledProcessError):
         thread._run_unpaper_cmd(request)
     request.data.assert_called_with("Error processing")
+
+
+def test_check_cancelled():
+    "test check_cancelled"
+
+    thread = DocThread(db=":memory:")
+    thread.cancel = False
+    # should not raise
+    thread.check_cancelled()
+
+    thread.cancel = True
+    with pytest.raises(CancelledError):
+        thread.check_cancelled()
