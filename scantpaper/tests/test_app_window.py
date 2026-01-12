@@ -109,6 +109,11 @@ def app_window(mocker, mock_builder, mock_config):
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
 
+    # Mock MultipleMessage to prevent blocking dialogs
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
+
     mocker.patch("app_window.ImageView", MockImageView)
     mocker.patch("app_window.Canvas", MockCanvas)
 
