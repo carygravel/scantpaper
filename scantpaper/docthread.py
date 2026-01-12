@@ -623,15 +623,6 @@ class DocThread(SaveThread):
             rows.append(row)
         return rows
 
-    def _get_snapshots(self):
-        "fetch the snapshot of the document with the given action id"
-        self._execute(
-            """SELECT action_id, page_number, page_id
-                FROM page_order
-                ORDER BY action_id, page_number"""
-        )
-        return self._fetchall()
-
     def _pixbuf_to_bytes(self, pixbuf):
         "given a pixbuf, return the equivalent bytes, in order to store them as a blob"
         with tempfile.NamedTemporaryFile(dir=self._dir, suffix=".png") as temp:
