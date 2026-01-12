@@ -1,5 +1,6 @@
 "test scan dialog current_scan_options property"
 
+from types import SimpleNamespace
 import gi
 from dialog.scan import Scan
 from scanner.profile import Profile
@@ -51,3 +52,34 @@ def test_show(mocker):
     dialog._flatbed_or_duplex_callback.assert_called_once()
     dialog._hide_geometry.assert_called_once_with(dialog.available_scan_options)
     assert dialog.cursor == "default"
+
+
+def test_device_dropdown_changed(mocker):
+    "test do_device_dropdown_changed callback"
+    # pylint: disable=protected-access
+
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock get_devices to verify call
+    dialog.get_devices = mocker.Mock()
+
+    # Use real device_list setter to populate combobox
+    dev1 = SimpleNamespace(name="dev1", label="Device 1")
+    dialog.device_list = [dev1]
+
+    # device_list setter populates combobd.
+    # It inserts "Device 1" at 0.
+    # "Rescan" should be at 1.
+
+    # Test selecting device
+    dialog.combobd.set_active(0)
+    # pylint: disable=comparison-with-callable
+    assert dialog.device == "dev1"
+    dialog.get_devices.assert_not_called()
+
+    # Test selecting Rescan
+    dialog.combobd.set_active(1)
+
+    # Assertions
+    assert dialog.device is None
+    dialog.get_devices.assert_called_once()
