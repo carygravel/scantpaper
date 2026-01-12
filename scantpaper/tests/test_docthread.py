@@ -141,3 +141,19 @@ def test_calculate_crop_tuples(mocker):
         (0, 50, 100, 200),
         (0, 50, 100, 150),
     )
+
+
+def test_get_thumb(mocker):
+    "test get_thumb"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_execute = mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=(b"fake_thumb_bytes",))
+    mock_pixbuf = mocker.Mock()
+    mocker.patch.object(thread, "_bytes_to_pixbuf", return_value=mock_pixbuf)
+
+    result = thread.get_thumb(1)
+
+    mock_execute.assert_called_once_with("SELECT thumb FROM page WHERE id = ?", (1,))
+    assert result == mock_pixbuf
