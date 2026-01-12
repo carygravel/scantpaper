@@ -1,6 +1,8 @@
 "Tests for DocThread"
 
 import threading
+import pytest
+from const import APPLICATION_ID, USER_VERSION
 from docthread import DocThread, _calculate_crop_tuples
 from page import Page
 
@@ -157,3 +159,48 @@ def test_get_thumb(mocker):
 
     mock_execute.assert_called_once_with("SELECT thumb FROM page WHERE id = ?", (1,))
     assert result == mock_pixbuf
+
+
+def test_open_session_file(mocker):
+    "test open session file"
+
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_connect")
+    mock_execute = mocker.patch.object(thread, "_execute")
+    mocker.patch.object(
+        thread,
+        "_fetchone",
+        side_effect=[
+            (APPLICATION_ID,),  # application_id
+            (USER_VERSION,),  # user_version
+            (10,),  # action_id
+        ],
+    )
+
+    thread.open("test.db")
+
+    assert thread._db == "test.db"
+    assert thread._action_id == 10
+    assert mock_execute.call_count == 3
+    mock_execute.assert_any_call("PRAGMA application_id")
+    mock_execute.assert_any_call("PRAGMA user_version")
+    mock_execute.assert_any_call("SELECT MAX(action_id) FROM page_order")
+
+
+def test_open_session_file_invalid_app_id(mocker):
+    "test open session file with invalid application id"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_connect")
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(
+        thread,
+        "_fetchone",
+        return_value=(12345,),  # Invalid application_id
+    )
+
+    with pytest.raises(TypeError, match="is not a gscan2pdf session file"):
+        thread.open("test.db")
