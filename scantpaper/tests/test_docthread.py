@@ -326,3 +326,28 @@ def test_check_cancelled():
     thread.cancel = True
     with pytest.raises(CancelledError):
         thread.check_cancelled()
+
+
+def test_do_analyse_empty_image(mocker):
+    "test do_analyse with an empty image"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = mocker.Mock()
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    mocker.patch.object(thread, "find_page_number_by_page_id")
+
+    # Mock ImageStat.Stat to return count=[0]
+    mock_stat = mocker.patch("PIL.ImageStat.Stat")
+    mock_stat.return_value.count = [0]
+
+    request = mocker.Mock()
+    request.args = [{"list_of_pages": [1]}]
+
+    thread.do_analyse(request)
+
+    assert mock_page.mean == [0.0]
+    assert mock_page.std_dev == [0.0]
