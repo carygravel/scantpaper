@@ -790,3 +790,53 @@ def test_selector_update_selection_edge_branches(rose_png):
     assert sel.width == 30
     assert sel.y == 20
     assert sel.height == 20
+
+
+def test_selector_cursor_dragging_branches(rose_png, mock_view):
+    "Test Selector.cursor_type_at_point dragging branches"
+    view = mock_view
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), False)
+    selector = Selector(view)
+    view.set_tool(selector)
+
+    # Set a selection
+    sel = Gdk.Rectangle()
+    sel.x, sel.y, sel.width, sel.height = 20, 20, 20, 20
+    view.set_selection(sel)
+
+    # 1. Hit h_edge=="mid" and v_edge=="mid" branch (new selection start)
+    selector.dragging = True
+    selector.h_edge = "mid"
+    selector.v_edge = "mid"
+    selector.drag_start = {}
+    selector.cursor_type_at_point(30, 30)
+    assert selector.h_edge == "upper"
+    assert selector.v_edge == "upper"
+    assert selector.drag_start == {"x": 30, "y": 30}
+
+    # 2. Hit h_edge=="mid" and v_edge!="mid" branch
+    selector.h_edge = "mid"
+    selector.v_edge = "lower"
+    selector.drag_start = {}
+    # to_widget_coords for (20, 20) and (40, 40) with scale 1, zoom 1, offset 0
+    # is (20, 20) and (40, 40). sx2 is 40.
+    selector.cursor_type_at_point(30, 20)
+    assert selector.drag_start["x"] == 40
+
+    # test case where "x" is already in drag_start
+    selector.drag_start = {"x": 50}
+    selector.cursor_type_at_point(30, 20)
+    assert selector.drag_start["x"] == 50
+
+    # 3. Hit h_edge!="mid" and v_edge=="mid" branch
+    selector.h_edge = "lower"
+    selector.v_edge = "mid"
+    selector.drag_start = {}
+    # sy2 is 40
+    selector.cursor_type_at_point(20, 30)
+    assert selector.drag_start["y"] == 40
+
+    # test case where "y" is already in drag_start
+    selector.drag_start = {"y": 50}
+    selector.cursor_type_at_point(20, 30)
+    assert selector.drag_start["y"] == 50
