@@ -407,12 +407,14 @@ class Document(BaseDocument):
             )
 
         for i in page:
-            if self.data[i][2].resolution[0] != xresolution:
+            xres, yres = self.thread.get_resolution(self.data[i][2])
+            if xres != xresolution:
                 xresolution = None
                 break
 
         for i in page:
-            if self.data[i][2].resolution[0] != yresolution:
+            xres, yres = self.thread.get_resolution(self.data[i][2])
+            if yres != yresolution:
                 yresolution = None
                 break
 

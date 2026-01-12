@@ -193,7 +193,7 @@ class SimpleList(Gtk.TreeView):
         if (
             isinstance(indices, list)
             and len(indices) > 1
-            and selection.get_mode() != "multiple"
+            and selection.get_mode() != Gtk.SelectionMode.MULTIPLE
         ):
             indices = [indices[0]]
         elif isinstance(indices, int):

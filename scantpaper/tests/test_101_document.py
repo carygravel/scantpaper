@@ -1124,3 +1124,54 @@ def test_split_page():
         doc.split_page(page=1)
         assert doc.thread.split_page.called
         assert doc.add_page.called
+
+
+def test_get_selected_properties(temp_db, clean_up_files):
+    "test get_selected_properties with multiple pages"
+    slist = Document(db=temp_db.name)
+
+    # spoof the write thread check
+    slist.thread._write_tid = threading.get_native_id()
+
+    # Add two pages with same resolution
+    img1 = Image.new("RGB", (100, 100))
+    p1 = Page(image_object=img1, resolution=(300, 300, "PixelsPerInch"))
+    slist.thread.add_page(p1, 1)
+
+    img2 = Image.new("RGB", (100, 100))
+    p2 = Page(image_object=img2, resolution=(300, 300, "PixelsPerInch"))
+    slist.thread.add_page(p2, 2)
+
+    # Update slist.data
+    slist.data = slist.thread.page_number_table()
+
+    # Select both pages
+    slist.get_selection().unselect_all()
+    slist.select([0, 1])
+
+    # This should call the loops in get_selected_properties
+    xres, yres = slist.get_selected_properties()
+    assert xres == 300
+    assert yres == 300
+
+    # Add a third page with different resolution
+    img3 = Image.new("RGB", (100, 100))
+    p3 = Page(image_object=img3, resolution=(150, 150, "PixelsPerInch"))
+    slist.thread.add_page(p3, 3)
+    slist.data = slist.thread.page_number_table()
+
+    # Select first and third pages (different resolutions)
+    slist.get_selection().unselect_all()
+    slist.select([0, 2])
+    xres, yres = slist.get_selected_properties()
+    assert xres is None
+    assert yres is None
+
+    # Select first and second pages (same resolution) again to be sure
+    slist.get_selection().unselect_all()
+    slist.select([0, 1])
+    xres, yres = slist.get_selected_properties()
+    assert xres == 300
+    assert yres == 300
+
+    clean_up_files(slist.thread.db_files)
