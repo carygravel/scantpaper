@@ -724,3 +724,69 @@ def test_update_cursor_none(mock_view, rose_png):
     view.update_cursor(10, 10)
     # Should not crash and not call win.set_cursor
     view.get_window.return_value.set_cursor.assert_not_called()
+
+
+def test_selector_update_selection_direct(rose_png):
+    "Test Selector._update_selection directly to hit mid/mid branch"
+    view = ImageView()
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), False)
+    # Ensure it has an allocation for coordinate conversion if needed,
+    # though here we use scale factor 1.
+    selector = Selector(view)
+
+    # Manually set dragging and drag_start
+    selector.dragging = True
+    selector.drag_start = {"x": 10, "y": 10}
+
+    # h_edge and v_edge are None, will be set to "mid" in _update_selection
+    event = MockEvent(button=1, x=20, y=20)
+    selector._update_selection(event)
+
+    sel = view.get_selection()
+    assert sel.x == 10
+    assert sel.y == 10
+    assert sel.width == 10
+    assert sel.height == 10
+
+
+def test_selector_update_selection_edge_branches(rose_png):
+    "Test Selector._update_selection edge branches"
+    view = ImageView()
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), False)
+
+    # Set an initial selection
+    initial_sel = Gdk.Rectangle()
+    initial_sel.x, initial_sel.y, initial_sel.width, initial_sel.height = 20, 20, 20, 20
+    view.set_selection(initial_sel)
+
+    selector = Selector(view)
+    selector.dragging = True
+
+    # Test dragging only horizontal edge (v_edge is mid)
+    selector.h_edge = "lower"
+    selector.v_edge = "mid"
+    selector.drag_start = {"x": 40, "y": None}
+
+    event = MockEvent(button=1, x=10, y=30)
+    selector._update_selection(event)
+
+    sel = view.get_selection()
+    assert sel.x == 10
+    assert sel.width == 30
+    assert sel.y == 20
+    assert sel.height == 20
+
+    # Test dragging only vertical edge (h_edge is mid)
+    # rose_png height is 46. y=20 + height=20 = 40.
+    selector.h_edge = "mid"
+    selector.v_edge = "upper"
+    selector.drag_start = {"x": None, "y": 20}
+
+    event = MockEvent(button=1, x=30, y=40)
+    selector._update_selection(event)
+
+    sel = view.get_selection()
+    assert sel.x == 10  # from previous selection
+    assert sel.width == 30
+    assert sel.y == 20
+    assert sel.height == 20
