@@ -1,5 +1,6 @@
 "Tests for ApplicationWindow"
 
+from itertools import cycle
 import uuid
 from unittest.mock import MagicMock, patch
 import pytest
@@ -128,8 +129,6 @@ def app_window(mocker, mock_builder, mock_config):
     mock_shutil = mocker.patch("app_window.shutil")
     mock_shutil.disk_usage.return_value.free = 1000 * 1024 * 1024  # 1000 MB
 
-    mocker.patch.object(ApplicationWindow, "_show_message_dialog")
-
     def mock_create_temp_func(self):
         self.session = MagicMock()
         self.session.name = "/tmp/session"
@@ -221,7 +220,7 @@ def test_drag_motion_callback(mocker):
     adj.set_value.assert_called()
 
 
-def test_drag_motion_callback_error(mocker):
+def test_drag_motion_callback_error():
     "Test drag_motion_callback with TypeError"
     tree = MagicMock()
     # Mock get_dest_row_at_pos to raise TypeError (e.g. returns None)
@@ -282,7 +281,7 @@ def test_read_config_migration(app_window, mocker):
     mock_copy.assert_called_once()
 
 
-def test_read_config_restore_window(mocker, mock_builder):
+def test_read_config_restore_window(mocker):
     "Test window restoration from config"
     mock_settings = {
         "restore window": True,
@@ -409,7 +408,7 @@ def test_change_view_cb(app_window):
     app_window._vpanei.remove.assert_called()
 
 
-def test_create_toolbar_missing_deps(app_window, mocker):
+def test_create_toolbar_missing_deps(app_window):
     "Test toolbar creation with missing dependencies"
     app_window._dependencies = {
         "imagemagick": False,
@@ -472,7 +471,7 @@ def test_changed_text_sort_method(app_window):
     app_window.t_canvas.sort_by_position.assert_called_once()
 
 
-def test_handle_clicks(app_window, mocker):
+def test_handle_clicks(app_window):
     "Test _handle_clicks"
     event = MagicMock()
     event.button = 3  # Right click
@@ -592,14 +591,10 @@ def test_process_error_callback(app_window, mocker):
     mock_radio3 = MagicMock(name="radio3")
     mock_radio4 = MagicMock(name="radio4")
     mocker.patch("app_window.Gtk.RadioButton.new_with_label", return_value=mock_radio1)
-
-    from itertools import cycle
-
     mocker.patch(
         "app_window.Gtk.RadioButton.new_with_label_from_widget",
         side_effect=cycle([mock_radio2, mock_radio3, mock_radio4]),
     )
-
     mock_radio1.get_active.return_value = True
     mock_radio2.get_active.return_value = False
     mock_radio3.get_active.return_value = False
@@ -628,7 +623,7 @@ def test_process_error_callback(app_window, mocker):
     app_window._show_message_dialog.assert_called()
 
 
-def test_page_selection_changed_callback(app_window, mocker):
+def test_page_selection_changed_callback(app_window):
     "Test _page_selection_changed_callback"
     app_window.view = MagicMock()
     app_window.t_canvas = MagicMock()
@@ -660,7 +655,7 @@ def test_page_selection_changed_callback(app_window, mocker):
     app_window.post_process_progress.finish.assert_called_once()
 
 
-def test_pack_viewer_tools(app_window, mocker):
+def test_pack_viewer_tools(app_window):
     "Test _pack_viewer_tools"
     app_window._vnotebook = MagicMock()
     app_window._hpanei = MagicMock()
@@ -686,3 +681,41 @@ def test_pack_viewer_tools(app_window, mocker):
     app_window._pack_viewer_tools()
     app_window._vpanei.pack1.assert_called_with(app_window.view, True, True)
     app_window._vpanei.pack2.assert_called_with(app_window.t_canvas, True, True)
+
+
+def test_show_message_dialog(app_window, mocker):
+    "Test _show_message_dialog"
+    mock_mm_cls = mocker.patch("app_window.MultipleMessage")
+    mock_mm = mock_mm_cls.return_value
+    mock_mm.grid_rows = 2
+    mock_mm.run.return_value = Gtk.ResponseType.OK
+    mock_mm.get_size.return_value = (300, 400)
+
+    # Initial call
+    app_window._show_message_dialog(parent=app_window, text="test message")
+
+    mock_mm_cls.assert_called_once()
+    mock_mm.add_message.assert_called_once()
+    mock_mm.show_all.assert_called_once()
+    mock_mm.run.assert_called_once()
+    mock_mm.store_responses.assert_called_once()
+    mock_mm.destroy.assert_called_once()
+    assert app_window._message_dialog is None
+    assert app_window.settings["message_window_width"] == 300
+    assert app_window.settings["message_window_height"] == 400
+
+
+def test_show_message_dialog_already_exists(app_window, mocker):
+    "Test _show_message_dialog when _message_dialog is already created"
+    mock_mm_cls = mocker.patch("app_window.MultipleMessage")
+    mock_mm = MagicMock()
+    mock_mm.grid_rows = 1
+    mock_mm.get_size.return_value = (200, 200)
+    app_window._message_dialog = mock_mm
+
+    app_window._show_message_dialog(parent=app_window, text="test message")
+
+    mock_mm_cls.assert_not_called()
+    mock_mm.add_message.assert_called_once()
+    mock_mm.destroy.assert_called_once()
+    assert app_window._message_dialog is None
