@@ -1,7 +1,7 @@
 "Tests for DocThread"
 
 import threading
-from docthread import DocThread
+from docthread import DocThread, _calculate_crop_tuples
 from page import Page
 
 
@@ -115,3 +115,29 @@ def test_do_tesseract_path_fallback_not_found(temp_db, clean_up_files, mocker):
     assert "tessdata directory not found" in str(request.error.call_args)
 
     clean_up_files(thread.db_files)
+
+
+def test_calculate_crop_tuples(mocker):
+    "test _calculate_crop_tuples"
+
+    mock_image = mocker.Mock()
+    mock_image.width = 100
+    mock_image.height = 200
+
+    # Test vertical split
+    options = {"direction": "v", "position": 40}
+    tuples = _calculate_crop_tuples(options, mock_image)
+    assert tuples == (
+        (0, 0, 40, 200),
+        (40, 0, 100, 200),
+        (40, 0, 60, 200),
+    )
+
+    # Test horizontal split
+    options = {"direction": "h", "position": 50}
+    tuples = _calculate_crop_tuples(options, mock_image)
+    assert tuples == (
+        (0, 0, 100, 50),
+        (0, 50, 100, 200),
+        (0, 50, 100, 150),
+    )
