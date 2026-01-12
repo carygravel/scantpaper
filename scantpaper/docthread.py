@@ -1225,7 +1225,9 @@ class DocThread(SaveThread):
             logger.error(spo.stderr)
             request.data(spo.stderr)
             if not os.path.getsize(out.name):
-                raise subprocess.CalledProcessError
+                raise subprocess.CalledProcessError(
+                    spo.returncode, options["options"]["command"]
+                )
 
         if self.cancel:
             raise CancelledError()
@@ -1240,7 +1242,9 @@ class DocThread(SaveThread):
             logger.warning(spo.stdout)
             request.data(spo.stdout)
             if not os.path.getsize(out.name):
-                raise subprocess.CalledProcessError
+                raise subprocess.CalledProcessError(
+                    spo.returncode, options["options"]["command"]
+                )
 
         if (
             options["options"]["command"][index + 1] == "2"

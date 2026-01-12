@@ -2,6 +2,7 @@
 
 import threading
 import pytest
+import subprocess
 from const import APPLICATION_ID, USER_VERSION
 from docthread import DocThread, _calculate_crop_tuples
 from page import Page
@@ -236,3 +237,78 @@ def test_do_set_saved(mocker):
     mock_execute.assert_called_with(
         "UPDATE page SET saved = ? WHERE id IN (?, ?, ?)", (True, 1, 2, 3)
     )
+
+
+def test_run_unpaper_cmd_rtl(mocker):
+    "test _run_unpaper_cmd with rtl direction"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_run = mocker.patch("subprocess.run")
+    mock_run.return_value.stdout = "Processing sheet 1.pnm\n"
+    mock_run.return_value.stderr = ""
+
+    mocker.patch("os.path.getsize", return_value=100)
+    mock_temp = mocker.patch("tempfile.NamedTemporaryFile")
+    mock_temp.return_value.name = "temp_file"
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "dir": "/tmp",
+            "options": {
+                "command": ["unpaper", "--output-pages", "2", "out"],
+                "direction": "rtl",
+            },
+        }
+    ]
+
+    out, out2 = thread._run_unpaper_cmd(request)
+
+    # With RTL, out and out2 should be swapped
+    # Normally out is the first temp file created (output-pages arg -2)
+    # out2 is the second temp file created (output-pages arg -1)
+    # The method swaps them if direction is rtl
+    assert out != out2
+
+
+def test_run_unpaper_cmd_rtl_error(mocker):
+    "test _run_unpaper_cmd error handling"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    # Mock os.path.getsize to return 0 (empty file), triggering the error check
+    mocker.patch("os.path.getsize", return_value=0)
+    mock_temp = mocker.patch("tempfile.NamedTemporaryFile")
+    mock_temp.return_value.name = "temp_file"
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "dir": "/tmp",
+            "options": {
+                "command": ["unpaper", "--output-pages", "2", "out"],
+                "direction": "rtl",
+            },
+        }
+    ]
+
+    # Test stderr error
+    mock_run = mocker.patch("subprocess.run")
+    mock_run.return_value.stdout = ""
+    mock_run.return_value.stderr = "some error"
+
+    with pytest.raises(subprocess.CalledProcessError):
+        thread._run_unpaper_cmd(request)
+    request.data.assert_called_with("some error")
+
+    # Reset command for the second call
+    request.args[0]["options"]["command"] = ["unpaper", "--output-pages", "2", "out"]
+
+    # Test stdout error (after processing replacement)
+    mock_run.return_value.stdout = "Processing sheet 1.pnm\nError processing"
+    mock_run.return_value.stderr = ""
+
+    with pytest.raises(subprocess.CalledProcessError):
+        thread._run_unpaper_cmd(request)
+    request.data.assert_called_with("Error processing")
