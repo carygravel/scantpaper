@@ -11,10 +11,9 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 def test_current_scan_options_property():
     "test current_scan_options property getter and setter"
 
-    window = Gtk.Window()
     dialog = Scan(
         title="title",
-        transient_for=window,
+        transient_for=Gtk.Window(),
     )
 
     # Test initial value (should be a Profile)
@@ -25,3 +24,30 @@ def test_current_scan_options_property():
     new_profile = Profile(backend=[("mode", "Color")])
     dialog.current_scan_options = new_profile
     assert dialog.current_scan_options == new_profile
+
+
+def test_show(mocker):
+    "test show method"
+    # pylint: disable=protected-access
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock PageControls.show to avoid GTK warnings or errors if not fully initialized
+    mocker.patch("dialog.scan.PageControls.show")
+
+    # Mock internal components
+    dialog.framex = mocker.Mock()
+    dialog._flatbed_or_duplex_callback = mocker.Mock()
+    dialog.available_scan_options = mocker.Mock()
+    dialog._hide_geometry = mocker.Mock()
+
+    # Mock combobp
+    dialog.combobp = mocker.Mock()
+    dialog.combobp.get_active_text.return_value = "A4"  # Not "Manual" and not None
+
+    dialog.show()
+
+    # Assertions
+    dialog.framex.hide.assert_called_once()
+    dialog._flatbed_or_duplex_callback.assert_called_once()
+    dialog._hide_geometry.assert_called_once_with(dialog.available_scan_options)
+    assert dialog.cursor == "default"
