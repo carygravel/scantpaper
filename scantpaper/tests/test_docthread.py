@@ -204,3 +204,35 @@ def test_open_session_file_invalid_app_id(mocker):
 
     with pytest.raises(TypeError, match="is not a gscan2pdf session file"):
         thread.open("test.db")
+
+
+def test_do_set_saved(mocker):
+    "test do_set_saved"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_execute = mocker.patch.object(thread, "_execute")
+    thread._con[threading.get_native_id()] = mocker.Mock()
+
+    request = mocker.Mock()
+
+    # Test single page_id, default saved=True
+    request.args = [1]
+    thread.do_set_saved(request)
+    mock_execute.assert_called_with(
+        "UPDATE page SET saved = ? WHERE id IN (?)", (True, 1)
+    )
+
+    # Test single page_id, explicit saved=False
+    request.args = [1, False]
+    thread.do_set_saved(request)
+    mock_execute.assert_called_with(
+        "UPDATE page SET saved = ? WHERE id IN (?)", (False, 1)
+    )
+
+    # Test multiple page_ids
+    request.args = [[1, 2, 3], True]
+    thread.do_set_saved(request)
+    mock_execute.assert_called_with(
+        "UPDATE page SET saved = ? WHERE id IN (?, ?, ?)", (True, 1, 2, 3)
+    )
