@@ -242,3 +242,43 @@ def test_extract_metadata_isoformat():
     meta = _extract_metadata(info)
     assert meta["author"] == "Me"
     assert isinstance(meta["datetime"], datetime.datetime)
+
+    # test ValueError in fromisoformat
+    info["format"] = "Portable Document Format"
+    info["datetime"] = "2023-13-01T12:00:00Z"  # Invalid month 13
+    meta = _extract_metadata(info)
+    assert "datetime" not in meta
+
+    # test without minutes in timezone
+    info["datetime"] = "2023-01-01T12:00:00+01"
+    meta = _extract_metadata(info)
+    assert isinstance(meta["datetime"], datetime.datetime)
+
+    # test with NONE value
+    info["title"] = "NONE"
+    meta = _extract_metadata(info)
+    assert "title" not in meta
+
+    # test invalid datetime
+    info["datetime"] = "invalid"
+    meta = _extract_metadata(info)
+    assert "datetime" not in meta
+
+    # test compatibility code for older python versions (sys.version_info < 3.11)
+    with unittest.mock.patch("sys.version_info", (3, 10)):
+        # Z to +00:00
+        info["format"] = "Portable Document Format"
+        info["datetime"] = "2023-01-01T12:00:00Z"
+        meta = _extract_metadata(info)
+        assert isinstance(meta["datetime"], datetime.datetime)
+
+        # Append :00 to timezone without minutes
+        info["datetime"] = "2023-01-01T12:00:00+01"
+        meta = _extract_metadata(info)
+        assert isinstance(meta["datetime"], datetime.datetime)
+
+        # test DJVU format too
+        info["format"] = "DJVU"
+        info["datetime"] = "2023-01-01T12:00:00Z"
+        meta = _extract_metadata(info)
+        assert isinstance(meta["datetime"], datetime.datetime)
