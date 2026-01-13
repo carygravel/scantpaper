@@ -10,6 +10,7 @@ from config import (
     add_defaults,
     remove_invalid_paper,
     update_config_from_imported_metadata,
+    _get_convert_command,
     DEFAULTS,
 )
 from helpers import slurp
@@ -260,3 +261,16 @@ def test_config2(mocker):
     #########################
 
     os.remove(f"{rc}.old")  # rc doesn't exist because it was corrupt
+
+
+def test_get_convert_command(mocker):
+    "test _get_convert_command"
+    mock_which = mocker.patch("config.shutil.which")
+
+    # Test when 'magick' is available
+    mock_which.side_effect = lambda x: "/usr/bin/magick" if x == "magick" else None
+    assert _get_convert_command() == "magick"
+
+    # Test when 'magick' is not available
+    mock_which.side_effect = lambda x: None
+    assert _get_convert_command() == "convert"
