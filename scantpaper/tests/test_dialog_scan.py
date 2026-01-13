@@ -83,3 +83,72 @@ def test_device_dropdown_changed(mocker):
     # Assertions
     assert dialog.device is None
     dialog.get_devices.assert_called_once()
+
+
+def test_edit_paper_apply(mocker):
+    "test _edit_paper and applying changes"
+    # pylint: disable=protected-access
+
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.paper_formats = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+
+    # Mock PaperList
+    mock_paperlist_cls = mocker.patch("dialog.scan.PaperList")
+    mock_slist = mock_paperlist_cls.return_value
+    # Set data that will be read by do_apply_paper_sizes
+    # Row format: [name, x, y, l, t]
+    mock_slist.data = [["NewFormat", 100, 200, 0, 0]]
+
+    # Mock Dialog
+    mock_dialog_cls = mocker.patch("dialog.scan.Dialog")
+    mock_window = mock_dialog_cls.return_value
+    # Mock get_content_area to return a box we can inspect?
+    mock_vbox = mocker.Mock()
+    mock_window.get_content_area.return_value = mock_vbox
+
+    # Mock main module if it's used
+    mock_main = mocker.patch("dialog.scan.main", create=True)
+
+    # Patch Gtk in dialog.scan to avoid TypeErrors when mixing real/mock widgets
+    mock_gtk = mocker.patch("dialog.scan.Gtk")
+
+    # We need to capture the 'Apply' button callback.
+    # The button is created with Gtk.Button.new_with_label(_("Apply"))
+
+    apply_callback = None
+
+    def mock_new_with_label(label):
+        btn = mocker.Mock()
+        if label == "Apply":  # Assuming no translation or "Apply" is passed
+
+            def connect(signal, callback, *_args):
+                if signal == "clicked":
+                    nonlocal apply_callback
+                    apply_callback = callback
+
+            btn.connect.side_effect = connect
+        return btn
+
+    mock_gtk.Button.new_with_label.side_effect = mock_new_with_label
+
+    # Set ignored_paper_formats to test the warning dialog path
+    dialog.ignored_paper_formats = ["BadFormat"]
+
+    # Call _edit_paper
+    dialog._edit_paper()
+
+    assert apply_callback is not None
+
+    # Call the callback
+    # pylint: disable=not-callable
+    apply_callback(None)  # argument is widget, ignored
+
+    # Verify paper_formats updated
+    assert "NewFormat" in dialog.paper_formats
+    assert dialog.paper_formats["NewFormat"] == {"x": 100, "y": 200, "l": 0, "t": 0}
+
+    # Verify message dialog shown
+    mock_main.show_message_dialog.assert_called_once()
+
+    # Verify window destroyed
+    mock_window.destroy.assert_called_once()
