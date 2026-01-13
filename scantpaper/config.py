@@ -199,17 +199,6 @@ def read_config(filename):
     return config
 
 
-def _hash_profile_to_array(profile_hashref):
-    """If the profile is a hash, the order is undefined.
-    Sort it to be consistent for tests.
-    """
-    clone = []
-    for key in sorted(profile_hashref.keys()):
-        clone.append({key: profile_hashref[key]})
-
-    return clone
-
-
 def add_defaults(config):
     "add defaults"
 
