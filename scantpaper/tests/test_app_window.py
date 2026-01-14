@@ -1,5 +1,6 @@
 "Tests for ApplicationWindow"
 
+import os
 from itertools import cycle
 import uuid
 from unittest.mock import MagicMock, patch
@@ -794,5 +795,123 @@ def test_init_icon_error(mocker, mock_builder, mock_config, error_type):
     with patch.object(Gtk.Application, "register", autospec=True):
         win = ApplicationWindow(application=app)
         mock_logger.warning.assert_called()
+        win.destroy()
+        app.quit()
+
+
+def test_pre_flight_linux(mocker, mock_builder, mock_config):
+    "Test that recursive_slurp is called on Linux"
+    mocker.patch("app_window.sys.platform", "linux")
+    mock_slurp = mocker.patch("app_window.recursive_slurp")
+
+    mocker.patch("app_window.Document")
+    mocker.patch("app_window.Unpaper")
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+    mocker.patch("app_window.Progress")
+    mocker.patch("app_window.sane.init")
+    mocker.patch("app_window.Selector")
+    mocker.patch("app_window.Dragger")
+    mocker.patch("app_window.SelectorDragger")
+    mocker.patch("app_window.Gtk.HPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack2")
+    mocker.patch("app_window.Gtk.Container.remove")
+
+    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = "/tmp/session"
+        self._lockfd = MagicMock()
+        self._dependencies = {
+            "imagemagick": True,
+            "libtiff": True,
+            "djvu": True,
+            "xdg": True,
+            "unpaper": True,
+            "tesseract": True,
+            "pdftk": True,
+            "ocr": True,
+        }
+
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=mock_create_temp_func,
+        autospec=True,
+    )
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+
+    app = Gtk.Application()
+    app.set_menubar = MagicMock()
+    app.iconpath = "/tmp"
+    app.args = MagicMock(import_files=None, import_all=None)
+
+    with patch.object(Gtk.Application, "register", autospec=True):
+        win = ApplicationWindow(application=app)
+        mock_slurp.assert_called_once()
+        win.destroy()
+        app.quit()
+
+
+def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
+    "Test that cwd is set to os.getcwd() if it is None"
+    mock_config.read_config.return_value["cwd"] = None
+
+    mocker.patch("app_window.Document")
+    mocker.patch("app_window.Unpaper")
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+    mocker.patch("app_window.Progress")
+    mocker.patch("app_window.sane.init")
+    mocker.patch("app_window.recursive_slurp")
+    mocker.patch("app_window.Selector")
+    mocker.patch("app_window.Dragger")
+    mocker.patch("app_window.SelectorDragger")
+    mocker.patch("app_window.Gtk.HPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack2")
+    mocker.patch("app_window.Gtk.Container.remove")
+
+    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = "/tmp/session"
+        self._lockfd = MagicMock()
+        self._dependencies = {
+            "imagemagick": True,
+            "libtiff": True,
+            "djvu": True,
+            "xdg": True,
+            "unpaper": True,
+            "tesseract": True,
+            "pdftk": True,
+            "ocr": True,
+        }
+
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=mock_create_temp_func,
+        autospec=True,
+    )
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+
+    app = Gtk.Application()
+    app.set_menubar = MagicMock()
+    app.iconpath = "/tmp"
+    app.args = MagicMock(import_files=None, import_all=None)
+
+    with patch.object(Gtk.Application, "register", autospec=True):
+        win = ApplicationWindow(application=app)
+        assert win.settings["cwd"] == os.getcwd()
         win.destroy()
         app.quit()
