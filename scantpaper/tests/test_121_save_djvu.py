@@ -13,13 +13,13 @@ import config
 from document import Document
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu1(
     import_in_mainloop, rose_pnm, temp_png, temp_db, temp_djvu, clean_up_files
 ):
     "Test saving a djvu"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     slist = Document(db=temp_db.name)
 
@@ -51,6 +51,9 @@ def test_save_djvu1(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu_text_layer(
     import_in_mainloop,
     set_text_in_mainloop,
@@ -60,9 +63,6 @@ def test_save_djvu_text_layer(
     clean_up_files,
 ):
     "Test saving a djvu with text layer"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     slist = Document(db=temp_db.name)
 
@@ -93,6 +93,9 @@ def test_save_djvu_text_layer(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu_with_hocr(
     import_in_mainloop,
     set_text_in_mainloop,
@@ -103,9 +106,6 @@ def test_save_djvu_with_hocr(
     clean_up_files,
 ):
     "Test saving a djvu with text layer from HOCR"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     slist = Document(db=temp_db.name)
 
@@ -160,6 +160,9 @@ def test_save_djvu_with_hocr(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_cancel_save_djvu(
     rose_pnm,
     temp_db,
@@ -170,9 +173,6 @@ def test_cancel_save_djvu(
     clean_up_files,
 ):
     "Test cancel saving a DjVu"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     slist = Document(db=temp_db.name)
 
@@ -227,11 +227,11 @@ def test_cancel_save_djvu(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_files):
     "Test saving a djvu and triggering an error"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -281,6 +281,9 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_
         clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu_with_float_resolution(
     rose_png,
     temp_db,
@@ -290,9 +293,6 @@ def test_save_djvu_with_float_resolution(
     clean_up_files,
 ):
     "Test saving a djvu with resolution as float"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png.name])
@@ -314,13 +314,13 @@ def test_save_djvu_with_float_resolution(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu_different_resolutions(
     temp_png, temp_db, temp_djvu, import_in_mainloop, clean_up_files
 ):
     "Test saving a djvu with different resolutions"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     subprocess.run(
         [config.CONVERT_COMMAND, "rose:", "-density", "100x200", temp_png.name],
@@ -350,13 +350,13 @@ def test_save_djvu_different_resolutions(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu_with_metadata(
     rose_pnm, temp_db, temp_djvu, import_in_mainloop, clean_up_files
 ):
     "Test saving a djvu with metadata"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     slist = Document(db=temp_db.name)
 
@@ -393,13 +393,13 @@ def test_save_djvu_with_metadata(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
 def test_save_djvu_with_old_metadata(
     rose_pnm, temp_db, temp_djvu, import_in_mainloop, clean_up_files
 ):
     "Test saving a djvu with old metadata"
-
-    if shutil.which("cjb2") is None:
-        pytest.skip("Please install cjb2 to enable test")
 
     slist = Document(db=temp_db.name)
 
