@@ -724,3 +724,75 @@ def test_show_message_dialog_already_exists(app_window, mocker):
     mock_mm.add_message.assert_called_once()
     mock_mm.destroy.assert_called_once()
     assert app_window._message_dialog is None
+
+
+@pytest.mark.parametrize("error_type", [FileNotFoundError, OSError, GLib.Error])
+def test_init_icon_error(mocker, mock_builder, mock_config, error_type):
+    "Test that a warning is logged if the icon cannot be loaded"
+    mocker.patch("app_window.Document")
+    mocker.patch("app_window.Unpaper")
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+    mocker.patch("app_window.Progress")
+    mocker.patch("app_window.sane.init")
+    mocker.patch("app_window.recursive_slurp")
+    mocker.patch("app_window.Selector")
+    mocker.patch("app_window.Dragger")
+    mocker.patch("app_window.SelectorDragger")
+    mocker.patch("app_window.Gtk.HPaned.pack1")
+    mocker.patch("app_window.Gtk.HPaned.pack2")
+    mocker.patch("app_window.Gtk.VPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack2")
+    mocker.patch("app_window.Gtk.Notebook.append_page")
+    mocker.patch("app_window.Gtk.Container.remove")
+
+    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
+    mock_logger = mocker.patch("app_window.logger")
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = "/tmp/session"
+        self._lockfd = MagicMock()
+        self._dependencies = {
+            "imagemagick": True,
+            "libtiff": True,
+            "djvu": True,
+            "xdg": True,
+            "unpaper": True,
+            "tesseract": True,
+            "pdftk": True,
+            "ocr": True,
+        }
+
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=mock_create_temp_func,
+        autospec=True,
+    )
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+
+    # Patch set_icon_from_file on the class to affect __init__
+    if error_type == GLib.Error:
+        error_inst = GLib.Error("mocked")
+    else:
+        error_inst = error_type("mocked")
+
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", side_effect=error_inst)
+
+    app_id = f"org.test.icon.u{uuid.uuid4().hex}"
+    app = Gtk.Application(application_id=app_id, flags=Gio.ApplicationFlags.FLAGS_NONE)
+    app.iconpath = "/tmp"
+    app.set_menubar = MagicMock()
+    app.args = MagicMock()
+    app.args.import_files = None
+    app.args.import_all = None
+
+    with patch.object(Gtk.Application, "register", autospec=True):
+        win = ApplicationWindow(application=app)
+        mock_logger.warning.assert_called()
+        win.destroy()
+        app.quit()
