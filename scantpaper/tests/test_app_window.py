@@ -730,6 +730,11 @@ def test_show_message_dialog_already_exists(app_window, mocker):
 @pytest.mark.parametrize("error_type", [FileNotFoundError, OSError, GLib.Error])
 def test_init_icon_error(mocker, mock_builder, mock_config, error_type):
     "Test that a warning is logged if the icon cannot be loaded"
+    # Mock MultipleMessage to prevent blocking dialogs
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
+
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
     mocker.patch("app_window.ImageView", MockImageView)
@@ -784,25 +789,32 @@ def test_init_icon_error(mocker, mock_builder, mock_config, error_type):
 
     mocker.patch.object(ApplicationWindow, "set_icon_from_file", side_effect=error_inst)
 
-    app_id = f"org.test.icon.u{uuid.uuid4().hex}"
-    app = Gtk.Application(application_id=app_id, flags=Gio.ApplicationFlags.FLAGS_NONE)
+    app = Gtk.Application()
     app.iconpath = "/tmp"
     app.set_menubar = MagicMock()
-    app.args = MagicMock()
-    app.args.import_files = None
-    app.args.import_all = None
+    app.args = MagicMock(import_files=None, import_all=None)
 
     with patch.object(Gtk.Application, "register", autospec=True):
-        win = ApplicationWindow(application=app)
-        mock_logger.warning.assert_called()
-        win.destroy()
-        app.quit()
+        try:
+            win = ApplicationWindow(application=app)
+            mock_logger.warning.assert_called()
+        finally:
+            if "win" in locals():
+                win.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            app.quit()
 
 
 def test_pre_flight_linux(mocker, mock_builder, mock_config):
     "Test that recursive_slurp is called on Linux"
     mocker.patch("app_window.sys.platform", "linux")
     mock_slurp = mocker.patch("app_window.recursive_slurp")
+
+    # Mock MultipleMessage to prevent blocking dialogs
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
 
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
@@ -852,15 +864,25 @@ def test_pre_flight_linux(mocker, mock_builder, mock_config):
     app.args = MagicMock(import_files=None, import_all=None)
 
     with patch.object(Gtk.Application, "register", autospec=True):
-        win = ApplicationWindow(application=app)
-        mock_slurp.assert_called_once()
-        win.destroy()
-        app.quit()
+        try:
+            win = ApplicationWindow(application=app)
+            mock_slurp.assert_called_once()
+        finally:
+            if "win" in locals():
+                win.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            app.quit()
 
 
 def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
     "Test that cwd is set to os.getcwd() if it is None"
     mock_config.read_config.return_value["cwd"] = None
+
+    # Mock MultipleMessage to prevent blocking dialogs
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
 
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
@@ -911,7 +933,12 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
     app.args = MagicMock(import_files=None, import_all=None)
 
     with patch.object(Gtk.Application, "register", autospec=True):
-        win = ApplicationWindow(application=app)
-        assert win.settings["cwd"] == os.getcwd()
-        win.destroy()
-        app.quit()
+        try:
+            win = ApplicationWindow(application=app)
+            assert win.settings["cwd"] == os.getcwd()
+        finally:
+            if "win" in locals():
+                win.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            app.quit()
