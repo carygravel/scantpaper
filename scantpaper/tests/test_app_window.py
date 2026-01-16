@@ -864,15 +864,9 @@ def test_pre_flight_linux(mocker, mock_builder, mock_config):
     app.args = MagicMock(import_files=None, import_all=None)
 
     with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            mock_slurp.assert_called_once()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+        ApplicationWindow(application=app)
+        mock_slurp.assert_called_once()
+        app.quit()
 
 
 def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
@@ -933,12 +927,6 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
     app.args = MagicMock(import_files=None, import_all=None)
 
     with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            assert win.settings["cwd"] == os.getcwd()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+        win = ApplicationWindow(application=app)
+        assert win.settings["cwd"] == os.getcwd()
+        app.quit()
