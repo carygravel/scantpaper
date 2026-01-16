@@ -489,6 +489,134 @@ def test_update_uimanager_unpaper_missing(app_window):
         pass
 
 
+def test_update_uimanager_ocr_missing(app_window):
+    "Test _update_uimanager when ocr is missing"
+    app_window._dependencies["ocr"] = False
+    app_window._update_uimanager()
+    assert not app_window._actions["ocr"].get_enabled()
+
+
+def test_update_uimanager_no_pages_hide_email_dialog(app_window):
+    "Test _update_uimanager hides email dialog if no pages"
+    app_window.slist.data = []
+    app_window._dependencies["xdg"] = True
+    app_window._windowe = MagicMock()
+
+    app_window._update_uimanager()
+
+    assert not app_window._actions["email"].get_enabled()
+    app_window._windowe.hide.assert_called_once()
+
+
+def test_update_uimanager_xdg_missing(app_window):
+    "Test _update_uimanager when xdg is missing (covers branches)"
+    app_window._dependencies["xdg"] = False
+
+    # case with pages
+    app_window.slist.data = [MagicMock()]
+    app_window._update_uimanager()
+    assert not app_window._actions["email"].get_enabled()
+
+    # case without pages
+    app_window.slist.data = []
+    app_window._update_uimanager()
+    assert not app_window._actions["email"].get_enabled()
+
+
+def test_update_uimanager_no_pages_no_email_dialog(app_window):
+    "Test _update_uimanager does not hide email dialog if it is None"
+    app_window.slist.data = []
+    app_window._dependencies["xdg"] = True
+    app_window._windowe = None
+    app_window._update_uimanager()
+    # covers branch jump 768->771
+
+
+def test_update_uimanager_ocr_present(app_window):
+    "Test _update_uimanager when ocr is present"
+    app_window._dependencies["ocr"] = True
+    app_window._update_uimanager()
+    # covers branch jump 755->758
+
+
+def test_update_uimanager_ghost_ocr_and_hide_email(app_window):
+    "Test ghosting ocr and hiding email dialog in one go (covers 756 & 769)"
+    app_window._dependencies["ocr"] = False
+    app_window._dependencies["xdg"] = True
+    app_window.slist.data = []
+    app_window._windowe = MagicMock()
+
+    app_window._update_uimanager()
+
+    assert not app_window._actions["ocr"].get_enabled()
+    app_window._windowe.hide.assert_called_once()
+
+
+def test_update_uimanager_with_scan_dialog(app_window):
+    "Test _update_uimanager when scan dialog exists (covers 801)"
+    app_window._windows = MagicMock()
+    app_window._update_uimanager()
+    app_window._windows.update_start_page.assert_called_once()
+
+
+def test_process_error_reopen(app_window, mocker):
+    "Test _process_error_callback with reopen response (covers 892)"
+    app_window._scan_progress = MagicMock()
+    app_window.scan_dialog = MagicMock()
+    app_window.settings["message"]["error opening device"] = {"response": None}
+
+    # Mock dialog to return 'reopen'
+    mock_dialog_cls = mocker.patch("app_window.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    mock_radio1 = MagicMock(name="radio1")
+    mock_radio1.get_active.return_value = True  # reopen
+    mocker.patch("app_window.Gtk.RadioButton.new_with_label", return_value=mock_radio1)
+
+    mock_radio_other = MagicMock(name="other_radio")
+    mock_radio_other.get_active.return_value = False
+    mocker.patch(
+        "app_window.Gtk.RadioButton.new_with_label_from_widget",
+        return_value=mock_radio_other,
+    )
+    mocker.patch("app_window.Gtk.CheckButton.new_with_label")
+
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+    app_window.scan_dialog.assert_called_with(None, None)
+
+
+def test_process_error_rescan(app_window, mocker):
+    "Test _process_error_callback with rescan response (covers 900)"
+    app_window._scan_progress = MagicMock()
+    app_window.scan_dialog = MagicMock()
+    app_window.settings["message"]["error opening device"] = {"response": None}
+
+    # Mock dialog to return 'rescan'
+    mock_dialog_cls = mocker.patch("app_window.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    mock_radio1 = MagicMock(name="radio1")
+    mock_radio1.get_active.return_value = False
+    mock_radio2 = MagicMock(name="radio2")
+    mock_radio2.get_active.return_value = True  # rescan
+    mock_radio3 = MagicMock(name="radio3")
+    mock_radio3.get_active.return_value = False
+    mock_radio4 = MagicMock(name="radio4")
+    mock_radio4.get_active.return_value = False
+
+    mocker.patch("app_window.Gtk.RadioButton.new_with_label", return_value=mock_radio1)
+    mocker.patch(
+        "app_window.Gtk.RadioButton.new_with_label_from_widget",
+        side_effect=[mock_radio2, mock_radio3, mock_radio4],
+    )
+    mocker.patch("app_window.Gtk.CheckButton.new_with_label")
+
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+    app_window.scan_dialog.assert_called_with(None, None, False, True)
+
+
 def test_window_state_event_callback(app_window):
     "Test _window_state_event_callback"
     event = MagicMock()
