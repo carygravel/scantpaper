@@ -942,3 +942,87 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
             while Gtk.events_pending():
                 Gtk.main_iteration()
             app.quit()
+
+
+def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp_path):
+    "Test that cwd is set to os.getcwd() if it is missing in _populate_main_window"
+
+    mocker.patch("app_window.Document")
+    mocker.patch("app_window.Unpaper")
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+    mocker.patch("app_window.Progress")
+    mocker.patch("app_window.sane.init")
+    mocker.patch("app_window.recursive_slurp")
+    mocker.patch("app_window.Selector")
+    mocker.patch("app_window.Dragger")
+    mocker.patch("app_window.SelectorDragger")
+    mocker.patch("app_window.Gtk.HPaned.pack1")
+    mocker.patch("app_window.Gtk.HPaned.pack2")
+    mocker.patch("app_window.Gtk.VPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack2")
+    mocker.patch("app_window.Gtk.Notebook.append_page")
+    mocker.patch("app_window.Gtk.Container.remove")
+
+    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
+
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = str(session_dir)
+        self._lockfd = MagicMock()
+        self._dependencies = {
+            "imagemagick": True,
+            "libtiff": True,
+            "djvu": True,
+            "xdg": True,
+            "unpaper": True,
+            "tesseract": True,
+            "pdftk": True,
+            "ocr": True,
+        }
+
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=mock_create_temp_func,
+        autospec=True,
+    )
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+
+    # Mock MultipleMessage to prevent blocking dialogs
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
+
+    # Patch _pre_flight to delete 'cwd' from settings after it runs
+    original_pre_flight = ApplicationWindow._pre_flight
+
+    def mock_pre_flight(self):
+        original_pre_flight(self)
+        if "cwd" in self.settings:
+            del self.settings["cwd"]
+
+    mocker.patch.object(
+        ApplicationWindow, "_pre_flight", side_effect=mock_pre_flight, autospec=True
+    )
+
+    app = Gtk.Application()
+    app.set_menubar = MagicMock()
+    app.iconpath = "/tmp"
+    app.args = MagicMock(import_files=None, import_all=None)
+
+    with patch.object(Gtk.Application, "register", autospec=True):
+        try:
+            win = ApplicationWindow(application=app)
+            assert win.settings["cwd"] == os.getcwd()
+        finally:
+            if "win" in locals():
+                win.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            app.quit()
