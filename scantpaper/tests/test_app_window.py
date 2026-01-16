@@ -824,6 +824,31 @@ def test_page_selection_changed_callback(app_window):
     app_window.post_process_progress.finish.assert_called_once()
 
 
+def test_page_selection_changed_with_value_error(app_window, mocker):
+    "Test _page_selection_changed_callback handles ValueError (covers 690-691)"
+    app_window.slist.get_selected_indices.return_value = [0]
+    app_window.slist.data = [[1, None, "page_id"]]
+    app_window._display_image = mocker.Mock(side_effect=ValueError)
+    app_window.view.get_selection = mocker.Mock(return_value=None)
+
+    # Should not raise ValueError
+    app_window._page_selection_changed_callback(None)
+
+
+def test_page_selection_changed_restore_selection(app_window, mocker):
+    "Test _page_selection_changed_callback restores selection (covers 692-693)"
+    app_window.slist.get_selected_indices.return_value = [0]
+    app_window.slist.data = [[1, None, "page_id"]]
+    app_window._display_image = mocker.Mock()
+    mock_selection = MagicMock()
+    app_window.view.get_selection = mocker.Mock(return_value=mock_selection)
+    app_window.view.set_selection = mocker.Mock()
+
+    app_window._page_selection_changed_callback(None)
+
+    app_window.view.set_selection.assert_called_with(mock_selection)
+
+
 def test_pack_viewer_tools(app_window):
     "Test _pack_viewer_tools"
     app_window._vnotebook = MagicMock()
