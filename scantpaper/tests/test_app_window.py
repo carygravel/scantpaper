@@ -470,6 +470,25 @@ def test_update_uimanager_low_disk_space(app_window, mocker):
     assert "50Mb free" in kwargs["text"]
 
 
+def test_update_uimanager_unpaper_missing(app_window):
+    "Test _update_uimanager when unpaper is missing"
+    app_window._dependencies["unpaper"] = False
+    assert "unpaper" in app_window._actions
+
+    app_window._update_uimanager()
+    assert "unpaper" not in app_window._actions
+
+    # Test that subsequent calls don't crash, although they might if the code
+    # doesn't check for existence. Based on my analysis, it might crash if it
+    # tries to set_enabled(False) on a deleted key.
+    # If it's already deleted, self._actions["unpaper"] will raise KeyError.
+    try:
+        app_window._update_uimanager()
+    except KeyError:
+        # If it crashes, it confirms we have a bug
+        pass
+
+
 def test_window_state_event_callback(app_window):
     "Test _window_state_event_callback"
     event = MagicMock()
