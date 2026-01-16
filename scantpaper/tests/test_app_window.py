@@ -1026,3 +1026,85 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
             while Gtk.events_pending():
                 Gtk.main_iteration()
             app.quit()
+
+
+def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_path):
+    "Test that scan_dialog and _import_files are called during init if configured"
+    mock_config.read_config.return_value["auto-open-scan-dialog"] = True
+
+    mocker.patch("app_window.Document")
+    mocker.patch("app_window.Unpaper")
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+    mocker.patch("app_window.Progress")
+    mocker.patch("app_window.sane.init")
+    mocker.patch("app_window.recursive_slurp")
+    mocker.patch("app_window.Selector")
+    mocker.patch("app_window.Dragger")
+    mocker.patch("app_window.SelectorDragger")
+    mocker.patch("app_window.Gtk.HPaned.pack1")
+    mocker.patch("app_window.Gtk.HPaned.pack2")
+    mocker.patch("app_window.Gtk.VPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack2")
+    mocker.patch("app_window.Gtk.Notebook.append_page")
+    mocker.patch("app_window.Gtk.Container.remove")
+
+    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
+
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = str(session_dir)
+        self._lockfd = MagicMock()
+        self._dependencies = {
+            "imagemagick": True,
+            "libtiff": True,
+            "djvu": True,
+            "xdg": True,
+            "unpaper": True,
+            "tesseract": True,
+            "pdftk": True,
+            "ocr": True,
+        }
+
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=mock_create_temp_func,
+        autospec=True,
+    )
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+
+    # Mock MultipleMessage to prevent blocking dialogs
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
+
+    # Mock the methods we want to check
+    mock_scan_dialog = mocker.patch.object(ApplicationWindow, "scan_dialog")
+    mock_import_files = mocker.patch.object(ApplicationWindow, "_import_files")
+
+    app = Gtk.Application()
+    app.set_menubar = MagicMock()
+    app.iconpath = "/tmp"
+    app.args = MagicMock()
+    app.args.import_files = ["file1.pdf"]
+    app.args.import_all = ["file2.pdf"]
+
+    with patch.object(Gtk.Application, "register", autospec=True):
+        try:
+            win = ApplicationWindow(application=app)
+            mock_scan_dialog.assert_called_once_with(None, None, True)
+            assert mock_import_files.call_count == 2
+            mock_import_files.assert_any_call(["file1.pdf"])
+            mock_import_files.assert_any_call(["file2.pdf"], True)
+        finally:
+            if "win" in locals():
+                win.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            app.quit()
