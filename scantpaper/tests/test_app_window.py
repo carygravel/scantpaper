@@ -454,6 +454,22 @@ def test_update_uimanager(app_window):
     assert app_window._actions["crop-dialog"].get_enabled()
 
 
+def test_update_uimanager_low_disk_space(app_window, mocker):
+    "Test _update_uimanager when disk space is low"
+    # Set free space to 50 MB, which is less than available-tmp-warning (100 MB)
+    mock_shutil = mocker.patch("app_window.shutil")
+    mock_shutil.disk_usage.return_value.free = 50 * 1024 * 1024
+
+    mock_show_dialog = mocker.patch.object(app_window, "_show_message_dialog")
+
+    app_window._update_uimanager()
+
+    mock_show_dialog.assert_called_once()
+    args, kwargs = mock_show_dialog.call_args
+    assert kwargs["message_type"] == "warning"
+    assert "50Mb free" in kwargs["text"]
+
+
 def test_window_state_event_callback(app_window):
     "Test _window_state_event_callback"
     event = MagicMock()
