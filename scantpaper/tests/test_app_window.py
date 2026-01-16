@@ -617,6 +617,27 @@ def test_process_error_rescan(app_window, mocker):
     app_window.scan_dialog.assert_called_with(None, None, False, True)
 
 
+def test_process_error_ignore(app_window, mocker):
+    "Test _process_error_callback with ignore response (covers 892)"
+    app_window._scan_progress = MagicMock()
+    app_window.scan_dialog = MagicMock()
+    app_window.settings["message"]["error opening device"] = {"response": None}
+
+    # Mock dialog to return something other than OK (e.g., CANCEL)
+    mock_dialog_cls = mocker.patch("app_window.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
+
+    mocker.patch("app_window.Gtk.RadioButton.new_with_label")
+    mocker.patch("app_window.Gtk.RadioButton.new_with_label_from_widget")
+    mocker.patch("app_window.Gtk.CheckButton.new_with_label")
+
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+
+    # For ignore, scan_dialog should NOT be called
+    app_window.scan_dialog.assert_not_called()
+
+
 def test_window_state_event_callback(app_window):
     "Test _window_state_event_callback"
     event = MagicMock()
