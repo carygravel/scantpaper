@@ -433,6 +433,23 @@ def test_create_toolbar_missing_deps(app_window):
     assert not app_window._actions["email"].get_enabled()
 
 
+def test_create_toolbar_tesseract_lang_missing(app_window, mocker):
+    "Test toolbar creation when tesseract language is missing (covers 530-531)"
+    app_window._dependencies["tesseract"] = True
+    mock_locale_installed = mocker.patch(
+        "app_window.locale_installed", return_value="Missing language package"
+    )
+    mocker.patch("app_window.get_tesseract_codes")
+    app_window._show_message_dialog = MagicMock()
+
+    app_window._create_toolbar()
+
+    mock_locale_installed.assert_called()
+    app_window._show_message_dialog.assert_called()
+    _args, kwargs = app_window._show_message_dialog.call_args
+    assert "Missing language package" in kwargs["text"]
+
+
 def test_update_uimanager(app_window):
     "Test _update_uimanager"
     # Simulate no selection
