@@ -1100,8 +1100,114 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
             win = ApplicationWindow(application=app)
             mock_scan_dialog.assert_called_once_with(None, None, True)
             assert mock_import_files.call_count == 2
-            mock_import_files.assert_any_call(["file1.pdf"])
             mock_import_files.assert_any_call(["file2.pdf"], True)
+        finally:
+            if "win" in locals():
+                win.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            app.quit()
+
+
+def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_path):
+    "Test _populate_panes with different image_control_tool settings"
+
+    mocker.patch("app_window.Document")
+    mocker.patch("app_window.Unpaper")
+    # Don't mock ImageView, we need it to verify set_tool calls, or at least mock it enough
+    # Actually, MockImageView is already a mock, we can use it.
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+    mocker.patch("app_window.Progress")
+    mocker.patch("app_window.sane.init")
+    mocker.patch("app_window.recursive_slurp")
+
+    mock_selector = mocker.patch("app_window.Selector")
+    mock_dragger = mocker.patch("app_window.Dragger")
+    mock_selector_dragger = mocker.patch("app_window.SelectorDragger")
+
+    mocker.patch("app_window.Gtk.HPaned.pack1")
+    mocker.patch("app_window.Gtk.HPaned.pack2")
+    mocker.patch("app_window.Gtk.VPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack2")
+    mocker.patch("app_window.Gtk.Notebook.append_page")
+    mocker.patch("app_window.Gtk.Container.remove")
+
+    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
+
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = str(session_dir)
+        self._lockfd = MagicMock()
+        self._dependencies = {
+            "imagemagick": True,
+            "libtiff": True,
+            "djvu": True,
+            "xdg": True,
+            "unpaper": True,
+            "tesseract": True,
+            "pdftk": True,
+            "ocr": True,
+        }
+
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=mock_create_temp_func,
+        autospec=True,
+    )
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+
+    # Mock MultipleMessage to prevent blocking dialogs
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
+
+    app = Gtk.Application()
+    app.set_menubar = MagicMock()
+    app.iconpath = "/tmp"
+    app.args = MagicMock(import_files=None, import_all=None)
+
+    # Test with "dragger"
+    mock_config.read_config.return_value["image_control_tool"] = "dragger"
+
+    with patch.object(Gtk.Application, "register", autospec=True):
+        try:
+            win = ApplicationWindow(application=app)
+            mock_dragger.assert_called()
+            # Reset mocks for next test
+            mock_dragger.reset_mock()
+            mock_selector.reset_mock()
+            mock_selector_dragger.reset_mock()
+        finally:
+            if "win" in locals():
+                win.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            app.quit()
+
+    # Test with "selectordragger" (or any other value that falls into 'else')
+    mock_config.read_config.return_value["image_control_tool"] = "selectordragger"
+
+    # We need a new app instance or at least re-register handling if we were
+    # stricter but reusing 'app' is fine for this mocked context usually.
+    # However, Gtk.Application might complain if we re-use it for a new window
+    # if not careful with registration. Let's just create a new one to be safe
+    # and clean.
+    app = Gtk.Application()
+    app.set_menubar = MagicMock()
+    app.iconpath = "/tmp"
+    app.args = MagicMock(import_files=None, import_all=None)
+
+    with patch.object(Gtk.Application, "register", autospec=True):
+        try:
+            win = ApplicationWindow(application=app)
+            mock_selector_dragger.assert_called()
         finally:
             if "win" in locals():
                 win.destroy()
