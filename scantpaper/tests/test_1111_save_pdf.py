@@ -19,6 +19,17 @@ from basethread import Request
 from page import Page
 
 
+def has_locale(name):
+    "Check if the given locale is available on the system."
+    try:
+        old_locale = locale.setlocale(locale.LC_CTYPE)
+        locale.setlocale(locale.LC_CTYPE, name)
+        locale.setlocale(locale.LC_CTYPE, old_locale)
+        return True
+    except locale.Error:
+        return False
+
+
 def test_do_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     "Test writing basic PDF"
     thread = DocThread(db=temp_db.name)
@@ -131,15 +142,14 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     )
 
 
+@pytest.mark.skipif(
+    not has_locale("de_DE.utf8"), reason="Locale de_DE.utf8 not available"
+)
 def test_save_pdf_with_locale(
     rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test with non-English locale"
-    try:
-        locale.setlocale(locale.LC_CTYPE, "de_DE.utf8")
-    except locale.Error:
-        pytest.skip("Locale de_DE.utf8 not available")
-        return
+    locale.setlocale(locale.LC_CTYPE, "de_DE.utf8")
 
     slist = Document(db=temp_db.name)
 
@@ -248,14 +258,11 @@ def test_save_pdf_different_resolutions(
     clean_up_files(slist.thread.db_files)
 
 
+@pytest.mark.skipif(shutil.which("pdftk") is None, reason="pdftk not found")
 def test_save_encrypted_pdf(
     rose_jpg, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "test saving an encrypted PDF"
-    if shutil.which("pdftk") is None:
-        pytest.skip("pdftk not found")
-        return
-
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg.name])
     mlp = GLib.MainLoop()
