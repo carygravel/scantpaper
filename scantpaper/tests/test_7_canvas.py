@@ -1612,3 +1612,22 @@ def test_tree_iter_previous_word_same_node(mocker):
     with patch.object(TreeIter, "previous_bbox", return_value=w1):
         with pytest.raises(StopIteration):
             ti.previous_word()
+
+
+def test_list_iter_insert_before_position_warnings(mocker):
+    "Test ListIter.insert_before_position() warnings (lines 1240-1247)"
+    li = ListIter()
+    mock_logger = mocker.patch("canvas.logger")
+
+    # Line 1240: bbox is None
+    li.insert_before_position(None, 0, 100)
+    mock_logger.warning.assert_called_with(
+        "Attempted to add undefined box to confidence list"
+    )
+
+    # Line 1244: i > len(self.list) - 1
+    bbox = MagicMock()
+    li.insert_before_position(bbox, 10, 100)
+    mock_logger.warning.assert_called_with(
+        "insert_before_position: position $i does not exist in index"
+    )
