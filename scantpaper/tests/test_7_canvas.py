@@ -1714,3 +1714,21 @@ def test_canvas_color_setters():
     assert canvas.min_color == "green"
     # green is h=120 in rgb2hsv
     assert canvas.min_color_hsv["h"] == pytest.approx(120)
+
+
+def test_color_functions_coverage():
+    "Test color functions edge cases (lines 90, 119)"
+    # Line 119: hsv2rgb with h >= 360
+    c1 = hsv2rgb({"h": 360, "s": 1.0, "v": 1.0})
+    c2 = hsv2rgb({"h": 0, "s": 1.0, "v": 1.0})
+    assert_rgba_equal(c1, c2)
+
+    # Line 90: rgb2hsv with h < 0.0
+    # In Python % operator with positive divisor returns non-negative.
+    # To hit line 90 we'd need hsv["h"] to be negative after * 60.
+    # Since we can't easily trigger this with normal RGBA, we can check a value
+    # that would be negative if not for % 6.
+    # Actually, let's just test a color that uses the red case with green < blue.
+    res = rgb2hsv(Gdk.RGBA(0.8, 0.1, 0.2))
+    assert res["h"] >= 0.0
+    assert res["h"] < 360.0

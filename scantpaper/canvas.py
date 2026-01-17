@@ -75,9 +75,7 @@ def rgb2hsv(rgb):
     hsv["s"] = delta / maxv
 
     if rgb.red >= maxv:  # > is bogus, just keeps compiler happy
-        hsv["h"] = (
-            (rgb.green - rgb.blue) / delta
-        ) % COLOR_YELLOW  # between yellow & magenta
+        hsv["h"] = (rgb.green - rgb.blue) / delta  # between yellow & magenta
 
     elif rgb.green >= maxv:
         hsv["h"] = COLOR_GREEN + (rgb.blue - rgb.red) / delta  # between cyan & yellow
