@@ -1115,8 +1115,6 @@ class Bbox(GooCanvas.CanvasGroup):
             )
 
             # append to output (recurse to nested levels)
-            if string != EMPTY:
-                string += "\n"
             string += (
                 SPACE * indent
                 + f"<{tag} class='{typestr}' {idn} {title}>"

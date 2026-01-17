@@ -17,6 +17,7 @@ from canvas import (
     TreeIter,
     HOCR_HEADER,
     NOT_FOUND,
+    EMPTY_LIST,
 )
 
 gi.require_version("GooCanvas", "2.0")
@@ -1827,3 +1828,18 @@ def test_bbox_get_child_ordinal_not_found():
 
     # bbox1 is not a child of bbox2
     assert bbox2.get_child_ordinal(bbox1) == NOT_FOUND
+
+
+def test_list_iter_set_index_by_bbox_not_found():
+    "Test ListIter.set_index_by_bbox() when bbox is not found (lines 1183, 1184)"
+    li = ListIter()
+    bbox1 = MagicMock()
+    bbox2 = MagicMock()
+
+    # Add bbox1 to list
+    li.add_box_to_index(bbox1, 50)
+
+    # Try to find bbox2 which is NOT in the list
+    res = li.set_index_by_bbox(bbox2, 50)
+    assert res == EMPTY_LIST
+    assert li.index == EMPTY_LIST
