@@ -1549,3 +1549,39 @@ def test_boxed_text_idle(rose_pnm):
 
         assert canvas.get_root_item().get_n_children() > 0
         assert str(json.loads(page.text_layer)[0]) not in canvas._old_idles
+
+
+def test_tree_iter_next_word_stop_iteration(mocker):
+    "Test TreeIter.next_word() state restoration on StopIteration (lines 1358-1361)"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    # Page -> Line (no words)
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+
+    ti = TreeIter(page)
+    # ti starts at page.
+    # ti.next_bbox() will be line. line.type != "word".
+    # Subsequent ti.next_bbox() will raise StopIteration.
+    # next_word should restore state and raise StopIteration.
+
+    old_iter = ti._iter.copy()
+    old_bbox = ti._bbox.copy()
+
+    with pytest.raises(StopIteration):
+        ti.next_word()
+
+    assert ti._iter == old_iter
+    assert ti._bbox == old_bbox
