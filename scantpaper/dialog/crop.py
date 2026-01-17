@@ -46,7 +46,11 @@ class Crop(Dialog):
 
     @selection.setter
     def selection(self, newval):
-        if newval == self._selection:
+        if (
+            newval is not None
+            and self._selection is not None
+            and newval.equal(self._selection)
+        ):
             return
         for row in LAYOUT:
             dim = row[0]
