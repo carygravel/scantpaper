@@ -1843,3 +1843,65 @@ def test_list_iter_set_index_by_bbox_not_found():
     res = li.set_index_by_bbox(bbox2, 50)
     assert res == EMPTY_LIST
     assert li.index == EMPTY_LIST
+
+
+def test_tree_iter_first_last_word():
+    "Test TreeIter.first_word() and last_word() branches (lines 1296, 1401)"
+    canvas = Canvas()
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+
+    # Create structure: Page -> Line -> Word
+    page = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+
+    # To hit 1296: return bbox (where bbox.type == "word")
+    # We need a parent that is a Bbox for TreeIter init to work (get_child_ordinal)
+    # The 'page' Bbox created earlier is a suitable parent.
+    page_word = canvas.add_box(
+        text="weird",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=page,
+    )
+    # Initialize TreeIter while it is still a "page" so it becomes the root of iteration
+    ti_p = TreeIter(page_word)
+
+    # Now change type to "word" so first_word() sees a word immediately
+    # Bbox.type is a GObject property.
+    page_word.set_property("type", "word")
+
+    assert ti_p.first_word() == page_word
+
+    # To hit 1401: while bbox is not None and bbox.type != "word"
+    # Structure: Page -> Word1 -> Line (empty).
+    # last_bbox() -> Line. Line != word.
+    # previous_bbox() -> Word1. Word1 == word. Loop ends.
+
+    # Page (is a "page" now)
+    page.set_property("type", "page")
+    w1 = canvas.add_box(
+        text="w1",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+    l1 = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=20, width=100, height=10),
+        type="line",
+        parent=page,
+    )
+
+    ti_l = TreeIter(l1)
+    assert ti_l.last_word() == w1
