@@ -1774,3 +1774,25 @@ def test_canvas_add_box_with_transformation():
     )
 
     assert bbox.transformation == trans
+
+
+def test_bbox_get_text_widget_attribute_error():
+    "Test Bbox.get_text_widget() raises AttributeError (line 943)"
+    canvas = Canvas()
+    canvas.confidence_index = ListIter()
+    root = canvas_obj = canvas.get_root_item()
+
+    # Create a Bbox without text, it will only have a Rect child at index 0
+    bbox = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="page",
+        parent=root,
+    )
+
+    # get_child(1) will likely return None or raise error if it doesn't exist
+    # If it returns something else (e.g. we manually add a Rect), it should raise AttributeError
+    GooCanvas.CanvasRect(parent=bbox, x=0, y=0, width=5, height=5)
+
+    with pytest.raises(AttributeError):
+        bbox.get_text_widget()
