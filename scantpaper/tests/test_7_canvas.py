@@ -16,6 +16,7 @@ from canvas import (
     ListIter,
     TreeIter,
     HOCR_HEADER,
+    NOT_FOUND,
 )
 
 gi.require_version("GooCanvas", "2.0")
@@ -1780,7 +1781,7 @@ def test_bbox_get_text_widget_attribute_error():
     "Test Bbox.get_text_widget() raises AttributeError (line 943)"
     canvas = Canvas()
     canvas.confidence_index = ListIter()
-    root = canvas_obj = canvas.get_root_item()
+    root = canvas.get_root_item()
 
     # Create a Bbox without text, it will only have a Rect child at index 0
     bbox = canvas.add_box(
@@ -1796,3 +1797,33 @@ def test_bbox_get_text_widget_attribute_error():
 
     with pytest.raises(AttributeError):
         bbox.get_text_widget()
+
+
+def test_bbox_get_child_ordinal_not_found():
+    "Test Bbox.get_child_ordinal() returns NOT_FOUND (line 974)"
+
+    canvas = Canvas()
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+
+    # Create page bbox to be parent of others
+    page = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    bbox1 = canvas.add_box(
+        text="b1",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        parent=page,
+    )
+    bbox2 = canvas.add_box(
+        text="b2",
+        bbox=Rectangle(x=20, y=0, width=10, height=10),
+        parent=page,
+    )
+
+    # bbox1 is not a child of bbox2
+    assert bbox2.get_child_ordinal(bbox1) == NOT_FOUND
