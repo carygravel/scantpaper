@@ -1468,3 +1468,53 @@ def test_bbox_to_hocr_more(mocker):
     assert "baseline 0.1 5" in hocr
     assert "x_wconf 85" in hocr
     assert "textangle 90" in hocr
+
+
+def test_bbox_stack_index_coverage(mocker):
+    "Test get_stack_index_by_position coverage and robust binary search"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    # Create a page (not a line, so axis=1)
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    # children: [Bbox0, Rect, Rect, Bbox3, Bbox4]
+    # y-centroids: b0=5, b3=45, b4=65
+    canvas_obj.add_box(
+        text="b0", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=page
+    )
+    GooCanvas.CanvasRect(parent=page, x=0, y=15, width=10, height=10)
+    GooCanvas.CanvasRect(parent=page, x=0, y=25, width=10, height=10)
+    canvas_obj.add_box(
+        text="b3", bbox=Rectangle(x=0, y=40, width=10, height=10), parent=page
+    )
+    canvas_obj.add_box(
+        text="b4", bbox=Rectangle(x=0, y=60, width=10, height=10), parent=page
+    )
+
+    # 1. New box at y=35 (centroid y=40)
+    # page has internal Rect and Text children at 0, 1.
+    # b0 at 2. Rects at 3, 4. b3 at 5. b4 at 6.
+    # New box should be before b3 (index 5)
+    # Robust search finds index 3 (after b0, among Rects) which is valid
+    new_bbox = MagicMock()
+    new_bbox.get_centroid.return_value = (5, 40)
+
+    idx = page.get_stack_index_by_position(new_bbox)
+    assert idx == 3
+
+    # 2. New box at y=70 (centroid y=75) -> should be index 7 (after b4 which is 6)
+    new_bbox.get_centroid.return_value = (5, 75)
+    idx = page.get_stack_index_by_position(new_bbox)
+    assert idx == 7
+
+    # 3. New box at y=-5 (centroid y=0) -> should be index 2 (before b0)
+    new_bbox.get_centroid.return_value = (5, 0)
+    idx = page.get_stack_index_by_position(new_bbox)
+    assert idx == 2

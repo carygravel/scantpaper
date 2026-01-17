@@ -840,41 +840,74 @@ class Bbox(GooCanvas.CanvasGroup):
 
         l = 0
         r = self.get_n_children() - 1
-        child = self.get_child(l)
-        while not isinstance(child, Bbox) and l < r:
-            l += 1
-            child = self.get_child(l)
 
-        child = self.get_child(r)
-        while not isinstance(child, Bbox) and l < r:
-            r -= 1
+        # Initial trim to ensure l and r point to Bboxes if possible
+        while l < r:
+            child = self.get_child(l)
+            if isinstance(child, Bbox):
+                break
+            l += 1
+
+        while l < r:
             child = self.get_child(r)
+            if isinstance(child, Bbox):
+                break
+            r -= 1
 
         newboxpos = bbox.get_centroid()
         axis = 0 if self.type == "line" else 1
-        while l != r:
-            m = math.ceil((l + r) / 2)
+
+        # Standard binary search with adjustment for non-Bbox items
+        while l <= r:
+            m = (l + r) // 2
+            
+            # Find nearest Bbox to m
+            # Search left then right
+            orig_m = m
             child = self.get_child(m)
-            while not isinstance(child, Bbox):
-                if m > l:
-                    m -= 1
-                elif m < r:
-                    m += 1
-                else:
+            found = False
+            
+            # Search left down to l
+            left_m = m
+            while left_m >= l:
+                child = self.get_child(left_m)
+                if isinstance(child, Bbox):
+                    m = left_m
+                    found = True
                     break
-                child = self.get_child(m)
+                left_m -= 1
+            
+            # If not found left, search right up to r
+            if not found:
+                right_m = orig_m + 1
+                while right_m <= r:
+                    child = self.get_child(right_m)
+                    if isinstance(child, Bbox):
+                        m = right_m
+                        found = True
+                        break
+                    right_m += 1
+            
+            if not found:
+                # No Bboxes in [l, r]
+                break
 
             boxpos = child.get_centroid()
             if boxpos[axis] > newboxpos[axis]:
                 r = m - 1
-
             else:
-                l = m
+                l = m + 1
 
-        boxpos = self.get_child(l).get_centroid()
-        if boxpos[axis] < newboxpos[axis]:
-            l += 1
-
+        # Final adjustment: ensure l is valid insertion point
+        # If l points to a Bbox that is smaller, we should step over it
+        # (Though the binary search logic l=m+1 usually handles this)
+        if l < self.get_n_children():
+            child = self.get_child(l)
+            if isinstance(child, Bbox):
+                boxpos = child.get_centroid()
+                if boxpos[axis] < newboxpos[axis]:
+                    l += 1
+        
         return l
 
     def confidence2color(self):
