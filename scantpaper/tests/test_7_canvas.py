@@ -1748,3 +1748,29 @@ def test_canvas_index_none():
     canvas._current_index = "position"
     canvas.set_other_index(None)
     assert canvas._current_index == "position"
+
+
+def test_canvas_add_box_with_transformation():
+    "Test add_box with explicit transformation (line 495)"
+    canvas = Canvas()
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+
+    # Create page first
+    page = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    # Provide explicit transformation
+    trans = [10, 20, 30]
+    bbox = canvas.add_box(
+        text="test",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        parent=page,
+        transformation=trans,
+    )
+
+    assert bbox.transformation == trans
