@@ -860,13 +860,13 @@ class Bbox(GooCanvas.CanvasGroup):
         # Standard binary search with adjustment for non-Bbox items
         while l <= r:
             m = (l + r) // 2
-            
+
             # Find nearest Bbox to m
             # Search left then right
             orig_m = m
             child = self.get_child(m)
             found = False
-            
+
             # Search left down to l
             left_m = m
             while left_m >= l:
@@ -876,7 +876,7 @@ class Bbox(GooCanvas.CanvasGroup):
                     found = True
                     break
                 left_m -= 1
-            
+
             # If not found left, search right up to r
             if not found:
                 right_m = orig_m + 1
@@ -887,7 +887,7 @@ class Bbox(GooCanvas.CanvasGroup):
                         found = True
                         break
                     right_m += 1
-            
+
             if not found:
                 # No Bboxes in [l, r]
                 break
@@ -907,7 +907,7 @@ class Bbox(GooCanvas.CanvasGroup):
                 boxpos = child.get_centroid()
                 if boxpos[axis] < newboxpos[axis]:
                     l += 1
-        
+
         return l
 
     def confidence2color(self):

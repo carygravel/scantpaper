@@ -1518,3 +1518,34 @@ def test_bbox_stack_index_coverage(mocker):
     new_bbox.get_centroid.return_value = (5, 0)
     idx = page.get_stack_index_by_position(new_bbox)
     assert idx == 2
+
+
+def test_boxed_text_idle(rose_pnm):
+    "Test _boxed_text_wrapper with idle=True to cover lines 615-620"
+    canvas = Canvas()
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm.name,
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+        page.text_layer = json.dumps(
+            [{"depth": 0, "bbox": [0, 0, 10, 10], "type": "page", "text": "foo"}]
+        )
+
+        mlp = GLib.MainLoop()
+
+        def finished():
+            mlp.quit()
+
+        canvas.set_text(
+            page=page, layer="text_layer", idle=True, finished_callback=finished
+        )
+
+        # Run loop to process idles
+        GLib.timeout_add(1000, mlp.quit)  # safety timeout
+        mlp.run()
+
+        assert canvas.get_root_item().get_n_children() > 0
+        assert str(json.loads(page.text_layer)[0]) not in canvas._old_idles
