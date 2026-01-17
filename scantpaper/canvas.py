@@ -896,16 +896,6 @@ class Bbox(GooCanvas.CanvasGroup):
             else:
                 l = m + 1
 
-        # Final adjustment: ensure l is valid insertion point
-        # If l points to a Bbox that is smaller, we should step over it
-        # (Though the binary search logic l=m+1 usually handles this)
-        if l < self.get_n_children():
-            child = self.get_child(l)
-            if isinstance(child, Bbox):
-                boxpos = child.get_centroid()
-                if boxpos[axis] < newboxpos[axis]:
-                    l += 1
-
         return l
 
     def confidence2color(self):
