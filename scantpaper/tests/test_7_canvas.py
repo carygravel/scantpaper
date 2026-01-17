@@ -1697,3 +1697,20 @@ def test_bbox_get_position_index_more(mocker):
     with patch.object(Bbox, "get_children", return_value=[w1]):
         with pytest.raises(IndexError):
             w2.get_position_index()
+
+
+def test_canvas_color_setters():
+    "Test max_color and min_color setters update HSV properties (lines 224, 225, 248, 249)"
+    canvas = Canvas()
+
+    # Line 224, 225: max_color setter
+    canvas.max_color = "blue"
+    assert canvas.max_color == "blue"
+    # blue is h=240 in rgb2hsv
+    assert canvas.max_color_hsv["h"] == pytest.approx(240)
+
+    # Line 248, 249: min_color setter
+    canvas.min_color = "green"
+    assert canvas.min_color == "green"
+    # green is h=120 in rgb2hsv
+    assert canvas.min_color_hsv["h"] == pytest.approx(120)
