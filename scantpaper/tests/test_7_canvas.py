@@ -1732,3 +1732,19 @@ def test_color_functions_coverage():
     res = rgb2hsv(Gdk.RGBA(0.8, 0.1, 0.2))
     assert res["h"] >= 0.0
     assert res["h"] < 360.0
+
+
+def test_canvas_index_none():
+    "Test set_index_by_bbox and set_other_index with None bbox (lines 416, 425)"
+    canvas = Canvas()
+
+    # Line 416: set_index_by_bbox raises IndexError if bbox is None
+    with pytest.raises(IndexError):
+        canvas.set_index_by_bbox(None)
+
+    # Line 425: set_other_index returns early if bbox is None
+    # We can check that it doesn't try to access self._current_index or similar
+    # by verifying no error is raised and state doesn't change
+    canvas._current_index = "position"
+    canvas.set_other_index(None)
+    assert canvas._current_index == "position"
