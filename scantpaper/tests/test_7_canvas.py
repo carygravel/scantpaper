@@ -1585,3 +1585,30 @@ def test_tree_iter_next_word_stop_iteration(mocker):
 
     assert ti._iter == old_iter
     assert ti._bbox == old_bbox
+
+
+def test_tree_iter_previous_word_same_node(mocker):
+    "Test TreeIter.previous_word() when previous_bbox returns same node (lines 1399-1401)"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="page",
+        parent=root,
+    )
+    w1 = canvas_obj.add_box(
+        text="w",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+
+    ti = TreeIter(w1)
+
+    # Force previous_bbox to return w1 (which is current_bbox[-1])
+    # and ensure it's a word so loop terminates
+    with patch.object(TreeIter, "previous_bbox", return_value=w1):
+        with pytest.raises(StopIteration):
+            ti.previous_word()
