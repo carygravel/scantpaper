@@ -1631,3 +1631,69 @@ def test_list_iter_insert_before_position_warnings(mocker):
     mock_logger.warning.assert_called_with(
         "insert_before_position: position $i does not exist in index"
     )
+
+
+def test_bbox_get_position_index_more(mocker):
+    "Test Bbox.get_position_index() coverage (lines 966-978)"
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    # Create a page first to serve as the root Bbox for TreeIter
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+
+    # Case 1: parent.type == 'line' (sort_direction = 0)
+    line = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+    w1 = canvas_obj.add_box(
+        text="w1", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=line
+    )
+    w2 = canvas_obj.add_box(
+        text="w2", bbox=Rectangle(x=20, y=0, width=10, height=10), parent=line
+    )
+    assert w1.get_position_index() == 0
+    assert w2.get_position_index() == 1
+
+    # Case 2: parent.type != 'line' (e.g. 'page', sort_direction = 1)
+    l1 = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+    l2 = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=30, width=100, height=20),
+        type="line",
+        parent=page,
+    )
+    # page already has 'line' from Case 1 at index 2 (indices 0,1 are Rect/Text)
+    # page children (Bboxes): [line, l1, l2]
+    assert l1.get_position_index() == 1
+    assert l2.get_position_index() == 2
+
+    # Case 3: Nested non-Bbox parent (line 966)
+    # page (Bbox) -> group (GooCanvas.CanvasGroup) -> word (Bbox)
+    group = GooCanvas.CanvasGroup(parent=page)
+    w3 = canvas_obj.add_box(
+        text="w3", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=group
+    )
+    # get_position_index will find 'page' as the Bbox parent
+    # but w3 is not a direct child of page, so it raises IndexError
+    with pytest.raises(IndexError):
+        w3.get_position_index()
+
+    # Case 4: IndexError (line 978) via mocking
+    # We mock get_children to return a list NOT containing self
+    with patch.object(Bbox, "get_children", return_value=[w1]):
+        with pytest.raises(IndexError):
+            w2.get_position_index()
