@@ -376,3 +376,12 @@ def test_cursor_setter_with_window(mocker):
     mock_gdk.Cursor.new_from_name.assert_called_once_with(mock_display, "wait")
     mock_window.set_cursor.assert_called_once_with(mock_cursor)
     assert dialog.cursor == "wait"
+
+
+def test_cursor_setter_none():
+    "test cursor setter with None value"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.cursor = "wait"
+    assert dialog.cursor == "wait"
+    dialog.cursor = None
+    assert dialog.cursor == "wait", "Cursor should not change if None is passed"
