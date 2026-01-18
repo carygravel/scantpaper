@@ -1,7 +1,8 @@
 [coverage:run]
 branch = True
-#omit = scantpaper/test_*
+# this excludes all files in tests direcories from coverage report
+#omit = */tests/*
 
-[coverage-report]
+[coverage:report]
 show_missing = True
-skip_covered = True
+#skip_covered = True
