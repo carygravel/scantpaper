@@ -27,6 +27,22 @@ def test_current_scan_options_property():
     assert dialog.current_scan_options == new_profile
 
 
+def test_ignore_duplex_capabilities_property():
+    "test ignore_duplex_capabilities property getter and setter"
+
+    dialog = Scan(
+        title="title",
+        transient_for=Gtk.Window(),
+    )
+
+    # Test initial value
+    assert not dialog.ignore_duplex_capabilities, "Initial value should be False"
+
+    # Test setter
+    dialog.ignore_duplex_capabilities = True
+    assert dialog.ignore_duplex_capabilities, "Value should be True after setting"
+
+
 def test_show(mocker):
     "test show method"
     # pylint: disable=protected-access
