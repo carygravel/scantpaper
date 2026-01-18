@@ -54,13 +54,18 @@ def test_show(mocker):
     # Mock internal components
     dialog.framex = mocker.Mock()
     dialog._flatbed_or_duplex_callback = mocker.Mock()
-    dialog.available_scan_options = mocker.Mock()
+    dialog.thread = mocker.Mock()
+
+    mock_options = mocker.Mock()
+    mock_options.num_options.return_value = 0
+    dialog.available_scan_options = mock_options
+    dialog._flatbed_or_duplex_callback.reset_mock()
+
     dialog._hide_geometry = mocker.Mock()
 
     # Mock combobp
     dialog.combobp = mocker.Mock()
     dialog.combobp.get_active_text.return_value = "A4"  # Not "Manual" and not None
-
     dialog.show()
 
     # Assertions
@@ -68,6 +73,9 @@ def test_show(mocker):
     dialog._flatbed_or_duplex_callback.assert_called_once()
     dialog._hide_geometry.assert_called_once_with(dialog.available_scan_options)
     assert dialog.cursor == "default"
+
+    dialog.cursor = "wait"
+    assert dialog.cursor == "wait", "Cursor should be 'wait' after setting"
 
 
 def test_device_dropdown_changed(mocker):
