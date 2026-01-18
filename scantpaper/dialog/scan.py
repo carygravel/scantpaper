@@ -309,7 +309,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         "set the cursor"
         win = self.get_window()
         if newval is None:
-            newval = self._cursor
+            return
         self._cursor = newval
 
         if win is not None:

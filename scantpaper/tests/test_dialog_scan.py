@@ -312,3 +312,67 @@ def test_delete_profile_backend_item(mocker):
     listbox_new = frameb_new.get_child()
     rows_new = listbox_new.get_children()
     assert len(rows_new) == 0, "Should have 0 rows after deletion"
+
+
+def test_rescan_hides_widgets(mocker):
+    "test that selecting rescan hides the device widgets"
+    # pylint: disable=protected-access
+
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock get_devices to verify call and prevent actual execution
+    dialog.get_devices = mocker.Mock()
+
+    # Setup device list
+    dev1 = SimpleNamespace(name="dev1", label="Device 1")
+    dialog.device_list = [dev1]
+
+    # Find labeld
+    # hboxd contains labeld (start) and combobd (end)
+    children = dialog.hboxd.get_children()
+    labeld = None
+    for child in children:
+        if isinstance(child, Gtk.Label):
+            labeld = child
+            break
+    assert labeld is not None
+
+    # Spy on hide methods
+    # We patch the hide method on the instances
+    mock_combobd_hide = mocker.patch.object(dialog.combobd, "hide")
+    mock_labeld_hide = mocker.patch.object(labeld, "hide")
+
+    # Select Rescan (index 1)
+    # device_list has 1 item (index 0). Rescan is index 1.
+    dialog.combobd.set_active(1)
+
+    # Verification
+    mock_combobd_hide.assert_called_once()
+    mock_labeld_hide.assert_called_once()
+    assert dialog.device is None
+    dialog.get_devices.assert_called_once()
+
+
+def test_cursor_setter_with_window(mocker):
+    "test cursor setter when window exists"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock get_window
+    mock_window = mocker.Mock()
+    mocker.patch.object(dialog, "get_window", return_value=mock_window)
+
+    # Mock Gdk interactions
+    mock_gdk = mocker.patch("dialog.scan.Gdk")
+    mock_display = mocker.Mock()
+    mock_gdk.Display.get_default.return_value = mock_display
+    mock_cursor = mocker.Mock()
+    mock_gdk.Cursor.new_from_name.return_value = mock_cursor
+
+    # Set cursor
+    dialog.cursor = "wait"
+
+    # Assertions
+    mock_gdk.Display.get_default.assert_called_once()
+    mock_gdk.Cursor.new_from_name.assert_called_once_with(mock_display, "wait")
+    mock_window.set_cursor.assert_called_once_with(mock_cursor)
+    assert dialog.cursor == "wait"
