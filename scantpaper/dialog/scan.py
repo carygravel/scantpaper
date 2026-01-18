@@ -171,21 +171,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     _available_scan_options = Options([])
     _current_scan_options = Profile()
-    _visible_scan_options = {}
-
-    @GObject.Property(
-        type=object,
-        nick="Visible scan options",
-        blurb="Hash of scan options to show or hide from the user",
-    )
-    def visible_scan_options(self):
-        "getter for visible_scan_options attribute"
-        return self._visible_scan_options
-
-    @visible_scan_options.setter
-    def visible_scan_options(self, newval):
-        self._visible_scan_options = newval
-        self.emit("changed-option-visibility", newval)
 
     progress_pulse_step = GObject.Property(
         type=float,
