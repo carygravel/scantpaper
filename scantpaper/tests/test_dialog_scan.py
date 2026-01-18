@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 import gi
-from dialog.scan import Scan
+from dialog.scan import Scan, _build_profile_table
 from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
@@ -152,3 +152,139 @@ def test_edit_paper_apply(mocker):
 
     # Verify window destroyed
     mock_window.destroy.assert_called_once()
+
+
+def test_delete_profile_frontend_item(mocker):
+    "test deleting a frontend item from the profile editor"
+    # pylint: disable=protected-access
+
+    # Setup
+    profile = Profile()
+    profile.add_frontend_option("test_option", "value")
+    options = mocker.Mock()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+    # Call the function
+    _build_profile_table(profile, options, vbox)
+
+    # Find the delete button
+    # vbox children: frameb, framef
+    children = vbox.get_children()
+    framef = None
+    for child in children:
+        if isinstance(child, Gtk.Frame) and child.get_label() == "Frontend options":
+            framef = child
+            break
+
+    assert framef is not None, "Frontend options frame not found"
+
+    listbox = framef.get_child()
+    rows = listbox.get_children()
+    assert len(rows) == 1, "Should have 1 row"
+
+    hbox = rows[0].get_child()
+    hbox_children = hbox.get_children()
+    button = None
+    for child in hbox_children:
+        if isinstance(child, Gtk.Button):
+            button = child
+            break
+
+    assert button is not None, "Delete button not found"
+
+    # Mock logger to verify debug message
+    mock_logger = mocker.patch("dialog.scan.logger")
+
+    # Click the button
+    button.clicked()
+
+    # Verify option removed
+    assert "test_option" not in profile.frontend
+
+    # Verify logging
+    mock_logger.debug.assert_called_with(
+        "removing option '%s' from profile", "test_option"
+    )
+
+    # Verify UI updated (listbox should be empty)
+    children = vbox.get_children()
+    framef_new = None
+    for child in children:
+        if isinstance(child, Gtk.Frame) and child.get_label() == "Frontend options":
+            framef_new = child
+            break
+
+    listbox_new = framef_new.get_child()
+    rows_new = listbox_new.get_children()
+    assert len(rows_new) == 0, "Should have 0 rows after deletion"
+
+
+def test_delete_profile_backend_item(mocker):
+    "test deleting a backend item from the profile editor"
+    # pylint: disable=protected-access
+
+    # Setup
+    profile = Profile(backend=[("mode", "Color")])
+
+    # Mock options.by_name to return something valid
+    mock_opt = mocker.Mock()
+    mock_opt.title = "Scan Mode"
+    options = mocker.Mock()
+    options.by_name.return_value = mock_opt
+
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+    # Call the function
+    _build_profile_table(profile, options, vbox)
+
+    # Find the delete button
+    # vbox children: frameb, framef
+    children = vbox.get_children()
+    frameb = None
+    for child in children:
+        if isinstance(child, Gtk.Frame) and child.get_label() == "Backend options":
+            frameb = child
+            break
+
+    assert frameb is not None, "Backend options frame not found"
+
+    listbox = frameb.get_child()
+    rows = listbox.get_children()
+    assert len(rows) == 1, "Should have 1 row"
+
+    hbox = rows[0].get_child()
+    hbox_children = hbox.get_children()
+    button = None
+    for child in hbox_children:
+        if isinstance(child, Gtk.Button):
+            button = child
+            break
+
+    assert button is not None, "Delete button not found"
+
+    # Mock logger to verify debug message
+    mock_logger = mocker.patch("dialog.scan.logger")
+
+    # Click the button
+    button.clicked()
+
+    # Verify option removed
+    # profile.backend is a list of tuples or dicts, depending on init
+    # In this case it should be a list of tuples: [('mode', 'Color')]
+    # After deletion it should be empty
+    assert len(profile.backend) == 0
+
+    # Verify logging
+    mock_logger.debug.assert_called_with("removing option '%s' from profile", "mode")
+
+    # Verify UI updated (listbox should be empty)
+    children = vbox.get_children()
+    frameb_new = None
+    for child in children:
+        if isinstance(child, Gtk.Frame) and child.get_label() == "Backend options":
+            frameb_new = child
+            break
+
+    listbox_new = frameb_new.get_child()
+    rows_new = listbox_new.get_children()
+    assert len(rows_new) == 0, "Should have 0 rows after deletion"

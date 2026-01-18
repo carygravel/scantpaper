@@ -678,7 +678,7 @@ class TestScanDialog:
 
         with unittest.mock.patch("dialog.scan._build_profile_table"):
             do_delete_profile_backend_item(
-                [profile, options, vbox, frameb, framef, "opt", 0]
+                None, [profile, options, vbox, frameb, framef, "opt", 0]
             )
 
         assert profile.num_backend_options() == 0

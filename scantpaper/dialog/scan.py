@@ -1492,7 +1492,7 @@ def _edit_profile_callback(_widget, parent):
     dialog.destroy()
 
 
-def do_delete_profile_backend_item(data):
+def do_delete_profile_backend_item(_widget, data):
     "callback for delete profile button click"
     profile, options, vbox, frameb, framef, name, i = data
     logger.debug("removing option '%s' from profile", name)
@@ -1547,7 +1547,7 @@ def _build_profile_table(profile, options, vbox):
         button.set_image(icon)
         hbox.pack_end(button, False, False, 0)
 
-        def do_delete_profile_frontend_item(_name):
+        def do_delete_profile_frontend_item(_widget, _name):
             logger.debug("removing option '%s' from profile", _name)
             profile.remove_frontend_option(_name)
             frameb.destroy()
