@@ -480,3 +480,17 @@ def test_init_with_profiles():
             found = True
             break
     assert found
+
+
+def test_device_dropdown_changed_garbage_collection(mocker):
+    "test do_device_dropdown_changed callback when dialog is garbage collected"
+
+    # Mock weakref in the module scope to return None, simulating garbage collection
+    # The callback captures the weakref at creation time.
+    mocker.patch("dialog.scan.weakref.ref", return_value=lambda: None)
+    dialog_gc = Scan(title="title", transient_for=Gtk.Window())
+
+    # Now trigger the signal
+    # If the callback didn't handle the None check, this would raise an AttributeError
+    # because it would try to access self.combobd on None.
+    dialog_gc.combobd.emit("changed")
