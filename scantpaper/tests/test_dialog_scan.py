@@ -461,3 +461,22 @@ def test_available_scan_options_flatbed_not_selected(mocker):
 
     # Verify
     mock_set_sensitive.assert_called_with(True)
+
+
+def test_init_with_profiles():
+    "test __init__ with profiles argument"
+    profiles = {
+        "TestProfile": {"frontend": {"paper": "A4"}, "backend": [("mode", "Color")]}
+    }
+    dialog = Scan(title="title", transient_for=Gtk.Window(), profiles=profiles)
+
+    assert "TestProfile" in dialog.profiles
+    assert isinstance(dialog.profiles["TestProfile"], Profile)
+    # Check if it was added to the combobox
+    found = False
+    model = dialog.combobsp.get_model()
+    for row in model:
+        if row[0] == "TestProfile":
+            found = True
+            break
+    assert found
