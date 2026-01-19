@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import gi
 from dialog.scan import Scan, _build_profile_table
 from scanner.profile import Profile
+from frontend import enums
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -494,3 +495,51 @@ def test_device_dropdown_changed_garbage_collection(mocker):
     # If the callback didn't handle the None check, this would raise an AttributeError
     # because it would try to access self.combobd on None.
     dialog_gc.combobd.emit("changed")
+
+
+def test_paper_dimension_changed_unsets_paper(mocker):
+    "test that changing geometry unsets paper format"
+    # pylint: disable=protected-access
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock necessary parts for _pack_widget and _create_paper_widget
+    mock_options = mocker.Mock()
+    mock_options.by_name.return_value = None  # Assume page-height/width don't exist
+
+    hboxp = Gtk.Box()
+
+    # Create mock geometry options
+    geometry_options = ["tl-x", "tl-y", "br-x", "br-y"]
+    widgets = {}
+    for name in geometry_options:
+        opt = mocker.Mock()
+        opt.name = name
+        opt.type = enums.TYPE_INT
+        opt.unit = enums.UNIT_MM
+        opt.desc = f"desc for {name}"
+
+        # The code expects a 'changed' signal, which Gtk.Entry has
+        widget = Gtk.Entry()
+        # Add a mock signal attribute because _update_option uses it,
+        # though _pack_widget doesn't.
+        # But _create_paper_widget connects to 'changed'.
+        widgets[name] = widget
+        hbox = mocker.Mock()
+
+        dialog._pack_widget(widget, (mock_options, opt, hbox, hboxp))
+
+    # Now combobp should be created
+    assert dialog.combobp is not None
+
+    # Set a paper value manually to avoid triggering full _set_paper logic
+    # which might require more mocks (like thread.device_handle)
+    dialog._paper = "A4"
+
+    # Ensure setting_current_scan_options is empty
+    dialog.setting_current_scan_options = []
+
+    # Trigger changed signal on one of the geometry widgets
+    widgets["tl-x"].emit("changed")
+
+    # Verify paper is reset to None
+    assert dialog.paper is None
