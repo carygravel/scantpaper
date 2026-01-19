@@ -543,3 +543,37 @@ def test_paper_dimension_changed_unsets_paper(mocker):
 
     # Verify paper is reset to None
     assert dialog.paper is None
+
+
+def test_get_paper_by_geometry(mocker):
+    "test _get_paper_by_geometry method"
+    # pylint: disable=protected-access
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Test formats is None (Line 667)
+    dialog.paper_formats = None
+    assert dialog._get_paper_by_geometry() is None
+
+    # Setup for matching tests
+    dialog.paper_formats = {"A4": {"l": 0, "t": 0, "x": 210, "y": 297}}
+    dialog.thread = mocker.Mock()
+    mock_options = mocker.Mock()
+    dialog.available_scan_options = mock_options
+
+    def options_val(name, _device_handle):
+        values = {"tl-x": 0, "tl-y": 0, "br-x": 210, "br-y": 297}
+        return values[name]
+
+    mock_options.val.side_effect = options_val
+
+    # Test match found
+    assert dialog._get_paper_by_geometry() == "A4"
+
+    # Test mismatch (Lines 679, 680, 684)
+    def options_val_mismatch(name, _device_handle):
+        # Change br-x to cause mismatch
+        values = {"tl-x": 0, "tl-y": 0, "br-x": 200, "br-y": 297}
+        return values[name]
+
+    mock_options.val.side_effect = options_val_mismatch
+    assert dialog._get_paper_by_geometry() is None
