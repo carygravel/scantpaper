@@ -20,7 +20,7 @@ jobs:
           python3-pytest-cov python3-pytest-timeout python3-pytest-xvfb \
           python3-pytest-pylint python3-pytest-mock
         python -m pip install --upgrade pip
-        pip install ocrmypdf pytest-black python-iso639
+        pip install ocrmypdf pytest-black black==25.12.0 python-iso639
 
         # add locale, needed for a couple of tests
         sudo locale-gen de_DE.UTF-8
