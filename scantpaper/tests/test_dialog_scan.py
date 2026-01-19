@@ -385,3 +385,79 @@ def test_cursor_setter_none():
     assert dialog.cursor == "wait"
     dialog.cursor = None
     assert dialog.cursor == "wait", "Cursor should not change if None is passed"
+
+
+def test_scan_button(mocker):
+    "test scan button action"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock scan method to verify it is called
+    dialog.scan = mocker.Mock()
+
+    # Check scan button exists
+    assert dialog.scan_button is not None
+
+    # Connect signal to verify _do_scan behavior
+    signal_triggered = False
+
+    def on_scan(_widget):
+        nonlocal signal_triggered
+        signal_triggered = True
+
+    dialog.connect("clicked-scan-button", on_scan)
+
+    # Click the button
+    dialog.scan_button.clicked()
+
+    # Verify signal and method call
+    assert signal_triggered
+    dialog.scan.assert_called_once()
+
+
+def test_available_scan_options_flatbed_selected(mocker):
+    "test available_scan_options setter when flatbed is selected"
+    # pylint: disable=protected-access
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock thread and device handle
+    dialog.thread = mocker.Mock()
+
+    # Make initial options NOT a flatbed so we can set num_pages = 2
+    mocker.patch.object(
+        dialog.available_scan_options, "flatbed_selected", return_value=False
+    )
+    dialog.num_pages = 2
+    assert dialog.num_pages == 2
+
+    # Spy on framen.set_sensitive
+    mock_set_sensitive = mocker.patch.object(dialog.framen, "set_sensitive")
+
+    # Mock new options
+    mock_options = mocker.Mock()
+    mock_options.flatbed_selected.return_value = True
+    mock_options.num_options.return_value = 10
+
+    # Trigger setter
+    dialog.available_scan_options = mock_options
+
+    # Verify
+    assert dialog.num_pages == 1
+    mock_set_sensitive.assert_called_with(False)
+
+
+def test_available_scan_options_flatbed_not_selected(mocker):
+    "test available_scan_options setter when flatbed is NOT selected"
+    # pylint: disable=protected-access
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.thread = mocker.Mock()
+    mock_set_sensitive = mocker.patch.object(dialog.framen, "set_sensitive")
+
+    mock_options = mocker.Mock()
+    mock_options.flatbed_selected.return_value = False
+    mock_options.num_options.return_value = 10
+
+    # Trigger setter
+    dialog.available_scan_options = mock_options
+
+    # Verify
+    mock_set_sensitive.assert_called_with(True)
