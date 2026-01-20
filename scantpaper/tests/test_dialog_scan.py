@@ -1,13 +1,17 @@
 "test scan dialog current_scan_options property"
 
+import threading
+import time
 from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 import gi
+import pytest
 from dialog.scan import Scan, _build_profile_table
 from scanner.profile import Profile
 from frontend import enums
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
 def test_current_scan_options_property():
@@ -577,3 +581,151 @@ def test_get_paper_by_geometry(mocker):
 
     mock_options.val.side_effect = options_val_mismatch
     assert dialog._get_paper_by_geometry() is None
+
+
+def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout):
+    """
+    Reproduces the issue where a race condition leaves the dialog in a broken state
+    (non-empty setting_current_scan_options and 'wait' cursor), which causes
+    infinite loops or hangs in the application.
+    """
+    dialog = sane_scan_dialog
+    loop = mainloop_with_timeout()
+
+    # 1. Mock device handle
+    mock_handle = MagicMock()
+    mock_handle.resolution = 100
+    dialog.thread.device_handle = mock_handle
+
+    # 2. Setup options
+    dialog.current_scan_options = Profile(backend=[("resolution", 100)])
+
+    mock_opt = MagicMock()
+    mock_opt.name = "resolution"
+    mock_opt.type = enums.TYPE_INT
+    mock_opt.cap = 0  # Active
+    mock_opt.constraint = (0, 200, 1)
+
+    mock_options = MagicMock()
+    mock_options.by_name.return_value = mock_opt
+    mock_options.num_options.return_value = 1
+    dialog.available_scan_options = mock_options
+
+    # 3. Patch thread methods
+    dialog.thread.do_set_option = MagicMock(return_value=enums.INFO_RELOAD_OPTIONS)
+
+    ready_to_crash = threading.Event()
+
+    with patch("frontend.image_sane.sane.open") as mock_sane_open, patch(
+        "frontend.image_sane.sane.exit"
+    ):
+
+        def delayed_open(_name):
+            # Signal that we are inside open(), so device_handle should be None
+            # (simulated by sleep race)
+            ready_to_crash.set()
+            time.sleep(1.0)
+            return mock_handle
+
+        mock_sane_open.side_effect = delayed_open
+
+        # 4. Trigger the race
+        def set_option_finished_cb(data):
+            # Wait for open_device to reach the critical section
+            if not ready_to_crash.wait(timeout=2.0):
+                pass
+
+            try:
+                # This simulates the callback running on main thread while
+                # worker is in open_device
+                dialog._update_options(mock_options)
+            finally:
+                loop.quit()
+
+        dialog.thread.send(
+            "set_option", "resolution", 100, finished_callback=set_option_finished_cb
+        )
+        dialog.thread.send("open_device", "test_device")
+        loop.run()
+
+        # 5. Assert CLEAN state
+        # The proper fix ensures that the stack is popped and cursor is reset.
+        print(f"setting_current_scan_options: {dialog.setting_current_scan_options}")
+        print(f"cursor: {dialog.cursor}")
+
+        assert (
+            len(dialog.setting_current_scan_options) == 0
+        ), "setting_current_scan_options should be empty (clean state)"
+        assert dialog.cursor == "default", "cursor should be 'default' (clean state)"
+
+
+def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
+    "test reproduction of infinite loop issue when switching devices and applying profile"
+    dialog = sane_scan_dialog
+    loop = mainloop_with_timeout()
+
+    # 1. Setup initial state
+    mock_handle = MagicMock()
+    mock_handle.resolution = 100
+    dialog.thread.device_handle = mock_handle
+
+    # Mock options
+    mock_opt = MagicMock()
+    mock_opt.name = "resolution"
+    mock_opt.type = enums.TYPE_INT
+    mock_opt.cap = 0
+    mock_opt.constraint = (0, 200, 1)
+
+    mock_options = MagicMock()
+    mock_options.by_name.return_value = mock_opt
+    mock_options.num_options.return_value = 1
+    dialog.available_scan_options = mock_options
+
+    # 2. Setup profile that triggers setting options
+    profile = Profile(backend=[("resolution", 100)])
+    dialog.profiles["prof1"] = profile
+
+    # 3. Track calls to _set_option_profile to detect loop
+    call_count = 0
+    original_set_option_profile = dialog._set_option_profile
+
+    def tracked_set_option_profile(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count > 10:
+            # Loop detected!
+            pytest.fail("Infinite loop detected in _set_option_profile")
+        return original_set_option_profile(*args, **kwargs)
+
+    dialog._set_option_profile = tracked_set_option_profile
+
+    # 4. Mock thread to simulate null handle during operation
+    ready_to_crash = threading.Event()
+
+    with patch("frontend.image_sane.sane.open") as mock_sane_open:
+
+        def delayed_open(_name):
+            # Signal we are in open_device (handle is None)
+            ready_to_crash.set()
+            time.sleep(0.5)
+            return mock_handle
+
+        mock_sane_open.side_effect = delayed_open
+
+        # 5. Trigger sequence: Switch device then immediately apply profile
+        # a. Switch device (starts open_device 1)
+        dialog.thread.send("open_device", "dev2")
+
+        # b. Apply profile (calls
+        # set_profile -> set_current_scan_options -> scan_options -> open_device 2)
+        # This will simulate the user flow of "scanning for devices, picking
+        # one, and loading a profile" rapidly, or where profile load overlaps
+        # with device initialization.
+        dialog.set_profile("prof1")
+        GLib.timeout_add(3000, loop.quit)
+        loop.run()
+
+    # Ensure _set_option_profile was called at least once to ensure we exercised
+    # the code path
+    assert call_count > 0, "_set_option_profile was never called"
+    assert call_count <= 10, "Loop detected (call count > 10)"
