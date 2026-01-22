@@ -198,16 +198,6 @@ def test_generated_methods():
     slist.thread.rotate.assert_called_once()
 
 
-def test_on_row_deleted():
-    "Test _on_row_deleted"
-    slist = Document()
-    mock_path = MagicMock()
-    mock_path.get_indices.return_value = [0]
-
-    slist._on_row_deleted(None, mock_path)
-    slist.thread.send.assert_called_with("delete_pages", {"row_ids": [0]})
-
-
 def test_index_for_page_direction():
     "Test index_for_page with negative direction"
     slist = Document()

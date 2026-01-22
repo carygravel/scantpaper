@@ -132,10 +132,6 @@ class BaseDocument(SimpleList):
             selection.append(self.find_page_by_uuid(i))
         self.select(selection)
 
-    def _on_row_deleted(self, _model, path):
-        logger.debug("_on_row_deleted: %s", path.get_indices())
-        self.thread.send("delete_pages", {"row_ids": path.get_indices()})
-
     def _on_selection_changed(self, _selection):
         if self._block_signals:
             return
@@ -502,13 +498,13 @@ class BaseDocument(SimpleList):
                 kwargs["finished_callback"]()
 
         model, paths = self.get_selection().get_selected_rows()
-        ids = self.get_selected_indices()
+        page_ids = [model.get_value(model.get_iter(path), 2) for path in paths]
         send_kwargs = kwargs.copy()
         if "finished_callback" in send_kwargs:
             del send_kwargs["finished_callback"]
         self.thread.send(
             "delete_pages",
-            {"row_ids": ids},
+            {"page_ids": page_ids},
             data_callback=_data_callback,
             **send_kwargs,
         )

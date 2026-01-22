@@ -332,22 +332,34 @@ class DocThread(SaveThread):
         kwargs = request.args[0]
 
         row_ids = []
+        page_ids = []
         if "numbers" in kwargs:
             for number in kwargs["numbers"]:
                 row_id = self.find_row_id_by_page_number(number)
                 if row_id is None:
-                    raise ValueError(f"Page {kwargs['number']} does not exist")
-                row_ids.append(self.find_row_id_by_page_number(number))
+                    raise ValueError(f"Page {number} does not exist")
+                row_ids.append(row_id)
         elif "row_ids" in kwargs:
             row_ids = kwargs["row_ids"]
-        if not row_ids:
-            raise ValueError("Specify either row_id or number")
+        elif "page_ids" in kwargs:
+            page_ids = kwargs["page_ids"]
 
-        self._execute(
-            f"""DELETE FROM page_order
-                WHERE row_id IN ({", ".join(["?"]*len(row_ids))}) AND action_id = ?""",
-            (*row_ids, self._action_id),
-        )
+        if not row_ids and not page_ids:
+            raise ValueError("Specify either row_id, page_id or number")
+
+        if row_ids:
+            self._execute(
+                f"""DELETE FROM page_order
+                    WHERE row_id IN ({", ".join(["?"]*len(row_ids))}) AND action_id = ?""",
+                (*row_ids, self._action_id),
+            )
+
+        if page_ids:
+            self._execute(
+                f"""DELETE FROM page_order
+                    WHERE page_id IN ({", ".join(["?"]*len(page_ids))}) AND action_id = ?""",
+                (*page_ids, self._action_id),
+            )
 
         # renumber remaining rows
         self._execute(
