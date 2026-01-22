@@ -624,35 +624,39 @@ def test_delete_selection_extra_reselect():
     slist.add_page(3, None, 103)
 
     def mock_delete_selection(_self=None, context=None, **kwargs):
-        # We need to use slist.get_selected_indices() BEFORE deleting anything
+        # We MUST capture the indices before deleting anything from data.
         indices_to_del = sorted(slist.get_selected_indices(), reverse=True)
-        # Use del slist.data.model[itr] or just del slist.data[i]
-        # Since TiedList.__delitem__ uses model.remove(itr), this is safe.
+        model = slist.get_model()
         for i in indices_to_del:
-            del slist.data[i]
+            itr = model.iter_nth_child(None, i)
+            model.remove(itr)
 
         if "finished_callback" in kwargs:
             kwargs["finished_callback"]()
 
     slist.delete_selection = mock_delete_selection
 
-    # Delete the middle page (uuid 102)
+    # Delete the middle page (index 1, uuid 102)
+    slist.get_selection().unselect_all()
     slist.select(1)
     slist.delete_selection_extra()
     assert len(slist.data) == 2
     assert slist.data[0][2] == 101
     assert slist.data[1][2] == 103
-    # Should select page with index 1 (originally index 2, uuid 103)
+    # After deletion, _after_delete should select index 1 (uuid 103)
     assert slist.get_selected_indices() == [1]
 
-    # Delete the last page (uuid 103)
+    # Delete the last page (index 1, uuid 103)
+    slist.get_selection().unselect_all()
     slist.select(1)
     slist.delete_selection_extra()
     assert len(slist.data) == 1
     assert slist.data[0][2] == 101
+    # After deletion, index 1 becomes invalid, so it should select index 0
     assert slist.get_selected_indices() == [0]
 
-    # Delete all (uuid 101)
+    # Delete all (index 0, uuid 101)
+    slist.get_selection().unselect_all()
     slist.select(0)
     slist.delete_selection_extra()
     assert len(slist.data) == 0
@@ -739,52 +743,6 @@ def test_get_page_index_selected_none():
     error_callback = MagicMock()
     assert slist.get_page_index("selected", error_callback) == []
     error_callback.assert_called_with(None, "Get page", "No pages selected")
-
-
-def test_delete_selection_extra_reselect():
-    "Test delete_selection_extra re-selecting nearest page"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(2, None, 102)
-    slist.add_page(3, None, 103)
-
-    def mock_delete_selection(_self=None, context=None, **kwargs):
-        # We MUST capture the indices before deleting anything from data.
-        indices_to_del = sorted(slist.get_selected_indices(), reverse=True)
-        model = slist.get_model()
-        for i in indices_to_del:
-            itr = model.iter_nth_child(None, i)
-            model.remove(itr)
-
-        if "finished_callback" in kwargs:
-            kwargs["finished_callback"]()
-
-    slist.delete_selection = mock_delete_selection
-
-    # Delete the middle page (index 1, uuid 102)
-    slist.get_selection().unselect_all()
-    slist.select(1)
-    slist.delete_selection_extra()
-    assert len(slist.data) == 2
-    assert slist.data[0][2] == 101
-    assert slist.data[1][2] == 103
-    # After deletion, _after_delete should select index 1 (uuid 103)
-    assert slist.get_selected_indices() == [1]
-
-    # Delete the last page (index 1, uuid 103)
-    slist.get_selection().unselect_all()
-    slist.select(1)
-    slist.delete_selection_extra()
-    assert len(slist.data) == 1
-    assert slist.data[0][2] == 101
-    # After deletion, index 1 becomes invalid, so it should select index 0
-    assert slist.get_selected_indices() == [0]
-
-    # Delete all (index 0, uuid 101)
-    slist.get_selection().unselect_all()
-    slist.select(0)
-    slist.delete_selection_extra()
-    assert len(slist.data) == 0
 
 
 def test_init_with_kwargs():
