@@ -201,6 +201,40 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
         assert "djvused" in mock_run.call_args[0][0]
 
 
+def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
+    "Test save_djvu method with merging failure"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.djvu",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_djvu", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
+        "savethread.exec_command"
+    ) as mock_exec, patch("savethread.os.remove"), patch(
+        "savethread._set_timestamp"
+    ), patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.subprocess.run"
+    ):
+
+        mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
+        mock_exec.return_value.returncode = 1
+
+        mock_thread_instance.do_save_djvu(request)
+
+        assert mock_thread_instance.responses.put.called
+        # Verify the error message was sent
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+
+
 def test_save_tiff(mock_thread_instance, mock_page_instance):
     "Test save_tiff method"
     mock_thread_instance.mock_pages[1] = mock_page_instance
