@@ -654,18 +654,16 @@ def _add_annotations_to_pdf(page, gs_page):
     xresolution, yresolution, _units = gs_page.get_resolution()
     height = px2pt(gs_page.height, yresolution)
     for box in Bboxtree(gs_page.annotations).each_bbox():
-        if box["type"] == "page" or "text" not in box or box["text"] == "":
-            continue
+        if box["type"] != "page" and "text" in box and box["text"] != "":
+            rgb = []
+            for i in range(3):
+                rgb.append(int(ANNOTATION_COLOR[i * 2 : i * 2 + 2], 16) / 255)
 
-        rgb = []
-        for i in range(3):
-            rgb.append(int(ANNOTATION_COLOR[i * 2 : i * 2 + 2], 16) / 255)
-
-        annot = page.annotation()
-        annot.markup(
-            box["text"],
-            _bbox2markup(xresolution, yresolution, height, box["bbox"]),
-            "Highlight",
-            color=rgb,
-            opacity=0.5,
-        )
+            annot = page.annotation()
+            annot.markup(
+                box["text"],
+                _bbox2markup(xresolution, yresolution, height, box["bbox"]),
+                "Highlight",
+                color=rgb,
+                opacity=0.5,
+            )

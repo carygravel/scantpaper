@@ -522,6 +522,21 @@ def test_encrypt_pdf():
         assert "user_pw" in cmd
 
 
+def test_encrypt_pdf_failure():
+    "Test _encrypt_pdf function when pdftk fails"
+    request = MagicMock()
+    options = {"path": "/tmp/output.pdf", "options": {"user-password": "password"}}
+    mock_spo = MagicMock()
+    mock_spo.returncode = 1
+    mock_spo.stderr = "pdftk error"
+    with patch("savethread.subprocess.run", return_value=mock_spo):
+        ret = _encrypt_pdf("/tmp/input.pdf", options, request)
+        assert ret == 1
+        assert request.error.called
+        args, _ = request.error.call_args
+        assert "pdftk error" in args[0]
+
+
 def test_prepare_output_metadata():
     "Test prepare_output_metadata function"
     metadata = {
