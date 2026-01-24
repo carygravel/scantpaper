@@ -325,6 +325,9 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
         return number, thumb, page_id
 
+    # TODO: Commit a95296e93b392b35285d00bc633a9aa94c76995c fixed a bug
+    # seemingly deleting extra pages. Please write a test which passes after
+    # this commit, but fails before it.
     def do_delete_pages(self, request):
         "delete a page from the database"
         self._check_write_tid()
