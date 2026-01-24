@@ -291,6 +291,37 @@ def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
         assert "tiff2ps" in mock_exec.call_args[0][0]
 
 
+def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
+    "Test save_tiff method to PS with failure"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.tif",
+        "list_of_pages": [1],
+        "options": {"ps": "/tmp/output.ps"},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_tiff", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.NamedTemporaryFile"), patch(
+        "savethread.subprocess.run"
+    ), patch("savethread.exec_command") as mock_exec, patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._post_save_hook"
+    ):
+
+        mock_exec.return_value.returncode = 1
+        mock_exec.return_value.stderr = "Error converting"
+
+        mock_thread_instance.do_save_tiff(request)
+
+        assert mock_exec.called
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+
+
 def test_save_image(mock_thread_instance, mock_page_instance):
     "Test save_image method"
     mock_thread_instance.mock_pages[1] = mock_page_instance

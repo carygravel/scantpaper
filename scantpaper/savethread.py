@@ -201,17 +201,22 @@ class SaveThread(Importhread):
 
                 # Write the metadata
                 for key, val in metadata.items():
-                    if val is None:
-                        continue
+                    if val is not None:
 
-                    # backslash-escape any double quotes and bashslashes
-                    val = re.sub(
-                        r"\\", r"\\\\", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
-                    )
-                    val = re.sub(
-                        r"\"", r"\\\"", val, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
-                    )
-                    fhd.write(f'{key} "{val}"\n')
+                        # backslash-escape any double quotes and bashslashes
+                        val = re.sub(
+                            r"\\",
+                            r"\\\\",
+                            val,
+                            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                        )
+                        val = re.sub(
+                            r"\"",
+                            r"\\\"",
+                            val,
+                            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                        )
+                        fhd.write(f'{key} "{val}"\n')
 
                 fhd.write(")\n")
                 fhd.flush()
