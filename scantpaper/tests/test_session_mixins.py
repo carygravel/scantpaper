@@ -600,6 +600,27 @@ def test_ask_question(mocker, mock_session_window):
     assert response == Gtk.ResponseType.CANCEL
 
 
+def test_ask_question_with_default_response(mocker, mock_session_window):
+    "Test _ask_question with default-response"
+    mocker.patch("session_mixins.filter_message", return_value="filtered_text")
+    mocker.patch("session_mixins.response_stored", return_value=False)
+
+    mock_dialog_cls = mocker.patch("session_mixins.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    kwargs = {
+        "parent": None,
+        "type": Gtk.MessageType.QUESTION,
+        "buttons": Gtk.ButtonsType.OK_CANCEL,
+        "text": "Question?",
+        "default-response": Gtk.ResponseType.OK,
+    }
+    response = mock_session_window._ask_question(**kwargs)
+    assert response == Gtk.ResponseType.OK
+    mock_dialog.set_default_response.assert_called_with(Gtk.ResponseType.OK)
+
+
 def test_ocr_text_operations(mocker, mock_session_window):
     "Test OCR text operations: add, copy, delete"
     mock_session_window.slist.thread._take_snapshot = mocker.Mock()
