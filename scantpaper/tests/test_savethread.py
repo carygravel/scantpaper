@@ -474,3 +474,124 @@ def test_add_annotations_to_pdf():
         _add_annotations_to_pdf(mock_pdf_page, mock_gs_page)
 
         assert mock_pdf_page.annotation.called
+
+
+def test_save_pdf_with_password(mock_thread_instance, mock_page_instance):
+    "Test save_pdf method with password protection"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {"user-password": "password"},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.TemporaryDirectory"), patch(
+        "savethread.tempfile.NamedTemporaryFile"
+    ), patch("savethread.open", mock_open()), patch(
+        "savethread.img2pdf.convert", return_value=b"pdf_data"
+    ), patch(
+        "savethread.ocrmypdf.api._pdf_to_hocr"
+    ), patch(
+        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+    ), patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._set_timestamp"
+    ), patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.pathlib.Path"
+    ), patch(
+        "savethread._encrypt_pdf", return_value=0
+    ) as mock_encrypt:
+
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_encrypt.called
+
+
+def test_save_pdf_with_password_failure(mock_thread_instance, mock_page_instance):
+    "Test save_pdf method with password protection failure"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {"user-password": "password"},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.TemporaryDirectory"), patch(
+        "savethread.tempfile.NamedTemporaryFile"
+    ), patch("savethread.open", mock_open()), patch(
+        "savethread.img2pdf.convert", return_value=b"pdf_data"
+    ), patch(
+        "savethread.ocrmypdf.api._pdf_to_hocr"
+    ), patch(
+        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+    ), patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._set_timestamp"
+    ) as mock_timestamp, patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.pathlib.Path"
+    ), patch(
+        "savethread._encrypt_pdf", return_value=1
+    ) as mock_encrypt:
+
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_encrypt.called
+        assert not mock_timestamp.called
+
+
+def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
+    "Test save_pdf method with PS conversion failure"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {"ps": "/tmp/output.ps", "pstool": "pdf2ps"},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.TemporaryDirectory"), patch(
+        "savethread.tempfile.NamedTemporaryFile"
+    ), patch("savethread.open", mock_open()), patch(
+        "savethread.img2pdf.convert", return_value=b"pdf_data"
+    ), patch(
+        "savethread.ocrmypdf.api._pdf_to_hocr"
+    ), patch(
+        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+    ), patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._set_timestamp"
+    ), patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.pathlib.Path"
+    ), patch(
+        "savethread.exec_command"
+    ) as mock_exec:
+
+        # Simulate failure
+        mock_exec.return_value.returncode = 1
+        mock_exec.return_value.stderr = "Error converting"
+
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_exec.called
+        assert mock_thread_instance.responses.put.called
