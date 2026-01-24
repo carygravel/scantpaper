@@ -427,6 +427,40 @@ def test_user_defined(mock_thread_instance, mock_page_instance):
         assert mock_thread_instance.responses.put.called
 
 
+def test_user_defined_copy_failure(mock_thread_instance, mock_page_instance):
+    "Test user_defined method with copy failure"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "page": 1,
+        "dir": "/tmp",
+        "command": "echo %i",  # No %o here
+        "uuid": "uuid",
+        "page_uuid": "page_uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
+        "savethread.shutil.copy2", return_value=None
+    ) as mock_copy:
+
+        mock_infile = MagicMock()
+        mock_infile.name = "infile"
+        mock_outfile = MagicMock()
+        mock_outfile.name = "outfile"
+
+        mock_temp.return_value.__enter__.side_effect = [
+            mock_infile,
+            mock_outfile,
+        ]
+
+        mock_thread_instance.do_user_defined(request)
+
+        assert mock_copy.called
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+
+
 def test_set_timestamp():
     "Test _set_timestamp function"
     options = {
