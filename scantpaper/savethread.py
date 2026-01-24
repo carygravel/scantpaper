@@ -395,11 +395,6 @@ class SaveThread(Importhread):
 
         _post_save_hook(options["path"], options["options"])
 
-    def set_paper_sizes(self, paper_sizes):
-        "set paper sizes"
-        self.paper_sizes = paper_sizes
-        return self.send("paper_sizes", paper_sizes)
-
     def do_set_paper_sizes(self, request):
         "set paper sizes in thread"
         paper_sizes = request.args[0]
