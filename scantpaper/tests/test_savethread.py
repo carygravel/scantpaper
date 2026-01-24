@@ -9,6 +9,7 @@ from savethread import (
     _set_timestamp,
     _post_save_hook,
     _encrypt_pdf,
+    _append_pdf,
     _add_annotations_to_pdf,
 )
 from basethread import Request
@@ -718,3 +719,28 @@ def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
 
         assert mock_exec.called
         assert mock_thread_instance.responses.put.called
+
+
+def test_append_pdf_rename_failure():
+    "Test _append_pdf function when os.rename raises ValueError"
+    request = MagicMock()
+    options = {"options": {"prepend": "/tmp/prepend.pdf"}, "pidfile": "pidfile"}
+    with patch("savethread.os.rename", side_effect=ValueError("Rename error")):
+        ret = _append_pdf("/tmp/temp.pdf", options, request)
+        assert ret is None
+        assert request.error.called
+
+
+def test_append_pdf_pdfunite_failure():
+    "Test _append_pdf function when pdfunite fails"
+    request = MagicMock()
+    options = {"options": {"prepend": "/tmp/prepend.pdf"}, "pidfile": "pidfile"}
+    mock_proc = MagicMock()
+    mock_proc.returncode = 1
+    mock_proc.stderr = "pdfunite error"
+    with patch("savethread.os.rename"), patch(
+        "savethread.exec_command", return_value=mock_proc
+    ):
+        ret = _append_pdf("/tmp/temp.pdf", options, request)
+        assert ret == 1
+        assert request.error.called
