@@ -278,6 +278,17 @@ def test_zoom_methods(mock_session_window):
     mock_session_window.view.zoom_out.assert_called_once()
 
 
+def test_find_crashed_sessions_default_tmpdir(mocker, mock_session_window):
+    "Test _find_crashed_sessions with None tmpdir"
+    mocker.patch("glob.glob", return_value=[])
+    mock_gettempdir = mocker.patch("tempfile.gettempdir", return_value="/tmp/default")
+
+    mock_session_window._find_crashed_sessions(None)
+
+    mock_gettempdir.assert_called_once()
+    assert mock_session_window.session is None
+
+
 def test_find_crashed_sessions_no_sessions(mocker, mock_session_window):
     "Test _find_crashed_sessions with no crashed sessions"
     mocker.patch("glob.glob", return_value=[])
