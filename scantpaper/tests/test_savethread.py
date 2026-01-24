@@ -461,6 +461,30 @@ def test_user_defined_copy_failure(mock_thread_instance, mock_page_instance):
         assert args[0].type.name == "ERROR"
 
 
+def test_user_defined_exception(mock_thread_instance, mock_page_instance):
+    "Test user_defined method with PermissionError"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "page": 1,
+        "dir": "/tmp",
+        "command": "echo %i %o",
+        "uuid": "uuid",
+        "page_uuid": "page_uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with patch(
+        "savethread.tempfile.NamedTemporaryFile",
+        side_effect=PermissionError("Permission denied"),
+    ):
+        mock_thread_instance.do_user_defined(request)
+
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+        assert "Permission denied" in args[0].info
+
+
 def test_set_timestamp():
     "Test _set_timestamp function"
     options = {
