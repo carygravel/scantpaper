@@ -227,9 +227,6 @@ class SessionMixins:
 
         for name, stream, regex, cmd in dependency_rules:
             self._dependencies[name] = program_version(stream, regex, cmd)
-            if self._dependencies[name] and self._dependencies[name] == "-1":
-                del self._dependencies[name]
-
             if (
                 not self._dependencies["imagemagick"]
                 and self._dependencies["graphicsmagick"]
