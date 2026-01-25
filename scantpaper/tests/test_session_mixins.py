@@ -144,6 +144,8 @@ def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
     mocker.patch("session_mixins.get_tmp_dir", return_value=EMPTY)
     mocker.patch("session_mixins.fcntl.lockf")
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mock_temp_dir_instance = mock_temp_dir.return_value
+    mock_temp_dir_instance.name = "/tmp/gscan2pdf-fallback"
     mocker.patch("builtins.open", mocker.mock_open())
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
@@ -849,3 +851,53 @@ def test_create_txt_ann_canvas(mocker, mock_session_window):
     mock_session_window._create_ann_canvas(mock_page)
     mock_session_window.a_canvas.set_text.assert_called()
     mock_session_window.a_canvas.set_offset.assert_called_with(10, 20)
+
+
+def test_ann_text_new_no_layer(mocker, mock_session_window):
+    "Test _ann_text_new with no existing text layer and empty text"
+    from const import EMPTY
+
+    mock_session_window._ann_hbox = mocker.Mock()
+    # Line 643 coverage: text is EMPTY
+    mock_session_window._ann_hbox._textbuffer.get_text.return_value = EMPTY
+
+    # Mock _current_page so it doesn't have text_layer (Lines 655-674 coverage)
+    # and supports dict access
+    mock_page = mocker.MagicMock()
+    del mock_page.text_layer
+    page_data = {"width": 100, "height": 100}
+
+    def getitem(key):
+        return page_data.get(key)
+
+    def setitem(key, value):
+        page_data[key] = value
+
+    mock_page.__getitem__.side_effect = getitem
+    mock_page.__setitem__.side_effect = setitem
+    mock_session_window._current_page = mock_page
+
+    mock_session_window.view.get_selection.return_value = {
+        "x": 0,
+        "y": 0,
+        "width": 10,
+        "height": 10,
+    }
+
+    # Line 671-672 coverage: need to call the callback passed to _create_ann_canvas
+    def create_ann_canvas_side_effect(_page, callback):
+        callback(None)
+
+    mock_session_window._create_ann_canvas = mocker.Mock(
+        side_effect=create_ann_canvas_side_effect
+    )
+    mock_session_window._edit_annotation = mocker.Mock()
+    mock_session_window.a_canvas = mocker.Mock()
+
+    mock_session_window._ann_text_new(None)
+
+    # Verify line 643 was hit (text became default)
+    assert "my-new-annotation" in page_data["annotations"]
+    # Verify lines 671-672 were hit
+    mock_session_window.a_canvas.get_first_bbox.assert_called()
+    mock_session_window._edit_annotation.assert_called()
