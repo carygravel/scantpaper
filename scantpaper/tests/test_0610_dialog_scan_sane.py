@@ -1124,3 +1124,64 @@ def test_multiple_values_option(mocker, sane_scan_dialog):
             break
 
     assert found_button, "Button for multiple values option should be found"
+
+
+def test_switch_and_button_widgets(mocker, sane_scan_dialog):
+    "test switch and button widgets"
+
+    dialog = sane_scan_dialog
+
+    # Patch d_sane to just return the input
+    mocker.patch("dialog.sane.d_sane", side_effect=lambda x: x)
+
+    # Mock options: one boolean and one button
+    group_opt = Option(
+        0, "group", "Group", "desc", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None
+    )
+    bool_opt = Option(
+        1,
+        "test-bool",
+        "Test Bool",
+        "desc",
+        enums.TYPE_BOOL,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        None,
+    )
+    button_opt = Option(
+        2,
+        "test-button",
+        "Test Button",
+        "desc",
+        enums.TYPE_BUTTON,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        None,
+    )
+    options = Options([group_opt, bool_opt, button_opt])
+
+    # Mock device_handle
+    dialog.thread.device_handle = MagicMock()
+    setattr(dialog.thread.device_handle, "test_bool", False)
+
+    dialog._initialise_options(options)
+
+    # Now we should have widgets in dialog.option_widgets
+    switch_widget = dialog.option_widgets["test-bool"]
+    button_widget = dialog.option_widgets["test-button"]
+
+    assert isinstance(switch_widget, Gtk.Switch)
+    assert isinstance(button_widget, Gtk.Button)
+
+    # Mock set_option
+    dialog.set_option = MagicMock()
+
+    # Trigger switch (Line 246-248)
+    switch_widget.set_active(True)
+    dialog.set_option.assert_called_with(bool_opt, True)
+
+    # Trigger button (Line 257-258)
+    button_widget.clicked()
+    dialog.set_option.assert_called_with(button_opt, None)

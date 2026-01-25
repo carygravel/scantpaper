@@ -253,7 +253,7 @@ class SaneScanDialog(Scan):
     def _create_widget_button(self, opt):
         widget = Gtk.Button(label=d_sane(opt.title))
 
-        def clicked_button_cb():
+        def clicked_button_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
             self.set_option(opt, None)
 
