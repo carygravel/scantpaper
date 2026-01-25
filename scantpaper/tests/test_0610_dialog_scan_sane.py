@@ -4,9 +4,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 import pytest
 from dialog.sane import SaneScanDialog
+from frontend import enums
 from frontend.enums import TYPE_INT
-from scanner.options import Options
+from scanner.options import Options, Option
 from scanner.profile import Profile
+from gi.repository import Gtk
 
 
 def test_1(sane_scan_dialog):
@@ -1060,3 +1062,65 @@ def test_sane_scan_dialog_errors(mocker, sane_scan_dialog, mainloop_with_timeout
     loop.run()
 
     assert callbacks == 2
+
+
+def test_multiple_values_option(mocker, sane_scan_dialog):
+    "test option with multiple values (list) to cover line 221"
+
+    dialog = sane_scan_dialog
+
+    # Patch d_sane to just return the input
+    mocker.patch("dialog.sane.d_sane", side_effect=lambda x: x)
+
+    # Use real Options object
+    # Option index, name, title, desc, type, unit, size, cap, constraint
+    group_opt = Option(
+        0, "group", "Group", "desc", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None
+    )
+    multi_opt = Option(
+        1,
+        "test-multiple",
+        "Test Multiple",
+        "desc",
+        enums.TYPE_INT,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        None,
+    )
+    options = Options([group_opt, multi_opt])
+
+    # Mock device_handle to have a list value for this option
+    dialog.thread.device_handle = MagicMock()
+    setattr(dialog.thread.device_handle, "test_multiple", [1, 2, 3])
+
+    dialog._initialise_options(options)
+
+    # Scan through all children recursively
+    def find_button(container):
+        if (
+            isinstance(container, Gtk.Button)
+            and container.get_label() == "Test Multiple"
+        ):
+            return True
+        if hasattr(container, "get_children"):
+            for child in container.get_children():
+                if find_button(child):
+                    return True
+        if isinstance(container, Gtk.Bin):
+            child = container.get_child()
+            if child and find_button(child):
+                return True
+        return False
+
+    # Verify a button was created for this option
+    found_button = False
+    # SaneScanDialog.scan_options adds pages to notebook
+    # The first group option creates a page
+    for i in range(dialog.notebook.get_n_pages()):
+        page = dialog.notebook.get_nth_page(i)
+        if find_button(page):
+            found_button = True
+            break
+
+    assert found_button, "Button for multiple values option should be found"
