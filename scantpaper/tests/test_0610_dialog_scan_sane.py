@@ -1,7 +1,7 @@
 "test scan dialog"
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, ANY
 import pytest
 from dialog.sane import SaneScanDialog
 from frontend import enums
@@ -1232,3 +1232,46 @@ def test_entry_widget_activate(mocker, sane_scan_dialog):
     entry_widget.set_text("new value")
     entry_widget.emit("activate")
     dialog.set_option.assert_called_with(entry_opt, "new value")
+
+
+def test_set_option_clamping(sane_scan_dialog):
+    "test set_option clamping to cover lines 391 and 393"
+    dialog = sane_scan_dialog
+
+    # Mock an option with a tuple constraint
+    opt = Option(
+        1,
+        "test-clamping",
+        "Test Clamping",
+        "desc",
+        enums.TYPE_INT,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        (10, 20, 1),
+    )
+
+    # Mock thread.set_option to avoid actual thread interaction
+    dialog.thread.set_option = MagicMock()
+
+    # Test clamping to minimum (Line 391)
+    dialog.set_option(opt, 5)
+    dialog.thread.set_option.assert_called_with(
+        name=opt.name,
+        value=10,
+        started_callback=ANY,
+        running_callback=ANY,
+        finished_callback=ANY,
+        error_callback=ANY,
+    )
+
+    # Test clamping to maximum (Line 393)
+    dialog.set_option(opt, 25)
+    dialog.thread.set_option.assert_called_with(
+        name=opt.name,
+        value=20,
+        started_callback=ANY,
+        running_callback=ANY,
+        finished_callback=ANY,
+        error_callback=ANY,
+    )
