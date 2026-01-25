@@ -351,3 +351,20 @@ def test_do_analyse_empty_image(mocker):
 
     assert mock_page.mean == [0.0]
     assert mock_page.std_dev == [0.0]
+
+
+def test_executemany_no_params(mocker):
+    "test _executemany when params is None to cover line 111"
+    thread = DocThread(db=":memory:")
+    tid = threading.get_native_id()
+
+    # Pre-populate _con and _cur to bypass _connect's real DB connection
+    # and provide a mock cursor.
+    mock_cur = mocker.Mock()
+    thread._con[tid] = mocker.Mock()
+    thread._cur[tid] = mock_cur
+
+    # This should trigger line 111: self._cur[tid].executemany(query)
+    thread._executemany("dummy query")
+
+    mock_cur.executemany.assert_called_once_with("dummy query")
