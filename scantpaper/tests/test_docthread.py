@@ -502,6 +502,18 @@ def test_find_page_number_by_page_id_found(mocker):
     assert result == 5
 
 
+def test_find_page_number_by_page_id_not_found(mocker):
+    "test find_page_number_by_page_id when not found"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=None)
+
+    result = thread.find_page_number_by_page_id(1)
+    assert result is None
+
+
 def test_get_page_errors(mocker):
     "test get_page error conditions"
     thread = DocThread(db=":memory:")
