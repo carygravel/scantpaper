@@ -906,3 +906,62 @@ def test_update_dragged_edge_coverage(rose_png, mock_view):
     selector._update_dragged_edge("x", 20, 5, 30)
     assert selector.drag_start["x"] == 5  # line 312
     assert selector.h_edge == "upper"
+
+
+def test_imageview_coverage_complex(rose_png, mock_view):
+    "Cover various specific lines in imageview.py"
+    view = ImageView()
+
+    # 1. Line 518: do_draw return True if w <= 0 or h <= 0
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), False)
+    # Selection with 0 width
+    selection = Gdk.Rectangle()
+    selection.x, selection.y, selection.width, selection.height = 10, 10, 0, 10
+    view.set_selection(selection)
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 100, 100)
+    context = cairo.Context(surface)
+    assert view.do_draw(context) is True  # Should hit line 518 and return True
+
+    # 2. Line 550: do_scroll_event return if image_x is None
+    # image_x comes from to_image_coords, which returns None, None if offset is None
+    view_no_offset = mock_view
+    view_no_offset.set_pixbuf(None)  # No pixbuf -> no offset usually
+    # Force offset property to be None if set_pixbuf(None) doesn't do it
+    view_no_offset.set_property("offset", None)
+    event = MockEvent(button=0, x=10, y=10)
+    view_no_offset.do_scroll_event(event)  # Should return early at 550
+
+    # 3. Line 637: to_image_coords return None, None if offset is None
+    view.set_property("offset", None)
+    assert view.to_image_coords(10, 10) == (None, None)
+
+    # 4. Line 668: setzoom_is_fit with limit
+    view.setzoom_is_fit(True, limit=5.0)
+    assert view.zoom_to_fit_limit == 5.0
+
+    # 5. Line 756: set_tool raise ValueError
+    with pytest.raises(ValueError, match="invalid set_tool call"):
+        view.set_tool("Not a tool")
+
+    # 6. Line 770: set_selection return if pixbuf_size is None
+    view.set_pixbuf(None)
+    view.set_selection(selection)  # Should return early at 770
+
+    # 7. Line 836: _clamp_direction offset < allocation - pixbuf_size
+    # Use a fresh view to ensure clean state
+    view7 = ImageView()
+    view7.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), False)
+    view7.set_zoom(1.0)
+
+    # Mock allocation to be small (e.g., 10x10) so image is larger
+    alloc = Gdk.Rectangle()
+    alloc.x, alloc.y, alloc.width, alloc.height = 0, 0, 10, 10
+    view7.get_allocation = MagicMock(return_value=alloc)
+    view7.get_scale_factor = MagicMock(return_value=1.0)
+
+    # Try to set offset to -100 (way past -36 which is 10 - 46)
+    # Should clamp to allocation - pixbuf_size = 10 - 46 = -36 (y) or 10 - 70 = -60 (x)
+    view7.set_offset(-100, -100)
+    offset = view7.get_offset()
+    assert offset.x == -60  # 10 - 70
+    assert offset.y == -36  # 10 - 46
