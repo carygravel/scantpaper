@@ -368,3 +368,196 @@ def test_executemany_no_params(mocker):
     thread._executemany("dummy query")
 
     mock_cur.executemany.assert_called_once_with("dummy query")
+
+
+def test_open_newer_version(mocker):
+    "test open session file with newer version"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_connect")
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(
+        thread,
+        "_fetchone",
+        side_effect=[
+            (APPLICATION_ID,),
+            (USER_VERSION + 1,),
+            (1,),
+        ],
+    )
+    mock_logger = mocker.patch("docthread.logger")
+
+    thread.open("test.db")
+
+    mock_logger.warning.assert_called()
+    assert "%s was created by a newer version of gscan2pdf." in str(
+        mock_logger.warning.call_args
+    )
+
+
+def test_insert_image_not_found(mocker):
+    "test _insert_image with non-existent if_different_from"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.to_bytes.return_value = b"image"
+
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=None)
+
+    with pytest.raises(ValueError, match="Image id 1 not found"):
+        thread._insert_image(mock_page, if_different_from=1)
+
+
+def test_add_page_exists(mocker):
+    "test add_page when page already exists"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_take_snapshot")
+    mocker.patch.object(thread, "find_row_id_by_page_number", return_value=1)
+
+    mock_page = mocker.Mock(spec=Page)
+
+    with pytest.raises(ValueError, match="Page 1 already exists"):
+        thread.add_page(mock_page, number=1)
+
+
+def test_replace_page_not_found(mocker):
+    "test replace_page when page does not exist"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_take_snapshot")
+    mocker.patch.object(thread, "find_row_id_by_page_number", return_value=None)
+
+    mock_page = mocker.Mock(spec=Page)
+
+    with pytest.raises(ValueError, match="Page 1 does not exist"):
+        thread.replace_page(mock_page, number=1)
+
+
+def test_do_delete_pages_row_ids(mocker):
+    "test do_delete_pages with row_ids"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_take_snapshot")
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_executemany")
+    mocker.patch.object(thread, "_fetchall", return_value=[])
+    tid = threading.get_native_id()
+    thread._con[tid] = mocker.Mock()
+    thread._cur[tid] = mocker.Mock()
+
+    request = mocker.Mock()
+    request.args = [{"row_ids": [1, 2]}]
+
+    thread.do_delete_pages(request)
+
+    # We can inspect the calls if needed, or rely on execution
+    assert thread._execute.call_count >= 1
+
+
+def test_do_delete_pages_not_found(mocker):
+    "test do_delete_pages when page number does not exist"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_take_snapshot")
+    mocker.patch.object(thread, "find_row_id_by_page_number", return_value=None)
+
+    request = mocker.Mock()
+    request.args = [{"numbers": [1]}]
+
+    with pytest.raises(ValueError, match="Page 1 does not exist"):
+        thread.do_delete_pages(request)
+
+
+def test_do_delete_pages_no_args(mocker):
+    "test do_delete_pages with no args"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_take_snapshot")
+
+    request = mocker.Mock()
+    request.args = [{}]
+
+    with pytest.raises(ValueError, match="Specify either row_id, page_id or number"):
+        thread.do_delete_pages(request)
+
+
+def test_find_page_number_by_page_id_found(mocker):
+    "test find_page_number_by_page_id when found"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=[5])
+
+    result = thread.find_page_number_by_page_id(1)
+    assert result == 5
+
+
+def test_get_page_errors(mocker):
+    "test get_page error conditions"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    # Test no args
+    with pytest.raises(
+        ValueError, match="Please specify either page number or page id"
+    ):
+        thread.get_page()
+
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=None)
+
+    # Test number not found
+    with pytest.raises(ValueError, match="Page number 1 not found"):
+        thread.get_page(number=1)
+
+    # Test id not found
+    with pytest.raises(ValueError, match="Page id 1 not found"):
+        thread.get_page(id=1)
+
+
+def test_do_tesseract_no_lang(mocker):
+    "test do_tesseract with no language"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_page = mocker.Mock(spec=Page)
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "language": None}]
+
+    with pytest.raises(ValueError, match="No tesseract language specified"):
+        thread.do_tesseract(request)
+
+
+def test_do_unpaper_ioerror(mocker):
+    "test do_unpaper handling IOError"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.id = 1
+    mock_page.get_depth.return_value = 1
+    # Raising IOError from image.save to trigger the except block
+    mock_page.image_object = mocker.Mock()
+    mock_page.image_object.save.side_effect = IOError("Mocked IOError")
+
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "dir": "/tmp", "options": {"command": []}}]
+
+    thread.do_unpaper(request)
+
+    request.error.assert_called()
+    assert "Error creating file in /tmp: Mocked IOError" in str(request.error.call_args)
