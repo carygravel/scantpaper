@@ -1275,3 +1275,57 @@ def test_set_option_clamping(sane_scan_dialog):
         finished_callback=ANY,
         error_callback=ANY,
     )
+
+
+def test_scan_errors_and_clamping(mocker, sane_scan_dialog):
+    "test scan errors and clamping to cover lines 459, 461, 507, 508"
+    dialog = sane_scan_dialog
+    callbacks = 0
+
+    # Line 461: start == 1 and step < 0
+    def process_error_cb(_widget, process, message):
+        assert process == "scan"
+        assert "Must scan facing pages first" in message
+        nonlocal callbacks
+        callbacks += 1
+
+    dialog.connect("process-error", process_error_cb)
+    dialog.page_number_start = 1
+    dialog.page_number_increment = -1
+    dialog.scan()
+    assert callbacks == 1
+
+    # Line 459: step < 0 < num_pages
+    # Also trigger lines 507, 508 by mocking scan_pages to call error_callback
+    def mocked_scan_pages(**kwargs):
+        response = SimpleNamespace(status="Error scanning", info=None)
+        kwargs["error_callback"](response)
+
+    mocker.patch.object(dialog.thread, "scan_pages", side_effect=mocked_scan_pages)
+
+    def process_error_cb2(_widget, process, message):
+        assert process == "scan_pages"
+        assert message == "Error scanning"
+        nonlocal callbacks
+        callbacks += 1
+
+    dialog.connect("process-error", process_error_cb2)
+    dialog.page_number_start = 2
+    dialog.page_number_increment = -1
+    dialog.num_pages = 1
+    dialog.max_pages = 10
+
+    # We need to mock _get_xy_resolution too as it might fail if not fully initialized
+    mocker.patch.object(dialog, "_get_xy_resolution", return_value=(300, 300))
+
+    dialog.scan()
+
+    dialog.thread.scan_pages.assert_called_once()
+    _, kwargs = dialog.thread.scan_pages.call_args
+    assert kwargs["num_pages"] == 10  # max_pages
+    assert kwargs["start"] == 2
+    assert kwargs["step"] == -1
+
+    assert callbacks == 2
+    # Verify cursor was reset to default (Line 508)
+    assert dialog.cursor == "default"
