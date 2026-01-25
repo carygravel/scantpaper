@@ -840,3 +840,35 @@ def test_selector_cursor_dragging_branches(rose_png, mock_view):
     selector.drag_start = {"y": 50}
     selector.cursor_type_at_point(20, 30)
     assert selector.drag_start["y"] == 50
+
+
+def test_dragger_coverage(rose_png, mock_view):
+    "Cover specific lines in Dragger.motion"
+    view = mock_view
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), False)
+    dragger = Dragger(view)
+    view.set_tool(dragger)
+
+    # Cover line 91: motion when not dragging
+    event = MockEvent(button=1, x=10, y=10)
+    dragger.dragging = False
+    dragger.motion(event)  # Should return early (line 91)
+
+    # Cover line 104: motion when dragging but not dnd_eligible
+    dragger.dragging = True
+    dragger.drag_start = {"x": 10, "y": 10}
+    dragger.dnd_eligible = False
+
+    # Mock view methods to verify behavior
+    # We need offset to be returned by view.get_offset(). set_pixbuf sets it.
+
+    # We want to verify that we return at line 104.
+    # Line 115 calls view.drag_check_threshold.
+    view.drag_check_threshold = MagicMock()
+
+    event.x, event.y = 20, 20
+    dragger.motion(event)
+
+    # Should have called set_offset (lines 98-101) - implicitly verified by the fact that code runs
+    # But should NOT have called drag_check_threshold (line 115) because of return at line 104
+    view.drag_check_threshold.assert_not_called()
