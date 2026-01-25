@@ -665,6 +665,7 @@ def test_change_current_scan_option_signal(
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
+    loop = mainloop_with_timeout()
 
     def changed_current_scan_options_cb(_widget, profile, _uuid):
         nonlocal callbacks
@@ -680,7 +681,6 @@ def test_change_current_scan_option_signal(
     )
     options = dialog.available_scan_options
     dialog.set_option(options.by_name("resolution"), 51)
-    loop = mainloop_with_timeout()
     loop.run()
 
     assert callbacks == 1, "all callbacks executed"
@@ -757,8 +757,8 @@ def test_option_dependency(
     loop = mainloop_with_timeout()
     callbacks = 0
 
-    def process_error_cb(response):
-        assert False, "Should not throw error"
+    def process_error_cb(_self, process, message):
+        assert False, f"Should not throw error: {process} {message}"
 
     def changed_profile_cb(_widget, profile):
         dialog.disconnect(dialog.profile_signal)
@@ -860,6 +860,7 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
             assert n == 10, "new-scan emitted 10 times"
             nonlocal callbacks
             callbacks += 1
+            loop.quit()
 
     def changed_scan_option_cb(widget, option, value, _data):
         dialog.num_pages = 0
@@ -918,6 +919,7 @@ def test_scan_reverse_pages(
             assert n == 10, "new-scan emitted 10 times"
             nonlocal callbacks
             callbacks += 1
+            loop.quit()
 
     def error_process_cb(_widget, process):
         nonlocal callbacks
@@ -996,3 +998,65 @@ def test_integer_spinbutton(sane_scan_dialog, set_device_wait_reload):
     assert args[0].name == opt.name
     assert isinstance(args[1], int)
     dialog.thread.quit()
+
+
+def test_sane_scan_dialog_errors(mocker, sane_scan_dialog, mainloop_with_timeout):
+    "test error handling in scan_options"
+    dialog = sane_scan_dialog
+    loop = mainloop_with_timeout()
+    callbacks = 0
+
+    # Mock open_device to fail
+    def mocked_open_device(_self, **kwargs):
+        response = SimpleNamespace(
+            status="Error opening device", info=None, type=SimpleNamespace(name="ERROR")
+        )
+        kwargs["error_callback"](response)
+
+    mocker.patch("frontend.image_sane.SaneThread.open_device", mocked_open_device)
+
+    def process_error_cb(_widget, process, message):
+        assert process == "open_device"
+        assert "Error opening device" in message
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    dialog.connect("process-error", process_error_cb)
+    dialog.scan_options("test:0")
+    loop.run()
+
+    # Now mock open_device to succeed but get_options to fail
+    loop = mainloop_with_timeout()
+
+    def mocked_open_device_success(_self, **kwargs):
+        response = SimpleNamespace(
+            status="OK", info=None, type=SimpleNamespace(name="FINISHED")
+        )
+        kwargs["finished_callback"](response)
+
+    def mocked_get_options_fail(_self, **kwargs):
+        response = SimpleNamespace(
+            status="Error retrieving options",
+            info=None,
+            type=SimpleNamespace(name="ERROR"),
+        )
+        kwargs["error_callback"](response)
+
+    mocker.patch(
+        "frontend.image_sane.SaneThread.open_device", mocked_open_device_success
+    )
+    mocker.patch("frontend.image_sane.SaneThread.get_options", mocked_get_options_fail)
+
+    def process_error_cb2(_widget, process, message):
+        assert process == "find_scan_options"
+        assert "Error retrieving scanner options" in message
+        nonlocal callbacks
+        callbacks += 1
+        loop.quit()
+
+    dialog.connect("process-error", process_error_cb2)
+    dialog.scan_options("test:0")
+    loop.run()
+
+    assert callbacks == 2
