@@ -729,3 +729,142 @@ def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
     # the code path
     assert call_count > 0, "_set_option_profile was never called"
     assert call_count <= 10, "Loop detected (call count > 10)"
+
+
+def test_do_profile_changed(mocker):
+    "test _do_profile_changed callback"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock combobsp
+    mock_combo = mocker.Mock()
+    mock_combo.get_active_text.return_value = "TestProfile"
+
+    # Mock set_profile to avoid side effects
+    mock_set_profile = mocker.patch.object(dialog, "set_profile")
+
+    dialog._do_profile_changed(mock_combo)
+
+    assert dialog.num_reloads == 0
+    mock_set_profile.assert_called_with("TestProfile")
+
+
+def test_update_options_recursion_limit(mocker):
+    "test _update_options recursion limit"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.reload_recursion_limit = 5
+    dialog.num_reloads = 5
+
+    mock_logger = mocker.patch("dialog.scan.logger")
+    mock_emit = mocker.patch.object(dialog, "emit")
+    dialog._update_options(mocker.Mock())
+
+    assert dialog.num_reloads == 6
+    mock_logger.error.assert_called()
+    mock_emit.assert_called_with("process-error", "update_options", mocker.ANY)
+
+
+def test_set_option_profile_inexact(mocker):
+    "test _set_option_profile with INFO_INEXACT"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.thread = mocker.Mock()
+    dialog.thread.device_handle = mocker.Mock()
+
+    profile = Profile()
+    profile.add_backend_option("resolution", 300)
+
+    mock_opt = mocker.Mock()
+    mock_opt.name = "resolution"
+    mock_opt.cap = 0
+    mock_opt.type = enums.TYPE_INT
+    mock_opt.constraint = (0, 600, 1)
+
+    mock_options = mocker.Mock()
+    mock_options.by_name.return_value = mock_opt
+    dialog.available_scan_options = mock_options
+
+    # Simulate INEXACT info from previous call
+    dialog._option_info = {"resolution": enums.INFO_INEXACT}
+
+    mock_logger = mocker.patch("dialog.scan.logger")
+
+    # Mock set_option to ensure it's NOT called
+    dialog.set_option = mocker.Mock()
+
+    dialog._set_option_profile(profile, profile.each_backend_option())
+
+    mock_logger.warning.assert_any_call(
+        "Skip setting option '%s' to '%s', as previous call set SANE_INFO_INEXACT",
+        "resolution",
+        300,
+    )
+    dialog.set_option.assert_not_called()
+
+
+def test_update_widget_value_types(mocker):
+    "test _update_widget_value with various widget types"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # 1. CheckButton (BOOL)
+    opt_bool = mocker.Mock()
+    opt_bool.name = "bool_opt"
+    opt_bool.type = enums.TYPE_BOOL
+
+    widget_bool = mocker.Mock(spec=Gtk.CheckButton)
+    widget_bool.get_active.return_value = False
+    widget_bool.signal = "toggled"
+    dialog.option_widgets["bool_opt"] = widget_bool
+
+    dialog._update_widget_value(opt_bool, True)
+    widget_bool.set_active.assert_called_with(True)
+
+    # 2. SpinButton (INT/FIXED)
+    opt_spin = mocker.Mock()
+    opt_spin.name = "spin_opt"
+    opt_spin.type = enums.TYPE_INT
+
+    widget_spin = mocker.Mock(spec=Gtk.SpinButton)
+    widget_spin.get_value.return_value = 10
+    widget_spin.signal = "value-changed"
+    dialog.option_widgets["spin_opt"] = widget_spin
+
+    dialog._update_widget_value(opt_spin, 20)
+    widget_spin.set_value.assert_called_with(20)
+
+    # 3. ComboBox (String/List constraint)
+    opt_combo = mocker.Mock()
+    opt_combo.name = "combo_opt"
+    opt_combo.constraint = ["A", "B", "C"]
+
+    widget_combo = mocker.Mock(spec=Gtk.ComboBox)
+    widget_combo.get_active.return_value = 0  # "A"
+    widget_combo.signal = "changed"
+    dialog.option_widgets["combo_opt"] = widget_combo
+
+    dialog._update_widget_value(opt_combo, "B")
+    widget_combo.set_active.assert_called_with(1)
+
+    # 4. Entry (String)
+    opt_entry = mocker.Mock()
+    opt_entry.name = "entry_opt"
+
+    widget_entry = mocker.Mock(spec=Gtk.Entry)
+    widget_entry.get_text.return_value = "Old"
+    widget_entry.signal = "changed"
+    dialog.option_widgets["entry_opt"] = widget_entry
+
+    dialog._update_widget_value(opt_entry, "New")
+    widget_entry.set_text.assert_called_with("New")
+
+
+def test_get_label_for_option():
+    "test _get_label_for_option"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    hbox = Gtk.Box()
+    label = Gtk.Label(label="My Option")
+    widget = Gtk.Entry()
+    hbox.pack_start(label, False, False, 0)
+    hbox.pack_start(widget, False, False, 0)
+
+    dialog.option_widgets["my_opt"] = widget
+    assert dialog._get_label_for_option("my_opt") == "My Option"
