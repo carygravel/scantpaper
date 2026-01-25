@@ -1094,6 +1094,9 @@ def test_multiple_values_option(mocker, sane_scan_dialog):
     dialog.thread.device_handle = MagicMock()
     setattr(dialog.thread.device_handle, "test_multiple", [1, 2, 3])
 
+    # Update d_sane to just return the input
+    mocker.patch("dialog.sane.d_sane", side_effect=lambda x: x)
+
     dialog._initialise_options(options)
 
     # Scan through all children recursively
@@ -1185,3 +1188,47 @@ def test_switch_and_button_widgets(mocker, sane_scan_dialog):
     # Trigger button (Line 257-258)
     button_widget.clicked()
     dialog.set_option.assert_called_with(button_opt, None)
+
+
+def test_entry_widget_activate(mocker, sane_scan_dialog):
+    "test entry widget activate to cover lines 328-330"
+
+    dialog = sane_scan_dialog
+
+    # Patch d_sane to just return the input
+    mocker.patch("dialog.sane.d_sane", side_effect=lambda x: x)
+
+    # Mock an option with no constraint, which should trigger _create_widget_entry
+    group_opt = Option(
+        0, "group", "Group", "desc", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None
+    )
+    entry_opt = Option(
+        1,
+        "test-entry",
+        "Test Entry",
+        "desc",
+        enums.TYPE_STRING,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        None,
+    )
+    options = Options([group_opt, entry_opt])
+
+    # Mock device_handle
+    dialog.thread.device_handle = MagicMock()
+    setattr(dialog.thread.device_handle, "test_entry", "initial value")
+
+    dialog._initialise_options(options)
+
+    # Now we should have the widget in dialog.option_widgets
+    entry_widget = dialog.option_widgets["test-entry"]
+    assert isinstance(entry_widget, Gtk.Entry)
+
+    # Mock set_option
+    dialog.set_option = MagicMock()
+
+    # Trigger activate (Line 328-330)
+    entry_widget.set_text("new value")
+    entry_widget.emit("activate")
+    dialog.set_option.assert_called_with(entry_opt, "new value")

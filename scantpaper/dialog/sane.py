@@ -324,7 +324,7 @@ class SaneScanDialog(Scan):
         if val is not None and not opt.cap & enums.CAP_INACTIVE:
             widget.set_text(str(val))
 
-        def activate_entry_cb():
+        def activate_entry_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
             value = widget.get_text()
             self.set_option(opt, value)
