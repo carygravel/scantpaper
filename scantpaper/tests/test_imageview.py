@@ -872,3 +872,37 @@ def test_dragger_coverage(rose_png, mock_view):
     # Should have called set_offset (lines 98-101) - implicitly verified by the fact that code runs
     # But should NOT have called drag_check_threshold (line 115) because of return at line 104
     view.drag_check_threshold.assert_not_called()
+
+
+def test_update_dragged_edge_coverage(rose_png, mock_view):
+    "Cover _update_dragged_edge branches"
+    view = mock_view
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png.name), False)
+    selector = Selector(view)
+
+    # direction="x" -> h_edge, direction="y" -> v_edge
+
+    # 1. edge == "lower", direction in drag_start, s > drag_start[direction]
+    selector.h_edge = "lower"
+    selector.drag_start = {"x": 10}
+    selector._update_dragged_edge("x", 20, 5, 30)
+    assert selector.h_edge == "upper"
+
+    # 2. edge == "lower", direction in drag_start, s <= drag_start[direction]
+    selector.h_edge = "lower"
+    selector.drag_start = {"x": 30}
+    selector._update_dragged_edge("x", 20, 5, 30)
+    assert selector.h_edge == "lower"
+
+    # 3. edge == "upper", direction in drag_start, s < drag_start[direction]
+    selector.v_edge = "upper"
+    selector.drag_start = {"y": 30}
+    selector._update_dragged_edge("y", 20, 5, 30)
+    assert selector.v_edge == "lower"
+
+    # 4. edge == "upper", direction NOT in drag_start
+    selector.h_edge = "upper"
+    selector.drag_start = {}
+    selector._update_dragged_edge("x", 20, 5, 30)
+    assert selector.drag_start["x"] == 5  # line 312
+    assert selector.h_edge == "upper"
