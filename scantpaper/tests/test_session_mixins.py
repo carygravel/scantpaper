@@ -762,6 +762,31 @@ def test_edit_ocr_text(mocker, mock_session_window):
     mock_session_window.t_canvas.pointer_ungrab.assert_called_with("target", 123)
 
 
+def test_edit_annotation(mocker, mock_session_window):
+    "Test _edit_annotation"
+    mock_bbox = mocker.Mock()
+    mock_bbox.text = "some text"
+    mock_bbox.bbox = "bbox_rect"
+
+    mock_session_window._ann_hbox = mocker.Mock()
+    mock_session_window.a_canvas = mocker.Mock()
+
+    # Case bbox is set
+    mock_session_window._edit_annotation(mock_bbox)
+
+    mock_session_window._ann_hbox._textbuffer.set_text.assert_called_with("some text")
+    mock_session_window.view.set_selection.assert_called_with("bbox_rect")
+    mock_session_window.a_canvas.set_index_by_bbox.assert_called_with(mock_bbox)
+
+    # test with event
+    mock_ev = mocker.Mock()
+    mock_ev.time = 123
+    mock_session_window._edit_annotation(
+        mock_bbox, _target="target", ev=mock_ev, bbox=mock_bbox
+    )
+    mock_session_window.a_canvas.pointer_ungrab.assert_called_with("target", 123)
+
+
 def test_sync_callbacks(mocker, mock_session_window):
     "Test zoom/offset sync callbacks"
     mock_session_window._text_zoom_changed_callback(None, 2.0)
