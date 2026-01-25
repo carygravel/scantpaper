@@ -4,6 +4,7 @@ import os
 from unittest.mock import MagicMock
 import pytest
 import gi
+from const import EMPTY
 from session_mixins import SessionMixins
 
 gi.require_version("Gtk", "3.0")
@@ -139,7 +140,6 @@ def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
 
 def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
     "Test _create_temp_directory when get_tmp_dir returns EMPTY"
-    from const import EMPTY
 
     mocker.patch("session_mixins.get_tmp_dir", return_value=EMPTY)
     mocker.patch("session_mixins.fcntl.lockf")
@@ -855,7 +855,6 @@ def test_create_txt_ann_canvas(mocker, mock_session_window):
 
 def test_ann_text_new_no_layer(mocker, mock_session_window):
     "Test _ann_text_new with no existing text layer and empty text"
-    from const import EMPTY
 
     mock_session_window._ann_hbox = mocker.Mock()
     # Line 643 coverage: text is EMPTY
@@ -901,3 +900,52 @@ def test_ann_text_new_no_layer(mocker, mock_session_window):
     # Verify lines 671-672 were hit
     mock_session_window.a_canvas.get_first_bbox.assert_called()
     mock_session_window._edit_annotation.assert_called()
+
+
+def test_ocr_text_add_no_layer(mocker, mock_session_window):
+    "Test _ocr_text_add with no existing text layer and empty text"
+
+    mock_session_window._ocr_text_hbox = mocker.Mock()
+    # Line 587 coverage: text is EMPTY
+    mock_session_window._ocr_text_hbox._textbuffer.get_text.return_value = EMPTY
+
+    # Mock _current_page so it doesn't have text_layer (Lines 599-618 coverage)
+    # and supports dict access
+    mock_page = mocker.MagicMock()
+    del mock_page.text_layer
+    page_data = {"width": 100, "height": 100}
+
+    def getitem(key):
+        return page_data.get(key)
+
+    def setitem(key, value):
+        page_data[key] = value
+
+    mock_page.__getitem__.side_effect = getitem
+    mock_page.__setitem__.side_effect = setitem
+    mock_session_window._current_page = mock_page
+
+    mock_session_window.view.get_selection.return_value = {
+        "x": 0,
+        "y": 0,
+        "width": 10,
+        "height": 10,
+    }
+
+    # Line 615-616 coverage: need to call the callback passed to _create_txt_canvas
+    def create_txt_canvas_side_effect(_page, callback):
+        callback(None)
+
+    mock_session_window._create_txt_canvas = mocker.Mock(
+        side_effect=create_txt_canvas_side_effect
+    )
+    mock_session_window._edit_ocr_text = mocker.Mock()
+    mock_session_window.t_canvas = mocker.Mock()
+
+    mock_session_window._ocr_text_add(None)
+
+    # Verify line 587 was hit (text became default)
+    assert "my-new-word" in mock_session_window._current_page.text_layer
+    # Verify lines 615-616 were hit
+    mock_session_window.t_canvas.get_first_bbox.assert_called()
+    mock_session_window._edit_ocr_text.assert_called()
