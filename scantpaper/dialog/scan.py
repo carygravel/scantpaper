@@ -1137,14 +1137,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def _set_option_profile(self, profile, itr):
 
-        # We are likely switching devices. Bailing out.
-        # Fixes race condition tested by test_infinite_loop_reproduction()
-        if self.thread.device_handle is None:
-            self.cursor = "default"
-            if self.setting_current_scan_options:
-                self.setting_current_scan_options.pop()
-            return
-
         self.cursor = "wait"
         try:
             i = next(itr)
@@ -1189,7 +1181,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 return
 
             # Avoid a race condition where device_handle is None after a reload
-            # Tested by test_race_condition_device_switching()
+            # Tested by test_race_condition_device_switching() and
+            # test_infinite_loop_reproduction()
             if self.thread.device_handle is None:
                 logger.warning("Device handle is None. Skipping option '%s'.", name)
 
