@@ -1269,21 +1269,16 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             )
             widget.handler_block(widget.signal)
             if isinstance(widget, (Gtk.CheckButton, Gtk.Switch)):
-                if val == "":
-                    val = 0
                 if widget.get_active() != val:
                     widget.set_active(val)
-
             elif isinstance(widget, Gtk.SpinButton):
                 if widget.get_value() != val:
                     widget.set_value(val)
-
             elif isinstance(widget, Gtk.ComboBox):
                 if opt.constraint[widget.get_active()] != val:
                     index = opt.constraint.index(val)
                     if index > NO_INDEX:
                         widget.set_active(index)
-
             elif isinstance(widget, Gtk.Entry):
                 if widget.get_text() != val:
                     widget.set_text(val)
