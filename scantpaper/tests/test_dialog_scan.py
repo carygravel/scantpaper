@@ -868,3 +868,18 @@ def test_get_label_for_option():
 
     dialog.option_widgets["my_opt"] = widget
     assert dialog._get_label_for_option("my_opt") == "My Option"
+
+
+def test_pack_widget_unknown_type(mocker):
+    "test _pack_widget with None widget (unknown type)"
+    # pylint: disable=protected-access
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    mock_logger = mocker.patch("dialog.scan.logger")
+    opt = mocker.Mock()
+    opt.type = "unknown"
+    data = (mocker.Mock(), opt, mocker.Mock(), mocker.Mock())
+
+    dialog._pack_widget(None, data)
+
+    mock_logger.warning.assert_called_with("Unknown type %s", "unknown")
