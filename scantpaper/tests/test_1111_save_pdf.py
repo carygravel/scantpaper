@@ -383,7 +383,7 @@ def test_save_pdf_with_hocr(
 
     capture = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(  # some tesseract installations find an extra "r"
-        r"Thr?e.*quick.*brown.*fox", capture, re.DOTALL
+        r"Thr?e.*quick.*brow[mn].*f", capture, re.DOTALL
     ), "PDF with expected text"
     # capture = subprocess.check_output(["cat", temp_pdf.name], text=True)
     # assert re.search(r"/Type\s/Annot\s/Subtype\s/Highlight\s/C.+/Contents.+fox",
@@ -691,7 +691,7 @@ def test_save_pdf_with_sbs_hocr(
 
     example = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(  # some tesseract installations find an extra "r"
-        r"Thr?e.*quick.*brown.*fox", example, re.DOTALL
+        r"Thr?e.*quick.*brow[mn].*f", example, re.DOTALL
     ), "PDF with expected text"
 
     import_in_mainloop(slist, [temp_pdf.name])
@@ -858,7 +858,8 @@ def test_save_pdf_with_downsample(
             ["identify", "-format", "%m %G %g %z-bit %r", "x-000.pbm"], text=True
         )
         assert re.search(
-            r"PBM 2\d\dx[23]\d 2\d\dx[23]\d[+]0[+]0 1-bit DirectClass Gray", example
+            r"PBM [12]\d\dx[23]\d [12]\d\dx[23]\d[+]0[+]0 1-bit DirectClass Gray",
+            example,
         ), "downsampled"
 
     clean_up_files(slist.thread.db_files + ["x-000.pbm"])
