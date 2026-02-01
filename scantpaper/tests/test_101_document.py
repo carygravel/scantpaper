@@ -849,29 +849,32 @@ def test_document(rose_tif, clean_up_files):
 
 
 def test_import_scan(
+    temp_db,
     temp_pnm,
     temp_ppm,
     clean_up_files,
 ):  # FIXME: not sure we need this anymore, now we are passed Image objects around
     "test Document.import_scan()"
 
-    slist = Document()
+    slist = Document(db=temp_db.name)
 
     # build a cropped (i.e. too little data compared with header) pnm
     # to test padding code
+    with subprocess.Popen(
+        (config.CONVERT_COMMAND, "rose:", "-"), stdout=subprocess.PIPE
+    ) as rose:
+        output = rose.stdout.read()
+        rose.wait()
+        temp_pnm.write(output)
+        temp_pnm.flush()
+        os.fsync(temp_pnm.fileno())
+        temp_pnm.seek(0)
+        temp_pnm.truncate(1000)
+
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
     old = subprocess.check_output(
         ["identify", "-format", "%m %G %g %z-bit %r", temp_ppm.name]
     )
-
-    # To avoid piping one into the other. See
-    # https://stackoverflow.com/questions/13332268/how-to-use-subprocess-command-with-pipes
-    with subprocess.Popen(
-        (config.CONVERT_COMMAND, "rose:", "-"), stdout=subprocess.PIPE
-    ) as rose:
-        output = subprocess.check_output(("head", "-c", "-1K"), stdin=rose.stdout)
-        rose.wait()
-        temp_pnm.write(output)
 
     asserts = 0
     mlp = GLib.MainLoop()
