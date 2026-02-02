@@ -51,3 +51,18 @@ def test_get_file_info_zero_length(mocker, tmp_path):
     request = SimpleNamespace(args=(str(empty_file), None))
     with pytest.raises(RuntimeError, match="Error importing zero-length file"):
         thread.do_get_file_info(request)
+
+
+def test_get_djvu_info_no_djvudump(mocker):
+    "Test that error is raised when djvudump is not found"
+    mock_exec = mocker.patch("importthread.exec_command")
+    mock_exec.return_value = Proc(
+        returncode=0,
+        stdout="",
+        stderr="command not found",
+    )
+    thread = Importhread()
+    with pytest.raises(
+        RuntimeError, match="Please install djvulibre-bin in order to open DjVu files"
+    ):
+        thread._get_djvu_info(None, None)
