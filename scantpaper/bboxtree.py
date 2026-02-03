@@ -580,14 +580,14 @@ def _bbox_to_hocr(bbox, prev_depth, tags):
     tag = "span"
     if bbox["type"] == "page":
         tag = "div"
-
     elif re.search(r"^(?:carea|column)$", bbox["type"]):
         bbox_type = "ocr_carea"
         tag = "div"
-
     elif bbox["type"] == "para":
         bbox_type = "ocr_par"
         tag = "p"
+    elif bbox["type"] == "word":
+        bbox_type = "ocrx_word"
 
     string += " " * (2 + bbox["depth"]) + f"<{tag} class='{bbox_type}'"
     if "id" in bbox:

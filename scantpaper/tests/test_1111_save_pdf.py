@@ -325,25 +325,24 @@ def test_save_pdf_with_hocr(
 
     import_in_mainloop(slist, [temp_png.name])
 
-    hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
+    hocr = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
  <head>
   <title></title>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-  <meta name='ocr-system' content='tesseract 4.1.1' />
+  <meta name='ocr-system' content='tesseract 5.3.4' />
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word ocrp_wconf'/>
  </head>
  <body>
-  <div class='ocr_page' id='page_1' title='image "{temp_png.name}"; bbox 0 0 550 80; ppageno 0'>
-   <div class='ocr_carea' id='block_1_1' title="bbox 20 19 527 67">
-    <p class='ocr_par' id='par_1_1' lang='eng' title="bbox 20 19 527 67">
-     <span class='ocr_line' id='line_1_1' title="bbox 20 19 527 67; baseline 0 -10; x_size 47; x_descenders 9; x_ascenders 10">
-      <span class='ocrx_word' id='word_1_1' title='bbox 20 19 112 58; x_wconf 95'>The</span>
-      <span class='ocrx_word' id='word_1_2' title='bbox 132 19 264 67; x_wconf 96'>quick</span>
-      <span class='ocrx_word' id='word_1_3' title='bbox 284 19 432 58; x_wconf 95'>brown</span>
-      <span class='ocrx_word' id='word_1_4' title='bbox 453 19 527 58; x_wconf 96'>fox</span>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 136 38; ppageno 0; scan_res 300 300'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 20 13 115 26">
+    <p class='ocr_par' id='par_1_1' lang='eng' title="bbox 20 13 115 26">
+     <span class='ocr_line' id='line_1_1' title="bbox 20 13 115 26; baseline 0 -3; x_size 21.25; x_descenders 5.5; x_ascenders 5.25">
+      <span class='ocrx_word' id='word_1_1' title='bbox 16 4 36 33; x_wconf 66'>The</span>
+      <span class='ocrx_word' id='word_1_2' title='bbox 40 13 115 26; x_wconf 17'>quick brown</span>
+      <span class='ocrx_word' id='word_1_3' title='bbox 100 4 118 33; x_wconf 65'>fox</span>
      </span>
     </p>
    </div>
@@ -364,6 +363,15 @@ def test_save_pdf_with_hocr(
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
+    subprocess.run(["cp", temp_pdf.name, "fox.pdf"], check=True)
+
+    capture = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
+    assert re.search(  # some tesseract installations find an extra "r"
+        r"Thr?e.*quick.*brow[mn].*f", capture, re.DOTALL
+    ), "PDF with expected text"
+    # capture = subprocess.check_output(["cat", temp_pdf.name], text=True)
+    # assert re.search(r"/Type\s/Annot\s/Subtype\s/Highlight\s/C.+/Contents.+fox",
+    #                  capture) is not None, 'PDF with expected annotation'
 
     import_in_mainloop(slist, [temp_pdf.name])
 
@@ -380,14 +388,6 @@ def test_save_pdf_with_hocr(
     assert abs(page_height - height) < 2, "imported page height correct"
     # assert re.search(r"The.+quick.+brown.+fox", slist.data[1][2].annotations) \
     #     is not None, 'import annotations'
-
-    capture = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
-    assert re.search(  # some tesseract installations find an extra "r"
-        r"Thr?e.*quick.*brow[mn].*f", capture, re.DOTALL
-    ), "PDF with expected text"
-    # capture = subprocess.check_output(["cat", temp_pdf.name], text=True)
-    # assert re.search(r"/Type\s/Annot\s/Subtype\s/Highlight\s/C.+/Contents.+fox",
-    #                  capture) is not None, 'PDF with expected annotation'
 
     #########################
 

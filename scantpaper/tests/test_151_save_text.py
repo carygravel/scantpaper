@@ -152,10 +152,10 @@ def test_save_hocr_as_text(
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
-     <span class='ocr_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
-     <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
-     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
-     <span class='ocr_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
+     <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+     <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+     <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
     </span>
    </div>
   </div>
@@ -211,10 +211,10 @@ def test_save_hocr(
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
-     <span class='ocr_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
-     <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
-     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
-     <span class='ocr_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
+     <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+     <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+     <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
     </span>
    </div>
   </div>
@@ -276,17 +276,17 @@ def test_save_hocr_with_encoding(
    <div class='ocr_carea' id='block_1_9' title='bbox 1249 2403 2165 3246'>
     <p class='ocr_par' id='par_1_12' title='bbox 1250 2403 2165 3245'>
      <span class='ocr_line' id='line_1_70' title='bbox 1251 3205 2162 3245'>
-      <span class='ocr_word' id='word_1_518' title='bbox 1251 3205 1344 3236; x_wconf 92'>donc</span>
-      <span class='ocr_word' id='word_1_519' title='bbox 1359 3213 1401 3237; x_wconf 91'>un</span>
-      <span class='ocr_word' id='word_1_520' title='bbox 1416 3206 1532 3245; x_wconf 86'>village</span>
-      <span class='ocr_word' id='word_1_521' title='bbox 1546 3205 1567 3236; x_wconf 88'>à</span>
-      <span class='ocr_word' id='word_1_522' title='bbox 1581 3205 1700 3237; x_wconf 93'>Cuzco</span>
-      <span class='ocr_word' id='word_1_523' title='bbox 1714 3205 1740 3245; x_wconf 83'>(&lt;&lt;</span>
-      <span class='ocr_word' id='word_1_524' title='bbox 1756 3208 1871 3237; x_wconf 92'>centre</span>
-      <span class='ocr_word' id='word_1_525' title='bbox 1885 3207 1930 3237; x_wconf 93'>du</span>
-      <span class='ocr_word' id='word_1_526' title='bbox 1946 3207 2075 3237; x_wconf 91'>monde</span>
-      <span class='ocr_word' id='word_1_527' title='bbox 2090 3219 2105 3232; x_wconf 88'><strong><em>&gt;&gt;</em></strong></span>
-      <span class='ocr_word' id='word_1_528' title='bbox 2120 3215 2162 3237; x_wconf 93'>en</span>
+      <span class='ocrx_word' id='word_1_518' title='bbox 1251 3205 1344 3236; x_wconf 92'>donc</span>
+      <span class='ocrx_word' id='word_1_519' title='bbox 1359 3213 1401 3237; x_wconf 91'>un</span>
+      <span class='ocrx_word' id='word_1_520' title='bbox 1416 3206 1532 3245; x_wconf 86'>village</span>
+      <span class='ocrx_word' id='word_1_521' title='bbox 1546 3205 1567 3236; x_wconf 88'>à</span>
+      <span class='ocrx_word' id='word_1_522' title='bbox 1581 3205 1700 3237; x_wconf 93'>Cuzco</span>
+      <span class='ocrx_word' id='word_1_523' title='bbox 1714 3205 1740 3245; x_wconf 83'>(&lt;&lt;</span>
+      <span class='ocrx_word' id='word_1_524' title='bbox 1756 3208 1871 3237; x_wconf 92'>centre</span>
+      <span class='ocrx_word' id='word_1_525' title='bbox 1885 3207 1930 3237; x_wconf 93'>du</span>
+      <span class='ocrx_word' id='word_1_526' title='bbox 1946 3207 2075 3237; x_wconf 91'>monde</span>
+      <span class='ocrx_word' id='word_1_527' title='bbox 2090 3219 2105 3232; x_wconf 88'><strong><em>&gt;&gt;</em></strong></span>
+      <span class='ocrx_word' id='word_1_528' title='bbox 2120 3215 2162 3237; x_wconf 93'>en</span>
      </span>
     </p>
    </div>
@@ -342,10 +342,10 @@ def test_save_multipage_hocr(
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
-     <span class='ocr_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
-     <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
-     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
-     <span class='ocr_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
+     <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+     <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+     <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
     </span>
    </div>
   </div>
@@ -379,10 +379,10 @@ def test_save_multipage_hocr(
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
-     <span class='ocr_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
-     <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
-     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
-     <span class='ocr_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
+     <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+     <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+     <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
     </span>
    </div>
   </div>
@@ -390,10 +390,10 @@ def test_save_multipage_hocr(
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
-     <span class='ocr_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
-     <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
-     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
-     <span class='ocr_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
+     <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+     <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+     <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
     </span>
    </div>
   </div>
@@ -453,19 +453,19 @@ def test_save_hocr_structure(
 <div class='ocr_carea' id='block_1_3' title='bbox 87 578 328 685'>
 <p class='ocr_par' id='par_1_3' title='bbox 87 578 328 685'>
 <span class='ocr_header' id='header_1_1' title='bbox 88 578 328 609; baseline 0 -7'>
-<span class='ocr_word' id='word_1_7' title='bbox 88 578 143 602; x_wconf 96'>The</span>
-<span class='ocr_word' id='word_1_8' title='bbox 154 578 230 609; x_wconf 96'>quick</span>
-<span class='ocr_word' id='word_1_9' title='bbox 241 578 328 602; x_wconf 96'>brown</span>
+<span class='ocrx_word' id='word_1_7' title='bbox 88 578 143 602; x_wconf 96'>The</span>
+<span class='ocrx_word' id='word_1_8' title='bbox 154 578 230 609; x_wconf 96'>quick</span>
+<span class='ocrx_word' id='word_1_9' title='bbox 241 578 328 602; x_wconf 96'>brown</span>
 </span>
 <span class='ocr_caption' id='caption_1_1' title='bbox 87 616 302 647; baseline 0 -7i; textangle 0;'>
-<span class='ocr_word' id='word_1_10' title='bbox 87 616 130 640; x_wconf 96'>fox</span>
-<span class='ocr_word' id='word_1_11' title='bbox 139 616 228 647; x_wconf 96'>jumps</span>
-<span class='ocr_word' id='word_1_12' title='bbox 239 622 302 640; x_wconf 96'>over</span>
+<span class='ocrx_word' id='word_1_10' title='bbox 87 616 130 640; x_wconf 96'>fox</span>
+<span class='ocrx_word' id='word_1_11' title='bbox 139 616 228 647; x_wconf 96'>jumps</span>
+<span class='ocrx_word' id='word_1_12' title='bbox 239 622 302 640; x_wconf 96'>over</span>
 </span>
 <span class='ocr_footer' id='footer_1_1' title='bbox 87 654 272 685; baseline -0.005 -7'>
-<span class='ocr_word' id='word_1_13' title='bbox 87 655 132 678; x_wconf 96'>the</span>
-<span class='ocr_word' id='word_1_14' title='bbox 144 654 201 685; x_wconf 96'>lazy</span>
-<span class='ocr_word' id='word_1_15' title='bbox 211 654 272 684; x_wconf 96'>dog.</span>
+<span class='ocrx_word' id='word_1_13' title='bbox 87 655 132 678; x_wconf 96'>the</span>
+<span class='ocrx_word' id='word_1_14' title='bbox 144 654 201 685; x_wconf 96'>lazy</span>
+<span class='ocrx_word' id='word_1_15' title='bbox 211 654 272 684; x_wconf 96'>dog.</span>
 </span>
 </p>
 </div>
@@ -500,37 +500,37 @@ def test_save_hocr_structure(
    <div class='ocr_carea' id='block_1_1' title='bbox 87 578 328 685'>
     <p class='ocr_par' id='par_1_1' title='bbox 87 578 328 609'>
      <span class='ocr_line' id='line_1_1' title='bbox 87 578 328 609; baseline 0.01 -7; textangle 0'>
-      <span class='ocr_word' id='word_1_1' title='bbox 87 578 143 602; x_wconf 96'>The1</span>
-      <span class='ocr_word' id='word_1_2' title='bbox 154 578 231 609; x_wconf 96'>quick1</span>
-      <span class='ocr_word' id='word_1_3' title='bbox 241 578 328 602; x_wconf 96'>brown1</span>
+      <span class='ocrx_word' id='word_1_1' title='bbox 87 578 143 602; x_wconf 96'>The1</span>
+      <span class='ocrx_word' id='word_1_2' title='bbox 154 578 231 609; x_wconf 96'>quick1</span>
+      <span class='ocrx_word' id='word_1_3' title='bbox 241 578 328 602; x_wconf 96'>brown1</span>
      </span>
     </p>
    </div>
    <div class='ocr_carea' id='block_1_2' title='bbox 639 814 708 1054'>
     <p class='ocr_par' id='par_1_2' title='bbox 639 814 708 1054'>
      <span class='ocr_line' id='line_1_2' title='bbox 639 814 670 1053; textangle 90'>
-      <span class='ocr_word' id='word_1_4' title='bbox 639 998 663 1053; x_wconf 96'>The2</span>
-      <span class='ocr_word' id='word_1_5' title='bbox 639 911 670 987; x_wconf 96'>quick2</span>
-      <span class='ocr_word' id='word_1_6' title='bbox 639 814 664 900; x_wconf 96'>brown2</span>
+      <span class='ocrx_word' id='word_1_4' title='bbox 639 998 663 1053; x_wconf 96'>The2</span>
+      <span class='ocrx_word' id='word_1_5' title='bbox 639 911 670 987; x_wconf 96'>quick2</span>
+      <span class='ocrx_word' id='word_1_6' title='bbox 639 814 664 900; x_wconf 96'>brown2</span>
      </span>
     </p>
    </div>
    <div class='ocr_carea' id='block_1_3' title='bbox 87 578 328 685'>
     <p class='ocr_par' id='par_1_3' title='bbox 87 578 328 685'>
      <span class='ocr_header' id='header_1_1' title='bbox 88 578 328 609; baseline 0 -7'>
-      <span class='ocr_word' id='word_1_7' title='bbox 88 578 143 602; x_wconf 96'>The</span>
-      <span class='ocr_word' id='word_1_8' title='bbox 154 578 230 609; x_wconf 96'>quick</span>
-      <span class='ocr_word' id='word_1_9' title='bbox 241 578 328 602; x_wconf 96'>brown</span>
+      <span class='ocrx_word' id='word_1_7' title='bbox 88 578 143 602; x_wconf 96'>The</span>
+      <span class='ocrx_word' id='word_1_8' title='bbox 154 578 230 609; x_wconf 96'>quick</span>
+      <span class='ocrx_word' id='word_1_9' title='bbox 241 578 328 602; x_wconf 96'>brown</span>
      </span>
      <span class='ocr_caption' id='caption_1_1' title='bbox 87 616 302 647; baseline 0 -7; textangle 0'>
-      <span class='ocr_word' id='word_1_10' title='bbox 87 616 130 640; x_wconf 96'>fox</span>
-      <span class='ocr_word' id='word_1_11' title='bbox 139 616 228 647; x_wconf 96'>jumps</span>
-      <span class='ocr_word' id='word_1_12' title='bbox 239 622 302 640; x_wconf 96'>over</span>
+      <span class='ocrx_word' id='word_1_10' title='bbox 87 616 130 640; x_wconf 96'>fox</span>
+      <span class='ocrx_word' id='word_1_11' title='bbox 139 616 228 647; x_wconf 96'>jumps</span>
+      <span class='ocrx_word' id='word_1_12' title='bbox 239 622 302 640; x_wconf 96'>over</span>
      </span>
      <span class='ocr_footer' id='footer_1_1' title='bbox 87 654 272 685; baseline -0.005 -7'>
-      <span class='ocr_word' id='word_1_13' title='bbox 87 655 132 678; x_wconf 96'>the</span>
-      <span class='ocr_word' id='word_1_14' title='bbox 144 654 201 685; x_wconf 96'>lazy</span>
-      <span class='ocr_word' id='word_1_15' title='bbox 211 654 272 684; x_wconf 96'>dog.</span>
+      <span class='ocrx_word' id='word_1_13' title='bbox 87 655 132 678; x_wconf 96'>the</span>
+      <span class='ocrx_word' id='word_1_14' title='bbox 144 654 201 685; x_wconf 96'>lazy</span>
+      <span class='ocrx_word' id='word_1_15' title='bbox 211 654 272 684; x_wconf 96'>dog.</span>
      </span>
     </p>
    </div>

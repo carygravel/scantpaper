@@ -43,13 +43,13 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <div class='ocr_carea' id='block_1_1' title="bbox 1 14 420 59">
 <p class='ocr_par'>
 <span class='ocr_line' id='line_1_1' title="bbox 1 14 420 59; baseline -0.003 -17">
- <span class='ocr_word' id='word_1_1' title="bbox 1 14 77 48">
+ <span class='ocrx_word' id='word_1_1' title="bbox 1 14 77 48">
   <span class='xocr_word' id='xword_1_1' title="x_wconf -3 textangle 90">The</span></span>
- <span class='ocr_word' id='word_1_2' title="bbox 92 14 202 59">
+ <span class='ocrx_word' id='word_1_2' title="bbox 92 14 202 59">
   <span class='xocr_word' id='xword_1_2' title="x_wconf -3">quick</span></span>
- <span class='ocr_word' id='word_1_3' title="bbox 214 14 341 48">
+ <span class='ocrx_word' id='word_1_3' title="bbox 214 14 341 48">
   <span class='xocr_word' id='xword_1_3' title="x_wconf -3">brown</span></span>
- <span class='ocr_word' id='word_1_4' title="bbox 355 14 420 48">
+ <span class='ocrx_word' id='word_1_4' title="bbox 355 14 420 48">
   <span class='xocr_word' id='xword_1_4' title="x_wconf -4">fox</span></span>
 </span>
 </p>
@@ -131,10 +131,10 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59; baseline -0.003 -17'>
-     <span class='ocr_word' id='word_1_1' title='bbox 1 14 77 48; textangle 90; x_wconf -3'>The</span>
-     <span class='ocr_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
-     <span class='ocr_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
-     <span class='ocr_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; textangle 90; x_wconf -3'>The</span>
+     <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+     <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+     <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
     </span>
    </div>
   </div>
@@ -267,10 +267,10 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
    <div class='ocr_carea' id='block_1_1' title='bbox 1 9 490 55'>
     <p class='ocr_par' id='par_1' title='bbox 1 9 490 55'>
      <span class='ocr_line' id='line_1' title='bbox 1 9 490 55'>
-      <span class='ocr_word' id='word_1' title='bbox 1 9 88 45'><strong>The</strong></span>
-      <span class='ocr_word' id='word_2' title='bbox 106 9 235 55'>quick</span>
-      <span class='ocr_word' id='word_3' title='bbox 253 9 397 45'><em><strong>brown</strong></em></span>
-      <span class='ocr_word' id='word_4' title='bbox 416 9 490 45'><strong><em>fox</em></strong></span>
+      <span class='ocrx_word' id='word_1' title='bbox 1 9 88 45'><strong>The</strong></span>
+      <span class='ocrx_word' id='word_2' title='bbox 106 9 235 55'>quick</span>
+      <span class='ocrx_word' id='word_3' title='bbox 253 9 397 45'><em><strong>brown</strong></em></span>
+      <span class='ocrx_word' id='word_4' title='bbox 416 9 490 45'><strong><em>fox</em></strong></span>
      </span>
     </p>
    </div>

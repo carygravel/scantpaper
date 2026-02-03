@@ -99,7 +99,7 @@ class SaveThread(Importhread):
             for pagenr, page in enumerate(list_of_pages):
                 if page.text_layer:
                     with open(
-                        outdir / f"{pagenr:-06}__ocr_hocr.hocr", "w", encoding="utf-8"
+                        outdir / f"{pagenr+1:-06}_ocr_hocr.hocr", "w", encoding="utf-8"
                     ) as fhd:
                         fhd.write(page.export_hocr())
                 self.progress = pagenr / (len(options["list_of_pages"]) + 1)

@@ -107,11 +107,11 @@ CreationDate	"2018-12-31 13:00:00+01:00"
    <div class='ocr_carea' title='bbox 157 80 1725 174'>
     <p class='ocr_par' title='bbox 157 84 1725 171'>
      <span class='ocr_line' title='bbox 157 84 1725 171'>
-      <span class='ocr_word' title='bbox 157 90 241 155'>Füß—</span>
-      <span class='ocr_word' title='bbox 533 86 645 152'>LA</span>
-      <span class='ocr_word' title='bbox 695 86 1188 171'>MARQUISE</span>
-      <span class='ocr_word' title='bbox 1229 87 1365 151'>DE</span>
-      <span class='ocr_word' title='bbox 1409 84 1725 154'>GANGE</span>
+      <span class='ocrx_word' title='bbox 157 90 241 155'>Füß—</span>
+      <span class='ocrx_word' title='bbox 533 86 645 152'>LA</span>
+      <span class='ocrx_word' title='bbox 695 86 1188 171'>MARQUISE</span>
+      <span class='ocrx_word' title='bbox 1229 87 1365 151'>DE</span>
+      <span class='ocrx_word' title='bbox 1409 84 1725 154'>GANGE</span>
      </span>
     </p>
    </div>
