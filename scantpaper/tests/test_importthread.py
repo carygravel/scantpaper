@@ -66,3 +66,28 @@ def test_get_djvu_info_no_djvudump(mocker):
         RuntimeError, match="Please install djvulibre-bin in order to open DjVu files"
     ):
         thread._get_djvu_info(None, None)
+
+
+def test_get_djvu_info_corrupt(mocker):
+    "Test that error is raised when structure corrupt"
+    mock_exec = mocker.patch("importthread.exec_command")
+    mock_exec.return_value = Proc(
+        returncode=0,
+        stdout="""  FORM:DJVM [338]
+    DIRM [53]         Document directory (bundled, 2 files 2 pages)
+    FORM:DJVU [132] {2025-02-25.djvu} [P1]
+      INFO [10]         DjVu 157x196, v24, 72 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      BG44 [49]         IW4 data #1, 74 slices, v1.2 (b&w), 157x196
+      BG44 [7]          IW4 data #2, 15 slices
+      BG44 [4]          IW4 data #3, 10 slices
+    FORM:DJVI [124] {shared_anno.iff} [S]
+      ANTz [112]        Page annotation (hyperlinks, etc.)
+""",
+        stderr="",
+    )
+    thread = Importhread()
+    with pytest.raises(
+        RuntimeError, match="Unknown DjVu file structure. Please contact the author"
+    ):
+        thread._get_djvu_info({}, None)
