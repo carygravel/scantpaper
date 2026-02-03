@@ -250,7 +250,6 @@ class TestFileMenuMixins:
             "downsample": True,
             "downsample dpi": 150,
             "quality": 80,
-            "text_position": "above",
             "set_timestamp": True,
             "convert whitespace to underscores": True,
             "current_psh": "tool",
@@ -627,7 +626,6 @@ class TestFileMenuMixins:
         app._windowi.downsample_dpi = 150
         app._windowi.pdf_compression = "jpeg"
         app._windowi.jpeg_quality = 80
-        app._windowi.text_position = "above"
         app._windowi.comboboxpsh.get_active.return_value = 0
         app._windowi.comboboxpsh.get_active_text.return_value = "tool"
         app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
@@ -648,7 +646,6 @@ class TestFileMenuMixins:
         assert app.settings["downsample dpi"] == 150
         assert app.settings["pdf compression"] == "jpeg"
         assert app.settings["quality"] == 80
-        assert app.settings["text_position"] == "above"
         app._save_file_chooser.assert_called_with(["uuid1"])
 
     def test_save_button_clicked_callback_djvu(self, app):
@@ -899,7 +896,6 @@ class TestFileMenuMixins:
                 "downsample": True,
                 "downsample dpi": 150,
                 "quality": 80,
-                "text_position": "above",
                 "user-password": "password",
                 "set_timestamp": True,
                 "convert whitespace to underscores": True,

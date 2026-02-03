@@ -509,12 +509,6 @@ def test_other_save_dialog_callbacks(mocker):
     combops.set_active_index("pdf2ps")
     assert dialog.ps_backend == "pdf2ps"
 
-    # Test ocr_position_changed_callback
-    combot = find_widget_by_label(content_area, "Position of OCR output", Gtk.ComboBox)
-    assert combot is not None
-    combot.set_active_index("right")
-    assert dialog.text_position == "right"
-
     # Test downsample callbacks
     def find_checkbutton(container, label_text):
         for child in container.get_children():

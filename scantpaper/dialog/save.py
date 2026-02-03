@@ -42,10 +42,6 @@ PDF_COMPRESSION_ALGS = [
     ("jpg", _("JPEG"), _("Compress output with JPEG (DCT) encoding.")),
     ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
-OCR_POSITIONS = [
-    ["behind", _("Behind"), _("Put OCR output behind image.")],
-    ["right", _("Right"), _("Put OCR output to the right of the image.")],
-]
 PS_BACKENDS = [
     (
         "libtiff",
@@ -291,12 +287,6 @@ class Save(Dialog):
         default="auto",
         nick="PDF compression",
         blurb="Currently selected PDF compression method",
-    )
-    text_position = GObject.Property(
-        type=str,
-        default="behind",
-        nick="Text position",
-        blurb="Where to place the OCR output",
     )
     can_encrypt_pdf = GObject.Property(
         type=bool,
@@ -706,18 +696,7 @@ class Save(Dialog):
 
         spinbuttonq.connect("value-changed", jpg_quality_changed_callback)
         hbox.pack_end(combob, False, False, 0)
-        hbox = Gtk.Box()
-        vboxp.pack_start(hbox, True, True, 0)
-        label = Gtk.Label(label=_("Position of OCR output"))
-        hbox.pack_start(label, False, False, 0)
-        combot = ComboBoxText(data=OCR_POSITIONS)
 
-        def ocr_position_changed_callback(_widget):
-            self.text_position = combot.get_active_index()
-
-        combot.connect("changed", ocr_position_changed_callback)
-        combot.set_active_index(self.text_position)
-        hbox.pack_end(combot, False, False, 0)
         if self.can_encrypt_pdf:
             passb = Gtk.Button(_("Encrypt PDF"))
             vboxp.pack_start(passb, True, True, 0)

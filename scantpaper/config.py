@@ -49,7 +49,6 @@ DEFAULTS = {
     "datetime offset": datetime.timedelta(seconds=0),
     "pdf compression": "auto",
     "tiff compression": None,
-    "text_position": "behind",
     "quality": 75,
     "image type": None,
     "device": None,

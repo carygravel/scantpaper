@@ -749,7 +749,6 @@ class ToolsMenuMixins:
             downsample_dpi=self.settings["downsample dpi"],
             downsample=self.settings["downsample"],
             pdf_compression=self.settings["pdf compression"],
-            text_position=self.settings["text_position"],
             can_encrypt_pdf="pdftk" in self._dependencies,
         )
 
@@ -780,7 +779,6 @@ class ToolsMenuMixins:
                 "downsample": self.settings["downsample"],
                 "downsample dpi": self.settings["downsample dpi"],
                 "quality": self.settings["quality"],
-                "text_position": self.settings["text_position"],
                 "user-password": self._windowe.pdf_user_password,
             }
             filename = expand_metadata_pattern(

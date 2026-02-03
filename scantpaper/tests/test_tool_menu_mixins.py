@@ -749,7 +749,6 @@ def test_email_dialog(mocker, mock_tool_window):
         "downsample dpi": 300,
         "downsample": False,
         "pdf compression": "auto",
-        "text_position": "hidden",
         "default filename": "doc",
         "convert whitespace to underscores": True,
     }
@@ -813,7 +812,6 @@ def test_email_execution_flow(mocker, mock_tool_window):
         "downsample dpi": 300,
         "downsample": False,
         "pdf compression": "auto",
-        "text_position": "hidden",
         "default filename": "doc",
         "convert whitespace to underscores": True,
         "view files toggle": True,
@@ -881,7 +879,6 @@ def test_email_default_filename(mocker, mock_tool_window):
         "downsample dpi": 300,
         "downsample": False,
         "pdf compression": "auto",
-        "text_position": "hidden",
         "default filename": "doc",
         "convert whitespace to underscores": True,
         "view files toggle": False,
