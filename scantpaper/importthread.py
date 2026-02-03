@@ -158,7 +158,7 @@ class Importhread(BaseThread):
         except subprocess.CalledProcessError as err:
             logger.info("stdout: %s", err.stdout)
             logger.info("stderr: %s", err.stderr)
-            if (err.stderr is not None) and re.search(
+            if err.stderr is not None and re.search(
                 r"Incorrect[ ]password",
                 err.stderr,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,

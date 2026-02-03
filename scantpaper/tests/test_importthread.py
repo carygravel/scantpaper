@@ -1,5 +1,7 @@
 "Tests for Importhread"
 
+import subprocess
+import unittest.mock
 from types import SimpleNamespace
 import pytest
 from importthread import Importhread
@@ -91,3 +93,18 @@ def test_get_djvu_info_corrupt(mocker):
         RuntimeError, match="Unknown DjVu file structure. Please contact the author"
     ):
         thread._get_djvu_info({}, None)
+
+
+@unittest.mock.patch("subprocess.run")
+def test_get_pdf_info_error(mock_run):
+    "Test that request.error is thrown when pdfinfo returns error"
+    mock_run.side_effect = subprocess.CalledProcessError(
+        returncode=1,
+        cmd=["pdfinfo", "-isodates", "path/to/file.pdf"],
+        output="",
+        stderr="Permission denied",
+    )
+    thread = Importhread()
+    mock_request = unittest.mock.Mock()
+    thread._get_pdf_info({}, None, None, mock_request)
+    mock_request.error.assert_called_once_with("Permission denied")
