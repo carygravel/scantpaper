@@ -1,14 +1,13 @@
 "Test unpaper"
 
-import re
 import subprocess
-import tempfile
 import shutil
 import unittest.mock
 import pytest
 import config
 from document import Document
 from unpaper import Unpaper, _program_version, program_version
+from PIL import Image, ImageDraw
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -426,78 +425,34 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
+def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test unpaper"
 
     unpaper = Unpaper({"output-pages": 2, "layout": "double", "direction": "rtl"})
-    subprocess.run(
-        [
-            config.CONVERT_COMMAND,
-            "label:The quick brown fox",
-            "-alpha",
-            "Off",
-            "-depth",
-            "1",
-            "-border",
-            "2x2",
-            "-bordercolor",
-            "black",
-            "-family",
-            "DejaVu Sans",
-            "-pointsize",
-            "12",
-            "-density",
-            "300",
-            "1.pbm",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        [
-            config.CONVERT_COMMAND,
-            "label:The slower lazy dog",
-            "-alpha",
-            "Off",
-            "-depth",
-            "1",
-            "-border",
-            "2x2",
-            "-bordercolor",
-            "black",
-            "-family",
-            "DejaVu Sans",
-            "-pointsize",
-            "12",
-            "-density",
-            "300",
-            "2.pbm",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        [
-            config.CONVERT_COMMAND,
-            "xc:black",
-            "-size",
-            "100x100",
-            "black.pbm",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        [
-            config.CONVERT_COMMAND,
-            "1.pbm",
-            "black.pbm",
-            "2.pbm",
-            "+append",
-            temp_pbm.name,
-        ],
-        check=True,
-    )
+
+    # Image dimensions
+    height = 200
+    strip_width = 5
+    width = 200 * 2 + strip_width
+    x1 = [0, height + strip_width]
+    x2 = [height, width]
+    in_level = [(0, 255, 0), (255, 0, 0)]
+
+    # Create image
+    img = Image.new("RGB", (width, height), "black")
+    draw = ImageDraw.Draw(img)
+
+    # Draw left (green) & right (red) strips
+    for i in [0, 1]:
+        draw.rectangle(
+            [x1[i], 0, x2[i], height],
+            fill=in_level[i],
+        )
+
+    img.save(temp_pnm.name)
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [temp_pbm.name])
+    import_in_mainloop(slist, [temp_pnm.name])
 
     asserts = 0
 
@@ -522,49 +477,20 @@ def test_unpaper_rtl(temp_pbm, temp_db, import_in_mainloop, clean_up_files):
 
     assert asserts == 2, "all callbacks run"
 
-    def level_for_file(name):
-        return subprocess.check_output(
-            [
-                config.CONVERT_COMMAND,
-                name,
-                "-depth",
-                "1",
-                "-resize",
-                "1x1",
-                "txt:-",
-            ],
-            text=True,
-        )
-
-    in_level = []
     out_level = []
     for i in [0, 1]:
-        out = level_for_file(f"{i+1}.pbm")
-        regex = re.search(r"gray\((\d{2,3}(\.\d+)?)%?\)", out)
-        in_level.append(float(regex.group(1)))
-        with tempfile.NamedTemporaryFile(suffix=".pnm") as filename:
-            page = slist.thread.get_page(number=i + 1)
-            page.image_object.save(filename.name)
-            out = level_for_file(filename.name)
-        regex = re.search(r"gray\((\d{2,3}(\.\d+)?)%?\)", out)
-        assert regex, f"valid PNM created for page {i+1}"
-        out_level.append(float(regex.group(1)))
+        page = slist.thread.get_page(number=i + 1)
+        out_level.append(page.image_object.getpixel((100, 100)))
     assert (
         len(in_level) == 2
         and len(out_level) == 2
-        and ((in_level[0] > in_level[1]) == (out_level[1] > out_level[0]))
+        and in_level[0] == out_level[1]
+        and in_level[1] == out_level[0]
     ), "rtl"
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "1.pbm",
-            "2.pbm",
-            "black.pbm",
-        ]
-    )
+    clean_up_files(slist.thread.db_files)
 
 
 def test_unpaper_ui_toggles():
