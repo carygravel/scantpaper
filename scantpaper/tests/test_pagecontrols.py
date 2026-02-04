@@ -58,3 +58,19 @@ def test_reset_start_page_no_document():
     page_controls.document = None
     # Call the method and ensure no exceptions are raised
     page_controls.reset_start_page()
+
+
+def test_reset_start_page_no_data():
+    "Test that reset_start_page sets page_number_start to 1 when document has no data"
+    page_controls = PageControls()
+
+    # Mock the document with no data
+    mock_document = MagicMock()
+    mock_document.data = []
+    page_controls.document = mock_document
+
+    # Call the method
+    page_controls.reset_start_page()
+
+    # Assert that page_number_start is set to 1
+    assert page_controls.page_number_start == 1
