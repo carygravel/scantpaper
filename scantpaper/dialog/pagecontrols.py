@@ -451,7 +451,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self._update_num_pages()
 
     def reset_start_page(self):
-        """Reset start page number after delete or new"""
+        "Reset start page number after delete or new"
         slist = self.document
         if slist is None:
             return
@@ -465,7 +465,6 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
             self.page_number_start = 1
 
     def _flatbed_or_duplex_callback(self):
-
         options = self.available_scan_options
         if options is not None and hasattr(self, "thread") and hasattr(self, "_vboxx"):
             if options.flatbed_selected(self.thread.device_handle) or (

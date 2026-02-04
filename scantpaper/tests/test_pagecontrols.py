@@ -50,3 +50,11 @@ def test_update_start_page_value_less_than_one():
 
     # Assert that page_number_start is set to 1
     assert page_controls.page_number_start == 1
+
+
+def test_reset_start_page_no_document():
+    "Test that reset_start_page returns immediately when document is None"
+    page_controls = PageControls()
+    page_controls.document = None
+    # Call the method and ensure no exceptions are raised
+    page_controls.reset_start_page()
