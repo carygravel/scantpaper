@@ -603,10 +603,8 @@ class BaseDocument(SimpleList):
                 step = 1
             if selection is None:
                 selection = "all"
-            selection = []
             if selection == "selected":
                 selection = self.get_selected_indices()
-
             else:
                 selection = range(len(self.data))
 

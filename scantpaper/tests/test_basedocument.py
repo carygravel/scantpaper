@@ -294,11 +294,12 @@ def test_renumber_selected():
     slist.add_page(2, None, 102)
     slist.add_page(3, None, 103)
 
-    slist.select(1)  # page 2 (index 1)
+    slist.get_selection().unselect_all()
+    slist.select(2)  # page 3 (index 2)
     slist.renumber(start=10, step=1, selection="selected")
-    assert slist.data[0][0] == 10
-    assert slist.data[1][0] == 11
-    assert slist.data[2][0] == 12
+    assert slist.data[0][0] == 1
+    assert slist.data[1][0] == 2
+    assert slist.data[2][0] == 10
 
 
 def test_on_row_changed_sorting():
