@@ -471,7 +471,6 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
                 options.can_duplex() and not self.ignore_duplex_capabilities
             ):
                 self._vboxx.hide()
-
             else:
                 self._vboxx.show()
 
