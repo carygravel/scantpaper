@@ -26,3 +26,27 @@ def test_do_spin_buttoni_value_changed():
 
     # Assert that spin_buttoni.set_value() was called with the expected value
     spin_buttoni.set_value.assert_called_once_with(-page_controls.page_number_increment)
+
+
+def test_update_start_page_value_less_than_one():
+    "Test that update_start_page sets value to 1 when value < 1"
+    page_controls = PageControls()
+
+    # Mock the document and its pages_possible method
+    mock_document = MagicMock()
+
+    # Simulate pages_possible returning 0 for values < 1, then 1 for value >= 1
+    def pages_possible_side_effect(value, _step):
+        return 0 if value < 1 else 1
+
+    mock_document.pages_possible.side_effect = pages_possible_side_effect
+    page_controls.document = mock_document
+
+    # Set page_number_start to a value less than 1
+    page_controls._page_number_start = -5
+
+    # Call the method
+    page_controls.update_start_page()
+
+    # Assert that page_number_start is set to 1
+    assert page_controls.page_number_start == 1
