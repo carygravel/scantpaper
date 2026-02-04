@@ -379,7 +379,6 @@ class Importhread(BaseThread):
 
                     try:
                         page.import_djvu_ann(ann)
-
                     except (PermissionError, IOError) as err:
                         logger.error(
                             "Caught error parsing DjVU annotation layer: %s", err

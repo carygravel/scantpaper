@@ -96,6 +96,50 @@ def test_get_djvu_info_corrupt(mocker):
 
 
 @unittest.mock.patch("subprocess.run")
+@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.Page")
+def test_do_import_djvu_annotation_error(mock_page, mock_co, mock_run):
+    "Test that error is raised when import_djvu_ann raises an error"
+    mock_run.return_value = Proc(
+        returncode=0,
+        stdout="",
+        stderr="",
+    )
+    mock_co.return_value = Proc(
+        returncode=0,
+        stdout="",
+        stderr="",
+    )
+    # Configure the mock Page instance
+    mock_page_instance = mock_page.return_value
+    mock_page_instance.import_djvu_ann.side_effect = PermissionError(
+        "parsing DjVU annotation layer"
+    )
+
+    thread = Importhread()
+    thread.add_page = unittest.mock.Mock()
+    mock_request = unittest.mock.Mock()
+    mock_request.args = (
+        {
+            "first": 1,
+            "last": 1,
+            "dir": "/tmp",
+            "info": {
+                "path": "/to/file.djvu",
+                "ppi": [300],
+                "width": [100],
+                "height": [100],
+            },
+        },
+        None,
+    )
+    thread._do_import_djvu(mock_request)
+
+    # Assert that the error was logged and the request.error was called
+    mock_request.error.assert_called_once_with("Error: parsing DjVU annotation layer")
+
+
+@unittest.mock.patch("subprocess.run")
 def test_get_pdf_info_error(mock_run):
     "Test that request.error is thrown when pdfinfo returns error"
     mock_run.side_effect = subprocess.CalledProcessError(
