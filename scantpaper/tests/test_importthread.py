@@ -152,3 +152,35 @@ def test_get_pdf_info_error(mock_run):
     mock_request = unittest.mock.Mock()
     thread._get_pdf_info({}, None, None, mock_request)
     mock_request.error.assert_called_once_with("Permission denied")
+
+
+@unittest.mock.patch("subprocess.run")
+@unittest.mock.patch("subprocess.check_output")
+def test_get_pdf_images_error(mock_co, mock_run):
+    "Test that request.error is thrown when pdfimages returns error"
+    mock_co.return_value = """page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
+--------------------------------------------------------------------------------------------
+   1     0 image     157   196  gray    1   1  ccitt  no   [inline]      72    72    0B 0.0%
+"""
+    mock_run.side_effect = subprocess.CalledProcessError(
+        returncode=1,
+        cmd=["pdfimages", "-f"],
+        output="",
+        stderr="Permission denied",
+    )
+    thread = Importhread()
+    mock_request = unittest.mock.Mock()
+    mock_request.args = (
+        {
+            "first": 1,
+            "last": 1,
+            "dir": "/tmp",
+            "password": "",
+            "info": {
+                "path": "/to/file.djvu",
+            },
+        },
+        None,
+    )
+    thread._do_import_pdf(mock_request)
+    mock_request.error.assert_called_once_with("Error extracting images from PDF")
