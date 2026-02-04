@@ -14,7 +14,7 @@ from document import Document
 from basedocument import drag_data_received_callback, ID_URI, ID_PAGE
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
 @pytest.fixture(autouse=True)
@@ -399,6 +399,42 @@ def test_drag_data_received_callback_uri(mocker):
 
     drag_data_received_callback(tree, context, 0, 0, data, ID_URI, 123)
     tree.import_files.assert_called_with(paths=["file:///tmp/test.png"])
+
+
+def test_drag_data_received_callback_path_to_string():
+    "Test that path.to_string() is called when a valid path is provided"
+    # Mock the tree and context
+    tree = MagicMock()
+    context = MagicMock()
+
+    # Mock the row returned by get_dest_row_at_pos
+    mock_path = MagicMock()
+    mock_path.to_string.return_value = "mock_path"
+    tree.get_dest_row_at_pos.return_value = (mock_path, Gtk.TreeViewDropPosition.AFTER)
+
+    # Mock the copy_selection method to return an empty list
+    tree.copy_selection.return_value = []
+
+    # Mock the data and other parameters
+    data = MagicMock()
+    data.get_uris.return_value = []
+    xpos, ypos, info, time = 0, 0, ID_PAGE, 0
+
+    # Patch Gtk.drag_finish to avoid the TypeError
+    with patch("gi.repository.Gtk.drag_finish") as mock_drag_finish:
+        # Call the drag_data_received_callback
+        drag_data_received_callback(tree, context, xpos, ypos, data, info, time)
+
+        # Assert that path.to_string() was called
+        mock_path.to_string.assert_called_once()
+
+        # Assert that tree.paste_selection was called with the correct path
+        tree.paste_selection.assert_called_once_with(
+            data=[], dest="mock_path", how=Gtk.TreeViewDropPosition.AFTER
+        )
+
+        # Assert that Gtk.drag_finish was called
+        mock_drag_finish.assert_called_once_with(context, True, False, time)
 
 
 def test_pages_possible_extra():
