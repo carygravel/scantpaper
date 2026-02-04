@@ -223,3 +223,27 @@ def test_import_pdf_image_error(mock_page, mock_glob, mock_co, _mock_run):
 
     # Assert that the error was logged and the request.error was called
     mock_request.error.assert_called_once_with("Error importing PDF")
+
+
+@unittest.mock.patch("subprocess.run")
+def test_extract_text_from_pdf_error(mock_run):
+    "Test that request.error is thrown when pdftotext fails"
+    # Simulate a subprocess error when running pdftotext
+    mock_run.return_value = unittest.mock.Mock(returncode=1)
+
+    thread = Importhread()
+    mock_request = unittest.mock.Mock()
+    mock_request.args = (
+        {
+            "info": {
+                "path": "/to/file.pdf",
+            },
+            "dir": "/tmp",
+            "password": "",
+        },
+        None,
+    )
+
+    # Call the method and check for the error
+    thread._extract_text_from_pdf(mock_request, 1)
+    mock_request.error.assert_called_once_with("Error extracting text layer from PDF")
