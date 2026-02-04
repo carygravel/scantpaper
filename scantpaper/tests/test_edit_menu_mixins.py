@@ -295,6 +295,19 @@ def test_properties_dialog(mocker, mock_edit_window):
     assert page.resolution == (300, 300, "PixelsPerInch")
 
 
+def test_properties_window_present(mock_edit_window):
+    "Test that properties() calls self._windowp.present() if the window already exists"
+    # Mock the existing properties window
+    mock_windowp = MagicMock()
+    mock_edit_window._windowp = mock_windowp
+
+    # Call the properties() method
+    mock_edit_window.properties(None, None)
+
+    # Assert that present() was called on the existing window
+    mock_windowp.present.assert_called_once()
+
+
 def test_renumber_dialog(mocker, mock_edit_window):
     "Test renumber_dialog"
     mock_renumber_cls = mocker.patch("edit_menu_mixins.Renumber")
