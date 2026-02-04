@@ -239,10 +239,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         )
 
         # Actively set a radio button to synchronise GUI and properties
-        if self.num_pages > 0:
-            self._bscannum.set_active(True)
-        else:
-            self._bscanall.set_active(True)
+        self._bscannum.set_active(True)
 
         # vbox for duplex/simplex page numbering in order to be able to show/hide
         # them together.
