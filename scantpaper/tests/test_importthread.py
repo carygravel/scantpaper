@@ -184,3 +184,42 @@ def test_get_pdf_images_error(mock_co, mock_run):
     )
     thread._do_import_pdf(mock_request)
     mock_request.error.assert_called_once_with("Error extracting images from PDF")
+
+
+@unittest.mock.patch("subprocess.run")
+@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("glob.glob")
+@unittest.mock.patch("importthread.Page")
+def test_import_pdf_image_error(mock_page, mock_glob, mock_co, _mock_run):
+    "Test that request.error is thrown when importing individual images fails"
+    mock_co.return_value = """page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
+--------------------------------------------------------------------------------------------
+   1     0 image     157   196  gray    1   1  ccitt  no   [inline]      72    72    0B 0.0%
+"""
+
+    # Simulate the presence of image files
+    mock_glob.return_value = ["x-01.pnm"]
+
+    # Simulate an error during Page initialization
+    mock_page.side_effect = PermissionError("Error importing PDF")
+
+    thread = Importhread()
+    mock_request = unittest.mock.Mock()
+    mock_request.args = (
+        {
+            "first": 1,
+            "last": 1,
+            "dir": "/tmp",
+            "password": "",
+            "info": {
+                "path": "/to/file.pdf",
+            },
+        },
+        None,
+    )
+
+    # Call the method
+    thread._do_import_pdf(mock_request)
+
+    # Assert that the error was logged and the request.error was called
+    mock_request.error.assert_called_once_with("Error importing PDF")
