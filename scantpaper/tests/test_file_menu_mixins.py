@@ -1241,6 +1241,7 @@ class TestFileMenuMixins:
         "Test finished callback for _save_hocr."
         response = unittest.mock.Mock()
         app.slist.thread.send = unittest.mock.Mock()
+        app.settings["post_save_hook"] = True
 
         def mock_save_hocr(finished_callback, **_kwargs):
             finished_callback(response)
