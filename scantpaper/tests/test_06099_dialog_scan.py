@@ -5,7 +5,16 @@ from types import SimpleNamespace
 import unittest.mock
 import pytest
 from gi.repository import Gtk, GObject
-from dialog.scan import Scan, _value_for_active_option
+from dialog.scan import (
+    Scan,
+    _value_for_active_option,
+    make_progress_string,
+    _new_val,
+    _save_profile_callback,
+    _edit_profile_callback,
+    do_delete_profile_backend_item,
+    _build_profile_table,
+)
 from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile
@@ -457,8 +466,6 @@ class TestScanDialog:
 
     def test_make_progress_string(self):
         "Test make_progress_string"
-        from dialog.scan import make_progress_string
-
         assert "1 of 2" in make_progress_string(1, 2)
         assert "Scanning page 1" in make_progress_string(1, 0)
 
@@ -492,8 +499,6 @@ class TestScanDialog:
 
     def test_new_val(self):
         "Test _new_val utility function"
-        from dialog.scan import _new_val
-
         assert _new_val(1, 2)
         assert _new_val(None, 1)
         assert _new_val(1, None)
@@ -573,11 +578,32 @@ class TestScanDialog:
             mock_entry = mockentryclass.return_value
             mock_entry.get_text.return_value = "New Profile"
 
-            from dialog.scan import _save_profile_callback
+            _save_profile_callback(None, parent)
+            assert "New Profile" in parent.profiles
+
+    def test_save_profile_callback_cancel(self):
+        "Test cancelling _save_profile_callback"
+        parent = MockScan()
+        parent.profiles = {}
+
+        with unittest.mock.patch(
+            "dialog.scan.Gtk.Dialog"
+        ) as mockdialogclass, unittest.mock.patch(
+            "dialog.scan.Gtk.Entry"
+        ) as mockentryclass, unittest.mock.patch(
+            "dialog.scan.Gtk.Box"
+        ), unittest.mock.patch(
+            "dialog.scan.Gtk.Label"
+        ):
+
+            mock_dialog = mockdialogclass.return_value
+            mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
+            mock_dialog.get_content_area.return_value = unittest.mock.Mock()
+
+            mock_entry = mockentryclass.return_value
+            mock_entry.get_text.return_value = "New Profile"
 
             _save_profile_callback(None, parent)
-
-            assert "New Profile" in parent.profiles
 
     def test_edit_profile_callback(self):
         "Test _edit_profile_callback"
@@ -599,10 +625,7 @@ class TestScanDialog:
             mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
-            from dialog.scan import _edit_profile_callback
-
             _edit_profile_callback(None, parent)
-
             parent.scan_options.assert_called()
 
     def test_edit_profile_callback_reloaded(self):
@@ -632,10 +655,7 @@ class TestScanDialog:
             mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
-            from dialog.scan import _edit_profile_callback
-
             _edit_profile_callback(None, parent)
-
             parent.set_profile.assert_called_with("test")
 
     def test_edit_profile_callback_no_name(self):
@@ -659,10 +679,7 @@ class TestScanDialog:
             mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
-            from dialog.scan import _edit_profile_callback
-
             _edit_profile_callback(None, parent)
-
             parent.set_current_scan_options.assert_called()
 
     def test_do_delete_profile_backend_item(self):
@@ -673,14 +690,10 @@ class TestScanDialog:
         vbox = unittest.mock.Mock()
         frameb = unittest.mock.Mock()
         framef = unittest.mock.Mock()
-
-        from dialog.scan import do_delete_profile_backend_item
-
         with unittest.mock.patch("dialog.scan._build_profile_table"):
             do_delete_profile_backend_item(
                 None, [profile, options, vbox, frameb, framef, "opt", 0]
             )
-
         assert profile.num_backend_options() == 0
 
     def test_build_profile_table(self):
@@ -691,9 +704,6 @@ class TestScanDialog:
         options = MockOptions([MockOption("opt", enums.TYPE_INT)])
         vbox = unittest.mock.Mock()
         vbox.show_all = unittest.mock.Mock()
-
-        from dialog.scan import _build_profile_table
-
         _build_profile_table(profile, options, vbox)
         vbox.show_all.assert_called()
 
