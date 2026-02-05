@@ -999,6 +999,7 @@ class TestFileMenuMixins:
     def test_save_image_logic(self, mock_os, mock_file_exists, mock_gtk, app):
         "Test _save_image with multiple pages and overwrite check."
         app.slist.save_image = unittest.mock.Mock()
+        app._windowi = unittest.mock.Mock()
         app.settings["image type"] = "png"
         app._file_writable = unittest.mock.Mock(return_value=True)
         app._show_message_dialog = unittest.mock.Mock()
@@ -1017,6 +1018,7 @@ class TestFileMenuMixins:
         mock_os.path.isfile.return_value = False
         app._save_image(["uuid1"])
         app.slist.save_image.assert_called()
+        app._windowi.hide.assert_called_once()
 
     @unittest.mock.patch("file_menu_mixins.Gtk")
     @unittest.mock.patch("file_menu_mixins.file_exists")
