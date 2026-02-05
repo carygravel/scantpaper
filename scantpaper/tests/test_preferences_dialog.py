@@ -76,3 +76,31 @@ def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
 
     # Assert that the TMPDIR setting was updated
     assert dialog._tmpentry.get_text() == "/new/tmp/gscan2pdf-xxxx"
+
+
+def test_clicked_add_udt():
+    "Test the _clicked_add_udt method"
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = []
+
+    # Create the PreferencesDialog with the mocked settings
+    dialog = PreferencesDialog(settings=settings)
+
+    # Create a mock button to pass as the argument
+    mock_button = Gtk.Button()
+
+    # Call the _clicked_add_udt method with the mock button
+    dialog._clicked_add_udt(mock_button)
+
+    # Verify that a new entry was added to the user-defined tools box
+    children = dialog._vboxt.get_children()
+    assert len(children) > 0, "No children were added to the user-defined tools box"
+
+    # Verify that the last child is a horizontal box containing the new entry
+    last_child = children[-1]
+    assert isinstance(last_child, Gtk.Box), "Last child is not a Gtk.Box"
+    entry_found = any(
+        isinstance(widget, Gtk.Entry) for widget in last_child.get_children()
+    )
+    assert entry_found, "No Gtk.Entry found in the last child box"
