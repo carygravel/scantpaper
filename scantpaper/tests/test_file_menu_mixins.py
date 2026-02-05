@@ -794,7 +794,7 @@ class TestFileMenuMixins:
     ):
         "Test _file_chooser_response_callback for PDF type."
         app._save_pdf = unittest.mock.Mock()
-        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._file_writable = unittest.mock.Mock(return_value=True)
         app.settings["close_dialog_on_save"] = True
         app._windowi = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
@@ -820,7 +820,7 @@ class TestFileMenuMixins:
     ):
         "Test _file_chooser_response_callback for PS type with libtiff backend."
         app._save_tif = unittest.mock.Mock()
-        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._file_writable = unittest.mock.Mock(return_value=True)
         app.settings["ps_backend"] = "libtiff"
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file.ps"
@@ -841,7 +841,7 @@ class TestFileMenuMixins:
     def test_file_chooser_response_callback_ok_ps_pdf(self, mock_gtk, mock_os, app):
         "Test _file_chooser_response_callback for PS type with PDF backend."
         app._save_pdf = unittest.mock.Mock()
-        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._file_writable = unittest.mock.Mock(return_value=True)
         app.settings["ps_backend"] = "pdf"
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file.ps"
@@ -857,7 +857,7 @@ class TestFileMenuMixins:
     @unittest.mock.patch("file_menu_mixins.Gtk")
     def test_file_chooser_response_callback_ok_formats(self, mock_gtk, mock_os, app):
         "Test _file_chooser_response_callback for multiple formats."
-        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
         mock_os.path.dirname.return_value = "/path/to"
 
@@ -880,7 +880,7 @@ class TestFileMenuMixins:
         # Case 1: Directory not writable
         mock_os.path.dirname.return_value = "/read-only-dir"
         mock_os.access.return_value = False
-        assert app._file_writable(mock_chooser, "/read-only-dir/file.pdf")
+        assert not app._file_writable(mock_chooser, "/read-only-dir/file.pdf")
         app._show_message_dialog.assert_called()
 
         # Case 2: File exists but not writable
@@ -888,7 +888,7 @@ class TestFileMenuMixins:
         mock_os.path.dirname.return_value = "/tmp"
         mock_os.access.side_effect = [True, False]  # dir writable, file not
         mock_os.path.isfile.return_value = True
-        assert app._file_writable(mock_chooser, "/tmp/readonly.pdf")
+        assert not app._file_writable(mock_chooser, "/tmp/readonly.pdf")
         app._show_message_dialog.assert_called()
 
     @unittest.mock.patch("file_menu_mixins.collate_metadata")
@@ -1000,7 +1000,7 @@ class TestFileMenuMixins:
         "Test _save_image with multiple pages and overwrite check."
         app.slist.save_image = unittest.mock.Mock()
         app.settings["image type"] = "png"
-        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._file_writable = unittest.mock.Mock(return_value=True)
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.OK
@@ -1017,6 +1017,38 @@ class TestFileMenuMixins:
         mock_os.path.isfile.return_value = False
         app._save_image(["uuid1"])
         app.slist.save_image.assert_called()
+
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    @unittest.mock.patch("file_menu_mixins.file_exists")
+    def test_save_image_file_exists(self, mock_file_exists, mock_gtk, app):
+        "Test _save_image with multiple pages and overwrite check."
+        app.slist.save_image = unittest.mock.Mock()
+        app.settings["image type"] = "png"
+        app._show_message_dialog = unittest.mock.Mock()
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
+        mock_dialog.get_filename.return_value = "/path/to/image"
+        mock_gtk.FileChooserDialog.return_value = mock_dialog
+        mock_file_exists.return_value = True
+        app._save_image(["uuid1"])
+        app.slist.save_image.assert_not_called()
+
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    @unittest.mock.patch("file_menu_mixins.file_exists")
+    def test_save_image_file_not_writable(self, mock_file_exists, mock_gtk, app):
+        "Test _save_image with multiple pages and overwrite check."
+        app.slist.save_image = unittest.mock.Mock()
+        app.settings["image type"] = "png"
+        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._show_message_dialog = unittest.mock.Mock()
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
+        mock_dialog.get_filename.return_value = "/path/to/image.png"
+        mock_gtk.FileChooserDialog.return_value = mock_dialog
+        mock_file_exists.return_value = False
+        app._save_image(["uuid1"])
+        app._file_writable.assert_called_once_with(mock_dialog, "/path/to/image.png")
+        app.slist.save_image.assert_not_called()
 
     @unittest.mock.patch("file_menu_mixins.PrintOperation")
     def test_print_dialog(self, mock_print_op, app):
@@ -1140,7 +1172,7 @@ class TestFileMenuMixins:
     ):
         "Test appending extension if missing."
         app._save_pdf = unittest.mock.Mock()
-        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file"
         mock_os.path.dirname.return_value = "/path/to"
@@ -1188,7 +1220,7 @@ class TestFileMenuMixins:
     def test_file_chooser_response_callback_session(self, mock_os, app):
         "Test saving session."
         app.slist.save_session = unittest.mock.Mock()
-        app._file_writable = unittest.mock.Mock(return_value=False)
+        app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/session.gs2p"
         mock_os.path.dirname.return_value = "/path/to"

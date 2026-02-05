@@ -518,7 +518,7 @@ class FileMenuMixins:
                 if file_exists(dialog, filename):
                     return
 
-            if self._file_writable(dialog, filename):
+            if not self._file_writable(dialog, filename):
                 return
 
             # Update cwd
@@ -558,7 +558,7 @@ class FileMenuMixins:
                 buttons=Gtk.ButtonsType.CLOSE,
                 text=text,
             )
-            return True
+            return False
 
         if os.path.isfile(filename) and not os.access(
             filename, os.W_OK
@@ -570,9 +570,9 @@ class FileMenuMixins:
                 buttons=Gtk.ButtonsType.CLOSE,
                 text=text,
             )
-            return True
+            return False
 
-        return False
+        return True
 
     def _save_pdf(self, filename, list_of_page_uuids, option):
         "Save selected pages as PDF under given name."
@@ -826,7 +826,7 @@ class FileMenuMixins:
                     if file_exists(file_chooser, filename):
                         return
 
-                if self._file_writable(file_chooser, filename):
+                if not self._file_writable(file_chooser, filename):
                     return
 
             # Create the image
