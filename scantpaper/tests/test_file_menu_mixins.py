@@ -981,6 +981,7 @@ class TestFileMenuMixins:
         response = unittest.mock.Mock()
         response.request.args = [{"path": "file.djvu"}]
         app.slist.thread.send = unittest.mock.Mock()
+        app.settings["post_save_hook"] = True
 
         # The callback is defined inside _save_djvu, so we need to call it from there
         app.slist.save_djvu = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, finished_callback, error_callback: finished_callback(  # pylint: disable=line-too-long
