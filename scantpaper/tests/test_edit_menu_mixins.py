@@ -582,7 +582,7 @@ def test_analyse(mock_edit_window):
     mock_edit_window.select_dark_pages.assert_called_once()
 
 
-def test_analyse_empty(mock_edit_window):
+def test_analyse_cached(mock_edit_window):
     "Test analyse when no pages need analysis"
     page1 = MagicMock()
     page1.analyse_time = datetime.datetime(2023, 1, 2)
@@ -590,11 +590,12 @@ def test_analyse_empty(mock_edit_window):
 
     mock_edit_window.slist.data = [[0, 0, page1]]
     mock_edit_window.select_blank_pages = MagicMock()
+    mock_edit_window.select_dark_pages = MagicMock()
 
-    mock_edit_window.analyse(True, False)
-
+    mock_edit_window.analyse(True, True)
     mock_edit_window.slist.analyse.assert_not_called()
     mock_edit_window.select_blank_pages.assert_called_once()
+    mock_edit_window.select_dark_pages.assert_called_once()
 
 
 def test_update_list_user_defined_tools(mock_edit_window):
