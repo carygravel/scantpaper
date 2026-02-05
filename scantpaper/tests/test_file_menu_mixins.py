@@ -838,6 +838,23 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("file_menu_mixins.os")
     @unittest.mock.patch("file_menu_mixins.Gtk")
+    def test_file_chooser_response_callback_ok_ps_pdf(self, mock_gtk, mock_os, app):
+        "Test _file_chooser_response_callback for PS type with PDF backend."
+        app._save_pdf = unittest.mock.Mock()
+        app._file_writable = unittest.mock.Mock(return_value=False)
+        app.settings["ps_backend"] = "pdf"
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/file.ps"
+        mock_os.path.dirname.return_value = "/path/to"
+
+        app._file_chooser_response_callback(
+            mock_dialog, mock_gtk.ResponseType.OK, ["ps", ["uuid1"]]
+        )
+
+        app._save_pdf.assert_called_with("/path/to/file.ps", ["uuid1"], "ps")
+
+    @unittest.mock.patch("file_menu_mixins.os")
+    @unittest.mock.patch("file_menu_mixins.Gtk")
     def test_file_chooser_response_callback_ok_formats(self, mock_gtk, mock_os, app):
         "Test _file_chooser_response_callback for multiple formats."
         app._file_writable = unittest.mock.Mock(return_value=False)
