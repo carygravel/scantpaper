@@ -883,3 +883,31 @@ def test_pack_widget_unknown_type(mocker):
     dialog._pack_widget(None, data)
 
     mock_logger.warning.assert_called_with("Unknown type %s", "unknown")
+
+
+def test_add_current_scan_options_with_none(mocker):
+    "test _add_profile with None profile"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock logger to verify the error message
+    mock_logger = mocker.patch("dialog.scan.logger")
+
+    # Call _add_profile with None as the profile
+    dialog._add_current_scan_options(None)
+
+    # Verify logger.error was called with the expected message
+    mock_logger.error.assert_called_once_with("Cannot add undefined profile")
+
+
+def test_add_current_scan_options_with_error(mocker):
+    "test _add_profile with None profile"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock logger to verify the error message
+    mock_logger = mocker.patch("dialog.scan.logger")
+
+    # Call _add_profile with None as the profile
+    dialog._add_current_scan_options({})
+
+    # Verify logger.error was called with the expected message
+    mock_logger.error.assert_called_once_with("%s is not a Profile object", type({}))
