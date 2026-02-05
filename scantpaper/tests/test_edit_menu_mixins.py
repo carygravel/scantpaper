@@ -308,6 +308,44 @@ def test_properties_window_present(mock_edit_window):
     mock_windowp.present.assert_called_once()
 
 
+def test_properties_selection_changed_callback(mocker, mock_edit_window):
+    "Test that selection_changed_callback updates the properties window"
+    mock_dialog_cls = mocker.patch("edit_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_vbox = mocker.Mock()
+    mock_dialog_instance.get_content_area.return_value = mock_vbox
+
+    # Mock Gtk widgets used in the method
+    mocker.patch("gi.repository.Gtk.Box")
+    mocker.patch("gi.repository.Gtk.Label")
+    mock_spin_button = mocker.patch("gi.repository.Gtk.SpinButton")
+    mock_x_spin = MagicMock()
+    mock_y_spin = MagicMock()
+    mock_spin_button.new_with_range.side_effect = [mock_x_spin, mock_y_spin]
+
+    mock_edit_window.slist.get_selected_properties.return_value = (150, 150)
+    mock_selection = MagicMock()
+    mock_edit_window.slist.get_selection.return_value = mock_selection
+
+    mock_edit_window.properties(None, None)
+
+    mock_dialog_cls.assert_called_once()
+    mock_x_spin.set_value.assert_called_with(150)
+
+    # Retrieve the callback passed to slist.connect
+    connect_call_args = mock_edit_window.slist.get_selection().connect.call_args
+    assert connect_call_args is not None, "No connect call was made to slist"
+    callback = connect_call_args[0][1]  # Retrieve the callback from the connect call
+    mock_edit_window.slist.get_selected_properties.return_value = (200, 200)
+
+    # Call the callback directly
+    callback()
+
+    # Assert that the properties window was updated with the selected properties
+    mock_x_spin.set_value.assert_called_with(200)
+    mock_y_spin.set_value.assert_called_with(200)
+
+
 def test_renumber_dialog(mocker, mock_edit_window):
     "Test renumber_dialog"
     mock_renumber_cls = mocker.patch("edit_menu_mixins.Renumber")
