@@ -1206,6 +1206,7 @@ class TestFileMenuMixins:
         response = unittest.mock.Mock()
         response.request.args = [{"path": "file.tif"}]
         app.slist.thread.send = unittest.mock.Mock()
+        app.settings["post_save_hook"] = True
 
         def mock_save_tiff(finished_callback, **_kwargs):
             finished_callback(response)
