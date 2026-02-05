@@ -1133,6 +1133,22 @@ class TestFileMenuMixins:
         app._save_pdf = unittest.mock.Mock()
         app._save_pdf.assert_not_called()
 
+    @unittest.mock.patch("file_menu_mixins.file_exists")
+    def test_file_chooser_response_callback_file_exists_suffix(
+        self, mock_file_exists, app
+    ):
+        "Test abort if file exists after adding suffix and user cancels."
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/file"
+        mock_file_exists.return_value = True
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
+        )
+
+        app._save_pdf = unittest.mock.Mock()
+        app._save_pdf.assert_not_called()
+
     @unittest.mock.patch("file_menu_mixins.os")
     def test_file_chooser_response_callback_session(self, mock_os, app):
         "Test saving session."
