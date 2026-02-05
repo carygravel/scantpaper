@@ -248,6 +248,42 @@ def test_clear_ocr(mock_edit_window):
     assert page1.text_layer is None
 
 
+def test_select_blank(mock_edit_window):
+    "Test select_blank callback"
+    # Mock the analyse method
+    mock_edit_window.analyse = MagicMock()
+
+    # Call the select_blank method
+    mock_edit_window.select_blank(None, None)
+
+    # Assert that analyse was called with the correct arguments
+    mock_edit_window.analyse.assert_called_once_with(True, False)
+
+
+def test_select_odd(mock_edit_window):
+    "Test _select_odd callback"
+    # Mock the select_odd_even method
+    mock_edit_window.select_odd_even = MagicMock()
+
+    # Call the _select_odd method
+    mock_edit_window._select_odd(None, None)
+
+    # Assert that select_odd_even was called with the correct argument for odd pages
+    mock_edit_window.select_odd_even.assert_called_once_with(0)
+
+
+def test_select_even(mock_edit_window):
+    "Test _select_even callback"
+    # Mock the select_odd_even method
+    mock_edit_window.select_odd_even = MagicMock()
+
+    # Call the _select_even method
+    mock_edit_window._select_even(None, None)
+
+    # Assert that select_odd_even was called with the correct argument for even pages
+    mock_edit_window.select_odd_even.assert_called_once_with(1)
+
+
 def test_properties_dialog(mocker, mock_edit_window):
     "Test properties dialog"
     mock_dialog_cls = mocker.patch("edit_menu_mixins.Dialog")
