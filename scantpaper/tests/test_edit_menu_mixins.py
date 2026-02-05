@@ -546,13 +546,14 @@ def test_analyse(mock_edit_window):
 
     mock_edit_window.slist.data = [[0, 0, page1], [1, 0, page2]]
 
+    # Test analyse with select_blank=True
     mock_edit_window.analyse(True, False)
 
     mock_edit_window.slist.analyse.assert_called_once()
     call_kwargs = mock_edit_window.slist.analyse.call_args[1]
     assert call_kwargs["list_of_pages"] == ["uuid1"]
 
-    # Test finished callback
+    # Test finished callback for select_blank_pages
     finished_callback = call_kwargs["finished_callback"]
     mock_edit_window.select_blank_pages = MagicMock()
 
@@ -560,6 +561,25 @@ def test_analyse(mock_edit_window):
 
     mock_edit_window.post_process_progress.finish.assert_called_with("response")
     mock_edit_window.select_blank_pages.assert_called_once()
+
+    # Reset mocks for the next test
+    mock_edit_window.slist.analyse.reset_mock()
+    mock_edit_window.post_process_progress.finish.reset_mock()
+
+    # Test analyse with select_dark=True
+    mock_edit_window.analyse(False, True)
+
+    # Retrieve the new call arguments
+    call_kwargs = mock_edit_window.slist.analyse.call_args[1]
+
+    # Test finished callback for select_dark_pages
+    finished_callback = call_kwargs["finished_callback"]
+    mock_edit_window.select_dark_pages = MagicMock()
+
+    finished_callback("response")
+
+    mock_edit_window.post_process_progress.finish.assert_called_with("response")
+    mock_edit_window.select_dark_pages.assert_called_once()
 
 
 def test_analyse_empty(mock_edit_window):
