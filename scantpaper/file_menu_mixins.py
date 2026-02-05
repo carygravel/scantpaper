@@ -420,10 +420,9 @@ class FileMenuMixins:
             self._save_file_chooser(uuids)
         elif self.settings["image type"] == "session":
             self._save_file_chooser(uuids)
-        elif self.settings["image type"] == "jpg":
-            self.settings["quality"] = self._windowi.jpeg_quality
-            self._save_image(uuids)
         else:
+            if self.settings["image type"] == "jpg":
+                self.settings["quality"] = self._windowi.jpeg_quality
             self._save_image(uuids)
 
     def _save_file_chooser(self, uuids):
