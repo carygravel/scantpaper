@@ -44,7 +44,7 @@ def test_paperlist():
     assert plist.data[0][0] == "A4", "name unchanged"
 
     plist.select([1])
-    plist.do_remove_clicked()
+    plist.do_remove_paper(None)
     assert len(plist.data) == 1
 
     plist.select([0])

@@ -203,9 +203,6 @@ def test_edit_paper_cancel(mocker):
     # 5. Mock i18n _ function
     mocker.patch("dialog.scan._", side_effect=lambda s: s)
 
-    # 6. Mock _remove_paper_callback
-    mocker.patch("dialog.scan._remove_paper_callback")
-
     # Execute the method under test
     Scan._edit_paper(mock_self)
 

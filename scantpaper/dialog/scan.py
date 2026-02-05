@@ -945,7 +945,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         slist = PaperList(self.paper_formats)
         dbutton.connect("clicked", slist.do_add_clicked)
-        rbutton.connect("clicked", _remove_paper_callback, slist, window)
+        rbutton.connect("clicked", slist.do_remove_paper, window)
         slist.get_model().connect("row-changed", slist.do_paper_sizes_row_changed)
 
         hboxl.pack_end(slist, False, False, 0)
@@ -1353,18 +1353,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 self.num_pages = 0
 
         self._flatbed_or_duplex_callback()
-
-
-def _remove_paper_callback(slist, _window):
-    if slist.data:
-        slist.do_remove_clicked()
-    # else:
-    #     main.show_message_dialog(
-    #         parent=window,
-    #         type="error",
-    #         buttons="close",
-    #         text=_("Cannot delete all paper sizes"),
-    #     )
 
 
 def _geometry_option(opt):
