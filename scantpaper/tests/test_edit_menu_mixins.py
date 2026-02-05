@@ -284,6 +284,18 @@ def test_select_even(mock_edit_window):
     mock_edit_window.select_odd_even.assert_called_once_with(1)
 
 
+def test_select_dark(mock_edit_window):
+    "Test select_blank callback"
+    # Mock the analyse method
+    mock_edit_window.analyse = MagicMock()
+
+    # Call the select_blank method
+    mock_edit_window.select_dark(None, None)
+
+    # Assert that analyse was called with the correct arguments
+    mock_edit_window.analyse.assert_called_once_with(False, True)
+
+
 def test_properties_dialog(mocker, mock_edit_window):
     "Test properties dialog"
     mock_dialog_cls = mocker.patch("edit_menu_mixins.Dialog")
