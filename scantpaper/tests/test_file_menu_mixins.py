@@ -959,6 +959,23 @@ class TestFileMenuMixins:
         mock_launch.assert_called_with("file.pdf")
 
     @unittest.mock.patch("file_menu_mixins.launch_default_for_file")
+    def test_save_pdf_finished_callback_ps(self, mock_launch, app):
+        "Test finished callback for _save_pdf launches file for ps."
+        response = unittest.mock.Mock()
+        app.slist.thread.send = unittest.mock.Mock()
+        app._windowi = unittest.mock.Mock()
+
+        # The callback is defined inside _save_pdf, so we need to call it from there
+        app.slist.save_pdf = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, finished_callback, error_callback: finished_callback(  # pylint: disable=line-too-long
+            response
+        )
+        app._save_pdf("file.ps", ["uuid1"], "ps")
+
+        app.post_process_progress.finish.assert_called_with(response)
+        app.slist.thread.send.assert_called_with("set_saved", ["uuid1"])
+        mock_launch.assert_called_with("file.ps")
+
+    @unittest.mock.patch("file_menu_mixins.launch_default_for_file")
     def test_save_djvu_finished_callback(self, mock_launch, app):
         "Test finished callback for _save_djvu launches file and sets saved."
         response = unittest.mock.Mock()
