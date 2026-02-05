@@ -911,3 +911,23 @@ def test_add_current_scan_options_with_error(mocker):
 
     # Verify logger.error was called with the expected message
     mock_logger.error.assert_called_once_with("%s is not a Profile object", type({}))
+
+
+def test_update_widget_value_widget_undefined(mocker):
+    "test _update_widget_value when widget for option is undefined"
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Mock logger to verify the warning message
+    mock_logger = mocker.patch("dialog.scan.logger")
+
+    # Create a mock option with a name that does not exist in option_widgets
+    opt = mocker.Mock()
+    opt.name = "undefined_option"
+
+    # Call _update_widget_value with the undefined option
+    dialog._update_widget_value(opt, "some_value")
+
+    # Verify logger.warning was called with the expected message
+    mock_logger.warning.assert_called_once_with(
+        "Widget for option '%s' undefined.", "undefined_option"
+    )
