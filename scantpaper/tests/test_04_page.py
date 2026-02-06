@@ -338,3 +338,16 @@ def test_write_image_for_djvu():
         page = Page(image_object=Image.new("1", (210, 297)))
         page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
         assert os.path.isfile(filename.name), "write_image_for_djvu() creates a file"
+
+
+def test_write_image_for_tiff():
+    "Test write_image_for_djvu()"
+    with tempfile.TemporaryDirectory() as dirname, tempfile.NamedTemporaryFile(
+        suffix=".tif"
+    ) as filename:
+        page = Page(image_object=Image.new("RGB", (210, 297)))
+        page.resolution = (300, 300, "PixelsPerInch")
+        page.write_image_for_tiff(
+            filename.name, {"dir": dirname, "options": {"compression": "jpeg"}}
+        )
+        assert os.path.isfile(filename.name), "write_image_for_tiff() creates a file"
