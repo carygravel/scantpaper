@@ -320,3 +320,13 @@ def test_get_pixbuf_error(_mock_new_from_file_at_scale, _mock_new_from_file):
     assert (
         page.get_pixbuf_at_scale(1, 1) is None
     ), "TypeError from Pixbuf.new_from_file_at_scale not caught"
+
+
+def test_write_image_for_djvu():
+    "Test write_image_for_djvu()"
+    with tempfile.TemporaryDirectory() as dirname, tempfile.NamedTemporaryFile(
+        suffix=".pbm"
+    ) as filename:
+        page = Page(image_object=Image.new("1", (210, 297)))
+        page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
+        assert os.path.isfile(filename.name), "write_image_for_djvu() creates a file"
