@@ -285,6 +285,7 @@ class Page:
         # )
         with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as filename:
             self.image_object.save(filename.name)
+            pixbuf = None
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename.name)
             except (GLib.Error, TypeError) as exc:

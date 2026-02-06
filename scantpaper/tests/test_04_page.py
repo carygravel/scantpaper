@@ -3,6 +3,7 @@
 import os
 import subprocess
 import tempfile
+from unittest.mock import patch
 from PIL import Image
 import config
 from const import VERSION
@@ -308,3 +309,12 @@ def test_2(temp_pnm):
         assert (
             page.get_pixbuf_at_scale(100, 100) is None
         ), "get_pixbuf_at_scale() doesn't fall over with an error"
+
+
+@patch("page.GdkPixbuf.Pixbuf.new_from_file", side_effect=TypeError)
+def test_get_pixbuf_error(_mock_new_from_file):
+    "Test error handling in get_pixbuf()"
+    page = Page(image_object=Image.new("RGB", (210, 297)))
+    assert (
+        page.get_pixbuf() is None
+    ), "get_pixbuf() doesn't fall over with an error when Pixbuf.new_from_file raises TypeError"
