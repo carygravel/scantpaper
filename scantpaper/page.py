@@ -1,6 +1,7 @@
 "Class of data and methods for handling page objects"
 
 import io
+import json
 import locale
 import re
 import subprocess
@@ -415,8 +416,9 @@ class Page:
 
     def _add_txt_to_djvu(self, djvu, dirname):
         if self.text_layer is not None:
-            txt = self.export_djvu_txt()
-            if txt == "":
+            try:
+                txt = self.export_djvu_txt()
+            except json.decoder.JSONDecodeError:
                 return
             logger.debug(txt)
 
@@ -439,10 +441,11 @@ class Page:
                 subprocess.run(cmd, check=True)
 
     def _add_ann_to_djvu(self, djvu, dirname):
-        """FIXME - refactor this together with _add_txt_to_djvu"""
+        "FIXME - refactor this together with _add_txt_to_djvu"
         if self.annotations is not None:
-            ann = self.export_djvu_ann()
-            if ann == "":
+            try:
+                ann = self.export_djvu_ann()
+            except json.decoder.JSONDecodeError:
                 return
             logger.debug(ann)
 

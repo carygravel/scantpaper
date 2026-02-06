@@ -141,6 +141,14 @@ def test_1(temp_pnm, temp_jpg):
         assert page.export_djvu_txt() is None, "export_djvu_txt() without bboxes"
         assert page.export_text() == "", "export_text() without bboxes"
         assert page.export_djvu_ann() is None, "export_djvu_ann() without bboxes"
+        page.text_layer = ""
+        assert (
+            page._add_txt_to_djvu("file.djvu", dirname) is None
+        ), "_add_txt_to_djvu() without bboxes"
+        page.annotations = ""
+        assert (
+            page._add_ann_to_djvu("file.djvu", dirname) is None
+        ), "_add_ann_to_djvu() without bboxes"
 
 
 def test_2(temp_pnm):
