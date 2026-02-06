@@ -302,7 +302,8 @@ class SaveThread(Importhread):
 
         if "ps" in options["options"] and options["options"]["ps"] is not None:
             # self.message = _("Converting to PS")
-            cmd = ["tiff2ps", "-3", options["path"], "-O", options["options"]["ps"]]
+            # MacOS requires the input TIFF to be last argument
+            cmd = ["tiff2ps", "-3", "-O", options["options"]["ps"], options["path"]]
             proc = exec_command(cmd, options["pidfile"])
             if proc.returncode or proc.stderr:
                 logger.info(proc.stderr)
