@@ -312,9 +312,11 @@ def test_2(temp_pnm):
 
 
 @patch("page.GdkPixbuf.Pixbuf.new_from_file", side_effect=TypeError)
-def test_get_pixbuf_error(_mock_new_from_file):
+@patch("page.GdkPixbuf.Pixbuf.new_from_file_at_scale", side_effect=TypeError)
+def test_get_pixbuf_error(_mock_new_from_file_at_scale, _mock_new_from_file):
     "Test error handling in get_pixbuf()"
     page = Page(image_object=Image.new("RGB", (210, 297)))
+    assert page.get_pixbuf() is None, "TypeError from Pixbuf.new_from_file not caught"
     assert (
-        page.get_pixbuf() is None
-    ), "get_pixbuf() doesn't fall over with an error when Pixbuf.new_from_file raises TypeError"
+        page.get_pixbuf_at_scale(1, 1) is None
+    ), "TypeError from Pixbuf.new_from_file_at_scale not caught"
