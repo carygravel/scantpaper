@@ -966,6 +966,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                     formats[row[0]][_side] = row[j]
 
             # Add new definitions
+            # TODO: fix main reference
             self.paper_formats = formats
             if self.ignored_paper_formats:
                 main.show_message_dialog(

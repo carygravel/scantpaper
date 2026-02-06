@@ -92,13 +92,14 @@ class PaperList(SimpleList):
                 self.data[path][0] = f"{name} ({version})"
                 return
 
-    def do_remove_paper(self, _window):
+    # TODO: fix main reference
+    def do_remove_paper(self, window):
         if self.data:
             self.do_remove_clicked()
-        # else:
-        #     main.show_message_dialog(
-        #         parent=window,
-        #         type="error",
-        #         buttons="close",
-        #         text=_("Cannot delete all paper sizes"),
-        #     )
+        else:
+            main.show_message_dialog(
+                parent=window,
+                type="error",
+                buttons="close",
+                text=_("Cannot delete all paper sizes"),
+            )
