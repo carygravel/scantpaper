@@ -13,6 +13,8 @@ import pytest
 
 def test_1(temp_pnm, temp_jpg):
     "Tests for Page class"
+    with pytest.raises(TypeError):
+        page = Page(image_object=None)
     with tempfile.TemporaryDirectory() as dirname:
         with pytest.raises(ValueError):
             page = Page(dir=dirname)
