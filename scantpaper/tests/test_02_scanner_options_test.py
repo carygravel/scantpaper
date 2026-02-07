@@ -735,6 +735,8 @@ def test_1():
         option, 0.999984741210938, 1, 0.001
     ), "SANE_CONSTRAINT_RANGE inexact with tolerance"
 
+    assert options.by_title("undefined") is None
+
 
 def test_errors():
     "options from test backend"
