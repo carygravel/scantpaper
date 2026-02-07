@@ -16,7 +16,7 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
 class MockSlist:
-    "A mock class simulating a selection list for testing purposes."
+    "A mock class simulating a simple list for testing purposes."
 
     def __init__(self):
         "Initialize mock slist"
@@ -41,14 +41,6 @@ class MockSlist:
 
     def unselect_all(self):
         "Deselects all currently selected items."
-
-    def get_page_index(self, page_range, _error_callback):
-        "Mock get_page_index"
-        if page_range == "all":
-            return [0, 1, 2]
-        if page_range == "invalid":
-            return []
-        return [0]
 
     def import_files(self, **kwargs):
         "Mock import_files"
@@ -76,13 +68,6 @@ class MockSlist:
 
     def save_session(self, filename, version):
         "Mock save_session"
-
-    def find_page_by_uuid(self, uuid):
-        "Mock find_page_by_uuid"
-        for i, row in enumerate(self.data):
-            if row[2] == uuid:
-                return i
-        return None
 
 
 class MockView:  # pylint: disable=too-few-public-methods
@@ -152,10 +137,6 @@ class MockApp(unittest.mock.Mock, FileMenuMixins):
     def get_position(self):
         "Mock get_position"
         return (0, 0)
-
-    def get_application(self):
-        "Return the mock application instance"
-        return unittest.mock.Mock()
 
     def _show_message_dialog(self, **kwargs):
         "Mock _show_message_dialog"
