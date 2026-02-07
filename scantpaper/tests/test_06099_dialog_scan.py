@@ -806,12 +806,6 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
 
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
-    # 4. Mock SaneThread.do_set_option
-    def mocked_do_set_option(_self, _request):
-        return 0
-
-    mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
-
     # Use the dialog from fixture
     dialog = sane_scan_dialog
 
