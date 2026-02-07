@@ -869,9 +869,4 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
     assert rbutton is not None
 
     # Click the remove button
-    try:
-        rbutton.clicked()
-    except AttributeError as e:
-        pytest.fail(f"Raised AttributeError: {e}")
-
-    # If we get here, it passed
+    rbutton.clicked()
