@@ -117,27 +117,13 @@ class Options(GObject.Object):
                 self.geometry["w"] = self.hash[key].constraint[1]
                 break
 
-        if "tl-x" in self.hash:
+        if "tl-x" in self.hash and "br-x" in self.hash:
             self.geometry["l"] = self.hash["tl-x"].constraint[0]
-            if "br-x" in self.hash:
-                self.geometry["x"] = (
-                    self.hash["br-x"].constraint[1] - self.geometry["l"]
-                )
-        elif "l" in self.hash:
-            self.geometry["l"] = self.hash["l"].constraint[0]
-            if "max" in self.hash["x"].constraint:
-                self.geometry["x"] = self.hash["x"].constraint[1]
+            self.geometry["x"] = self.hash["br-x"].constraint[1] - self.geometry["l"]
 
-        if "tl-y" in self.hash:
+        if "tl-y" in self.hash and "br-y" in self.hash:
             self.geometry["t"] = self.hash["tl-y"].constraint[0]
-            if "br-y" in self.hash:
-                self.geometry["y"] = (
-                    self.hash["br-y"].constraint[1] - self.geometry["t"]
-                )
-        elif "t" in self.hash:
-            self.geometry["t"] = self.hash["t"].constraint[0]
-            if "max" in self.hash["y"].constraint:
-                self.geometry["y"] = self.hash["y"].constraint[1]
+            self.geometry["y"] = self.hash["br-y"].constraint[1] - self.geometry["t"]
 
     def supports_paper(self, paper, tolerance):
         "Check the geometry against the paper size"
