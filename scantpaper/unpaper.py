@@ -489,14 +489,9 @@ class Unpaper:
 
     def _spinbuttongroup_get_option(self, option):
         "get option for spinbuttongroup"
-        hashref = self.options
-        items = []
-        for key in hashref[option]["options"]:
-            items.append(str(hashref[option]["options"][key]["widget"].get_value()))
-
-        if items:
-            return ",".join(items)
-        return None
+        options = self.options[option]["options"]
+        items = [str(options[key]["widget"].get_value()) for key in options]
+        return ",".join(items) if items else ""
 
     def get_option(self, option):
         "return given option"
