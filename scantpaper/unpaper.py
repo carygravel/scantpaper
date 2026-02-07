@@ -1,9 +1,9 @@
 "GUI for unpaper"
 
 import re
-import subprocess
 import logging
 import gi
+from helpers import program_version
 from i18n import _
 
 gi.require_version("Gtk", "3.0")
@@ -615,34 +615,3 @@ def count_active_children(frame):
         if child.get_active():
             num += 1
     return num
-
-
-def program_version(stream, regex, cmd):
-    "return program version"
-    try:
-        version = _program_version(
-            stream,
-            regex,
-            subprocess.run(cmd, check=True, capture_output=True, text=True),
-        )
-    except FileNotFoundError:
-        version = None
-    return version
-
-
-def _program_version(stream, regex, output):
-    if stream == "stdout":
-        output = output.stdout
-    elif stream == "stderr":
-        output = output.stderr
-    elif stream == "both":
-        output = output.stdout + output.stderr
-    else:
-        logger.error("Unknown stream: '%s'", stream)
-
-    regex2 = re.search(regex, output)
-    if regex2:
-        return regex2.group(1)
-
-    logger.info("Unable to parse version string from: '%s'", output)
-    return None

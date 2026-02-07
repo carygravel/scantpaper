@@ -2,11 +2,10 @@
 
 import subprocess
 import shutil
-import unittest.mock
 import pytest
 import config
 from document import Document
-from unpaper import Unpaper, _program_version, program_version
+from unpaper import Unpaper
 from PIL import Image, ImageDraw
 import gi
 
@@ -14,37 +13,8 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
-def test_program_version_helper():
-    "Test _program_version standalone helper"
-
-    class MockOutput:
-        "Mock output class"
-
-        def __init__(self, stdout, stderr):
-            self.stdout = stdout
-            self.stderr = stderr
-
-    mock_output = MockOutput(stdout="unpaper 6.1", stderr="error output")
-
-    # stdout stream
-    assert _program_version("stdout", r"([\d.]+)", mock_output) == "6.1"
-    # stderr stream
-    assert _program_version("stderr", r"error ([\w]+)", mock_output) == "output"
-    # both stream
-    assert _program_version("both", r"unpaper ([\d.]+)", mock_output) == "6.1"
-    # unknown stream (should return None and log error)
-    with pytest.raises(TypeError):
-        _program_version("unknown", r".*", mock_output)
-
-
-def test_program_version_file_not_found():
-    "Test program_version when file not found"
-    with unittest.mock.patch("subprocess.run", side_effect=FileNotFoundError):
-        assert program_version("stdout", r".*", ["non-existent"]) is None
-
-
-def test_unpaper_program_version_lazy(mocker):
-    "Test Unpaper.program_version lazy loading"
+def test_unpaper_program_version(mocker):
+    "Test Unpaper.program_version caching and retrieval"
     unpaper = Unpaper()
     assert unpaper._version is None
     mocker.patch("unpaper.program_version", return_value="6.2")
