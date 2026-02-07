@@ -52,10 +52,6 @@ class MockOptions:
         "Number of options"
         return len(self.options)
 
-    def by_index(self, i):
-        "Get option by 1-based index"
-        return self.options[i - 1]  # 1-based index
-
     def by_name(self, name):
         "Get option by name"
         return self.options_dict.get(name)
@@ -67,10 +63,6 @@ class MockOptions:
     def supports_paper(self, _paper, _tolerance):
         "Does it support the given paper?"
         return True
-
-    def val(self, _name, _handle):
-        "Get value of option"
-        return 0
 
 
 class MockDevice:
