@@ -203,12 +203,22 @@ def test_ocr_pages():
 
 
 def test_unpaper_method():
-    "test unpaper method"
+    "test unpaper"
     doc = create_doc()
     doc.unpaper(page="uuid")
     data_callback = doc.thread.unpaper.call_args[1]["data_callback"]
     data_callback(MockResponse({"type": "page", "row": [0, 0, "uuid"]}))
     doc.add_page.assert_called()
+
+
+def test_unpaper_no_info():
+    "test unpaper with improper input"
+    doc = create_doc()
+    logger_callback = unittest.mock.Mock()
+    doc.unpaper(page="uuid", logger_callback=logger_callback)
+    data_callback = doc.thread.unpaper.call_args[1]["data_callback"]
+    data_callback(MockResponse({}))
+    logger_callback.assert_called()
 
 
 def test_user_defined_method():
