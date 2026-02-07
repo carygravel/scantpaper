@@ -146,7 +146,7 @@ class Document(BaseDocument):
             last_page = info[0]["pages"]
             if options.get("pagerange_callback") and last_page > 1:
                 first_page, last_page = options["pagerange_callback"](info[0])
-                if (first_page is None) or (last_page is None):
+                if first_page is None or last_page is None:
                     return
 
             password = options["passwords"][0] if options.get("passwords") else None

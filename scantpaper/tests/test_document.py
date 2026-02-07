@@ -90,6 +90,19 @@ def test_get_file_info_finished_callback2_pagerange():
     assert doc.thread.import_file.call_args[1]["first"] == 2
 
 
+def test_get_file_info_finished_callback2_no_pagerange():
+    "test pagerange_callback"
+    doc = create_doc()
+    pagerange_callback = unittest.mock.Mock(return_value=(None, 3))
+    info = [{"format": "PDF", "path": "f.pdf", "pages": 5}]
+    assert (
+        doc._get_file_info_finished_callback2(
+            info, {"pagerange_callback": pagerange_callback}
+        )
+        is None
+    )
+
+
 def test_post_process_rotate():
     "test _post_process_rotate"
     doc = create_doc()
