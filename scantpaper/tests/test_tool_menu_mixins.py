@@ -689,6 +689,43 @@ def test_ocr_dialog(mocker, mock_tool_window):
     assert call_kwargs["pages"] == ["pageobject"]
 
 
+def test_ocr_dialog_no_pages(mocker, mock_tool_window):
+    "Test the ocr dialog"
+
+    mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_vbox = mocker.Mock()
+    mock_dialog_instance.get_content_area.return_value = mock_vbox
+
+    mock_ocr_controls_cls = mocker.patch("tools_menu_mixins.OCRControls")
+    mock_ocr_controls_instance = mock_ocr_controls_cls.return_value
+    mock_ocr_controls_instance.engine = "tesseract"
+    mock_ocr_controls_instance.language = "eng"
+    mock_ocr_controls_instance.threshold = True
+    mock_ocr_controls_instance.threshold_value = 50
+
+    mock_tool_window.settings = {
+        "ocr engine": "tesseract",
+        "ocr language": "eng",
+        "OCR on scan": False,
+        "threshold-before-ocr": False,
+        "threshold tool": 0,
+    }
+    mock_tool_window._ocr_engine = ["tesseract"]
+    mock_tool_window.slist.get_page_index.return_value = []
+    mock_tool_window.slist.indices2pages.return_value = []
+
+    mock_tool_window._ocr_finished_callback = mocker.Mock()
+    mock_tool_window._ocr_display_callback = mocker.Mock()
+
+    mock_tool_window.ocr_dialog(None, None)
+
+    mock_dialog_cls.assert_called()
+    mock_ocr_controls_cls.assert_called()
+
+    _trigger_apply(mock_dialog_instance)
+
+
 def test_ocr_dialog_existing(mocker, mock_tool_window):
     "Test ocr_dialog when already open"
     mock_tool_window._windowo = mocker.Mock()
