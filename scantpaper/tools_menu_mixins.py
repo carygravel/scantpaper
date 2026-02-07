@@ -695,8 +695,6 @@ class ToolsMenuMixins:
                     self.settings["Page range"], self._error_callback
                 )
             )
-            if not pagelist:
-                return
             self.settings["current_udt"] = self._pref_udt_cmbx.get_active_text()
 
             for page in pagelist:
