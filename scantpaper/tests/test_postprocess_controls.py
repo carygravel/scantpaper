@@ -308,6 +308,12 @@ class TestOCRControls:
         controls.threshold_value = 60
         assert controls.threshold_value == 60
 
+        # engines + active
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]], active=True
+        )
+        assert controls._active_button.get_active()
+
     def test_callbacks(self, mock_deps):
         "Test callback methods"
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
