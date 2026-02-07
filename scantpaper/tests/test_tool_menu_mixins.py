@@ -573,6 +573,35 @@ def test_split_selection_changed(mocker, mock_tool_window):
     mock_spin.set_value.assert_called_with(30)  # 10 + 20
 
 
+def test_split_selection_changed_h(mocker, mock_tool_window):
+    "Test split dialog selection changed on view"
+    mocker.patch("tools_menu_mixins.Dialog")
+    mock_combo_cls = mocker.patch("tools_menu_mixins.ComboBoxText")
+    mock_combo = mock_combo_cls.return_value
+    mock_combo.get_active.return_value = 1
+    mocker.patch("tools_menu_mixins.Gtk.Box")
+    mock_spin = mocker.patch("gi.repository.Gtk.SpinButton.new_with_range").return_value
+
+    mock_tool_window._current_page = mocker.Mock()
+    mock_tool_window._current_page.get_size.return_value = (100, 100)
+    mock_tool_window.view = mocker.Mock()
+    mock_tool_window.split_dialog(None, None)
+
+    args, _ = mock_tool_window.view.connect.call_args
+    assert args[0] == "selection-changed"
+    callback = args[1]
+
+    selection = mocker.Mock()
+    selection.x = 10
+    selection.width = 20
+    selection.y = 5
+    selection.height = 10
+
+    # direction "h"
+    callback(None, selection)
+    mock_spin.set_value.assert_called_with(15)  # 10 + 5
+
+
 def test_unpaper_dialog(mocker, mock_tool_window):
     "Test the unpaper dialog"
 
