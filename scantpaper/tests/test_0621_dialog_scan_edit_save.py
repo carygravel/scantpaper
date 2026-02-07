@@ -36,20 +36,6 @@ class Sane:
             MagicMock(name="test", vendor="mock", model="scanner", label="at sx:123")
         ]
 
-    def init(self, *_args, **_kwargs):
-        "Mock init"
-        return (1, "")
-
-    def get_devices(self, *_args, **_kwargs):
-        "Mock get_devices"
-        return self.devices
-
-    def open(self, *_args, **_kwargs):
-        "Mock open"
-        mock_device = MagicMock()
-        mock_device.get_options.return_value = self.options
-        return mock_device
-
 
 sane_mock = Sane()
 
