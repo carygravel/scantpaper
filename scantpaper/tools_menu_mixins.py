@@ -551,15 +551,13 @@ class ToolsMenuMixins:
             self.settings["unpaper options"] = self._unpaper.get_options()
             self.settings["Page range"] = self._windowu.page_range
 
-            # run unpaper
             pagelist = self.slist.indices2pages(
                 self.slist.get_page_index(
                     self.settings["Page range"], self._error_callback
                 )
             )
-            if not pagelist:
-                return
 
+            # run unpaper
             for pageobject in pagelist:
 
                 def unpaper_finished_callback(response):
