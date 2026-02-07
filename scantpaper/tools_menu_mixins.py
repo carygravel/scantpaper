@@ -632,7 +632,7 @@ class ToolsMenuMixins:
             "queued_callback": self.post_process_progress.queued,
             "started_callback": self.post_process_progress.update,
             "running_callback": self.post_process_progress.update,
-            "finished_callback": self._ocr_finished_callback,
+            "finished_callback": self.post_process_progress.finish,
             "error_callback": self._error_callback,
             "display_callback": self._ocr_display_callback,
             "engine": engine,
@@ -655,10 +655,6 @@ class ToolsMenuMixins:
         kwargs["pages"] = pagelist
         self.slist.ocr_pages(**kwargs)
         self._windowo.hide()
-
-    def _ocr_finished_callback(self, response):
-        "Callback function to be executed when OCR processing is finished."
-        self.post_process_progress.finish(response)
 
     def _ocr_display_callback(self, response):
         "Callback function to handle the display of OCR (Optical Character Recognition) results."
