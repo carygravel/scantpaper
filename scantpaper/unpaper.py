@@ -301,20 +301,13 @@ class Unpaper:
 
         def border_align_button_cb(_widget):
             "Ghost margin if nothing selected"
-            if count_active_children(bframe) == 0:
-                bmframe.set_sensitive(False)
-            else:
-                bmframe.set_sensitive(True)
+            bmframe.set_sensitive(count_active_children(bframe) > 0)
 
         for key in options["border-align"]["options"]:
             button = options["border-align"]["options"][key]["widget"]
             button.connect("toggled", border_align_button_cb)
 
-        if count_active_children(bframe) == 0:
-            bmframe.set_sensitive(False)
-        else:
-            bmframe.set_sensitive(True)
-
+        bmframe.set_sensitive(count_active_children(bframe) > 0)
         return vbox2
 
     def add_options(self, vbox):
