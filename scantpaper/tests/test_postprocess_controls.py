@@ -192,17 +192,40 @@ class TestRotateControls:
 
     def test_update_attributes(self, rotate_controls):
         "Test _update_attributes logic"
-        # This method reads from GUI and sets properties
-
-        # Case 1: Rotate enabled, 'both', 90 degrees
         rotate_controls._side1.cbutton.set_active(True)
-        # Use set_active_index which is provided by the custom ComboBoxText
-        rotate_controls._side1.side_cmbx.set_active_index("both")
         rotate_controls._side1.angle_cmbx.set_active_index(90)
+        rotate_controls._side1.side_cmbx.set_active_index("facing")
+        rotate_controls._update_attributes()
+        assert rotate_controls._rotate_facing == 90
+        assert rotate_controls._rotate_reverse == 0
 
+        rotate_controls._side1.side_cmbx.set_active_index("reverse")
+        rotate_controls._update_attributes()
+        assert rotate_controls._rotate_facing == 0
+        assert rotate_controls._rotate_reverse == 90
+
+        rotate_controls._side1.side_cmbx.set_active_index("both")
         rotate_controls._update_attributes()
         assert rotate_controls._rotate_facing == 90
         assert rotate_controls._rotate_reverse == 90
+
+        rotate_controls._side2.cbutton.set_active(True)
+        rotate_controls._side2.angle_cmbx.set_active_index(180)
+        rotate_controls._side2.side_cmbx.set_active_index("facing")
+        rotate_controls._update_attributes()
+        assert rotate_controls._rotate_facing == 180
+        assert rotate_controls._rotate_reverse == 90
+
+    def test_update_attributes_side2_reverse(self, rotate_controls):
+        "Test more _update_attributes logic"
+        rotate_controls._side1.cbutton.set_active(True)
+        rotate_controls._side2.cbutton.set_active(True)
+        rotate_controls._side1.angle_cmbx.set_active_index(90)
+        rotate_controls._side2.angle_cmbx.set_active_index(180)
+        rotate_controls._side2.side_cmbx.set_active_index("reverse")
+        rotate_controls._update_attributes()
+        assert rotate_controls._rotate_facing == 90
+        assert rotate_controls._rotate_reverse == 180
 
     def test_update_gui(self, rotate_controls):
         "Test _update_gui logic"
