@@ -279,13 +279,11 @@ def munge_message(messages):
 
     messages = messages.strip()
     if out:
-        if (messages is not None) and not re.search(
-            r"^\s*$", messages, re.MULTILINE | re.DOTALL | re.VERBOSE
-        ):
+        if not re.search(r"^\s*$", messages, re.MULTILINE | re.DOTALL | re.VERBOSE):
             out.append(messages)
         return out
 
-    if (messages is not None) and re.search(
+    if re.search(
         r"Exception[ ](?:400|445):[ ]memory[ ]allocation[ ]failed",
         messages,
         re.MULTILINE | re.DOTALL | re.VERBOSE,
