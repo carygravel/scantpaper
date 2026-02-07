@@ -184,6 +184,16 @@ def test_split_page():
     doc.add_page.assert_called()
 
 
+def test_split_page_no_info():
+    "test split_page with improper input"
+    doc = create_doc()
+    logger_callback = unittest.mock.Mock()
+    doc.split_page(first_page=1, last_page=1, logger_callback=logger_callback)
+    data_callback = doc.thread.split_page.call_args[1]["data_callback"]
+    data_callback(MockResponse({}))
+    logger_callback.assert_called()
+
+
 def test_ocr_pages():
     "test ocr_pages"
     doc = create_doc()
