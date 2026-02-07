@@ -12,32 +12,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-@pytest.fixture
-def mock_save_dialog(mocker):
-    "Fixture to provide a Save dialog with mocked dependencies"
-    mocker.patch("dialog.save.Dialog.__init__", return_value=None)
-    mocker.patch("dialog.save.Dialog.get_content_area", return_value=Gtk.Box())
-    mocker.patch("dialog.save.Dialog.get_style_context", return_value=MagicMock())
-
-    # Mocking filter_table to avoid issues with missing dependencies in tests
-    mocker.patch(
-        "dialog.save.filter_table",
-        side_effect=lambda t, types: [row for row in t if row[0] in types],
-    )
-
-    dialog = Save(
-        title="test save",
-        image_types=["pdf", "jpg", "tif", "ps", "djvu"],
-        ps_backends=["pdftops", "pdf2ps"],
-    )
-    # Manually initialize some widgets that might be skipped by mocked __init__
-    dialog.meta_now_widget = MagicMock(spec=Gtk.RadioButton)
-    dialog.meta_now_widget.get_active.return_value = False
-    dialog._meta_datetime_widget = Gtk.Entry()
-
-    return dialog
-
-
 def test_filter_table():
     "Test filter_table function"
     table = [("a", 1), ("b", 2), ("c", 3)]
