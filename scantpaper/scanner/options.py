@@ -220,7 +220,7 @@ class Options(GObject.Object):
             self.device = regex.group(1)
             output = regex.group(2)
         else:
-            return None
+            return []
 
         options = []
         while True:

@@ -743,3 +743,4 @@ def test_errors():
 
     with pytest.raises(ValueError):
         Options(None)
+    assert Options("").num_options() == 0
