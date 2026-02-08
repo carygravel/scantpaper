@@ -170,14 +170,6 @@ def test_reloads_in_profile(
         ),
     ]
 
-    def mocked_do_get_devices(_cls, _request):
-        "mock for do_get_devices"
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
     def mocked_do_open_device(self, request):
         "open device"
         device_name = request.args[0]
@@ -215,12 +207,9 @@ def test_reloads_in_profile(
             )
             setattr(self.device_handle, "br_y", 355.599990844727)
             info = enums.INFO_RELOAD_OPTIONS
-        elif key in ["x_resolution", "y_resolution", "scan_area"]:
-            info = enums.INFO_RELOAD_OPTIONS
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
