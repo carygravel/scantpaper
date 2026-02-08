@@ -722,18 +722,6 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
     "Reproduce AttributeError: 'Dialog' object has no attribute 'parent'"
 
     # Mocking necessary parts to get the Scan dialog to load options and create the paper widget
-
-    # 1. Mock SaneThread.do_get_devices
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
-
-    # 2. Mock SaneThread.do_open_device
     def mocked_do_open_device(self, request):
         self.device_handle = SimpleNamespace(tl_x=0, tl_y=0, br_x=100, br_y=100)
         self.device = request.args[0]
@@ -741,7 +729,6 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
-    # 3. Mock SaneThread.do_get_options
     # We need geometry options to trigger _create_paper_widget
     raw_options = [
         Option(
