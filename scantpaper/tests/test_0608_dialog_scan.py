@@ -886,15 +886,6 @@ def test_get_invalid_option(
 
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
-    def mocked_do_set_option(self, _request):
-        """The changed-profile signal was being emitted too early, resulting in
-        the profile dropdown being set to None"""
-        key, value = _request.args
-        setattr(self.device_handle, key.replace("-", "_"), value)
-        return enums.INFO_RELOAD_OPTIONS
-
-    mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
-
     dlg = sane_scan_dialog
     trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
