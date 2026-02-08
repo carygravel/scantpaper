@@ -233,14 +233,6 @@ def test_option_dependency(
         ),
     ]
 
-    def mocked_do_get_devices(_cls, _request):
-        "mock for do_get_devices"
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
     def mocked_do_open_device(self, request):
         "open device"
         device_name = request.args[0]
@@ -270,7 +262,6 @@ def test_option_dependency(
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
@@ -532,14 +523,6 @@ def test_scanner_with_no_source(
         ),
     ]
 
-    def mocked_do_get_devices(_cls, _request):
-        "mock for do_get_devices"
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
     def mocked_do_open_device(self, request):
         "open device"
         device_name = request.args[0]
@@ -563,7 +546,6 @@ def test_scanner_with_no_source(
         "mocked_do_set_option"
         return 0
 
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
@@ -698,14 +680,6 @@ def test_hiding_geometry(
         ),
     ]
 
-    def mocked_do_get_devices(_cls, _request):
-        "mock for do_get_devices"
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
     def mocked_do_open_device(self, request):
         "open device"
         device_name = request.args[0]
@@ -726,7 +700,6 @@ def test_hiding_geometry(
         "mocked_do_set_option"
         return 0
 
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
@@ -807,14 +780,6 @@ def test_combobox_on_reload(
         ),
     ]
 
-    def mocked_do_get_devices(_cls, _request):
-        "mock for do_get_devices"
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
     def mocked_do_open_device(self, request):
         "open device"
         device_name = request.args[0]
@@ -841,7 +806,6 @@ def test_combobox_on_reload(
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
