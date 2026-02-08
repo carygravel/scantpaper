@@ -361,17 +361,8 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 def test_scan_threads(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
     asserts = 0
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -454,17 +445,8 @@ def test_scan_threads(
 def test_source_without_val(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
     asserts = 0
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -547,17 +529,8 @@ def test_source_without_val(
 def test_no_source(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
     asserts = 0
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -623,16 +596,7 @@ def test_no_source(
 def test_officejet_4620(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -790,16 +754,7 @@ def test_officejet_4620(
 def test_infinite_reloads(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
 
     def mocked_do_open_device(self, request):
         "open device"
