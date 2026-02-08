@@ -13,16 +13,7 @@ logger = logging.getLogger(__name__)
 def test_infinite_reloads_due_to_tolerance(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -446,7 +437,7 @@ def test_infinite_reloads_due_to_tolerance(
 def test_inexact(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
 
     raw_options = [
         Option(
@@ -528,14 +519,6 @@ def test_inexact(
         ),
     ]
 
-    def mocked_do_get_devices(_cls, _request):
-        "mock for do_get_devices"
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
     def mocked_do_open_device(self, request):
         "open device"
         device_name = request.args[0]
@@ -570,7 +553,6 @@ def test_inexact(
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
@@ -629,16 +611,7 @@ def test_inexact(
 def test_infinite_reloads_due_to_inexact(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
-    def mocked_do_get_devices(_cls, _request):
-        devices = [("mock_name", "", "", "")]
-        return [
-            SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1])
-            for x in devices
-        ]
-
-    mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
+    "test more of scan dialog by mocking do_open_device() & do_get_options()"
 
     def mocked_do_open_device(self, request):
         "open device"
