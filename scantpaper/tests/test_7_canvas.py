@@ -352,7 +352,7 @@ def test_canvas_basics2(rose_pnm):
         assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
 
 
-def test_canvas_clear_text(mocker):  # pylint: disable=unused-argument
+def test_canvas_clear_text():
     "Test clearing text from canvas"
     canvas_obj = Canvas()
     canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
