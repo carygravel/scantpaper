@@ -46,12 +46,12 @@ def test_save_multipage_pdf(
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
+    capture = subprocess.check_output(["pdffonts", temp_pdf.name], text=True)
+    # not all combinations of ocrmypdf, qpdf & ghostsript embed GlyphLessFont
+    fonts = 1 if re.search(r"GlyphLessFont", capture) else 0
     assert (
-        len(
-            subprocess.check_output(["pdffonts", temp_pdf.name], text=True).splitlines()
-        )
-        < 3
-    ), "no fonts embedded in multipage PDF"
+        len(capture.splitlines()) == fonts + 2
+    ), "no other fonts embedded in multipage PDF"
 
     #########################
 
