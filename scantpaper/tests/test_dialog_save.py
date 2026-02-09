@@ -1,10 +1,7 @@
 "Coverage tests for dialog.save"
 
-# pylint: disable=protected-access, redefined-outer-name, unused-argument, no-member
-
 import datetime as dt
 from unittest.mock import MagicMock
-import pytest
 import gi
 from dialog.save import Save, filter_table
 
@@ -51,7 +48,7 @@ def test_metadata_properties(mocker):
     assert "kw1" in dialog.meta_keywords_suggestions
 
 
-def test_include_time_toggle(mocker):
+def test_include_time_toggle():
     "Test include_time property"
     dialog = Save()
     dialog.include_time = True
@@ -88,7 +85,7 @@ def test_meta_datetime_property(mocker):
     assert dialog.meta_datetime == test_date
 
 
-def test_insert_text_handler_inc_dec(mocker):
+def test_insert_text_handler_inc_dec():
     "Test increment/decrement date via + and - keys"
     dialog = Save()
     dialog._meta_specify_widget.set_active(True)
@@ -104,7 +101,7 @@ def test_insert_text_handler_inc_dec(mocker):
     assert entry.get_text() == "2023-01-01"
 
 
-def test_insert_text_handler_filtering(mocker):
+def test_insert_text_handler_filtering():
     "Test character filtering in _insert_text_handler"
     dialog = Save()
     entry = dialog._meta_datetime_widget
@@ -157,7 +154,7 @@ def test_image_type_changed_callback(mocker):
     assert dialog.image_type == "ps"
 
 
-def test_pdf_compression_changed_callback(mocker):
+def test_pdf_compression_changed_callback():
     "Test PDF compression changed callback"
     dialog = Save()
     mock_hboxq = MagicMock()
@@ -187,7 +184,7 @@ def test_encrypt_clicked_callback(mocker):
     mock_dialog_cls.assert_called()
 
 
-def test_update_config_dict(mocker):
+def test_update_config_dict():
     "Test update_config_dict"
     dialog = Save()
     dialog._meta_specify_widget.set_active(True)
@@ -202,7 +199,7 @@ def test_update_config_dict(mocker):
     assert "datetime offset" in config
 
 
-def test_datetime_focus_out_callback(mocker):
+def test_datetime_focus_out_callback():
     "Test _datetime_focus_out_callback"
     dialog = Save()
     dialog._meta_specify_widget.set_active(True)
@@ -213,7 +210,7 @@ def test_datetime_focus_out_callback(mocker):
     assert dialog.meta_datetime == dt.datetime(2023, 1, 1)
 
 
-def test_clicked_specify_date_button(mocker):
+def test_clicked_specify_date_button():
     "Test _clicked_specify_date_button"
     dialog = Save()
     mock_hboxe = MagicMock()
@@ -230,3 +227,21 @@ def test_clicked_specify_date_button(mocker):
     dialog._clicked_specify_date_button(mock_widget, mock_hboxe)
     mock_hboxe.hide.assert_called()
     assert dialog.select_datetime is False
+
+
+def test_pdf_selected_callback(mocker):
+    "Test _pdf_selected_callback"
+    dialog = Save()
+    dialog.image_type = "appendpdf"
+    dialog.pdf_compression = "jpg"
+    dialog._meta_box_widget = MagicMock()
+    args = [
+        mocker.Mock(spec=Gtk.Box),
+        mocker.Mock(spec=Gtk.Box),
+        mocker.Mock(spec=Gtk.Box),
+        mocker.Mock(spec=Gtk.Box),
+        mocker.Mock(spec=Gtk.Box),
+    ]
+    dialog._pdf_selected_callback(args)
+    dialog._meta_box_widget.hide.assert_called()
+    args[1].show.assert_called()  # hboxpq
