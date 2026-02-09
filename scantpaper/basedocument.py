@@ -544,15 +544,15 @@ class BaseDocument(SimpleList):
             else:
                 self.get_selection().emit("changed")
 
-            if self.selection_changed_signal is not None:
-                self.get_selection().handler_unblock(self.selection_changed_signal)
-
             logger.info("Deleted %s pages", npages)
 
             if "finished_callback" in kwargs:
                 kwargs["finished_callback"]()
 
         self.delete_selection(finished_callback=_after_delete)
+
+        if self.selection_changed_signal is not None:
+            self.get_selection().handler_unblock(self.selection_changed_signal)
 
     def save_session(self, filename):
         "copy session db to a file"
