@@ -7,6 +7,7 @@ import threading
 import pathlib
 import shutil
 import queue
+import uuid
 from unittest.mock import MagicMock, patch
 import pytest
 import gi
@@ -14,7 +15,7 @@ from document import Document
 from basedocument import drag_data_received_callback, ID_URI, ID_PAGE
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
 
 
 @pytest.fixture(autouse=True)
@@ -35,7 +36,20 @@ def mock_thread(mocker):
     mock_inst._con = MagicMock()
 
     # Mock DocThread.send to avoid blocking on queues
-    mock_inst.send = MagicMock()
+    def mock_send(_process, *args, **kwargs):
+        def run_callbacks():
+            if "data_callback" in kwargs:
+                response = MagicMock()
+                response.info = {"type": "page"}
+                kwargs["data_callback"](response)
+            if "finished_callback" in kwargs:
+                kwargs["finished_callback"](None)
+            return False
+
+        GLib.idle_add(run_callbacks)
+        return uuid.uuid4()
+
+    mock_inst.send.side_effect = mock_send
 
     return mock_inst
 
@@ -917,6 +931,24 @@ def test_delete_selection_callback_removes_rows():
     captured_callback(response)
     # After calling, model should be empty because we selected 0 and 1
     assert len(slist.get_model()) == 0
+
+
+def test_delete_selection_extra_signal():
+    "Test delete_selection_extra emits changed signal"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    mock_changed = MagicMock()
+    slist.selection_changed_signal = slist.get_selection().connect(
+        "changed", mock_changed
+    )
+    slist.select([0])
+    slist.delete_selection_extra()
+
+    mlp = GLib.MainLoop()
+    GLib.idle_add(mlp.quit)
+    mlp.run()
+
+    mock_changed.assert_called()
 
 
 def test_index_for_page_edge_cases():
