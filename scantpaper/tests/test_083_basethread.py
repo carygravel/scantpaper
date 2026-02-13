@@ -146,3 +146,9 @@ def test_1():
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
+
+
+def test_empty_queue():
+    "test _monitor_response with empty queue"
+    thread = BaseThread()
+    assert thread._monitor_response(block=False) == GLib.SOURCE_CONTINUE
