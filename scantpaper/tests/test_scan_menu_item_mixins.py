@@ -369,11 +369,11 @@ def test_changed_device_callback(mock_scan_window):
 
 
 def test_changed_device_callback_empty(mock_scan_window):
-    "Test _changed_device_callback with empty device"
+    "Test _changed_device_callback with None device"
     mock_widget = MagicMock()
     original_device = mock_scan_window.settings["device"]
 
-    mock_scan_window._changed_device_callback(mock_widget, EMPTY)
+    mock_scan_window._changed_device_callback(mock_widget, None)
 
     assert mock_scan_window.settings["device"] == original_device
     mock_widget.connect.assert_not_called()

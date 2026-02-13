@@ -260,8 +260,8 @@ class ScanMenuItemMixins:
     def _changed_device_callback(self, widget, device):
         "callback for changed device"
         # widget is windows
-        if device != EMPTY:
-            logger.info("signal 'changed-device' emitted with data: '%s'", device)
+        logger.info("signal 'changed-device' emitted with data: '%s'", device)
+        if device is not None:
             self.settings["device"] = device
 
             # Can't set the profile until the options have been loaded. This
@@ -270,8 +270,6 @@ class ScanMenuItemMixins:
             widget.reloaded_signal = widget.connect(
                 "reloaded-scan-options", self._reloaded_scan_options_callback
             )
-        else:
-            logger.info("signal 'changed-device' emitted with data: undef")
 
     def _changed_device_list_callback(self, widget, device_list):  # widget is windows
         "callback for changed device list"
