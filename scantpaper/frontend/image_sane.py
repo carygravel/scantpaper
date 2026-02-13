@@ -122,8 +122,8 @@ class SaneThread(BaseThread):
             + ("" if opt.type == enums.TYPE_BUTTON else f" to {value}")
             + " returned info "
             + f"{info} ({decode_info(info)})"
-            if (info is not None)
-            else "undefined"
+            if info is not None
+            else None
         )
 
         return info

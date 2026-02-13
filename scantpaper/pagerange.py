@@ -38,7 +38,7 @@ class PageRange(Gtk.Box):
         self.add(vbox)
 
         # the first radio button has to set the group,
-        # which is undef for the first button
+        # which is None for the first button
         group = None
         self.button = {}
 

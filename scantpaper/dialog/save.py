@@ -332,7 +332,7 @@ class Save(Dialog):
         frame.add(vboxdt)
 
         # the first radio button has to set the group,
-        # which is undef for the first button
+        # which is None for the first button
         # Now button
         self.meta_now_widget = Gtk.RadioButton.new_with_label(None, _("Now"))
         self.meta_now_widget.set_tooltip_text(_("Use current date and time"))

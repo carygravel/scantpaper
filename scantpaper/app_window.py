@@ -74,7 +74,7 @@ def view_html(_action, _param):
 
     uri = f"/usr/share/help/C/{PROG_NAME}/documentation.html"
     if pathlib.Path(uri).exists():
-        uri = GLib.filename_to_uri(uri, None)  # undef => no hostname
+        uri = GLib.filename_to_uri(uri, None)  # None => no hostname
     else:
         uri = "http://gscan2pdf.sf.net"
 
