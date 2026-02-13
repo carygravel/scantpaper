@@ -2,6 +2,7 @@
 
 from basethread import BaseThread, Response, ResponseType
 from gi.repository import GLib
+import pytest
 
 
 class MyThread(BaseThread):
@@ -164,3 +165,12 @@ def test_empty_queue():
     "test _monitor_response with empty queue"
     thread = BaseThread()
     assert thread._monitor_response(block=False) == GLib.SOURCE_CONTINUE
+
+
+def test_register_callback_errors():
+    "test errors raised by register_callback"
+    thread = BaseThread()
+    with pytest.raises(ValueError):
+        thread.register_callback("name", "with", "finished")
+    with pytest.raises(ValueError):
+        thread.register_callback("name", "before", "nonexistent")
