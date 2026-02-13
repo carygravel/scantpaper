@@ -79,6 +79,15 @@ EXPECTED = [
         num_completed_jobs=3,
         total_jobs=4,
         pending=False,
+    ),  # before_finished
+    Response(
+        type=ResponseType.FINISHED,
+        request="",
+        info=0.5,
+        status=None,
+        num_completed_jobs=4,
+        total_jobs=5,
+        pending=False,
     ),  # after_finished
 ]
 
@@ -133,13 +142,16 @@ def test_1():
     mlp.run()
     assert n_callbacks == 8, "checked all expected responses #5"
 
+    thread.register_callback("before_finished", "before", "finished")
+    thread.send("div", 1, 2, before_finished_callback=callback)
+
     thread.register_callback("after_finished", "after", "finished")
     thread.send("div", 1, 2, after_finished_callback=callback)
 
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    assert n_callbacks == 9, "checked all expected responses #6"
+    assert n_callbacks == 8, "checked all expected responses #6"
 
     thread.send("quit")
 
