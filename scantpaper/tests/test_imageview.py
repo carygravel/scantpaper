@@ -364,10 +364,8 @@ def test_drag_no_pixbuf():
     tool.button_pressed(event)
     event.x = 20
     event.y = 20
-    try:
-        tool.motion(event)
-    except AttributeError:
-        pytest.fail("Dragging without a pixbuf should not raise an AttributeError")
+    tool.motion(event)
+    assert tool.drag_start == {"x": 10, "y": 10}
 
 
 def test_tool_base_methods():
