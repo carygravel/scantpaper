@@ -229,10 +229,10 @@ def test_zoom(datadir):
     window = Gtk.Window()
     window.set_size_request(300, 200)
     view = ImageView()
-    scale = view.get_scale_factor()
     window.add(view)
     window.show_all()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(f"{datadir}bigpic.svg"), True)
+    scale = view.get_scale_factor()
     assert view.get_zoom() == pytest.approx(0.2 * scale, 0.0001), "shrunk"
     view.set_zoom(1)
 
@@ -593,34 +593,36 @@ def test_selector_drag_edges(rose_png, mock_view):
 
     # Test cursor at edges
     # Left edge (using y=30 which is inside [20, 40])
-    selector.cursor_type_at_point(20, 30)
+    assert selector.cursor_type_at_point(*view.to_widget_coords(20, 30)) == "w-resize"
     assert selector.h_edge == "lower"
     assert selector.v_edge == "mid"
 
     # Right edge
-    selector.cursor_type_at_point(40, 30)
+    assert selector.cursor_type_at_point(*view.to_widget_coords(40, 30)) == "e-resize"
     assert selector.h_edge == "upper"
     assert selector.v_edge == "mid"
 
     # Top edge
-    selector.cursor_type_at_point(30, 20)
+    assert selector.cursor_type_at_point(*view.to_widget_coords(30, 20)) == "n-resize"
     assert selector.h_edge == "mid"
     assert selector.v_edge == "lower"
 
     # Bottom edge
-    selector.cursor_type_at_point(30, 40)
+    assert selector.cursor_type_at_point(*view.to_widget_coords(30, 40)) == "s-resize"
     assert selector.h_edge == "mid"
     assert selector.v_edge == "upper"
 
     # Corner (Top-Left) - Using values inside the CURSOR_PIXELS range but hitting the edges
-    selector.cursor_type_at_point(21, 21)
+    assert selector.cursor_type_at_point(*view.to_widget_coords(21, 21)) == "nw-resize"
     assert selector.h_edge == "lower"
     assert selector.v_edge == "lower"
 
     # Dragging an edge
-    event = MockEvent(button=1, x=20, y=30)
+    x, y = view.to_widget_coords(20, 30)
+    event = MockEvent(button=1, x=x, y=y)
     selector.button_pressed(event)
-    event.x = 10
+    x, y = view.to_widget_coords(10, 30)
+    event.x = x
     selector.motion(event)
     new_sel = view.get_selection()
     assert new_sel.x == 10
@@ -692,17 +694,19 @@ def test_selector_flip_edges(rose_png, mock_view):
     view.set_tool(selector)
 
     # Start dragging a new selection from (50, 50) to (60, 60)
-    event = MockEvent(button=1, x=50, y=50)
+    x, y = view.to_widget_coords(50, 50)
+    event = MockEvent(button=1, x=x, y=y)
     selector.button_pressed(event)
 
-    event.x, event.y = 60, 60
+    event.x, event.y = view.to_widget_coords(60, 60)
     selector.motion(event)
     sel = view.get_selection()
     assert sel.x == 50
     assert sel.width == 10
 
     # Drag past the start point to flip edge
-    event.x = 40
+    x, y = view.to_widget_coords(40, 50)
+    event.x = x
     selector.motion(event)
     sel = view.get_selection()
     assert sel.x == 40
@@ -736,10 +740,12 @@ def test_selector_update_selection_direct(rose_png):
 
     # Manually set dragging and drag_start
     selector.dragging = True
-    selector.drag_start = {"x": 10, "y": 10}
+    x, y = view.to_widget_coords(10, 10)
+    selector.drag_start = {"x": x, "y": y}
 
     # h_edge and v_edge are None, will be set to "mid" in _update_selection
-    event = MockEvent(button=1, x=20, y=20)
+    x, y = view.to_widget_coords(20, 20)
+    event = MockEvent(button=1, x=x, y=y)
     selector._update_selection(event)
 
     sel = view.get_selection()
@@ -765,9 +771,11 @@ def test_selector_update_selection_edge_branches(rose_png):
     # Test dragging only horizontal edge (v_edge is mid)
     selector.h_edge = "lower"
     selector.v_edge = "mid"
-    selector.drag_start = {"x": 40, "y": None}
+    x, y = view.to_widget_coords(40, 30)
+    selector.drag_start = {"x": x, "y": None}
 
-    event = MockEvent(button=1, x=10, y=30)
+    x, y = view.to_widget_coords(10, 30)
+    event = MockEvent(button=1, x=x, y=y)
     selector._update_selection(event)
 
     sel = view.get_selection()
@@ -780,9 +788,11 @@ def test_selector_update_selection_edge_branches(rose_png):
     # rose_png height is 46. y=20 + height=20 = 40.
     selector.h_edge = "mid"
     selector.v_edge = "upper"
-    selector.drag_start = {"x": None, "y": 20}
+    x, y = view.to_widget_coords(40, 20)
+    selector.drag_start = {"x": None, "y": y}
 
-    event = MockEvent(button=1, x=30, y=40)
+    x, y = view.to_widget_coords(30, 40)
+    event = MockEvent(button=1, x=x, y=y)
     selector._update_selection(event)
 
     sel = view.get_selection()
@@ -809,37 +819,34 @@ def test_selector_cursor_dragging_branches(rose_png, mock_view):
     selector.h_edge = "mid"
     selector.v_edge = "mid"
     selector.drag_start = {}
-    selector.cursor_type_at_point(30, 30)
+    x, y = view.to_widget_coords(30, 30)
+    assert selector.cursor_type_at_point(x, y) == "se-resize"
     assert selector.h_edge == "upper"
     assert selector.v_edge == "upper"
-    assert selector.drag_start == {"x": 30, "y": 30}
+    assert selector.drag_start == {"x": x, "y": y}
 
     # 2. Hit h_edge=="mid" and v_edge!="mid" branch
     selector.h_edge = "mid"
     selector.v_edge = "lower"
     selector.drag_start = {}
-    # to_widget_coords for (20, 20) and (40, 40) with scale 1, zoom 1, offset 0
-    # is (20, 20) and (40, 40). sx2 is 40.
-    selector.cursor_type_at_point(30, 20)
-    assert selector.drag_start["x"] == 40
+    assert selector.cursor_type_at_point(*view.to_widget_coords(30, 20)) == "n-resize"
+    x, y = view.to_widget_coords(40, 40)
+    assert selector.drag_start["x"] == x
 
     # test case where "x" is already in drag_start
     selector.drag_start = {"x": 50}
-    selector.cursor_type_at_point(30, 20)
-    assert selector.drag_start["x"] == 50
+    assert selector.cursor_type_at_point(*view.to_widget_coords(30, 20)) == "n-resize"
 
     # 3. Hit h_edge!="mid" and v_edge=="mid" branch
     selector.h_edge = "lower"
     selector.v_edge = "mid"
     selector.drag_start = {}
-    # sy2 is 40
-    selector.cursor_type_at_point(20, 30)
-    assert selector.drag_start["y"] == 40
+    assert selector.cursor_type_at_point(*view.to_widget_coords(20, 30)) == "w-resize"
+    assert selector.drag_start["y"] == y
 
     # test case where "y" is already in drag_start
     selector.drag_start = {"y": 50}
-    selector.cursor_type_at_point(20, 30)
-    assert selector.drag_start["y"] == 50
+    assert selector.cursor_type_at_point(*view.to_widget_coords(20, 30)) == "w-resize"
 
 
 def test_dragger_coverage(rose_png, mock_view):
