@@ -751,27 +751,6 @@ def test_document(rose_tif, clean_up_files):
         slist = Document(dir=tempdir)
         ran_callback = False
         dialog = Scan(title="title", transient_for=Gtk.Window(), document=slist)
-        exceptions = []
-
-        def check(func):
-            def wrapper(*args, **kwargs):
-                try:
-                    func(*args, **kwargs)
-                except (
-                    AssertionError,
-                    AttributeError,
-                    IndexError,
-                    KeyError,
-                    TypeError,
-                    ValueError,
-                    RuntimeError,
-                    StopIteration,
-                    OSError,
-                ) as exc:
-                    exceptions.append(exc)
-                    mlp.quit()
-
-            return wrapper
 
         def finished_callback(_result):
             nonlocal ran_callback
@@ -783,7 +762,7 @@ def test_document(rose_tif, clean_up_files):
                 assert slist.data[1][0] == 2, "new page is number 2"
                 assert slist.get_selected_indices() == [1], "pasted page selected"
                 dialog.page_number_start = 3
-                clipboard = slist.cut_selection(finished_callback=check(step3))
+                clipboard = slist.cut_selection(finished_callback=step3)
                 assert len(clipboard) == 1, "cut 1 page to clipboard"
 
             def step3():
@@ -797,7 +776,7 @@ def test_document(rose_tif, clean_up_files):
                     data=[clipboard[0]],
                     dest=0,
                     how=Gtk.TreeViewDropPosition.BEFORE,
-                    finished_callback=check(step4),
+                    finished_callback=step4,
                 )  # paste page before 1
 
             def step4():
@@ -810,7 +789,7 @@ def test_document(rose_tif, clean_up_files):
                 slist.select([0, 1])
                 assert slist.get_selected_indices() == [0, 1], "selected all pages"
 
-                slist.delete_selection(finished_callback=check(step5))
+                slist.delete_selection(finished_callback=step5)
 
             def step5():
                 assert len(slist.data) == 0, "deleted all pages"
@@ -832,17 +811,13 @@ def test_document(rose_tif, clean_up_files):
                 dest=0,
                 how=Gtk.TreeViewDropPosition.AFTER,
                 select_new_pages=True,
-                finished_callback=check(step2),
+                finished_callback=step2,
             )  # copy-paste page 1->2
 
-        slist.import_files(
-            paths=[rose_tif.name], finished_callback=check(finished_callback)
-        )
+        slist.import_files(paths=[rose_tif.name], finished_callback=finished_callback)
         mlp = GLib.MainLoop()
         GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
         mlp.run()
-        if exceptions:
-            raise exceptions[0]
         assert ran_callback, "ran finished callback"
 
         clean_up_files(slist.thread.db_files)
