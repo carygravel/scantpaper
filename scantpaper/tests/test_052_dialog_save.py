@@ -134,6 +134,7 @@ def test_image_type_selection(mocker):
 
     def find_combobox(container):
         "Find the image type combobox by searching children"
+        cb = None
         for child in container.get_children():
             if not isinstance(child, Gtk.Box) or child == dialog._meta_box_widget:
                 continue
@@ -145,8 +146,9 @@ def test_image_type_selection(mocker):
             if has_label:
                 for gc in grand_children:
                     if isinstance(gc, Gtk.ComboBox):
-                        return gc
-        return None
+                        cb = gc
+                        break
+        return cb
 
     combobi = find_combobox(dialog.get_content_area())
     assert combobi is not None, "Could not find Image Type ComboBox"
@@ -427,38 +429,35 @@ def test_tiff_compression_selection(mocker):
 
     def find_widget_by_label(container, label_text, widget_type):
         "Find a widget by its sibling label text"
+        widget = None
         for child in container.get_children():
-            if isinstance(child, Gtk.Box):
-                res = find_widget_by_label(child, label_text, widget_type)
-                if res:
-                    return res
-                grand_children = child.get_children()
-                has_label = any(
-                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
-                    for gc in grand_children
-                )
-                if has_label:
-                    for gc in grand_children:
-                        if isinstance(gc, widget_type):
-                            return gc
-        return None
+            grand_children = child.get_children()
+            has_label = any(
+                isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                for gc in grand_children
+            )
+            if has_label:
+                for gc in grand_children:
+                    if isinstance(gc, widget_type):
+                        widget = gc
+                        break
+        return widget
 
     content_area = dialog.get_content_area()
     combobtc = find_widget_by_label(content_area, "Compression", Gtk.ComboBox)
     assert combobtc is not None, "Could not find Compression ComboBox"
 
     def find_box_containing_label(container, label_text):
+        "Find a Box that contains a Label with the given text"
+        box = None
         for child in container.get_children():
-            if isinstance(child, Gtk.Box):
-                if any(
-                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
-                    for gc in child.get_children()
-                ):
-                    return child
-                res = find_box_containing_label(child, label_text)
-                if res:
-                    return res
-        return None
+            if any(
+                isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                for gc in child.get_children()
+            ):
+                box = child
+                break
+        return box
 
     hboxtq = find_box_containing_label(content_area, "JPEG Quality")
     assert hboxtq is not None, "Could not find JPEG Quality Box"
@@ -475,7 +474,7 @@ def test_tiff_compression_selection(mocker):
     dialog.resize.assert_called()
 
 
-def test_other_save_dialog_callbacks(mocker):
+def test_other_save_dialog_callbacks():
     "test other callbacks in Save dialog"
     dialog = Save(
         transient_for=Gtk.Window(),
@@ -487,21 +486,19 @@ def test_other_save_dialog_callbacks(mocker):
 
     def find_widget_by_label(container, label_text, widget_type):
         "Find a widget by its sibling label text"
+        widget = None
         for child in container.get_children():
-            if isinstance(child, Gtk.Box):
-                res = find_widget_by_label(child, label_text, widget_type)
-                if res:
-                    return res
-                grand_children = child.get_children()
-                has_label = any(
-                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
-                    for gc in grand_children
-                )
-                if has_label:
-                    for gc in grand_children:
-                        if isinstance(gc, widget_type):
-                            return gc
-        return None
+            grand_children = child.get_children()
+            has_label = any(
+                isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                for gc in grand_children
+            )
+            if has_label:
+                for gc in grand_children:
+                    if isinstance(gc, widget_type):
+                        widget = gc
+                        break
+        return widget
 
     # Test ps_backend_changed_callback
     combops = find_widget_by_label(content_area, "Postscript backend", Gtk.ComboBox)
