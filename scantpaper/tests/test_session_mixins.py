@@ -1,9 +1,11 @@
 "Coverage tests for SessionMixins"
 
+import logging
 import os
 from unittest.mock import MagicMock
 import pytest
 import gi
+from basethread import Response, ResponseType, Request
 from const import EMPTY
 from session_mixins import SessionMixins
 
@@ -949,3 +951,83 @@ def test_ocr_text_add_no_layer(mocker, mock_session_window):
     # Verify lines 615-616 were hit
     mock_session_window.t_canvas.get_first_bbox.assert_called()
     mock_session_window._edit_ocr_text.assert_called()
+
+
+class MockApp(SessionMixins):
+    def __init__(self):
+        self.slist = MagicMock()
+        # Mock slist.data as a list of lists [page_number, pixbuf, uuid]
+        self.slist.data = [[1, None, "valid-uuid"]]
+
+        # find_page_by_uuid returns index if found, else None
+        def find_side_effect(uuid):
+            if uuid == "valid-uuid":
+                return 0
+            return None
+
+        self.slist.find_page_by_uuid.side_effect = find_side_effect
+
+        # Mock other required attributes
+        self.post_process_progress = MagicMock()
+        self._show_message_dialog = MagicMock()
+
+
+def test_error_callback_with_corrupted_args(caplog):
+    """
+    Test that _error_callback does not crash when request args are corrupted
+    (e.g., page UUID replaced by an object, or key missing) and correctly logs.
+    """
+    app = MockApp()
+
+    # 1. Simulate corrupted args where 'page' is an object instead of a UUID
+    mock_request = MagicMock(spec=Request)
+    mock_request.process = "user_defined"
+    mock_request.args = [{"page": object()}]  # Corrupted: object instead of UUID
+
+    response = Response(
+        type=ResponseType.ERROR,
+        request=mock_request,
+        info=None,
+        status="Some Error",
+        num_completed_jobs=1,
+        total_jobs=1,
+        pending=False,
+    )
+
+    with caplog.at_level(logging.ERROR):
+        app._error_callback(response)
+
+    assert (
+        "Error running 'error' callback for 'user_defined' process: Some Error"
+        in caplog.text
+    )
+
+
+def test_error_callback_with_missing_page_key(caplog):
+    """
+    Test that _error_callback does not crash when 'page' key is missing from
+    args and correctly logs.
+    """
+    app = MockApp()
+
+    mock_request = MagicMock(spec=Request)
+    mock_request.process = "analyse"
+    mock_request.args = [{}]  # Missing 'page' key
+
+    response = Response(
+        type=ResponseType.ERROR,
+        request=mock_request,
+        info=None,
+        status="Analyse Error",
+        num_completed_jobs=1,
+        total_jobs=1,
+        pending=False,
+    )
+
+    with caplog.at_level(logging.ERROR):
+        app._error_callback(response)
+
+    assert (
+        "Error running 'error' callback for 'analyse' process: Analyse Error"
+        in caplog.text
+    )

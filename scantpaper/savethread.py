@@ -420,19 +420,20 @@ class SaveThread(Importhread):
             ) as infile, tempfile.NamedTemporaryFile(
                 dir=options.get("dir"), suffix=".png"
             ) as out:
-                options["page"] = self.get_page(id=options["page"])
-                options["page"].image_object.save(infile.name)
-                if re.search("%o", options["command"]):
-                    options["command"] = re.sub(
+                page = self.get_page(id=options["page"])
+                page.image_object.save(infile.name)
+                command = options["command"]
+                if re.search("%o", command):
+                    command = re.sub(
                         r"%o",
                         out.name,
-                        options["command"],
+                        command,
                         flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                     )
-                    options["command"] = re.sub(
+                    command = re.sub(
                         r"%i",
                         infile.name,
-                        options["command"],
+                        command,
                         flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                     )
 
@@ -441,22 +442,22 @@ class SaveThread(Importhread):
                         request.error(_("Error copying page"))
                         return
 
-                    options["command"] = re.sub(
+                    command = re.sub(
                         r"%i",
                         out.name,
-                        options["command"],
+                        command,
                         flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                     )
 
-                options["command"] = re.sub(
+                command = re.sub(
                     r"%r",
-                    rf"{options['page'].resolution[0]}",
-                    options["command"],
+                    rf"{page.resolution[0]}",
+                    command,
                     flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
                 # options["command"] = options["command"].split(" ")
                 sbp = subprocess.run(
-                    options["command"],
+                    command,
                     capture_output=True,
                     check=True,
                     text=True,
@@ -489,17 +490,15 @@ class SaveThread(Importhread):
                     image_object=image,
                     dir=options.get("dir"),
                     format=image.format,
-                    resolution=options["page"].resolution,
-                    text_layer=options["page"].text_layer,
+                    resolution=page.resolution,
+                    text_layer=page.text_layer,
                 )
-                row = self.replace_page(
-                    new, self.find_page_number_by_page_id(options["page"].id)
-                )
+                row = self.replace_page(new, self.find_page_number_by_page_id(page.id))
                 request.data(
                     {
                         "type": "page",
                         "row": row,
-                        "replace": options["page"].id,
+                        "replace": page.id,
                     }
                 )
 

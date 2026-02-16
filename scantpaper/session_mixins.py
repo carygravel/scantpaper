@@ -406,7 +406,9 @@ class SessionMixins:
         message = response.status
         page = None
         if "page" in args[0]:
-            page = self.slist.data[self.slist.find_page_by_uuid(args[0]["page"])][0]
+            idx = self.slist.find_page_by_uuid(args[0]["page"])
+            if idx is not None:
+                page = self.slist.data[idx][0]
 
         kwargs = {
             "parent": self,
