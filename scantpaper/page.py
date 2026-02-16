@@ -285,6 +285,11 @@ class Page:
         #     width * 3,
         # )
         with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as filename:
+            # Force PIL to load the data before the file is deleted.
+            # The upgrade to gdk-pixbuf 2.44.5+dfsg-3/4 without this threw
+            # "contains no data", caused by a race condition where PIL attempted
+            # to lazy-load data from a deleted temporary file.
+            self.image_object.load()
             self.image_object.save(filename.name)
             pixbuf = None
             try:
@@ -308,6 +313,11 @@ class Page:
         )
         pixbuf = None
         with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as filename:
+            # Force PIL to load the data before the file is deleted.
+            # The upgrade to gdk-pixbuf 2.44.5+dfsg-3/4 without this threw
+            # "contains no data", caused by a race condition where PIL attempted
+            # to lazy-load data from a deleted temporary file.
+            self.image_object.load()
             self.image_object.save(filename.name)
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(

@@ -640,9 +640,10 @@ class DocThread(SaveThread):
 
     def _pixbuf_to_bytes(self, pixbuf):
         "given a pixbuf, return the equivalent bytes, in order to store them as a blob"
-        with tempfile.NamedTemporaryFile(dir=self._dir, suffix=".png") as temp:
-            pixbuf.savev(temp.name, "png")
-            return temp.read()
+        if pixbuf is None:
+            return b""
+        _success, buffer = pixbuf.save_to_bufferv("png", [], [])
+        return buffer
 
     def _bytes_to_pixbuf(self, blob):
         "given a stream of bytes, return the equivalent pixbuf"

@@ -478,6 +478,11 @@ class SaveThread(Importhread):
 
                 # Get file type
                 image = Image.open(out.name)
+                # Force PIL to load the data before the file is deleted.
+                # The upgrade to gdk-pixbuf 2.44.5+dfsg-3/4 without this threw
+                # "contains no data", caused by a race condition where PIL attempted
+                # to lazy-load data from a deleted temporary file.
+                image.load()
 
                 # assume the resolution hasn't changed
                 new = Page(
