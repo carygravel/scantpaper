@@ -315,9 +315,9 @@ class ScanMenuItemMixins:
         else:
             self._windows = None
 
-    def _changed_side_to_scan_callback(self, widget, _arg):
+    def _changed_side_to_scan_callback(self, widget, side):
         "Callback function to handle the event when the side to scan is changed."
-        logger.debug("changed_side_to_scan_callback( %s, %s )", widget, _arg)
+        logger.debug("changed_side_to_scan_callback( %s )", side)
         if len(self.slist.data) > 0:
             widget.page_number_start = self.slist.data[len(self.slist.data) - 1][0] + 1
         else:
