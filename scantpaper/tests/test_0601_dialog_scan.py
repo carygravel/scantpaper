@@ -3,6 +3,7 @@
 import glob
 import tempfile
 from types import SimpleNamespace
+from unittest.mock import Mock
 import gi
 from document import Document
 from dialog.scan import Scan
@@ -214,19 +215,17 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     ), "default adf-defaults-scan-all-pages"
 
     def changed_scan_option_cb(widget, option, value, _data):
-
-        if option == "source":
-            nonlocal asserts
-            nonlocal signal
-            dialog.disconnect(signal)
-            assert (
-                dialog.num_pages == 0
-            ), "adf-defaults-scan-all-pages should force num-pages"
-            assert not options.flatbed_selected(
-                dialog.thread.device_handle
-            ), "not flatbed_selected() via value"
-            asserts += 1
-            loop.quit()
+        nonlocal asserts
+        nonlocal signal
+        dialog.disconnect(signal)
+        assert (
+            dialog.num_pages == 0
+        ), "adf-defaults-scan-all-pages should force num-pages"
+        assert not options.flatbed_selected(
+            dialog.thread.device_handle
+        ), "not flatbed_selected() via value"
+        asserts += 1
+        loop.quit()
 
     signal = dialog.connect("changed-scan-option", changed_scan_option_cb)
     dialog.set_option(options.by_name("source"), "Automatic Document Feeder")
@@ -237,14 +236,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb3(_widget, _option, _value, _data):
-        nonlocal signal
-        nonlocal signal2
-        dialog.disconnect(signal)
-        dialog.disconnect(signal2)
-        assert False, "should not try to set invalid option"
-        loop.quit()
-
+    changed_scan_option_cb3 = Mock()
     signal = dialog.connect("changed-scan-option", changed_scan_option_cb3)
 
     def changed_current_scan_options_cb(_arg1, _arg2, _arg3):
@@ -259,6 +251,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     )
     dialog.set_current_scan_options(Profile(backend=[("mode", "Lineart")]))
     loop.run()
+    changed_scan_option_cb3.assert_not_called()
     return asserts
 
 
@@ -266,14 +259,7 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     "splitting test_1 up into chunks"
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb4(_widget, _option, _value, _data):
-        nonlocal signal
-        nonlocal signal2
-        dialog.disconnect(signal)
-        dialog.disconnect(signal2)
-        assert False, "should not try to set option if value already correct"
-        loop.quit()
-
+    changed_scan_option_cb4 = Mock()
     signal = dialog.connect("changed-scan-option", changed_scan_option_cb4)
 
     def changed_current_scan_options_cb2(_arg1, _arg2, _arg3):
@@ -292,6 +278,7 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 
     GLib.idle_add(add_mode_gray_cb)
     loop.run()
+    changed_scan_option_cb4.assert_not_called()
 
     dialog.adf_defaults_scan_all_pages = 0
     assert set_option_in_mainloop(dialog, "source", "Automatic Document Feeder")
