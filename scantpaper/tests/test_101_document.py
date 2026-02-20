@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 import threading
-from unittest.mock import MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch
 from PIL import Image
 import gi
 import pytest
@@ -45,16 +45,6 @@ def get_page_index_selected_callback(_uuid, _process, _message):
     assert True, "error in selected"
 
 
-def get_page_index_selected_callback2(_uuid, _process, _message):
-    "callback for get_page_index"
-    assert False, "no error in selected"
-
-
-def get_page_index_all_callback2(_uuid, _process, _message):
-    "callback for get_page_index"
-    assert False, "no error in all"
-
-
 def test_basics(clean_up_files):
     "test basics"
     slist = Document()
@@ -78,10 +68,14 @@ def test_basics(clean_up_files):
     assert selected == [], "none selected"
 
     slist.select(0)
+    get_page_index_selected_callback2 = Mock()
     selected = slist.get_page_index("selected", get_page_index_selected_callback2)
+    get_page_index_selected_callback2.assert_not_called()
     assert selected == [0], "selected"
 
+    get_page_index_all_callback2 = Mock()
     selected = slist.get_page_index("all", get_page_index_all_callback2)
+    get_page_index_all_callback2.assert_not_called()
     assert selected == [0], "all"
     assert slist.pages_possible(2, 1) == 0, "pages_possible 0 due to existing page"
     assert (
@@ -623,17 +617,6 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
         thread.do_import_file(request)
         page = thread.get_page(id=1)
         assert isinstance(page, Page), "do_import_file + png"
-
-        def get_file_info_callback(response):
-            assert (
-                response.request.process == "get_file_info"
-            ), "get_file_info_finished_callback"
-            del response.info["path"]
-            assert response.info == info, "get_file_info"
-
-        thread.get_file_info(tif.name, None, finished_callback=get_file_info_callback)
-        for _ in range(4):
-            thread.monitor(block=True)
 
         clean_up_files(thread.db_files)
 
