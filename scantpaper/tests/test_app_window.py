@@ -39,14 +39,6 @@ class MockImageView(Gtk.DrawingArea):
     def set_selection(self, selection):
         "mock set_selection"
 
-    def get_selection(self):
-        "mock get_selection"
-        return None
-
-    def copy(self):
-        "mock copy"
-        return MagicMock()
-
 
 class MockCanvas(Gtk.DrawingArea):
     "Mock Canvas class"
@@ -171,11 +163,7 @@ def app_window(mocker, mock_builder, mock_config):
 
     # We need to register the app to use it fully, though maybe not strictly required here
     with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            app.register(None)
-        except GLib.Error:
-            pass
-
+        app.register(None)
         win = ApplicationWindow(application=app)
         yield win
         win.destroy()
@@ -326,17 +314,15 @@ def test_read_config_restore_window(mocker):
                             ):
                                 win = ApplicationWindow(application=app)
                                 # Manually trigger the logic that happens in __init__
-                                if win.settings["restore window"]:
-                                    win.set_default_size(
-                                        win.settings["window_width"],
-                                        win.settings["window_height"],
-                                    )
-                                    win.move(
-                                        win.settings["window_x"],
-                                        win.settings["window_y"],
-                                    )
-                                    if win.settings["window_maximize"]:
-                                        win.maximize()
+                                win.set_default_size(
+                                    win.settings["window_width"],
+                                    win.settings["window_height"],
+                                )
+                                win.move(
+                                    win.settings["window_x"],
+                                    win.settings["window_y"],
+                                )
+                                win.maximize()
 
                                 mock_size.assert_called_with(800, 600)
                                 mock_move.assert_called_with(100, 100)
@@ -1020,16 +1006,14 @@ def test_init_icon_error(mocker, mock_builder, mock_config, error_type):
     app.set_menubar = MagicMock()
     app.args = MagicMock(import_files=None, import_all=None)
 
-    with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            mock_logger.warning.assert_called()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+    try:
+        win = ApplicationWindow(application=app)
+        mock_logger.warning.assert_called()
+    finally:
+        win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
 
 
 def test_pre_flight_linux(mocker, mock_builder, mock_config):
@@ -1089,16 +1073,14 @@ def test_pre_flight_linux(mocker, mock_builder, mock_config):
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
 
-    with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            mock_slurp.assert_called_once()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+    try:
+        win = ApplicationWindow(application=app)
+        mock_slurp.assert_called_once()
+    finally:
+        win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
 
 
 def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
@@ -1158,16 +1140,14 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
 
-    with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            assert win.settings["cwd"] == os.getcwd()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+    try:
+        win = ApplicationWindow(application=app)
+        assert win.settings["cwd"] == os.getcwd()
+    finally:
+        win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
 
 
 def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp_path):
@@ -1230,8 +1210,7 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
 
     def mock_pre_flight(self):
         original_pre_flight(self)
-        if "cwd" in self.settings:
-            del self.settings["cwd"]
+        del self.settings["cwd"]
 
     mocker.patch.object(
         ApplicationWindow, "_pre_flight", side_effect=mock_pre_flight, autospec=True
@@ -1242,16 +1221,14 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
 
-    with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            assert win.settings["cwd"] == os.getcwd()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+    try:
+        win = ApplicationWindow(application=app)
+        assert win.settings["cwd"] == os.getcwd()
+    finally:
+        win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
 
 
 def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_path):
@@ -1321,18 +1298,16 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
     app.args.import_files = ["file1.pdf"]
     app.args.import_all = ["file2.pdf"]
 
-    with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            mock_scan_dialog.assert_called_once_with(None, None, True)
-            assert mock_import_files.call_count == 2
-            mock_import_files.assert_any_call(["file2.pdf"], True)
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+    try:
+        win = ApplicationWindow(application=app)
+        mock_scan_dialog.assert_called_once_with(None, None, True)
+        assert mock_import_files.call_count == 2
+        mock_import_files.assert_any_call(["file2.pdf"], True)
+    finally:
+        win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
 
 
 def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_path):
@@ -1402,20 +1377,18 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
     # Test with "dragger"
     mock_config.read_config.return_value["image_control_tool"] = "dragger"
 
-    with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            mock_dragger.assert_called()
-            # Reset mocks for next test
-            mock_dragger.reset_mock()
-            mock_selector.reset_mock()
-            mock_selector_dragger.reset_mock()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+    try:
+        win = ApplicationWindow(application=app)
+        mock_dragger.assert_called()
+        # Reset mocks for next test
+        mock_dragger.reset_mock()
+        mock_selector.reset_mock()
+        mock_selector_dragger.reset_mock()
+    finally:
+        win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
 
     # Test with "selectordragger" (or any other value that falls into 'else')
     mock_config.read_config.return_value["image_control_tool"] = "selectordragger"
@@ -1430,13 +1403,11 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
 
-    with patch.object(Gtk.Application, "register", autospec=True):
-        try:
-            win = ApplicationWindow(application=app)
-            mock_selector_dragger.assert_called()
-        finally:
-            if "win" in locals():
-                win.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            app.quit()
+    try:
+        win = ApplicationWindow(application=app)
+        mock_selector_dragger.assert_called()
+    finally:
+        win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
