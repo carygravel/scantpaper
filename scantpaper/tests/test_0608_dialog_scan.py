@@ -767,8 +767,7 @@ def test_get_invalid_option(
 
     gscan2pdf tested this with 06092_dialog_scan, but without a load of
     debugging help from someone with access to a similar scanner, it is
-    hard to predict how the python sane module would react, so skipping
-    this until we have a problem to reproduce."""
+    hard to predict how the python sane module would react."""
 
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 

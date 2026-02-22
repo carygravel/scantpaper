@@ -9,7 +9,6 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 def test_1():
     "test MultipleMessage class"
-    # Translation.set_domain('gscan2pdf')
     window = Gtk.Window()
 
     dialog = MultipleMessage(title="title", transient_for=window)
@@ -196,7 +195,7 @@ Some other error"""
     assert (
         filter_message(
             "[image2 @ 0x56054e417040] The specified filename "
-            "'/tmp/gscan2pdf-ldks/OHSk_wKy5v.pnm' does not contain an image sequence "
+            "'/tmp/scantpaper-ldks/OHSk_wKy5v.pnm' does not contain an image sequence "
             "pattern or a pattern is invalid."
         )
         == "[image2 @ %%x] The specified filename '/tmp/%%t' does not contain an "

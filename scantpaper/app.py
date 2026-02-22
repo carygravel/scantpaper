@@ -20,7 +20,7 @@
 # migrate to Gtk4
 # remaining FIXMEs and TODOs
 
-# gscan2pdf --- to aid the scan to PDF or DjVu process
+# scantpaper --- to aid the scan to PDF or DjVu process
 
 # Release procedure:
 #    Use
@@ -44,13 +44,11 @@
 #    lintian -iI --pedantic .changes
 #    autopkgtest .changes -- schroot sid-amd64-sbuild
 #    check contents with dpkg-deb --contents
-#    test dist sudo dpkg -i gscan2pdf_x.x.x_all.deb
+#    test dist sudo dpkg -i scantpaper_x.x.x_all.deb
 # 5.  git status
 #     git tag vx.x.x
 #     git push --tags origin master
-#    If the latter doesn't work, try:
-#     git push --tags https://ra28145@git.code.sf.net/p/gscan2pdf/code master
-# 6. create version directory in https://sourceforge.net/projects/gscan2pdf/files/gscan2pdf
+# 6. create version directory
 #     make file_releases
 # 7. Build packages for Debian & Ubuntu
 #    name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
@@ -67,7 +65,7 @@
 #      * duplicate the config file, typically in /etc/schroot/chroot.d/, changing
 #        the sbuild profile to desktop
 #       schroot -c sid-amd64-desktop -u root
-#       apt-get build-dep gscan2pdf
+#       apt-get build-dep scantpaper
 #       su - <user>
 #       pytest -vv
 
@@ -126,7 +124,7 @@ class Application(Gtk.Application):
         self.args = kwargs.pop("cmdline", None) or []
         super().__init__(
             *args,
-            application_id="org.gscan2pdf",
+            application_id="org.scantpaper",
             flags=Gio.ApplicationFlags.HANDLES_OPEN,
             **kwargs,
         )
@@ -141,8 +139,8 @@ class Application(Gtk.Application):
         # )
 
         # Add extra icons early to be available for Gtk.Builder
-        if os.path.isdir("/usr/share/gscan2pdf"):
-            self.iconpath = "/usr/share/gscan2pdf"
+        if os.path.isdir("/usr/share/scantpaper"):
+            self.iconpath = "/usr/share/scantpaper"
         else:
             self.iconpath = "icons"
         self._init_icons(

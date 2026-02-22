@@ -34,7 +34,7 @@ from gi.repository import Gdk, Gio, GLib, Gtk  # pylint: disable=wrong-import-po
 logger = logging.getLogger(__name__)
 
 GLib.set_application_name(PROG_NAME)
-GLib.set_prgname("net.sourceforge.gscan2pdf")
+GLib.set_prgname("com.github.scantpaper")
 
 
 def drag_motion_callback(tree, context, x, y, t):
@@ -76,7 +76,7 @@ def view_html(_action, _param):
     if pathlib.Path(uri).exists():
         uri = GLib.filename_to_uri(uri, None)  # None => no hostname
     else:
-        uri = "http://gscan2pdf.sf.net"
+        uri = "https://github.com/carygravel/scantpaper"
 
     logger.info("Opening %s via default launcher", uri)
     context = Gio.AppLaunchContext()
@@ -177,10 +177,10 @@ class ApplicationWindow(
                 self.maximize()
 
         try:
-            self.set_icon_from_file(f"{self.get_application().iconpath}/gscan2pdf.svg")
+            self.set_icon_from_file(f"{self.get_application().iconpath}/scantpaper.svg")
         except (FileNotFoundError, OSError, GLib.Error) as e:
             logger.warning(
-                "Unable to load icon `%s/gscan2pdf.svg': %s",
+                "Unable to load icon `%s/scantpaper.svg': %s",
                 self.get_application().iconpath,
                 str(e),
             )
@@ -310,7 +310,7 @@ class ApplicationWindow(
 
     def _read_config(self):
         "Read the configuration file"
-        # config files: XDG_CONFIG_HOME/gscan2pdfrc or HOME/.config/gscan2pdfrc
+        # config files: XDG_CONFIG_HOME/scantpaperrc or HOME/.config/scantpaperrc
         rcdir = (
             os.environ["XDG_CONFIG_HOME"]
             if "XDG_CONFIG_HOME" in os.environ
@@ -868,7 +868,7 @@ class ApplicationWindow(
                     )
                 )
                 radio3 = Gtk.RadioButton.new_with_label_from_widget(
-                    radio1, label=_("Restart gscan2pdf.")
+                    radio1, label=_("Restart scantpaper.")
                 )
                 area.add(radio3)
                 radio4 = Gtk.RadioButton.new_with_label_from_widget(

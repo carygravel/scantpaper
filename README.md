@@ -3,8 +3,8 @@
 A GUI to produce PDFs or DjVus from scanned documents.
 
 <p align="center">
-    <img src="https://a.fsdn.com/con/app/proj/gscan2pdf/screenshots/Screenshot.png/max/max/1" border="1" width="632" height="480" alt="Screenshot" /><br/>
-    <em>Screenshot: Main page v2.4.0</em>
+    <img width="1254" height="656" alt="Image" src="https://github.com/user-attachments/assets/14078f4b-9cde-404e-aaab-958c77f90c5a" />
+    <em>Screenshot: Main page v3.0.0</em>
 </p>
 
 ---
@@ -99,23 +99,24 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 ## Download & Installation
 
-**SourceForge:**  
-[gscan2pdf downloads](https://sourceforge.net/projects/gscan2pdf/files/gscan2pdf/)
+**Github:**  
+[scantpaper downloads](https://github.com/carygravel/scantpaper/releases/)
 
 ### Debian-based
 
-- Debian `sid` has the latest version.
+- Debian `sid` will have the latest version as soon as it has cleared the new
+  queue.
 - Ubuntu users can use the PPA:
 
     ```sh
     sudo apt-add-repository ppa:jeffreyratcliffe/ppa
     sudo apt update
-    sudo apt install gscan2pdf
+    sudo apt install scantpaper
     ```
 
 ### From Source
 
-Download from [SourceForge](https://sourceforge.net/projects/gscan2pdf/files/).
+Download from [Github](https://github.com/carygravel/scantpaper/releases/).
 
 ### From the Repository
 
@@ -189,7 +190,7 @@ perl -I lib bin/gscan2pdf --log=log --locale=locale
 Set locale variables as needed (e.g., for Russian):
 
 ```sh
-LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 perl -I lib bin/gscan2pdf --log=log --locale=locale
+LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 python3 scantpaper/app.py --log=log --locale=locale
 ```
 
 ---
@@ -310,8 +311,8 @@ it ran out of open file handles.
 - In the event of a crash, it was tedious to recreate the document from the image files.
 - AFAIK, Perl's support for Gtk4 never extended beyond that provided by introspection.
 
-Therefore I decided in 2022 to completely rewrite gscan2pdf in Python and renamed
-it for v3 `scantpaper`. The rewrite:
+Therefore I decided in 2022 to completely rewrite `gscan2pdf` in Python and
+renamed it for v3 `scantpaper`. The rewrite:
 
 - Supports PDF/A by using `ocrmypdf` to write PDFs
 - Stores all session data in a single Sqlite database

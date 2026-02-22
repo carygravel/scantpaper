@@ -342,7 +342,7 @@ def test_helpers():
         },
     ) == {
         "moddate": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
-        "creator": f"gscan2pdf v{VERSION}",
+        "creator": f"scantpaper v{VERSION}",
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
@@ -367,7 +367,7 @@ def test_helpers():
         "moddate": datetime.datetime(
             2016, 2, 10, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
         ),
-        "creator": f"gscan2pdf v{VERSION}",
+        "creator": f"scantpaper v{VERSION}",
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
@@ -404,7 +404,7 @@ def test_helpers():
             5,
             tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
         ),
-        "creator": f"gscan2pdf v{VERSION}",
+        "creator": f"scantpaper v{VERSION}",
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",

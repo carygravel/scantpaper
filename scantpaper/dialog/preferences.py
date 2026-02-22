@@ -153,7 +153,7 @@ class PreferencesDialog(Dialog):
         self._cb_cache_device_list.set_tooltip_text(
             _(
                 "If this option is enabled, opening the scanner is quicker, "
-                "as gscan2pdf does not first search for available devices."
+                "as scantpaper does not first search for available devices."
             )
             + _(
                 "This is only effective if the device names do not change between sessions."
@@ -253,7 +253,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         file_chooser.set_current_folder(self._tmpentry.get_text())
         if file_chooser.run() == Gtk.ResponseType.OK:
             self._tmpentry.set_text(
-                get_tmp_dir(file_chooser.get_filename(), r"gscan2pdf-\w\w\w\w")
+                get_tmp_dir(file_chooser.get_filename(), r"scantpaper-\w\w\w\w")
             )
         file_chooser.destroy()
 
@@ -402,7 +402,7 @@ The other variable available is:
         # Expand tildes in the filename
         newdir = get_tmp_dir(
             str(pathlib.Path(self._tmpentry.get_text()).expanduser()),
-            r"gscan2pdf-\w\w\w\w",
+            r"scantpaper-\w\w\w\w",
         )
         self.settings["TMPDIR"] = newdir
         self.emit("changed-preferences", self.settings)

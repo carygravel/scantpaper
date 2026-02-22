@@ -547,7 +547,7 @@ def test_prepare_output_metadata():
     out = prepare_output_metadata("PDF", metadata)
     assert out["author"] == "Author"
     assert out["creationdate"] == metadata["datetime"]
-    assert out["creator"].startswith("gscan2pdf v")
+    assert out["creator"].startswith("scantpaper v")
 
 
 def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):

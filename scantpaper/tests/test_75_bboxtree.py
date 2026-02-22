@@ -19,7 +19,7 @@ def test_1():
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-  <meta name='ocr-system' content='gscan2pdf {VERSION}' />
+  <meta name='ocr-system' content='scantpaper {VERSION}' />
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
  </head>
  <body>
@@ -124,7 +124,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-  <meta name='ocr-system' content='gscan2pdf {VERSION}' />
+  <meta name='ocr-system' content='scantpaper {VERSION}' />
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
  </head>
  <body>
@@ -422,7 +422,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'/>
 </head>
 <body>
-  <div class='ocr_page' id='page_1' title='image "/tmp/gscan2pdf-Ay0J/nUVvJ79mSJ.pnm"; bbox 0 0 2480 3507; ppageno 0'>
+  <div class='ocr_page' id='page_1' title='image "/tmp/scantpaper-Ay0J/nUVvJ79mSJ.pnm"; bbox 0 0 2480 3507; ppageno 0'>
    <div class='ocr_carea' id='block_1_1' title="bbox 295 263 546 440">
     <p class='ocr_par' dir='ltr' id='par_1_1' title="bbox 297 263 545 440">
      <span class='ocr_line' id='line_1_1' title="bbox 368 263 527 310; baseline 0 3197">
@@ -455,7 +455,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'/>
 </head>
 <body>
-  <div class='ocr_page' id='page_1' title='image "/tmp/gscan2pdf-jzAZ/YHm7vp6nUp.pnm"; bbox 0 0 2480 3507; ppageno 0'>
+  <div class='ocr_page' id='page_1' title='image "/tmp/scantpaper-jzAZ/YHm7vp6nUp.pnm"; bbox 0 0 2480 3507; ppageno 0'>
    <div class='ocr_carea' id='block_1_10' title="bbox 305 2194 2082 2573">
     <p class='ocr_par' dir='ltr' id='par_1_13' title="bbox 306 2195 2079 2568">
      <span class='ocr_line' id='line_1_43' title="bbox 311 2382 1920 2428; baseline -0.009 -3">

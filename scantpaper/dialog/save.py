@@ -24,7 +24,7 @@ IMAGE_TYPES = [
     ("tif", _("TIFF"), _("Tagged Image File Format")),
     ("txt", _("Text"), _("Plain text")),
     ("hocr", _("hOCR"), _("hOCR markup language")),
-    ("session", _("Session"), _("gscan2pdf session file")),
+    ("session", _("Session"), _("scantpaper session file")),
     ("prependpdf", _("Prepend to PDF"), _("Prepend to an existing PDF")),
     ("appendpdf", _("Append to PDF"), _("Append to an existing PDF")),
     ("djvu", _("DjVu"), _("Deja Vu")),
@@ -33,7 +33,7 @@ PDF_COMPRESSION_ALGS = [
     (
         "auto",
         _("Automatic"),
-        _("Let gscan2pdf which type of compression to use."),
+        _("Let scantpaper which type of compression to use."),
     ),
     ("lzw", _("LZW"), _("Compress output with Lempel-Ziv & Welch encoding.")),
     ("g3", _("G3"), _("Compress output with CCITT Group 3 encoding.")),

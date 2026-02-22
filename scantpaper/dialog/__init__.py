@@ -314,7 +314,7 @@ def filter_message(message):
     message = message.rstrip()
 
     # temp files -> %%t
-    message = re.sub(r"gscan2pdf-[0-9a-zA-Z_/]+\.\w+", "%%t", message)
+    message = re.sub(r"scantpaper-[0-9a-zA-Z_/]+\.\w+", "%%t", message)
 
     # hex -> %%x
     message = re.sub(r"\b0[xX][0-9a-fA-F]+\b", "%%x", message)

@@ -527,7 +527,7 @@ def prepare_output_metadata(ftype, metadata):
         else:
             out["creationdate"] = metadata["datetime"].isoformat()
         out["moddate"] = out["creationdate"]
-        out["creator"] = f"gscan2pdf v{VERSION}"
+        out["creator"] = f"scantpaper v{VERSION}"
         if ftype == "DjVu":
             out["producer"] = "djvulibre"
         for key in ["author", "title", "subject", "keywords"]:

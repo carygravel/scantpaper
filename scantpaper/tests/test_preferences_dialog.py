@@ -56,7 +56,7 @@ def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
     mock_file_chooser_dialog.return_value = mock_file_chooser
 
     # Mock the get_tmp_dir function
-    mock_get_tmp_dir.return_value = "/new/tmp/gscan2pdf-xxxx"
+    mock_get_tmp_dir.return_value = "/new/tmp/scantpaper-xxxx"
 
     # Call the _choose_temp_dir method
     dialog._choose_temp_dir(None)
@@ -72,10 +72,10 @@ def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
     mock_file_chooser.destroy.assert_called_once()
 
     # Assert that get_tmp_dir was called with the correct arguments
-    mock_get_tmp_dir.assert_called_once_with("/new/tmp", r"gscan2pdf-\w\w\w\w")
+    mock_get_tmp_dir.assert_called_once_with("/new/tmp", r"scantpaper-\w\w\w\w")
 
     # Assert that the TMPDIR setting was updated
-    assert dialog._tmpentry.get_text() == "/new/tmp/gscan2pdf-xxxx"
+    assert dialog._tmpentry.get_text() == "/new/tmp/scantpaper-xxxx"
 
 
 def test_clicked_add_udt():

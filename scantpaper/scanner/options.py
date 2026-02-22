@@ -30,7 +30,7 @@ Option = namedtuple(
 class Options(GObject.Object):
     """object to manipulate scan options.
     Have to subclass Glib::Object to be able to name it as an object in
-    Glib::ParamSpec->object in Gscan2pdf::Dialog::Scan"""
+    Glib.ParamSpec object in Scantpaper.Dialog.Scan"""
 
     def __init__(self, options):
         GObject.Object.__init__(self)

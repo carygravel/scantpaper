@@ -255,7 +255,7 @@ def test_view_html(mocker):
     view_html(None, None)
     # Check that it launches the fallback URL
     args, _ = mock_launch.call_args
-    assert "gscan2pdf.sf.net" in args[0]
+    assert "https://github.com/carygravel/scantpaper" in args[0]
 
 
 def test_read_config_migration(app_window, mocker):

@@ -7,8 +7,8 @@ from frontend import enums
 
 
 class Profile(GObject.Object):
-    """Have to subclass Glib::Object to be able to name it as an object in
-    Glib::ParamSpec->object in Gscan2pdf::Dialog::Scan"""
+    """Have to subclass Glib.Object to be able to name it as an object in
+    Glib.ParamSpec object in Scantpaper.Dialog.Scan"""
 
     frontend = None
     backend = None

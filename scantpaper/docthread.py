@@ -196,13 +196,13 @@ class DocThread(SaveThread):
         if application_id and application_id[0]:
             print(f"application_id {application_id}")
             if application_id[0] != APPLICATION_ID:
-                raise TypeError("%s is not a gscan2pdf session file", self._db)
+                raise TypeError("%s is not a scantpaper session file", self._db)
         self._execute("PRAGMA user_version")
         user_version = self._fetchone()
         if user_version:
             if user_version[0] > USER_VERSION:
                 logger.warning(
-                    "%s was created by a newer version of gscan2pdf.", self._db
+                    "%s was created by a newer version of scantpaper.", self._db
                 )
         self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()

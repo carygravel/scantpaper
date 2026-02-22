@@ -113,8 +113,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self._page_number_increment = newval
         self.emit("changed-page-number-increment", newval)
 
-    # Would have nice to use an enum here, but not supported by the python bindings
-    # GObject.TypeModule.register_enum( 'Gscan2pdf::Dialog::Scan::Sided',
+    # TODO: now we can use an enum here, now supported by the python bindings
+    # GObject.TypeModule.register_enum( 'Scantpaper::Dialog::Scan::Sided',
     #         ["single","double"] )
     @GObject.Property(
         type=str, default="single", nick="Sided", blurb="Either single or double"
@@ -134,8 +134,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
             self.side_to_scan = "facing"
         widget.set_active(True)
 
-    # Would have nice to use an enum here, but not supported by the python bindings
-    # GObject.TypeModule.register_enum( 'Gscan2pdf::Dialog::Scan::Side',
+    # TODO: now we can use an enum here, now supported by the python bindings
+    # GObject.TypeModule.register_enum( 'Scantpaper::Dialog::Scan::Side',
     #         ["facing","reverse"] )
     @GObject.Property(
         type=object, nick="Side to scan", blurb="Either facing or reverse"

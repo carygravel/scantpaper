@@ -861,8 +861,8 @@ class ToolsMenuMixins:
         about.add_credit_section("Patches gratefully received from", authors)
         about.set_comments(_("To aid the scan-to-PDF process"))
         about.set_copyright(_("Copyright 2006--2025 Jeffrey Ratcliffe"))
-        licence = """gscan2pdf --- to aid the scan to PDF or DjVu process
-    Copyright 2006 -- 2025 Jeffrey Ratcliffe <jffry@posteo.net>
+        licence = """scantpaper --- to aid the scan to PDF or DjVu process
+    Copyright 2006 -- 2026 Jeffrey Ratcliffe <jffry@posteo.net>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the version 3 GNU General Public License as
@@ -877,7 +877,7 @@ class ToolsMenuMixins:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
     """
         about.set_license(licence)
-        about.set_website("http://gscan2pdf.sf.net")
+        about.set_website("https://github.com/carygravel/scantpaper")
         translators = """Yuri Chornoivan
     Davidmp
     Whistle
@@ -930,7 +930,7 @@ class ToolsMenuMixins:
         about.set_artists(["lodp, Andreas E."])
         about.set_logo(
             GdkPixbuf.Pixbuf.new_from_file(
-                f"{self.get_application().iconpath}/gscan2pdf.svg"
+                f"{self.get_application().iconpath}/scantpaper.svg"
             )
         )
         about.set_transient_for(self)

@@ -220,7 +220,7 @@ def locale_installed(locale, installed_codes):
             (_("You are using locale '%s'.") % (locale,))
             + " "
             + _(
-                "gscan2pdf does not currently know which tesseract language "
+                "scantpaper does not currently know which tesseract language "
                 "package would be necessary for that locale."
             )
             + " "
@@ -236,7 +236,7 @@ def locale_installed(locale, installed_codes):
             + (
                 _(
                     "Please install tesseract package 'tesseract-ocr-%s' and "
-                    "restart gscan2pdf for OCR for %s with tesseract."
+                    "restart scantpaper for OCR for %s with tesseract."
                 )
                 % (code3, installable_languages()[code3])
             )
@@ -247,6 +247,6 @@ def locale_installed(locale, installed_codes):
         + " "
         + (_("There is no tesseract package for %s") % (code2name(code3),))
         + ". "
-        + _("If this is in error, please contact the gscan2pdf developers.")
+        + _("If this is in error, please contact the scantpaper developers.")
         + "\n"
     )

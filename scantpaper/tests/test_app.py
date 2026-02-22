@@ -87,7 +87,7 @@ def test_application_init(mock_deps):
     # Mock os.path.isdir to control icon path logic
     with patch("os.path.isdir", return_value=True):
         app = Application()
-        assert app.iconpath == "/usr/share/gscan2pdf"
+        assert app.iconpath == "/usr/share/scantpaper"
         assert app.args == []
 
     with patch("os.path.isdir", return_value=False):

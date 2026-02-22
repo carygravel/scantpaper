@@ -454,8 +454,8 @@ class FileMenuMixins:
             filter_desc = _("Postscript files")
             filter_list = [self.settings["image type"]]
         elif self.settings["image type"] == "session":
-            title = _("gscan2pdf session filename")
-            filter_desc = _("gscan2pdf session files")
+            title = _("scantpaper session filename")
+            filter_desc = _("scantpaper session files")
             filter_list = ["gs2p"]
         file_chooser = Gtk.FileChooserDialog(
             title=title,

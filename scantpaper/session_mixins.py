@@ -39,7 +39,7 @@ class SessionMixins:
 
     def _create_temp_directory(self):
         "Create a temporary directory for the session"
-        tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"gscan2pdf-\w\w\w\w")
+        tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w")
         self._find_crashed_sessions(tmpdir)
 
         # Create temporary directory if necessary
@@ -49,15 +49,15 @@ class SessionMixins:
                     os.mkdir(tmpdir)
                 try:
                     self.session = tempfile.TemporaryDirectory(
-                        prefix="gscan2pdf-", dir=tmpdir
+                        prefix="scantpaper-", dir=tmpdir
                     )
                 except (FileNotFoundError, PermissionError) as e:
                     logger.error("Error creating temporary directory: %s", e)
-                    self.session = tempfile.TemporaryDirectory(prefix="gscan2pdf-")
+                    self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
             else:
                 self.session = (
                     tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
-                        prefix="gscan2pdf-"
+                        prefix="scantpaper-"
                     )
                 )
 
@@ -88,7 +88,7 @@ class SessionMixins:
             tmpdir = tempfile.gettempdir()
 
         logger.info("Checking %s for crashed sessions", tmpdir)
-        sessions = glob.glob(os.path.join(tmpdir, "gscan2pdf-????"))
+        sessions = glob.glob(os.path.join(tmpdir, "scantpaper-????"))
         crashed, selected = [], []
 
         # Forget those used by running sessions
@@ -260,15 +260,6 @@ class SessionMixins:
                     with tempfile.NamedTemporaryFile(
                         dir=self.session.name, suffix=".pdf"
                     ) as temppdf:
-                        # pdfobj = PDF.Builder( -file = temppdf )
-                        # page   = pdfobj.page()
-                        # size   = Gscan2pdf.Document.POINTS_PER_INCH
-                        # page.mediabox( size, size )
-                        # gfx    = page.gfx()
-                        # imgobj = pdfobj.image_jpeg(tempimg)
-                        # gfx.image( imgobj, 0, 0, size, size )
-                        # pdfobj.save()
-                        # pdfobj.end()
                         proc = exec_command([name, temppdf.name, "dump_data"])
                     msg = None
                     if re.search(
@@ -296,7 +287,7 @@ class SessionMixins:
                     #         )
                     #         + _(
                     #             "In this case, removing pdftk, and reinstalling without using "
-                    #             "snap would allow gscan2pdf to use pdftk."
+                    #             "snap would allow scantpaper to use pdftk."
                     #         )
                     #         + _(
                     #             "Another workaround would be to select a temporary directory "

@@ -472,7 +472,7 @@ class Importhread(BaseThread):
             request.data(
                 None,
                 _(
-                    "Warning: gscan2pdf expects one image per page, but "
+                    "Warning: scantpaper expects one image per page, but "
                     "this was not satisfied. It is probable that the PDF "
                     "has not been correctly imported. If you wish to add "
                     "scans to an existing PDF, use the prepend/append to "

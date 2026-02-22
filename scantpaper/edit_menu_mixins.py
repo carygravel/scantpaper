@@ -383,9 +383,9 @@ class EditMenuMixins:
                 parent=self,
                 type="question",
                 buttons=Gtk.ButtonsType.OK_CANCEL,
-                text=_("Changes will only take effect after restarting gscan2pdf.")
+                text=_("Changes will only take effect after restarting scantpaper.")
                 + " "
-                + _("Restart gscan2pdf now?"),
+                + _("Restart scantpaper now?"),
             )
             if response == Gtk.ResponseType.OK:
                 self._restart()

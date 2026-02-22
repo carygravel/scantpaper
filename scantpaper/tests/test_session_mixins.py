@@ -114,7 +114,7 @@ def test_create_temp_directory_success(mocker, mock_session_window):
 
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mock_temp_dir_instance = mock_temp_dir.return_value
-    mock_temp_dir_instance.name = "/tmp/found/gscan2pdf-1234"
+    mock_temp_dir_instance.name = "/tmp/found/scantpaper-1234"
 
     mocker.patch("builtins.open", mocker.mock_open())
 
@@ -122,7 +122,7 @@ def test_create_temp_directory_success(mocker, mock_session_window):
 
     mock_session_window._create_temp_directory()
 
-    mock_temp_dir.assert_called_with(prefix="gscan2pdf-", dir="/tmp/found")
+    mock_temp_dir.assert_called_with(prefix="scantpaper-", dir="/tmp/found")
     assert mock_session_window.session == mock_temp_dir_instance
 
 
@@ -132,12 +132,12 @@ def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
     mocker.patch("session_mixins.fcntl.lockf")
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mock_temp_dir_instance = mock_temp_dir.return_value
-    mock_temp_dir_instance.name = "/tmp/gscan2pdf-fallback"
+    mock_temp_dir_instance.name = "/tmp/scantpaper-fallback"
     mocker.patch("builtins.open", mocker.mock_open())
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
     mock_session_window._create_temp_directory()
-    mock_temp_dir.assert_called_with(prefix="gscan2pdf-")
+    mock_temp_dir.assert_called_with(prefix="scantpaper-")
 
 
 def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
@@ -147,12 +147,12 @@ def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
     mocker.patch("session_mixins.fcntl.lockf")
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mock_temp_dir_instance = mock_temp_dir.return_value
-    mock_temp_dir_instance.name = "/tmp/gscan2pdf-fallback"
+    mock_temp_dir_instance.name = "/tmp/scantpaper-fallback"
     mocker.patch("builtins.open", mocker.mock_open())
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
     mock_session_window._create_temp_directory()
-    mock_temp_dir.assert_called_with(prefix="gscan2pdf-")
+    mock_temp_dir.assert_called_with(prefix="scantpaper-")
 
 
 def test_create_temp_directory_fallback(mocker, mock_session_window):
@@ -165,7 +165,7 @@ def test_create_temp_directory_fallback(mocker, mock_session_window):
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mock_temp_dir.side_effect = [
         PermissionError,
-        MagicMock(name="/tmp/fallback/gscan2pdf-1234"),
+        MagicMock(name="/tmp/fallback/scantpaper-1234"),
     ]
 
     mocker.patch("builtins.open", mocker.mock_open())
@@ -176,9 +176,9 @@ def test_create_temp_directory_fallback(mocker, mock_session_window):
     # Should be called twice
     assert mock_temp_dir.call_count == 2
     # First call with dir
-    mock_temp_dir.assert_any_call(prefix="gscan2pdf-", dir="/tmp/bad")
+    mock_temp_dir.assert_any_call(prefix="scantpaper-", dir="/tmp/bad")
     # Second call without dir (fallback)
-    mock_temp_dir.assert_any_call(prefix="gscan2pdf-")
+    mock_temp_dir.assert_any_call(prefix="scantpaper-")
 
 
 def test_create_temp_directory_non_existent_tmpdir(mocker, mock_session_window):
@@ -305,7 +305,7 @@ def test_find_crashed_sessions_no_sessions(mocker, mock_session_window):
 
 def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
     "Test _find_crashed_sessions with currently running sessions (locked)"
-    mocker.patch("glob.glob", return_value=["/tmp/gscan2pdf-running"])
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-running"])
 
     # Mock _create_lockfile to fail (simulating running session)
     mock_session_window._create_lockfile = mocker.Mock(side_effect=OSError("Locked"))
@@ -319,7 +319,7 @@ def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
 
 def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session"
-    mocker.patch("glob.glob", return_value=["/tmp/gscan2pdf-crashed"])
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed"])
 
     # Mock _create_lockfile to succeed (not running)
     mock_session_window._create_lockfile = mocker.Mock()
@@ -341,13 +341,13 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
 
     mock_session_window._find_crashed_sessions("/tmp")
 
-    assert mock_session_window.session == "/tmp/gscan2pdf-crashed"
-    mock_session_window._open_session.assert_called_with("/tmp/gscan2pdf-crashed")
+    assert mock_session_window.session == "/tmp/scantpaper-crashed"
+    mock_session_window._open_session.assert_called_with("/tmp/scantpaper-crashed")
 
 
 def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session but no selection"
-    mocker.patch("glob.glob", return_value=["/tmp/gscan2pdf-crashed"])
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed"])
     mock_session_window._create_lockfile = mocker.Mock()
     mocker.patch("os.access", return_value=True)
     mock_dialog_cls = mocker.patch("session_mixins.Gtk.Dialog")
@@ -363,7 +363,7 @@ def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window
 
 def test_find_crashed_sessions_unrestorable(mocker, mock_session_window):
     "Test _find_crashed_sessions with missing session file"
-    mocker.patch("glob.glob", return_value=["/tmp/gscan2pdf-broken"])
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-broken"])
     mock_session_window._create_lockfile = mocker.Mock()
     mocker.patch("os.access", return_value=False)  # session file missing
 
@@ -372,7 +372,7 @@ def test_find_crashed_sessions_unrestorable(mocker, mock_session_window):
     mock_session_window._find_crashed_sessions("/tmp")
 
     mock_session_window._list_unrestorable_sessions.assert_called_with(
-        ["/tmp/gscan2pdf-broken"]
+        ["/tmp/scantpaper-broken"]
     )
 
 
@@ -399,7 +399,7 @@ def test_list_unrestorable_sessions(mocker, mock_session_window):
 
     mock_shutil_rmtree = mocker.patch("shutil.rmtree")
 
-    mock_session_window._list_unrestorable_sessions(["/tmp/gscan2pdf-broken"])
+    mock_session_window._list_unrestorable_sessions(["/tmp/scantpaper-broken"])
 
     # Test the selection changed callback
     mock_button = MagicMock()
@@ -407,7 +407,7 @@ def test_list_unrestorable_sessions(mocker, mock_session_window):
     assert "changed" in callbacks
     callbacks["changed"]()
 
-    mock_shutil_rmtree.assert_called_with("/tmp/gscan2pdf-broken")
+    mock_shutil_rmtree.assert_called_with("/tmp/scantpaper-broken")
     mock_textview.set_wrap_mode.assert_called_with(Gtk.WrapMode.WORD)
 
 
@@ -419,7 +419,7 @@ def test_list_unrestorable_sessions_cancel(mocker, mock_session_window):
 
     mock_shutil_rmtree = mocker.patch("shutil.rmtree")
 
-    mock_session_window._list_unrestorable_sessions(["/tmp/gscan2pdf-broken"])
+    mock_session_window._list_unrestorable_sessions(["/tmp/scantpaper-broken"])
 
     mock_shutil_rmtree.assert_not_called()
 

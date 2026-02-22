@@ -40,7 +40,7 @@ HOCR_HEADER = """<?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-  <meta name='ocr-system' content='gscan2pdf $Gscan2pdf::Canvas::VERSION' />
+  <meta name='ocr-system' content='scantpaper $Gscan2pdf::Canvas::VERSION' />
   <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
  </head>
 """
@@ -298,7 +298,7 @@ class Canvas(
         self._pixbuf_size = None
 
         # allow the widget to be accessed via CSS
-        self.set_name("gscan2pdf-ocr-canvas")
+        self.set_name("scantpaper-ocr-canvas")
 
     def get_max_color_hsv(self):
         "return the max hsv colour"

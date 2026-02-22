@@ -221,8 +221,8 @@ class SaneScanDialog(Scan):
                 widget = Gtk.Button(d_sane(opt.title))
                 # widget.signal = widget.connect(
                 #     "clicked",
-                #     Gscan2pdf.Dialog.Scan.multiple_values_button_callback,
-                #     [self, opt],
+                #     self.multiple_values_button_callback,
+                #     [opt],
                 # )
             else:
                 widget = self._create_widget(opt, val, hbox)

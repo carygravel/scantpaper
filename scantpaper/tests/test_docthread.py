@@ -204,7 +204,7 @@ def test_open_session_file_invalid_app_id(mocker):
         return_value=(12345,),  # Invalid application_id
     )
 
-    with pytest.raises(TypeError, match="is not a gscan2pdf session file"):
+    with pytest.raises(TypeError, match="is not a scantpaper session file"):
         thread.open("test.db")
 
 
@@ -391,7 +391,7 @@ def test_open_newer_version(mocker):
     thread.open("test.db")
 
     mock_logger.warning.assert_called()
-    assert "%s was created by a newer version of gscan2pdf." in str(
+    assert "%s was created by a newer version of scantpaper." in str(
         mock_logger.warning.call_args
     )
 
