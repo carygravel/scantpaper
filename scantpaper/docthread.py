@@ -8,8 +8,10 @@ import os
 import subprocess
 import datetime
 import glob
-import tempfile
+from pathlib import Path
+import shutil
 import sqlite3
+import tempfile
 import threading
 from PIL import ImageStat, ImageEnhance, ImageOps, ImageFilter
 from const import THUMBNAIL, APPLICATION_ID, USER_VERSION
@@ -1156,6 +1158,17 @@ class DocThread(SaveThread):
 
             # some systems allow multiple tessdata dirs, e.g. parallel v4 & v5
             paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
+
+            # maybe we can guess the path if we have a symlink, e.g. homebrew
+            if len(paths) == 0:
+                tesseract_exe = Path(shutil.which("tesseract"))
+                if tesseract_exe.is_symlink():
+                    tessdata = (
+                        tesseract_exe.resolve() / "../../share/tessdata"
+                    ).resolve()
+                    if tessdata.exists():
+                        paths = [str(tessdata)]
+
             if len(paths) == 0:
                 request.error(_("tessdata directory not found"))
             else:
