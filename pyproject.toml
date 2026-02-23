@@ -1,0 +1,35 @@
+[project]
+name = "scantpaper"
+version = "3.0.0"
+dependencies = [
+  "img2pdf",
+  "ocrmypdf>=15.4.3",
+  "pycairo",
+  "PyGObject",
+  "python-sane",
+  "tesserocr",
+  "python-iso639",
+]
+requires-python = ">=3.8"
+authors = [
+  {name = "Jeffrey Ratcliffe", email = "jffry@posteo.net"},
+]
+maintainers = [
+  {name = "Jeffrey Ratcliffe", email = "jffry@posteo.net"},
+]
+description = "GUI to produce PDFs or DjVus from scanned documents"
+readme = "README.md"
+license = { text = "GPL-3.0-only" }
+keywords = ['scan', 'pdf', 'djvu']
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Homepage = "https://github.com/carygravel/scantpaper"
+Repository = "https://github.com/carygravel/scantpaper.git"
+"Bug Tracker" = "https://github.com/carygravel/scantpaper/issues"
+
+[project.gui-scripts]
+scantpaper = "scantpaper.app:main"

@@ -1,0 +1,169 @@
+name: Build packages
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          path: "REPO"
+
+      - name: Define variables
+        run: |
+          (
+            VERSION=$(echo "${GITHUB_REF_NAME}" | sed -e 's/^v//')
+            if ! [[ $VERSION =~ ^[0-9] ]]; then
+              VERSION="$(sed -n "s/^[[:space:]]*VERSION[[:space:]]*=[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" REPO/scantpaper/const.py || true)+${{github.sha}}"
+            fi
+            echo "GITHUB_REPO_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f2)"
+            echo "VERSION=${VERSION}"
+            echo "DESCRIPTION=GUI to produce PDFs or DjVus from scanned documents"
+            echo "DEB_ARCHITECTURE=${ARCHITECTURE:-all}"
+            echo "RPM_ARCHITECTURE=${ARCHITECTURE:-noarch}"
+            echo "RELEASE=1"
+            echo "AUTHOR=Jeffrey Ratcliffe <jffry@posteo.net>"
+            echo "LICENCE=GPL-3"
+            cd REPO
+            echo "FIRST_YEAR=$(git log $(git rev-list --max-parents=0 HEAD) --date="format:%Y" --format="format:%ad")"
+            echo "THIS_COMMIT_YEAR=$(git log HEAD -n1 --date="format:%Y" --format="format:%ad")"
+            echo "THIS_COMMIT_DATE=$(git log HEAD -n1 --format="format:%as")"
+            if [ "$FIRST_YEAR" == "$THIS_COMMIT_YEAR" ]
+            then
+              echo "YEAR_RANGE=$FIRST_YEAR"
+            else
+              echo "YEAR_RANGE=${FIRST_YEAR}-${THIS_COMMIT_YEAR}"
+            fi
+            cd ..
+          ) >> $GITHUB_ENV
+
+      - name: Create control files
+        # Fields from https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control
+        run: |
+          mkdir -p REPO/debian
+          (
+            echo "Source: ${GITHUB_REPO_NAME}"
+            echo "Section: utils"
+            echo "Testsuite: autopkgtest-pkg-python"
+            echo "Priority: optional"
+            echo "Build-Depends: debhelper-compat (= 13),"
+            echo "               python3-all,"
+            echo "               python3-setuptools,"
+            echo "               python3-pip,"
+            echo "               python3-wheel,"
+            echo "               dh-python"
+            echo "Build-Depends-Indep: fonts-noto-extra,"
+            echo "                     gettext,"
+            echo "                     ghostscript,"
+            echo "                     gsfonts,"
+            echo "                     imagemagick,"
+            echo "                     gir1.2-gtk-3.0,"
+            echo "                     gir1.2-goocanvas-2.0,"
+            echo "                     python3-sane,"
+            echo "                     ocrmypdf,"
+            echo "                     python3-gi,"
+            echo "                     python3-gi-cairo,"
+            echo "                     python3-tesserocr,"
+            echo "                     librsvg2-common,"
+            echo "                     libtiff-tools,"
+            echo "                     poppler-utils,"
+            echo "                     sane-utils (>= 1.0.17),"
+            echo "                     xauth,"
+            echo "                     xfonts-base,"
+            echo "                     python3-pytest-cov,"
+            echo "                     python3-pytest-timeout,"
+            echo "                     python3-pytest-xvfb,"
+            echo "                     python3-pytest-pylint,"
+            echo "                     python3-pytest-mock,"
+            echo "                     python3-pytest-xvfb"
+            echo "Maintainer: ${AUTHOR}"
+            echo "Standards-Version: 4.7.0"
+            echo "Vcs-Git: https://github.com/carygravel/scantpaper.git"
+            echo "Vcs-Browser: https://github.com/carygravel/scantpaper"
+            echo "Homepage: https://github.com/carygravel/scantpaper"
+            echo "Rules-Requires-Root: no"
+            echo ""
+            echo "Package: ${GITHUB_REPO_NAME}"
+            echo "Architecture: ${DEB_ARCHITECTURE}"
+            echo "Depends: imagemagick,"
+            echo "         gir1.2-gtk-3.0,"
+            echo "         gir1.2-goocanvas-2.0,"
+            echo "         python3-sane,"
+            echo "         ocrmypdf,"
+            echo "         python3-gi,"
+            echo "         python3-gi-cairo,"
+            echo "         python3-tesserocr,"
+            echo "         librsvg2-common,"
+            echo "         libtiff-tools,"
+            echo "         sane-utils (>= 1.0.17),"
+            echo "         \${misc:Depends},"
+            echo "         \${python3:Depends}"
+            echo "Recommends: xdg-utils,"
+            echo "            djvulibre-bin,"
+            echo "            pdftk,"
+            echo "            unpaper,"
+            echo "            tesseract-ocr"
+            echo "Description: ${DESCRIPTION}"
+            if [ -n "${HOMEPAGE}" ]
+            then
+              echo "Homepage: ${HOMEPAGE}"
+            fi
+          ) | tee REPO/debian/control
+          (
+            echo "Files:"
+            echo " *"
+            echo "Copyright: ${YEAR_RANGE} ${MAINTAINER:-${AUTHOR}}"
+            echo "License: ${LICENCE}"
+          ) | tee REPO/debian/copyright
+          (
+            echo "${GITHUB_REPO_NAME} (${VERSION}-0) unstable; urgency=medium"
+            echo ""
+            echo "  * New upstream release candidate"
+            echo ""
+            echo " -- ${AUTHOR}  $(date --rfc-email)"
+            echo ""
+          ) | tee REPO/debian/changelog
+          (
+            echo "#!/usr/bin/make -f"
+            echo "# Uncomment this to turn on verbose mode."
+            echo "export DH_VERBOSE=1"
+            echo ""
+            echo "%:"
+            echo "	dh \$@ --with python3 --buildsystem=pybuild"
+            echo ""
+            echo "override_dh_auto_install:"
+            echo "	python3 -m pip install --no-deps --no-build-isolation --root=\$(CURDIR)/debian/scantpaper --prefix=/usr ."
+            echo "	# dh_auto_install will still place any additional files; ensure dh runs"
+            echo "	dh_auto_install --destdir=\$(CURDIR)/debian/scantpaper || true"
+            echo ""
+            echo "# https://people.debian.org/~eriberto/README.package-tests.html"
+            echo "override_dh_auto_test: ;"
+            echo "override_dh_usrlocal: ;"
+          ) | tee REPO/debian/rules
+
+#      - name: Create Spec File
+#        run: PATH="REPO/.github/scripts:${PATH}" create_spec_file.sh
+
+      - name: Install dependencies
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y build-essential debhelper devscripts fakeroot lintian equivs
+            sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
+
+      - name: Build DEB Package
+        run: cd REPO && debuild -i -us -uc -b
+
+#      - name: Build RPM Package
+#        run: sudo rpmbuild --define "_topdir $(pwd)" -bb SPECS/${GITHUB_REPO_NAME}.spec
+
+      - name: Upload packages
+        run: ls -l
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
+          path: ${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_*
+
+#      - name: Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: release/*

@@ -77,7 +77,7 @@ single page image file.""",
     "maintainer": const.AUTHOR,
     "maintainer_email": const.AUTHOR_EMAIL,
     "url": const.URL,
-    "license": "GPL",
+    "license": "GPL-3.0-only",
     "keywords": "scan, pdf, djvu",
     # "cmdclass": {"build_py": build_py, "install": install},
     "entry_points": {
