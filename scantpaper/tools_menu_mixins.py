@@ -16,7 +16,6 @@ from postprocess_controls import OCRControls
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position
-    GdkPixbuf,
     Gdk,
     GLib,
     Gtk,
@@ -928,11 +927,7 @@ class ToolsMenuMixins:
     """
         about.set_translator_credits(translators)
         about.set_artists(["lodp, Andreas E."])
-        about.set_logo(
-            GdkPixbuf.Pixbuf.new_from_file(
-                f"{self.get_application().iconpath}/scantpaper.svg"
-            )
-        )
+        about.set_logo_icon_name("scantpaper")
         about.set_transient_for(self)
         about.run()
         about.destroy()

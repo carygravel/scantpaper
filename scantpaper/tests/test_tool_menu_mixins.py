@@ -966,7 +966,6 @@ def test_about_dialog_runs(mocker, mock_tool_window):
     "Test that ToolsMenuMixins.about runs without error"
 
     mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
-    mocker.patch("gi.repository.GdkPixbuf.Pixbuf.new_from_file")
 
     mock_tool_window.get_application().iconpath = "."
 
@@ -980,4 +979,4 @@ def test_about_dialog_runs(mocker, mock_tool_window):
     instance.set_program_name.assert_called()
     instance.set_version.assert_called()
     instance.set_website.assert_called()
-    instance.set_logo.assert_called()
+    instance.set_logo_icon_name.assert_called()
