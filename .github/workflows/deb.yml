@@ -135,10 +135,10 @@ jobs:
             echo "	python3 -m pip install --no-deps --no-build-isolation --root=\$(CURDIR)/debian/scantpaper --prefix=/usr ."
             echo "	# dh_auto_install will still place any additional files; ensure dh runs"
             echo "	dh_auto_install --destdir=\$(CURDIR)/debian/scantpaper || true"
+            echo "	rm -rf \$(CURDIR)/debian/scantpaper/usr/local || true" # FIXME: there has to be a better way to prevent pip from installing to /usr/local
             echo ""
             echo "# https://people.debian.org/~eriberto/README.package-tests.html"
             echo "override_dh_auto_test: ;"
-            echo "override_dh_usrlocal: ;"
           ) | tee REPO/debian/rules
 
 #      - name: Create Spec File
