@@ -6,7 +6,7 @@ import pytest
 
 # Import the module under test
 import app as app_module
-from app import Application, _parse_arguments, main, register_icon, PROG_NAME
+from app import Application, _parse_arguments, main, PROG_NAME
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -16,7 +16,6 @@ gi.require_version("Gtk", "3.0")
 def mock_deps(mocker):
     "Mock external dependencies"
     mocker.patch("app.Gtk")
-    mocker.patch("app.GdkPixbuf")
 
     # Mock Gio but ensure flags are valid
     mock_gio = mocker.patch("app.Gio")
@@ -43,76 +42,6 @@ def mock_deps(mocker):
     mocker.patch("app.shutil")
     mocker.patch("app.atexit")
     mocker.patch("app.os.remove")
-
-
-def test_register_icon(mock_deps, mocker):
-    "Test register_icon function"
-    iconfactory = MagicMock()
-
-    # Test successful registration
-    mocker.patch("app.GdkPixbuf.Pixbuf.new_from_file", return_value=MagicMock())
-    mocker.patch("app.Gtk.IconSet.new_from_pixbuf", return_value=MagicMock())
-
-    register_icon(iconfactory, "test_id", "test_path")
-
-    app_module.GdkPixbuf.Pixbuf.new_from_file.assert_called_with("test_path")
-    iconfactory.add.assert_called()
-
-    # Test failure (icon is None)
-    mocker.patch("app.GdkPixbuf.Pixbuf.new_from_file", return_value=None)
-    logger = MagicMock()
-    mocker.patch("app.logging.getLogger", return_value=logger)
-
-    register_icon(iconfactory, "test_id", "bad_path")
-
-    logger.warning.assert_called()
-
-
-def test_register_icon_exception(mock_deps, mocker):
-    "Test register_icon exception handling"
-    iconfactory = MagicMock()
-    mocker.patch(
-        "app.GdkPixbuf.Pixbuf.new_from_file", side_effect=FileNotFoundError("Not found")
-    )
-    logger = MagicMock()
-    mocker.patch("app.logging.getLogger", return_value=logger)
-
-    register_icon(iconfactory, "test_id", "bad_path")
-
-    logger.warning.assert_called()
-
-
-def test_application_init(mock_deps):
-    "Test Application.__init__"
-    # Mock os.path.isdir to control icon path logic
-    with patch("os.path.isdir", return_value=True):
-        app = Application()
-        assert app.iconpath == "/usr/share/scantpaper"
-        assert app.args == []
-
-    with patch("os.path.isdir", return_value=False):
-        app = Application()
-        assert app.iconpath == "icons"
-
-
-def test_application_init_icons(mock_deps, mocker):
-    "Test Application._init_icons"
-    app = Application()
-
-    mock_icon_factory_cls = mocker.patch("app.Gtk.IconFactory")
-    mock_icon_factory = mock_icon_factory_cls.return_value
-
-    # We need to mock register_icon to verify it is called,
-    # OR we can rely on the mocked Gtk calls inside register_icon if we don't
-    # mock the function itself. Since register_icon is in the same module, we
-    # can mock it at the module level.
-    with patch("app.register_icon") as mock_register:
-        app._init_icons([("name", "file")])
-        mock_register.assert_called_with(
-            mock_icon_factory, "name", app.iconpath + "/file"
-        )
-
-    mock_icon_factory.add_default.assert_called_once()
 
 
 def test_application_do_activate(mock_deps, mocker):
