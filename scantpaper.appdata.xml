@@ -7,8 +7,8 @@
   <name>scantpaper</name>
   <name xml:lang="en_GB">scantpaper</name>
   <name xml:lang="cs_CZ">scantpaper</name>
-  <launchable type="desktop-id">scantpaper.desktop</launchable>
-  <provides><id>scantpaper.desktop</id></provides>
+  <launchable type="desktop-id">org.scantpaper.desktop</launchable>
+  <provides><id>org.scantpaper.desktop</id></provides>
   <summary>GUI to produce PDFs or DjVus from scanned documents</summary>
   <summary xml:lang="en_GB">GUI to produce PDFs or DjVus from scanned documents</summary>
   <summary xml:lang="cs_CZ">Grafické rozhraní na výrobu PDF nebo DjVu dokumentů z naskenovaných dokumentů</summary>

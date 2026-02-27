@@ -158,7 +158,7 @@ jobs:
             echo "icons/stock-rotate-180.svg usr/share/icons/hicolor/scalable/apps"
             echo "icons/stock-rotate-270.svg usr/share/icons/hicolor/scalable/apps"
             echo "icons/stock-selection-all-16.png usr/share/icons/hicolor/16x16/apps"
-            echo "scantpaper.desktop usr/share/applications"
+            echo "org.scantpaper.desktop usr/share/applications"
             echo "scantpaper.appdata.xml usr/share/metainfo"
           ) | tee REPO/debian/install
 
