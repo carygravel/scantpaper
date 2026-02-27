@@ -98,7 +98,7 @@ single page image file.""",
     },
     "include_package_data": True,
     # "data_files": [
-    #     ("share/applications", ["data/scantpaper.desktop"]),
+    #     ("share/applications", ["data/org.scantpaper.desktop"]),
     #     (
     #         "share/icons/hicolor/scalable/apps",
     #         ["scantpaper/images/scantpaper-icon/scantpaper.svg"],
