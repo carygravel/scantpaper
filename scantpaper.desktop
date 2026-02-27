@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=scantpaper
+Comment=A GUI to aid the scan-to-PDF process
+Comment[de]=Machen Sie PDF-Dateien direkt von Ihrem Scanner
+Comment[fr]=Une interface graphique permettant de réaliser des fichiers PDF de plusieurs pages à partir d'un scanner
+Comment[ru]=Программа для сканирования документов
+Exec=scantpaper %U
+Icon=scantpaper
+Terminal=false
+Type=Application
+MimeType=application/pdf
+Categories=Graphics;Scanning;
+X-SuSE-translate=false
+Keywords=sane;graphics;scanning;scan;OCR;PDF;DjVu;

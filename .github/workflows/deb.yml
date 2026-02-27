@@ -140,6 +140,22 @@ jobs:
             echo "# https://people.debian.org/~eriberto/README.package-tests.html"
             echo "override_dh_auto_test: ;"
           ) | tee REPO/debian/rules
+          (
+            echo "icons/scantpaper.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/scantpaper-papyrus.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/180_degree.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/crop.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/hand-tool.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/mail-attach.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/pdf.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/scanner.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/stock-rotate-90.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/stock-rotate-180.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/stock-rotate-270.svg usr/share/icons/hicolor/scalable/apps"
+            echo "icons/stock-selection-all-16.png usr/share/icons/hicolor/16x16/apps"
+            echo "scantpaper.desktop usr/share/applications"
+            echo "scantpaper.appdata.xml usr/share/metainfo"
+          ) | tee REPO/debian/install
 
 #      - name: Create Spec File
 #        run: PATH="REPO/.github/scripts:${PATH}" create_spec_file.sh

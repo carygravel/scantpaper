@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2006-2026 Jeffrey Ratcliffe <jffry@posteo.net> -->
+<component type="desktop">
+  <id>scantpaper</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <name>scantpaper</name>
+  <name xml:lang="en_GB">scantpaper</name>
+  <name xml:lang="cs_CZ">scantpaper</name>
+  <launchable type="desktop-id">scantpaper.desktop</launchable>
+  <provides><id>scantpaper.desktop</id></provides>
+  <summary>GUI to produce PDFs or DjVus from scanned documents</summary>
+  <summary xml:lang="en_GB">GUI to produce PDFs or DjVus from scanned documents</summary>
+  <summary xml:lang="cs_CZ">Grafické rozhraní na výrobu PDF nebo DjVu dokumentů z naskenovaných dokumentů</summary>
+  <description>
+    <p>
+      Only two clicks are required to scan several pages and then save all or a
+      selection as a PDF or DjVu file, including metadata if required.
+    </p>
+    <p xml:lang="en_GB">
+      Only two clicks are required to scan several pages and then save all or a
+      selection as a PDF or DjVu file, including metadata if required.
+    </p>
+    <p xml:lang="cs_CZ">
+      Jen dva kliky stačí, abyste naskenovali několik stránek a poté je
+      všechny nebo jen některé uložili jako PDF nebo DjVu soubor, a to včetně
+      metadat, jsou-li třeba.
+    </p>
+    <p>
+      scantpaper can control regular or sheet-fed (ADF) scanners with SANE via
+      libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.
+      It presents a thumbnail view of scanned pages, and permits simple operations
+      such as cropping, rotating and deleting pages.
+    </p>
+    <p xml:lang="en_GB">
+      scantpaper can control regular or sheet-fed (ADF) scanners with SANE via
+      libsane-perl, scanimage or scanadf, and can scan multiple pages at once.
+      It presents a thumbnail view of scanned pages, and permits simple operations
+      such as cropping, rotating and deleting pages.
+    </p>
+    <p xml:lang="cs_CZ">
+      scantpaper umí ovládat běžné skenery i skenery s podavačem (ADF) pomocí
+      libsane-perl, scanimage nebo scanadf a umí skenovat více stránek
+      najednou. Ukazuje náhledy naskenovaných stránek a dovoluje jednoduché
+      operace jako ořez, rotaci a mazání stránek.
+    </p>
+    <p>
+      OCR can be used to recognise text in the scans, and the output
+      embedded in the PDF or DjVu.
+    </p>
+    <p xml:lang="en_GB">
+      OCR can be used to recognise text in the scans, and the output
+      embedded in the PDF or DjVu.
+    </p>
+    <p xml:lang="cs_CZ">
+      V naskenovaných obrázcích lze najít text pomocí optického rozpoznávání
+      znaků (OCR) a výstup lze začlenit do PDF nebo DjVu.
+    </p>
+    <p>
+      The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or
+      single page image file.
+    </p>
+    <p xml:lang="en_GB">
+      The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or
+      single page image file.
+    </p>
+    <p xml:lang="cs_CZ">
+      Výsledný dokument lze uložit jako PDF, DjVu, vícestránkový TIFF soubor
+      nebo obrázek s jednou stránkou.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/carygravel/scantpaper</url>
+  <url type="translate">https://translations.launchpad.net/scantpaper</url>
+  <url type="donation">https://www.paypal.com/cgi-bin/webscr?lc=us&amp;cmd=_s-xclick&amp;hosted_button_id=GYQGXYD5UZS6S</url>
+  <screenshots>
+    <screenshot type="default">
+      <image type="source" width="1254" height="656">https://github.com/user-attachments/assets/14078f4b-9cde-404e-aaab-958c77f90c5a</image>
+    </screenshot>
+  </screenshots>
+  <update_contact>jffry@posteo.net</update_contact>
+  <translation type="gettext">scantpaper</translation>
+</component>
