@@ -1141,8 +1141,12 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
     app.args = MagicMock(import_files=None, import_all=None)
 
     try:
-        win = ApplicationWindow(application=app)
-        assert win.settings["cwd"] == os.getcwd()
+        # on some systems, creating the ApplicationWindow fails if the
+        # application is not first registered.
+        with patch.object(Gtk.Application, "register", autospec=True):
+            app.register(None)
+            win = ApplicationWindow(application=app)
+            assert win.settings["cwd"] == os.getcwd()
     finally:
         win.destroy()
         while Gtk.events_pending():
@@ -1190,6 +1194,7 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
             "ocr": True,
         }
 
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
     mocker.patch.object(
         ApplicationWindow,
         "_create_temp_directory",
@@ -1222,8 +1227,12 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
     app.args = MagicMock(import_files=None, import_all=None)
 
     try:
-        win = ApplicationWindow(application=app)
-        assert win.settings["cwd"] == os.getcwd()
+        # on some systems, creating the ApplicationWindow fails if the
+        # application is not first registered.
+        with patch.object(Gtk.Application, "register", autospec=True):
+            app.register(None)
+            win = ApplicationWindow(application=app)
+            assert win.settings["cwd"] == os.getcwd()
     finally:
         win.destroy()
         while Gtk.events_pending():
@@ -1272,6 +1281,7 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
             "ocr": True,
         }
 
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
     mocker.patch.object(
         ApplicationWindow,
         "_create_temp_directory",
@@ -1299,10 +1309,14 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
     app.args.import_all = ["file2.pdf"]
 
     try:
-        win = ApplicationWindow(application=app)
-        mock_scan_dialog.assert_called_once_with(None, None, True)
-        assert mock_import_files.call_count == 2
-        mock_import_files.assert_any_call(["file2.pdf"], True)
+        # on some systems, creating the ApplicationWindow fails if the
+        # application is not first registered.
+        with patch.object(Gtk.Application, "register", autospec=True):
+            app.register(None)
+            win = ApplicationWindow(application=app)
+            mock_scan_dialog.assert_called_once_with(None, None, True)
+            assert mock_import_files.call_count == 2
+            mock_import_files.assert_any_call(["file2.pdf"], True)
     finally:
         win.destroy()
         while Gtk.events_pending():
@@ -1354,6 +1368,7 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
             "ocr": True,
         }
 
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
     mocker.patch.object(
         ApplicationWindow,
         "_create_temp_directory",
@@ -1378,12 +1393,16 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
     mock_config.read_config.return_value["image_control_tool"] = "dragger"
 
     try:
-        win = ApplicationWindow(application=app)
-        mock_dragger.assert_called()
-        # Reset mocks for next test
-        mock_dragger.reset_mock()
-        mock_selector.reset_mock()
-        mock_selector_dragger.reset_mock()
+        # on some systems, creating the ApplicationWindow fails if the
+        # application is not first registered.
+        with patch.object(Gtk.Application, "register", autospec=True):
+            app.register(None)
+            win = ApplicationWindow(application=app)
+            mock_dragger.assert_called()
+            # Reset mocks for next test
+            mock_dragger.reset_mock()
+            mock_selector.reset_mock()
+            mock_selector_dragger.reset_mock()
     finally:
         win.destroy()
         while Gtk.events_pending():
@@ -1404,8 +1423,12 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
     app.args = MagicMock(import_files=None, import_all=None)
 
     try:
-        win = ApplicationWindow(application=app)
-        mock_selector_dragger.assert_called()
+        # on some systems, creating the ApplicationWindow fails if the
+        # application is not first registered.
+        with patch.object(Gtk.Application, "register", autospec=True):
+            app.register(None)
+            win = ApplicationWindow(application=app)
+            mock_selector_dragger.assert_called()
     finally:
         win.destroy()
         while Gtk.events_pending():
