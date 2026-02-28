@@ -1161,13 +1161,15 @@ class DocThread(SaveThread):
 
             # maybe we can guess the path if we have a symlink, e.g. homebrew
             if len(paths) == 0:
-                tesseract_exe = Path(shutil.which("tesseract"))
-                if tesseract_exe.is_symlink():
-                    tessdata = (
-                        tesseract_exe.resolve() / "../../share/tessdata"
-                    ).resolve()
-                    if tessdata.exists():
-                        paths = [str(tessdata)]
+                tesseract_exe = shutil.which("tesseract")
+                if tesseract_exe is not None:
+                    tess_path = Path(tesseract_exe)
+                    if tess_path.is_symlink():
+                        tessdata = (
+                            tess_path.resolve() / "../../share/tessdata"
+                        ).resolve()
+                        if tessdata.exists():
+                            paths = [str(tessdata)]
 
             if len(paths) == 0:
                 request.error(_("tessdata directory not found"))

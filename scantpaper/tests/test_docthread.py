@@ -77,6 +77,7 @@ def test_do_tesseract_path_fallback_not_found(temp_db, clean_up_files, mocker):
 
     # Mock glob to return empty list
     mocker.patch("glob.glob", return_value=[])
+    mocker.patch("shutil.which", return_value=None)
 
     # Mock PyTessBaseAPI to prevent RuntimeError
     mocker.patch("tesserocr.PyTessBaseAPI")
