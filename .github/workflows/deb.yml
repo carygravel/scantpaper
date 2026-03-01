@@ -37,14 +37,6 @@ jobs:
             cd ..
           ) >> $GITHUB_ENV
 
-      - name: Generate .mo translation files
-        run: |
-          # Install tooling to compile .po -> .mo
-          sudo apt-get update
-          sudo apt-get install -y python3-polib gettext
-          cd REPO
-          python3 dev/compile_mo.py --src po --out debian/scantpaper/usr/share/locale --domain scantpaper || true
-
       - name: Create control files
         # Fields from https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control
         run: |
@@ -174,6 +166,11 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y build-essential debhelper devscripts fakeroot lintian equivs
             sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
+
+      - name: Generate .mo translation files
+        run: |
+          cd REPO
+          python3 dev/compile_mo.py --src po --out debian/scantpaper/usr/share/locale --domain scantpaper || true
 
       - name: Build DEB Package
         run: cd REPO && debuild -i -us -uc -b && dpkg-deb --contents ../${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
