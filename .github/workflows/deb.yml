@@ -138,6 +138,7 @@ jobs:
             echo "	dh_auto_install --destdir=\$(CURDIR)/debian/scantpaper || true"
             echo "	rm -rf \$(CURDIR)/debian/scantpaper/usr/local || true" # FIXME: there has to be a better way to prevent pip from installing to /usr/local
             echo "	# install locale files"
+            echo "	# can't directly install to /usr/share/locale since pybuild seems to delete them"
             echo "	mkdir -p \$(CURDIR)/debian/scantpaper/usr/share"
             echo "	cp -a \$(CURDIR)/locale \$(CURDIR)/debian/scantpaper/usr/share/"
             echo ""
