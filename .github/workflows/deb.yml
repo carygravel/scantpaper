@@ -137,6 +137,9 @@ jobs:
             echo "	# dh_auto_install will still place any additional files; ensure dh runs"
             echo "	dh_auto_install --destdir=\$(CURDIR)/debian/scantpaper || true"
             echo "	rm -rf \$(CURDIR)/debian/scantpaper/usr/local || true" # FIXME: there has to be a better way to prevent pip from installing to /usr/local
+            echo "	# install locale files"
+            echo "	mkdir -p \$(CURDIR)/debian/scantpaper/usr/share"
+            echo "	cp -a \$(CURDIR)/locale \$(CURDIR)/debian/scantpaper/usr/share/"
             echo ""
             echo "# https://people.debian.org/~eriberto/README.package-tests.html"
             echo "override_dh_auto_test: ;"
@@ -168,7 +171,7 @@ jobs:
             sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
 
       - name: Generate .mo translation files
-        run: python3 REPO/dev/compile_mo.py --src REPO/po --out REPO/debian/scantpaper/usr/share/locale --domain scantpaper || true
+        run: python3 REPO/dev/compile_mo.py --src REPO/po --out REPO/locale --domain scantpaper || true
 
       - name: Build DEB Package
         run: cd REPO && debuild -i -us -uc -b && dpkg-deb --contents ../${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
