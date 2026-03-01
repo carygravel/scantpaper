@@ -43,7 +43,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-polib gettext
           cd REPO
-          python3 dev/compile_mo.py --src po --out locale --domain scantpaper || true
+          python3 dev/compile_mo.py --src po --out debian/scantpaper/usr/share/locale --domain scantpaper || true
 
       - name: Create control files
         # Fields from https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control
@@ -164,7 +164,6 @@ jobs:
             echo "icons/stock-selection-all-16.png usr/share/icons/hicolor/16x16/apps"
             echo "scantpaper.desktop usr/share/applications"
             echo "scantpaper.appdata.xml usr/share/metainfo"
-            echo "locale/*/LC_MESSAGES/*.mo usr/share/locale"
           ) | tee REPO/debian/install
 
 #      - name: Create Spec File
@@ -177,7 +176,7 @@ jobs:
             sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
 
       - name: Build DEB Package
-        run: cd REPO && debuild -i -us -uc -b
+        run: cd REPO && debuild -i -us -uc -b && dpkg-deb --contents ../${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
 
 #      - name: Build RPM Package
 #        run: sudo rpmbuild --define "_topdir $(pwd)" -bb SPECS/${GITHUB_REPO_NAME}.spec
