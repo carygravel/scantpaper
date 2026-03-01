@@ -168,9 +168,7 @@ jobs:
             sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
 
       - name: Generate .mo translation files
-        run: |
-          cd REPO
-          python3 dev/compile_mo.py --src po --out debian/scantpaper/usr/share/locale --domain scantpaper || true
+        run: python3 REPO/dev/compile_mo.py --src REPO/po --out REPO/debian/scantpaper/usr/share/locale --domain scantpaper || true
 
       - name: Build DEB Package
         run: cd REPO && debuild -i -us -uc -b && dpkg-deb --contents ../${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
