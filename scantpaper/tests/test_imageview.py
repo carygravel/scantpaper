@@ -153,7 +153,7 @@ def test_viewport(rose_png):
 def test_transparency(datadir):
     "Test transparency"
     window = Gtk.Window()
-    window.set_size_request(300, 200)
+    window.set_default_size(300, 200)
     css_provider_alpha = Gtk.CssProvider()
     Gtk.StyleContext.add_provider_for_screen(  # pylint: disable=no-member
         window.get_screen(), css_provider_alpha, 0  # pylint: disable=no-member
@@ -227,7 +227,7 @@ def test_transparency(datadir):
 def test_zoom(datadir):
     "Test zoom"
     window = Gtk.Window()
-    window.set_size_request(300, 200)
+    window.set_default_size(300, 200)
     view = ImageView()
     window.add(view)
     window.show_all()
@@ -252,7 +252,7 @@ def test_zoom(datadir):
 def test_selector_tool(datadir):
     "Test selector tool"
     window = Gtk.Window()
-    window.set_size_request(300, 200)
+    window.set_default_size(300, 200)
     view = ImageView()
     window.add(view)
     view.set_tool(Selector(view))
