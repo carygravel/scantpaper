@@ -126,6 +126,8 @@ class ApplicationWindow(
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
         base_path = os.path.abspath(os.path.dirname(__file__))
         self.builder = Gtk.Builder()
+        # Ensure Gtk.Builder uses the same gettext domain as the application
+        self.builder.set_translation_domain(PROG_NAME)
         self.builder.add_from_file(os.path.join(base_path, "app.ui"))
         self.builder.connect_signals(self)
         self.detail_popup = self.builder.get_object("detail_popup")

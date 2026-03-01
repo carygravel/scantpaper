@@ -70,6 +70,7 @@ jobs:
             echo "                     sane-utils (>= 1.0.17),"
             echo "                     xauth,"
             echo "                     xfonts-base,"
+            echo "                     python3-polib,"
             echo "                     python3-pytest-cov,"
             echo "                     python3-pytest-timeout,"
             echo "                     python3-pytest-xvfb,"
@@ -136,6 +137,10 @@ jobs:
             echo "	# dh_auto_install will still place any additional files; ensure dh runs"
             echo "	dh_auto_install --destdir=\$(CURDIR)/debian/scantpaper || true"
             echo "	rm -rf \$(CURDIR)/debian/scantpaper/usr/local || true" # FIXME: there has to be a better way to prevent pip from installing to /usr/local
+            echo "	# install locale files"
+            echo "	# can't directly install to /usr/share/locale since pybuild seems to delete them"
+            echo "	mkdir -p \$(CURDIR)/debian/scantpaper/usr/share"
+            echo "	cp -a \$(CURDIR)/locale \$(CURDIR)/debian/scantpaper/usr/share/"
             echo ""
             echo "# https://people.debian.org/~eriberto/README.package-tests.html"
             echo "override_dh_auto_test: ;"
@@ -166,8 +171,11 @@ jobs:
             sudo apt-get install -y build-essential debhelper devscripts fakeroot lintian equivs
             sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
 
+      - name: Generate .mo translation files
+        run: python3 REPO/dev/compile_mo.py --src REPO/po --out REPO/locale --domain scantpaper || true
+
       - name: Build DEB Package
-        run: cd REPO && debuild -i -us -uc -b
+        run: cd REPO && debuild -i -us -uc -b && dpkg-deb --contents ../${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
 
 #      - name: Build RPM Package
 #        run: sudo rpmbuild --define "_topdir $(pwd)" -bb SPECS/${GITHUB_REPO_NAME}.spec
