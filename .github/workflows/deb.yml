@@ -37,6 +37,14 @@ jobs:
             cd ..
           ) >> $GITHUB_ENV
 
+      - name: Generate .mo translation files
+        run: |
+          # Install tooling to compile .po -> .mo
+          sudo apt-get update
+          sudo apt-get install -y python3-polib gettext
+          cd REPO
+          python3 dev/compile_mo.py --src po --out locale --domain scantpaper || true
+
       - name: Create control files
         # Fields from https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control
         run: |
@@ -70,6 +78,7 @@ jobs:
             echo "                     sane-utils (>= 1.0.17),"
             echo "                     xauth,"
             echo "                     xfonts-base,"
+            echo "                     python3-polib,"
             echo "                     python3-pytest-cov,"
             echo "                     python3-pytest-timeout,"
             echo "                     python3-pytest-xvfb,"
@@ -155,6 +164,7 @@ jobs:
             echo "icons/stock-selection-all-16.png usr/share/icons/hicolor/16x16/apps"
             echo "scantpaper.desktop usr/share/applications"
             echo "scantpaper.appdata.xml usr/share/metainfo"
+            echo "locale/*/LC_MESSAGES/*.mo usr/share/locale"
           ) | tee REPO/debian/install
 
 #      - name: Create Spec File
