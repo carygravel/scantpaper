@@ -64,9 +64,9 @@ def main():
         sys.exit(0)
 
     for po_path in po_files:
-        domain, lang = guess_lang_and_domain(po, args.domain)
+        domain, lang = guess_lang_and_domain(po_path, args.domain)
         mo_path = Path(args.out) / lang / "LC_MESSAGES" / f"{domain}.mo"
-        print(f"Compiling {po} -> {mo_path} (domain={domain}, lang={lang})")
+        print(f"Compiling {po_path} -> {mo_path} (domain={domain}, lang={lang})")
         mo_path.parent.mkdir(parents=True, exist_ok=True)
         po = polib.pofile(str(po_path))
         po.save_as_mofile(str(mo_path))
