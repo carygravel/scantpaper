@@ -122,6 +122,69 @@ def test_do_tesseract_path_fallback_not_found(temp_db, clean_up_files, mocker):
     clean_up_files(thread.db_files)
 
 
+def test_do_tesseract_path_fallback_symlink(temp_db, clean_up_files, mocker):
+    "test do_tesseract when path is ./ and tessdata found via symlink"
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    # Mock get_languages to return path="./"
+    mocker.patch("tesserocr.get_languages", return_value=("./", []))
+
+    # Mock glob to return empty list
+    mocker.patch("glob.glob", return_value=[])
+
+    # Mock shutil.which to return a path
+    mocker.patch("shutil.which", return_value="/usr/local/bin/tesseract")
+
+    # Mock Path
+    mock_path = mocker.patch("docthread.Path", autospec=True)
+    mock_tess_path = mock_path.return_value
+    mock_tess_path.is_symlink.return_value = True
+
+    # tess_path.resolve() / "../../share/tessdata"
+    mock_resolved = mock_tess_path.resolve.return_value
+    mock_tessdata = mock_resolved.__truediv__.return_value.resolve.return_value
+    mock_tessdata.exists.return_value = True
+    # In Python, str(mock) returns a string representation of the mock,
+    # we need to mock the __str__ method to return our desired path.
+    mock_tessdata.__str__.return_value = "/usr/local/share/tessdata"
+
+    # Mock PyTessBaseAPI
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.ProcessPages.return_value = True
+
+    # Mock Page
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = mocker.Mock()
+    mock_page.id = 1
+    mock_page.image_id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+
+    # Mock finding page number
+    mocker.patch.object(thread, "find_page_number_by_page_id", return_value=1)
+
+    # Mock DB operations
+    mocker.patch.object(thread, "replace_page")
+
+    # Mock pathlib.Path (the one used for reading hocr)
+    mock_pathlib_path = mocker.patch("pathlib.Path")
+    mock_pathlib_path_instance = mock_pathlib_path.return_value
+    mock_pathlib_path_instance.with_suffix.return_value = mock_pathlib_path_instance
+    mock_pathlib_path_instance.read_text.return_value = "hocr content"
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
+
+    thread.do_tesseract(request)
+
+    # Check if PyTessBaseAPI was initialized with the path from symlink
+    mock_api.assert_called_with(lang="eng", path="/usr/local/share/tessdata")
+
+    clean_up_files(thread.db_files)
+
+
 def test_calculate_crop_tuples(mocker):
     "test _calculate_crop_tuples"
 
