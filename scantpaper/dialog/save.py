@@ -424,7 +424,7 @@ class Save(Dialog):
             "day-selected-double-click", calendar_day_selected_double_click_callback
         )
         vbox_date.pack_start(calendar, True, True, 0)
-        today_b = Gtk.Button(_("Today"))
+        today_b = Gtk.Button(label=_("Today"))
 
         def today_clicked_callback(_widget):
             today = datetime.date.today()
@@ -698,7 +698,7 @@ class Save(Dialog):
         hbox.pack_end(combob, False, False, 0)
 
         if self.can_encrypt_pdf:
-            passb = Gtk.Button(_("Encrypt PDF"))
+            passb = Gtk.Button(label=_("Encrypt PDF"))
             vboxp.pack_start(passb, True, True, 0)
             passb.connect("clicked", self._encrypt_clicked_callback)
 
@@ -764,11 +764,11 @@ class Save(Dialog):
         grid.attach(userentry, 1, row, 1, 1)
         row += 1
 
-        def clicked_ok_callback(_widget):
+        def clicked_ok_callback():
             self.pdf_user_password = userentry.get_text()
             passwin.destroy()
 
-        def clicked_cancel_callback(_widget):
+        def clicked_cancel_callback():
             passwin.destroy()
 
         passwin.add_actions(

@@ -219,7 +219,7 @@ def test_pdf_options(mocker):
     userentry.set_text("secret")
 
     # Trigger OK
-    ok_callback(None)
+    ok_callback()
     assert dialog.pdf_user_password == "secret"
 
     # Verify downsample logic
