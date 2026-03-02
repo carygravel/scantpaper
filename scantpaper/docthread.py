@@ -750,8 +750,14 @@ class DocThread(SaveThread):
         self._execute("SELECT text FROM page WHERE id = ?", (page_id,))
         return self._fetchone()[0]
 
+    def set_text(self, page_id, text, **kwargs):
+        "sets the text layer for the given page"
+        callbacks = _note_callbacks(kwargs)
+        return self.send("set_text", page_id, text, **callbacks)
+
     def do_set_text(self, request):
         "sets the text layer for the given page"
+        self._take_snapshot()
         self._check_write_tid()
         page_id, text = request.args
         self._execute(

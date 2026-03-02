@@ -84,7 +84,7 @@ def test_text_layer_add_and_ok_buttons(mocker):
 
     # Mock dependencies for the tested methods
     window.slist = MagicMock()
-    window.slist.thread._take_snapshot = MagicMock()
+    window.slist.thread.set_text = MagicMock()
 
     window._ocr_text_hbox = MagicMock()
     window._ocr_text_hbox._textbuffer.get_text.return_value = "some text"
@@ -100,17 +100,35 @@ def test_text_layer_add_and_ok_buttons(mocker):
     # Call the method for the "OK" button
     window._ocr_text_button_clicked(None)
 
-    # Assert that _take_snapshot was called
-    window.slist.thread._take_snapshot.assert_called_once()
+    # Assert that set_text was called
+    window.slist.thread.set_text.assert_called_once()
 
     # Reset the mock for the next call
-    window.slist.thread._take_snapshot.reset_mock()
+    window.slist.thread.set_text.reset_mock()
 
     # Call the method for the "Add" button
     window._ocr_text_add(None)
 
-    # Assert that _take_snapshot was called again
-    window.slist.thread._take_snapshot.assert_called_once()
+    # Assert that set_text was called again
+    window.slist.thread.set_text.assert_called_once()
+
+    # Reset the mock for the next call
+    window.slist.thread.set_text.reset_mock()
+
+    # Call the method for the "Copy" button
+    window._ocr_text_copy(None)
+
+    # Assert that set_text was called
+    window.slist.thread.set_text.assert_called_once()
+
+    # Reset the mock for the next call
+    window.slist.thread.set_text.reset_mock()
+
+    # Call the method for the "Delete" button
+    window._ocr_text_delete(None)
+
+    # Assert that set_text was called
+    window.slist.thread.set_text.assert_called_once()
 
 
 def test_edit_ocr_text_updates_selection(mocker):

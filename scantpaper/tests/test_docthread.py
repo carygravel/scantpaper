@@ -316,6 +316,22 @@ def test_run_unpaper_cmd_rtl_error(mocker):
     request.data.assert_called_with("Error processing")
 
 
+def test_set_text_calls_send(mocker):
+    "Test that `set_text()` forwards to `send()` with correct args."
+    thread = DocThread(db=":memory:")
+
+    # Replace the send method with a mock so we can inspect the call.
+    mock_send = mocker.Mock(return_value="sent")
+    thread.send = mock_send
+
+    result = thread.set_text(42, "hello world", finished_callback=lambda *_: None)
+
+    mock_send.assert_called_once()
+    # Ensure the first three positional args are domain, page_id, text
+    assert mock_send.call_args[0][:3] == ("set_text", 42, "hello world")
+    assert result == "sent"
+
+
 def test_check_cancelled():
     "test check_cancelled"
 

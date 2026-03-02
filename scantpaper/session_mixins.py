@@ -546,16 +546,17 @@ class SessionMixins:
         self.view.handler_unblock(self.view.offset_changed_signal)
 
     def _ocr_text_button_clicked(self, _widget):
-        self.slist.thread._take_snapshot()
         text = self._ocr_text_hbox._textbuffer.get_text(
             self._ocr_text_hbox._textbuffer.get_start_iter(),
             self._ocr_text_hbox._textbuffer.get_end_iter(),
             False,
         )
-        logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
         self._current_ocr_bbox.update_box(text, self.view.get_selection())
-        self._current_page.import_hocr(self.t_canvas.hocr())
+        hocr = self.t_canvas.hocr()
+        self._current_page.import_hocr(hocr)
+        self.slist.thread.set_text(self._current_page.id, hocr)
         self._edit_ocr_text(self._current_ocr_bbox)
+        logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
 
     def _ocr_text_copy(self, _widget):
         self._current_ocr_bbox = self.t_canvas.add_box(
@@ -566,11 +567,12 @@ class SessionMixins:
             ),
             bbox=self.view.get_selection(),
         )
-        self._current_page.import_hocr(self.t_canvas.hocr())
+        hocr = self.t_canvas.hocr()
+        self._current_page.import_hocr(hocr)
+        self.slist.thread.set_text(self._current_page.id, hocr)
         self._edit_ocr_text(self._current_ocr_bbox)
 
     def _ocr_text_add(self, _widget):
-        self.slist.thread._take_snapshot()
         text = self._ocr_text_hbox._textbuffer.get_text(
             self._ocr_text_hbox._textbuffer.get_start_iter(),
             self._ocr_text_hbox._textbuffer.get_end_iter(),
@@ -609,10 +611,13 @@ class SessionMixins:
                 self._edit_ocr_text(self._current_ocr_bbox)
 
             self._create_txt_canvas(self._current_page, ocr_new_page)
+        self.slist.thread.set_text(self._current_page.id, hocr=self.t_canvas.hocr())
 
     def _ocr_text_delete(self, _widget):
         self._current_ocr_bbox.delete_box()
-        self._current_page.import_hocr(self.t_canvas.hocr())
+        hocr = self.t_canvas.hocr()
+        self._current_page.import_hocr(hocr)
+        self.slist.thread.set_text(self._current_page.id, hocr)
         self._edit_ocr_text(self.t_canvas.get_current_bbox())
 
     def _ann_text_ok(self, _widget):
@@ -683,12 +688,11 @@ class SessionMixins:
 
     def _edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
         "Edit OCR text"
-        logger.debug("edit_ocr_text(%s, %s, %s, %s)", widget, _target, ev, bbox)
         if not ev:
             bbox = widget
 
         if bbox is None:
-            logger.debug("edit_ocr_text returning as no bbox")
+            logger.debug("edit_ocr_text did not return a bbox")
             return
 
         self._current_ocr_bbox = bbox
