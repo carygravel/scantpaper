@@ -284,6 +284,13 @@ class TestFileMenuMixins:
         assert app._current_page is None
         app._windows.reset_start_page.assert_called_once()
 
+    def test_new_before_scan_dialog(self, app):
+        "Verify fix for #28 File/New straight after start causes Traceback"
+        app._windows = None
+        app.slist.data = [1, 2, 3]
+        app.new_(None, None)
+        assert app.slist.data == []
+
     def test_new_cancel(self, app):
         "Test new_() does not clear data if pages not saved."
         app.slist.data = [1, 2, 3]
