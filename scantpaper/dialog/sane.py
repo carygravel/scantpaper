@@ -525,7 +525,7 @@ class SaneScanDialog(Scan):
             error_callback=error_callback,
         )
 
-    def cancel_scan(self):
+    def cancel_scan(self, _widget):
         "cancel any running or queued scan processes"
         self.thread.cancel()
         logger.info("Cancelled scan")

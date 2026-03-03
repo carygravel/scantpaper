@@ -103,7 +103,7 @@ def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
 
     def started_process_cb(_widget, process):
         dialog.disconnect(dialog.start_signal)
-        dialog.cancel_scan()
+        dialog.cancel_scan(_widget)
         nonlocal callbacks
         callbacks += 1
 
