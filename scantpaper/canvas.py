@@ -1020,26 +1020,46 @@ class Bbox(GooCanvas.CanvasGroup):
             old_box = self.bbox
             old_pos_ind = self.get_position_index()
             self.translate(selection.x - old_box.x, selection.y - old_box.y)
-            text_w = self.get_text_widget()
             old_conf = self.confidence
-            text_w.text = text
+            # recreate the text widget so GooCanvas recomputes layout immediately
+            # remove the existing text widget (usually child index 1)
+            for i in range(self.get_n_children() - 1, -1, -1):
+                try:
+                    child = self.get_child(i)
+                except Exception:
+                    continue
+                if isinstance(child, GooCanvas.CanvasText):
+                    self.remove_child(i)
+                    break
+
+            # update model
             self.text = text
             self.confidence = _100_PERCENT
 
-            # colour for 100% confidence
-            text_w.fill_color = "black"
+            # create new text widget centered in the bbox
+            new_text = GooCanvas.CanvasText(
+                parent=self,
+                text=text,
+                x=selection.width / 2,
+                y=selection.height / 2,
+                width=-1,
+                anchor="center",
+                font="Sans",
+                fill_color="black",
+            )
 
             # re-adjust text size & position
             if self.type != "page":
                 self.bbox = selection
-                text_w.set_simple_transform(0, 0, 1, 0)
+                new_text.set_simple_transform(0, 0, 1, 0)
                 rotation = self.transformation[0]
                 angle = -(self.textangle + rotation) % _360_DEGREES
 
                 # don't scale & rotate if text has no width
-                if text_w.bounds.x1 != text_w.bounds.x2:
+                bounds = new_text.get_bounds()
+                if bounds.x1 != bounds.x2:
                     scale = (selection.height if angle else selection.width) / (
-                        text_w.bounds.x2 - text_w.bounds.x1
+                        bounds.x2 - bounds.x1
                     )
                     self.transform_text(scale, angle)
 

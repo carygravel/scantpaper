@@ -546,6 +546,7 @@ class SessionMixins:
         self.view.handler_unblock(self.view.offset_changed_signal)
 
     def _ocr_text_button_clicked(self, _widget):
+        old_text = self._current_ocr_bbox.text
         text = self._ocr_text_hbox._textbuffer.get_text(
             self._ocr_text_hbox._textbuffer.get_start_iter(),
             self._ocr_text_hbox._textbuffer.get_end_iter(),
@@ -556,7 +557,7 @@ class SessionMixins:
         self._current_page.import_hocr(hocr)
         self.slist.thread.set_text(self._current_page.id, hocr)
         self._edit_ocr_text(self._current_ocr_bbox)
-        logger.info("Corrected '%s'->'%s'", self._current_ocr_bbox.text, text)
+        logger.info("Corrected '%s'->'%s'", old_text, text)
 
     def _ocr_text_copy(self, _widget):
         self._current_ocr_bbox = self.t_canvas.add_box(
