@@ -43,7 +43,7 @@ class PrintOperation(Gtk.PrintOperation):
         "draw page"
         if self.page_list is not None:
             page_number = self.page_list[page_number]
-        page = self.slist.data[page_number][2]
+        page = self.slist.thread.get_page(id=self.slist.data[page_number][2])
         cr = context.get_cairo_context()
 
         # Context dimensions

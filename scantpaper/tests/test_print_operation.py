@@ -20,12 +20,21 @@ def mock_slist():
     page1.resolution = (72, 72, "pixels")
 
     page2 = MagicMock()
+    page2.get_pixbuf.return_value.get_width.return_value = 100
+    page2.get_pixbuf.return_value.get_height.return_value = 100
+    page2.resolution = (72, 72, "pixels")
+
     page3 = MagicMock()
     page3.get_pixbuf.return_value.get_width.return_value = 100
     page3.get_pixbuf.return_value.get_height.return_value = 100
     page3.resolution = (72, 72, "pixels")
 
-    slist.data = [[1, "uuid1", page1], [2, "uuid2", page2], [3, "uuid3", page3]]
+    # store numeric ids in data, and mock slist.thread.get_page to return
+    # the corresponding page object when called with that id
+    slist.data = [[1, "thumb1", 1], [2, "thumb2", 2], [3, "thumb3", 3]]
+    pages = {1: page1, 2: page2, 3: page3}
+    slist.thread = MagicMock()
+    slist.thread.get_page.side_effect = lambda id: pages[id]
     return slist
 
 
@@ -90,7 +99,12 @@ def test_draw_page(mock_slist, mocker):
     op.draw_page_callback(op, context, 0)
 
     cr.scale.assert_called_with(2.0, 2.0)
-    mock_cairo_set.assert_called_with(cr, mock_slist.data[0][2].get_pixbuf(), 0, 0)
+    mock_cairo_set.assert_called_with(
+        cr,
+        mock_slist.thread.get_page(id=mock_slist.data[0][2]).get_pixbuf(),
+        0,
+        0,
+    )
     cr.paint.assert_called_once()
 
 
@@ -112,5 +126,5 @@ def test_draw_page_mapped(mock_slist, mocker):
     op.draw_page_callback(op, context, 0)
 
     # Verify it used page index 2
-    page3_pixbuf = mock_slist.data[2][2].get_pixbuf()
+    page3_pixbuf = mock_slist.thread.get_page(id=mock_slist.data[2][2]).get_pixbuf()
     mock_cairo_set.assert_called_with(cr, page3_pixbuf, 0, 0)
