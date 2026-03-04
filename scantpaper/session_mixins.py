@@ -570,7 +570,7 @@ class SessionMixins:
         )
         hocr = self.t_canvas.hocr()
         self._current_page.import_hocr(hocr)
-        self.slist.thread.set_text(self._current_page.id, hocr)
+        self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
         self._edit_ocr_text(self._current_ocr_bbox)
 
     def _ocr_text_add(self, _widget):
@@ -618,7 +618,7 @@ class SessionMixins:
         self._current_ocr_bbox.delete_box()
         hocr = self.t_canvas.hocr()
         self._current_page.import_hocr(hocr)
-        self.slist.thread.set_text(self._current_page.id, hocr)
+        self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
         self._edit_ocr_text(self.t_canvas.get_current_bbox())
 
     def _ann_text_ok(self, _widget):
