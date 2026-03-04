@@ -1,3 +1,9 @@
+## 3.0.0-rc2 (2026-03-04)
+
+* fixed bug #32 (error cancelling scan)
+* fixed bug #33 (error saving PDF after correcting text layer)
+
+
 ## 3.0.0-rc2 (2026-03-03)
 
 * fixed bug #15 (printing)

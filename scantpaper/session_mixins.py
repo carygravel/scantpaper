@@ -555,7 +555,7 @@ class SessionMixins:
         self._current_ocr_bbox.update_box(text, self.view.get_selection())
         hocr = self.t_canvas.hocr()
         self._current_page.import_hocr(hocr)
-        self.slist.thread.set_text(self._current_page.id, hocr)
+        self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
         self._edit_ocr_text(self._current_ocr_bbox)
         logger.info("Corrected '%s'->'%s'", old_text, text)
 
