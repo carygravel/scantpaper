@@ -289,6 +289,10 @@ treeview.view rubberband,
 }
 ```
 
+### What's in a name?
+
+"scant" (https://en.wiktionary.org/wiki/scant) in this sense means "short (of)", as I am trying to digitalise my paperwork, and I liked the play on "scan".
+
 ---
 
 ## See Also
