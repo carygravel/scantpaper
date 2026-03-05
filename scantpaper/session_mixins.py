@@ -262,7 +262,7 @@ class SessionMixins:
                     ) as temppdf:
                         proc = exec_command([name, temppdf.name, "dump_data"])
                     msg = None
-                    if re.search(
+                    if proc.stdout and re.search(
                         r"Error:[ ]could[ ]not[ ]load[ ]a[ ]required[ ]library",
                         proc.stdout,
                         re.MULTILINE | re.DOTALL | re.VERBOSE,
