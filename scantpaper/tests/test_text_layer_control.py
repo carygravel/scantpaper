@@ -101,7 +101,9 @@ def test_text_layer_add_and_ok_buttons(mocker):
     window._ocr_text_button_clicked(None)
 
     # Assert that set_text was called
-    window.slist.thread.set_text.assert_called_once()
+    window.slist.thread.set_text.assert_called_once_with(
+        window._current_page.id, window._current_page.text_layer
+    )
 
     # Reset the mock for the next call
     window.slist.thread.set_text.reset_mock()
@@ -110,7 +112,9 @@ def test_text_layer_add_and_ok_buttons(mocker):
     window._ocr_text_add(None)
 
     # Assert that set_text was called again
-    window.slist.thread.set_text.assert_called_once()
+    window.slist.thread.set_text.assert_called_once_with(
+        window._current_page.id, window._current_page.text_layer
+    )
 
     # Reset the mock for the next call
     window.slist.thread.set_text.reset_mock()
@@ -119,7 +123,9 @@ def test_text_layer_add_and_ok_buttons(mocker):
     window._ocr_text_copy(None)
 
     # Assert that set_text was called
-    window.slist.thread.set_text.assert_called_once()
+    window.slist.thread.set_text.assert_called_once_with(
+        window._current_page.id, window._current_page.text_layer
+    )
 
     # Reset the mock for the next call
     window.slist.thread.set_text.reset_mock()
@@ -128,7 +134,9 @@ def test_text_layer_add_and_ok_buttons(mocker):
     window._ocr_text_delete(None)
 
     # Assert that set_text was called
-    window.slist.thread.set_text.assert_called_once()
+    window.slist.thread.set_text.assert_called_once_with(
+        window._current_page.id, window._current_page.text_layer
+    )
 
 
 def test_edit_ocr_text_updates_selection(mocker):

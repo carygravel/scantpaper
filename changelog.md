@@ -1,3 +1,8 @@
+## 3.0.0-rc4 (2026-03-05)
+
+* Fix copying or deleting a word prevents saving PDF. Closes #35
+  Thanks to Chris Mayo for the patch.
+
 ## 3.0.0-rc3 (2026-03-04)
 
 * Fixed error cancelling scan. Closes #32
