@@ -70,21 +70,24 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 - imagemagick
 - libtiff-tools
 - poppler-utils
-- pdftk
-- djvulibre-bin
 - img2pdf
 - python3-gi
 - python3-gi-cairo
 - python3-tesserocr
+- gir1.2-gdkpixbuf-2.0
 - gir1.2-gtk-3.0
 - gir1.2-goocanvas-2.0
+- python3-pil
 - python3-sane
 - ocrmypdf
 - python3-iso639
 
 ### Optional
 
+- djvulibre-bin
+- pdftk
 - unpaper
+- xdg-utils
 
 ### Development
 
