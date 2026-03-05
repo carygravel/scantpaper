@@ -1,14 +1,15 @@
-## 3.0.0-rc2 (2026-03-04)
+## 3.0.0-rc3 (2026-03-04)
 
-* fixed bug #32 (error cancelling scan)
-* fixed bug #33 (error saving PDF after correcting text layer)
+* Fixed error cancelling scan. Closes #32
+  Thanks to Chris Mayo for the patch.
+* Fixed error saving PDF after correcting text layer. Closes #33
 
 
 ## 3.0.0-rc2 (2026-03-03)
 
-* fixed bug #15 (printing)
-* fixed bug #29 (updating text layer)
-* fixed bug #30 (error pressing Encrypt PDF ok/cancel buttons)
+* Fixed error printing. Closes #15
+* Fixed error updating text layer. Closes #29
+* Fixed error pressing Encrypt PDF ok/cancel buttons. Closes #30
 
 
 ## 3.0.0-rc1 (2026-03-01)
