@@ -517,9 +517,6 @@ class PDFTextParser(HTMLParser):
 
                 self.data["bbox"] = [0, 0, width - self.x_offset, height]
 
-                if "text" in self.data and self.data["text"] == "untitled":
-                    del self.data["text"]
-
                 self.boxes.append(self.data)
 
         elif tag == "word":
@@ -549,7 +546,7 @@ class PDFTextParser(HTMLParser):
 
     def handle_data(self, data):
         data = data.rstrip()
-        if data != "":
+        if "type" in self.data and data != "":
             self.data["text"] = data
 
 

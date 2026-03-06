@@ -2,6 +2,7 @@
 
 * Fix copying or deleting a word prevents saving PDF. Closes #35
   Thanks to Chris Mayo for the patch.
+* Fix error clicking on an empty canvas. Closes #36
 
 ## 3.0.0-rc3 (2026-03-04)
 
