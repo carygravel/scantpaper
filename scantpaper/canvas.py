@@ -827,7 +827,9 @@ class Bbox(GooCanvas.CanvasGroup):
     def button_press_callback(self, _self, target, event, edit_callback, bbox):
         "button press callback"
         if event.button == 1:
-            self.parent.get_parent()._dragging = False
+            canvas = self.parent.get_parent()
+            if canvas:
+                canvas._dragging = False
             edit_callback(self, target, event, bbox)
 
     def get_stack_index_by_position(self, bbox):
