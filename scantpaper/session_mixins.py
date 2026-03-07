@@ -222,7 +222,6 @@ class SessionMixins:
             ["pdfunite", "stderr", r"pdfunite\sversion\s([\d.]+)", ["pdfunite", "-v"]],
             ["pdf2ps", "stdout", r"([\d.]+)", ["gs", "--version"]],
             ["pdftk", "stdout", r"([\d.]+)", ["pdftk", "--version"]],
-            ["xz", "stdout", r"([\d.]+)", ["xz", "--version"]],
         ]
 
         for name, stream, regex, cmd in dependency_rules:
