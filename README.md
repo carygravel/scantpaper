@@ -67,20 +67,21 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 ### Required
 
-- imagemagick
-- libtiff-tools
-- poppler-utils
-- img2pdf
-- python3-gi
-- python3-gi-cairo
-- python3-tesserocr
 - gir1.2-gdkpixbuf-2.0
 - gir1.2-gtk-3.0
 - gir1.2-goocanvas-2.0
+- imagemagick
+- img2pdf
+- libtiff-tools
+- ocrmypdf
+- poppler-utils
+- python3-gi
+- python3-gi-cairo
+- python3-iso639
 - python3-pil
 - python3-sane
-- ocrmypdf
-- python3-iso639
+- python3-tesserocr
+- xz
 
 ### Optional
 
@@ -91,12 +92,12 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 ### Development
 
+- pytest-black
+- python3-pytest-mock
 - python3-pytest-cov
+- python3-pytest-pylint
 - python3-pytest-timeout
 - python3-pytest-xvfb
-- python3-pytest-pylint
-- python3-pytest-mock
-- pytest-black
 
 ---
 
