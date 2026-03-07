@@ -81,7 +81,6 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 - python3-pil
 - python3-sane
 - python3-tesserocr
-- xz
 
 ### Optional
 
