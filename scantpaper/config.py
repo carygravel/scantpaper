@@ -50,7 +50,7 @@ DEFAULTS = {
     "pdf compression": "auto",
     "tiff compression": None,
     "quality": 75,
-    "image type": None,
+    "image type": "pdf",
     "device": None,
     "cache-device-list": True,
     "device list": [],

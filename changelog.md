@@ -1,8 +1,14 @@
-## 3.0.0-rc4 (2026-03-05)
+## 3.0.0-rc4 (2026-03-06)
 
 * Fix copying or deleting a word prevents saving PDF. Closes #35
   Thanks to Chris Mayo for the patch.
 * Fix error clicking on an empty canvas. Closes #36
+* Don't include PDF metadata in text layer.
+* Fix failure to start when pdftk is not installed. Closes #37
+  Thanks to Chris Mayo for the patch.
+* Enforce default image type. Closes #39
+  (Save Dialog: No Document type selected by default)
+
 
 ## 3.0.0-rc3 (2026-03-04)
 
