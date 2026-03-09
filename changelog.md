@@ -1,6 +1,8 @@
 ## 3.0.0-rc5 (2026-03-08)
 
 * Fix search path for icon files.
+* Remove unnecessary dependency on xz. Closes #40
+  Thanks to Chris Mayo for the patch.
 
 
 ## 3.0.0-rc4 (2026-03-06)
