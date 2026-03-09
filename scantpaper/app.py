@@ -8,7 +8,6 @@
 # fix readme
 # hook ocrmypdf progress into the GUI
 # package for Debian
-# package pytest-black for Debian
 # lint
 # fail tests that hit mainloop timeouts
 # use pathlib for all paths
@@ -52,9 +51,9 @@
 #     make file_releases
 # 7. Build packages for Debian & Ubuntu
 #    name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
-#      * kinetic (until 2023-07)
-#      * jammy (until 2027-04)
-#      * focal (until 2025-04, dh12)
+#      * questing (until 2026-07)
+#      * noble (until 2029-06)
+#      * jammy (until 2027-06)
 #     debuild -S -sa
 #     dput ftp-master .changes
 #     dput gscan2pdf-ppa .changes
