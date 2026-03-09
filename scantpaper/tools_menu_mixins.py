@@ -860,7 +860,7 @@ class ToolsMenuMixins:
         about.set_authors(["Jeff Ratcliffe"])
         about.add_credit_section("Patches gratefully received from", authors)
         about.set_comments(_("To aid the scan-to-PDF process"))
-        about.set_copyright(_("Copyright 2006--2025 Jeffrey Ratcliffe"))
+        about.set_copyright(_("Copyright 2006--2026 Jeffrey Ratcliffe"))
         licence = """scantpaper --- to aid the scan to PDF or DjVu process
     Copyright 2006 -- 2026 Jeffrey Ratcliffe <jffry@posteo.net>
 

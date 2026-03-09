@@ -355,7 +355,7 @@ Jeffrey Ratcliffe (jffry at posteo dot net)
 
 ## License
 
-Copyright © 2006–2025 Jeffrey Ratcliffe <jffry@posteo.net>
+Copyright © 2006–2026 Jeffrey Ratcliffe <jffry@posteo.net>
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License v3 as published by the Free Software Foundation.
 
