@@ -1,6 +1,7 @@
 "Tests for app.py"
 
 import logging
+import os
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -87,12 +88,14 @@ def test_application_init(mock_deps):
     # Mock os.path.isdir to control icon path logic
     with patch("os.path.isdir", return_value=True):
         app = Application()
-        assert app.iconpath == "/usr/share/scantpaper"
+        assert app.iconpath == os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../../icons")
+        )
         assert app.args == []
 
     with patch("os.path.isdir", return_value=False):
         app = Application()
-        assert app.iconpath == "icons"
+        assert app.iconpath == "/usr/share/icons"
 
 
 def test_application_init_icons(mock_deps, mocker):

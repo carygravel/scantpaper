@@ -178,14 +178,11 @@ class ApplicationWindow(
             if self.settings["window_maximize"]:
                 self.maximize()
 
+        icon = f"{self.get_application().iconpath}/hicolor/scalable/apps/scantpaper.svg"
         try:
-            self.set_icon_from_file(f"{self.get_application().iconpath}/scantpaper.svg")
+            self.set_icon_from_file(icon)
         except (FileNotFoundError, OSError, GLib.Error) as e:
-            logger.warning(
-                "Unable to load icon `%s/scantpaper.svg': %s",
-                self.get_application().iconpath,
-                str(e),
-            )
+            logger.warning("Unable to load icon `%s': %s", icon, str(e))
 
         self._thumb_popup = self.builder.get_object("thumb_popup")
 

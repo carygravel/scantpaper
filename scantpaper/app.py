@@ -139,21 +139,23 @@ class Application(Gtk.Application):
         # )
 
         # Add extra icons early to be available for Gtk.Builder
-        if os.path.isdir("/usr/share/scantpaper"):
-            self.iconpath = "/usr/share/scantpaper"
-        else:
-            self.iconpath = "icons"
+        # Check for icons in the package first, then fallback to system icons.
+        self.iconpath = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../icons")
+        )
+        if not os.path.isdir(self.iconpath):
+            self.iconpath = "/usr/share/icons"
         self._init_icons(
             [
-                ("rotate90", "stock-rotate-90.svg"),
-                ("rotate180", "180_degree.svg"),
-                ("rotate270", "stock-rotate-270.svg"),
-                ("scanner", "scanner.svg"),
-                ("pdf", "pdf.svg"),
-                ("selection", "stock-selection-all-16.png"),
-                ("hand-tool", "hand-tool.svg"),
-                ("mail-attach", "mail-attach.svg"),
-                ("crop", "crop.svg"),
+                ("rotate90", "hicolor/scalable/apps/stock-rotate-90.svg"),
+                ("rotate180", "hicolor/scalable/apps/180_degree.svg"),
+                ("rotate270", "hicolor/scalable/apps/stock-rotate-270.svg"),
+                ("scanner", "hicolor/scalable/apps/scanner.svg"),
+                ("pdf", "hicolor/scalable/apps/pdf.svg"),
+                ("selection", "hicolor/16x16/apps/stock-selection-all-16.png"),
+                ("hand-tool", "hicolor/scalable/apps/hand-tool.svg"),
+                ("mail-attach", "hicolor/scalable/apps/mail-attach.svg"),
+                ("crop", "hicolor/scalable/apps/crop.svg"),
             ],
         )
 

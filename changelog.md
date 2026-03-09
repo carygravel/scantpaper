@@ -1,3 +1,8 @@
+## 3.0.0-rc5 (2026-03-08)
+
+* Fix search path for icon files.
+
+
 ## 3.0.0-rc4 (2026-03-06)
 
 * Fix copying or deleting a word prevents saving PDF. Closes #35

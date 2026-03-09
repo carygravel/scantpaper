@@ -930,7 +930,7 @@ class ToolsMenuMixins:
         about.set_artists(["lodp, Andreas E."])
         about.set_logo(
             GdkPixbuf.Pixbuf.new_from_file(
-                f"{self.get_application().iconpath}/scantpaper.svg"
+                f"{self.get_application().iconpath}/hicolor/scalable/apps/scantpaper.svg"
             )
         )
         about.set_transient_for(self)
