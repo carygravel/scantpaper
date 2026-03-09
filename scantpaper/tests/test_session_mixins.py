@@ -981,6 +981,8 @@ def test_ocr_text_add_no_layer(mocker, mock_session_window):
 
 
 class MockApp(SessionMixins):
+    "mock application class for testing SessionMixins methods"
+
     def __init__(self):
         self.slist = MagicMock()
         # Mock slist.data as a list of lists [page_number, pixbuf, uuid]
