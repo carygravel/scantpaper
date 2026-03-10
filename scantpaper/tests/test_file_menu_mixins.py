@@ -1,6 +1,7 @@
 "test file_menu_mixins"
 
 import datetime
+import os
 import unittest.mock
 import gi
 import pytest
@@ -1314,3 +1315,18 @@ class TestFileMenuMixins:
         "Test _list_of_page_uuids returning empty."
         app.slist.get_page_index = unittest.mock.Mock(return_value=[])
         assert app._list_of_page_uuids() == []
+
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    @unittest.mock.patch("file_menu_mixins.os.chdir")
+    def test_open_dialog_invalid_cwd(self, mock_chdir, mock_gtk, app):
+        "Test open_dialog when cwd does not exist."
+        app.settings["cwd"] = "/non/existent/path"
+        mock_chdir.side_effect = [FileNotFoundError, None, None]
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
+        mock_gtk.FileChooserDialog.return_value = mock_dialog
+
+        app.open_dialog(None, None)
+
+        assert app.settings["cwd"] == os.path.expanduser("~")
+        assert mock_chdir.call_count >= 2

@@ -1,6 +1,8 @@
 ## 3.0.0-rc6 (2026-03-08)
 
 * + minimal en_US translation to prevent warnings. Closes #41
+* Be graceful if the previous current working directory no longer exists.
+  Closes #42
 
 
 ## 3.0.0-rc5 (2026-03-08)

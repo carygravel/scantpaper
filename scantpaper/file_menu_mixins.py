@@ -80,6 +80,15 @@ def launch_default_for_file(filename):
 class FileMenuMixins:
     "provide methods called from file menu"
 
+    def _chdir_cwd(self):
+        """Change directory to self.settings['cwd'],
+           falling back to HOME if it doesn't exist"""
+        try:
+            os.chdir(self.settings["cwd"])
+        except FileNotFoundError:
+            self.settings["cwd"] = os.path.expanduser("~")
+            os.chdir(self.settings["cwd"])
+
     def new_(self, _action, _param):
         "Deletes all scans after warning"
         if not self._pages_saved(
@@ -115,7 +124,7 @@ class FileMenuMixins:
     def open_dialog(self, _action, _param):
         "Throw up file selector and open selected file"
         # cd back to cwd to get filename
-        os.chdir(self.settings["cwd"])
+        self._chdir_cwd()
         file_chooser = Gtk.FileChooserDialog(
             title=_("Open image"),
             parent=self,
@@ -429,7 +438,7 @@ class FileMenuMixins:
     def _save_file_chooser(self, uuids):
 
         # cd back to cwd to save
-        os.chdir(self.settings["cwd"])
+        self._chdir_cwd()
 
         title = _("PDF filename")  # pdf, append, prepend
         filter_desc = _("PDF files")
@@ -766,7 +775,7 @@ class FileMenuMixins:
         "Save selected pages as image under given name."
 
         # cd back to cwd to save
-        os.chdir(self.settings["cwd"])
+        self._chdir_cwd()
 
         # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
@@ -886,7 +895,7 @@ class FileMenuMixins:
 
     def print_dialog(self, _action, _param):
         "print"
-        os.chdir(self.settings["cwd"])
+        self._chdir_cwd()
         print_op = PrintOperation(settings=self.print_settings, slist=self.slist)
         res = print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, self)
         if res == Gtk.PrintOperationResult.APPLY:
@@ -907,7 +916,7 @@ class FileMenuMixins:
 
         # Make sure that we are back in the start directory,
         # otherwise we can't delete the temp dir.
-        os.chdir(self.settings["cwd"])
+        self._chdir_cwd()
 
         # Remove temporary files
         for file in glob.glob(self.session.name + "/*"):
