@@ -44,12 +44,11 @@ jobs:
       - name: Create control files
         # Fields from https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control
         run: |
-          mkdir -p REPO/debian
+          mkdir -p REPO/debian/upstream
           (
             echo "Source: ${GITHUB_REPO_NAME}"
             echo "Section: utils"
             echo "Testsuite: autopkgtest-pkg-python"
-            echo "Priority: optional"
             echo "Build-Depends: debhelper-compat (= 13),"
             echo "               dh-python,"
             echo "               python3-all,"
@@ -86,7 +85,6 @@ jobs:
             echo "Vcs-Git: https://github.com/carygravel/scantpaper.git"
             echo "Vcs-Browser: https://github.com/carygravel/scantpaper"
             echo "Homepage: https://github.com/carygravel/scantpaper"
-            echo "Rules-Requires-Root: no"
             echo ""
             echo "Package: ${GITHUB_REPO_NAME}"
             echo "Architecture: ${DEB_ARCHITECTURE}"
@@ -156,6 +154,13 @@ jobs:
             echo "org.scantpaper.desktop usr/share/applications"
             echo "scantpaper.appdata.xml usr/share/metainfo"
           ) | tee REPO/debian/install
+          (
+            echo "Bug-Database: https://github.com/carygravel/scantpaper/issues"
+            echo "Bug-Submit: https://github.com/carygravel/scantpaper/issues/new"
+            echo "Changelog: https://github.com/carygravel/scantpaper/blob/main/changelog.md"
+            echo "Repository-Browse: https://github.com/carygravel/scantpaper"
+            echo "Repository: https://github.com/carygravel/scantpaper"
+          ) | tee REPO/debian/upstream/metadata
 
 #      - name: Create Spec File
 #        run: PATH="REPO/.github/scripts:${PATH}" create_spec_file.sh
