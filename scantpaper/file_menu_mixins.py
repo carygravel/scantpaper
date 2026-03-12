@@ -212,13 +212,14 @@ class FileMenuMixins:
         "Ask for password for encrypted PDF"
         text = _("Enter user password for PDF %s") % (filename)
         dialog = Gtk.MessageDialog(
-            self,
-            ["destroy-with-parent", "modal"],
-            "question",
-            Gtk.ButtonsType.OK_CANCEL,
-            text,
+            parent=self,
+            destroy_with_parent=True,
+            modal=True,
+            message_type=Gtk.MessageType.QUESTION,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            title=_("Enter password"),
+            text=text,
         )
-        dialog.set_title(text)
         vbox = dialog.get_content_area()
         entry = Gtk.Entry()
         entry.set_visibility(False)
