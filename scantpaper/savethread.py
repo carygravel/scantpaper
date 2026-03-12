@@ -612,9 +612,14 @@ def _post_save_hook(filename, options):
 
 
 def _encrypt_pdf(filename, options, request):
-    cmd = ["pdftk", filename, "output", options["path"]]
+    cmd = ["qpdf"]
     if "user-password" in options["options"]:
-        cmd += ["user_pw", options["options"]["user-password"]]
+        cmd += ["--encrypt",
+                f'--owner-password={options["options"]["user-password"]}',
+                f'--user-password={options["options"]["user-password"]}',
+                "--bits=256", "--allow-insecure", "--",
+        ]
+    cmd += [filename, options["path"]]
 
     spo = subprocess.run(
         cmd,

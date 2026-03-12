@@ -221,7 +221,7 @@ class SessionMixins:
             ["pdftops", "stderr", r"pdftops\sversion\s([\d.]+)", ["pdftops", "-v"]],
             ["pdfunite", "stderr", r"pdfunite\sversion\s([\d.]+)", ["pdfunite", "-v"]],
             ["pdf2ps", "stdout", r"([\d.]+)", ["gs", "--version"]],
-            ["pdftk", "stdout", r"([\d.]+)", ["pdftk", "--version"]],
+            ["qpdf", "stdout", r"([\d.]+)", ["qpdf", "--version"]],
         ]
 
         for name, stream, regex, cmd in dependency_rules:
@@ -248,61 +248,6 @@ class SessionMixins:
 
             if self._dependencies[name]:
                 logger.info("Found %s %s", name, self._dependencies[name])
-                if name == "pdftk":
-
-                    # Don't create PDF  directly with imagemagick, as
-                    # some distros configure imagemagick not to write PDFs
-                    with tempfile.NamedTemporaryFile(
-                        dir=self.session.name, suffix=".jpg"
-                    ) as tempimg:
-                        exec_command([config.CONVERT_COMMAND, "rose:", tempimg.name])
-                    with tempfile.NamedTemporaryFile(
-                        dir=self.session.name, suffix=".pdf"
-                    ) as temppdf:
-                        proc = exec_command([name, temppdf.name, "dump_data"])
-                    msg = None
-                    if proc.stdout and re.search(
-                        r"Error:[ ]could[ ]not[ ]load[ ]a[ ]required[ ]library",
-                        proc.stdout,
-                        re.MULTILINE | re.DOTALL | re.VERBOSE,
-                    ):
-                        msg = _(
-                            "pdftk is installed, but seems to be missing required dependencies:\n%s"
-                        ) % (proc.stdout)
-
-                    # elif not re.search(
-                    #     r"NumberOfPages",
-                    #     proc.stdout,
-                    #     re.MULTILINE | re.DOTALL | re.VERBOSE,
-                    # ):
-                    #     logger.debug(f"before msg {_}")
-                    #     msg = (
-                    #         _(
-                    #             "pdftk is installed, but cannot access the "
-                    #             "directory used for temporary files."
-                    #         )
-                    #         + _(
-                    #             "One reason for this might be that pdftk was installed via snap."
-                    #         )
-                    #         + _(
-                    #             "In this case, removing pdftk, and reinstalling without using "
-                    #             "snap would allow scantpaper to use pdftk."
-                    #         )
-                    #         + _(
-                    #             "Another workaround would be to select a temporary directory "
-                    #             "under your home directory in Edit/Preferences."
-                    #         )
-                    #     )
-
-                    if msg:
-                        del self._dependencies[name]
-                        self._show_message_dialog(
-                            parent=self,
-                            message_type="warning",
-                            buttons=Gtk.ButtonsType.OK,
-                            text=msg,
-                            store_response=True,
-                        )
 
         # OCR engine options
         if self._dependencies["tesseract"]:
