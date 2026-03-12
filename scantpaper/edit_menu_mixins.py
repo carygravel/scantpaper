@@ -69,7 +69,7 @@ class EditMenuMixins:
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
 
-        def selection_changed_callback():
+        def selection_changed_callback(_selection):
             xresolution, yresolution = self.slist.get_selected_properties()
             xspinbutton.set_value(xresolution)
             yspinbutton.set_value(yresolution)

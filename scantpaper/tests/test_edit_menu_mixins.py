@@ -387,7 +387,7 @@ def test_properties_selection_changed_callback(mocker, mock_edit_window):
     mock_edit_window.slist.get_selected_properties.return_value = (200, 200)
 
     # Call the callback directly
-    callback()
+    callback(mock_selection)
 
     # Assert that the properties window was updated with the selected properties
     mock_x_spin.set_value.assert_called_with(200)
