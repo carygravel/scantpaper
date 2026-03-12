@@ -1,4 +1,4 @@
-## 3.0.0-rc6 (2026-03-08)
+## 3.0.0 (2026-03-11)
 
 * + minimal en_US translation to prevent warnings. Closes #41
 * Be graceful if the previous current working directory no longer exists.
