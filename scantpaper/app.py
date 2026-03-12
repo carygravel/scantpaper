@@ -14,7 +14,6 @@
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # various improvements from StackOverflow
-# fix deprecation warnings from Gtk.IconSet and Gtk.IconFactory
 # add type hints and turn on type checks in tox.ini
 # migrate to Gtk4
 # remaining FIXMEs and TODOs
@@ -95,25 +94,11 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import (
     Gtk,
-    GdkPixbuf,
     Gio,
     GLib,
 )
 
 # pylint: enable=wrong-import-position
-
-
-def register_icon(iconfactory, stock_id, path):
-    "Add icons"
-    logger = logging.getLogger(__name__)
-    try:
-        icon = GdkPixbuf.Pixbuf.new_from_file(path)
-        if icon is None:
-            logger.warning("Unable to load icon `%s'", path)
-        else:
-            iconfactory.add(stock_id, Gtk.IconSet.new_from_pixbuf(icon))
-    except (FileNotFoundError, OSError, GLib.GError) as err:
-        logger.warning("Unable to load icon `%s': %s", path, err)
 
 
 class Application(Gtk.Application):
@@ -139,24 +124,12 @@ class Application(Gtk.Application):
 
         # Add extra icons early to be available for Gtk.Builder
         # Check for icons in the package first, then fallback to system icons.
-        self.iconpath = os.path.abspath(
+        iconpath = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "../icons")
         )
-        if not os.path.isdir(self.iconpath):
-            self.iconpath = "/usr/share/icons"
-        self._init_icons(
-            [
-                ("rotate90", "hicolor/scalable/apps/stock-rotate-90.svg"),
-                ("rotate180", "hicolor/scalable/apps/180_degree.svg"),
-                ("rotate270", "hicolor/scalable/apps/stock-rotate-270.svg"),
-                ("scanner", "hicolor/scalable/apps/scanner.svg"),
-                ("pdf", "hicolor/scalable/apps/pdf.svg"),
-                ("selection", "hicolor/16x16/apps/stock-selection-all-16.png"),
-                ("hand-tool", "hicolor/scalable/apps/hand-tool.svg"),
-                ("mail-attach", "hicolor/scalable/apps/mail-attach.svg"),
-                ("crop", "hicolor/scalable/apps/crop.svg"),
-            ],
-        )
+        if not os.path.isdir(iconpath):
+            iconpath = "/usr/share/scantpaper/icons"
+        Gtk.IconTheme.get_default().prepend_search_path(iconpath)
 
     def do_startup(self, *args, **kwargs):
         Gtk.Application.do_startup(self)
@@ -169,13 +142,6 @@ class Application(Gtk.Application):
         if not self.window:
             self.window = ApplicationWindow(application=self)
         self.window.present()
-
-    def _init_icons(self, icons):
-        "Initialise iconfactory"
-        iconfactory = Gtk.IconFactory()
-        for iconname, filename in icons:
-            register_icon(iconfactory, iconname, self.iconpath + "/" + filename)
-        iconfactory.add_default()
 
 
 def _parse_arguments():
