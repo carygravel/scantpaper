@@ -525,8 +525,8 @@ class ApplicationWindow(
                 logger.warning(lang_msg)
                 msg += lang_msg
 
-        if not self._dependencies["pdftk"]:
-            msg += _("PDF encryption requires pdftk") + "\n"
+        if not self._dependencies["qpdf"]:
+            msg += _("PDF encryption requires qpdf") + "\n"
 
         # Put up warning if needed
         if msg != EMPTY:

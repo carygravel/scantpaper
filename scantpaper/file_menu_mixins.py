@@ -342,7 +342,7 @@ class FileMenuMixins:
             downsample_dpi=self.settings["downsample dpi"],
             downsample=self.settings["downsample"],
             pdf_compression=self.settings["pdf compression"],
-            can_encrypt_pdf="pdftk" in self._dependencies,
+            can_encrypt_pdf="qpdf" in self._dependencies,
             tiff_compression=self.settings["tiff compression"],
         )
 
