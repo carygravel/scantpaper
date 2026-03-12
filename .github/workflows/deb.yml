@@ -27,7 +27,6 @@ jobs:
             echo "RPM_ARCHITECTURE=${ARCHITECTURE:-noarch}"
             echo "RELEASE=1"
             echo "AUTHOR=Jeffrey Ratcliffe <jffry@posteo.net>"
-            echo "LICENCE=GPL-3"
             cd REPO
             echo "FIRST_YEAR=$(git log $(git rev-list --max-parents=0 HEAD) --date="format:%Y" --format="format:%ad")"
             echo "THIS_COMMIT_YEAR=$(git log HEAD -n1 --date="format:%Y" --format="format:%ad")"
@@ -45,6 +44,8 @@ jobs:
         # Fields from https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control
         run: |
           mkdir -p REPO/debian/upstream
+          mkdir -p REPO/debian/source
+          echo "3.0 (quilt)" | tee REPO/debian/source/format
           (
             echo "Source: ${GITHUB_REPO_NAME}"
             echo "Section: utils"
@@ -81,7 +82,7 @@ jobs:
             echo "                     xauth,"
             echo "                     xfonts-base"
             echo "Maintainer: ${AUTHOR}"
-            echo "Standards-Version: 4.7.0"
+            echo "Standards-Version: 4.7.3"
             echo "Vcs-Git: https://github.com/carygravel/scantpaper.git"
             echo "Vcs-Browser: https://github.com/carygravel/scantpaper"
             echo "Homepage: https://github.com/carygravel/scantpaper"
@@ -114,10 +115,34 @@ jobs:
             fi
           ) | tee REPO/debian/control
           (
-            echo "Files:"
-            echo " *"
-            echo "Copyright: ${YEAR_RANGE} ${MAINTAINER:-${AUTHOR}}"
-            echo "License: ${LICENCE}"
+            echo "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/"
+            echo "Upstream-Name: scantpaper"
+            echo "Upstream-Contact: Jeffrey Ratcliffe <jffry@posteo.net>"
+            echo "Source: https://github.com/carygravel/scantpaper"
+            echo ""
+            echo "Files: *"
+            echo "Copyright: 2006--2026 Jeffrey Ratcliffe"
+            echo "License: GPL-3"
+            echo " The full text of the GPL is available on Debian systems in"
+            echo " /usr/share/common-licenses/GPL-3"
+            echo ""
+            echo "Files: scantpaper.appdata.xml"
+            echo "Copyright: 2006--2026 Jeffrey Ratcliffe"
+            echo "License: CC0-1.0"
+            echo " The full text of the CC0-1.0 licence is available on Debian systems in"
+            echo " /usr/share/common-licenses/CC0-1.0"
+            echo ""
+            echo "Files: icons/hicolor/scalable/apps/scanner.svg"
+            echo "Copyright: 2007 Frédéric Bellaiche"
+            echo "License: GPL"
+            echo " The full text of the GPL is available on Debian systems in"
+            echo " /usr/share/common-licenses/GPL"
+            echo ""
+            echo "Files: icons/hicolor/scalable/apps/pdf.svg"
+            echo "Copyright: 2004 David Vignoni"
+            echo "License: LGPL-2.1"
+            echo " The full text of the GPL is available on Debian systems in"
+            echo " /usr/share/common-licenses/LGPL-2.1"
           ) | tee REPO/debian/copyright
           (
             echo "${GITHUB_REPO_NAME} (${VERSION}-0) unstable; urgency=medium"
@@ -161,6 +186,13 @@ jobs:
             echo "Repository-Browse: https://github.com/carygravel/scantpaper"
             echo "Repository: https://github.com/carygravel/scantpaper"
           ) | tee REPO/debian/upstream/metadata
+          (
+            echo "Version: 5"
+            echo ""
+            echo "Template: Github"
+            echo "Owner: carygravel"
+            echo "Project: @PACKAGE@"
+          ) | tee REPO/debian/watch
 
 #      - name: Create Spec File
 #        run: PATH="REPO/.github/scripts:${PATH}" create_spec_file.sh
