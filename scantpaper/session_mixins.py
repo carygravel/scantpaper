@@ -2,6 +2,7 @@
 
 import fcntl
 import glob
+import inspect
 import logging
 import os
 import re
@@ -394,6 +395,14 @@ class SessionMixins:
         process = response.request.process
         stage = response.type.name.lower()
         message = response.status
+
+        if trace := inspect.trace():
+            trace.reverse()
+            for info in trace:
+                if "scantpaper" in info.filename:
+                    logger.error("Filename: '%s' line: %s", info.filename, info.lineno)
+                    break
+
         page = None
         if "page" in args[0]:
             idx = self.slist.find_page_by_uuid(args[0]["page"])
