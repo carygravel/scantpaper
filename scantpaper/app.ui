@@ -299,6 +299,7 @@
     <child>
       <object class="GtkRadioMenuItem" id="context_dragger">
         <property name="label" translatable="yes">_Pan</property>
+        <property name="use-underline">1</property>
         <signal name="toggled" handler="_on_dragger"/>
       </object>
     </child>
@@ -306,6 +307,7 @@
       <object class="GtkRadioMenuItem" id="context_selector">
         <property name="label" translatable="yes">_Select</property>
         <property name="group">context_dragger</property>
+        <property name="use-underline">1</property>
         <signal name="toggled" handler="_on_selector"/>
       </object>
     </child>
@@ -313,6 +315,7 @@
       <object class="GtkRadioMenuItem" id="context_selectordragger">
         <property name="label" translatable="yes">_Select &amp; pan</property>
         <property name="group">context_dragger</property>
+        <property name="use-underline">1</property>
         <signal name="toggled" handler="_on_selectordragger"/>
       </object>
     </child>
@@ -320,24 +323,28 @@
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom _100%</property>
+        <property name="use-underline">1</property>
         <signal name="activate" handler="_on_zoom_100"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom to _fit</property>
+        <property name="use-underline">1</property>
         <signal name="activate" handler="_on_zoom_to_fit"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom _in</property>
+        <property name="use-underline">1</property>
         <signal name="activate" handler="_on_zoom_in"/>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem">
         <property name="label" translatable="yes">Zoom _out</property>
+        <property name="use-underline">1</property>
         <signal name="activate" handler="_on_zoom_out"/>
       </object>
     </child>
