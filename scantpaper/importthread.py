@@ -469,7 +469,7 @@ class Importhread(BaseThread):
                     request.error(_("Error importing PDF"))
 
         if warning_flag:
-            request.data(
+            request.error(
                 None,
                 _(
                     "Warning: scantpaper expects one image per page, but "
