@@ -553,7 +553,7 @@
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Scan document</property>
             <property name="action_name">win.scan</property>
-            <property name="icon-name">scanner</property>
+            <property name="icon-name">scan</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
