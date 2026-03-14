@@ -159,7 +159,7 @@ class MultipleMessage(Dialog):
         buffer.set_text(row["text"])
         view.set_editable(False)
         view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        view.expand = True
+        view.set_hexpand(True)
         self.grid.attach(view, COL_MESSAGE, self.grid_rows, 1, 1)
         self.grid_rows += 1
         if "store_response" in row and row["store_response"]:
