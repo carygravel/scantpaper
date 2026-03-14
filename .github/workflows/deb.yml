@@ -146,7 +146,7 @@ jobs:
             echo " The full text of the CC0-1.0 licence is available on Debian systems in"
             echo " /usr/share/common-licenses/CC0-1.0"
             echo ""
-            echo "Files: icons/hicolor/scalable/apps/scanner.svg"
+            echo "Files: icons/hicolor/scalable/apps/scan.svg"
             echo "Copyright: 2007 Frédéric Bellaiche"
             echo "License: GPL"
             echo " The full text of the GPL is available on Debian systems in"
