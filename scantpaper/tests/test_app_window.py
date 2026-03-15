@@ -138,7 +138,7 @@ def app_window(mocker, mock_builder, mock_config):
             "xdg": True,
             "unpaper": True,
             "tesseract": True,
-            "pdftk": True,
+            "qpdf": True,
             "ocr": True,
         }
 
@@ -409,7 +409,7 @@ def test_create_toolbar_missing_deps(app_window):
         "xdg": False,
         "unpaper": False,
         "tesseract": False,
-        "pdftk": False,
+        "qpdf": False,
         "ocr": False,
     }
     app_window._show_message_dialog = MagicMock()
@@ -976,7 +976,7 @@ def test_pre_flight_linux(mocker, mock_builder, mock_config):
             "xdg": True,
             "unpaper": True,
             "tesseract": True,
-            "pdftk": True,
+            "qpdf": True,
             "ocr": True,
         }
 
@@ -1043,7 +1043,7 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
             "xdg": True,
             "unpaper": True,
             "tesseract": True,
-            "pdftk": True,
+            "qpdf": True,
             "ocr": True,
         }
 
@@ -1113,7 +1113,7 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
             "xdg": True,
             "unpaper": True,
             "tesseract": True,
-            "pdftk": True,
+            "qpdf": True,
             "ocr": True,
         }
 
@@ -1200,7 +1200,7 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
             "xdg": True,
             "unpaper": True,
             "tesseract": True,
-            "pdftk": True,
+            "qpdf": True,
             "ocr": True,
         }
 
@@ -1287,7 +1287,7 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
             "xdg": True,
             "unpaper": True,
             "tesseract": True,
-            "pdftk": True,
+            "qpdf": True,
             "ocr": True,
         }
 

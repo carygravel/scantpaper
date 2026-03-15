@@ -259,7 +259,7 @@ class TestFileMenuMixins:
             "libtiff": True,
             "pdf2ps": True,
             "pdftops": True,
-            "pdftk": True,
+            "qpdf": True,
         }
         app.session = unittest.mock.Mock()
         app.session.name = str(tmp_path)

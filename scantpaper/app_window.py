@@ -322,8 +322,6 @@ class ApplicationWindow(
     def _populate_main_window(self):
         "Populates the main window with various UI components and sets up necessary callbacks"
 
-        # The temp directory has to be available before we start checking for
-        # dependencies in order to be used for the pdftk check.
         self._create_temp_directory()
 
         # Set up an SimpleList for the thumbnail view

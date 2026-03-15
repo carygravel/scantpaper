@@ -14,7 +14,7 @@ jobs:
         sudo add-apt-repository ppa:jeffreyratcliffe/ppa
         sudo apt-get update
         sudo apt-get install -y imagemagick libtiff-tools poppler-utils \
-          pdftk djvulibre-bin img2pdf python3-gi python3-gi-cairo \
+          qpdf djvulibre-bin img2pdf python3-gi python3-gi-cairo \
           gobject-introspection gir1.2-gtk-3.0 gir1.2-goocanvas-2.0 \
           python3-iso639 python3-sane unpaper \
           tesseract-ocr-eng tesseract-ocr-deu python3-tesserocr \

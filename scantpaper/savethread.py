@@ -614,10 +614,13 @@ def _post_save_hook(filename, options):
 def _encrypt_pdf(filename, options, request):
     cmd = ["qpdf"]
     if "user-password" in options["options"]:
-        cmd += ["--encrypt",
-                f'--owner-password={options["options"]["user-password"]}',
-                f'--user-password={options["options"]["user-password"]}',
-                "--bits=256", "--allow-insecure", "--",
+        cmd += [
+            "--encrypt",
+            f'--owner-password={options["options"]["user-password"]}',
+            f'--user-password={options["options"]["user-password"]}',
+            "--bits=256",
+            "--allow-insecure",
+            "--",
         ]
     cmd += [filename, options["path"]]
 

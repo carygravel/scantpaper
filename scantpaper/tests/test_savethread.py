@@ -518,23 +518,23 @@ def test_encrypt_pdf():
         assert ret == 0
         assert mock_run.called
         cmd = mock_run.call_args[0][0]
-        assert "pdftk" in cmd
-        assert "user_pw" in cmd
+        assert "qpdf" in cmd
+        assert "--user-password=password" in cmd
 
 
 def test_encrypt_pdf_failure():
-    "Test _encrypt_pdf function when pdftk fails"
+    "Test _encrypt_pdf function when qpdf fails"
     request = MagicMock()
     options = {"path": "/tmp/output.pdf", "options": {"user-password": "password"}}
     mock_spo = MagicMock()
     mock_spo.returncode = 1
-    mock_spo.stderr = "pdftk error"
+    mock_spo.stderr = "qpdf error"
     with patch("savethread.subprocess.run", return_value=mock_spo):
         ret = _encrypt_pdf("/tmp/input.pdf", options, request)
         assert ret == 1
         assert request.error.called
         args, _ = request.error.call_args
-        assert "pdftk error" in args[0]
+        assert "qpdf error" in args[0]
 
 
 def test_prepare_output_metadata():

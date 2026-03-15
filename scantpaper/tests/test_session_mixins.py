@@ -241,59 +241,6 @@ def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window)
     mock_session_window._show_message_dialog.assert_called()
 
 
-def test_check_dependencies_pdftk_error(mocker, mock_session_window, tmp_path):
-    "Test _check_dependencies with pdftk error"
-    mocker.patch("tesserocr.tesseract_version", return_value=None)
-    mocker.patch("tesserocr.__version__", return_value="2.5")
-    mocker.patch("session_mixins.Unpaper")
-
-    mock_program_version = mocker.patch("session_mixins.program_version")
-
-    def side_effect(stream, regex, cmd):
-        if "pdftk" in cmd:
-            return "2.0"
-        return "1.0"
-
-    mock_program_version.side_effect = side_effect
-
-    mock_exec_command = mocker.patch("session_mixins.exec_command")
-    mock_exec_command.return_value.stdout = "Error: could not load a required library"
-
-    mock_session_window.session = MagicMock()
-    mock_session_window.session.name = str(tmp_path)
-
-    mock_session_window._check_dependencies()
-    assert "pdftk" not in mock_session_window._dependencies
-    mock_session_window._show_message_dialog.assert_called()
-
-
-def test_check_dependencies_pdftk_no_stdout(mocker, mock_session_window, tmp_path):
-    "Test _check_dependencies with pdftk no stdout"
-    mocker.patch("tesserocr.tesseract_version", return_value=None)
-    mocker.patch("tesserocr.__version__", return_value="2.5")
-    mocker.patch("session_mixins.Unpaper")
-
-    mock_program_version = mocker.patch("session_mixins.program_version")
-
-    def side_effect(stream, regex, cmd):
-        if "pdftk" in cmd:
-            return "2.0"
-        return "1.0"
-
-    mock_program_version.side_effect = side_effect
-
-    mock_exec_command = mocker.patch("session_mixins.exec_command")
-    # Simulate proc.stdout being None, which was causing a crash
-    mock_exec_command.return_value.stdout = None
-
-    mock_session_window.session = MagicMock()
-    mock_session_window.session.name = str(tmp_path)
-
-    # Should not crash
-    mock_session_window._check_dependencies()
-    assert mock_session_window._dependencies["pdftk"] == "2.0"
-
-
 def test_zoom_methods(mock_session_window):
     "Test zoom methods"
     mock_session_window.zoom_100(None, None)

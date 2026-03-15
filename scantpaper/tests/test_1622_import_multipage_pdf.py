@@ -242,7 +242,7 @@ def test_import_pdf_with_error(rose_tif, temp_pdf, clean_up_files):
 
 
 @pytest.mark.skipif(
-    shutil.which("pdftk") is None, reason="Please install pdftk to enable test"
+    shutil.which("qpdf") is None, reason="Please install qpdf to enable test"
 )
 def test_import_encrypted_pdf(rose_tif, temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
@@ -250,13 +250,15 @@ def test_import_encrypted_pdf(rose_tif, temp_db, temp_pdf, clean_up_files):
     subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
     subprocess.run(
         [
-            "pdftk",
+            "qpdf",
+            "--encrypt",
+            "--owner-password=s3cr3t",
+            "--user-password=s3cr3t",
+            "--bits=256",
+            "--allow-insecure",
+            "--",
             temp_pdf.name,
-            "output",
             "output.pdf",
-            "encrypt_128bit",
-            "user_pw",
-            "s3cr3t",
         ],
         check=True,
     )

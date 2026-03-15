@@ -103,7 +103,7 @@ jobs:
             echo "         \${misc:Depends},"
             echo "         \${python3:Depends}"
             echo "Recommends: djvulibre-bin,"
-            echo "            pdftk,"
+            echo "            qpdf,"
             echo "            tesseract-ocr,"
             echo "            unpaper,"
             echo "            xdg-utils"

@@ -13,7 +13,9 @@
 * Fix updating image resolution via property dialog.
   Closes #44 (AttributeError when changing resolution)
 * Replace deprecated IconSet and IconFactory. Closes #3
-  Thanks to Chris Mayo for the patches.
+  Thanks to Chris Mayo for the patch.
+* Use qpdf to encrypt PDFs instead of pdftk. Closes #48
+  Thanks to Chris Mayo for the patch.
 
 
 ## 3.0.0 (2026-03-11)

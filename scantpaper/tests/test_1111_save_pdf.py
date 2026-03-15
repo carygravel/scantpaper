@@ -258,7 +258,7 @@ def test_save_pdf_different_resolutions(
     clean_up_files(slist.thread.db_files)
 
 
-@pytest.mark.skipif(shutil.which("pdftk") is None, reason="pdftk not found")
+@pytest.mark.skipif(shutil.which("qpdf") is None, reason="qpdf not found")
 def test_save_encrypted_pdf(
     rose_jpg, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
