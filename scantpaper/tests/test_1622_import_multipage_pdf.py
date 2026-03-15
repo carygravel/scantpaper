@@ -127,7 +127,7 @@ startxref
 
     asserts = 0
 
-    def logger_cb(response):
+    def error_cb(response):
         nonlocal asserts
         assert re.search(
             r"one image per page", response.status
@@ -136,7 +136,7 @@ startxref
 
     slist.import_files(
         paths=[temp_pdf.name],
-        logger_callback=logger_cb,
+        error_callback=error_cb,
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging

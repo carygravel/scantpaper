@@ -437,6 +437,7 @@ class Importhread(BaseThread):
                 )
             except subprocess.CalledProcessError:
                 request.error(_("Error extracting images from PDF"))
+                return
             self.check_cancelled()
 
             # Import each image
