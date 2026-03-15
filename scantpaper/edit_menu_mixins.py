@@ -88,10 +88,11 @@ class EditMenuMixins:
                     yresolution,
                     self.slist.data[i][0],
                 )
-                self.slist.data[i][2].resolution = (
+                self.slist.thread.send(
+                    "set_resolution",
+                    self.slist.data[i][2],
                     xresolution,
                     yresolution,
-                    "PixelsPerInch",
                 )
 
             self.slist.get_model().handler_unblock(self.slist.row_changed_signal)

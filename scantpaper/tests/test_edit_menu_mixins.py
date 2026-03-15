@@ -340,7 +340,9 @@ def test_properties_dialog(mocker, mock_edit_window):
     apply_callback()
 
     mock_dialog_instance.hide.assert_called()
-    assert page.resolution == (300, 300, "PixelsPerInch")
+    mock_edit_window.slist.thread.send.assert_called_with(
+        "set_resolution", page, 300, 300
+    )
 
 
 def test_properties_window_present(mock_edit_window):

@@ -1,3 +1,19 @@
+## 3.0.1 (2026-03-15)
+
+* Fix selection changed callback. Closes #45
+  Thanks to Chris Mayo for the patch.
+* Fix opening an encrypted PDF. Closes #46
+  Thanks to Chris Mayo for the patch.
+* Improve session logs. Closes #47
+  Thanks to Chris Mayo for the patch.
+* Fix image context menu mnemonics. Closes #49
+  Thanks to Chris Mayo for the patch.
+* Fix missing message when PDF has no images. Closes #50
+  Thanks to Chris Mayo for the patch.
+* Fix updating image resolution via property dialog.
+  Closes #44 (AttributeError when changing resolution)
+
+
 ## 3.0.0 (2026-03-11)
 
 * + minimal en_US translation to prevent warnings. Closes #41
