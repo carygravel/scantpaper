@@ -18,7 +18,7 @@ jobs:
           (
             VERSION=$(echo "${GITHUB_REF_NAME}" | sed -e 's/^v//')
             if ! [[ $VERSION =~ ^[0-9] ]]; then
-              VERSION="$(sed -n "s/^[[:space:]]*VERSION[[:space:]]*=[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" REPO/scantpaper/const.py || true)+${{github.sha}}"
+              VERSION="$(sed -n 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' REPO/pyproject.toml || true)+${{github.sha}}"
             fi
             echo "GITHUB_REPO_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f2)"
             echo "VERSION=${VERSION}"
