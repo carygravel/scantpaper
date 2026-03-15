@@ -217,7 +217,7 @@ class FileMenuMixins:
             modal=True,
             message_type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.OK_CANCEL,
-            title=_("Enter password"),
+            title=text,
             text=text,
         )
         vbox = dialog.get_content_area()
