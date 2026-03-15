@@ -12,6 +12,8 @@
   Thanks to Chris Mayo for the patch.
 * Fix updating image resolution via property dialog.
   Closes #44 (AttributeError when changing resolution)
+* Replace deprecated IconSet and IconFactory. Closes #3
+  Thanks to Chris Mayo for the patches.
 
 
 ## 3.0.0 (2026-03-11)

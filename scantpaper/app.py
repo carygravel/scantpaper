@@ -124,9 +124,7 @@ class Application(Gtk.Application):
 
         # Add extra icons early to be available for Gtk.Builder
         # Check for icons in the package first, then fallback to system icons.
-        iconpath = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../icons")
-        )
+        iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "../icons"))
         if not os.path.isdir(iconpath):
             iconpath = "/usr/share/scantpaper/icons"
         Gtk.IconTheme.get_default().prepend_search_path(iconpath)
