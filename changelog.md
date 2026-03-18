@@ -16,6 +16,10 @@
   Thanks to Chris Mayo for the patch.
 * Use qpdf to encrypt PDFs instead of pdftk. Closes #48
   Thanks to Chris Mayo for the patch.
+* Fix messages dialog text width. Closes #52
+  Thanks to Chris Mayo for the patch.
+* Rename scanner icon to scan. Closes #53
+  Thanks to Chris Mayo for the patch.
 
 
 ## 3.0.0 (2026-03-11)
