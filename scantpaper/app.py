@@ -147,9 +147,9 @@ def _parse_arguments():
     parser = argparse.ArgumentParser(
         prog=PROG_NAME, description="What the program does"
     )
-    parser.add_argument("--device", nargs="+")
-    parser.add_argument("--import", nargs="+", dest="import_files")
-    parser.add_argument("--import-all", nargs="+")
+    parser.add_argument("--device", action="extend", nargs="+")
+    parser.add_argument("--import", action="extend", nargs="+", dest="import_files")
+    parser.add_argument("--import-all", action="extend", nargs="+")
     parser.add_argument("--locale")
     parser.add_argument("--log", type=str)
     parser.add_argument("--version", action="version", version="%(prog)s " + VERSION)
