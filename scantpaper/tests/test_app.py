@@ -1,7 +1,6 @@
 "Tests for app.py"
 
 import logging
-import os
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -156,6 +155,34 @@ def test_parse_arguments_locale(mock_deps, mocker):
             app_module.gettext.bindtextdomain.assert_called_with(
                 PROG_NAME, "/current/dir/local_locale"
             )
+
+
+def test_parse_arguments_multiple_instances(mock_deps, mocker):
+    "Test _parse_arguments with multiple instances of --device, --import, and --import-all"
+    test_args = [
+        "prog",
+        "--device",
+        "dev1",
+        "dev2",
+        "--device",
+        "dev3",
+        "--import",
+        "file1.pdf",
+        "--import",
+        "file2.pdf",
+        "file3.pdf",
+        "--import-all",
+        "dir1",
+        "--import-all",
+        "dir2",
+        "dir3",
+    ]
+    with patch("sys.argv", test_args):
+        args = _parse_arguments()
+
+        assert args.device == ["dev1", "dev2", "dev3"]
+        assert args.import_files == ["file1.pdf", "file2.pdf", "file3.pdf"]
+        assert args.import_all == ["dir1", "dir2", "dir3"]
 
 
 def test_main(mock_deps, mocker):

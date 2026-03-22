@@ -1,3 +1,11 @@
+## 3.0.2 (2026-03-15)
+
+* Also support old method of specifying multiple CLI arguments.
+  Closes #56 (--import-all only importing the first image)
+  Closes #57 (Support more than one instance of a command-line option)
+  Thanks to Chris Mayo for the patch.
+
+
 ## 3.0.1 (2026-03-15)
 
 * Fix selection changed callback. Closes #45
