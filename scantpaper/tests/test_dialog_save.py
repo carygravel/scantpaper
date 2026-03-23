@@ -85,8 +85,9 @@ def test_meta_datetime_property(mocker):
     assert dialog.meta_datetime == test_date
 
 
-def test_insert_text_handler_inc_dec():
+def test_insert_text_handler_inc_dec(mocker):
     "Test increment/decrement date via + and - keys"
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save()
     dialog._meta_specify_widget.set_active(True)
     entry = dialog._meta_datetime_widget
@@ -101,8 +102,9 @@ def test_insert_text_handler_inc_dec():
     assert entry.get_text() == "2023-01-01"
 
 
-def test_insert_text_handler_filtering():
+def test_insert_text_handler_filtering(mocker):
     "Test character filtering in _insert_text_handler"
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save()
     entry = dialog._meta_datetime_widget
 

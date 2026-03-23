@@ -246,9 +246,10 @@ def test_pdf_options(mocker):
 
 def test_date_entry_validation(mocker):
     "test date entry validation"
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window())
-
     entry = dialog._meta_datetime_widget
+
     # Mock stop_emission_by_name and insert_text
     # We use mocker.patch.object to avoid RecursionError by keeping real block/unblock
     entry.stop_emission_by_name = mocker.Mock()
@@ -256,6 +257,7 @@ def test_date_entry_validation(mocker):
 
     # Test valid date char
     mocker.patch.object(entry, "get_text", return_value="2020")
+    mocker.patch.object(entry, "get_position", return_value=4)
     dialog._insert_text_handler(entry, "-", 0, 4)
     entry.insert_text.assert_called_with("-", 4)
 
@@ -269,6 +271,7 @@ def test_date_entry_validation(mocker):
     dialog.include_time = True
     # Refresh entry text mock
     mocker.patch.object(entry, "get_text", return_value="2020-01-01 ")
+    mocker.patch.object(entry, "get_position", return_value=11)
     dialog._insert_text_handler(entry, ":", 0, 11)
     entry.insert_text.assert_called_with(":", 11)
 
@@ -276,6 +279,7 @@ def test_date_entry_validation(mocker):
 def test_edit_date_button(mocker):
     "test _clicked_edit_date_button"
 
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(
         transient_for=Gtk.Window(),
         meta_datetime=datetime(2020, 1, 1),
@@ -394,8 +398,9 @@ def test_image_type_changed_branches(mocker):
     hboxps.hide.assert_called()
 
 
-def test_datetime_focus_out():
+def test_datetime_focus_out(mocker):
     "test _datetime_focus_out_callback"
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window(), select_datetime=True)
 
     # Ensure now widget is NOT active so it doesn't return datetime.now()
@@ -409,8 +414,9 @@ def test_datetime_focus_out():
     assert dialog.meta_datetime == datetime(2022, 2, 22)
 
 
-def test_datetime_setter():
+def test_datetime_setter(mocker):
     "test meta_datetime setter updates widget"
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window(), include_time=True)
     new_dt = datetime(2023, 3, 23, 12, 0, 0)
     dialog.meta_datetime = new_dt
@@ -567,6 +573,7 @@ def test_other_save_dialog_callbacks():
 
 def test_date_entry_inc_dec(mocker):
     "test + and - keys in date entry"
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window())
     entry = dialog._meta_datetime_widget
     entry.set_text("2020-01-01")
@@ -581,3 +588,22 @@ def test_date_entry_inc_dec(mocker):
     # Test - key
     dialog._insert_text_handler(entry, "-", 1, 10)
     assert entry.get_text() == "2020-01-01"
+
+
+def test_date_entry_cursor_position(mocker):
+    "test cursor position update in date entry"
+    mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
+    dialog = Save(transient_for=Gtk.Window())
+    entry = dialog._meta_datetime_widget
+    entry.set_text("2020")
+    entry.set_position(4)
+
+    # Mock stop_emission_by_name
+    entry.stop_emission_by_name = mocker.Mock()
+
+    # Simulate typing '-' at position 4
+    dialog._insert_text_handler(entry, "-", 1, 4)
+
+    assert entry.get_text() == "2020-"
+    assert entry.get_position() == 5, "Cursor should have moved to position 5"
+    dialog.destroy()

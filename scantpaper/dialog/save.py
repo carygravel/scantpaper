@@ -9,7 +9,7 @@ from i18n import _
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
+from gi.repository import Gtk, GObject, GLib  # pylint: disable=wrong-import-position
 
 MAX_DPI = 2400
 ENTRY_WIDTH_DATE = 10
@@ -441,7 +441,7 @@ class Save(Dialog):
         vbox_date.pack_start(today_b, True, True, 0)
         window_date.show_all()
 
-    def _insert_text_handler(self, widget, string, _length, position):
+    def _insert_text_handler(self, widget, string, _length, _position):
         text = widget.get_text()
         text_len = len(text)
         widget.handler_block_by_func(self._insert_text_handler)
@@ -469,12 +469,12 @@ class Save(Dialog):
                 r"^[\d\-: ]+$", string, re.ASCII
             )  # only allow integers and -:
         ):
+            position = widget.get_position()
             widget.insert_text(string, position)
-            position += 1
+            GLib.idle_add(widget.set_position, position + len(string))
 
         widget.handler_unblock_by_func(self._insert_text_handler)
         widget.stop_emission_by_name("insert-text")
-        return position
 
     def _add_metadata_widgets(self, grid, row):
         for name, label in [

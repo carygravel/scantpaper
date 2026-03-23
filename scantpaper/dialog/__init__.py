@@ -139,7 +139,7 @@ class MultipleMessage(Dialog):
         "add a row with a new message"
         self.grid.insert_row(self.grid_rows)
         if "page" in row:
-            self.grid.attach(Gtk.Label(label=row["page"]), 0, self.grid_rows, 1, 1)
+            self.grid.attach(Gtk.Label(label=str(row["page"])), 0, self.grid_rows, 1, 1)
         if "process" in row:
             self.grid.attach(Gtk.Label(label=row["process"]), 1, self.grid_rows, 1, 1)
         self.grid.attach(

@@ -4,6 +4,8 @@
   Closes #56 (--import-all only importing the first image)
   Closes #57 (Support more than one instance of a command-line option)
   Thanks to Chris Mayo for the patch.
+* Fix cursor position when typing datetime data in save dialog.
+  Closes #54 (Save Dialogue: Reversed order of Digits)
 
 
 ## 3.0.1 (2026-03-15)
