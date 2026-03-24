@@ -52,8 +52,7 @@ class Bboxtree:
             if bbox["type"] == "page":
                 if x_2 == 0 or y_2 == 0:
                     return False
-            return True
-        return False
+        return True
 
     def json(self):
         "seríalise the bboxtree object as JSON"

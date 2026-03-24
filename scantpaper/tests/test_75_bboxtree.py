@@ -950,13 +950,13 @@ def test_valid():
     assert tree.valid(), "valid"
 
     tree.bbox_tree[0]["bbox"][3] = 0
-    assert not tree.valid(), "invalid bbox value"
+    assert not tree.valid(), "pages cannot have zero height"
 
     tree.bbox_tree[0]["type"] = "word"
-    assert tree.valid(), "valid"
+    assert tree.valid(), "words can have zero height"
 
     tree.bbox_tree = []
-    assert not tree.valid(), "empty tree"
+    assert tree.valid(), "empty tree is valid"
 
 
 def test_crop():
