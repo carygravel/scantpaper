@@ -1,8 +1,14 @@
 "tests for PageControls dialog component"
 
+import tempfile
 from unittest.mock import MagicMock
 import pytest
+from document import Document
 from dialog.pagecontrols import PageControls, _extended_pagenumber_checkbox_callback
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
 def test_side_to_scan_invalid_value():
@@ -125,3 +131,27 @@ def test_extended_pagenumber_checkbox_callback_buttons_active():
     page_controls.buttond.set_active.assert_called_once_with(True)
     page_controls.combobs.set_active.assert_called_once_with(1)
     page_controls.buttons.set_active.assert_not_called()
+
+
+def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout, clean_up_files):
+    "test PageControls"
+    page_controls = PageControls(title="title", transient_for=Gtk.Window())
+    assert isinstance(page_controls, PageControls), "Created PageControls dialog"
+
+    slist = Document(db=temp_db.name)
+    with tempfile.TemporaryDirectory() as tempdir:
+        slist.import_scan(
+            filename=rose_pnm.name,
+            resolution=72,
+            page=1,
+            dir=tempdir,
+            finished_callback=lambda response: loop1.quit(),
+        )
+        loop1 = mainloop_with_timeout()
+        loop1.run()
+        page_controls.page_number_start = 5
+        page_controls.document = slist
+        page_controls.reset_start_page()
+        assert page_controls.page_number_start == 2, "PageControls.reset_start_page()"
+
+    clean_up_files(slist.thread.db_files)

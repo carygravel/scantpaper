@@ -81,8 +81,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
     @GObject.Property(
         type=int,
-        minimum=-MAX_INCREMENT,
-        maximum=MAX_INCREMENT,
+        minimum=1,
+        maximum=MAX_PAGES,
         default=1,
         nick="Starting page number",
         blurb="Page number of first page to be scanned",
@@ -460,7 +460,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
             start_page = self.page_number_start
             step = self.page_number_increment
             if start_page > slist.data[num_pages - 1][0] + step:
-                self.page_number_start = len(slist)
+                self.page_number_start = num_pages + 1
         else:
             self.page_number_start = 1
 

@@ -1,9 +1,6 @@
 "test dialog"
 
-import tempfile
 from dialog import Dialog, MultipleMessage
-from dialog.pagecontrols import PageControls
-from document import Document
 import gi
 
 gi.require_version("Gdk", "3.0")
@@ -128,27 +125,3 @@ def test_multiple_message():
     messages = dialog.list_messages_to_ignore("ok")
     assert "message 1" in messages
     assert "message 2" not in messages
-
-
-def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout, clean_up_files):
-    "test PageControls"
-    dialog = PageControls(title="title", transient_for=Gtk.Window())
-    assert isinstance(dialog, PageControls), "Created PageControls dialog"
-
-    slist = Document(db=temp_db.name)
-    with tempfile.TemporaryDirectory() as tempdir:
-        slist.import_scan(
-            filename=rose_pnm.name,
-            resolution=72,
-            page=1,
-            dir=tempdir,
-            finished_callback=lambda response: loop1.quit(),
-        )
-        loop1 = mainloop_with_timeout()
-        loop1.run()
-        dialog.page_number_start = 5
-        dialog.document = slist
-        dialog.reset_start_page()
-        assert dialog.page_number_start == 2, "PageControls.reset_start_page()"
-
-    clean_up_files(slist.thread.db_files)
