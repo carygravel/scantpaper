@@ -12,6 +12,7 @@
 * Suppress warnings like:
   `Warning: value "100" of type 'gint' is invalid or out of range for property 'page-number-start' of type 'gint'`
   when importing more than 99 images
+* Raise `RuntimeError` if `file` returns no stdout
 
 
 ## 3.0.1 (2026-03-15)

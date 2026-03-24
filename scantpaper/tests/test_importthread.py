@@ -55,6 +55,17 @@ def test_get_file_info_zero_length(mocker, tmp_path):
         thread.do_get_file_info(request)
 
 
+def test_get_file_info_no_stdout(mocker):
+    "Test that a zero-length file raises a RuntimeError"
+
+    mock_exec = mocker.patch("importthread.exec_command")
+    mock_exec.return_value = Proc(returncode=0, stdout=None, stderr="")
+    thread = Importhread()
+    request = SimpleNamespace(args=("", None))
+    with pytest.raises(RuntimeError, match="Error getting file info"):
+        thread.do_get_file_info(request)
+
+
 def test_get_djvu_info_no_djvudump(mocker):
     "Test that error is raised when djvudump is not found"
     mock_exec = mocker.patch("importthread.exec_command")

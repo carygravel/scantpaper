@@ -58,6 +58,8 @@ class Importhread(BaseThread):
 
         logger.info("Getting info for %s", path)
         proc = exec_command(["file", "-Lb", path])
+        if proc.stdout is None:
+            raise RuntimeError(_("Error getting file info for %s.") % (path,))
         proc.stdout = proc.stdout.rstrip()
         logger.info("Format: '%s'", proc.stdout)
         if proc.stdout in ["very short file (no magic)", "empty"]:
