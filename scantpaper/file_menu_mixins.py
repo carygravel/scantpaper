@@ -235,7 +235,6 @@ class FileMenuMixins:
 
     def _import_files_finished_callback(self, response):
         "import_files finished callback"
-        logger.debug("finished import_files(%s)", response)
         self.post_process_progress.finish(response)
 
     def _import_files_metadata_callback(self, metadata):

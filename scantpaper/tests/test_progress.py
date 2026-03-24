@@ -119,11 +119,10 @@ def test_progress_finish():
 
     progress.finish(response)
     assert not progress.get_visible()
-    # Cannot easily check if disconnected, but can check if signal handler runs?
-    # Actually, GObject doesn't expose `connected` status easily.
-    # But if we click, it shouldn't hide (if it was visible), but finish hides it.
 
     # Check if finish handles None response
     progress.show()
     progress.finish(None)
     assert not progress.get_visible()
+
+    assert progress._signal is None  # pylint: disable=protected-access

@@ -96,3 +96,4 @@ class Progress(Gtk.Box):
             self.hide()
         if self._signal is not None:
             self.disconnect(self._signal)
+            self._signal = None

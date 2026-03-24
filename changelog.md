@@ -6,6 +6,9 @@
   Thanks to Chris Mayo for the patch.
 * Fix cursor position when typing datetime data in save dialog.
   Closes #54 (Save Dialogue: Reversed order of Digits)
+* Suppress warnings like:
+  `Warning: ../../../gobject/gsignal.c:2685: instance '0x29948460' has no handler with id '117'`
+  when processes finish
 
 
 ## 3.0.1 (2026-03-15)
