@@ -148,7 +148,9 @@ class Page:
         tree = Bboxtree()
         res = self.get_resolution()
         tree.from_pdftotext(html, (res[0], res[1]), self.get_size())
-        self.text_layer = tree.json()
+        # Only set text_layer if there's actual content, not an empty tree
+        json_text = tree.json()
+        self.text_layer = None if json_text == "[]" else json_text
 
     def import_annotations(self, hocr):
         "import annotation layer from hocr"

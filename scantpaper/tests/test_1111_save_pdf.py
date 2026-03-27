@@ -800,3 +800,44 @@ def test_cancel_save_pdf(
     #########################
 
     clean_up_files(slist.thread.db_files)
+
+
+def test_import_pdf_without_text_and_resave(
+    rose_tif, temp_db, import_in_mainloop, clean_up_files
+):
+    """
+    Regression test for bug where importing a PDF without a text layer
+    and then re-saving it as a PDF would fail with:
+    'HocrTransform' object has no attribute 'width'
+    """
+
+    # Create a PDF from a TIFF (no text layer)
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf1:
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf2:
+            subprocess.run(
+                ["tiff2pdf", "-o", temp_pdf1.name, rose_tif.name],
+                check=True,
+            )
+
+            # Import the PDF without text layer
+            slist = Document(db=temp_db.name)
+            import_in_mainloop(slist, [temp_pdf1.name])
+
+            assert len(slist.data) == 1, "imported 1 page"
+
+            # Re-save it as PDF - this should not fail
+            mlp = GLib.MainLoop()
+
+            slist.save_pdf(
+                path=temp_pdf2.name,
+                list_of_pages=[slist.data[0][2]],
+                finished_callback=lambda response: mlp.quit(),
+            )
+            GLib.timeout_add(10000, mlp.quit)
+            mlp.run()
+
+            # Verify the output PDF is valid
+            capture = subprocess.check_output(["pdfinfo", temp_pdf2.name], text=True)
+            assert "Page size:" in capture, "valid PDF created"
+
+            clean_up_files(slist.thread.db_files + [temp_pdf2.name])

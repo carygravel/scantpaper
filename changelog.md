@@ -14,6 +14,7 @@
   when importing more than 99 images
 * Raise `RuntimeError` if `file` returns no stdout
 * Don't complain about empty hocr files being invalid
+* Fix roundtrip for PDF without text layer
 
 
 ## 3.0.1 (2026-03-15)
