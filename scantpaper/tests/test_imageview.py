@@ -216,8 +216,8 @@ def test_transparency(datadir):
         pixel = get_pixel(var["pb"], p_x, p_y)
 
         # the blue chessboard can become blurred with hidpi :(
-        pixel_below = get_pixel(var["pb"], p_x, p_y)
-        if pixel == [0, 0, 255] or pixel_below == [0, 0, 255]:
+        # Check for bluish color (blue channel dominant and > 200)
+        if pixel[2] > 200 and pixel[2] > pixel[0] and pixel[2] > pixel[1]:
             found = True
             break
         p_x -= 1
