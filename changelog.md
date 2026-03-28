@@ -1,4 +1,4 @@
-## 3.0.2 (2026-03-15)
+## 3.0.2 (2026-03-27)
 
 * Also support old method of specifying multiple CLI arguments.
   Closes #56 (--import-all only importing the first image)
