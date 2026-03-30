@@ -31,35 +31,36 @@
 #    Update translators in credits (https://launchpad.net/gscan2pdf/+topcontributors)
 #    Update VERSION
 #    Make appropriate updates to debian/changelog
-# 2.  perl Makefile.PL
-#     Upload .pot
-# 3.  make remote-html
-# 4. Build .deb for sf
-#     tox -e signed_sdist
-#     sudo sbuild-update -udr sid-amd64-sbuild
+# 2. Upload .pot
+# 3.  git status
+#     git tag vx.x.x
+#     git push --tags
+# 4. Build package for Debian. Update the salsa repo:
+#     gbp import-orig --pristine-tar --uscan
+#     #tox -e signed_sdist
+#     #sudo sbuild-update -udr sid-amd64-sbuild
 #     sbuild -sc sid-amd64-sbuild
-#     #debsign .changes
+#     debsign .changes
 #    lintian -iI --pedantic .changes
 #    autopkgtest .changes -- schroot sid-amd64-sbuild
 #    check contents with dpkg-deb --contents
 #    test dist sudo dpkg -i scantpaper_x.x.x_all.deb
-# 5.  git status
-#     git tag vx.x.x
-#     git push --tags origin master
-# 6. create version directory
-#     make file_releases
-# 7. Build packages for Debian & Ubuntu
+#     dput ftp-master .changes
+#    Push changes to salsa:
+#     git add -p
+#     debcommit -r
+#     git push --set-upstream git@salsa.debian.org:python-team/packages/scantpaper.git : --tags
+# 5. Build packages for Ubuntu
 #    name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
 #      * questing (until 2026-07)
 #      * noble (until 2029-06)
 #      * jammy (until 2027-06)
 #     debuild -S -sa
-#     dput ftp-master .changes
 #     dput gscan2pdf-ppa .changes
 #    https://launchpad.net/~jeffreyratcliffe/+archive
-# 8. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net,
+# 6. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net,
 #    sane-devel@lists.alioth.debian.org
-# 9. To interactively debug in the schroot:
+# 7. To interactively debug in the schroot:
 #      * duplicate the config file, typically in /etc/schroot/chroot.d/, changing
 #        the sbuild profile to desktop
 #       schroot -c sid-amd64-desktop -u root
