@@ -85,7 +85,6 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 ### Optional
 
 - djvulibre-bin
-- qpdf
 - unpaper
 - xdg-utils
 
