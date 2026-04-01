@@ -2,14 +2,10 @@
 
 import os
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import pytest
-import gi
+import scan_menu_item_mixins
 from scan_menu_item_mixins import ScanMenuItemMixins
-from const import EMPTY
-
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
 @pytest.fixture
@@ -241,8 +237,6 @@ def test_add_postprocessing_options_clicked_cb(mocker, mock_scan_window):
     mock_combo = mock_combo_cls.return_value
     mock_combo.get_active_text.return_value = "my_tool"
 
-    import scan_menu_item_mixins
-
     mock_unpaper_btn = mocker.Mock()
     mock_udt_btn = mocker.Mock()
     scan_menu_item_mixins.Gtk.CheckButton.side_effect = [mock_unpaper_btn, mock_udt_btn]
@@ -294,9 +288,6 @@ def test_add_postprocessing_unpaper_disabled(mocker, mock_scan_window):
     "Test unpaper option when dependency missing"
     mock_scan_window._dependencies["unpaper"] = False
     mock_vbox = mocker.Mock()
-
-    import scan_menu_item_mixins
-
     mock_btn = mocker.Mock()
     scan_menu_item_mixins.Gtk.CheckButton.return_value = mock_btn
 
@@ -311,9 +302,6 @@ def test_add_postprocessing_unpaper_enabled_active(mocker, mock_scan_window):
     mock_scan_window._dependencies["unpaper"] = True
     mock_scan_window.settings["unpaper on scan"] = True
     mock_vbox = mocker.Mock()
-
-    import scan_menu_item_mixins
-
     mock_btn = mocker.Mock()
     scan_menu_item_mixins.Gtk.CheckButton.return_value = mock_btn
 
@@ -327,9 +315,6 @@ def test_add_postprocessing_udt_enabled(mocker, mock_scan_window):
     mock_scan_window.settings["user_defined_tools"] = ["tool1"]
     mock_scan_window.settings["udt_on_scan"] = True
     mock_vbox = mocker.Mock()
-
-    import scan_menu_item_mixins
-
     mock_btn = mocker.Mock()
     scan_menu_item_mixins.Gtk.CheckButton.return_value = mock_btn
 
@@ -342,9 +327,6 @@ def test_add_postprocessing_udt_disabled(mocker, mock_scan_window):
     "Test UDT option when no tools defined"
     mock_scan_window.settings["user_defined_tools"] = []
     mock_vbox = mocker.Mock()
-
-    import scan_menu_item_mixins
-
     mock_btn = mocker.Mock()
     scan_menu_item_mixins.Gtk.CheckButton.return_value = mock_btn
     mock_hbox = mocker.Mock()
@@ -612,3 +594,43 @@ def test_show_unpaper_options(mocker, mock_scan_window):
 
     assert mock_scan_window.settings["unpaper options"] == "options"
     mock_dialog_instance.destroy.assert_called()
+
+
+def test_changed_device_list_callback_cache_libusb_ok(mocker, mock_scan_window):
+    "Test _changed_device_list_callback with libusb device and user clicks OK"
+
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_widget = mocker.Mock()
+    device1 = mocker.Mock()
+    device1.name = "libusb:001:002"
+    device_list = [device1]
+
+    mock_dialog = scan_menu_item_mixins.Gtk.MessageDialog.return_value
+    mock_dialog.run.return_value = scan_menu_item_mixins.Gtk.ResponseType.OK
+
+    mock_scan_window._changed_device_list_callback(mock_widget, device_list)
+
+    scan_menu_item_mixins.Gtk.MessageDialog.assert_called_once()
+    assert mock_scan_window.settings["device list"] == device_list
+    assert mock_scan_window.settings["cache-device-list"] is True
+
+
+def test_changed_device_list_callback_cache_libusb_cancel(mocker, mock_scan_window):
+    "Test _changed_device_list_callback with libusb device and user cancels"
+
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["device list"] = []
+
+    mock_widget = mocker.Mock()
+    device1 = mocker.Mock()
+    device1.name = "libusb:001:002"
+    device_list = [device1]
+
+    mock_dialog = scan_menu_item_mixins.Gtk.MessageDialog.return_value
+    mock_dialog.run.return_value = scan_menu_item_mixins.Gtk.ResponseType.CANCEL
+
+    mock_scan_window._changed_device_list_callback(mock_widget, device_list)
+
+    scan_menu_item_mixins.Gtk.MessageDialog.assert_called_once()
+    assert mock_scan_window.settings["device list"] == []
+    assert mock_scan_window.settings["cache-device-list"] is False

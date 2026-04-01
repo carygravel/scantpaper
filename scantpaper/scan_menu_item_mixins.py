@@ -6,7 +6,6 @@ import logging
 from types import SimpleNamespace
 import gi
 from comboboxtext import ComboBoxText
-from const import EMPTY
 from dialog import Dialog
 from dialog.sane import SaneScanDialog
 from i18n import _
@@ -300,7 +299,37 @@ class ScanMenuItemMixins:
                     widget.device_list = device_list
 
             if self.settings["cache-device-list"]:
-                self.settings["device list"] = device_list
+                libusb = False
+                for d in device_list:
+                    if "libusb" in d.name:
+                        libusb = True
+                        break
+                if libusb:
+                    dialog = Gtk.MessageDialog(
+                        parent=self,
+                        destroy_with_parent=True,
+                        modal=True,
+                        message_type="question",
+                        buttons=Gtk.ButtonsType.OK,
+                    )
+                    dialog.set_title(_("Really cache libusb device names?"))
+                    area = dialog.get_message_area()
+                    label = Gtk.Label(
+                        label=_(
+                            "Caching device list with libusb devices included is not recommended as they can change between reboots."
+                        )
+                        + _("Are you sure you want to do this?")
+                    )
+                    area.add(label)
+                    dialog.show_all()
+                    response = dialog.run()
+                    dialog.destroy()
+                    if response == Gtk.ResponseType.OK:
+                        libusb = False
+                    else:
+                        self.settings["cache-device-list"] = False
+                if not libusb:
+                    self.settings["device list"] = device_list
 
             # Only set default device if it hasn't been specified on the command line
             # and it is in the the device list

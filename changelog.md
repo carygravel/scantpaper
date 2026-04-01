@@ -1,5 +1,6 @@
 ## 3.0.3 (2026-04-03)
 * + `Error during device I/O` to errors triggering "Error opening the last device used" dialog
+* Question caching device list including libusb devices
 
 
 ## 3.0.2 (2026-03-27)
