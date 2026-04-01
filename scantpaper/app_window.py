@@ -828,7 +828,7 @@ class ApplicationWindow(
 
         self._scan_progress.hide()
         if process == "open_device" and re.search(
-            r"(Invalid[ ]argument|Device[ ]busy)", msg
+            r"(Invalid[ ]argument|Device[ ]busy|Error[ ]during[ ]device[ ]I/O)", msg
         ):
             error_name = "error opening device"
             response = None

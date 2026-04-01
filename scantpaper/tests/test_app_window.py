@@ -586,7 +586,13 @@ def test_process_error_reopen(app_window, mocker):
     mocker.patch("app_window.Gtk.CheckButton.new_with_label")
 
     app_window._process_error_callback(None, "open_device", "Device busy", None)
-    app_window.scan_dialog.assert_called_with(None, None)
+    app_window.scan_dialog.assert_called_once()
+
+    app_window.scan_dialog.reset_mock()
+    app_window._process_error_callback(
+        None, "open_device", "Error during device I/O", None
+    )
+    app_window.scan_dialog.assert_called_once()
 
 
 def test_process_error_rescan(app_window, mocker):
