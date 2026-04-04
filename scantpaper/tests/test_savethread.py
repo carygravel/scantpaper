@@ -40,11 +40,11 @@ class MockSaveThread(SaveThread):
     def do_set_saved(self, request):
         "Mock do_set_saved"
 
-    def find_page_number_by_page_id(self, _page_id):
-        "Mock find_page_number_by_page_id"
+    def find_page_number_by_initial_id(self, _page_id):
+        "Mock find_page_number_by_initial_id"
         return 1
 
-    def replace_page(self, _page, _number):
+    def replace_page(self, _page, _number, _initial_page_id):
         "Mock replace_page"
         return [1, None, "uuid"]
 

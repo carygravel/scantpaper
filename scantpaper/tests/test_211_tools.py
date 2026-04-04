@@ -547,3 +547,87 @@ def test_brightness_contrast(
     #########################
 
     clean_up_files(slist.thread.db_files)
+
+
+def test_race_condition_rotate_save(
+    rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+):
+    "Test that saving a page while it's being rotated doesn't cause an error"
+    slist = Document(db=temp_db.name)
+
+    # Import a page
+    import_in_mainloop(slist, [rose_pnm.name])
+    page_id = slist.data[0][2]
+
+    # Queue a rotate operation. This will eventually call replace_page and increment action_id.
+    slist.rotate(page=page_id, angle=90)
+
+    # IMMEDIATELY queue a save operation with the same page_id.
+    # It will be behind the rotate operation in the DocThread's queue.
+    mlp = GLib.MainLoop()
+    error_msg = None
+
+    def error_cb(response):
+        nonlocal error_msg
+        error_msg = response.status
+        mlp.quit()
+
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[page_id],
+        error_callback=error_cb,
+        finished_callback=lambda x: mlp.quit(),
+    )
+
+    # Wait for both to finish
+    GLib.timeout_add(10000, mlp.quit)
+    mlp.run()
+
+    try:
+        assert error_msg is None, "No error when saving before the rotate finishes"
+    finally:
+        clean_up_files(slist.thread.db_files)
+
+
+def test_race_condition_rotate_rotate(
+    rose_pnm, temp_db, import_in_mainloop, clean_up_files
+):
+    "Test rotating the same page twice in a row before the first rotate finishes"
+    slist = Document(db=temp_db.name)
+
+    # Import a page
+    import_in_mainloop(slist, [rose_pnm.name])
+    print(f"Data after import: {slist.data}")
+    page_id = slist.data[0][2]
+    print(f"Initial page_id: {page_id}")
+
+    # Queue two rotate operations on the same page_id.
+    # The first one will replace page_id with a new one.
+    # The second one will fail if it uses the old page_id.
+    slist.rotate(page=page_id, angle=90)
+
+    mlp = GLib.MainLoop()
+    error_msg = None
+
+    def error_cb(response):
+        nonlocal error_msg
+        error_msg = response.status
+        mlp.quit()
+
+    slist.rotate(
+        page=page_id,
+        angle=90,
+        error_callback=error_cb,
+        finished_callback=lambda x: mlp.quit(),
+    )
+
+    # Wait for both to finish
+    GLib.timeout_add(10000, mlp.quit)
+    mlp.run()
+
+    try:
+        assert (
+            error_msg is None
+        ), "No error when rotating the same page twice in a row before the first rotate finishes"
+    finally:
+        clean_up_files(slist.thread.db_files)

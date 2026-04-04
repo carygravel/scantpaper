@@ -153,14 +153,11 @@ class DocThread(SaveThread):
         self._execute(f"PRAGMA application_id={APPLICATION_ID}")
         self._execute(f"PRAGMA user_version={USER_VERSION}")
         self.isolation_level = "IMMEDIATE"
-        self._execute(
-            """CREATE TABLE image(
+        self._execute("""CREATE TABLE image(
                 id INTEGER PRIMARY KEY,
                 image BLOB,
-                thumb BLOB)"""
-        )
-        self._execute(
-            """CREATE TABLE page(
+                thumb BLOB)""")
+        self._execute("""CREATE TABLE page(
                 id INTEGER PRIMARY KEY,
                 image_id INTEGER NOT NULL,
                 x_res FLOAT,
@@ -170,22 +167,18 @@ class DocThread(SaveThread):
                 saved BOOL,
                 text TEXT,
                 annotations TEXT,
-                FOREIGN KEY (image_id) REFERENCES image(id))"""
-        )
-        self._execute(
-            """CREATE TABLE page_order(
+                FOREIGN KEY (image_id) REFERENCES image(id))""")
+        self._execute("""CREATE TABLE page_order(
                 action_id INTEGER NOT NULL,
                 row_id INTEGER NOT NULL,
                 page_number INTEGER NOT NULL,
                 page_id INTEGER NOT NULL,
+                initial_page_id INTEGER NOT NULL,
                 FOREIGN KEY (page_id) REFERENCES page(id),
-                PRIMARY KEY (action_id, row_id))"""
-        )
-        self._execute(
-            """CREATE TABLE selection(
+                PRIMARY KEY (action_id, row_id))""")
+        self._execute("""CREATE TABLE selection(
                 action_id INTEGER PRIMARY KEY,
-                row_ids TEXT NOT NULL)"""
-        )
+                row_ids TEXT NOT NULL)""")
 
     def open(self, db):
         "open a saved database"
@@ -204,6 +197,14 @@ class DocThread(SaveThread):
                 logger.warning(
                     "%s was created by a newer version of scantpaper.", self._db
                 )
+            elif user_version[0] == 1:
+                # migration from 1 to 2
+                self._execute(
+                    "ALTER TABLE page_order ADD COLUMN initial_page_id INTEGER"
+                )
+                self._execute("UPDATE page_order SET initial_page_id = page_id")
+                self._execute(f"PRAGMA user_version = {USER_VERSION}")
+                self._con[threading.get_native_id()].commit()
         self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()
         if row:
@@ -291,41 +292,38 @@ class DocThread(SaveThread):
         if max_row_id is None:
             max_row_id = -1
         self._execute(
-            """INSERT INTO page_order (action_id, row_id, page_number, page_id)
-               VALUES (?, ?, ?, ?)""",
+            """INSERT INTO page_order (action_id, row_id, page_number, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?, ?)""",
             (
                 self._action_id,
                 max_row_id + 1,
                 number,
                 page_id,
+                page_id,
             ),
         )
         self._con[threading.get_native_id()].commit()
         return number, thumb, page_id
 
-    def replace_page(self, page, number):
+    def replace_page(self, page, number, initial_page_id):
         "replace a page in the database"
         self._check_write_tid()
         self._take_snapshot()
-
-        i = self.find_row_id_by_page_number(number)
-        if i is None:
-            raise ValueError(f"Page {number} does not exist")
 
         image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
         page_id = self._insert_page(page, image_id)
         self._execute(
             """UPDATE page_order SET page_number = ?, page_id = ?
-               WHERE row_id = ? AND action_id = ?""",
+               WHERE initial_page_id = ? AND action_id = ?""",
             (
                 number,
                 page_id,
-                i,
+                initial_page_id,
                 self._action_id,
             ),
         )
         self._con[threading.get_native_id()].commit()
-        return number, thumb, page_id
+        return number, thumb, initial_page_id
 
     # TODO: Commit a95296e93b392b35285d00bc633a9aa94c76995c fixed a bug
     # seemingly deleting extra pages. Please write a test which passes after
@@ -398,11 +396,11 @@ class DocThread(SaveThread):
             return row[0]
         return None
 
-    def find_page_number_by_page_id(self, page_id):
-        "find a page id by its page number"
+    def find_page_number_by_initial_id(self, initial_page_id):
+        "find a page number by its initial_page_id"
         self._execute(
-            "SELECT page_number FROM page_order WHERE page_id = ? AND action_id = ?",
-            (page_id, self._action_id),
+            "SELECT page_number FROM page_order WHERE initial_page_id = ? AND action_id = ?",
+            (initial_page_id, self._action_id),
         )
         row = self._fetchone()
         if row:
@@ -423,6 +421,7 @@ class DocThread(SaveThread):
             rows.append([row[0], self._bytes_to_pixbuf(row[1]), row[2]])
         return rows
 
+    # TODO: remove the page_number argument, as it is only used in tests
     def get_page(self, **kwargs):
         "get a page from the database"
         if "number" in kwargs:
@@ -442,7 +441,7 @@ class DocThread(SaveThread):
                    FROM page, page_order, image
                    WHERE page.id = page_id
                     AND image_id = image.id
-                    AND page_id = ?
+                    AND initial_page_id = ?
                     AND action_id = ?""",
                 (kwargs["id"], self._action_id),
             )
@@ -539,7 +538,13 @@ class DocThread(SaveThread):
             self._con[tid].commit()
 
         new_pages = [
-            (self._action_id, dest + i, dest + i + 1, first_page_id + i)
+            (
+                self._action_id,
+                dest + i,
+                dest + i + 1,
+                first_page_id + i,
+                first_page_id + i,
+            )
             for i in range(len(pages))
         ]
         self._execute(
@@ -547,8 +552,8 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         self._executemany(
-            """INSERT INTO page_order (action_id, row_id, page_number, page_id)
-               VALUES (?, ?, ?, ?)""",
+            """INSERT INTO page_order (action_id, row_id, page_number, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?, ?)""",
             new_pages,
         )
         self._con[tid].commit()
@@ -585,7 +590,7 @@ class DocThread(SaveThread):
 
         # copy page numbers and order to buffer
         self._execute(
-            """SELECT row_id, page_number, page_id
+            """SELECT row_id, page_number, page_id, initial_page_id
                 FROM page_order
                 WHERE action_id = ?""",
             (self._action_id,),
@@ -603,8 +608,8 @@ class DocThread(SaveThread):
         self._action_id += 1
         snapshot = [(self._action_id, *row) for row in snapshot]
         self._executemany(
-            """INSERT INTO page_order (action_id, row_id, page_number, page_id)
-               VALUES (?, ?, ?, ?)""",
+            """INSERT INTO page_order (action_id, row_id, page_number, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?, ?)""",
             snapshot,
         )
 
@@ -854,7 +859,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "row": self.replace_page(
-                    page, self.find_page_number_by_page_id(page.id)
+                    page, self.find_page_number_by_initial_id(page.id), page.id
                 ),
                 "replace": page.id,
             }
@@ -900,7 +905,7 @@ class DocThread(SaveThread):
                 {
                     "type": "page",
                     "row": self.replace_page(
-                        page, self.find_page_number_by_page_id(page.id)
+                        page, self.find_page_number_by_initial_id(page.id), page.id
                     ),
                     "replace": page.id,
                 }
@@ -935,7 +940,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "row": self.replace_page(
-                    page, self.find_page_number_by_page_id(page.id)
+                    page, self.find_page_number_by_initial_id(page.id), page.id
                 ),
                 "replace": page.id,
             }
@@ -971,7 +976,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "row": self.replace_page(
-                    page, self.find_page_number_by_page_id(page.id)
+                    page, self.find_page_number_by_initial_id(page.id), page.id
                 ),
                 "replace": page.id,
             }
@@ -999,7 +1004,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "row": self.replace_page(
-                    page, self.find_page_number_by_page_id(page.id)
+                    page, self.find_page_number_by_initial_id(page.id), page.id
                 ),
                 "replace": page.id,
             }
@@ -1036,7 +1041,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "row": self.replace_page(
-                    page, self.find_page_number_by_page_id(page.id)
+                    page, self.find_page_number_by_initial_id(page.id), page.id
                 ),
                 "replace": page.id,
             }
@@ -1076,7 +1081,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "row": self.replace_page(
-                    page, self.find_page_number_by_page_id(page.id)
+                    page, self.find_page_number_by_initial_id(page.id), page.id
                 ),
                 "replace": page.id,
             }
@@ -1128,7 +1133,7 @@ class DocThread(SaveThread):
 
         # have to insert the extra page first, because after the replacing the
         # input page, it won't exist any more.
-        number = self.find_page_number_by_page_id(page.id)
+        number = self.find_page_number_by_initial_id(page.id)
         request.data(
             {
                 "type": "page",
@@ -1139,7 +1144,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, number),
+                "row": self.replace_page(page, number, page.id),
                 "replace": page.id,
             }
         )
@@ -1203,7 +1208,7 @@ class DocThread(SaveThread):
             {
                 "type": "page",
                 "row": self.replace_page(
-                    page, self.find_page_number_by_page_id(page.id)
+                    page, self.find_page_number_by_initial_id(page.id), page.id
                 ),
                 "replace": page.id,
             }
@@ -1302,7 +1307,7 @@ class DocThread(SaveThread):
 
                 # have to send the 2nd page 1st, as the page_id for the 1st will
                 # cease to exist after replacing it
-                number = self.find_page_number_by_page_id(page.id)
+                number = self.find_page_number_by_initial_id(page.id)
                 if out2:
                     new2 = Page(
                         filename=out2.name,
@@ -1322,7 +1327,7 @@ class DocThread(SaveThread):
                 request.data(
                     {
                         "type": "page",
-                        "row": self.replace_page(new, number),
+                        "row": self.replace_page(new, number, page.id),
                         "replace": page.id,
                     }
                 )
