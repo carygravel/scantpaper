@@ -175,7 +175,7 @@ class Profile(GObject.Object):
         """Map backend geometry options to the scanimage and scanadf (CLI) geometry names"""
         new = Profile()
         for i in self.each_backend_option():
-            (name, val) = self.get_backend_option_by_index(i)
+            name, val = self.get_backend_option_by_index(i)
             if name == "tl-x":
                 new.add_backend_option("l", val)
 

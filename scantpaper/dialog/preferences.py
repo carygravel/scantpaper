@@ -180,9 +180,7 @@ class PreferencesDialog(Dialog):
         label = Gtk.Label(label=_("Default PDF & DjVu filename"))
         hbox.pack_start(label, False, False, 0)
         self._fileentry = Gtk.Entry()
-        self._fileentry.set_tooltip_text(
-            _(
-                """strftime codes, e.g.:
+        self._fileentry.set_tooltip_text(_("""strftime codes, e.g.:
 %Y	current year
 
 with the following additions:
@@ -196,9 +194,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 %DY	document year
 %Dm	document month
 %Dd	document day
-"""
-            )
-        )
+"""))
         hbox.add(self._fileentry)
         self._fileentry.set_text(self.settings["default filename"])
 
@@ -339,13 +335,11 @@ All document date codes use strftime codes with a leading D, e.g.:
         entry = Gtk.Entry()
         entry.set_text(tool)
         entry.set_tooltip_text(
-            _(
-                """Use %i and %o for the input and output filenames respectively,
+            _("""Use %i and %o for the input and output filenames respectively,
 or a single %i if the image is to be modified in-place.
 
 The other variable available is:
-%r resolution"""
-            )
+%r resolution""")
         )
         hbox.pack_start(entry, True, True, 0)
         button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))

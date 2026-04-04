@@ -7,6 +7,7 @@ Usage:
   python3 compile_mo.py --src po --out locale
   python3 compile_mo.py --src po --out locale --domain scantpaper
 """
+
 from pathlib import Path
 import argparse
 import sys

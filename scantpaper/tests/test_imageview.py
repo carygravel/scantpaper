@@ -158,8 +158,7 @@ def test_transparency(datadir):
     Gtk.StyleContext.add_provider_for_screen(  # pylint: disable=no-member
         window.get_screen(), css_provider_alpha, 0  # pylint: disable=no-member
     )
-    css_provider_alpha.load_from_data(
-        f"""
+    css_provider_alpha.load_from_data(f"""
     .imageview.transparent {{
         background-color: #ff0000;
         background-image: none;
@@ -167,10 +166,7 @@ def test_transparency(datadir):
     .imageview {{
         background-image: url('{datadir}transp-blue.svg');
     }}
-""".encode(
-            "UTF-8"
-        )
-    )
+""".encode("UTF-8"))
     view = ImageView()
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),

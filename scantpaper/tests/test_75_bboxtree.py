@@ -260,9 +260,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
     #########################
 
-    expected = (
-        HOCR_HEADER
-        + """
+    expected = HOCR_HEADER + """
   <div class='ocr_page' id='page_1' title='bbox 0 0 494 57'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 9 490 55'>
     <p class='ocr_par' id='par_1' title='bbox 1 9 490 55'>
@@ -278,7 +276,6 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
  </body>
 </html>
 """
-    )
     assert tree.to_hocr() == expected, "to_hocr with par and style"
 
 

@@ -11,13 +11,11 @@ from setuptools import setup
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.install import install as _install
 
-
 REPO = Path(__file__).resolve().parent
 sys.path.insert(0, str(REPO))
 
 # from dev import build_translations
 from scantpaper import const  # pylint: disable=wrong-import-position
-
 
 TMP_LOCALE_DIR = REPO / "build" / "locale"
 

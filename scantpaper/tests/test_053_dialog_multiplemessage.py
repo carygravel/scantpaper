@@ -143,11 +143,8 @@ This error is normally due to ImageMagick exceeding its resource limits. These "
     ), "extend imagemagick Exception 400"
 
     assert (
-        munge_message(
-            """(gimp:26514): GLib-GObject-WARNING
-Some other error"""
-        )
-        == ["(gimp:26514): GLib-GObject-WARNING", "Some other error"]
+        munge_message("""(gimp:26514): GLib-GObject-WARNING
+Some other error""") == ["(gimp:26514): GLib-GObject-WARNING", "Some other error"]
     ), "split gimp message with other message"
 
     assert (

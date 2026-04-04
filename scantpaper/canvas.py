@@ -16,7 +16,6 @@ from gi.repository import (  # pylint: disable=wrong-import-position
     GooCanvas,
 )
 
-
 MAX_COLOR_INT = 65535
 COLOR_TOLERANCE = 0.00001
 _60_DEGREES = 60
@@ -625,13 +624,10 @@ class Canvas(
             return ""
         root = self.get_root_item()
         string = root.get_child(0).to_hocr(2)
-        return (
-            HOCR_HEADER
-            + f""" <body>
+        return HOCR_HEADER + f""" <body>
 {string} </body>
 </html>
 """
-        )
 
     def _to_image_distance(self, x, y):
         "convert x, y in widget distance to image distance"

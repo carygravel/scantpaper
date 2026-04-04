@@ -656,7 +656,7 @@ class ImageView(Gtk.DrawingArea):
 
     def _set_zoom_no_center(self, zoom):
         allocation = self.get_allocation()
-        (center_x, center_y) = self.to_image_coords(
+        center_x, center_y = self.to_image_coords(
             allocation.width / 2, allocation.height / 2
         )
         self._set_zoom_with_center(zoom, center_x, center_y)
@@ -720,7 +720,7 @@ class ImageView(Gtk.DrawingArea):
 
         # Convert the widget size to image scale to make the comparisons easier
         allocation = self.get_allocation()
-        (allocation.width, allocation.height) = self.to_image_distance(
+        allocation.width, allocation.height = self.to_image_distance(
             allocation.width, allocation.height
         )
         pixbuf_size = self.get_pixbuf_size()
