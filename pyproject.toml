@@ -27,6 +27,10 @@ classifiers = [
   "Programming Language :: Python"
 ]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 # This could be removed if we moved to a src-based layout
 [tool.setuptools.packages.find]
 where = ["."]
