@@ -27,12 +27,17 @@ classifiers = [
   "Programming Language :: Python"
 ]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 # This could be removed if we moved to a src-based layout
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["scantpaper"]
-exclude = ["scantpaper/tests"] 
-namespaces = false
+include = ["scantpaper*"]
+exclude = ["scantpaper.tests"]
+
+[tool.setuptools.package-data]
+scantpaper = ["app.ui"]
 
 [project.optional-dependencies]
 test = [
