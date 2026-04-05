@@ -664,7 +664,7 @@ class ToolsMenuMixins:
         else:
             page = self.slist.get_selected_indices()
             if page and i == page[0]:
-                self._create_txt_canvas(self.slist.data[i][2])
+                self._display_image(self.slist.data[i][2])
 
     def user_defined_dialog(self, _action, _param):
         "Displays a dialog for selecting and applying user-defined tools."

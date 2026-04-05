@@ -116,37 +116,37 @@ def test_ocr_display_callback(mocker, mock_tool_window):
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.data = [[None, None, "uuid"]]
 
-    mock_tool_window._create_txt_canvas = mocker.Mock()
+    mock_tool_window._display_image = mocker.Mock()
 
     mock_response = mocker.Mock()
     mock_response.request.args = [{"page": "uuid"}]
 
     mock_tool_window._ocr_display_callback(mock_response)
 
-    mock_tool_window._create_txt_canvas.assert_called_once_with("uuid")
+    mock_tool_window._display_image.assert_called_once_with("uuid")
 
 
 def test_ocr_display_callback_page_not_found(mocker, mock_tool_window):
     "Test _ocr_display_callback when page not found"
     mock_tool_window.slist.find_page_by_uuid.return_value = None
-    mock_tool_window._create_txt_canvas = mocker.Mock()
+    mock_tool_window._display_image = mocker.Mock()
     mock_response = mocker.Mock()
     mock_response.request.args = [{"page": "uuid"}]
 
     mock_tool_window._ocr_display_callback(mock_response)
-    mock_tool_window._create_txt_canvas.assert_not_called()
+    mock_tool_window._display_image.assert_not_called()
 
 
 def test_ocr_display_callback_page_not_selected(mocker, mock_tool_window):
     "Test _ocr_display_callback when page not selected"
     mock_tool_window.slist.find_page_by_uuid.return_value = 0
     mock_tool_window.slist.get_selected_indices.return_value = [1]
-    mock_tool_window._create_txt_canvas = mocker.Mock()
+    mock_tool_window._display_image = mocker.Mock()
     mock_response = mocker.Mock()
     mock_response.request.args = [{"page": "uuid"}]
 
     mock_tool_window._ocr_display_callback(mock_response)
-    mock_tool_window._create_txt_canvas.assert_not_called()
+    mock_tool_window._display_image.assert_not_called()
 
 
 def test_threshold_dialog(mocker, mock_tool_window):

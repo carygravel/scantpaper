@@ -1,3 +1,9 @@
+## 3.0.4 (2026-04-10)
+
+* Fix error running OCR from dialog.
+  Closes #59 (OCR Fails: `int` object has no attribute `get_size`)
+
+
 ## 3.0.3 (2026-04-03)
 
 * + `Error during device I/O` to errors triggering "Error opening the last device used" dialog
