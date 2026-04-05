@@ -69,7 +69,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: github.ref_type == 'tag'
       with:
-        files: ${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
+        files: dist/${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
 
     - name: Test
       run: pytest
