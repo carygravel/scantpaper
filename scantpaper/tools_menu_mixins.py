@@ -633,7 +633,11 @@ class ToolsMenuMixins:
             "running_callback": self.post_process_progress.update,
             "finished_callback": self.post_process_progress.finish,
             "error_callback": self._error_callback,
-            "display_callback": self._ocr_display_callback,
+            # No need for a display_callback, as BaseDocument.add_page()
+            # (triggered when OCR data returns) internally calls unselect_all()
+            # and select(). This triggers the selection-changed signal, which
+            # ApplicationWindow handles by calling _display_image().
+            # "display_callback": self._ocr_display_callback,
             "engine": engine,
             "language": self.settings["ocr language"],
         }
@@ -654,17 +658,6 @@ class ToolsMenuMixins:
         kwargs["pages"] = pagelist
         self.slist.ocr_pages(**kwargs)
         self._windowo.hide()
-
-    def _ocr_display_callback(self, response):
-        "Callback function to handle the display of OCR (Optical Character Recognition) results."
-        uuid = response.request.args[0]["page"]
-        i = self.slist.find_page_by_uuid(uuid)
-        if i is None:
-            logger.error("Can't display page with uuid %s: page not found", uuid)
-        else:
-            page = self.slist.get_selected_indices()
-            if page and i == page[0]:
-                self._display_image(self.slist.data[i][2])
 
     def user_defined_dialog(self, _action, _param):
         "Displays a dialog for selecting and applying user-defined tools."

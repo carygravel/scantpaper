@@ -317,10 +317,6 @@ class Canvas(
 
         return val
 
-    # This is called twice when running OCR from tools because:
-    # 1. BaseDocument.add_page() triggers a selection change, which triggers
-    #    ApplicationWindow._page_selection_changed_callback(), which displays the page.
-    # 2. ToolsMenuMixins._ocr_display_callback() is also called as an explicit callback.
     def set_text(self, **kwargs):
         "set the canvas text from a page object"
 
