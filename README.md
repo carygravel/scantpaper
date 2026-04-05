@@ -101,13 +101,9 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 ## Download & Installation
 
-**Github:**  
-[scantpaper downloads](https://github.com/carygravel/scantpaper/releases/)
-
 ### Debian-based
 
-- Debian `sid` will have the latest version as soon as it has cleared the new
-  queue.
+- Debian `sid` should automatically have the latest version.
 - Ubuntu users can use the PPA:
 
     ```sh
@@ -116,9 +112,23 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
     sudo apt install scantpaper
     ```
 
-### From Source
+### From a wheel file
 
-Download from [Github](https://github.com/carygravel/scantpaper/releases/).
+Download `.whl` from [Github](https://github.com/carygravel/scantpaper/releases/).
+```sh
+# Possibly upgrade pip
+python3 -m pip install --upgrade pip
+# Install from the wheel file, automatically including dependencies
+pip install scantpaper-x.x.x-py3-none-any.whl
+```
+
+### From Tarball
+
+Download `.tar.gz` from [Github](https://github.com/carygravel/scantpaper/releases/).
+```sh
+tar xvfz scantpaper-x.x.x.tar.gz
+cd scantpaper-x.x.x
+```
 
 ### From the Repository
 
@@ -128,12 +138,10 @@ Browse the code at [Github](https://github.com/carygravel/scantpaper):
 git clone https://github.com/carygravel/scantpaper.git
 ```
 
-### Building from Source
+## Building from Source
 
 Run the app straight from the source directory:
 ```sh
-tar xvfz scantpaper-x.x.x.tar.gz
-cd scantpaper-x.x.x
 # optionally run the tests
 pytest
 # before starting the app
@@ -149,11 +157,6 @@ python3 -m build --wheel
 pip install scantpaper
 # and then start the app
 scantpaper
-```
-
-Or build a package for debian:
-```sh
-make debdist
 ```
 
 ---

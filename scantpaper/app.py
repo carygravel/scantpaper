@@ -7,7 +7,6 @@
 # change page numbering to always run from 1-n with no gaps
 # fix readme
 # hook ocrmypdf progress into the GUI
-# package for Debian
 # lint
 # fail tests that hit mainloop timeouts
 # use pathlib for all paths
@@ -29,8 +28,7 @@
 # 1. New screendump required? Print screen creates screenshot.png in Desktop.
 #    Download new translations (https://translations.launchpad.net/gscan2pdf)
 #    Update translators in credits (https://launchpad.net/gscan2pdf/+topcontributors)
-#    Update VERSION
-#    Make appropriate updates to debian/changelog
+#    Update version in pyproject.toml
 # 2. Upload .pot
 # 3.  git status
 #     git tag vx.x.x
@@ -39,10 +37,11 @@
 #     gbp import-orig --pristine-tar --uscan
 #     #tox -e signed_sdist
 #     #sudo sbuild-update -udr sid-amd64-sbuild
+#    Make appropriate updates to debian/changelog
 #     sbuild -sc sid-amd64-sbuild
 #     debsign .changes
-#    lintian -iI --pedantic .changes
-#    autopkgtest .changes -- schroot sid-amd64-sbuild
+#     lintian -iI --pedantic .changes
+#     autopkgtest .changes -- schroot sid-amd64-sbuild
 #    check contents with dpkg-deb --contents
 #    test dist sudo dpkg -i scantpaper_x.x.x_all.deb
 #     dput ftp-master .changes
