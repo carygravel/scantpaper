@@ -27,6 +27,13 @@ classifiers = [
   "Programming Language :: Python"
 ]
 
+# This could be removed if we moved to a src-based layout
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["scantpaper"]
+exclude = ["scantpaper/tests"] 
+namespaces = false
+
 [project.optional-dependencies]
 test = [
     "black==26.3.1",
