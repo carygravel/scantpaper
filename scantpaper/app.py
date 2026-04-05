@@ -39,8 +39,8 @@
 #     #sudo sbuild-update -udr sid-amd64-sbuild
 #    Make appropriate updates to debian/changelog
 #     sbuild -sc sid-amd64-sbuild
-#     debsign .changes
 #     lintian -iI --pedantic .changes
+#     debsign .changes
 #     autopkgtest .changes -- schroot sid-amd64-sbuild
 #    check contents with dpkg-deb --contents
 #    test dist sudo dpkg -i scantpaper_x.x.x_all.deb
