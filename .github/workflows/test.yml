@@ -64,5 +64,12 @@ jobs:
       with:
         name: ${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
         path: dist/${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
+
+    - name: Release packages
+      uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
+      with:
+        files: ${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
+
     - name: Test
       run: pytest
