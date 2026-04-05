@@ -6,9 +6,10 @@ dependencies = [
   "ocrmypdf>=15.4.3",
   "pycairo",
   "PyGObject",
+  "python-iso639",
   "python-sane",
   "tesserocr",
-  "python-iso639",
+  "tomli>=1.1.0;python_version<'3.11'",
 ]
 requires-python = ">=3.8"
 authors = [
@@ -24,6 +25,17 @@ keywords = ['scan', 'pdf', 'djvu']
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python"
+]
+
+[project.optional-dependencies]
+test = [
+    "black==26.3.1",
+    "pytest",
+    "pytest-black",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-timeout",
+    "pytest-xvfb",
 ]
 
 [project.urls]

@@ -3,8 +3,7 @@ name: Test package
 on: [push]
 
 jobs:
-  build:
-
+  latest:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,8 +28,41 @@ jobs:
       run: python -c "import sys; print(sys.version)"
     - name: Test
       run: pytest-3
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v4
+
+  oldest:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Define variables
+      run: |
+        (
+          echo "GITHUB_REPO_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f2)"
+          echo "VERSION=$(sed -n 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' pyproject.toml)"
+        ) >> $GITHUB_ENV
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y imagemagick libtiff-tools poppler-utils \
+          djvulibre-bin python3-gi python3-gi-cairo \
+          gobject-introspection gir1.2-gtk-3.0 gir1.2-goocanvas-2.0 \
+          python3-sane unpaper \
+          tesseract-ocr-eng tesseract-ocr-deu python3-tesserocr
+        python -m pip install --upgrade pip
+        pip install --upgrade pip setuptools wheel packaging build
+        pip install .[test]
+
+        # add locale, needed for a couple of tests
+        sudo locale-gen de_DE.UTF-8
+
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    - name: Build wheel
+      run: python3 -m build --wheel
+    - uses: actions/upload-artifact@v4
       with:
-        name: coverage-report
-        path: htmlcov
+        name: ${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
+        path: dist/${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
+    - name: Test
+      run: pytest

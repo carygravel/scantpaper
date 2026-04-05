@@ -2,7 +2,12 @@
 
 import importlib.metadata
 from pathlib import Path
-import tomllib
+import sys
+
+if sys.version_info >= (3, 11):  # jammy (22.04) still has 3.10
+    import tomllib
+else:
+    import tomli as tomllib
 
 PROG_NAME = "scantpaper"
 AUTHOR = "Jeffrey Ratcliffe"
