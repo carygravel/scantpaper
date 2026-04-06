@@ -106,79 +106,149 @@ class RotateControls(Gtk.Box):
         self.pack_start(self._side1, True, True, 0)
         self._side2 = RotateControlRow()
         self.pack_start(self._side2, False, False, 0)
-        self._side1.cbutton.connect("toggled", self._toggled_rotate_callback)
-        self._side1.side_cmbx.connect("changed", self._toggled_rotate_side_callback)
+        self._side1_toggled_signal = self._side1.cbutton.connect(
+            "toggled", self._toggled_rotate_callback
+        )
+        self._side2_toggled_signal = self._side2.cbutton.connect(
+            "toggled", self._update_attributes
+        )
+        self._side1_changed_signal = self._side1.side_cmbx.connect(
+            "changed", self._toggled_rotate_side_callback
+        )
+        self._side2_changed_signal = self._side2.side_cmbx.connect(
+            "changed", self._update_attributes
+        )
+        self._angle1_changed_signal = self._side1.angle_cmbx.connect(
+            "changed", self._update_attributes
+        )
+        self._angle2_changed_signal = self._side2.angle_cmbx.connect(
+            "changed", self._update_attributes
+        )
 
         # In case it isn't set elsewhere
-        self._side2.side_cmbx.set_active_index(90)
+        self._side1.side_cmbx.set_active_index("both")
+        self._side1.angle_cmbx.set_active_index(90)
         self._update_gui()
 
     def _toggled_rotate_callback(self, _widget):
-        if self._side1.cbutton.get_active():
-            if SIDE[self._side1.side_cmbx.get_active()][0] != "both":
-                self._side2.set_sensitive(True)
-        else:
-            self._side2.set_sensitive(False)
+        self._update_attributes(None)
 
-    def _toggled_rotate_side_callback(self, side1_cmbx):
-        side1_cmbx_i = side1_cmbx.get_active()
-        if SIDE[side1_cmbx_i][0] == "both":
+    def _toggled_rotate_side_callback(self, _widget):
+        self._update_attributes(None)
+
+    def _update_side2_options(self):
+        side1_cmbx_i = self._side1.side_cmbx.get_active()
+        angle1_cmbx_i = self._side1.angle_cmbx.get_active()
+
+        # Empty combobox
+        while self._side2.side_cmbx.get_num_rows() > 0:
+            self._side2.side_cmbx.remove(0)
+
+        side2 = []
+        for s in SIDE:
+            if s[0] not in ["both", SIDE[side1_cmbx_i][0]]:
+                side2.append(s)
+        for s in side2:
+            self._side2.side_cmbx.append_text(s[1])
+        self._side2.side_cmbx.data = side2
+        self._side2.side_cmbx.set_active(0)
+
+        # Empty combobox
+        while self._side2.angle_cmbx.get_num_rows() > 0:
+            self._side2.angle_cmbx.remove(0)
+
+        angle2 = []
+        for a in ROTATE:
+            if angle1_cmbx_i != -1 and a[0] != ROTATE[angle1_cmbx_i][0]:
+                angle2.append(a)
+                self._side2.angle_cmbx.append_text(a[1])
+        self._side2.angle_cmbx.data = angle2
+        self._side2.angle_cmbx.set_active(0)
+
+    def _update_attributes(self, _widget):
+        self._side1.cbutton.handler_block(self._side1_toggled_signal)
+        self._side2.cbutton.handler_block(self._side2_toggled_signal)
+        self._side1.side_cmbx.handler_block(self._side1_changed_signal)
+        self._side2.side_cmbx.handler_block(self._side2_changed_signal)
+        self._side1.angle_cmbx.handler_block(self._angle1_changed_signal)
+        self._side2.angle_cmbx.handler_block(self._angle2_changed_signal)
+
+        rotate_facing = 0
+        rotate_reverse = 0
+        if self._side1.cbutton.get_active():
+            side1 = self._side1.side_cmbx.get_active_index()
+            angle1 = self._side1.angle_cmbx.get_active_index()
+            if side1 == "both":
+                rotate_facing = angle1
+                rotate_reverse = rotate_facing
+            elif side1 == "facing":
+                rotate_facing = angle1
+            else:
+                rotate_reverse = angle1
+
+            if self._side2.cbutton.get_active():
+                side2 = self._side2.side_cmbx.get_active_index()
+                angle2 = self._side2.angle_cmbx.get_active_index()
+                if side2 == "facing":
+                    rotate_facing = angle2
+                else:
+                    rotate_reverse = angle2
+
+        self.rotate_facing = rotate_facing
+        self.rotate_reverse = rotate_reverse
+        self._side1.cbutton.handler_unblock(self._side1_toggled_signal)
+        self._side2.cbutton.handler_unblock(self._side2_toggled_signal)
+        self._side1.side_cmbx.handler_unblock(self._side1_changed_signal)
+        self._side2.side_cmbx.handler_unblock(self._side2_changed_signal)
+        self._side1.angle_cmbx.handler_unblock(self._angle1_changed_signal)
+        self._side2.angle_cmbx.handler_unblock(self._angle2_changed_signal)
+
+    def _update_gui(self):
+        self._side1.cbutton.handler_block(self._side1_toggled_signal)
+        self._side2.cbutton.handler_block(self._side2_toggled_signal)
+        self._side1.side_cmbx.handler_block(self._side1_changed_signal)
+        self._side2.side_cmbx.handler_block(self._side2_changed_signal)
+        self._side1.angle_cmbx.handler_block(self._angle1_changed_signal)
+        self._side2.angle_cmbx.handler_block(self._angle2_changed_signal)
+
+        if self.rotate_facing == 0 and self.rotate_reverse == 0:
+            self._side1.cbutton.set_active(False)
             self._side2.set_sensitive(False)
             self._side2.cbutton.set_active(False)
         else:
-            if self._side1.cbutton.get_active():
-                self._side2.set_sensitive(True)
-
-            # Empty combobox
-            while self._side2.side_cmbx.get_num_rows() > 0:
-                self._side2.side_cmbx.remove(0)
-                self._side2.side_cmbx.set_active(0)
-
-            side2 = []
-            for s in SIDE:
-                if s[0] not in ["both", SIDE[side1_cmbx_i][0]]:
-                    side2.append(s)
-            self._side2.side_cmbx.append_text(side2[0][1])
-            self._side2.side_cmbx.data = side2
-            self._side2.side_cmbx.set_active(0)
-
-    def _update_attributes(self):
-        self._rotate_facing = 0
-        self._rotate_reverse = 0
-        if self._side1.cbutton.get_active():
-            if self._side1.side_cmbx.get_active_index() == "both":
-                self._rotate_facing = self._side1.angle_cmbx.get_active_index()
-                self._rotate_reverse = self._rotate_facing
-            elif self._side1.side_cmbx.get_active_index() == "facing":
-                self._rotate_facing = self._side1.angle_cmbx.get_active_index()
-            else:
-                self._rotate_reverse = self._side1.angle_cmbx.get_active_index()
-
-            if self._side2.cbutton.get_active():
-                if self._side2.side_cmbx.get_active_index() == "facing":
-                    self._rotate_facing = self._side2.angle_cmbx.get_active_index()
-                else:
-                    self._rotate_reverse = self._side2.angle_cmbx.get_active_index()
-
-    def _update_gui(self):
-        if self._rotate_facing or self._rotate_reverse:
             self._side1.cbutton.set_active(True)
-
-        if self._rotate_facing == self._rotate_reverse:
-            self._side1.side_cmbx.set_active_index("both")
-            self._side1.angle_cmbx.set_active_index(self._rotate_facing)
-
-        elif self._rotate_facing:
-            self._side1.side_cmbx.set_active_index("facing")
-            self._side1.angle_cmbx.set_active_index(self._rotate_facing)
-            if self._rotate_reverse:
+            if self.rotate_facing == self.rotate_reverse:
+                self._side1.side_cmbx.set_active_index("both")
+                self._side1.angle_cmbx.set_active_index(self.rotate_facing)
+                self._side2.set_sensitive(False)
+                self._side2.cbutton.set_active(False)
+            elif self.rotate_facing != 0 and self.rotate_reverse != 0:
+                self._side1.side_cmbx.set_active_index("facing")
+                self._side1.angle_cmbx.set_active_index(self.rotate_facing)
+                self._side2.set_sensitive(True)
                 self._side2.cbutton.set_active(True)
+                self._update_side2_options()
                 self._side2.side_cmbx.set_active_index("reverse")
-                self._side2.angle_cmbx.set_active_index(self._rotate_reverse)
+                self._side2.angle_cmbx.set_active_index(self.rotate_reverse)
+            elif self.rotate_facing != 0:
+                self._side1.side_cmbx.set_active_index("facing")
+                self._side1.angle_cmbx.set_active_index(self.rotate_facing)
+                self._side2.set_sensitive(True)
+                self._side2.cbutton.set_active(False)
+                self._update_side2_options()
+            else:  # self.rotate_reverse != 0
+                self._side1.side_cmbx.set_active_index("reverse")
+                self._side1.angle_cmbx.set_active_index(self.rotate_reverse)
+                self._side2.set_sensitive(True)
+                self._side2.cbutton.set_active(False)
+                self._update_side2_options()
 
-        else:
-            self._side1.side_cmbx.set_active_index("reverse")
-            self._side1.angle_cmbx.set_active_index(self._rotate_reverse)
+        self._side1.cbutton.handler_unblock(self._side1_toggled_signal)
+        self._side2.cbutton.handler_unblock(self._side2_toggled_signal)
+        self._side1.side_cmbx.handler_unblock(self._side1_changed_signal)
+        self._side2.side_cmbx.handler_unblock(self._side2_changed_signal)
+        self._side1.angle_cmbx.handler_unblock(self._angle1_changed_signal)
+        self._side2.angle_cmbx.handler_unblock(self._angle2_changed_signal)
 
 
 class OCRControls(Gtk.Box):

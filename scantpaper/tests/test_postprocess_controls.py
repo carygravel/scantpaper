@@ -73,11 +73,7 @@ def test_error_callback_crash(mocker):
     app.slist.find_page_by_uuid.return_value = 0
     app.slist.data = [[1, None, 2]]  # [page_num, thumb, page_id]
 
-    # This should not raise AttributeError anymore
-    try:
-        app._error_callback(mock_response)  # pylint: disable=protected-access
-    except AttributeError as exc:
-        pytest.fail(f"Raised AttributeError: {exc}")
+    app._error_callback(mock_response)  # Should not raise an exception
 
 
 def test_rotate_control_row_init():
@@ -100,16 +96,14 @@ class TestRotateControls:
         "Test initialization"
         assert isinstance(rotate_controls, Gtk.Box)
         assert rotate_controls.get_orientation() == Gtk.Orientation.VERTICAL
-        assert rotate_controls._rotate_facing == 0
-        assert rotate_controls._rotate_reverse == 0
+        assert rotate_controls.rotate_facing == 0
+        assert rotate_controls.rotate_reverse == 0
         assert rotate_controls.can_duplex is True
 
     def test_rotate_facing_property(self, rotate_controls):
         "Test rotate_facing property"
         rotate_controls.rotate_facing = 90
         assert rotate_controls.rotate_facing == 90
-        assert rotate_controls._rotate_facing == 90
-        # Should verify _update_gui called, checked by UI state implicitly
 
         # Set same value, should return early (coverage check)
         rotate_controls.rotate_facing = 90
@@ -118,7 +112,6 @@ class TestRotateControls:
         "Test rotate_reverse property"
         rotate_controls.rotate_reverse = 180
         assert rotate_controls.rotate_reverse == 180
-        assert rotate_controls._rotate_reverse == 180
 
         # Set same value
         rotate_controls.rotate_reverse = 180
@@ -195,26 +188,22 @@ class TestRotateControls:
         rotate_controls._side1.cbutton.set_active(True)
         rotate_controls._side1.angle_cmbx.set_active_index(90)
         rotate_controls._side1.side_cmbx.set_active_index("facing")
-        rotate_controls._update_attributes()
-        assert rotate_controls._rotate_facing == 90
-        assert rotate_controls._rotate_reverse == 0
+        assert rotate_controls.rotate_facing == 90
+        assert rotate_controls.rotate_reverse == 0
 
         rotate_controls._side1.side_cmbx.set_active_index("reverse")
-        rotate_controls._update_attributes()
-        assert rotate_controls._rotate_facing == 0
-        assert rotate_controls._rotate_reverse == 90
+        assert rotate_controls.rotate_facing == 0
+        assert rotate_controls.rotate_reverse == 90
 
         rotate_controls._side1.side_cmbx.set_active_index("both")
-        rotate_controls._update_attributes()
-        assert rotate_controls._rotate_facing == 90
-        assert rotate_controls._rotate_reverse == 90
+        assert rotate_controls.rotate_facing == 90
+        assert rotate_controls.rotate_reverse == 90
 
         rotate_controls._side2.cbutton.set_active(True)
         rotate_controls._side2.angle_cmbx.set_active_index(180)
         rotate_controls._side2.side_cmbx.set_active_index("facing")
-        rotate_controls._update_attributes()
-        assert rotate_controls._rotate_facing == 180
-        assert rotate_controls._rotate_reverse == 90
+        assert rotate_controls.rotate_facing == 180
+        assert rotate_controls.rotate_reverse == 90
 
     def test_update_attributes_side2_reverse(self, rotate_controls):
         "Test more _update_attributes logic"
@@ -223,44 +212,38 @@ class TestRotateControls:
         rotate_controls._side1.angle_cmbx.set_active_index(90)
         rotate_controls._side2.angle_cmbx.set_active_index(180)
         rotate_controls._side2.side_cmbx.set_active_index("reverse")
-        rotate_controls._update_attributes()
-        assert rotate_controls._rotate_facing == 90
-        assert rotate_controls._rotate_reverse == 180
+        rotate_controls._update_attributes(None)
+        assert rotate_controls.rotate_facing == 90
+        assert rotate_controls.rotate_reverse == 180
 
     def test_update_gui(self, rotate_controls):
         "Test _update_gui logic"
         # Case 1: Both 90
-        rotate_controls._rotate_facing = 90
-        rotate_controls._rotate_reverse = 90
-        rotate_controls._update_gui()
-
+        rotate_controls.rotate_facing = 90
+        rotate_controls.rotate_reverse = 90
         assert rotate_controls._side1.cbutton.get_active()
         assert rotate_controls._side1.side_cmbx.get_active_index() == "both"
         assert rotate_controls._side1.angle_cmbx.get_active_index() == 90
 
         # Case 2: Facing 90, Reverse 0
-        rotate_controls._rotate_facing = 90
-        rotate_controls._rotate_reverse = 0
-        rotate_controls._update_gui()
-
+        rotate_controls.rotate_facing = 90
+        rotate_controls.rotate_reverse = 0
         assert rotate_controls._side1.side_cmbx.get_active_index() == "facing"
         assert not rotate_controls._side2.cbutton.get_active()
 
         # Case 3: Facing 90, Reverse 180
-        rotate_controls._rotate_facing = 90
-        rotate_controls._rotate_reverse = 180
-        rotate_controls._update_gui()
-
+        rotate_controls.rotate_facing = 90
+        rotate_controls.rotate_reverse = 180
         assert rotate_controls._side1.side_cmbx.get_active_index() == "facing"
         assert rotate_controls._side2.cbutton.get_active()
         assert rotate_controls._side2.side_cmbx.get_active_index() == "reverse"
         assert rotate_controls._side2.angle_cmbx.get_active_index() == 180
 
         # Case 4: Facing 0, Reverse 270
-        rotate_controls._rotate_facing = 0
-        rotate_controls._rotate_reverse = 270
-        rotate_controls._update_gui()
-
+        print("\n\nCase 4: Facing 0")
+        rotate_controls.rotate_facing = 0
+        print("\nCase 4: Reverse 270")
+        rotate_controls.rotate_reverse = 270
         assert rotate_controls._side1.side_cmbx.get_active_index() == "reverse"
         assert rotate_controls._side1.angle_cmbx.get_active_index() == 270
 
@@ -280,20 +263,20 @@ class TestOCRControls:
         )
         return mocker
 
-    def test_init_no_engines(self, mock_deps):
+    def test_init_no_engines(self):
         "Test initialization with no engines"
         controls = OCRControls(available_engines=[])
         assert not controls._active_button.get_active()
         assert not controls.get_children()[0].get_sensitive()
 
-    def test_init_with_tesseract(self, mock_deps):
+    def test_init_with_tesseract(self):
         "Test initialization with tesseract"
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
         assert isinstance(controls, Gtk.Box)
         # Check if active button is present
         assert controls._active_button.get_label() == "OCR scanned pages"
 
-    def test_properties(self, mock_deps):
+    def test_properties(self):
         "Test properties"
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
 
@@ -314,7 +297,7 @@ class TestOCRControls:
         )
         assert controls._active_button.get_active()
 
-    def test_callbacks(self, mock_deps):
+    def test_callbacks(self):
         "Test callback methods"
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
 
@@ -340,7 +323,7 @@ class TestOCRControls:
         controls.on_language_changed(mock_combo)
         assert controls.language == "deu"
 
-    def test_add_tess_languages(self, mock_deps):
+    def test_add_tess_languages(self):
         "Test _add_tess_languages"
         _controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
         # It's called in init if tesseract is present.
