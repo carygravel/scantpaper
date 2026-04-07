@@ -116,11 +116,24 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 Download `.whl` from [Github](https://github.com/carygravel/scantpaper/releases/).
 ```sh
+# Install the C-libraries that pip cannot handle:
+# For Debian/Ubuntu
+sudo apt update
+sudo apt install libgirepository-2.0-dev libcairo2-dev pkg-config python3-dev gir1.2-glib-2.0
+# For Fedora
+sudo dnf install gobject-introspection-devel cairo-devel pkgconf-pkg-config python3-devel
+# For Arch
+sudo pacman -S gobject-introspection cairo pkgconf python
+# For Homebrew
+brew install pygobject3 gobject-introspection cairo pkg-config
 # Possibly upgrade pip
 python3 -m pip install --upgrade pip
-# Install from the wheel file, automatically including dependencies
+# Install from the wheel file, automatically including python dependencies
 pip install scantpaper-x.x.x-py3-none-any.whl
 ```
+
+If you haven't already, you will then probably have to add `~/.local/bin` to
+your path in order to find the new executable.
 
 ### From Tarball
 
