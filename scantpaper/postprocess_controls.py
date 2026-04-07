@@ -14,9 +14,9 @@ SIDE = [
     ["reverse", _("Reverse side"), _("Reverse side.")],
 ]
 ROTATE = [
-    [90, _("90"), _("Rotate image 90 degrees clockwise.")],
-    [180, _("180"), _("Rotate image 180 degrees clockwise.")],
-    [270, _("270"), _("Rotate image 90 degrees anticlockwise.")],
+    [90, _("90°"), _("Rotate image 90 degrees clockwise.")],
+    [180, _("180°"), _("Rotate image 180 degrees clockwise.")],
+    [270, _("270°"), _("Rotate image 90 degrees anticlockwise.")],
 ]
 
 
@@ -33,7 +33,8 @@ class RotateControlRow(Gtk.Box):
         self.pack_start(self.side_cmbx, True, True, 0)
         self.angle_cmbx = ComboBoxText(data=ROTATE)
         self.angle_cmbx.set_tooltip_text(_("Select angle of rotation"))
-        self.pack_end(self.angle_cmbx, True, True, 0)
+        self.pack_start(self.angle_cmbx, True, True, 0)
+        self.pack_end(Gtk.Label(label=_("Anticlockwise")), False, True, 0)
 
 
 class RotateControls(Gtk.Box):
