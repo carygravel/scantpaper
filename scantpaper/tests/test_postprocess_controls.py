@@ -100,6 +100,16 @@ class TestRotateControls:
         assert rotate_controls.rotate_reverse == 0
         assert rotate_controls.can_duplex is True
 
+    def test_init_with_properties(self):
+        "Test initialization with properties (prevents AttributeError regression)"
+        controls = RotateControls(
+            rotate_facing=90, rotate_reverse=180, can_duplex=False
+        )
+        assert controls.rotate_facing == 90
+        assert controls.rotate_reverse == 180
+        assert controls.can_duplex is False
+        assert not controls._side1.side_cmbx.get_visible()
+
     def test_rotate_facing_property(self, rotate_controls):
         "Test rotate_facing property"
         rotate_controls.rotate_facing = 90

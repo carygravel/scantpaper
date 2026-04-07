@@ -100,6 +100,12 @@ class RotateControls(Gtk.Box):
             self._side2.side_cmbx.hide()
 
     def __init__(self, *args, **kwargs):
+
+        # have to do this manually, since Gtk.Box messes with the initialization
+        rotate_facing = kwargs.pop("rotate_facing", kwargs.pop("rotate-facing", 0))
+        rotate_reverse = kwargs.pop("rotate_reverse", kwargs.pop("rotate-reverse", 0))
+        can_duplex = kwargs.pop("can_duplex", kwargs.pop("can-duplex", True))
+
         super().__init__(*args, **kwargs)
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         self._side1 = RotateControlRow()
@@ -125,9 +131,16 @@ class RotateControls(Gtk.Box):
             "changed", self._update_attributes
         )
 
+        # have to do this manually, since Gtk.Box messes with the initialization
+        self.rotate_facing = rotate_facing
+        self.rotate_reverse = rotate_reverse
+        self.can_duplex = can_duplex
+
         # In case it isn't set elsewhere
         self._side1.side_cmbx.set_active_index("both")
         self._side1.angle_cmbx.set_active_index(90)
+
+        # Sync GUI with properties set during instantiation
         self._update_gui()
 
     def _toggled_rotate_callback(self, _widget):
