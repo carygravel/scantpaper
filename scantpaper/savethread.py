@@ -1,6 +1,7 @@
 "Threading model for the Document class"
 
 from collections import defaultdict
+import json
 import pathlib
 import re
 import logging
@@ -59,7 +60,7 @@ class SaveThread(Importhread):
 
             list_of_pages = []
             with open(
-                outdir / "origin_pre.pdf", "wb", buffering=0
+                outdir / "origin.pdf", "wb", buffering=0
             ) as fhd:  # turn off buffering
                 filenames = []
                 resolutions = []
@@ -90,18 +91,17 @@ class SaveThread(Importhread):
                 fhd.write(img2pdf.convert(filenames, **metadata))
                 for fname in filenames:
                     os.remove(fname)
-            ocrmypdf.api._pdf_to_hocr(
-                outdir / "origin_pre.pdf",
-                outdir,
-                language="eng",
-                skip_text=True,
-            )
             for pagenr, page in enumerate(list_of_pages):
                 if page.text_layer:
                     with open(
                         outdir / f"{pagenr+1:-06}_ocr_hocr.hocr", "w", encoding="utf-8"
-                    ) as fhd:
-                        fhd.write(page.export_hocr())
+                    ) as hocr_fh, open(
+                        outdir / f"{pagenr+1:-06}_hocr.json", "w", encoding="utf-8"
+                    ) as json_fh:
+                        hocr_fh.write(page.export_hocr())
+                        json_fh.write(
+                            json.dumps({"pageno": pagenr, "orientation_correction": 0})
+                        )
                 self.progress = pagenr / (len(options["list_of_pages"]) + 1)
                 self.message = _("Saving page %i of %i") % (
                     pagenr,

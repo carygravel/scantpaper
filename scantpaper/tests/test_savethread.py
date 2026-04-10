@@ -120,7 +120,6 @@ def test_save_pdf(mock_thread_instance, mock_page_instance):
         mock_thread_instance.do_save_pdf(request)
 
         assert mock_img2pdf.called
-        assert mock_pdf_to_hocr.called
         assert mock_hocr_to_ocr_pdf.called
         assert mock_page_instance.write_image_for_pdf.called
         assert mock_post_save_hook.called
