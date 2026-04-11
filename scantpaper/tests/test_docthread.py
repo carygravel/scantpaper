@@ -218,14 +218,33 @@ def test_get_thumb(mocker):
     thread._write_tid = threading.get_native_id()
 
     mock_execute = mocker.patch.object(thread, "_execute")
-    mocker.patch.object(thread, "_fetchone", return_value=(b"fake_thumb_bytes",))
-    mock_pixbuf = mocker.Mock()
-    mocker.patch.object(thread, "_bytes_to_pixbuf", return_value=mock_pixbuf)
+    mocker.patch.object(thread, "_fetchone", return_value=[b"dummy_thumb"])
+    mocker.patch.object(thread, "_bytes_to_pixbuf", return_value="mock_pixbuf")
 
     result = thread.get_thumb(1)
+    mock_execute.assert_called_with(
+        """SELECT thumb FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+        (1, 0),
+    )
+    assert result == "mock_pixbuf"
 
-    mock_execute.assert_called_once_with("SELECT thumb FROM page WHERE id = ?", (1,))
-    assert result == mock_pixbuf
+
+def test_get_text(mocker):
+    "test get_text"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_execute = mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=["dummy_text"])
+
+    result = thread.get_text(1)
+    mock_execute.assert_called_with(
+        """SELECT text FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+        (1, 0),
+    )
+    assert result == "dummy_text"
 
 
 def test_open_session_file(mocker):
@@ -317,6 +336,112 @@ def test_do_set_saved(mocker):
                 AND action_id = ?
             )""",
         (True, 1, 2, 3, 0),
+    )
+
+
+def test_do_set_text(mocker):
+    "test do_set_text"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_take_snapshot")
+    mock_execute = mocker.patch.object(thread, "_execute")
+    thread._con[threading.get_native_id()] = mocker.Mock()
+
+    request = mocker.Mock()
+    request.args = [1, "new_text"]
+    thread.do_set_text(request)
+    mock_execute.assert_called_with(
+        """UPDATE page SET text = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+        ("new_text", 1, 0),
+    )
+
+
+def test_do_set_annotations(mocker):
+    "test do_set_annotations"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_execute = mocker.patch.object(thread, "_execute")
+    thread._con[threading.get_native_id()] = mocker.Mock()
+
+    request = mocker.Mock()
+    request.args = [1, "new_ann"]
+    thread.do_set_annotations(request)
+    mock_execute.assert_called_with(
+        """UPDATE page SET annotations = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+        ("new_ann", 1, 0),
+    )
+
+
+def test_do_set_resolution(mocker):
+    "test do_set_resolution"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_execute = mocker.patch.object(thread, "_execute")
+    thread._con[threading.get_native_id()] = mocker.Mock()
+
+    request = mocker.Mock()
+    request.args = [1, 300.0, 300.0]
+    thread.do_set_resolution(request)
+    mock_execute.assert_called_with(
+        """UPDATE page SET x_res = ?, y_res = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+        (300.0, 300.0, 1, 0),
+    )
+
+
+def test_do_set_mean_std_dev(mocker):
+    "test do_set_mean_std_dev"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mock_execute = mocker.patch.object(thread, "_execute")
+    thread._con[threading.get_native_id()] = mocker.Mock()
+
+    request = mocker.Mock()
+    request.args = [1, [128.0], [10.0]]
+    thread.do_set_mean_std_dev(request)
+    mock_execute.assert_called_with(
+        """UPDATE page SET mean = ?, std_dev = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+        ("[128.0]", "[10.0]", 1, 0),
+    )
+
+
+def test_do_delete_pages_ids(mocker):
+    "test do_delete_pages with page_ids"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_take_snapshot")
+    mock_execute = mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_executemany")
+    mocker.patch.object(thread, "_fetchall", return_value=[])
+    tid = threading.get_native_id()
+    thread._con[tid] = mocker.Mock()
+    thread._cur[tid] = mocker.Mock()
+
+    request = mocker.Mock()
+    request.args = [{"page_ids": [1]}]
+
+    thread.do_delete_pages(request)
+
+    mock_execute.assert_any_call(
+        """DELETE FROM page_order
+                    WHERE initial_page_id IN (?) AND action_id = ?""",
+        (1, 0),
     )
 
 
@@ -660,7 +785,7 @@ def test_do_unpaper_ioerror(mocker):
 def test_pages_saved_after_replace(temp_db, clean_up_files, mocker):
     "test pages_saved after replace_page and do_set_saved with initial_page_id"
     thread = DocThread(db=temp_db.name)
-    thread._write_tid = threading.get_native_id()  # pylint: disable=protected-access
+    thread._write_tid = threading.get_native_id()
 
     # 1. Add a page
     img = Image.new("RGB", (10, 10), color="red")

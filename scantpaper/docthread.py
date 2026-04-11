@@ -360,20 +360,20 @@ class DocThread(SaveThread):
         if page_ids:
             self._execute(
                 f"""DELETE FROM page_order
-                    WHERE page_id IN ({", ".join(["?"]*len(page_ids))}) AND action_id = ?""",
+                    WHERE initial_page_id IN ({", ".join(["?"]*len(page_ids))}) AND action_id = ?""",
                 (*page_ids, self._action_id),
             )
 
         # renumber remaining rows
         self._execute(
-            "SELECT row_id, page_id, action_id FROM page_order WHERE action_id = ? ORDER BY row_id",
+            "SELECT row_id, initial_page_id, action_id FROM page_order WHERE action_id = ? ORDER BY row_id",
             (self._action_id,),
         )
         page_order = self._fetchall()
         for i, page in enumerate(page_order):
             page_order[i] = [i, page[1], self._action_id]
         self._executemany(
-            "UPDATE page_order SET row_id = ? WHERE page_id = ? AND action_id = ?",
+            "UPDATE page_order SET row_id = ? WHERE initial_page_id = ? AND action_id = ?",
             page_order,
         )
         self._con[threading.get_native_id()].commit()
@@ -509,7 +509,7 @@ class DocThread(SaveThread):
         # if we are not adding the cloned pages to the end, renumber the rows after dest
         if dest <= max_row_id:
             self._execute(
-                "SELECT row_id, page_number, page_id, action_id FROM page_order WHERE action_id = ? AND row_id >= ? ORDER BY row_id",
+                "SELECT row_id, page_number, initial_page_id, action_id FROM page_order WHERE action_id = ? AND row_id >= ? ORDER BY row_id",
                 (self._action_id, dest),
             )
             page_order = self._fetchall()
@@ -520,15 +520,11 @@ class DocThread(SaveThread):
                     page[2],
                     self._action_id,
                 )
-            self._execute(
-                "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
-                (self._action_id,),
-            )
             for page in reversed(
                 page_order
             ):  # reverse list to prevent numbering conflicts during execution
                 self._execute(
-                    "UPDATE page_order SET row_id = ?, page_number = ? WHERE page_id = ? AND action_id = ?",
+                    "UPDATE page_order SET row_id = ?, page_number = ? WHERE initial_page_id = ? AND action_id = ?",
                     page,
                 )
             self._execute(
@@ -752,12 +748,20 @@ class DocThread(SaveThread):
 
     def get_thumb(self, page_id):
         "gets the thumbnail for the given page_id"
-        self._execute("SELECT thumb FROM page WHERE id = ?", (page_id,))
+        self._execute(
+            """SELECT thumb FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
         return self._bytes_to_pixbuf(self._fetchone()[0])
 
     def get_text(self, page_id):
         "gets the text layer for the given page"
-        self._execute("SELECT text FROM page WHERE id = ?", (page_id,))
+        self._execute(
+            """SELECT text FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
         return self._fetchone()[0]
 
     def set_text(self, page_id, text, **kwargs):
@@ -771,17 +775,25 @@ class DocThread(SaveThread):
         self._check_write_tid()
         page_id, text = request.args
         self._execute(
-            "UPDATE page SET text = ? WHERE id = ?",
+            """UPDATE page SET text = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
             (
                 text,
                 page_id,
+                self._action_id,
             ),
         )
         self._con[threading.get_native_id()].commit()
 
     def get_annotations(self, page_id):
         "gets the annotations layer for the given page"
-        self._execute("SELECT annotations FROM page WHERE id = ?", (page_id,))
+        self._execute(
+            """SELECT annotations FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
         return self._fetchone()[0]
 
     def do_set_annotations(self, request):
@@ -789,17 +801,25 @@ class DocThread(SaveThread):
         self._check_write_tid()
         page_id, annotations = request.args
         self._execute(
-            "UPDATE page SET annotations = ? WHERE id = ?",
+            """UPDATE page SET annotations = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
             (
                 annotations,
                 page_id,
+                self._action_id,
             ),
         )
         self._con[threading.get_native_id()].commit()
 
     def get_resolution(self, page_id):
         "gets the resolution for the given page"
-        self._execute("SELECT x_res, y_res FROM page WHERE id = ?", (page_id,))
+        self._execute(
+            """SELECT x_res, y_res FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
         return self._fetchone()
 
     def do_set_resolution(self, request):
@@ -807,18 +827,26 @@ class DocThread(SaveThread):
         self._check_write_tid()
         page_id, x_res, y_res = request.args
         self._execute(
-            "UPDATE page SET x_res = ?, y_res = ? WHERE id = ?",
+            """UPDATE page SET x_res = ?, y_res = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
             (
                 x_res,
                 y_res,
                 page_id,
+                self._action_id,
             ),
         )
         self._con[threading.get_native_id()].commit()
 
     def get_mean_std_dev(self, page_id):
         "gets the mean and std_dev for the given page"
-        self._execute("SELECT mean, std_dev FROM page WHERE id = ?", (page_id,))
+        self._execute(
+            """SELECT mean, std_dev FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
         mean, std_dev = self._fetchone()
         mean = json.loads(mean, strict=False)
         std_dev = json.loads(std_dev, strict=False)
@@ -829,11 +857,15 @@ class DocThread(SaveThread):
         self._check_write_tid()
         page_id, mean, std_dev = request.args
         self._execute(
-            "UPDATE page SET mean = ?, std_dev = ? WHERE id = ?",
+            """UPDATE page SET mean = ?, std_dev = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
             (
                 json.dumps(mean),
                 json.dumps(std_dev),
                 page_id,
+                self._action_id,
             ),
         )
         self._con[threading.get_native_id()].commit()
