@@ -727,10 +727,15 @@ class DocThread(SaveThread):
         if not isinstance(page_id, list):
             page_id = [page_id]
         self._execute(
-            f"UPDATE page SET saved = ? WHERE id IN ({', '.join(['?']*len(page_id))})",
+            f"""UPDATE page SET saved = ? WHERE id IN (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id IN ({", ".join(["?"] * len(page_id))})
+                AND action_id = ?
+            )""",
             (
                 saved,
                 *page_id,
+                self._action_id,
             ),
         )
         self._con[threading.get_native_id()].commit()

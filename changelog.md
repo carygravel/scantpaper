@@ -3,6 +3,8 @@
 * Fix error running OCR from dialog.
   Closes #59 (OCR Fails: `int` object has no attribute `get_size`)
 * Eliminate extra tesseract call when saving PDFs.
+* Fix message “Some pages have not been saved" when all pages have been saved
+  Closes #61
 
 
 ## 3.0.3 (2026-04-03)

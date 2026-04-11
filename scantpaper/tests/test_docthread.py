@@ -2,6 +2,7 @@
 
 import threading
 import subprocess
+from PIL import Image
 import pytest
 from const import APPLICATION_ID, USER_VERSION
 from docthread import DocThread, _calculate_crop_tuples
@@ -286,21 +287,36 @@ def test_do_set_saved(mocker):
     request.args = [1]
     thread.do_set_saved(request)
     mock_execute.assert_called_with(
-        "UPDATE page SET saved = ? WHERE id IN (?)", (True, 1)
+        """UPDATE page SET saved = ? WHERE id IN (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id IN (?)
+                AND action_id = ?
+            )""",
+        (True, 1, 0),
     )
 
     # Test single page_id, explicit saved=False
     request.args = [1, False]
     thread.do_set_saved(request)
     mock_execute.assert_called_with(
-        "UPDATE page SET saved = ? WHERE id IN (?)", (False, 1)
+        """UPDATE page SET saved = ? WHERE id IN (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id IN (?)
+                AND action_id = ?
+            )""",
+        (False, 1, 0),
     )
 
     # Test multiple page_ids
     request.args = [[1, 2, 3], True]
     thread.do_set_saved(request)
     mock_execute.assert_called_with(
-        "UPDATE page SET saved = ? WHERE id IN (?, ?, ?)", (True, 1, 2, 3)
+        """UPDATE page SET saved = ? WHERE id IN (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id IN (?, ?, ?)
+                AND action_id = ?
+            )""",
+        (True, 1, 2, 3, 0),
     )
 
 
@@ -639,3 +655,36 @@ def test_do_unpaper_ioerror(mocker):
 
     request.error.assert_called()
     assert "Error creating file in /tmp: Mocked IOError" in str(request.error.call_args)
+
+
+def test_pages_saved_after_replace(temp_db, clean_up_files, mocker):
+    "test pages_saved after replace_page and do_set_saved with initial_page_id"
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()  # pylint: disable=protected-access
+
+    # 1. Add a page
+    img = Image.new("RGB", (10, 10), color="red")
+    page = Page(image_object=img)
+    _, _, page_id = thread.add_page(page, number=1)
+
+    # 2. Check if pages are saved (should be False)
+    assert not thread.pages_saved()
+
+    # 3. Replace the page (simulating an edit)
+    img2 = Image.new("RGB", (10, 10), color="blue")
+    page2 = Page(image_object=img2)
+
+    _, _, initial_page_id = thread.replace_page(
+        page2, number=1, initial_page_id=page_id
+    )
+    assert initial_page_id == page_id
+
+    # 4. Mark as saved using initial_page_id
+    request = mocker.Mock()
+    request.args = [[initial_page_id], True]
+    thread.do_set_saved(request)
+
+    # 5. Check if pages are saved
+    assert thread.pages_saved()
+
+    clean_up_files(thread.db_files)
