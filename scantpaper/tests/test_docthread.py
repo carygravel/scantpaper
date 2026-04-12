@@ -1,6 +1,7 @@
 "Tests for DocThread"
 
 import threading
+import sqlite3
 import subprocess
 from PIL import Image
 import pytest
@@ -811,5 +812,49 @@ def test_pages_saved_after_replace(temp_db, clean_up_files, mocker):
 
     # 5. Check if pages are saved
     assert thread.pages_saved()
+
+    clean_up_files(thread.db_files)
+
+
+def test_open_migration_v1_to_v2(temp_db, clean_up_files):
+    "test migration from version 1 to 2"
+
+    db_path = temp_db.name
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute(f"PRAGMA application_id = {APPLICATION_ID}")
+    cur.execute("PRAGMA user_version = 1")
+    cur.execute("CREATE TABLE image(id INTEGER PRIMARY KEY, image BLOB, thumb BLOB)")
+    cur.execute("""CREATE TABLE page(
+                id INTEGER PRIMARY KEY,
+                image_id INTEGER NOT NULL,
+                x_res FLOAT,
+                y_res FLOAT,
+                std_dev TEXT,
+                mean TEXT,
+                saved BOOL,
+                text TEXT,
+                annotations TEXT,
+                FOREIGN KEY (image_id) REFERENCES image(id))""")
+    cur.execute("""CREATE TABLE page_order(
+                action_id INTEGER NOT NULL,
+                row_id INTEGER NOT NULL,
+                page_number INTEGER NOT NULL,
+                page_id INTEGER NOT NULL,
+                PRIMARY KEY (action_id, row_id))""")
+    cur.execute("INSERT INTO image VALUES (1, NULL, NULL)")
+    cur.execute("INSERT INTO page (id, image_id) VALUES (1, 1)")
+    cur.execute("INSERT INTO page_order VALUES (0, 0, 1, 1)")
+    conn.commit()
+    conn.close()
+
+    thread = DocThread(db=db_path)
+
+    # Check if migration was successful
+    thread._execute("PRAGMA user_version")
+    assert thread._fetchone()[0] == USER_VERSION
+
+    thread._execute("SELECT initial_page_id FROM page_order WHERE page_id = 1")
+    assert thread._fetchone()[0] == 1
 
     clean_up_files(thread.db_files)
