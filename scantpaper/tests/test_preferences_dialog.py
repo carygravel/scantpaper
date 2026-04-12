@@ -104,3 +104,46 @@ def test_clicked_add_udt():
         isinstance(widget, Gtk.Entry) for widget in last_child.get_children()
     )
     assert entry_found, "No Gtk.Entry found in the last child box"
+
+
+def test_delete_udt():
+    "Test the delete_udt callback"
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = []
+
+    # Create the PreferencesDialog with the mocked settings
+    dialog = PreferencesDialog(settings=settings)
+
+    # Initially, there's only the "Add" button
+    children = dialog._vboxt.get_children()
+    assert len(children) == 1, "Only 'Add' button should be present"
+    add_button = children[0]
+
+    # Add a user-defined tool
+    dialog._clicked_add_udt(add_button)
+
+    # Now there should be 2 children: the hbox for the tool and the "Add" button
+    children = dialog._vboxt.get_children()
+    assert len(children) == 2, "Should have 2 children: hbox and 'Add' button"
+
+    hbox = children[0]
+    assert isinstance(hbox, Gtk.Box), "The first child should be a Gtk.Box"
+
+    # Find the delete button in the hbox
+    delete_button = None
+    for child in hbox.get_children():
+        if isinstance(child, Gtk.Button) and child.get_label() == "_Delete":
+            delete_button = child
+            break
+
+    assert delete_button is not None, "Delete button not found"
+
+    # Simulate clicking the delete button
+    delete_button.clicked()
+
+    # Verify that the hbox was destroyed
+    assert (
+        hbox not in dialog._vboxt.get_children()
+    ), "User defined tool hbox was not destroyed"
+    assert len(dialog._vboxt.get_children()) == 1, "Only 'Add' button should remain"

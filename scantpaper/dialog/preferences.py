@@ -344,7 +344,7 @@ The other variable available is:
         hbox.pack_start(entry, True, True, 0)
         button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
 
-        def delete_udt():
+        def delete_udt(_widget):
             hbox.destroy()
 
         button.connect("clicked", delete_udt)

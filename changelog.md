@@ -5,6 +5,7 @@
 * Eliminate extra tesseract call when saving PDFs.
 * Fix message 'Some pages have not been saved' when all pages have been saved
   Closes #61
+* Fix delete button in Edit/Preferences/User-defined tools
 
 
 ## 3.0.3 (2026-04-03)
