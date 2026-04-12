@@ -10,6 +10,7 @@ import subprocess
 import shutil
 import tempfile
 import threading
+import img2pdf
 import pytest
 from gi.repository import GLib
 import config
@@ -802,7 +803,7 @@ def test_cancel_save_pdf(
 
 
 def test_import_pdf_without_text_and_resave(
-    rose_tif, temp_db, import_in_mainloop, clean_up_files
+    rose_png, temp_db, import_in_mainloop, clean_up_files
 ):
     """
     Regression test for bug where importing a PDF without a text layer
@@ -813,10 +814,7 @@ def test_import_pdf_without_text_and_resave(
     # Create a PDF from a TIFF (no text layer)
     with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf1:
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf2:
-            subprocess.run(
-                ["tiff2pdf", "-o", temp_pdf1.name, rose_tif.name],
-                check=True,
-            )
+            temp_pdf1.write(img2pdf.convert(rose_png))
 
             # Import the PDF without text layer
             slist = Document(db=temp_db.name)

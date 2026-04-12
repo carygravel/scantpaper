@@ -6,32 +6,29 @@ import re
 import subprocess
 import shutil
 import tempfile
+import img2pdf
 import pytest
 from gi.repository import GLib
 import config
 from document import Document
 
 
-def test_import_multipage_pdf(rose_tif, temp_pdf, temp_db, clean_up_files):
+def test_import_multipage_pdf(rose_png, temp_pdf, temp_db, clean_up_files):
     "Test importing PDF"
-    with tempfile.NamedTemporaryFile(suffix=".tif") as temp_tif2:
-        subprocess.run(
-            ["tiffcp", rose_tif.name, rose_tif.name, temp_tif2.name], check=True
-        )
-        subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif2.name], check=True)
+    temp_pdf.write(img2pdf.convert([rose_png.name, rose_png.name]))
 
-        slist = Document(db=temp_db.name)
+    slist = Document(db=temp_db.name)
 
-        mlp = GLib.MainLoop()
+    mlp = GLib.MainLoop()
 
-        slist.import_files(
-            paths=[temp_pdf.name],
-            finished_callback=lambda response: mlp.quit(),
-        )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-        mlp.run()
+    slist.import_files(
+        paths=[temp_pdf.name],
+        finished_callback=lambda response: mlp.quit(),
+    )
+    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp.run()
 
-        assert len(slist.data) == 2, "imported 2 pages"
+    assert len(slist.data) == 2, "imported 2 pages"
 
     clean_up_files(slist.thread.db_files)
 
@@ -41,14 +38,14 @@ def test_import_multipage_pdf(rose_tif, temp_pdf, temp_db, clean_up_files):
     reason="Please install pdfunite (poppler utils) to enable test",
 )
 def test_import_multipage_pdf_with_not_enough_images(
-    rose_tif, temp_db, temp_pdf, clean_up_files
+    rose_png, temp_db, temp_pdf, clean_up_files
 ):
     "Test importing PDF"
 
     with tempfile.NamedTemporaryFile(
         suffix=".pdf"
     ) as page1, tempfile.NamedTemporaryFile(suffix=".pdf") as page2:
-        subprocess.run(["tiff2pdf", "-o", page1.name, rose_tif.name], check=True)
+        page1.write(img2pdf.convert(rose_png))
         content = b"""%PDF-1.4
 1 0 obj
   << /Type /Catalog
@@ -150,7 +147,7 @@ startxref
     clean_up_files(slist.thread.db_files)
 
 
-def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
+def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
     "Test importing PDF"
 
     options = [
@@ -170,13 +167,11 @@ def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
         "DejaVu Sans",
         "-pointsize",
         "12",
+        temp_png.name,
     ]
-    subprocess.run(options + [temp_tif.name], check=True)
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, temp_tif.name], check=True)
-    subprocess.run(options + [temp_png.name], check=True)
-    subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", temp_png.name], text=True
-    )
+    subprocess.run(options, check=True)
+    temp_pdf.write(img2pdf.convert(temp_png))
+    temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
@@ -198,9 +193,9 @@ def test_import_pdf_bw(temp_tif, temp_png, temp_pdf, clean_up_files, temp_db):
     clean_up_files(slist.thread.db_files)
 
 
-def test_import_pdf_with_error(rose_tif, temp_pdf, clean_up_files):
+def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
     "Test importing PDF"
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
+    temp_pdf.write(img2pdf.convert(rose_png))
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -244,10 +239,10 @@ def test_import_pdf_with_error(rose_tif, temp_pdf, clean_up_files):
 @pytest.mark.skipif(
     shutil.which("qpdf") is None, reason="Please install qpdf to enable test"
 )
-def test_import_encrypted_pdf(rose_tif, temp_db, temp_pdf, clean_up_files):
+def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
 
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
+    temp_pdf.write(img2pdf.convert(rose_png))
     subprocess.run(
         [
             "qpdf",
@@ -296,26 +291,20 @@ def test_import_encrypted_pdf(rose_tif, temp_db, temp_pdf, clean_up_files):
     )
 
 
-def test_import_pdf_with_metadata(rose_tif, temp_pdf, clean_up_files):
+def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
     "Test importing PDF"
-    cmd = [
-        "tiff2pdf",
-        "-o",
-        temp_pdf.name,
-        "-e",
-        "20181231120000",
-        "-a",
-        "Authör",
-        "-t",
-        "Title",
-        "-s",
-        "Sübject",
-        "-k",
-        "Keywörds",
-        rose_tif.name,
-    ]
-    cmd = [x.encode("latin") for x in cmd]  # tiff2pdf expects latin, not utf8
-    subprocess.run(cmd, check=True)
+    temp_pdf.write(
+        img2pdf.convert(
+            rose_png,
+            author="Authör",
+            title="Title",
+            subject="Sübject",
+            keywords=["Keywörds"],
+            creationdate=datetime.datetime(
+                2018, 12, 31, 12, 0, tzinfo=datetime.timezone.utc
+            ),
+        )
+    )
 
     slist = Document()
 
@@ -354,10 +343,10 @@ def test_import_pdf_with_metadata(rose_tif, temp_pdf, clean_up_files):
     shutil.which("pdfunite") is None,
     reason="Please install pdfunite (poppler utils) to enable test",
 )
-def test_import_pdf_with_2000_pages(rose_tif, temp_pdf, temp_db, clean_up_files):
+def test_import_pdf_with_2000_pages(rose_png, temp_pdf, temp_db, clean_up_files):
     "Test importing PDF"
 
-    subprocess.run(["tiff2pdf", "-o", temp_pdf.name, rose_tif.name], check=True)
+    temp_pdf.write(img2pdf.convert(rose_png))
     with tempfile.NamedTemporaryFile(
         suffix=".pdf"
     ) as page10, tempfile.NamedTemporaryFile(

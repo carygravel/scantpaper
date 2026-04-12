@@ -11,6 +11,7 @@ import threading
 from unittest.mock import Mock, MagicMock, patch
 from PIL import Image
 import gi
+import img2pdf
 import pytest
 from page import Page
 import config
@@ -566,17 +567,14 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
             request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
 
-        subprocess.run(
-            [config.CONVERT_COMMAND, "rose:", tif.name], check=True
-        )  # Create test image
-        subprocess.run(["tiff2pdf", "-o", temp_pdf.name, tif.name], check=True)
+        temp_pdf.write(img2pdf.convert(rose_png))
         request = Request("get_file_info", (temp_pdf.name, None), thread.responses)
         info = thread.do_get_file_info(request)
         del info["datetime"]
         assert info == {
             "format": "Portable Document Format",
             "path": temp_pdf.name,
-            "page_size": [16.8, 11.04, "pts"],
+            "page_size": [70.0, 46.0, "pts"],
             "pages": 1,
         }, "do_get_file_info + pdf"
 
@@ -586,6 +584,9 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
             "height": [46],
             "pages": 1,
         }
+        subprocess.run(
+            [config.CONVERT_COMMAND, "rose:", tif.name], check=True
+        )  # Create test image
         request = Request("get_file_info", (tif.name, None), thread.responses)
         example = thread.do_get_file_info(request)
         del example["path"]
