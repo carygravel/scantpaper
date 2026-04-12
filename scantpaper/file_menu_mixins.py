@@ -360,7 +360,13 @@ class FileMenuMixins:
         vbox = self._windowi.get_content_area()
         vbox.pack_start(pshbutton, False, True, 0)
         self._update_post_save_hooks()
-        vbox.pack_start(self._windowi.comboboxpsh, False, True, 0)
+        # Wrap combobox in a scrolled window to avoid the dialog becoming
+        # excessively wide for users with long tool names.
+        sw = Gtk.ScrolledWindow()
+        sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
+        sw.set_propagate_natural_width(False)
+        sw.add(self._windowi.comboboxpsh)
+        vbox.pack_start(sw, False, True, 0)
         pshbutton.connect(
             "toggled",
             lambda _action: self._windowi.comboboxpsh.set_sensitive(

@@ -6,6 +6,7 @@
 * Fix message 'Some pages have not been saved' when all pages have been saved
   Closes #61
 * Fix delete button in Edit/Preferences/User-defined tools
+* Wrap post-save tool combobox in a scrollbar in case it is too long
 
 
 ## 3.0.3 (2026-04-03)

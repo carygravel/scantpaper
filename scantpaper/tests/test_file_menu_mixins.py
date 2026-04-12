@@ -11,6 +11,7 @@ from file_menu_mixins import (
     launch_default_for_file,
     file_exists,
 )
+from comboboxtext import ComboBoxText
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -587,7 +588,9 @@ class TestFileMenuMixins:
         "Test save_dialog creates and shows SaveDialog."
         app._windowi = None
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.comboboxpsh.get_num_rows.return_value = 0
+        # Provide a real ComboBoxText for the dialog so packing into a
+        # ScrolledWindow (in the production code) works during tests.
+        mock_dialog.comboboxpsh = ComboBoxText()
         mock_save_dialog.return_value = mock_dialog
         mock_datetime.datetime.now.return_value = datetime.datetime(2025, 1, 1)
 
