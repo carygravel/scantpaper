@@ -410,7 +410,7 @@ class DocThread(SaveThread):
     def page_number_table(self):
         "get data for page number/thumb table"
         self._execute(
-            """SELECT page_number, thumb, page_id
+            """SELECT page_number, thumb, initial_page_id
                FROM page_order, page, image
                WHERE page_id = page.id AND image_id = image.id AND action_id = ?
                ORDER BY page_number""",
@@ -472,8 +472,16 @@ class DocThread(SaveThread):
         dest = kwargs["dest"]
         self._execute(
             f"""SELECT image_id, x_res, y_res, mean, std_dev, saved, text, annotations FROM page
-                WHERE id IN ({", ".join(["?"]*len(page_ids))})""",
-            (*page_ids,),
+                WHERE id IN (
+                    SELECT page_id FROM page_order po1
+                    WHERE initial_page_id IN ({", ".join(["?"] * len(page_ids))})
+                    AND action_id = (
+                        SELECT MAX(action_id) FROM page_order po2
+                        WHERE po2.initial_page_id = po1.initial_page_id
+                        AND po2.action_id <= ?
+                    )
+                )""",
+            (*page_ids, self._action_id),
         )
         pages = self._fetchall()
         image_ids = [page[0] for page in pages]
@@ -527,10 +535,6 @@ class DocThread(SaveThread):
                     "UPDATE page_order SET row_id = ?, page_number = ? WHERE initial_page_id = ? AND action_id = ?",
                     page,
                 )
-            self._execute(
-                "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
-                (self._action_id,),
-            )
             self._con[tid].commit()
 
         new_pages = [
@@ -543,23 +547,15 @@ class DocThread(SaveThread):
             )
             for i in range(len(pages))
         ]
-        self._execute(
-            "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
-            (self._action_id,),
-        )
         self._executemany(
             """INSERT INTO page_order (action_id, row_id, page_number, page_id, initial_page_id)
                VALUES (?, ?, ?, ?, ?)""",
             new_pages,
         )
         self._con[tid].commit()
-        self._execute(
-            "SELECT row_id, page_number, page_id from page_order WHERE action_id = ?",
-            (self._action_id,),
-        )
 
         self._execute(
-            f"""SELECT page_number, thumb, page_id
+            f"""SELECT page_number, thumb, initial_page_id
                           FROM page_order, page, image
                           WHERE action_id = ?
                            AND page_id = page.id
@@ -628,12 +624,13 @@ class DocThread(SaveThread):
     def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"
         self._execute(
-            """SELECT page_number, thumb, page_id
+            """SELECT page_number, thumb, initial_page_id
                 FROM page_order, page, image
                 WHERE action_id = ? AND page_id = page.id AND image_id = image.id
                 ORDER BY page_number""",
             (self._action_id,),
         )
+
         rows = []
         for row in self._fetchall():
             row = list(row)
@@ -1385,7 +1382,7 @@ class DocThread(SaveThread):
         page = Page(**kwargs)
         xresolution, yresolution, units = page.get_resolution()
         row = self.add_page(page, pagenum)
-        page_id = row[0]
+        page_id = row[2]
         logger.info(
             "Added page id %s at page number %s with resolution %s,%s,%s",
             page_id,
