@@ -16,6 +16,7 @@ from document import Document
 def test_import_multipage_pdf(rose_png, temp_pdf, temp_db, clean_up_files):
     "Test importing PDF"
     temp_pdf.write(img2pdf.convert([rose_png.name, rose_png.name]))
+    temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
@@ -46,6 +47,7 @@ def test_import_multipage_pdf_with_not_enough_images(
         suffix=".pdf"
     ) as page1, tempfile.NamedTemporaryFile(suffix=".pdf") as page2:
         page1.write(img2pdf.convert(rose_png))
+        page1.flush()
         content = b"""%PDF-1.4
 1 0 obj
   << /Type /Catalog
@@ -196,6 +198,7 @@ def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
 def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
     "Test importing PDF"
     temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.flush()
 
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -243,6 +246,7 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
 
     temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.flush()
     subprocess.run(
         [
             "qpdf",
@@ -305,6 +309,7 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
             ),
         )
     )
+    temp_pdf.flush()
 
     slist = Document()
 
@@ -347,6 +352,7 @@ def test_import_pdf_with_2000_pages(rose_png, temp_pdf, temp_db, clean_up_files)
     "Test importing PDF"
 
     temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.flush()
     with tempfile.NamedTemporaryFile(
         suffix=".pdf"
     ) as page10, tempfile.NamedTemporaryFile(

@@ -815,6 +815,7 @@ def test_import_pdf_without_text_and_resave(
     with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf1:
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf2:
             temp_pdf1.write(img2pdf.convert(rose_png))
+            temp_pdf1.flush()
 
             # Import the PDF without text layer
             slist = Document(db=temp_db.name)

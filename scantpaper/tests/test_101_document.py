@@ -568,6 +568,7 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
             thread.do_get_file_info(request)
 
         temp_pdf.write(img2pdf.convert(rose_png))
+        temp_pdf.flush()
         request = Request("get_file_info", (temp_pdf.name, None), thread.responses)
         info = thread.do_get_file_info(request)
         del info["datetime"]

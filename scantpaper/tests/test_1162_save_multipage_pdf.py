@@ -184,6 +184,7 @@ def test_prepend_pdf(
 ):
     "Test prepending a page to a PDF"
     temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
@@ -215,6 +216,7 @@ def test_append_pdf(
 ):
     "Test appending a page to a PDF"
     temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
@@ -247,6 +249,7 @@ def test_prepend_with_space(
     "Test prepending a page to a PDF with a space"
     with open("te st.pdf", "wb") as temp_pdf:
         temp_pdf.write(img2pdf.convert(rose_png))
+        temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
@@ -279,6 +282,7 @@ def test_prepend_with_inverted_comma(
     "Test prepending a page to a PDF"
     with open("te'st.pdf", "wb") as temp_pdf:
         temp_pdf.write(img2pdf.convert(rose_png))
+        temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
@@ -310,6 +314,7 @@ def test_append_pdf_with_timestamp(
 ):
     "Test appending a page to a PDF with a timestamp"
     temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
