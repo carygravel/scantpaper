@@ -206,9 +206,6 @@ def test_check_dependencies(mocker, mock_session_window):
     mock_program_version = mocker.patch("session_mixins.program_version")
     mock_program_version.side_effect = lambda stream, regex, cmd: "1.0"
 
-    mock_exec_command = mocker.patch("session_mixins.exec_command")
-    mock_exec_command.return_value.stdout = "OK"
-
     mocker.patch("tempfile.NamedTemporaryFile")
 
     mock_session_window.session = MagicMock()
@@ -1006,4 +1003,35 @@ def test_error_callback_with_missing_page_key(caplog):
     assert (
         "Error running 'error' callback for 'analyse' process: Analyse Error"
         in caplog.text
+    )
+
+
+def test_error_callback_with_trace(mocker, mock_session_window):
+    "Test _error_callback with a stack trace"
+    mock_response = mocker.Mock()
+    mock_response.request.args = [{}]
+    mock_response.request.process = "process_name"
+    mock_response.type.name = "ERROR"
+    mock_response.status = "Failed"
+
+    # Mock inspect.trace()
+    mock_info = mocker.Mock()
+    mock_info.filename = "scantpaper/session_mixins.py"
+    mock_info.lineno = 123
+    mocker.patch("session_mixins.inspect.trace", return_value=[mock_info])
+
+    mock_logger = mocker.patch("session_mixins.logger")
+
+    # Mock idle_add to run the callback immediately
+    def immediate_idle_add(f, *args):
+        f(*args)
+        return True
+
+    mocker.patch("gi.repository.GLib.idle_add", side_effect=immediate_idle_add)
+
+    mock_session_window._error_callback(mock_response)
+
+    # Check if logger.error was called with the filename and line number
+    mock_logger.error.assert_any_call(
+        "Filename: '%s' line: %s", "scantpaper/session_mixins.py", 123
     )

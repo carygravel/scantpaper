@@ -5,7 +5,6 @@ import glob
 import inspect
 import logging
 import os
-import re
 import shutil
 import tempfile
 import gi
@@ -21,7 +20,7 @@ from const import (
     SELECTORDRAGGER_TOOL,
 )
 from dialog import filter_message, response_stored
-from helpers import get_tmp_dir, program_version, exec_command
+from helpers import get_tmp_dir, program_version
 from i18n import _
 from simplelist import SimpleList
 from text_layer_control import TextLayerControls
