@@ -117,7 +117,6 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
         list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": "pdftoppm %i test",
-            "post_save_hook_options": "fg",
         },
         started_callback=save_pdf_started_cb,
         finished_callback=save_pdf_finished_cb,

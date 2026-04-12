@@ -23,7 +23,6 @@ def test_save_tiff(
         list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": f"convert %i {temp_png.name}",
-            "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
     )
@@ -216,7 +215,6 @@ def test_save_tiff_as_ps(
             options={
                 "ps": temp_ps.name,
                 "post_save_hook": f"ps2pdf %i {temp_pdf.name}",
-                "post_save_hook_options": "fg",
             },
             finished_callback=lambda response: mlp.quit(),
         )

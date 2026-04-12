@@ -36,7 +36,6 @@ def test_save_text(
             list_of_pages=[slist.data[0][2]],
             options={
                 "post_save_hook": f"cp %i {temp_txt2.name}",
-                "post_save_hook_options": "fg",
             },
             finished_callback=lambda response: mlp.quit(),
         )
@@ -67,7 +66,6 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_
             list_of_pages=[slist.data[0][2]],
             options={
                 "post_save_hook": f"cp %i {temp_txt2.name}",
-                "post_save_hook_options": "fg",
             },
             finished_callback=lambda response: mlp.quit(),
         )
@@ -232,7 +230,6 @@ def test_save_hocr(
             list_of_pages=[slist.data[0][2]],
             options={
                 "post_save_hook": f"cp %i {temp_txt2.name}",
-                "post_save_hook_options": "fg",
             },
             finished_callback=lambda response: mlp.quit(),
         )

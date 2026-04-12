@@ -603,12 +603,6 @@ def _post_save_hook(filename, options):
             args[i] = re.sub(
                 "%i", filename, arg, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
             )
-        if (
-            "post_save_hook_options" not in options
-            or options["post_save_hook_options"] != "fg"
-        ):
-            args += " &"
-
         logger.info(args)
         subprocess.run(args, check=True)
 

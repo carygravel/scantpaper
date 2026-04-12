@@ -22,7 +22,6 @@ def test_save_image(
         list_of_pages=[slist.data[0][2]],
         options={
             "post_save_hook": f"{config.CONVERT_COMMAND} %i {temp_png.name}",
-            "post_save_hook_options": "fg",
         },
         finished_callback=lambda response: mlp.quit(),
     )
