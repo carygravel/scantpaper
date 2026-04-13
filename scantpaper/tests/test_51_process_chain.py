@@ -3,6 +3,7 @@
 import subprocess
 import shutil
 import re
+from unittest.mock import MagicMock
 import pytest
 from gi.repository import GLib
 import config
@@ -217,15 +218,8 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
-
-    asserts = 0
     mlp = GLib.MainLoop()
-
-    def error_callback2(_response):
-        nonlocal asserts
-        asserts += 1
-        mlp.quit()
-
+    error_callback = MagicMock()
     slist.import_scan(
         filename=rotated_qbfox_pnm.name,
         page=2,
@@ -235,13 +229,12 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
         delete=False,
         engine="tesseract",
         language="eng",
-        error_callback=error_callback2,
+        error_callback=error_callback,
         finished_callback=lambda response: mlp.quit(),
     )
     GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
     mlp.run()
-
-    assert asserts == 0, "No error thrown"
+    error_callback.assert_not_called()
 
     clean_up_files(slist.thread.db_files)
 
@@ -259,12 +252,7 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
         slist.select(0)
         slist.delete_selection()
 
-    def error_callback(_response):
-        nonlocal asserts
-        asserts += 1
-        mlp.quit()
-
-    def finished_callback(_response):
+    def finished_or_error_callback(_response):
         nonlocal asserts
         asserts += 1
         mlp.quit()
@@ -277,8 +265,8 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
         "delete": False,
         "engine": "tesseract",
         "language": "eng",
-        "error_callback": error_callback,
-        "finished_callback": finished_callback,
+        "error_callback": finished_or_error_callback,
+        "finished_callback": finished_or_error_callback,
     }
     slist.import_scan(page=1, **options)
     slist.import_scan(page=2, started_callback=started_callback, **options)
