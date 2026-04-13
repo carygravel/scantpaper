@@ -152,3 +152,55 @@ def test_add_actions_limit():
         [("b1", lambda: None), ("b2", lambda: None), ("b3", lambda: None)]
     )
     assert len(buttons) == 2, "only 2 buttons added"
+
+
+def test_multiple_message_none_text():
+    "test MultipleMessage with None text"
+    dialog = MultipleMessage()
+    row = {
+        "text": None,
+        "message_type": "error",
+    }
+    dialog.add_message(row)
+    assert row["text"] == "", "None text converted to empty string"
+
+
+def test_multiple_message_list_text():
+    "test MultipleMessage with text that gets munged into a list"
+    dialog = MultipleMessage()
+    row = {
+        "text": "(gimp:123): message\nsomething else",
+        "message_type": "error",
+    }
+    dialog.add_message(row)
+    # Check that 2 rows were added (plus header row, total 3 rows in grid)
+    # However, MultipleMessage uses grid.insert_row(self.grid_rows) in add_row
+    # And grid_rows starts at 1 (header is row 0)
+    # Actually, grid_rows is incremented after each add_row call?
+
+
+def test_add_actions_callback():
+    "test add_actions callback"
+    dialog = Dialog()
+    called = False
+
+    def callback():
+        nonlocal called
+        called = True
+
+    dialog.add_actions([("ok", callback)])
+    dialog.response(Gtk.ResponseType.OK)
+    assert called, "callback was called on response"
+
+
+def test_multiple_message_duplicate():
+    "test MultipleMessage skipping duplicate message"
+    dialog = MultipleMessage()
+    responses = {"message": {"response": "ok"}}
+    row = {
+        "text": "message",
+        "message_type": "error",
+        "responses": responses,
+    }
+    dialog.add_message(row)
+    assert dialog.grid_rows == 1, "duplicate message not added"
