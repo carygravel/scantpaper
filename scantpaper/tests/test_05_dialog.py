@@ -125,3 +125,20 @@ def test_multiple_message():
     messages = dialog.list_messages_to_ignore("ok")
     assert "message 1" in messages
     assert "message 2" not in messages
+
+
+def test_dialog_page_range():
+    "test dialog page-range"
+    dialog = Dialog()
+    dialog.add_page_range()
+
+    # Traverse the widget tree to find PageRange
+    content_area = dialog.get_content_area()
+    frame = content_area.get_children()[0]
+    prng = frame.get_child()
+
+    assert prng.get_active() == "selected", "default page-range"
+
+    # Trigger change
+    prng.set_active("all")
+    assert dialog.page_range == "all", "page-range updated"
