@@ -2,6 +2,7 @@
 
 import re
 import subprocess
+from unittest.mock import MagicMock
 from PIL import Image
 import pytest
 from document import Document
@@ -565,17 +566,12 @@ def test_race_condition_rotate_save(
     # IMMEDIATELY queue a save operation with the same page_id.
     # It will be behind the rotate operation in the DocThread's queue.
     mlp = GLib.MainLoop()
-    error_msg = None
-
-    def error_cb(response):
-        nonlocal error_msg
-        error_msg = response.status
-        mlp.quit()
+    error_callback = MagicMock()
 
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[page_id],
-        error_callback=error_cb,
+        error_callback=error_callback,
         finished_callback=lambda x: mlp.quit(),
     )
 
@@ -583,10 +579,7 @@ def test_race_condition_rotate_save(
     GLib.timeout_add(10000, mlp.quit)
     mlp.run()
 
-    try:
-        assert error_msg is None, "No error when saving before the rotate finishes"
-    finally:
-        clean_up_files(slist.thread.db_files)
+    error_callback.assert_not_called()
 
 
 def test_race_condition_rotate_rotate(
@@ -597,9 +590,7 @@ def test_race_condition_rotate_rotate(
 
     # Import a page
     import_in_mainloop(slist, [rose_pnm.name])
-    print(f"Data after import: {slist.data}")
     page_id = slist.data[0][2]
-    print(f"Initial page_id: {page_id}")
 
     # Queue two rotate operations on the same page_id.
     # The first one will replace page_id with a new one.
@@ -607,27 +598,18 @@ def test_race_condition_rotate_rotate(
     slist.rotate(page=page_id, angle=90)
 
     mlp = GLib.MainLoop()
-    error_msg = None
-
-    def error_cb(response):
-        nonlocal error_msg
-        error_msg = response.status
-        mlp.quit()
+    error_callback = MagicMock()
 
     slist.rotate(
         page=page_id,
         angle=90,
-        error_callback=error_cb,
+        error_callback=error_callback,
         finished_callback=lambda x: mlp.quit(),
     )
 
     # Wait for both to finish
     GLib.timeout_add(10000, mlp.quit)
     mlp.run()
+    error_callback.assert_not_called()
 
-    try:
-        assert (
-            error_msg is None
-        ), "No error when rotating the same page twice in a row before the first rotate finishes"
-    finally:
-        clean_up_files(slist.thread.db_files)
+    clean_up_files(slist.thread.db_files)
