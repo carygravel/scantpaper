@@ -72,9 +72,9 @@ class Dialog(Gtk.Dialog):
         buttons, callbacks = [], {}
         for button in button_list:
             text, callback = button
-            response = responses.pop(0)
-            if response is None:
+            if not responses:
                 break
+            response = responses.pop(0)
             callbacks[response] = callback
             buttons.append(self.add_button(text, response))
 

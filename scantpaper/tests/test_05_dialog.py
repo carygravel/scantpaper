@@ -142,3 +142,13 @@ def test_dialog_page_range():
     # Trigger change
     prng.set_active("all")
     assert dialog.page_range == "all", "page-range updated"
+
+
+def test_add_actions_limit():
+    "test add_actions with more buttons than responses"
+    dialog = Dialog()
+    # add_actions only supports 2 responses (OK, CANCEL)
+    buttons = dialog.add_actions(
+        [("b1", lambda: None), ("b2", lambda: None), ("b3", lambda: None)]
+    )
+    assert len(buttons) == 2, "only 2 buttons added"
