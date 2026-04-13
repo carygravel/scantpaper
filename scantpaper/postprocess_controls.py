@@ -366,41 +366,28 @@ class OCRControls(Gtk.Box):
         self.pack_start(hboxo, False, False, 0)
         self._active_button = Gtk.CheckButton(label=_("OCR scanned pages"))
         self._active_button.set_tooltip_text(_("OCR scanned pages"))
-        if len(self.available_engines) == 0:
+
+        tesseract = False
+        for engine in self.available_engines:
+            if engine[0] == "tesseract":
+                tesseract = True
+
+        if not tesseract:
             hboxo.set_sensitive(False)
             self._active_button.set_active(False)
         elif self.active:
             self._active_button.set_active(self.active)
 
         hboxo.pack_start(self._active_button, True, True, 0)
-        comboboxe = ComboBoxText(data=self.available_engines)
-        comboboxe.set_tooltip_text(_("Select OCR engine"))
-        hboxo.pack_end(comboboxe, True, True, 0)
         hboxtl = None
 
-        tesseract = False
-        for engine in self.available_engines:
-            if engine[0] == "tesseract":
-                tesseract = True
         if tesseract:
             hboxtl = self._add_tess_languages()
 
-            def engine_changed_callback(comboboxe):
-                self.engine = comboboxe.get_active_index()
-                if self.engine == "tesseract":
-                    hboxtl.show_all()
-                else:
-                    hboxtl.hide()
-
-            comboboxe.connect("changed", engine_changed_callback)
             if not self._active_button.get_active():
                 hboxtl.set_sensitive(False)
 
             self._active_button.connect("toggled", self.on_toggled_active, hboxtl)
-
-        comboboxe.set_active_index(self.engine)
-        if len(self.available_engines) > 0 and comboboxe.get_active_index() is None:
-            comboboxe.set_active(0)
 
         # Checkbox & SpinButton for threshold
         hboxt = Gtk.Box()
@@ -424,12 +411,6 @@ class OCRControls(Gtk.Box):
             "toggled", self.on_toggled_threshold, self._threshold_spin
         )
         self._threshold_spin.connect("value-changed", self.on_threshold_changed)
-
-        def show_callback(_w):
-            if self.engine != "tesseract":
-                hboxtl.hide()
-
-        self.connect("show", show_callback)
 
     def on_toggled_active(self, checkbox, hboxtl):
         "callback for OCR active checkbox"

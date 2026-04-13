@@ -261,18 +261,6 @@ class TestRotateControls:
 class TestOCRControls:
     "Tests for OCRControls class"
 
-    @pytest.fixture
-    def mock_deps(self, mocker):
-        "Mock external dependencies"
-        mocker.patch(
-            "postprocess_controls.get_tesseract_codes", return_value=["eng", "deu"]
-        )
-        mocker.patch(
-            "postprocess_controls.languages",
-            return_value={"eng": "English", "deu": "German"},
-        )
-        return mocker
-
     def test_init_no_engines(self):
         "Test initialization with no engines"
         controls = OCRControls(available_engines=[])
@@ -333,10 +321,10 @@ class TestOCRControls:
         controls.on_language_changed(mock_combo)
         assert controls.language == "deu"
 
-    def test_add_tess_languages(self):
-        "Test _add_tess_languages"
-        _controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
-        # It's called in init if tesseract is present.
-        # We can check if the combobox contains expected data.
-        # But `_add_tess_languages` returns an hbox which is local in init.
-        # However, it connects `on_language_changed`.
+
+def test_engine_property(mock_ocr_setup):
+    "Test engine property"
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]], engine="tesseract"
+    )
+    assert controls.engine == "tesseract"
