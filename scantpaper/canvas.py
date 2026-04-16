@@ -534,53 +534,49 @@ class Canvas(
 
     def _boxed_text(self, options):
         "Draw text on the canvas with a box around it"
-        box = options["box"]
+        while True:
+            box = options["box"]
 
-        # each call should use own copy of arrays to prevent race conditions
-        transformations = options["transformations"]
-        parents = options["parents"]
-        rotation, _, _ = transformations[box["depth"]]
-        textangle = box["textangle"] if "textangle" in box else 0
+            # each call should use own copy of arrays to prevent race conditions
+            transformations = options["transformations"]
+            parents = options["parents"]
+            rotation, _, _ = transformations[box["depth"]]
+            textangle = box["textangle"] if "textangle" in box else 0
 
-        # copy box parameters from method arguments
-        options2 = {"parent": parents[box["depth"]]}
-        options2["edit_callback"] = options["edit_callback"]
-        options2["text"] = box["text"] if "text" in box else ""
+            # copy box parameters from method arguments
+            options2 = {"parent": parents[box["depth"]]}
+            options2["edit_callback"] = options["edit_callback"]
+            options2["text"] = box["text"] if "text" in box else ""
+            options2["skip_confidence_index"] = options.get(
+                "skip_confidence_index", False
+            )
 
-        # copy parameters from box from OCR output
-        for key in ["baseline", "confidence", "id", "textangle", "type"]:
-            if key in box:
-                options2[key] = box[key]
+            # copy parameters from box from OCR output
+            for key in ["baseline", "confidence", "id", "textangle", "type"]:
+                if key in box:
+                    options2[key] = box[key]
 
-        options2["bbox"] = Rectangle.from_bbox(*box["bbox"])
-        bbox = self.add_box(**options2)
+            options2["bbox"] = Rectangle.from_bbox(*box["bbox"])
+            bbox = self.add_box(**options2)
 
-        # always one more parent, as the page has a root
-        if box["depth"] > len(parents) - 2:
-            parents.append(bbox)
-        else:
-            parents[box["depth"] + 1] = bbox
+            # always one more parent, as the page has a root
+            if box["depth"] > len(parents) - 2:
+                parents.append(bbox)
+            else:
+                parents[box["depth"] + 1] = bbox
 
-        transformations.append(
-            [textangle + rotation, options2["bbox"].x, options2["bbox"].y]
-        )
-        try:
-            child = next(options["iter"])
-        except StopIteration:
-            if options["finished_callback"]:
-                options["finished_callback"]()
-            return
+            transformations.append(
+                [textangle + rotation, options2["bbox"].x, options2["bbox"].y]
+            )
+            try:
+                child = next(options["iter"])
+            except StopIteration:
+                if options["finished_callback"]:
+                    options["finished_callback"]()
+                return
 
-        options3 = {
-            "box": child,
-            "iter": options["iter"],
-            "parents": parents,
-            "transformations": transformations,
-            "edit_callback": options["edit_callback"],
-            "idle": options["idle"],
-            "finished_callback": options["finished_callback"],
-        }
-        self._boxed_text_wrapper(options3)
+            # Update options for next iteration instead of recursing
+            options["box"] = child
 
         # $rect->signal_connect(
         #  'button-press-event' => sub {
