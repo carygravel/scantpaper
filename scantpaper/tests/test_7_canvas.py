@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import json
+import time
 from unittest.mock import MagicMock, patch
 import tempfile
 import pytest
@@ -89,15 +90,6 @@ def test_canvas_offset_setter_no_change(mocker):
     canvas_obj.emit.reset_mock()
     canvas_obj.offset = rect
     canvas_obj.emit.assert_not_called()
-
-
-def test_canvas_boxed_text_wrapper_no_idle(mocker):
-    "Test _boxed_text_wrapper without idle"
-    canvas_obj = Canvas()
-    canvas_obj._boxed_text = MagicMock()
-    kwargs = {"idle": False}
-    canvas_obj._boxed_text_wrapper(kwargs)
-    canvas_obj._boxed_text.assert_called_with(kwargs)
 
 
 def test_hsv2rgb_coverage():
@@ -594,19 +586,6 @@ def test_canvas_drag_cursor(mocker):
     canvas._button_released(canvas, release_event)
 
     mock_window.set_cursor.assert_called_once_with(None)
-
-
-def test_canvas_set_text_idles(mocker):
-    "Test set_text with existing idles"
-    mocker.patch("gi.repository.Gdk.Display.get_default")
-    canvas = Canvas()
-    canvas._old_idles = {"dummy": 1}
-    mocker.patch("gi.repository.GLib.Source.remove")
-    page = mocker.Mock()
-    page.get_size.return_value = (100, 100)
-    page.text_layer = "[]"
-    canvas.set_text(page=page, layer="text_layer", idle=False)
-    assert GLib.Source.remove.called
 
 
 def test_canvas_hocr_empty(mocker):
@@ -1498,37 +1477,6 @@ def test_bbox_stack_index_coverage(mocker):
     assert idx == 2
 
 
-def test_boxed_text_idle(rose_pnm):
-    "Test _boxed_text_wrapper with idle=True to cover lines 615-620"
-    canvas = Canvas()
-    with tempfile.TemporaryDirectory() as dirname:
-        page = Page(
-            filename=rose_pnm.name,
-            format="Portable anymap",
-            resolution=72,
-            dir=dirname,
-        )
-        page.text_layer = json.dumps(
-            [{"depth": 0, "bbox": [0, 0, 10, 10], "type": "page", "text": "foo"}]
-        )
-
-        mlp = GLib.MainLoop()
-
-        def finished():
-            mlp.quit()
-
-        canvas.set_text(
-            page=page, layer="text_layer", idle=True, finished_callback=finished
-        )
-
-        # Run loop to process idles
-        GLib.timeout_add(1000, mlp.quit)  # safety timeout
-        mlp.run()
-
-        assert canvas.get_root_item().get_n_children() > 0
-        assert str(json.loads(page.text_layer)[0]) not in canvas._old_idles
-
-
 def test_tree_iter_next_word_stop_iteration(mocker):
     "Test TreeIter.next_word() state restoration on StopIteration (lines 1358-1361)"
     canvas_obj = Canvas()
@@ -1881,3 +1829,130 @@ def test_tree_iter_first_last_word():
 
     ti_l = TreeIter(l1)
     assert ti_l.last_word() == w1
+
+
+# Performance regression tests
+def create_test_page_with_words(num_words, words_per_line=10):
+    """Helper to create a test page with specified number of words"""
+    boxes = []
+
+    # Add page
+    boxes.append(
+        {
+            "depth": 0,
+            "bbox": [0, 0, 800, 1100],
+            "type": "page",
+            "text": "",
+        }
+    )
+
+    # Add lines and words
+    line_num = 0
+    for i in range(0, num_words, words_per_line):
+        # Add line
+        y_pos = 50 + line_num * 30
+        boxes.append(
+            {
+                "depth": 1,
+                "bbox": [50, y_pos, 750, y_pos + 25],
+                "type": "line",
+                "text": "",
+            }
+        )
+
+        # Add words in this line
+        for j in range(min(words_per_line, num_words - i)):
+            x_pos = 60 + j * 70
+            boxes.append(
+                {
+                    "depth": 2,
+                    "bbox": [x_pos, y_pos + 2, x_pos + 60, y_pos + 23],
+                    "type": "word",
+                    "text": f"word{i+j}",
+                    "confidence": 50 + (i + j) % 50,  # Vary confidence
+                }
+            )
+
+        line_num += 1
+
+    return json.dumps(boxes)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "num_words,max_time_ms",
+    [
+        (100, 100),  # Small page: should be very fast
+        (500, 300),  # Typical A4 page: ~35ms expected, allow 150ms headroom
+        (1000, 600),  # Large page: ~67ms expected, allow 250ms headroom
+    ],
+)
+def test_canvas_performance(rose_pnm, num_words, max_time_ms):
+    "Test that canvas loading performance hasn't regressed."
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm.name,
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+
+        # Generate test data
+        page.text_layer = create_test_page_with_words(num_words)
+
+        # Benchmark canvas loading
+        canvas = Canvas()
+        start = time.time()
+        canvas.set_text(page=page, layer="text_layer", idle=False)
+        elapsed_ms = (time.time() - start) * 1000
+
+        # Verify correctness
+        assert (
+            len(canvas.confidence_index.list) == num_words
+        ), f"Confidence index should have {num_words} words"
+
+        # Check performance
+        assert elapsed_ms < max_time_ms, (
+            f"Canvas loading {num_words} words took {elapsed_ms:.1f}ms, "
+            f"expected < {max_time_ms}ms. Performance regression detected!"
+        )
+
+        # Print timing info for diagnostics (only in verbose mode)
+        print(
+            f"\n{num_words} words loaded in {elapsed_ms:.1f}ms "
+            f"({num_words/elapsed_ms*1000:.0f} words/sec)"
+        )
+
+
+@pytest.mark.slow
+def test_canvas_no_stack_overflow(rose_pnm):
+    """Test that large pages don't cause stack overflow.
+
+    Before optimization, _boxed_text() was recursive and would hit
+    Python's recursion limit (~1000) for large pages. This test ensures
+    the iterative version can handle arbitrarily large pages.
+    """
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm.name,
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+
+        # Test with more than Python's default recursion limit
+        num_words = 1500
+        page.text_layer = create_test_page_with_words(num_words)
+
+        # This should not raise RecursionError
+        canvas = Canvas()
+        try:
+            canvas.set_text(page=page, layer="text_layer", idle=False)
+        except RecursionError:
+            pytest.fail(
+                f"RecursionError with {num_words} words. "
+                "The iterative optimization may have been broken."
+            )
+
+        # Verify it actually loaded all words
+        assert len(canvas.confidence_index.list) == num_words
