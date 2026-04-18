@@ -33,6 +33,7 @@ _100_PERCENT = 100
 _360_DEGREES = 360
 EMPTY = ""
 SPACE = " "
+BATCH_SIZE = 100
 HOCR_HEADER = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -360,7 +361,7 @@ class Canvas(
             "finished_callback": finished_with_rebuild,
             "skip_confidence_index": True,
         }
-        self._boxed_text(options)
+        GLib.idle_add(self._boxed_text, options)
 
     def get_first_bbox(self):
         "return first bbox, depending on which index is active"
@@ -545,7 +546,7 @@ class Canvas(
 
     def _boxed_text(self, options):
         "Draw text on the canvas with a box around it"
-        while True:
+        for _ in range(BATCH_SIZE):
             box = options["box"]
 
             # each call should use own copy of arrays to prevent race conditions
@@ -584,10 +585,12 @@ class Canvas(
             except StopIteration:
                 if options["finished_callback"]:
                     options["finished_callback"]()
-                return
+                return GLib.SOURCE_REMOVE
 
             # Update options for next iteration instead of recursing
             options["box"] = child
+
+        return GLib.SOURCE_CONTINUE
 
         # $rect->signal_connect(
         #  'button-press-event' => sub {

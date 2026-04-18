@@ -149,7 +149,13 @@ def test_canvas_basics(rose_pnm):
 
         canvas = Canvas()
         canvas.sort_by_confidence()
-        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
+        mlp = GLib.MainLoop()
+        canvas.set_text(
+            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            finished_callback=lambda: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
 
         bbox = canvas.get_first_bbox()
         assert bbox.text == "The—", "get_first_bbox"
@@ -212,7 +218,13 @@ def test_canvas_basics2(rose_pnm):
 
         canvas = Canvas()
         canvas.sort_by_confidence()
-        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
+        mlp = GLib.MainLoop()
+        canvas.set_text(
+            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            finished_callback=lambda: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
 
         group = (
             canvas.get_root_item()
@@ -386,7 +398,13 @@ def test_hocr(rose_pnm):
 """)
 
         canvas = Canvas()
-        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
+        mlp = GLib.MainLoop()
+        canvas.set_text(
+            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            finished_callback=lambda: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
         canvas.sort_by_confidence()
 
         expected = HOCR_HEADER + """ <body>
@@ -477,7 +495,13 @@ def test_bbox_text_placement(rose_pnm):
  </html>
  """)
         canvas = Canvas()
-        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
+        mlp = GLib.MainLoop()
+        canvas.set_text(
+            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            finished_callback=lambda: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
 
         # Get the bbox for the word 'fox'
         bbox = canvas.get_first_bbox()
@@ -1272,9 +1296,13 @@ def test_canvas_set_text_full(mocker, rose_pnm):
 
         canvas_obj = Canvas()
         # Test without idles
+        mlp = GLib.MainLoop()
         canvas_obj.set_text(
-            bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False
+            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            finished_callback=lambda: mlp.quit(),
         )
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
         assert canvas_obj.get_pixbuf_size() == {"width": 100, "height": 100}
 
 
@@ -1906,7 +1934,13 @@ def test_canvas_performance(rose_pnm, num_words, max_time_ms):
         # Benchmark canvas loading
         canvas = Canvas()
         start = time.time()
-        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
+        mlp = GLib.MainLoop()
+        canvas.set_text(
+            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            finished_callback=lambda: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
         elapsed_ms = (time.time() - start) * 1000
 
         # Verify correctness
@@ -1950,10 +1984,13 @@ def test_canvas_no_stack_overflow(rose_pnm):
         # This should not raise RecursionError
         canvas = Canvas()
         try:
+            mlp = GLib.MainLoop()
             canvas.set_text(
                 bboxes=list(Bboxtree(page.text_layer).each_bbox()),
-                idle=False,
+                finished_callback=lambda: mlp.quit(),
             )
+            GLib.timeout_add(2000, mlp.quit)
+            mlp.run()
         except RecursionError:
             pytest.fail(
                 f"RecursionError with {num_words} words. "
