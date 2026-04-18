@@ -813,10 +813,21 @@ def test_tool_actions(mock_session_window):
 
 def test_create_txt_ann_canvas(mocker, mock_session_window):
     "Test _create_txt_canvas and _create_ann_canvas"
+
+    def sync_parse(json_string, finished_callback=None):
+        if finished_callback:
+            mock_result = mocker.Mock()
+            mock_result.info = ["bbox1", "bbox2"]
+            finished_callback(mock_result)
+
+    mock_session_window.slist.thread.parse_bboxtree.side_effect = sync_parse
     mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
     mock_session_window.view.get_zoom.return_value = 1.5
 
     mock_page = mocker.Mock()
+    mock_page.text_layer = "some json"
+    mock_page.annotations = "some json"
+
     mock_session_window._create_txt_canvas(mock_page)
     mock_session_window.t_canvas.set_text.assert_called()
     mock_session_window.t_canvas.set_offset.assert_called_with(10, 20)
