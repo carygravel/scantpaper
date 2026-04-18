@@ -341,14 +341,24 @@ class Canvas(
             box = next(itr)
         except StopIteration:
             return
+
+        # Wrap the original callback to rebuild confidence index at the end
+        original_callback = kwargs.get("finished_callback")
+
+        def finished_with_rebuild():
+            self._rebuild_confidence_index()
+            if original_callback:
+                original_callback()
+
         options = {
             "iter": itr,
             "box": box,
             "parents": [root],
             "transformations": [[0, 0, 0]],
             "edit_callback": kwargs.get("edit_callback"),
-            "idle": kwargs.get("idle", True),
-            "finished_callback": kwargs.get("finished_callback"),
+            "idle": kwargs.get("idle", False),
+            "finished_callback": finished_with_rebuild,
+            "skip_confidence_index": True,
         }
         self._boxed_text_wrapper(options)
 
@@ -518,7 +528,7 @@ class Canvas(
         if self.position_index is None:
             self.position_index = TreeIter(bbox)
 
-        if len(kwargs["text"]) > 0:
+        if len(kwargs["text"]) > 0 and not kwargs.get("skip_confidence_index", False):
             self.confidence_index.add_box_to_index(bbox, bbox.confidence)
 
             # clicking text box produces a dialog to edit the text
@@ -612,6 +622,28 @@ class Canvas(
             self._old_idles[str(kwargs["box"])] = GLib.idle_add(_boxed_text_in_idle)
         else:
             self._boxed_text(kwargs)
+
+    def _rebuild_confidence_index(self):
+        """Rebuild confidence index from all word bboxes in the tree.
+        This is much faster than building it incrementally during loading."""
+        words = []
+        root = self.get_root_item()
+        if root is None or root.get_n_children() == 0:
+            return
+
+        def collect_words(bbox):
+            if isinstance(bbox, Bbox) and bbox.type == "word" and len(bbox.text) > 0:
+                words.append((bbox, bbox.confidence))
+
+        page = root.get_child(0)
+        if isinstance(page, Bbox):
+            collect_words(page)
+            page.walk_children(collect_words)
+
+        # Sort once and rebuild the list
+        words.sort(key=lambda x: x[1])
+        self.confidence_index.list = words
+        self.confidence_index.index = EMPTY_LIST
 
     def hocr(self):
         "Convert the canvas into hocr"
