@@ -814,10 +814,13 @@ def test_tool_actions(mock_session_window):
 def test_create_txt_ann_canvas(mocker, mock_session_window):
     "Test _create_txt_canvas and _create_ann_canvas"
 
-    def sync_parse(json_string, finished_callback=None):
+    def sync_parse(_json_string, finished_callback=None):
         if finished_callback:
             mock_result = mocker.Mock()
-            mock_result.info = ["bbox1", "bbox2"]
+            mock_result.info = {
+                "bboxes": [{"bbox": [0, 0, 100, 100]}],
+                "sorted_word_indices": [],
+            }
             finished_callback(mock_result)
 
     mock_session_window.slist.thread.parse_bboxtree.side_effect = sync_parse

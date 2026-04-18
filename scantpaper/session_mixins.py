@@ -682,7 +682,8 @@ class SessionMixins:
 
         def on_parsed(result):
             self.t_canvas.set_text(
-                bboxes=result.info,
+                bboxes=result.info["bboxes"],
+                sorted_word_indices=result.info["sorted_word_indices"],
                 edit_callback=self._edit_ocr_text,
                 finished_callback=finished_callback,
             )
@@ -705,7 +706,8 @@ class SessionMixins:
 
         def on_parsed(result):
             self.a_canvas.set_text(
-                bboxes=result.info,
+                bboxes=result.info["bboxes"],
+                sorted_word_indices=result.info["sorted_word_indices"],
                 edit_callback=self._edit_annotation,
                 finished_callback=finished_callback,
             )

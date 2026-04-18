@@ -5,7 +5,6 @@ import math
 import html
 import logging
 import gi
-from bboxtree import Bboxtree
 
 gi.require_version("GooCanvas", "2.0")
 gi.require_version("Gdk", "3.0")
@@ -317,7 +316,7 @@ class Canvas(
 
         return val
 
-    def set_text(self, bboxes, **kwargs):
+    def set_text(self, bboxes, sorted_word_indices, **kwargs):
         "set the canvas text from a list of bboxes"
 
         if not bboxes:
@@ -338,23 +337,33 @@ class Canvas(
 
         # Attach the text to the canvas
         self.confidence_index = ListIter()
-        itr = iter(bboxes)
+        itr = enumerate(bboxes)
         try:
-            box = next(itr)
+            idx, box = next(itr)
         except StopIteration:
             return
 
         # Wrap the original callback to rebuild confidence index at the end
         original_callback = kwargs.get("finished_callback")
+        bbox_map = {}
 
         def finished_with_rebuild():
-            self._rebuild_confidence_index()
+            words = []
+            for i in sorted_word_indices:
+                bbox = bbox_map.get(i)
+                if bbox:
+                    words.append((bbox, bbox.confidence))
+            self.confidence_index.list = words
+            self.confidence_index.index = EMPTY_LIST
+
             if original_callback:
                 original_callback()
 
         options = {
             "iter": itr,
+            "idx": idx,
             "box": box,
+            "bbox_map": bbox_map,
             "parents": [root],
             "transformations": [[0, 0, 0]],
             "edit_callback": kwargs.get("edit_callback"),
@@ -547,6 +556,7 @@ class Canvas(
     def _boxed_text(self, options):
         "Draw text on the canvas with a box around it"
         for _ in range(BATCH_SIZE):
+            idx = options["idx"]
             box = options["box"]
 
             # each call should use own copy of arrays to prevent race conditions
@@ -570,6 +580,7 @@ class Canvas(
 
             options2["bbox"] = Rectangle.from_bbox(*box["bbox"])
             bbox = self.add_box(**options2)
+            options["bbox_map"][idx] = bbox
 
             # always one more parent, as the page has a root
             if box["depth"] > len(parents) - 2:
@@ -581,14 +592,11 @@ class Canvas(
                 [textangle + rotation, options2["bbox"].x, options2["bbox"].y]
             )
             try:
-                child = next(options["iter"])
+                options["idx"], options["box"] = next(options["iter"])
             except StopIteration:
                 if options["finished_callback"]:
                     options["finished_callback"]()
                 return GLib.SOURCE_REMOVE
-
-            # Update options for next iteration instead of recursing
-            options["box"] = child
 
         return GLib.SOURCE_CONTINUE
 
@@ -614,28 +622,6 @@ class Canvas(
         #   #  return TRUE;
         #  }
         # );
-
-    def _rebuild_confidence_index(self):
-        """Rebuild confidence index from all word bboxes in the tree.
-        This is much faster than building it incrementally during loading."""
-        words = []
-        root = self.get_root_item()
-        if root is None or root.get_n_children() == 0:
-            return
-
-        def collect_words(bbox):
-            if isinstance(bbox, Bbox) and bbox.type == "word" and len(bbox.text) > 0:
-                words.append((bbox, bbox.confidence))
-
-        page = root.get_child(0)
-        if isinstance(page, Bbox):
-            collect_words(page)
-            page.walk_children(collect_words)
-
-        # Sort once and rebuild the list
-        words.sort(key=lambda x: x[1])
-        self.confidence_index.list = words
-        self.confidence_index.index = EMPTY_LIST
 
     def hocr(self):
         "Convert the canvas into hocr"
