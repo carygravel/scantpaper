@@ -761,6 +761,17 @@ class DocThread(SaveThread):
         )
         return self._fetchone()[0]
 
+    def parse_bboxtree(self, json_string, **kwargs):
+        "parse bboxtree in thread"
+        callbacks = _note_callbacks(kwargs)
+        return self.send("parse_bboxtree", json_string, **callbacks)
+
+    def do_parse_bboxtree(self, request):
+        "parse bboxtree in thread"
+        json_string = request.args[0]
+        tree = Bboxtree(json_string)
+        return list(tree.each_bbox())
+
     def set_text(self, page_id, text, **kwargs):
         "sets the text layer for the given page"
         callbacks = _note_callbacks(kwargs)

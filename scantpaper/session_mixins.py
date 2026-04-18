@@ -679,31 +679,49 @@ class SessionMixins:
 
     def _create_txt_canvas(self, page, finished_callback=None):
         "Create the text canvas"
+
+        def on_parsed(result):
+            self.t_canvas.set_text(
+                bboxes=result.info,
+                edit_callback=self._edit_ocr_text,
+                finished_callback=finished_callback,
+            )
+            self.t_canvas.set_scale(self.view.get_zoom())
+            self.t_canvas.set_offset(offset.x, offset.y)
+            self.t_canvas.show()
+
         offset = self.view.get_offset()
-        self.t_canvas.set_text(
-            page=page,
-            layer="text_layer",
-            edit_callback=self._edit_ocr_text,
-            idle=True,
-            finished_callback=finished_callback,
-        )
-        self.t_canvas.set_scale(self.view.get_zoom())
-        self.t_canvas.set_offset(offset.x, offset.y)
-        self.t_canvas.show()
+        if page.text_layer:
+            self.slist.thread.parse_bboxtree(
+                page.text_layer, finished_callback=on_parsed
+            )
+        else:
+            self.t_canvas.clear_text()
+            if finished_callback:
+                finished_callback()
 
     def _create_ann_canvas(self, page, finished_callback=None):
         "Create the annotation canvas"
+
+        def on_parsed(result):
+            self.a_canvas.set_text(
+                bboxes=result.info,
+                edit_callback=self._edit_annotation,
+                finished_callback=finished_callback,
+            )
+            self.a_canvas.set_scale(self.view.get_zoom())
+            self.a_canvas.set_offset(offset.x, offset.y)
+            self.a_canvas.show()
+
         offset = self.view.get_offset()
-        self.a_canvas.set_text(
-            page=page,
-            layer="annotations",
-            edit_callback=self._edit_annotation,
-            idle=True,
-            finished_callback=finished_callback,
-        )
-        self.a_canvas.set_scale(self.view.get_zoom())
-        self.a_canvas.set_offset(offset.x, offset.y)
-        self.a_canvas.show()
+        if page.annotations:
+            self.slist.thread.parse_bboxtree(
+                page.annotations, finished_callback=on_parsed
+            )
+        else:
+            self.a_canvas.clear_text()
+            if finished_callback:
+                finished_callback()
 
     def zoom_100(self, _action, _param):
         "Sets the zoom level of the view to 100%."

@@ -12,6 +12,7 @@ from canvas import (
     rgb2hsv,
     hsv2rgb,
     Canvas,
+    Bboxtree,
     Bbox,
     Rectangle,
     ListIter,
@@ -148,7 +149,7 @@ def test_canvas_basics(rose_pnm):
 
         canvas = Canvas()
         canvas.sort_by_confidence()
-        canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
 
         bbox = canvas.get_first_bbox()
         assert bbox.text == "The—", "get_first_bbox"
@@ -164,10 +165,10 @@ def test_canvas_basics(rose_pnm):
 
         #########################
 
-        assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds"
+        assert canvas.get_bounds() == (0, 0, 422, 61), "get_bounds"
         assert canvas.get_scale() == 1, "get_scale"
         canvas._set_zoom_with_center(2, 35, 26)
-        assert canvas.get_bounds() == (0, 0, 70, 46), "get_bounds after zoom"
+        assert canvas.get_bounds() == (0, 0, 422, 61), "get_bounds after zoom"
         assert canvas.convert_from_pixels(0, 0) == (0, 0), "convert_from_pixels"
         width, height = page.get_size()
         canvas.set_bounds(-10, -10, width + 10, height + 10)
@@ -211,7 +212,7 @@ def test_canvas_basics2(rose_pnm):
 
         canvas = Canvas()
         canvas.sort_by_confidence()
-        canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
 
         group = (
             canvas.get_root_item()
@@ -385,7 +386,7 @@ def test_hocr(rose_pnm):
 """)
 
         canvas = Canvas()
-        canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
         canvas.sort_by_confidence()
 
         expected = HOCR_HEADER + """ <body>
@@ -476,7 +477,7 @@ def test_bbox_text_placement(rose_pnm):
  </html>
  """)
         canvas = Canvas()
-        canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
 
         # Get the bbox for the word 'fox'
         bbox = canvas.get_first_bbox()
@@ -1271,8 +1272,10 @@ def test_canvas_set_text_full(mocker, rose_pnm):
 
         canvas_obj = Canvas()
         # Test without idles
-        canvas_obj.set_text(page=page, layer="text_layer", idle=False)
-        assert canvas_obj.get_pixbuf_size() == {"width": 70, "height": 46}
+        canvas_obj.set_text(
+            bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False
+        )
+        assert canvas_obj.get_pixbuf_size() == {"width": 100, "height": 100}
 
 
 def test_canvas_set_offset_pixbuf_none(mocker):
@@ -1903,7 +1906,7 @@ def test_canvas_performance(rose_pnm, num_words, max_time_ms):
         # Benchmark canvas loading
         canvas = Canvas()
         start = time.time()
-        canvas.set_text(page=page, layer="text_layer", idle=False)
+        canvas.set_text(bboxes=list(Bboxtree(page.text_layer).each_bbox()), idle=False)
         elapsed_ms = (time.time() - start) * 1000
 
         # Verify correctness
@@ -1947,7 +1950,10 @@ def test_canvas_no_stack_overflow(rose_pnm):
         # This should not raise RecursionError
         canvas = Canvas()
         try:
-            canvas.set_text(page=page, layer="text_layer", idle=False)
+            canvas.set_text(
+                bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+                idle=False,
+            )
         except RecursionError:
             pytest.fail(
                 f"RecursionError with {num_words} words. "

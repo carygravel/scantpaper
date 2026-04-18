@@ -316,12 +316,20 @@ class Canvas(
 
         return val
 
-    def set_text(self, **kwargs):
-        "set the canvas text from a page object"
+    def set_text(self, bboxes, **kwargs):
+        "set the canvas text from a list of bboxes"
+
+        if not bboxes:
+            self.clear_text()
+            if "finished_callback" in kwargs:
+                kwargs["finished_callback"]()
+            return
 
         self.position_index = None
         root = GooCanvas.CanvasGroup()
-        width, height = kwargs["page"].get_size()
+
+        # derive the size from the page bbox
+        _x1, _y1, width, height = bboxes[0]["bbox"]
 
         self.set_root_item(root)
         self._pixbuf_size = {"width": width, "height": height}
@@ -329,8 +337,7 @@ class Canvas(
 
         # Attach the text to the canvas
         self.confidence_index = ListIter()
-        tree = Bboxtree(getattr(kwargs["page"], kwargs["layer"]))
-        itr = tree.each_bbox()
+        itr = iter(bboxes)
         try:
             box = next(itr)
         except StopIteration:
