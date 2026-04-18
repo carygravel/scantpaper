@@ -286,7 +286,6 @@ class Canvas(
         #         'Gtk3::Gdk::EventMask', 'scroll-mask'
         #         )
         # )
-        self._old_idles = {}
         self._device = Gdk.Display.get_default().get_default_seat().get_pointer()
         self._offset = Gdk.Rectangle()
         self._current_index = "position"
@@ -320,11 +319,6 @@ class Canvas(
     def set_text(self, **kwargs):
         "set the canvas text from a page object"
 
-        if self._old_idles:
-            for box in list(self._old_idles.keys()):
-                GLib.Source.remove(self._old_idles[box])
-                del self._old_idles[box]
-
         self.position_index = None
         root = GooCanvas.CanvasGroup()
         width, height = kwargs["page"].get_size()
@@ -356,11 +350,10 @@ class Canvas(
             "parents": [root],
             "transformations": [[0, 0, 0]],
             "edit_callback": kwargs.get("edit_callback"),
-            "idle": kwargs.get("idle", False),
             "finished_callback": finished_with_rebuild,
             "skip_confidence_index": True,
         }
-        self._boxed_text_wrapper(options)
+        self._boxed_text(options)
 
     def get_first_bbox(self):
         "return first bbox, depending on which index is active"
@@ -611,18 +604,6 @@ class Canvas(
         #   #  return TRUE;
         #  }
         # );
-
-    def _boxed_text_wrapper(self, kwargs):
-        if kwargs["idle"]:
-
-            def _boxed_text_in_idle():
-                self._boxed_text(kwargs)
-                del self._old_idles[str(kwargs["box"])]
-                return GLib.SOURCE_REMOVE
-
-            self._old_idles[str(kwargs["box"])] = GLib.idle_add(_boxed_text_in_idle)
-        else:
-            self._boxed_text(kwargs)
 
     def _rebuild_confidence_index(self):
         """Rebuild confidence index from all word bboxes in the tree.
