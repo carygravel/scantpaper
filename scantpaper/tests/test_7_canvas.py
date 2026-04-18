@@ -8,11 +8,11 @@ import tempfile
 import pytest
 import gi
 from page import Page
+from bboxtree import Bboxtree
 from canvas import (
     rgb2hsv,
     hsv2rgb,
     Canvas,
-    Bboxtree,
     Bbox,
     Rectangle,
     ListIter,
@@ -75,6 +75,18 @@ def test_color_functions_more():
     # Else sector: red=v, green=p, blue=q
     c = hsv2rgb({"h": 300, "s": 1.0, "v": 1.0})
     assert_rgba_equal(c, Gdk.RGBA(1, 0, 1))
+
+
+def get_bboxes_and_indices(json_string):
+    "Helper to simulate docthread parsing"
+    tree = Bboxtree(json_string)
+    bboxes = list(tree.each_bbox())
+    words = []
+    for i, box in enumerate(bboxes):
+        if box.get("type") == "word" and len(box.get("text", "")) > 0:
+            words.append((i, box.get("confidence", 100)))
+    words.sort(key=lambda x: x[1])
+    return bboxes, [x[0] for x in words]
 
 
 def test_canvas_offset_setter_no_change(mocker):
@@ -150,8 +162,10 @@ def test_canvas_basics(rose_pnm):
         canvas = Canvas()
         canvas.sort_by_confidence()
         mlp = GLib.MainLoop()
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
-            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            bboxes=bboxes,
+            sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)
@@ -219,8 +233,10 @@ def test_canvas_basics2(rose_pnm):
         canvas = Canvas()
         canvas.sort_by_confidence()
         mlp = GLib.MainLoop()
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
-            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            bboxes=bboxes,
+            sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)
@@ -399,8 +415,10 @@ def test_hocr(rose_pnm):
 
         canvas = Canvas()
         mlp = GLib.MainLoop()
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
-            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            bboxes=bboxes,
+            sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)
@@ -496,8 +514,10 @@ def test_bbox_text_placement(rose_pnm):
  """)
         canvas = Canvas()
         mlp = GLib.MainLoop()
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
-            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            bboxes=bboxes,
+            sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)
@@ -1293,16 +1313,18 @@ def test_canvas_set_text_full(mocker, rose_pnm):
                 }
             ]
         )
-
         canvas_obj = Canvas()
         # Test without idles
         mlp = GLib.MainLoop()
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas_obj.set_text(
-            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            bboxes=bboxes,
+            sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)
         mlp.run()
+
         assert canvas_obj.get_pixbuf_size() == {"width": 100, "height": 100}
 
 
@@ -1935,8 +1957,10 @@ def test_canvas_performance(rose_pnm, num_words, max_time_ms):
         canvas = Canvas()
         start = time.time()
         mlp = GLib.MainLoop()
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
-            bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+            bboxes=bboxes,
+            sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
         GLib.timeout_add(2000, mlp.quit)
@@ -1980,13 +2004,14 @@ def test_canvas_no_stack_overflow(rose_pnm):
         # Test with more than Python's default recursion limit
         num_words = 1500
         page.text_layer = create_test_page_with_words(num_words)
-
         # This should not raise RecursionError
         canvas = Canvas()
         try:
             mlp = GLib.MainLoop()
+            bboxes, indices = get_bboxes_and_indices(page.text_layer)
             canvas.set_text(
-                bboxes=list(Bboxtree(page.text_layer).each_bbox()),
+                bboxes=bboxes,
+                sorted_word_indices=indices,
                 finished_callback=lambda: mlp.quit(),
             )
             GLib.timeout_add(2000, mlp.quit)

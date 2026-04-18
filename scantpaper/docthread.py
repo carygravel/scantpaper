@@ -770,7 +770,19 @@ class DocThread(SaveThread):
         "parse bboxtree in thread"
         json_string = request.args[0]
         tree = Bboxtree(json_string)
-        return list(tree.each_bbox())
+        bboxes = list(tree.each_bbox())
+        words = []
+        for i, box in enumerate(bboxes):
+            if box.get("type") == "word" and len(box.get("text", "")) > 0:
+                words.append((i, box.get("confidence", 100)))
+
+        # Sort by confidence
+        words.sort(key=lambda x: x[1])
+
+        return {
+            "bboxes": bboxes,
+            "sorted_word_indices": [x[0] for x in words],
+        }
 
     def set_text(self, page_id, text, **kwargs):
         "sets the text layer for the given page"
