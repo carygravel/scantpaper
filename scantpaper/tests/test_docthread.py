@@ -9,6 +9,7 @@ from const import APPLICATION_ID, USER_VERSION
 from docthread import DocThread, _calculate_crop_tuples
 from importthread import CancelledError
 from page import Page
+from basethread import Request
 
 
 def test_do_tesseract_path_fallback(mocker):
@@ -359,6 +360,30 @@ def test_do_set_text(mocker):
             )""",
         ("new_text", 1, 0),
     )
+
+
+def test_parse_bboxtree(mocker):
+    "test parse_bboxtree"
+    thread = DocThread(db=":memory:")
+    mock_send = mocker.patch.object(thread, "send")
+    thread.parse_bboxtree("json")
+    mock_send.assert_called_with("parse_bboxtree", "json")
+
+
+def test_do_parse_bboxtree():
+    "test do_parse_bboxtree"
+    thread = DocThread(db=":memory:")
+    hocr = """
+    [
+        {"type": "page", "bbox": [0, 0, 100, 100], "depth": 0},
+        {"type": "word", "bbox": [10, 10, 20, 20], "text": "high", "confidence": 90, "depth": 1},
+        {"type": "word", "bbox": [30, 30, 40, 40], "text": "low", "confidence": 50, "depth": 1}
+    ]
+    """
+    request = Request("parse_bboxtree", [hocr], None)
+    result = thread.do_parse_bboxtree(request)
+    assert len(result["bboxes"]) == 3
+    assert result["sorted_word_indices"] == [2, 1]
 
 
 def test_do_set_annotations(mocker):
