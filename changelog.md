@@ -1,3 +1,9 @@
+## 3.0.5 (2026-04-11)
+
+* Refactor hOCR parsing into thread to improve UI responsiveness
+* Batch insertions of words in hidden text layer to improve UI responsiveness
+
+
 ## 3.0.4 (2026-04-11)
 
 * Fix error running OCR from dialog.
