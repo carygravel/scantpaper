@@ -235,6 +235,12 @@ scantpaper provides a GUI for scanning, editing, and saving documents as PDF, Dj
 
 ### View Menu
 
+- Pan, Select, Select & Pan tools:
+    - Pan: Use the left mouse button to drag the image or canvas to pan the view
+    - Select: Use the left mouse button to select a rectangular box
+    - Select & Pan: Use the left mouse button to select a rectangular box, and
+      the middle mouse button to drag the image or canvas to pan the view
+    - In all of the above, the mouse wheel (middle mouse button) zooms in or out.
 - Zoom, rotate, and fit options.
 
 ### Tools
@@ -243,7 +249,7 @@ scantpaper provides a GUI for scanning, editing, and saving documents as PDF, Dj
 - **Unsharp mask:** Sharpen images.
 - **Crop**
 - **unpaper:** Clean up scans.
-- **OCR:** Use gocr, tesseract, or cuneiform to extract text.
+- **OCR:** Use tesseract to extract text.
 
 #### User-defined Tool Variables
 
