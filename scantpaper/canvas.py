@@ -328,13 +328,6 @@ class Canvas(
         self.position_index = None
         root = GooCanvas.CanvasGroup()
 
-        # derive the size from the page bbox
-        _x1, _y1, width, height = bboxes[0]["bbox"]
-
-        self.set_root_item(root)
-        self._pixbuf_size = {"width": width, "height": height}
-        self.set_bounds(0, 0, width, height)
-
         # Attach the text to the canvas
         self.confidence_index = ListIter()
         itr = enumerate(bboxes)
@@ -342,6 +335,13 @@ class Canvas(
             idx, box = next(itr)
         except StopIteration:
             return
+
+        # derive the size from the page bbox
+        _x1, _y1, width, height = box["bbox"]
+
+        self.set_root_item(root)
+        self._pixbuf_size = {"width": width, "height": height}
+        self.set_bounds(0, 0, width, height)
 
         # Wrap the original callback to rebuild confidence index at the end
         original_callback = kwargs.get("finished_callback")

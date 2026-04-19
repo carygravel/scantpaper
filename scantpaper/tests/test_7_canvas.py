@@ -1346,6 +1346,32 @@ def test_canvas_get_max_min_color_hsv(mocker):
     assert "h" in hsv
 
 
+def test_set_text_empty_list():
+    "Test set_text with an empty list to cover lines 323-326"
+    canvas = Canvas()
+    canvas.clear_text = MagicMock()
+    callback = MagicMock()
+    canvas.set_text(bboxes=[], sorted_word_indices=[], finished_callback=callback)
+    canvas.clear_text.assert_called_once()
+    callback.assert_called_once()
+
+
+def test_set_text_empty_generator():
+    "Test set_text with an empty generator to cover lines 343-344"
+    canvas = Canvas()
+
+    def empty_gen():
+        yield from []
+
+    # Generators are truthy even when empty, so this bypasses 'if not bboxes'
+    # but triggers StopIteration on next(itr)
+    canvas.set_text(bboxes=empty_gen(), sorted_word_indices=[])
+    # Should return early without crashing or scheduling idles
+    assert (
+        canvas.get_root_item() is None or canvas.get_root_item().get_n_children() == 0
+    )
+
+
 def test_bbox_button_press_callback(mocker):
     "Test Bbox button_press_callback"
     canvas_obj = Canvas()
