@@ -840,6 +840,24 @@ def test_create_txt_ann_canvas(mocker, mock_session_window):
     mock_session_window.a_canvas.set_offset.assert_called_with(10, 20)
 
 
+def test_create_txt_ann_canvas_no_layer(mocker, mock_session_window):
+    "Test _create_txt_canvas and _create_ann_canvas with no layers"
+    mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
+    mock_page = mocker.Mock()
+    mock_page.text_layer = None
+    mock_page.annotations = None
+
+    callback = mocker.Mock()
+    mock_session_window._create_txt_canvas(mock_page, finished_callback=callback)
+    mock_session_window.t_canvas.clear_text.assert_called_once()
+    callback.assert_called_once()
+
+    callback.reset_mock()
+    mock_session_window._create_ann_canvas(mock_page, finished_callback=callback)
+    mock_session_window.a_canvas.clear_text.assert_called_once()
+    callback.assert_called_once()
+
+
 def test_ann_text_new_no_layer(mocker, mock_session_window):
     "Test _ann_text_new with no existing text layer and empty text"
 
