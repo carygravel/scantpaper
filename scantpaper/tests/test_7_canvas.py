@@ -2042,3 +2042,10 @@ def test_canvas_no_stack_overflow(rose_pnm):
 
         # Verify it actually loaded all words
         assert len(canvas.confidence_index.list) == num_words
+
+
+def test_canvas_motion_no_dragging():
+    "Test _motion returns False when not dragging (line 678)"
+    canvas = Canvas()
+    canvas._dragging = False
+    assert canvas._motion(None, None) is False
