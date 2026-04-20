@@ -71,9 +71,6 @@ def mock_session_window(mocker):
             "mock"
             return mock_app
 
-        def _open_session(self, session_dir):
-            pass
-
     # Instantiate
     window = MockWindow()
     window.settings = {
@@ -815,13 +812,12 @@ def test_create_txt_ann_canvas(mocker, mock_session_window):
     "Test _create_txt_canvas and _create_ann_canvas"
 
     def sync_parse(_json_string, finished_callback=None):
-        if finished_callback:
-            mock_result = mocker.Mock()
-            mock_result.info = {
-                "bboxes": [{"bbox": [0, 0, 100, 100]}],
-                "sorted_word_indices": [],
-            }
-            finished_callback(mock_result)
+        mock_result = mocker.Mock()
+        mock_result.info = {
+            "bboxes": [{"bbox": [0, 0, 100, 100]}],
+            "sorted_word_indices": [],
+        }
+        finished_callback(mock_result)
 
     mock_session_window.slist.thread.parse_bboxtree.side_effect = sync_parse
     mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
@@ -923,11 +919,8 @@ def test_ocr_text_add_no_layer(mocker, mock_session_window):
     def getitem(key):
         return page_data.get(key)
 
-    def setitem(key, value):
-        page_data[key] = value
-
     mock_page.__getitem__.side_effect = getitem
-    mock_page.__setitem__.side_effect = setitem
+    mock_page.__setitem__.side_effect = None
     mock_session_window._current_page = mock_page
 
     mock_session_window.view.get_selection.return_value = {
@@ -961,13 +954,11 @@ class MockApp(SessionMixins):
 
     def __init__(self):
         self.slist = MagicMock()
-        # Mock slist.data as a list of lists [page_number, pixbuf, uuid]
-        self.slist.data = [[1, None, "valid-uuid"]]
+        # Mock slist.data as a list of lists [page_number, pixbuf, page_id]
+        self.slist.data = [[1, None, 1]]
 
         # find_page_by_uuid returns index if found, else None
-        def find_side_effect(uuid):
-            if uuid == "valid-uuid":
-                return 0
+        def find_side_effect(_page_id):
             return None
 
         self.slist.find_page_by_uuid.side_effect = find_side_effect
