@@ -1027,11 +1027,7 @@ class Bbox(GooCanvas.CanvasGroup):
             # recreate the text widget so GooCanvas recomputes layout immediately
             # remove the existing text widget (usually child index 1)
             for i in range(self.get_n_children() - 1, -1, -1):
-                try:
-                    child = self.get_child(i)
-                except Exception:
-                    continue
-                if isinstance(child, GooCanvas.CanvasText):
+                if isinstance(self.get_child(i), GooCanvas.CanvasText):
                     self.remove_child(i)
                     break
 
