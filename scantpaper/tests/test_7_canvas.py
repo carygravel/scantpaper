@@ -586,19 +586,17 @@ def test_drag_text_layer(mocker):
         transformation=[0, 0, 0],
     )
     canvas.set_root_item(page)
-    canvas._pixbuf_size = {  # pylint: disable=protected-access
+    canvas._pixbuf_size = {
         "width": 100,
         "height": 100,
     }
 
     event = MockEvent(button=2, x=10, y=10)
-    canvas._button_pressed(canvas, event)  # pylint: disable=protected-access
+    canvas._button_pressed(canvas, event)
     event.x = 20
     event.y = 20
-    try:
-        canvas._motion(canvas, event)  # pylint: disable=protected-access
-    except TypeError:
-        pytest.fail("Dragging a text layer should not raise a TypeError")
+    canvas._motion(canvas, event)
+    assert canvas.get_offset().x == 0, "canvas has moved"
 
 
 def test_canvas_drag_cursor(mocker):
@@ -2032,21 +2030,15 @@ def test_canvas_no_stack_overflow(rose_pnm):
         page.text_layer = create_test_page_with_words(num_words)
         # This should not raise RecursionError
         canvas = Canvas()
-        try:
-            mlp = GLib.MainLoop()
-            bboxes, indices = get_bboxes_and_indices(page.text_layer)
-            canvas.set_text(
-                bboxes=bboxes,
-                sorted_word_indices=indices,
-                finished_callback=lambda: mlp.quit(),
-            )
-            GLib.timeout_add(2000, mlp.quit)
-            mlp.run()
-        except RecursionError:
-            pytest.fail(
-                f"RecursionError with {num_words} words. "
-                "The iterative optimization may have been broken."
-            )
+        mlp = GLib.MainLoop()
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
+        canvas.set_text(
+            bboxes=bboxes,
+            sorted_word_indices=indices,
+            finished_callback=lambda: mlp.quit(),
+        )
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
 
         # Verify it actually loaded all words
         assert len(canvas.confidence_index.list) == num_words
