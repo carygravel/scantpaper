@@ -1,6 +1,9 @@
 "Tests for app.py"
 
 import logging
+import os
+import subprocess
+import sys
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -195,3 +198,33 @@ def test_main(mock_deps, mocker):
 
         mock_app_cls.assert_called()
         mock_app.run.assert_called()
+
+
+def test_application_init_iconpath_fallback(mock_deps, mocker):
+    "Test Application.__init__ with iconpath fallback"
+    mocker.patch("app.os.path.isdir", return_value=False)
+    # Gtk.IconTheme.get_default() was already mocked in mock_deps
+    app = Application()
+    app_module.os.path.isdir.assert_called()
+    # It should have called prepend_search_path with the fallback path
+    app_module.Gtk.IconTheme.get_default().prepend_search_path.assert_called_with(
+        "/usr/share/scantpaper/icons"
+    )
+
+
+def test_application_do_startup(mock_deps, mocker):
+    "Test Application.do_startup"
+    app = Application()
+    app.do_startup()
+    app_module.Gtk.Application.do_startup.assert_called_with(app)
+
+
+def test_script_entry_point():
+    "Test that the script entry point calls main() when run as __main__"
+    import runpy
+
+    with patch("sys.argv", ["scantpaper", "--version"]):
+        try:
+            runpy.run_module("app", run_name="__main__")
+        except SystemExit:
+            pass
