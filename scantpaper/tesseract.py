@@ -1,9 +1,12 @@
 "Some helper functions around tesseract"
 
 import re
+import logging
 import iso639
 from helpers import exec_command
 from i18n import _
+
+logger = logging.getLogger(__name__)
 
 # Taken from
 # https://github.com/tesseract-ocr/tesseract/blob/master/doc/tesseract.1.asc#languages
@@ -166,6 +169,9 @@ non_iso639_1 = {"zh": "chi-sim"}
 def get_tesseract_codes():
     "query tesseract for installed languages"
     proc = exec_command(["tesseract", "--list-langs"])
+    if proc.stdout is None:
+        logger.info(proc.stderr)
+        return []
     _codes = re.split(r"\n", proc.stdout)
     if re.search(r"^List[ ]of[ ]available[ ]languages", _codes[0]):
         _codes.pop(0)

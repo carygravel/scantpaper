@@ -8,6 +8,7 @@ from gi.repository import GLib
 import config
 from document import Document
 from tesseract import languages, _iso639_1to3, locale_installed, get_tesseract_codes
+from helpers import Proc
 
 
 def test_tesseract_code_conversions():
@@ -37,6 +38,25 @@ def test_tesseract_code_conversions():
 def test_get_tesseract_codes():
     "test get_tesseract_codes()"
     assert isinstance(get_tesseract_codes(), list), "get_tesseract_codes() returns list"
+
+
+def test_get_tesseract_codes_mocked(mocker):
+    "test get_tesseract_codes() with mocked exec_command"
+    mock_exec = mocker.patch("tesseract.exec_command")
+
+    # Case 1: stdout is None (tesseract not found)
+    mock_exec.return_value = Proc(-1, None, "not found")
+    assert get_tesseract_codes() == []
+
+    # Case 2: stdout with header and trailing newline
+    mock_exec.return_value = Proc(
+        0, "List of available languages (3):\neng\ndeu\nosd\n", ""
+    )
+    assert get_tesseract_codes() == ["eng", "deu", "osd"]
+
+    # Case 3: stdout without header, without trailing newline
+    mock_exec.return_value = Proc(0, "eng\ndeu", "")
+    assert get_tesseract_codes() == ["eng", "deu"]
 
 
 def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_files):

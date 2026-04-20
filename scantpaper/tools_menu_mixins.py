@@ -791,7 +791,7 @@ class ToolsMenuMixins:
                     launch_default_for_file(self._pdf_email)
 
                 status = exec_command(["xdg-email", "--attach", self._pdf_email, "x@y"])
-                if status:
+                if status.returncode:
                     self._show_message_dialog(
                         parent=self,
                         message_type="error",

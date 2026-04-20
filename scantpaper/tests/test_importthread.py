@@ -59,10 +59,10 @@ def test_get_file_info_no_stdout(mocker):
     "Test that a zero-length file raises a RuntimeError"
 
     mock_exec = mocker.patch("importthread.exec_command")
-    mock_exec.return_value = Proc(returncode=0, stdout=None, stderr="")
+    mock_exec.return_value = Proc(returncode=-1, stdout=None, stderr="not found")
     thread = Importhread()
     request = SimpleNamespace(args=("", None))
-    with pytest.raises(RuntimeError, match="Error getting file info"):
+    with pytest.raises(RuntimeError, match="Error getting file info for : not found"):
         thread.do_get_file_info(request)
 
 
@@ -70,15 +70,49 @@ def test_get_djvu_info_no_djvudump(mocker):
     "Test that error is raised when djvudump is not found"
     mock_exec = mocker.patch("importthread.exec_command")
     mock_exec.return_value = Proc(
-        returncode=0,
-        stdout="",
-        stderr="command not found",
+        returncode=-1,
+        stdout=None,
+        stderr="not found",
     )
     thread = Importhread()
     with pytest.raises(
         RuntimeError, match="Please install djvulibre-bin in order to open DjVu files"
     ):
-        thread._get_djvu_info(None, None)
+        thread._get_djvu_info({}, None)
+
+
+def test_get_djvu_info_no_djvused(mocker):
+    "Test that error is raised when djvused is not found"
+    mock_exec = mocker.patch("importthread.exec_command")
+
+    # First call for djvudump succeeds
+    mock_exec.side_effect = [
+        Proc(0, "DjVu 100x100, 300 dpi\n 1 page", ""),
+        Proc(-1, None, "not found"),
+    ]
+
+    thread = Importhread()
+    with pytest.raises(
+        RuntimeError, match="Please install djvulibre-bin in order to open DjVu files"
+    ):
+        thread._get_djvu_info(
+            {"pages": 1, "width": [100], "height": [100], "ppi": [300]}, None
+        )
+
+
+def test_get_tif_info_no_tiffinfo(mocker):
+    "Test that error is raised when tiffinfo is not found"
+    mock_exec = mocker.patch("importthread.exec_command")
+    mock_exec.return_value = Proc(
+        returncode=-1,
+        stdout=None,
+        stderr="not found",
+    )
+    thread = Importhread()
+    with pytest.raises(
+        RuntimeError, match="Please install libtiff-tools in order to open TIFF files"
+    ):
+        thread._get_tif_info({}, None, None)
 
 
 def test_get_djvu_info_corrupt(mocker):

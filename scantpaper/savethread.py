@@ -179,8 +179,8 @@ class SaveThread(Importhread):
             os.remove(filename)
         self.check_cancelled()
         if proc.returncode:
-            logger.error("Error merging DjVu")
-            request.error(_("Error merging DjVu"))
+            logger.error("Error merging DjVu: %s", proc.stderr)
+            request.error(_("Error merging DjVu: %s") % (proc.stderr,))
 
         self._add_metadata_to_djvu(args)
         _set_timestamp(args)

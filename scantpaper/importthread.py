@@ -59,7 +59,9 @@ class Importhread(BaseThread):
         logger.info("Getting info for %s", path)
         proc = exec_command(["file", "-Lb", path])
         if proc.stdout is None:
-            raise RuntimeError(_("Error getting file info for %s.") % (path,))
+            raise RuntimeError(
+                _("Error getting file info for %s: %s") % (path, proc.stderr)
+            )
         proc.stdout = proc.stdout.rstrip()
         logger.info("Format: '%s'", proc.stdout)
         if proc.stdout in ["very short file (no magic)", "empty"]:
@@ -97,11 +99,10 @@ class Importhread(BaseThread):
         "get DjVu info"
         # Dig out the number of pages
         proc = exec_command(["djvudump", path])
-        if re.search(
-            r"command[ ]not[ ]found", proc.stderr, re.MULTILINE | re.DOTALL | re.VERBOSE
-        ):
+        if proc.stdout is None:
             raise RuntimeError(
-                _("Please install djvulibre-bin in order to open DjVu files.")
+                _("Please install djvulibre-bin in order to open DjVu files: %s")
+                % (proc.stderr,)
             )
 
         logger.info(proc.stdout)
@@ -141,6 +142,12 @@ class Importhread(BaseThread):
         info["path"] = path
         # Dig out the metadata
         proc = exec_command(["djvused", path, "-e", "print-meta"])
+        if proc.stdout is None:
+            raise RuntimeError(
+                _("Please install djvulibre-bin in order to open DjVu files: %s")
+                % (proc.stderr,)
+            )
+
         logger.info(proc.stdout)
         self.check_cancelled()
 
@@ -208,6 +215,12 @@ class Importhread(BaseThread):
         "get TIFF info"
         info["format"] = "Tagged Image File Format"
         proc = exec_command(["tiffinfo", path])
+        if proc.stdout is None:
+            raise RuntimeError(
+                _("Please install libtiff-tools in order to open TIFF files: %s")
+                % (proc.stderr,)
+            )
+
         self.check_cancelled()
         logger.info(info)
 

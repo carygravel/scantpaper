@@ -8,6 +8,7 @@ from PIL import Image
 import config
 from const import VERSION
 from page import Page, _prepare_scale
+from helpers import Proc
 from gi.repository import GdkPixbuf
 import pytest
 
@@ -351,3 +352,18 @@ def test_write_image_for_tiff():
             filename.name, {"dir": dirname, "options": {"compression": "jpeg"}}
         )
         assert os.path.isfile(filename.name), "write_image_for_tiff() creates a file"
+
+
+def test_write_image_for_djvu_error(mocker):
+    "Test error handling in write_image_for_djvu()"
+    with tempfile.TemporaryDirectory() as dirname, tempfile.NamedTemporaryFile(
+        suffix=".pbm"
+    ) as filename:
+        mock_exec = mocker.patch("page.exec_command")
+        mock_exec.return_value = Proc(
+            returncode=1, stdout="", stderr="compression error"
+        )
+        page = Page(image_object=Image.new("1", (210, 297)))
+        # This should log an error but not raise an exception
+        page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
+        mock_exec.assert_called_once()

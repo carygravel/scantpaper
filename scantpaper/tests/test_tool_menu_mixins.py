@@ -4,6 +4,7 @@ import datetime
 import pytest
 from tools_menu_mixins import ToolsMenuMixins
 from const import _90_DEGREES, _180_DEGREES
+from helpers import Proc
 import gi
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -818,7 +819,9 @@ def test_email_execution_flow(mocker, mock_tool_window):
 
     mocker.patch("tools_menu_mixins.expand_metadata_pattern", return_value="doc")
     mocker.patch("tools_menu_mixins.collate_metadata", return_value={})
-    mock_exec = mocker.patch("tools_menu_mixins.exec_command", return_value=0)
+    mock_exec = mocker.patch(
+        "tools_menu_mixins.exec_command", return_value=Proc(0, "", "")
+    )
     mock_launch = mocker.patch("tools_menu_mixins.launch_default_for_file")
     mock_tool_window._show_message_dialog = mocker.Mock()
 
@@ -866,7 +869,7 @@ def test_email_execution_flow(mocker, mock_tool_window):
     mock_tool_window._show_message_dialog.assert_not_called()
 
     # Reset for failure test
-    mock_exec.return_value = 1
+    mock_exec.return_value = Proc(1, "", "error message")
     finished_callback("response")
     mock_tool_window._show_message_dialog.assert_called()
 
@@ -886,7 +889,7 @@ def test_email_default_filename(mocker, mock_tool_window):
     # Force empty filename from expand_metadata_pattern
     mocker.patch("tools_menu_mixins.expand_metadata_pattern", return_value="   ")
     mocker.patch("tools_menu_mixins.collate_metadata", return_value={})
-    mocker.patch("tools_menu_mixins.exec_command", return_value=0)
+    mocker.patch("tools_menu_mixins.exec_command", return_value=Proc(0, "", ""))
     mocker.patch("tools_menu_mixins.launch_default_for_file")
 
     mock_tool_window.settings = {

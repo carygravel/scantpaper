@@ -412,7 +412,7 @@ class Page:
             dir=options.get("dir"), suffix=suffix
         ) as tempimage:
             image.save(tempimage.name)
-            exec_command(
+            proc = exec_command(
                 [
                     compression,
                     "-dpi",
@@ -422,6 +422,8 @@ class Page:
                 ],
                 options["pidfile"],
             )
+            if proc.returncode:
+                logger.error("Error creating DjVu: %s", proc.stderr)
             self._add_txt_to_djvu(filename, options.get("dir"))
             self._add_ann_to_djvu(filename, options.get("dir"))
 
