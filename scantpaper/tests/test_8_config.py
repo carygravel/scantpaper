@@ -1,6 +1,7 @@
 "test config helper functions"
 
 import os
+import tempfile
 from types import SimpleNamespace
 from datetime import datetime, timedelta
 from gi.repository import Gdk
@@ -274,3 +275,16 @@ def test_get_convert_command(mocker):
     # Test when 'magick' is not available
     mock_which.side_effect = lambda x: None
     assert _get_convert_command() == "convert"
+
+
+def test_read_non_existent_config():
+    "test reading a config file that doesn't exist"
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = os.path.join(tmpdirname, "non_existent_config")
+        output = read_config(rc)
+        assert (
+            output == {}
+        ), "read_config should return empty dict for non-existent file"
+        assert os.path.exists(
+            rc
+        ), "read_config should create the file if it doesn't exist"
