@@ -16,7 +16,7 @@ def test_filter_table():
     assert filter_table(table, types) == [("a", 1), ("c", 3)]
 
 
-def test_metadata_properties(mocker):
+def test_metadata_properties():
     "Test metadata properties and suggestions"
     dialog = Save(meta_title="initial title")
 
@@ -174,16 +174,64 @@ def test_pdf_compression_changed_callback():
 
 
 def test_encrypt_clicked_callback(mocker):
-    "Test encryption dialog creation"
+    "Test encryption dialog creation and callbacks"
     dialog = Save()
     dialog.can_encrypt_pdf = True
+    dialog.pdf_user_password = "pre_existing_password"
     # Mock Dialog to prevent window popping up
     mock_dialog_cls = mocker.patch("dialog.save.Dialog")
     mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.get_content_area.return_value = Gtk.Box()
+    mock_box = Gtk.Box()
+    mock_dialog.get_content_area.return_value = mock_box
 
+    # Capture actions added to the dialog
+    actions = []
+
+    def mock_add_actions(act_list):
+        nonlocal actions
+        actions = act_list
+
+    mock_dialog.add_actions.side_effect = mock_add_actions
+
+    # Trigger callback
     dialog._encrypt_clicked_callback(None)
     mock_dialog_cls.assert_called()
+
+    # Find OK and Cancel callbacks
+    ok_cb = None
+    cancel_cb = None
+    for name, cb in actions:
+        if name == "gtk-ok":
+            ok_cb = cb
+        elif name == "gtk-cancel":
+            cancel_cb = cb
+
+    assert ok_cb is not None
+    assert cancel_cb is not None
+
+    # Test OK callback (covers line 762)
+    # Find the userentry in the box to set its value
+    # In _encrypt_clicked_callback: passvbox.pack_start(grid, ...)
+    # grid has userentry at (1, 0)
+    grid = None
+    for child in mock_box.get_children():
+        if isinstance(child, Gtk.Grid):
+            grid = child
+            break
+    assert grid is not None
+
+    userentry = grid.get_child_at(1, 0)
+    assert isinstance(userentry, Gtk.Entry)
+    userentry.set_text("secret_password")
+
+    ok_cb()
+    assert dialog.pdf_user_password == "secret_password"
+    mock_dialog.destroy.assert_called()
+
+    # Test Cancel callback (covers line 772)
+    mock_dialog.destroy.reset_mock()
+    cancel_cb()
+    mock_dialog.destroy.assert_called()
 
 
 def test_update_config_dict():
