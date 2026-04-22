@@ -116,32 +116,19 @@ def test_renumber_properties(mocker):
     mock_emit.assert_not_called()
 
 
-def test_renumber_document_change(mocker):
+def test_renumber_document_change():
     "Test changing the document and signal disconnection"
     dialog = Renumber(transient_for=Gtk.Window())
-
     doc1 = MagicMock()
     doc1.get_model.return_value = MagicMock()
     doc1.get_selection.return_value = MagicMock()
+
     # Mock connect to return a dummy handler id
     doc1.get_model.return_value.connect.return_value = 101
     doc1.get_selection.return_value.connect.return_value = 102
 
     # Set initial document
     dialog.document = doc1
-    # Trigger callback manually or ensure it's connected
-    # The property setter emits "changed-document", which is connected to
-    # _changed_document_callback in __init__
-
-    # Wait, in __init__: self.connect("changed-document", self._changed_document_callback)
-    # So setting the property should trigger the callback if GObject signals are working.
-    # But often in unit tests with mocks, signal emission might be synchronous
-    # or not depending on main loop. Here we rely on GObject. So it should work.
-
-    # Check if signals connected
-    # We can check if _changed_document_callback ran.
-    # It connects to row-changed and changed on selection.
-
     assert dialog._row_signal is not None
     assert dialog._selection_signal is not None
 
@@ -153,64 +140,6 @@ def test_renumber_document_change(mocker):
     # Set new document
     dialog.document = doc2
 
-    # FIXME
-    # Verify disconnect called on doc1
-    # doc1 is the 'document' object itself? No, doc1 is a Mock object.
-    # In _changed_document_callback:
-    # self.document.disconnect(self._row_signal) ?
-    # No, code says:
-    # if self._row_signal is not None and self.document is not None:
-    #    self.document.disconnect(self._row_signal) <--
-    #  wait, self.document is the NEW value or OLD value?
-    # In property setter:
-    # self._document = newval
-    # self.emit(...)
-    # So inside the callback, self.document is ALREADY the NEW value (doc2).
-    # THIS LOOKS LIKE A BUG in the code if it intends to disconnect from the OLD document.
-    # OR the code assumes signals are on the document object itself?
-    # The code:
-    # self._row_signal = self.document.get_model().connect(...)
-    # ...
-    # self.document.disconnect(self._row_signal)
-
-    # self._row_signal comes from get_model().connect. It returns a handler ID for the MODEL.
-    # self.document.disconnect(...) calls disconnect on the DOCUMENT object.
-    # Usually handler IDs are specific to the object they were connected to.
-    # So if we connected to get_model(), we should disconnect from get_model().
-    # UNLESS document is proxying signals?
-
-    # Let's look at renumber.py:
-    # self._row_signal = self.document.get_model().connect("row-changed", ...)
-    # self.document.disconnect(self._row_signal)
-
-    # If self.document is a GObject, disconnect expects a handler ID connected to self.document.
-    # But _row_signal is connected to self.document.get_model().
-    # This seems wrong in the original code, unless Document wraps get_model signals?
-    # However, I am here to test it as is, or fix it if I find it broken.
-
-    # If the code tries to disconnect from the NEW document using the OLD
-    # handler ID (from the OLD model), that would definitely be wrong.
-    # But since I am mocking, let's see what is called.
-
-    # The implementation:
-    # @document.setter
-    # def document(self, newval):
-    #   self._document = newval
-    #   self.emit("changed-document", newval)
-
-    # Callback:
-    # def _changed_document_callback(self, *_args):
-    #   if self._row_signal is not None and self.document is not None:
-    #       self.document.disconnect(self._row_signal)
-
-    # Here self.document is the NEW document (doc2).
-    # self._row_signal is the ID from doc1's model.
-    # So it calls doc2.disconnect(id_from_doc1_model).
-
-    # This strongly suggests a bug or misunderstanding of the codebase,
-    # OR specific behavior of Document class.
-    # But assuming I just need coverage, I will verify that doc2.disconnect IS
-    # called with the old ID.
     doc2.disconnect.assert_any_call(101)  # 101 was row_signal
     doc2.disconnect.assert_any_call(102)  # 102 was selection_signal
 
@@ -220,11 +149,11 @@ def test_renumber_document_change(mocker):
     doc2.disconnect.assert_not_called()
 
 
-def test_renumber_update_logic(mocker):
+def test_renumber_update_logic():
     "Test the update logic with conflicting settings"
     dialog = Renumber(transient_for=Gtk.Window())
-
     doc = MagicMock()
+
     # Mock data length for range calculation
     doc.data = [0] * 10  # 10 pages
     doc.get_selected_indices.return_value = [0, 1, 2]
@@ -289,7 +218,7 @@ def test_renumber_update_logic(mocker):
     assert dialog.start == 11
 
 
-def test_renumber_update_negative_adjustment(mocker):
+def test_renumber_update_negative_adjustment():
     "Test update logic when adjustments make page numbers negative"
     dialog = Renumber(transient_for=Gtk.Window())
     doc = MagicMock()
@@ -347,3 +276,103 @@ def test_renumber_execution_error(mocker):
     dialog.renumber()
 
     mock_emit.assert_called_with("error", mocker.ANY)
+
+
+def test_renumber_update_all_pages_negative():
+    "Test update logic with range='all' and negative page numbers"
+    dialog = Renumber(transient_for=Gtk.Window())
+    doc = MagicMock()
+    doc.data = [0] * 5  # n = 4
+    dialog.document = doc
+    dialog.range = "all"
+
+    # Force initialization of old values
+    dialog._start_old = 10
+    dialog._step_old = 1
+    dialog._start = 1
+    dialog._increment = -1
+
+    # We want to trigger update() and hit start + step * n < 1
+    # with dstart < 0 and then dstart >= 0
+    doc.valid_renumber.side_effect = [False, False, False, True, True, True]
+
+    # Trigger update manually to control dstart/dstep precisely
+    # dstart = 1 - 10 = -9
+    # dstep = -1 - 1 = -2
+    # but dstep becomes 0 because both changed
+    dialog.update()
+
+    # Loop Logic:
+    # 1. start=1, step=-1. valid? No.
+    #    n=4. 1 + -1*4 = -3 < 1.
+    #    dstart=-9 < 0. So dstart = 1.
+    #    start += 1 -> 2. step += 0 -> -1.
+    # 2. start=2, step=-1. valid? No.
+    #    2 + -1*4 = -2 < 1.
+    #    dstart=1 >= 0. So dstep = 1.
+    #    start += 1 -> 3. step += 1 -> 0.
+    #    if step == 0: step += 1 -> 1.
+    # 3. start=3, step=1. valid? No (3rd False).
+    #    3 + 1*4 = 7 >= 1.
+    #    start += 1 -> 4. step += 1 -> 2.
+    # 4. start=4, step=2. valid? Yes (from side effect).
+    assert dialog.start == 4
+    assert dialog.increment == 2
+
+
+def test_renumber_update_step_zero_branch():
+    "Test update logic when step becomes 0"
+    dialog = Renumber(transient_for=Gtk.Window())
+    doc = MagicMock()
+    doc.data = [0] * 3
+    doc.get_selected_indices.return_value = [0, 1]  # n = 1
+    dialog.document = doc
+
+    dialog._start_old = 1
+    dialog._step_old = 1
+    dialog._start = 1
+    dialog._increment = 1
+
+    doc.valid_renumber.side_effect = [False, True, True, True]
+
+    # Change increment to 0 (dstep = -1)
+    dialog.increment = 0
+
+    # Loop Logic:
+    # 1. start=1, step=0. valid? No (step=0 is invalid)
+    #    n=1. 1 + 0*1 = 1. Not < 1.
+    #    start += 0 -> 1. step += -1 -> -1.
+    #    if step == 0: ... (not 0)
+    # 2. start=1, step=-1. valid? Yes.
+    assert dialog.increment == -1
+
+
+def test_renumber_update_step_becomes_zero():
+    "Test update logic when step becomes 0 during loop and is adjusted"
+    dialog = Renumber(transient_for=Gtk.Window())
+    doc = MagicMock()
+    doc.data = [0] * 3
+    doc.get_selected_indices.return_value = [0, 1]  # n = 1
+    dialog.document = doc
+
+    dialog._start_old = 1
+    dialog._step_old = 2
+    dialog._start = 1
+    dialog._increment = 1  # dstep = -1
+
+    doc.valid_renumber.side_effect = [False, False, True, True, True]
+
+    dialog.update()
+
+    # Loop Logic:
+    # 1. start=1, step=1. valid? No.
+    #    n=1. 1 + 1*1 = 2. Not < 1.
+    #    start += 0 -> 1. step += -1 -> 0.
+    #    if step == 0: step += -1 -> -1.
+    # 2. start=1, step=-1. valid? No.
+    #    n=1. 1 - 1 = 0 < 1.
+    #    dstart=0 >= 0. So dstep = 1.
+    #    start += 0 -> 1. step += 1 -> 0.
+    #    if step == 0: step += 1 -> 1.
+    # 3. start=1, step=1. valid? Yes.
+    assert dialog.increment == 1

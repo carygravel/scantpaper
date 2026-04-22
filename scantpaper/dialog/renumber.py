@@ -196,12 +196,10 @@ class Renumber(Dialog):
         dstep = step - self._step_old if self._step_old is not None else 0
         if dstart == 0 and dstep == 0:
             dstart = 1
-
         elif dstart != 0 and dstep != 0:
             dstep = 0
 
-        # Check for clash with non_selected
-
+        # Check for clash with non_selected pages.
         slist = self.document
         if slist is not None:
             while not slist.valid_renumber(start, step, self.range):
@@ -215,7 +213,6 @@ class Renumber(Dialog):
                 if start + step * n < 1:
                     if dstart < 0:
                         dstart = 1
-
                     else:
                         dstep = 1
 
