@@ -11,7 +11,66 @@ from scanner.profile import Profile
 from frontend import enums
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk, GObject  # pylint: disable=wrong-import-position
+
+
+class MockOptions:
+    "A mock scan options collection"
+
+    def __init__(self, options):
+        self.options = options
+        self.options_dict = {o.name: o for o in options}
+
+    def num_options(self):
+        "Number of options"
+        return len(self.options)
+
+    def by_index(self, i):
+        "Get option by index"
+        return self.options[i]
+
+    def by_name(self, name):
+        "Get option by name"
+        return self.options_dict.get(name)
+
+    def flatbed_selected(self, _handle):
+        "Is flatbed selected?"
+        return False
+
+
+class MockOption:
+    "A mock scan option"
+
+    def __init__(self, name):
+        self.name = name
+        self.type = enums.TYPE_INT
+
+
+class MockScan(Scan):
+    "A mock Scan class"
+
+    def __init__(self):
+        # Initialize GObject to allow property access
+        GObject.GObject.__init__(self)
+
+        # Bypass Scan.__init__ logic by manually setting attributes
+        self.option_widgets = {}
+        self.setting_current_scan_options = []
+        self.num_reloads = 0
+        self.reload_recursion_limit = 10
+        self._current_scan_options = Profile()
+        self._available_scan_options = MockOptions([])
+        self.thread = MagicMock()
+        self.thread.device_handle = MagicMock()
+
+    # Mock methods that would otherwise interact with GUI or SANE
+    def get_window(self):
+        "Get the parent window"
+        return None
+
+    def emit(self, *args):
+        "Mock emit method"
+        return GObject.GObject.emit(self, *args)
 
 
 def test_current_scan_options_property():
@@ -931,3 +990,42 @@ def test_update_widget_value_widget_undefined(mocker):
     mock_logger.warning.assert_called_once_with(
         "Widget for option '%s' undefined.", "undefined_option"
     )
+
+
+def test_update_options_error_return(mocker):
+    "test _update_options returns early if _update_option returns True (line 717)"
+    # pylint: disable=protected-access
+    dialog = MockScan()
+
+    # Mock copy to just return the same object
+    mocker.patch("dialog.scan.copy", side_effect=lambda x: x)
+
+    mock_options = MockOptions([MockOption("opt0"), MockOption("opt1")])
+
+    # Mock available_scan_options
+    dialog.available_scan_options = MockOptions(
+        [MockOption("opt0"), MockOption("opt1")]
+    )
+
+    # Mock _update_option to return True (simulating an error)
+    mocker.patch.object(dialog, "_update_option", return_value=True)
+
+    # We want to verify that it returns before setting self.available_scan_options
+    initial_options = dialog.available_scan_options
+    dialog._update_options(mock_options)
+
+    assert dialog.available_scan_options == initial_options
+
+
+def test_get_label_for_option_none():
+    "test _get_label_for_option returns None if no label is found (line 1333)"
+    # pylint: disable=protected-access
+    dialog = MockScan()
+
+    hbox = Gtk.Box()
+    # No Gtk.Label child
+    widget = Gtk.Entry()
+    hbox.pack_start(widget, False, False, 0)
+
+    dialog.option_widgets["my_opt"] = widget
+    assert dialog._get_label_for_option("my_opt") is None
