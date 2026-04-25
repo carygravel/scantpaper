@@ -234,8 +234,8 @@ def test_4():
     assert asserts == 4, "checked all expected responses #10"
 
 
-def test_5_edge_cases():
-    "test frontend/image_sane.py edge cases"
+def test_5_edge_cases_part_1():
+    "test frontend/image_sane.py edge cases part 1"
     thread = SaneThread()
     thread.start()
 
@@ -278,6 +278,30 @@ def test_5_edge_cases():
     mlp.run()
     assert asserts == 3, "checked inactive option"
 
+    thread.send("quit")
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
+
+
+def test_5_edge_cases_part_2():
+    "test frontend/image_sane.py edge cases part 2"
+    thread = SaneThread()
+    thread.start()
+
+    mlp = GLib.MainLoop()
+    asserts = 0
+
+    # Open device
+    def open_callback(response):
+        nonlocal asserts
+        assert response.request.process == "open_device"
+        asserts += 1
+        mlp.quit()
+
+    thread.open_device(device_name="test", finished_callback=open_callback)
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
+
     # 3. Non-existent option
     def finished_callback_nonexistent(response):
         nonlocal asserts
@@ -290,7 +314,7 @@ def test_5_edge_cases():
     )
     GLib.timeout_add(2000, mlp.quit)
     mlp.run()
-    assert asserts == 4, "checked nonexistent option"
+    assert asserts == 2, "checked nonexistent option"
 
     # 4. Enable test options
     def finished_callback_enable(response):
@@ -304,7 +328,7 @@ def test_5_edge_cases():
     )
     GLib.timeout_add(2000, mlp.quit)
     mlp.run()
-    assert asserts == 5, "enabled test options"
+    assert asserts == 3, "enabled test options"
 
     # 5. Fixed type conversion
     def finished_callback_fixed(response):
@@ -316,7 +340,7 @@ def test_5_edge_cases():
     thread.set_option("fixed", 42, finished_callback=finished_callback_fixed)
     GLib.timeout_add(2000, mlp.quit)
     mlp.run()
-    assert asserts == 6, "checked fixed type conversion"
+    assert asserts == 4, "checked fixed type conversion"
 
     thread.send("quit")
     GLib.timeout_add(2000, mlp.quit)
@@ -459,3 +483,52 @@ def test_6_mock_device():
         thread.send("quit")
         GLib.timeout_add(2000, mlp.quit)
         mlp.run()
+
+
+def test_7_close_device_not_open():
+    "test do_close_device when device is not open (line 145)"
+    thread = SaneThread()
+    thread.start()
+
+    mlp = GLib.MainLoop()
+    asserts = 0
+
+    def data_callback(response):
+        nonlocal asserts
+        assert response.info == "Ignoring close_device() call - no device open."
+        asserts += 1
+
+    def finished_callback(response):
+        nonlocal asserts
+        assert response.request.process == "close_device"
+        asserts += 1
+        mlp.quit()
+
+    thread.close_device(
+        data_callback=data_callback, finished_callback=finished_callback
+    )
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
+
+    assert asserts == 2
+    thread.send("quit")
+    mlp.run()
+
+
+def test_8_cancel_empties_queue():
+    "test cancel() empties the requests queue (line 240)"
+    thread = SaneThread()
+    # Don't start the thread yet, so requests stay in the queue
+
+    thread.get_devices()
+    thread.get_devices()
+    assert thread.requests.qsize() == 2
+
+    thread.cancel()
+
+    # cancel() calls requests.get() for each existing request, then send("cancel")
+    # send("cancel") puts 1 request in the queue.
+    assert thread.requests.qsize() == 1
+
+    request = thread.requests.get()
+    assert request.process == "cancel"
