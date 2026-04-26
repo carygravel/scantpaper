@@ -99,11 +99,17 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 ---
 
-## Download & Installation
+## Download, Installation & Removal
 
 ### Debian-based
 
 - Debian `sid` should automatically have the latest version.
+
+    ```sh
+    sudo apt update
+    sudo apt install scantpaper
+    ```
+
 - Ubuntu users can use the PPA:
 
     ```sh
@@ -111,6 +117,12 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
     sudo apt update
     sudo apt install scantpaper
     ```
+
+In either case to remove scantpaper afterwards:
+
+```sh
+sudo apt remove scantpaper
+```
 
 ### From a wheel file
 
@@ -133,7 +145,17 @@ pip install scantpaper-x.x.x-py3-none-any.whl
 ```
 
 If you haven't already, you will then probably have to add `~/.local/bin` to
-your path in order to find the new executable.
+your path in order to find the new executable, after which you can start it with:
+
+```sh
+scantpaper
+```
+
+To then remove it:
+
+```sh
+pip uninstall scantpaper
+```
 
 ### From Tarball
 
@@ -141,6 +163,7 @@ Download `.tar.gz` from [Github](https://github.com/carygravel/scantpaper/releas
 ```sh
 tar xvfz scantpaper-x.x.x.tar.gz
 cd scantpaper-x.x.x
+python3 scantpaper/app.py
 ```
 
 ### From the Repository
@@ -149,28 +172,11 @@ Browse the code at [Github](https://github.com/carygravel/scantpaper):
 
 ```sh
 git clone https://github.com/carygravel/scantpaper.git
-```
-
-## Building from Source
-
-Run the app straight from the source directory:
-```sh
-# optionally run the tests
-pytest
-# before starting the app
+cd scantpaper
 python3 scantpaper/app.py
 ```
 
-Or build a wheel to install via `pip`:
-```sh
-# if necessary install build
-pip install build
-python3 -m build --wheel
-# which you can install with pip
-pip install scantpaper
-# and then start the app
-scantpaper
-```
+In either of the above two cases, just delete the source directory to remove it.
 
 ---
 
