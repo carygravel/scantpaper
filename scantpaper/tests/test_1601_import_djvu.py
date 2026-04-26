@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import shutil
 import datetime
+from unittest.mock import MagicMock
 import pytest
 from gi.repository import GLib
 from document import Document
@@ -251,8 +252,7 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
             assert response.request.process in ["get_file_info", "import_file"]
             asserts += 1
 
-        def error_cb(response):
-            assert False, "error thrown importing multipage djvu"
+        error_cb = MagicMock()
 
         slist.import_files(
             paths=[temp_djvu2.name],
@@ -264,6 +264,7 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
         mlp.run()
 
         assert asserts == 2, "callbacks all run"
+        error_cb.assert_not_called(), "no error callback called"
         assert len(slist.data) == 2, "imported 2 pages"
 
     clean_up_files(slist.thread.db_files)
