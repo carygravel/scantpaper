@@ -402,9 +402,7 @@ def test_6_mock_device():
 
         # Setup set_option return values on the inner 'dev' mock
         def set_option_side_effect(index, _value):
-            if index == 3:
-                return enums.INFO_RELOAD_OPTIONS
-            return 0
+            return enums.INFO_RELOAD_OPTIONS
 
         mock_dev_instance.dev.set_option.side_effect = set_option_side_effect
 
