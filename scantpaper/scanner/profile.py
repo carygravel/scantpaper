@@ -52,8 +52,6 @@ class Profile(GObject.Object):
         return Profile(frontend=self.frontend, backend=self.backend, uid=self.uuid)
 
     def __str__(self):
-        if not hasattr(self, "uuid"):
-            self.uuid = None
         return f"Profile(frontend={self.frontend}, backend={self.backend}, uuid={self.uuid})"
 
     def __eq__(self, other):
