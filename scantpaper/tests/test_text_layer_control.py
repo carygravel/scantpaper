@@ -218,10 +218,12 @@ def test_text_layer_control_signals():
 
     # Helper to find child by tooltip
     def get_child_by_tooltip(tooltip):
+        retval = None
         for child in tlc.get_children():
             if child.get_tooltip_text() == tooltip:
-                return child
-        return None
+                retval = child
+                break
+        return retval
 
     # Test buttons
     buttons = {
