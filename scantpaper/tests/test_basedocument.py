@@ -521,8 +521,6 @@ def test_paste_selection_default_dest(mock_thread):
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[2, None, 102]]}
             data_callback(response)
-            if finished_callback:
-                finished_callback()
 
     slist.thread.send = mock_send
 
