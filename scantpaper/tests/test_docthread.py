@@ -883,3 +883,11 @@ def test_open_migration_v1_to_v2(temp_db, clean_up_files):
     assert thread._fetchone()[0] == 1
 
     clean_up_files(thread.db_files)
+
+
+def test_pixbuf_to_bytes(mocker):
+    "test _pixbuf_to_bytes"
+    thread = DocThread(db=":memory:")
+    assert (
+        thread._pixbuf_to_bytes(None) == b""
+    ), "Expected None pixbuf to return empty bytes"
