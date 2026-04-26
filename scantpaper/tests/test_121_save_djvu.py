@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from unittest.mock import MagicMock
 import pytest
 from gi.repository import GLib
 import config
@@ -186,9 +187,7 @@ def test_cancel_save_djvu(
         '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
     )
 
-    def finished_callback(_response):
-        assert False, "Finished callback"
-
+    finished_callback = MagicMock()
     mlp = GLib.MainLoop()
     called = False
 
@@ -205,6 +204,7 @@ def test_cancel_save_djvu(
     slist.cancel(cancelled_callback)
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
+    finished_callback.assert_not_called()
 
     assert called, "Cancelled callback"
 
