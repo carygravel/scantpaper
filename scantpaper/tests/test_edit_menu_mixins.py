@@ -37,10 +37,6 @@ def mock_edit_window(mocker):
         _update_post_save_hooks = mocker.Mock()
         _error_callback = mocker.Mock()
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
-            "mock"
-            return mock_app
-
     # Instantiate
     window = MockWindow()
 
