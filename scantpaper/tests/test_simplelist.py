@@ -188,3 +188,24 @@ def test_shared_renderer_isolation():
     assert not slist2.get_column_editable(
         0
     ), "Second list should not inherit editability"
+
+
+def test_edited_types():
+    "test edited signal with different column types"
+    slist = SimpleList(col1="int", col2="double")
+    slist.data.append([1, 1.1])
+
+    slist.set_column_editable(0, True)
+    slist.set_column_editable(1, True)
+
+    column0 = slist.get_column(0)
+    cell_renderer0 = column0.get_cells()[0]
+    cell_renderer0.emit("edited", "0", "2")
+    assert slist.data[0][0] == 2
+    assert isinstance(slist.data[0][0], int)
+
+    column1 = slist.get_column(1)
+    cell_renderer1 = column1.get_cells()[0]
+    cell_renderer1.emit("edited", "0", "2.2")
+    assert slist.data[0][1] == 2.2
+    assert isinstance(slist.data[0][1], float)
