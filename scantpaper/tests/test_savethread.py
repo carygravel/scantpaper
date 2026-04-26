@@ -31,11 +31,7 @@ class MockSaveThread(SaveThread):
 
     def get_page(self, page_id=None, **kwargs):
         "Mock get_page"
-        if page_id is None:
-            page_id = kwargs.get("id")
-        if page_id in self.mock_pages:
-            return self.mock_pages[page_id]
-        raise ValueError(f"Page {page_id} not found")
+        return self.mock_pages[kwargs.get("id")]
 
     def do_set_saved(self, request):
         "Mock do_set_saved"
@@ -47,10 +43,6 @@ class MockSaveThread(SaveThread):
     def replace_page(self, _page, _number, _initial_page_id):
         "Mock replace_page"
         return [1, None, "uuid"]
-
-    def send(self, process, *args, **kwargs):
-        "Mock send"
-        return "uuid"
 
 
 @pytest.fixture
