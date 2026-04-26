@@ -1,6 +1,7 @@
 "Test importing PPM"
 
 import subprocess
+from unittest.mock import MagicMock
 from gi.repository import GLib
 import config
 from document import Document
@@ -47,9 +48,7 @@ def test_import_corrupt_png(temp_png, clean_up_files):
         asserts += 1
         mlp.quit()
 
-    def finished_cb(response):
-        assert False, "caught errors importing file"
-        mlp.quit()
+    finished_cb = MagicMock()
 
     slist.import_files(
         paths=[temp_png.name],
@@ -60,6 +59,7 @@ def test_import_corrupt_png(temp_png, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
+    finished_cb.assert_not_called(), "no finished callback called"
 
     #########################
 
