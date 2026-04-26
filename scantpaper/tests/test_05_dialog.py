@@ -60,11 +60,7 @@ def test_dialog():
     event.keyval = Gdk.KEY_Delete
     dialog.emit("key_press_event", event)
 
-    def on_close():
-        pass
-
     dialog = Dialog()
-    dialog.add_actions([("gtk-close", on_close)])
     dialog.response(Gtk.ResponseType.NONE)
     assert True, "no crash due to undefined response"
 
