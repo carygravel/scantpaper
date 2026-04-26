@@ -40,7 +40,7 @@ exclude = ["scantpaper.tests"]
 scantpaper = ["app.ui"]
 
 [tool.pytest.ini_options]
-addopts = "--black --timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=75"
+addopts = "--black --timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=98 --cov-append"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
