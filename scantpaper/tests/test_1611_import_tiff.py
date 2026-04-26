@@ -5,6 +5,7 @@ import pathlib
 import re
 import subprocess
 import tempfile
+from unittest.mock import MagicMock
 from gi.repository import GLib
 import config
 from document import Document
@@ -215,10 +216,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_file
     mlp = GLib.MainLoop()
 
     asserts = 0
-
-    def finished_cb(response):
-        assert False, "TIFF not imported"
-        mlp.quit()
+    finished_cb = MagicMock()
 
     def cancelled_cb(response):
         nonlocal asserts
@@ -236,6 +234,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_file
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
+    finished_cb.assert_not_called(), "no error callback called"
 
     import_in_mainloop(slist, [rose_tif.name])
     page = slist.thread.get_page(id=1)
