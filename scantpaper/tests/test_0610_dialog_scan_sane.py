@@ -496,21 +496,17 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
     dialog = sane_scan_dialog
     callbacks = 0
     loop = mainloop_with_timeout()
+    changed_scan_option_cb = MagicMock()
 
     def reloaded_scan_options_cb(_arg):
         dialog.disconnect(dialog.reloaded_signal)
 
         def process_error_cb(_widget, process, message):
             dialog.disconnect(dialog.e_signal)
-            assert process == "set_option", "caught error setting scan option"
             nonlocal callbacks
             callbacks += 1
             loop.quit()
-
-        def changed_scan_option_cb(_widget, option, value, uuid):
-            dialog.disconnect(dialog.signal)
-            assert False, "don't emit changed-scan-option signal on error"
-            loop.quit()
+            assert process == "set_option", "caught error setting scan option"
 
         dialog.signal = dialog.connect("changed-scan-option", changed_scan_option_cb)
         dialog.e_signal = dialog.connect("process-error", process_error_cb)
@@ -529,6 +525,7 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
         dialog.current_scan_options == Profile()
     ), "current-scan-options unchanged if invalid option requested"
     assert callbacks == 1, "all callbacks executed"
+    changed_scan_option_cb.assert_not_called()
     dialog.thread.quit()
 
 
