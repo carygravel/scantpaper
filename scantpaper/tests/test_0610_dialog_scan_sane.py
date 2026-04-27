@@ -299,16 +299,7 @@ def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
     def changed_profile_cb5(_widget, _profile):
         dialog.disconnect(dialog.signal)
-        options = dialog.available_scan_options
-        backend = []
-        if options.by_name("page-height"):
-            backend.append(("page-height", 52))
-        if options.by_name("page-width"):
-            backend.append(("page-width", 51))
-        backend.append(("tl-x", 1))
-        backend.append(("br-y", 52))
-        backend.append(("br-x", 51))
-        backend.append(("tl-y", 2))
+        backend = [("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)]
 
         # resolution=50 is the default,
         # so doesn't appear in current-scan-options
@@ -1069,9 +1060,6 @@ def test_multiple_values_option(mocker, sane_scan_dialog):
 
     dialog = sane_scan_dialog
 
-    # Patch d_sane to just return the input
-    mocker.patch("dialog.sane.d_sane", side_effect=lambda x: x)
-
     # Use real Options object
     # Option index, name, title, desc, type, unit, size, cap, constraint
     group_opt = Option(
@@ -1110,10 +1098,6 @@ def test_multiple_values_option(mocker, sane_scan_dialog):
             for child in container.get_children():
                 if find_button(child):
                     return True
-        if isinstance(container, Gtk.Bin):
-            child = container.get_child()
-            if child and find_button(child):
-                return True
         return False
 
     # Verify a button was created for this option
