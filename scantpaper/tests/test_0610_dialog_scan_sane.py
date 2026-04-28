@@ -678,7 +678,7 @@ def test_change_current_scan_option_signal(
     dialog.thread.quit()
 
 
-@pytest.mark.skip(
+@pytest.mark.xfail(
     reason="Until https://github.com/python-pillow/Sane/issues/92 is fixed, we cannot push buttons"
 )
 def test_button(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
