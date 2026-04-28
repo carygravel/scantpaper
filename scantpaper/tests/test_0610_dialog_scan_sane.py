@@ -746,9 +746,7 @@ def test_option_dependency(
     )
     loop = mainloop_with_timeout()
     callbacks = 0
-
-    def process_error_cb(_self, process, message):
-        assert False, f"Should not throw error: {process} {message}"
+    process_error_cb = MagicMock()
 
     def changed_profile_cb(_widget, profile):
         dialog.disconnect(dialog.profile_signal)
@@ -765,6 +763,7 @@ def test_option_dependency(
     loop.run()
 
     assert callbacks == 1, "all callbacks executed"
+    process_error_cb.assert_not_called()
 
     dialog.thread.quit()
 
@@ -841,9 +840,9 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
             nonlocal callbacks
             callbacks += 1
         elif pagenumber > 10:
-            assert False, "new-scan emitted 10 times"
             callbacks = 0
             loop.quit()
+            assert False, "new-scan emitted 10 times"
 
     def finished_process_cb(_widget, process):
         if process == "scan_pages":
@@ -893,9 +892,9 @@ def test_scan_reverse_pages(
             nonlocal callbacks
             callbacks += 1
         elif pagenumber < 2:
-            assert False, "new-scan emitted 10 times"
             callbacks = 0
             loop.quit()
+            assert False, "new-scan emitted 10 times"
 
     def changed_scan_option_cb(widget, option, value, _data):
         dialog.num_pages = 0
@@ -911,11 +910,7 @@ def test_scan_reverse_pages(
             callbacks += 1
             loop.quit()
 
-    def error_process_cb(_widget, process):
-        nonlocal callbacks
-        callbacks = 0
-        assert False, "Should not throw error"
-
+    error_process_cb = MagicMock()
     dialog.connect("new-scan", new_scan_cb)
     dialog.connect("finished-process", finished_process_cb)
     dialog.connect("process-error", error_process_cb)
@@ -929,7 +924,7 @@ def test_scan_reverse_pages(
     loop.run()
 
     assert callbacks == 3, "all callbacks executed"
-
+    error_process_cb.assert_not_called()
     dialog.thread.quit()
 
 
