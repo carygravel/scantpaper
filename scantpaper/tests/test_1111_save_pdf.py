@@ -10,6 +10,7 @@ import subprocess
 import shutil
 import tempfile
 import threading
+from unittest.mock import MagicMock
 import img2pdf
 import pytest
 from gi.repository import GLib
@@ -764,9 +765,7 @@ def test_cancel_save_pdf(
 
     import_in_mainloop(slist, [rose_pnm.name])
 
-    def finished_callback(_response):
-        assert False, "Finished callback"
-
+    finished_callback = MagicMock()
     mlp = GLib.MainLoop()
     called = False
 
@@ -783,6 +782,7 @@ def test_cancel_save_pdf(
     slist.cancel(cancelled_callback)
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
+    finished_callback.assert_not_called()
 
     slist.save_image(
         path=temp_jpg.name,
