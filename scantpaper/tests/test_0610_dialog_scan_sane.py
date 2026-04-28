@@ -830,23 +830,14 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
-    n = 0
+    page_numbers = []
     loop = mainloop_with_timeout()
 
     def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
-        nonlocal n
-        n += 1
-        if pagenumber == 10:
-            nonlocal callbacks
-            callbacks += 1
-        elif pagenumber > 10:
-            callbacks = 0
-            loop.quit()
-            assert False, "new-scan emitted 10 times"
+        page_numbers.append(pagenumber)
 
     def finished_process_cb(_widget, process):
         if process == "scan_pages":
-            assert n == 10, "new-scan emitted 10 times"
             nonlocal callbacks
             callbacks += 1
             loop.quit()
@@ -865,7 +856,8 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
     )
     loop.run()
 
-    assert callbacks == 3, "all callbacks executed"
+    assert callbacks == 2, "all callbacks executed"
+    assert page_numbers == list(range(1, 11)), "page numbers emitted correctly"
 
     dialog.thread.quit()
 
@@ -882,19 +874,11 @@ def test_scan_reverse_pages(
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
-    n = 0
+    page_numbers = []
     loop = mainloop_with_timeout()
 
     def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
-        nonlocal n
-        n += 1
-        if pagenumber == 2:
-            nonlocal callbacks
-            callbacks += 1
-        elif pagenumber < 2:
-            callbacks = 0
-            loop.quit()
-            assert False, "new-scan emitted 10 times"
+        page_numbers.append(pagenumber)
 
     def changed_scan_option_cb(widget, option, value, _data):
         dialog.num_pages = 0
@@ -905,7 +889,6 @@ def test_scan_reverse_pages(
 
     def finished_process_cb(_widget, process):
         if process == "scan_pages":
-            assert n == 10, "new-scan emitted 10 times"
             nonlocal callbacks
             callbacks += 1
             loop.quit()
@@ -923,7 +906,10 @@ def test_scan_reverse_pages(
     )
     loop.run()
 
-    assert callbacks == 3, "all callbacks executed"
+    assert callbacks == 2, "all callbacks executed"
+    assert page_numbers == list(
+        range(dialog.page_number_start, 0, -2)
+    ), "page numbers emitted correctly"
     error_process_cb.assert_not_called()
     dialog.thread.quit()
 

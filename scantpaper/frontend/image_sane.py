@@ -177,10 +177,10 @@ class SaneThread(BaseThread):
         _set_default_callbacks(kwargs)
         if response.info is not None:
             self.num_pages_scanned += 1
-        if kwargs["new_page_callback"] is not None:
-            kwargs["new_page_callback"](
-                response.info, self.start + self.step * (self.num_pages_scanned - 1)
-            )
+            if kwargs["new_page_callback"] is not None:
+                kwargs["new_page_callback"](
+                    response.info, self.start + self.step * (self.num_pages_scanned - 1)
+                )
         if response.status == "Document feeder out of documents" or (
             self.num_pages != 0 and self.num_pages_scanned >= self.num_pages
         ):
