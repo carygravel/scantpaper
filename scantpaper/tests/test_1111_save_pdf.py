@@ -395,7 +395,7 @@ def test_save_pdf_with_hocr(
     clean_up_files(slist.thread.db_files)
 
 
-@pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
+@pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_utf8(
     rose_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
@@ -433,7 +433,7 @@ def test_save_pdf_with_utf8(
     clean_up_files(slist.thread.db_files)
 
 
-@pytest.mark.skip(reason="OCRmyPDF doesn't yet support non-latin characters")
+@pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_non_utf8(
     rose_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
 ):
