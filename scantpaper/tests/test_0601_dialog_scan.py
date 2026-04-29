@@ -342,7 +342,6 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     ), "available paper reapplied after setting/changing device"
     assert dialog.combobp.get_active_text() == "Manual", "paper combobox has a value"
     assert asserts == 3, "call callbacks run"
-    dialog.thread.quit()
 
 
 def test_scan_threads(

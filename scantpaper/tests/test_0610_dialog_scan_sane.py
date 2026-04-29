@@ -145,7 +145,6 @@ def test_2(sane_scan_dialog, mainloop_with_timeout):
     )
 
     assert callbacks == 4, "all callbacks executed"
-    dialog.thread.quit()
 
 
 def test_3(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
@@ -191,7 +190,6 @@ def test_3(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     loop.run()
 
     assert callbacks == 2, "all callbacks executed"
-    dialog.thread.quit()
 
 
 def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
@@ -281,7 +279,6 @@ def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     dialog.connect("removed-profile", removed_profile_cb)
     dialog._remove_profile("my profile")
     assert callbacks == 4, "all callbacks executed"
-    dialog.thread.quit()
 
 
 def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
@@ -316,7 +313,6 @@ def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     loop.run()
 
     assert callbacks == 1, "all callbacks executed"
-    dialog.thread.quit()
 
 
 def test_6(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
@@ -353,7 +349,6 @@ def test_6(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     dialog.paper = "new2"
     loop.run()
     assert callbacks == 2, "all callbacks executed"
-    dialog.thread.quit()
 
 
 def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
@@ -412,7 +407,6 @@ def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     dialog.paper = "new2"
     loop.run()
     assert callbacks == 5, "all callbacks executed"
-    dialog.thread.quit()
 
 
 def test_8(sane_scan_dialog, mainloop_with_timeout):
@@ -487,7 +481,6 @@ def test_8(sane_scan_dialog, mainloop_with_timeout):
     loop.run()
 
     assert callbacks == 2, "all callbacks executed"
-    dialog.thread.quit()
 
 
 def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
@@ -526,7 +519,6 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
     ), "current-scan-options unchanged if invalid option requested"
     assert callbacks == 1, "all callbacks executed"
     changed_scan_option_cb.assert_not_called()
-    dialog.thread.quit()
 
 
 def test_profile_unset(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
@@ -571,8 +563,6 @@ def test_profile_unset(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
 
     assert dialog.profile is None, "reloading scan options unsets profile"
     assert callbacks == 3, "all callbacks executed"
-
-    dialog.thread.quit()
 
 
 def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
@@ -644,8 +634,6 @@ def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
 
     assert callbacks == 4, "all callbacks executed"
 
-    dialog.thread.quit()
-
 
 def test_change_current_scan_option_signal(
     sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
@@ -674,8 +662,6 @@ def test_change_current_scan_option_signal(
     loop.run()
 
     assert callbacks == 1, "all callbacks executed"
-
-    dialog.thread.quit()
 
 
 @pytest.mark.xfail(
@@ -721,8 +707,6 @@ def test_button(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout)
 
     assert callbacks == 2, "all callbacks executed"
 
-    dialog.thread.quit()
-
 
 def test_option_dependency(
     sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
@@ -764,8 +748,6 @@ def test_option_dependency(
 
     assert callbacks == 1, "all callbacks executed"
     process_error_cb.assert_not_called()
-
-    dialog.thread.quit()
 
 
 def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
@@ -817,8 +799,6 @@ def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
 
     assert callbacks == 2, "all callbacks executed"
 
-    dialog.thread.quit()
-
 
 def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
     """The test backend conveniently gives us
@@ -858,8 +838,6 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
 
     assert callbacks == 2, "all callbacks executed"
     assert page_numbers == list(range(1, 11)), "page numbers emitted correctly"
-
-    dialog.thread.quit()
 
 
 def test_scan_reverse_pages(
@@ -911,7 +889,6 @@ def test_scan_reverse_pages(
         range(dialog.page_number_start, 0, -2)
     ), "page numbers emitted correctly"
     error_process_cb.assert_not_called()
-    dialog.thread.quit()
 
 
 def test_empty_device_list(mocker, sane_scan_dialog, mainloop_with_timeout):
@@ -968,7 +945,6 @@ def test_integer_spinbutton(sane_scan_dialog, set_device_wait_reload):
     args, _kwargs = dialog.set_option.call_args
     assert args[0].name == opt.name
     assert isinstance(args[1], int)
-    dialog.thread.quit()
 
 
 def test_sane_scan_dialog_errors(mocker, sane_scan_dialog, mainloop_with_timeout):

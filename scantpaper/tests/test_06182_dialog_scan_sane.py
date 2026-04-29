@@ -156,8 +156,6 @@ def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
 
     assert callbacks == 4, "all callbacks executed"
 
-    dialog.thread.quit()
-
 
 def test_option_dependency(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
@@ -374,8 +372,6 @@ def test_unsetting_profile(
 
     assert callbacks == 3, "all callbacks executed"
 
-    dialog.thread.quit()
-
 
 def test_restore_options_after_cycle(
     sane_scan_dialog,
@@ -421,8 +417,6 @@ def test_restore_options_after_cycle(
     loop.run()
 
     assert callbacks == 2, "all callbacks executed"
-
-    dialog.thread.quit()
 
 
 def test_scanner_with_no_source(
@@ -613,8 +607,6 @@ def test_defaults(
     loop.run()
 
     assert callbacks == 2, "callbacks executed once each"
-
-    dialog.thread.quit()
 
 
 def test_hiding_geometry(

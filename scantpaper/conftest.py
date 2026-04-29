@@ -26,6 +26,9 @@ def sane_scan_dialog():
         transient_for=Gtk.Window(),
     )
     yield dialog
+    if hasattr(dialog, "thread") and dialog.thread.is_alive():
+        dialog.thread.quit()
+        dialog.thread.join(timeout=1)
     dialog.destroy()
 
 
