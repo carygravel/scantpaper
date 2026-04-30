@@ -54,6 +54,7 @@ test = [
     "pytest-mock",
     "pytest-timeout",
     "pytest-xvfb",
+    "tomli",
 ]
 
 [project.urls]

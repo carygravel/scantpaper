@@ -1,6 +1,4 @@
-"""
-Tests for i18n module.
-"""
+"Tests for i18n helpers"
 
 import importlib
 import gettext
