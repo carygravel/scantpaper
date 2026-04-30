@@ -164,7 +164,7 @@ def test_1():
 def test_empty_queue():
     "test _monitor_response with empty queue"
     thread = BaseThread()
-    assert thread._monitor_response(block=False) == GLib.SOURCE_CONTINUE
+    assert thread._monitor_response() == GLib.SOURCE_CONTINUE
 
 
 def test_register_callback_errors():

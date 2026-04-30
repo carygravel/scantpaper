@@ -105,10 +105,6 @@ class BaseThread(threading.Thread):
             # If the interpreter is shutting down, queues might be closed/None
             pass
 
-    def quit(self):
-        "quit the thread"
-        return self.send("quit")
-
     def input_handler(self, request):  # pylint: disable=no-self-use
         "dummy input handler to be overridden as required"
         return request.args
@@ -180,13 +176,11 @@ class BaseThread(threading.Thread):
             request.error(None, str(err))
         return True
 
-    def monitor(self, block=False):
+    def monitor(self):
         "monitor the thread, triggering callbacks as required"
-        if block:
-            return self._monitor_response(block)
         # no point in returning if there are still responses
         while not self.responses.empty():
-            return self._monitor_response(block)
+            return self._monitor_response()
         self.total_jobs = 0
         return GLib.SOURCE_CONTINUE
 
@@ -239,10 +233,10 @@ class BaseThread(threading.Thread):
                     data = data._replace(status=str(err))
                     self.callbacks[uid]["error_callback"](data)
 
-    def _monitor_response(self, block=False):
+    def _monitor_response(self):
         self._execute_callbacks_for_stage("running", None)
         try:
-            result = self.responses.get(block)
+            result = self.responses.get(False)
         except queue.Empty:
             return GLib.SOURCE_CONTINUE
         stage = result.type.name.lower()
