@@ -91,6 +91,7 @@ sys.path.insert(0, base_dir)
 import gi
 from app_window import ApplicationWindow
 from const import PROG_NAME, SPACE, VERSION
+from i18n import log_i18n_status
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (
@@ -209,6 +210,7 @@ def _parse_arguments():
             args.log_level = logging.WARNING
         logging.basicConfig(level=args.log_level)
 
+    log_i18n_status()  # log the messages from i18n during import
     logger = logging.getLogger(__name__)
 
     # FIXME: implement help display
