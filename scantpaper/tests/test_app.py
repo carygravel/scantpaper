@@ -1,8 +1,6 @@
 "Tests for app.py"
 
 import logging
-import os
-import subprocess
 import sys
 from unittest.mock import MagicMock, patch
 import pytest
@@ -217,6 +215,26 @@ def test_application_do_startup(mock_deps, mocker):
     app = Application()
     app.do_startup()
     app_module.Gtk.Application.do_startup.assert_called_with(app)
+
+
+def test_pyinstaller_path(mocker):
+    "Test that base_dir is set correctly when running as a PyInstaller bundle"
+    import importlib
+
+    # Mock sys.frozen and sys._MEIPASS
+    mocker.patch.object(sys, "frozen", True, create=True)
+    mocker.patch.object(sys, "_MEIPASS", "/fake/meipass", create=True)
+
+    # Mock gi.require_version to avoid errors
+    mocker.patch("gi.require_version")
+
+    # Save original sys.path and restore it after the test
+    original_path = sys.path[:]
+    try:
+        importlib.reload(app_module)
+        assert sys.path[0] == "/fake/meipass"
+    finally:
+        sys.path[:] = original_path
 
 
 def test_script_entry_point():
