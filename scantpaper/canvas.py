@@ -555,6 +555,7 @@ class Canvas(
 
     def _boxed_text(self, options):
         "Draw text on the canvas with a box around it"
+        self.set_redraw_on_allocate(False)  # Disable redraws during batch processing
         for _ in range(BATCH_SIZE):
             idx = options["idx"]
             box = options["box"]
@@ -598,6 +599,8 @@ class Canvas(
                     options["finished_callback"]()
                 return GLib.SOURCE_REMOVE
 
+        self.set_redraw_on_allocate(True)  # Re-enable redraws
+        self.queue_draw()  # Trigger a redraw after the batch is processed
         return GLib.SOURCE_CONTINUE
 
         # $rect->signal_connect(
