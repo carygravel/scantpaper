@@ -37,7 +37,7 @@ class PaperList(SimpleList):
 
         self.get_column(0).set_sort_column_id(0)
 
-    def do_add_clicked(self):
+    def do_add_clicked(self, _widget):
         "Add button callback"
         rows = self.get_selected_indices()
         if not rows and len(self.data) > 0:
@@ -92,11 +92,14 @@ class PaperList(SimpleList):
                 self.data[path][0] = f"{name} ({version})"
                 return
 
-    def do_remove_paper(self, window):
+    def do_remove_paper(self, _widget, window):
+        "remove paper button callback"
         if self.data:
             self.do_remove_clicked()
         else:
-            window.parent.show_message_dialog(
+            app = window.get_application()
+            appwindow = app.get_windows()
+            appwindow.show_message_dialog(
                 parent=window,
                 type="error",
                 buttons="close",

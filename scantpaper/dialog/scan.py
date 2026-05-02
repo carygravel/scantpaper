@@ -945,7 +945,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         slist = PaperList(self.paper_formats)
         dbutton.connect("clicked", slist.do_add_clicked)
-        rbutton.connect("clicked", slist.do_remove_paper, window)
+        rbutton.connect("clicked", slist.do_remove_paper, self)
         slist.get_model().connect("row-changed", slist.do_paper_sizes_row_changed)
 
         hboxl.pack_end(slist, False, False, 0)

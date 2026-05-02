@@ -16,11 +16,11 @@ def test_paperlist():
     plist = PaperList({"A4": {"x": 210, "y": 297, "l": 0, "t": 0}})
     assert plist is not None
 
-    plist.do_add_clicked()
+    plist.do_add_clicked(None)
     assert len(plist.data) == 2
 
     plist.select([0])
-    plist.do_add_clicked()
+    plist.do_add_clicked(None)
     assert len(plist.data) == 3
 
     plist.select([1])
@@ -44,7 +44,7 @@ def test_paperlist():
     assert plist.data[0][0] == "A4", "name unchanged"
 
     plist.select([1])
-    plist.do_remove_paper(None)
+    plist.do_remove_paper(None, None)
     assert len(plist.data) == 1
 
     plist.select([0])
