@@ -105,6 +105,10 @@ class BaseThread(threading.Thread):
             # If the interpreter is shutting down, queues might be closed/None
             pass
 
+    def quit(self):
+        "quit the thread"
+        return self.send("quit")
+
     def input_handler(self, request):  # pylint: disable=no-self-use
         "dummy input handler to be overridden as required"
         return request.args
