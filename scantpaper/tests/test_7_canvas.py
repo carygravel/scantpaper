@@ -13,6 +13,7 @@ from canvas import (
     rgb2hsv,
     hsv2rgb,
     Canvas,
+    button_press_callback,
     Bbox,
     Rectangle,
     ListIter,
@@ -978,7 +979,7 @@ def test_add_box_callbacks(mocker):
     event = MagicMock()
     event.button = 1
     # Call callback directly to avoid GdkEvent conversion issues in tests
-    child.button_press_callback(child, None, event, mock_edit, child)
+    button_press_callback(child, None, event, mock_edit)
     mock_edit.assert_called_once()
 
 
@@ -1389,31 +1390,12 @@ def test_bbox_button_press_callback(mocker):
     parent = canvas_obj.add_box(
         text="parent", bbox=Rectangle(x=0, y=0, width=100, height=100), parent=page
     )
-    # canvas_obj is parent of parent? No, Bbox has parent.
-    # canvas_obj has _dragging.
-    # Bbox.button_press_callback: self.parent.get_parent()._dragging = False
-    # If self.parent is 'parent' (Bbox), then self.parent.get_parent() should be 'page' (Bbox).
-    # Then self.parent.get_parent().get_parent() should be 'root' (CanvasGroup).
-    # Then self.parent.get_parent().get_parent().get_parent() should be Canvas?
-
-    # Actually Bbox is child of CanvasGroup.
-    # Let's just make sure the hierarchy is deep enough to not crash.
     child = canvas_obj.add_box(
         text="c", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=parent
     )
-    # child.parent = parent (Bbox)
-    # parent.parent = page (Bbox)
-    # page.parent = root (CanvasGroup)
-    # root.parent = canvas_obj? NO, root is root of canvas.
-
-    # In canvas.py: root = GooCanvas.CanvasGroup(); self.set_root_item(root)
-    # so root.get_parent() is None or something else.
-    # Actually GooCanvas root item parent is the canvas?
-
-    # Let's mock parent.get_parent()
     with patch.object(parent, "get_parent") as mock_gp:
         mock_gp.return_value = MagicMock()
-        child.button_press_callback(child, None, event, mock_edit, child)
+        button_press_callback(child, None, event, mock_edit)
         mock_edit.assert_called_once()
 
 

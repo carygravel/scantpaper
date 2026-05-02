@@ -639,11 +639,8 @@ class SessionMixins:
         self._ocr_text_hbox.hide()
         self._ann_hbox.show()
 
-    def _edit_ocr_text(self, widget, _target=None, ev=None, bbox=None):
+    def _edit_ocr_text(self, bbox, _target=None, ev=None):
         "Edit OCR text"
-        if not ev:
-            bbox = widget
-
         if bbox is None:
             logger.debug("edit_ocr_text did not return a bbox")
             return

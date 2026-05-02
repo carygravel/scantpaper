@@ -546,9 +546,8 @@ class Canvas(
             if "edit_callback" in kwargs:
                 bbox.connect(
                     "button-press-event",
-                    bbox.button_press_callback,
+                    button_press_callback,
                     kwargs["edit_callback"],
-                    bbox,
                 )
 
         return bbox
@@ -716,6 +715,15 @@ class Canvas(
         self._current_index = "position"
 
 
+def button_press_callback(self, target, event, edit_callback):
+    "button press callback"
+    if event.button == 1:
+        canvas = self.parent.get_parent()
+        if canvas:
+            canvas._dragging = False
+        edit_callback(self, target, event)
+
+
 class Bbox(GooCanvas.CanvasGroup):
     """BBox subclasses CanvasGroup to include a CanvasRect, and either a
     CanvasText, or other BBoxes"""
@@ -827,14 +835,6 @@ class Bbox(GooCanvas.CanvasGroup):
                 scale *= FULLPAGE_OCR_SCALE
 
             self.transform_text(scale, angle)
-
-    def button_press_callback(self, _self, target, event, edit_callback, bbox):
-        "button press callback"
-        if event.button == 1:
-            canvas = self.parent.get_parent()
-            if canvas:
-                canvas._dragging = False
-            edit_callback(self, target, event, bbox)
 
     def get_stack_index_by_position(self, bbox):
         """given a parent bbox and a new box, return the index

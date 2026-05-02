@@ -728,9 +728,7 @@ def test_edit_ocr_text(mocker, mock_session_window):
     # test with event
     mock_ev = mocker.Mock()
     mock_ev.time = 123
-    mock_session_window._edit_ocr_text(
-        mock_bbox, _target="target", ev=mock_ev, bbox=mock_bbox
-    )
+    mock_session_window._edit_ocr_text(mock_bbox, _target="target", ev=mock_ev)
     mock_session_window.t_canvas.pointer_ungrab.assert_called_with("target", 123)
 
 
