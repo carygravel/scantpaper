@@ -83,9 +83,32 @@ class DocThread(SaveThread):
         self._write_tid = None
         self.start()
         mlp = GLib.MainLoop()
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-        self.send("create", self._db, finished_callback=lambda x: mlp.quit())
+        success = False
+        timed_out = False
+
+        def on_finished(_):
+            nonlocal success
+            success = True
+            mlp.quit()
+
+        def on_timeout():
+            nonlocal timed_out
+            timed_out = True
+            mlp.quit()
+            return GLib.SOURCE_REMOVE
+
+        timeout_id = GLib.timeout_add(10000, on_timeout)  # to prevent it hanging
+        self.send(
+            "create",
+            self._db,
+            finished_callback=on_finished,
+            error_callback=lambda x: mlp.quit(),
+        )
         mlp.run()
+        if not timed_out:
+            GLib.source_remove(timeout_id)
+        if not success:
+            logger.error("Failed to initialize DocThread for %s", self._db)
 
     def _connect(self):
         tid = threading.get_native_id()

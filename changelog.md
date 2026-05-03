@@ -1,4 +1,12 @@
-## 3.0.5 (2026-04-11)
+## 3.0.6 (2026-05-02)
+
+* Improve error messages when helper tools not found
+* Fix bugs adding and removing new paper sizes
+* More improvements to UI responsiveness showing hidden text layer
+* Fix race condition causing occasional hang at startup
+
+
+## 3.0.5 (2026-04-18)
 
 * Refactor hOCR parsing into thread to improve UI responsiveness
 * Batch insertions of words in hidden text layer to improve UI responsiveness

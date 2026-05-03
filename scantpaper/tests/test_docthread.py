@@ -1,11 +1,13 @@
 "Tests for DocThread"
 
 import threading
+import time
 import sqlite3
 import subprocess
 from PIL import Image
 import pytest
 from const import APPLICATION_ID, USER_VERSION
+from gi.repository import GLib
 from docthread import DocThread, _calculate_crop_tuples
 from importthread import CancelledError
 from page import Page
@@ -891,3 +893,51 @@ def test_pixbuf_to_bytes(mocker):
     assert (
         thread._pixbuf_to_bytes(None) == b""
     ), "Expected None pixbuf to return empty bytes"
+
+
+def test_init_race_condition(tmp_path, monkeypatch):
+    """
+    Test that DocThread.__init__ correctly waits for the 'create' request
+    to finish, even if it takes longer than the old 2-second timeout.
+    """
+    db_path = tmp_path / "test_race.db"
+
+    original_do_create = DocThread.do_create
+
+    def delayed_do_create(self, request):
+        time.sleep(3)  # Longer than the old 2s timeout
+        original_do_create(self, request)
+
+    monkeypatch.setattr(DocThread, "do_create", delayed_do_create)
+
+    # This should now wait up to 10s and succeed
+    thread = DocThread(db=db_path)
+
+    # Verify that the tables were created by calling a method that uses them
+    # If the race condition exists, this would raise sqlite3.OperationalError
+    assert thread.can_undo() is False
+
+    thread.quit()
+
+
+def test_init_timeout_logging(tmp_path, mocker, caplog):
+    "Test that DocThread.__init__ logs an error if initialization times out."
+    db_path = tmp_path / "test_timeout.db"
+
+    # Mock GLib.timeout_add to use a very short timeout instead of 10s
+    original_timeout_add = GLib.timeout_add
+
+    def mock_timeout_add(ms, callback, *args):
+        if ms == 10000:
+            return original_timeout_add(1, callback, *args)
+        return original_timeout_add(ms, callback, *args)
+
+    mocker.patch("gi.repository.GLib.timeout_add", side_effect=mock_timeout_add)
+    # Mock send to do nothing so it times out
+    mocker.patch.object(DocThread, "send")
+
+    with caplog.at_level("ERROR"):
+        thread = DocThread(db=db_path)
+
+    assert f"Failed to initialize DocThread for {db_path}" in caplog.text
+    thread.quit()

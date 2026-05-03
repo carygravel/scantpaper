@@ -184,7 +184,8 @@ class BaseThread(threading.Thread):
         "monitor the thread, triggering callbacks as required"
         # no point in returning if there are still responses
         while not self.responses.empty():
-            return self._monitor_response()
+            if self._monitor_response() == GLib.SOURCE_REMOVE:
+                return GLib.SOURCE_REMOVE
         self.total_jobs = 0
         return GLib.SOURCE_CONTINUE
 
