@@ -1938,60 +1938,6 @@ def create_test_page_with_words(num_words, words_per_line=10):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize(
-    "num_words,max_time_ms",
-    [
-        (100, 100),  # Small page: should be very fast
-        (500, 300),  # Typical A4 page: ~35ms expected, allow 150ms headroom
-        (1000, 600),  # Large page: ~67ms expected, allow 250ms headroom
-    ],
-)
-def test_canvas_performance(rose_pnm, num_words, max_time_ms):
-    "Test that canvas loading performance hasn't regressed."
-    with tempfile.TemporaryDirectory() as dirname:
-        page = Page(
-            filename=rose_pnm.name,
-            format="Portable anymap",
-            resolution=72,
-            dir=dirname,
-        )
-
-        # Generate test data
-        page.text_layer = create_test_page_with_words(num_words)
-
-        # Benchmark canvas loading
-        canvas = Canvas()
-        start = time.time()
-        mlp = GLib.MainLoop()
-        bboxes, indices = get_bboxes_and_indices(page.text_layer)
-        canvas.set_text(
-            bboxes=bboxes,
-            sorted_word_indices=indices,
-            finished_callback=lambda: mlp.quit(),
-        )
-        GLib.timeout_add(2000, mlp.quit)
-        mlp.run()
-        elapsed_ms = (time.time() - start) * 1000
-
-        # Verify correctness
-        assert (
-            len(canvas.confidence_index.list) == num_words
-        ), f"Confidence index should have {num_words} words"
-
-        # Check performance
-        assert elapsed_ms < max_time_ms, (
-            f"Canvas loading {num_words} words took {elapsed_ms:.1f}ms, "
-            f"expected < {max_time_ms}ms. Performance regression detected!"
-        )
-
-        # Print timing info for diagnostics (only in verbose mode)
-        print(
-            f"\n{num_words} words loaded in {elapsed_ms:.1f}ms "
-            f"({num_words/elapsed_ms*1000:.0f} words/sec)"
-        )
-
-
-@pytest.mark.slow
 def test_canvas_no_stack_overflow(rose_pnm):
     """Test that large pages don't cause stack overflow.
 

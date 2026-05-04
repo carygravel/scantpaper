@@ -1,4 +1,4 @@
-## 3.0.6 (2026-05-02)
+## 3.0.6 (2026-05-03)
 
 * Improve error messages when helper tools not found
 * Fix bugs adding and removing new paper sizes
