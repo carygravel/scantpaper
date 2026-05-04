@@ -13,7 +13,7 @@ Before you begin, make sure you have a local clone of the scantpaper repository 
 ### Prerequisites
 
 - Python 3
-- The python dependencies listed in `requirements.txt` and system-level
+- The python dependencies listed in `pyproject.toml` and system-level
   dependencies given in the `README.md` file.
 
 ### Installation
