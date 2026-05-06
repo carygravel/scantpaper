@@ -51,6 +51,7 @@
 #     git push --set-upstream git@salsa.debian.org:python-team/packages/scantpaper.git : --tags
 # 5. Build packages for Ubuntu
 #    name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
+#      * resolute (until 2031-05)
 #      * questing (until 2026-07)
 #      * noble (until 2029-06)
 #      * jammy (until 2027-06)

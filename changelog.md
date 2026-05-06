@@ -1,7 +1,7 @@
 ## 3.0.6 (2026-05-03)
 
 * Improve error messages when helper tools not found
-* Fix bugs adding and removing new paper sizes
+* Fix bugs adding and removing paper sizes
 * More improvements to UI responsiveness showing hidden text layer
 * Fix race condition causing occasional hang at startup
 
