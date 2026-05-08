@@ -246,3 +246,28 @@ def test_script_entry_point():
             runpy.run_module("app", run_name="__main__")
         except SystemExit:
             pass
+
+
+def test_handle_exception(mocker):
+    "Test _handle_exception"
+    mock_logger = mocker.patch("app.logging.getLogger")
+    mock_critical = mock_logger.return_value.critical
+
+    # Test standard exception
+    exc_type, exc_value, exc_traceback = ValueError, ValueError("test"), None
+    app_module._handle_exception(exc_type, exc_value, exc_traceback)
+    mock_critical.assert_called_once()
+    assert "Uncaught exception" in mock_critical.call_args[0][0]
+    assert mock_critical.call_args[1]["exc_info"] == (
+        exc_type,
+        exc_value,
+        exc_traceback,
+    )
+
+    # Test KeyboardInterrupt (should call original excepthook)
+    mock_critical.reset_mock()
+    with patch("sys.__excepthook__") as mock_orig_hook:
+        exc_type = KeyboardInterrupt
+        app_module._handle_exception(exc_type, None, None)
+        mock_orig_hook.assert_called_once()
+        mock_critical.assert_not_called()

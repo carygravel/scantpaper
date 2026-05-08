@@ -88,15 +88,14 @@ else:
 sys.path.insert(0, base_dir)
 
 # pylint: disable=wrong-import-position
-from app_window import ApplicationWindow
-from const import SPACE, VERSION, PROG_NAME
 import gi
+from app_window import ApplicationWindow
+from const import PROG_NAME, SPACE, VERSION
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (
-    Gtk,
     Gio,
-    GLib,
+    Gtk,
 )
 
 # pylint: enable=wrong-import-position
@@ -141,6 +140,20 @@ class Application(Gtk.Application):
         if not self.window:
             self.window = ApplicationWindow(application=self)
         self.window.present()
+
+
+def _handle_exception(exc_type, exc_value, exc_traceback):
+    "handle uncaught exceptions by logging them"
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logging.getLogger().critical(
+        "Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback)
+    )
+
+
+sys.excepthook = _handle_exception
 
 
 def _parse_arguments():
