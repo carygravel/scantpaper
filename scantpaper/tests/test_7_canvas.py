@@ -1270,32 +1270,6 @@ def test_bbox_update_box_full(mocker):
     assert word2.get_centroid()[0] < word.get_centroid()[0]
 
 
-def test_bbox_transform_text_more(mocker):
-    "Test Bbox.transform_text more branches"
-    canvas_obj = Canvas()
-    canvas_obj.confidence_index = ListIter()
-    root = canvas_obj.get_root_item()
-    page = canvas_obj.add_box(
-        text="p",
-        bbox=Rectangle(x=0, y=0, width=100, height=100),
-        type="page",
-        parent=root,
-    )
-
-    # Test with rotation 90
-    word = canvas_obj.add_box(
-        text="rotated",
-        bbox=Rectangle(x=0, y=0, width=10, height=50),
-        parent=page,
-        textangle=90,
-    )
-    # This should have called transform_text in __init__
-    # We can call it again to test logic
-    word.transform_text(scale=2.0, angle=90)
-    # Check that text widget exists and has some properties set?
-    # Hard to check without deep GooCanvas introspection but we cover lines.
-
-
 def test_canvas_set_text_full(mocker, rose_pnm):
     "Test Canvas.set_text with real-ish page"
     with tempfile.TemporaryDirectory() as dirname:

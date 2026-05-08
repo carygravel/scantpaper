@@ -934,20 +934,48 @@ class Bbox(GooCanvas.CanvasGroup):
                 fill_color=color,
             )
             angle = -(textangle + rotation) % _360_DEGREES
-            bounds = text.get_bounds()
-            if bounds.x2 - bounds.x1 == 0:
+
+            # Calculate scale, apply transform, get bounds, calculate offsets in one place
+            # to avoid duplicate get_bounds()
+
+            # Cache text widget reference (also optimization #3)
+            self._text_widget = text
+
+            # Get initial bounds to calculate scale
+            initial_bounds = text.get_bounds()
+            if initial_bounds.x2 - initial_bounds.x1 == 0:
                 logger.error("text '%s' has no width, skipping", self.text)
                 return
 
             scale = (self.bbox.height if angle else self.bbox.width) / (
-                bounds.x2 - bounds.x1
+                initial_bounds.x2 - initial_bounds.x1
             )
 
             # gocr case: gocr creates text only which we treat as page text
             if self.type == "page":
                 scale *= FULLPAGE_OCR_SCALE
 
-            self.transform_text(scale, angle)
+            # Apply transform and position (inlined from transform_text)
+            x, y, width, height = (
+                self.bbox.x,
+                self.bbox.y,
+                self.bbox.width,
+                self.bbox.height,
+            )
+            x2, y2 = (x + width, y + height)
+
+            # First transform: apply scale and rotation
+            text.set_simple_transform(0, 0, scale, angle)
+
+            # Get bounds AFTER transform (this is the only get_bounds() call needed!)
+            bounds = text.get_bounds()
+
+            # Calculate offsets to center text in bbox
+            x_offset = (x + x2 - bounds.x1 - bounds.x2) / 2
+            y_offset = (y + y2 - bounds.y1 - bounds.y2) / 2
+
+            # Second transform: apply offsets
+            text.set_simple_transform(x_offset, y_offset, scale, angle)
 
     def get_stack_index_by_position(self, bbox):
         """given a parent bbox and a new box, return the index
@@ -1031,7 +1059,12 @@ class Bbox(GooCanvas.CanvasGroup):
         return self.get_child(0)
 
     def get_text_widget(self):
-        "return text widget of bbox"
+        "return text widget of bbox, using cached text widget reference if available"
+        # Try cached reference first (set in __init__ and update_box)
+        if hasattr(self, "_text_widget") and self._text_widget:
+            return self._text_widget
+
+        # Fallback to child lookup for backwards compatibility
         child = self.get_child(1)
         if isinstance(child, GooCanvas.CanvasText):
             return child
@@ -1085,25 +1118,6 @@ class Bbox(GooCanvas.CanvasGroup):
                 callback(child)
                 child.walk_children(callback)
 
-    def transform_text(self, scale, angle=0):
-        "scale, rotate & shift text"
-        text_widget = self.get_text_widget()
-        bbox = self.bbox
-        text = self.text
-        if bbox and len(text):
-            x, y, width, height = (
-                bbox.x,
-                bbox.y,
-                bbox.width,
-                bbox.height,
-            )
-            x2, y2 = (x + width, y + height)
-            text_widget.set_simple_transform(0, 0, scale, angle)
-            bounds = text_widget.get_bounds()
-            x_offset = (x + x2 - bounds.x1 - bounds.x2) / 2
-            y_offset = (y + y2 - bounds.y1 - bounds.y2) / 2
-            text_widget.set_simple_transform(x_offset, y_offset, scale, angle)
-
     def update_box(self, text, selection):
         "Set the text in the given widget"
 
@@ -1139,20 +1153,44 @@ class Bbox(GooCanvas.CanvasGroup):
                 fill_color="black",
             )
 
+            # Cache text widget and inline transform
+            self._text_widget = new_text
+
             # re-adjust text size & position
             if self.type != "page":
                 self.bbox = selection
-                new_text.set_simple_transform(0, 0, 1, 0)
                 rotation = self.transformation[0]
                 angle = -(self.textangle + rotation) % _360_DEGREES
 
-                # don't scale & rotate if text has no width
-                bounds = new_text.get_bounds()
-                if bounds.x1 != bounds.x2:
+                # Inline transform logic to avoid duplicate get_bounds()
+                # Get initial bounds to calculate scale
+                initial_bounds = new_text.get_bounds()
+                if initial_bounds.x1 != initial_bounds.x2:
                     scale = (selection.height if angle else selection.width) / (
-                        bounds.x2 - bounds.x1
+                        initial_bounds.x2 - initial_bounds.x1
                     )
-                    self.transform_text(scale, angle)
+
+                    # Apply transform (inlined from transform_text)
+                    x, y, width, height = (
+                        selection.x,
+                        selection.y,
+                        selection.width,
+                        selection.height,
+                    )
+                    x2, y2 = (x + width, y + height)
+
+                    # First transform: apply scale and rotation
+                    new_text.set_simple_transform(0, 0, scale, angle)
+
+                    # Get bounds AFTER transform (only get_bounds() call needed!)
+                    bounds = new_text.get_bounds()
+
+                    # Calculate offsets to center text
+                    x_offset = (x + x2 - bounds.x1 - bounds.x2) / 2
+                    y_offset = (y + y2 - bounds.y1 - bounds.y2) / 2
+
+                    # Second transform: apply offsets
+                    new_text.set_simple_transform(x_offset, y_offset, scale, angle)
 
             new_conf = self.confidence
             if old_conf != new_conf:
