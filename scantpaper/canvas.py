@@ -1,9 +1,10 @@
 "Classes to do with displaying HOCR ouput"
 
-import re
-import math
 import html
 import logging
+import math
+import re
+
 import gi
 
 gi.require_version("GooCanvas", "2.0")
@@ -220,6 +221,7 @@ class Canvas(
         "setter for max_color attribute"
         self._max_color = newval
         self.max_color_hsv = string2hsv(self._max_color)
+        self._color_lookup_table = None  # Invalidate lookup table
 
     max_color_hsv = GObject.Property(
         type=object,
@@ -244,21 +246,15 @@ class Canvas(
         "setter for min_color attribute"
         self._min_color = newval
         self.min_color_hsv = string2hsv(self._min_color)
+        self._color_lookup_table = None  # Invalidate lookup table
 
     min_color_hsv = GObject.Property(
         type=object,
         nick="Minimum color (HSV)",
         blurb="HSV Color for minimum confidence",
     )
-    max_confidence = GObject.Property(
-        type=int,
-        minimum=0,
-        maximum=_100_PERCENT,
-        default=MAX_CONFIDENCE_DEFAULT,
-        nick="Maximum confidence",
-        blurb="Confidence threshold for max-color",
-    )
-    min_confidence = GObject.Property(
+
+    @GObject.Property(
         type=int,
         minimum=0,
         maximum=_100_PERCENT,
@@ -266,6 +262,55 @@ class Canvas(
         nick="Minimum confidence",
         blurb="Confidence threshold for min-color",
     )
+    def min_confidence(self):
+        "getter for min_confidence attribute"
+        return self._min_confidence
+
+    @min_confidence.setter
+    def min_confidence(self, newval):
+        "setter for min_confidence attribute"
+        self._min_confidence = newval
+        self._color_lookup_table = None  # Invalidate lookup table
+
+    _max_confidence = MAX_CONFIDENCE_DEFAULT
+
+    @GObject.Property(
+        type=int,
+        minimum=0,
+        maximum=_100_PERCENT,
+        default=MAX_CONFIDENCE_DEFAULT,
+        nick="Maximum confidence",
+        blurb="Confidence threshold for max-color",
+    )
+    def max_confidence(self):
+        "getter for max_confidence attribute"
+        return self._max_confidence
+
+    @max_confidence.setter
+    def max_confidence(self, newval):
+        "setter for max_confidence attribute"
+        self._max_confidence = newval
+        self._color_lookup_table = None  # Invalidate lookup table
+
+    _min_confidence = MIN_CONFIDENCE_DEFAULT
+
+    @GObject.Property(
+        type=int,
+        minimum=0,
+        maximum=_100_PERCENT,
+        default=MIN_CONFIDENCE_DEFAULT,
+        nick="Minimum confidence",
+        blurb="Confidence threshold for min-color",
+    )
+    def min_confidence(self):
+        "getter for min_confidence attribute"
+        return self._min_confidence
+
+    @min_confidence.setter
+    def min_confidence(self, newval):
+        "setter for min_confidence attribute"
+        self._min_confidence = newval
+        self._color_lookup_table = None  # Invalidate lookup table
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -294,6 +339,7 @@ class Canvas(
         self._dragging = False
         self._drag_start = {}
         self._pixbuf_size = None
+        self._color_lookup_table = None
 
         # allow the widget to be accessed via CSS
         self.set_name("scantpaper-ocr-canvas")
@@ -315,6 +361,74 @@ class Canvas(
             return self.min_color_hsv
 
         return val
+
+    def _build_color_lookup_table(self, num_bands=10):
+        """Pre-calculate color lookup table for confidence bands.
+        This eliminates expensive color conversions during page rendering.
+
+        Args:
+            num_bands: Number of discrete color bands (default 10)
+        """
+        self._color_lookup_table = []
+        min_conf = self.min_confidence
+        max_conf = self.max_confidence
+        band_width = (max_conf - min_conf) / num_bands
+
+        for i in range(num_bands):
+            # Calculate representative confidence for this band (midpoint)
+            band_confidence = min_conf + (i + 0.5) * band_width
+
+            # Use existing confidence2color logic
+            if band_confidence >= max_conf:
+                color = self.max_color
+            else:
+                max_hsv = self.get_max_color_hsv()
+                min_hsv = self.get_min_color_hsv()
+                m = (band_confidence - min_conf) / (max_conf - min_conf)
+                hsv = {
+                    "h": linear_interpolation(min_hsv["h"], max_hsv["h"], m),
+                    "s": linear_interpolation(min_hsv["s"], max_hsv["s"], m),
+                    "v": linear_interpolation(min_hsv["v"], max_hsv["v"], m),
+                }
+                rgb = hsv2rgb(hsv)
+                color = (
+                    f"#{int(rgb.red * MAX_COLOR_INT):04x}"
+                    f"{int(rgb.green * MAX_COLOR_INT):04x}"
+                    f"{int(rgb.blue * MAX_COLOR_INT):04x}"
+                )
+
+            self._color_lookup_table.append(color)
+
+    def get_color_for_confidence(self, confidence):
+        """Fast lookup of color by confidence using pre-calculated table.
+
+        Args:
+            confidence: Confidence value (0-100)
+
+        Returns:
+            Color string (e.g., "black", "red", or hex "#ff0000")
+        """
+        min_conf = self.min_confidence
+        max_conf = self.max_confidence
+
+        # Handle edge cases: return exact colors for out-of-range values
+        # This matches the original behavior and is faster than lookup
+        if confidence >= max_conf:
+            return self.max_color
+
+        if confidence <= min_conf:
+            return self.min_color
+
+        # Build lookup table if not already built
+        if self._color_lookup_table is None:
+            self._build_color_lookup_table()
+
+        # Calculate band index for values in valid range
+        num_bands = len(self._color_lookup_table)
+        band_width = (max_conf - min_conf) / num_bands
+        band_index = int((confidence - min_conf) / band_width)
+
+        return self._color_lookup_table[band_index]
 
     def set_text(self, bboxes, sorted_word_indices, **kwargs):
         "set the canvas text from a list of bboxes"
@@ -454,6 +568,7 @@ class Canvas(
         "clear the canvas"
         self.set_root_item(GooCanvas.CanvasGroup())
         self._pixbuf_size = None
+        self._color_lookup_table = None
 
     def set_offset(self, offset_x, offset_y):
         "set the offset"
@@ -655,7 +770,6 @@ class Canvas(
 
         # middle mouse button
         if event.button == 2:
-
             # Using the root window x,y position for dragging the canvas, as the
             # values returned by event.x and y cause a bouncing effect, and
             # only the value since the last event is required.
@@ -808,7 +922,6 @@ class Bbox(GooCanvas.CanvasGroup):
         # }
 
         if self.text != "":
-
             # create text and then scale, shift & rotate it into the bounding box
             text = GooCanvas.CanvasText(
                 parent=self,
@@ -905,37 +1018,13 @@ class Bbox(GooCanvas.CanvasGroup):
         return l
 
     def confidence2color(self):
-        """Convert confidence percentage into colour
+        """Convert confidence percentage into colour using pre-calculated lookup table.
+
         Any confidence level greater than max_conf is treated as max_conf and given
         max_color. Any confidence level less than min_conf is treated as min_conf and
-        given min_color. Anything in between is appropriately interpolated in HSV space.
+        given min_color. Anything in between uses the pre-calculated lookup table.
         """
-
-        confidence = self.confidence
-        canvas = self.canvas
-        max_conf = canvas.max_confidence
-        if confidence >= max_conf:
-            return canvas.max_color
-
-        min_conf = canvas.min_confidence
-        if confidence <= min_conf:
-            return canvas.min_color
-
-        max_hsv = canvas.get_max_color_hsv()
-        min_hsv = canvas.get_min_color_hsv()
-        m = (confidence - min_conf) / (max_conf - min_conf)
-        hsv = {}
-        hsv["h"], hsv["s"], hsv["v"] = (
-            linear_interpolation(min_hsv["h"], max_hsv["h"], m),
-            linear_interpolation(min_hsv["s"], max_hsv["s"], m),
-            linear_interpolation(min_hsv["v"], max_hsv["v"], m),
-        )
-        rgb = hsv2rgb(hsv)
-        return (
-            f"#{int(rgb.red * MAX_COLOR_INT):04x}"
-            f"{int(rgb.green * MAX_COLOR_INT):04x}"
-            f"{int(rgb.blue * MAX_COLOR_INT):04x}"
-        )
+        return self.canvas.get_color_for_confidence(self.confidence)
 
     def get_box_widget(self):
         "return rect widget of bbox"
@@ -1104,7 +1193,6 @@ class Bbox(GooCanvas.CanvasGroup):
 
         # try to preserve as much information as possible
         if self.bbox and self.type:
-
             # determine hOCR element types & mapping to HTML tags
             typestr = "ocr_" + self.type
             tag = "span"
