@@ -25,6 +25,7 @@ import config
 from i18n import _
 from helpers import recursive_slurp
 from tesseract import locale_installed, get_tesseract_codes
+import ocrmypdf
 import sane  # To get SANE_* enums
 import gi
 
@@ -291,6 +292,7 @@ class ApplicationWindow(
         logger.info("sane.init() %s", sane.init())
         logger.info("SQLite C library version: %s", sqlite3.sqlite_version)
         logger.info("SQLite thread safety level: %s", sqlite3.threadsafety)
+        logger.info("ocrmypdf.__version__ %s", ocrmypdf.__version__)
 
         # initialise image control tool radio button setting
         self._change_image_tool_cb(
