@@ -3,21 +3,22 @@
 import datetime
 import gc
 from unittest.mock import MagicMock, patch
-import pytest
+
 import helpers
+import pytest
 from helpers import (
-    _weak_callback,
-    exec_command,
-    program_version,
-    _program_version,
-    collate_metadata,
-    expand_metadata_pattern,
-    show_message_dialog,
-    get_tmp_dir,
-    slurp,
-    recursive_slurp,
-    Proc,
     PROCESS_FAILED,
+    Proc,
+    _program_version,
+    _weak_callback,
+    collate_metadata,
+    exec_command,
+    expand_metadata_pattern,
+    get_tmp_dir,
+    program_version,
+    recursive_slurp,
+    show_message_dialog,
+    slurp,
 )
 
 
@@ -89,7 +90,7 @@ def test_program_version_helper_branches():
 
     # PROCESS_FAILED
     proc_fail = Proc(PROCESS_FAILED, "", "some error")
-    assert _program_version("stdout", r"regex", proc_fail) == PROCESS_FAILED
+    assert _program_version("stdout", r"regex", proc_fail) is None
 
     # No match
     assert _program_version("stdout", r"nomatch", proc) is None

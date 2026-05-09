@@ -1,13 +1,14 @@
 "Various helper functions"
 
+import datetime
 import glob
-import re
+import logging
 import os
+import re
+import subprocess
 import weakref
 from dataclasses import dataclass
-import logging
-import subprocess
-import datetime
+
 from dialog import MultipleMessage
 from i18n import _
 
@@ -85,7 +86,7 @@ def _program_version(stream, regex, proc):
         return regex2.group(1)
     if proc.returncode == PROCESS_FAILED:
         logger.info(proc.stderr)
-        return PROCESS_FAILED
+        return None
 
     logger.info("Unable to parse version string from: '%s'", output)
     return None

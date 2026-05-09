@@ -1,3 +1,8 @@
+## 3.0.7 (2026-05-14)
+
+* Fix bug checking for helper tools. Closes #65 (Graphicsmagick false positive)
+
+
 ## 3.0.6 (2026-05-03)
 
 * Improve error messages when helper tools not found

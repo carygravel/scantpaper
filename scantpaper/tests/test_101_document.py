@@ -1,6 +1,5 @@
 "Tests for document.py"
 
-from collections import defaultdict
 import datetime
 import os
 import shutil
@@ -8,29 +7,31 @@ import subprocess
 import sys
 import tempfile
 import threading
-from unittest.mock import Mock, MagicMock, patch
-from PIL import Image
+from collections import defaultdict
+from unittest.mock import MagicMock, Mock, patch
+
+import config
 import gi
 import img2pdf
 import pytest
-from page import Page
-import config
+from basethread import Request
 from const import VERSION
+from dialog.scan import Scan
+from docthread import DocThread
 from document import (
     Document,
     _extract_metadata,
 )
-from docthread import DocThread
-from dialog.scan import Scan
-from basethread import Request
-from savethread import prepare_output_metadata, _set_timestamp, _bbox2markup
 from helpers import (
-    exec_command,
-    _program_version,
     Proc,
-    expand_metadata_pattern,
+    _program_version,
     collate_metadata,
+    exec_command,
+    expand_metadata_pattern,
 )
+from page import Page
+from PIL import Image
+from savethread import _bbox2markup, _set_timestamp, prepare_output_metadata
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
@@ -527,7 +528,7 @@ def test_helpers():
             r"Version:\\sImageMagick\\s([\\d.-]+)",
             Proc(-1, "", "convert: command not found"),
         )
-        == -1
+        is None
     ), "command not found"
     assert (
         _program_version(
@@ -535,7 +536,7 @@ def test_helpers():
             r"Version:\\sImageMagick\\s([\\d.-]+)",
             Proc(-1, None, "convert: command not found"),
         )
-        == -1
+        is None
     ), "catch undefined stdout"
 
     proc = exec_command(["/command/not/found"])
