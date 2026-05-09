@@ -8,8 +8,8 @@ gi.require_version("Gdk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position
     Gdk,
     GdkPixbuf,
-    Gtk,
     GObject,
+    Gtk,
 )
 
 
@@ -765,24 +765,25 @@ class ImageView(Gtk.DrawingArea):
 
     def set_selection(self, selection):
         "set selection"
-        pixbuf_size = self.get_pixbuf_size()
-        if pixbuf_size is None:
-            return
-        if selection.x < 0:
-            selection.width += selection.x
-            selection.x = 0
-
-        if selection.y < 0:
-            selection.height += selection.y
-            selection.y = 0
-
-        if selection.x + selection.width > pixbuf_size.width:
-            selection.width = pixbuf_size.width - selection.x
-
-        if selection.y + selection.height > pixbuf_size.height:
-            selection.height = pixbuf_size.height - selection.y
-
         if (self.selection is not None) or (selection is not None):
+            if selection is not None:
+                pixbuf_size = self.get_pixbuf_size()
+                if pixbuf_size is None:
+                    return
+                if selection.x < 0:
+                    selection.width += selection.x
+                    selection.x = 0
+
+                if selection.y < 0:
+                    selection.height += selection.y
+                    selection.y = 0
+
+                if selection.x + selection.width > pixbuf_size.width:
+                    selection.width = pixbuf_size.width - selection.x
+
+                if selection.y + selection.height > pixbuf_size.height:
+                    selection.height = pixbuf_size.height - selection.y
+
             self.selection = selection
             self.queue_draw()
             self.emit("selection-changed", selection)

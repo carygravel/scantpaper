@@ -1,6 +1,7 @@
 ## 3.0.7 (2026-05-14)
 
 * Fix bug checking for helper tools. Closes #65 (Graphicsmagick false positive)
+* Fix traceback caused by selection being None
 
 
 ## 3.0.6 (2026-05-03)

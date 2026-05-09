@@ -640,6 +640,7 @@ class ApplicationWindow(
             if (
                 value in ["selector", "selectordragger"]
                 and "selection" in self.settings
+                and self.settings["selection"] is not None
             ):
                 self.view.handler_block(self.view.selection_changed_signal)
                 self.view.set_selection(self.settings["selection"])

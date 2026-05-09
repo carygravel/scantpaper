@@ -2,17 +2,18 @@
 
 from dataclasses import dataclass
 from unittest.mock import MagicMock
-import pytest
-from imageview import ImageView, Dragger, Selector, Tool, SelectorDragger
+
 import cairo
 import gi
+import pytest
+from imageview import Dragger, ImageView, Selector, SelectorDragger, Tool
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position
-    GLib,
     Gdk,
     GdkPixbuf,
+    GLib,
     Gtk,
 )
 
@@ -966,3 +967,17 @@ def test_imageview_coverage_complex(rose_png, mock_view):
     offset = view7.get_offset()
     assert offset.x == -60  # 10 - 70
     assert offset.y == -36  # 10 - 46
+
+
+def test_imageview_set_selection_none():
+    "Verify that ImageView.set_selection(None) does not raise AttributeError"
+    view = MagicMock(spec=ImageView)
+    view.selection = MagicMock()  # existing selection
+    view.set_selection = ImageView.set_selection.__get__(view, ImageView)
+
+    # Mock get_pixbuf_size to return something so it doesn't return early
+    view.get_pixbuf_size.return_value = MagicMock(width=100, height=100)
+
+    # This should not raise AttributeError
+    view.set_selection(None)
+    assert view.selection is None
