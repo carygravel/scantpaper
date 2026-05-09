@@ -85,6 +85,38 @@ class Save(Dialog):
         "Datetime object for document date"
         if self.meta_now_widget.get_active():
             return datetime.datetime.now()
+        if (
+            self._meta_datetime_widget is not None
+            and self._meta_specify_widget.get_active()
+        ):
+            text = self._meta_datetime_widget.get_text()
+            if text:
+                try:
+                    res = datetime.datetime.fromisoformat(text)
+                    if self._meta_datetime is not None:
+                        # If include_time is False, we only care about the date part
+                        if not self.include_time:
+                            old_date = (
+                                self._meta_datetime.date()
+                                if hasattr(self._meta_datetime, "hour")
+                                else self._meta_datetime
+                            )
+                            if res.date() == old_date:
+                                return self._meta_datetime
+                        # If include_time is True, we care about the whole thing
+                        elif (
+                            hasattr(self._meta_datetime, "hour")
+                            and res == self._meta_datetime
+                        ):
+                            return self._meta_datetime
+
+                    if hasattr(self._meta_datetime, "hour"):
+                        return res
+                    if hasattr(self._meta_datetime, "day"):
+                        return res.date()
+                    return res.date() if not self.include_time else res
+                except (ValueError, TypeError):
+                    pass
         return self._meta_datetime
 
     @meta_datetime.setter
@@ -401,13 +433,12 @@ class Save(Dialog):
         window_date.set_resizable(False)
         calendar = Gtk.Calendar()
 
-        # Editing the entry and clicking the edit button bypasses the
-        # focus-out-event, so update the date now
-        self.meta_datetime = datetime.datetime.fromisoformat(
-            self._meta_datetime_widget.get_text()
-        )
-        calendar.select_day(self.meta_datetime.day)
-        calendar.select_month(self.meta_datetime.month - 1, self.meta_datetime.year)
+        # Update the date from the entry before showing the calendar
+        # This uses the property getter which now reads from the widget
+        current_date = self.meta_datetime
+        if current_date:
+            calendar.select_day(current_date.day)
+            calendar.select_month(current_date.month - 1, current_date.year)
         calendar_s = None
 
         def calendar_day_selected_callback(_widget):

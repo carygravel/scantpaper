@@ -64,11 +64,14 @@ def test_include_time_toggle():
 def test_meta_datetime_property(mocker):
     "Test meta_datetime property logic"
     mock_now = dt.datetime(2023, 1, 1, 12, 0, 0)
+    # Capture the real class and its fromisoformat before patching
+    real_datetime = dt.datetime
+    real_fromisoformat = dt.datetime.fromisoformat
 
     # Patch datetime.datetime in dialog.save
     mock_datetime_cls = mocker.patch("dialog.save.datetime.datetime")
     mock_datetime_cls.now.return_value = mock_now
-    mock_datetime_cls.fromisoformat.side_effect = dt.datetime.fromisoformat
+    mock_datetime_cls.fromisoformat.side_effect = real_fromisoformat
 
     dialog = Save()
 
@@ -80,7 +83,7 @@ def test_meta_datetime_property(mocker):
     # Test 'Now' inactive
     dialog._meta_specify_widget.set_active(True)
     assert dialog.meta_now_widget.get_active() is False
-    test_date = dt.datetime(2022, 1, 1)
+    test_date = real_datetime(2022, 1, 1)
     dialog.meta_datetime = test_date
     assert dialog.meta_datetime == test_date
 

@@ -2,6 +2,8 @@
 
 * Fix bug checking for helper tools. Closes #65 (Graphicsmagick false positive)
 * Fix traceback caused by selection being None
+* Fix updating date metadata between save operations.
+  Closes #68 (Datestamps saving wrong)
 
 
 ## 3.0.6 (2026-05-03)
