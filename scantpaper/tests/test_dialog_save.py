@@ -2,6 +2,7 @@
 
 import datetime as dt
 from unittest.mock import MagicMock
+
 import gi
 from dialog.save import Save, filter_table
 
@@ -298,3 +299,73 @@ def test_pdf_selected_callback(mocker):
     dialog._pdf_selected_callback(args)
     dialog._meta_box_widget.hide.assert_called()
     args[1].show.assert_called()  # hboxpq
+
+
+def test_meta_datetime_reads_from_widget_immediately():
+    """
+    Regression test for issue #68:
+
+    1. Open the Save Dialog: Go to File -> Save (or use the Save icon).
+    2. Enable Date Specification: In the "Date/Time" section of the Save
+       dialog, select the "Specify" radio button.
+    3. Edit the Date: Click into the date entry field (e.g., 2026-05-09) and
+       type a different date (e.g., 2026-01-01).
+    4. The "Trap": Immediately after typing the last digit of the new date, do
+       NOT press Tab and do NOT click into another text field. Keep the text
+       cursor (focus) inside the date entry box.
+    5. Click Save: Click the "Save" button at the bottom of the dialog.
+    6. Verify the Result:
+        Check the filename (if your default filename pattern uses the date). It
+        will likely still use the old date.
+        Check the modified date of the resulting file on your disk. It will
+        show the date that was there before you started typing, not the one you
+        just entered.
+
+    Test that meta_datetime property reads directly from the Gtk.Entry widget.
+    This ensures that even if a 'focus-out-event' hasn't fired (e.g. user clicks
+    'Save' immediately after typing), the updated date is still captured.
+    """
+    # Initialize dialog with an arbitrary date
+    initial_date = dt.datetime(2026, 5, 8, 10, 0, 0)
+    dialog = Save(
+        image_types=["pdf"],
+        image_type="pdf",
+        meta_datetime=initial_date,
+        select_datetime=True,
+    )
+
+    # Ensure "Specify" is active so it doesn't just return 'now'
+    dialog._meta_specify_widget.set_active(True)
+
+    # Simulate the user typing a new date into the entry widget
+    new_date_str = "2026-01-01"
+    dialog._meta_datetime_widget.set_text(new_date_str)
+
+    # ASSERTION: The property getter should return the NEW date parsed from the widget,
+    # even though we haven't triggered a focus-out signal or updated the property setter.
+    # BEFORE FIX: This would return 2026-05-08
+    # AFTER FIX: This returns 2026-01-01
+    assert dialog.meta_datetime.date() == dt.date(2026, 1, 1)
+
+
+def test_meta_datetime_preserves_time_when_not_included():
+    """
+    Test that if include_time is False, we still preserve the original time
+    if the date part hasn't changed in the widget.
+    """
+    initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)
+    dialog = Save(
+        image_types=["pdf"],
+        image_type="pdf",
+        meta_datetime=initial_datetime,
+        select_datetime=True,
+        include_time=False,
+    )
+    dialog._meta_specify_widget.set_active(True)
+
+    # Widget text will be "2026-05-08" (time truncated in UI)
+    assert dialog._meta_datetime_widget.get_text() == "2026-05-08"
+
+    # Property should still return the full datetime because the date hasn't changed
+    assert dialog.meta_datetime == initial_datetime
+    assert dialog.meta_datetime.hour == 12
