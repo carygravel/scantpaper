@@ -1,8 +1,8 @@
 "Test PaperList class"
 
+import gi
 import pytest
 from dialog.paperlist import PaperList
-import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -50,3 +50,18 @@ def test_paperlist():
     plist.select([0])
     with pytest.raises(IndexError):
         plist.do_remove_clicked()
+
+
+def test_remove_paper_empty(mocker):
+    "Test do_remove_paper when no papers left"
+    plist = PaperList({})
+    mock_window = mocker.Mock()
+    mock_app = mocker.Mock()
+    mock_app_window = mocker.Mock()
+    mock_window.get_application.return_value = mock_app
+    mock_app.get_windows.return_value = mock_app_window
+
+    plist.data.clear()
+
+    plist.do_remove_paper(None, mock_window)
+    mock_app_window.show_message_dialog.assert_called_once()
