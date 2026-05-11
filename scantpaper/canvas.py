@@ -254,6 +254,8 @@ class Canvas(
         blurb="HSV Color for minimum confidence",
     )
 
+    _min_confidence = MIN_CONFIDENCE_DEFAULT
+
     @GObject.Property(
         type=int,
         minimum=0,
@@ -290,26 +292,6 @@ class Canvas(
     def max_confidence(self, newval):
         "setter for max_confidence attribute"
         self._max_confidence = newval
-        self._color_lookup_table = None  # Invalidate lookup table
-
-    _min_confidence = MIN_CONFIDENCE_DEFAULT
-
-    @GObject.Property(
-        type=int,
-        minimum=0,
-        maximum=_100_PERCENT,
-        default=MIN_CONFIDENCE_DEFAULT,
-        nick="Minimum confidence",
-        blurb="Confidence threshold for min-color",
-    )
-    def min_confidence(self):
-        "getter for min_confidence attribute"
-        return self._min_confidence
-
-    @min_confidence.setter
-    def min_confidence(self, newval):
-        "setter for min_confidence attribute"
-        self._min_confidence = newval
         self._color_lookup_table = None  # Invalidate lookup table
 
     def __init__(self, *args, **kwargs):
