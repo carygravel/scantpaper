@@ -2,11 +2,12 @@
 
 import os
 from unittest.mock import MagicMock
+
+import gi
 from app import Application
 from app_window import ApplicationWindow
 from const import PROG_NAME, VERSION
 from text_layer_control import TextLayerControls
-import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -247,10 +248,11 @@ def test_text_layer_control_sort():
     tlc = TextLayerControls()
 
     def get_child_by_tooltip(tooltip):
+        widget = None
         for child in tlc.get_children():
             if child.get_tooltip_text() == tooltip:
-                return child
-        return None
+                widget = child
+        return widget
 
     sort_combo = get_child_by_tooltip("Select sort method for OCR boxes")
     assert sort_combo is not None
