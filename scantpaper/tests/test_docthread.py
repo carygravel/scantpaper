@@ -1,17 +1,18 @@
 "Tests for DocThread"
 
-import threading
-import time
 import sqlite3
 import subprocess
-from PIL import Image
+import threading
+import time
+
 import pytest
+from basethread import Request
 from const import APPLICATION_ID, USER_VERSION
-from gi.repository import GLib
 from docthread import DocThread, _calculate_crop_tuples
+from gi.repository import GLib
 from importthread import CancelledError
 from page import Page
-from basethread import Request
+from PIL import Image
 
 
 def test_do_tesseract_path_fallback(mocker):
@@ -928,9 +929,7 @@ def test_init_timeout_logging(tmp_path, mocker, caplog):
     original_timeout_add = GLib.timeout_add
 
     def mock_timeout_add(ms, callback, *args):
-        if ms == 10000:
-            return original_timeout_add(1, callback, *args)
-        return original_timeout_add(ms, callback, *args)
+        return original_timeout_add(1, callback, *args)
 
     mocker.patch("gi.repository.GLib.timeout_add", side_effect=mock_timeout_add)
     # Mock send to do nothing so it times out
