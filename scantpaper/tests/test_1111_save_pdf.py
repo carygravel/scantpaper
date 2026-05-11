@@ -6,18 +6,19 @@ import locale
 import os
 import queue
 import re
-import subprocess
 import shutil
+import subprocess
 import tempfile
 import threading
 from unittest.mock import MagicMock
+
+import config
 import img2pdf
 import pytest
-from gi.repository import GLib
-import config
-from document import Document
-from docthread import DocThread
 from basethread import Request
+from docthread import DocThread
+from document import Document
+from gi.repository import GLib
 from page import Page
 
 
@@ -30,6 +31,12 @@ def has_locale(name):
         return True
     except locale.Error:
         return False
+
+
+def test_has_locale():
+    "Test has_locale function"
+    assert has_locale("C") is True
+    assert has_locale("non-existent-locale") is False
 
 
 def test_do_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
