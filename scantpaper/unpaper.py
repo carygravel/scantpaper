@@ -1,7 +1,8 @@
 "GUI for unpaper"
 
-import re
 import logging
+import re
+
 import gi
 from helpers import program_version
 from i18n import _
@@ -387,7 +388,7 @@ class Unpaper:
             i += 1
 
         def combobox_changed_cb(_widget):
-            if widget.get_active() in tooltip:
+            if 0 <= widget.get_active() < len(tooltip):
                 widget.set_tooltip_text(tooltip[widget.get_active()])
 
         widget.connect("changed", combobox_changed_cb)

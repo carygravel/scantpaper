@@ -1,13 +1,14 @@
 "Test unpaper"
 
-import subprocess
 import shutil
-import pytest
+import subprocess
+
 import config
-from document import Document
-from unpaper import Unpaper
-from PIL import Image, ImageDraw
 import gi
+import pytest
+from document import Document
+from PIL import Image, ImageDraw
+from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
@@ -577,6 +578,32 @@ def test_combobox_tooltip():
     # test combobox_get_option returning None
     combobl.set_active(-1)
     assert unpaper._combobox_get_option("layout") is None
+
+
+def test_combobox_tooltip_explicit():
+    "Test ComboBox tooltip change on selection with explicit assertions"
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+
+    combobl = unpaper.options["layout"]["widget"]
+
+    # Initially it might be 'single' or empty depending on how it's initialized
+    # Select 'double' (index 1)
+    combobl.set_active(1)
+    combobl.emit("changed")
+    assert (
+        combobl.get_tooltip_text()
+        == "Two pages per sheet, landscape orientation (one page on the left half, one page on the right half)."
+    )
+
+    # Select 'single' (index 0)
+    combobl.set_active(0)
+    combobl.emit("changed")
+    assert (
+        combobl.get_tooltip_text()
+        == "One page per sheet, oriented upwards without rotation."
+    )
 
 
 def test_set_options_mixed_types():
