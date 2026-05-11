@@ -2,14 +2,16 @@
 
 import datetime
 import re
+
+import gi
 from comboboxtext import ComboBoxText
-from dialog import Dialog
 from entry_completion import EntryCompletion
 from i18n import _
-import gi
+
+from dialog import Dialog
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GObject, GLib  # pylint: disable=wrong-import-position
+from gi.repository import GLib, GObject, Gtk  # pylint: disable=wrong-import-position
 
 MAX_DPI = 2400
 ENTRY_WIDTH_DATE = 10
@@ -94,8 +96,12 @@ class Save(Dialog):
                 try:
                     res = datetime.datetime.fromisoformat(text)
                     if self._meta_datetime is not None:
+                        # If include_time is True, we care about the whole thing
+                        if self.include_time:
+                            return self._meta_datetime
+
                         # If include_time is False, we only care about the date part
-                        if not self.include_time:
+                        else:
                             old_date = (
                                 self._meta_datetime.date()
                                 if hasattr(self._meta_datetime, "hour")
@@ -103,12 +109,6 @@ class Save(Dialog):
                             )
                             if res.date() == old_date:
                                 return self._meta_datetime
-                        # If include_time is True, we care about the whole thing
-                        elif (
-                            hasattr(self._meta_datetime, "hour")
-                            and res == self._meta_datetime
-                        ):
-                            return self._meta_datetime
 
                     if hasattr(self._meta_datetime, "hour"):
                         return res
@@ -408,7 +408,11 @@ class Save(Dialog):
         # set this after self._meta_specify_widget.set_active() to prevent
         # meta_now_widget overwriting it
         if self.meta_datetime is not None and self.meta_datetime != "":
-            self._meta_datetime_widget.set_text(self.meta_datetime.isoformat())
+            self._meta_datetime_widget.set_text(
+                self.meta_datetime.isoformat(sep=" ")
+                if hasattr(self.meta_datetime, "hour")
+                else self.meta_datetime.isoformat()
+            )
 
     def _clicked_specify_date_button(self, widget, hboxe):
         if widget.get_active():
@@ -434,7 +438,7 @@ class Save(Dialog):
         calendar = Gtk.Calendar()
 
         # Update the date from the entry before showing the calendar
-        # This uses the property getter which now reads from the widget
+        # This uses the property getter which reads from the widget
         current_date = self.meta_datetime
         if current_date:
             calendar.select_day(current_date.day)
@@ -817,7 +821,6 @@ class Save(Dialog):
             config[f"{name}-suggestions"] = getattr(self, f"meta_{name}_suggestions")
 
         if self.meta_datetime is not None:
-
             # convert from date to datetime if necessary
             args = self.meta_datetime.timetuple()[:6]
             doc_datetime = datetime.datetime(*args)

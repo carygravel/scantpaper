@@ -369,3 +369,70 @@ def test_meta_datetime_preserves_time_when_not_included():
     # Property should still return the full datetime because the date hasn't changed
     assert dialog.meta_datetime == initial_datetime
     assert dialog.meta_datetime.hour == 12
+
+
+def test_meta_datetime_preserves_datetime_when_not_changed():
+    """
+    Test that if include_time is True, we return the original datetime
+    if the widget text hasn't changed.
+    """
+    initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)
+    dialog = Save(
+        image_types=["pdf"],
+        image_type="pdf",
+        meta_datetime=initial_datetime,
+        select_datetime=True,
+        include_time=True,
+    )
+    dialog._meta_specify_widget.set_active(True)
+
+    # Widget text will be "2026-05-08 12:34:56"
+    assert dialog._meta_datetime_widget.get_text() == "2026-05-08 12:34:56"
+
+    # Property should return the original object (covers line 111)
+    assert dialog.meta_datetime is initial_datetime
+
+
+def test_meta_datetime_returns_date_when_initial_was_date():
+    """
+    Test that if the initial _meta_datetime was a date object,
+    it returns a date object (covers lines 115-116).
+    """
+    initial_date = dt.date(2026, 5, 8)
+    dialog = Save(
+        image_types=["pdf"],
+        image_type="pdf",
+        meta_datetime=initial_date,
+        select_datetime=True,
+        include_time=False,
+    )
+    dialog._meta_specify_widget.set_active(True)
+
+    # Change the date in the widget
+    dialog._meta_datetime_widget.set_text("2026-01-01")
+
+    # Should return a date object
+    res = dialog.meta_datetime
+    assert isinstance(res, dt.date)
+    assert not isinstance(res, dt.datetime)
+    assert res == dt.date(2026, 1, 1)
+
+
+def test_meta_datetime_when_initial_is_none():
+    """
+    Test meta_datetime property when initial value is None (covers line 117).
+    """
+    dialog = Save(
+        image_types=["pdf"],
+        image_type="pdf",
+        meta_datetime=None,
+        select_datetime=True,
+        include_time=True,
+    )
+    dialog._meta_specify_widget.set_active(True)
+    dialog._meta_datetime_widget.set_text("2026-05-08 12:34:56")
+
+    assert dialog.meta_datetime == dt.datetime(2026, 5, 8, 12, 34, 56)
+
+    dialog.include_time = False
+    assert dialog.meta_datetime == dt.date(2026, 5, 8)
