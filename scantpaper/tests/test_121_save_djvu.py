@@ -8,18 +8,17 @@ import shutil
 import subprocess
 import tempfile
 from unittest.mock import MagicMock
-import pytest
-from gi.repository import GLib
+
 import config
+import pytest
 from document import Document
+from gi.repository import GLib
 
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu1(
-    import_in_mainloop, rose_pnm, temp_png, temp_db, temp_djvu, clean_up_files
-):
+def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu, clean_up_files):
     "Test saving a djvu"
 
     slist = Document(db=temp_db.name)
@@ -29,9 +28,6 @@ def test_save_djvu1(
     slist.save_djvu(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
-        options={
-            "post_save_hook": f"{config.CONVERT_COMMAND} %i " + temp_png.name,
-        },
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
@@ -40,11 +36,6 @@ def test_save_djvu1(
 
     assert os.path.getsize(temp_djvu.name) == 1054, "DjVu created with expected size"
     assert slist.thread.pages_saved(), "pages tagged as saved"
-
-    capture = subprocess.check_output(["identify", temp_png.name], text=True)
-    assert re.search(
-        rf"{temp_png.name} PNG 70x46 70x46\+0\+0 8-bit sRGB", capture
-    ), "ran post-save hook"
 
     #########################
 
@@ -60,6 +51,7 @@ def test_save_djvu_text_layer(
     rose_pnm,
     temp_db,
     temp_djvu,
+    temp_txt,
     clean_up_files,
 ):
     "Test saving a djvu with text layer"
@@ -79,13 +71,17 @@ def test_save_djvu_text_layer(
     slist.save_djvu(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
+        options={
+            "post_save_hook": "djvutxt %i " + temp_txt.name,
+        },
         finished_callback=lambda response: mlp.quit(),
     )
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    capture = subprocess.check_output(["djvutxt", temp_djvu.name], text=True)
+    capture = subprocess.check_output(["cat", temp_txt.name], text=True)
+    assert len(capture) > 0, "ran post-save hook"
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
 
     #########################
