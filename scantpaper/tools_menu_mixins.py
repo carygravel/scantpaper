@@ -1,16 +1,25 @@
 "provide methods called from tools menu"
 
 import datetime
-import re
 import logging
+import re
+
 import gi
 from comboboxtext import ComboBoxText
-from const import PERCENT, VERSION, _90_DEGREES, _180_DEGREES, _100_PERCENT
+from const import (
+    _90_DEGREES,
+    _100_PERCENT,
+    _180_DEGREES,
+    PERCENT,
+    SELECTOR_TOOL,
+    SELECTORDRAGGER_TOOL,
+    VERSION,
+)
 from dialog import Dialog
 from dialog.crop import Crop
 from dialog.save import Save as SaveDialog
 from file_menu_mixins import launch_default_for_file
-from helpers import exec_command, expand_metadata_pattern, collate_metadata
+from helpers import collate_metadata, exec_command, expand_metadata_pattern
 from i18n import _
 from postprocess_controls import OCRControls
 
@@ -329,6 +338,12 @@ class ToolsMenuMixins:
         if self._windowc is not None:
             self._windowc.present()
             return
+
+        if self.settings["image_control_tool"] not in [
+            SELECTOR_TOOL,
+            SELECTORDRAGGER_TOOL,
+        ]:
+            self.activate_action("tooltype", GLib.Variant("s", SELECTORDRAGGER_TOOL))
 
         width, height = self._current_page.get_size()
         self._windowc = Crop(transient_for=self, page_width=width, page_height=height)

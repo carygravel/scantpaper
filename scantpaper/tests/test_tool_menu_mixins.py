@@ -1,13 +1,12 @@
 "Test tool_menu_mixins.py"
 
 import datetime
+
+import gi
 import pytest
-from tools_menu_mixins import ToolsMenuMixins
 from const import _90_DEGREES, _180_DEGREES
 from helpers import Proc
-import gi
-
-# pylint: disable=redefined-outer-name, protected-access
+from tools_menu_mixins import ToolsMenuMixins
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -307,7 +306,10 @@ def test_crop_dialog(mocker, mock_tool_window):
     mock_selection.y = 10
     mock_selection.width = 50
     mock_selection.height = 50
-    mock_tool_window.settings = {"selection": mock_selection}
+    mock_tool_window.settings = {
+        "selection": mock_selection,
+        "image_control_tool": "selectordragger",
+    }
 
     mock_tool_window.crop_dialog(None, None)
 
@@ -336,16 +338,52 @@ def test_crop_dialog_existing(mocker, mock_tool_window):
     mock_tool_window._windowc.present.assert_called_once()
 
 
+def test_crop_dialog_tool_activation(mocker, mock_tool_window):
+    "Test that crop dialog activates the combined tool if necessary"
+
+    mocker.patch("tools_menu_mixins.Crop")
+    mock_page = mocker.Mock()
+    mock_page.get_size.return_value = (100, 50)
+    mock_tool_window._current_page = mock_page
+    mock_tool_window.activate_action = mocker.Mock()
+
+    # Case 1: Tool is already selector
+    mock_tool_window.settings = {"image_control_tool": "selector", "selection": None}
+    mock_tool_window.crop_dialog(None, None)
+    mock_tool_window.activate_action.assert_not_called()
+
+    # Case 2: Tool is selectordragger
+    mock_tool_window._windowc = None  # reset
+    mock_tool_window.settings = {
+        "image_control_tool": "selectordragger",
+        "selection": None,
+    }
+    mock_tool_window.crop_dialog(None, None)
+    mock_tool_window.activate_action.assert_not_called()
+
+    # Case 3: Tool is dragger
+    mock_tool_window._windowc = None  # reset
+    mock_tool_window.settings = {"image_control_tool": "dragger", "selection": None}
+    mock_tool_window.crop_dialog(None, None)
+    mock_tool_window.activate_action.assert_called_with("tooltype", mocker.ANY)
+    # verify it's selectordragger
+    args, _ = mock_tool_window.activate_action.call_args
+    assert args[1].get_string() == "selectordragger"
+
+
 def test_crop_selection_no_selection(mock_tool_window):
     "Test crop_selection with no selection in settings"
-    mock_tool_window.settings = {"selection": None}
+    mock_tool_window.settings = {"selection": None, "image_control_tool": "selector"}
     mock_tool_window.crop_selection(None, None)
     mock_tool_window.slist.crop.assert_not_called()
 
 
 def test_crop_selection_no_pages(mock_tool_window):
     "Test crop_selection with no pages selected"
-    mock_tool_window.settings = {"selection": "something"}
+    mock_tool_window.settings = {
+        "selection": "something",
+        "image_control_tool": "selector",
+    }
     mock_tool_window.slist.get_selected_indices.return_value = []
     mock_tool_window.crop_selection(None, None)
     mock_tool_window.slist.crop.assert_not_called()
@@ -364,7 +402,7 @@ def test_crop_dialog_selection_change(mocker, mock_tool_window):
 
     mock_tool_window.view = mocker.Mock()
     mock_tool_window.slist.get_page_index.return_value = [0]
-    mock_tool_window.settings = {"selection": None}
+    mock_tool_window.settings = {"selection": None, "image_control_tool": "selector"}
 
     mock_tool_window.crop_dialog(None, None)
 

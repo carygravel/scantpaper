@@ -1,3 +1,9 @@
+## 3.0.8 (2026-05-10)
+
+* When opening the crop dialog, if the pan tool is selected, switch to the
+  combined tool. Closes #64 (Opening crop dialog should automatically activate rectangular select or combined tool)
+
+
 ## 3.0.7 (2026-05-10)
 
 * Fix bug checking for helper tools. Closes #65 (Graphicsmagick false positive)
