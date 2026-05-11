@@ -1,7 +1,7 @@
-## 3.0.7 (2026-05-14)
+## 3.0.7 (2026-05-10)
 
 * Fix bug checking for helper tools. Closes #65 (Graphicsmagick false positive)
-* Fix traceback caused by selection being None
+* Fix traceback during crop caused by selection being None
 * Fix updating date metadata between save operations.
   Closes #68 (Datestamps saving wrong)
 
