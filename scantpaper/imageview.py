@@ -493,7 +493,8 @@ class ImageView(Gtk.DrawingArea):
             context.scale(zoom / ratio, zoom)
             offset = self.get_offset()
             context.translate(offset.x, offset.y)
-            Gdk.cairo_set_source_pixbuf(context, pixbuf, 0, 0)
+            surface = self._get_or_create_surface(pixbuf)
+            context.set_source_surface(surface, 0, 0)
             context.get_source().set_filter(self.get_interpolation())
 
         else:
@@ -582,10 +583,14 @@ class ImageView(Gtk.DrawingArea):
         )
         self.set_tool(Dragger(self))
         self.set_redraw_on_allocate(False)
+        self._cached_surface = None
+        self._cached_pixbuf_id = None
 
     def set_pixbuf(self, pixbuf, zoom_to_fit=False):
         "set pixbuf, optionally zooming to fit"
         self.pixbuf = pixbuf
+        self._cached_surface = None
+        self._cached_pixbuf_id = id(pixbuf) if pixbuf else None
         self.setzoom_is_fit(zoom_to_fit)
         if not zoom_to_fit:
             self.set_offset(0, 0)
@@ -603,6 +608,18 @@ class ImageView(Gtk.DrawingArea):
         size = Gdk.Rectangle()
         size.width, size.height = pixbuf.get_width(), pixbuf.get_height()
         return size
+
+    def _get_or_create_surface(self, pixbuf):
+        "Cache the Cairo surface to avoid repeated pixbuf conversions"
+        if self._cached_surface is None or id(pixbuf) != self._cached_pixbuf_id:
+            width, height = pixbuf.get_width(), pixbuf.get_height()
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+            ctx = cairo.Context(surface)
+            Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
+            ctx.paint()
+            self._cached_surface = surface
+            self._cached_pixbuf_id = id(pixbuf)
+        return self._cached_surface
 
     def set_zoom(self, zoom):
         "setting the zoom via the public API disables zoom-to-fit"

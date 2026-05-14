@@ -2,6 +2,7 @@
 
 * When opening the crop dialog, if the pan tool is selected, switch to the
   combined tool. Closes #64 (Opening crop dialog should automatically activate rectangular select or combined tool)
+* Various performance improvement for the image viewer
 
 
 ## 3.0.7 (2026-05-10)
