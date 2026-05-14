@@ -495,7 +495,7 @@ class ImageView(Gtk.DrawingArea):
             context.translate(offset.x, offset.y)
             surface = self._get_or_create_surface(pixbuf)
             context.set_source_surface(surface, 0, 0)
-            context.get_source().set_filter(self.get_interpolation())
+            context.get_source().set_filter(self._get_adaptive_filter())
 
         else:
             bgcol = style.get_background_color(Gtk.StateFlags.NORMAL)
@@ -620,6 +620,15 @@ class ImageView(Gtk.DrawingArea):
             self._cached_surface = surface
             self._cached_pixbuf_id = id(pixbuf)
         return self._cached_surface
+
+    def _get_adaptive_filter(self):
+        "Use faster filtering when zoomed out, better quality when zoomed in"
+        zoom = self.get_zoom()
+        if zoom < 0.5:
+            return cairo.FILTER_FAST
+        elif zoom < 1.0:
+            return cairo.FILTER_GOOD
+        return self.get_interpolation()
 
     def set_zoom(self, zoom):
         "setting the zoom via the public API disables zoom-to-fit"
