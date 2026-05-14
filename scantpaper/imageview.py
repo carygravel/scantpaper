@@ -475,6 +475,11 @@ class ImageView(Gtk.DrawingArea):
         )
         style.restore()
         if pixbuf is not None:
+            # Clip to viewport to avoid rendering off-screen pixels
+            context.save()
+            context.rectangle(0, 0, allocation.width, allocation.height)
+            context.clip()
+
             if pixbuf.get_has_alpha():
                 style.save()
 
@@ -496,12 +501,13 @@ class ImageView(Gtk.DrawingArea):
             surface = self._get_or_create_surface(pixbuf)
             context.set_source_surface(surface, 0, 0)
             context.get_source().set_filter(self._get_adaptive_filter())
+            context.paint()
+            context.restore()
 
         else:
             bgcol = style.get_background_color(Gtk.StateFlags.NORMAL)
             Gdk.cairo_set_source_rgba(context, bgcol)
-
-        context.paint()
+            context.paint()
         selection = self.get_selection()
         if pixbuf is not None and selection is not None:
             (
@@ -626,7 +632,7 @@ class ImageView(Gtk.DrawingArea):
         zoom = self.get_zoom()
         if zoom < 0.5:
             return cairo.FILTER_FAST
-        elif zoom < 1.0:
+        if zoom < 1.0:
             return cairo.FILTER_GOOD
         return self.get_interpolation()
 
