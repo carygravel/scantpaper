@@ -1,7 +1,7 @@
 "Basic tests for imageview"
 
 from dataclasses import dataclass
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import cairo
 import gi
@@ -981,3 +981,47 @@ def test_imageview_set_selection_none():
     # This should not raise AttributeError
     view.set_selection(None)
     assert view.selection is None
+
+
+def test_selection_drawing_coordinates():
+    view = ImageView()
+
+    pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 100, 100)
+    view.set_pixbuf(pixbuf)
+
+    # ratio=0.5 makes to_widget_coords non-identity without any clamping.
+    # to_widget_coords(x,y) = (x * zoom / factor / ratio, y * zoom / factor)
+    # With zoom=1, factor=1, ratio=0.5: x-coords are doubled, y unchanged.
+    view.set_resolution_ratio(0.5)
+
+    selection = Gdk.Rectangle()
+    selection.x, selection.y, selection.width, selection.height = 10, 20, 30, 40
+    view.set_selection(selection)
+
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 400, 400)
+    context = cairo.Context(surface)
+
+    rubberband_calls = []
+
+    def capture_render_background(style_ctx, cr, x, y, w, h):
+        if style_ctx.has_class(Gtk.STYLE_CLASS_RUBBERBAND):
+            rubberband_calls.append((x, y, w, h))
+
+    with patch(
+        "gi.repository.Gtk.render_background", side_effect=capture_render_background
+    ):
+        with patch("gi.repository.Gtk.render_frame"):
+            view.do_draw(context)
+
+    assert len(rubberband_calls) == 1, "Selection background was not rendered"
+    x, y, w, h = rubberband_calls[0]
+
+    # to_widget_coords(10, 20) -> (20.0, 20.0)
+    # to_widget_coords(40, 60) -> (80.0, 60.0)
+    # w = 80-20 = 60, h = 60-20 = 40
+    assert (x, y, w, h) == (
+        20.0,
+        20.0,
+        60.0,
+        40.0,
+    ), f"Selection drawn at wrong coordinates: got {(x, y, w, h)}"

@@ -474,53 +474,49 @@ class ImageView(Gtk.DrawingArea):
             allocation.height,
         )
         style.restore()
-        if pixbuf is not None:
-            # Clip to viewport to avoid rendering off-screen pixels
-            context.save()
-            context.rectangle(0, 0, allocation.width, allocation.height)
-            context.clip()
-
-            if pixbuf.get_has_alpha():
-                style.save()
-
-                # '.imageview' affects also area outside of the image. But only
-                # when background-image is specified. background-color seems to
-                # have no effect there. Probably a bug in Gtk? Either way, this is
-                # why need a special class 'transparent' to match the correct area
-                # inside the image where both image and color work.
-                style.add_class("transparent")
-                x1, y1 = self.to_widget_coords(0, 0)
-                x2, y2 = self.to_widget_coords(pixbuf.get_width(), pixbuf.get_height())
-                Gtk.render_background(style, context, x1, y1, x2 - x1, y2 - y1)
-                style.restore()
-
-            zoom = self.get_zoom() / self.get_scale_factor()
-            context.scale(zoom / ratio, zoom)
-            offset = self.get_offset()
-            context.translate(offset.x, offset.y)
-            surface = self._get_or_create_surface(pixbuf)
-            context.set_source_surface(surface, 0, 0)
-            context.get_source().set_filter(self._get_adaptive_filter())
-            context.paint()
-            context.restore()
-
-        else:
+        if pixbuf is None:
             bgcol = style.get_background_color(Gtk.StateFlags.NORMAL)
             Gdk.cairo_set_source_rgba(context, bgcol)
             context.paint()
+            return True
+
+        # Clip to viewport to avoid rendering off-screen pixels
+        context.save()
+        context.rectangle(0, 0, allocation.width, allocation.height)
+        context.clip()
+
+        if pixbuf.get_has_alpha():
+            style.save()
+
+            # '.imageview' affects also area outside of the image. But only
+            # when background-image is specified. background-color seems to
+            # have no effect there. Probably a bug in Gtk? Either way, this is
+            # why need a special class 'transparent' to match the correct area
+            # inside the image where both image and color work.
+            style.add_class("transparent")
+            x1, y1 = self.to_widget_coords(0, 0)
+            x2, y2 = self.to_widget_coords(pixbuf.get_width(), pixbuf.get_height())
+            Gtk.render_background(style, context, x1, y1, x2 - x1, y2 - y1)
+            style.restore()
+
+        zoom = self.get_zoom() / self.get_scale_factor()
+        context.scale(zoom / ratio, zoom)
+        offset = self.get_offset()
+        context.translate(offset.x, offset.y)
+        surface = self._get_or_create_surface(pixbuf)
+        context.set_source_surface(surface, 0, 0)
+        context.get_source().set_filter(self._get_adaptive_filter())
+        context.paint()
+        context.restore()
+
         selection = self.get_selection()
-        if pixbuf is not None and selection is not None:
-            (
-                x,
-                y,
-                w,
-                h,
-            ) = (
-                selection.x,
-                selection.y,
-                selection.width,
-                selection.height,
+        if selection is not None:
+            x, y = self.to_widget_coords(selection.x, selection.y)
+            x2, y2 = self.to_widget_coords(
+                selection.x + selection.width, selection.y + selection.height
             )
+            w = x2 - x
+            h = y2 - y
             if w <= 0 or h <= 0:
                 return True
             style.save()
