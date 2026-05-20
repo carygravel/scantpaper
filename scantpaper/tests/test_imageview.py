@@ -43,7 +43,9 @@ def test_basics(rose_png):
 
     view = ImageView()
     assert isinstance(view, ImageView)
-    assert isinstance(view.get_tool(), Dragger), "get_tool() defaults to dragger"
+    assert isinstance(
+        view.get_tool(), SelectorDragger
+    ), "get_tool() defaults to SelectorDragger"
 
     def on_offset_changed(_widget, offset_x, offset_y):
         view.disconnect(signal)
@@ -356,6 +358,7 @@ def test_filter(datadir):
 def test_drag_no_pixbuf():
     "Test dragging without a pixbuf"
     view = ImageView()
+    view.set_tool(Dragger(view))
     tool = view.get_tool()
     event = MockEvent(button=1, x=10, y=10)
     tool.button_pressed(event)

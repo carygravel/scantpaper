@@ -1,20 +1,21 @@
 "Tests for ApplicationWindow"
 
 import os
-from itertools import cycle
 import uuid
+from itertools import cycle
 from unittest.mock import MagicMock, patch
+
+import gi
 import pytest
 from app_window import ApplicationWindow, drag_motion_callback, view_html
-import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position
-    Gtk,
     Gdk,
     Gio,
     GLib,
     GObject,
+    Gtk,
 )
 
 
@@ -285,6 +286,7 @@ def test_read_config_restore_window(mocker):
         "window_y": 100,
         "window_maximize": True,
         "image_control_tool": "selector",
+        "viewer_tools": "tabbed",
         "Paper": {},
         "cwd": "/tmp",
     }

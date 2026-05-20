@@ -583,7 +583,8 @@ class ImageView(Gtk.DrawingArea):
             | Gdk.EventMask.POINTER_MOTION_MASK
             | Gdk.EventMask.SCROLL_MASK
         )
-        self.set_tool(Dragger(self))
+        if self.tool is None:
+            self.tool = SelectorDragger(self)
         self.set_redraw_on_allocate(False)
         self._cached_surface = None
         self._cached_pixbuf_id = None

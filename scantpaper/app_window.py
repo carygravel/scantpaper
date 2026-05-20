@@ -1,33 +1,34 @@
 "application window"
 
+import glob
+import locale
+import logging
 import os
 import pathlib
-import locale
 import re
-import glob
-import logging
 import shutil
 import sqlite3
 import sys
-from const import DRAGGER_TOOL, EMPTY, HALF, SELECTOR_TOOL, VERSION, PROG_NAME
-from dialog import MultipleMessage
-from document import Document
-from unpaper import Unpaper
-from canvas import Canvas
-from imageview import ImageView, Selector, Dragger, SelectorDragger
-from progress import Progress
-from file_menu_mixins import FileMenuMixins
-from session_mixins import SessionMixins
-from scan_menu_item_mixins import ScanMenuItemMixins
-from edit_menu_mixins import EditMenuMixins
-from tools_menu_mixins import ToolsMenuMixins
+
 import config
-from i18n import _
-from helpers import recursive_slurp
-from tesseract import locale_installed, get_tesseract_codes
+import gi
 import ocrmypdf
 import sane  # To get SANE_* enums
-import gi
+from canvas import Canvas
+from const import DRAGGER_TOOL, EMPTY, HALF, PROG_NAME, SELECTOR_TOOL, VERSION
+from dialog import MultipleMessage
+from document import Document
+from edit_menu_mixins import EditMenuMixins
+from file_menu_mixins import FileMenuMixins
+from helpers import recursive_slurp
+from i18n import _
+from imageview import Dragger, ImageView, Selector, SelectorDragger
+from progress import Progress
+from scan_menu_item_mixins import ScanMenuItemMixins
+from session_mixins import SessionMixins
+from tesseract import get_tesseract_codes, locale_installed
+from tools_menu_mixins import ToolsMenuMixins
+from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, Gio, GLib, Gtk  # pylint: disable=wrong-import-position
@@ -135,6 +136,7 @@ class ApplicationWindow(
 
         # These will be in the window group and have the "win" prefix
         self._actions = {}
+        self._read_config()
         self._init_actions()
 
         # add the actions to the window that have window-classed callbacks
@@ -240,10 +242,14 @@ class ApplicationWindow(
 
         # action with a state created (name, parameter type, initial state)
         self._actions["tooltype"] = Gio.SimpleAction.new_stateful(
-            "tooltype", GLib.VariantType("s"), GLib.Variant("s", DRAGGER_TOOL)
+            "tooltype",
+            GLib.VariantType("s"),
+            GLib.Variant("s", self.settings["image_control_tool"]),
         )
         self._actions["viewtype"] = Gio.SimpleAction.new_stateful(
-            "viewtype", GLib.VariantType("s"), GLib.Variant("s", "tabbed")
+            "viewtype",
+            GLib.VariantType("s"),
+            GLib.Variant("s", self.settings["viewer_tools"]),
         )
         self._actions["editmode"] = Gio.SimpleAction.new_stateful(
             "editmode", GLib.VariantType("s"), GLib.Variant("s", "text")
@@ -259,7 +265,6 @@ class ApplicationWindow(
         """Initialise variables, read configuration, logs system information,
         and initialise various components"""
 
-        self._read_config()
         if self.settings["cwd"] is None:
             self.settings["cwd"] = os.getcwd()
         self.settings["version"] = VERSION
@@ -300,9 +305,11 @@ class ApplicationWindow(
             GLib.Variant("s", self.settings["image_control_tool"]),
         )
 
+        self._prevent_image_tool_update = True
         self.builder.get_object(
             "context_" + self.settings["image_control_tool"]
         ).set_active(True)
+        self._prevent_image_tool_update = False
         self.get_application().set_menubar(self.builder.get_object("menubar"))
 
     def _read_config(self):
@@ -333,7 +340,9 @@ class ApplicationWindow(
         self.slist.set_paper_sizes(self.settings["Paper"])
 
         main_vbox = self.builder.get_object("main_vbox")
+        self._prevent_image_tool_update = True
         self.add(main_vbox)
+        self._prevent_image_tool_update = False
 
         self._populate_panes()
 
@@ -427,10 +436,8 @@ class ApplicationWindow(
         self.view = ImageView()
         if self.settings["image_control_tool"] == SELECTOR_TOOL:
             self.view.set_tool(Selector(self.view))
-
         elif self.settings["image_control_tool"] == DRAGGER_TOOL:
             self.view.set_tool(Dragger(self.view))
-
         else:
             self.view.set_tool(SelectorDragger(self.view))
 
@@ -619,13 +626,13 @@ class ApplicationWindow(
             return
 
         # ignore value if it hasn't changed
+        value = value.get_string()
         if action.get_state() == value:
             return
 
         # Set the flag to prevent recursive updates
         self._prevent_image_tool_update = True
-        action.set_state(value)
-        value = value.get_string()
+        action.set_state(GLib.Variant("s", value))
         button = self.builder.get_object(f"context_{value}")
         button.set_active(True)
         self._prevent_image_tool_update = False

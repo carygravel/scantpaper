@@ -1,15 +1,19 @@
 "helper functions to read and write config"
 
-import os
+import datetime
 import json
 import logging
+import os
 import shutil
 from types import SimpleNamespace
-import datetime
-from helpers import slurp
+
+import gi
 from const import SELECTORDRAGGER_TOOL
+from helpers import slurp
 from i18n import _
-from gi.repository import Gdk
+
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk  # pylint: disable=wrong-import-position
 
 DEFAULTS = {
     "window_width": 800,
@@ -190,6 +194,7 @@ def read_config(filename):
         )
         config["selection"] = selection
 
+    # remove old int values - these are now strings
     for k in "image_control_tool", "viewer_tools":
         if k in config and isinstance(config[k], int):
             del config[k]
