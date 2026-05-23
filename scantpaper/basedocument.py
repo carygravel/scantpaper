@@ -1,23 +1,24 @@
 "Base document methods"
 
-from collections import defaultdict
-import pathlib
-import re
-import os
 import logging
-import shutil
-import tempfile
+import os
+import pathlib
 import queue
+import re
+import shutil
 import signal
+import tempfile
 import weakref
+from collections import defaultdict
+
 import gi
-from simplelist import SimpleList
-from helpers import slurp, _weak_callback
-from i18n import _
 from docthread import DocThread
+from helpers import _weak_callback, slurp
+from i18n import _
+from simplelist import SimpleList
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk  # pylint: disable=wrong-import-position
+from gi.repository import Gdk, Gtk  # pylint: disable=wrong-import-position
 
 ID_PAGE = 1
 ID_URI = 0
@@ -487,7 +488,6 @@ class BaseDocument(SimpleList):
         def _data_callback(response):
             info = response.info
             if info and "type" in info and info["type"] == "page":
-
                 # Reverse the rows in order not to invalid the iters
                 if paths:
                     for path in reversed(paths):
@@ -520,7 +520,7 @@ class BaseDocument(SimpleList):
 
         def _after_delete():
             # Select nearest page to last current page
-            if self.data and page:
+            if self.data:
                 old_selection = page[0]
 
                 # Select just the first one
@@ -535,9 +535,6 @@ class BaseDocument(SimpleList):
                 # signal is still not fired (is this a bug in gtk+-3?), so do it here.
                 if old_selection == new_sel[0] or self.has_focus():
                     self.get_selection().emit("changed")
-
-            elif self.data:
-                self.get_selection().unselect_all()
 
             # No pages left, and having blocked the selection_changed_signal,
             # we've got to clear the image
