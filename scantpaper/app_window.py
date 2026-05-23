@@ -626,8 +626,9 @@ class ApplicationWindow(
             return
 
         # ignore value if it hasn't changed
+        # state is defined with extra ' terminators in app.ui
         value = value.get_string()
-        if action.get_state() == value:
+        if action.get_state() == f"'{value}'":
             return
 
         # Set the flag to prevent recursive updates

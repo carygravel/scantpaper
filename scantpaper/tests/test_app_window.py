@@ -363,6 +363,10 @@ def test_change_image_tool_cb(app_window, mocker):
     assert app_window.settings["image_control_tool"] == "dragger"
     app_window.view.set_tool.assert_called_with(dragger_instance)
 
+    # repeat to test early return
+    app_window._change_image_tool_cb(action, variant)
+    assert app_window.settings["image_control_tool"] == "dragger"
+
     # Change to selectordragger with existing selection
     app_window.settings["selection"] = MagicMock()
     app_window.view.selection_changed_signal = 789
