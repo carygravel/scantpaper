@@ -361,24 +361,20 @@ class Canvas(
             band_confidence = min_conf + (i + 0.5) * band_width
 
             # Use existing confidence2color logic
-            if band_confidence >= max_conf:
-                color = self.max_color
-            else:
-                max_hsv = self.get_max_color_hsv()
-                min_hsv = self.get_min_color_hsv()
-                m = (band_confidence - min_conf) / (max_conf - min_conf)
-                hsv = {
-                    "h": linear_interpolation(min_hsv["h"], max_hsv["h"], m),
-                    "s": linear_interpolation(min_hsv["s"], max_hsv["s"], m),
-                    "v": linear_interpolation(min_hsv["v"], max_hsv["v"], m),
-                }
-                rgb = hsv2rgb(hsv)
-                color = (
-                    f"#{int(rgb.red * MAX_COLOR_INT):04x}"
-                    f"{int(rgb.green * MAX_COLOR_INT):04x}"
-                    f"{int(rgb.blue * MAX_COLOR_INT):04x}"
-                )
-
+            max_hsv = self.get_max_color_hsv()
+            min_hsv = self.get_min_color_hsv()
+            m = (band_confidence - min_conf) / (max_conf - min_conf)
+            hsv = {
+                "h": linear_interpolation(min_hsv["h"], max_hsv["h"], m),
+                "s": linear_interpolation(min_hsv["s"], max_hsv["s"], m),
+                "v": linear_interpolation(min_hsv["v"], max_hsv["v"], m),
+            }
+            rgb = hsv2rgb(hsv)
+            color = (
+                f"#{int(rgb.red * MAX_COLOR_INT):04x}"
+                f"{int(rgb.green * MAX_COLOR_INT):04x}"
+                f"{int(rgb.blue * MAX_COLOR_INT):04x}"
+            )
             self._color_lookup_table.append(color)
 
     def get_color_for_confidence(self, confidence):
@@ -1045,11 +1041,6 @@ class Bbox(GooCanvas.CanvasGroup):
         # Try cached reference first (set in __init__ and update_box)
         if hasattr(self, "_text_widget") and self._text_widget:
             return self._text_widget
-
-        # Fallback to child lookup for backwards compatibility
-        child = self.get_child(1)
-        if isinstance(child, GooCanvas.CanvasText):
-            return child
         raise AttributeError
 
     def get_centroid(self):
