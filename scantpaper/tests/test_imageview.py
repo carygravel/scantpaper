@@ -1028,3 +1028,15 @@ def test_selection_drawing_coordinates():
         60.0,
         40.0,
     ), f"Selection drawn at wrong coordinates: got {(x, y, w, h)}"
+
+
+def test_adaptive_filter():
+    "Test _get_adaptive_filter zoom levels"
+    view = ImageView()
+    view._set_zoom(0.4)
+    assert view._get_adaptive_filter() == cairo.FILTER_FAST
+    view._set_zoom(0.6)
+    assert view._get_adaptive_filter() == cairo.FILTER_GOOD
+    view._set_zoom(1.1)
+    view.set_interpolation(cairo.FILTER_BEST)
+    assert view._get_adaptive_filter() == cairo.FILTER_BEST
