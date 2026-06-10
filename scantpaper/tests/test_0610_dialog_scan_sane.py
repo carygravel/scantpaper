@@ -1,14 +1,15 @@
 "test scan dialog"
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, ANY
+from unittest.mock import ANY, MagicMock
+
 import pytest
 from dialog.sane import SaneScanDialog
 from frontend import enums
 from frontend.enums import TYPE_INT
-from scanner.options import Options, Option
-from scanner.profile import Profile
 from gi.repository import Gtk
+from scanner.options import Option, Options
+from scanner.profile import Profile
 
 
 def test_1(sane_scan_dialog):
@@ -1267,3 +1268,57 @@ def test_scan_errors_and_clamping(mocker, sane_scan_dialog):
     assert callbacks == 2
     # Verify cursor was reset to default (Line 508)
     assert dialog.cursor == "default"
+
+
+def test_get_options_error(mocker, sane_scan_dialog):
+    "test error handling in get_options"
+    dialog = sane_scan_dialog
+    callbacks = 0
+
+    opt = Option(
+        1,
+        "test-reload-error",
+        "Test Reload Error",
+        "desc",
+        enums.TYPE_INT,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        None,
+    )
+
+    def mocked_set_option(
+        name,
+        value,
+        started_callback,
+        running_callback,
+        finished_callback,
+        error_callback,
+    ):
+        response = SimpleNamespace(
+            status="OK",
+            info=enums.INFO_RELOAD_OPTIONS,
+        )
+        finished_callback(response)
+
+    def mocked_get_options(
+        started_callback, running_callback, finished_callback, error_callback
+    ):
+        response = SimpleNamespace(
+            status="Error retrieving options",
+            info=None,
+        )
+        error_callback(response)
+
+    mocker.patch.object(dialog.thread, "set_option", side_effect=mocked_set_option)
+    mocker.patch.object(dialog.thread, "get_options", side_effect=mocked_get_options)
+
+    def process_error_cb(_widget, process, message):
+        assert process == "find_scan_options"
+        assert "Error retrieving scanner options: Error retrieving options" in message
+        nonlocal callbacks
+        callbacks += 1
+
+    dialog.connect("process-error", process_error_cb)
+    dialog.set_option(opt, 42)
+    assert callbacks == 1
