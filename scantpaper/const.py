@@ -1,8 +1,8 @@
 "Constants that are used in multiple places"
 
 import importlib.metadata
-from pathlib import Path
 import sys
+from pathlib import Path
 
 if sys.version_info >= (3, 11):  # jammy (22.04) still has 3.10
     import tomllib
@@ -57,5 +57,5 @@ HELP_WINDOW_HEIGHT = 600
 HELP_WINDOW_DIVIDER_POS = 200
 
 THUMBNAIL = 100  # pixels
-APPLICATION_ID = 2235627884
+APPLICATION_ID = 223562788
 USER_VERSION = 2

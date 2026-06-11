@@ -297,6 +297,23 @@ def test_open_session_file_invalid_app_id(mocker):
         thread.open("test.db")
 
 
+def test_open_session_file_invalid_app_id0(mocker):
+    "test open session file with invalid application id"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_connect")
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(
+        thread,
+        "_fetchone",
+        return_value=(0,),  # Invalid application_id
+    )
+
+    with pytest.raises(TypeError, match="is not a scantpaper session file"):
+        thread.open("test.db")
+
+
 def test_do_set_saved(mocker):
     "test do_set_saved"
     thread = DocThread(db=":memory:")
