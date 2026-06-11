@@ -1,7 +1,8 @@
 "test document module"
 
-import unittest.mock
 import datetime
+import unittest.mock
+
 from document import Document, _extract_metadata
 
 
@@ -101,6 +102,16 @@ def test_get_file_info_finished_callback2_no_pagerange():
         )
         is None
     )
+
+
+def test_get_file_info_finished_callback2_session_file():
+    "test session file handling in get_file_info_finished_callback2"
+    doc = create_doc()
+    info = [{"format": "session file", "path": "f.session"}]
+    options = {"finished_callback": unittest.mock.Mock()}
+    with unittest.mock.patch.object(doc, "open_session") as open_session:
+        doc._get_file_info_finished_callback2(info, options)
+        open_session.assert_called_with(db="f.session", **options)
 
 
 def test_post_process_rotate():
