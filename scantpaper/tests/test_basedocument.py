@@ -1,21 +1,22 @@
 "Coverage tests for basedocument.py"
 
 import os
+import pathlib
+import queue
+import shutil
 import signal
 import tempfile
 import threading
-import pathlib
-import shutil
-import queue
 import uuid
 from unittest.mock import MagicMock, patch
-import pytest
+
 import gi
+import pytest
+from basedocument import ID_PAGE, ID_URI, drag_data_received_callback
 from document import Document
-from basedocument import drag_data_received_callback, ID_URI, ID_PAGE
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
 @pytest.fixture(autouse=True)

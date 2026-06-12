@@ -957,3 +957,22 @@ def test_init_timeout_logging(tmp_path, mocker, caplog):
 
     assert f"Failed to initialize DocThread for {db_path}" in caplog.text
     thread.quit()
+
+
+def test_close(mocker):
+    "Test closing the db"
+    thread = DocThread(db=":memory:")
+    tid = threading.get_native_id()
+    con = mocker.Mock()
+    thread._con[tid] = con
+    thread.close()
+    con.close.assert_called()
+    assert tid not in thread._con, "removed connection from pool on close"
+
+
+def test_save_as(temp_db, mocker):
+    "Test saving the db"
+    thread = DocThread(db=":memory:")
+    execute = mocker.patch.object(thread, "_execute")
+    thread.save_as(temp_db.name)
+    execute.assert_called_with(f"VACUUM INTO '{temp_db.name}'")

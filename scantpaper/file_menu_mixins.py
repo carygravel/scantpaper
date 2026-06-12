@@ -1,24 +1,25 @@
 "provide methods called from file menu"
 
 import datetime
-import re
-import os
 import fcntl
 import glob
 import logging
+import os
+import re
 import sys
 import tempfile
+
+import config
 import gi
 from comboboxtext import ComboBoxText
-import config
-from const import ASTERISK, EMPTY, EMPTY_LIST, VERSION
+from const import ASTERISK, EMPTY, EMPTY_LIST
 from dialog.save import Save as SaveDialog
-from helpers import exec_command, expand_metadata_pattern, collate_metadata
+from helpers import collate_metadata, expand_metadata_pattern
 from i18n import _
 from print_operation import PrintOperation
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gio, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gio, GLib, Gtk  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
 
@@ -550,7 +551,7 @@ class FileMenuMixins:
                     self._save_pdf(filename, uuids, "ps")
 
             elif filetype == "session":
-                self.slist.save_session(filename, VERSION)
+                self.slist.save_session(filename)
 
             elif filetype in ["djvu", "tif", "txt", "hocr"]:
                 method = getattr(self, f"_save_{filetype}")

@@ -553,7 +553,7 @@ class BaseDocument(SimpleList):
 
     def save_session(self, filename):
         "copy session db to a file"
-        shutil.copy(self.dir / "document.db", filename)
+        self.thread.save_as(filename)
         logger.info("Saved document as %s", filename)
 
     def open_session(self, **kwargs):
@@ -566,7 +566,7 @@ class BaseDocument(SimpleList):
             return
 
         db = pathlib.Path(kwargs["db"])
-        self.thread._con.close()
+        self.thread.close()
         try:
             shutil.copy(db, self.dir / "document.db")
         except OSError:

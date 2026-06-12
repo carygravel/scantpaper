@@ -1,30 +1,31 @@
 "Threading model for the Document class"
 
-import pathlib
-import json
-import logging
-import re
-import os
-import subprocess
 import datetime
 import glob
-from pathlib import Path
+import json
+import logging
+import os
+import pathlib
+import re
 import shutil
 import sqlite3
+import subprocess
 import tempfile
 import threading
-from PIL import ImageStat, ImageEnhance, ImageOps, ImageFilter
-from const import THUMBNAIL, APPLICATION_ID, USER_VERSION
-from importthread import _note_callbacks
-from savethread import SaveThread
-from i18n import _
-from page import Page
-from bboxtree import Bboxtree
-import tesserocr
+from pathlib import Path
+
 import gi
+import tesserocr
+from bboxtree import Bboxtree
+from const import APPLICATION_ID, THUMBNAIL, USER_VERSION
+from i18n import _
+from importthread import _note_callbacks
+from page import Page
+from PIL import ImageEnhance, ImageFilter, ImageOps, ImageStat
+from savethread import SaveThread
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, GdkPixbuf  # pylint: disable=wrong-import-position
+from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
 
@@ -235,6 +236,17 @@ class DocThread(SaveThread):
         row = self._fetchone()
         if row:
             self._action_id = row[0]
+
+    def close(self):
+        "close the current database"
+        tid = threading.get_native_id()
+        if tid in self._con:
+            self._con[tid].close()
+            del self._con[tid]
+
+    def save_as(self, db_name):
+        "save the current database to a new file"
+        self._execute(f"VACUUM INTO '{db_name}'")
 
     def _insert_image(self, page, if_different_from=None):
         "insert an image to the database"
