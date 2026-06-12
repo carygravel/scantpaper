@@ -7,17 +7,18 @@ import logging
 import os
 import shutil
 import tempfile
+
+import config
 import gi
 import tesserocr
 from bboxtree import Bboxtree
-import config
 from const import (
-    EMPTY,
-    SPACE,
-    ZOOM_CONTEXT_FACTOR,
     DRAGGER_TOOL,
+    EMPTY,
     SELECTOR_TOOL,
     SELECTORDRAGGER_TOOL,
+    SPACE,
+    ZOOM_CONTEXT_FACTOR,
 )
 from dialog import filter_message, response_stored
 from helpers import get_tmp_dir, program_version
@@ -44,7 +45,11 @@ class SessionMixins:
 
         # Create temporary directory if necessary
         if self.session is None:
-            if tmpdir is not None and tmpdir != EMPTY:
+            if tmpdir is None or tmpdir == EMPTY:
+                self.session = tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
+                    prefix="scantpaper-"
+                )
+            else:
                 if not os.path.isdir(tmpdir):
                     os.mkdir(tmpdir)
                 try:
@@ -54,12 +59,6 @@ class SessionMixins:
                 except (FileNotFoundError, PermissionError) as e:
                     logger.error("Error creating temporary directory: %s", e)
                     self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
-            else:
-                self.session = (
-                    tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
-                        prefix="scantpaper-"
-                    )
-                )
 
             self._lockfd = self._create_lockfile()
             logger.info("Using %s for temporary files", self.session.name)
