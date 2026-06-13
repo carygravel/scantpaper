@@ -7,6 +7,8 @@ import logging
 import os
 import shutil
 import tempfile
+from pathlib import PurePath
+from posixpath import isdir
 
 import config
 import gi
@@ -40,7 +42,7 @@ class SessionMixins:
 
     def _create_temp_directory(self):
         "Create a temporary directory for the session"
-        tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w")
+        tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         self._find_crashed_sessions(tmpdir)
 
         # Create temporary directory if necessary
@@ -73,10 +75,12 @@ class SessionMixins:
                 )
                 self.settings["TMPDIR"] = tmpdir
 
-    def _create_lockfile(self):
+    def _create_lockfile(self, session=None):
         "create a lockfile in the session directory"
+        if session is None:
+            session = self.session.name
         lockfd = open(  # pylint: disable=consider-using-with
-            os.path.join(self.session.name, "lockfile"), "w", encoding="utf-8"
+            os.path.join(session, "lockfile"), "w", encoding="utf-8"
         )
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
@@ -87,26 +91,20 @@ class SessionMixins:
             tmpdir = tempfile.gettempdir()
 
         logger.info("Checking %s for crashed sessions", tmpdir)
-        sessions = glob.glob(os.path.join(tmpdir, "scantpaper-????"))
+        dbs = glob.glob(os.path.join(tmpdir, "scantpaper-????????.sdb"))
         crashed, selected = [], []
 
         # Forget those used by running sessions
-        for session in sessions:
+        for db in dbs:
+            session = PurePath(db).stem
+            if not os.path.isdir(session):
+                crashed.append(db)
+                continue
             try:
-                self._create_lockfile()
-                crashed.append(session)
+                self._create_lockfile(session)
+                crashed.append(db)
             except (OSError, IOError) as e:
                 logger.warning("Error opening lockfile %s", str(e))
-
-        # Flag those with no session file
-        missing = []
-        for i, session in enumerate(crashed):
-            if not os.access(os.path.join(session, "session"), os.R_OK):
-                missing.append(session)
-                del crashed[i]
-
-        if missing:
-            self._list_unrestorable_sessions(missing)
 
         # Allow user to pick a crashed session to restore
         if crashed:
@@ -132,54 +130,6 @@ class SessionMixins:
                 self.session = crashed[selected[0]]
                 self._create_lockfile()
                 self._open_session(self.session)
-
-    def _list_unrestorable_sessions(self, missing):
-        logger.info("Unrestorable sessions: %s", SPACE.join(missing))
-        dialog = Gtk.Dialog(
-            title=_("Crashed sessions"),
-            transient_for=self,
-            modal=True,
-        )
-        dialog.add_buttons(
-            Gtk.STOCK_DELETE,
-            Gtk.ResponseType.OK,
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-        )
-        text = Gtk.TextView()
-        text.set_wrap_mode(Gtk.WrapMode.WORD)
-        text.get_buffer().set_text(
-            _("The following list of sessions cannot be restored.")
-            + SPACE
-            + _("Please retrieve any images you require from them.")
-            + SPACE
-            + _("Selected sessions will be deleted.")
-        )
-        dialog.get_content_area().add(text)
-        columns = {_("Session"): "text"}
-        sessionlist = SimpleList(**columns)
-        sessionlist.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
-        sessionlist.data.append(missing)
-        dialog.get_content_area().add(sessionlist)
-        button = dialog.get_action_area().get_children()
-
-        def changed_selection_callback():
-            button.set_sensitive(len(sessionlist.get_selected_indices()) > 0)
-
-        sessionlist.get_selection().connect("changed", changed_selection_callback)
-        sessionlist.get_selection().select_all()
-        dialog.show_all()
-        if dialog.run() == Gtk.ResponseType.OK:
-            selected = sessionlist.get_selected_indices()
-            for i, _v in enumerate(selected):
-                selected[i] = missing[i]
-            logger.info("Selected for deletion: %s", SPACE.join(selected))
-            for s in selected:
-                shutil.rmtree(s)
-        else:
-            logger.info("None selected")
-
-        dialog.destroy()
 
     def _check_dependencies(self):
         "Check for presence of various packages"

@@ -3,9 +3,10 @@
 import logging
 import os
 from unittest.mock import MagicMock
-import pytest
+
 import gi
-from basethread import Response, ResponseType, Request
+import pytest
+from basethread import Request, Response, ResponseType
 from const import EMPTY
 from session_mixins import SessionMixins
 
@@ -261,21 +262,12 @@ def test_find_crashed_sessions_default_tmpdir(mocker, mock_session_window):
     assert mock_session_window.session is None
 
 
-def test_find_crashed_sessions_no_sessions(mocker, mock_session_window):
-    "Test _find_crashed_sessions with no crashed sessions"
-    mocker.patch("glob.glob", return_value=[])
-
-    mock_session_window._find_crashed_sessions("/tmp")
-
-    # Should not show dialog
-    assert not hasattr(mock_session_window, "_list_unrestorable_sessions_called")
-
-
 def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
     "Test _find_crashed_sessions with currently running sessions (locked)"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-running"])
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-running.sdb"])
 
     # Mock _create_lockfile to fail (simulating running session)
+    mocker.patch("os.path.isdir", return_value=True)
     mock_session_window._create_lockfile = mocker.Mock(side_effect=OSError("Locked"))
 
     mock_session_window._find_crashed_sessions("/tmp")
@@ -287,13 +279,11 @@ def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
 
 def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed"])
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed.sdb"])
 
     # Mock _create_lockfile to succeed (not running)
+    mocker.patch("os.path.isdir", return_value=True)
     mock_session_window._create_lockfile = mocker.Mock()
-
-    # Mock os.access to return True (session file exists/readable)
-    mocker.patch("os.access", return_value=True)
 
     # Mock Dialog
     mock_dialog_cls = mocker.patch("session_mixins.Gtk.Dialog")
@@ -309,8 +299,8 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
 
     mock_session_window._find_crashed_sessions("/tmp")
 
-    assert mock_session_window.session == "/tmp/scantpaper-crashed"
-    mock_session_window._open_session.assert_called_with("/tmp/scantpaper-crashed")
+    assert mock_session_window.session == "/tmp/scantpaper-crashed.sdb"
+    mock_session_window._open_session.assert_called_with("/tmp/scantpaper-crashed.sdb")
 
 
 def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window):
@@ -327,69 +317,6 @@ def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window
 
     mock_session_window._find_crashed_sessions("/tmp")
     assert mock_session_window.session is None
-
-
-def test_find_crashed_sessions_unrestorable(mocker, mock_session_window):
-    "Test _find_crashed_sessions with missing session file"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-broken"])
-    mock_session_window._create_lockfile = mocker.Mock()
-    mocker.patch("os.access", return_value=False)  # session file missing
-
-    mock_session_window._list_unrestorable_sessions = mocker.Mock()
-
-    mock_session_window._find_crashed_sessions("/tmp")
-
-    mock_session_window._list_unrestorable_sessions.assert_called_with(
-        ["/tmp/scantpaper-broken"]
-    )
-
-
-def test_list_unrestorable_sessions(mocker, mock_session_window):
-    "Test _list_unrestorable_sessions"
-    mock_dialog_cls = mocker.patch("session_mixins.Gtk.Dialog")
-    mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.run.return_value = Gtk.ResponseType.OK
-
-    mock_textview_cls = mocker.patch("session_mixins.Gtk.TextView")
-    mock_textview = mock_textview_cls.return_value
-
-    mock_simplelist_cls = mocker.patch("session_mixins.SimpleList")
-    mock_simplelist = mock_simplelist_cls.return_value
-    mock_simplelist.get_selected_indices.return_value = [0]
-
-    # Mock selection changed callback
-    callbacks = {}
-
-    def connect_side_effect(signal, callback):
-        callbacks[signal] = callback
-
-    mock_simplelist.get_selection().connect.side_effect = connect_side_effect
-
-    mock_shutil_rmtree = mocker.patch("shutil.rmtree")
-
-    mock_session_window._list_unrestorable_sessions(["/tmp/scantpaper-broken"])
-
-    # Test the selection changed callback
-    mock_button = MagicMock()
-    mock_dialog.get_action_area().get_children.return_value = mock_button
-    assert "changed" in callbacks
-    callbacks["changed"]()
-
-    mock_shutil_rmtree.assert_called_with("/tmp/scantpaper-broken")
-    mock_textview.set_wrap_mode.assert_called_with(Gtk.WrapMode.WORD)
-
-
-def test_list_unrestorable_sessions_cancel(mocker, mock_session_window):
-    "Test _list_unrestorable_sessions when canceled"
-    mock_dialog_cls = mocker.patch("session_mixins.Gtk.Dialog")
-    mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
-
-    mock_shutil_rmtree = mocker.patch("shutil.rmtree")
-
-    mock_session_window._list_unrestorable_sessions(["/tmp/scantpaper-broken"])
-
-    mock_shutil_rmtree.assert_not_called()
 
 
 def test_finished_process_callback(mocker, mock_session_window):
@@ -601,8 +528,8 @@ def test_ocr_text_operations(mocker, mock_session_window):
 
     mock_session_window._current_page = mocker.Mock()
     mock_session_window._current_page.text_layer = "existing_layer"
-    mock_session_window._current_page.__getitem__ = (
-        lambda self, key: 100
+    mock_session_window._current_page.__getitem__ = lambda self, key: (
+        100
     )  # width/height
 
     mock_session_window.view.get_selection.return_value = {
