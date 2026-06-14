@@ -72,7 +72,7 @@ class DocThread(SaveThread):
             else:
                 self._dir = pathlib.Path(tempfile.gettempdir())
         if self._db is None:
-            self._db = self._dir / "document.db"
+            self._db = self._dir / "document.sdb"
 
         self.db_files = [
             self._db,

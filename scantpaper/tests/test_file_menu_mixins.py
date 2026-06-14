@@ -3,15 +3,16 @@
 import datetime
 import os
 import unittest.mock
+
 import gi
 import pytest
+from comboboxtext import ComboBoxText
 from file_menu_mixins import (
     FileMenuMixins,
     add_filter,
-    launch_default_for_file,
     file_exists,
+    launch_default_for_file,
 )
-from comboboxtext import ComboBoxText
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
@@ -569,7 +570,7 @@ class TestFileMenuMixins:
         app._open_session("/path/to/session")
 
         app.slist.open_session.assert_called_with(
-            dir="/path/to/session",
+            db="/path/to/session",
             delete=False,
             error_callback=app._error_callback,
         )
@@ -579,7 +580,7 @@ class TestFileMenuMixins:
         app.slist.open_session = unittest.mock.Mock()
         FileMenuMixins._open_session(app, "/some/path")
         app.slist.open_session.assert_called_with(
-            dir="/some/path", delete=False, error_callback=app._error_callback
+            db="/some/path", delete=False, error_callback=app._error_callback
         )
 
     @unittest.mock.patch("file_menu_mixins.datetime")
@@ -1119,7 +1120,7 @@ class TestFileMenuMixins:
     def test_save_button_clicked_callback_session(self, app):
         "Test _save_button_clicked_callback for session type."
         app._windowi = unittest.mock.Mock()
-        app._windowi.image_type = "session"
+        app._windowi.image_type = "sdb"
         app._windowi.comboboxpsh.get_active.return_value = -1
         app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
         app._save_file_chooser = unittest.mock.Mock()
@@ -1128,7 +1129,7 @@ class TestFileMenuMixins:
 
         app._save_button_clicked_callback(mock_kbutton, mock_pshbutton)
 
-        assert app.settings["image type"] == "session"
+        assert app.settings["image type"] == "sdb"
         app._save_file_chooser.assert_called_with(["uuid1"])
 
     def test_save_button_clicked_callback_hocr(self, app):
@@ -1216,7 +1217,7 @@ class TestFileMenuMixins:
         app.slist.save_session = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/session.gs2p"
+        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
         mock_os.path.dirname.return_value = "/path/to"
         mock_os.path.isfile.return_value = False
 

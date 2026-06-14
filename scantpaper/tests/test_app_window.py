@@ -114,6 +114,7 @@ def app_window(mocker, mock_builder, mock_config):
     mocker.patch("app_window.Progress")
     mocker.patch("app_window.sane.init")
     mocker.patch("app_window.recursive_slurp")
+    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
     mocker.patch("app_window.Selector")
     mocker.patch("app_window.Dragger")
     mocker.patch("app_window.SelectorDragger")
@@ -974,6 +975,7 @@ def test_pre_flight_linux(mocker, mock_builder, mock_config):
     mocker.patch("app_window.Gtk.VPaned.pack1")
     mocker.patch("app_window.Gtk.VPaned.pack2")
     mocker.patch("app_window.Gtk.Container.remove")
+    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
 
     mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
 
@@ -1007,12 +1009,14 @@ def test_pre_flight_linux(mocker, mock_builder, mock_config):
     app.set_menubar = MagicMock()
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
+    win = None
 
     try:
         win = ApplicationWindow(application=app)
         mock_slurp.assert_called_once()
     finally:
-        win.destroy()
+        if win:
+            win.destroy()
         while Gtk.events_pending():
             Gtk.main_iteration()
         app.quit()
@@ -1041,6 +1045,7 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
     mocker.patch("app_window.Gtk.VPaned.pack1")
     mocker.patch("app_window.Gtk.VPaned.pack2")
     mocker.patch("app_window.Gtk.Container.remove")
+    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
 
     mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
 
@@ -1074,6 +1079,7 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
     app.set_menubar = MagicMock()
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
+    win = None
 
     try:
         # on some systems, creating the ApplicationWindow fails if the
@@ -1083,7 +1089,8 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
             win = ApplicationWindow(application=app)
             assert win.settings["cwd"] == os.getcwd()
     finally:
-        win.destroy()
+        if win:
+            win.destroy()
         while Gtk.events_pending():
             Gtk.main_iteration()
         app.quit()
@@ -1108,6 +1115,7 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
     mocker.patch("app_window.Gtk.VPaned.pack2")
     mocker.patch("app_window.Gtk.Notebook.append_page")
     mocker.patch("app_window.Gtk.Container.remove")
+    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
 
     mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
 
@@ -1160,6 +1168,7 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
     app.set_menubar = MagicMock()
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
+    win = None
 
     try:
         # on some systems, creating the ApplicationWindow fails if the
@@ -1169,7 +1178,8 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
             win = ApplicationWindow(application=app)
             assert win.settings["cwd"] == os.getcwd()
     finally:
-        win.destroy()
+        if win:
+            win.destroy()
         while Gtk.events_pending():
             Gtk.main_iteration()
         app.quit()
@@ -1195,6 +1205,7 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
     mocker.patch("app_window.Gtk.VPaned.pack2")
     mocker.patch("app_window.Gtk.Notebook.append_page")
     mocker.patch("app_window.Gtk.Container.remove")
+    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
 
     mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
 
@@ -1242,6 +1253,7 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
     app.args = MagicMock()
     app.args.import_files = ["file1.pdf"]
     app.args.import_all = ["file2.pdf"]
+    win = None
 
     try:
         # on some systems, creating the ApplicationWindow fails if the
@@ -1253,7 +1265,8 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
             assert mock_import_files.call_count == 2
             mock_import_files.assert_any_call(["file2.pdf"], True)
     finally:
-        win.destroy()
+        if win:
+            win.destroy()
         while Gtk.events_pending():
             Gtk.main_iteration()
         app.quit()
@@ -1313,6 +1326,7 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
     mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
     mocker.patch.object(ApplicationWindow, "add", autospec=True)
     mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
 
     # Mock MultipleMessage to prevent blocking dialogs
     mock_mm = mocker.patch("app_window.MultipleMessage")
@@ -1323,6 +1337,7 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
     app.set_menubar = MagicMock()
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
+    win = None
 
     # Test with "dragger"
     mock_config.read_config.return_value["image_control_tool"] = "dragger"
@@ -1339,7 +1354,8 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
             mock_selector.reset_mock()
             mock_selector_dragger.reset_mock()
     finally:
-        win.destroy()
+        if win:
+            win.destroy()
         while Gtk.events_pending():
             Gtk.main_iteration()
         app.quit()
@@ -1365,7 +1381,8 @@ def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_pa
             win = ApplicationWindow(application=app)
             mock_selector_dragger.assert_called()
     finally:
-        win.destroy()
+        if win:
+            win.destroy()
         while Gtk.events_pending():
             Gtk.main_iteration()
         app.quit()

@@ -334,7 +334,7 @@ class ApplicationWindow(
         self._create_temp_directory()
 
         # Set up an SimpleList for the thumbnail view
-        self.slist = Document(dir=self.session.name)
+        self.slist = Document(dir=self.session.name, db=self.session.name + ".sdb")
 
         # Update list in Document so that it can be used by get_resolution()
         self.slist.set_paper_sizes(self.settings["Paper"])
@@ -386,6 +386,8 @@ class ApplicationWindow(
         # Open scan dialog in background
         if self.settings["auto-open-scan-dialog"]:
             self.scan_dialog(None, None, True)
+
+        self._find_crashed_sessions()
 
         # Deal with --import command line option
         args = self.get_application().args

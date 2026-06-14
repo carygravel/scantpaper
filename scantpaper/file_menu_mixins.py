@@ -155,11 +155,10 @@ class FileMenuMixins:
                 "pdf",
                 "djvu",
                 "ps",
-                "gs2p",
+                "sdb",
             ],
         )
         if file_chooser.run() == Gtk.ResponseType.OK:
-
             # cd back to tempdir to import
             os.chdir(self.session.name)
 
@@ -284,11 +283,11 @@ class FileMenuMixins:
 
         file_chooser.destroy()
 
-    def _open_session(self, sesdir):
+    def _open_session(self, db):
         "open session"
         logger.info("Restoring session in %s", self.session)
         self.slist.open_session(
-            dir=sesdir, delete=False, error_callback=self._error_callback
+            db=db, delete=False, error_callback=self._error_callback
         )
 
     def save_dialog(self, _action, _param):
@@ -307,7 +306,7 @@ class FileMenuMixins:
             "tif",
             "txt",
             "hocr",
-            "session",
+            "sdb",
         ]
         if self._dependencies["pdfunite"]:
             image_types.extend(["prependpdf", "appendpdf"])
@@ -435,7 +434,7 @@ class FileMenuMixins:
             self.settings["ps_backend"] = self._windowi.ps_backend
             logger.info("Selected '%s' as ps backend", self.settings["ps_backend"])
             self._save_file_chooser(uuids)
-        elif self.settings["image type"] == "session":
+        elif self.settings["image type"] == "sdb":
             self._save_file_chooser(uuids)
         else:
             if self.settings["image type"] == "jpg":
@@ -470,10 +469,10 @@ class FileMenuMixins:
             title = _("PS filename")
             filter_desc = _("Postscript files")
             filter_list = [self.settings["image type"]]
-        elif self.settings["image type"] == "session":
+        elif self.settings["image type"] == "sdb":
             title = _("scantpaper session filename")
             filter_desc = _("scantpaper session files")
-            filter_list = ["gs2p"]
+            filter_list = [self.settings["image type"]]
         file_chooser = Gtk.FileChooserDialog(
             title=title,
             parent=self._windowi,
@@ -925,8 +924,10 @@ class FileMenuMixins:
         # otherwise we can't delete the temp dir.
         self._chdir_cwd()
 
-        # Remove temporary files
-        for file in glob.glob(self.session.name + "/*"):
+        # Remove temporary files and session db
+        for file in glob.glob(self.session.name + "/*") + glob.glob(
+            self.session.name + ".sdb*"
+        ):
             os.remove(file)
         os.rmdir(self.session.name)
         # Write window state to settings

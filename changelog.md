@@ -6,7 +6,7 @@
 * Various performance improvement for the image viewer
 * Fix mismatch between image tool and menu/toolbar on start-up.
   Closes #62 (After initial scan, cursor is always in move mode)
-* Fix saving and loading session database.
+* Fix saving and loading session database and dealing with crashed sessions.
 
 
 ## 3.0.7 (2026-05-10)

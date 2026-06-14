@@ -26,7 +26,7 @@ IMAGE_TYPES = [
     ("tif", _("TIFF"), _("Tagged Image File Format")),
     ("txt", _("Text"), _("Plain text")),
     ("hocr", _("hOCR"), _("hOCR markup language")),
-    ("session", _("Session"), _("scantpaper session file")),
+    ("sdb", _("Session"), _("scantpaper session database")),
     ("prependpdf", _("Prepend to PDF"), _("Prepend to an existing PDF")),
     ("appendpdf", _("Append to PDF"), _("Append to an existing PDF")),
     ("djvu", _("DjVu"), _("Deja Vu")),
