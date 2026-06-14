@@ -154,7 +154,7 @@ def test_save_open_session():
     slist.add_page(1, None, 101)
 
     # Create a dummy document.db
-    db_path = slist.dir / "document.db"
+    db_path = slist.dir.name + ".sdb"
     with open(db_path, "w", encoding="utf-8") as f:
         f.write("dummy db")
 

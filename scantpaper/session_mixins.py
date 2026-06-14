@@ -43,37 +43,33 @@ class SessionMixins:
     def _create_temp_directory(self):
         "Create a temporary directory for the session"
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
-        self._find_crashed_sessions(tmpdir)
-
-        # Create temporary directory if necessary
-        if self.session is None:
-            if tmpdir is None or tmpdir == EMPTY:
-                self.session = tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
-                    prefix="scantpaper-"
+        if tmpdir is None or tmpdir == EMPTY:
+            self.session = tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
+                prefix="scantpaper-"
+            )
+        else:
+            if not os.path.isdir(tmpdir):
+                os.mkdir(tmpdir)
+            try:
+                self.session = tempfile.TemporaryDirectory(
+                    prefix="scantpaper-", dir=tmpdir
                 )
-            else:
-                if not os.path.isdir(tmpdir):
-                    os.mkdir(tmpdir)
-                try:
-                    self.session = tempfile.TemporaryDirectory(
-                        prefix="scantpaper-", dir=tmpdir
-                    )
-                except (FileNotFoundError, PermissionError) as e:
-                    logger.error("Error creating temporary directory: %s", e)
-                    self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
+            except (FileNotFoundError, PermissionError) as e:
+                logger.error("Error creating temporary directory: %s", e)
+                self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
 
-            self._lockfd = self._create_lockfile()
-            logger.info("Using %s for temporary files", self.session.name)
-            tmpdir = os.path.dirname(self.session.name)
-            if "TMPDIR" in self.settings and self.settings["TMPDIR"] != tmpdir:
-                logger.warning(
-                    _(
-                        "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-                    ),
-                    self.settings["TMPDIR"],
-                    tmpdir,
-                )
-                self.settings["TMPDIR"] = tmpdir
+        self._lockfd = self._create_lockfile()
+        logger.info("Using %s for temporary files", self.session.name)
+        tmpdir = os.path.dirname(self.session.name)
+        if "TMPDIR" in self.settings and self.settings["TMPDIR"] != tmpdir:
+            logger.warning(
+                _(
+                    "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+                ),
+                self.settings["TMPDIR"],
+                tmpdir,
+            )
+            self.settings["TMPDIR"] = tmpdir
 
     def _create_lockfile(self, session=None):
         "create a lockfile in the session directory"
@@ -85,8 +81,9 @@ class SessionMixins:
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
 
-    def _find_crashed_sessions(self, tmpdir):
+    def _find_crashed_sessions(self):
         "Look for crashed sessions"
+        tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
             tmpdir = tempfile.gettempdir()
 
@@ -96,7 +93,9 @@ class SessionMixins:
 
         # Forget those used by running sessions
         for db in dbs:
-            session = PurePath(db).stem
+            session = os.path.join(tmpdir, PurePath(db).stem)
+            if session == self.session.name:
+                continue
             if not os.path.isdir(session):
                 crashed.append(db)
                 continue
@@ -119,7 +118,8 @@ class SessionMixins:
             box.add(label)
             columns = {_("Session"): "text"}
             sessionlist = SimpleList(**columns)
-            sessionlist.data.append(crashed)
+            for db in crashed:
+                sessionlist.data.append([db])
             box.add(sessionlist)
             dialog.show_all()
             if dialog.run() == Gtk.ResponseType.OK:
@@ -127,9 +127,7 @@ class SessionMixins:
 
             dialog.destroy()
             if selected:
-                self.session = crashed[selected[0]]
-                self._create_lockfile()
-                self._open_session(self.session)
+                self._open_session(crashed[selected[0]])
 
     def _check_dependencies(self):
         "Check for presence of various packages"

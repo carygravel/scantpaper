@@ -254,32 +254,32 @@ def test_zoom_methods(mock_session_window):
 def test_find_crashed_sessions_default_tmpdir(mocker, mock_session_window):
     "Test _find_crashed_sessions with None tmpdir"
     mocker.patch("glob.glob", return_value=[])
-    mock_gettempdir = mocker.patch("tempfile.gettempdir", return_value="/tmp/default")
-
-    mock_session_window._find_crashed_sessions(None)
-
+    mock_gettempdir = mocker.patch("session_mixins.get_tmp_dir")
+    mock_session_window._open_session = mocker.Mock()
+    mock_session_window._find_crashed_sessions()
     mock_gettempdir.assert_called_once()
-    assert mock_session_window.session is None
+    mock_session_window._open_session.assert_not_called()
 
 
 def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
     "Test _find_crashed_sessions with currently running sessions (locked)"
     mocker.patch("glob.glob", return_value=["/tmp/scantpaper-running.sdb"])
+    mock_session_window.session = mocker.Mock()
+    mock_session_window.session.name = "/tmp/scantpaper-running"
 
     # Mock _create_lockfile to fail (simulating running session)
     mocker.patch("os.path.isdir", return_value=True)
     mock_session_window._create_lockfile = mocker.Mock(side_effect=OSError("Locked"))
-
-    mock_session_window._find_crashed_sessions("/tmp")
-
-    # Should not treat as crashed
-    # We can verify that no dialog interaction happened
-    mocker.patch("session_mixins.SimpleList")
+    mock_session_window._open_session = mocker.Mock()
+    mock_session_window._find_crashed_sessions()
+    mock_session_window._open_session.assert_not_called()
 
 
 def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session"
     mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed.sdb"])
+    mock_session_window.session = mocker.Mock()
+    mock_session_window.session.name = "/tmp/scantpaper-running"
 
     # Mock _create_lockfile to succeed (not running)
     mocker.patch("os.path.isdir", return_value=True)
@@ -296,16 +296,16 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     mock_simplelist.get_selected_indices.return_value = [0]  # Select first one
 
     mock_session_window._open_session = mocker.Mock()
+    mock_session_window._find_crashed_sessions()
 
-    mock_session_window._find_crashed_sessions("/tmp")
-
-    assert mock_session_window.session == "/tmp/scantpaper-crashed.sdb"
     mock_session_window._open_session.assert_called_with("/tmp/scantpaper-crashed.sdb")
 
 
 def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session but no selection"
     mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed"])
+    mock_session_window.session = mocker.Mock()
+    mock_session_window.session.name = "/tmp/scantpaper-running"
     mock_session_window._create_lockfile = mocker.Mock()
     mocker.patch("os.access", return_value=True)
     mock_dialog_cls = mocker.patch("session_mixins.Gtk.Dialog")
@@ -314,9 +314,10 @@ def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window
     mock_simplelist_cls = mocker.patch("session_mixins.SimpleList")
     mock_simplelist = mock_simplelist_cls.return_value
     mock_simplelist.get_selected_indices.return_value = []
+    mock_session_window._open_session = mocker.Mock()
 
-    mock_session_window._find_crashed_sessions("/tmp")
-    assert mock_session_window.session is None
+    mock_session_window._find_crashed_sessions()
+    mock_session_window._open_session.assert_not_called()
 
 
 def test_finished_process_callback(mocker, mock_session_window):
