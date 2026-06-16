@@ -1,21 +1,32 @@
 "Some helper functions to reduce boilerplate"
 
-from types import SimpleNamespace
-import tempfile
-import subprocess
 import os
+import subprocess
+import tempfile
+from types import SimpleNamespace
+
+import gi
 import pytest
 from config import CONVERT_COMMAND
 from dialog.sane import SaneScanDialog
-import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
 def pytest_configure(config):
     "globals"
     config.timeout = 10000
+
+
+# needed to suppress
+# pluggy._manager.PluginValidationError: Plugin 'black' for hook 'pytest_collect_file'
+# hookimpl definition: pytest_collect_file(file_path, path, parent)
+# Argument(s) {'path'} are declared in the hookimpl but can not be found in the hookspec
+# see https://github.com/numirias/pytest-json-report#a-note-on-hooks
+@pytest.hookimpl(optionalhook=True)
+def pytest_json_runtest_metadata(item, call):
+    pass
 
 
 @pytest.fixture
