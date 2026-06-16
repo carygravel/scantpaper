@@ -19,16 +19,6 @@ def pytest_configure(config):
     config.timeout = 10000
 
 
-# needed to suppress
-# pluggy._manager.PluginValidationError: Plugin 'black' for hook 'pytest_collect_file'
-# hookimpl definition: pytest_collect_file(file_path, path, parent)
-# Argument(s) {'path'} are declared in the hookimpl but can not be found in the hookspec
-# see https://github.com/numirias/pytest-json-report#a-note-on-hooks
-@pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item, call):
-    pass
-
-
 @pytest.fixture
 def sane_scan_dialog():
     "return a SaneScanDialog instance"
