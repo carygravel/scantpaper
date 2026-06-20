@@ -1,4 +1,4 @@
-## 3.0.8 (2026-05-10)
+## 3.0.8 (2026-06-20)
 
 * When opening the crop dialog, if the pan tool is selected, switch to the
   combined tool. Closes #64 (Opening crop dialog should automatically activate
@@ -7,6 +7,7 @@
 * Fix mismatch between image tool and menu/toolbar on start-up.
   Closes #62 (After initial scan, cursor is always in move mode)
 * Fix saving and loading session database and dealing with crashed sessions.
+* Fix displaying local documentation
 
 
 ## 3.0.7 (2026-05-10)
