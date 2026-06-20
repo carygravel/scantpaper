@@ -90,7 +90,7 @@ sys.path.insert(0, base_dir)
 # pylint: disable=wrong-import-position
 import gi
 from app_window import ApplicationWindow
-from const import PROG_NAME, SPACE, VERSION
+from const import LOCAL_DOCS_URI, PROG_NAME, SPACE, VERSION
 from i18n import log_i18n_status
 
 gi.require_version("Gtk", "3.0")
@@ -160,7 +160,9 @@ sys.excepthook = _handle_exception
 def _parse_arguments():
     "parse command line arguments"
     parser = argparse.ArgumentParser(
-        prog=PROG_NAME, description="What the program does"
+        prog=PROG_NAME,
+        description="A GUI to produce PDFs or DjVus from scanned documents",
+        epilog=f"Please see {LOCAL_DOCS_URI} for more detail",
     )
     parser.add_argument("--device", action="extend", nargs="+")
     parser.add_argument("--import", action="extend", nargs="+", dest="import_files")
@@ -212,13 +214,6 @@ def _parse_arguments():
 
     log_i18n_status()  # log the messages from i18n during import
     logger = logging.getLogger(__name__)
-
-    # FIXME: implement help display
-    # if help is not None:
-    #     try:
-    #         subprocess.run([f"perldoc {PROGRAM_NAME}"]) == 0
-    #     except:
-    #         raise _('Error displaying help'), "\n"
     logger.info("Starting %s %s", PROG_NAME, VERSION)
     logger.info("Called with %s", SPACE.join([sys.executable] + sys.argv))
 

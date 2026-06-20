@@ -82,6 +82,7 @@ jobs:
             echo "                     librsvg2-common,"
             echo "                     libtiff-tools,"
             echo "                     ocrmypdf (>= 15.4.3),"
+            echo "                     pandoc,"
             echo "                     pybuild-plugin-pyproject,"
             echo "                     python3-gi,"
             echo "                     python3-gi-cairo,"
@@ -205,6 +206,11 @@ jobs:
             echo "	sed -i -e 's/APP.PY/SCANTPAPER/' -e 's/app.py/scantpaper/' \$(CURDIR)/debian/scantpaper.1"
             echo "	dh_installman"
             echo ""
+            echo "override_dh_installdocs:"
+            echo "	mkdir -p \$(CURDIR)/debian/scantpaper/usr/share/doc/C/scantpaper"
+            echo "	pandoc README.md -o \$(CURDIR)/debian/scantpaper/usr/share/doc/C/scantpaper/documentation.html"
+            echo "	dh_installdocs"
+            echo ""
             echo "override_dh_auto_install:"
             echo "	python3 -m pip install --no-deps --no-build-isolation --root=\$(CURDIR)/debian/scantpaper --prefix=/usr ."
             echo "	# dh_auto_install will still place any additional files; ensure dh runs"
@@ -240,21 +246,15 @@ jobs:
             echo "Project: @PACKAGE@"
           ) | tee REPO/debian/watch
 
-#      - name: Create Spec File
-#        run: PATH="REPO/.github/scripts:${PATH}" create_spec_file.sh
-
       - name: Install dependencies
         run: |
-            sudo add-apt-repository ppa:jeffreyratcliffe/ppa
-            sudo apt-get update
-            sudo apt-get install -y build-essential debhelper devscripts fakeroot lintian equivs
-            sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
+          sudo add-apt-repository ppa:jeffreyratcliffe/ppa
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper devscripts fakeroot lintian equivs
+          sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
 
       - name: Build DEB Package
         run: cd REPO && debuild -i -us -uc -b && dpkg-deb --contents ../${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
-
-#      - name: Build RPM Package
-#        run: sudo rpmbuild --define "_topdir $(pwd)" -bb SPECS/${GITHUB_REPO_NAME}.spec
 
       - name: Upload packages
         run: ls -l

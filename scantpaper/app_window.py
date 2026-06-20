@@ -15,7 +15,16 @@ import gi
 import ocrmypdf
 import sane  # To get SANE_* enums
 from canvas import Canvas
-from const import DRAGGER_TOOL, EMPTY, HALF, PROG_NAME, SELECTOR_TOOL, VERSION
+from const import (
+    DRAGGER_TOOL,
+    EMPTY,
+    HALF,
+    LOCAL_DOCS_URI,
+    PROG_NAME,
+    SELECTOR_TOOL,
+    URL,
+    VERSION,
+)
 from dialog import MultipleMessage
 from document import Document
 from edit_menu_mixins import EditMenuMixins
@@ -74,11 +83,10 @@ def view_html(_action, _param):
     # At the moment, we have no translations,
     # but when we do, replace C with locale
 
-    uri = f"/usr/share/help/C/{PROG_NAME}/documentation.html"
-    if pathlib.Path(uri).exists():
-        uri = GLib.filename_to_uri(uri, None)  # None => no hostname
+    if pathlib.Path(LOCAL_DOCS_URI).exists():
+        uri = GLib.filename_to_uri(LOCAL_DOCS_URI, None)  # None => no hostname
     else:
-        uri = "https://github.com/carygravel/scantpaper"
+        uri = URL
 
     logger.info("Opening %s via default launcher", uri)
     context = Gio.AppLaunchContext()

@@ -14,6 +14,7 @@ AUTHOR = "Jeffrey Ratcliffe"
 AUTHOR_EMAIL = "jffry@posteo.net"
 URL = "https://github.com/carygravel/scantpaper"
 BUG_URL = URL + "/issues"
+LOCAL_DOCS_URI = f"/usr/share/doc/C/{PROG_NAME}/documentation.html"
 
 
 def get_version():
