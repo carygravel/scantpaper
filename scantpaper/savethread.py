@@ -1,25 +1,28 @@
 "Threading model for the Document class"
 
-from collections import defaultdict
+import datetime
 import json
+import logging
+import os
 import pathlib
 import re
-import logging
-import subprocess
-import datetime
-import os
-import tempfile
 import shutil
-from PIL import Image
+import subprocess
+import tempfile
+from collections import defaultdict
+
 import img2pdf
 import ocrmypdf
-from const import VERSION, POINTS_PER_INCH, ANNOTATION_COLOR
-from importthread import Importhread, _note_callbacks
-from i18n import _
-from helpers import exec_command
-from bboxtree import Bboxtree
-from page import Page
 from basethread import Request
+from bboxtree import Bboxtree
+from const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
+from helpers import exec_command
+from i18n import _
+from importthread import Importhread, _note_callbacks
+from ocrmypdf import hookimpl
+from ocrmypdf.pluginspec import ProgressBar
+from page import Page
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,61 @@ LEFT = 0
 TOP = 1
 RIGHT = 2
 BOTTOM = 3
+
+# Global variable to hold the current thread instance for progress reporting
+# This is a list to make it mutable from within nested functions
+_current_thread_for_progress = [None]
+
+
+class SaveThreadProgressBar(ProgressBar):
+    """Custom progress bar for ocrmypdf that updates SaveThread progress"""
+
+    def __init__(
+        self,
+        thread_instance,
+        total: int | None,
+        desc: str | None,
+        unit: str | None,
+        disable: bool = False,
+    ):
+        self.thread_instance = thread_instance
+        self.total = total or 1
+        self.desc = desc or "Processing PDF"
+        self.unit = unit
+        self.current = 0
+        self.disable = disable
+
+    def update(self, n=1, completed=None) -> None:
+        """Update progress"""
+        if self.disable:
+            return
+
+        if completed is not None:
+            self.current = completed
+        else:
+            self.current += n
+
+        if self.thread_instance:
+            self.thread_instance.progress = min(1.0, self.current / self.total)
+            self.thread_instance.message = _(self.desc)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+        return False
+
+
+@hookimpl
+def get_progressbar_class():
+    """ocrmypdf plugin hook to provide custom progress bar class"""
+
+    def create_progress_bar(total, desc, unit, disable=False, **kwargs):
+        """Factory function that accepts all ocrmypdf progress bar parameters"""
+        thread_instance = _current_thread_for_progress[0]
+        return SaveThreadProgressBar(thread_instance, total, desc, unit, disable)
+
+    return create_progress_bar
 
 
 class SaveThread(Importhread):
@@ -94,9 +152,11 @@ class SaveThread(Importhread):
             for pagenr, page in enumerate(list_of_pages):
                 if page.text_layer:
                     with open(
-                        outdir / f"{pagenr+1:-06}_ocr_hocr.hocr", "w", encoding="utf-8"
+                        outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr",
+                        "w",
+                        encoding="utf-8",
                     ) as hocr_fh, open(
-                        outdir / f"{pagenr+1:-06}_hocr.json", "w", encoding="utf-8"
+                        outdir / f"{pagenr + 1:-06}_hocr.json", "w", encoding="utf-8"
                     ) as json_fh:
                         hocr_fh.write(page.export_hocr())
                         json_fh.write(
@@ -109,7 +169,23 @@ class SaveThread(Importhread):
                 )
                 self.check_cancelled()
 
-            ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
+            # Embed text layer using ocrmypdf
+            self.message = _("Embedding text layer")
+
+            # Set up progress tracking via plugin
+            _current_thread_for_progress[0] = self
+
+            # Call ocrmypdf with our custom progress plugin
+            # The savethread module provides get_progressbar_class hook
+            ocrmypdf.api._hocr_to_ocr_pdf(
+                outdir,
+                filename,
+                optimize=0,
+                plugins=["savethread"],
+            )
+
+            self.progress = 1.0
+            _current_thread_for_progress[0] = None
 
             _append_pdf(filename, options, request)
 
@@ -612,8 +688,8 @@ def _encrypt_pdf(filename, options, request):
     if "user-password" in options["options"]:
         cmd += [
             "--encrypt",
-            f'--owner-password={options["options"]["user-password"]}',
-            f'--user-password={options["options"]["user-password"]}',
+            f"--owner-password={options['options']['user-password']}",
+            f"--user-password={options['options']['user-password']}",
             "--bits=256",
             "--allow-insecure",
             "--",

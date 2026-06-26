@@ -1,16 +1,19 @@
 "Tests for savethread.py"
 
 import datetime
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, patch, mock_open, call
 import pytest
 from savethread import (
     SaveThread,
+    SaveThreadProgressBar,
+    get_progressbar_class,
     prepare_output_metadata,
     _set_timestamp,
     _post_save_hook,
     _encrypt_pdf,
     _append_pdf,
     _add_annotations_to_pdf,
+    _current_thread_for_progress,
 )
 from basethread import Request
 from page import Page
@@ -750,3 +753,185 @@ def test_append_pdf_pdfunite_failure():
         ret = _append_pdf("/tmp/temp.pdf", options, request)
         assert ret == 1
         assert request.error.called
+
+
+def test_savethread_progressbar_basic():
+    "Test SaveThreadProgressBar basic functionality"
+    mock_thread = MagicMock()
+    mock_thread.progress = 0
+    mock_thread.message = ""
+
+    progressbar = SaveThreadProgressBar(
+        thread_instance=mock_thread, total=10, desc="Test operation", unit="page"
+    )
+
+    assert progressbar.current == 0
+    assert progressbar.total == 10
+    assert progressbar.desc == "Test operation"
+
+    # Test update with increment
+    progressbar.update(n=5)
+    assert progressbar.current == 5
+    assert mock_thread.progress == 0.5
+
+    # Test update with completed value
+    progressbar.update(completed=8)
+    assert progressbar.current == 8
+    assert mock_thread.progress == 0.8
+
+
+def test_savethread_progressbar_context_manager():
+    "Test SaveThreadProgressBar as context manager"
+    mock_thread = MagicMock()
+
+    with SaveThreadProgressBar(
+        thread_instance=mock_thread, total=5, desc="Context test", unit="item"
+    ) as pbar:
+        assert pbar is not None
+        pbar.update(n=2)
+        assert pbar.current == 2
+
+
+def test_savethread_progressbar_disabled():
+    "Test SaveThreadProgressBar when disabled"
+    mock_thread = MagicMock()
+    mock_thread.progress = 0
+    mock_thread.message = ""
+
+    progressbar = SaveThreadProgressBar(
+        thread_instance=mock_thread, total=10, desc="Disabled test", unit="page", disable=True
+    )
+
+    progressbar.update(n=5)
+    # Should not update thread when disabled
+    assert mock_thread.progress == 0
+    assert mock_thread.message == ""
+
+
+def test_savethread_progressbar_no_thread():
+    "Test SaveThreadProgressBar when thread_instance is None"
+    progressbar = SaveThreadProgressBar(
+        thread_instance=None, total=10, desc="No thread test", unit="page"
+    )
+
+    # Should not raise error
+    progressbar.update(n=5)
+    assert progressbar.current == 5
+
+
+def test_get_progressbar_class_hook():
+    "Test get_progressbar_class hook implementation"
+    mock_thread = MagicMock()
+    mock_thread.progress = 0
+    mock_thread.message = ""
+
+    # Set the current thread
+    _current_thread_for_progress[0] = mock_thread
+
+    try:
+        # Get the progress bar class factory
+        factory = get_progressbar_class()
+        assert callable(factory)
+
+        # Create a progress bar using the factory
+        pbar = factory(total=20, desc="Hook test", unit="page", disable=False)
+        assert isinstance(pbar, SaveThreadProgressBar)
+        assert pbar.thread_instance == mock_thread
+        assert pbar.total == 20
+
+        # Test that it updates the thread
+        pbar.update(n=10)
+        assert mock_thread.progress == 0.5
+
+    finally:
+        _current_thread_for_progress[0] = None
+
+
+def test_save_pdf_with_progress_hooks(mock_thread_instance, mock_page_instance):
+    "Test that ocrmypdf progress hooks are used during PDF save"
+    mock_page_instance.text_layer = "text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.TemporaryDirectory"), patch(
+        "savethread.tempfile.NamedTemporaryFile"
+    ), patch("savethread.open", mock_open()), patch(
+        "savethread.img2pdf.convert", return_value=b"pdf_data"
+    ), patch(
+        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+    ) as mock_hocr_to_ocr_pdf, patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._set_timestamp"
+    ), patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.pathlib.Path"
+    ) as mock_path:
+
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+        # Verify that _hocr_to_ocr_pdf was called
+        assert mock_hocr_to_ocr_pdf.called
+
+        # Check that the thread instance was set for progress reporting
+        # (it should be None after the operation completes)
+        assert _current_thread_for_progress[0] is None
+
+
+def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_instance):
+    "Test that progress is updated during OCR embedding"
+    mock_page_instance.text_layer = "text layer"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    progress_values = []
+    message_values = []
+
+    def track_progress(*args, **kwargs):
+        "Capture progress values during the call"
+        progress_values.append(mock_thread_instance.progress)
+        message_values.append(mock_thread_instance.message)
+
+    with patch("savethread.tempfile.TemporaryDirectory"), patch(
+        "savethread.tempfile.NamedTemporaryFile"
+    ), patch("savethread.open", mock_open()), patch(
+        "savethread.img2pdf.convert", return_value=b"pdf_data"
+    ), patch(
+        "savethread.ocrmypdf.api._hocr_to_ocr_pdf", side_effect=track_progress
+    ), patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._set_timestamp"
+    ), patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.pathlib.Path"
+    ) as mock_path:
+
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+        # Verify progress was updated during the operation
+        assert any("Embedding text layer" in str(msg) for msg in message_values)
+        # Final progress should be 1.0
+        assert mock_thread_instance.progress == 1.0
