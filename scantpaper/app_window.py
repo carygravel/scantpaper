@@ -761,7 +761,7 @@ class ApplicationWindow(
         self.detail_popup.set_sensitive(enabled)
 
         # Ghost unpaper item if unpaper not available
-        if not self._dependencies["unpaper"]:
+        if not self._dependencies["unpaper"] and "unpaper" in self._actions:
             self._actions["unpaper"].set_enabled(False)
             del self._actions["unpaper"]
 
