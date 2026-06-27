@@ -1,3 +1,8 @@
+## 3.0.10 (2026-06-20)
+
+* Plumb the OCRmyPDF progress into the GUI progress bar
+
+
 ## 3.0.8 (2026-06-20)
 
 * When opening the crop dialog, if the pan tool is selected, switch to the

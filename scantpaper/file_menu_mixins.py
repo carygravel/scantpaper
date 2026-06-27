@@ -56,7 +56,6 @@ def file_exists(chooser, filename):
     "Check if a file exists and prompt the user for confirmation if it does."
 
     if os.path.isfile(filename):
-
         # File exists; get the file chooser to ask the user to confirm.
         chooser.set_filename(filename)
 
@@ -643,6 +642,7 @@ class FileMenuMixins:
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
+            data_callback=self.post_process_progress.update,
             finished_callback=save_pdf_finished_callback,
             error_callback=self._error_callback,
         )
@@ -883,7 +883,6 @@ class FileMenuMixins:
         "Updates the post-save hooks"
         if self._windowi is not None:
             if hasattr(self._windowi, "comboboxpsh"):
-
                 # empty combobox
                 for _i in range(1, self._windowi.comboboxpsh.get_num_rows() + 1):
                     self._windowi.comboboxpsh.remove(0)

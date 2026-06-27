@@ -6,7 +6,6 @@
 # when adding udf tools to the scan window, check they are executable (and therefore also exist)
 # change page numbering to always run from 1-n with no gaps
 # fix readme
-# hook ocrmypdf progress into the GUI
 # lint
 # fail tests that hit mainloop timeouts
 # use pathlib for all paths

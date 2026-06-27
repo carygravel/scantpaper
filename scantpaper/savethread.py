@@ -1,25 +1,28 @@
 "Threading model for the Document class"
 
-from collections import defaultdict
+import datetime
 import json
+import logging
+import os
 import pathlib
 import re
-import logging
-import subprocess
-import datetime
-import os
-import tempfile
 import shutil
-from PIL import Image
+import subprocess
+import tempfile
+from collections import defaultdict
+
 import img2pdf
 import ocrmypdf
-from const import VERSION, POINTS_PER_INCH, ANNOTATION_COLOR
-from importthread import Importhread, _note_callbacks
-from i18n import _
-from helpers import exec_command
-from bboxtree import Bboxtree
-from page import Page
 from basethread import Request
+from bboxtree import Bboxtree
+from const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
+from helpers import exec_command
+from i18n import _
+from importthread import Importhread, _note_callbacks
+from ocrmypdf import hookimpl
+from ocrmypdf.pluginspec import ProgressBar
+from page import Page
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,61 @@ LEFT = 0
 TOP = 1
 RIGHT = 2
 BOTTOM = 3
+
+# Global variable to hold the current thread instance for progress reporting
+# This is a list to make it mutable from within nested functions
+_current_request_for_progress = [None]
+
+
+class SaveThreadProgressBar(ProgressBar):
+    """Custom progress bar for ocrmypdf that updates SaveThread progress"""
+
+    def __init__(
+        self,
+        request,
+        total: int | None,
+        desc: str | None,
+        unit: str | None,
+        disable: bool = False,
+    ):
+        self.request = request
+        self.total = total or 1
+        self.desc = desc or "Processing PDF"
+        self.unit = unit
+        self.current = 0
+        self.disable = disable
+
+    def update(self, n=1, completed=None) -> None:
+        """Update progress"""
+        if self.disable:
+            return
+
+        if completed is not None:
+            self.current = completed
+        else:
+            self.current += n
+
+        if self.request:
+            self.request.data(min(1.0, self.current / self.total))
+            self.request.data(_(self.desc))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+        return False
+
+
+@hookimpl
+def get_progressbar_class():
+    """ocrmypdf plugin hook to provide custom progress bar class"""
+
+    def create_progress_bar(total, desc, unit, disable=False, **kwargs):
+        """Factory function that accepts all ocrmypdf progress bar parameters"""
+        request_instance = _current_request_for_progress[0]
+        return SaveThreadProgressBar(request_instance, total, desc, unit, disable)
+
+    return create_progress_bar
 
 
 class SaveThread(Importhread):
@@ -43,7 +101,7 @@ class SaveThread(Importhread):
         "save PDF in thread"
         options = defaultdict(None, request.args[0])
 
-        self.message = _("Setting up PDF")
+        request.data(_("Setting up PDF"))
         with tempfile.TemporaryDirectory(dir=options.get("dir")) as tempdir:
             outdir = pathlib.Path(tempdir)
             filename = options["path"]
@@ -94,22 +152,43 @@ class SaveThread(Importhread):
             for pagenr, page in enumerate(list_of_pages):
                 if page.text_layer:
                     with open(
-                        outdir / f"{pagenr+1:-06}_ocr_hocr.hocr", "w", encoding="utf-8"
+                        outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr",
+                        "w",
+                        encoding="utf-8",
                     ) as hocr_fh, open(
-                        outdir / f"{pagenr+1:-06}_hocr.json", "w", encoding="utf-8"
+                        outdir / f"{pagenr + 1:-06}_hocr.json", "w", encoding="utf-8"
                     ) as json_fh:
                         hocr_fh.write(page.export_hocr())
                         json_fh.write(
                             json.dumps({"pageno": pagenr, "orientation_correction": 0})
                         )
-                self.progress = pagenr / (len(options["list_of_pages"]) + 1)
-                self.message = _("Saving page %i of %i") % (
-                    pagenr,
-                    len(list_of_pages),
+                request.data(pagenr / (len(options["list_of_pages"]) + 1))
+                request.data(
+                    _("Saving page %i of %i")
+                    % (
+                        pagenr,
+                        len(list_of_pages),
+                    )
                 )
                 self.check_cancelled()
 
-            ocrmypdf.api._hocr_to_ocr_pdf(outdir, filename, optimize=0)
+            # Embed text layer using ocrmypdf
+            request.data(_("Embedding text layer"))
+
+            # Set up progress tracking via plugin
+            _current_request_for_progress[0] = request
+
+            # Call ocrmypdf with our custom progress plugin
+            # The savethread module provides get_progressbar_class hook
+            ocrmypdf.api._hocr_to_ocr_pdf(
+                outdir,
+                filename,
+                optimize=0,
+                plugins=["savethread"],
+            )
+
+            request.data(1.0)
+            _current_request_for_progress[0] = None
 
             _append_pdf(filename, options, request)
 
@@ -119,7 +198,7 @@ class SaveThread(Importhread):
 
             _set_timestamp(options)
             if options.get("options") and options["options"].get("ps"):
-                self.message = _("Converting to PS")
+                request.data(_("Converting to PS"))
                 proc = exec_command(
                     [options["options"]["pstool"], filename, options["options"]["ps"]],
                     options["pidfile"],
@@ -150,10 +229,13 @@ class SaveThread(Importhread):
         for page_id in args["list_of_pages"]:
             page = self.get_page(id=page_id)
             i += 1
-            self.progress = i / (len(args["list_of_pages"]) + 1)
-            self.message = _("Writing page %i of %i") % (
-                i,
-                len(args["list_of_pages"]),
+            request.data(i / (len(args["list_of_pages"]) + 1))
+            request.data(
+                _("Writing page %i of %i")
+                % (
+                    i,
+                    len(args["list_of_pages"]),
+                )
             )
             with tempfile.NamedTemporaryFile(
                 dir=args.get("dir"), suffix=".djvu", delete=False
@@ -172,8 +254,8 @@ class SaveThread(Importhread):
                 page.write_image_for_djvu(djvu.name, args)
                 filelist.append(djvu.name)
 
-        self.progress = 1
-        self.message = _("Merging DjVu")
+        request.data(1.0)
+        request.data(_("Merging DjVu"))
         proc = exec_command(["djvm", "-c", args["path"], *filelist], args["pidfile"])
         for filename in filelist:
             os.remove(filename)
@@ -202,7 +284,6 @@ class SaveThread(Importhread):
                 # Write the metadata
                 for key, val in metadata.items():
                     if val is not None:
-
                         # backslash-escape any double quotes and bashslashes
                         val = re.sub(
                             r"\\",
@@ -253,7 +334,7 @@ class SaveThread(Importhread):
         filelist = []
         for page_id in options["list_of_pages"]:
             page = self.get_page(id=page_id)
-            self.progress = i / (len(options["list_of_pages"]) + 1)
+            request.data(i / (len(options["list_of_pages"]) + 1))
             i += 1
             # self.message = _("Converting image %i of %i to TIFF") % (
             #     page,
@@ -283,7 +364,7 @@ class SaveThread(Importhread):
                 compression.append(["-r", "16"])
 
         # Create the tiff
-        self.progress = 1
+        request.data(1.0)
         # self.message = _("Concatenating TIFFs")
         cmd = ["tiffcp", *compression, *filelist, options["path"]]
         subprocess.run(cmd, check=True)
@@ -612,8 +693,8 @@ def _encrypt_pdf(filename, options, request):
     if "user-password" in options["options"]:
         cmd += [
             "--encrypt",
-            f'--owner-password={options["options"]["user-password"]}',
-            f'--user-password={options["options"]["user-password"]}',
+            f"--owner-password={options['options']['user-password']}",
+            f"--user-password={options['options']['user-password']}",
             "--bits=256",
             "--allow-insecure",
             "--",

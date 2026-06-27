@@ -1,19 +1,23 @@
 "Tests for savethread.py"
 
 import datetime
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, call, mock_open, patch
+
 import pytest
-from savethread import (
-    SaveThread,
-    prepare_output_metadata,
-    _set_timestamp,
-    _post_save_hook,
-    _encrypt_pdf,
-    _append_pdf,
-    _add_annotations_to_pdf,
-)
 from basethread import Request
 from page import Page
+from savethread import (
+    SaveThread,
+    SaveThreadProgressBar,
+    _add_annotations_to_pdf,
+    _append_pdf,
+    _current_request_for_progress,
+    _encrypt_pdf,
+    _post_save_hook,
+    _set_timestamp,
+    get_progressbar_class,
+    prepare_output_metadata,
+)
 
 
 class MockSaveThread(SaveThread):
@@ -105,7 +109,6 @@ def test_save_pdf(mock_thread_instance, mock_page_instance):
     ) as mock_post_save_hook, patch(
         "savethread.pathlib.Path"
     ) as mock_path:
-
         mock_tempdir.return_value.__enter__.return_value = "/tmp/tempdir"
         mock_path.return_value.__truediv__.return_value = "/tmp/tempdir/file"
 
@@ -148,7 +151,6 @@ def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread.pathlib.Path"
     ):
-
         mock_thread_instance.do_save_pdf(request)
 
         # Verify HOCR was exported/written
@@ -177,7 +179,6 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread.subprocess.run"
     ) as mock_run:
-
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
         mock_exec.return_value.returncode = 0
 
@@ -215,7 +216,6 @@ def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread.subprocess.run"
     ):
-
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
         mock_exec.return_value.returncode = 1
 
@@ -242,7 +242,6 @@ def test_save_tiff(mock_thread_instance, mock_page_instance):
     with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
         "savethread.subprocess.run"
     ) as mock_run, patch("savethread.os.remove"), patch("savethread._post_save_hook"):
-
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.tif"
 
         mock_thread_instance.do_save_tiff(request)
@@ -273,7 +272,6 @@ def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread._post_save_hook"
     ):
-
         mock_exec.return_value.returncode = 0
         mock_exec.return_value.stderr = ""
 
@@ -302,7 +300,6 @@ def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread._post_save_hook"
     ):
-
         mock_exec.return_value.returncode = 1
         mock_exec.return_value.stderr = "Error converting"
 
@@ -359,7 +356,6 @@ def test_save_text(mock_thread_instance, mock_page_instance):
     with patch("savethread.open", mock_open()) as mock_file, patch(
         "savethread._post_save_hook"
     ):
-
         mock_thread_instance.do_save_text(request)
 
         assert mock_page_instance.export_text.called
@@ -375,7 +371,6 @@ def test_save_hocr(mock_thread_instance, mock_page_instance):
     with patch("savethread.open", mock_open()) as mock_file, patch(
         "savethread._post_save_hook"
     ):
-
         mock_thread_instance.do_save_hocr(request)
 
         assert mock_page_instance.export_hocr.called
@@ -397,7 +392,6 @@ def test_user_defined(mock_thread_instance, mock_page_instance):
     with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
         "savethread.subprocess.run"
     ) as mock_run, patch("savethread.Image.open"), patch("savethread.Page"):
-
         # Mock the context manager return values directly
         mock_infile = MagicMock()
         mock_infile.name = "infile"
@@ -434,7 +428,6 @@ def test_user_defined_copy_failure(mock_thread_instance, mock_page_instance):
     with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
         "savethread.shutil.copy2", return_value=None
     ) as mock_copy:
-
         mock_infile = MagicMock()
         mock_infile.name = "infile"
         mock_outfile = MagicMock()
@@ -573,7 +566,6 @@ def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread.pathlib.Path"
     ):
-
         mock_exec.return_value.returncode = 0
         mock_thread_instance.do_save_pdf(request)
 
@@ -596,7 +588,6 @@ def test_add_annotations_to_pdf():
     with patch("savethread.Bboxtree") as mock_bboxtree, patch(
         "savethread.px2pt", side_effect=lambda x, y: x
     ):
-
         mock_bboxtree.return_value.each_bbox.return_value = [
             {"type": "highlight", "text": "foo", "bbox": [10, 10, 50, 50]}
         ]
@@ -638,7 +629,6 @@ def test_save_pdf_with_password(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread._encrypt_pdf", return_value=0
     ) as mock_encrypt:
-
         mock_thread_instance.do_save_pdf(request)
 
         assert mock_encrypt.called
@@ -676,7 +666,6 @@ def test_save_pdf_with_password_failure(mock_thread_instance, mock_page_instance
     ), patch(
         "savethread._encrypt_pdf", return_value=1
     ) as mock_encrypt:
-
         mock_thread_instance.do_save_pdf(request)
 
         assert mock_encrypt.called
@@ -716,7 +705,6 @@ def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
     ), patch(
         "savethread.exec_command"
     ) as mock_exec:
-
         # Simulate failure
         mock_exec.return_value.returncode = 1
         mock_exec.return_value.stderr = "Error converting"
@@ -750,3 +738,177 @@ def test_append_pdf_pdfunite_failure():
         ret = _append_pdf("/tmp/temp.pdf", options, request)
         assert ret == 1
         assert request.error.called
+
+
+def test_savethread_progressbar_basic():
+    "Test SaveThreadProgressBar basic functionality"
+    mock_request = MagicMock()
+    progressbar = SaveThreadProgressBar(
+        request=mock_request, total=10, desc="Test operation", unit="page"
+    )
+
+    assert progressbar.current == 0
+    assert progressbar.total == 10
+    assert progressbar.desc == "Test operation"
+
+    # Test update with increment
+    progressbar.update(n=5)
+    assert progressbar.current == 5
+    mock_request.data.assert_called_with("Test operation")
+
+    # Test update with completed value
+    progressbar.update(completed=8)
+    assert progressbar.current == 8
+    mock_request.data.assert_called_with("Test operation")
+
+
+def test_savethread_progressbar_context_manager():
+    "Test SaveThreadProgressBar as context manager"
+    mock_request = MagicMock()
+
+    with SaveThreadProgressBar(
+        request=mock_request, total=5, desc="Context test", unit="item"
+    ) as pbar:
+        assert pbar is not None
+        pbar.update(n=2)
+        assert pbar.current == 2
+
+
+def test_savethread_progressbar_disabled():
+    "Test SaveThreadProgressBar when disabled"
+    mock_request = MagicMock()
+    progressbar = SaveThreadProgressBar(
+        request=mock_request,
+        total=10,
+        desc="Disabled test",
+        unit="page",
+        disable=True,
+    )
+
+    progressbar.update(n=5)
+    # Should not update thread when disabled
+    mock_request.data.assert_not_called()
+
+
+def test_savethread_progressbar_no_thread():
+    "Test SaveThreadProgressBar when thread_instance is None"
+    progressbar = SaveThreadProgressBar(
+        request=None, total=10, desc="No thread test", unit="page"
+    )
+
+    # Should not raise error
+    progressbar.update(n=5)
+    assert progressbar.current == 5
+
+
+def test_get_progressbar_class_hook():
+    "Test get_progressbar_class hook implementation"
+    mock_request = MagicMock()
+
+    # Set the current request
+    _current_request_for_progress[0] = mock_request
+
+    try:
+        # Get the progress bar class factory
+        factory = get_progressbar_class()
+        assert callable(factory)
+
+        # Create a progress bar using the factory
+        pbar = factory(total=20, desc="Hook test", unit="page", disable=False)
+        assert isinstance(pbar, SaveThreadProgressBar)
+        assert pbar.request == mock_request
+        assert pbar.total == 20
+
+        # Test that it updates the thread
+        pbar.update(n=10)
+        mock_request.data.assert_called_with("Hook test")
+
+    finally:
+        _current_request_for_progress[0] = None
+
+
+def test_save_pdf_with_progress_hooks(mock_thread_instance, mock_page_instance):
+    "Test that ocrmypdf progress hooks are used during PDF save"
+    mock_page_instance.text_layer = "text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with patch("savethread.tempfile.TemporaryDirectory"), patch(
+        "savethread.tempfile.NamedTemporaryFile"
+    ), patch("savethread.open", mock_open()), patch(
+        "savethread.img2pdf.convert", return_value=b"pdf_data"
+    ), patch(
+        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+    ) as mock_hocr_to_ocr_pdf, patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._set_timestamp"
+    ), patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.pathlib.Path"
+    ) as mock_path:
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+        # Verify that _hocr_to_ocr_pdf was called
+        assert mock_hocr_to_ocr_pdf.called
+
+        # Check that the request instance was set for progress reporting
+        # (it should be None after the operation completes)
+        assert _current_request_for_progress[0] is None
+
+
+def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_instance):
+    "Test that progress is updated during OCR embedding"
+    mock_page_instance.text_layer = "text layer"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+    request.data = MagicMock()
+
+    progress_values = []
+    message_values = []
+
+    def track_progress(*args, **kwargs):
+        "Capture progress values during the call"
+        progress_values.append(mock_thread_instance.progress)
+        message_values.append(mock_thread_instance.message)
+
+    with patch("savethread.tempfile.TemporaryDirectory"), patch(
+        "savethread.tempfile.NamedTemporaryFile"
+    ), patch("savethread.open", mock_open()), patch(
+        "savethread.img2pdf.convert", return_value=b"pdf_data"
+    ), patch(
+        "savethread.ocrmypdf.api._hocr_to_ocr_pdf", side_effect=track_progress
+    ), patch(
+        "savethread.os.remove"
+    ), patch(
+        "savethread._set_timestamp"
+    ), patch(
+        "savethread._post_save_hook"
+    ), patch(
+        "savethread.pathlib.Path"
+    ) as mock_path:
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+        # Verify progress was updated during the operation
+        request.data.assert_called_with(1.0)

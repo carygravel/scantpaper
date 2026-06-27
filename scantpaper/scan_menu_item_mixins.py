@@ -1,15 +1,16 @@
 "provide methods called from scan menu item"
 
-import re
-import os
 import logging
+import os
+import re
 from types import SimpleNamespace
+
 import gi
 from comboboxtext import ComboBoxText
 from dialog import Dialog
 from dialog.sane import SaneScanDialog
 from i18n import _
-from postprocess_controls import RotateControls, OCRControls
+from postprocess_controls import OCRControls, RotateControls
 from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
@@ -274,7 +275,6 @@ class ScanMenuItemMixins:
         "callback for changed device list"
         logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
         if len(device_list):
-
             # Apply the device blacklist
             if "device blacklist" in self.settings and self.settings[
                 "device blacklist"
