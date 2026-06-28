@@ -943,7 +943,7 @@ class TestFileMenuMixins:
         app._windowi = unittest.mock.Mock()
 
         # The callback is defined inside _save_pdf, so we need to call it from there
-        app.slist.save_pdf = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, finished_callback, error_callback: (
+        app.slist.save_pdf = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (
             finished_callback(response)  # pylint: disable=line-too-long
         )
         app._save_pdf("file.pdf", ["uuid1"], "pdf")
@@ -960,7 +960,7 @@ class TestFileMenuMixins:
         app._windowi = unittest.mock.Mock()
 
         # The callback is defined inside _save_pdf, so we need to call it from there
-        app.slist.save_pdf = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, finished_callback, error_callback: (
+        app.slist.save_pdf = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (
             finished_callback(response)  # pylint: disable=line-too-long
         )
         app._save_pdf("file.ps", ["uuid1"], "ps")
