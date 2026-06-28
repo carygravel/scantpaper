@@ -643,6 +643,7 @@ class FileMenuMixins:
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,
+            data_callback=self.post_process_progress.update,
             finished_callback=save_pdf_finished_callback,
             error_callback=self._error_callback,
         )

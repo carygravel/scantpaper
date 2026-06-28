@@ -35,7 +35,7 @@ BOTTOM = 3
 
 # Global variable to hold the current thread instance for progress reporting
 # This is a list to make it mutable from within nested functions
-_current_thread_for_progress = [None]
+_current_request_for_progress = [None]
 
 
 class SaveThreadProgressBar(ProgressBar):
@@ -43,13 +43,13 @@ class SaveThreadProgressBar(ProgressBar):
 
     def __init__(
         self,
-        thread_instance,
+        request,
         total: int | None,
         desc: str | None,
         unit: str | None,
         disable: bool = False,
     ):
-        self.thread_instance = thread_instance
+        self.request = request
         self.total = total or 1
         self.desc = desc or "Processing PDF"
         self.unit = unit
@@ -66,9 +66,9 @@ class SaveThreadProgressBar(ProgressBar):
         else:
             self.current += n
 
-        if self.thread_instance:
-            self.thread_instance.progress = min(1.0, self.current / self.total)
-            self.thread_instance.message = _(self.desc)
+        if self.request:
+            self.request.data(min(1.0, self.current / self.total))
+            self.request.data(_(self.desc))
 
     def __enter__(self):
         return self
@@ -83,8 +83,8 @@ def get_progressbar_class():
 
     def create_progress_bar(total, desc, unit, disable=False, **kwargs):
         """Factory function that accepts all ocrmypdf progress bar parameters"""
-        thread_instance = _current_thread_for_progress[0]
-        return SaveThreadProgressBar(thread_instance, total, desc, unit, disable)
+        request_instance = _current_request_for_progress[0]
+        return SaveThreadProgressBar(request_instance, total, desc, unit, disable)
 
     return create_progress_bar
 
@@ -101,7 +101,7 @@ class SaveThread(Importhread):
         "save PDF in thread"
         options = defaultdict(None, request.args[0])
 
-        self.message = _("Setting up PDF")
+        request.data(_("Setting up PDF"))
         with tempfile.TemporaryDirectory(dir=options.get("dir")) as tempdir:
             outdir = pathlib.Path(tempdir)
             filename = options["path"]
@@ -162,18 +162,21 @@ class SaveThread(Importhread):
                         json_fh.write(
                             json.dumps({"pageno": pagenr, "orientation_correction": 0})
                         )
-                self.progress = pagenr / (len(options["list_of_pages"]) + 1)
-                self.message = _("Saving page %i of %i") % (
-                    pagenr,
-                    len(list_of_pages),
+                request.data(pagenr / (len(options["list_of_pages"]) + 1))
+                request.data(
+                    _("Saving page %i of %i")
+                    % (
+                        pagenr,
+                        len(list_of_pages),
+                    )
                 )
                 self.check_cancelled()
 
             # Embed text layer using ocrmypdf
-            self.message = _("Embedding text layer")
+            request.data(_("Embedding text layer"))
 
             # Set up progress tracking via plugin
-            _current_thread_for_progress[0] = self
+            _current_request_for_progress[0] = request
 
             # Call ocrmypdf with our custom progress plugin
             # The savethread module provides get_progressbar_class hook
@@ -184,8 +187,8 @@ class SaveThread(Importhread):
                 plugins=["savethread"],
             )
 
-            self.progress = 1.0
-            _current_thread_for_progress[0] = None
+            request.data(1.0)
+            _current_request_for_progress[0] = None
 
             _append_pdf(filename, options, request)
 
@@ -195,7 +198,7 @@ class SaveThread(Importhread):
 
             _set_timestamp(options)
             if options.get("options") and options["options"].get("ps"):
-                self.message = _("Converting to PS")
+                request.data(_("Converting to PS"))
                 proc = exec_command(
                     [options["options"]["pstool"], filename, options["options"]["ps"]],
                     options["pidfile"],
@@ -226,10 +229,13 @@ class SaveThread(Importhread):
         for page_id in args["list_of_pages"]:
             page = self.get_page(id=page_id)
             i += 1
-            self.progress = i / (len(args["list_of_pages"]) + 1)
-            self.message = _("Writing page %i of %i") % (
-                i,
-                len(args["list_of_pages"]),
+            request.data(i / (len(args["list_of_pages"]) + 1))
+            request.data(
+                _("Writing page %i of %i")
+                % (
+                    i,
+                    len(args["list_of_pages"]),
+                )
             )
             with tempfile.NamedTemporaryFile(
                 dir=args.get("dir"), suffix=".djvu", delete=False
@@ -248,8 +254,8 @@ class SaveThread(Importhread):
                 page.write_image_for_djvu(djvu.name, args)
                 filelist.append(djvu.name)
 
-        self.progress = 1
-        self.message = _("Merging DjVu")
+        request.data(1.0)
+        request.data(_("Merging DjVu"))
         proc = exec_command(["djvm", "-c", args["path"], *filelist], args["pidfile"])
         for filename in filelist:
             os.remove(filename)
@@ -278,7 +284,6 @@ class SaveThread(Importhread):
                 # Write the metadata
                 for key, val in metadata.items():
                     if val is not None:
-
                         # backslash-escape any double quotes and bashslashes
                         val = re.sub(
                             r"\\",
@@ -329,7 +334,7 @@ class SaveThread(Importhread):
         filelist = []
         for page_id in options["list_of_pages"]:
             page = self.get_page(id=page_id)
-            self.progress = i / (len(options["list_of_pages"]) + 1)
+            request.data(i / (len(options["list_of_pages"]) + 1))
             i += 1
             # self.message = _("Converting image %i of %i to TIFF") % (
             #     page,
@@ -359,7 +364,7 @@ class SaveThread(Importhread):
                 compression.append(["-r", "16"])
 
         # Create the tiff
-        self.progress = 1
+        request.data(1.0)
         # self.message = _("Concatenating TIFFs")
         cmd = ["tiffcp", *compression, *filelist, options["path"]]
         subprocess.run(cmd, check=True)

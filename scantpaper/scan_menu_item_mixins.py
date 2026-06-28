@@ -1,15 +1,16 @@
 "provide methods called from scan menu item"
 
-import re
-import os
 import logging
+import os
+import re
 from types import SimpleNamespace
+
 import gi
 from comboboxtext import ComboBoxText
 from dialog import Dialog
 from dialog.sane import SaneScanDialog
 from i18n import _
-from postprocess_controls import RotateControls, OCRControls
+from postprocess_controls import OCRControls, RotateControls
 from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")

@@ -1,10 +1,11 @@
 "HBox with progress bar and cancel button."
 
-from i18n import _
 import gi
+from basethread import ResponseType
+from i18n import _
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
+from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
 
 
 class Progress(Gtk.Box):
@@ -64,8 +65,17 @@ class Progress(Gtk.Box):
 
     def update(self, response):
         "Helper function to update progress bar"
-        if response and response.total_jobs:
-            if response.request.process:
+        if response:
+            if response.type == ResponseType.DATA:
+                if isinstance(response.info, str):
+                    self.set_text(response.info)
+                    self.show_all()
+                    return
+                elif isinstance(response.info, float):
+                    self.set_fraction(response.info)
+                    self.show_all()
+                    return
+            elif response.request.process:
                 # if  "message"  in options :
                 #     options["process"] += f" - {options['message']}"
                 self.set_text(
