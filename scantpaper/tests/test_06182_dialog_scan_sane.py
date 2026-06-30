@@ -398,25 +398,28 @@ def test_restore_options_after_cycle(
             nonlocal callbacks
             callbacks += 1
 
-    def changed_scan_option_cb(self, option, value, uuid):
-        dialog.disconnect(dialog.option_signal)
+    def reloaded_scan_options_cb(_widget):
+        # After cycling the device, check that options are still correct
         assert dialog.current_scan_options == Profile(
             backend=[("resolution", 51)]
-        ), "set resolution after scan"
+        ), f"set resolution after scan, got {dialog.current_scan_options.backend}"
         assert (
             dialog.option_widgets["resolution"] is not None
         ), "resolution widget should be defined by the time the scan options have been updated"
+        dialog.disconnect(dialog.reload_signal)
         loop.quit()
         nonlocal callbacks
         callbacks += 1
 
     dialog.open_signal = dialog.connect("finished-process", finished_process_cb)
-    dialog.option_signal = dialog.connect("changed-scan-option", changed_scan_option_cb)
+    dialog.reload_signal = dialog.connect(
+        "reloaded-scan-options", reloaded_scan_options_cb
+    )
     loop = mainloop_with_timeout()
     dialog.scan()
     loop.run()
 
-    assert callbacks == 2, "all callbacks executed"
+    assert callbacks == 2, f"all callbacks executed, got {callbacks}"
 
 
 def test_scanner_with_no_source(

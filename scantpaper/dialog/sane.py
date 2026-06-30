@@ -2,12 +2,14 @@
 
 import logging
 import weakref
-from gi.repository import GObject, Gtk
+
 from frontend import enums
 from frontend.image_sane import SaneThread
-from dialog.scan import Scan, _geometry_option, make_progress_string
-from scanner.options import Options
+from gi.repository import GObject, Gtk
 from i18n import _, d_sane
+from scanner.options import Options
+
+from dialog.scan import Scan, _geometry_option, make_progress_string
 
 EMPTY = ""
 LAST_PAGE = -1

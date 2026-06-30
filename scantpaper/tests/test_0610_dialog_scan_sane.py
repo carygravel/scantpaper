@@ -788,8 +788,8 @@ def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
     def changed_profile_cb2(_widget, _profile):
         dialog.disconnect(dialog.profile_signal)
         assert dialog.current_scan_options == Profile(
-            backend=[("page-height", 297), ("resolution", 50), ("br-y", 200.0)]
-        ), "fired signal and set profile"
+            backend=[("page-height", 297), ("br-y", 200.0), ("resolution", 50.0)]
+        ), f"fired signal and set profile, got {dialog.current_scan_options.backend}"
         nonlocal callbacks
         callbacks += 1
         loop.quit()

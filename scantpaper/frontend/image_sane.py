@@ -1,13 +1,19 @@
 "subclass basethread for SANE"
 
-import math
+import gc
 import logging
+import math
 from types import SimpleNamespace
-from basethread import BaseThread
+
 import sane
+from basethread import BaseThread
 from frontend import enums
 
 logger = logging.getLogger(__name__)
+
+# Global flag to track if sane.init() has been called
+# Using a list so we can modify it from within functions
+_sane_initialized = [False]
 
 
 def _set_default_callbacks(kwargs):
@@ -53,8 +59,25 @@ class SaneThread(BaseThread):
 
     def do_quit(self, _request):
         "exit"
-        self.device_handle = None
-        sane.exit()
+        # Close the device handle properly before setting to None
+        if self.device_handle is not None:
+            try:
+                self.device_handle.close()
+            except:
+                pass  # Ignore errors during cleanup
+            self.device_handle = None
+
+        # Force garbage collection to ensure all device handles are freed
+        # This prevents segfaults when calling sane.exit()
+        gc.collect()
+
+        # Now it's safe to call sane.exit() since all handles are cleaned up
+        if _sane_initialized[0]:
+            try:
+                sane.exit()
+            except:
+                pass  # Ignore errors during cleanup
+            _sane_initialized[0] = False
 
     @classmethod
     def do_get_devices(cls, _request):
@@ -69,8 +92,13 @@ class SaneThread(BaseThread):
         device_name = request.args[0]
         # close the handle if it is open
         if self.device_handle is not None:
+            self.device_handle.close()
             self.device_handle = None
-            sane.exit()
+
+        # Ensure SANE is initialized globally (only call once across all threads)
+        if not _sane_initialized[0]:
+            sane.init()
+            _sane_initialized[0] = True
 
         self.device_handle = sane.open(device_name)
         self.device_name = device_name
