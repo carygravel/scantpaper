@@ -1241,6 +1241,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             for key in profile.each_frontend_option():
                 setattr(self, key, profile.get_frontend_option(key))
 
+            # Clear the profile if we're applying options that aren't part
+            # of a named profile (e.g., paper geometry)
             if not self.setting_profile:
                 self.profile = None
 

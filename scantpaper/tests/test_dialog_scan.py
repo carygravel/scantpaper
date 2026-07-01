@@ -4,14 +4,16 @@ import threading
 import time
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+
 import gi
 import pytest
 from dialog.scan import Scan, _build_profile_table
-from scanner.profile import Profile
+from dialog.sane import SaneScanDialog
 from frontend import enums
+from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk, GObject  # pylint: disable=wrong-import-position
+from gi.repository import GLib, GObject, Gtk  # pylint: disable=wrong-import-position
 
 
 class MockOptions:
@@ -531,6 +533,59 @@ def test_init_with_profiles():
             found = True
             break
     assert found
+
+
+def test_profile_setter_updates_combobox(mocker):
+    """Test that setting profile property updates the combobox"""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    # Add a profile
+    profile = Profile(backend=[("mode", "Color")])
+    dialog._add_profile("test_profile", profile)
+
+    # Mock combobsp.set_active_by_text to track if it's called
+    mock_set_active = mocker.patch.object(dialog.combobsp, "set_active_by_text")
+
+    # Set the profile - this should trigger the combobox to be updated
+    dialog.profile = "test_profile"
+
+    # Check that set_active_by_text was called with the profile name
+    mock_set_active.assert_called_with("test_profile")
+
+
+def test_profile_not_cleared_by_post_set_option_hook(mocker):
+    """Test that _post_set_option_hook does not clear the profile.
+
+    This verifies the fix for the bug where the profile combobox would be
+    cleared after options were set, because _post_set_option_hook would
+    clear the profile whenever setting_profile was empty.
+    """
+    dialog = SaneScanDialog(title="title", transient_for=Gtk.Window())
+
+    # Setup a profile
+    dialog._profile = "test_profile"
+
+    # Mock option
+    mock_opt = mocker.Mock()
+    mock_opt.name = "resolution"
+    mock_opt.type = enums.TYPE_INT
+
+    # Mock emit to avoid errors
+    mocker.patch.object(dialog, "emit")
+
+    # Simulate _post_set_option_hook being called with empty setting_profile
+    # (which happens after profile setup is complete)
+    dialog.setting_profile = []
+    dialog.setting_current_scan_options = []
+
+    # Call _post_set_option_hook
+    dialog._post_set_option_hook(mock_opt, 300, None)
+
+    # Profile should NOT be cleared
+    assert dialog._profile == "test_profile", (
+        f"Profile was cleared by _post_set_option_hook! "
+        f"Current value: {dialog._profile}"
+    )
 
 
 def test_device_dropdown_changed_garbage_collection(mocker):

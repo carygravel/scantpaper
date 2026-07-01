@@ -366,16 +366,10 @@ class SaneScanDialog(Scan):
             + (EMPTY if option.type == enums.TYPE_BUTTON else f" to {val}"),
         )
 
-        # Unset the profile unless we are actively setting it
-        if not self.setting_profile:
-            self.profile = None
-
-            # Emit the changed-current-scan-options signal
-            # unless we are actively setting it
-            if not self.setting_current_scan_options:
-                self.emit(
-                    "changed-current-scan-options", self.current_scan_options, EMPTY
-                )
+        # Emit the changed-current-scan-options signal
+        # unless we are actively setting it
+        if not self.setting_profile and not self.setting_current_scan_options:
+            self.emit("changed-current-scan-options", self.current_scan_options, EMPTY)
 
         self._update_widget_value(option, val)
         self.emit("changed-scan-option", option.name, val, uuid)
