@@ -60,7 +60,7 @@ class Options(GObject.Object):
             self.source = self.by_name("source")
         else:
             for option in self.array:
-                if re.search(
+                if option.name is not None and re.search(
                     r"source", option.name, re.MULTILINE | re.DOTALL | re.VERBOSE
                 ):
                     self.source = option
