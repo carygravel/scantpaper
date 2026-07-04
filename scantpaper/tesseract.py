@@ -209,7 +209,7 @@ def installable_languages():
 
 
 def _iso639_1to3(code1):
-    if code1 == "C":
+    if code1.lower() == "c":
         code1 = "en"
     if code1 in non_iso639_1:
         return non_iso639_1[code1]
@@ -218,7 +218,11 @@ def _iso639_1to3(code1):
 
 def locale_installed(locale, installed_codes):
     "check that the given locale is installed or installable as a tesseract language"
-    code1 = locale.lower()[0:2]
+    # Handle C and C.UTF-8 locales specially
+    if locale.upper().startswith("C"):
+        code1 = "c"
+    else:
+        code1 = locale.lower()[0:2]
     try:
         code3 = _iso639_1to3(code1)
     except iso639.LanguageNotFoundError:

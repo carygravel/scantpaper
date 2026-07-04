@@ -21,6 +21,7 @@ def test_tesseract_code_conversions():
     }, "test languages()"
     assert _iso639_1to3("en") == "eng", "_iso639_1to3 en"
     assert _iso639_1to3("C") == "eng", "_iso639_1to3 C"
+    assert _iso639_1to3("c") == "eng", "_iso639_1to3 c (lowercase)"
     assert _iso639_1to3("zh") == "chi-sim", "_iso639_1to3 zh"
     assert locale_installed("en_GB", ["eng"]) == "", "language installed"
     assert re.search(
@@ -32,6 +33,10 @@ def test_tesseract_code_conversions():
     assert re.search(
         r"necessary", locale_installed("zz_ZZ", ["eng"])
     ), "language unknown"
+    # Test C.UTF-8 locale - should map to en_US like C does
+    assert locale_installed("C.UTF-8", ["eng"]) == "", "C.UTF-8 locale should map to eng"
+    # Test uppercase C locale still works
+    assert locale_installed("C", ["eng"]) == "", "C locale should map to eng"
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
