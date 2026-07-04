@@ -1,6 +1,6 @@
 [project]
 name = "scantpaper"
-version = "3.0.9"
+version = "3.0.10"
 dependencies = [
   "img2pdf",
   "ocrmypdf>=15.4.3",
@@ -23,8 +23,11 @@ readme = "README.md"
 license = { text = "GPL-3.0-only" }
 keywords = ['scan', 'pdf', 'djvu']
 classifiers = [
-  "Development Status :: 4 - Beta",
-  "Programming Language :: Python"
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: X11 Applications :: GTK",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Programming Language :: Python",
+  "Topic :: Multimedia :: Graphics :: Capture :: Scanners"
 ]
 
 [build-system]

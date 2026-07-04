@@ -1,4 +1,4 @@
-## 3.0.10 (2026-06-20)
+## 3.0.10 (2026-07-04)
 
 * Plumb the OCRmyPDF progress into the GUI progress bar
 * Fix parsing scan options when name is None.
