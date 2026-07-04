@@ -1,6 +1,8 @@
 ## 3.0.10 (2026-06-20)
 
 * Plumb the OCRmyPDF progress into the GUI progress bar
+* Fix parsing scan options when name is None.
+  Thanks to Christoph Moench-Tegeder for the patch.
 
 
 ## 3.0.8 (2026-06-20)

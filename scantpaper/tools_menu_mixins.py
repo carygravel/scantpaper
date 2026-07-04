@@ -842,6 +842,7 @@ class ToolsMenuMixins:
         about.set_program_name(GLib.get_application_name())
         about.set_version(VERSION)
         authors = [
+            "Sean Dreilinger",
             "Frederik Elwert",
             "Klaus Ethgen",
             "Andy Fingerhut",
@@ -855,6 +856,7 @@ class ToolsMenuMixins:
             "Peter Marschall",
             "Chris Mayo",
             "Hiroshi Miura",
+            "Christoph Moench-Tegeder",
             "Petr Písař",
             "Pablo Saratxaga",
             "Torsten Schönfeld",
@@ -862,7 +864,6 @@ class ToolsMenuMixins:
             "Jarl Stefansson",
             "Wikinaut",
             "Jakub Wilk",
-            "Sean Dreilinger",
         ]
         about.set_authors(["Jeff Ratcliffe"])
         about.add_credit_section("Patches gratefully received from", authors)

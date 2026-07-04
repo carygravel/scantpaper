@@ -34,7 +34,9 @@ def test_tesseract_code_conversions():
         r"necessary", locale_installed("zz_ZZ", ["eng"])
     ), "language unknown"
     # Test C.UTF-8 locale - should map to en_US like C does
-    assert locale_installed("C.UTF-8", ["eng"]) == "", "C.UTF-8 locale should map to eng"
+    assert (
+        locale_installed("C.UTF-8", ["eng"]) == ""
+    ), "C.UTF-8 locale should map to eng"
     # Test uppercase C locale still works
     assert locale_installed("C", ["eng"]) == "", "C locale should map to eng"
 
