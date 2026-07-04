@@ -553,16 +553,17 @@ def test_profile_setter_updates_combobox(mocker):
     mock_set_active.assert_called_with("test_profile")
 
 
-def test_profile_not_cleared_by_post_set_option_hook(mocker):
-    """Test that _post_set_option_hook does not clear the profile.
+def test_profile_not_cleared_during_profile_setting(mocker):
+    """Test that _post_set_option_hook does not clear the profile during profile setting.
 
-    This verifies the fix for the bug where the profile combobox would be
-    cleared after options were set, because _post_set_option_hook would
-    clear the profile whenever setting_profile was empty.
+    When a profile is being applied (setting_profile is not empty), the profile
+    should NOT be cleared even though options are being set.
     """
     dialog = SaneScanDialog(title="title", transient_for=Gtk.Window())
 
     # Setup a profile
+    profile = Profile(backend=[("resolution", 300)])
+    dialog._add_profile("test_profile", profile)
     dialog._profile = "test_profile"
 
     # Mock option
@@ -570,21 +571,66 @@ def test_profile_not_cleared_by_post_set_option_hook(mocker):
     mock_opt.name = "resolution"
     mock_opt.type = enums.TYPE_INT
 
-    # Mock emit to avoid errors
+    # Mock emit and _update_widget_value to avoid errors
     mocker.patch.object(dialog, "emit")
+    mocker.patch.object(dialog, "_update_widget_value")
 
-    # Simulate _post_set_option_hook being called with empty setting_profile
-    # (which happens after profile setup is complete)
-    dialog.setting_profile = []
+    # Simulate _post_set_option_hook being called DURING profile setting
+    # (setting_profile should contain the profile UUID)
+    dialog.setting_profile = [profile.uuid]
     dialog.setting_current_scan_options = []
 
     # Call _post_set_option_hook
-    dialog._post_set_option_hook(mock_opt, 300, None)
+    dialog._post_set_option_hook(mock_opt, 300, profile.uuid)
 
-    # Profile should NOT be cleared
+    # Profile should NOT be cleared because we're actively setting it
     assert dialog._profile == "test_profile", (
-        f"Profile was cleared by _post_set_option_hook! "
+        f"Profile was cleared during profile setting! "
         f"Current value: {dialog._profile}"
+    )
+
+
+def test_profile_cleared_when_user_changes_option(mocker):
+    """Test that profile is cleared when user manually changes an option.
+
+    After a profile is applied and the user manually changes any option,
+    the profile combobox should be unset since the current options no longer
+    match the named profile.
+    """
+    dialog = SaneScanDialog(title="title", transient_for=Gtk.Window())
+
+    # Add and select a profile
+    profile = Profile(backend=[("mode", "Color"), ("resolution", 300)])
+    dialog._add_profile("my_profile", profile)
+    dialog._profile = "my_profile"
+
+    # Verify profile is set
+    assert dialog.profile == "my_profile"
+
+    # Mock the combobox set_active method to track when profile is cleared
+    mock_set_active = mocker.patch.object(dialog.combobsp, "set_active_by_text")
+
+    # Mock option that user is changing
+    mock_opt = mocker.Mock()
+    mock_opt.name = "resolution"
+    mock_opt.type = enums.TYPE_INT
+
+    # Mock emit to avoid errors
+    mocker.patch.object(dialog, "emit")
+    mocker.patch.object(dialog, "_update_widget_value")
+
+    # Simulate user manually changing an option (not during profile setting)
+    # setting_profile and setting_current_scan_options should be empty
+    dialog.setting_profile = []
+    dialog.setting_current_scan_options = []
+
+    # Call _post_set_option_hook as if user changed resolution to 600
+    dialog._post_set_option_hook(mock_opt, 600, None)
+
+    # Profile should be cleared since options no longer match the named profile
+    assert dialog.profile is None, (
+        f"Profile should be cleared when user changes option manually! "
+        f"Current value: {dialog.profile}"
     )
 
 
