@@ -3,7 +3,6 @@
 import logging
 from types import SimpleNamespace
 import unittest.mock
-import pytest
 from gi.repository import Gtk, GObject
 from dialog.scan import (
     Scan,

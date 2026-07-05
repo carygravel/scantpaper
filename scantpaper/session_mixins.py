@@ -5,11 +5,8 @@ import glob
 import inspect
 import logging
 import os
-import shutil
 import tempfile
 from pathlib import PurePath
-from posixpath import isdir
-
 import config
 import gi
 import tesserocr

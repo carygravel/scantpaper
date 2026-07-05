@@ -1,6 +1,5 @@
 "The page controls for the Scan dialog"
 
-import re
 from gi.repository import Gtk, GObject
 from dialog import Dialog
 from scanner.options import Options

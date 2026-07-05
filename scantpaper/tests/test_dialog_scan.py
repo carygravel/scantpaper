@@ -6,7 +6,6 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import gi
-import pytest
 from dialog.scan import Scan, _build_profile_table
 from dialog.sane import SaneScanDialog
 from frontend import enums

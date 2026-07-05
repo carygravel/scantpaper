@@ -1,7 +1,7 @@
 "Tests for savethread.py"
 
 import datetime
-from unittest.mock import MagicMock, call, mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 from basethread import Request
