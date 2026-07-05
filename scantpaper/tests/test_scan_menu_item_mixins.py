@@ -459,14 +459,24 @@ def test_update_postprocessing_options_callback(mock_scan_window):
 
 def test_changed_progress_callback(mock_scan_window):
     "Test _changed_progress_callback"
-    # Normal update
+    # Normal update with progress > 0
     mock_scan_window._changed_progress_callback(None, 0.5, "halfway")
     mock_scan_window._scan_progress.set_fraction.assert_called_with(0.5)
     mock_scan_window._scan_progress.set_text.assert_called_with("halfway")
+    mock_scan_window._scan_progress.show.assert_called()
 
-    # Pulse
+    # Pulse when progress is None
+    mock_scan_window._scan_progress.reset_mock()
     mock_scan_window._changed_progress_callback(None, None, None)
     mock_scan_window._scan_progress.pulse.assert_called()
+    mock_scan_window._scan_progress.show.assert_called()
+
+    # Pulse when progress is 0.0 (bar should not stay empty)
+    mock_scan_window._scan_progress.reset_mock()
+    mock_scan_window._changed_progress_callback(None, 0.0, "starting")
+    mock_scan_window._scan_progress.pulse.assert_called()
+    mock_scan_window._scan_progress.set_text.assert_called_with("starting")
+    mock_scan_window._scan_progress.show.assert_called()
 
 
 def test_profile_callbacks(mock_scan_window):

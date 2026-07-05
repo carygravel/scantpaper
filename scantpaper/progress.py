@@ -20,9 +20,11 @@ class Progress(Gtk.Box):
         self._pbar.set_show_text(True)
         self._pbar.set_hexpand(True)
         self.pack_start(self._pbar, True, True, 0)
+        self._pbar.show()
         self._button = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         self._button.connect("clicked", self._on_button_clicked)
         self.pack_end(self._button, False, False, 0)
+        self._button.show()
 
     def _on_button_clicked(self, _button):
         self.emit("clicked")
@@ -51,7 +53,7 @@ class Progress(Gtk.Box):
                 _("Process %i of %i (%s)") % (num_completed + 1, total, process_name)
             )
             self.set_fraction(min(1.0, (num_completed + 0.5) / total))
-            self.show_all()
+            self.show()
 
             def cancel_process(_widget):
                 """Pass the signal back to:
@@ -71,11 +73,11 @@ class Progress(Gtk.Box):
         if response.type == ResponseType.DATA:
             if isinstance(response.info, str):
                 self.set_text(response.info)
-                self.show_all()
+                self.show()
                 return
             if isinstance(response.info, float):
                 self.set_fraction(response.info)
-                self.show_all()
+                self.show()
                 return
             return
         if response.total_jobs:
@@ -96,7 +98,7 @@ class Progress(Gtk.Box):
             self.set_fraction(
                 min(1.0, (response.num_completed_jobs + 0.5) / response.total_jobs)
             )
-            self.show_all()
+            self.show()
 
     def finish(self, response):
         "Helper function to hide progress bar and disconnect signals"

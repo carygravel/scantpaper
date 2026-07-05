@@ -475,8 +475,12 @@ class SaneScanDialog(Scan):
             )
             self.emit("started-process", make_progress_string(i, num_pages))
 
-        def running_callback(progress):
-            self.emit("changed-progress", progress, None)
+        def running_callback(_progress):
+            p = getattr(self.thread, "scan_page_progress", None)
+            if p is not None and p > 0:
+                self.emit("changed-progress", p, None)
+            else:
+                self.emit("changed-progress", None, None)
 
         def finished_callback(_response):
             self.emit("finished-process", "scan_pages")
@@ -497,12 +501,12 @@ class SaneScanDialog(Scan):
             nonlocal xresolution
             nonlocal yresolution
             self.emit("new-scan", image_ob, pagenumber, xresolution, yresolution)
+            i += 1
             self.emit(
                 "changed-progress",
-                0,
+                None,
                 make_progress_string(i, num_pages),
             )
-            i += 1
 
         def error_callback(response):
             self.emit("process-error", "scan_pages", response.status)

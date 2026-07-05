@@ -191,3 +191,77 @@ def test_progress_finish():
     assert not progress.get_visible()
 
     assert progress._signal is None  # pylint: disable=protected-access
+
+
+def test_progress_child_widgets_visible_after_show_all():
+    "Test that child widgets are visible after calling show_all()"
+    progress = Progress()
+
+    # Initially, nothing should be visible
+    assert not progress.get_visible()
+
+    # After show_all(), the progress and its children should be visible
+    progress.show_all()
+    assert progress.get_visible()
+
+    # Get child widgets
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+
+    # Children should be visible
+    assert pbar.get_visible()
+    assert btn.get_visible()
+
+    # Now hide and show_all again (simulating the app_window.py pattern)
+    progress.hide()
+    assert not progress.get_visible()
+
+    progress.show_all()
+    assert progress.get_visible()
+    assert pbar.get_visible()
+    assert btn.get_visible()
+
+
+def test_progress_visibility_after_hide_then_show():
+    "Test that show() makes progress visible after hide(), not show_all()"
+    progress = Progress()
+
+    # Get child widgets
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+
+    # Prepare: show_all() then hide() (app_window.py pattern)
+    progress.show_all()
+    progress.hide()
+
+    # Child widgets should still be flagged as "visible" (just their parent is hidden)
+    assert pbar.get_visible()
+    assert btn.get_visible()
+    assert not progress.get_visible()
+
+    # Now call show() - this should make the progress visible
+    progress.show()
+    assert progress.get_visible()
+    assert pbar.get_visible()
+    assert btn.get_visible()
+
+
+def test_progress_child_widgets_shown_after_init():
+    "Test that Progress child widgets are shown after init"
+    progress = Progress()
+
+    # Get child widgets
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+
+    # After creation, parent is not visible, but children are
+    assert not progress.get_visible()
+    assert pbar.get_visible(), "ProgressBar should be visible after init"
+    assert btn.get_visible(), "Button should be visible after init"
+
+    # Call show() on parent - this should make the container visible
+    # (children are already visible)
+    progress.show()
+    assert progress.get_visible()
+    assert pbar.get_visible()
+    assert btn.get_visible()

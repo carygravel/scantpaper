@@ -76,7 +76,7 @@ class ScanMenuItemMixins:
             logger.debug("'started-process' emitted with message: %s", message)
             self._scan_progress.set_fraction(0)
             self._scan_progress.set_text(message)
-            self._scan_progress.show_all()
+            self._scan_progress.show()
             nonlocal signal
             signal = self._scan_progress.connect("clicked", self._windows.cancel_scan)
 
@@ -369,12 +369,13 @@ class ScanMenuItemMixins:
 
     def _changed_progress_callback(self, _widget, progress, message):
         "Updates the progress bar based on the given progress value and message."
-        if progress is not None and (0 <= progress <= 1):
+        if progress is not None and (0 < progress <= 1):
             self._scan_progress.set_fraction(progress)
         else:
             self._scan_progress.pulse()
         if message is not None:
             self._scan_progress.set_text(message)
+        self._scan_progress.show()
 
     def _changed_profile_callback(self, _widget, profile):
         self.settings["default profile"] = profile

@@ -185,7 +185,7 @@ class BaseThread(threading.Thread):
 
     def monitor(self):
         "monitor the thread, triggering callbacks as required"
-        # no point in returning if there are still responses
+        self._execute_callbacks_for_stage("running", None)
         while not self.responses.empty():
             if self._monitor_response() == GLib.SOURCE_REMOVE:
                 return GLib.SOURCE_REMOVE

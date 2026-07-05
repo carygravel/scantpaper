@@ -1,8 +1,8 @@
 "test basethread class"
 
+import pytest
 from basethread import BaseThread, Response, ResponseType
 from gi.repository import GLib
-import pytest
 
 
 class MyThread(BaseThread):
@@ -252,3 +252,57 @@ def test_register_callback_errors():
         thread.register_callback("name", "with", "finished")
     with pytest.raises(ValueError):
         thread.register_callback("name", "before", "nonexistent")
+
+
+def test_running_callback_on_empty_queue():
+    "Test that monitor triggers running callbacks even when response queue is empty"
+    from basethread import Request
+
+    thread = BaseThread()
+    running_called = []
+
+    def running_cb(_response):
+        running_called.append(True)
+
+    # Manually add a callback with started=True so running_cb is eligible
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {"started": True, "running_callback": running_cb}
+
+    # Call monitor with empty queue — running_cb SHOULD be called
+    # because running callbacks should fire on every monitor tick,
+    # not only when there are responses to drain
+    result = thread.monitor()
+
+    assert result == GLib.SOURCE_CONTINUE
+    assert len(running_called) >= 1, (
+        "running callback must be called on empty queue; "
+        "monitor() only calls _execute_callbacks_for_stage('running', ...) "
+        "inside _monitor_response(), which is skipped when queue is empty"
+    )
+
+
+def test_none_callback():
+    "test that None callbacks don't cause errors"
+    thread = MyThread()
+    thread.start()
+
+    errors = []
+
+    def error_callback(response):
+        errors.append(response)
+
+    # Send a job with finished_callback explicitly set to None
+    # This should not raise an error when the callback is executed
+    thread.send("div", 1, 2, finished_callback=None, error_callback=error_callback)
+
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
+
+    # Should not have any errors
+    assert not errors, f"Unexpected errors: {errors}"
+
+    thread.send("quit")
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()

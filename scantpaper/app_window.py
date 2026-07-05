@@ -388,6 +388,7 @@ class ApplicationWindow(
         phbox.pack_start(self._scan_progress, True, True, 0)
         self.post_process_progress = Progress()
         phbox.pack_start(self.post_process_progress, True, True, 0)
+        # Child widgets are already shown in Progress.__init__, container starts hidden
 
         # OCR text editing interface
         self._ocr_text_hbox.hide()

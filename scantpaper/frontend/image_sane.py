@@ -156,11 +156,22 @@ class SaneThread(BaseThread):
 
         return info
 
-    def do_scan_page(self, _request):
+    def do_scan_page(self, request):
         "scan page"
         if self.device_handle is None:
             raise ValueError("must open device before starting scan")
-        return self.device_handle.scan()
+        self.scan_page_progress = 0.0
+        self.device_handle.start()
+        params = self.device_handle.get_parameters()
+        _, _, (_, lines), _, _ = params
+        self.scan_page_total_lines = lines if lines > 0 else None
+
+        def _progress_cb(current_line, total_lines):
+            if total_lines > 0:
+                self.scan_page_progress = min(1.0, current_line / total_lines)
+
+        self._scan_progress_cb = _progress_cb
+        return self.device_handle.snap(progress=self._scan_progress_cb)
 
     def do_cancel(self, _request):
         "cancel"
