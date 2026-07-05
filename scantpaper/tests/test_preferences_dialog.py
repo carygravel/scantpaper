@@ -10,8 +10,10 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-def test_preferences_dialog():
+@patch("dialog.preferences.shutil.which")
+def test_preferences_dialog(mock_which):
     "Test preferences dialog"
+    mock_which.return_value = "/usr/bin/gimp"
 
     with pytest.raises(KeyError):
         PreferencesDialog()
@@ -147,3 +149,79 @@ def test_delete_udt():
         hbox not in dialog._vboxt.get_children()
     ), "User defined tool hbox was not destroyed"
     assert len(dialog._vboxt.get_children()) == 1, "Only 'Add' button should remain"
+
+
+@patch("dialog.preferences.shutil.which")
+@patch("dialog.preferences.Gtk.MessageDialog")
+def test_apply_callback_shows_error_for_nonexistent_tool(
+    mock_message_dialog, mock_which
+):
+    "Test that an error dialog is shown when a user-defined tool is not found"
+    mock_which.return_value = None
+    mock_dialog = MagicMock()
+    mock_message_dialog.return_value = mock_dialog
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = ["nonexistent_tool %i %o"]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    mock_message_dialog.assert_called_once()
+    args, kwargs = mock_message_dialog.call_args
+    text = kwargs.get("text", "")
+    assert (
+        "nonexistent_tool" in text
+    ), f"Error message should mention the tool name, got: {text}"
+
+    assert dialog.get_visible(), "Dialog should remain visible when validation fails"
+
+    assert dialog.settings["user_defined_tools"] == [
+        "nonexistent_tool %i %o"
+    ], "Settings should remain unchanged when validation fails"
+
+
+@patch("dialog.preferences.shutil.which")
+@patch("dialog.preferences.Gtk.MessageDialog")
+def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
+    "Test that all invalid tools are reported in the error dialog"
+    mock_which.return_value = None
+    mock_dialog = MagicMock()
+    mock_message_dialog.return_value = mock_dialog
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = [
+        "bad1 %i",
+        "bad2 %i %o",
+    ]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    mock_message_dialog.assert_called_once()
+    args, kwargs = mock_message_dialog.call_args
+    text = kwargs.get("text", "")
+    assert (
+        "bad1" in text and "bad2" in text
+    ), f"Error message should mention both tool names, got: {text}"
+
+
+@patch("dialog.preferences.shutil.which")
+def test_apply_callback_allows_valid_tool(mock_which):
+    "Test that a valid executable is saved without error"
+    mock_which.return_value = "/usr/bin/convert"
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = ["convert %i -negate %o"]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    assert (
+        "convert %i -negate %o" in dialog.settings["user_defined_tools"]
+    ), "Valid tool should be saved"

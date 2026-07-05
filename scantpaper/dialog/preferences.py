@@ -2,11 +2,14 @@
 
 import logging
 import pathlib
+import shutil
+
 import gi
 from comboboxtext import ComboBoxText
-from dialog import Dialog
-from i18n import _
 from helpers import get_tmp_dir
+from i18n import _
+
+from dialog import Dialog
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
@@ -352,6 +355,44 @@ The other variable available is:
         hbox.show_all()
 
     def _apply_callback(self):
+        # Validate user-defined tools before hiding
+        tools = []
+        for hbox in self._vboxt.get_children():
+            if (
+                isinstance(hbox, Gtk.Box)
+                and hbox.get_orientation() == Gtk.Orientation.HORIZONTAL
+            ):
+                for widget in hbox.get_children():
+                    if isinstance(widget, Gtk.Entry):
+                        text = widget.get_text()
+                        tools.append(text)
+
+        invalid_tools = []
+        for tool in tools:
+            if not tool.strip():
+                invalid_tools.append(tool)
+            else:
+                executable = tool.strip().split()[0]
+                if shutil.which(executable) is None:
+                    invalid_tools.append(tool)
+
+        if invalid_tools:
+            dialog = Gtk.MessageDialog(
+                parent=self,
+                destroy_with_parent=True,
+                modal=True,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                text=_("The following user-defined tools could not be found:\n")
+                + "\n".join(invalid_tools)
+                + "\n\n"
+                + _("Please check that the command is installed and in your PATH."),
+            )
+            dialog.set_title(_("User-defined tool not found"))
+            dialog.run()
+            dialog.destroy()
+            return
+
         self.hide()
 
         self.settings["auto-open-scan-dialog"] = self._cbo.get_active()
@@ -377,17 +418,6 @@ The other variable available is:
         self.settings["Dark threshold"] = self._spinbuttond.get_value()
         self.settings["OCR output"] = self._comboo.get_active_index()
 
-        # Update list of user-defined tools
-        tools = []
-        for hbox in self._vboxt.get_children():
-            if (
-                isinstance(hbox, Gtk.Box)
-                and hbox.get_orientation() == Gtk.Orientation.HORIZONTAL
-            ):
-                for widget in hbox.get_children():
-                    if isinstance(widget, Gtk.Entry):
-                        text = widget.get_text()
-                        tools.append(text)
         self.settings["user_defined_tools"] = tools
 
         # Store viewer preferences
