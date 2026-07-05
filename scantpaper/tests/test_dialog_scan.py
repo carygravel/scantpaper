@@ -590,6 +590,51 @@ def test_profile_not_cleared_during_profile_setting(mocker):
     )
 
 
+def test_profile_not_cleared_by_late_paper_option(mocker):
+    """Test that a late-arriving paper profile option (non-None uuid) after
+    setting_profile is cleared does NOT clear the named profile.
+
+    On startup, after a named profile is applied, the setting_profile list is
+    cleared by the callback in set_profile.  However, paper geometry options
+    (set from the frontend 'paper' attribute) complete asynchronously and pass
+    through _post_set_option_hook with a non-None uuid.  The current code
+    incorrectly clears the profile because it only checks
+    'not self.setting_profile' instead of checking 'uuid is None'.
+    """
+    dialog = SaneScanDialog(title="title", transient_for=Gtk.Window())
+
+    profile = Profile(backend=[("resolution", 300)])
+    dialog._add_profile("test_profile", profile)
+    dialog._profile = "test_profile"
+
+    mock_opt = mocker.Mock()
+    mock_opt.name = "tl-x"
+    mock_opt.type = enums.TYPE_FIXED
+
+    mocker.patch.object(dialog, "emit")
+    mocker.patch.object(dialog, "_update_widget_value")
+
+    # State after named profile applied: setting_profile cleared,
+    # setting_current_scan_options empty
+    dialog.setting_profile = []
+    dialog.setting_current_scan_options = []
+
+    # Track whether combobox gets cleared
+    mock_set_active = mocker.patch.object(dialog.combobsp, "set_active_by_text")
+
+    # A late paper-profile option arrives with a non-None uuid
+    dialog._post_set_option_hook(mock_opt, 210.0, profile.uuid)
+
+    assert dialog._profile == "test_profile", (
+        f"Profile incorrectly cleared by late paper option! "
+        f"Current value: {dialog._profile}"
+    )
+    # The combobox should not have been cleared (set_active_by_text not called
+    # with None after the profile was applied)
+    calls = [c for c in mock_set_active.call_args_list if c[0][0] is None]
+    assert len(calls) == 0, f"combobsp.set_active_by_text was called with None: {calls}"
+
+
 def test_profile_cleared_when_user_changes_option(mocker):
     """Test that profile is cleared when user manually changes an option.
 
@@ -630,6 +675,76 @@ def test_profile_cleared_when_user_changes_option(mocker):
     # Profile should be cleared since options no longer match the named profile
     assert dialog.profile is None, (
         f"Profile should be cleared when user changes option manually! "
+        f"Current value: {dialog.profile}"
+    )
+
+
+def test_profile_cleared_when_user_changes_paper(mocker):
+    """Test that profile is cleared when user changes paper via combobox.
+
+    When the user selects a paper size, the paper setter calls _set_paper
+    with setting_profile empty (no named profile being applied). The profile
+    should be cleared immediately.
+    """
+    dialog = SaneScanDialog(title="title", transient_for=Gtk.Window())
+
+    profile = Profile(backend=[("resolution", 300)])
+    dialog._add_profile("test_profile", profile)
+    dialog._profile = "test_profile"
+
+    # Simulate user-initiated paper change: no named profile being applied
+    dialog.setting_profile = []
+    mocker.patch.object(dialog, "emit")
+
+    # Calling with None (Manual) triggers early return after profile clearing
+    dialog._set_paper(None)
+
+    assert dialog.profile is None, (
+        f"Profile should be cleared when user changes paper! "
+        f"Current value: {dialog.profile}"
+    )
+
+
+def test_profile_not_cleared_when_paper_changed_during_profile_apply(mocker):
+    """Test that profile is NOT cleared when paper is changed during named
+    profile application.
+
+    When a named profile is being applied, setting_profile is non-empty
+    during the frontend option setting. The _set_paper method should NOT
+    clear the profile in this case.
+    """
+
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    profile = Profile(backend=[("mode", "Color"), ("resolution", 300)])
+    dialog._add_profile("my_profile", profile)
+    dialog._profile = "my_profile"
+    dialog.setting_profile = [profile.uuid]
+
+    # Mock paper setter's dependencies to avoid actual SANE interaction
+    dialog.paper_formats = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+    dialog.ignored_paper_formats = []
+    dialog.thread = mocker.Mock()
+    dialog.thread.device_handle = mocker.Mock()
+    options = mocker.Mock()
+    opt = mocker.Mock()
+    opt.name = "page-height"
+    opt.type = enums.TYPE_INT
+    opt.cap = 0
+    opt.constraint = None
+    options.by_name.return_value = opt
+    options.supports_paper.return_value = True
+    dialog._available_scan_options = options
+    dialog._hide_geometry = mocker.Mock()
+    dialog._add_current_scan_options = mocker.Mock()
+
+    mocker.patch.object(dialog, "emit")
+    dialog.combobp = mocker.Mock()
+
+    dialog._set_paper("A4")
+
+    assert dialog.profile == "my_profile", (
+        f"Profile should NOT be cleared during named profile application! "
         f"Current value: {dialog.profile}"
     )
 

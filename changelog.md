@@ -1,3 +1,8 @@
+## 3.0.11 (2026-07-04)
+
+* Fix previous profile not being set on startup
+
+
 ## 3.0.10 (2026-07-04)
 
 * Plumb the OCRmyPDF progress into the GUI progress bar

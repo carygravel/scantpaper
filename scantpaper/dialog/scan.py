@@ -844,6 +844,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     def _set_paper(self, paper):
         """Treat a paper size as a profile, so build up the required profile of
         geometry settings and apply it"""
+        if not self.setting_profile:
+            self.profile = None
         if paper is None:
             self._paper = paper
             self.current_scan_options.remove_frontend_option("paper")
@@ -1240,11 +1242,6 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             self._set_paper_formats(self.paper_formats)
             for key in profile.each_frontend_option():
                 setattr(self, key, profile.get_frontend_option(key))
-
-            # Clear the profile if we're applying options that aren't part
-            # of a named profile (e.g., paper geometry)
-            if not self.setting_profile:
-                self.profile = None
 
             if self.setting_current_scan_options:
                 self.setting_current_scan_options.pop()

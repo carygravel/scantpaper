@@ -367,11 +367,13 @@ class SaneScanDialog(Scan):
         )
 
         # Emit the changed-current-scan-options signal
-        # unless we are actively setting it
-        if not self.setting_profile and not self.setting_current_scan_options:
+        # unless we are actively setting it.
+        # Clear the named profile only when the user manually changes an option
+        # (uuid is None). Options set as part of a profile application carry a
+        # non-None uuid and must NOT clear the profile, even if setting_profile
+        # has already been cleared.
+        if uuid is None and not self.setting_current_scan_options:
             self.emit("changed-current-scan-options", self.current_scan_options, EMPTY)
-            # Clear the profile since the user manually changed an option
-            # and the current options no longer match the named profile
             self.profile = None
 
         self._update_widget_value(option, val)
