@@ -18,7 +18,8 @@ class Progress(Gtk.Box):
         self._signal = None
         self._pbar = Gtk.ProgressBar()
         self._pbar.set_show_text(True)
-        self.add(self._pbar)
+        self._pbar.set_hexpand(True)
+        self.pack_start(self._pbar, True, True, 0)
         self._button = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         self._button.connect("clicked", self._on_button_clicked)
         self.pack_end(self._button, False, False, 0)
