@@ -144,6 +144,9 @@ class BaseThread(threading.Thread):
         for k, val in kwargs.items():
             if k[:-9] in self.additional_callbacks:
                 callbacks[k] = val
+        if not self.callbacks:
+            self.total_jobs = 0
+            self.num_completed_jobs = 0
         self.callbacks[request.uuid] = callbacks
         self.requests.put(request)
         self.total_jobs += 1
@@ -186,7 +189,6 @@ class BaseThread(threading.Thread):
         while not self.responses.empty():
             if self._monitor_response() == GLib.SOURCE_REMOVE:
                 return GLib.SOURCE_REMOVE
-        self.total_jobs = 0
         return GLib.SOURCE_CONTINUE
 
     def _execute_callbacks_for_stage(self, stage, result):

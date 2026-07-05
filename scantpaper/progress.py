@@ -28,7 +28,7 @@ class Progress(Gtk.Box):
 
     def set_fraction(self, fraction):
         "Set progress bar fraction"
-        self._pbar.set_fraction(fraction)
+        self._pbar.set_fraction(min(1.0, max(0.0, fraction)))
 
     def set_text(self, text):
         "Set progress bar text"
@@ -49,7 +49,7 @@ class Progress(Gtk.Box):
             self.set_text(
                 _("Process %i of %i (%s)") % (num_completed + 1, total, process_name)
             )
-            self.set_fraction((num_completed + 0.5) / total)
+            self.set_fraction(min(1.0, (num_completed + 0.5) / total))
             self.show_all()
 
             def cancel_process(_widget):
@@ -65,19 +65,20 @@ class Progress(Gtk.Box):
 
     def update(self, response):
         "Helper function to update progress bar"
-        if response:
-            if response.type == ResponseType.DATA:
-                if isinstance(response.info, str):
-                    self.set_text(response.info)
-                    self.show_all()
-                    return
-                elif isinstance(response.info, float):
-                    self.set_fraction(response.info)
-                    self.show_all()
-                    return
-            elif response.request.process:
-                # if  "message"  in options :
-                #     options["process"] += f" - {options['message']}"
+        if not response:
+            return
+        if response.type == ResponseType.DATA:
+            if isinstance(response.info, str):
+                self.set_text(response.info)
+                self.show_all()
+                return
+            if isinstance(response.info, float):
+                self.set_fraction(response.info)
+                self.show_all()
+                return
+            return
+        if response.total_jobs:
+            if response.request.process:
                 self.set_text(
                     _("Process %i of %i (%s)")
                     % (
@@ -86,18 +87,14 @@ class Progress(Gtk.Box):
                         response.request.process,
                     )
                 )
-
             else:
                 self.set_text(
                     _("Process %i of %i")
                     % (response.num_completed_jobs + 1, response.total_jobs)
                 )
-
-            # if  "progress"  in options :
-            #     tpbar.set_fraction(
-            #     ( options["jobs_completed"] + options["progress"] ) / options["jobs_total"] )
-            # else :
-            self.set_fraction((response.num_completed_jobs + 0.5) / response.total_jobs)
+            self.set_fraction(
+                min(1.0, (response.num_completed_jobs + 0.5) / response.total_jobs)
+            )
             self.show_all()
 
     def finish(self, response):

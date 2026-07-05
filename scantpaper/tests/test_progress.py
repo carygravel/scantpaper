@@ -34,6 +34,71 @@ def test_progress_methods():
     progress.pulse()
 
 
+def test_set_fraction_clamps_values():
+    "Test that set_fraction clamps values to [0.0, 1.0]"
+    progress = Progress()
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+
+    progress.set_fraction(1.5)
+    assert pbar.get_fraction() == 1.0
+
+    progress.set_fraction(-0.5)
+    assert pbar.get_fraction() == 0.0
+
+    progress.set_fraction(0.75)
+    assert pbar.get_fraction() == 0.75
+
+    progress.set_fraction(1.0)
+    assert pbar.get_fraction() == 1.0
+
+    progress.set_fraction(0.0)
+    assert pbar.get_fraction() == 0.0
+
+
+def test_progress_queued_clamps_fraction():
+    "Test that queued clamps fraction when num_completed >= total"
+    progress = Progress()
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+
+    response = Mock()
+    response.request.process = "test"
+    response.num_completed_jobs = 10
+    response.total_jobs = 10
+
+    progress.queued(response)
+    assert pbar.get_fraction() <= 1.0
+
+
+def test_progress_update_clamps_fraction():
+    "Test that update clamps fraction when num_completed_jobs >= total_jobs"
+    progress = Progress()
+    response = Mock()
+    response.type = None  # not DATA
+    response.request.process = "test"
+    response.num_completed_jobs = 10
+    response.total_jobs = 10
+
+    progress.update(response)
+
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    assert pbar.get_fraction() <= 1.0
+
+
+def test_progress_update_data_float_clamps():
+    "Test that update clamps float DATA values > 1.0"
+    from basethread import ResponseType
+
+    progress = Progress()
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+
+    response = Mock()
+    response.type = ResponseType.DATA
+    response.info = 1.5
+
+    progress.update(response)
+    assert pbar.get_fraction() == 1.0
+
+
 def test_progress_signal():
     "Test cancel button signal"
     progress = Progress()

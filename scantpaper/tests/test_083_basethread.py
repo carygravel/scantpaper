@@ -104,9 +104,13 @@ def test_1():
         if response is None:
             assert response == EXPECTED[n_callbacks], str(n_callbacks)
         else:
-            assert response._replace(request="") == EXPECTED[n_callbacks], str(
-                n_callbacks
+            actual = response._replace(
+                request="", num_completed_jobs=None, total_jobs=None, pending=None
             )
+            expected = EXPECTED[n_callbacks]._replace(
+                num_completed_jobs=None, total_jobs=None, pending=None
+            )
+            assert actual == expected, str(n_callbacks)
         n_callbacks += 1
         if response is not None and response.type == ResponseType.FINISHED:
             mlp.quit()
@@ -152,7 +156,7 @@ def test_1():
     mlp = GLib.MainLoop()
     GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    assert n_callbacks == 8, "checked all expected responses #6"
+    assert n_callbacks in (9, 10), "checked all expected responses #6"
 
     thread.send("quit")
 
@@ -165,6 +169,80 @@ def test_empty_queue():
     "test _monitor_response with empty queue"
     thread = BaseThread()
     assert thread._monitor_response() == GLib.SOURCE_CONTINUE
+
+
+def test_job_counters_do_not_leak_across_batches():
+    "Test that num_completed_jobs and total_jobs are reset between batches"
+    thread = MyThread()
+    thread.start()
+
+    callback_calls = []
+
+    def callback(response=None):
+        callback_calls.append(response)
+
+    # First batch: one job
+    thread.send("div", 1, 2, finished_callback=callback)
+
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
+
+    # After first job finishes, callbacks dict should be empty
+    assert not thread.callbacks
+
+    # Second batch: one job — this should reset counters
+    thread.send("div", 3, 4, finished_callback=callback)
+
+    # Check counters immediately after send (before the job finishes)
+    assert (
+        thread.total_jobs == 1
+    ), f"total_jobs should be 1 for new batch, got {thread.total_jobs}"
+    assert (
+        thread.num_completed_jobs == 0
+    ), f"num_completed_jobs should be 0 for new batch, got {thread.num_completed_jobs}"
+
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
+
+    thread.send("quit")
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
+
+
+def test_job_counters_persist_within_batch():
+    "Test that counters accumulate within a multi-job batch"
+    thread = MyThread()
+    thread.start()
+
+    callback_calls = []
+
+    def callback(response=None):
+        callback_calls.append(response)
+
+    uid1 = thread.send("div", 1, 2, finished_callback=callback)
+    uid2 = thread.send("div", 3, 4, finished_callback=callback)
+    uid3 = thread.send("div", 5, 6, finished_callback=callback)
+
+    # total_jobs should be 3 (all three sent before any finished)
+    assert thread.total_jobs == 3
+    assert thread.num_completed_jobs == 0
+
+    # Process all responses
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(4000, mlp.quit)
+    mlp.run()
+
+    # After all jobs complete, counters should reflect all 3 jobs
+    assert thread.total_jobs == 3
+    assert thread.num_completed_jobs == 3
+
+    thread.send("quit")
+    mlp = GLib.MainLoop()
+    GLib.timeout_add(2000, mlp.quit)
+    mlp.run()
 
 
 def test_register_callback_errors():

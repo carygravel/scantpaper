@@ -4,6 +4,7 @@
 * When adding a user-defined tool in preferences, update the combobox
   in the scan window immediately if the tool is executable and
   otherwise display an error.
+* Fix various bugs causing the progress bar not to display properly
 
 
 ## 3.0.10 (2026-07-04)
