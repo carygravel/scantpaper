@@ -29,6 +29,8 @@ def mock_scan_window(mocker):
         _scan_progress = None
         _rotate_controls = None
         _scan_udt_cmbx = None
+        _scan_udt_hbox = None
+        _scan_udt_button = None
         _unpaper = None
         _dependencies = {}
         session = None

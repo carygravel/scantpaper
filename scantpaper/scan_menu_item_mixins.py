@@ -234,8 +234,10 @@ class ScanMenuItemMixins:
         "Adds a user-defined tool (UDT) post-processing option to the given VBox."
         hboxudt = Gtk.Box()
         vboxp.pack_start(hboxudt, False, False, 0)
+        self._scan_udt_hbox = hboxudt
         udtbutton = Gtk.CheckButton(label=_("Process with user-defined tool"))
         udtbutton.set_tooltip_text(_("Process scanned images with user-defined tool"))
+        self._scan_udt_button = udtbutton
         hboxudt.pack_start(udtbutton, True, True, 0)
         if not self.settings["user_defined_tools"]:
             hboxudt.set_sensitive(False)

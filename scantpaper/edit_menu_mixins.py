@@ -365,6 +365,9 @@ class EditMenuMixins:
                 )
                 settings["device blacklist"] = self.settings["device blacklist"]
 
+        old_tmpdir = self.settings["TMPDIR"]
+        self.settings = settings
+
         if self._windows:
             self._windows.cycle_sane_handle = self.settings["cycle sane handle"]
             self._windows.cancel_between_pages = self.settings["cancel-between-pages"]
@@ -378,8 +381,7 @@ class EditMenuMixins:
 
         self._update_list_user_defined_tools([self._pref_udt_cmbx, self._scan_udt_cmbx])
 
-        if settings["TMPDIR"] != self.settings["TMPDIR"]:
-            self.settings = settings
+        if settings["TMPDIR"] != old_tmpdir:
             response = self._ask_question(
                 parent=self,
                 type="question",
@@ -390,7 +392,6 @@ class EditMenuMixins:
             )
             if response == Gtk.ResponseType.OK:
                 self._restart()
-        self.settings = settings
 
     def _update_list_user_defined_tools(self, combobox_array):
         for combobox in combobox_array:
@@ -407,3 +408,10 @@ class EditMenuMixins:
         for combobox in combobox_array:
             if combobox is not None:
                 combobox.set_active_by_text(self.settings["current_udt"])
+
+        if self._scan_udt_hbox is not None and self._scan_udt_button is not None:
+            if self.settings["user_defined_tools"]:
+                self._scan_udt_hbox.set_sensitive(True)
+            else:
+                self._scan_udt_hbox.set_sensitive(False)
+                self._scan_udt_button.set_active(False)

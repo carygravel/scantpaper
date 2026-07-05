@@ -28,6 +28,8 @@ def mock_edit_window(mocker):
         _windowi = None
         _pref_udt_cmbx = None
         _scan_udt_cmbx = None
+        _scan_udt_hbox = None
+        _scan_udt_button = None
 
         # Callbacks and methods used by mixins
         _update_uimanager = mocker.Mock()
@@ -480,13 +482,10 @@ def test_changed_preferences_updates_windows(mock_edit_window, mocker):
     new_settings["cycle sane handle"] = True
     new_settings["use_time"] = True
 
-    # The current implementation in edit_menu_mixins.py uses self.settings (old values)
-    # to update _windows and _windowi before updating self.settings.
-    # We verify this behavior.
     mock_edit_window._changed_preferences(None, new_settings)
 
-    assert mock_edit_window._windows.cycle_sane_handle is False
-    assert mock_edit_window._windowi.include_time is False
+    assert mock_edit_window._windows.cycle_sane_handle is True
+    assert mock_edit_window._windowi.include_time is True
     assert mock_edit_window.settings["cycle sane handle"] is True
 
 
@@ -620,3 +619,21 @@ def test_update_list_user_defined_tools(mock_edit_window):
 
     # Check hooks update
     mock_edit_window._update_post_save_hooks.assert_called_once()
+
+
+def test_changed_preferences_updates_tools_before_self_settings(mock_edit_window):
+    "Test that _changed_preferences updates combobox with new tool list"
+    mock_combobox = MagicMock()
+    mock_combobox.get_num_rows.side_effect = [1, 0]
+    mock_edit_window._scan_udt_cmbx = mock_combobox
+
+    mock_edit_window.settings["user_defined_tools"] = ["old_tool"]
+    mock_edit_window.settings["current_udt"] = "old_tool"
+
+    new_settings = dict(mock_edit_window.settings)
+    new_settings["user_defined_tools"] = ["old_tool", "new_tool"]
+    new_settings["current_udt"] = "new_tool"
+
+    mock_edit_window._changed_preferences(None, new_settings)
+
+    mock_combobox.append_text.assert_any_call("new_tool")

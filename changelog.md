@@ -1,6 +1,8 @@
 ## 3.0.11 (2026-07-04)
 
 * Fix previous profile not being set on startup
+* When add a user-defined tool in preferences, update the combobox in
+  the scan window immediately
 
 
 ## 3.0.10 (2026-07-04)
