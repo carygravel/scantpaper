@@ -1161,6 +1161,22 @@ class TestFileMenuMixins:
             mock_gtk.FileChooserDialog.assert_called()
             mock_gtk.FileChooserDialog.reset_mock()
 
+    @unittest.mock.patch("file_menu_mixins.Gtk")
+    def test_save_file_chooser_sdb(self, mock_gtk, app):
+        "Test save file chooser for sdb (scantpaper session) type."
+        app.settings["image type"] = "sdb"
+        app._windowi = unittest.mock.Mock()
+        mock_dialog = unittest.mock.Mock()
+        mock_gtk.FileChooserDialog.return_value = mock_dialog
+
+        app._save_file_chooser(["uuid1"])
+
+        # Verify the dialog is created with the correct title for sdb files
+        call_kwargs = mock_gtk.FileChooserDialog.call_args[1]
+        assert "scantpaper session" in call_kwargs["title"]
+        mock_dialog.connect.assert_called_once()
+        mock_dialog.show.assert_called_once()
+
     @unittest.mock.patch("file_menu_mixins.file_exists")
     @unittest.mock.patch("file_menu_mixins.os")
     def test_file_chooser_response_callback_append_extension(
