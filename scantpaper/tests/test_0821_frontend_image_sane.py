@@ -530,3 +530,32 @@ def test_8_cancel_empties_queue():
 
     request = thread.requests.get()
     assert request.process == "cancel"
+
+
+def test_9_quit_handles_sane_exit_exception():
+    "test do_quit handles exception from sane.exit() (lines 78-79)"
+    with patch("sane.exit") as mock_exit:
+        # Make sane.exit() raise an exception
+        mock_exit.side_effect = RuntimeError("sane.exit() failed")
+
+        thread = SaneThread()
+        thread.start()
+
+        mlp = GLib.MainLoop()
+
+        def open_callback(response):
+            assert response.request.process == "open_device"
+            mlp.quit()
+
+        # Open a device to ensure sane is initialized
+        thread.open_device(device_name="test", finished_callback=open_callback)
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
+
+        # Quit should handle the exception from sane.exit() gracefully
+        thread.send("quit")
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
+
+        # Verify sane.exit() was called and the exception was handled
+        mock_exit.assert_called_once()
