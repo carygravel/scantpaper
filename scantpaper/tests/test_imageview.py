@@ -1019,15 +1019,16 @@ def test_selection_drawing_coordinates():
     assert len(rubberband_calls) == 1, "Selection background was not rendered"
     x, y, w, h = rubberband_calls[0]
 
-    # to_widget_coords(10, 20) -> (20.0, 20.0)
-    # to_widget_coords(40, 60) -> (80.0, 60.0)
-    # w = 80-20 = 60, h = 60-20 = 40
-    assert (x, y, w, h) == (
-        20.0,
-        20.0,
-        60.0,
-        40.0,
-    ), f"Selection drawn at wrong coordinates: got {(x, y, w, h)}"
+    # Calculate expected coordinates using to_widget_coords to account for scale factor
+    # to_widget_coords applies: (x + offset.x) * zoom / factor / ratio
+    x1, y1 = view.to_widget_coords(10, 20)
+    x2, y2 = view.to_widget_coords(40, 60)
+    expected_w = x2 - x1
+    expected_h = y2 - y1
+
+    assert (x, y, w, h) == pytest.approx(
+        (x1, y1, expected_w, expected_h)
+    ), f"Selection drawn at wrong coordinates: got {(x, y, w, h)}, expected {(x1, y1, expected_w, expected_h)}"
 
 
 def test_adaptive_filter():
