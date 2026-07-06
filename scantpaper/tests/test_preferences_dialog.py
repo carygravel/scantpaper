@@ -225,3 +225,32 @@ def test_apply_callback_allows_valid_tool(mock_which):
     assert (
         "convert %i -negate %o" in dialog.settings["user_defined_tools"]
     ), "Valid tool should be saved"
+
+
+@patch("dialog.preferences.Gtk.MessageDialog")
+def test_apply_callback_shows_error_for_empty_tool(mock_message_dialog):
+    "Test that an error dialog is shown when a user-defined tool is empty or whitespace-only"
+    mock_dialog = MagicMock()
+    mock_message_dialog.return_value = mock_dialog
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = ["   ", ""]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    mock_message_dialog.assert_called_once()
+    args, kwargs = mock_message_dialog.call_args
+    text = kwargs.get("text", "")
+    assert (
+        "could not be found" in text
+    ), f"Error message should mention that tools could not be found, got: {text}"
+
+    assert dialog.get_visible(), "Dialog should remain visible when validation fails"
+
+    assert dialog.settings["user_defined_tools"] == [
+        "   ",
+        "",
+    ], "Settings should remain unchanged when validation fails"

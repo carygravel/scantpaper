@@ -369,12 +369,12 @@ The other variable available is:
 
         invalid_tools = []
         for tool in tools:
-            if not tool.strip():
-                invalid_tools.append(tool)
-            else:
+            if tool.strip():
                 executable = tool.strip().split()[0]
                 if shutil.which(executable) is None:
                     invalid_tools.append(tool)
+            else:
+                invalid_tools.append(tool)
 
         if invalid_tools:
             dialog = Gtk.MessageDialog(
