@@ -84,6 +84,22 @@ def test_progress_update_clamps_fraction():
     assert pbar.get_fraction() <= 1.0
 
 
+def test_progress_update_data_string():
+    "Test that update sets text when response.info is a string"
+    from basethread import ResponseType
+
+    progress = Progress()
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+
+    response = Mock()
+    response.type = ResponseType.DATA
+    response.info = "Processing file..."
+
+    progress.update(response)
+    assert pbar.get_text() == "Processing file..."
+    assert progress.get_visible()
+
+
 def test_progress_update_data_float_clamps():
     "Test that update clamps float DATA values > 1.0"
     from basethread import ResponseType
