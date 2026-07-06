@@ -1348,6 +1348,15 @@ def test_set_text_empty_generator():
     )
 
 
+def test_set_text_empty_list_with_none_callback():
+    "Test set_text with an empty list and finished_callback=None"
+    canvas = Canvas()
+    canvas.clear_text = MagicMock()
+    # This should not raise 'NoneType' object is not callable
+    canvas.set_text(bboxes=[], sorted_word_indices=[], finished_callback=None)
+    canvas.clear_text.assert_called_once()
+
+
 def test_bbox_button_press_callback(mocker):
     "Test Bbox button_press_callback"
     canvas_obj = Canvas()

@@ -413,7 +413,7 @@ class Canvas(
 
         if not bboxes:
             self.clear_text()
-            if "finished_callback" in kwargs:
+            if "finished_callback" in kwargs and kwargs["finished_callback"]:
                 kwargs["finished_callback"]()
             return
 
