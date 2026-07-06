@@ -637,3 +637,43 @@ def test_changed_preferences_updates_tools_before_self_settings(mock_edit_window
     mock_edit_window._changed_preferences(None, new_settings)
 
     mock_combobox.append_text.assert_any_call("new_tool")
+
+
+def test_update_list_user_defined_tools_enables_scan_udt_with_tools(mock_edit_window):
+    "Test _update_list_user_defined_tools enables scan UDT UI when tools exist"
+    mock_hbox = MagicMock()
+    mock_button = MagicMock()
+    mock_edit_window._scan_udt_hbox = mock_hbox
+    mock_edit_window._scan_udt_button = mock_button
+
+    mock_combobox = MagicMock()
+    mock_combobox.get_num_rows.return_value = 0
+
+    mock_edit_window.settings["user_defined_tools"] = ["tool1"]
+    mock_edit_window.settings["current_udt"] = "tool1"
+
+    mock_edit_window._update_list_user_defined_tools([mock_combobox])
+
+    mock_hbox.set_sensitive.assert_called_once_with(True)
+    mock_button.set_active.assert_not_called()
+
+
+def test_update_list_user_defined_tools_disables_scan_udt_without_tools(
+    mock_edit_window,
+):
+    "Test _update_list_user_defined_tools disables scan UDT UI when no tools"
+    mock_hbox = MagicMock()
+    mock_button = MagicMock()
+    mock_edit_window._scan_udt_hbox = mock_hbox
+    mock_edit_window._scan_udt_button = mock_button
+
+    mock_combobox = MagicMock()
+    mock_combobox.get_num_rows.return_value = 0
+
+    mock_edit_window.settings["user_defined_tools"] = []
+    mock_edit_window.settings["current_udt"] = ""
+
+    mock_edit_window._update_list_user_defined_tools([mock_combobox])
+
+    mock_hbox.set_sensitive.assert_called_once_with(False)
+    mock_button.set_active.assert_called_once_with(False)
