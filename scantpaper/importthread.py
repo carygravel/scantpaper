@@ -465,24 +465,24 @@ class Importhread(BaseThread):
                 )
                 if regex:
                     ext = regex.group(1)
-                try:
-                    page = Page(
-                        filename=fname,
-                        dir=args["dir"],
-                        format=image_format[ext],
-                        resolution=(xresolution, yresolution, "PixelsPerInch"),
-                    )
-                    page.import_pdftotext(self._extract_text_from_pdf(request, i))
-                    request.data(
-                        {
-                            "type": "page",
-                            "row": self.add_page(page),
-                        }
-                    )
-                    os.remove(fname)
-                except (PermissionError, IOError) as err:
-                    logger.error("Caught error importing PDF: %s", err)
-                    request.error(_("Error importing PDF"))
+                    try:
+                        page = Page(
+                            filename=fname,
+                            dir=args["dir"],
+                            format=image_format[ext],
+                            resolution=(xresolution, yresolution, "PixelsPerInch"),
+                        )
+                        page.import_pdftotext(self._extract_text_from_pdf(request, i))
+                        request.data(
+                            {
+                                "type": "page",
+                                "row": self.add_page(page),
+                            }
+                        )
+                        os.remove(fname)
+                    except (PermissionError, IOError) as err:
+                        logger.error("Caught error importing PDF: %s", err)
+                        request.error(_("Error importing PDF"))
 
         if warning_flag:
             request.error(

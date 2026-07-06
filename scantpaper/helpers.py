@@ -165,12 +165,14 @@ def show_message_dialog(**options):
     options["responses"] = SETTING["message"]
     message_dialog.add_message(options)
 
+    response = None
     if message_dialog.grid_rows > 1:
         message_dialog.show_all()
         response = message_dialog.run()
 
     if message_dialog:  # could be undefined for multiple calls
-        message_dialog.store_responses(response, SETTING["message"])
+        if response is not None:
+            message_dialog.store_responses(response, SETTING["message"])
         (
             SETTING["message_window_width"],
             SETTING["message_window_height"],

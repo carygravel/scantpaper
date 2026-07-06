@@ -741,6 +741,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def _update_single_option(self, opt):
         widget = self.option_widgets[opt.name]
+        value = None
         if opt.type != enums.TYPE_BUTTON:
             value = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
 

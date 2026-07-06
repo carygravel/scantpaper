@@ -345,6 +345,7 @@ class SaneScanDialog(Scan):
             label = Gtk.Label(label=d_sane(text))
             hbox.pack_start(label, False, False, 0)
 
+        widget = None
         if opt.type == enums.TYPE_BOOL:
             widget = self._create_widget_switch(opt, val)
         elif opt.type == enums.TYPE_BUTTON:
