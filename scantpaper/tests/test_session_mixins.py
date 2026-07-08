@@ -251,10 +251,26 @@ def test_zoom_methods(mock_session_window):
     mock_session_window.view.zoom_out.assert_called_once()
 
 
-def test_find_crashed_sessions_default_tmpdir(mocker, mock_session_window):
-    "Test _find_crashed_sessions with None tmpdir"
+def test_find_crashed_sessions_default_tmpdir_none(mocker, mock_session_window):
+    "Test _find_crashed_sessions when get_tmp_dir returns None"
     mocker.patch("glob.glob", return_value=[])
-    mock_gettempdir = mocker.patch("session_mixins.get_tmp_dir")
+    mocker.patch("session_mixins.get_tmp_dir", return_value=None)
+    mock_gettempdir = mocker.patch(
+        "session_mixins.tempfile.gettempdir", return_value="/fallback"
+    )
+    mock_session_window._open_session = mocker.Mock()
+    mock_session_window._find_crashed_sessions()
+    mock_gettempdir.assert_called_once()
+    mock_session_window._open_session.assert_not_called()
+
+
+def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window):
+    "Test _find_crashed_sessions when get_tmp_dir returns EMPTY"
+    mocker.patch("glob.glob", return_value=[])
+    mocker.patch("session_mixins.get_tmp_dir", return_value=EMPTY)
+    mock_gettempdir = mocker.patch(
+        "session_mixins.tempfile.gettempdir", return_value="/fallback"
+    )
     mock_session_window._open_session = mocker.Mock()
     mock_session_window._find_crashed_sessions()
     mock_gettempdir.assert_called_once()
