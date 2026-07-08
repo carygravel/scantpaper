@@ -209,6 +209,88 @@ def test_progress_finish():
     assert progress._signal is None  # pylint: disable=protected-access
 
 
+def test_progress_finish_with_pending():
+    "Test finish with pending=True does not hide but disconnects signal"
+    progress = Progress()
+    progress.show()
+
+    # Setup _signal via queued
+    response_q = Mock()
+    response_q.request.process = "test"
+    response_q.num_completed_jobs = 0
+    response_q.total_jobs = 10
+    progress.queued(response_q)
+
+    assert progress._signal is not None  # pylint: disable=protected-access
+    assert progress.get_visible()
+
+    response = Mock()
+    response.pending = True
+    progress.finish(response)
+
+    # Should still be visible (pending is True, so not hidden)
+    assert progress.get_visible()
+    # Signal should still be disconnected
+    assert progress._signal is None  # pylint: disable=protected-access
+
+
+def test_progress_queued_no_total():
+    "Test queued does nothing when total is 0"
+    progress = Progress()
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+
+    response = Mock()
+    response.request.process = "test"
+    response.num_completed_jobs = 0
+    response.total_jobs = 0
+
+    progress.queued(response)
+
+    assert pbar.get_text() is None
+    assert not progress.get_visible()
+    assert progress._signal is None  # pylint: disable=protected-access
+
+
+def test_progress_queued_no_process_name():
+    "Test queued does nothing when process_name is None"
+    progress = Progress()
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+
+    response = Mock()
+    response.request.process = None
+    response.num_completed_jobs = 0
+    response.total_jobs = 10
+
+    progress.queued(response)
+
+    assert pbar.get_text() is None
+    assert not progress.get_visible()
+    assert progress._signal is None  # pylint: disable=protected-access
+
+
+def test_progress_update_data_other_type():
+    "Test update with DATA type and non-str/non-float info returns early"
+    from basethread import ResponseType
+
+    progress = Progress()
+    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+
+    # Set some initial text/fraction to verify they don't change
+    progress.set_text("initial")
+    progress.set_fraction(0.5)
+    assert pbar.get_text() == "initial"
+    assert abs(pbar.get_fraction() - 0.5) < 0.001
+
+    response = Mock()
+    response.type = ResponseType.DATA
+    response.info = 123  # int, neither str nor float
+
+    progress.update(response)
+    # Text and fraction should remain unchanged (early return)
+    assert pbar.get_text() == "initial"
+    assert abs(pbar.get_fraction() - 0.5) < 0.001
+
+
 def test_progress_child_widgets_visible_after_show_all():
     "Test that child widgets are visible after calling show_all()"
     progress = Progress()

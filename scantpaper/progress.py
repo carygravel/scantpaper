@@ -74,11 +74,9 @@ class Progress(Gtk.Box):
             if isinstance(response.info, str):
                 self.set_text(response.info)
                 self.show()
-                return
-            if isinstance(response.info, float):
+            elif isinstance(response.info, float):
                 self.set_fraction(response.info)
                 self.show()
-                return
             return
         if response.total_jobs:
             if response.request.process:
