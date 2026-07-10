@@ -183,6 +183,11 @@ def test_save_open_session():
     finally:
         if os.path.exists(tmp_name):
             os.remove(tmp_name)
+        if os.path.exists(db_path):
+            os.remove(db_path)
+        open_session_db = slist2.dir.name + ".sdb"
+        if os.path.exists(open_session_db):
+            os.remove(open_session_db)
         shutil.rmtree(temp_dir)
 
 
