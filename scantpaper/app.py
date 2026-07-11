@@ -22,10 +22,11 @@
 #    in between, and then consistently before each commit afterwards.
 # 0. Test scan in lineart, greyscale and colour.
 # 1. New screendump required? Print screen creates screenshot.png in Desktop.
-#    Download new translations (https://translations.launchpad.net/gscan2pdf)
-#    Update translators in credits (https://launchpad.net/gscan2pdf/+topcontributors)
+#    Download new translations (https://translations.launchpad.net/scantpaper)
+#    Update translators in credits (https://launchpad.net/scantpaper/+topcontributors)
 #    Update version in pyproject.toml
 # 2. Upload .pot
+#     python3 dev/generate_pot.py
 # 3.  git status
 #     git tag vx.x.x
 #     git push --tags

@@ -191,24 +191,29 @@ In either of the above two cases, just delete the source directory to remove it.
 ## Reporting Bugs
 
 - Please read the [FAQs](#faqs) first.
-- Report bugs preferably against the [Debian package](https://packages.debian.org/sid/gscan2pdf) or [Debian Bugs](https://www.debian.org/Bugs/).
-- Alternatively, use the [Github issue tracker](https://github.com/carygravel/scantpaper/issues).
+- Report bugs preferably against the
+[Debian package](https://packages.debian.org/sid/scantpaper) or
+[Debian Bugs](https://www.debian.org/Bugs/).
+- Alternatively, use the
+[Github issue tracker](https://github.com/carygravel/scantpaper/issues).
 - Include the log file created by `scantpaper --log=log` with your report.
 
 ---
 
 ## Translations
 
-gscan2pdf is partly translated into several languages. Contribute via [Launchpad Rosetta](https://translations.launchpad.net/gscan2pdf).
+scantpaper is partly translated into several languages. Contribute via
+[Launchpad Rosetta](https://translations.launchpad.net/scantpaper).
 
-- Scanner option translations come from sane-backends. Contribute via the [sane-devel mailing list](mailto:sane-devel@lists.alioth.debian.org) or [SANE project](http://www.sane-project.org/cvs.html).
-- Ubuntu translation project: [Jaunty SANE backends](https://translations.launchpad.net/ubuntu/jaunty/+source/sane-backends/+pots/sane-backends)
+- Scanner option translations come from sane-backends. Contribute via the
+[sane-devel mailing list](mailto:sane-devel@lists.alioth.debian.org) or
+[SANE project](http://www.sane-project.org/cvs.html).
 
 To test updated `.po` files:
 
 ```sh
-perl Makefile.PL LOCALEDIR=./locale
-perl -I lib bin/gscan2pdf --log=log --locale=locale
+python3 dev/compile_mo.py --src po --out locale --domain scantpaper
+python3 scantpaper/app.py --log=log --locale=locale
 ```
 
 Set locale variables as needed (e.g., for Russian):
