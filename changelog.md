@@ -1,4 +1,4 @@
-## 3.0.11 (2026-07-04)
+## 3.0.11 (2026-07-11)
 
 * Fix previous profile not being set on startup
 * When adding a user-defined tool in preferences, update the combobox
