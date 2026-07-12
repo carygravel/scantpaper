@@ -40,7 +40,7 @@
 #     lintian -iI --pedantic .changes
 #      or
 #     debuild -S -sa
-#     autopkgtest .changes -- schroot sid-amd64-sbuild
+#     autopkgtest .changes -- unshare --release sid
 #    check contents with dpkg-deb --contents
 #    test dist sudo dpkg -i scantpaper_x.x.x_all.deb
 #     dput ftp-master .changes
@@ -51,7 +51,6 @@
 # 5. Build packages for Ubuntu
 #    name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
 #      * resolute (until 2031-05)
-#      * questing (until 2026-07)
 #      * noble (until 2029-06)
 #      * jammy (until 2027-06)
 #     debuild -S -sa
