@@ -28,6 +28,9 @@ class MockImageView(Gtk.DrawingArea):
         "selection-changed": (GObject.SignalFlags.RUN_LAST, None, (object,)),
     }
     zoom = GObject.Property(type=float, default=1.0, nick="zoom", blurb="zoom level")
+    offset = GObject.Property(
+        type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
+    )
 
     def set_tool(self, tool):
         "mock set_tool"
@@ -50,6 +53,9 @@ class MockCanvas(Gtk.DrawingArea):
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
     }
     zoom = GObject.Property(type=float, default=1.0, nick="zoom", blurb="zoom level")
+    offset = GObject.Property(
+        type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y"
+    )
 
     def clear_text(self):
         "mock clear_text"
@@ -702,16 +708,6 @@ def test_handle_clicks(app_window):
     # Left click
     event.button = 1
     assert app_window._handle_clicks(view_widget, event) is False
-
-
-def test_view_offset_changed_callback(app_window):
-    "Test _view_offset_changed_callback"
-    app_window.t_canvas = MagicMock()
-    app_window.t_canvas.offset_changed_signal = 456
-    app_window._view_offset_changed_callback(None, 10, 20)
-    app_window.t_canvas.handler_block.assert_called_once_with(456)
-    app_window.t_canvas.set_offset.assert_called_once_with(10, 20)
-    app_window.t_canvas.handler_unblock.assert_called_once_with(456)
 
 
 def test_view_selection_changed_callback(app_window):

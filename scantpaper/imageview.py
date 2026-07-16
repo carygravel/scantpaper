@@ -403,9 +403,40 @@ class ImageView(Gtk.DrawingArea):
     pixbuf = GObject.Property(
         type=GdkPixbuf.Pixbuf, nick="pixbuf", blurb="Pixbuf to be shown"
     )
-    offset = GObject.Property(
+
+    @GObject.Property(
         type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
     )
+    def offset(self):  # pylint: disable=method-hidden
+        "getter for offset attribute"
+        return self._offset
+
+    @offset.setter
+    def offset(self, newval):
+        "setter for offset attribute"
+        if newval is None:
+            self._offset = None
+            return
+        if self.get_pixbuf() is None:
+            return
+
+        # Convert the widget size to image scale to make the comparisons easier
+        allocation = self.get_allocation()
+        allocation.width, allocation.height = self.to_image_distance(
+            allocation.width, allocation.height
+        )
+        pixbuf_size = self.get_pixbuf_size()
+        newval.x = _clamp_direction(newval.x, allocation.width, pixbuf_size.width)
+        newval.y = _clamp_direction(newval.y, allocation.height, pixbuf_size.height)
+
+        if (
+            self._offset is None
+            or newval.x != self._offset.x
+            or newval.y != self._offset.y
+        ):
+            self._offset = newval
+            self.emit("offset-changed", newval.x, newval.y)
+            self.queue_draw()
 
     _zoom = 1.0
 
@@ -603,6 +634,7 @@ class ImageView(Gtk.DrawingArea):
         self.set_redraw_on_allocate(False)
         self._cached_surface = None
         self._cached_pixbuf_id = None
+        self._offset = None
 
     def set_pixbuf(self, pixbuf, zoom_to_fit=False):
         "set pixbuf, optionally zooming to fit"
@@ -755,22 +787,9 @@ class ImageView(Gtk.DrawingArea):
 
     def set_offset(self, offset_x, offset_y):
         "set offset (pan)"
-        if self.get_pixbuf() is None:
-            return
-
-        # Convert the widget size to image scale to make the comparisons easier
-        allocation = self.get_allocation()
-        allocation.width, allocation.height = self.to_image_distance(
-            allocation.width, allocation.height
-        )
-        pixbuf_size = self.get_pixbuf_size()
-        offset_x = _clamp_direction(offset_x, allocation.width, pixbuf_size.width)
-        offset_y = _clamp_direction(offset_y, allocation.height, pixbuf_size.height)
         rect = Gdk.Rectangle()
         rect.x, rect.y, rect.width, rect.height = int(offset_x), int(offset_y), 0, 0
-        self.set_property("offset", rect)
-        self.emit("offset-changed", offset_x, offset_y)
-        self.queue_draw()
+        self.offset = rect
 
     def get_offset(self):
         "get current offset (pan)"

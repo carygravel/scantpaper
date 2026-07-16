@@ -423,16 +423,6 @@ class SessionMixins:
         self._ann_hbox.pack_end(ann_abutton, False, False, 0)
         self._pack_viewer_tools()
 
-    def _text_offset_changed_callback(self, _widget, x, y):
-        self.view.handler_block(self.view.offset_changed_signal)
-        self.view.set_offset(x, y)
-        self.view.handler_unblock(self.view.offset_changed_signal)
-
-    def _ann_offset_changed_callback(self, _widget, x, y):
-        self.view.handler_block(self.view.offset_changed_signal)
-        self.view.set_offset(x, y)
-        self.view.handler_unblock(self.view.offset_changed_signal)
-
     def _ocr_text_button_clicked(self, _widget):
         old_text = self._current_ocr_bbox.text
         text = self._ocr_text_hbox._textbuffer.get_text(

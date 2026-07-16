@@ -88,8 +88,6 @@ def mock_session_window(mocker):
 
     window.slist = mocker.MagicMock()
     window.view = mocker.Mock()
-    window.view.zoom_changed_signal = 1
-    window.view.offset_changed_signal = 2
     window.builder = mocker.Mock()
     window.t_canvas = mocker.Mock()
     window.a_canvas = mocker.Mock()
@@ -699,15 +697,6 @@ def test_edit_annotation(mocker, mock_session_window):
         mock_bbox, _target="target", ev=mock_ev, bbox=mock_bbox
     )
     mock_session_window.a_canvas.pointer_ungrab.assert_called_with("target", 123)
-
-
-def test_sync_callbacks(mocker, mock_session_window):
-    "Test offset sync callbacks"
-    mock_session_window._text_offset_changed_callback(None, 10, 20)
-    mock_session_window.view.set_offset.assert_called_with(10, 20)
-
-    mock_session_window._ann_offset_changed_callback(None, 30, 40)
-    mock_session_window.view.set_offset.assert_called_with(30, 40)
 
 
 def test_tool_actions(mock_session_window):

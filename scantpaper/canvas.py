@@ -200,7 +200,31 @@ class Canvas(
     @offset.setter
     def offset(self, newval):
         "setter for offset attribute"
+        if self.get_pixbuf_size() is None:
+            return
+
+        # Convert the widget size to image scale to make the comparisons easier
+        allocation = self.get_allocation()
+        allocation.width, allocation.height = self._to_image_distance(
+            allocation.width, allocation.height
+        )
+        pixbuf_size = self.get_pixbuf_size()
+        newval.x = _clamp_direction(newval.x, allocation.width, pixbuf_size["width"])
+        newval.y = _clamp_direction(newval.y, allocation.height, pixbuf_size["height"])
+
         if newval.x != self._offset.x or newval.y != self._offset.y:
+            min_x = 0
+            min_y = 0
+            if newval.x > 0:
+                min_x = -newval.x
+            if newval.y > 0:
+                min_y = -newval.y
+            self.set_bounds(
+                min_x,
+                min_y,
+                pixbuf_size["width"] - min_x,
+                pixbuf_size["height"] - min_y,
+            )
             self._offset = newval
             self.scroll_to(-newval.x, -newval.y)
             self.emit("offset-changed", newval.x, newval.y)
@@ -573,28 +597,6 @@ class Canvas(
 
     def set_offset(self, offset_x, offset_y):
         "set the offset"
-        if self.get_pixbuf_size() is None:
-            return
-
-        # Convert the widget size to image scale to make the comparisons easier
-        allocation = self.get_allocation()
-        allocation.width, allocation.height = self._to_image_distance(
-            allocation.width, allocation.height
-        )
-        pixbuf_size = self.get_pixbuf_size()
-        offset_x = _clamp_direction(offset_x, allocation.width, pixbuf_size["width"])
-        offset_y = _clamp_direction(offset_y, allocation.height, pixbuf_size["height"])
-        min_x = 0
-        min_y = 0
-        if offset_x > 0:
-            min_x = -offset_x
-
-        if offset_y > 0:
-            min_y = -offset_y
-
-        self.set_bounds(
-            min_x, min_y, pixbuf_size["width"] - min_x, pixbuf_size["height"] - min_y
-        )
         offset = Gdk.Rectangle()
         offset.x = offset_x
         offset.y = offset_y

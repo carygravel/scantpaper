@@ -462,9 +462,6 @@ class ApplicationWindow(
 
         self.view.connect("button-press-event", self._handle_clicks)
         self.view.connect("button-release-event", self._handle_clicks)
-        self.view.offset_changed_signal = self.view.connect(
-            "offset-changed", self._view_offset_changed_callback
-        )
         self.view.selection_changed_signal = self.view.connect(
             "selection-changed", self._view_selection_changed_callback
         )
@@ -477,8 +474,11 @@ class ApplicationWindow(
             "zoom",
             GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
-        self.t_canvas.offset_changed_signal = self.t_canvas.connect(
-            "offset-changed", self._text_offset_changed_callback
+        self.view.bind_property(
+            "offset",
+            self.t_canvas,
+            "offset",
+            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
 
         # GooCanvas for annotation layer
@@ -489,8 +489,11 @@ class ApplicationWindow(
             "zoom",
             GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
-        self.a_canvas.offset_changed_signal = self.a_canvas.connect(
-            "offset-changed", self._ann_offset_changed_callback
+        self.view.bind_property(
+            "offset",
+            self.a_canvas,
+            "offset",
+            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
 
     def _create_toolbar(self):
@@ -612,12 +615,6 @@ class ApplicationWindow(
 
         # allow event propagation
         return False
-
-    def _view_offset_changed_callback(self, _view, x, y):
-        if self.t_canvas is not None:
-            self.t_canvas.handler_block(self.t_canvas.offset_changed_signal)
-            self.t_canvas.set_offset(x, y)
-            self.t_canvas.handler_unblock(self.t_canvas.offset_changed_signal)
 
     def _view_selection_changed_callback(self, _view, sel):
         # copy required here because somehow the garbage collection
