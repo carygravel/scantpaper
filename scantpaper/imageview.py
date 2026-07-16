@@ -406,14 +406,29 @@ class ImageView(Gtk.DrawingArea):
     offset = GObject.Property(
         type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
     )
-    zoom = GObject.Property(
+
+    _zoom = 1.0
+
+    @GObject.Property(
         type=float,
-        minimum=MIN_ZOOM,
-        maximum=MAX_ZOOM,
         default=1,
         nick="zoom",
         blurb="zoom level",
     )
+    def zoom(self):  # pylint: disable=method-hidden
+        "getter for zoom attribute"
+        return self._zoom
+
+    @zoom.setter
+    def zoom(self, value):
+        "setter for zoom attribute"
+        value = min(value, MAX_ZOOM)
+        value = max(value, MIN_ZOOM)
+        if value != self._zoom:
+            self._zoom = value
+            self.emit("zoom-changed", value)
+            self.queue_draw()
+
     zoom_step = GObject.Property(
         type=float,
         minimum=1,
@@ -639,11 +654,7 @@ class ImageView(Gtk.DrawingArea):
         self._set_zoom_no_center(zoom)
 
     def _set_zoom(self, zoom):
-        zoom = min(zoom, MAX_ZOOM)
-        zoom = max(zoom, MIN_ZOOM)
         self.zoom = zoom
-        self.emit("zoom-changed", zoom)
-        self.queue_draw()
 
     def get_zoom(self):
         "return current zoom"

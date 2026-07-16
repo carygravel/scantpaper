@@ -19,6 +19,7 @@ from gi.repository import (  # pylint: disable=wrong-import-position
 MAX_COLOR_INT = 65535
 COLOR_TOLERANCE = 0.00001
 _60_DEGREES = 60
+MIN_ZOOM = 0.001
 MAX_ZOOM = 15
 EMPTY_LIST = -1
 MAX_CONFIDENCE_DEFAULT = 95
@@ -203,6 +204,28 @@ class Canvas(
             self._offset = newval
             self.scroll_to(-newval.x, -newval.y)
             self.emit("offset-changed", newval.x, newval.y)
+
+    _zoom = 1.0
+
+    @GObject.Property(
+        type=float,
+        default=1,
+        nick="zoom",
+        blurb="zoom level",
+    )
+    def zoom(self):  # pylint: disable=method-hidden
+        "getter for zoom attribute"
+        return self._zoom
+
+    @zoom.setter
+    def zoom(self, newval):
+        "setter for zoom attribute"
+        newval = min(newval, MAX_ZOOM)
+        newval = max(newval, MIN_ZOOM)
+        if newval != self._zoom:
+            self._zoom = newval
+            GooCanvas.Canvas.set_scale(self, newval)
+            self.emit("zoom-changed", newval)
 
     _max_color = "black"
 
@@ -731,8 +754,7 @@ class Canvas(
 
     def _to_image_distance(self, x, y):
         "convert x, y in widget distance to image distance"
-        zoom = self.get_scale()
-        return x / zoom, y / zoom
+        return x / self.zoom, y / self.zoom
 
     def _set_zoom_with_center(self, zoom, center_x, center_y):
         "set zoom with centre in image coordinates"
@@ -740,8 +762,7 @@ class Canvas(
         allocation = self.get_allocation()
         offset_x = allocation.width / 2 / zoom - center_x
         offset_y = allocation.height / 2 / zoom - center_y
-        self.set_scale(zoom)
-        self.emit("zoom-changed", zoom)
+        self.zoom = zoom
         self.set_offset(offset_x, offset_y)
 
     def _button_pressed(self, _self, event):
@@ -771,7 +792,7 @@ class Canvas(
         if not self._dragging:
             return False
         offset = self.get_offset()
-        zoom = self.get_scale()
+        zoom = self.zoom
         _screen, x, y = self._device.get_position()
         offset_x = offset.x + (x - self._drag_start["x"]) / zoom
         offset_y = offset.y + (y - self._drag_start["y"]) / zoom
@@ -783,13 +804,13 @@ class Canvas(
         image_x, image_y = self.convert_from_pixels(event.x, event.y)
         zoom = None
         if event.direction == Gdk.ScrollDirection.UP:
-            zoom = self.get_scale() * 2
+            zoom = self.zoom * 2
         else:
-            zoom = self.get_scale() / 2
+            zoom = self.zoom / 2
 
         # set the offset so that the point under the mouse stays under the mouse
         # after the zoom
-        self.set_scale(zoom)
+        self.zoom = zoom
         factor = self.get_scale_factor()
         offset_x = event.x / zoom * factor - image_x
         offset_y = event.y / zoom * factor - image_y

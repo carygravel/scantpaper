@@ -690,7 +690,7 @@ def test_canvas_set_offset_clamping(mocker):  # pylint: disable=unused-argument
 def test_canvas_scroll(mocker):  # pylint: disable=unused-argument
     "Test scroll event zooming"
     canvas_obj = Canvas()
-    canvas_obj.set_scale(1.0)
+    canvas_obj.zoom = 1.0
 
     canvas_obj.get_scale_factor = MagicMock(return_value=1)
     canvas_obj.convert_from_pixels = MagicMock(return_value=(50, 50))
@@ -715,12 +715,12 @@ def test_canvas_scroll(mocker):  # pylint: disable=unused-argument
         canvas_obj.scroll_to = MagicMock()
 
         canvas_obj._scroll(canvas_obj, event)  # pylint: disable=protected-access
-        assert canvas_obj.get_scale() == 2.0
+        assert canvas_obj.zoom == 2.0
         mock_set_offset.assert_called()
 
     event.direction = Gdk.ScrollDirection.DOWN
     canvas_obj._scroll(canvas_obj, event)  # pylint: disable=protected-access
-    assert canvas_obj.get_scale() == 1.0
+    assert canvas_obj.zoom == 1.0
 
 
 def test_canvas_get_bbox_at(mocker):  # pylint: disable=unused-argument

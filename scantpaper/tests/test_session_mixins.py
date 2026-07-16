@@ -702,15 +702,9 @@ def test_edit_annotation(mocker, mock_session_window):
 
 
 def test_sync_callbacks(mocker, mock_session_window):
-    "Test zoom/offset sync callbacks"
-    mock_session_window._text_zoom_changed_callback(None, 2.0)
-    mock_session_window.view.set_zoom.assert_called_with(2.0)
-
+    "Test offset sync callbacks"
     mock_session_window._text_offset_changed_callback(None, 10, 20)
     mock_session_window.view.set_offset.assert_called_with(10, 20)
-
-    mock_session_window._ann_zoom_changed_callback(None, 3.0)
-    mock_session_window.view.set_zoom.assert_called_with(3.0)
 
     mock_session_window._ann_offset_changed_callback(None, 30, 40)
     mock_session_window.view.set_offset.assert_called_with(30, 40)

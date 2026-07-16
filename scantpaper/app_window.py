@@ -40,7 +40,13 @@ from tools_menu_mixins import ToolsMenuMixins
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gdk, Gio, GLib, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import (
+    Gdk,
+    Gio,
+    GLib,
+    GObject,
+    Gtk,
+)  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
 
@@ -456,9 +462,6 @@ class ApplicationWindow(
 
         self.view.connect("button-press-event", self._handle_clicks)
         self.view.connect("button-release-event", self._handle_clicks)
-        self.view.zoom_changed_signal = self.view.connect(
-            "zoom-changed", self._view_zoom_changed_callback
-        )
         self.view.offset_changed_signal = self.view.connect(
             "offset-changed", self._view_offset_changed_callback
         )
@@ -468,8 +471,11 @@ class ApplicationWindow(
 
         # GooCanvas for text layer
         self.t_canvas = Canvas()
-        self.t_canvas.zoom_changed_signal = self.t_canvas.connect(
-            "zoom-changed", self._text_zoom_changed_callback
+        self.view.bind_property(
+            "zoom",
+            self.t_canvas,
+            "zoom",
+            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
         self.t_canvas.offset_changed_signal = self.t_canvas.connect(
             "offset-changed", self._text_offset_changed_callback
@@ -477,8 +483,11 @@ class ApplicationWindow(
 
         # GooCanvas for annotation layer
         self.a_canvas = Canvas()
-        self.a_canvas.zoom_changed_signal = self.a_canvas.connect(
-            "zoom-changed", self._ann_zoom_changed_callback
+        self.view.bind_property(
+            "zoom",
+            self.a_canvas,
+            "zoom",
+            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
         self.a_canvas.offset_changed_signal = self.a_canvas.connect(
             "offset-changed", self._ann_offset_changed_callback
@@ -603,12 +612,6 @@ class ApplicationWindow(
 
         # allow event propagation
         return False
-
-    def _view_zoom_changed_callback(self, _view, zoom):
-        if self.t_canvas is not None:
-            self.t_canvas.handler_block(self.t_canvas.zoom_changed_signal)
-            self.t_canvas.set_scale(zoom)
-            self.t_canvas.handler_unblock(self.t_canvas.zoom_changed_signal)
 
     def _view_offset_changed_callback(self, _view, x, y):
         if self.t_canvas is not None:

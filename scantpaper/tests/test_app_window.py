@@ -27,6 +27,7 @@ class MockImageView(Gtk.DrawingArea):
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
         "selection-changed": (GObject.SignalFlags.RUN_LAST, None, (object,)),
     }
+    zoom = GObject.Property(type=float, default=1.0, nick="zoom", blurb="zoom level")
 
     def set_tool(self, tool):
         "mock set_tool"
@@ -48,6 +49,7 @@ class MockCanvas(Gtk.DrawingArea):
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
     }
+    zoom = GObject.Property(type=float, default=1.0, nick="zoom", blurb="zoom level")
 
     def clear_text(self):
         "mock clear_text"
@@ -700,23 +702,6 @@ def test_handle_clicks(app_window):
     # Left click
     event.button = 1
     assert app_window._handle_clicks(view_widget, event) is False
-
-
-def test_view_zoom_changed_callback(app_window):
-    "Test _view_zoom_changed_callback"
-    app_window.t_canvas = MagicMock()
-    app_window.t_canvas.zoom_changed_signal = 123
-    app_window._view_zoom_changed_callback(None, 2.0)
-    app_window.t_canvas.handler_block.assert_called_once_with(123)
-    app_window.t_canvas.set_scale.assert_called_once_with(2.0)
-    app_window.t_canvas.handler_unblock.assert_called_once_with(123)
-
-
-def test_view_zoom_changed_callback_no_canvas(app_window):
-    "Test _view_zoom_changed_callback when t_canvas is None"
-    app_window.t_canvas = None
-    # Should not crash
-    app_window._view_zoom_changed_callback(None, 2.0)
 
 
 def test_view_offset_changed_callback(app_window):
