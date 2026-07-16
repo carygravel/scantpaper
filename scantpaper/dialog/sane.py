@@ -220,7 +220,7 @@ class SaneScanDialog(Scan):
                 hbox.set_sensitive(False)
 
             if isinstance(val, list):  # $opt->{max_values} > 1
-                widget = Gtk.Button(d_sane(opt.title))
+                widget = Gtk.Button(label=d_sane(opt.title))
                 # widget.signal = widget.connect(
                 #     "clicked",
                 #     self.multiple_values_button_callback,
