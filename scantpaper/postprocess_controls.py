@@ -40,6 +40,7 @@ class RotateControlRow(Gtk.Box):
 class RotateControls(Gtk.Box):
     "provide postprocessing rotate controls for the scan dialog"
 
+    _recomputing = False
     _rotate_facing = 0
 
     @GObject.Property(
@@ -113,24 +114,12 @@ class RotateControls(Gtk.Box):
         self.pack_start(self._side1, True, True, 0)
         self._side2 = RotateControlRow()
         self.pack_start(self._side2, False, False, 0)
-        self._side1_toggled_signal = self._side1.cbutton.connect(
-            "toggled", self._toggled_rotate_callback
-        )
-        self._side2_toggled_signal = self._side2.cbutton.connect(
-            "toggled", self._update_attributes
-        )
-        self._side1_changed_signal = self._side1.side_cmbx.connect(
-            "changed", self._toggled_rotate_side_callback
-        )
-        self._side2_changed_signal = self._side2.side_cmbx.connect(
-            "changed", self._update_attributes
-        )
-        self._angle1_changed_signal = self._side1.angle_cmbx.connect(
-            "changed", self._update_attributes
-        )
-        self._angle2_changed_signal = self._side2.angle_cmbx.connect(
-            "changed", self._update_attributes
-        )
+        self._side1.cbutton.connect("toggled", self._toggled_rotate_callback)
+        self._side2.cbutton.connect("toggled", self._update_attributes)
+        self._side1.side_cmbx.connect("changed", self._toggled_rotate_side_callback)
+        self._side2.side_cmbx.connect("changed", self._update_attributes)
+        self._side1.angle_cmbx.connect("changed", self._update_attributes)
+        self._side2.angle_cmbx.connect("changed", self._update_attributes)
 
         # have to do this manually, since Gtk.Box messes with the initialization
         self.rotate_facing = rotate_facing
@@ -180,12 +169,9 @@ class RotateControls(Gtk.Box):
         self._side2.angle_cmbx.set_active(0)
 
     def _update_attributes(self, _widget):
-        self._side1.cbutton.handler_block(self._side1_toggled_signal)
-        self._side2.cbutton.handler_block(self._side2_toggled_signal)
-        self._side1.side_cmbx.handler_block(self._side1_changed_signal)
-        self._side2.side_cmbx.handler_block(self._side2_changed_signal)
-        self._side1.angle_cmbx.handler_block(self._angle1_changed_signal)
-        self._side2.angle_cmbx.handler_block(self._angle2_changed_signal)
+        if self._recomputing:
+            return
+        self._recomputing = True
 
         rotate_facing = 0
         rotate_reverse = 0
@@ -210,21 +196,10 @@ class RotateControls(Gtk.Box):
 
         self.rotate_facing = rotate_facing
         self.rotate_reverse = rotate_reverse
-        self._side1.cbutton.handler_unblock(self._side1_toggled_signal)
-        self._side2.cbutton.handler_unblock(self._side2_toggled_signal)
-        self._side1.side_cmbx.handler_unblock(self._side1_changed_signal)
-        self._side2.side_cmbx.handler_unblock(self._side2_changed_signal)
-        self._side1.angle_cmbx.handler_unblock(self._angle1_changed_signal)
-        self._side2.angle_cmbx.handler_unblock(self._angle2_changed_signal)
+        self._recomputing = False
 
     def _update_gui(self):
-        self._side1.cbutton.handler_block(self._side1_toggled_signal)
-        self._side2.cbutton.handler_block(self._side2_toggled_signal)
-        self._side1.side_cmbx.handler_block(self._side1_changed_signal)
-        self._side2.side_cmbx.handler_block(self._side2_changed_signal)
-        self._side1.angle_cmbx.handler_block(self._angle1_changed_signal)
-        self._side2.angle_cmbx.handler_block(self._angle2_changed_signal)
-
+        self._recomputing = True
         if self.rotate_facing == 0 and self.rotate_reverse == 0:
             self._side1.cbutton.set_active(False)
             self._side2.set_sensitive(False)
@@ -257,12 +232,7 @@ class RotateControls(Gtk.Box):
                 self._side2.cbutton.set_active(False)
                 self._update_side2_options()
 
-        self._side1.cbutton.handler_unblock(self._side1_toggled_signal)
-        self._side2.cbutton.handler_unblock(self._side2_toggled_signal)
-        self._side1.side_cmbx.handler_unblock(self._side1_changed_signal)
-        self._side2.side_cmbx.handler_unblock(self._side2_changed_signal)
-        self._side1.angle_cmbx.handler_unblock(self._angle1_changed_signal)
-        self._side2.angle_cmbx.handler_unblock(self._angle2_changed_signal)
+        self._recomputing = False
 
 
 class OCRControls(Gtk.Box):
