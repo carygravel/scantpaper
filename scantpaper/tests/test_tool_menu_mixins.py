@@ -9,7 +9,7 @@ from helpers import Proc
 from tools_menu_mixins import ToolsMenuMixins
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
 
 
 @pytest.fixture
@@ -52,6 +52,7 @@ def mock_tool_window(mocker):
     # Common mocks
     window.slist = mocker.MagicMock()
     window.post_process_progress = mocker.Mock()
+    window.view = mocker.Mock()
     window._display_callback = mocker.Mock()
     window._error_callback = mocker.Mock()
 
@@ -390,7 +391,7 @@ def test_crop_selection_no_pages(mock_tool_window):
 
 
 def test_crop_dialog_selection_change(mocker, mock_tool_window):
-    "Test that selection changes in crop dialog update settings and view"
+    "Test that crop dialog binds selection to view"
 
     mock_crop_cls = mocker.patch("tools_menu_mixins.Crop")
     mock_crop_instance = mock_crop_cls.return_value
@@ -406,24 +407,12 @@ def test_crop_dialog_selection_change(mocker, mock_tool_window):
 
     mock_tool_window.crop_dialog(None, None)
 
-    on_changed_selection = None
-    for call in mock_crop_instance.connect.call_args_list:
-        if call[0][0] == "changed-selection":
-            on_changed_selection = call[0][1]
-            break
-
-    assert on_changed_selection is not None, "Could not find changed-selection callback"
-
-    mock_selection = mocker.Mock()
-    mock_selection.copy.return_value = mock_selection
-
-    on_changed_selection(None, mock_selection)
-
-    assert mock_tool_window.settings["selection"] == mock_selection
-
-    mock_tool_window.view.handler_block.assert_called()
-    mock_tool_window.view.set_selection.assert_called_with(mock_selection)
-    mock_tool_window.view.handler_unblock.assert_called()
+    mock_tool_window.view.bind_property.assert_called_with(
+        "selection",
+        mock_crop_instance,
+        "selection",
+        GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
+    )
 
 
 def test_split_dialog(mocker, mock_tool_window):

@@ -720,7 +720,6 @@ def test_view_selection_changed_callback(app_window):
     app_window._view_selection_changed_callback(None, sel)
 
     assert app_window.settings["selection"] == copied_sel
-    assert app_window._windowc.selection == copied_sel
 
 
 def test_view_selection_changed_callback_none(app_window):

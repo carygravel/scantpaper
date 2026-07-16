@@ -52,11 +52,14 @@ class Crop(Dialog):
             and newval.equal(self._selection)
         ):
             return
+        self._updating_selection = True
         for row in LAYOUT:
             dim = row[0]
             val = getattr(newval, dim)
             getattr(self, f"_sb_{dim}").set_value(val)
+        self._updating_selection = False
         self._selection = newval
+        self.emit("changed-selection", newval)
 
     @GObject.Property(
         type=int,
@@ -104,6 +107,7 @@ class Crop(Dialog):
         self._selection = Gdk.Rectangle()
         self._page_width = 0
         self._page_height = 0
+        self._updating_selection = False
         super().__init__(*args, **kwargs)
 
         # Frame for page range
@@ -142,11 +146,17 @@ class Crop(Dialog):
 
     def on_sb_selector_value_changed(self, widget, dimension):
         "update selection when spinbutton changes"
-        if self.selection is None:
-            self.selection = Gdk.Rectangle()
-        setattr(self.selection, dimension, widget.get_value())
+        if self._updating_selection:
+            return
+        new_selection = Gdk.Rectangle()
+        if self.selection is not None:
+            new_selection.x = self.selection.x
+            new_selection.y = self.selection.y
+            new_selection.width = self.selection.width
+            new_selection.height = self.selection.height
+        setattr(new_selection, dimension, widget.get_value())
+        self.selection = new_selection
         self._update_sb_range(dimension)
-        self.emit("changed-selection", self.selection)
 
     def _update_sb_range(self, dimension):
         pagedim = "page_" + ("width" if dimension in ("x", "width") else "height")

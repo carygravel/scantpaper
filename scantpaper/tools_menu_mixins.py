@@ -27,6 +27,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position
     Gdk,
     GLib,
+    GObject,
     Gtk,
 )
 
@@ -348,16 +349,12 @@ class ToolsMenuMixins:
         width, height = self._current_page.get_size()
         self._windowc = Crop(transient_for=self, page_width=width, page_height=height)
 
-        def on_changed_selection(_widget, selection):
-            # copy required here because somehow the garbage collection
-            # destroys the Gdk.Rectangle too early and afterwards, the
-            # contents are corrupt.
-            self.settings["selection"] = selection.copy()
-            self.view.handler_block(self.view.selection_changed_signal)
-            self.view.set_selection(selection)
-            self.view.handler_unblock(self.view.selection_changed_signal)
-
-        self._windowc.connect("changed-selection", on_changed_selection)
+        self.view.bind_property(
+            "selection",
+            self._windowc,
+            "selection",
+            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
+        )
 
         if self.settings["selection"]:
             self._windowc.selection = self.settings["selection"]

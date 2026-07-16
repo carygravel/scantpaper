@@ -465,6 +465,7 @@ class ApplicationWindow(
         self.view.selection_changed_signal = self.view.connect(
             "selection-changed", self._view_selection_changed_callback
         )
+        self.view.connect("notify::selection", self._on_view_selection_notify)
 
         # GooCanvas for text layer
         self.t_canvas = Canvas()
@@ -621,8 +622,11 @@ class ApplicationWindow(
         # destroys the Gdk.Rectangle too early and afterwards, the
         # contents are corrupt.
         self.settings["selection"] = sel.copy()
-        if sel is not None and self._windowc is not None:
-            self._windowc.selection = self.settings["selection"]
+
+    def _on_view_selection_notify(self, _view, _pspec):
+        sel = self.view.selection
+        if sel is not None:
+            self.settings["selection"] = sel.copy()
 
     def _on_key_press(self, _widget, event):
 
