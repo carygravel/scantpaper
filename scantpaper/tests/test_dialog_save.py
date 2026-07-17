@@ -96,6 +96,7 @@ def test_insert_text_handler_inc_dec(mocker):
     dialog._meta_specify_widget.set_active(True)
     entry = dialog._meta_datetime_widget
     entry.set_text("2023-01-01")
+    entry.stop_emission_by_name = mocker.Mock()
 
     # Increment
     dialog._insert_text_handler(entry, "+", 1, 10)
@@ -111,6 +112,7 @@ def test_insert_text_handler_filtering(mocker):
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save()
     entry = dialog._meta_datetime_widget
+    entry.stop_emission_by_name = mocker.Mock()
 
     # Allow numbers and dashes for date
     dialog.include_time = False
