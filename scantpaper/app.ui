@@ -300,7 +300,8 @@
       <object class="GtkRadioMenuItem" id="context_dragger">
         <property name="label" translatable="yes">_Pan</property>
         <property name="use-underline">1</property>
-        <signal name="toggled" handler="_on_dragger"/>
+        <property name="action-name">win.tooltype</property>
+        <property name="action-target">'dragger'</property>
       </object>
     </child>
     <child>
@@ -308,7 +309,8 @@
         <property name="label" translatable="yes">_Select</property>
         <property name="group">context_dragger</property>
         <property name="use-underline">1</property>
-        <signal name="toggled" handler="_on_selector"/>
+        <property name="action-name">win.tooltype</property>
+        <property name="action-target">'selector'</property>
       </object>
     </child>
     <child>
@@ -316,7 +318,8 @@
         <property name="label" translatable="yes">_Select &amp; pan</property>
         <property name="group">context_dragger</property>
         <property name="use-underline">1</property>
-        <signal name="toggled" handler="_on_selectordragger"/>
+        <property name="action-name">win.tooltype</property>
+        <property name="action-target">'selectordragger'</property>
       </object>
     </child>
     <child><object class="GtkSeparatorMenuItem" /></child>

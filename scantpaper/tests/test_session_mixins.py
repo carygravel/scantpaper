@@ -47,7 +47,6 @@ def mock_session_window(mocker):
 
         # Callbacks
         _show_message_dialog = mocker.Mock()
-        _change_image_tool_cb = mocker.Mock()
         _changed_text_sort_method = mocker.Mock()
         save_dialog = mocker.Mock()
         email = mocker.Mock()
@@ -701,11 +700,6 @@ def test_edit_annotation(mocker, mock_session_window):
 
 def test_tool_actions(mock_session_window):
     "Test tool action callbacks"
-    mock_session_window._on_dragger(None)
-    mock_session_window._change_image_tool_cb.assert_called()
-
-    mock_session_window._on_selector(None)
-    mock_session_window._on_selectordragger(None)
     mock_session_window._on_zoom_100(None)
     mock_session_window._on_zoom_to_fit(None)
     mock_session_window._on_zoom_in(None)

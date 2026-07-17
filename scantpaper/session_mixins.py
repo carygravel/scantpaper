@@ -12,10 +12,7 @@ import gi
 import tesserocr
 from bboxtree import Bboxtree
 from const import (
-    DRAGGER_TOOL,
     EMPTY,
-    SELECTOR_TOOL,
-    SELECTORDRAGGER_TOOL,
     SPACE,
     ZOOM_CONTEXT_FACTOR,
 )
@@ -661,29 +658,6 @@ class SessionMixins:
     def zoom_out(self, _action, _param):
         "Zooms out the current view"
         self.view.zoom_out()
-
-    # It's a shame that we have to define these here, but I can't see a way
-    # to connect the actions in a context menu in app.ui otherwise
-    def _on_dragger(self, _widget):
-        "Handles the event when the dragger tool is selected."
-        # builder calls this the first time before the window is defined
-        self._change_image_tool_cb(
-            self._actions["tooltype"], GLib.Variant("s", DRAGGER_TOOL)
-        )
-
-    def _on_selector(self, _widget):
-        "Handles the event when the selector tool is selected."
-        # builder calls this the first time before the window is defined
-        self._change_image_tool_cb(
-            self._actions["tooltype"], GLib.Variant("s", SELECTOR_TOOL)
-        )
-
-    def _on_selectordragger(self, _widget):
-        "Handles the event when the selector dragger tool is selected."
-        # builder calls this the first time before the window is defined
-        self._change_image_tool_cb(
-            self._actions["tooltype"], GLib.Variant("s", SELECTORDRAGGER_TOOL)
-        )
 
     def _on_zoom_100(self, _widget):
         "Zooms the current page to 100%"

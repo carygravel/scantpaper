@@ -354,10 +354,7 @@ def test_init_actions(app_window):
 
 def test_change_image_tool_cb(app_window, mocker):
     "Test changing image tool"
-    # Mock the view and builder object
     app_window.view = MagicMock()
-    button = MagicMock()
-    app_window.builder.get_object.return_value = button
 
     # Mock Dragger to return a known object
     dragger_cls = mocker.patch("app_window.Dragger")
@@ -372,9 +369,16 @@ def test_change_image_tool_cb(app_window, mocker):
     assert app_window.settings["image_control_tool"] == "dragger"
     app_window.view.set_tool.assert_called_with(dragger_instance)
 
-    # repeat to test early return
+    # No manual radio button sync — Gtk.Actionable handles it
+    assert not any(
+        "context_" in str(c) for c in app_window.builder.get_object.call_args_list
+    )
+
+    # repeat to test early return — set_tool should not be called again
+    app_window.view.set_tool.reset_mock()
     app_window._change_image_tool_cb(action, variant)
     assert app_window.settings["image_control_tool"] == "dragger"
+    app_window.view.set_tool.assert_not_called()
 
     # Change to selectordragger with existing selection
     app_window.settings["selection"] = MagicMock()
@@ -383,6 +387,28 @@ def test_change_image_tool_cb(app_window, mocker):
     variant = GLib.Variant("s", "selectordragger")
     app_window._change_image_tool_cb(action, variant)
     app_window.view.set_selection.assert_called()
+
+
+def test_change_image_tool_no_reentrant_loop(app_window, mocker):
+    "GtkCheckMenuItem.set_active() calls gtk_menu_item_activate(), re-activating"
+    "the action with the old item's target. Verify this doesn't cause a loop."
+    app_window.view = MagicMock()
+    mocker.patch("app_window.Dragger")
+
+    action = app_window._actions["tooltype"]
+    original_set_state = action.set_state
+
+    def reentrant_set_state(variant):
+        original_set_state(variant)
+        # Simulate GtkCheckMenuItem deactivating the previously-active item,
+        # which calls gtk_menu_item_activate -> g_action_activate with old value
+        app_window._change_image_tool_cb(action, GLib.Variant("s", "selector"))
+
+    action.set_state = reentrant_set_state
+
+    app_window._change_image_tool_cb(action, GLib.Variant("s", "dragger"))
+    assert app_window.settings["image_control_tool"] == "dragger"
+    assert action.get_state().get_string() == "dragger"
 
 
 def test_change_view_cb(app_window):

@@ -114,7 +114,6 @@ class ApplicationWindow(
     _current_page = None
     _current_ocr_bbox = None
     _current_ann_bbox = None
-    _prevent_image_tool_update = False
     _rotate_controls = None
     session = None  # session dir
     _args = None  # GooCanvas for text layer
@@ -321,11 +320,6 @@ class ApplicationWindow(
             GLib.Variant("s", self.settings["image_control_tool"]),
         )
 
-        self._prevent_image_tool_update = True
-        self.builder.get_object(
-            "context_" + self.settings["image_control_tool"]
-        ).set_active(True)
-        self._prevent_image_tool_update = False
         self.get_application().set_menubar(self.builder.get_object("menubar"))
 
     def _read_config(self):
@@ -356,9 +350,7 @@ class ApplicationWindow(
         self.slist.set_paper_sizes(self.settings["Paper"])
 
         main_vbox = self.builder.get_object("main_vbox")
-        self._prevent_image_tool_update = True
         self.add(main_vbox)
-        self._prevent_image_tool_update = False
 
         self._populate_panes()
 
@@ -636,24 +628,21 @@ class ApplicationWindow(
         self.delete_selection(None, None)
         return Gdk.EVENT_STOP
 
+    _in_tool_change = False
+
     def _change_image_tool_cb(self, action, value):
-
-        # Prevent triggering the handler if it was triggered programmatically
-        if self._prevent_image_tool_update:
+        # GTK3 GtkCheckMenuItem.set_active() calls gtk_menu_item_activate(),
+        # re-activating the action with the deactivated item's target value.
+        if self._in_tool_change:
             return
+        self._in_tool_change = True
 
-        # ignore value if it hasn't changed
-        # state is defined with extra ' terminators in app.ui
         value = value.get_string()
-        if action.get_state() == f"'{value}'":
+        if action.get_state().get_string() == value:
+            self._in_tool_change = False
             return
 
-        # Set the flag to prevent recursive updates
-        self._prevent_image_tool_update = True
         action.set_state(GLib.Variant("s", value))
-        button = self.builder.get_object(f"context_{value}")
-        button.set_active(True)
-        self._prevent_image_tool_update = False
 
         if self.view:  # could be undefined at application start
             tool = Selector(self.view)
@@ -672,6 +661,7 @@ class ApplicationWindow(
                 self.view.handler_unblock(self.view.selection_changed_signal)
 
         self.settings["image_control_tool"] = value
+        self._in_tool_change = False
 
     def _change_view_cb(self, action, parameter):
         "Callback to switch between tabbed and split views"
