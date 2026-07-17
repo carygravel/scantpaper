@@ -343,8 +343,10 @@ def test_append_pdf_with_timestamp(
     assert re.search(r"Pages:\s+2", capture), "PDF appended"
     assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
     stb = os.stat(temp_pdf.name)
-    assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
-        2016, 2, 10, 0, 0, 0
+    assert datetime.datetime.fromtimestamp(
+        stb.st_mtime, tz=datetime.timezone.utc
+    ) == datetime.datetime(
+        2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc
     ), "timestamp"
 
     #########################

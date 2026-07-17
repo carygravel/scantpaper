@@ -211,8 +211,10 @@ def test_file_dates(temp_txt):
     )
     _set_timestamp(options)  # pylint: disable=protected-access
     stb = os.stat(temp_txt.name)
-    assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
-        2016, 2, 9, 10, 0, 0
+    assert datetime.datetime.fromtimestamp(
+        stb.st_mtime, tz=datetime.timezone.utc
+    ) == datetime.datetime(
+        2016, 2, 9, 10, 0, 0, tzinfo=datetime.timezone.utc
     ), "timestamp with timezone"
 
 

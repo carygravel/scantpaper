@@ -379,8 +379,10 @@ def test_save_djvu_with_metadata(
     assert re.search(r"2016-02-10", info) is not None, "metadata ModDate in DjVu"
 
     stb = os.stat(temp_djvu.name)
-    assert datetime.datetime.utcfromtimestamp(stb.st_mtime) == datetime.datetime(
-        2016, 2, 10, 0, 0, 0
+    assert datetime.datetime.fromtimestamp(
+        stb.st_mtime, tz=datetime.timezone.utc
+    ) == datetime.datetime(
+        2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc
     ), "timestamp"
 
     #########################
