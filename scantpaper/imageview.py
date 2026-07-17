@@ -521,9 +521,6 @@ class ImageView(Gtk.DrawingArea):
         )
         style.restore()
         if pixbuf is None:
-            bgcol = style.get_background_color(Gtk.StateFlags.NORMAL)
-            Gdk.cairo_set_source_rgba(context, bgcol)
-            context.paint()
             return True
 
         # Clip to viewport to avoid rendering off-screen pixels
