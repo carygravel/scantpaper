@@ -800,7 +800,11 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
         # Block the signal handler for the widget to prevent infinite
         # loops of the widget updating the option, updating the widget, etc.
-        widget.handler_block(widget.signal)
+        blocked = widget.signal is not None and widget.handler_is_connected(
+            widget.signal
+        )
+        if blocked:
+            widget.handler_block(widget.signal)
         opt = new_opt
 
         # HBox for option
@@ -813,7 +817,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         if opt.size < 2:
             self._update_single_option(opt)
 
-        widget.handler_unblock(widget.signal)
+        if blocked:
+            widget.handler_unblock(widget.signal)
         return False
 
     def _set_paper_formats(self, formats):
@@ -1261,7 +1266,11 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 f"Setting widget '{opt.name}'"
                 + ("" if opt.type == enums.TYPE_BUTTON else f" to '{val}'.")
             )
-            widget.handler_block(widget.signal)
+            blocked = widget.signal is not None and widget.handler_is_connected(
+                widget.signal
+            )
+            if blocked:
+                widget.handler_block(widget.signal)
             if isinstance(widget, (Gtk.CheckButton, Gtk.Switch)):
                 if widget.get_active() != val:
                     widget.set_active(val)
@@ -1277,7 +1286,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
                 if widget.get_text() != val:
                     widget.set_text(val)
 
-            widget.handler_unblock(widget.signal)
+            if blocked:
+                widget.handler_unblock(widget.signal)
 
         else:
             logger.warning("Widget for option '%s' undefined.", opt.name)
