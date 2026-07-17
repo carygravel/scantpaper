@@ -92,7 +92,10 @@ class Page:
     def to_bytes(self):
         "return the image as bytes, e.g. suitable for storing as a blob in SQLite"
         img_byte_arr = io.BytesIO()
-        self.image_object.save(img_byte_arr, format="PNG")
+        image = self.image_object
+        if image.mode == "I":
+            image = image.convert("L")
+        image.save(img_byte_arr, format="PNG")
         return img_byte_arr.getvalue()
 
     @classmethod
@@ -319,7 +322,10 @@ class Page:
             # "contains no data", caused by a race condition where PIL attempted
             # to lazy-load data from a deleted temporary file.
             self.image_object.load()
-            self.image_object.save(filename.name)
+            image = self.image_object
+            if image.mode == "I":
+                image = image.convert("L")
+            image.save(filename.name)
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
                     filename.name, width, height, False
