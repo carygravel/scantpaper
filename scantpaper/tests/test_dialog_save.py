@@ -93,9 +93,10 @@ def test_insert_text_handler_inc_dec(mocker):
     "Test increment/decrement date via + and - keys"
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save()
+    dialog.show_all()
     dialog._meta_specify_widget.set_active(True)
     entry = dialog._meta_datetime_widget
-    entry.set_text("2023-01-01")
+    entry.get_buffer().set_text("2023-01-01", -1)
     entry.stop_emission_by_name = mocker.Mock()
 
     # Increment
@@ -111,17 +112,18 @@ def test_insert_text_handler_filtering(mocker):
     "Test character filtering in _insert_text_handler"
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save()
+    dialog.show_all()
     entry = dialog._meta_datetime_widget
     entry.stop_emission_by_name = mocker.Mock()
 
     # Allow numbers and dashes for date
     dialog.include_time = False
-    entry.set_text("")
+    entry.get_buffer().set_text("", -1)
     dialog._insert_text_handler(entry, "2023-01-01", 10, 0)
     assert entry.get_text() == "2023-01-01"
 
     # Block letters
-    entry.set_text("")
+    entry.get_buffer().set_text("", -1)
     dialog._insert_text_handler(entry, "abc", 3, 0)
     assert entry.get_text() == ""
 
@@ -336,12 +338,12 @@ def test_meta_datetime_reads_from_widget_immediately():
         select_datetime=True,
     )
 
+    dialog.show_all()
     # Ensure "Specify" is active so it doesn't just return 'now'
     dialog._meta_specify_widget.set_active(True)
 
     # Simulate the user typing a new date into the entry widget
-    new_date_str = "2026-01-01"
-    dialog._meta_datetime_widget.set_text(new_date_str)
+    dialog._meta_datetime_widget.get_buffer().set_text("2026-01-01", -1)
 
     # ASSERTION: The property getter should return the NEW date parsed from the widget,
     # even though we haven't triggered a focus-out signal or updated the property setter.
@@ -363,6 +365,7 @@ def test_meta_datetime_preserves_time_when_not_included():
         select_datetime=True,
         include_time=False,
     )
+    dialog.show_all()
     dialog._meta_specify_widget.set_active(True)
 
     # Widget text will be "2026-05-08" (time truncated in UI)
@@ -386,6 +389,7 @@ def test_meta_datetime_preserves_datetime_when_not_changed():
         select_datetime=True,
         include_time=True,
     )
+    dialog.show_all()
     dialog._meta_specify_widget.set_active(True)
 
     # Widget text will be "2026-05-08 12:34:56"
@@ -408,10 +412,11 @@ def test_meta_datetime_returns_date_when_initial_was_date():
         select_datetime=True,
         include_time=False,
     )
+    dialog.show_all()
     dialog._meta_specify_widget.set_active(True)
 
     # Change the date in the widget
-    dialog._meta_datetime_widget.set_text("2026-01-01")
+    dialog._meta_datetime_widget.get_buffer().set_text("2026-01-01", -1)
 
     # Should return a date object
     res = dialog.meta_datetime
@@ -431,8 +436,9 @@ def test_meta_datetime_when_initial_is_none():
         select_datetime=True,
         include_time=True,
     )
+    dialog.show_all()
     dialog._meta_specify_widget.set_active(True)
-    dialog._meta_datetime_widget.set_text("2026-05-08 12:34:56")
+    dialog._meta_datetime_widget.get_buffer().set_text("2026-05-08 12:34:56", -1)
 
     assert dialog.meta_datetime == dt.datetime(2026, 5, 8, 12, 34, 56)
 

@@ -124,7 +124,9 @@ class Save(Dialog):
         if newval != self._meta_datetime:
             self._meta_datetime = newval
             if self._meta_datetime_widget is not None:
-                self._meta_datetime_widget.set_text(newval.isoformat(sep=" "))
+                self._meta_datetime_widget.get_buffer().set_text(
+                    newval.isoformat(sep=" "), -1
+                )
 
     select_datetime = GObject.Property(
         type=bool,
@@ -408,10 +410,13 @@ class Save(Dialog):
         # set this after self._meta_specify_widget.set_active() to prevent
         # meta_now_widget overwriting it
         if self.meta_datetime is not None and self.meta_datetime != "":
-            self._meta_datetime_widget.set_text(
-                self.meta_datetime.isoformat(sep=" ")
-                if hasattr(self.meta_datetime, "hour")
-                else self.meta_datetime.isoformat()
+            self._meta_datetime_widget.get_buffer().set_text(
+                (
+                    self.meta_datetime.isoformat(sep=" ")
+                    if hasattr(self.meta_datetime, "hour")
+                    else self.meta_datetime.isoformat()
+                ),
+                -1,
             )
 
     def _clicked_specify_date_button(self, widget, hboxe):
@@ -470,7 +475,7 @@ class Save(Dialog):
             calendar.select_day(today.day)
             calendar.select_month(today.month - 1, today.year)
             calendar.handler_unblock(calendar_s)
-            self._meta_datetime_widget.set_text(today.isoformat())
+            self._meta_datetime_widget.get_buffer().set_text(today.isoformat(), -1)
 
         today_b.connect("clicked", today_clicked_callback)
         vbox_date.pack_start(today_b, True, True, 0)
@@ -541,8 +546,8 @@ class Save(Dialog):
                 self.meta_now_widget.get_child().set_text(_("Now"))
                 self.meta_now_widget.set_tooltip_text(_("Use current date and time"))
                 self._meta_datetime_widget.set_max_length(ENTRY_WIDTH_DATETIME)
-                self._meta_datetime_widget.set_text(
-                    self._meta_datetime_widget.get_text() + " 00:00:00"
+                self._meta_datetime_widget.get_buffer().set_text(
+                    self._meta_datetime_widget.get_text() + " 00:00:00", -1
                 )
             else:
                 self.meta_now_widget.get_child().set_text(_("Today"))

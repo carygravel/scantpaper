@@ -407,7 +407,7 @@ def test_datetime_focus_out(mocker):
     dialog.meta_now_widget.set_active(False)
     dialog._meta_specify_widget.set_active(True)
     entry = dialog._meta_datetime_widget
-    entry.set_text("2022-02-22")
+    entry.get_buffer().set_text("2022-02-22", -1)
 
     # Simulate focus out
     dialog._datetime_focus_out_callback(entry, None)
@@ -576,7 +576,7 @@ def test_date_entry_inc_dec(mocker):
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window())
     entry = dialog._meta_datetime_widget
-    entry.set_text("2020-01-01")
+    entry.get_buffer().set_text("2020-01-01", -1)
 
     # Mock stop_emission_by_name but keep other behavior
     entry.stop_emission_by_name = mocker.Mock()
@@ -595,7 +595,7 @@ def test_date_entry_cursor_position(mocker):
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window())
     entry = dialog._meta_datetime_widget
-    entry.set_text("2020")
+    entry.get_buffer().set_text("2020", -1)
     entry.set_position(4)
 
     # Mock stop_emission_by_name
