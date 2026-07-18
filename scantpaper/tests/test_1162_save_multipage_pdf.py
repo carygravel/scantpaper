@@ -168,8 +168,8 @@ def test_save_multipage_pdf_as_ps2(
         mlp = safe_mainloop(5000)
         mlp.run()
 
-        assert os.path.getsize(temp_ps.name) > 15500, "non-empty postscript created"
-        assert os.path.getsize(temp_ps2.name) > 15500, "ran post-save hook"
+        assert os.path.getsize(temp_ps.name) > 14000, "non-empty postscript created"
+        assert os.path.getsize(temp_ps2.name) > 14000, "ran post-save hook"
 
     #########################
 
@@ -180,7 +180,7 @@ def test_prepend_pdf(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test prepending a page to a PDF"
-    temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.write(img2pdf.convert(rose_png.name))
     temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
@@ -211,7 +211,7 @@ def test_append_pdf(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test appending a page to a PDF"
-    temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.write(img2pdf.convert(rose_png.name))
     temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
@@ -243,7 +243,7 @@ def test_prepend_with_space(
 ):
     "Test prepending a page to a PDF with a space"
     with open("te st.pdf", "wb") as temp_pdf:
-        temp_pdf.write(img2pdf.convert(rose_png))
+        temp_pdf.write(img2pdf.convert(rose_png.name))
         temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
@@ -275,7 +275,7 @@ def test_prepend_with_inverted_comma(
 ):
     "Test prepending a page to a PDF"
     with open("te'st.pdf", "wb") as temp_pdf:
-        temp_pdf.write(img2pdf.convert(rose_png))
+        temp_pdf.write(img2pdf.convert(rose_png.name))
         temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
@@ -306,7 +306,7 @@ def test_append_pdf_with_timestamp(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test appending a page to a PDF with a timestamp"
-    temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.write(img2pdf.convert(rose_png.name))
     temp_pdf.flush()
 
     slist = Document(db=temp_db.name)

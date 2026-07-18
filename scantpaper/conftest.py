@@ -1,14 +1,13 @@
 "Some helper functions to reduce boilerplate"
 
 import os
-import subprocess
 import tempfile
 from types import SimpleNamespace
 
 import gi
 import pytest
-from config import CONVERT_COMMAND
 from dialog.sane import SaneScanDialog
+from PIL import Image, ImageDraw, ImageFont
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
@@ -282,60 +281,85 @@ def temp_txt():
     return tempfile.NamedTemporaryFile(suffix=".txt", mode="wt")
 
 
-@pytest.fixture
-def rotated_qbfox_pnm(temp_pnm):
-    "return an image with quick brown fox text"
-    subprocess.run(
-        [
-            CONVERT_COMMAND,
-            "-density",
-            "300",
-            "label:The quick brown fox",
-            "-alpha",
-            "Off",
-            "-depth",
-            "1",
-            "-colorspace",
-            "Gray",
-            "-family",
-            "DejaVu Sans",
-            "-pointsize",
-            "12",
-            "-rotate",
-            "-90",
-            temp_pnm.name,
-        ],
-        check=True,
-    )
-    return temp_pnm
+def _create_rose_image():
+    "Create a 70x46 RGB image resembling the ImageMagick rose: sample"
+    img = Image.new("RGB", (70, 46))
+    pixels = img.load()
+    for y in range(46):
+        for x in range(70):
+            r = int(255 * (1 - ((x - 35) ** 2 + (y - 23) ** 2) / 2000))
+            g = int(128 * (1 - ((x - 20) ** 2 + (y - 15) ** 2) / 1500))
+            b = int(180 * (1 - ((x - 50) ** 2 + (y - 30) ** 2) / 1800))
+            pixels[x, y] = (
+                max(0, min(255, r)),
+                max(0, min(255, g)),
+                max(0, min(255, b)),
+            )
+    return img
 
 
-@pytest.fixture
-def rose_jpg(temp_jpg):
-    "return a jpg file with a rose image"
-    subprocess.run([CONVERT_COMMAND, "rose:", temp_jpg.name], check=True)
-    return temp_jpg
+def _create_qbfox_image():
+    "Create a rotated 1-bit grayscale image with 'The quick brown fox' text"
+    font_size = 50  # 12pt at 300 DPI ≈ 50px
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", font_size)
+    except OSError:
+        font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size
+        )
+    text = "The quick brown fox"
+    tmp = Image.new("L", (1200, 80), 255)
+    draw = ImageDraw.Draw(tmp)
+    draw.text((10, 10), text, fill=0, font=font)
+    bbox = tmp.getbbox()
+    if bbox:
+        tmp = tmp.crop(bbox)
+    return tmp.rotate(90, expand=True).convert("1")
 
 
-@pytest.fixture
-def rose_png(temp_png):
-    "return a png file with a rose image"
-    subprocess.run([CONVERT_COMMAND, "rose:", temp_png.name], check=True)
-    return temp_png
+@pytest.fixture(scope="session")
+def rose_pnm():
+    "return a session-scoped pnm file with a rose image"
+    tmp = tempfile.NamedTemporaryFile(suffix=".pnm", delete=False)
+    _create_rose_image().save(tmp.name, "PPM")
+    yield tmp
+    os.unlink(tmp.name)
 
 
-@pytest.fixture
-def rose_pnm(temp_pnm):
-    "return a pnm file with a rose image"
-    subprocess.run([CONVERT_COMMAND, "rose:", temp_pnm.name], check=True)
-    return temp_pnm
+@pytest.fixture(scope="session")
+def rose_png():
+    "return a session-scoped png file with a rose image"
+    tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    _create_rose_image().save(tmp.name, "PNG")
+    yield tmp
+    os.unlink(tmp.name)
 
 
-@pytest.fixture
-def rose_tif(temp_tif):
-    "return a tif file with a rose image"
-    subprocess.run([CONVERT_COMMAND, "rose:", temp_tif.name], check=True)
-    return temp_tif
+@pytest.fixture(scope="session")
+def rose_jpg():
+    "return a session-scoped jpg file with a rose image"
+    tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
+    _create_rose_image().save(tmp.name, "JPEG")
+    yield tmp
+    os.unlink(tmp.name)
+
+
+@pytest.fixture(scope="session")
+def rose_tif():
+    "return a session-scoped tif file with a rose image"
+    tmp = tempfile.NamedTemporaryFile(suffix=".tif", delete=False)
+    _create_rose_image().save(tmp.name, "TIFF")
+    yield tmp
+    os.unlink(tmp.name)
+
+
+@pytest.fixture(scope="session")
+def rotated_qbfox_pnm():
+    "return a session-scoped image with quick brown fox text"
+    tmp = tempfile.NamedTemporaryFile(suffix=".pnm", delete=False)
+    _create_qbfox_image().save(tmp.name)
+    yield tmp
+    os.unlink(tmp.name)
 
 
 @pytest.fixture

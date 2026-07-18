@@ -46,7 +46,7 @@ def test_import_multipage_pdf_with_not_enough_images(
     with tempfile.NamedTemporaryFile(
         suffix=".pdf"
     ) as page1, tempfile.NamedTemporaryFile(suffix=".pdf") as page2:
-        page1.write(img2pdf.convert(rose_png))
+        page1.write(img2pdf.convert(rose_png.name))
         page1.flush()
         content = b"""%PDF-1.4
 1 0 obj
@@ -196,7 +196,7 @@ def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
 
 def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
     "Test importing PDF"
-    temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.write(img2pdf.convert(rose_png.name))
     temp_pdf.flush()
 
     with tempfile.TemporaryDirectory() as dirname:
@@ -244,7 +244,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
 def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
     "Test importing PDF"
 
-    temp_pdf.write(img2pdf.convert(rose_png))
+    temp_pdf.write(img2pdf.convert(rose_png.name))
     temp_pdf.flush()
     subprocess.run(
         [
@@ -297,7 +297,7 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
     "Test importing PDF"
     temp_pdf.write(
         img2pdf.convert(
-            rose_png,
+            rose_png.name,
             author="Authör",
             title="Title",
             subject="Sübject",

@@ -250,9 +250,9 @@ def test_unsharp_mask(
     mlp.run()
     page = slist.thread.get_page(number=1)
     assert page.mean == [
-        145.5391304347826,
-        89.22546583850932,
-        80.40186335403726,
+        179.97422360248447,
+        65.09254658385093,
+        99.69409937888199,
     ], "mean before"
 
     mlp = safe_mainloop(2000)
@@ -274,9 +274,9 @@ def test_unsharp_mask(
 
     page = slist.thread.get_page(number=1)
     assert page.mean != [
-        145.5391304347826,
-        89.22546583850932,
-        80.40186335403726,
+        179.97422360248447,
+        65.09254658385093,
+        99.69409937888199,
     ], "mean after"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
@@ -507,7 +507,7 @@ def test_brightness_contrast(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    mean = [145.5391304347826, 89.22546583850932, 80.40186335403726]
+    mean = [179.97422360248447, 65.09254658385093, 99.69409937888199]
     page = slist.thread.get_page(number=1)
     assert page.mean == mean, "mean before"
 
