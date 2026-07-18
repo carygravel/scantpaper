@@ -659,6 +659,7 @@ def test_save_pdf_with_old_metadata(
     def error_callback(_result):
         nonlocal called
         called = True
+        mlp.quit()
 
     mlp = safe_mainloop(2000)
     slist.save_pdf(

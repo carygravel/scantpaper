@@ -398,6 +398,7 @@ def test_save_djvu_with_old_metadata(
     def error_callback(_result):
         nonlocal called
         called = True
+        mlp.quit()
 
     metadata = {
         "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),

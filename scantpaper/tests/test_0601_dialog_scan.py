@@ -325,7 +325,7 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     assert dialog.sided == "single", "selecting flatbed forces single sided"
     assert set_option_in_mainloop(dialog, "br-y", 9.0)
     loop = mainloop_with_timeout()
-    dialog.connect("changed-paper", lambda x, y: loop.quit)
+    dialog.connect("changed-paper", lambda x, y: loop.quit())
     dialog.paper = None
     loop.run()
     assert dialog.current_scan_options == Profile(

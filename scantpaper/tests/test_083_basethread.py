@@ -113,7 +113,10 @@ def test_1():
             )
             assert actual == expected, str(n_callbacks)
         n_callbacks += 1
-        if response is not None and response.type == ResponseType.FINISHED:
+        if response is not None and response.type in (
+            ResponseType.FINISHED,
+            ResponseType.ERROR,
+        ):
             mlp.quit()
 
     thread = MyThread()
@@ -155,7 +158,7 @@ def test_1():
     mlp.run()
     assert n_callbacks in (9, 10), "checked all expected responses #6"
 
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda response: mlp.quit())
 
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -176,6 +179,8 @@ def test_job_counters_do_not_leak_across_batches():
 
     def callback(response=None):
         callback_calls.append(response)
+        if response is not None and response.type == ResponseType.FINISHED:
+            mlp.quit()
 
     # First batch: one job
     thread.send("div", 1, 2, finished_callback=callback)
@@ -200,7 +205,7 @@ def test_job_counters_do_not_leak_across_batches():
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
 
@@ -211,9 +216,15 @@ def test_job_counters_persist_within_batch():
     thread.start()
 
     callback_calls = []
+    n_callbacks = 0
 
     def callback(response=None):
+        nonlocal n_callbacks
         callback_calls.append(response)
+        if response is not None and response.type == ResponseType.FINISHED:
+            n_callbacks += 1
+            if n_callbacks == 3:
+                mlp.quit()
 
     uid1 = thread.send("div", 1, 2, finished_callback=callback)
     uid2 = thread.send("div", 3, 4, finished_callback=callback)
@@ -231,7 +242,7 @@ def test_job_counters_persist_within_batch():
     assert thread.total_jobs == 3
     assert thread.num_completed_jobs == 3
 
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
 
@@ -284,7 +295,15 @@ def test_none_callback():
 
     # Send a job with finished_callback explicitly set to None
     # This should not raise an error when the callback is executed
-    thread.send("div", 1, 2, finished_callback=None, error_callback=error_callback)
+    thread.register_callback("after_finished", "after", "finished")
+    thread.send(
+        "div",
+        1,
+        2,
+        finished_callback=None,
+        error_callback=error_callback,
+        after_finished_callback=lambda response: mlp.quit(),
+    )
 
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -292,6 +311,6 @@ def test_none_callback():
     # Should not have any errors
     assert not errors, f"Unexpected errors: {errors}"
 
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()

@@ -82,6 +82,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
         dlg.disconnect(dlg.reloaded_signal)
         nonlocal asserts
         asserts += 1
+        loop.quit()
 
     dlg.reloaded_signal = dlg.connect("reloaded-scan-options", reloaded_scan_options_cb)
     dlg.get_devices()

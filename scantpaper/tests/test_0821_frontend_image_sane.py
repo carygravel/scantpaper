@@ -27,7 +27,7 @@ def test_error_handling():
         asserts += 1
 
     thread.scan_page(error_callback=scan_error_callback)
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda _: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
     assert asserts == 1, "checked all expected responses #1"
@@ -49,7 +49,7 @@ def test_2():
         asserts += 1
 
     thread.get_devices(finished_callback=get_devices_callback)
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda _: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
     assert asserts == 1, "checked all expected responses #2"
@@ -265,7 +265,7 @@ def test_5_edge_cases_part_1():
     mlp.run()
     assert asserts == 3, "checked inactive option"
 
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda _: mlp.quit())
     mlp.run()
 
 
@@ -324,7 +324,7 @@ def test_5_edge_cases_part_2():
     mlp.run()
     assert asserts == 4, "checked fixed type conversion"
 
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda _: mlp.quit())
     mlp.run()
 
 
@@ -454,7 +454,7 @@ def test_6_mock_device():
 
         assert asserts == 5
 
-        thread.send("quit")
+        thread.send("quit", finished_callback=lambda _: mlp.quit())
         mlp.run()
 
 
@@ -483,7 +483,7 @@ def test_7_close_device_not_open():
     mlp.run()
 
     assert asserts == 2
-    thread.send("quit")
+    thread.send("quit", finished_callback=lambda _: mlp.quit())
     mlp.run()
 
 
@@ -526,7 +526,7 @@ def test_9_quit_handles_sane_exit_exception():
         mlp.run()
 
         # Quit should handle the exception from sane.exit() gracefully
-        thread.send("quit")
+        thread.send("quit", finished_callback=lambda _: mlp.quit())
         mlp.run()
 
         # Verify sane.exit() was called and the exception was handled

@@ -909,6 +909,7 @@ def test_empty_device_list(mocker, sane_scan_dialog, mainloop_with_timeout):
         assert devices == [], "changed-device-list called with empty array"
         nonlocal asserts
         asserts += 1
+        loop.quit()
 
     dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
     loop = mainloop_with_timeout()

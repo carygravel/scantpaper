@@ -394,6 +394,8 @@ class SaveThread(Importhread):
             _post_save_hook(options["options"]["ps"], options["options"])
 
         else:
+            if "options" not in options:
+                options["options"] = None
             _post_save_hook(options["path"], options["options"])
         self.do_set_saved(
             Request("set_saved", (options["list_of_pages"], True), self.responses)
@@ -480,6 +482,8 @@ class SaveThread(Importhread):
             if written_header:
                 fhd.write("</body>\n</html>\n")
 
+        if "options" not in options:
+            options["options"] = None
         _post_save_hook(options["path"], options["options"])
 
     def do_set_paper_sizes(self, request):

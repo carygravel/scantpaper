@@ -378,8 +378,6 @@ def test_source_default(
     assert dlg.num_pages == 2, "num-pages"
     assert dlg.framen.is_sensitive(), "num-page gui not ghosted"
 
-    loop.run()
-
 
 def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
     "Check options are reset before applying a profile"

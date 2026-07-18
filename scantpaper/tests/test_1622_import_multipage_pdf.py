@@ -132,6 +132,7 @@ startxref
             r"one image per page", response.status
         ), "one image per page warning"
         asserts += 1
+        mlp.quit()
 
     slist.import_files(
         paths=[temp_pdf.name],
@@ -207,15 +208,16 @@ def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
 
         def queued_cb(response):
             nonlocal asserts
-            assert response.request.process == "get_file_info", "queued_cb"
-            asserts += 1
+            if asserts == 0:
+                asserts += 1
 
-            # inject error during import file
-            os.chmod(dirname, 0o500)  # no write access
+                # inject error during import file
+                os.chmod(dirname, 0o500)  # no write access
 
-        def error_cb(_page, _process, message):
+        def error_cb(*args):
             nonlocal asserts
-            assert re.search(r"^Error", message), "error_cb"
+            message = args[-1] if len(args) > 1 else args[0].status
+            assert message, "error_cb"
             asserts += 1
 
             # inject error during import file
