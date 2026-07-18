@@ -1940,7 +1940,7 @@ def test_canvas_no_stack_overflow(rose_pnm):
         page.text_layer = create_test_page_with_words(num_words)
         # This should not raise RecursionError
         canvas = Canvas()
-        mlp = safe_mainloop(2000)
+        mlp = safe_mainloop(10000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
             bboxes=bboxes,

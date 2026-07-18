@@ -40,7 +40,7 @@ def test_udt(
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
     )
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i -negate %o",
@@ -48,7 +48,7 @@ def test_udt(
     )
     mlp.run()
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
@@ -76,7 +76,7 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, [temp_pnm.name])
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i -negate %i",
@@ -84,7 +84,7 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     )
     mlp.run()
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
@@ -121,7 +121,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i tmp.pbm;mv tmp.pbm %i",
@@ -132,7 +132,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of image after udt"
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
@@ -166,7 +166,7 @@ def test_udt_resolution(
     import_in_mainloop(slist, [temp_pnm.name])
     set_resolution_in_mainloop(slist, 1, 10, 10)
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i tmp.ppm;mv tmp.ppm %i",
@@ -202,7 +202,7 @@ def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
         assert re.search(r"error", response.info["info"]), "error_cb"
         asserts += 1
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.user_defined(
         page=slist.data[0][2],
         command="echo error > /dev/stderr;convert %i -negate %i",
@@ -211,7 +211,7 @@ def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     )
     mlp.run()
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),

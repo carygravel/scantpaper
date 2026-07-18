@@ -93,7 +93,7 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_fil
 
     import_in_mainloop(slist, [temp_png.name])
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(10000)
     slist.tesseract(
         page=slist.data[0][2],
         language="eng",

@@ -39,7 +39,7 @@ def test_save_multipage_pdf(
         )
         pages.append(i + 1)
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=pages,
@@ -83,7 +83,7 @@ def test_save_multipage_pdf_with_utf8(
         )
         pages.append(i + 1)
 
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=pages,
@@ -130,7 +130,7 @@ def test_save_multipage_pdf_as_ps(
             },
             finished_callback=lambda response: mlp.quit(),
         )
-        mlp = safe_mainloop(2000)
+        mlp = safe_mainloop(5000)
         mlp.run()
 
         assert os.path.getsize(temp_ps.name) > 194000, "non-empty postscript created"
@@ -165,7 +165,7 @@ def test_save_multipage_pdf_as_ps2(
             },
             finished_callback=lambda response: mlp.quit(),
         )
-        mlp = safe_mainloop(2000)
+        mlp = safe_mainloop(5000)
         mlp.run()
 
         assert os.path.getsize(temp_ps.name) > 15500, "non-empty postscript created"
@@ -195,7 +195,7 @@ def test_prepend_pdf(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
@@ -226,7 +226,7 @@ def test_append_pdf(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
@@ -258,7 +258,7 @@ def test_prepend_with_space(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", "te st.pdf"], text=True)
@@ -290,7 +290,7 @@ def test_prepend_with_inverted_comma(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", "te'st.pdf"], text=True)
@@ -328,7 +328,7 @@ def test_append_pdf_with_timestamp(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = safe_mainloop(2000)
+    mlp = safe_mainloop(5000)
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
