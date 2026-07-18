@@ -408,29 +408,11 @@ def rose_tif():
 
 @pytest.fixture
 def rotated_qbfox_pnm(temp_pnm):
-    "return an image with quick brown fox text"
-    subprocess.run(
-        [
-            config.CONVERT_COMMAND,
-            "-density",
-            "300",
-            "label:The quick brown fox",
-            "-alpha",
-            "Off",
-            "-depth",
-            "1",
-            "-colorspace",
-            "Gray",
-            "-family",
-            "DejaVu Sans",
-            "-pointsize",
-            "12",
-            "-rotate",
-            "-90",
-            temp_pnm.name,
-        ],
-        check=True,
-    )
+    "return an image with quick brown fox text for debugging CI"
+    img = _create_qbfox_image()
+    img.save(temp_pnm.name)
+    # Save a copy for CI artifact upload
+    img.save("/tmp/qbfox_debug.png")
     return temp_pnm
 
 

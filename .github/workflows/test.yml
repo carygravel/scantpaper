@@ -73,6 +73,13 @@ jobs:
         run: black --check .
       - name: Test
         run: pytest
+      - name: Upload debug image
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qbfox-debug-image
+          path: /tmp/qbfox_debug.png
+          if-no-files-found: warn
 
   oldest:
     runs-on: ubuntu-22.04
