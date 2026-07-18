@@ -301,8 +301,8 @@ def _create_rose_image():
 
 
 def _create_qbfox_image():
-    "Create a rotated 1-bit grayscale image with 'The quick brown fox' text"
-    font_size = 50  # 12pt at 300 DPI ≈ 50px
+    "Create a rotated grayscale image with 'The quick brown fox' text"
+    font_size = 50
     try:
         font = ImageFont.truetype("DejaVuSans.ttf", font_size)
     except OSError:
@@ -310,13 +310,13 @@ def _create_qbfox_image():
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size
         )
     text = "The quick brown fox"
-    tmp = Image.new("L", (1200, 80), 255)
+    tmp = Image.new("L", (1200, 120), 255)
     draw = ImageDraw.Draw(tmp)
-    draw.text((10, 10), text, fill=0, font=font)
+    draw.text((50, 30), text, fill=0, font=font)
     bbox = tmp.getbbox()
     if bbox:
         tmp = tmp.crop(bbox)
-    return tmp.rotate(90, expand=True).convert("1")
+    return tmp.rotate(90, expand=True)
 
 
 @pytest.fixture(scope="session")
