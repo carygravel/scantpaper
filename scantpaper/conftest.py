@@ -1,6 +1,7 @@
 "Some helper functions to reduce boilerplate"
 
 import os
+import subprocess
 import tempfile
 from types import SimpleNamespace
 
@@ -317,6 +318,19 @@ def _create_qbfox_image():
             continue
     if font is None:
         try:
+            result = subprocess.run(
+                ["fc-match", "--format=%{file}", "sans:style=Regular"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                font = ImageFont.truetype(result.stdout.strip(), font_size)
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    if font is None:
+        try:
             font = ImageFont.load_default(size=font_size)
         except TypeError:
             font = ImageFont.load_default()
@@ -341,7 +355,7 @@ def _create_qbfox_image():
     if w < min_w or h < min_h:
         scale = max(min_w / w, min_h / h)
         canvas = canvas.resize(
-            (int(w * scale), int(h * scale)), Image.Resampling.NEAREST
+            (int(w * scale), int(h * scale)), Image.Resampling.LANCZOS
         )
     return canvas.rotate(90, expand=True)
 

@@ -182,7 +182,7 @@ def test_save_pdf_with_locale(
 
 def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop, clean_up_files):
     "Test saving a PDF and triggering an error"
-    with tempfile.TemporaryDirectory() as dirname:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
         asserts = 0
 
