@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 from gi.repository import GLib
 import config
 from document import Document
+from loop_helpers import safe_mainloop
 
 
 def test_import_ppm(temp_db, temp_ppm, clean_up_files):
@@ -14,13 +15,12 @@ def test_import_ppm(temp_db, temp_ppm, clean_up_files):
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     slist.import_files(
         paths=[temp_ppm.name],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(id=1)
@@ -36,7 +36,7 @@ def test_import_corrupt_png(temp_png, clean_up_files):
 
     slist = Document()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     asserts = 0
 
@@ -55,7 +55,6 @@ def test_import_corrupt_png(temp_png, clean_up_files):
         error_callback=error_cb,
         finished_callback=finished_cb,
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"

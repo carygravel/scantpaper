@@ -6,6 +6,7 @@ import tempfile
 from gi.repository import GLib
 import config
 from document import Document
+from loop_helpers import safe_mainloop
 
 
 def test_save_image(
@@ -16,7 +17,7 @@ def test_save_image(
 
     import_in_mainloop(slist, [rose_pnm.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_image(
         path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
@@ -25,7 +26,6 @@ def test_save_image(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     example = subprocess.check_output(["identify", temp_jpg.name], text=True)
@@ -53,13 +53,12 @@ def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop, clean_up_f
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_pnm.name])
     with tempfile.NamedTemporaryFile(prefix="'", suffix=".jpg") as temp_jpg:
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_image(
             path=temp_jpg.name,
             list_of_pages=[slist.data[0][2]],
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         example = subprocess.check_output(["identify", temp_jpg.name], text=True)
@@ -81,13 +80,12 @@ def test_save_image_with_ampersand(
 
     path = "sed & awk.png"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_image(
         path=path,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     example = subprocess.check_output(["identify", path], text=True)

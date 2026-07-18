@@ -5,6 +5,7 @@ import subprocess
 from gi.repository import GLib
 import config
 from document import Document
+from loop_helpers import safe_mainloop
 
 
 def test_udt(
@@ -39,21 +40,19 @@ def test_udt(
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
     )
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i -negate %o",
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -77,21 +76,19 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, [temp_pnm.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i -negate %i",
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -124,25 +121,23 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i tmp.pbm;mv tmp.pbm %i",
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
     assert page.resolution[0] == 25.4, "Resolution of image after udt"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     new = subprocess.check_output(
@@ -171,13 +166,12 @@ def test_udt_resolution(
     import_in_mainloop(slist, [temp_pnm.name])
     set_resolution_in_mainloop(slist, 1, 10, 10)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i tmp.ppm;mv tmp.ppm %i",
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -208,22 +202,20 @@ def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
         assert re.search(r"error", response.info["info"]), "error_cb"
         asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.user_defined(
         page=slist.data[0][2],
         command="echo error > /dev/stderr;convert %i -negate %i",
         logger_callback=logger_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"

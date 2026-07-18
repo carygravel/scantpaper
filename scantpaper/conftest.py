@@ -14,6 +14,9 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
+from loop_helpers import _MainLoopWrapper, safe_mainloop  # noqa: F401
+
+
 def pytest_configure(config):
     "globals"
     config.timeout = 10000
@@ -38,12 +41,11 @@ def import_in_mainloop():
     "import paths in a blocking mainloop"
 
     def anonymous(slist, paths):
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop()
         slist.import_files(
             paths=paths,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
     return anonymous
@@ -54,11 +56,10 @@ def set_saved_in_mainloop():
     "set_saved in a blocking mainloop"
 
     def anonymous(slist, page_id, saved=True):
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop()
         slist.thread.send(
             "set_saved", page_id, saved, finished_callback=lambda response: mlp.quit()
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
     return anonymous
@@ -69,11 +70,10 @@ def set_text_in_mainloop():
     "set_text in a blocking mainloop"
 
     def anonymous(slist, page_id, text):
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop()
         slist.thread.send(
             "set_text", page_id, text, finished_callback=lambda response: mlp.quit()
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
     return anonymous
@@ -84,14 +84,13 @@ def set_annotations_in_mainloop():
     "set_annotations in a blocking mainloop"
 
     def anonymous(slist, page_id, annotations):
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop()
         slist.thread.send(
             "set_annotations",
             page_id,
             annotations,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
     return anonymous
@@ -102,7 +101,7 @@ def set_resolution_in_mainloop():
     "set_resolution in a blocking mainloop"
 
     def anonymous(slist, page_id, xres, yres):
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop()
         slist.thread.send(
             "set_resolution",
             page_id,
@@ -110,7 +109,6 @@ def set_resolution_in_mainloop():
             yres,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
     return anonymous
@@ -122,8 +120,9 @@ def mainloop_with_timeout(request):
 
     def anonymous():
         loop = GLib.MainLoop()
-        GLib.timeout_add(request.config.timeout, loop.quit)  # to prevent it hanging
-        return loop
+        wrapper = _MainLoopWrapper(loop)
+        GLib.timeout_add(request.config.timeout, wrapper._on_timeout)
+        return wrapper
 
     return anonymous
 

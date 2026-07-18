@@ -9,6 +9,7 @@ import config
 from document import Document
 from tesseract import languages, _iso639_1to3, locale_installed, get_tesseract_codes
 from helpers import Proc
+from loop_helpers import safe_mainloop
 
 
 def test_tesseract_code_conversions():
@@ -92,13 +93,12 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_fil
 
     import_in_mainloop(slist, [temp_png.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.tesseract(
         page=slist.data[0][2],
         language="eng",
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)

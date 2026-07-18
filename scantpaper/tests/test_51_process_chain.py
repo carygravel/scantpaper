@@ -9,6 +9,7 @@ from gi.repository import GLib
 import config
 from document import Document
 from unpaper import Unpaper
+from loop_helpers import safe_mainloop
 
 
 @pytest.mark.skipif(
@@ -51,7 +52,7 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files):
             assert True, "Triggered display callback"
             asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.import_scan(
         filename=temp_pnm.name,
         page=1,
@@ -65,7 +66,6 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files):
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert (
@@ -104,7 +104,7 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
     )
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.import_scan(
         filename=temp_pnm.name,
         page=1,
@@ -113,10 +113,9 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
         delete=True,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop()
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
@@ -143,7 +142,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm, clean_up_files):
         nonlocal asserts
         asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(5000)
     slist.import_scan(
         filename=rotated_qbfox_pnm.name,
         page=1,
@@ -156,7 +155,6 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm, clean_up_files):
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 3, "display callback called for import, rotate, tesseract"
@@ -181,7 +179,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
     slist = Document(db=temp_db.name)
 
     asserts = 0
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop()
 
     def started_callback(_response):
         slist.select(0)
@@ -205,7 +203,6 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
         error_callback=error_callback,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "Caught error trying to process deleted page"
@@ -218,7 +215,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(5000)
     error_callback = MagicMock()
     slist.import_scan(
         filename=rotated_qbfox_pnm.name,
@@ -232,7 +229,6 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
         error_callback=error_callback,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
     mlp.run()
     error_callback.assert_not_called()
 
@@ -246,7 +242,7 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
     slist = Document(db=temp_db.name)
 
     asserts = 0
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop()
 
     def started_callback(_response):
         slist.select(0)
@@ -270,7 +266,6 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
     }
     slist.import_scan(page=1, **options)
     slist.import_scan(page=2, started_callback=started_callback, **options)
-    GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts > 0, "Didn't hang waiting for deleted page"

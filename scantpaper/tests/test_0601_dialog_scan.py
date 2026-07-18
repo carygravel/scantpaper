@@ -13,6 +13,7 @@ from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
+from loop_helpers import safe_mainloop
 
 
 def test_basics():
@@ -83,7 +84,7 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
         options["page"] = 5
 
         asserts = 0
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
 
         def finished_callback(_response):
             nonlocal asserts
@@ -96,7 +97,6 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
 
         options["finished_callback"] = finished_callback
         slist.import_scan(**options)
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
         assert asserts == 1, "ran finished callback"
 

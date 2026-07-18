@@ -7,6 +7,7 @@ import tempfile
 from gi.repository import GLib
 import config
 from document import Document
+from loop_helpers import safe_mainloop
 
 
 def test_save_tiff(
@@ -17,7 +18,7 @@ def test_save_tiff(
 
     import_in_mainloop(slist, [rose_pnm.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_tiff(
         path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
@@ -26,7 +27,6 @@ def test_save_tiff(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     example = subprocess.check_output(["identify", temp_tif.name], text=True)
@@ -59,7 +59,7 @@ def test_cancel_save_tiff(
 
     import_in_mainloop(slist, [rose_pnm.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     called = False
 
     def cancelled_callback(_response):
@@ -73,7 +73,6 @@ def test_cancel_save_tiff(
         finished_callback=lambda response: mlp.quit(),
     )
     slist.cancel(cancelled_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert called, "Cancelled callback"
@@ -83,8 +82,7 @@ def test_cancel_save_tiff(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     assert subprocess.check_output(
@@ -114,13 +112,12 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop, clean_up_f
             asserts += 1
             mlp.quit()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_tiff(
             path=temp_tif.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback1,
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         def error_callback2(_page, _process, _message):
@@ -130,13 +127,12 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop, clean_up_f
             asserts += 1
             mlp.quit()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_tiff(
             path=temp_tif.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback2,
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert asserts == 2, "ran all callbacks"
@@ -174,7 +170,7 @@ def test_save_tiff_with_alpha(
 
     import_in_mainloop(slist, [temp_png.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_tiff(
         path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
@@ -183,7 +179,6 @@ def test_save_tiff_with_alpha(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     example = subprocess.check_output(["identify", temp_tif.name], text=True)
@@ -208,7 +203,7 @@ def test_save_tiff_as_ps(
     import_in_mainloop(slist, [rose_pnm.name, rose_pnm.name])
 
     with tempfile.NamedTemporaryFile(suffix=".ps", prefix=" ") as temp_ps:
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_tiff(
             path=temp_tif.name,
             list_of_pages=[slist.data[0][2], slist.data[1][2]],
@@ -218,7 +213,6 @@ def test_save_tiff_as_ps(
             },
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         example = subprocess.check_output(["file", temp_ps.name], text=True)
@@ -240,7 +234,7 @@ def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop, clean_up_
     "Test writing TIFF with group 4 compression"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png.name])
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_tiff(
         path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
@@ -249,7 +243,6 @@ def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop, clean_up_
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     example = subprocess.check_output(["identify", temp_tif.name], text=True)

@@ -20,6 +20,7 @@ from docthread import DocThread
 from document import Document
 from gi.repository import GLib
 from page import Page
+from loop_helpers import safe_mainloop
 
 
 def has_locale(name):
@@ -97,8 +98,7 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
         started_callback=import_files_started_cb,
         finished_callback=import_files_finished_cb,
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     # FIXME: add support for completed, total vars
@@ -130,8 +130,7 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
         started_callback=save_pdf_started_cb,
         finished_callback=save_pdf_finished_cb,
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
     assert asserts == 5, "ran all callbacks"
 
@@ -163,13 +162,12 @@ def test_save_pdf_with_locale(
 
     import_in_mainloop(slist, [rose_pnm.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=mlp.quit,
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
@@ -200,13 +198,12 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop, clean_up_fi
             asserts += 1
             mlp.quit()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_pdf(
             path=temp_pdf.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback1,
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         def error_callback2(_page, _process, _message):
@@ -216,13 +213,12 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop, clean_up_fi
             asserts += 1
             mlp.quit()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_pdf(
             path=temp_pdf.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback2,
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert asserts == 2, "ran all callbacks"
@@ -247,13 +243,12 @@ def test_save_pdf_different_resolutions(
 
     import_in_mainloop(slist, [temp_png.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
@@ -273,14 +268,13 @@ def test_save_encrypted_pdf(
     "test saving an encrypted PDF"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg.name])
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         options={"user-password": "123"},
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     with pytest.raises(subprocess.CalledProcessError):
@@ -363,13 +357,12 @@ def test_save_pdf_with_hocr(
     set_text_in_mainloop(slist, 1, page.text_layer)
     # slist.data[0][2].import_annotations(hocr)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     subprocess.run(["cp", temp_pdf.name, "fox.pdf"], check=True)
 
@@ -421,13 +414,12 @@ def test_save_pdf_with_utf8(
         '"пени способствовала сохранению", "depth": 3}]',
     )
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
@@ -457,13 +449,12 @@ def test_save_pdf_with_non_utf8(
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
         '{"bbox": [1, 14, 77, 48], "type": "word", "text": "P�e", "depth": 3}]',
     )
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
@@ -487,13 +478,12 @@ def test_save_pdf_with_1bpp(
 
     import_in_mainloop(slist, [temp_pbm.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
@@ -509,7 +499,7 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
     "Test writing PDF with group 4 compression"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png.name])
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
@@ -518,7 +508,6 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
@@ -554,7 +543,7 @@ def test_save_pdf_g4_alpha(
 
     import_in_mainloop(slist, [temp_tif.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
@@ -563,7 +552,6 @@ def test_save_pdf_g4_alpha(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     subprocess.run(
@@ -625,7 +613,7 @@ def test_save_pdf_with_metadata(
         "title": "metadata title",
         "subject": "",
     }
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
@@ -633,7 +621,6 @@ def test_save_pdf_with_metadata(
         options={"set_timestamp": True},
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     info = subprocess.check_output(["pdfinfo", "-isodates", temp_pdf.name], text=True)
@@ -673,7 +660,7 @@ def test_save_pdf_with_old_metadata(
         nonlocal called
         called = True
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
@@ -682,7 +669,6 @@ def test_save_pdf_with_old_metadata(
         finished_callback=lambda response: mlp.quit(),
         error_callback=error_callback,
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert called, "caught errors setting timestamp"
@@ -727,17 +713,16 @@ def test_save_pdf_with_downsample(
 
     import_in_mainloop(slist, [temp_png.name])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf2:
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_pdf(
             path=temp_pdf2.name,
             list_of_pages=[slist.data[0][2]],
@@ -747,7 +732,6 @@ def test_save_pdf_with_downsample(
             },
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert os.path.getsize(temp_pdf.name) > os.path.getsize(
@@ -775,7 +759,7 @@ def test_cancel_save_pdf(
     import_in_mainloop(slist, [rose_pnm.name])
 
     finished_callback = MagicMock()
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     called = False
 
     def cancelled_callback(_response):
@@ -789,7 +773,6 @@ def test_cancel_save_pdf(
         finished_callback=finished_callback,
     )
     slist.cancel(cancelled_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     finished_callback.assert_not_called()
 
@@ -798,8 +781,7 @@ def test_cancel_save_pdf(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     assert subprocess.check_output(
@@ -833,14 +815,13 @@ def test_import_pdf_without_text_and_resave(
             assert len(slist.data) == 1, "imported 1 page"
 
             # Re-save it as PDF - this should not fail
-            mlp = GLib.MainLoop()
+            mlp = safe_mainloop(10000)
 
             slist.save_pdf(
                 path=temp_pdf2.name,
                 list_of_pages=[slist.data[0][2]],
                 finished_callback=lambda response: mlp.quit(),
             )
-            GLib.timeout_add(10000, mlp.quit)
             mlp.run()
 
             # Verify the output PDF is valid

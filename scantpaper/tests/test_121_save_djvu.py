@@ -13,6 +13,7 @@ import config
 import pytest
 from document import Document
 from gi.repository import GLib
+from loop_helpers import safe_mainloop
 
 
 @pytest.mark.skipif(
@@ -30,8 +31,7 @@ def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu, clean_up_f
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     assert os.path.getsize(temp_djvu.name) == 1054, "DjVu created with expected size"
@@ -76,8 +76,7 @@ def test_save_djvu_text_layer(
         },
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     capture = subprocess.check_output(["cat", temp_txt.name], text=True)
@@ -137,8 +136,7 @@ def test_save_djvu_with_hocr(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     capture = subprocess.check_output(["djvutxt", temp_djvu.name], text=True)
@@ -184,7 +182,7 @@ def test_cancel_save_djvu(
     )
 
     finished_callback = MagicMock()
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     called = False
 
     def cancelled_callback(_response):
@@ -198,7 +196,6 @@ def test_cancel_save_djvu(
         finished_callback=finished_callback,
     )
     slist.cancel(cancelled_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     finished_callback.assert_not_called()
 
@@ -209,8 +206,7 @@ def test_cancel_save_djvu(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     assert subprocess.check_output(
@@ -244,13 +240,12 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_
             asserts += 1
             mlp.quit()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_djvu(
             path=temp_djvu.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback1,
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         def error_callback2(_page, _process, _message):
@@ -260,13 +255,12 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_
             asserts += 1
             mlp.quit()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_djvu(
             path=temp_djvu.name,
             list_of_pages=[slist.data[0][2]],
             error_callback=error_callback2,
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert asserts == 2, "ran all callbacks"
@@ -298,8 +292,7 @@ def test_save_djvu_with_float_resolution(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     assert os.path.getsize(temp_djvu.name) == 1054, "DjVu created with expected size"
@@ -331,8 +324,7 @@ def test_save_djvu_different_resolutions(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     capture = subprocess.check_output(["djvudump", temp_djvu.name], text=True)
@@ -368,8 +360,7 @@ def test_save_djvu_with_metadata(
         options={"set_timestamp": True},
         finished_callback=lambda response: mlp.quit(),
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     info = subprocess.check_output(
@@ -420,8 +411,7 @@ def test_save_djvu_with_old_metadata(
         finished_callback=lambda response: mlp.quit(),
         error_callback=error_callback,
     )
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     assert called, "caught errors setting timestamp"

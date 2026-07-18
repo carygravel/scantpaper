@@ -11,6 +11,7 @@ import pytest
 from gi.repository import GLib
 import config
 from document import Document
+from loop_helpers import safe_mainloop
 
 
 def test_import_multipage_pdf(rose_png, temp_pdf, temp_db, clean_up_files):
@@ -20,13 +21,12 @@ def test_import_multipage_pdf(rose_png, temp_pdf, temp_db, clean_up_files):
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     slist.import_files(
         paths=[temp_pdf.name],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert len(slist.data) == 2, "imported 2 pages"
@@ -122,7 +122,7 @@ startxref
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     asserts = 0
 
@@ -138,7 +138,6 @@ startxref
         error_callback=error_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
@@ -177,13 +176,12 @@ def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     slist.import_files(
         paths=[temp_pdf.name],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert (
@@ -203,7 +201,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop()
 
         asserts = 0
 
@@ -229,7 +227,6 @@ def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert asserts == 2, "all callbacks run"
@@ -264,7 +261,7 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     asserts = 0
 
@@ -279,7 +276,6 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
         password_callback=password_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "callbacks all run"
@@ -313,7 +309,7 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
 
     slist = Document()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop()
 
     asserts = 0
 
@@ -333,7 +329,6 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
         metadata_callback=metadata_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "callbacks all run"

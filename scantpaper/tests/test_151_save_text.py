@@ -5,6 +5,7 @@ import tempfile
 from gi.repository import GLib
 from document import Document
 from bboxtree import VERSION
+from loop_helpers import safe_mainloop
 
 
 def test_save_text(
@@ -30,7 +31,7 @@ def test_save_text(
     )
 
     with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_text(
             path=temp_txt.name,
             list_of_pages=[slist.data[0][2]],
@@ -39,7 +40,6 @@ def test_save_text(
             },
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert (
@@ -60,7 +60,7 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_
     import_in_mainloop(slist, [rose_pnm.name])
 
     with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_text(
             path=temp_txt.name,
             list_of_pages=[slist.data[0][2]],
@@ -69,7 +69,6 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_
             },
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert (
@@ -105,13 +104,12 @@ def test_save_utf8(
         '"пени способствовала сохранению", "depth": 3}]',
     )
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_text(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert (
@@ -164,13 +162,12 @@ def test_save_hocr_as_text(
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_text(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert (
@@ -224,7 +221,7 @@ def test_save_hocr(
     set_text_in_mainloop(slist, 1, page.text_layer)
 
     with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         slist.save_hocr(
             path=temp_txt.name,
             list_of_pages=[slist.data[0][2]],
@@ -233,7 +230,6 @@ def test_save_hocr(
             },
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert (
@@ -295,13 +291,12 @@ def test_save_hocr_with_encoding(
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_hocr(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert (
@@ -354,13 +349,12 @@ def test_save_multipage_hocr(
     set_text_in_mainloop(slist, 1, page.text_layer)
     set_text_in_mainloop(slist, 2, page.text_layer)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_hocr(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2], slist.data[1][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -474,13 +468,12 @@ def test_save_hocr_structure(
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.save_hocr(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>

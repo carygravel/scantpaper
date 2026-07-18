@@ -6,6 +6,7 @@ import PIL
 from gi.repository import GLib
 from frontend import enums
 from frontend.image_sane import SaneThread
+from loop_helpers import safe_mainloop
 
 
 def test_error_handling():
@@ -27,8 +28,7 @@ def test_error_handling():
 
     thread.scan_page(error_callback=scan_error_callback)
     thread.send("quit")
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
     assert asserts == 1, "checked all expected responses #1"
 
@@ -50,8 +50,7 @@ def test_2():
 
     thread.get_devices(finished_callback=get_devices_callback)
     thread.send("quit")
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
     assert asserts == 1, "checked all expected responses #2"
 
@@ -63,7 +62,7 @@ def test_3():
 
     asserts = 0
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def open_callback(response):
         nonlocal asserts
@@ -72,12 +71,11 @@ def test_3():
         mlp.quit()
 
     thread.open_device(device_name="test", finished_callback=open_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert thread.device_name == "test", "set device_name"
     assert asserts == 1, "checked all expected responses #3"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def scan_page_finished_callback(response):
         nonlocal asserts
@@ -90,7 +88,6 @@ def test_3():
         mlp.quit()
 
     thread.scan_page(finished_callback=scan_page_finished_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 2, "checked all expected responses #4"
 
@@ -103,7 +100,7 @@ def test_3():
         assert image.size[1] > 0, "scan_page finished_callback image height"
         asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def scan_pages_finished_callback(response):
         nonlocal asserts
@@ -117,11 +114,10 @@ def test_3():
         new_page_callback=new_page_callback,
         finished_callback=scan_pages_finished_callback,
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 5, "checked all expected responses #5"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def open_again_callback(response):
         nonlocal asserts
@@ -131,7 +127,6 @@ def test_3():
 
     thread.open_device(device_name="test", finished_callback=open_again_callback)
     thread.send("quit")
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 6, "checked all expected responses #6"
 
@@ -141,7 +136,7 @@ def test_4():
     thread = SaneThread()
     thread.start()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     asserts = 0
 
@@ -155,11 +150,10 @@ def test_4():
 
     thread.open_device(device_name="test")
     thread.get_options(finished_callback=get_options_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 1, "checked all expected responses #7"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def get_option_callback(response):
         nonlocal asserts
@@ -168,18 +162,16 @@ def test_4():
         mlp.quit()
 
     thread.get_option("enable-test-options", finished_callback=get_option_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 2, "checked all expected responses #8"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     thread.set_option(
         "enable-test-options", True, finished_callback=lambda response: mlp.quit()
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def get_option_callback2(response):
         nonlocal asserts
@@ -188,7 +180,6 @@ def test_4():
         mlp.quit()
 
     thread.get_option("enable-test-options", finished_callback=get_option_callback2)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 3, "checked all expected responses #9"
 
@@ -218,7 +209,7 @@ def test_4():
     # assert not ran_finished, "cancelled jobs don't run the finished callback"
     # assert ran_cancelled, "ran the cancelled callback"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def close_device_callback(response):
         nonlocal asserts
@@ -227,7 +218,6 @@ def test_4():
         mlp.quit()
 
     thread.close_device(finished_callback=close_device_callback)
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert thread.device_handle is None, "closed device"
     thread.send("quit")
@@ -239,7 +229,7 @@ def test_5_edge_cases_part_1():
     thread = SaneThread()
     thread.start()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     asserts = 0
 
     # Open device
@@ -250,7 +240,6 @@ def test_5_edge_cases_part_1():
         mlp.quit()
 
     thread.open_device(device_name="test", finished_callback=open_callback)
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
     assert asserts == 1, "opened device"
 
@@ -262,7 +251,6 @@ def test_5_edge_cases_part_1():
         mlp.quit()
 
     thread.set_option("dev", "foo", error_callback=error_callback_readonly)
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
     assert asserts == 2, "checked read-only attribute"
 
@@ -274,12 +262,10 @@ def test_5_edge_cases_part_1():
         mlp.quit()
 
     thread.set_option("three-pass", True, error_callback=error_callback_inactive)
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
     assert asserts == 3, "checked inactive option"
 
     thread.send("quit")
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
 
 
@@ -288,7 +274,7 @@ def test_5_edge_cases_part_2():
     thread = SaneThread()
     thread.start()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     asserts = 0
 
     # Open device
@@ -299,7 +285,6 @@ def test_5_edge_cases_part_2():
         mlp.quit()
 
     thread.open_device(device_name="test", finished_callback=open_callback)
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
 
     # 3. Non-existent option
@@ -312,7 +297,6 @@ def test_5_edge_cases_part_2():
     thread.set_option(
         "nonexistent-opt", 123, finished_callback=finished_callback_nonexistent
     )
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
     assert asserts == 2, "checked nonexistent option"
 
@@ -326,7 +310,6 @@ def test_5_edge_cases_part_2():
     thread.set_option(
         "enable-test-options", True, finished_callback=finished_callback_enable
     )
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
     assert asserts == 3, "enabled test options"
 
@@ -338,12 +321,10 @@ def test_5_edge_cases_part_2():
         mlp.quit()
 
     thread.set_option("fixed", 42, finished_callback=finished_callback_fixed)
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
     assert asserts == 4, "checked fixed type conversion"
 
     thread.send("quit")
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
 
 
@@ -409,7 +390,7 @@ def test_6_mock_device():
         thread = SaneThread()
         thread.start()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         asserts = 0
 
         # Open device (mocks sane.open)
@@ -420,7 +401,6 @@ def test_6_mock_device():
             mlp.quit()
 
         thread.open_device("mock_device", finished_callback=open_cb)
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         # 1. Test Group Option (Line 103)
@@ -431,7 +411,6 @@ def test_6_mock_device():
             mlp.quit()
 
         thread.set_option("group-option", "val", error_callback=error_cb_group)
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         # 2. Test Unsettable Option (Line 107)
@@ -444,7 +423,6 @@ def test_6_mock_device():
             mlp.quit()
 
         thread.set_option("unsettable-option", True, error_callback=error_cb_unsettable)
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         # 3. Test Reload Option with __load_option_dict (Line 116)
@@ -454,7 +432,6 @@ def test_6_mock_device():
             mlp.quit()
 
         thread.set_option("reload-option", True, finished_callback=finished_cb_reload)
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         mock_dev_instance.__dict__["__load_option_dict"].assert_called_once()
@@ -471,7 +448,6 @@ def test_6_mock_device():
         mock_dev_instance.__dict__["_SaneDev__load_option_dict"] = MagicMock()
 
         thread.set_option("reload-option", False, finished_callback=finished_cb_reload)
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         mock_dev_instance.__dict__["_SaneDev__load_option_dict"].assert_called_once()
@@ -479,7 +455,6 @@ def test_6_mock_device():
         assert asserts == 5
 
         thread.send("quit")
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
 
@@ -488,7 +463,7 @@ def test_7_close_device_not_open():
     thread = SaneThread()
     thread.start()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     asserts = 0
 
     def data_callback(response):
@@ -505,7 +480,6 @@ def test_7_close_device_not_open():
     thread.close_device(
         data_callback=data_callback, finished_callback=finished_callback
     )
-    GLib.timeout_add(2000, mlp.quit)
     mlp.run()
 
     assert asserts == 2
@@ -541,7 +515,7 @@ def test_9_quit_handles_sane_exit_exception():
         thread = SaneThread()
         thread.start()
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
 
         def open_callback(response):
             assert response.request.process == "open_device"
@@ -549,12 +523,10 @@ def test_9_quit_handles_sane_exit_exception():
 
         # Open a device to ensure sane is initialized
         thread.open_device(device_name="test", finished_callback=open_callback)
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         # Quit should handle the exception from sane.exit() gracefully
         thread.send("quit")
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         # Verify sane.exit() was called and the exception was handled

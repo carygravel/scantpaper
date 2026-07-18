@@ -3,6 +3,7 @@
 import pytest
 from basethread import BaseThread, Response, ResponseType
 from gi.repository import GLib
+from loop_helpers import safe_mainloop
 
 
 class MyThread(BaseThread):
@@ -128,22 +129,19 @@ def test_1():
         finished_callback=callback,
     )
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
     assert n_callbacks == 6, "checked all expected responses #1"
 
     thread.send("div", 1, 0, error_callback=callback)
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
     assert n_callbacks == 7, "checked all expected responses #2"
 
     thread.send("nodiv", 1, 2, error_callback=callback)
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
     assert n_callbacks == 8, "checked all expected responses #5"
 
@@ -153,15 +151,13 @@ def test_1():
     thread.register_callback("after_finished", "after", "finished")
     thread.send("div", 1, 2, after_finished_callback=callback)
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
     assert n_callbacks in (9, 10), "checked all expected responses #6"
 
     thread.send("quit")
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
+    mlp = safe_mainloop(2000)
     mlp.run()
 
 
@@ -184,8 +180,7 @@ def test_job_counters_do_not_leak_across_batches():
     # First batch: one job
     thread.send("div", 1, 2, finished_callback=callback)
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     # After first job finishes, callbacks dict should be empty
@@ -202,13 +197,11 @@ def test_job_counters_do_not_leak_across_batches():
         thread.num_completed_jobs == 0
     ), f"num_completed_jobs should be 0 for new batch, got {thread.num_completed_jobs}"
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     thread.send("quit")
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)
+    mlp = safe_mainloop(2000)
     mlp.run()
 
 
@@ -231,8 +224,7 @@ def test_job_counters_persist_within_batch():
     assert thread.num_completed_jobs == 0
 
     # Process all responses
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(4000, mlp.quit)
+    mlp = safe_mainloop(4000)
     mlp.run()
 
     # After all jobs complete, counters should reflect all 3 jobs
@@ -240,8 +232,7 @@ def test_job_counters_persist_within_batch():
     assert thread.num_completed_jobs == 3
 
     thread.send("quit")
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)
+    mlp = safe_mainloop(2000)
     mlp.run()
 
 
@@ -295,14 +286,12 @@ def test_none_callback():
     # This should not raise an error when the callback is executed
     thread.send("div", 1, 2, finished_callback=None, error_callback=error_callback)
 
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)
+    mlp = safe_mainloop(2000)
     mlp.run()
 
     # Should not have any errors
     assert not errors, f"Unexpected errors: {errors}"
 
     thread.send("quit")
-    mlp = GLib.MainLoop()
-    GLib.timeout_add(2000, mlp.quit)
+    mlp = safe_mainloop(2000)
     mlp.run()

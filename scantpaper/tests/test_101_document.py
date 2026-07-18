@@ -35,6 +35,7 @@ from savethread import _bbox2markup, _set_timestamp, prepare_output_metadata
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
+from loop_helpers import safe_mainloop
 
 
 def get_page_index_all_callback(_uuid, _process, _message):
@@ -802,8 +803,7 @@ def test_document(rose_tif, clean_up_files):
             )  # copy-paste page 1->2
 
         slist.import_files(paths=[rose_tif.name], finished_callback=finished_callback)
-        mlp = GLib.MainLoop()
-        GLib.timeout_add(5000, mlp.quit)  # to prevent it hanging
+        mlp = safe_mainloop(5000)
         mlp.run()
         assert ran_callback, "ran finished callback"
 
@@ -839,7 +839,7 @@ def test_import_scan(
     )
 
     asserts = 0
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def _finished_callback(_response):
         nonlocal asserts
@@ -872,7 +872,6 @@ def test_import_scan(
         resolution=70,
         finished_callback=_finished_callback,
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert asserts == 2, "all tests run"
 

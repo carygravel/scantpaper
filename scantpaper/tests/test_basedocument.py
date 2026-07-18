@@ -17,6 +17,7 @@ from document import Document
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
+from loop_helpers import safe_mainloop
 
 
 @pytest.fixture(autouse=True)
@@ -948,7 +949,7 @@ def test_delete_selection_extra_signal():
     slist.select([0])
     slist.delete_selection_extra()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop()
     GLib.idle_add(mlp.quit)
     mlp.run()
 

@@ -9,19 +9,19 @@ from unittest.mock import MagicMock
 from gi.repository import GLib
 import config
 from document import Document
+from loop_helpers import safe_mainloop
 
 
 def test_import_tiff(rose_tif, temp_db, clean_up_files):
     "Test importing basic TIFF"
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     slist.import_files(
         paths=[rose_tif.name],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(id=1)
@@ -50,13 +50,12 @@ def test_import_tiff_with_units(temp_tif, temp_db, clean_up_files):
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     slist.import_files(
         paths=[temp_tif.name],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(id=1)
@@ -72,7 +71,7 @@ def test_import_tiff_with_error(rose_tif, clean_up_files):
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop()
 
         asserts = 0
 
@@ -92,7 +91,6 @@ def test_import_tiff_with_error(rose_tif, clean_up_files):
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         def queued_cb(response):
@@ -109,7 +107,6 @@ def test_import_tiff_with_error(rose_tif, clean_up_files):
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert asserts == 3, "all callbacks run"
@@ -128,13 +125,12 @@ def test_import_multipage_tiff(rose_tif, temp_db, clean_up_files):
 
         slist = Document(db=temp_db.name)
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
 
         slist.import_files(
             paths=[temp_tif2.name],
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert len(slist.data) == 2, "imported 2 pages"
@@ -153,13 +149,12 @@ def test_import_linked_tiff(rose_tif, temp_db, clean_up_files):
 
         slist = Document(db=temp_db.name)
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
 
         slist.import_files(
             paths=[str(temp_tif)],
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         page = slist.thread.get_page(id=1)
@@ -178,7 +173,7 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
     subprocess.run(["touch", "5.tif"], check=True)
     paths.insert(4, "5.tif")
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(4000)
 
     asserts = 0
 
@@ -194,7 +189,6 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
         error_callback=error_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(4000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert len(slist.data) == 9, "imported 9 pages"
@@ -213,7 +207,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_file
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     asserts = 0
     finished_cb = MagicMock()
@@ -230,7 +224,6 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_file
     )
     slist.cancel(cancelled_cb)
 
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"

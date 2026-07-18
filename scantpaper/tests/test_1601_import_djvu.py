@@ -12,6 +12,7 @@ from gi.repository import GLib
 from document import Document
 from bboxtree import VERSION
 from page import Page
+from loop_helpers import safe_mainloop
 
 
 @pytest.mark.skipif(
@@ -61,7 +62,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     asserts = 0
 
@@ -87,7 +88,6 @@ CreationDate	"2018-12-31 13:00:00+01:00"
         metadata_callback=metadata_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 3, "callbacks all run"
@@ -147,7 +147,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu, clean_up_files):
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
 
         asserts = 0
 
@@ -173,7 +173,6 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu, clean_up_files):
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert asserts == 2, "all callbacks run"
@@ -203,7 +202,7 @@ def test_import_djvu_with_error2(
 
     slist = Document(db=temp_db.name)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     asserts = 0
 
@@ -217,7 +216,6 @@ def test_import_djvu_with_error2(
         logger_callback=logger_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
@@ -243,7 +241,7 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
 
         slist = Document(db=temp_db.name)
 
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
 
         asserts = 0
 
@@ -260,7 +258,6 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
             error_callback=error_cb,
             finished_callback=lambda response: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
         mlp.run()
 
         assert asserts == 2, "callbacks all run"

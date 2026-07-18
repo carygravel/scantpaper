@@ -6,6 +6,7 @@ import gi
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, GLib, Gtk  # pylint: disable=wrong-import-position
+from loop_helpers import safe_mainloop
 
 
 def test_1():
@@ -20,7 +21,7 @@ def test_1():
     ), "default page-height"
 
     flag = False
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
 
     def on_changed_selection(*_):
         nonlocal flag
@@ -31,7 +32,6 @@ def test_1():
     selection = Gdk.Rectangle()
     selection.x, selection.y, selection.width, selection.height = 10, 10, 10, 10
     dialog.selection = selection
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     assert flag, "updating selection emits signal"
     assert (

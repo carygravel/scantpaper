@@ -12,6 +12,7 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib  # pylint: disable=wrong-import-position
+from loop_helpers import safe_mainloop
 
 
 def test_rotate(
@@ -31,14 +32,13 @@ def test_rotate(
         assert True, "Triggered display callback"
         asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.rotate(
         angle=-90,
         page=slist.data[0][2],
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
@@ -64,12 +64,11 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
 
     import_in_mainloop(slist, ["white.pgm"])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -89,12 +88,11 @@ def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files):
 
     import_in_mainloop(slist, ["black.pgm"])
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -125,21 +123,19 @@ def test_threshold(
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
     )
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.threshold(
         threshold=80,
         page=slist.data[0][2],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -193,30 +189,27 @@ def test_negate(
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
     )
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     page = slist.thread.get_page(number=1)
     assert min(page.mean) == expected_mean, "mean before"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.negate(
         page=slist.data[0][2],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -249,12 +242,11 @@ def test_unsharp_mask(
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
     )
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     page = slist.thread.get_page(number=1)
     assert page.mean == [
@@ -263,7 +255,7 @@ def test_unsharp_mask(
         80.40186335403726,
     ], "mean before"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.unsharp(
         radius=1,
         percent=200,
@@ -271,15 +263,13 @@ def test_unsharp_mask(
         page=slist.data[0][2],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     page = slist.thread.get_page(number=1)
@@ -341,7 +331,7 @@ def test_crop(
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.crop(
         x=10,
         y=10,
@@ -350,7 +340,6 @@ def test_crop(
         page=slist.data[0][2],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     page = slist.thread.get_page(number=1)
     assert page.width == 10, "page width after crop"
@@ -426,14 +415,13 @@ def test_split(
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.split_page(
         direction="v",
         position=35,
         page=slist.data[0][2],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     page = slist.thread.get_page(number=1)
     assert page.width == 35, "1st page width after split"
@@ -513,32 +501,29 @@ def test_brightness_contrast(
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
     )
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     mean = [145.5391304347826, 89.22546583850932, 80.40186335403726]
     page = slist.thread.get_page(number=1)
     assert page.mean == mean, "mean before"
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.brightness_contrast(
         brightness=65,
         contrast=65,
         page=slist.data[0][2],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
     page = slist.thread.get_page(number=1)
     assert page.mean != mean, "mean after"
@@ -565,7 +550,7 @@ def test_race_condition_rotate_save(
 
     # IMMEDIATELY queue a save operation with the same page_id.
     # It will be behind the rotate operation in the DocThread's queue.
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(10000)
     error_callback = MagicMock()
 
     slist.save_pdf(
@@ -576,7 +561,6 @@ def test_race_condition_rotate_save(
     )
 
     # Wait for both to finish
-    GLib.timeout_add(10000, mlp.quit)
     mlp.run()
 
     error_callback.assert_not_called()
@@ -597,7 +581,7 @@ def test_race_condition_rotate_rotate(
     # The second one will fail if it uses the old page_id.
     slist.rotate(page=page_id, angle=90)
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(10000)
     error_callback = MagicMock()
 
     slist.rotate(
@@ -608,7 +592,6 @@ def test_race_condition_rotate_rotate(
     )
 
     # Wait for both to finish
-    GLib.timeout_add(10000, mlp.quit)
     mlp.run()
     error_callback.assert_not_called()
 

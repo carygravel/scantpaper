@@ -4,7 +4,6 @@
 # change page numbering to always run from 1-n with no gaps
 # fix readme
 # lint
-# fail tests that hit mainloop timeouts
 # use pathlib for all paths
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class

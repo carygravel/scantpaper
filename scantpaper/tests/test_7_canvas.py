@@ -29,6 +29,7 @@ from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-
     GooCanvas,
     GLib,
 )
+from loop_helpers import safe_mainloop
 
 
 def assert_rgba_equal(c1, c2):
@@ -161,14 +162,13 @@ def test_canvas_basics(rose_pnm):
 
         canvas = Canvas()
         canvas.sort_by_confidence()
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         bbox = canvas.get_first_bbox()
@@ -232,14 +232,13 @@ def test_canvas_basics2(rose_pnm):
 
         canvas = Canvas()
         canvas.sort_by_confidence()
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         group = (
@@ -418,14 +417,13 @@ def test_hocr(rose_pnm):
 """)
 
         canvas = Canvas()
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
         canvas.sort_by_confidence()
 
@@ -517,14 +515,13 @@ def test_bbox_text_placement(rose_pnm):
  </html>
  """)
         canvas = Canvas()
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         # Get the bbox for the word 'fox'
@@ -1291,14 +1288,13 @@ def test_canvas_set_text_full(mocker, rose_pnm):
         )
         canvas_obj = Canvas()
         # Test without idles
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas_obj.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         assert canvas_obj.get_pixbuf_size() == {"width": 100, "height": 100}
@@ -1944,14 +1940,13 @@ def test_canvas_no_stack_overflow(rose_pnm):
         page.text_layer = create_test_page_with_words(num_words)
         # This should not raise RecursionError
         canvas = Canvas()
-        mlp = GLib.MainLoop()
+        mlp = safe_mainloop(2000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
             finished_callback=lambda: mlp.quit(),
         )
-        GLib.timeout_add(2000, mlp.quit)
         mlp.run()
 
         # Verify it actually loaded all words

@@ -12,6 +12,7 @@ from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
+from loop_helpers import safe_mainloop
 
 
 def test_unpaper_program_version(mocker):
@@ -205,14 +206,13 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files):
             assert True, "Triggered display callback"
             asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.unpaper(
         page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
@@ -280,14 +280,13 @@ def test_unpaper2(
             assert True, "Triggered display callback"
             asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.unpaper(
         page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
@@ -374,14 +373,13 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
             assert True, "Triggered display callback"
             asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.unpaper(
         page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 2, "all callbacks run"
@@ -433,7 +431,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
             assert True, "Triggered display callback"
             asserts += 1
 
-    mlp = GLib.MainLoop()
+    mlp = safe_mainloop(2000)
     slist.unpaper(
         page=slist.data[0][2],
         options={
@@ -443,7 +441,6 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
         display_callback=display_cb,
         finished_callback=lambda response: mlp.quit(),
     )
-    GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
     mlp.run()
 
     assert asserts == 2, "all callbacks run"
