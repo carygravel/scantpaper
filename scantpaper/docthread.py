@@ -2,7 +2,6 @@
 
 import datetime
 import glob
-import inspect
 import json
 import logging
 import os
@@ -29,11 +28,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
-
-_tess_params = list(
-    inspect.signature(tesserocr.PyTessBaseAPI.ProcessPages).parameters.keys()
-)
-_TESSEROCR_NEW_API = len(_tess_params) > 1 and _tess_params[1] == "outputbase"
 
 
 def _loggerise(variables):
@@ -1293,10 +1287,7 @@ class DocThread(SaveThread):
             api.SetVariable("hocr_font_info", "T")
             with tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".png") as file:
                 page.image_object.save(file.name)
-                if _TESSEROCR_NEW_API:
-                    _pp = api.ProcessPages(output, file.name)
-                else:
-                    _pp = api.ProcessPages(file.name, output)
+                _pp = api.ProcessPages(output, file.name)
 
             # Unnecessary filesystem write/read
             path_hocr = pathlib.Path(output).with_suffix(".hocr")
