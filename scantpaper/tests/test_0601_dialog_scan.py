@@ -71,7 +71,7 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
     )
     with tempfile.TemporaryDirectory() as tempdir:
         options = {
-            "filename": rose_pnm.name,
+            "filename": rose_pnm,
             "resolution": (72, 72, "PixelsPerInch"),
             "page": 1,
             "dir": tempdir,

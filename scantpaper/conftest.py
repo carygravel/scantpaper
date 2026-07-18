@@ -1,11 +1,13 @@
 "Some helper functions to reduce boilerplate"
 
 import os
+import subprocess
 import tempfile
 from types import SimpleNamespace
 
 import gi
 import pytest
+import config
 from dialog.sane import SaneScanDialog
 from PIL import Image, ImageDraw, ImageFont
 
@@ -14,6 +16,8 @@ from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
 from loop_helpers import _MainLoopWrapper, safe_mainloop  # noqa: F401
+
+Image.MAX_IMAGE_PIXELS = None
 
 
 def pytest_configure(config):
@@ -299,67 +303,161 @@ def _create_rose_image():
 
 
 def _create_qbfox_image():
-    "Create a rotated 1-bit grayscale image with 'The quick brown fox' text"
-    font_size = 50  # 12pt at 300 DPI ≈ 50px
-    try:
-        font = ImageFont.truetype("DejaVuSans.ttf", font_size)
-    except OSError:
-        font = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size
-        )
+    "Create a rotated grayscale image with 'The quick brown fox' text"
+    font_size = 72
+    font = None
+    font_source = None
+    for path in [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+    ]:
+        try:
+            font = ImageFont.truetype(path, font_size)
+            font_source = path
+            break
+        except OSError:
+            continue
+    if font is None:
+        try:
+            result = subprocess.run(
+                ["fc-match", "--format=%{file}", "sans:style=Regular"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                font = ImageFont.truetype(result.stdout.strip(), font_size)
+                font_source = f"fc-match:{result.stdout.strip()}"
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    if font is None:
+        try:
+            font = ImageFont.load_default(size=font_size)
+            font_source = "PIL load_default(size=72)"
+        except TypeError:
+            font = ImageFont.load_default()
+            font_source = "PIL load_default() bitmap"
+    print(f"[conftest] _create_qbfox_image: font_source={font_source}", flush=True)
+    print(
+        f"[conftest] _create_qbfox_image: Pillow version={Image.__version__}",
+        flush=True,
+    )
+    print(f"[conftest] _create_qbfox_image: font={font}", flush=True)
     text = "The quick brown fox"
-    tmp = Image.new("L", (1200, 80), 255)
-    draw = ImageDraw.Draw(tmp)
-    draw.text((10, 10), text, fill=0, font=font)
-    bbox = tmp.getbbox()
+    print(
+        f"[conftest] _create_qbfox_image: font.getbbox(text)={font.getbbox(text)}",
+        flush=True,
+    )
+    print(
+        f"[conftest] _create_qbfox_image: font.getmetrics()={font.getmetrics()}",
+        flush=True,
+    )
+    canvas = Image.new("L", (2400, 600), 255)
+    draw = ImageDraw.Draw(canvas)
+    draw.text((100, 200), text, fill=0, font=font)
+    canvas.save("/tmp/qbfox_before_crop.png")
+    pixels = list(canvas.get_flattened_data())
+    print(
+        f"[conftest] _create_qbfox_image: pixel min={min(pixels)} max={max(pixels)} non_white={sum(1 for p in pixels if p != 255)}",
+        flush=True,
+    )
+    mask = canvas.point(lambda x: 0 if x == 255 else 255)
+    bbox = mask.getbbox()
+    print(f"[conftest] _create_qbfox_image: text_bbox={bbox}", flush=True)
     if bbox:
-        tmp = tmp.crop(bbox)
-    return tmp.rotate(90, expand=True).convert("1")
+        pad = 40
+        canvas = canvas.crop(
+            (
+                max(bbox[0] - pad, 0),
+                max(bbox[1] - pad, 0),
+                min(bbox[2] + pad, canvas.width),
+                min(bbox[3] + pad, canvas.height),
+            )
+        )
+    w, h = canvas.size
+    min_w, min_h = 400, 100
+    if w < min_w or h < min_h:
+        scale = max(min_w / w, min_h / h)
+        canvas = canvas.resize(
+            (int(w * scale), int(h * scale)), Image.Resampling.LANCZOS
+        )
+    rotated = canvas.rotate(90, expand=True)
+    return rotated
 
 
 @pytest.fixture(scope="session")
 def rose_pnm():
     "return a session-scoped pnm file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".pnm", delete=False)
-    _create_rose_image().save(tmp.name, "PPM")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".pnm")
+    _create_rose_image().save(path, "PPM")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rose_png():
     "return a session-scoped png file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    _create_rose_image().save(tmp.name, "PNG")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".png")
+    _create_rose_image().save(path, "PNG")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rose_jpg():
     "return a session-scoped jpg file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
-    _create_rose_image().save(tmp.name, "JPEG")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".jpg")
+    _create_rose_image().save(path, "JPEG")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rose_tif():
     "return a session-scoped tif file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".tif", delete=False)
-    _create_rose_image().save(tmp.name, "TIFF")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".tif")
+    _create_rose_image().save(path, "TIFF")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rotated_qbfox_pnm():
     "return a session-scoped image with quick brown fox text"
-    tmp = tempfile.NamedTemporaryFile(suffix=".pnm", delete=False)
-    _create_qbfox_image().save(tmp.name)
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".pnm")
+    _create_qbfox_image().save(path)
+    yield path
+    os.unlink(path)
+
+
+@pytest.fixture
+def rotated_qbfox_pnm_im(temp_pnm):
+    "return an ImageMagick-generated image with quick brown fox text"
+    subprocess.run(
+        [
+            config.CONVERT_COMMAND,
+            "-density",
+            "300",
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
+            "-depth",
+            "1",
+            "-colorspace",
+            "Gray",
+            "-family",
+            "DejaVu Sans",
+            "-pointsize",
+            "12",
+            "-rotate",
+            "-90",
+            temp_pnm.name,
+        ],
+        check=True,
+    )
+    return temp_pnm
 
 
 @pytest.fixture

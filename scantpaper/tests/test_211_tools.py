@@ -20,7 +20,7 @@ def test_rotate(
 ):
     "Test rotating"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_jpg.name])
+    import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
     assert slist.data[0][1].get_height() == 65, "thumbnail height before rotation"
     assert slist.data[0][1].get_width() == 100, "thumbnail width before rotation"
@@ -113,7 +113,7 @@ def test_threshold(
 ):
     "Test threshold"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_jpg.name])
+    import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
     set_text_in_mainloop(
         slist,
@@ -232,7 +232,7 @@ def test_unsharp_mask(
 ):
     "Test unsharp mask"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_jpg.name])
+    import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
     set_text_in_mainloop(
         slist,
@@ -492,7 +492,7 @@ def test_brightness_contrast(
 ):
     "Test brightness contrast"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_jpg.name])
+    import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
     set_text_in_mainloop(
         slist,
@@ -542,7 +542,7 @@ def test_race_condition_rotate_save(
     slist = Document(db=temp_db.name)
 
     # Import a page
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
     page_id = slist.data[0][2]
 
     # Queue a rotate operation. This will eventually call replace_page and increment action_id.
@@ -573,7 +573,7 @@ def test_race_condition_rotate_rotate(
     slist = Document(db=temp_db.name)
 
     # Import a page
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
     page_id = slist.data[0][2]
 
     # Queue two rotate operations on the same page_id.

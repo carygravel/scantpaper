@@ -130,9 +130,13 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
+# FIXME: there is no reason why this can't be made to work on a recent CI. It works locally
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm, clean_up_files):
-    "Test tesseract in process chain"
+@pytest.mark.xfail(
+    reason="Pillow FreeType glyph metrics broken on CI (getbbox x_min=-19M)"
+)
+def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, clean_up_files):
+    "Test tesseract in process chain using Pillow-generated image"
 
     slist = Document(db=temp_db.name)
 
@@ -144,7 +148,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm, clean_up_files):
 
     mlp = safe_mainloop(5000)
     slist.import_scan(
-        filename=rotated_qbfox_pnm.name,
+        filename=rotated_qbfox_pnm,
         page=1,
         rotate=-90,
         ocr=True,
@@ -167,7 +171,45 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm, clean_up_files):
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
-    #########################
+    clean_up_files(slist.thread.db_files)
+
+
+@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, clean_up_files):
+    "Test tesseract in process chain using ImageMagick-generated image"
+
+    slist = Document(db=temp_db.name)
+
+    asserts = 0
+
+    def display_cb(response):
+        nonlocal asserts
+        asserts += 1
+
+    mlp = safe_mainloop(5000)
+    slist.import_scan(
+        filename=rotated_qbfox_pnm_im.name,
+        page=1,
+        rotate=-90,
+        ocr=True,
+        resolution=300,
+        delete=True,
+        engine="tesseract",
+        language="eng",
+        display_callback=display_cb,
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    assert asserts == 3, "display callback called for import, rotate, tesseract"
+    page = slist.thread.get_page(number=1)
+    assert page.resolution[0] == 300, "Resolution of imported image"
+
+    hocr = page.export_hocr()
+    assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
+    assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
+    assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
+    assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
     clean_up_files(slist.thread.db_files)
 
@@ -191,7 +233,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
         mlp.quit()
 
     slist.import_scan(
-        filename=rotated_qbfox_pnm.name,
+        filename=rotated_qbfox_pnm,
         page=2,
         rotate=-90,
         ocr=True,
@@ -218,7 +260,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
     mlp = safe_mainloop(5000)
     error_callback = MagicMock()
     slist.import_scan(
-        filename=rotated_qbfox_pnm.name,
+        filename=rotated_qbfox_pnm,
         page=2,
         rotate=-90,
         ocr=True,
@@ -254,7 +296,7 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
         mlp.quit()
 
     options = {
-        "filename": rotated_qbfox_pnm.name,
+        "filename": rotated_qbfox_pnm,
         "rotate": -90,
         "ocr": True,
         "resolution": 300,

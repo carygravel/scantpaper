@@ -141,7 +141,7 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout, clean_up_files)
     slist = Document(db=temp_db.name)
     with tempfile.TemporaryDirectory() as tempdir:
         slist.import_scan(
-            filename=rose_pnm.name,
+            filename=rose_pnm,
             resolution=72,
             page=1,
             dir=tempdir,

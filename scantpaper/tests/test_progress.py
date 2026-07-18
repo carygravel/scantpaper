@@ -344,6 +344,13 @@ def test_progress_visibility_after_hide_then_show():
     assert btn.get_visible()
 
 
+def test_progress_update_none():
+    "Test that update returns early on falsy response"
+    progress = Progress()
+    progress.update(None)
+    progress.update(False)
+
+
 def test_progress_child_widgets_shown_after_init():
     "Test that Progress child widgets are shown after init"
     progress = Progress()

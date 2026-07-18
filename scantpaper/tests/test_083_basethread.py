@@ -159,9 +159,48 @@ def test_1():
     assert n_callbacks in (9, 10), "checked all expected responses #6"
 
     thread.send("quit", finished_callback=lambda response: mlp.quit())
-
     mlp = safe_mainloop(2000)
     mlp.run()
+
+
+def test_calibrate_env_override(monkeypatch):
+    "test _calibrate_poll_interval with a valid SCANTPAPER_POLL_INTERVAL_MS"
+    from basethread import _calibrate_poll_interval
+
+    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "25")
+    assert _calibrate_poll_interval() == 25
+
+    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "0")
+    assert _calibrate_poll_interval() == 5
+
+    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "200")
+    assert _calibrate_poll_interval() == 100
+
+
+def test_calibrate_env_override_invalid(monkeypatch):
+    "test _calibrate_poll_interval with non-numeric SCANTPAPER_POLL_INTERVAL_MS"
+    from basethread import _calibrate_poll_interval
+
+    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "abc")
+    monkeypatch.setenv("PYTEST_CURRENT_TEST", "1")
+    assert _calibrate_poll_interval() == 10
+
+
+def test_calibrate_benchmark(monkeypatch):
+    "test the actual GLib benchmark path"
+    from basethread import _calibrate_poll_interval
+
+    monkeypatch.delenv("SCANTPAPER_POLL_INTERVAL_MS", raising=False)
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    result = _calibrate_poll_interval()
+    assert 5 <= result <= 100
+
+
+def test_mainloop_wrapper_getattr():
+    "test that __getattr__ proxies to the underlying GLib.MainLoop"
+    mlp = safe_mainloop(2000)
+    ctx = mlp.get_context()
+    assert ctx is not None
 
 
 def test_empty_queue():

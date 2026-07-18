@@ -596,10 +596,10 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
         del example["path"]
         assert example == info, "do_get_file_info + tiff"
 
-        request = Request("get_file_info", (rose_png.name, None), thread.responses)
+        request = Request("get_file_info", (rose_png, None), thread.responses)
         info = {
             "format": "PNG",
-            "path": rose_png.name,
+            "path": rose_png,
             "width": [70],
             "height": [46],
             "pages": 1,
@@ -802,7 +802,7 @@ def test_document(rose_tif, clean_up_files):
                 finished_callback=step2,
             )  # copy-paste page 1->2
 
-        slist.import_files(paths=[rose_tif.name], finished_callback=finished_callback)
+        slist.import_files(paths=[rose_tif], finished_callback=finished_callback)
         mlp = safe_mainloop(5000)
         mlp.run()
         assert ran_callback, "ran finished callback"

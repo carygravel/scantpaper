@@ -24,7 +24,7 @@ def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu, clean_up_f
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     slist.save_djvu(
         path=temp_djvu.name,
@@ -58,7 +58,7 @@ def test_save_djvu_text_layer(
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -104,7 +104,7 @@ def test_save_djvu_with_hocr(
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     hocr = """<!DOCTYPE html
  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
@@ -170,7 +170,7 @@ def test_cancel_save_djvu(
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -224,11 +224,11 @@ def test_cancel_save_djvu(
 def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_files):
     "Test saving a djvu and triggering an error"
 
-    with tempfile.TemporaryDirectory() as dirname:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
         asserts = 0
 
-        import_in_mainloop(slist, [rose_pnm.name])
+        import_in_mainloop(slist, [rose_pnm])
 
         # inject error before save_djvu
         os.chmod(dirname, 0o500)  # no write access
@@ -284,7 +284,7 @@ def test_save_djvu_with_float_resolution(
     "Test saving a djvu with resolution as float"
 
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_png.name])
+    import_in_mainloop(slist, [rose_png])
     set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
 
     slist.save_djvu(
@@ -347,7 +347,7 @@ def test_save_djvu_with_metadata(
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
         "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -391,7 +391,7 @@ def test_save_djvu_with_old_metadata(
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     called = False
 

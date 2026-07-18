@@ -65,3 +65,21 @@ def test_coverage():
         dialog._sb_x, "x"
     )  # pylint: disable=protected-access,no-member
     assert dialog.selection is not None
+
+
+def test_crop_selector_with_existing_selection():
+    "test on_sb_selector_value_changed when selection already exists"
+    dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
+
+    # Set an initial selection
+    rect = Gdk.Rectangle()
+    rect.x, rect.y, rect.width, rect.height = 10, 20, 30, 40
+    dialog.selection = rect
+
+    # Now change a spinbutton value — should copy existing selection attributes
+    dialog._sb_x.set_value(50)
+    dialog.on_sb_selector_value_changed(dialog._sb_x, "x")
+    assert dialog.selection.x == 50
+    assert dialog.selection.y == 20
+    assert dialog.selection.width == 30
+    assert dialog.selection.height == 40

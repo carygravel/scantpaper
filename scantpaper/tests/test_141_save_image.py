@@ -15,7 +15,7 @@ def test_save_image(
     "Test writing image"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     mlp = safe_mainloop(2000)
     slist.save_image(
@@ -51,7 +51,7 @@ def test_save_image(
 def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop, clean_up_files):
     "Test writing image"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
     with tempfile.NamedTemporaryFile(prefix="'", suffix=".jpg") as temp_jpg:
         mlp = safe_mainloop(2000)
         slist.save_image(
@@ -76,7 +76,7 @@ def test_save_image_with_ampersand(
     "Test writing image"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     path = "sed & awk.png"
 

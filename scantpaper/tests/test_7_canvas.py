@@ -130,7 +130,7 @@ def test_canvas_basics(rose_pnm):
     "Basic tests"
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=rose_pnm.name,
+            filename=rose_pnm,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -200,7 +200,7 @@ def test_canvas_basics2(rose_pnm):
     "Basic tests"
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=rose_pnm.name,
+            filename=rose_pnm,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -381,7 +381,7 @@ def test_hocr(rose_pnm):
     "Tests hocr export"
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=rose_pnm.name,
+            filename=rose_pnm,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -494,7 +494,7 @@ def test_bbox_text_placement(rose_pnm):
     "Test that hOCR text is placed correctly within its bounding box"
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=rose_pnm.name,
+            filename=rose_pnm,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -1271,7 +1271,7 @@ def test_canvas_set_text_full(mocker, rose_pnm):
     "Test Canvas.set_text with real-ish page"
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=rose_pnm.name,
+            filename=rose_pnm,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
@@ -1929,7 +1929,7 @@ def test_canvas_no_stack_overflow(rose_pnm):
     """
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
-            filename=rose_pnm.name,
+            filename=rose_pnm,
             format="Portable anymap",
             resolution=72,
             dir=dirname,
