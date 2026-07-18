@@ -341,10 +341,15 @@ def _create_qbfox_image():
             font = ImageFont.load_default()
             font_source = "PIL load_default() bitmap"
     print(f"[conftest] _create_qbfox_image: font_source={font_source}", flush=True)
+    print(f"[conftest] _create_qbfox_image: Pillow version={Image.__version__}", flush=True)
+    print(f"[conftest] _create_qbfox_image: font={font}", flush=True)
     text = "The quick brown fox"
     canvas = Image.new("L", (2400, 600), 255)
     draw = ImageDraw.Draw(canvas)
     draw.text((100, 200), text, fill=0, font=font)
+    canvas.save("/tmp/qbfox_before_crop.png")
+    pixels = list(canvas.getdata())
+    print(f"[conftest] _create_qbfox_image: pixel min={min(pixels)} max={max(pixels)} non_white={sum(1 for p in pixels if p != 255)}", flush=True)
     mask = canvas.point(lambda x: 0 if x == 255 else 255)
     bbox = mask.getbbox()
     print(f"[conftest] _create_qbfox_image: text_bbox={bbox}", flush=True)

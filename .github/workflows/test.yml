@@ -77,8 +77,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qbfox-debug-image
-          path: /tmp/qbfox_debug.png
+          name: qbfox-debug-images
+          path: |
+            /tmp/qbfox_debug.png
+            /tmp/qbfox_before_crop.png
           if-no-files-found: warn
 
   oldest:
