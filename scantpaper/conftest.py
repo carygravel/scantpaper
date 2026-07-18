@@ -15,6 +15,8 @@ from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 from loop_helpers import _MainLoopWrapper, safe_mainloop  # noqa: F401
 
+Image.MAX_IMAGE_PIXELS = None
+
 
 def pytest_configure(config):
     "globals"
