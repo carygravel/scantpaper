@@ -347,6 +347,14 @@ def _create_qbfox_image():
     )
     print(f"[conftest] _create_qbfox_image: font={font}", flush=True)
     text = "The quick brown fox"
+    print(
+        f"[conftest] _create_qbfox_image: font.getbbox(text)={font.getbbox(text)}",
+        flush=True,
+    )
+    print(
+        f"[conftest] _create_qbfox_image: font.getmetrics()={font.getmetrics()}",
+        flush=True,
+    )
     canvas = Image.new("L", (2400, 600), 255)
     draw = ImageDraw.Draw(canvas)
     draw.text((100, 200), text, fill=0, font=font)
