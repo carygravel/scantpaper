@@ -1,3 +1,8 @@
+## 3.0.12 (2026-07-18)
+
+* Implement adaptive thread dispatch polling to improve app responsiveness
+
+
 ## 3.0.11 (2026-07-11)
 
 * Fix previous profile not being set on startup

@@ -1,13 +1,66 @@
 "A thread backed by internal queues for simple messaging"
 
+import os
 import threading
 import queue
 import collections
+import time
 from enum import Enum
 import uuid
 import logging
 import weakref
 from gi.repository import GLib
+
+logger = logging.getLogger(__name__)
+
+
+def _calibrate_poll_interval():
+    """Benchmark GLib timer dispatch to find minimum reliable poll interval."""
+
+    env_override = os.environ.get("SCANTPAPER_POLL_INTERVAL_MS")
+    if env_override is not None:
+        try:
+            return max(5, min(100, int(env_override)))
+        except ValueError:
+            pass
+
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return 10
+
+    try:
+        results = []
+        last_time = [time.monotonic()]
+        iterations = 20
+
+        def _benchmark_cb():
+            now = time.monotonic()
+            results.append(now - last_time[0])
+            last_time[0] = now
+            if len(results) >= iterations:
+                mlp.quit()
+                return GLib.SOURCE_REMOVE
+            return GLib.SOURCE_CONTINUE
+
+        mlp = GLib.MainLoop()
+        GLib.timeout_add(1, _benchmark_cb)
+        GLib.timeout_add(2000, mlp.quit)
+        mlp.run()
+
+        if len(results) < 5:
+            return 50
+
+        results.sort()
+        p95 = results[int(len(results) * 0.95)]
+        interval = max(5, min(100, int(p95 * 1000 * 2)))
+        logger.info(
+            "Thread poll calibration: p95=%.3fms, interval=%dms", p95 * 1000, interval
+        )
+        return interval
+    except Exception:  # pylint: disable=broad-except
+        return 50
+
+
+POLL_INTERVAL_MS = _calibrate_poll_interval()
 
 Response = collections.namedtuple(
     "Response",
@@ -23,8 +76,6 @@ Response = collections.namedtuple(
 )  # , "pid"
 ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "DATA"]
 ResponseType = Enum("ResponseType", ResponseTypes)
-
-logger = logging.getLogger(__name__)
 
 CALLBACKS = ["queued", "started", "running", "data", "finished", "error"]
 
@@ -151,7 +202,7 @@ class BaseThread(threading.Thread):
         self.requests.put(request)
         self.total_jobs += 1
         request.queued()
-        GLib.timeout_add(100, self.monitor)
+        GLib.timeout_add(POLL_INTERVAL_MS, self.monitor)
         return request.uuid
 
     def run(self):
