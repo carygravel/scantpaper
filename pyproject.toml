@@ -47,6 +47,11 @@ addopts = "--timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=98 
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+filterwarnings = [
+    "ignore:GLib.unix_signal_add_full is deprecated:DeprecationWarning",
+    "ignore:'asyncio.AbstractEventLoopPolicy' is deprecated:DeprecationWarning",
+    "ignore:'asyncio.get_event_loop_policy' is deprecated:DeprecationWarning",
+]
 
 [project.optional-dependencies]
 test = [
