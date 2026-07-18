@@ -144,7 +144,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm, clean_up_files):
 
     mlp = safe_mainloop(5000)
     slist.import_scan(
-        filename=rotated_qbfox_pnm.name,
+        filename=rotated_qbfox_pnm,
         page=1,
         rotate=-90,
         ocr=True,
@@ -191,7 +191,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
         mlp.quit()
 
     slist.import_scan(
-        filename=rotated_qbfox_pnm.name,
+        filename=rotated_qbfox_pnm,
         page=2,
         rotate=-90,
         ocr=True,
@@ -218,7 +218,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
     mlp = safe_mainloop(5000)
     error_callback = MagicMock()
     slist.import_scan(
-        filename=rotated_qbfox_pnm.name,
+        filename=rotated_qbfox_pnm,
         page=2,
         rotate=-90,
         ocr=True,
@@ -254,7 +254,7 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
         mlp.quit()
 
     options = {
-        "filename": rotated_qbfox_pnm.name,
+        "filename": rotated_qbfox_pnm,
         "rotate": -90,
         "ocr": True,
         "resolution": 300,

@@ -23,7 +23,7 @@ def test_save_multipage_pdf(
     "Test writing multipage PDF"
 
     num = 3  # number of pages
-    files = [rose_pnm.name for i in range(num)]
+    files = [rose_pnm for i in range(num)]
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, files)
 
@@ -65,7 +65,7 @@ def test_save_multipage_pdf_with_utf8(
 ):
     "Test writing multipage PDF with utf8"
     num = 3  # number of pages
-    files = [rose_pnm.name for i in range(num)]
+    files = [rose_pnm for i in range(num)]
     slist = Document()
 
     import_in_mainloop(slist, files)
@@ -112,7 +112,7 @@ def test_save_multipage_pdf_as_ps(
     "Test writing multipage PDF as Postscript"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name, rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm, rose_pnm])
 
     with tempfile.NamedTemporaryFile(
         suffix=".ps", prefix=" "
@@ -147,7 +147,7 @@ def test_save_multipage_pdf_as_ps2(
     "Test writing multipage PDF as Postscript"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name, rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm, rose_pnm])
 
     with tempfile.NamedTemporaryFile(
         suffix=".ps", prefix=" "
@@ -180,12 +180,12 @@ def test_prepend_pdf(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test prepending a page to a PDF"
-    temp_pdf.write(img2pdf.convert(rose_png.name))
+    temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     slist.save_pdf(
         path=temp_pdf.name,
@@ -211,12 +211,12 @@ def test_append_pdf(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test appending a page to a PDF"
-    temp_pdf.write(img2pdf.convert(rose_png.name))
+    temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     slist.save_pdf(
         path=temp_pdf.name,
@@ -243,12 +243,12 @@ def test_prepend_with_space(
 ):
     "Test prepending a page to a PDF with a space"
     with open("te st.pdf", "wb") as temp_pdf:
-        temp_pdf.write(img2pdf.convert(rose_png.name))
+        temp_pdf.write(img2pdf.convert(rose_png))
         temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     slist.save_pdf(
         path="te st.pdf",
@@ -275,12 +275,12 @@ def test_prepend_with_inverted_comma(
 ):
     "Test prepending a page to a PDF"
     with open("te'st.pdf", "wb") as temp_pdf:
-        temp_pdf.write(img2pdf.convert(rose_png.name))
+        temp_pdf.write(img2pdf.convert(rose_png))
         temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     slist.save_pdf(
         path="te'st.pdf",
@@ -306,12 +306,12 @@ def test_append_pdf_with_timestamp(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
     "Test appending a page to a PDF with a timestamp"
-    temp_pdf.write(img2pdf.convert(rose_png.name))
+    temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     slist.save_pdf(
         path=temp_pdf.name,

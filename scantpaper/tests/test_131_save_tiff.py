@@ -16,7 +16,7 @@ def test_save_tiff(
     "Test writing TIFF"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     mlp = safe_mainloop(2000)
     slist.save_tiff(
@@ -57,7 +57,7 @@ def test_cancel_save_tiff(
     "Test cancel saving a TIFF"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     mlp = safe_mainloop(2000)
     called = False
@@ -96,11 +96,11 @@ def test_cancel_save_tiff(
 
 def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop, clean_up_files):
     "Test writing TIFF and triggering an error"
-    with tempfile.TemporaryDirectory() as dirname:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
         asserts = 0
 
-        import_in_mainloop(slist, [rose_pnm.name])
+        import_in_mainloop(slist, [rose_pnm])
 
         # inject error before save_djvu
         os.chmod(dirname, 0o500)  # no write access
@@ -200,7 +200,7 @@ def test_save_tiff_as_ps(
     "Test writing TIFF and postscript"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name, rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm, rose_pnm])
 
     with tempfile.NamedTemporaryFile(suffix=".ps", prefix=" ") as temp_ps:
         mlp = safe_mainloop(2000)
@@ -233,7 +233,7 @@ def test_save_tiff_as_ps(
 def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop, clean_up_files):
     "Test writing TIFF with group 4 compression"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_png.name])
+    import_in_mainloop(slist, [rose_png])
     mlp = safe_mainloop(2000)
     slist.save_tiff(
         path=temp_tif.name,

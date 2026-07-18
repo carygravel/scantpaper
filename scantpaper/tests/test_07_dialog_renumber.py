@@ -21,7 +21,7 @@ def test_1(rose_pnm, mainloop_with_timeout, temp_db, clean_up_files):
 
     with tempfile.TemporaryDirectory() as tempdir:
         kwargs = {
-            "filename": rose_pnm.name,
+            "filename": rose_pnm,
             "resolution": 72,
             "page": 1,
             "dir": tempdir,

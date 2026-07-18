@@ -19,7 +19,7 @@ def test_save_text(
     "Test saving text"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -57,7 +57,7 @@ def test_save_text(
 def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_files):
     "Test saving text"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
         mlp = safe_mainloop(2000)
@@ -92,7 +92,7 @@ def test_save_utf8(
     "Test writing text"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -133,7 +133,7 @@ def test_save_hocr_as_text(
     "Test saving HOCR as text"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -191,7 +191,7 @@ def test_save_hocr(
     "Test writing text"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -253,7 +253,7 @@ def test_save_hocr_with_encoding(
     "Test writing text"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -319,7 +319,7 @@ def test_save_multipage_hocr(
     "Test writing text"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name, rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm, rose_pnm])
 
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -411,7 +411,7 @@ def test_save_hocr_structure(
     "Test writing text"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">

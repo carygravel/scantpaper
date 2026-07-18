@@ -302,66 +302,93 @@ def _create_rose_image():
 
 def _create_qbfox_image():
     "Create a rotated grayscale image with 'The quick brown fox' text"
-    font_size = 50
-    try:
-        font = ImageFont.truetype("DejaVuSans.ttf", font_size)
-    except OSError:
-        font = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size
-        )
+    font_size = 72
+    font = None
+    for path in [
+        "DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+    ]:
+        try:
+            font = ImageFont.truetype(path, font_size)
+            break
+        except OSError:
+            continue
+    if font is None:
+        try:
+            font = ImageFont.load_default(size=font_size)
+        except TypeError:
+            font = ImageFont.load_default()
     text = "The quick brown fox"
-    tmp = Image.new("L", (1200, 120), 255)
-    draw = ImageDraw.Draw(tmp)
-    draw.text((50, 30), text, fill=0, font=font)
-    bbox = tmp.getbbox()
+    canvas = Image.new("L", (2400, 600), 255)
+    draw = ImageDraw.Draw(canvas)
+    draw.text((100, 200), text, fill=0, font=font)
+    mask = canvas.point(lambda x: 0 if x == 255 else 255)
+    bbox = mask.getbbox()
     if bbox:
-        tmp = tmp.crop(bbox)
-    return tmp.rotate(90, expand=True)
+        pad = 40
+        canvas = canvas.crop(
+            (
+                max(bbox[0] - pad, 0),
+                max(bbox[1] - pad, 0),
+                min(bbox[2] + pad, canvas.width),
+                min(bbox[3] + pad, canvas.height),
+            )
+        )
+    w, h = canvas.size
+    min_w, min_h = 400, 100
+    if w < min_w or h < min_h:
+        scale = max(min_w / w, min_h / h)
+        canvas = canvas.resize(
+            (int(w * scale), int(h * scale)), Image.Resampling.NEAREST
+        )
+    return canvas.rotate(90, expand=True)
 
 
 @pytest.fixture(scope="session")
 def rose_pnm():
     "return a session-scoped pnm file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".pnm", delete=False)
-    _create_rose_image().save(tmp.name, "PPM")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".pnm")
+    _create_rose_image().save(path, "PPM")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rose_png():
     "return a session-scoped png file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    _create_rose_image().save(tmp.name, "PNG")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".png")
+    _create_rose_image().save(path, "PNG")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rose_jpg():
     "return a session-scoped jpg file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
-    _create_rose_image().save(tmp.name, "JPEG")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".jpg")
+    _create_rose_image().save(path, "JPEG")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rose_tif():
     "return a session-scoped tif file with a rose image"
-    tmp = tempfile.NamedTemporaryFile(suffix=".tif", delete=False)
-    _create_rose_image().save(tmp.name, "TIFF")
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".tif")
+    _create_rose_image().save(path, "TIFF")
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture(scope="session")
 def rotated_qbfox_pnm():
     "return a session-scoped image with quick brown fox text"
-    tmp = tempfile.NamedTemporaryFile(suffix=".pnm", delete=False)
-    _create_qbfox_image().save(tmp.name)
-    yield tmp
-    os.unlink(tmp.name)
+    path = tempfile.mktemp(suffix=".pnm")
+    _create_qbfox_image().save(path)
+    yield path
+    os.unlink(path)
 
 
 @pytest.fixture

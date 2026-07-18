@@ -47,7 +47,7 @@ def test_do_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     with tempfile.TemporaryDirectory() as tdir:
         _number, _thumb, page_id = thread.add_page(
             Page(
-                filename=rose_pnm.name,
+                filename=rose_pnm,
                 dir=tdir,
                 delete=True,
                 format="Portable anymap",
@@ -94,7 +94,7 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
         mlp.quit()
 
     slist.import_files(
-        paths=[rose_pnm.name],
+        paths=[rose_pnm],
         started_callback=import_files_started_cb,
         finished_callback=import_files_finished_cb,
     )
@@ -160,7 +160,7 @@ def test_save_pdf_with_locale(
 
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     mlp = safe_mainloop(5000)
     slist.save_pdf(
@@ -186,7 +186,7 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop, clean_up_fi
         slist = Document(dir=dirname)
         asserts = 0
 
-        import_in_mainloop(slist, [rose_pnm.name])
+        import_in_mainloop(slist, [rose_pnm])
 
         # inject error before save_pdf
         os.chmod(dirname, 0o500)  # no write access
@@ -267,7 +267,7 @@ def test_save_encrypted_pdf(
 ):
     "test saving an encrypted PDF"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_jpg.name])
+    import_in_mainloop(slist, [rose_jpg])
     mlp = safe_mainloop(5000)
     slist.save_pdf(
         path=temp_pdf.name,
@@ -402,7 +402,7 @@ def test_save_pdf_with_utf8(
     "Test writing PDF with utf8 in text layer"
     slist = Document()
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -439,7 +439,7 @@ def test_save_pdf_with_non_utf8(
     "Test writing PDF with non-utf8 in text layer"
     slist = Document()
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     set_text_in_mainloop(
         slist,
@@ -498,7 +498,7 @@ def test_save_pdf_with_1bpp(
 def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
     "Test writing PDF with group 4 compression"
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [rose_png.name])
+    import_in_mainloop(slist, [rose_png])
     mlp = safe_mainloop(5000)
     slist.save_pdf(
         path=temp_pdf.name,
@@ -606,7 +606,7 @@ def test_save_pdf_with_metadata(
     "Test writing PDF with metadata"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
         "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -647,7 +647,7 @@ def test_save_pdf_with_old_metadata(
     "Test writing PDF with old metadata"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
         "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
@@ -757,7 +757,7 @@ def test_cancel_save_pdf(
     "Test writing PDF with downsampled image"
     slist = Document(db=temp_db.name)
 
-    import_in_mainloop(slist, [rose_pnm.name])
+    import_in_mainloop(slist, [rose_pnm])
 
     finished_callback = MagicMock()
     mlp = safe_mainloop(5000)
@@ -806,7 +806,7 @@ def test_import_pdf_without_text_and_resave(
     # Create a PDF from a TIFF (no text layer)
     with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf1:
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf2:
-            temp_pdf1.write(img2pdf.convert(rose_png.name))
+            temp_pdf1.write(img2pdf.convert(rose_png))
             temp_pdf1.flush()
 
             # Import the PDF without text layer
