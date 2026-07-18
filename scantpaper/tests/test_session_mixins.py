@@ -276,9 +276,10 @@ def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window)
 
 def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
     "Test _find_crashed_sessions with currently running sessions (locked)"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-running.sdb"])
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-other.sdb"])
     mock_session_window.session = mocker.Mock()
     mock_session_window.session.name = "/tmp/scantpaper-running"
+    mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp")
 
     # Mock _create_lockfile to fail (simulating running session)
     mocker.patch("os.path.isdir", return_value=True)

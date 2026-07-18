@@ -774,6 +774,21 @@ def test_on_key_press(app_window):
     assert app_window._on_key_press(None, event) == Gdk.EVENT_PROPAGATE
 
 
+def test_on_view_selection_notify(app_window):
+    "Test _on_view_selection_notify with a non-None selection"
+    sel = MagicMock()
+    copied = MagicMock()
+    sel.copy.return_value = copied
+
+    app_window.view = MagicMock()
+    app_window.view.selection = sel
+    app_window._on_view_selection_notify(None, None)
+    assert app_window.settings["selection"] == copied
+
+    app_window.view.selection = None
+    app_window._on_view_selection_notify(None, None)
+
+
 def test_process_error_callback(app_window, mocker):
     "Test _process_error_callback"
     app_window._scan_progress = MagicMock()
