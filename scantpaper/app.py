@@ -34,11 +34,12 @@
 #     #tox -e signed_sdist
 #     #sudo sbuild-update -udr sid-amd64-sbuild
 #    Make appropriate updates to debian/changelog
+#     debuild -S -sa
+#      or
 #     sbuild -sc sid-amd64-sbuild
 #     debsign .changes
+#      then
 #     lintian -iI --pedantic .changes
-#      or
-#     debuild -S -sa
 #     autopkgtest .changes -- unshare --release sid
 #    check contents with dpkg-deb --contents
 #    test dist sudo dpkg -i scantpaper_x.x.x_all.deb
@@ -49,8 +50,8 @@
 #     git push --set-upstream git@salsa.debian.org:python-team/packages/scantpaper.git : --tags
 # 5. Build packages for Ubuntu
 #    name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
-#      * resolute (until 2031-05)
-#      * noble (until 2029-06)
+#      * resolute (until 2031-05) - dh13
+#      * noble (until 2029-06) - dh13
 #      * jammy (until 2027-06)
 #     debuild -S -sa
 #     dput gscan2pdf-ppa .changes
