@@ -384,7 +384,6 @@ def _create_qbfox_image():
             (int(w * scale), int(h * scale)), Image.Resampling.LANCZOS
         )
     rotated = canvas.rotate(90, expand=True)
-    print(f"[conftest] _create_qbfox_image: final_size={rotated.size}", flush=True)
     return rotated
 
 
@@ -424,13 +423,40 @@ def rose_tif():
     os.unlink(path)
 
 
+@pytest.fixture(scope="session")
+def rotated_qbfox_pnm():
+    "return a session-scoped image with quick brown fox text"
+    path = tempfile.mktemp(suffix=".pnm")
+    _create_qbfox_image().save(path)
+    yield path
+    os.unlink(path)
+
+
 @pytest.fixture
-def rotated_qbfox_pnm(temp_pnm):
-    "return an image with quick brown fox text for debugging CI"
-    img = _create_qbfox_image()
-    img.save(temp_pnm.name)
-    # Save a copy for CI artifact upload
-    img.save("/tmp/qbfox_debug.png")
+def rotated_qbfox_pnm_im(temp_pnm):
+    "return an ImageMagick-generated image with quick brown fox text"
+    subprocess.run(
+        [
+            config.CONVERT_COMMAND,
+            "-density",
+            "300",
+            "label:The quick brown fox",
+            "-alpha",
+            "Off",
+            "-depth",
+            "1",
+            "-colorspace",
+            "Gray",
+            "-family",
+            "DejaVu Sans",
+            "-pointsize",
+            "12",
+            "-rotate",
+            "-90",
+            temp_pnm.name,
+        ],
+        check=True,
+    )
     return temp_pnm
 
 
