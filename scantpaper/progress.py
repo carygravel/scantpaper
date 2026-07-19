@@ -1,11 +1,15 @@
 "HBox with progress bar and cancel button."
 
+import time
+
 import gi
 from basethread import ResponseType
 from i18n import _
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
+
+_PULSE_MIN_INTERVAL = 0.1  # seconds
 
 
 class Progress(Gtk.Box):
@@ -16,6 +20,7 @@ class Progress(Gtk.Box):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._signal = None
+        self._last_pulse = 0.0
         self._pbar = Gtk.ProgressBar()
         self._pbar.set_show_text(True)
         self._pbar.set_hexpand(True)
@@ -39,6 +44,10 @@ class Progress(Gtk.Box):
 
     def pulse(self):
         "Pulse progress bar"
+        now = time.monotonic()
+        if now - self._last_pulse < _PULSE_MIN_INTERVAL:
+            return
+        self._last_pulse = now
         self._pbar.pulse()
 
     def queued(self, response):  # , pid
