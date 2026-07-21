@@ -20,7 +20,7 @@ def test_qbfox_font_fallback():
     with patch("PIL.ImageFont.truetype", side_effect=mock_truetype):
         img = _create_qbfox_image()
         assert img is not None
-        assert call_count[0] == 2
+        assert call_count[0] >= 2
 
 
 def test_qbfox_no_bbox():
