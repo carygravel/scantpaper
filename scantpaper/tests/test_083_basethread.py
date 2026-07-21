@@ -163,39 +163,6 @@ def test_1():
     mlp.run()
 
 
-def test_calibrate_env_override(monkeypatch):
-    "test _calibrate_poll_interval with a valid SCANTPAPER_POLL_INTERVAL_MS"
-    from basethread import _calibrate_poll_interval
-
-    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "25")
-    assert _calibrate_poll_interval() == 25
-
-    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "0")
-    assert _calibrate_poll_interval() == 5
-
-    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "200")
-    assert _calibrate_poll_interval() == 100
-
-
-def test_calibrate_env_override_invalid(monkeypatch):
-    "test _calibrate_poll_interval with non-numeric SCANTPAPER_POLL_INTERVAL_MS"
-    from basethread import _calibrate_poll_interval
-
-    monkeypatch.setenv("SCANTPAPER_POLL_INTERVAL_MS", "abc")
-    monkeypatch.setenv("PYTEST_CURRENT_TEST", "1")
-    assert _calibrate_poll_interval() == 10
-
-
-def test_calibrate_benchmark(monkeypatch):
-    "test the actual GLib benchmark path"
-    from basethread import _calibrate_poll_interval
-
-    monkeypatch.delenv("SCANTPAPER_POLL_INTERVAL_MS", raising=False)
-    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
-    result = _calibrate_poll_interval()
-    assert 5 <= result <= 100
-
-
 def test_mainloop_wrapper_getattr():
     "test that __getattr__ proxies to the underlying GLib.MainLoop"
     mlp = safe_mainloop(2000)
@@ -293,6 +260,25 @@ def test_register_callback_errors():
         thread.register_callback("name", "with", "finished")
     with pytest.raises(ValueError):
         thread.register_callback("name", "before", "nonexistent")
+
+
+def test_pipe_notification():
+    "test that _notify wakes up the IO watcher and processes responses"
+    thread = BaseThread()
+    thread.start()
+
+    responses_received = []
+
+    def on_finished(response):
+        responses_received.append(response)
+        mlp.quit()
+
+    thread.send("quit", finished_callback=on_finished)
+
+    mlp = safe_mainloop(2000)
+    mlp.run()
+    assert len(responses_received) == 1
+    assert responses_received[0].type == ResponseType.FINISHED
 
 
 def test_running_callback_on_empty_queue():

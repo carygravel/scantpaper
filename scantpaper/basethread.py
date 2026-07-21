@@ -4,7 +4,6 @@ import os
 import threading
 import queue
 import collections
-import time
 from enum import Enum
 import uuid
 import logging
@@ -13,54 +12,7 @@ from gi.repository import GLib
 
 logger = logging.getLogger(__name__)
 
-
-def _calibrate_poll_interval():
-    """Benchmark GLib timer dispatch to find minimum reliable poll interval."""
-
-    env_override = os.environ.get("SCANTPAPER_POLL_INTERVAL_MS")
-    if env_override is not None:
-        try:
-            return max(5, min(100, int(env_override)))
-        except ValueError:
-            pass
-
-    if os.environ.get("PYTEST_CURRENT_TEST"):
-        return 10
-
-    try:
-        results = []
-        last_time = [time.monotonic()]
-        iterations = 20
-
-        def _benchmark_cb():
-            now = time.monotonic()
-            results.append(now - last_time[0])
-            last_time[0] = now
-            if len(results) >= iterations:
-                mlp.quit()
-                return GLib.SOURCE_REMOVE
-            return GLib.SOURCE_CONTINUE
-
-        mlp = GLib.MainLoop()
-        GLib.timeout_add(1, _benchmark_cb)
-        GLib.timeout_add(2000, mlp.quit)
-        mlp.run()
-
-        if len(results) < 5:
-            return 50
-
-        results.sort()
-        p95 = results[int(len(results) * 0.95)]
-        interval = max(5, min(100, int(p95 * 1000 * 2)))
-        logger.info(
-            "Thread poll calibration: p95=%.3fms, interval=%dms", p95 * 1000, interval
-        )
-        return interval
-    except Exception:  # pylint: disable=broad-except
-        return 50
-
-
-POLL_INTERVAL_MS = _calibrate_poll_interval()
+_RUNNING_TICK_MS = 200
 
 Response = collections.namedtuple(
     "Response",
@@ -83,12 +35,15 @@ CALLBACKS = ["queued", "started", "running", "data", "finished", "error"]
 class Request:
     "Attributes and methods around requests"
 
-    def __init__(self, process_name, process_args, return_queue, *args, **kwargs):
+    def __init__(
+        self, process_name, process_args, return_queue, notify_cb=None, *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.process = process_name
         self.uuid = uuid.uuid1()
         self.args = process_args
         self.return_queue = return_queue
+        self._notify_cb = notify_cb
 
     def put(self, info, rtype=ResponseType.FINISHED, status=None):
         "put a response on the return queue"
@@ -104,6 +59,8 @@ class Request:
                     pending=None,
                 )
             )
+        if self._notify_cb is not None:
+            self._notify_cb()
 
     def queued(self, info=None, status=None):
         "queued notification"
@@ -140,7 +97,14 @@ class BaseThread(threading.Thread):
         self.after = {}
         self.num_completed_jobs = 0
         self.total_jobs = 0
+        self._notify_r, self._notify_w = os.pipe()
+        os.set_blocking(self._notify_r, False)
+        os.set_blocking(self._notify_w, False)
         self._finalizer = weakref.finalize(self, self._cleanup_thread, self.requests)
+        self._io_watch_id = GLib.io_add_watch(
+            self._notify_r, GLib.PRIORITY_DEFAULT, GLib.IO_IN, self._on_readable
+        )
+        self._tick_id = GLib.timeout_add(_RUNNING_TICK_MS, self._tick)
         for callback in CALLBACKS:
             self.before[callback] = set()
             self.after[callback] = set()
@@ -155,6 +119,46 @@ class BaseThread(threading.Thread):
         except Exception:  # pylint: disable=broad-except
             # If the interpreter is shutting down, queues might be closed/None
             pass
+
+    def _release_sources(self):
+        "schedule removal of GLib sources and pipe FDs on the main thread"
+
+        def _cleanup():
+            GLib.source_remove(self._io_watch_id)
+            GLib.source_remove(self._tick_id)
+            try:
+                os.close(self._notify_r)
+            except OSError:
+                pass
+            try:
+                os.close(self._notify_w)
+            except OSError:
+                pass
+            return GLib.SOURCE_REMOVE
+
+        GLib.idle_add(_cleanup)
+
+    def _notify(self):
+        "wake up the GLib main loop to process responses"
+        try:
+            os.write(self._notify_w, b"\x01")
+        except OSError:
+            pass
+
+    def _on_readable(self, _fd, _condition):
+        "called when the notification pipe is readable"
+        try:
+            while True:
+                os.read(self._notify_r, 1024)
+        except BlockingIOError:
+            pass
+        self.monitor()
+        return GLib.SOURCE_CONTINUE
+
+    def _tick(self):
+        "periodic tick for running callbacks (progress reporting)"
+        self._execute_callbacks_for_stage("running", None)
+        return GLib.SOURCE_CONTINUE
 
     def quit(self):
         "quit the thread"
@@ -186,7 +190,7 @@ class BaseThread(threading.Thread):
         **kwargs,
     ):
         "Puts the process and args as a `Request` on the requests queue"
-        request = Request(process, args, self.responses)
+        request = Request(process, args, self.responses, self._notify)
         callbacks = {"started": False}
         for callback in CALLBACKS:
             name = callback + "_callback"
@@ -202,7 +206,7 @@ class BaseThread(threading.Thread):
         self.requests.put(request)
         self.total_jobs += 1
         request.queued()
-        GLib.timeout_add(POLL_INTERVAL_MS, self.monitor)
+        self._notify()
         return request.uuid
 
     def run(self):
@@ -218,6 +222,7 @@ class BaseThread(threading.Thread):
                 if not self.handler_wrapper(request, handler):
                     break
             self.requests.task_done()
+        self._release_sources()
 
     def handler_wrapper(self, request, handler):
         "separate the handler wrapper logic so that it can be overriden by subclasses"
@@ -238,8 +243,7 @@ class BaseThread(threading.Thread):
         "monitor the thread, triggering callbacks as required"
         self._execute_callbacks_for_stage("running", None)
         while not self.responses.empty():
-            if self._monitor_response() == GLib.SOURCE_REMOVE:
-                return GLib.SOURCE_REMOVE
+            self._monitor_response()
         return GLib.SOURCE_CONTINUE
 
     def _execute_callbacks_for_stage(self, stage, result):
