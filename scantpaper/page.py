@@ -121,7 +121,8 @@ class Page:
         "import hocr"
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
-        self.text_layer = bboxtree.json()
+        json_text = bboxtree.json()
+        self.text_layer = None if json_text == "[]" else json_text
 
     def export_hocr(self):
         "export hocr"

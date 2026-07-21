@@ -367,3 +367,25 @@ def test_write_image_for_djvu_error(mocker):
         # This should log an error but not raise an exception
         page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
         mock_exec.assert_called_once()
+
+
+def test_import_hocr_empty():
+    "Test that importing empty hOCR sets text_layer to None"
+
+    empty_hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='scantpaper {VERSION}' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
+ </head>
+ <body>
+ </body>
+</html>
+"""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(image_object=Image.new("RGB", (210, 297)), dir=dirname)
+        page.import_hocr(empty_hocr)
+        assert page.text_layer is None, "empty hOCR should set text_layer to None"

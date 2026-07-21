@@ -830,3 +830,39 @@ def test_import_pdf_without_text_and_resave(
             assert "Page size:" in capture, "valid PDF created"
 
             clean_up_files(slist.thread.db_files + [temp_pdf2.name])
+
+
+def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf, clean_up_files):
+    """
+    Regression test for bug where saving a PDF with text_layer set to '[]'
+    (empty JSON array, as produced by tesseract when no text is found)
+    would fail with: 'HocrTransform' object has no attribute 'width'
+    """
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    with tempfile.TemporaryDirectory() as tdir:
+        _number, _thumb, page_id = thread.add_page(
+            Page(
+                filename=rose_pnm,
+                dir=tdir,
+                delete=True,
+                format="Portable anymap",
+                resolution=(72, 72, "PixelsPerInch"),
+                width=70,
+                height=46,
+                text_layer="[]",
+            ),
+            number=1,
+        )
+        options = {
+            "dir": tdir,
+            "path": temp_pdf.name,
+            "list_of_pages": [page_id],
+            "options": {},
+        }
+        request = Request("save_pdf", (options,), queue.Queue())
+        thread.do_save_pdf(request)
+        capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
+        assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
+
+        clean_up_files(thread.db_files)

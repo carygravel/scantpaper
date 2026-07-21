@@ -150,7 +150,7 @@ class SaveThread(Importhread):
                 for fname in filenames:
                     os.remove(fname)
             for pagenr, page in enumerate(list_of_pages):
-                if page.text_layer:
+                if page.text_layer and page.text_layer != "[]":
                     with open(
                         outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr",
                         "w",
