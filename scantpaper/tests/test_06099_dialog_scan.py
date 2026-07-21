@@ -513,6 +513,29 @@ class TestScanDialog:
         scan.framen.set_sensitive.assert_called_with(False)
         assert scan.num_pages == 1
 
+    def test_allow_batch_flatbed_before_framen(self):
+        "Test allow_batch_flatbed property when framen doesn't exist yet"
+        scan = MockScan()
+        if hasattr(scan, "framen"):
+            delattr(scan, "framen")
+
+        # Should not raise AttributeError during construction
+        scan.allow_batch_flatbed = True
+        assert scan._allow_batch_flatbed is True
+        scan.allow_batch_flatbed = False
+        assert scan._allow_batch_flatbed is False
+
+    def test_available_scan_options_before_framen(self):
+        "Test available_scan_options setter when framen doesn't exist yet"
+        scan = MockScan()
+        if hasattr(scan, "framen"):
+            delattr(scan, "framen")
+
+        options = MockOptions([])
+        # Should not raise AttributeError during construction
+        scan.available_scan_options = options
+        assert scan._available_scan_options is options
+
     def test_get_xy_resolution_complex(self):
         "Test get_xy_resolution with multiple resolutions defined"
         scan = MockScan()

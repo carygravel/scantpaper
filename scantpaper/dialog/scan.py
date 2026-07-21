@@ -238,6 +238,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     @allow_batch_flatbed.setter
     def allow_batch_flatbed(self, newval):
         self._allow_batch_flatbed = newval
+        if not hasattr(self, "framen"):
+            return
         if newval:
             self.framen.set_sensitive(True)
         else:
@@ -282,14 +284,15 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     @available_scan_options.setter
     def available_scan_options(self, newval):
         self._available_scan_options = newval
-        if not self.allow_batch_flatbed and newval.flatbed_selected(
-            self.thread.device_handle
-        ):
-            if self.num_pages != 1:
-                self.num_pages = 1
-            self.framen.set_sensitive(False)
-        else:
-            self.framen.set_sensitive(True)
+        if hasattr(self, "framen") and hasattr(self, "thread"):
+            if not self.allow_batch_flatbed and newval.flatbed_selected(
+                self.thread.device_handle
+            ):
+                if self.num_pages != 1:
+                    self.num_pages = 1
+                self.framen.set_sensitive(False)
+            else:
+                self.framen.set_sensitive(True)
 
         self._flatbed_or_duplex_callback()
 
