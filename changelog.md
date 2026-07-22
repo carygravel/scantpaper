@@ -2,6 +2,7 @@
 
 * Implement thread dispatch without polling to improve app
 responsiveness
+* Fix AttributeError and HocrTransform error
 
 
 ## 3.0.12 (2026-07-19)
