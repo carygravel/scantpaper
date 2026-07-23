@@ -240,11 +240,20 @@ class BaseThread(threading.Thread):
         return True
 
     def monitor(self):
-        "monitor the thread, triggering callbacks as required"
+        "monitor the thread, triggering one response callback"
         self._execute_callbacks_for_stage("running", None)
-        while not self.responses.empty():
+        if not self.responses.empty():
             self._monitor_response()
+            GLib.idle_add(self._drain_one)
         return GLib.SOURCE_CONTINUE
+
+    def _drain_one(self):
+        "Process one response from the queue, scheduling the next if needed"
+        self._execute_callbacks_for_stage("running", None)
+        if not self.responses.empty():
+            self._monitor_response()
+            return GLib.SOURCE_CONTINUE
+        return GLib.SOURCE_REMOVE
 
     def _execute_callbacks_for_stage(self, stage, result):
         """helper method to run the callbacks associated with each stage
@@ -296,7 +305,6 @@ class BaseThread(threading.Thread):
                     self.callbacks[uid]["error_callback"](data)
 
     def _monitor_response(self):
-        self._execute_callbacks_for_stage("running", None)
         try:
             result = self.responses.get(False)
         except queue.Empty:

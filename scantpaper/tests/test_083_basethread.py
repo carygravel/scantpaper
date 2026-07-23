@@ -339,3 +339,51 @@ def test_none_callback():
     thread.send("quit", finished_callback=lambda response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
+
+
+def test_monitor_processes_one_at_a_time():
+    "test that monitor processes exactly one response per call"
+    from unittest.mock import patch
+    from basethread import Request
+
+    thread = BaseThread()
+    finished_calls = []
+
+    def finished_cb(response):
+        finished_calls.append(response)
+
+    # Manually enqueue two finished responses
+    req1 = Request("test", (), thread.responses)
+    req2 = Request("test", (), thread.responses)
+    thread.callbacks[req1.uuid] = {"started": True, "finished_callback": finished_cb}
+    thread.callbacks[req2.uuid] = {"started": True, "finished_callback": finished_cb}
+    req1.finished(info="result1")
+    req2.finished(info="result2")
+
+    assert thread.responses.qsize() == 2
+
+    # Patch idle_add so it does not actually schedule — we want to call
+    # monitor() manually and observe the queue state after one call.
+    with patch("basethread.GLib.idle_add"):
+        thread.monitor()
+
+    # Exactly one response should have been consumed
+    assert len(finished_calls) == 1
+    assert finished_calls[0].info == "result1"
+    assert thread.responses.qsize() == 1
+
+
+def test_monitor_schedules_idle_when_responses_remain():
+    "test that GLib.idle_add is called when responses still in queue"
+    from unittest.mock import patch
+    from basethread import Request
+
+    thread = BaseThread()
+
+    req = Request("test", (), thread.responses)
+    thread.callbacks[req.uuid] = {"started": True, "finished_callback": lambda r: None}
+    req.finished(info="result")
+
+    with patch("basethread.GLib.idle_add") as mock_idle:
+        thread.monitor()
+        mock_idle.assert_called_once_with(thread._drain_one)
