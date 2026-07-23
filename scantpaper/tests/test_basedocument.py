@@ -171,9 +171,19 @@ def test_save_open_session():
         slist2.dir = pathlib.Path(temp_dir2)
         error_callback = MagicMock()
 
-        # Mock thread methods used in open_session
-        slist2.thread.open = MagicMock()
-        slist2.thread.page_number_table.return_value = [[1, None, 101]]
+        # Override send to simulate async responses synchronously
+        def mock_send(process, *args, **kwargs):
+            if process == "open":
+                if "finished_callback" in kwargs:
+                    kwargs["finished_callback"](MagicMock())
+            elif process == "page_number_table":
+                if "finished_callback" in kwargs:
+                    kwargs["finished_callback"](
+                        MagicMock(info=[[1, None, 101]])
+                    )
+            return MagicMock()
+
+        slist2.thread.send = mock_send
 
         slist2.open_session(db=tmp_name, error_callback=error_callback)
         assert len(slist2.data) == 1

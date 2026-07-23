@@ -237,6 +237,10 @@ class DocThread(SaveThread):
         if row:
             self._action_id = row[0]
 
+    def do_open(self, request):
+        "open a saved database on the worker thread"
+        self.open(request.args[0])
+
     def close(self):
         "close the current database"
         tid = threading.get_native_id()
@@ -445,8 +449,8 @@ class DocThread(SaveThread):
             return row[0]
         return None
 
-    def page_number_table(self):
-        "get data for page number/thumb table"
+    def do_page_number_table(self, _request):
+        "get data for page number/thumb table on the worker thread"
         self._execute(
             """SELECT page_number, thumb, initial_page_id
                FROM page_order, page, image
@@ -458,6 +462,27 @@ class DocThread(SaveThread):
         for row in self._fetchall():
             rows.append([row[0], self._bytes_to_pixbuf(row[1]), row[2]])
         return rows
+
+    def page_number_table(self):
+        "synchronous wrapper for do_page_number_table via send()"
+        result = [None]
+        mlp = GLib.MainLoop()
+
+        def on_finished(response):
+            result[0] = response.info
+            mlp.quit()
+
+        def on_error(response):
+            result[0] = None
+            mlp.quit()
+
+        self.send(
+            "page_number_table",
+            finished_callback=on_finished,
+            error_callback=on_error,
+        )
+        mlp.run()
+        return result[0]
 
     # TODO: remove the page_number argument, as it is only used in tests
     def get_page(self, **kwargs):

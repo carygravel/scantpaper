@@ -576,19 +576,39 @@ class BaseDocument(SimpleList):
                 )
             return
 
-        # Block the row-changed signal whilst adding the scan (row) and sorting it.
+        # Block the row-changed signal for the entire async sequence
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
-        self.thread.open(db)
-        self.data = self.thread.page_number_table()
-        logger.info("Opened document %s", db)
-        logger.info("Found %i pages", len(self.data))
+        error_callback = kwargs.get("error_callback")
 
-        if self.row_changed_signal is not None:
-            self.get_model().handler_unblock(self.row_changed_signal)
+        def on_open(_response):
+            self.thread.send(
+                "page_number_table",
+                finished_callback=on_table,
+                error_callback=on_error,
+            )
 
-        self.select(0)
+        def on_table(response):
+            if self.row_changed_signal is not None:
+                self.get_model().handler_unblock(self.row_changed_signal)
+            self.data = response.info
+            logger.info("Opened document %s", db)
+            logger.info("Found %i pages", len(self.data))
+            self.select(0)
+
+        def on_error(response):
+            if self.row_changed_signal is not None:
+                self.get_model().handler_unblock(self.row_changed_signal)
+            if error_callback:
+                error_callback(None, "Open file", response.status)
+
+        self.thread.send(
+            "open",
+            db,
+            finished_callback=on_open,
+            error_callback=on_error,
+        )
 
     def renumber(self, start=None, step=1, selection="all"):
         "Renumber pages"
