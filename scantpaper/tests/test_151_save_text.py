@@ -129,7 +129,7 @@ def test_save_hocr_as_text(
     temp_db,
     temp_txt,
     clean_up_files,
-):
+    get_page_sync):
     "Test saving HOCR as text"
     slist = Document(db=temp_db.name)
 
@@ -158,7 +158,7 @@ def test_save_hocr_as_text(
  </body>
 </html>
 """
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
@@ -187,7 +187,7 @@ def test_save_hocr(
     temp_db,
     temp_txt,
     clean_up_files,
-):
+    get_page_sync):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -216,7 +216,7 @@ def test_save_hocr(
  </body>
 </html>
 """
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
@@ -249,7 +249,7 @@ def test_save_hocr_with_encoding(
     temp_db,
     temp_txt,
     clean_up_files,
-):
+    get_page_sync):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -287,7 +287,7 @@ def test_save_hocr_with_encoding(
  </body>
 </html>
 """
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
@@ -315,7 +315,7 @@ def test_save_multipage_hocr(
     temp_db,
     temp_txt,
     clean_up_files,
-):
+    get_page_sync):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -344,7 +344,7 @@ def test_save_multipage_hocr(
  </body>
 </html>
 """
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
     set_text_in_mainloop(slist, 2, page.text_layer)
@@ -407,7 +407,7 @@ def test_save_hocr_structure(
     temp_db,
     temp_txt,
     clean_up_files,
-):
+    get_page_sync):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -464,7 +464,7 @@ def test_save_hocr_structure(
 </body>
 </html>
 """
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 

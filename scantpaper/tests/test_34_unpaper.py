@@ -159,7 +159,7 @@ def test_1():
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files):
+def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files, get_page_sync):
     "Test unpaper"
 
     unpaper = Unpaper()
@@ -195,7 +195,7 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files):
 
     import_in_mainloop(slist, [temp_pbm.name])
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of imported image"
 
     asserts = 0
@@ -216,7 +216,7 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of processed image"
 
     #########################
@@ -226,7 +226,12 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files):
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_unpaper2(
-    temp_pnm, temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
+    temp_pnm,
+    temp_db,
+    import_in_mainloop,
+    set_resolution_in_mainloop,
+    clean_up_files,
+    get_page_sync,
 ):
     "Test unpaper"
 
@@ -263,11 +268,11 @@ def test_unpaper2(
 
     import_in_mainloop(slist, [temp_pnm.name])
 
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 72, "non-standard size pnm imports with 72 PPI"
 
     set_resolution_in_mainloop(slist, 1, 300, 300)
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     assert (
         page.resolution[0] == 300
     ), "simulated having imported non-standard pnm with 300 PPI"
@@ -290,7 +295,7 @@ def test_unpaper2(
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 300, "Resolution of processed image"
 
     #########################
@@ -299,7 +304,7 @@ def test_unpaper2(
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
     "Test unpaper"
 
     unpaper = Unpaper({"output-pages": 2, "layout": "double"})
@@ -362,7 +367,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     import_in_mainloop(slist, [temp_pnm.name])
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 72, "Resolution of imported image"
 
     asserts = 0
@@ -383,9 +388,9 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 2, "all callbacks run"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 72, "Resolution of 1st page"
-    page = slist.thread.get_page(number=2)
+    page = get_page_sync(slist.thread, number=2)
     assert page.resolution[0] == 72, "Resolution of 2nd page"
 
     #########################
@@ -394,7 +399,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
     "Test unpaper"
 
     unpaper = Unpaper({"output-pages": 2, "layout": "double", "direction": "rtl"})
@@ -447,7 +452,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
 
     out_level = []
     for i in [0, 1]:
-        page = slist.thread.get_page(number=i + 1)
+        page = get_page_sync(slist.thread, number=i + 1)
         out_level.append(page.image_object.getpixel((100, 100)))
     assert (
         len(in_level) == 2

@@ -526,6 +526,11 @@ class DocThread(SaveThread):
             image_id=row[8],
         )
 
+    def do_get_page(self, request):
+        "get a page from the database on the worker thread"
+        kwargs = request.args[0]
+        return self.get_page(**kwargs)
+
     def do_clone_pages(self, request):
         "clone pages in the database"
         self._check_write_tid()

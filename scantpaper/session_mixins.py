@@ -242,39 +242,63 @@ class SessionMixins:
 
     def _display_image(self, pageid):
         "Display the image in the view"
-        self._current_page = self.slist.thread.get_page(id=pageid)
-        self.view.set_pixbuf(self._current_page.get_pixbuf(), True)
-        xresolution, yresolution, _units = self._current_page.get_resolution()
-        self.view.set_resolution_ratio(xresolution / yresolution)
 
-        # Get image dimensions to constrain selector spinbuttons on crop dialog
-        width, height = self._current_page.get_size()
+        # Find the index for this pageid to get the thumbnail
+        i = self.slist.find_page_by_uuid(pageid)
+        if i is None:
+            logger.error("Cannot display page with id %s: page not found", pageid)
+            return
 
-        # Update the ranges on the crop dialog
-        if self._windowc is not None and self._current_page is not None:
-            self._windowc.page_width = width
-            self._windowc.page_height = height
-            self.settings["selection"] = self._windowc.selection
-            self.view.set_selection(self.settings["selection"])
+        # Immediate: show the thumbnail pixbuf from self.data[i][1]
+        thumbnail_pixbuf = self.slist.data[i][1]
+        if thumbnail_pixbuf is not None:
+            self.view.set_pixbuf(thumbnail_pixbuf, True)
 
-        # Delete OCR output if it has become corrupted
-        if self._current_page.text_layer is not None:
-            bbox = Bboxtree(self._current_page.text_layer)
-            if not bbox.valid():
-                logger.error(
-                    "deleting corrupt text layer: %s", self._current_page.text_layer
-                )
-                self._current_page.text_layer = None
+        # Deferred: send "get_page" async with callback for full-res
+        def on_page_loaded(response):
+            self._current_page = response.info
+            self.view.set_pixbuf(self._current_page.get_pixbuf(), True)
+            xresolution, yresolution, _units = self._current_page.get_resolution()
+            self.view.set_resolution_ratio(xresolution / yresolution)
 
-        if self._current_page.text_layer:
-            self._create_txt_canvas(self._current_page)
-        else:
-            self.t_canvas.clear_text()
+            # Get image dimensions to constrain selector spinbuttons on crop dialog
+            width, height = self._current_page.get_size()
 
-        if self._current_page.annotations:
-            self._create_ann_canvas(self._current_page)
-        else:
-            self.a_canvas.clear_text()
+            # Update the ranges on the crop dialog
+            if self._windowc is not None and self._current_page is not None:
+                self._windowc.page_width = width
+                self._windowc.page_height = height
+                self.settings["selection"] = self._windowc.selection
+                self.view.set_selection(self.settings["selection"])
+
+            # Delete OCR output if it has become corrupted
+            if self._current_page.text_layer is not None:
+                bbox = Bboxtree(self._current_page.text_layer)
+                if not bbox.valid():
+                    logger.error(
+                        "deleting corrupt text layer: %s", self._current_page.text_layer
+                    )
+                    self._current_page.text_layer = None
+
+            if self._current_page.text_layer:
+                self._create_txt_canvas(self._current_page)
+            else:
+                self.t_canvas.clear_text()
+
+            if self._current_page.annotations:
+                self._create_ann_canvas(self._current_page)
+            else:
+                self.a_canvas.clear_text()
+
+        def on_page_error(response):
+            logger.error("Error loading page %s: %s", pageid, response.status)
+
+        self.slist.thread.send(
+            "get_page",
+            {"id": pageid},
+            finished_callback=on_page_loaded,
+            error_callback=on_page_error,
+        )
 
     def _error_callback(self, response):
         "Handle errors"

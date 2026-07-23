@@ -16,7 +16,7 @@ from loop_helpers import safe_mainloop
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain(temp_db, temp_pnm, clean_up_files):
+def test_process_chain(temp_db, temp_pnm, clean_up_files, get_page_sync):
     "Test process chain"
 
     unpaper = Unpaper()
@@ -71,7 +71,7 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files):
     assert (
         asserts == 4
     ), "display callback called for import, rotate, unpaper, tesseract"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()
@@ -89,7 +89,7 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files):
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain2(temp_db, temp_pnm, clean_up_files):
+def test_process_chain2(temp_db, temp_pnm, clean_up_files, get_page_sync):
     "Test process chain"
 
     subprocess.run(
@@ -122,7 +122,7 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean == [0.0], "User-defined with %i and %o"
 
     #########################
@@ -135,7 +135,7 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files):
 @pytest.mark.xfail(
     reason="Pillow FreeType glyph metrics broken on CI (getbbox x_min=-19M)"
 )
-def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, clean_up_files):
+def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, clean_up_files, get_page_sync):
     "Test tesseract in process chain using Pillow-generated image"
 
     slist = Document(db=temp_db.name)
@@ -162,7 +162,7 @@ def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, clean_up_fil
     mlp.run()
 
     assert asserts == 3, "display callback called for import, rotate, tesseract"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()
@@ -175,7 +175,7 @@ def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, clean_up_fil
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, clean_up_files):
+def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, clean_up_files, get_page_sync):
     "Test tesseract in process chain using ImageMagick-generated image"
 
     slist = Document(db=temp_db.name)
@@ -202,7 +202,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, clean_up_file
     mlp.run()
 
     assert asserts == 3, "display callback called for import, rotate, tesseract"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()

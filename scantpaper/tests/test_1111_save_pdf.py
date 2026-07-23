@@ -290,7 +290,7 @@ def test_save_pdf_with_hocr(
     temp_pdf,
     temp_png,
     clean_up_files,
-):
+    get_page_sync):
     "Test writing PDF with text layer from hocr"
 
     subprocess.run(
@@ -352,7 +352,7 @@ def test_save_pdf_with_hocr(
  </body>
 </html>
 """
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
     # slist.data[0][2].import_annotations(hocr)
@@ -380,7 +380,7 @@ def test_save_pdf_with_hocr(
     # in the original, we cannot expect to be able to
     # round-trip the text layer. Here, at least we can check
     # that we have scaled the page size correctly.
-    page = slist.thread.get_page(id=2)
+    page = get_page_sync(slist.thread, id=2)
     regex = re.search(r"bbox\s0\s0\s(\d+)\s(\d+)", page.export_hocr())
     page_width, page_height = None, None
     if regex:

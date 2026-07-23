@@ -399,13 +399,36 @@ def test_display_image(mocker, mock_session_window):
     mock_page.text_layer = None
     mock_page.annotations = None
 
-    mock_session_window.slist.thread.get_page.return_value = mock_page
     mock_session_window._windowc = mocker.Mock()
     mock_session_window._windowc.selection = "selection"
+
+    # Mock the thumbnail pixbuf in data
+    mock_thumbnail = mocker.Mock()
+    mock_session_window.slist.data = [["page_num", mock_thumbnail, "page_id"]]
+    mock_session_window.slist.find_page_by_uuid.return_value = 0
+
+    # Capture the callbacks passed to send()
+    captured_callbacks = {}
+
+    def capture_send(process, *args, **kwargs):
+        captured_callbacks["finished_callback"] = kwargs.get("finished_callback")
+        captured_callbacks["error_callback"] = kwargs.get("error_callback")
+        return mocker.Mock()
+
+    mock_session_window.slist.thread.send.side_effect = capture_send
 
     # Case 1: Minimal page
     mock_session_window._display_image("page_id")
 
+    # Thumbnail should be set immediately
+    mock_session_window.view.set_pixbuf.assert_called_with(mock_thumbnail, True)
+
+    # Simulate async response by calling the finished callback
+    mock_response = mocker.Mock()
+    mock_response.info = mock_page
+    captured_callbacks["finished_callback"](mock_response)
+
+    # Now the full-res pixbuf should be set
     mock_session_window.view.set_pixbuf.assert_called_with("pixbuf", True)
     mock_session_window.view.set_resolution_ratio.assert_called_with(1.0)
     assert mock_session_window._windowc.page_width == 1000
@@ -418,6 +441,7 @@ def test_display_image(mocker, mock_session_window):
         "session_mixins.Bboxtree", return_value=mocker.Mock(valid=lambda: False)
     )
     mock_session_window._display_image("page_id")
+    captured_callbacks["finished_callback"](mock_response)
     assert mock_page.text_layer is None
 
     # Case 3: Valid text layer
@@ -427,16 +451,19 @@ def test_display_image(mocker, mock_session_window):
     )
     mock_session_window._create_txt_canvas = mocker.Mock()
     mock_session_window._display_image("page_id")
+    captured_callbacks["finished_callback"](mock_response)
     mock_session_window._create_txt_canvas.assert_called_with(mock_page)
 
     # Case 4: Annotations
     mock_page.annotations = "some_ann"
     mock_session_window._create_ann_canvas = mocker.Mock()
     mock_session_window._display_image("page_id")
+    captured_callbacks["finished_callback"](mock_response)
     mock_session_window._create_ann_canvas.assert_called_with(mock_page)
 
-    # Case 5: No pageid
-    mock_session_window._display_image(None)
+    # Case 5: No pageid (page not found)
+    mock_session_window.slist.find_page_by_uuid.return_value = None
+    mock_session_window._display_image("nonexistent_page")
 
 
 def test_error_callback(mocker, mock_session_window):

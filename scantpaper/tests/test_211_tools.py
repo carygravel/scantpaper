@@ -16,8 +16,8 @@ from loop_helpers import safe_mainloop
 
 
 def test_rotate(
-    rose_jpg, temp_db, import_in_mainloop, set_saved_in_mainloop, clean_up_files
-):
+    rose_jpg, temp_db, import_in_mainloop, set_saved_in_mainloop, clean_up_files,
+    get_page_sync):
     "Test rotating"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -42,7 +42,7 @@ def test_rotate(
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.image_object.mode == "RGB", "valid JPG created"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
     assert slist.data[0][1].get_height() == 100, "thumbnail height after rotation"
@@ -53,7 +53,7 @@ def test_rotate(
     clean_up_files(slist.thread.db_files)
 
 
-def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
+def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
     "Test analyse"
 
     subprocess.run(
@@ -71,7 +71,7 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.std_dev == [0.0], "Found blank page"
 
     #########################
@@ -79,7 +79,7 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files):
     clean_up_files(slist.thread.db_files + ["white.pgm"])
 
 
-def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files):
+def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
     "Test analyse"
 
     subprocess.run([config.CONVERT_COMMAND, "xc:black", "black.pgm"], check=True)
@@ -95,7 +95,7 @@ def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files):
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean == [0.0], "Found dark page"
 
     #########################
@@ -110,7 +110,7 @@ def test_threshold(
     temp_db,
     rose_jpg,
     clean_up_files,
-):
+    get_page_sync):
     "Test threshold"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -138,7 +138,7 @@ def test_threshold(
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert len(page.mean) == 1, "depth == 1"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
@@ -170,7 +170,7 @@ def test_negate(
     mode,
     white,
     expected_mean,
-):
+    get_page_sync):
     "Test negate"
 
     image = f"white.{suffix}"
@@ -195,7 +195,7 @@ def test_negate(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert min(page.mean) == expected_mean, "mean before"
 
     mlp = safe_mainloop(2000)
@@ -212,7 +212,7 @@ def test_negate(
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert max(page.mean) == 0, "mean afterwards"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
@@ -229,7 +229,7 @@ def test_unsharp_mask(
     temp_db,
     rose_jpg,
     clean_up_files,
-):
+    get_page_sync):
     "Test unsharp mask"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -248,7 +248,7 @@ def test_unsharp_mask(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean == [
         179.97422360248447,
         65.09254658385093,
@@ -272,7 +272,7 @@ def test_unsharp_mask(
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean != [
         179.97422360248447,
         65.09254658385093,
@@ -293,7 +293,7 @@ def test_crop(
     temp_db,
     temp_gif,
     clean_up_files,
-):
+    get_page_sync):
     "Test brightness contrast"
 
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
@@ -302,7 +302,7 @@ def test_crop(
 
     import_in_mainloop(slist, [temp_gif.name])
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
@@ -327,7 +327,7 @@ def test_crop(
  </body>
 </html>
 """
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
@@ -341,7 +341,7 @@ def test_crop(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.width == 10, "page width after crop"
     assert page.height == 10, "page height after crop"
     image = page.image_object
@@ -380,7 +380,7 @@ def test_split(
     temp_db,
     temp_gif,
     clean_up_files,
-):
+    get_page_sync):
     "Test split"
 
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
@@ -389,7 +389,7 @@ def test_split(
 
     import_in_mainloop(slist, [temp_gif.name])
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
@@ -423,7 +423,7 @@ def test_split(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.width == 35, "1st page width after split"
     assert page.height == 46, "1st page height after split"
     assert page.id == 3, "1st page id after split"
@@ -449,7 +449,7 @@ def test_split(
 """
     assert page.export_hocr() == hocr, "split hocr"
 
-    page = slist.thread.get_page(number=2)
+    page = get_page_sync(slist.thread, number=2)
     assert page.width == 35, "2nd page width after split"
     assert page.height == 46, "2nd page height after split"
     assert page.id == 2, "2nd page id after split"
@@ -489,7 +489,7 @@ def test_brightness_contrast(
     temp_db,
     rose_jpg,
     clean_up_files,
-):
+    get_page_sync):
     "Test brightness contrast"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -508,7 +508,7 @@ def test_brightness_contrast(
     )
     mlp.run()
     mean = [179.97422360248447, 65.09254658385093, 99.69409937888199]
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean == mean, "mean before"
 
     mlp = safe_mainloop(2000)
@@ -525,7 +525,7 @@ def test_brightness_contrast(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean != mean, "mean after"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"

@@ -149,7 +149,7 @@ startxref
     clean_up_files(slist.thread.db_files)
 
 
-def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
+def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db, get_page_sync):
     "Test importing PDF"
 
     options = [
@@ -186,7 +186,7 @@ def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db):
     mlp.run()
 
     assert (
-        slist.thread.get_page(id=1).image_object.mode == "1"
+        get_page_sync(slist.thread, id=1).image_object.mode == "1"
     ), "BW PDF imported correctly"
 
     #########################

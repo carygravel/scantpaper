@@ -99,7 +99,7 @@ def test_save_djvu_with_hocr(
     temp_db,
     temp_djvu,
     clean_up_files,
-):
+    get_page_sync):
     "Test saving a djvu with text layer from HOCR"
 
     slist = Document(db=temp_db.name)
@@ -126,7 +126,7 @@ def test_save_djvu_with_hocr(
  </body>
 </html>
 """
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
     page.import_annotations(hocr)

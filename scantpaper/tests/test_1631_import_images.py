@@ -8,7 +8,7 @@ from document import Document
 from loop_helpers import safe_mainloop
 
 
-def test_import_ppm(temp_db, temp_ppm, clean_up_files):
+def test_import_ppm(temp_db, temp_ppm, clean_up_files, get_page_sync):
     "Test importing PPM"
 
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
@@ -23,7 +23,7 @@ def test_import_ppm(temp_db, temp_ppm, clean_up_files):
     )
     mlp.run()
 
-    page = slist.thread.get_page(id=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.image_object.mode == "RGB", "PPM imported correctly"
 
     #########################

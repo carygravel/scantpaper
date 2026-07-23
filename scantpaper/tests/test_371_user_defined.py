@@ -9,8 +9,8 @@ from loop_helpers import safe_mainloop
 
 
 def test_udt(
-    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files
-):
+    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, clean_up_files,
+    get_page_sync):
     "Test user-defined tools"
 
     paper_sizes = {
@@ -29,7 +29,7 @@ def test_udt(
 
     import_in_mainloop(slist, [temp_pnm.name])
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
 
     set_text_in_mainloop(
@@ -55,7 +55,7 @@ def test_udt(
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean == [0.0], "User-defined with %i and %o"
     assert page.resolution[0] == 25.4, "Resolution of converted image"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
@@ -67,7 +67,7 @@ def test_udt(
     clean_up_files(slist.thread.db_files)
 
 
-def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
     "Test user-defined tools"
 
     subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
@@ -91,7 +91,7 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean == [0.0], "User-defined with %i"
 
     #########################
@@ -99,7 +99,7 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     clean_up_files(slist.thread.db_files)
 
 
-def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files):
+def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
     "Test user-defined tools"
 
     paper_sizes = {
@@ -118,7 +118,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up
 
     import_in_mainloop(slist, [temp_pnm.name])
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 25.4, "Resolution of imported image"
 
     mlp = safe_mainloop(5000)
@@ -129,7 +129,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 25.4, "Resolution of image after udt"
 
     mlp = safe_mainloop(5000)
@@ -152,8 +152,8 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up
 
 
 def test_udt_resolution(
-    temp_pnm, temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files
-):
+    temp_pnm, temp_db, import_in_mainloop, set_resolution_in_mainloop, clean_up_files,
+    get_page_sync):
     "Test user-defined tools"
 
     subprocess.run(
@@ -174,7 +174,7 @@ def test_udt_resolution(
     )
     mlp.run()
 
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.resolution == (
         10,
         10,
@@ -186,7 +186,7 @@ def test_udt_resolution(
     clean_up_files(slist.thread.db_files)
 
 
-def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
     "Test user-defined tools"
 
     subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
@@ -219,7 +219,7 @@ def test_udt_error(temp_pnm, temp_db, import_in_mainloop, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = slist.thread.get_page(number=1)
+    page = get_page_sync(slist.thread, number=1)
     assert page.mean == [0.0], "User-defined after error"
 
     #########################

@@ -118,6 +118,39 @@ def set_resolution_in_mainloop():
 
 
 @pytest.fixture
+def get_page_sync():
+    "get a page synchronously via async send()"
+
+    def anonymous(thread, **kwargs):
+        result = [None]
+        error = [None]
+        mlp = safe_mainloop()
+
+        def on_finished(response):
+            result[0] = response.info
+            mlp.quit()
+
+        def on_error(response):
+            error[0] = response.status
+            mlp.quit()
+
+        thread.send(
+            "get_page",
+            kwargs,
+            finished_callback=on_finished,
+            error_callback=on_error,
+        )
+        mlp.run()
+
+        if error[0] is not None:
+            raise ValueError(error[0])
+
+        return result[0]
+
+    return anonymous
+
+
+@pytest.fixture
 def mainloop_with_timeout(request):
     "start a mainloop with a timeout"
 
