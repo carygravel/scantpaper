@@ -291,7 +291,7 @@ class SessionMixins:
                     break
 
         page = None
-        if "page" in args[0]:
+        if args and isinstance(args[0], dict) and "page" in args[0]:
             idx = self.slist.find_page_by_uuid(args[0]["page"])
             if idx is not None:
                 page = self.slist.data[idx][0]

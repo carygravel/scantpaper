@@ -22,18 +22,20 @@ class EditMenuMixins:
     def undo(self, _action, _param):
         "Restore previous snapshot"
         logger.info("Undoing")
-        self.slist.undo()
-
-        # Update menus/buttons
-        self._update_uimanager()
+        self._actions["undo"].set_enabled(False)
+        self.slist.undo(
+            finished_callback=self._update_uimanager,
+            error_callback=self._error_callback,
+        )
 
     def unundo(self, _action, _param):
         "Restore next snapshot"
         logger.info("Redoing")
-        self.slist.unundo()
-
-        # Update menus/buttons
-        self._update_uimanager()
+        self._actions["redo"].set_enabled(False)
+        self.slist.unundo(
+            finished_callback=self._update_uimanager,
+            error_callback=self._error_callback,
+        )
 
     def properties(self, _action, _param):
         "Display and manage the properties dialog for setting X and Y resolution."

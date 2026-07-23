@@ -653,10 +653,10 @@ def test_db(temp_db, clean_up_files):
     thread = DocThread(db=temp_db.name)
 
     with pytest.raises(StopIteration):
-        thread.undo()
+        thread.do_undo(Request("undo", (), thread.responses))
 
     with pytest.raises(StopIteration):
-        thread.redo()
+        thread.do_redo(Request("redo", (), thread.responses))
 
     # spoof the write thread check
     thread._write_tid = threading.get_native_id()
@@ -681,11 +681,11 @@ def test_db(temp_db, clean_up_files):
     page = thread.get_page(id=2)
     assert isinstance(page, Page), "get_page by id"
 
-    thread.undo()
-    assert thread.page_number_table()[0][0] == 1, "undo"
+    result = thread.do_undo(Request("undo", (), thread.responses))
+    assert result["snapshot"][0][0] == 1, "undo"
 
-    thread.redo()
-    assert thread.page_number_table()[0][0] == 2, "redo"
+    result = thread.do_redo(Request("redo", (), thread.responses))
+    assert result["snapshot"][0][0] == 2, "redo"
 
     thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
     assert not thread.pages_saved(), "not all pages saved"
@@ -782,17 +782,19 @@ def test_document(rose_tif, clean_up_files):
             def step5():
                 assert len(slist.data) == 0, "deleted all pages"
 
-                slist.undo()
-                assert len(slist.data) == 2, "undo delete"
+                def after_undo():
+                    assert len(slist.data) == 2, "undo delete"
 
-                slist.unundo()
-                assert len(slist.data) == 0, "redo delete"
+                    def after_redo():
+                        assert len(slist.data) == 0, "redo delete"
 
-                # TODO/FIXME: test drag-and-drop callbacks for move
-                # TODO/FIXME: test drag-and-drop callbacks for copy
-                nonlocal ran_callback
-                ran_callback = True
-                mlp.quit()
+                        nonlocal ran_callback
+                        ran_callback = True
+                        mlp.quit()
+
+                    slist.unundo(finished_callback=after_redo)
+
+                slist.undo(finished_callback=after_undo)
 
             slist.paste_selection(
                 data=[clipboard[0]],

@@ -712,20 +712,27 @@ class DocThread(SaveThread):
         max_action_id = max(ids) if ids else None
         return max_action_id is not None and max_action_id > self._action_id
 
-    def undo(self):
-        "restore the state of the last snapshot"
+    def do_undo(self, _request):
+        "undo handler — decrements action_id, returns snapshot and selection"
         if not self.can_undo():
             raise StopIteration("No more undo steps possible")
 
         self._action_id -= 1
-        return self._get_snapshot()
+        return {
+            "snapshot": self._get_snapshot(),
+            "selection": self.get_selection(),
+        }
 
-    def redo(self):
-        "restore the state of the last snapshot"
+    def do_redo(self, _request):
+        "redo handler — increments action_id, returns snapshot and selection"
         if not self.can_redo():
             raise StopIteration("No more redo steps possible")
+
         self._action_id += 1
-        return self._get_snapshot()
+        return {
+            "snapshot": self._get_snapshot(),
+            "selection": self.get_selection(),
+        }
 
     def get_selection(self):
         "get the selected row ids for the current action_id"

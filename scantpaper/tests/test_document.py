@@ -252,9 +252,17 @@ def test_undo_redo():
             doc._data_list if not args else setattr(doc, "_data_list", args[0])
         )
 
-        doc.thread.undo.return_value = "new_data"
-        doc.thread.redo.return_value = "newer_data"
-        doc.thread.get_selection.return_value = [0]
+        def mock_send(process, *args, **kwargs):
+            if process == "undo":
+                kwargs["finished_callback"](
+                    MockResponse({"snapshot": "new_data", "selection": [0]})
+                )
+            elif process == "redo":
+                kwargs["finished_callback"](
+                    MockResponse({"snapshot": "newer_data", "selection": [0]})
+                )
+
+        doc.thread.send = mock_send
 
         doc.undo()
         assert doc._data_list == "new_data"

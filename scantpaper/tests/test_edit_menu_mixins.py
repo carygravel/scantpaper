@@ -46,6 +46,10 @@ def mock_edit_window(mocker):
     window.slist = mocker.MagicMock()
     window.post_process_progress = mocker.Mock()
     window.t_canvas = mocker.Mock()
+    window._actions = {
+        "undo": mocker.Mock(),
+        "redo": mocker.Mock(),
+    }
 
     # Default settings
     window.settings = {
@@ -70,14 +74,23 @@ def mock_edit_window(mocker):
 def test_undo(mock_edit_window):
     "Test undo"
     mock_edit_window.undo(None, None)
+    mock_edit_window._actions["undo"].set_enabled.assert_called_with(False)
     mock_edit_window.slist.undo.assert_called_once()
+    call_kwargs = mock_edit_window.slist.undo.call_args[1]
+    assert "finished_callback" in call_kwargs
+    # finished_callback should be _update_uimanager
+    call_kwargs["finished_callback"]()
     mock_edit_window._update_uimanager.assert_called_once()
 
 
 def test_unundo(mock_edit_window):
     "Test unundo"
     mock_edit_window.unundo(None, None)
+    mock_edit_window._actions["redo"].set_enabled.assert_called_with(False)
     mock_edit_window.slist.unundo.assert_called_once()
+    call_kwargs = mock_edit_window.slist.unundo.call_args[1]
+    assert "finished_callback" in call_kwargs
+    call_kwargs["finished_callback"]()
     mock_edit_window._update_uimanager.assert_called_once()
 
 

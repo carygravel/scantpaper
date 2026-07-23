@@ -346,45 +346,59 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _user_defined_data_callback
         self.thread.user_defined(**kwargs)
 
-    def undo(self):
+    def undo(self, finished_callback=None, error_callback=None):
         "undo the last action"
         self.thread.send("set_selection", self.get_selected_indices())
 
-        # Block slist signals whilst updating
-        self.get_model().handler_block(self.row_changed_signal)
-        # self.get_model().handler_block(self.row_deleted_signal)
-        self.get_selection().handler_block(self.selection_changed_signal)
-        self._block_signals = True
-        self.data = self.thread.undo()
-        self._block_signals = False
+        def _undo_finished(response):
+            # Block slist signals whilst updating
+            self.get_model().handler_block(self.row_changed_signal)
+            self.get_selection().handler_block(self.selection_changed_signal)
+            self._block_signals = True
+            self.data = response.info["snapshot"]
+            self._block_signals = False
 
-        # Unblock slist signals now finished
-        self.get_selection().handler_unblock(self.selection_changed_signal)
-        # self.get_model().handler_unblock(self.row_deleted_signal)
-        self.get_model().handler_unblock(self.row_changed_signal)
+            # Unblock slist signals now finished
+            self.get_selection().handler_unblock(self.selection_changed_signal)
+            self.get_model().handler_unblock(self.row_changed_signal)
 
-        # Reselect the pages to display the detail view
-        self.select(self.thread.get_selection())
+            # Reselect the pages to display the detail view
+            self.select(response.info["selection"])
 
-    def unundo(self):
+            if finished_callback is not None:
+                finished_callback()
+
+        callbacks = {"finished_callback": _undo_finished}
+        if error_callback is not None:
+            callbacks["error_callback"] = error_callback
+        self.thread.send("undo", **callbacks)
+
+    def unundo(self, finished_callback=None, error_callback=None):
         "redo the last action"
         self.thread.send("set_selection", self.get_selected_indices())
 
-        # Block slist signals whilst updating
-        self.get_model().handler_block(self.row_changed_signal)
-        # self.get_model().handler_block(self.row_deleted_signal)
-        self.get_selection().handler_block(self.selection_changed_signal)
-        self._block_signals = True
-        self.data = self.thread.redo()
-        self._block_signals = False
+        def _redo_finished(response):
+            # Block slist signals whilst updating
+            self.get_model().handler_block(self.row_changed_signal)
+            self.get_selection().handler_block(self.selection_changed_signal)
+            self._block_signals = True
+            self.data = response.info["snapshot"]
+            self._block_signals = False
 
-        # Unblock slist signals now finished
-        self.get_selection().handler_unblock(self.selection_changed_signal)
-        # self.get_model().handler_unblock(self.row_deleted_signal)
-        self.get_model().handler_unblock(self.row_changed_signal)
+            # Unblock slist signals now finished
+            self.get_selection().handler_unblock(self.selection_changed_signal)
+            self.get_model().handler_unblock(self.row_changed_signal)
 
-        # Reselect the pages to display the detail view
-        self.select(self.thread.get_selection())
+            # Reselect the pages to display the detail view
+            self.select(response.info["selection"])
+
+            if finished_callback is not None:
+                finished_callback()
+
+        callbacks = {"finished_callback": _redo_finished}
+        if error_callback is not None:
+            callbacks["error_callback"] = error_callback
+        self.thread.send("redo", **callbacks)
 
     def indices2pages(self, list_of_indices):
         "Helper function to convert an array of indices into an array of uuids"
