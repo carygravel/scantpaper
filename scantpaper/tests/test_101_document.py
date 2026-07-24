@@ -48,9 +48,9 @@ def get_page_index_selected_callback(_uuid, _process, _message):
     assert True, "error in selected"
 
 
-def test_basics(clean_up_files):
+def test_basics(temp_db):
     "test basics"
-    slist = Document()
+    slist = Document(db=temp_db.name)
     assert (
         slist.pages_possible(1, 1) == -1
     ), "pages_possible infinite forwards in empty document"
@@ -135,13 +135,12 @@ def test_basics(clean_up_files):
         3,
     ), "renumber start 1 step 1"
 
-    clean_up_files(slist.thread.db_files)
 
 
-def test_indexing(clean_up_files):
+def test_indexing(temp_db):
     "test indexing"
 
-    slist = Document()
+    slist = Document(db=temp_db.name)
     slist.data = [[1, None, None], [6, None, None], [7, None, None], [8, None, None]]
     assert (
         slist.pages_possible(2, 1) == 4
@@ -185,7 +184,6 @@ def test_indexing(clean_up_files):
         1
     ], "correctly selected page after manual renumber"
 
-    clean_up_files(slist.thread.db_files)
 
 
 def test_file_dates(temp_txt):

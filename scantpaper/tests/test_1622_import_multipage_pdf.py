@@ -273,7 +273,7 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
     clean_up_files(["output.pdf"])
 
 
-def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
+def test_import_pdf_with_metadata(rose_png, temp_pdf, temp_db):
     "Test importing PDF"
     temp_pdf.write(
         img2pdf.convert(
@@ -289,7 +289,7 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
     )
     temp_pdf.flush()
 
-    slist = Document()
+    slist = Document(db=temp_db.name)
 
     mlp = safe_mainloop()
 
@@ -314,5 +314,3 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "callbacks all run"
-
-    clean_up_files(slist.thread.db_files)

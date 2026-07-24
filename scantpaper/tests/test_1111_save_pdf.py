@@ -363,10 +363,10 @@ def test_save_pdf_with_hocr(
 
 @pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_utf8(
-    rose_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop, set_text_in_mainloop
 ):
     "Test writing PDF with utf8 in text layer"
-    slist = Document()
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
 
@@ -393,15 +393,13 @@ def test_save_pdf_with_utf8(
         re.search(r"пени способствовала сохранению", out) is not None
     ), "PDF with expected text"
 
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_non_utf8(
-    rose_pnm, temp_pdf, import_in_mainloop, set_text_in_mainloop, clean_up_files
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop, set_text_in_mainloop
 ):
     "Test writing PDF with non-utf8 in text layer"
-    slist = Document()
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
 
@@ -423,8 +421,6 @@ def test_save_pdf_with_non_utf8(
 
     out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(r"P■e■", out) is not None, "PDF with expected text"
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_save_pdf_with_1bpp(

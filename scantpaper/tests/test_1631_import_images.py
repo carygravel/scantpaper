@@ -27,10 +27,10 @@ def test_import_ppm(temp_db, temp_ppm, get_page_sync):
     assert page.image_object.mode == "RGB", "PPM imported correctly"
 
 
-def test_import_corrupt_png(temp_png, clean_up_files):
+def test_import_corrupt_png(temp_png, temp_db):
     "Test importing PNG"
 
-    slist = Document()
+    slist = Document(db=temp_db.name)
 
     mlp = safe_mainloop(2000)
 
@@ -55,5 +55,3 @@ def test_import_corrupt_png(temp_png, clean_up_files):
 
     assert asserts == 1, "all callbacks run"
     finished_cb.assert_not_called(), "no finished callback called"
-
-    clean_up_files(slist.thread.db_files)

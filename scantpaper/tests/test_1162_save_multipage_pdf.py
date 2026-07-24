@@ -56,12 +56,12 @@ def test_save_multipage_pdf(
 
 @pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_multipage_pdf_with_utf8(
-    rose_pnm, import_in_mainloop, set_text_in_mainloop, temp_pdf, clean_up_files
+    rose_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, temp_pdf
 ):
     "Test writing multipage PDF with utf8"
     num = 3  # number of pages
     files = [rose_pnm for i in range(num)]
-    slist = Document()
+    slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, files)
 
@@ -95,8 +95,6 @@ def test_save_multipage_pdf_with_utf8(
         )
         == 1
     ), "font embedded once in multipage PDF"
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
