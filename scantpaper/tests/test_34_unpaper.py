@@ -159,7 +159,7 @@ def test_1():
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files, get_page_sync):
+def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
     "Test unpaper"
 
     unpaper = Unpaper()
@@ -219,10 +219,6 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, clean_up_files, get_page
     page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of processed image"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_unpaper2(
@@ -230,7 +226,6 @@ def test_unpaper2(
     temp_db,
     import_in_mainloop,
     set_resolution_in_mainloop,
-    clean_up_files,
     get_page_sync,
 ):
     "Test unpaper"
@@ -297,10 +292,6 @@ def test_unpaper2(
     assert asserts == 1, "all callbacks run"
     page = get_page_sync(slist.thread, number=1)
     assert page.resolution[0] == 300, "Resolution of processed image"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
@@ -395,11 +386,11 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["1.pnm", "black.pnm", "2.pnm"])
+    clean_up_files(["1.pnm", "black.pnm", "2.pnm"])
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
+def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
     "Test unpaper"
 
     unpaper = Unpaper({"output-pages": 2, "layout": "double", "direction": "rtl"})
@@ -460,10 +451,6 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_
         and in_level[0] == out_level[1]
         and in_level[1] == out_level[0]
     ), "rtl"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_unpaper_ui_toggles():

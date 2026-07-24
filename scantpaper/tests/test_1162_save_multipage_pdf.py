@@ -18,7 +18,6 @@ def test_save_multipage_pdf(
     set_text_in_mainloop,
     temp_db,
     temp_pdf,
-    clean_up_files,
 ):
     "Test writing multipage PDF"
 
@@ -53,10 +52,6 @@ def test_save_multipage_pdf(
     assert (
         len(capture.splitlines()) == fonts + 2
     ), "no other fonts embedded in multipage PDF"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -101,14 +96,10 @@ def test_save_multipage_pdf_with_utf8(
         == 1
     ), "font embedded once in multipage PDF"
 
-    #########################
-
     clean_up_files(slist.thread.db_files)
 
 
-def test_save_multipage_pdf_as_ps(
-    rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
-):
+def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
     "Test writing multipage PDF as Postscript"
     slist = Document(db=temp_db.name)
 
@@ -136,14 +127,8 @@ def test_save_multipage_pdf_as_ps(
         assert os.path.getsize(temp_ps.name) > 194000, "non-empty postscript created"
         assert os.path.getsize(temp_ps2.name) > 194000, "ran post-save hook"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_save_multipage_pdf_as_ps2(
-    rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
-):
+def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
     "Test writing multipage PDF as Postscript"
     slist = Document(db=temp_db.name)
 
@@ -170,10 +155,6 @@ def test_save_multipage_pdf_as_ps2(
 
         assert os.path.getsize(temp_ps.name) > 14000, "non-empty postscript created"
         assert os.path.getsize(temp_ps2.name) > 14000, "ran post-save hook"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_prepend_pdf(
@@ -204,7 +185,7 @@ def test_prepend_pdf(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [f"{temp_pdf.name}.bak"])
+    clean_up_files([f"{temp_pdf.name}.bak"])
 
 
 def test_append_pdf(
@@ -235,7 +216,7 @@ def test_append_pdf(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [f"{temp_pdf.name}.bak"])
+    clean_up_files([f"{temp_pdf.name}.bak"])
 
 
 def test_prepend_with_space(
@@ -267,7 +248,7 @@ def test_prepend_with_space(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["te st.pdf", "te st.pdf.bak"])
+    clean_up_files(["te st.pdf", "te st.pdf.bak"])
 
 
 def test_prepend_with_inverted_comma(
@@ -299,7 +280,7 @@ def test_prepend_with_inverted_comma(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["te'st.pdf", "te'st.pdf.bak"])
+    clean_up_files(["te'st.pdf", "te'st.pdf.bak"])
 
 
 def test_append_pdf_with_timestamp(
@@ -343,4 +324,4 @@ def test_append_pdf_with_timestamp(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [f"{temp_pdf.name}.bak"])
+    clean_up_files([f"{temp_pdf.name}.bak"])

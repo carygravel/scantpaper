@@ -16,8 +16,8 @@ from loop_helpers import safe_mainloop
 
 
 def test_rotate(
-    rose_jpg, temp_db, import_in_mainloop, set_saved_in_mainloop, clean_up_files,
-    get_page_sync):
+    rose_jpg, temp_db, import_in_mainloop, set_saved_in_mainloop, get_page_sync
+):
     "Test rotating"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -48,10 +48,6 @@ def test_rotate(
     assert slist.data[0][1].get_height() == 100, "thumbnail height after rotation"
     assert slist.data[0][1].get_width() == 65, "thumbnail width after rotation"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
     "Test analyse"
@@ -76,7 +72,7 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_syn
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["white.pgm"])
+    clean_up_files(["white.pgm"])
 
 
 def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
@@ -100,7 +96,7 @@ def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["black.pgm"])
+    clean_up_files(["black.pgm"])
 
 
 def test_threshold(
@@ -109,8 +105,8 @@ def test_threshold(
     set_text_in_mainloop,
     temp_db,
     rose_jpg,
-    clean_up_files,
-    get_page_sync):
+    get_page_sync,
+):
     "Test threshold"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -142,10 +138,6 @@ def test_threshold(
     assert len(page.mean) == 1, "depth == 1"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 image_types = [
@@ -219,7 +211,7 @@ def test_negate(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [image])
+    clean_up_files([image])
 
 
 def test_unsharp_mask(
@@ -228,8 +220,8 @@ def test_unsharp_mask(
     set_text_in_mainloop,
     temp_db,
     rose_jpg,
-    clean_up_files,
-    get_page_sync):
+    get_page_sync,
+):
     "Test unsharp mask"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -281,10 +273,6 @@ def test_unsharp_mask(
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_crop(
     import_in_mainloop,
@@ -292,8 +280,8 @@ def test_crop(
     set_text_in_mainloop,
     temp_db,
     temp_gif,
-    clean_up_files,
-    get_page_sync):
+    get_page_sync,
+):
     "Test brightness contrast"
 
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
@@ -368,10 +356,6 @@ def test_crop(
     assert page.export_hocr() == hocr, "cropped hocr"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_split(
     import_in_mainloop,
@@ -379,8 +363,8 @@ def test_split(
     set_text_in_mainloop,
     temp_db,
     temp_gif,
-    clean_up_files,
-    get_page_sync):
+    get_page_sync,
+):
     "Test split"
 
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
@@ -477,10 +461,6 @@ def test_split(
 
     assert not slist.thread.pages_saved(), "modification removed saved tag"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_brightness_contrast(
     import_in_mainloop,
@@ -488,8 +468,8 @@ def test_brightness_contrast(
     set_text_in_mainloop,
     temp_db,
     rose_jpg,
-    clean_up_files,
-    get_page_sync):
+    get_page_sync,
+):
     "Test brightness contrast"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -530,14 +510,8 @@ def test_brightness_contrast(
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_race_condition_rotate_save(
-    rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
-):
+def test_race_condition_rotate_save(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
     "Test that saving a page while it's being rotated doesn't cause an error"
     slist = Document(db=temp_db.name)
 
@@ -566,9 +540,7 @@ def test_race_condition_rotate_save(
     error_callback.assert_not_called()
 
 
-def test_race_condition_rotate_rotate(
-    rose_pnm, temp_db, import_in_mainloop, clean_up_files
-):
+def test_race_condition_rotate_rotate(rose_pnm, temp_db, import_in_mainloop):
     "Test rotating the same page twice in a row before the first rotate finishes"
     slist = Document(db=temp_db.name)
 
@@ -594,5 +566,3 @@ def test_race_condition_rotate_rotate(
     # Wait for both to finish
     mlp.run()
     error_callback.assert_not_called()
-
-    clean_up_files(slist.thread.db_files)

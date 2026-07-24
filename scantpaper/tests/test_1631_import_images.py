@@ -8,7 +8,7 @@ from document import Document
 from loop_helpers import safe_mainloop
 
 
-def test_import_ppm(temp_db, temp_ppm, clean_up_files, get_page_sync):
+def test_import_ppm(temp_db, temp_ppm, get_page_sync):
     "Test importing PPM"
 
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
@@ -25,10 +25,6 @@ def test_import_ppm(temp_db, temp_ppm, clean_up_files, get_page_sync):
 
     page = get_page_sync(slist.thread, id=1)
     assert page.image_object.mode == "RGB", "PPM imported correctly"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_import_corrupt_png(temp_png, clean_up_files):
@@ -59,7 +55,5 @@ def test_import_corrupt_png(temp_png, clean_up_files):
 
     assert asserts == 1, "all callbacks run"
     finished_cb.assert_not_called(), "no finished callback called"
-
-    #########################
 
     clean_up_files(slist.thread.db_files)

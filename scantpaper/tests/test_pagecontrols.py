@@ -133,7 +133,7 @@ def test_extended_pagenumber_checkbox_callback_buttons_active():
     page_controls.buttons.set_active.assert_not_called()
 
 
-def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout, clean_up_files):
+def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
     "test PageControls"
     page_controls = PageControls(title="title", transient_for=Gtk.Window())
     assert isinstance(page_controls, PageControls), "Created PageControls dialog"
@@ -153,5 +153,3 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout, clean_up_files)
         page_controls.document = slist
         page_controls.reset_start_page()
         assert page_controls.page_number_start == 2, "PageControls.reset_start_page()"
-
-    clean_up_files(slist.thread.db_files)

@@ -67,7 +67,7 @@ def test_get_tesseract_codes_mocked(mocker):
     assert get_tesseract_codes() == ["eng", "deu"]
 
 
-def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
+def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_sync):
     "Test importing PDF"
 
     args = [
@@ -107,7 +107,3 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, clean_up_fil
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)

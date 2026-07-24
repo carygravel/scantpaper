@@ -14,7 +14,6 @@ def test_save_text(
     rose_pnm,
     temp_db,
     temp_txt,
-    clean_up_files,
 ):
     "Test saving text"
     slist = Document(db=temp_db.name)
@@ -51,10 +50,8 @@ def test_save_text(
             == "The quick brown fox"
         ), "ran post-save hook"
 
-    clean_up_files(slist.thread.db_files)
 
-
-def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_files):
+def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop):
     "Test saving text"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_pnm])
@@ -78,8 +75,6 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop, clean_up_
             subprocess.check_output(["cat", temp_txt2.name], text=True) == ""
         ), "ran post-save hook"
 
-    clean_up_files(slist.thread.db_files)
-
 
 def test_save_utf8(
     import_in_mainloop,
@@ -87,7 +82,6 @@ def test_save_utf8(
     rose_pnm,
     temp_db,
     temp_txt,
-    clean_up_files,
 ):
     "Test writing text"
     slist = Document(db=temp_db.name)
@@ -117,19 +111,10 @@ def test_save_utf8(
         == "пени способствовала сохранению"
     ), "saved ASCII"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_save_hocr_as_text(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_txt,
-    clean_up_files,
-    get_page_sync):
+    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
+):
     "Test saving HOCR as text"
     slist = Document(db=temp_db.name)
 
@@ -175,19 +160,10 @@ def test_save_hocr_as_text(
         == "The quick brown fox"
     ), "saved hOCR"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_save_hocr(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_txt,
-    clean_up_files,
-    get_page_sync):
+    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
+):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -239,17 +215,10 @@ def test_save_hocr(
             subprocess.check_output(["cat", temp_txt2.name], text=True) == hocr
         ), "ran post-save hook"
 
-    clean_up_files(slist.thread.db_files)
-
 
 def test_save_hocr_with_encoding(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_txt,
-    clean_up_files,
-    get_page_sync):
+    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
+):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -303,19 +272,10 @@ def test_save_hocr_with_encoding(
         subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
     ), "saved hOCR"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_save_multipage_hocr(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_txt,
-    clean_up_files,
-    get_page_sync):
+    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
+):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -395,19 +355,10 @@ def test_save_multipage_hocr(
         subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
     ), "saved hOCR"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 def test_save_hocr_structure(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_txt,
-    clean_up_files,
-    get_page_sync):
+    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
+):
     "Test writing text"
     slist = Document(db=temp_db.name)
 
@@ -531,7 +482,3 @@ def test_save_hocr_structure(
     assert (
         subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
     ), "saved hOCR"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)

@@ -14,7 +14,7 @@ from document import Document
 from loop_helpers import safe_mainloop
 
 
-def test_import_multipage_pdf(rose_png, temp_pdf, temp_db, clean_up_files):
+def test_import_multipage_pdf(rose_png, temp_pdf, temp_db):
     "Test importing PDF"
     temp_pdf.write(img2pdf.convert([rose_png, rose_png]))
     temp_pdf.flush()
@@ -31,16 +31,12 @@ def test_import_multipage_pdf(rose_png, temp_pdf, temp_db, clean_up_files):
 
     assert len(slist.data) == 2, "imported 2 pages"
 
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("pdfunite") is None,
     reason="Please install pdfunite (poppler utils) to enable test",
 )
-def test_import_multipage_pdf_with_not_enough_images(
-    rose_png, temp_db, temp_pdf, clean_up_files
-):
+def test_import_multipage_pdf_with_not_enough_images(rose_png, temp_db, temp_pdf):
     "Test importing PDF"
 
     with tempfile.NamedTemporaryFile(
@@ -144,12 +140,8 @@ startxref
     assert asserts == 1, "all callbacks run"
     assert len(slist.data) == 1, "imported 1 pages"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db, get_page_sync):
+def test_import_pdf_bw(temp_png, temp_pdf, temp_db, get_page_sync):
     "Test importing PDF"
 
     options = [
@@ -189,12 +181,8 @@ def test_import_pdf_bw(temp_png, temp_pdf, clean_up_files, temp_db, get_page_syn
         get_page_sync(slist.thread, id=1).image_object.mode == "1"
     ), "BW PDF imported correctly"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
+def test_import_pdf_with_error(rose_png, temp_pdf):
     "Test importing PDF"
     temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
@@ -232,10 +220,6 @@ def test_import_pdf_with_error(rose_png, temp_pdf, clean_up_files):
         mlp.run()
 
         assert asserts == 2, "all callbacks run"
-
-        #########################
-
-        clean_up_files(slist.thread.db_files)
 
 
 @pytest.mark.skipif(
@@ -285,12 +269,7 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "output.pdf",
-        ]
-    )
+    clean_up_files(["output.pdf"])
 
 
 def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
@@ -334,7 +313,5 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, clean_up_files):
     mlp.run()
 
     assert asserts == 1, "callbacks all run"
-
-    #########################
 
     clean_up_files(slist.thread.db_files)

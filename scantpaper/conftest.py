@@ -249,7 +249,14 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 @pytest.fixture
 def temp_db():
     "return a temporary db"
-    return tempfile.NamedTemporaryFile(suffix=".db")
+    f = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    f.close()
+    yield SimpleNamespace(name=f.name)
+    for suffix in ("", "-wal", "-shm"):
+        try:
+            os.remove(f.name + suffix)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture

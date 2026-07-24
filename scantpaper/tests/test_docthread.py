@@ -73,7 +73,7 @@ def test_do_tesseract_path_fallback(mocker):
     )
 
 
-def test_do_tesseract_path_fallback_not_found(temp_db, clean_up_files, mocker):
+def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
     "test do_tesseract when path is ./ and no system tessdata found"
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -125,10 +125,8 @@ def test_do_tesseract_path_fallback_not_found(temp_db, clean_up_files, mocker):
     request.error.assert_called()
     assert "tessdata directory not found" in str(request.error.call_args)
 
-    clean_up_files(thread.db_files)
 
-
-def test_do_tesseract_path_fallback_symlink(temp_db, clean_up_files, mocker):
+def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
     "test do_tesseract when path is ./ and tessdata found via symlink"
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -187,8 +185,6 @@ def test_do_tesseract_path_fallback_symlink(temp_db, clean_up_files, mocker):
 
     # Check if PyTessBaseAPI was initialized with the path from symlink
     mock_api.assert_called_with(lang="eng", path="/usr/local/share/tessdata")
-
-    clean_up_files(thread.db_files)
 
 
 def test_calculate_crop_tuples(mocker):
@@ -828,7 +824,7 @@ def test_do_unpaper_ioerror(mocker):
     assert "Error creating file in /tmp: Mocked IOError" in str(request.error.call_args)
 
 
-def test_pages_saved_after_replace(temp_db, clean_up_files, mocker):
+def test_pages_saved_after_replace(temp_db, mocker):
     "test pages_saved after replace_page and do_set_saved with initial_page_id"
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -858,10 +854,8 @@ def test_pages_saved_after_replace(temp_db, clean_up_files, mocker):
     # 5. Check if pages are saved
     assert thread.pages_saved()
 
-    clean_up_files(thread.db_files)
 
-
-def test_open_migration_v1_to_v2(temp_db, clean_up_files):
+def test_open_migration_v1_to_v2(temp_db):
     "test migration from version 1 to 2"
 
     db_path = temp_db.name
@@ -901,8 +895,6 @@ def test_open_migration_v1_to_v2(temp_db, clean_up_files):
 
     thread._execute("SELECT initial_page_id FROM page_order WHERE page_id = 1")
     assert thread._fetchone()[0] == 1
-
-    clean_up_files(thread.db_files)
 
 
 def test_pixbuf_to_bytes(mocker):

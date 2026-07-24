@@ -10,9 +10,7 @@ from document import Document
 from loop_helpers import safe_mainloop
 
 
-def test_save_tiff(
-    rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop, clean_up_files
-):
+def test_save_tiff(rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop):
     "Test writing TIFF"
     slist = Document(db=temp_db.name)
 
@@ -46,14 +44,8 @@ def test_save_tiff(
         is not None
     ), "ran post-save hook"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_cancel_save_tiff(
-    rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop, clean_up_files
-):
+def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop):
     "Test cancel saving a TIFF"
     slist = Document(db=temp_db.name)
 
@@ -89,12 +81,8 @@ def test_cancel_save_tiff(
         ["identify", temp_jpg.name], text=True
     ), "can create a valid JPG after cancelling save PDF process"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop, clean_up_files):
+def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
     "Test writing TIFF and triggering an error"
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
@@ -137,14 +125,8 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop, clean_up_f
 
         assert asserts == 2, "ran all callbacks"
 
-        #########################
 
-        clean_up_files(slist.thread.db_files)
-
-
-def test_save_tiff_with_alpha(
-    temp_png, temp_db, temp_tif, import_in_mainloop, clean_up_files
-):
+def test_save_tiff_with_alpha(temp_png, temp_db, temp_tif, import_in_mainloop):
     "Test writing TIFF with alpha layer"
 
     subprocess.run(
@@ -189,14 +171,8 @@ def test_save_tiff_with_alpha(
         is not None
     ), "valid TIFF created"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_save_tiff_as_ps(
-    rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop, clean_up_files
-):
+def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop):
     "Test writing TIFF and postscript"
     slist = Document(db=temp_db.name)
 
@@ -225,12 +201,8 @@ def test_save_tiff_as_ps(
         example = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
         assert re.search(r"tiff2ps", example) is not None, "ran post-save hook"
 
-        #########################
 
-        clean_up_files(slist.thread.db_files)
-
-
-def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop, clean_up_files):
+def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop):
     "Test writing TIFF with group 4 compression"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])
@@ -252,7 +224,3 @@ def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop, clean_up_
         )
         is not None
     ), "valid TIFF created"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)

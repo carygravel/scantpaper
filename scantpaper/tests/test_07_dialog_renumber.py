@@ -10,7 +10,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 
-def test_1(rose_pnm, mainloop_with_timeout, temp_db, clean_up_files):
+def test_1(rose_pnm, mainloop_with_timeout, temp_db):
     "basic tests for Renumber class"
     slist = Document(db=temp_db.name)
     dialog = Renumber(document=slist, transient_for=Gtk.Window())
@@ -70,10 +70,6 @@ def test_1(rose_pnm, mainloop_with_timeout, temp_db, clean_up_files):
         dialog.connect("before-renumber", before_renumber_cb)
         dialog.renumber()
         assert asserted, "before-renumber signal fired on renumber"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_renumber_properties(mocker):

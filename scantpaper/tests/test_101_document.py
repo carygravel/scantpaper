@@ -135,8 +135,6 @@ def test_basics(clean_up_files):
         3,
     ), "renumber start 1 step 1"
 
-    #########################
-
     clean_up_files(slist.thread.db_files)
 
 
@@ -623,11 +621,9 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
         page = thread.get_page(id=1)
         assert isinstance(page, Page), "do_import_file + png"
 
-        clean_up_files(thread.db_files)
-
 
 @pytest.mark.skipif(shutil.which("cjb2") is None, reason="requires cjb2")
-def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm, clean_up_files):
+def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm):
     "tests for djvu DocThread"
     thread = DocThread(db=temp_db.name)
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_pbm.name], check=True)
@@ -645,10 +641,8 @@ def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm, clean_up_files)
         "pages": 2,
     }, "do_get_file_info + djvu"
 
-    clean_up_files(thread.db_files)
 
-
-def test_db(temp_db, clean_up_files):
+def test_db(temp_db):
     "test database access"
     thread = DocThread(db=temp_db.name)
 
@@ -730,10 +724,8 @@ def test_db(temp_db, clean_up_files):
     thread.do_set_selection(request)
     assert thread.get_selection() == [2], "g/set_selection"
 
-    clean_up_files(thread.db_files)
 
-
-def test_document(rose_tif, clean_up_files):
+def test_document(rose_tif):
     "tests for Document()"
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
@@ -809,14 +801,11 @@ def test_document(rose_tif, clean_up_files):
         mlp.run()
         assert ran_callback, "ran finished callback"
 
-        clean_up_files(slist.thread.db_files)
-
 
 def test_import_scan(
     temp_db,
     temp_pnm,
     temp_ppm,
-    clean_up_files,
 ):  # FIXME: not sure we need this anymore, now we are passed Image objects around
     "test Document.import_scan()"
 
@@ -876,10 +865,6 @@ def test_import_scan(
     )
     mlp.run()
     assert asserts == 2, "all tests run"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_import_files_encrypted():
@@ -1092,7 +1077,7 @@ def test_split_page():
         assert doc.add_page.called
 
 
-def test_get_selected_properties(temp_db, clean_up_files):
+def test_get_selected_properties(temp_db):
     "test get_selected_properties with multiple pages"
     slist = Document(db=temp_db.name)
 
@@ -1139,5 +1124,3 @@ def test_get_selected_properties(temp_db, clean_up_files):
     xres, yres = slist.get_selected_properties()
     assert xres == 300
     assert yres == 300
-
-    clean_up_files(slist.thread.db_files)

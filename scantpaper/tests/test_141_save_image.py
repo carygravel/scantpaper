@@ -9,9 +9,7 @@ from document import Document
 from loop_helpers import safe_mainloop
 
 
-def test_save_image(
-    rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop, clean_up_files
-):
+def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):
     "Test writing image"
     slist = Document(db=temp_db.name)
 
@@ -43,12 +41,8 @@ def test_save_image(
         is not None
     ), "ran post-save hook"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop, clean_up_files):
+def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
     "Test writing image"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_pnm])
@@ -66,8 +60,6 @@ def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop, clean_up_f
             re.search(rf"{temp_jpg.name} JPEG 70x46 70x46\+0\+0 8-bit sRGB", example)
             is not None
         ), "valid JPG created"
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_save_image_with_ampersand(
@@ -95,4 +87,4 @@ def test_save_image_with_ampersand(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + [path])
+    clean_up_files([path])

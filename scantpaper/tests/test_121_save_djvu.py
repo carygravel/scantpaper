@@ -19,7 +19,7 @@ from loop_helpers import safe_mainloop
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu, clean_up_files):
+def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
     "Test saving a djvu"
 
     slist = Document(db=temp_db.name)
@@ -37,10 +37,6 @@ def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu, clean_up_f
     assert os.path.getsize(temp_djvu.name) > 0, "DjVu created with expected size"
     assert slist.thread.pages_saved(), "pages tagged as saved"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
@@ -52,7 +48,6 @@ def test_save_djvu_text_layer(
     temp_db,
     temp_djvu,
     temp_txt,
-    clean_up_files,
 ):
     "Test saving a djvu with text layer"
 
@@ -83,10 +78,6 @@ def test_save_djvu_text_layer(
     assert len(capture) > 0, "ran post-save hook"
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
@@ -98,8 +89,8 @@ def test_save_djvu_with_hocr(
     rose_pnm,
     temp_db,
     temp_djvu,
-    clean_up_files,
-    get_page_sync):
+    get_page_sync,
+):
     "Test saving a djvu with text layer from HOCR"
 
     slist = Document(db=temp_db.name)
@@ -149,10 +140,6 @@ def test_save_djvu_with_hocr(
         r"The quick — brown fox", codecs.escape_decode(capture)[0].decode("utf-8")
     ), "DjVu with expected annotation"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
@@ -164,7 +151,6 @@ def test_cancel_save_djvu(
     import_in_mainloop,
     set_text_in_mainloop,
     temp_djvu,
-    clean_up_files,
 ):
     "Test cancel saving a DjVu"
 
@@ -213,15 +199,11 @@ def test_cancel_save_djvu(
         ["identify", temp_jpg.name], text=True
     ), "can create a valid JPG after cancelling save PDF process"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_files):
+def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
     "Test saving a djvu and triggering an error"
 
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
@@ -265,10 +247,6 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop, clean_up_
 
         assert asserts == 2, "ran all callbacks"
 
-        #########################
-
-        clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
@@ -279,7 +257,6 @@ def test_save_djvu_with_float_resolution(
     temp_djvu,
     import_in_mainloop,
     set_resolution_in_mainloop,
-    clean_up_files,
 ):
     "Test saving a djvu with resolution as float"
 
@@ -297,16 +274,12 @@ def test_save_djvu_with_float_resolution(
 
     assert os.path.getsize(temp_djvu.name) > 0, "DjVu created with expected size"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_different_resolutions(
-    temp_png, temp_db, temp_djvu, import_in_mainloop, clean_up_files
+    temp_png, temp_db, temp_djvu, import_in_mainloop
 ):
     "Test saving a djvu with different resolutions"
 
@@ -332,17 +305,11 @@ def test_save_djvu_different_resolutions(
         r"DjVu 140x46, v24, 200 dpi, gamma=2.2", capture
     ), "created djvu with expect size and resolution"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu_with_metadata(
-    rose_pnm, temp_db, temp_djvu, import_in_mainloop, clean_up_files
-):
+def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
     "Test saving a djvu with metadata"
 
     slist = Document(db=temp_db.name)
@@ -376,17 +343,11 @@ def test_save_djvu_with_metadata(
         2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc
     ), "timestamp"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu_with_old_metadata(
-    rose_pnm, temp_db, temp_djvu, import_in_mainloop, clean_up_files
-):
+def test_save_djvu_with_old_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
     "Test saving a djvu with old metadata"
 
     slist = Document(db=temp_db.name)
@@ -422,7 +383,3 @@ def test_save_djvu_with_old_metadata(
     )
     assert re.search(r"metadata title", info) is not None, "metadata title in DjVu"
     assert re.search(r"1966-02-10", info) is not None, "metadata ModDate in DjVu"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)

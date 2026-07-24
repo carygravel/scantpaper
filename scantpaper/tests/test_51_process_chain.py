@@ -16,7 +16,7 @@ from loop_helpers import safe_mainloop
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain(temp_db, temp_pnm, clean_up_files, get_page_sync):
+def test_process_chain(temp_db, temp_pnm, get_page_sync):
     "Test process chain"
 
     unpaper = Unpaper()
@@ -80,16 +80,12 @@ def test_process_chain(temp_db, temp_pnm, clean_up_files, get_page_sync):
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain2(temp_db, temp_pnm, clean_up_files, get_page_sync):
+def test_process_chain2(temp_db, temp_pnm, get_page_sync):
     "Test process chain"
 
     subprocess.run(
@@ -125,17 +121,13 @@ def test_process_chain2(temp_db, temp_pnm, clean_up_files, get_page_sync):
     page = get_page_sync(slist.thread, number=1)
     assert page.mean == [0.0], "User-defined with %i and %o"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 # FIXME: there is no reason why this can't be made to work on a recent CI. It works locally
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
 @pytest.mark.xfail(
     reason="Pillow FreeType glyph metrics broken on CI (getbbox x_min=-19M)"
 )
-def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, clean_up_files, get_page_sync):
+def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, get_page_sync):
     "Test tesseract in process chain using Pillow-generated image"
 
     slist = Document(db=temp_db.name)
@@ -171,11 +163,9 @@ def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, clean_up_fil
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, clean_up_files, get_page_sync):
+def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync):
     "Test tesseract in process chain using ImageMagick-generated image"
 
     slist = Document(db=temp_db.name)
@@ -211,11 +201,9 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, clean_up_file
     assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
+def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
@@ -249,11 +237,9 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm, clean_up_files):
 
     assert asserts == 1, "Caught error trying to process deleted page"
 
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
+def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
@@ -274,11 +260,9 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm, clean_up_files):
     mlp.run()
     error_callback.assert_not_called()
 
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
+def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm):
     "Test error handling in process chain"
 
     slist = Document(db=temp_db.name)
@@ -311,5 +295,3 @@ def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm, clean_up_files):
     mlp.run()
 
     assert asserts > 0, "Didn't hang waiting for deleted page"
-
-    clean_up_files(slist.thread.db_files)

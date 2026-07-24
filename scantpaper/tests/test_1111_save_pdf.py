@@ -40,7 +40,7 @@ def test_has_locale():
     assert has_locale("non-existent-locale") is False
 
 
-def test_do_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
+def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
     "Test writing basic PDF"
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -67,8 +67,6 @@ def test_do_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
         thread.do_save_pdf(request)
         capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
         assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
-
-        clean_up_files(thread.db_files)
 
 
 def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
@@ -141,20 +139,13 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
 
     #########################
 
-    clean_up_files(
-        slist.thread.db_files
-        + [
-            "test-1.ppm",
-        ]
-    )
+    clean_up_files(["test-1.ppm"])
 
 
 @pytest.mark.skipif(
     not has_locale("de_DE.utf8"), reason="Locale de_DE.utf8 not available"
 )
-def test_save_pdf_with_locale(
-    rose_pnm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
-):
+def test_save_pdf_with_locale(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
     "Test with non-English locale"
     locale.setlocale(locale.LC_CTYPE, "de_DE.utf8")
 
@@ -175,12 +166,8 @@ def test_save_pdf_with_locale(
         re.search(r"Page size:\s+70 x 46 pts", capture) is not None
     ), "valid PDF created"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop, clean_up_files):
+def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
     "Test saving a PDF and triggering an error"
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
@@ -223,13 +210,9 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop, clean_up_fi
 
         assert asserts == 2, "ran all callbacks"
 
-        #########################
-
-        clean_up_files(slist.thread.db_files)
-
 
 def test_save_pdf_different_resolutions(
-    temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
+    temp_png, temp_db, temp_pdf, import_in_mainloop
 ):
     "test saving a PDF with different resolutions in the height and width directions"
 
@@ -256,15 +239,9 @@ def test_save_pdf_different_resolutions(
         re.search(r"Page size:\s+50.4 x 16.56 pts", capture) is not None
     ), "valid PDF created"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(shutil.which("qpdf") is None, reason="qpdf not found")
-def test_save_encrypted_pdf(
-    rose_jpg, temp_db, temp_pdf, import_in_mainloop, clean_up_files
-):
+def test_save_encrypted_pdf(rose_jpg, temp_db, temp_pdf, import_in_mainloop):
     "test saving an encrypted PDF"
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -280,17 +257,10 @@ def test_save_encrypted_pdf(
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_output(["pdfinfo", temp_pdf.name])
 
-    clean_up_files(slist.thread.db_files)
-
 
 def test_save_pdf_with_hocr(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    temp_db,
-    temp_pdf,
-    temp_png,
-    clean_up_files,
-    get_page_sync):
+    import_in_mainloop, set_text_in_mainloop, temp_db, temp_pdf, temp_png, get_page_sync
+):
     "Test writing PDF with text layer from hocr"
 
     subprocess.run(
@@ -390,10 +360,6 @@ def test_save_pdf_with_hocr(
     # assert re.search(r"The.+quick.+brown.+fox", slist.data[1][2].annotations) \
     #     is not None, 'import annotations'
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
 def test_save_pdf_with_utf8(
@@ -427,8 +393,6 @@ def test_save_pdf_with_utf8(
         re.search(r"пени способствовала сохранению", out) is not None
     ), "PDF with expected text"
 
-    #########################
-
     clean_up_files(slist.thread.db_files)
 
 
@@ -460,8 +424,6 @@ def test_save_pdf_with_non_utf8(
     out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(r"P■e■", out) is not None, "PDF with expected text"
 
-    #########################
-
     clean_up_files(slist.thread.db_files)
 
 
@@ -492,7 +454,7 @@ def test_save_pdf_with_1bpp(
 
     #########################
 
-    clean_up_files(slist.thread.db_files + glob.glob("x-000.p*m"))
+    clean_up_files(glob.glob("x-000.p*m"))
 
 
 def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
@@ -518,12 +480,10 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
 
     #########################
 
-    clean_up_files(slist.thread.db_files + glob.glob("x-000.p*m"))
+    clean_up_files(glob.glob("x-000.p*m"))
 
 
-def test_save_pdf_g4_alpha(
-    temp_tif, temp_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
-):
+def test_save_pdf_g4_alpha(temp_tif, temp_png, temp_db, temp_pdf, import_in_mainloop):
     "Test writing PDF with group 4 compression"
 
     subprocess.run(
@@ -595,14 +555,8 @@ def test_save_pdf_g4_alpha(
     )
     assert example == expected, "valid G4 PDF created from multi-strip TIFF"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_save_pdf_with_metadata(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
-):
+def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
     "Test writing PDF with metadata"
     slist = Document(db=temp_db.name)
 
@@ -636,14 +590,8 @@ def test_save_pdf_with_metadata(
         2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc
     ), "timestamp"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_save_pdf_with_old_metadata(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop, clean_up_files
-):
+def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
     "Test writing PDF with old metadata"
     slist = Document(db=temp_db.name)
 
@@ -678,10 +626,6 @@ def test_save_pdf_with_old_metadata(
     assert (
         re.search(r"1966-02-10T00:00:00Z", info) is not None
     ), "metadata ModDate in PDF"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_save_pdf_with_downsample(
@@ -748,12 +692,10 @@ def test_save_pdf_with_downsample(
             example,
         ), "downsampled"
 
-    clean_up_files(slist.thread.db_files + ["x-000.pbm"])
+    clean_up_files(["x-000.pbm"])
 
 
-def test_cancel_save_pdf(
-    rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainloop, clean_up_files
-):
+def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainloop):
     "Test writing PDF with downsampled image"
     slist = Document(db=temp_db.name)
 
@@ -788,10 +730,6 @@ def test_cancel_save_pdf(
     assert subprocess.check_output(
         ["identify", temp_jpg.name], text=True
     ), "can create a valid JPG after cancelling save PDF process"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_import_pdf_without_text_and_resave(
@@ -829,10 +767,10 @@ def test_import_pdf_without_text_and_resave(
             capture = subprocess.check_output(["pdfinfo", temp_pdf2.name], text=True)
             assert "Page size:" in capture, "valid PDF created"
 
-            clean_up_files(slist.thread.db_files + [temp_pdf2.name])
+            clean_up_files([temp_pdf2.name])
 
 
-def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf, clean_up_files):
+def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
     """
     Regression test for bug where saving a PDF with text_layer set to '[]'
     (empty JSON array, as produced by tesseract when no text is found)
@@ -864,5 +802,3 @@ def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf, clean_up_fi
         thread.do_save_pdf(request)
         capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
         assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
-
-        clean_up_files(thread.db_files)

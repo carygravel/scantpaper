@@ -12,7 +12,7 @@ from document import Document
 from loop_helpers import safe_mainloop
 
 
-def test_import_tiff(rose_tif, temp_db, clean_up_files, get_page_sync):
+def test_import_tiff(rose_tif, temp_db, get_page_sync):
     "Test importing basic TIFF"
     slist = Document(db=temp_db.name)
 
@@ -27,12 +27,8 @@ def test_import_tiff(rose_tif, temp_db, clean_up_files, get_page_sync):
     page = get_page_sync(slist.thread, id=1)
     assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_import_tiff_with_units(temp_tif, temp_db, clean_up_files, get_page_sync):
+def test_import_tiff_with_units(temp_tif, temp_db, get_page_sync):
     "Test importing TIFF with units"
 
     subprocess.run(
@@ -61,12 +57,8 @@ def test_import_tiff_with_units(temp_tif, temp_db, clean_up_files, get_page_sync
     page = get_page_sync(slist.thread, id=1)
     assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
-    #########################
 
-    clean_up_files(slist.thread.db_files)
-
-
-def test_import_tiff_with_error(rose_tif, clean_up_files):
+def test_import_tiff_with_error(rose_tif):
     "Test importing TIFF"
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -112,12 +104,8 @@ def test_import_tiff_with_error(rose_tif, clean_up_files):
 
         assert asserts == 3, "all callbacks run"
 
-        #########################
 
-        clean_up_files(slist.thread.db_files)
-
-
-def test_import_multipage_tiff(rose_tif, temp_db, clean_up_files):
+def test_import_multipage_tiff(rose_tif, temp_db):
     "Test importing TIFF"
     with tempfile.NamedTemporaryFile(suffix=".tif") as temp_tif2:
         subprocess.run(["tiffcp", rose_tif, rose_tif, temp_tif2.name], check=True)
@@ -134,10 +122,8 @@ def test_import_multipage_tiff(rose_tif, temp_db, clean_up_files):
 
         assert len(slist.data) == 2, "imported 2 pages"
 
-    clean_up_files(slist.thread.db_files)
 
-
-def test_import_linked_tiff(rose_tif, temp_db, clean_up_files, get_page_sync):
+def test_import_linked_tiff(rose_tif, temp_db, get_page_sync):
     "Test importing TIFF"
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_tif = pathlib.Path(temp_dir) / "test.tif"
@@ -158,8 +144,6 @@ def test_import_linked_tiff(rose_tif, temp_db, clean_up_files, get_page_sync):
 
         page = get_page_sync(slist.thread, id=1)
         assert page.image_object.mode == "RGB", "TIFF imported correctly"
-
-    clean_up_files(slist.thread.db_files)
 
 
 def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
@@ -195,10 +179,10 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
 
     #########################
 
-    clean_up_files(slist.thread.db_files + ["5.tif"])
+    clean_up_files(["5.tif"])
 
 
-def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
+def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync):
     "Test importing TIFF"
     subprocess.check_output(
         ["identify", "-format", "%m %G %g %z-bit %r", rose_tif], text=True
@@ -233,7 +217,3 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, clean_up_file
     assert (
         page.image_object.mode == "RGB"
     ), "TIFF imported correctly after cancelling previous import"
-
-    #########################
-
-    clean_up_files(slist.thread.db_files)

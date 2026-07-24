@@ -128,8 +128,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     #########################
 
     clean_up_files(
-        slist.thread.db_files
-        + [
+        [
             "text.txt",
             "ann.txt",
         ]
@@ -139,7 +138,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_import_djvu_with_error(rose_jpg, temp_djvu, clean_up_files):
+def test_import_djvu_with_error(rose_jpg, temp_djvu):
     "Test importing DjVu"
 
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
@@ -178,10 +177,6 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu, clean_up_files):
 
         assert asserts == 2, "all callbacks run"
 
-        #########################
-
-        clean_up_files(slist.thread.db_files)
-
 
 def mock_import_djvu_txt(self, _text):
     "mock import_djvu_txt method to test error handling"
@@ -192,8 +187,8 @@ def mock_import_djvu_txt(self, _text):
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_import_djvu_with_error2(
-    monkeypatch, rose_jpg, temp_djvu, temp_db, clean_up_files,
-    get_page_sync):
+    monkeypatch, rose_jpg, temp_djvu, temp_db, get_page_sync
+):
     "Test importing DjVu"
 
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
@@ -223,15 +218,11 @@ def test_import_djvu_with_error2(
     page = get_page_sync(slist.thread, id=1)
     assert page.image_object.mode == "RGB", "DjVu imported otherwise correctly"
 
-    #########################
-
-    clean_up_files(slist.thread.db_files)
-
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
+def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db):
     "Test importing multipage DjVu"
 
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
@@ -264,5 +255,3 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db, clean_up_files):
         assert asserts == 2, "callbacks all run"
         error_cb.assert_not_called(), "no error callback called"
         assert len(slist.data) == 2, "imported 2 pages"
-
-    clean_up_files(slist.thread.db_files)

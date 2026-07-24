@@ -115,7 +115,7 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
             dialog.max_pages == 3
         ), "selecting reverse should automatically limit the max number of pages to scan"
 
-        clean_up_files(slist.thread.db_files + glob.glob(f"{tempdir}/*"))
+        clean_up_files(glob.glob(f"{tempdir}/*"))
 
 
 def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
