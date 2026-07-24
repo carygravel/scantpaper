@@ -157,6 +157,26 @@ To then remove it:
 pip uninstall scantpaper
 ```
 
+### With `uv`
+
+To install the runtime dependencies with `uv`:
+
+```sh
+uv sync
+```
+
+or with the additional development dependencies:
+
+```sh
+uv sync --extra test
+```
+
+After which you can start it with:
+
+```sh
+uv scantpaper
+```
+
 ### From Tarball
 
 Download `.tar.gz` from [Github](https://github.com/carygravel/scantpaper/releases/).
