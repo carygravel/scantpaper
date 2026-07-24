@@ -81,9 +81,11 @@ def test_cancel(mock_thread):
 
     # Patch slurp where it's used in basedocument
     # slurp returns content of pidfile as string
-    with patch("basedocument.slurp", return_value="12345"), patch(
-        "os.killpg"
-    ) as mock_killpg, patch("os.getpgid", return_value=12345):
+    with (
+        patch("basedocument.slurp", return_value="12345"),
+        patch("os.killpg") as mock_killpg,
+        patch("os.getpgid", return_value=12345),
+    ):
 
         cancel_callback = MagicMock()
         process_callback = MagicMock()
@@ -178,9 +180,7 @@ def test_save_open_session():
                     kwargs["finished_callback"](MagicMock())
             elif process == "page_number_table":
                 if "finished_callback" in kwargs:
-                    kwargs["finished_callback"](
-                        MagicMock(info=[[1, None, 101]])
-                    )
+                    kwargs["finished_callback"](MagicMock(info=[[1, None, 101]]))
             return MagicMock()
 
         slist2.thread.send = mock_send
@@ -879,9 +879,10 @@ def test_cancel_with_empty_pid(mock_thread):
     mock_thread.running_pids = {"empty.pid": "empty.pid"}
     slist = Document()
 
-    with patch("basedocument.slurp", return_value=""), patch(
-        "os.killpg"
-    ) as mock_killpg:
+    with (
+        patch("basedocument.slurp", return_value=""),
+        patch("os.killpg") as mock_killpg,
+    ):
         slist.cancel(MagicMock())
         mock_killpg.assert_not_called()
 

@@ -345,12 +345,10 @@ class TestScanDialog:
         scan.paper_formats = {"A4": {"x": 1, "y": 2, "l": 0, "t": 0}}
         scan.paper = "A4"
 
-        with unittest.mock.patch(
-            "dialog.scan.Dialog"
-        ) as mockdialog, unittest.mock.patch(
-            "dialog.scan.PaperList"
-        ) as mockpaperlist, unittest.mock.patch(
-            "dialog.scan.Gtk.Box"
+        with (
+            unittest.mock.patch("dialog.scan.Dialog") as mockdialog,
+            unittest.mock.patch("dialog.scan.PaperList") as mockpaperlist,
+            unittest.mock.patch("dialog.scan.Gtk.Box"),
         ):
 
             mock_window = mockdialog.return_value
@@ -575,14 +573,11 @@ class TestScanDialog:
         parent = MockScan()
         parent.profiles = {}
 
-        with unittest.mock.patch(
-            "dialog.scan.Gtk.Dialog"
-        ) as mockdialogclass, unittest.mock.patch(
-            "dialog.scan.Gtk.Entry"
-        ) as mockentryclass, unittest.mock.patch(
-            "dialog.scan.Gtk.Box"
-        ), unittest.mock.patch(
-            "dialog.scan.Gtk.Label"
+        with (
+            unittest.mock.patch("dialog.scan.Gtk.Dialog") as mockdialogclass,
+            unittest.mock.patch("dialog.scan.Gtk.Entry") as mockentryclass,
+            unittest.mock.patch("dialog.scan.Gtk.Box"),
+            unittest.mock.patch("dialog.scan.Gtk.Label"),
         ):
 
             mock_dialog = mockdialogclass.return_value
@@ -600,14 +595,11 @@ class TestScanDialog:
         parent = MockScan()
         parent.profiles = {}
 
-        with unittest.mock.patch(
-            "dialog.scan.Gtk.Dialog"
-        ) as mockdialogclass, unittest.mock.patch(
-            "dialog.scan.Gtk.Entry"
-        ) as mockentryclass, unittest.mock.patch(
-            "dialog.scan.Gtk.Box"
-        ), unittest.mock.patch(
-            "dialog.scan.Gtk.Label"
+        with (
+            unittest.mock.patch("dialog.scan.Gtk.Dialog") as mockdialogclass,
+            unittest.mock.patch("dialog.scan.Gtk.Entry") as mockentryclass,
+            unittest.mock.patch("dialog.scan.Gtk.Box"),
+            unittest.mock.patch("dialog.scan.Gtk.Label"),
         ):
 
             mock_dialog = mockdialogclass.return_value
@@ -627,12 +619,10 @@ class TestScanDialog:
         parent._profile = "test"  # Manually set to avoid property setter side effects
         parent.available_scan_options = MockOptions([])
 
-        with unittest.mock.patch(
-            "dialog.scan.Gtk.Dialog"
-        ) as mockdialogclass, unittest.mock.patch(
-            "dialog.scan.Gtk.Label"
-        ), unittest.mock.patch(
-            "dialog.scan._build_profile_table"
+        with (
+            unittest.mock.patch("dialog.scan.Gtk.Dialog") as mockdialogclass,
+            unittest.mock.patch("dialog.scan.Gtk.Label"),
+            unittest.mock.patch("dialog.scan._build_profile_table"),
         ):
 
             mock_dialog = mockdialogclass.return_value
@@ -657,12 +647,10 @@ class TestScanDialog:
         parent.scan_options.side_effect = mock_scan_options
         parent.set_profile = unittest.mock.Mock()
 
-        with unittest.mock.patch(
-            "dialog.scan.Gtk.Dialog"
-        ) as mockdialogclass, unittest.mock.patch(
-            "dialog.scan.Gtk.Label"
-        ), unittest.mock.patch(
-            "dialog.scan._build_profile_table"
+        with (
+            unittest.mock.patch("dialog.scan.Gtk.Dialog") as mockdialogclass,
+            unittest.mock.patch("dialog.scan.Gtk.Label"),
+            unittest.mock.patch("dialog.scan._build_profile_table"),
         ):
 
             mock_dialog = mockdialogclass.return_value
@@ -681,12 +669,10 @@ class TestScanDialog:
         parent.available_scan_options = MockOptions([])
         parent.set_current_scan_options = unittest.mock.Mock()
 
-        with unittest.mock.patch(
-            "dialog.scan.Gtk.Dialog"
-        ) as mockdialogclass, unittest.mock.patch(
-            "dialog.scan.Gtk.Label"
-        ), unittest.mock.patch(
-            "dialog.scan._build_profile_table"
+        with (
+            unittest.mock.patch("dialog.scan.Gtk.Dialog") as mockdialogclass,
+            unittest.mock.patch("dialog.scan.Gtk.Label"),
+            unittest.mock.patch("dialog.scan._build_profile_table"),
         ):
 
             mock_dialog = mockdialogclass.return_value

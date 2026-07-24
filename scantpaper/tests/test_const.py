@@ -37,7 +37,8 @@ def test_import_tomli_for_python_310(monkeypatch):
 
 def test_get_metadata():
     "Test getting metadata."
-    with patch("importlib.metadata.version", side_effect="l"), patch(
-        "pathlib.Path.is_file", return_value=False
+    with (
+        patch("importlib.metadata.version", side_effect="l"),
+        patch("pathlib.Path.is_file", return_value=False),
     ):
         assert const.get_version() == "l"

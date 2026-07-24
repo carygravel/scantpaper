@@ -92,23 +92,18 @@ def test_save_pdf(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.TemporaryDirectory") as mock_tempdir, patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf_data"
-    ) as mock_img2pdf, patch(
-        "savethread.ocrmypdf.api._pdf_to_hocr"
-    ) as mock_pdf_to_hocr, patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
-    ) as mock_hocr_to_ocr_pdf, patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ) as mock_post_save_hook, patch(
-        "savethread.pathlib.Path"
-    ) as mock_path:
+    with (
+        patch("savethread.tempfile.TemporaryDirectory") as mock_tempdir,
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data") as mock_img2pdf,
+        patch("savethread.ocrmypdf.api._pdf_to_hocr") as mock_pdf_to_hocr,
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf") as mock_hocr_to_ocr_pdf,
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook") as mock_post_save_hook,
+        patch("savethread.pathlib.Path") as mock_path,
+    ):
         mock_tempdir.return_value.__enter__.return_value = "/tmp/tempdir"
         mock_path.return_value.__truediv__.return_value = "/tmp/tempdir/file"
 
@@ -134,22 +129,17 @@ def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.TemporaryDirectory"), patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf_data"
-    ), patch(
-        "savethread.ocrmypdf.api._pdf_to_hocr"
-    ), patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
-    ), patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.pathlib.Path"
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path"),
     ):
         mock_thread_instance.do_save_pdf(request)
 
@@ -170,15 +160,14 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_djvu", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
-        "savethread.exec_command"
-    ) as mock_exec, patch("savethread.os.remove"), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.subprocess.run"
-    ) as mock_run:
+    with (
+        patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("savethread.exec_command") as mock_exec,
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.subprocess.run") as mock_run,
+    ):
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
         mock_exec.return_value.returncode = 0
 
@@ -207,14 +196,13 @@ def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_djvu", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
-        "savethread.exec_command"
-    ) as mock_exec, patch("savethread.os.remove"), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.subprocess.run"
+    with (
+        patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("savethread.exec_command") as mock_exec,
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.subprocess.run"),
     ):
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
         mock_exec.return_value.returncode = 1
@@ -239,9 +227,12 @@ def test_save_tiff(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_tiff", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
-        "savethread.subprocess.run"
-    ) as mock_run, patch("savethread.os.remove"), patch("savethread._post_save_hook"):
+    with (
+        patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("savethread.subprocess.run") as mock_run,
+        patch("savethread.os.remove"),
+        patch("savethread._post_save_hook"),
+    ):
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.tif"
 
         mock_thread_instance.do_save_tiff(request)
@@ -265,12 +256,12 @@ def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_tiff", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.NamedTemporaryFile"), patch(
-        "savethread.subprocess.run"
-    ), patch("savethread.exec_command") as mock_exec, patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._post_save_hook"
+    with (
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.subprocess.run"),
+        patch("savethread.exec_command") as mock_exec,
+        patch("savethread.os.remove"),
+        patch("savethread._post_save_hook"),
     ):
         mock_exec.return_value.returncode = 0
         mock_exec.return_value.stderr = ""
@@ -293,12 +284,12 @@ def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_tiff", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.NamedTemporaryFile"), patch(
-        "savethread.subprocess.run"
-    ), patch("savethread.exec_command") as mock_exec, patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._post_save_hook"
+    with (
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.subprocess.run"),
+        patch("savethread.exec_command") as mock_exec,
+        patch("savethread.os.remove"),
+        patch("savethread._post_save_hook"),
     ):
         mock_exec.return_value.returncode = 1
         mock_exec.return_value.stderr = "Error converting"
@@ -353,8 +344,9 @@ def test_save_text(mock_thread_instance, mock_page_instance):
     options = {"path": "/tmp/output.txt", "list_of_pages": [1]}
     request = Request("save_text", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.open", mock_open()) as mock_file, patch(
-        "savethread._post_save_hook"
+    with (
+        patch("savethread.open", mock_open()) as mock_file,
+        patch("savethread._post_save_hook"),
     ):
         mock_thread_instance.do_save_text(request)
 
@@ -368,8 +360,9 @@ def test_save_hocr(mock_thread_instance, mock_page_instance):
     options = {"path": "/tmp/output.hocr", "list_of_pages": [1], "options": {}}
     request = Request("save_hocr", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.open", mock_open()) as mock_file, patch(
-        "savethread._post_save_hook"
+    with (
+        patch("savethread.open", mock_open()) as mock_file,
+        patch("savethread._post_save_hook"),
     ):
         mock_thread_instance.do_save_hocr(request)
 
@@ -389,9 +382,12 @@ def test_user_defined(mock_thread_instance, mock_page_instance):
     }
     request = Request("user_defined", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
-        "savethread.subprocess.run"
-    ) as mock_run, patch("savethread.Image.open"), patch("savethread.Page"):
+    with (
+        patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("savethread.subprocess.run") as mock_run,
+        patch("savethread.Image.open"),
+        patch("savethread.Page"),
+    ):
         # Mock the context manager return values directly
         mock_infile = MagicMock()
         mock_infile.name = "infile"
@@ -425,9 +421,10 @@ def test_user_defined_copy_failure(mock_thread_instance, mock_page_instance):
     }
     request = Request("user_defined", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.NamedTemporaryFile") as mock_temp, patch(
-        "savethread.shutil.copy2", return_value=None
-    ) as mock_copy:
+    with (
+        patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("savethread.shutil.copy2", return_value=None) as mock_copy,
+    ):
         mock_infile = MagicMock()
         mock_infile.name = "infile"
         mock_outfile = MagicMock()
@@ -547,24 +544,18 @@ def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.TemporaryDirectory"), patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf"
-    ), patch(
-        "savethread.ocrmypdf.api._pdf_to_hocr"
-    ), patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
-    ), patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread.os.rename"
-    ) as mock_rename, patch(
-        "savethread.exec_command"
-    ) as mock_exec, patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.pathlib.Path"
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf"),
+        patch("savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread.os.remove"),
+        patch("savethread.os.rename") as mock_rename,
+        patch("savethread.exec_command") as mock_exec,
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path"),
     ):
         mock_exec.return_value.returncode = 0
         mock_thread_instance.do_save_pdf(request)
@@ -585,8 +576,9 @@ def test_add_annotations_to_pdf():
         "children": [{"type": "text", "text": "foo", "bbox": [10, 10, 50, 50]}],
     }
 
-    with patch("savethread.Bboxtree") as mock_bboxtree, patch(
-        "savethread.px2pt", side_effect=lambda x, y: x
+    with (
+        patch("savethread.Bboxtree") as mock_bboxtree,
+        patch("savethread.px2pt", side_effect=lambda x, y: x),
     ):
         mock_bboxtree.return_value.each_bbox.return_value = [
             {"type": "highlight", "text": "foo", "bbox": [10, 10, 50, 50]}
@@ -610,25 +602,19 @@ def test_save_pdf_with_password(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.TemporaryDirectory"), patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf_data"
-    ), patch(
-        "savethread.ocrmypdf.api._pdf_to_hocr"
-    ), patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
-    ), patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.pathlib.Path"
-    ), patch(
-        "savethread._encrypt_pdf", return_value=0
-    ) as mock_encrypt:
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path"),
+        patch("savethread._encrypt_pdf", return_value=0) as mock_encrypt,
+    ):
         mock_thread_instance.do_save_pdf(request)
 
         assert mock_encrypt.called
@@ -647,25 +633,19 @@ def test_save_pdf_with_password_failure(mock_thread_instance, mock_page_instance
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.TemporaryDirectory"), patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf_data"
-    ), patch(
-        "savethread.ocrmypdf.api._pdf_to_hocr"
-    ), patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
-    ), patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._set_timestamp"
-    ) as mock_timestamp, patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.pathlib.Path"
-    ), patch(
-        "savethread._encrypt_pdf", return_value=1
-    ) as mock_encrypt:
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp") as mock_timestamp,
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path"),
+        patch("savethread._encrypt_pdf", return_value=1) as mock_encrypt,
+    ):
         mock_thread_instance.do_save_pdf(request)
 
         assert mock_encrypt.called
@@ -686,25 +666,19 @@ def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.TemporaryDirectory"), patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf_data"
-    ), patch(
-        "savethread.ocrmypdf.api._pdf_to_hocr"
-    ), patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
-    ), patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.pathlib.Path"
-    ), patch(
-        "savethread.exec_command"
-    ) as mock_exec:
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path"),
+        patch("savethread.exec_command") as mock_exec,
+    ):
         # Simulate failure
         mock_exec.return_value.returncode = 1
         mock_exec.return_value.stderr = "Error converting"
@@ -732,8 +706,9 @@ def test_append_pdf_pdfunite_failure():
     mock_proc = MagicMock()
     mock_proc.returncode = 1
     mock_proc.stderr = "pdfunite error"
-    with patch("savethread.os.rename"), patch(
-        "savethread.exec_command", return_value=mock_proc
+    with (
+        patch("savethread.os.rename"),
+        patch("savethread.exec_command", return_value=mock_proc),
     ):
         ret = _append_pdf("/tmp/temp.pdf", options, request)
         assert ret == 1
@@ -841,21 +816,17 @@ def test_save_pdf_with_progress_hooks(mock_thread_instance, mock_page_instance):
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
-    with patch("savethread.tempfile.TemporaryDirectory"), patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf_data"
-    ), patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf"
-    ) as mock_hocr_to_ocr_pdf, patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.pathlib.Path"
-    ) as mock_path:
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf") as mock_hocr_to_ocr_pdf,
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path") as mock_path,
+    ):
         mock_path.return_value.glob.return_value = []
 
         mock_thread_instance.do_save_pdf(request)
@@ -891,21 +862,17 @@ def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_in
         progress_values.append(mock_thread_instance.progress)
         message_values.append(mock_thread_instance.message)
 
-    with patch("savethread.tempfile.TemporaryDirectory"), patch(
-        "savethread.tempfile.NamedTemporaryFile"
-    ), patch("savethread.open", mock_open()), patch(
-        "savethread.img2pdf.convert", return_value=b"pdf_data"
-    ), patch(
-        "savethread.ocrmypdf.api._hocr_to_ocr_pdf", side_effect=track_progress
-    ), patch(
-        "savethread.os.remove"
-    ), patch(
-        "savethread._set_timestamp"
-    ), patch(
-        "savethread._post_save_hook"
-    ), patch(
-        "savethread.pathlib.Path"
-    ) as mock_path:
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf", side_effect=track_progress),
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path") as mock_path,
+    ):
         mock_path.return_value.glob.return_value = []
 
         mock_thread_instance.do_save_pdf(request)

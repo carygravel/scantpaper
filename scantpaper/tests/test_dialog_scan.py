@@ -877,8 +877,9 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
 
     ready_to_crash = threading.Event()
 
-    with patch("frontend.image_sane.sane.open") as mock_sane_open, patch(
-        "frontend.image_sane.sane.exit"
+    with (
+        patch("frontend.image_sane.sane.open") as mock_sane_open,
+        patch("frontend.image_sane.sane.exit"),
     ):
 
         def delayed_open(_name):

@@ -162,7 +162,8 @@ def test_negate(
     mode,
     white,
     expected_mean,
-    get_page_sync):
+    get_page_sync,
+):
     "Test negate"
 
     image = f"white.{suffix}"

@@ -18,7 +18,9 @@ from loop_helpers import safe_mainloop
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_import_djvu(rose_jpg, temp_djvu, temp_txt, clean_up_files, temp_db, get_page_sync):
+def test_import_djvu(
+    rose_jpg, temp_djvu, temp_txt, clean_up_files, temp_db, get_page_sync
+):
     "Test importing DjVu"
 
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)

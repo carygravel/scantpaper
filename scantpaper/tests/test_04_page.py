@@ -333,9 +333,10 @@ def test_get_pixbuf_error(_mock_new_from_file_at_scale, _mock_new_from_file):
 
 def test_write_image_for_djvu():
     "Test write_image_for_djvu()"
-    with tempfile.TemporaryDirectory() as dirname, tempfile.NamedTemporaryFile(
-        suffix=".pbm"
-    ) as filename:
+    with (
+        tempfile.TemporaryDirectory() as dirname,
+        tempfile.NamedTemporaryFile(suffix=".pbm") as filename,
+    ):
         page = Page(image_object=Image.new("1", (210, 297)))
         page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
         assert os.path.isfile(filename.name), "write_image_for_djvu() creates a file"
@@ -343,9 +344,10 @@ def test_write_image_for_djvu():
 
 def test_write_image_for_tiff():
     "Test write_image_for_djvu()"
-    with tempfile.TemporaryDirectory() as dirname, tempfile.NamedTemporaryFile(
-        suffix=".tif"
-    ) as filename:
+    with (
+        tempfile.TemporaryDirectory() as dirname,
+        tempfile.NamedTemporaryFile(suffix=".tif") as filename,
+    ):
         page = Page(image_object=Image.new("RGB", (210, 297)))
         page.resolution = (300, 300, "PixelsPerInch")
         page.write_image_for_tiff(
@@ -356,9 +358,10 @@ def test_write_image_for_tiff():
 
 def test_write_image_for_djvu_error(mocker):
     "Test error handling in write_image_for_djvu()"
-    with tempfile.TemporaryDirectory() as dirname, tempfile.NamedTemporaryFile(
-        suffix=".pbm"
-    ) as filename:
+    with (
+        tempfile.TemporaryDirectory() as dirname,
+        tempfile.NamedTemporaryFile(suffix=".pbm") as filename,
+    ):
         mock_exec = mocker.patch("page.exec_command")
         mock_exec.return_value = Proc(
             returncode=1, stdout="", stderr="compression error"

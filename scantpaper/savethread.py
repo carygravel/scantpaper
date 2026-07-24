@@ -151,13 +151,18 @@ class SaveThread(Importhread):
                     os.remove(fname)
             for pagenr, page in enumerate(list_of_pages):
                 if page.text_layer and page.text_layer != "[]":
-                    with open(
-                        outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr",
-                        "w",
-                        encoding="utf-8",
-                    ) as hocr_fh, open(
-                        outdir / f"{pagenr + 1:-06}_hocr.json", "w", encoding="utf-8"
-                    ) as json_fh:
+                    with (
+                        open(
+                            outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr",
+                            "w",
+                            encoding="utf-8",
+                        ) as hocr_fh,
+                        open(
+                            outdir / f"{pagenr + 1:-06}_hocr.json",
+                            "w",
+                            encoding="utf-8",
+                        ) as json_fh,
+                    ):
                         hocr_fh.write(page.export_hocr())
                         json_fh.write(
                             json.dumps({"pageno": pagenr, "orientation_correction": 0})
@@ -498,11 +503,14 @@ class SaveThread(Importhread):
         "run user defined command on page in thread"
         options = request.args[0]
         try:
-            with tempfile.NamedTemporaryFile(
-                dir=options.get("dir"), suffix=".png"
-            ) as infile, tempfile.NamedTemporaryFile(
-                dir=options.get("dir"), suffix=".png"
-            ) as out:
+            with (
+                tempfile.NamedTemporaryFile(
+                    dir=options.get("dir"), suffix=".png"
+                ) as infile,
+                tempfile.NamedTemporaryFile(
+                    dir=options.get("dir"), suffix=".png"
+                ) as out,
+            ):
                 page = self.get_page(id=options["page"])
                 page.image_object.save(infile.name)
                 command = options["command"]

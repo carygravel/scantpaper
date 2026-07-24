@@ -196,9 +196,10 @@ def _parse_arguments():
 
         def compress_log():
             try:
-                with open(args.log, "rb") as f_in, lzma.open(
-                    args.log + ".xz", "wb"
-                ) as f_out:
+                with (
+                    open(args.log, "rb") as f_in,
+                    lzma.open(args.log + ".xz", "wb") as f_out,
+                ):
                     shutil.copyfileobj(f_in, f_out)
                 os.remove(args.log)
             except (OSError, lzma.LZMAError) as e:

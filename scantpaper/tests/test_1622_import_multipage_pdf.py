@@ -39,9 +39,10 @@ def test_import_multipage_pdf(rose_png, temp_pdf, temp_db):
 def test_import_multipage_pdf_with_not_enough_images(rose_png, temp_db, temp_pdf):
     "Test importing PDF"
 
-    with tempfile.NamedTemporaryFile(
-        suffix=".pdf"
-    ) as page1, tempfile.NamedTemporaryFile(suffix=".pdf") as page2:
+    with (
+        tempfile.NamedTemporaryFile(suffix=".pdf") as page1,
+        tempfile.NamedTemporaryFile(suffix=".pdf") as page2,
+    ):
         page1.write(img2pdf.convert(rose_png))
         page1.flush()
         content = b"""%PDF-1.4

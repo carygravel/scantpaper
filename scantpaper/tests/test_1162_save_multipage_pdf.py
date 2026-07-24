@@ -105,9 +105,10 @@ def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloo
 
     import_in_mainloop(slist, [rose_pnm, rose_pnm])
 
-    with tempfile.NamedTemporaryFile(
-        suffix=".ps", prefix=" "
-    ) as temp_ps, tempfile.NamedTemporaryFile(suffix=".ps") as temp_ps2:
+    with (
+        tempfile.NamedTemporaryFile(suffix=".ps", prefix=" ") as temp_ps,
+        tempfile.NamedTemporaryFile(suffix=".ps") as temp_ps2,
+    ):
         slist.save_pdf(
             path=temp_pdf.name,
             list_of_pages=[1, 2],
@@ -134,9 +135,10 @@ def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainlo
 
     import_in_mainloop(slist, [rose_pnm, rose_pnm])
 
-    with tempfile.NamedTemporaryFile(
-        suffix=".ps", prefix=" "
-    ) as temp_ps, tempfile.NamedTemporaryFile(suffix=".ps") as temp_ps2:
+    with (
+        tempfile.NamedTemporaryFile(suffix=".ps", prefix=" ") as temp_ps,
+        tempfile.NamedTemporaryFile(suffix=".ps") as temp_ps2,
+    ):
         slist.save_pdf(
             path=temp_pdf.name,
             list_of_pages=[1, 2],
