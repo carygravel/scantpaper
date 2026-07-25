@@ -393,19 +393,8 @@ Jeffrey Ratcliffe (jffry at posteo dot net)
 ---
 
 ## Contributing
-Contributions are welcome. Please submit pull requests, ensuring that all the
-tests pass, that new code is covered by new tests, and that the `pylint` does
-not drop.
 
-To run all the tests, just run `pytest`. To run all the tests in a particular
-file, `pytest scantpaper/tests/test_app.py`. To run just one test in a file
-`pytest scantpaper/tests/test_app.py::test_application_init`.
-
-Note that the test suite also tests that the code is formatted with `black`.
-To fix the formatting `black scantpaper`.
-
-Similarly to check the linting for one or more files
-`pylint scantpaper/app.py scantpaper/text_layer_control.py`
+See [contributing](CONTRIBUTING.md).
 
 ---
 
