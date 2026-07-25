@@ -16,13 +16,12 @@ import config
 import img2pdf
 import pikepdf
 import pytest
-from PIL import Image
 from basethread import Request
 from docthread import DocThread
 from document import Document
-from gi.repository import GLib
-from page import Page
 from loop_helpers import safe_mainloop
+from page import Page
+from PIL import Image
 
 
 def has_locale(name):
@@ -362,7 +361,9 @@ def test_save_pdf_with_hocr(
     #     is not None, 'import annotations'
 
 
-@pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
+@pytest.mark.xfail(
+    reason="ocrmypdf GlyphlessFont + PDF/A conversion mangles non-ASCII text extraction"
+)
 def test_save_pdf_with_utf8(
     rose_pnm, temp_pdf, temp_db, import_in_mainloop, set_text_in_mainloop
 ):
@@ -377,8 +378,9 @@ def test_save_pdf_with_utf8(
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": '
-        '"пени способствовала сохранению", "depth": 3}]',
+        '{"bbox": [1, 14, 20, 48], "type": "word", "text": "пени", "depth": 3}, '
+        '{"bbox": [21, 14, 50, 48], "type": "word", "text": "способствовала", "depth": 3}, '
+        '{"bbox": [51, 14, 77, 48], "type": "word", "text": "сохранению", "depth": 3}]',
     )
 
     mlp = safe_mainloop(5000)
