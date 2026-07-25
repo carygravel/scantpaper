@@ -60,188 +60,196 @@ jobs:
         run: |
           mkdir -p REPO/debian/upstream
           mkdir -p REPO/debian/source
-          echo "3.0 (quilt)" | tee REPO/debian/source/format
-          (
-            echo "Source: ${GITHUB_REPO_NAME}"
-            echo "Section: utils"
-            echo "Testsuite: autopkgtest-pkg-python"
-            echo "Build-Depends: debhelper-compat (= 13),"
-            echo "               dh-python,"
-            echo "               python3-all,"
-            echo "               python3-pip,"
-            echo "               python3-setuptools,"
-            echo "               python3-wheel"
-            echo "Build-Depends-Indep: appstream,"
-            echo "                     fonts-noto-extra,"
-            echo "                     gettext,"
-            echo "                     ghostscript,"
-            echo "                     gir1.2-gtk-3.0,"
-            echo "                     gir1.2-goocanvas-2.0,"
-            echo "                     gsfonts,"
-            echo "                     help2man,"
-            echo "                     imagemagick,"
-            echo "                     librsvg2-common,"
-            echo "                     libtiff-tools,"
-            echo "                     ocrmypdf (>= 15.4.3),"
-            echo "                     pandoc,"
-            echo "                     pybuild-plugin-pyproject,"
-            echo "                     python3-gi,"
-            echo "                     python3-gi-cairo,"
-            echo "                     python3-iso639,"
-            echo "                     python3-sane,"
-            echo "                     python3-tesserocr,"
-            echo "                     python3-polib,"
-            echo "                     python3-pytest-cov,"
-            echo "                     python3-pytest-timeout,"
-            echo "                     python3-pytest-pylint,"
-            echo "                     python3-pytest-mock,"
-            echo "                     python3-pytest-xvfb,"
-            echo "                     sane-utils (>= 1.0.17),"
-            echo "                     xauth,"
-            echo "                     xfonts-base"
-            echo "Maintainer: ${AUTHOR}"
-            echo "Standards-Version: 4.7.3"
-            echo "Vcs-Git: https://github.com/carygravel/scantpaper.git"
-            echo "Vcs-Browser: https://github.com/carygravel/scantpaper"
-            echo "Homepage: https://github.com/carygravel/scantpaper"
-            echo ""
-            echo "Package: ${GITHUB_REPO_NAME}"
-            echo "Architecture: ${DEB_ARCHITECTURE}"
-            echo "Depends: gir1.2-gtk-3.0,"
-            echo "         gir1.2-goocanvas-2.0,"
-            echo "         imagemagick,"
-            echo "         librsvg2-common,"
-            echo "         libtiff-tools,"
-            echo "         ocrmypdf (>= 15.4.3),"
-            echo "         poppler-utils,"
-            echo "         python3-gi,"
-            echo "         python3-gi-cairo,"
-            echo "         python3-iso639,"
-            echo "         python3-sane,"
-            echo "         python3-tesserocr,"
-            echo "         sane-utils (>= 1.0.17),"
-            echo "         \${misc:Depends},"
-            echo "         \${python3:Depends}"
-            echo "Recommends: djvulibre-bin,"
-            echo "            qpdf,"
-            echo "            tesseract-ocr,"
-            echo "            unpaper,"
-            echo "            xdg-utils"
-            echo "Description: GUI to produce PDFs or DjVus from scanned documents"
-            echo " Only five clicks are required to scan several pages and then save all or"
-            echo " a selection as a PDF or DjVu file, including metadata if required."
-            echo " ."
-            echo " scantpaper can control flatbed or sheet-fed (ADF) scanners with SANE,"
-            echo " and can scan multiple pages at once. It presents a thumbnail view of"
-            echo " scanned pages, and permits simple operations such as cropping, rotating"
-            echo " and deleting pages."
-            echo " ."
-            echo " OCR can be used to recognise text in the scans, and the output"
-            echo " embedded in the PDF or DjVu."
-            echo " ."
-            echo " The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or"
-            echo " single page image file."
-            echo " ."
-            echo " PDF conversion is done by ocrmypdf."
-            if [ -n "${HOMEPAGE}" ]
-            then
-              echo "Homepage: ${HOMEPAGE}"
-            fi
-          ) | tee REPO/debian/control
-          (
-            echo "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/"
-            echo "Upstream-Name: scantpaper"
-            echo "Upstream-Contact: Jeffrey Ratcliffe <jffry@posteo.net>"
-            echo "Source: https://github.com/carygravel/scantpaper"
-            echo ""
-            echo "Files: *"
-            echo "Copyright: 2006--2026 Jeffrey Ratcliffe"
-            echo "License: GPL-3"
-            echo " The full text of the GPL is available on Debian systems in"
-            echo " /usr/share/common-licenses/GPL-3"
-            echo ""
-            echo "Files: scantpaper.appdata.xml"
-            echo "Copyright: 2006--2026 Jeffrey Ratcliffe"
-            echo "License: CC0-1.0"
-            echo " The full text of the CC0-1.0 licence is available on Debian systems in"
-            echo " /usr/share/common-licenses/CC0-1.0"
-            echo ""
-            echo "Files: icons/hicolor/scalable/apps/scan.svg"
-            echo "Copyright: 2007 Frédéric Bellaiche"
-            echo "License: GPL"
-            echo " The full text of the GPL is available on Debian systems in"
-            echo " /usr/share/common-licenses/GPL"
-            echo ""
-            echo "Files: icons/hicolor/scalable/apps/pdf.svg"
-            echo "Copyright: 2004 David Vignoni"
-            echo "License: LGPL-2.1"
-            echo " The full text of the GPL is available on Debian systems in"
-            echo " /usr/share/common-licenses/LGPL-2.1"
-          ) | tee REPO/debian/copyright
-          (
-            echo "${GITHUB_REPO_NAME} (${VERSION}-0) unstable; urgency=medium"
-            echo ""
-            echo "  * New upstream release candidate"
-            echo ""
-            echo " -- ${AUTHOR}  $(date --rfc-email)"
-            echo ""
-          ) | tee REPO/debian/changelog
-          (
-            echo "#!/usr/bin/make -f"
-            echo ""
-            echo "export DH_VERBOSE=1"
-            echo "export PIP_NO_CACHE_DIR=1"
-            echo "export XDG_CACHE_HOME=\$(CURDIR)/.cache"
-            echo ""
-            echo "include /usr/share/dpkg/pkg-info.mk"
-            echo "export DEB_VERSION_UPSTREAM"
-            echo ""
-            echo "%:"
-            echo "	dh \$@ --with python3 --buildsystem=pybuild"
-            echo ""
-            echo "override_dh_auto_build:"
-            echo "	dh_auto_build"
-            echo "	python3 dev/compile_mo.py --src po --out debian/locale --domain scantpaper"
-            echo "	pandoc README.md -o debian/documentation.html"
-            echo ""
-            echo "override_dh_installdocs:"
-            echo "	dh_installdocs README.md debian/documentation.html"
-            echo ""
-            echo "override_dh_install:"
-            echo "	dh_install"
-            echo ""
-            echo "	# install locale manually into package staging area"
-            echo "	mkdir -p debian/scantpaper/usr/share/locale"
-            echo "	cp -a debian/locale/. debian/scantpaper/usr/share/locale/"
-            echo ""
-            echo "override_dh_installman:"
-            echo "	help2man --no-info --name='a GUI to produce PDFs or DjVus from scanned documents' --version-string=\$(DEB_VERSION_UPSTREAM) --output=\$(CURDIR)/debian/scantpaper.1 'python3 scantpaper/app.py'"
-            echo "	sed -i -e 's/APP.PY/SCANTPAPER/' -e 's/app.py/scantpaper/' \$(CURDIR)/debian/scantpaper.1"
-            echo "	dh_installman"
-            echo ""
-            echo "override_dh_auto_test: ;"
-          ) | tee REPO/debian/rules
-          echo "debian/scantpaper.1" | tee REPO/debian/scantpaper.manpages
-          (
-            echo "debian/documentation.html usr/share/doc/scantpaper/"
-            echo "icons/* usr/share/icons/"
-            echo "org.scantpaper.desktop usr/share/applications"
-            echo "scantpaper.appdata.xml usr/share/metainfo"
-          ) | tee REPO/debian/scantpaper.install
-          (
-            echo "Bug-Database: https://github.com/carygravel/scantpaper/issues"
-            echo "Bug-Submit: https://github.com/carygravel/scantpaper/issues/new"
-            echo "Changelog: https://github.com/carygravel/scantpaper/blob/main/changelog.md"
-            echo "Repository-Browse: https://github.com/carygravel/scantpaper"
-            echo "Repository: https://github.com/carygravel/scantpaper"
-          ) | tee REPO/debian/upstream/metadata
-          (
-            echo "Version: 5"
-            echo ""
-            echo "Template: Github"
-            echo "Owner: carygravel"
-            echo "Project: @PACKAGE@"
-          ) | tee REPO/debian/watch
+
+          cat > REPO/debian/source/format <<'EOF'
+          3.0 (quilt)
+          EOF
+
+          cat > REPO/debian/control <<EOF
+          Source: ${GITHUB_REPO_NAME}
+          Section: utils
+          Testsuite: autopkgtest-pkg-python
+          Build-Depends: debhelper-compat (= 13),
+                         dh-python,
+                         python3-all,
+                         python3-pip,
+                         python3-setuptools,
+                         python3-wheel
+          Build-Depends-Indep: appstream,
+                               fonts-noto-extra,
+                               gettext,
+                               ghostscript,
+                               gir1.2-gtk-3.0,
+                               gir1.2-goocanvas-2.0,
+                               gsfonts,
+                               help2man,
+                               imagemagick,
+                               librsvg2-common,
+                               libtiff-tools,
+                               ocrmypdf (>= 15.4.3),
+                               pandoc,
+                               pybuild-plugin-pyproject,
+                               python3-gi,
+                               python3-gi-cairo,
+                               python3-iso639,
+                               python3-sane,
+                               python3-tesserocr,
+                               python3-polib,
+                               python3-pytest-cov,
+                               python3-pytest-timeout,
+                               python3-pytest-pylint,
+                               python3-pytest-mock,
+                               python3-pytest-xvfb,
+                               sane-utils (>= 1.0.17),
+                               xauth,
+                               xfonts-base
+          Maintainer: ${AUTHOR}
+          Standards-Version: 4.7.3
+          Vcs-Git: https://github.com/carygravel/scantpaper.git
+          Vcs-Browser: https://github.com/carygravel/scantpaper
+          Homepage: ${HOMEPAGE:-https://github.com/carygravel/scantpaper}
+
+          Package: ${GITHUB_REPO_NAME}
+          Architecture: ${DEB_ARCHITECTURE}
+          Depends: gir1.2-gtk-3.0,
+                   gir1.2-goocanvas-2.0,
+                   imagemagick,
+                   librsvg2-common,
+                   libtiff-tools,
+                   ocrmypdf (>= 15.4.3),
+                   poppler-utils,
+                   python3-gi,
+                   python3-gi-cairo,
+                   python3-iso639,
+                   python3-sane,
+                   python3-tesserocr,
+                   sane-utils (>= 1.0.17),
+                   \${misc:Depends},
+                   \${python3:Depends}
+          Recommends: djvulibre-bin,
+                      qpdf,
+                      tesseract-ocr,
+                      unpaper,
+                      xdg-utils
+          Description: GUI to produce PDFs or DjVus from scanned documents
+           Only five clicks are required to scan several pages and then save all or
+           a selection as a PDF or DjVu file, including metadata if required.
+           .
+           scantpaper can control flatbed or sheet-fed (ADF) scanners with SANE,
+           and can scan multiple pages at once. It presents a thumbnail view of
+           scanned pages, and permits simple operations such as cropping, rotating
+           and deleting pages.
+           .
+           OCR can be used to recognise text in the scans, and the output
+           embedded in the PDF or DjVu.
+           .
+           The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or
+           single page image file.
+           .
+           PDF conversion is done by ocrmypdf.
+          EOF
+
+          cat > REPO/debian/copyright <<'EOF'
+          Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+          Upstream-Name: scantpaper
+          Upstream-Contact: Jeffrey Ratcliffe <jffry@posteo.net>
+          Source: https://github.com/carygravel/scantpaper
+
+          Files: *
+          Copyright: 2006--2026 Jeffrey Ratcliffe
+          License: GPL-3
+           The full text of the GPL is available on Debian systems in
+           /usr/share/common-licenses/GPL-3
+
+          Files: scantpaper.appdata.xml
+          Copyright: 2006--2026 Jeffrey Ratcliffe
+          License: CC0-1.0
+           The full text of the CC0-1.0 licence is available on Debian systems in
+           /usr/share/common-licenses/CC0-1.0
+
+          Files: icons/hicolor/scalable/apps/scan.svg
+          Copyright: 2007 Frédéric Bellaiche
+          License: GPL
+           The full text of the GPL is available on Debian systems in
+           /usr/share/common-licenses/GPL
+
+          Files: icons/hicolor/scalable/apps/pdf.svg
+          Copyright: 2004 David Vignoni
+          License: LGPL-2.1
+           The full text of the GPL is available on Debian systems in
+           /usr/share/common-licenses/LGPL-2.1
+          EOF
+
+          cat > REPO/debian/changelog <<EOF
+          ${GITHUB_REPO_NAME} (${VERSION}-0) unstable; urgency=medium
+
+            * New upstream release candidate
+
+           -- ${AUTHOR}  $(date --rfc-email)
+          EOF
+
+          cat > REPO/debian/rules <<'MAKEFILE'
+          #!/usr/bin/make -f
+
+          export DH_VERBOSE=1
+          export PIP_NO_CACHE_DIR=1
+          export XDG_CACHE_HOME=$(CURDIR)/.cache
+
+          include /usr/share/dpkg/pkg-info.mk
+          export DEB_VERSION_UPSTREAM
+
+          %:
+          	dh $@ --with python3 --buildsystem=pybuild
+
+          override_dh_auto_build:
+          	dh_auto_build
+          	python3 dev/compile_mo.py --src po --out debian/locale --domain scantpaper
+          	pandoc README.md -o debian/documentation.html
+
+          override_dh_installdocs:
+          	dh_installdocs README.md debian/documentation.html
+
+          override_dh_install:
+          	dh_install
+
+          	# install locale manually into package staging area
+          	mkdir -p debian/scantpaper/usr/share/locale
+          	cp -a debian/locale/. debian/scantpaper/usr/share/locale/
+
+          override_dh_installman:
+          	help2man --no-info --name='a GUI to produce PDFs or DjVus from scanned documents' --version-string=$(DEB_VERSION_UPSTREAM) --output=$(CURDIR)/debian/scantpaper.1 'python3 scantpaper/app.py'
+          	sed -i -e 's/APP.PY/SCANTPAPER/' -e 's/app.py/scantpaper/' $(CURDIR)/debian/scantpaper.1
+          	dh_installman
+
+          override_dh_auto_test: ;
+          MAKEFILE
+
+          cat > REPO/debian/scantpaper.manpages <<'EOF'
+          debian/scantpaper.1
+          EOF
+
+          cat > REPO/debian/scantpaper.install <<'EOF'
+          debian/documentation.html usr/share/doc/scantpaper/
+          icons/* usr/share/icons/
+          org.scantpaper.desktop usr/share/applications
+          scantpaper.appdata.xml usr/share/metainfo
+          EOF
+
+          cat > REPO/debian/upstream/metadata <<'EOF'
+          Bug-Database: https://github.com/carygravel/scantpaper/issues
+          Bug-Submit: https://github.com/carygravel/scantpaper/issues/new
+          Changelog: https://github.com/carygravel/scantpaper/blob/main/changelog.md
+          Repository-Browse: https://github.com/carygravel/scantpaper
+          Repository: https://github.com/carygravel/scantpaper
+          EOF
+
+          cat > REPO/debian/watch <<'EOF'
+          Version: 5
+
+          Template: Github
+          Owner: carygravel
+          Project: @PACKAGE@
+          EOF
 
       - name: Install dependencies
         run: |
