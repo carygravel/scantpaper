@@ -526,11 +526,7 @@ def test_update_uimanager_unpaper_missing(app_window):
     # doesn't check for existence. Based on my analysis, it might crash if it
     # tries to set_enabled(False) on a deleted key.
     # If it's already deleted, self._actions["unpaper"] will raise KeyError.
-    try:
-        app_window._update_uimanager()
-    except KeyError:
-        # If it crashes, it confirms we have a bug
-        pass
+    app_window._update_uimanager()
 
 
 def test_update_uimanager_ocr_missing(app_window):
