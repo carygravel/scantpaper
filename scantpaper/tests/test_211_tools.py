@@ -157,7 +157,7 @@ def test_negate(
     set_saved_in_mainloop,
     set_text_in_mainloop,
     temp_db,
-    clean_up_files,
+    tmp_path,
     suffix,
     mode,
     white,
@@ -166,7 +166,7 @@ def test_negate(
 ):
     "Test negate"
 
-    image = f"white.{suffix}"
+    image = str(tmp_path / f"white.{suffix}")
     im = Image.new(mode, [1, 1], color=white)
     im.save(image)
 
@@ -209,10 +209,6 @@ def test_negate(
     assert max(page.mean) == 0, "mean afterwards"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
-
-    #########################
-
-    clean_up_files([image])
 
 
 def test_unsharp_mask(
