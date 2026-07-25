@@ -6,6 +6,7 @@ import re
 import subprocess
 import tempfile
 from unittest.mock import MagicMock
+from PIL import Image
 from gi.repository import GLib
 import config
 from document import Document
@@ -128,9 +129,8 @@ def test_import_linked_tiff(rose_tif, temp_db, get_page_sync):
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_tif = pathlib.Path(temp_dir) / "test.tif"
         subprocess.run(["ln", "-s", rose_tif, temp_tif], check=True)
-        subprocess.check_output(
-            ["identify", "-format", "%m %G %g %z-bit %r", rose_tif], text=True
-        )
+        img = Image.open(rose_tif)
+        img.load()  # verify file is readable
 
         slist = Document(db=temp_db.name)
 
@@ -184,9 +184,8 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
 
 def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync):
     "Test importing TIFF"
-    subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", rose_tif], text=True
-    )
+    img = Image.open(rose_tif)
+    img.load()  # verify file is readable
 
     slist = Document(db=temp_db.name)
 

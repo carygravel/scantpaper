@@ -4,6 +4,8 @@ import os
 import re
 import subprocess
 import tempfile
+import pikepdf
+from PIL import Image
 from gi.repository import GLib
 import config
 from document import Document
@@ -27,22 +29,13 @@ def test_save_tiff(rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop):
     )
     mlp.run()
 
-    example = subprocess.check_output(["identify", temp_tif.name], text=True)
-    assert (
-        re.search(
-            rf"{temp_tif.name} TIFF 70x46 70x46\+0\+0 8-bit sRGB [.\d]+K?B", example
-        )
-        is not None
-    ), "valid TIFF created"
+    img = Image.open(temp_tif.name)
+    assert img.format == "TIFF", "valid TIFF created"
+    assert img.size == (70, 46), "valid TIFF dimensions"
 
-    example = subprocess.check_output(["identify", temp_png.name], text=True)
-    assert (
-        re.search(
-            rf"{temp_png.name} PNG 70x46 70x46\+0\+0 8-bit sRGB \d+\.?\d*K?B 0\.\d+u 0:00\.\d+\b",
-            example,
-        )
-        is not None
-    ), "ran post-save hook"
+    img = Image.open(temp_png.name)
+    assert img.format == "PNG", "ran post-save hook"
+    assert img.size == (70, 46), "post-save hook dimensions"
 
 
 def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop):
@@ -77,8 +70,9 @@ def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainl
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    assert subprocess.check_output(
-        ["identify", temp_jpg.name], text=True
+    img = Image.open(temp_jpg.name)
+    assert (
+        img.format == "JPEG"
     ), "can create a valid JPG after cancelling save PDF process"
 
 
@@ -163,13 +157,9 @@ def test_save_tiff_with_alpha(temp_png, temp_db, temp_tif, import_in_mainloop):
     )
     mlp.run()
 
-    example = subprocess.check_output(["identify", temp_tif.name], text=True)
-    assert (
-        re.search(
-            rf"{temp_tif.name} TIFF \d\d\dx\d\d \d\d\dx\d\d\+0\+0 8-bit sRGB", example
-        )
-        is not None
-    ), "valid TIFF created"
+    img = Image.open(temp_tif.name)
+    assert img.format == "TIFF", "valid TIFF created"
+    assert img.mode == "RGB", "valid TIFF with alpha"
 
 
 def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop):
@@ -198,8 +188,9 @@ def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainlo
             + ": PostScript document text conforming DSC level 3.0, type EPS, Level 3\n"
         ), "valid postscript created"
 
-        example = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-        assert re.search(r"tiff2ps", example) is not None, "ran post-save hook"
+        with pikepdf.open(temp_pdf.name) as pdf:
+            creator = str(pdf.docinfo.get("/Creator", ""))
+        assert "tiff2ps" in creator, "ran post-save hook"
 
 
 def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop):
@@ -217,10 +208,7 @@ def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop):
     )
     mlp.run()
 
-    example = subprocess.check_output(["identify", temp_tif.name], text=True)
-    assert (
-        re.search(
-            rf"{temp_tif.name} TIFF 70x46 70x46\+0\+0 1-bit Bilevel Gray", example
-        )
-        is not None
-    ), "valid TIFF created"
+    img = Image.open(temp_tif.name)
+    assert img.format == "TIFF", "valid TIFF created"
+    assert img.size == (70, 46), "valid TIFF dimensions"
+    assert img.mode == "1", "valid TIFF with group 4 compression"

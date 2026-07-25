@@ -1,6 +1,5 @@
 "Test saving text"
 
-import subprocess
 import tempfile
 from gi.repository import GLib
 from document import Document
@@ -41,13 +40,9 @@ def test_save_text(
         )
         mlp.run()
 
+        assert open(temp_txt.name).read() == "The quick brown fox", "saved ASCII"
         assert (
-            subprocess.check_output(["cat", temp_txt.name], text=True)
-            == "The quick brown fox"
-        ), "saved ASCII"
-        assert (
-            subprocess.check_output(["cat", temp_txt2.name], text=True)
-            == "The quick brown fox"
+            open(temp_txt2.name).read() == "The quick brown fox"
         ), "ran post-save hook"
 
 
@@ -68,12 +63,8 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop):
         )
         mlp.run()
 
-        assert (
-            subprocess.check_output(["cat", temp_txt.name], text=True) == ""
-        ), "saved ASCII"
-        assert (
-            subprocess.check_output(["cat", temp_txt2.name], text=True) == ""
-        ), "ran post-save hook"
+        assert open(temp_txt.name).read() == "", "saved ASCII"
+        assert open(temp_txt2.name).read() == "", "ran post-save hook"
 
 
 def test_save_utf8(
@@ -106,10 +97,7 @@ def test_save_utf8(
     )
     mlp.run()
 
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True)
-        == "пени способствовала сохранению"
-    ), "saved ASCII"
+    assert open(temp_txt.name).read() == "пени способствовала сохранению", "saved ASCII"
 
 
 def test_save_hocr_as_text(
@@ -155,10 +143,7 @@ def test_save_hocr_as_text(
     )
     mlp.run()
 
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True)
-        == "The quick brown fox"
-    ), "saved hOCR"
+    assert open(temp_txt.name).read() == "The quick brown fox", "saved hOCR"
 
 
 def test_save_hocr(
@@ -208,12 +193,8 @@ def test_save_hocr(
         )
         mlp.run()
 
-        assert (
-            subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
-        ), "saved hOCR"
-        assert (
-            subprocess.check_output(["cat", temp_txt2.name], text=True) == hocr
-        ), "ran post-save hook"
+        assert open(temp_txt.name).read() == hocr, "saved hOCR"
+        assert open(temp_txt2.name).read() == hocr, "ran post-save hook"
 
 
 def test_save_hocr_with_encoding(
@@ -268,9 +249,7 @@ def test_save_hocr_with_encoding(
     )
     mlp.run()
 
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
-    ), "saved hOCR"
+    assert open(temp_txt.name).read() == hocr, "saved hOCR"
 
 
 def test_save_multipage_hocr(
@@ -351,9 +330,7 @@ def test_save_multipage_hocr(
  </body>
 </html>
 """
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
-    ), "saved hOCR"
+    assert open(temp_txt.name).read() == hocr, "saved hOCR"
 
 
 def test_save_hocr_structure(
@@ -479,6 +456,4 @@ def test_save_hocr_structure(
  </body>
 </html>
 """
-    assert (
-        subprocess.check_output(["cat", temp_txt.name], text=True) == hocr
-    ), "saved hOCR"
+    assert open(temp_txt.name).read() == hocr, "saved hOCR"

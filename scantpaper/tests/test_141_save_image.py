@@ -1,8 +1,7 @@
 "Test writing image"
 
-import re
-import subprocess
 import tempfile
+from PIL import Image
 from gi.repository import GLib
 import config
 from document import Document
@@ -26,20 +25,13 @@ def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):
     )
     mlp.run()
 
-    example = subprocess.check_output(["identify", temp_jpg.name], text=True)
-    assert (
-        re.search(rf"{temp_jpg.name} JPEG 70x46 70x46\+0\+0 8-bit sRGB", example)
-        is not None
-    ), "valid JPG created"
+    img = Image.open(temp_jpg.name)
+    assert img.format == "JPEG", "valid JPG created"
+    assert img.size == (70, 46), "valid JPG dimensions"
 
-    example = subprocess.check_output(["identify", temp_png.name], text=True)
-    assert (
-        re.search(
-            rf"{temp_png.name} PNG 70x46 70x46\+0\+0 8-bit sRGB \d+\.?\d*K?B 0\.\d+u 0:00\.\d+\b",
-            example,
-        )
-        is not None
-    ), "ran post-save hook"
+    img = Image.open(temp_png.name)
+    assert img.format == "PNG", "ran post-save hook"
+    assert img.size == (70, 46), "post-save hook dimensions"
 
 
 def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
@@ -55,11 +47,9 @@ def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
         )
         mlp.run()
 
-        example = subprocess.check_output(["identify", temp_jpg.name], text=True)
-        assert (
-            re.search(rf"{temp_jpg.name} JPEG 70x46 70x46\+0\+0 8-bit sRGB", example)
-            is not None
-        ), "valid JPG created"
+        img = Image.open(temp_jpg.name)
+        assert img.format == "JPEG", "valid JPG created"
+        assert img.size == (70, 46), "valid JPG dimensions"
 
 
 def test_save_image_with_ampersand(
@@ -80,10 +70,9 @@ def test_save_image_with_ampersand(
     )
     mlp.run()
 
-    example = subprocess.check_output(["identify", path], text=True)
-    assert (
-        re.search(rf"{path} PNG 70x46 70x46\+0\+0 8-bit sRGB", example) is not None
-    ), "valid JPG created"
+    img = Image.open(path)
+    assert img.format == "PNG", "valid PNG created"
+    assert img.size == (70, 46), "valid PNG dimensions"
 
     #########################
 

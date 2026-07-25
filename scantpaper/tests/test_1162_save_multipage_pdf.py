@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import tempfile
+import pikepdf
 import pytest
 from gi.repository import GLib
 import img2pdf
@@ -179,8 +180,8 @@ def test_prepend_pdf(
     mlp = safe_mainloop(5000)
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-    assert re.search(r"Pages:\s+2", capture) is not None, "PDF prepended"
+    with pikepdf.open(temp_pdf.name) as pdf:
+        assert len(pdf.pages) == 2, "PDF prepended"
     assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
 
     #########################
@@ -210,8 +211,8 @@ def test_append_pdf(
     mlp = safe_mainloop(5000)
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-    assert re.search(r"Pages:\s+2", capture) is not None, "PDF appended"
+    with pikepdf.open(temp_pdf.name) as pdf:
+        assert len(pdf.pages) == 2, "PDF appended"
     assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
 
     #########################
@@ -242,8 +243,8 @@ def test_prepend_with_space(
     mlp = safe_mainloop(5000)
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", "te st.pdf"], text=True)
-    assert re.search(r"Pages:\s+2", capture) is not None, "PDF prepended"
+    with pikepdf.open("te st.pdf") as pdf:
+        assert len(pdf.pages) == 2, "PDF prepended"
     assert os.path.isfile("te st.pdf.bak"), "Backed up original"
 
     #########################
@@ -274,8 +275,8 @@ def test_prepend_with_inverted_comma(
     mlp = safe_mainloop(5000)
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", "te'st.pdf"], text=True)
-    assert re.search(r"Pages:\s+2", capture) is not None, "PDF prepended"
+    with pikepdf.open("te'st.pdf") as pdf:
+        assert len(pdf.pages) == 2, "PDF prepended"
     assert os.path.isfile("te'st.pdf.bak"), "Backed up original"
 
     #########################
@@ -312,8 +313,8 @@ def test_append_pdf_with_timestamp(
     mlp = safe_mainloop(5000)
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-    assert re.search(r"Pages:\s+2", capture), "PDF appended"
+    with pikepdf.open(temp_pdf.name) as pdf:
+        assert len(pdf.pages) == 2, "PDF appended"
     assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
     stb = os.stat(temp_pdf.name)
     assert datetime.datetime.fromtimestamp(

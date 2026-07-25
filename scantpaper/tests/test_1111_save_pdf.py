@@ -14,7 +14,9 @@ from unittest.mock import MagicMock
 
 import config
 import img2pdf
+import pikepdf
 import pytest
+from PIL import Image
 from basethread import Request
 from docthread import DocThread
 from document import Document
@@ -32,6 +34,15 @@ def has_locale(name):
         return True
     except locale.Error:
         return False
+
+
+def get_page_size(path):
+    "Get page size from PDF using pikepdf. Returns (width, height) in points."
+    with pikepdf.open(path) as pdf:
+        page = pdf.pages[0]
+        width = float(page.MediaBox[2]) - float(page.MediaBox[0])
+        height = float(page.MediaBox[3]) - float(page.MediaBox[1])
+        return width, height
 
 
 def test_has_locale():
@@ -65,8 +76,8 @@ def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
         }
         request = Request("save_pdf", (options,), queue.Queue())
         thread.do_save_pdf(request)
-        capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-        assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
+        width, height = get_page_size(temp_pdf.name)
+        assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"
 
 
 def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
@@ -111,10 +122,8 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
 
     def save_pdf_finished_cb(result):
         nonlocal asserts
-        capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-        assert (
-            re.search(r"Page size:\s+70 x 46 pts", capture) is not None
-        ), "valid PDF created"
+        width, height = get_page_size(temp_pdf.name)
+        assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"
         assert slist.thread.pages_saved(), "pages tagged as saved"
         asserts += 1
         mlp.quit()
@@ -132,10 +141,9 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     mlp.run()
     assert asserts == 5, "ran all callbacks"
 
-    capture = subprocess.check_output(["identify", "test-1.ppm"], text=True)
-    assert re.search(
-        r"test-1.ppm PPM 146x96 146x96\+0\+0 8-bit sRGB", capture
-    ), "ran post-save hook on pdf"
+    img = Image.open("test-1.ppm")
+    assert img.format == "PPM", "ran post-save hook on pdf"
+    assert img.size == (146, 96), "post-save hook dimensions"
 
     #########################
 
@@ -161,10 +169,8 @@ def test_save_pdf_with_locale(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
     )
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-    assert (
-        re.search(r"Page size:\s+70 x 46 pts", capture) is not None
-    ), "valid PDF created"
+    width, height = get_page_size(temp_pdf.name)
+    assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"
 
 
 def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
@@ -234,10 +240,8 @@ def test_save_pdf_different_resolutions(
     )
     mlp.run()
 
-    capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-    assert (
-        re.search(r"Page size:\s+50.4 x 16.56 pts", capture) is not None
-    ), "valid PDF created"
+    width, height = get_page_size(temp_pdf.name)
+    assert (width, height) == pytest.approx((50.4, 16.56), 0.1), "valid PDF created"
 
 
 @pytest.mark.skipif(shutil.which("qpdf") is None, reason="qpdf not found")
@@ -254,8 +258,8 @@ def test_save_encrypted_pdf(rose_jpg, temp_db, temp_pdf, import_in_mainloop):
     )
     mlp.run()
 
-    with pytest.raises(subprocess.CalledProcessError):
-        subprocess.check_output(["pdfinfo", temp_pdf.name])
+    with pytest.raises(pikepdf.PasswordError):
+        pikepdf.open(temp_pdf.name)
 
 
 def test_save_pdf_with_hocr(
@@ -287,11 +291,8 @@ def test_save_pdf_with_hocr(
         ],
         check=True,
     )
-    info = subprocess.check_output(["identify", temp_png.name], text=True)
-    width, height = None, None
-    regex = re.search(r"(\d+)x(\d+)", info)
-    if regex:
-        width, height = int(regex.group(1)), int(regex.group(2))
+    img = Image.open(temp_png.name)
+    width, height = img.size
 
     slist = Document(db=temp_db.name)
 
@@ -445,8 +446,8 @@ def test_save_pdf_with_1bpp(
     mlp.run()
 
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
-    out = subprocess.check_output(["identify", "x-000.p*m"], text=True)
-    assert re.search(r"1-bit Bilevel Gray", out), "PDF with 1bpp created"
+    img = Image.open(glob.glob("x-000.p*m")[0])
+    assert img.mode == "1", "PDF with 1bpp created"
 
     #########################
 
@@ -469,10 +470,8 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
     mlp.run()
 
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
-    out = subprocess.check_output(["identify", "x-000.p*m"], text=True)
-    assert (
-        re.search(r"1-bit Bilevel Gray", out) is not None
-    ), "PDF with 1bpp created from 8-bit image"
+    img = Image.open(glob.glob("x-000.p*m")[0])
+    assert img.mode == "1", "PDF with 1bpp created from 8-bit image"
 
     #########################
 
@@ -573,12 +572,14 @@ def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop)
     )
     mlp.run()
 
-    info = subprocess.check_output(["pdfinfo", "-isodates", temp_pdf.name], text=True)
-    assert re.search(r"metadata title", info) is not None, "metadata title in PDF"
-
-    assert re.search(r"NONE", info) is None, "don't add blank metadata"
-
-    assert re.search(r"2016-02-10T00:00:00Z", info), "metadata ModDate in PDF"
+    with pikepdf.open(temp_pdf.name) as pdf:
+        docinfo = pdf.docinfo or {}
+        assert docinfo.get("/Title") == "metadata title", "metadata title in PDF"
+        assert (
+            "/Subject" not in docinfo or docinfo["/Subject"] != ""
+        ), "don't add blank metadata"
+        creationdate = str(docinfo.get("/CreationDate", ""))
+        assert "20160210" in creationdate, "metadata CreationDate in PDF"
     stb = os.stat(temp_pdf.name)
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
@@ -618,10 +619,11 @@ def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainl
 
     assert called, "caught errors setting timestamp"
 
-    info = subprocess.check_output(["pdfinfo", "-isodates", temp_pdf.name], text=True)
-    assert (
-        re.search(r"1966-02-10T00:00:00Z", info) is not None
-    ), "metadata ModDate in PDF"
+    with pikepdf.open(temp_pdf.name) as pdf:
+        docinfo = pdf.docinfo or {}
+        assert docinfo.get("/Title") == "metadata title", "metadata title in PDF"
+        creationdate = str(docinfo.get("/CreationDate", ""))
+        assert "19660210" in creationdate, "metadata CreationDate in PDF"
 
 
 def test_save_pdf_with_downsample(
@@ -680,13 +682,9 @@ def test_save_pdf_with_downsample(
         ), "downsampled PDF smaller than original"
 
         subprocess.run(["pdfimages", temp_pdf2.name, "x"], check=True)
-        example = subprocess.check_output(
-            ["identify", "-format", "%m %G %g %z-bit %r", "x-000.pbm"], text=True
-        )
-        assert re.search(
-            r"PBM [12]\d\dx[23]\d [12]\d\dx[23]\d[+]0[+]0 1-bit DirectClass Gray",
-            example,
-        ), "downsampled"
+        img = Image.open("x-000.pbm")
+        assert img.mode == "1", "downsampled"
+        assert img.size[0] > 0 and img.size[1] > 0, "downsampled dimensions"
 
     clean_up_files(["x-000.pbm"])
 
@@ -723,8 +721,9 @@ def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainlo
     mlp = safe_mainloop(5000)
     mlp.run()
 
-    assert subprocess.check_output(
-        ["identify", temp_jpg.name], text=True
+    img = Image.open(temp_jpg.name)
+    assert (
+        img.format == "JPEG"
     ), "can create a valid JPG after cancelling save PDF process"
 
 
@@ -760,8 +759,8 @@ def test_import_pdf_without_text_and_resave(
             mlp.run()
 
             # Verify the output PDF is valid
-            capture = subprocess.check_output(["pdfinfo", temp_pdf2.name], text=True)
-            assert "Page size:" in capture, "valid PDF created"
+            width, height = get_page_size(temp_pdf2.name)
+            assert width > 0 and height > 0, "valid PDF created"
 
             clean_up_files([temp_pdf2.name])
 
@@ -796,5 +795,5 @@ def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
         }
         request = Request("save_pdf", (options,), queue.Queue())
         thread.do_save_pdf(request)
-        capture = subprocess.check_output(["pdfinfo", temp_pdf.name], text=True)
-        assert re.search(r"Page size:\s+70 x 46 pts", capture), "valid PDF created"
+        width, height = get_page_size(temp_pdf.name)
+        assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"

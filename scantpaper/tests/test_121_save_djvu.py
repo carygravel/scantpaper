@@ -13,6 +13,7 @@ import config
 import pytest
 from document import Document
 from gi.repository import GLib
+from PIL import Image
 from loop_helpers import safe_mainloop
 
 
@@ -74,7 +75,7 @@ def test_save_djvu_text_layer(
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    capture = subprocess.check_output(["cat", temp_txt.name], text=True)
+    capture = open(temp_txt.name).read()
     assert len(capture) > 0, "ran post-save hook"
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
 
@@ -195,8 +196,9 @@ def test_cancel_save_djvu(
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    assert subprocess.check_output(
-        ["identify", temp_jpg.name], text=True
+    img = Image.open(temp_jpg.name)
+    assert (
+        img.format == "JPEG"
     ), "can create a valid JPG after cancelling save PDF process"
 
 
