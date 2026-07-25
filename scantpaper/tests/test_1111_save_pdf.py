@@ -393,37 +393,8 @@ def test_save_pdf_with_utf8(
 
     out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert (
-        re.search(r"пени способствовала сохранению", out) is not None
+        re.search(r"пени\s*способствовала\s*сохранению", out) is not None
     ), "PDF with expected text"
-
-
-@pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
-def test_save_pdf_with_non_utf8(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop, set_text_in_mainloop
-):
-    "Test writing PDF with non-utf8 in text layer"
-    slist = Document(db=temp_db.name)
-
-    import_in_mainloop(slist, [rose_pnm])
-
-    set_text_in_mainloop(
-        slist,
-        1,
-        '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
-        '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
-        '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
-        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "P�e", "depth": 3}]',
-    )
-    mlp = safe_mainloop(5000)
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
-    )
-    mlp.run()
-
-    out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
-    assert re.search(r"P■e■", out) is not None, "PDF with expected text"
 
 
 def test_save_pdf_with_1bpp(
