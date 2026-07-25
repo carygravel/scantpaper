@@ -6,8 +6,8 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import gi
-from dialog.scan import Scan, _build_profile_table
 from dialog.sane import SaneScanDialog
+from dialog.scan import Scan, _build_profile_table
 from frontend import enums
 from scanner.profile import Profile
 
@@ -583,10 +583,9 @@ def test_profile_not_cleared_during_profile_setting(mocker):
     dialog._post_set_option_hook(mock_opt, 300, profile.uuid)
 
     # Profile should NOT be cleared because we're actively setting it
-    assert dialog._profile == "test_profile", (
-        f"Profile was cleared during profile setting! "
-        f"Current value: {dialog._profile}"
-    )
+    assert (
+        dialog._profile == "test_profile"
+    ), f"Profile was cleared during profile setting! Current value: {dialog._profile}"
 
 
 def test_profile_not_cleared_by_late_paper_option(mocker):
@@ -894,9 +893,7 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
         # 4. Trigger the race
         def set_option_finished_cb(data):
             # Wait for open_device to reach the critical section
-            if not ready_to_crash.wait(timeout=2.0):
-                pass
-
+            ready_to_crash.wait(timeout=2.0)
             try:
                 # This simulates the callback running on main thread while
                 # worker is in open_device
