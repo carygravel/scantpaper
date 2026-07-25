@@ -136,7 +136,6 @@ def test_basics(temp_db):
     ), "renumber start 1 step 1"
 
 
-
 def test_indexing(temp_db):
     "test indexing"
 
@@ -183,7 +182,6 @@ def test_indexing(temp_db):
     assert slist.get_selected_indices() == [
         1
     ], "correctly selected page after manual renumber"
-
 
 
 def test_file_dates(temp_txt):
