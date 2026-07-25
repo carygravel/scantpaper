@@ -90,7 +90,6 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 ### Development
 
-- pytest-black
 - python3-pytest-mock
 - python3-pytest-cov
 - python3-pytest-pylint
