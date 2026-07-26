@@ -1,4 +1,4 @@
-## 3.0.13 (2026-07-25)
+## 3.0.13 (2026-07-26)
 
 * Implement thread dispatch without polling to improve app
 responsiveness

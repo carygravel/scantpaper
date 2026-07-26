@@ -5,7 +5,7 @@
 1. Download new translations (https://translations.launchpad.net/scantpaper)
 1. Update translators in credits (https://launchpad.net/scantpaper/+topcontributors)
 1. Update version in pyproject.toml
-1. Update version and date in `<release>` element in scantpaper.appdata.xml
+1. Update version and date in `<release>` element in [scantpaper.appdata.xml](scantpaper.appdata.xml)
 1. Upload .pot
    ```sh
    python3 dev/generate_pot.py
@@ -54,6 +54,7 @@
    ```
 
    Watch them [build](https://launchpad.net/~jeffreyratcliffe/+archive).
+
 1. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net,
    sane-devel@lists.alioth.debian.org
 1. To interactively debug in the schroot:

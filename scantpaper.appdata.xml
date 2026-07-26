@@ -82,6 +82,7 @@
   <translation type="gettext">scantpaper</translation>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="3.0.13" date="2026-07-26"/>
     <release version="3.0.12" date="2026-07-19"/>
   </releases>
 </component>
