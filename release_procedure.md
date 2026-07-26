@@ -5,7 +5,7 @@
 1. Download new translations (https://translations.launchpad.net/scantpaper)
 1. Update translators in credits (https://launchpad.net/scantpaper/+topcontributors)
 1. Update version in pyproject.toml
-1. Update version and date in `<release>` element in [scantpaper.appdata.xml](scantpaper.appdata.xml)
+1. Update version and date in `<release>` element in [org.scantpaper.desktop.metainfo.xml](org.scantpaper.desktop.metainfo.xml)
 1. Upload .pot
    ```sh
    python3 dev/generate_pot.py

@@ -161,7 +161,7 @@ jobs:
            The full text of the GPL is available on Debian systems in
            /usr/share/common-licenses/GPL-3
 
-          Files: scantpaper.appdata.xml
+          Files: org.scantpaper.desktop.metainfo.xml
           Copyright: 2006--2026 Jeffrey Ratcliffe
           License: CC0-1.0
            The full text of the CC0-1.0 licence is available on Debian systems in
@@ -232,7 +232,7 @@ jobs:
           debian/documentation.html usr/share/doc/scantpaper/
           icons/* usr/share/icons/
           org.scantpaper.desktop usr/share/applications
-          scantpaper.appdata.xml usr/share/metainfo
+          org.scantpaper.desktop.metainfo.xml usr/share/metainfo
           EOF
 
           cat > REPO/debian/upstream/metadata <<'EOF'
