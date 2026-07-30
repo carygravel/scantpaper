@@ -110,8 +110,8 @@ jobs:
 
           Package: ${GITHUB_REPO_NAME}
           Architecture: ${DEB_ARCHITECTURE}
-           Depends: gir1.2-gtk-3.0,
-                    imagemagick,
+          Depends: gir1.2-gtk-3.0,
+                   imagemagick,
                    librsvg2-common,
                    libtiff-tools,
                    ocrmypdf (>= 15.4.3),
