@@ -37,7 +37,7 @@ responsiveness
 * When opening the crop dialog, if the pan tool is selected, switch to the
   combined tool. Closes #64 (Opening crop dialog should automatically activate
   rectangular select or combined tool)
-* Various performance improvement for the image viewer
+* Various performance improvements for the image viewer
 * Fix mismatch between image tool and menu/toolbar on start-up.
   Closes #62 (After initial scan, cursor is always in move mode)
 * Fix saving and loading session database and dealing with crashed sessions.
