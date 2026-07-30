@@ -69,7 +69,6 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 - gir1.2-gdkpixbuf-2.0
 - gir1.2-gtk-3.0
-- gir1.2-goocanvas-2.0
 - imagemagick
 - img2pdf
 - libtiff-tools

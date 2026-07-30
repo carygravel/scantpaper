@@ -1,19 +1,24 @@
-"Classes to do with displaying HOCR ouput"
+"Classes to do with displaying HOCR output"
 
 import html
 import logging
 import math
 import re
 
+import cairo
 import gi
 
-gi.require_version("GooCanvas", "2.0")
 gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("Pango", "1.0")
+gi.require_version("PangoCairo", "1.0")
 from gi.repository import (  # pylint: disable=wrong-import-position
     Gdk,
     GLib,
     GObject,
-    GooCanvas,
+    Gtk,
+    Pango,
+    PangoCairo,
 )
 
 MAX_COLOR_INT = 65535
@@ -49,7 +54,7 @@ HOCR_HEADER = """<?xml version="1.0" encoding="UTF-8"?>
 logger = logging.getLogger(__name__)
 
 
-def rect2bboxarray(rect):  # FIXME: this should be part of Rectangle()
+def rect2bboxarray(rect):
     "given a Rectangle(), return an array of int suitable for hocr output"
     return [
         int(rect.x),
@@ -70,19 +75,19 @@ def rgb2hsv(rgb):
     delta = maxv - minv
     if delta < COLOR_TOLERANCE:
         hsv["s"] = 0
-        hsv["h"] = 0  # undefined, maybe nan?
+        hsv["h"] = 0
         return hsv
 
     hsv["s"] = delta / maxv
 
-    if rgb.red >= maxv:  # > is bogus, just keeps compiler happy
-        hsv["h"] = (rgb.green - rgb.blue) / delta  # between yellow & magenta
+    if rgb.red >= maxv:
+        hsv["h"] = (rgb.green - rgb.blue) / delta
 
     elif rgb.green >= maxv:
-        hsv["h"] = COLOR_GREEN + (rgb.blue - rgb.red) / delta  # between cyan & yellow
+        hsv["h"] = COLOR_GREEN + (rgb.blue - rgb.red) / delta
 
     else:
-        hsv["h"] = COLOR_BLUE + (rgb.red - rgb.green) / delta  # between magenta & cyan
+        hsv["h"] = COLOR_BLUE + (rgb.red - rgb.green) / delta
 
     hsv["h"] *= _60_DEGREES
     if hsv["h"] < 0.0:
@@ -110,7 +115,7 @@ def linear_interpolation(x1, x2, m):
 
 def hsv2rgb(hsv):
     "convert from hsv to rgb colour space"
-    if hsv["s"] <= 0.0:  # < is bogus, just shuts up warnings
+    if hsv["s"] <= 0.0:
         return Gdk.RGBA(hsv["v"], hsv["v"], hsv["v"])
 
     hh = hsv["h"]
@@ -162,21 +167,299 @@ def _clamp_direction(offset, allocation, pixbuf_size):
     if allocation > pixbuf_size:
         offset = (allocation - pixbuf_size) / 2
 
-    # Otherwise don't allow the LH/top edge of the image to be visible
     elif offset > 0:
         offset = 0
 
-    # Otherwise don't allow the RH/bottom edge of the image to be visible
     elif offset < allocation - pixbuf_size:
         offset = allocation - pixbuf_size
 
     return offset
 
 
-class Canvas(
-    GooCanvas.Canvas
-):  # TODO: replace this with https://github.com/gaphor/gaphas
-    "Subclass GooCanvas.Canvas to add properties and methods to display hocr output"
+def button_press_callback(bbox, _target, event, edit_callback):
+    "button press callback"
+    if event.button == 1:
+        canvas = bbox.canvas
+        if canvas:
+            canvas._dragging = False
+        edit_callback(bbox, _target, event)
+        bbox.emit("clicked")
+
+
+class Rectangle(Gdk.Rectangle):
+    "Helper class so that we can parse arguments when initialising"
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        for key in ["x", "y", "width", "height"]:
+            if key not in kwargs:
+                raise AttributeError(f"Rectangle requires attribute '{key}'.")
+            setattr(self, key, kwargs[key])
+
+    @classmethod
+    def from_bbox(cls, x1, y1, x2, y2):
+        "Create Rectangle from hocr bbox coords"
+        return Rectangle(x=x1, y=y1, width=abs(x2 - x1), height=abs(y2 - y1))
+
+
+class Bbox:
+    "Bounding box with text, rectangle, and hierarchy info for OCR display"
+
+    def __init__(self, **kwargs):
+        self.parent = None
+        self.children = []
+        self._callbacks = {}
+        self._text_widget = None
+        self._pango_layout = None
+
+        self.text = kwargs.get("text", EMPTY)
+        self.bbox = kwargs.get("bbox")
+        self.canvas = kwargs.get("canvas")
+        self.transformation = kwargs.get("transformation", [0, 0, 0])
+        self.confidence = kwargs.get("confidence")
+        self.textangle = kwargs.get("textangle", 0)
+        self.type = kwargs.get("type", "word")
+        self.id = kwargs.get("id", EMPTY)
+        self.baseline = kwargs.get("baseline")
+        self.edit_callback = kwargs.get("edit_callback")
+
+        parent = kwargs.get("parent")
+        if parent is not None:
+            parent.children.append(self)
+            self.parent = parent
+
+    def connect(self, signal, callback, *args):
+        "connect a callback to a signal"
+        if signal not in self._callbacks:
+            self._callbacks[signal] = []
+        self._callbacks[signal].append((callback, args))
+
+    def emit(self, signal, *args):
+        "emit a signal"
+        for callback, cb_args in self._callbacks.get(signal, []):
+            callback(*args, *cb_args)
+
+    def get_children(self):
+        "return bbox children only"
+        return [c for c in self.children if isinstance(c, Bbox)]
+
+    def get_n_children(self):
+        "return number of bbox children"
+        return len(self.get_children())
+
+    def get_child(self, i):
+        "return i-th bbox child"
+        return self.get_children()[i]
+
+    def get_box_widget(self):
+        "return rect widget (None in Cairo implementation)"
+        return None
+
+    def get_text_widget(self):
+        "return text widget (None in Cairo implementation)"
+        return None
+
+    def get_centroid(self):
+        "return centroid of bbox"
+        bbox = self.bbox
+        return bbox.x + bbox.width / 2, bbox.y + bbox.height / 2
+
+    def get_position_index(self):
+        "return positional index of bbox"
+        parent = self.parent
+        while parent is not None and not isinstance(parent, Bbox):
+            parent = parent.parent
+
+        sort_direction = 0
+        if parent is not None and parent.type != "line":
+            sort_direction = 1
+        children = sorted(
+            parent.get_children(),
+            key=lambda child: child.get_centroid()[sort_direction],
+        )
+        for i, child in enumerate(children):
+            if child == self:
+                return i
+        raise IndexError
+
+    def get_child_ordinal(self, child):
+        "return index of given child"
+        children = self.get_children()
+        for i in range(len(children)):
+            if child == children[i]:
+                return i
+        return NOT_FOUND
+
+    def walk_children(self, callback):
+        "for each child, execute given callback"
+        for child in self.get_children():
+            if callback is not None:
+                callback(child)
+                child.walk_children(callback)
+
+    def confidence2color(self):
+        "Convert confidence percentage into colour using pre-calculated lookup table"
+        return self.canvas.get_color_for_confidence(self.confidence)
+
+    def update_box(self, text, selection):
+        "Set the text in the given bbox"
+        if len(text) > 0:
+            old_box = self.bbox
+            old_pos_ind = self.get_position_index()
+            old_conf = self.confidence
+
+            if self.canvas is not None:
+                old_conf = self.confidence
+
+            self.text = text
+            self.confidence = _100_PERCENT
+            if self.type != "page":
+                self.bbox = selection
+
+            if old_conf != self.confidence and self.canvas is not None:
+                canvas = self.canvas
+                canvas.confidence_index.remove_current_box_from_index()
+                canvas.confidence_index.add_box_to_index(self, self.confidence)
+
+            new_pos_ind = self.get_position_index()
+            if old_pos_ind != new_pos_ind and self.parent is not None:
+                parent_children = self.parent.get_children()
+                if old_pos_ind < len(parent_children) and new_pos_ind < len(
+                    parent_children
+                ):
+                    parent_children.insert(
+                        new_pos_ind, parent_children.pop(old_pos_ind)
+                    )
+
+            self.emit("text-changed", text)
+            self.emit("bbox-changed", selection)
+            if self.canvas is not None:
+                self.canvas.queue_draw()
+
+        else:
+            self.delete_box()
+
+    def delete_box(self):
+        "delete bbox"
+        if self.canvas is not None:
+            self.canvas.confidence_index.remove_current_box_from_index()
+            try:
+                self.canvas.position_index.next_word()
+            except StopIteration:
+                try:
+                    self.canvas.position_index.previous_word()
+                except StopIteration:
+                    pass
+
+            if self.parent is not None:
+                parent_children = self.parent.get_children()
+                for i in range(len(parent_children)):
+                    if parent_children[i] == self:
+                        parent_children.pop(i)
+                        break
+
+            self.canvas.queue_draw()
+
+        logger.info("deleted box %s at %s, %s", self.text, self.bbox.x, self.bbox.y)
+
+    def to_hocr(self, indent=0):
+        "return an hocr string of the bbox"
+        string = EMPTY
+
+        if self.bbox and self.type:
+            typestr = "ocr_" + self.type
+            tag = "span"
+            if self.type == "page":
+                tag = "div"
+
+            elif re.search(r"^(?:carea|column)$", self.type):
+                typestr = "ocr_carea"
+                tag = "div"
+
+            elif self.type == "para":
+                typestr = "ocr_par"
+                tag = "p"
+
+            idn = f"id='{self.id}'" if self.id else EMPTY
+            title = (
+                "title="
+                + "'"
+                + "bbox "
+                + SPACE.join([str(x) for x in rect2bboxarray(self.bbox)])
+                + ("; textangle " + str(self.textangle) if self.textangle else EMPTY)
+                + (
+                    "; baseline " + SPACE.join([str(x) for x in self.baseline])
+                    if self.baseline is not None
+                    else EMPTY
+                )
+                + (
+                    "; x_wconf " + str(self.confidence)
+                    if self.confidence is not None
+                    else EMPTY
+                )
+                + "'"
+            )
+
+            string += (
+                SPACE * indent
+                + f"<{tag} class='{typestr}' {idn} {title}>"
+                + (html.escape(self.text) if (self.text != "") else "\n")
+            )
+            childstr = EMPTY
+            for bbox in self.get_children():
+                childstr += bbox.to_hocr(indent + 1)
+
+            if childstr != EMPTY:
+                childstr += SPACE * indent
+
+            string += childstr + f"</{tag}>\n"
+
+        return string
+
+    def get_stack_index_by_position(self, bbox):
+        """given a parent bbox and a new box, return the index
+        where the new box should be inserted in the stack of children.
+        Using binary search"""
+        children = self.get_children()
+        l = 0
+        r = len(children) - 1
+
+        newboxpos = bbox.get_centroid()
+        axis = 0 if self.type == "line" else 1
+
+        while l <= r:
+            m = (l + r) // 2
+            child = children[m]
+            boxpos = child.get_centroid()
+            if boxpos[axis] > newboxpos[axis]:
+                r = m - 1
+            else:
+                l = m + 1
+
+        return l
+
+
+class _CanvasRoot:
+    "Root container for the Bbox tree"
+
+    def __init__(self):
+        self.children = []
+
+    def get_child(self, i):
+        "return i-th child"
+        return self.children[i]
+
+    def get_n_children(self):
+        "return number of children"
+        return len(self.children)
+
+    def get_children(self):
+        "return all children"
+        return self.children
+
+
+class Canvas(Gtk.DrawingArea):
+    "Subclass Gtk.DrawingArea to display OCR text and annotations using Cairo"
 
     __gsignals__ = {
         "zoom-changed": (GObject.SignalFlags.RUN_FIRST, None, (float,)),
@@ -190,10 +473,47 @@ class Canvas(
         ),
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.add_events(
+            Gdk.EventMask.BUTTON_PRESS_MASK
+            | Gdk.EventMask.BUTTON_RELEASE_MASK
+            | Gdk.EventMask.POINTER_MOTION_MASK
+            | Gdk.EventMask.SCROLL_MASK
+        )
+
+        self.connect("draw", self._on_draw)
+        self.connect("button-press-event", self._button_pressed)
+        self.connect("button-release-event", self._button_released)
+        self.connect("motion-notify-event", self._motion)
+        self.connect("scroll-event", self._scroll)
+
+        self._device = Gdk.Display.get_default().get_default_seat().get_pointer()
+        self._offset = Gdk.Rectangle()
+        self._zoom = 1.0
+        self._current_index = "position"
+        self.position_index = None
+        self.confidence_index = None
+        self._dragging = False
+        self._drag_start = {}
+        self._pixbuf_size = None
+        self._color_lookup_table = None
+        self._root_item = _CanvasRoot()
+
+        self._max_color = "black"
+        self._max_color_hsv = None
+        self._min_color = "red"
+        self._min_color_hsv = None
+        self._min_confidence = MIN_CONFIDENCE_DEFAULT
+        self._max_confidence = MAX_CONFIDENCE_DEFAULT
+
+        self.set_name("scantpaper-ocr-canvas")
+
     @GObject.Property(
         type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y"
     )
-    def offset(self):  # pylint: disable=method-hidden
+    def offset(self):
         "getter for offset attribute"
         return self._offset
 
@@ -203,7 +523,6 @@ class Canvas(
         if self.get_pixbuf_size() is None:
             return
 
-        # Convert the widget size to image scale to make the comparisons easier
         allocation = self.get_allocation()
         allocation.width, allocation.height = self._to_image_distance(
             allocation.width, allocation.height
@@ -213,23 +532,9 @@ class Canvas(
         newval.y = _clamp_direction(newval.y, allocation.height, pixbuf_size["height"])
 
         if newval.x != self._offset.x or newval.y != self._offset.y:
-            min_x = 0
-            min_y = 0
-            if newval.x > 0:
-                min_x = -newval.x
-            if newval.y > 0:
-                min_y = -newval.y
-            self.set_bounds(
-                min_x,
-                min_y,
-                pixbuf_size["width"] - min_x,
-                pixbuf_size["height"] - min_y,
-            )
             self._offset = newval
-            self.scroll_to(-newval.x, -newval.y)
+            self.queue_draw()
             self.emit("offset-changed", newval.x, newval.y)
-
-    _zoom = 1.0
 
     @GObject.Property(
         type=float,
@@ -237,7 +542,7 @@ class Canvas(
         nick="zoom",
         blurb="zoom level",
     )
-    def zoom(self):  # pylint: disable=method-hidden
+    def zoom(self):
         "getter for zoom attribute"
         return self._zoom
 
@@ -248,10 +553,8 @@ class Canvas(
         newval = max(newval, MIN_ZOOM)
         if newval != self._zoom:
             self._zoom = newval
-            GooCanvas.Canvas.set_scale(self, newval)
+            self.queue_draw()
             self.emit("zoom-changed", newval)
-
-    _max_color = "black"
 
     @GObject.Property(
         type=str,
@@ -267,16 +570,8 @@ class Canvas(
     def max_color(self, newval):
         "setter for max_color attribute"
         self._max_color = newval
-        self.max_color_hsv = string2hsv(self._max_color)
-        self._color_lookup_table = None  # Invalidate lookup table
-
-    max_color_hsv = GObject.Property(
-        type=object,
-        nick="Maximum color (HSV)",
-        blurb="HSV Color for maximum confidence",
-    )
-
-    _min_color = "red"
+        self._max_color_hsv = string2hsv(self._max_color)
+        self._color_lookup_table = None
 
     @GObject.Property(
         type=str,
@@ -292,16 +587,8 @@ class Canvas(
     def min_color(self, newval):
         "setter for min_color attribute"
         self._min_color = newval
-        self.min_color_hsv = string2hsv(self._min_color)
-        self._color_lookup_table = None  # Invalidate lookup table
-
-    min_color_hsv = GObject.Property(
-        type=object,
-        nick="Minimum color (HSV)",
-        blurb="HSV Color for minimum confidence",
-    )
-
-    _min_confidence = MIN_CONFIDENCE_DEFAULT
+        self._min_color_hsv = string2hsv(self._min_color)
+        self._color_lookup_table = None
 
     @GObject.Property(
         type=int,
@@ -319,9 +606,7 @@ class Canvas(
     def min_confidence(self, newval):
         "setter for min_confidence attribute"
         self._min_confidence = newval
-        self._color_lookup_table = None  # Invalidate lookup table
-
-    _max_confidence = MAX_CONFIDENCE_DEFAULT
+        self._color_lookup_table = None
 
     @GObject.Property(
         type=int,
@@ -339,75 +624,28 @@ class Canvas(
     def max_confidence(self, newval):
         "setter for max_confidence attribute"
         self._max_confidence = newval
-        self._color_lookup_table = None  # Invalidate lookup table
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.connect("button-press-event", self._button_pressed)
-        self.connect("button-release-event", self._button_released)
-        self.connect("motion-notify-event", self._motion)
-        self.connect("scroll-event", self._scroll)
-        #     self.add_events(
-        #     Glib.Object.Introspection.convert_sv_to_flags(
-        #         'Gtk3::Gdk::EventMask', 'exposure-mask' ) |
-        #         Glib.Object.Introspection.convert_sv_to_flags(
-        #         'Gtk3::Gdk::EventMask', 'button-press-mask' ) |
-        #         Glib.Object.Introspection.convert_sv_to_flags(
-        #         'Gtk3::Gdk::EventMask', 'button-release-mask' ) |
-        #         Glib.Object.Introspection.convert_sv_to_flags(
-        #         'Gtk3::Gdk::EventMask', 'pointer-motion-mask' ) |
-        #         Glib.Object.Introspection.convert_sv_to_flags(
-        #         'Gtk3::Gdk::EventMask', 'scroll-mask'
-        #         )
-        # )
-        self._device = Gdk.Display.get_default().get_default_seat().get_pointer()
-        self._offset = Gdk.Rectangle()
-        self._current_index = "position"
-        self.position_index = None
-        self.confidence_index = None
-        self._dragging = False
-        self._drag_start = {}
-        self._pixbuf_size = None
         self._color_lookup_table = None
-
-        # allow the widget to be accessed via CSS
-        self.set_name("scantpaper-ocr-canvas")
 
     def get_max_color_hsv(self):
         "return the max hsv colour"
-        val = self.max_color_hsv
-        if val is None:
-            self.max_color_hsv = string2hsv(self.max_color)
-            return self.max_color_hsv
-
-        return val
+        if self._max_color_hsv is None:
+            self._max_color_hsv = string2hsv(self._max_color)
+        return self._max_color_hsv
 
     def get_min_color_hsv(self):
         "return the min hsv colour"
-        val = self.min_color_hsv
-        if val is None:
-            self.min_color_hsv = string2hsv(self.min_color)
-            return self.min_color_hsv
-
-        return val
+        if self._min_color_hsv is None:
+            self._min_color_hsv = string2hsv(self._min_color)
+        return self._min_color_hsv
 
     def _build_color_lookup_table(self, num_bands=10):
-        """Pre-calculate color lookup table for confidence bands.
-        This eliminates expensive color conversions during page rendering.
-
-        Args:
-            num_bands: Number of discrete color bands (default 10)
-        """
         self._color_lookup_table = []
         min_conf = self.min_confidence
         max_conf = self.max_confidence
         band_width = (max_conf - min_conf) / num_bands
 
         for i in range(num_bands):
-            # Calculate representative confidence for this band (midpoint)
             band_confidence = min_conf + (i + 0.5) * band_width
-
-            # Use existing confidence2color logic
             max_hsv = self.get_max_color_hsv()
             min_hsv = self.get_min_color_hsv()
             m = (band_confidence - min_conf) / (max_conf - min_conf)
@@ -425,30 +663,21 @@ class Canvas(
             self._color_lookup_table.append(color)
 
     def get_color_for_confidence(self, confidence):
-        """Fast lookup of color by confidence using pre-calculated table.
-
-        Args:
-            confidence: Confidence value (0-100)
-
-        Returns:
-            Color string (e.g., "black", "red", or hex "#ff0000")
-        """
+        "get color string for given confidence value"
+        if confidence is None:
+            return self.max_color
         min_conf = self.min_confidence
         max_conf = self.max_confidence
 
-        # Handle edge cases: return exact colors for out-of-range values
-        # This matches the original behavior and is faster than lookup
         if confidence >= max_conf:
             return self.max_color
 
         if confidence <= min_conf:
             return self.min_color
 
-        # Build lookup table if not already built
         if self._color_lookup_table is None:
             self._build_color_lookup_table()
 
-        # Calculate band index for values in valid range
         num_bands = len(self._color_lookup_table)
         band_width = (max_conf - min_conf) / num_bands
         band_index = int((confidence - min_conf) / band_width)
@@ -457,7 +686,6 @@ class Canvas(
 
     def set_text(self, bboxes, sorted_word_indices, **kwargs):
         "set the canvas text from a list of bboxes"
-
         if not bboxes:
             self.clear_text()
             if "finished_callback" in kwargs and kwargs["finished_callback"]:
@@ -465,9 +693,8 @@ class Canvas(
             return
 
         self.position_index = None
-        root = GooCanvas.CanvasGroup()
+        root = _CanvasRoot()
 
-        # Attach the text to the canvas
         self.confidence_index = ListIter()
         itr = enumerate(bboxes)
         try:
@@ -475,14 +702,11 @@ class Canvas(
         except StopIteration:
             return
 
-        # derive the size from the page bbox
         _x1, _y1, width, height = box["bbox"]
 
         self.set_root_item(root)
         self._pixbuf_size = {"width": width, "height": height}
-        self.set_bounds(0, 0, width, height)
 
-        # Wrap the original callback to rebuild confidence index at the end
         original_callback = kwargs.get("finished_callback")
         bbox_map = {}
 
@@ -510,6 +734,113 @@ class Canvas(
             "skip_confidence_index": True,
         }
         GLib.idle_add(self._boxed_text, options)
+
+    def _on_draw(self, _widget, ctx):
+        "GTK3 draw signal handler"
+        self._draw_scene(ctx)
+
+    def _draw_scene(self, ctx):
+        "draw the scene graph using Cairo"
+        if self._pixbuf_size is None:
+            return
+
+        allocation = self.get_allocation()
+
+        ctx.save()
+
+        scale = self._zoom
+        ctx.translate(allocation.width / 2, allocation.height / 2)
+        ctx.scale(scale, scale)
+        ctx.translate(-allocation.width / 2 / scale, -allocation.height / 2 / scale)
+        ctx.translate(-self._offset.x, -self._offset.y)
+
+        self._draw_tree(ctx, self._root_item)
+
+        ctx.restore()
+
+    def _draw_tree(self, ctx, item):
+        "recursively draw bbox tree"
+        if item is None:
+            return
+        children = item.get_children()
+        for child in children:
+            self._draw_bbox(ctx, child)
+            self._draw_tree(ctx, child)
+
+    def _draw_bbox(self, ctx, bbox):
+        "draw a single bbox using Cairo"
+        x = bbox.bbox.x
+        y = bbox.bbox.y
+        w = bbox.bbox.width
+        h = bbox.bbox.height
+
+        if w <= 0 or h <= 0:
+            return
+
+        color_str = bbox.confidence2color()
+        color_rgba = string2rgb(color_str)
+
+        ctx.save()
+
+        ctx.set_source_rgba(
+            color_rgba.red, color_rgba.green, color_rgba.blue, color_rgba.alpha
+        )
+        ctx.set_line_width(2 if bbox.text else 1)
+        ctx.rectangle(x, y, w, h)
+        ctx.stroke()
+
+        if bbox.text:
+            rotation, _x0, _y0 = bbox.transformation
+            angle = -(bbox.textangle + rotation) % _360_DEGREES
+
+            layout = bbox._pango_layout
+            if layout is None:
+                layout = self._create_pango_layout(ctx, bbox)
+                bbox._pango_layout = layout
+
+            if layout is not None:
+                ink_extents = layout.get_pixel_extents()[0]
+                text_w = ink_extents.width
+                text_h = ink_extents.height
+
+                if text_w > 0:
+                    if angle:
+                        scale = h / text_w
+                    else:
+                        scale = w / text_w
+
+                    if bbox.type == "page":
+                        scale *= FULLPAGE_OCR_SCALE
+
+                    ctx.save()
+
+                    ctx.translate(x + w / 2, y + h / 2)
+                    ctx.rotate(angle * math.pi / 180)
+                    ctx.scale(scale, scale)
+
+                    centered_x = -(text_w / 2)
+                    centered_y = -(text_h / 2)
+
+                    ctx.set_source_rgba(
+                        color_rgba.red,
+                        color_rgba.green,
+                        color_rgba.blue,
+                        color_rgba.alpha,
+                    )
+                    ctx.move_to(centered_x, centered_y)
+                    PangoCairo.show_layout(ctx, layout)
+
+                    ctx.restore()
+
+        ctx.restore()
+
+    def _create_pango_layout(self, ctx, bbox):
+        "create a PangoLayout for a bbox's text"
+        layout = PangoCairo.create_layout(ctx)
+        font_desc = Pango.FontDescription.from_string("Sans 10")
+        layout.set_font_description(font_desc)
+        layout.set_text(bbox.text, -1)
+        return layout
 
     def get_first_bbox(self):
         "return first bbox, depending on which index is active"
@@ -591,9 +922,10 @@ class Canvas(
 
     def clear_text(self):
         "clear the canvas"
-        self.set_root_item(GooCanvas.CanvasGroup())
+        self._root_item = _CanvasRoot()
         self._pixbuf_size = None
         self._color_lookup_table = None
+        self.queue_draw()
 
     def set_offset(self, offset_x, offset_y):
         "set the offset"
@@ -606,18 +938,57 @@ class Canvas(
         "return the offset"
         return self._offset
 
+    def _hit_test(self, widget_x, widget_y):
+        "find the bbox at widget coordinates, return deepest leaf"
+        if self._pixbuf_size is None or self._root_item is None:
+            raise ReferenceError
+
+        allocation = self.get_allocation()
+        scale = self._zoom
+        image_x = (
+            (widget_x - allocation.width / 2) / scale
+            + allocation.width / 2 / scale
+            + self._offset.x
+        )
+        image_y = (
+            (widget_y - allocation.height / 2) / scale
+            + allocation.height / 2 / scale
+            + self._offset.y
+        )
+
+        return self._find_bbox_at(self._root_item, image_x, image_y)
+
+    def _find_bbox_at(self, item, x, y):
+        "find deepest bbox containing point (x, y)"
+        if item is None:
+            return None
+        found = None
+        for child in item.get_children():
+            if child.bbox is not None:
+                bx, by, bw, bh = (
+                    child.bbox.x,
+                    child.bbox.y,
+                    child.bbox.width,
+                    child.bbox.height,
+                )
+                if bx <= x <= bx + bw and by <= y <= by + bh:
+                    found = child
+                    deeper = self._find_bbox_at(child, x, y)
+                    if deeper is not None:
+                        found = deeper
+
+        return found
+
     def get_bbox_at(self, bbox):
         "return the bbox at the given coords"
         x = bbox.x + bbox.width / 2
         y = bbox.y + bbox.height / 2
-        parent = self.get_item_at(x, y, False)
-        while parent is not None and (
-            not hasattr(parent, "type") or parent.type == "word"
-        ):
-            parent = parent.get_parent()
-        if parent is None:
+        result = self._find_bbox_at(self._root_item, x, y)
+        if result is None:
             raise ReferenceError
-        return parent
+        if result.type == "word" and isinstance(result.parent, Bbox):
+            return result.parent
+        return result
 
     def add_box(self, **kwargs):
         "add box to canvas"
@@ -640,7 +1011,6 @@ class Canvas(
             "text": kwargs["text"],
         }
 
-        # copy parameters from box from OCR output
         for key in ["baseline", "confidence", "id", "text", "textangle", "type"]:
             if key in kwargs:
                 options2[key] = kwargs[key]
@@ -652,6 +1022,8 @@ class Canvas(
         if "confidence" not in options2 and options2["type"] == "word":
             options2["confidence"] = _100_PERCENT
 
+        options2["edit_callback"] = kwargs.get("edit_callback")
+
         bbox = Bbox(**options2)
         if self.position_index is None:
             self.position_index = TreeIter(bbox)
@@ -660,30 +1032,20 @@ class Canvas(
             if not kwargs.get("skip_confidence_index", False):
                 self.confidence_index.add_box_to_index(bbox, bbox.confidence)
 
-            # clicking text box produces a dialog to edit the text
-            if "edit_callback" in kwargs:
-                bbox.connect(
-                    "button-press-event",
-                    button_press_callback,
-                    kwargs["edit_callback"],
-                )
-
+        self.queue_draw()
         return bbox
 
     def _boxed_text(self, options):
         "Draw text on the canvas with a box around it"
-        self.set_redraw_on_allocate(False)  # Disable redraws during batch processing
         for _ in range(BATCH_SIZE):
             idx = options["idx"]
             box = options["box"]
 
-            # each call should use own copy of arrays to prevent race conditions
             transformations = options["transformations"]
             parents = options["parents"]
             rotation, _, _ = transformations[box["depth"]]
             textangle = box["textangle"] if "textangle" in box else 0
 
-            # copy box parameters from method arguments
             options2 = {"parent": parents[box["depth"]]}
             options2["edit_callback"] = options["edit_callback"]
             options2["text"] = box["text"] if "text" in box else ""
@@ -691,7 +1053,6 @@ class Canvas(
                 "skip_confidence_index", False
             )
 
-            # copy parameters from box from OCR output
             for key in ["baseline", "confidence", "id", "textangle", "type"]:
                 if key in box:
                     options2[key] = box[key]
@@ -700,7 +1061,6 @@ class Canvas(
             bbox = self.add_box(**options2)
             options["bbox_map"][idx] = bbox
 
-            # always one more parent, as the page has a root
             if box["depth"] > len(parents) - 2:
                 parents.append(bbox)
             else:
@@ -714,34 +1074,11 @@ class Canvas(
             except StopIteration:
                 if options["finished_callback"]:
                     options["finished_callback"]()
+                self.queue_draw()
                 return GLib.SOURCE_REMOVE
 
-        self.set_redraw_on_allocate(True)  # Re-enable redraws
-        self.queue_draw()  # Trigger a redraw after the batch is processed
+        self.queue_draw()
         return GLib.SOURCE_CONTINUE
-
-        # $rect->signal_connect(
-        #  'button-press-event' => sub {
-        #   my ( $widget, $target, $ev ) = @_;
-        #   print "rect button-press-event\n";
-        #   #  return TRUE;
-        #  }
-        # );
-        # $g->signal_connect(
-        #  'button-press-event' => sub {
-        #   my ( $widget, $target, $ev ) = @_;
-        #   print "group $widget button-press-event\n";
-        #   my $n = $widget->get_n_children;
-        #   for ( my $i = 0 ; $i < $n ; $i++ ) {
-        #    my $item = $widget->get_child($i);
-        #    if ( $item->isa('GooCanvas2::CanvasText') ) {
-        #     print "contains $item\n", $item->get('text'), "\n";
-        #     last;
-        #    }
-        #   }
-        #   #  return TRUE;
-        #  }
-        # );
 
     def hocr(self):
         "Convert the canvas into hocr"
@@ -767,13 +1104,8 @@ class Canvas(
         self.zoom = zoom
         self.set_offset(offset_x, offset_y)
 
-    def _button_pressed(self, _self, event):
-
-        # middle mouse button
+    def _button_pressed(self, _widget, event):
         if event.button == 2:
-            # Using the root window x,y position for dragging the canvas, as the
-            # values returned by event.x and y cause a bouncing effect, and
-            # only the value since the last event is required.
             _screen, x, y = self._device.get_position()
             self._drag_start = {"x": x, "y": y}
             self._dragging = True
@@ -781,16 +1113,26 @@ class Canvas(
             win.set_cursor(
                 Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grabbing")
             )
+        elif event.button == 1:
+            try:
+                bbox = self._hit_test(event.x, event.y)
+                if (
+                    bbox is not None
+                    and hasattr(bbox, "edit_callback")
+                    and bbox.edit_callback
+                ):
+                    button_press_callback(bbox, _widget, event, bbox.edit_callback)
+            except ReferenceError:
+                pass
 
-    def _button_released(self, _self, event):
+    def _button_released(self, _widget, event):
         if event.button == 2:
             self._dragging = False
             win = self.get_window()
             win.set_cursor(None)
-
         return True
 
-    def _motion(self, _self, _event):
+    def _motion(self, _widget, _event):
         if not self._dragging:
             return False
         offset = self.get_offset()
@@ -802,23 +1144,42 @@ class Canvas(
         self.set_offset(offset_x, offset_y)
         return True
 
-    def _scroll(self, _self, event):
-        image_x, image_y = self.convert_from_pixels(event.x, event.y)
-        zoom = None
+    def _scroll(self, _widget, event):
+        allocation = self.get_allocation()
+        image_x = (
+            (event.x - allocation.width / 2) / self._zoom
+            + allocation.width / 2 / self._zoom
+            + self._offset.x
+        )
+        image_y = (
+            (event.y - allocation.height / 2) / self._zoom
+            + allocation.height / 2 / self._zoom
+            + self._offset.y
+        )
+
         if event.direction == Gdk.ScrollDirection.UP:
             zoom = self.zoom * 2
         else:
             zoom = self.zoom / 2
 
-        # set the offset so that the point under the mouse stays under the mouse
-        # after the zoom
-        self.zoom = zoom
-        factor = self.get_scale_factor()
-        offset_x = event.x / zoom * factor - image_x
-        offset_y = event.y / zoom * factor - image_y
-        self.set_offset(offset_x, offset_y)
+        zoom = min(zoom, MAX_ZOOM)
+        zoom = max(zoom, MIN_ZOOM)
 
-        # don't allow the event to propagate, as this pans it in y
+        offset_x = (
+            (event.x - allocation.width / 2) / zoom
+            + allocation.width / 2 / zoom
+            - image_x
+        )
+        offset_y = (
+            (event.y - allocation.height / 2) / zoom
+            + allocation.height / 2 / zoom
+            - image_y
+        )
+
+        self._zoom = zoom
+        self.set_offset(offset_x, offset_y)
+        self.emit("zoom-changed", self._zoom)
+
         return True
 
     def sort_by_confidence(self):
@@ -829,451 +1190,13 @@ class Canvas(
         "Iterate through the bboxes by position"
         self._current_index = "position"
 
-
-def button_press_callback(self, target, event, edit_callback):
-    "button press callback"
-    if event.button == 1:
-        canvas = self.parent.get_parent()
-        if canvas:
-            canvas._dragging = False
-        edit_callback(self, target, event)
-
-
-class Bbox(GooCanvas.CanvasGroup):
-    """BBox subclasses CanvasGroup to include a CanvasRect, and either a
-    CanvasText, or other BBoxes"""
-
-    __gsignals__ = {
-        "text-changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
-        "bbox-changed": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
-        "clicked": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
-    }
-    text = GObject.Property(
-        type=str, default=EMPTY, nick="Text", blurb="String of box text"
-    )
-    bbox = GObject.Property(
-        type=Gdk.Rectangle,
-        nick="Bounding box",
-        blurb="Gdk.Rectangle of x, y, width, height",
-    )
-    canvas = GObject.Property(
-        type=Canvas,
-        nick="Canvas to which the Bbox belongs",
-        blurb="Canvas to which the Bbox belongs",
-    )
-    transformation = GObject.Property(
-        type=object, nick="Transformation", blurb="List of angle, x, y"
-    )
-    confidence = GObject.Property(
-        type=int,
-        minimum=0,
-        maximum=_100_PERCENT,
-        default=0,
-        nick="Confidence",
-        blurb="Confidence of bbox",
-    )
-    textangle = GObject.Property(
-        type=int,
-        minimum=-180,
-        maximum=180,
-        default=0,
-        nick="Text angle",
-        blurb="Angle of text in bbox",
-    )
-    type = GObject.Property(type=str, default="word", nick="Type", blurb="Type of box")
-    id = GObject.Property(
-        type=str, default=EMPTY, nick="ID", blurb="ID of box as given by OCR engine"
-    )
-    baseline = GObject.Property(
-        type=object, nick="Baseline", blurb="Baseline of box as given by OCR engine"
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        rotation, x0, y0 = self.transformation
-        self.translate(self.bbox.x - x0, self.bbox.y - y0)
-        textangle = self.textangle
-        color = self.confidence2color()
-
-        # draw the rect first to make sure the text goes on top
-        # and receives any mouse clicks
-        GooCanvas.CanvasRect(
-            parent=self,
-            x=0,
-            y=0,
-            width=self.bbox.width,
-            height=self.bbox.height,
-            stroke_color=color,
-            line_width=2 if self.text else 1,
-        )
-
-        # show text baseline (currently of no use)
-        # if ( $box->{baseline} ) {
-        #    my ( $slope, $offs ) = @{ $box->{baseline} }[-2,-1];
-        #    # "real" baseline with slope
-        #    $rect = GooCanvas2::CanvasPolyline->new_line( $g,
-        #        0, $height + $offs, $width, $height + $offs + $width * $slope,
-        #        'stroke-color' => 'green' );
-        #    # virtual, horizontally aligned baseline
-        #    my $y_offs = $height + $offs + 0.5 * $width * $slope;
-        #    $rect = GooCanvas2::CanvasPolyline->new_line( $g,
-        #        0, $y_offs, $width, $y_offs,
-        #        'stroke-color' => 'orange' );
-        # }
-
-        if self.text != "":
-            # create text and then scale, shift & rotate it into the bounding box
-            text = GooCanvas.CanvasText(
-                parent=self,
-                text=self.text,
-                x=self.bbox.width / 2,
-                y=self.bbox.height / 2,
-                width=-1,
-                anchor="center",
-                font="Sans",
-                fill_color=color,
-            )
-            angle = -(textangle + rotation) % _360_DEGREES
-
-            # Calculate scale, apply transform, get bounds, calculate offsets in one place
-            # to avoid duplicate get_bounds()
-
-            # Cache text widget reference (also optimization #3)
-            self._text_widget = text
-
-            # Get initial bounds to calculate scale
-            initial_bounds = text.get_bounds()
-            if initial_bounds.x2 - initial_bounds.x1 == 0:
-                logger.error("text '%s' has no width, skipping", self.text)
-                return
-
-            scale = (self.bbox.height if angle else self.bbox.width) / (
-                initial_bounds.x2 - initial_bounds.x1
-            )
-
-            # gocr case: gocr creates text only which we treat as page text
-            if self.type == "page":
-                scale *= FULLPAGE_OCR_SCALE
-
-            # Apply transform and position (inlined from transform_text)
-            x, y, width, height = (
-                self.bbox.x,
-                self.bbox.y,
-                self.bbox.width,
-                self.bbox.height,
-            )
-            x2, y2 = (x + width, y + height)
-
-            # First transform: apply scale and rotation
-            text.set_simple_transform(0, 0, scale, angle)
-
-            # Get bounds AFTER transform (this is the only get_bounds() call needed!)
-            bounds = text.get_bounds()
-
-            # Calculate offsets to center text in bbox
-            x_offset = (x + x2 - bounds.x1 - bounds.x2) / 2
-            y_offset = (y + y2 - bounds.y1 - bounds.y2) / 2
-
-            # Second transform: apply offsets
-            text.set_simple_transform(x_offset, y_offset, scale, angle)
-
-    def get_stack_index_by_position(self, bbox):
-        """given a parent bbox and a new box, return the index
-        where the new box should be inserted in the stack of children.
-        Using binary search
-        https://en.wikipedia.org/wiki/Binary_search_algorithm#Alternative_procedure"""
-
-        l = 0
-        r = self.get_n_children() - 1
-
-        # Initial trim to ensure l and r point to Bboxes if possible
-        while l < r:
-            child = self.get_child(l)
-            if isinstance(child, Bbox):
-                break
-            l += 1
-
-        while l < r:
-            child = self.get_child(r)
-            if isinstance(child, Bbox):
-                break
-            r -= 1
-
-        newboxpos = bbox.get_centroid()
-        axis = 0 if self.type == "line" else 1
-
-        # Standard binary search with adjustment for non-Bbox items
-        while l <= r:
-            m = (l + r) // 2
-
-            # Find nearest Bbox to m
-            # Search left then right
-            orig_m = m
-            child = self.get_child(m)
-            found = False
-
-            # Search left down to l
-            left_m = m
-            while left_m >= l:
-                child = self.get_child(left_m)
-                if isinstance(child, Bbox):
-                    m = left_m
-                    found = True
-                    break
-                left_m -= 1
-
-            # If not found left, search right up to r
-            if not found:
-                right_m = orig_m + 1
-                while right_m <= r:
-                    child = self.get_child(right_m)
-                    if isinstance(child, Bbox):
-                        m = right_m
-                        found = True
-                        break
-                    right_m += 1
-
-            if not found:
-                # No Bboxes in [l, r]
-                break
-
-            boxpos = child.get_centroid()
-            if boxpos[axis] > newboxpos[axis]:
-                r = m - 1
-            else:
-                l = m + 1
-
-        return l
-
-    def confidence2color(self):
-        """Convert confidence percentage into colour using pre-calculated lookup table.
-
-        Any confidence level greater than max_conf is treated as max_conf and given
-        max_color. Any confidence level less than min_conf is treated as min_conf and
-        given min_color. Anything in between uses the pre-calculated lookup table.
-        """
-        return self.canvas.get_color_for_confidence(self.confidence)
-
-    def get_box_widget(self):
-        "return rect widget of bbox"
-        return self.get_child(0)
-
-    def get_text_widget(self):
-        "return text widget of bbox, using cached text widget reference if available"
-        # Try cached reference first (set in __init__ and update_box)
-        if hasattr(self, "_text_widget") and self._text_widget:
-            return self._text_widget
-        raise AttributeError
-
-    def get_centroid(self):
-        "return centroid of bbox"
-        bbox = self.bbox
-        return bbox.x + bbox.width / 2, bbox.y + bbox.height / 2
-
-    def get_position_index(self):
-        "return positional index of bbox"
-        parent = self.parent
-        while parent and not isinstance(parent, Bbox):
-            parent = parent.parent
-
-        sort_direction = 0
-        if parent.type != "line":
-            sort_direction = 1
-        children = sorted(
-            parent.get_children(),
-            key=lambda child: child.get_centroid()[sort_direction],
-        )
-        for i, child in enumerate(children):
-            if child == self:
-                return i
-        raise IndexError
-
-    def get_child_ordinal(self, child):
-        "return index of given child"
-        for i in range(self.get_n_children()):
-            if child == self.get_child(i):
-                return i
-
-        return NOT_FOUND
-
-    def get_children(self):
-        "return bbox (not Rect or Text) children"
-        children = []
-        for i in range(self.get_n_children()):
-            child = self.get_child(i)
-            if isinstance(child, Bbox):
-                children.append(child)
-
-        return children
-
-    def walk_children(self, callback):
-        "for each child, execute given callback"
-        for child in self.get_children():
-            if callback is not None:
-                callback(child)
-                child.walk_children(callback)
-
-    def update_box(self, text, selection):
-        "Set the text in the given widget"
-
-        rect_w = self.get_box_widget()
-        rect_w.stroke_color = "black"
-        rect_w.width = selection.width
-        rect_w.height = selection.height
-        if len(text) > 0:
-            old_box = self.bbox
-            old_pos_ind = self.get_position_index()
-            self.translate(selection.x - old_box.x, selection.y - old_box.y)
-            old_conf = self.confidence
-            # recreate the text widget so GooCanvas recomputes layout immediately
-            # remove the existing text widget (usually child index 1)
-            for i in range(self.get_n_children() - 1, -1, -1):
-                if isinstance(self.get_child(i), GooCanvas.CanvasText):
-                    self.remove_child(i)
-                    break
-
-            # update model
-            self.text = text
-            self.confidence = _100_PERCENT
-
-            # create new text widget centered in the bbox
-            new_text = GooCanvas.CanvasText(
-                parent=self,
-                text=text,
-                x=selection.width / 2,
-                y=selection.height / 2,
-                width=-1,
-                anchor="center",
-                font="Sans",
-                fill_color="black",
-            )
-
-            # Cache text widget and inline transform
-            self._text_widget = new_text
-
-            # re-adjust text size & position
-            if self.type != "page":
-                self.bbox = selection
-                rotation = self.transformation[0]
-                angle = -(self.textangle + rotation) % _360_DEGREES
-
-                # Inline transform logic to avoid duplicate get_bounds()
-                # Get initial bounds to calculate scale
-                initial_bounds = new_text.get_bounds()
-                if initial_bounds.x1 != initial_bounds.x2:
-                    scale = (selection.height if angle else selection.width) / (
-                        initial_bounds.x2 - initial_bounds.x1
-                    )
-
-                    # Apply transform (inlined from transform_text)
-                    x, y, width, height = (
-                        selection.x,
-                        selection.y,
-                        selection.width,
-                        selection.height,
-                    )
-                    x2, y2 = (x + width, y + height)
-
-                    # First transform: apply scale and rotation
-                    new_text.set_simple_transform(0, 0, scale, angle)
-
-                    # Get bounds AFTER transform (only get_bounds() call needed!)
-                    bounds = new_text.get_bounds()
-
-                    # Calculate offsets to center text
-                    x_offset = (x + x2 - bounds.x1 - bounds.x2) / 2
-                    y_offset = (y + y2 - bounds.y1 - bounds.y2) / 2
-
-                    # Second transform: apply offsets
-                    new_text.set_simple_transform(x_offset, y_offset, scale, angle)
-
-            new_conf = self.confidence
-            if old_conf != new_conf:
-                canvas = self.canvas
-                canvas.confidence_index.remove_current_box_from_index()
-                canvas.confidence_index.add_box_to_index(self, new_conf)
-
-            new_pos_ind = self.get_position_index()
-            if old_pos_ind != new_pos_ind:
-                parent = self.parent
-                parent.move_child(old_pos_ind, new_pos_ind)
-
-        else:
-            self.delete_box()
-
-    def delete_box(self):
-        "delete bbox"
-        self.canvas.confidence_index.remove_current_box_from_index()
-        try:
-            self.canvas.position_index.next_word()
-        except StopIteration:
-            try:
-                self.canvas.position_index.previous_word()
-            except StopIteration:
-                pass
-
-        for i in range(self.parent.get_n_children()):
-            group = self.parent.get_child(i)
-            if group == self:
-                self.parent.remove_child(i)
-                break
-
-        logger.info("deleted box %s at %s, %s", self.text, self.bbox.x, self.bbox.y)
-
-    def to_hocr(self, indent=0):
-        "return an hocr string of the bbox"
-        string = EMPTY
-
-        # try to preserve as much information as possible
-        if self.bbox and self.type:
-            # determine hOCR element types & mapping to HTML tags
-            typestr = "ocr_" + self.type
-            tag = "span"
-            if self.type == "page":
-                tag = "div"
-
-            elif re.search(r"^(?:carea|column)$", self.type):
-                typestr = "ocr_carea"
-                tag = "div"
-
-            elif self.type == "para":
-                typestr = "ocr_par"
-                tag = "p"
-
-            # build properties of hOCR elements
-            idn = f"id='{self.id}'" if self.id else EMPTY
-            title = (
-                "title="
-                + "'"
-                + "bbox "
-                + SPACE.join([str(x) for x in rect2bboxarray(self.bbox)])
-                + ("; textangle " + str(self.textangle) if self.textangle else EMPTY)
-                + (
-                    "; baseline " + SPACE.join([str(x) for x in self.baseline])
-                    if self.baseline is not None
-                    else EMPTY
-                )
-                + (("; x_wconf " + str(self.confidence)) if self.confidence else EMPTY)
-                + "'"
-            )
-
-            # append to output (recurse to nested levels)
-            string += (
-                SPACE * indent
-                + f"<{tag} class='{typestr}' {idn} {title}>"
-                + (html.escape(self.text) if (self.text != "") else "\n")
-            )
-            childstr = EMPTY
-            for bbox in self.get_children():
-                childstr += bbox.to_hocr(indent + 1)
-
-            if childstr != EMPTY:
-                childstr += SPACE * indent
-
-            string += childstr + f"</{tag}>\n"
-
-        return string
+    def set_root_item(self, item):
+        "set the root item of the scene graph"
+        self._root_item = item
+
+    def get_root_item(self):
+        "get the root item of the scene graph"
+        return self._root_item
 
 
 class ListIter:
@@ -1292,14 +1215,12 @@ class ListIter:
         "return previous bbox"
         if self.index > 0:
             self.index -= 1
-
         return self.get_current_bbox()
 
     def get_next_bbox(self):
         "return next bbox"
         if self.index < len(self.list) - 1:
             self.index += 1
-
         return self.get_current_bbox()
 
     def get_last_bbox(self):
@@ -1314,23 +1235,17 @@ class ListIter:
         raise StopIteration
 
     def set_index_by_bbox(self, bbox, value):
-        """There may be multiple boxes with the same value, so use a binary
-        search to find the next smallest confidence, and then a linear search to
-        find the box"""
-
+        "set the index to the given bbox"
         l = self.get_index_for_value(value - 1)
         for i in range(l, len(self.list)):
             if self.list[i][0] == bbox:
                 self.index = i
                 return i
-
         self.index = EMPTY_LIST
         return EMPTY_LIST
 
     def get_index_for_value(self, value):
-        """Return index of value using binary search
-        https://en.wikipedia.org/wiki/Binary_search_algorithm#Alternative_procedure"""
-
+        "Return index of value using binary search"
         l = 0
         r = len(self.list) - 1
         if r == EMPTY_LIST:
@@ -1339,57 +1254,47 @@ class ListIter:
             m = math.ceil((l + r) / 2)
             if self.list[m][1] > value:
                 r = m - 1
-
             else:
                 l = m
-
         if self.list[l][1] < value:
             l += 1
-
         return l
 
     def insert_after_position(self, bbox, i, value):
         "insert bbox after given index"
-
         if bbox is None:
             logger.warning("Attempted to add undefined box to confidence list")
             return
-
         if i > len(self.list) - 1:
             logger.warning(
                 "insert_after_position: position $i does not exist in index",
             )
             return
-
         self.list.insert(i + 1, [bbox, value])
 
     def insert_before_position(self, bbox, i, value):
         "insert bbox before given index"
-
         if bbox is None:
             logger.warning("Attempted to add undefined box to confidence list")
             return
-
         if i > len(self.list) - 1:
             logger.warning(
                 "insert_before_position: position $i does not exist in index",
             )
             return
-
         self.list.insert(i, [bbox, value])
 
     def add_box_to_index(self, bbox, value):
         "insert into list sorted by confidence level using a binary search"
-
         if bbox is None:
             logger.warning("Attempted to add undefined box to confidence list")
             return
-
+        if value is None:
+            return
         i = self.get_index_for_value(value)
         if i > len(self.list) - 1:
             self.list.append([bbox, value])
             return
-
         self.insert_before_position(bbox, i, value)
 
     def remove_current_box_from_index(self):
@@ -1397,24 +1302,16 @@ class ListIter:
         if self.index < 0:
             logger.warning("Attempted to delete undefined index from confidence list")
             return
-
         self.list.pop(self.index)
         self.index = min(self.index, len(self.list) - 1)
 
 
 class TreeIter:
-    """Class allowing us to iterate around the tree of bounding boxes
-
-    self._bbox is a list of hierarchy of the bboxes between
-    the current box (position -1) and the page box (position 0)
-
-    self._iter is a list of the positions (i.e. which sibling) of the aboves
-    boxes in the hierarchy"""
+    "Class allowing us to iterate around the tree of bounding boxes"
 
     def __init__(self, bbox):
         if not isinstance(bbox, Bbox):
             raise TypeError("bbox is not a Bbox object")
-
         self._bbox = [bbox]
         self._iter = []
         while bbox.type != "page":
@@ -1422,9 +1319,7 @@ class TreeIter:
             self._iter.insert(0, parent.get_child_ordinal(bbox))
             self._bbox.insert(0, parent)
             bbox = parent
-        self._iter.insert(0, 0)  # for page
-        # Now _bbox and _iter have same length.
-        # Top of stacks are the initial bbox and its index in parent.
+        self._iter.insert(0, 0)
 
     def first_bbox(self):
         "return first bbox"
@@ -1440,15 +1335,11 @@ class TreeIter:
         return bbox
 
     def next_bbox(self):
-        "return next word"
-
-        # Save state in case we need to restore it after StopIteration
+        "return next bbox"
         old_bbox = self._bbox.copy()
         old_iter = self._iter.copy()
 
         current = self._bbox[-1]
-
-        # 1. Try to go down to first child
         n = current.get_n_children()
         for i in range(n):
             child = current.get_child(i)
@@ -1457,7 +1348,6 @@ class TreeIter:
                 self._iter.append(i)
                 return child
 
-        # 2. No children, try to go to next sibling
         while len(self._bbox) > 1:
             self._bbox.pop()
             last_idx = self._iter.pop()
@@ -1471,7 +1361,6 @@ class TreeIter:
                     self._iter.append(i)
                     return sibling
 
-        # Restore state before raising
         self._bbox = old_bbox
         self._iter = old_iter
         raise StopIteration
@@ -1495,20 +1384,16 @@ class TreeIter:
         "return previous bbox"
         if len(self._bbox) <= 1:
             raise StopIteration
-
         self._bbox.pop()
         last_idx = self._iter.pop()
         parent = self._bbox[-1]
 
-        # Try to find a previous sibling
         for i in range(last_idx - 1, -1, -1):
             sibling = parent.get_child(i)
             if isinstance(sibling, Bbox):
                 self._bbox.append(sibling)
                 self._iter.append(i)
                 return self.last_leaf()
-
-        # No previous sibling, previous is the parent itself
         return parent
 
     def previous_word(self):
@@ -1524,12 +1409,10 @@ class TreeIter:
                 self._iter = current_iter
                 self._bbox = current_bbox
                 raise StopIteration from exc
-
         if bbox == current_bbox[-1]:
             self._iter = current_iter
             self._bbox = current_bbox
             raise StopIteration
-
         return bbox
 
     def last_bbox(self):
@@ -1543,7 +1426,6 @@ class TreeIter:
         bbox = self.last_bbox()
         while bbox is not None and bbox.type != "word":
             bbox = self.previous_bbox()
-
         return bbox
 
     def last_leaf(self):
@@ -1556,25 +1438,8 @@ class TreeIter:
                 self._bbox.append(child)
                 return self.last_leaf()
             n -= 1
-
         return self._bbox[-1]
 
     def get_current_bbox(self):
         "return bbox currently being viewed"
         return self._bbox[-1]
-
-
-class Rectangle(Gdk.Rectangle):
-    "Helper class so that we can parse arguments when initialising"
-
-    def __init__(self, **kwargs):
-        super().__init__()
-        for key in ["x", "y", "width", "height"]:
-            if key not in kwargs:
-                raise AttributeError(f"Rectangle requires attribute '{key}'.")
-            setattr(self, key, kwargs[key])
-
-    @classmethod
-    def from_bbox(cls, x1, y1, x2, y2):
-        "Create Rectangle from hocr bbox coords"
-        return Rectangle(x=x1, y=y1, width=abs(x2 - x1), height=abs(y2 - y1))
