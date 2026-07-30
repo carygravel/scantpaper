@@ -5,7 +5,6 @@ import logging
 import math
 import re
 
-import cairo
 import gi
 
 gi.require_version("Gdk", "3.0")
@@ -250,14 +249,6 @@ class Bbox:
     def get_child(self, i):
         "return i-th bbox child"
         return self.get_children()[i]
-
-    def get_box_widget(self):
-        "return rect widget (None in Cairo implementation)"
-        return None
-
-    def get_text_widget(self):
-        "return text widget (None in Cairo implementation)"
-        return None
 
     def get_centroid(self):
         "return centroid of bbox"
@@ -744,15 +735,11 @@ class Canvas(Gtk.DrawingArea):
         if self._pixbuf_size is None:
             return
 
-        allocation = self.get_allocation()
-
         ctx.save()
 
         scale = self._zoom
-        ctx.translate(allocation.width / 2, allocation.height / 2)
         ctx.scale(scale, scale)
-        ctx.translate(-allocation.width / 2 / scale, -allocation.height / 2 / scale)
-        ctx.translate(-self._offset.x, -self._offset.y)
+        ctx.translate(self._offset.x, self._offset.y)
 
         self._draw_tree(ctx, self._root_item)
 
@@ -943,18 +930,9 @@ class Canvas(Gtk.DrawingArea):
         if self._pixbuf_size is None or self._root_item is None:
             raise ReferenceError
 
-        allocation = self.get_allocation()
         scale = self._zoom
-        image_x = (
-            (widget_x - allocation.width / 2) / scale
-            + allocation.width / 2 / scale
-            + self._offset.x
-        )
-        image_y = (
-            (widget_y - allocation.height / 2) / scale
-            + allocation.height / 2 / scale
-            + self._offset.y
-        )
+        image_x = widget_x / scale - self._offset.x
+        image_y = widget_y / scale - self._offset.y
 
         return self._find_bbox_at(self._root_item, image_x, image_y)
 
@@ -1146,15 +1124,13 @@ class Canvas(Gtk.DrawingArea):
 
     def _scroll(self, _widget, event):
         allocation = self.get_allocation()
+        centre_x = allocation.width / 2
+        centre_y = allocation.height / 2
         image_x = (
-            (event.x - allocation.width / 2) / self._zoom
-            + allocation.width / 2 / self._zoom
-            + self._offset.x
+            (event.x - centre_x) / self._zoom + centre_x / self._zoom - self._offset.x
         )
         image_y = (
-            (event.y - allocation.height / 2) / self._zoom
-            + allocation.height / 2 / self._zoom
-            + self._offset.y
+            (event.y - centre_y) / self._zoom + centre_y / self._zoom - self._offset.y
         )
 
         if event.direction == Gdk.ScrollDirection.UP:
@@ -1165,20 +1141,11 @@ class Canvas(Gtk.DrawingArea):
         zoom = min(zoom, MAX_ZOOM)
         zoom = max(zoom, MIN_ZOOM)
 
-        offset_x = (
-            (event.x - allocation.width / 2) / zoom
-            + allocation.width / 2 / zoom
-            - image_x
-        )
-        offset_y = (
-            (event.y - allocation.height / 2) / zoom
-            + allocation.height / 2 / zoom
-            - image_y
-        )
+        offset_x = (event.x - centre_x) / zoom + centre_x / zoom - image_x
+        offset_y = (event.y - centre_y) / zoom + centre_y / zoom - image_y
 
-        self._zoom = zoom
+        self.zoom = zoom
         self.set_offset(offset_x, offset_y)
-        self.emit("zoom-changed", self._zoom)
 
         return True
 

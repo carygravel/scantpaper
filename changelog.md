@@ -1,3 +1,9 @@
+## 3.0.14 (2026-07-31)
+
+* Rewrite canvas widget displaying text layer to vastly improve performance
+  and also to allow later upgrade to Gtk4.
+
+
 ## 3.0.13 (2026-07-26)
 
 * Implement thread dispatch without polling to improve app

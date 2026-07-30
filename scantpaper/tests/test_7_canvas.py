@@ -1,30 +1,30 @@
 "Test Canvas class"
 
-from dataclasses import dataclass
 import json
-from unittest.mock import MagicMock, patch
 import tempfile
+from dataclasses import dataclass
+from unittest.mock import MagicMock, patch
 
 import cairo
-import pytest
 import gi
-from page import Page
+import pytest
 from bboxtree import Bboxtree
 from canvas import (
-    rgb2hsv,
-    hsv2rgb,
-    string2rgb,
-    Canvas,
-    button_press_callback,
-    Bbox,
-    Rectangle,
-    ListIter,
-    TreeIter,
-    HOCR_HEADER,
-    NOT_FOUND,
     EMPTY_LIST,
+    HOCR_HEADER,
     MAX_ZOOM,
+    NOT_FOUND,
+    Bbox,
+    Canvas,
+    ListIter,
+    Rectangle,
+    TreeIter,
+    button_press_callback,
+    hsv2rgb,
+    rgb2hsv,
+    string2rgb,
 )
+from page import Page
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Pango", "1.0")
@@ -483,7 +483,6 @@ def test_hocr(rose_pnm):
         assert isinstance(bbox, Bbox)
         assert bbox.textangle == 0, "word_1_3's textangle is 0"
         assert bbox.transformation[0] == 90, "word_1_3's (inherited) rotation is 90"
-        assert bbox.get_text_widget() is None, "No text widget in Cairo implementation"
 
         #########################
 
@@ -536,11 +535,6 @@ def test_bbox_text_placement(rose_pnm):
         # Get the bbox for the word 'fox'
         bbox = canvas.get_first_bbox()
         assert bbox.text == "fox"
-
-        # No widget-based bounds checking in Cairo implementation;
-        # text and rect are drawn together by the Canvas.
-        assert bbox.get_box_widget() is None
-        assert bbox.get_text_widget() is None
 
 
 def test_initialisation(mocker):
@@ -702,7 +696,6 @@ def test_canvas_scroll(mocker):  # pylint: disable=unused-argument
     with patch.object(
         canvas_obj, "set_offset", wraps=canvas_obj.set_offset
     ) as mock_set_offset:
-
         canvas_obj._scroll(canvas_obj, event)  # pylint: disable=protected-access
         assert canvas_obj.zoom == 2.0
         mock_set_offset.assert_called()
@@ -1714,22 +1707,6 @@ def test_canvas_add_box_with_transformation():
     assert bbox.transformation == trans
 
 
-def test_bbox_get_text_widget_attribute_error():
-    "Test Bbox.get_text_widget() raises AttributeError (line 943)"
-    canvas = Canvas()
-    canvas.confidence_index = ListIter()
-    root = canvas.get_root_item()
-
-    # In Cairo implementation, get_text_widget() always returns None
-    bbox = canvas.add_box(
-        text="",
-        bbox=Rectangle(x=0, y=0, width=10, height=10),
-        type="page",
-        parent=root,
-    )
-    assert bbox.get_text_widget() is None
-
-
 def test_bbox_get_child_ordinal_not_found():
     "Test Bbox.get_child_ordinal() returns NOT_FOUND (line 974)"
 
@@ -1873,7 +1850,7 @@ def create_test_page_with_words(num_words, words_per_line=10):
                     "depth": 2,
                     "bbox": [x_pos, y_pos + 2, x_pos + 60, y_pos + 23],
                     "type": "word",
-                    "text": f"word{i+j}",
+                    "text": f"word{i + j}",
                     "confidence": 50 + (i + j) % 50,  # Vary confidence
                 }
             )
@@ -2138,3 +2115,41 @@ def test_hit_test_with_valid_state(mocker):
 
     result = canvas._hit_test(50, 50)
     assert result is not None
+
+
+def test_hit_test_nonzero_offset(mocker):
+    "Test _hit_test with non-zero offset matches forward transform"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 1000, "height": 1000}
+    canvas._zoom = 2.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 50
+    canvas._offset.y = 30
+    rect = Gdk.Rectangle()
+    rect.width = 200
+    rect.height = 200
+    canvas.get_allocation = MagicMock(return_value=rect)
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+
+    page = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=1000, height=1000),
+        type="page",
+        parent=root,
+    )
+
+    line = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=30, y=30, width=10, height=10),
+        type="line",
+        parent=page,
+    )
+
+    # Forward: wx = (ix + ox) * zoom
+    # For image pixel (35, 35): wx = (35 + 50) * 2 = 170, wy = (35 + 30) * 2 = 130
+    # hit_test should recover (35, 35) and find the line
+    result = canvas._hit_test(170, 130)
+    assert result is not None
+    assert result.type == "line"

@@ -675,7 +675,7 @@ def test_edit_mode_callback(mocker, mock_session_window):
 
 def test_edit_ocr_text(mocker, mock_session_window):
     "Test _edit_ocr_text"
-    mock_ungrab = mocker.patch("scantpaper.session_mixins.Gdk.pointer_ungrab")
+    mock_ungrab = mocker.patch("session_mixins.Gdk.pointer_ungrab")
     mock_bbox = mocker.Mock()
     mock_bbox.text = "some text"
     mock_bbox.bbox = "bbox_rect"
@@ -704,7 +704,7 @@ def test_edit_ocr_text(mocker, mock_session_window):
 
 def test_edit_annotation(mocker, mock_session_window):
     "Test _edit_annotation"
-    mock_ungrab = mocker.patch("scantpaper.session_mixins.Gdk.pointer_ungrab")
+    mock_ungrab = mocker.patch("session_mixins.Gdk.pointer_ungrab")
     mock_bbox = mocker.Mock()
     mock_bbox.text = "some text"
     mock_bbox.bbox = "bbox_rect"
