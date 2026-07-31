@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!-- Copyright 2006-2026 Jeffrey Ratcliffe <jffry@posteo.net> -->
 <component type="desktop">
   <id>org.scantpaper.desktop</id>
@@ -10,8 +10,12 @@
   <launchable type="desktop-id">org.scantpaper.desktop</launchable>
   <provides><id>scantpaper</id></provides>
   <summary>GUI to produce PDFs or DjVus from scanned documents</summary>
-  <summary xml:lang="en_GB">GUI to produce PDFs or DjVus from scanned documents</summary>
-  <summary xml:lang="cs_CZ">Grafické rozhraní na výrobu PDF nebo DjVu dokumentů z naskenovaných dokumentů</summary>
+  <summary
+        xml:lang="en_GB"
+    >GUI to produce PDFs or DjVus from scanned documents</summary>
+  <summary
+        xml:lang="cs_CZ"
+    >Grafické rozhraní na výrobu PDF nebo DjVu dokumentů z naskenovaných dokumentů</summary>
   <description>
     <p>
       Only two clicks are required to scan several pages and then save all or a
@@ -74,15 +78,20 @@
   <screenshots>
     <screenshot type="default">
       <caption>scantpaper</caption>
-      <image type="source" width="1254" height="656">https://github.com/user-attachments/assets/14078f4b-9cde-404e-aaab-958c77f90c5a</image>
+      <image
+                type="source"
+                width="1254"
+                height="656"
+            >https://github.com/user-attachments/assets/14078f4b-9cde-404e-aaab-958c77f90c5a</image>
     </screenshot>
   </screenshots>
   <developer id="net.posteo"><name>Jeffrey Ratcliffe</name></developer>
   <update_contact>jffry@posteo.net</update_contact>
   <translation type="gettext">scantpaper</translation>
-  <content_rating type="oars-1.1"/>
+  <content_rating type="oars-1.1" />
   <releases>
-    <release version="3.0.13" date="2026-07-26"/>
-    <release version="3.0.12" date="2026-07-19"/>
+    <release version="3.0.14" date="2026-07-31" />
+    <release version="3.0.13" date="2026-07-26" />
+    <release version="3.0.12" date="2026-07-19" />
   </releases>
 </component>
