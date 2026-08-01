@@ -75,16 +75,6 @@
   </description>
   <url type="homepage">https://github.com/carygravel/scantpaper</url>
   <url type="translate">https://translations.launchpad.net/scantpaper</url>
-  <screenshots>
-    <screenshot type="default">
-      <caption>scantpaper</caption>
-      <image
-                type="source"
-                width="1254"
-                height="656"
-            >https://github.com/user-attachments/assets/14078f4b-9cde-404e-aaab-958c77f90c5a</image>
-    </screenshot>
-  </screenshots>
   <developer id="net.posteo"><name>Jeffrey Ratcliffe</name></developer>
   <update_contact>jffry@posteo.net</update_contact>
   <translation type="gettext">scantpaper</translation>
