@@ -161,8 +161,11 @@ class SaneThread(BaseThread):
         if self.device_handle is None:
             raise ValueError("must open device before starting scan")
         self.scan_page_progress = 0.0
+        logger.debug("calling sane_start() on device %s", self.device_name)
         self.device_handle.start()
+        logger.debug("sane_start() returned successfully")
         params = self.device_handle.get_parameters()
+        logger.debug("sane_get_parameters(): %s", params)
         _, _, (_, lines), _, _ = params
         self.scan_page_total_lines = lines if lines > 0 else None
 
