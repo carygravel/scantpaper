@@ -1,6 +1,7 @@
 "scantpaper --- to aid the scan to PDF or DjVu process"
 
 # TODO:
+# fix jammy builds
 # change page numbering to always run from 1-n with no gaps
 # fix readme
 # lint

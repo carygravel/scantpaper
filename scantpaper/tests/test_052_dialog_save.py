@@ -60,18 +60,22 @@ def test_basic(mocker):
         "author": "author2",
         "author-suggestions": [
             "author-suggestion",
+            "author2",
         ],
         "title": "title",
         "title-suggestions": [
             "title-suggestion",
+            "title",
         ],
         "subject": "subject",
         "subject-suggestions": [
             "subject-suggestion",
+            "subject",
         ],
         "keywords": "keywords",
         "keywords-suggestions": [
             "keyword-suggestion",
+            "keywords",
         ],
         "datetime offset": timedelta(days=-365, hours=0, minutes=0, seconds=0),
         "other key": "other key",

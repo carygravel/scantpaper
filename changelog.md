@@ -1,3 +1,8 @@
+## 3.0.15 (2026-08-08)
+
+* Add new metadata to suggestions
+
+
 ## 3.0.14 (2026-07-31)
 
 * Rewrite canvas widget displaying text layer to vastly improve performance

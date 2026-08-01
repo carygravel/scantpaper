@@ -257,6 +257,20 @@ def test_update_config_dict():
     assert "datetime offset" in config
 
 
+def test_update_config_dict_adds_typed_metadata_to_suggestions():
+    "Test that user-typed metadata is added to suggestions"
+    dialog = Save()
+    dialog._meta_title_widget.get_buffer().set_text("New typed title", -1)
+    dialog._meta_author_widget.get_buffer().set_text("New typed author", -1)
+
+    config = {}
+    dialog.update_config_dict(config)
+    assert config["title"] == "New typed title"
+    assert "New typed title" in config["title-suggestions"]
+    assert config["author"] == "New typed author"
+    assert "New typed author" in config["author-suggestions"]
+
+
 def test_datetime_focus_out_callback():
     "Test _datetime_focus_out_callback"
     dialog = Save()

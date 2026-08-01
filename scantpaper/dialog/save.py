@@ -822,8 +822,13 @@ class Save(Dialog):
     def update_config_dict(self, config):
         "update config based from instance metadata"
         for name in ["author", "title", "subject", "keywords"]:
-            config[name] = getattr(self, f"meta_{name}")
-            config[f"{name}-suggestions"] = getattr(self, f"meta_{name}_suggestions")
+            value = getattr(self, f"meta_{name}")
+            config[name] = value
+            suggestions = list(getattr(self, f"meta_{name}_suggestions"))
+            if value and value not in suggestions:
+                setattr(self, f"meta_{name}_suggestions", suggestions + [value])
+                suggestions = list(getattr(self, f"meta_{name}_suggestions"))
+            config[f"{name}-suggestions"] = suggestions
 
         if self.meta_datetime is not None:
             # convert from date to datetime if necessary
