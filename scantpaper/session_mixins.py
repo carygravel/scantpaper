@@ -24,7 +24,7 @@ from text_layer_control import TextLayerControls
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gdk, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
 
@@ -586,7 +586,7 @@ class SessionMixins:
         self._ocr_text_hbox.hide()
         self._ann_hbox.show()
 
-    def _edit_ocr_text(self, bbox, _target=None, ev=None):
+    def _edit_ocr_text(self, bbox, _target=None):
         "Edit OCR text"
         if bbox is None:
             logger.debug("edit_ocr_text did not return a bbox")
@@ -598,25 +598,18 @@ class SessionMixins:
         self.view.set_selection(bbox.bbox)
         self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
-        if ev:
-            Gdk.pointer_ungrab(ev.time)
 
         if bbox:
             self.t_canvas.set_index_by_bbox(bbox)
 
-    def _edit_annotation(self, widget, _target=None, ev=None, bbox=None):
+    def _edit_annotation(self, bbox, _target=None):
         "Edit annotation"
-        if not ev:
-            bbox = widget
-
         self._current_ann_bbox = bbox
         self._ann_hbox._textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.setzoom_is_fit(False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
-        if ev:
-            Gdk.pointer_ungrab(ev.time)
 
         if bbox:
             self.a_canvas.set_index_by_bbox(bbox)

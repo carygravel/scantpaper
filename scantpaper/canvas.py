@@ -181,7 +181,7 @@ def button_press_callback(bbox, _target, event, edit_callback):
         canvas = bbox.canvas
         if canvas:
             canvas._dragging = False
-        edit_callback(bbox, _target, event)
+        edit_callback(bbox, _target)
         bbox.emit("clicked")
 
 

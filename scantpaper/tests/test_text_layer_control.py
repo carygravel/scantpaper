@@ -178,15 +178,14 @@ def test_edit_ocr_text_updates_selection(mocker):
     mock_bbox2 = MagicMock()
     mock_bbox2.text = "word2"
 
-    mock_event = MagicMock()
     mock_target = MagicMock()
 
     # First call to _edit_ocr_text, simulating a click on the first box
-    window._edit_ocr_text(bbox=mock_bbox1, _target=mock_target, ev=mock_event)
+    window._edit_ocr_text(bbox=mock_bbox1, _target=mock_target)
     assert window._current_ocr_bbox == mock_bbox1
 
     # Second call to _edit_ocr_text, simulating a click on the second box
-    window._edit_ocr_text(bbox=mock_bbox2, _target=mock_target, ev=mock_event)
+    window._edit_ocr_text(bbox=mock_bbox2, _target=mock_target)
     assert window._current_ocr_bbox == mock_bbox2
 
 
