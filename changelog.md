@@ -4,6 +4,7 @@
 * Match metadata suggestions against any part of the entered text,
   ordering prefix matches above the rest
 * Ensure progress bar is hidden after scanner error
+* Fix untitled title in metadata
 
 
 ## 3.0.14 (2026-07-31)

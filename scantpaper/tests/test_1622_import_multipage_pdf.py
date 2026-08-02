@@ -314,3 +314,29 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, temp_db):
     mlp.run()
 
     assert asserts == 1, "callbacks all run"
+
+
+def test_import_pdf_with_placeholder_title(rose_png, temp_pdf, temp_db):
+    "Test importing PDF with a placeholder title"
+    temp_pdf.write(img2pdf.convert(rose_png, title="Untitled"))
+    temp_pdf.flush()
+
+    slist = Document(db=temp_db.name)
+
+    mlp = safe_mainloop()
+
+    asserts = 0
+
+    def metadata_cb(response):
+        assert "title" not in response, "placeholder title not imported"
+        nonlocal asserts
+        asserts += 1
+
+    slist.import_files(
+        paths=[temp_pdf.name],
+        metadata_callback=metadata_cb,
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    assert asserts == 1, "callbacks all run"

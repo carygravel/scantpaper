@@ -561,6 +561,104 @@ def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop)
     ), "timestamp"
 
 
+def test_save_pdf_without_title_has_no_placeholder_title(
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop
+):
+    "Test writing PDF without title gets no placeholder title"
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    metadata = {
+        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+    }
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        metadata=metadata,
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        docinfo = pdf.docinfo or {}
+        assert "/Title" not in docinfo, "no placeholder title in docinfo"
+        with pdf.open_metadata() as md:
+            assert "dc:title" not in md, "no placeholder title in XMP"
+    pdfinfo = subprocess.run(
+        ["pdfinfo", temp_pdf.name], capture_output=True, text=True, check=True
+    )
+    assert "Title:" not in pdfinfo.stdout, "no placeholder title in pdfinfo"
+
+
+def test_save_pdf_with_title_retains_title_in_xmp(
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop
+):
+    "Test writing PDF with title retains it in docinfo and XMP"
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    metadata = {
+        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "title": "metadata title",
+    }
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        metadata=metadata,
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        docinfo = pdf.docinfo or {}
+        assert docinfo.get("/Title") == "metadata title", "metadata title in docinfo"
+        with pdf.open_metadata() as md:
+            assert md.get("dc:title") == "metadata title", "metadata title in XMP"
+
+
+def test_save_import_without_title_roundtrip(
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop
+):
+    "Test saving without title and re-importing yields no title"
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    metadata = {
+        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+    }
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        metadata=metadata,
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    asserts = 0
+
+    def metadata_cb(response):
+        assert "title" not in response, "no title in re-imported metadata"
+        nonlocal asserts
+        asserts += 1
+
+    slist2 = Document(db=temp_db.name)
+    mlp2 = safe_mainloop()
+    slist2.import_files(
+        paths=[temp_pdf.name],
+        metadata_callback=metadata_cb,
+        finished_callback=lambda response: mlp2.quit(),
+    )
+    mlp2.run()
+
+    assert asserts == 1, "metadata callback ran"
+
+
 def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
     "Test writing PDF with old metadata"
     slist = Document(db=temp_db.name)

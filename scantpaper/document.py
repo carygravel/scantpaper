@@ -435,6 +435,11 @@ class Document(BaseDocument):
         return xresolution, yresolution
 
 
+def _is_placeholder_title(value):
+    "check whether a title is a placeholder such as 'Untitled'"
+    return value.strip().strip("'").strip().lower() == "untitled"
+
+
 def _extract_metadata(info):
     metadata = {}
     for key in info.keys():
@@ -445,6 +450,7 @@ def _extract_metadata(info):
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
             and info[key] != "NONE"
+            and not (key == "title" and _is_placeholder_title(unescape_utf8(info[key])))
         ):
             metadata[key] = unescape_utf8(info[key])
 

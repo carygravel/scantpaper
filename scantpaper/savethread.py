@@ -13,6 +13,7 @@ from collections import defaultdict
 
 import img2pdf
 import ocrmypdf
+import pikepdf
 from basethread import Request
 from bboxtree import Bboxtree
 from const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
@@ -194,6 +195,9 @@ class SaveThread(Importhread):
 
             request.data(1.0)
             _current_request_for_progress[0] = None
+
+            if "title" not in metadata:
+                _remove_pdf_title(filename)
 
             _append_pdf(filename, options, request)
 
@@ -609,6 +613,18 @@ def _need_temp_pdf(options):
         or "ps" in options
         or ("user-password" in options and options["user-password"] != "")
     )
+
+
+def _remove_pdf_title(path):
+    "remove the title from a PDF's document info and XMP metadata"
+    with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        with pdf.open_metadata(
+            set_pikepdf_as_editor=False, update_docinfo=False
+        ) as metadata:
+            metadata.pop("dc:title", None)
+        if "/Title" in pdf.docinfo:
+            del pdf.docinfo["/Title"]
+        pdf.save(path, preserve_pdfa=True, linearize=True)
 
 
 def prepare_output_metadata(ftype, metadata):

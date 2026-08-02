@@ -4,6 +4,7 @@ version = "3.0.14"
 dependencies = [
   "img2pdf",
   "ocrmypdf>=15.4.3",
+  "pikepdf",
   "pycairo",
   "PyGObject",
   "python-iso639",

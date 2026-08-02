@@ -334,3 +334,19 @@ def test_extract_metadata_isoformat():
         info["datetime"] = "2023-01-01T12:00:00Z"
         meta = _extract_metadata(info)
         assert isinstance(meta["datetime"], datetime.datetime)
+
+
+def test_extract_metadata_placeholder_title():
+    "test _extract_metadata with placeholder titles"
+    info = {
+        "format": "Portable Document Format",
+        "datetime": "2023-01-01T12:00:00Z",
+    }
+    for title in ["Untitled", "'Untitled'", "UNTITLED", "  untitled  "]:
+        info["title"] = title
+        meta = _extract_metadata(info)
+        assert "title" not in meta, f"placeholder title {title!r} dropped"
+
+    info["title"] = "La Voz de Galicia"
+    meta = _extract_metadata(info)
+    assert meta["title"] == "La Voz de Galicia"
