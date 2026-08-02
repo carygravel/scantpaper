@@ -1,6 +1,8 @@
 ## 3.0.15 (2026-08-08)
 
 * Add new metadata to suggestions
+* Match metadata suggestions against any part of the entered text,
+  ordering prefix matches above the rest
 
 
 ## 3.0.14 (2026-07-31)

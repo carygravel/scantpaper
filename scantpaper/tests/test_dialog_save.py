@@ -271,6 +271,46 @@ def test_update_config_dict_adds_typed_metadata_to_suggestions():
     assert "New typed author" in config["author-suggestions"]
 
 
+def test_author_suggestions_ranked():
+    "Test author suggestions are ranked with prefix matches first"
+    dialog = Save()
+    dialog.meta_author_suggestions = ["Dejo", "John Smith"]
+    dialog._meta_author_widget.set_text("jo")
+
+    model = dialog._meta_author_widget.get_completion().get_model()
+    rows = []
+    model.foreach(lambda m, _p, itr: rows.append(m.get(itr, 0)[0]))
+    assert rows == ["John Smith", "Dejo"]
+
+
+def test_keyword_suggestions_ranked():
+    "Test keyword suggestions are ranked with prefix matches first"
+    dialog = Save()
+    dialog.meta_keywords_suggestions = ["rescan", "scanned document"]
+    dialog._meta_keywords_widget.set_text("scan")
+
+    model = dialog._meta_keywords_widget.get_completion().get_model()
+    rows = []
+    model.foreach(lambda m, _p, itr: rows.append(m.get(itr, 0)[0]))
+    assert rows == ["scanned document", "rescan"]
+
+
+def test_update_config_dict_preserves_suggestion_order():
+    "Test suggestions are persisted in insertion order despite ranking"
+    dialog = Save()
+    dialog.meta_author_suggestions = ["Dejo", "John Smith", "Jane Doe"]
+    dialog._meta_author_widget.set_text("John Smith")
+
+    model = dialog._meta_author_widget.get_completion().get_model()
+    rows = []
+    model.foreach(lambda m, _p, itr: rows.append(m.get(itr, 0)[0]))
+    assert rows == ["John Smith", "Dejo", "Jane Doe"]
+
+    config = {}
+    dialog.update_config_dict(config)
+    assert config["author-suggestions"] == ["Dejo", "John Smith", "Jane Doe"]
+
+
 def test_datetime_focus_out_callback():
     "Test _datetime_focus_out_callback"
     dialog = Save()
