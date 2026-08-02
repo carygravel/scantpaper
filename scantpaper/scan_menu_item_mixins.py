@@ -83,7 +83,11 @@ class ScanMenuItemMixins:
         self._windows.connect("started-process", started_progress_callback)
         self._windows.connect("changed-progress", self._changed_progress_callback)
         self._windows.connect("finished-process", self._finished_process_callback)
-        self._windows.connect("process-error", self._process_error_callback, signal)
+
+        def do_process_error(_widget, process, msg):
+            self._process_error_callback(_widget, process, msg, signal)
+
+        self._windows.connect("process-error", do_process_error)
         self._windows.connect("changed-profile", self._changed_profile_callback)
         self._windows.connect("added-profile", self._added_profile_callback)
 

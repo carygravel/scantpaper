@@ -179,6 +179,43 @@ def test_scan_dialog_callbacks(mocker, mock_scan_window):
     assert mock_scan_window.settings["Paper"] == "A3"
 
 
+def test_scan_dialog_process_error_signal_forwarding(mocker, mock_scan_window):
+    "Test that process-error forwards the current cancel signal id"
+    mock_sane_dialog_cls = mocker.patch("scan_menu_item_mixins.SaneScanDialog")
+    mock_sane_dialog_instance = mock_sane_dialog_cls.return_value
+    mock_sane_dialog_instance.notebook = mocker.Mock()
+
+    mocker.patch("scan_menu_item_mixins.OCRControls")
+    mocker.patch("scan_menu_item_mixins.RotateControls")
+
+    callbacks = {}
+
+    def side_effect(signal, callback, *args):
+        callbacks[signal] = callback
+        return mocker.Mock()
+
+    mock_sane_dialog_instance.connect.side_effect = side_effect
+
+    mock_scan_window.scan_dialog(None, None)
+
+    assert "process-error" in callbacks
+    assert "started-process" in callbacks
+
+    # process-error without a prior started-process forwards None
+    callbacks["process-error"](None, "open_device", "boom")
+    mock_scan_window._process_error_callback.assert_called_with(
+        None, "open_device", "boom", None
+    )
+
+    # After a started-process, the real signal id is forwarded
+    mock_scan_window._scan_progress.connect.return_value = "signal_id"
+    callbacks["started-process"](None, "starting")
+    callbacks["process-error"](None, "open_device", "boom")
+    mock_scan_window._process_error_callback.assert_called_with(
+        None, "open_device", "boom", "signal_id"
+    )
+
+
 def test_scan_dialog_args_device(mocker, mock_scan_window):
     "Test scan_dialog with args.device"
     mocker.patch("scan_menu_item_mixins.SaneScanDialog")

@@ -910,6 +910,10 @@ class ApplicationWindow(
                 if cb.get_active():
                     self.settings["message"][error_name]["response"] = response
 
+            # The modal dialog runs a nested main loop, so the progress bar may
+            # have been re-shown by running callbacks. Ensure it stays hidden
+            # regardless of the option chosen.
+            self._scan_progress.hide()
             self._windows = None  # force scan dialog to be rebuilt
             if response == "reopen":
                 self.scan_dialog(None, None)

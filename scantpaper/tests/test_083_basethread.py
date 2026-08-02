@@ -387,3 +387,34 @@ def test_monitor_schedules_idle_when_responses_remain():
     with patch("basethread.GLib.idle_add") as mock_idle:
         thread.monitor()
         mock_idle.assert_called_once_with(thread._drain_one)
+
+
+@pytest.mark.parametrize("terminal_type", [ResponseType.FINISHED, ResponseType.ERROR])
+def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_type):
+    "test that running callbacks don't fire while a terminal callback is dispatched"
+    from basethread import Request
+
+    thread = BaseThread()
+    running_cb = mocker.Mock()
+    terminal_dispatched = []
+
+    def terminal_cb(_response):
+        # Simulates a nested main loop firing the running stage while the
+        # terminal callback is still being processed (e.g. a modal dialog
+        # opened from within the error callback)
+        thread._execute_callbacks_for_stage("running", None)
+        terminal_dispatched.append(True)
+
+    request = Request("test", (), thread.responses)
+    stage = terminal_type.name.lower()
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "running_callback": running_cb,
+        stage + "_callback": terminal_cb,
+    }
+    request.put(info="done", rtype=terminal_type)
+
+    thread._monitor_response()
+
+    assert terminal_dispatched == [True]
+    running_cb.assert_not_called()

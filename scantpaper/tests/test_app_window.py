@@ -846,6 +846,39 @@ def test_process_error_callback(app_window, mocker):
     app_window._show_message_dialog.assert_called()
 
 
+def test_process_error_callback_ignore_hides_bar_after_dialog(app_window, mocker):
+    "Test that selecting 'ignore' in the open_device error dialog hides the progress bar"
+    app_window._scan_progress = MagicMock()
+    app_window._show_message_dialog = MagicMock()
+    app_window.scan_dialog = MagicMock()
+
+    mock_dialog_cls = mocker.patch("app_window.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    mock_radio1 = MagicMock(name="radio1")
+    mock_radio2 = MagicMock(name="radio2")
+    mock_radio3 = MagicMock(name="radio3")
+    mock_radio4 = MagicMock(name="radio4")
+    mocker.patch("app_window.Gtk.RadioButton.new_with_label", return_value=mock_radio1)
+    mocker.patch(
+        "app_window.Gtk.RadioButton.new_with_label_from_widget",
+        side_effect=cycle([mock_radio2, mock_radio3, mock_radio4]),
+    )
+    mock_radio1.get_active.return_value = False
+    mock_radio2.get_active.return_value = False
+    mock_radio3.get_active.return_value = False
+    mock_radio4.get_active.return_value = True
+
+    app_window._process_error_callback(None, "open_device", "Device busy", None)
+
+    # The bar is hidden once before the dialog and once after it returns,
+    # so that no dialog option leaves the progress bar visible.
+    assert app_window._scan_progress.hide.call_count == 2
+    assert app_window._windows is None
+    app_window.scan_dialog.assert_not_called()
+
+
 def test_page_selection_changed_callback(app_window):
     "Test _page_selection_changed_callback"
     app_window.view = MagicMock()

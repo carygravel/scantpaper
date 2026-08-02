@@ -3,6 +3,7 @@
 * Add new metadata to suggestions
 * Match metadata suggestions against any part of the entered text,
   ordering prefix matches above the rest
+* Ensure progress bar is hidden after scanner error
 
 
 ## 3.0.14 (2026-07-31)

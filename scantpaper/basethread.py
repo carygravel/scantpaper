@@ -311,8 +311,18 @@ class BaseThread(threading.Thread):
             return GLib.SOURCE_CONTINUE
         stage = result.type.name.lower()
         callback = stage + "_callback"
-        self._execute_callbacks_for_stage(stage, result)
         uid = result.request.uuid
+        if uid in self.callbacks and callback not in [
+            "queued_callback",
+            "started_callback",
+            "data_callback",
+        ]:
+            # The request has reached a terminal state, so stop invoking its
+            # running callback before dispatching the terminal callback. This
+            # prevents a modal dialog opened from within the callback from
+            # keeping the progress bar pulsing in its nested main loop.
+            self.callbacks[uid]["started"] = False
+        self._execute_callbacks_for_stage(stage, result)
         if uid in self.callbacks:
             if callback in ["queued_callback", "started_callback", "data_callback"]:
                 if callback in self.callbacks[uid] and callback != "data_callback":
