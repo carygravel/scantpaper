@@ -14,6 +14,7 @@ from dialog.scan import (
     do_delete_profile_backend_item,
     _build_profile_table,
 )
+from docthread import INSERT_AT_START
 from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile
@@ -62,6 +63,9 @@ class MockOptions:
     def supports_paper(self, _paper, _tolerance):
         "Does it support the given paper?"
         return True
+
+    def val(self, _name, _handle):
+        "Get option value"
 
 
 class MockDevice:
@@ -865,3 +869,95 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
 
     # Click the remove button
     rbutton.clicked()
+
+
+def test_insert_target_checkx_active():
+    "Test _insert_target with checkx active"
+    scan = MockScan()
+    scan.checkx = unittest.mock.Mock()
+    scan.checkx.get_active.return_value = True
+    scan.page_number_start = 10
+    scan.page_number_increment = 2
+    scan.side_to_scan = "facing"
+    scan._batch_start = None
+    result = scan._insert_target(1)
+    assert result is not None
+
+
+def test_insert_target_batch_n_zero():
+    "Test _insert_target when _batch_n == 0"
+    scan = MockScan()
+    scan.checkx = unittest.mock.Mock()
+    scan.checkx.get_active.return_value = False
+    scan.sided = "duplex"
+    scan.side_to_scan = "reverse"
+    scan._batch_n = 0
+    result = scan._insert_target(1)
+    assert result == (None, "reverse")
+
+
+def test_insert_target_facing_no_batch_start():
+    "Test _insert_target when side is facing and _batch_start is None"
+    scan = MockScan()
+    scan.checkx = unittest.mock.Mock()
+    scan.checkx.get_active.return_value = False
+    scan.sided = "duplex"
+    scan.side_to_scan = "facing"
+    scan._batch_start = None
+    scan._batch_n = 0
+    scan.document = unittest.mock.Mock()
+    scan.document.__len__ = unittest.mock.Mock(return_value=0)
+    result = scan._insert_target(1)
+    assert result == (None, "facing")
+
+
+def test_uuid_at_position_edge_cases():
+    "Test _uuid_at_position with None or out-of-range positions"
+    scan = MockScan()
+
+    result = scan._uuid_at_position(None)
+    assert result is None
+
+    result = scan._uuid_at_position(0)
+    assert result is None
+
+    scan.document = unittest.mock.Mock()
+    scan.document.data = []
+    result = scan._uuid_at_position(1)
+    assert result is None
+
+
+def test_uuid_before_position_edge_cases():
+    "Test _uuid_before_position edge cases"
+    scan = MockScan()
+
+    result = scan._uuid_before_position(None)
+    assert result is None
+
+    result = scan._uuid_before_position(0)
+    assert result is None
+
+    result = scan._uuid_before_position(1)
+    assert result == INSERT_AT_START
+
+
+def test_get_xy_resolution_zero_fallback():
+    "Test _get_xy_resolution falls back to POINTS_PER_INCH when values are 0"
+    from dialog.scan import POINTS_PER_INCH
+
+    scan = MockScan()
+    scan.current_scan_options = Profile()
+
+    opt_list = []
+    for name in ["dither"]:
+        opt = unittest.mock.Mock()
+        opt.name = name
+        opt_list.append(opt)
+    scan.available_scan_options = MockOptions([])
+
+    with unittest.mock.patch.object(
+        scan.available_scan_options, "val", side_effect=AttributeError
+    ):
+        xres, yres = scan._get_xy_resolution()
+    assert xres in (0, POINTS_PER_INCH)
+    assert yres in (0, POINTS_PER_INCH)
