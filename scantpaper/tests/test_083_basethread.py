@@ -1,5 +1,7 @@
 "test basethread class"
 
+from unittest.mock import MagicMock
+
 import pytest
 from basethread import BaseThread, Response, ResponseType
 from gi.repository import GLib
@@ -313,10 +315,7 @@ def test_none_callback():
     thread = MyThread()
     thread.start()
 
-    errors = []
-
-    def error_callback(response):
-        errors.append(response)
+    error_callback = MagicMock()
 
     # Send a job with finished_callback explicitly set to None
     # This should not raise an error when the callback is executed
@@ -334,7 +333,7 @@ def test_none_callback():
     mlp.run()
 
     # Should not have any errors
-    assert not errors, f"Unexpected errors: {errors}"
+    error_callback.assert_not_called()
 
     thread.send("quit", finished_callback=lambda response: mlp.quit())
     mlp = safe_mainloop(2000)
@@ -418,3 +417,27 @@ def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_t
 
     assert terminal_dispatched == [True]
     running_cb.assert_not_called()
+
+
+def test_cleanup_thread_exception_caught(mocker):
+    "Test _cleanup_thread catches exceptions from queue.put during interpreter shutdown"
+    mock_queue = mocker.Mock()
+    mock_queue.put.side_effect = Exception("queue closed")
+    BaseThread._cleanup_thread(mock_queue)
+    mock_queue.put.assert_called_once()
+
+
+def test_release_sources_close_oserror(mocker):
+    "Test _release_sources catches OSError from os.close"
+    thread = BaseThread()
+    thread._io_watch_id = 999999
+    thread._tick_id = 999998
+    thread._notify_r = 999
+    thread._notify_w = 1000
+
+    mock_close = mocker.patch("basethread.os.close", side_effect=OSError)
+    thread._release_sources()
+    mlp = safe_mainloop(500)
+    GLib.timeout_add(100, mlp.quit)
+    mlp.run()
+    assert mock_close.call_count >= 2
