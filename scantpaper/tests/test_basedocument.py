@@ -898,3 +898,34 @@ def test_create_pidfile_ioerror():
     # Mock tempfile.TemporaryFile to raise IOError
     with patch("tempfile.TemporaryFile", side_effect=IOError("disk full")):
         assert slist.create_pidfile({}) is None
+
+
+def test_open_session_error_callback():
+    "Test open_session error callback during send"
+    slist = Document()
+    temp_dir = tempfile.mkdtemp()
+    slist.dir = pathlib.Path(temp_dir)
+    db_path = slist.dir / "test.db"
+    db_path.write_text("dummy", encoding="utf-8")
+    errors = []
+
+    def mock_send(_process, *_args, **kwargs):
+        def run_callbacks():
+            if "error_callback" in kwargs:
+                response = MagicMock()
+                response.status = "open failed"
+                kwargs["error_callback"](response)
+            return False
+
+        GLib.idle_add(run_callbacks)
+        return MagicMock()
+
+    slist.thread.send = mock_send
+    slist.open_session(
+        db=str(db_path), error_callback=lambda _src, _msg, status: errors.append(status)
+    )
+    mlp = safe_mainloop(500)
+    GLib.timeout_add(100, mlp.quit)
+    mlp.run()
+    assert errors == ["open failed"]
+    shutil.rmtree(temp_dir)
