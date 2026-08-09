@@ -9,8 +9,6 @@ from i18n import _
 
 MAX_PAGES = 9999
 MAX_INCREMENT = 99
-DOUBLE_INCREMENT = 2
-INFINITE = -1
 
 
 class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
@@ -29,10 +27,11 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         maximum=MAX_PAGES,
         default=0,
         nick="Maximum number of pages",
-        blurb="Maximum number of pages that can be scanned with current "
-        "page-number-start and page-number-increment",
+        blurb="Maximum number of pages that can be scanned before the "
+        "last page of the document",
     )
-    _previous_start = None  # previous value of _page_number_start
+    _batch_start = None  # page number the current facing batch starts at
+    _batch_n = 0  # number of pages scanned in the current facing batch
     _page_number_start = 1
     _page_number_increment = 1
     _sided = "single"
@@ -150,15 +149,10 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self._side_to_scan = newval
         self.combobs.set_active(0 if newval == "facing" else 1)
         self.emit("changed-side-to-scan", newval)
-        slist = self.document
-        if slist and slist.data:
-            possible = slist.pages_possible(
-                self.page_number_start, self.page_number_increment
-            )
-            requested = self.num_pages
-            if possible != INFINITE and (requested == 0 or requested > possible):
-                self.num_pages = possible
-                self.max_pages = possible
+        if newval == "facing":
+            self._reset_batch()
+        else:
+            self._fix_batch()
 
     @GObject.Property(
         type=object, nick="Document", blurb="Document object for new scans"
@@ -170,14 +164,6 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
     @document.setter
     def document(self, newval):
         self._document = newval
-        # Update the start spinbutton if the page number is been edited.
-        if newval:
-            newval.get_model().connect(
-                "row-changed", lambda x, y, z: self.update_start_page()
-            )
-            newval.get_model().connect(
-                "row-inserted", lambda x, y, z: self.update_start_page()
-            )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -268,7 +254,12 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self.framex.add(vboxx)
 
         # SpinButton for starting page number
-        spin_buttons = spinbutton_in_hbox(vboxx, _("Start"), 1, MAX_PAGES, 1)
+        spin_buttons = spinbutton_in_hbox(
+            vboxx, _("Insert before page N"), 1, MAX_PAGES, 1
+        )
+        spin_buttons.set_tooltip_text(
+            _("Page number before which scans will be inserted")
+        )
         spin_buttons.connect("value-changed", self._do_start_page_changed)
         self.connect(
             "changed-page-number-start",
@@ -278,7 +269,13 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
         # SpinButton for page number increment
         spin_buttoni = spinbutton_in_hbox(
-            vboxx, _("Increment"), -MAX_INCREMENT, MAX_INCREMENT, 1
+            vboxx, _("Position advance"), -MAX_INCREMENT, MAX_INCREMENT, 1
+        )
+        spin_buttoni.set_tooltip_text(
+            _(
+                "Position advance for each subsequent scan "
+                "(0 = keep inserting before the same page)"
+            )
         )
         spin_buttoni.connect("value-changed", self._do_spin_buttoni_value_changed)
         self.connect(
@@ -304,7 +301,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         )
         self.buttons.set_tooltip_text(_("Source document is single-sided"))
         vboxs.pack_start(self.buttons, True, True, 0)
-        self.buttons.connect("clicked", self._do_buttons_clicked, spin_buttoni)
+        self.buttons.connect("clicked", self._do_buttons_clicked)
 
         # Double sided button
         self.buttond = Gtk.RadioButton.new_with_label_from_widget(
@@ -333,14 +330,12 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         self.num_pages = 1
         hboxs.pack_end(self.combobs, False, False, 0)
 
-        self.buttond.connect("clicked", self._do_buttond_clicked, spin_buttoni)
-
         # Have to put the extended pagenumber checkbox here
         # to reference simple controls
         self.checkx.connect(
             "notify::active",
             _extended_pagenumber_checkbox_callback,
-            [self, spin_buttoni],
+            [self],
         )
 
     def _do_clicked_scan_all(self, bscanall, _value):
@@ -349,27 +344,15 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
 
     def _do_start_page_changed(self, spin_buttons):
         self.page_number_start = spin_buttons.get_value()
-        self.update_start_page()
 
     def _do_changed_page_number_start(self, _self, value, spin_buttons):
         spin_buttons.set_value(value)
-        slist = self.document
-        if slist is not None:
-            self.max_pages = slist.pages_possible(value, self.page_number_increment)
 
     def _do_spin_buttoni_value_changed(self, spin_buttoni):
-        value = spin_buttoni.get_value()
-        if value == 0:
-            value = -self.page_number_increment
-            spin_buttoni.set_value(value)
-            return
-        self.page_number_increment = value
+        self.page_number_increment = spin_buttoni.get_value()
 
     def _do_changed_page_number_increment(self, _self, value, spin_buttoni):
         spin_buttoni.set_value(value)
-        slist = self.document
-        if slist is not None:
-            self.max_pages = slist.pages_possible(self.page_number_start, value)
 
     def _do_clicked_scan_number(self, bscannum, spin_buttonn):
         if bscannum.get_active():
@@ -385,16 +368,12 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
             bscannum.set_active(True)
             spin_buttonn.set_value(value)
 
-        # Check that there is room in the list for the number of pages
-        self._update_num_pages()
-
     def _do_num_pages_changed(self, spin_buttonn, bscannum):
         "Callback on changing number of pages"
         self.num_pages = spin_buttonn.get_value()
         bscannum.set_active(True)  # Set the radiobutton active
 
-    def _do_buttons_clicked(self, buttons, spin_buttoni):
-        spin_buttoni.set_value(1)
+    def _do_buttons_clicked(self, buttons):
         self.sided = "single" if buttons.get_active() == 1 else "double"
 
     def _do_side_to_scan_combo_changed(self, combobs):
@@ -404,64 +383,22 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
     def _do_side_to_scan_changed(self, _self, value):
         if self.sided != "double":
             return
-        self.page_number_increment = (
-            DOUBLE_INCREMENT if value == "facing" else -DOUBLE_INCREMENT
-        )
         if value == "facing":
             self.num_pages = 0
 
-    def _do_buttond_clicked(self, _buttond, spin_buttoni):
-        "Have to put the double-sided callback here to reference page side"
-        spin_buttoni.set_value(
-            DOUBLE_INCREMENT if self.combobs.get_active() == 0 else -DOUBLE_INCREMENT
-        )
+    def _reset_batch(self):
+        "Start tracking a new facing batch for the reverse pass"
+        self._batch_start = None
+        self._batch_n = 0
+        self.max_pages = 0
 
-    def _update_num_pages(self):
-        "Update the number of pages to scan spinbutton if necessary"
-        slist = self.document
-        if slist is None:
-            return
-        num = slist.pages_possible(self.page_number_start, self.page_number_increment)
-        if 0 <= num <= self.max_pages:
-            self.num_pages = num
-
-    def update_start_page(self):
-        """Called either from changed-value signal of spinbutton,
-        or row-changed signal of SimpleList"""
-        slist = self.document
-        if not slist:
-            return
-        value = self.page_number_start
-        if self._previous_start is None:
-            self._previous_start = self.page_number_start
-        step = value - self._previous_start
-        if step == 0:
-            step = self.page_number_increment
-        self._previous_start = value
-        while slist.pages_possible(value, step) == 0:
-            if value < 1:
-                value = 1
-                step = 1
-            else:
-                value += step
-
-        self.page_number_start = value
-        self._previous_start = value
-        self._update_num_pages()
-
-    def reset_start_page(self):
-        "Reset start page number after delete or new"
-        slist = self.document
-        if slist is None:
-            return
-        num_pages = len(slist.data)
-        if num_pages > 0:
-            start_page = self.page_number_start
-            step = self.page_number_increment
-            if start_page > slist.data[num_pages - 1][0] + step:
-                self.page_number_start = num_pages + 1
-        else:
-            self.page_number_start = 1
+    def _fix_batch(self):
+        "Freeze the current facing batch as the limit for the reverse pass"
+        self.max_pages = self._batch_n
+        if self._batch_n > 0 and (
+            self.num_pages == 0 or self.num_pages > self._batch_n
+        ):
+            self.num_pages = self._batch_n
 
     def _flatbed_or_duplex_callback(self):
         options = self.available_scan_options
@@ -485,20 +422,10 @@ def spinbutton_in_hbox(vbox, label, vmin, vmax, step):
 
 
 def _extended_pagenumber_checkbox_callback(widget, _param, data):
-    dialog, spin_buttoni = data
+    dialog = data[0]
     if widget.get_active():
         dialog.frames.hide()
         dialog.framex.show_all()
     else:
-        inc = spin_buttoni.get_value()
-        if inc == 1:
-            dialog.buttons.set_active(True)
-        elif inc > 0:
-            dialog.buttond.set_active(True)
-            dialog.combobs.set_active(0)
-        else:
-            dialog.buttond.set_active(True)
-            dialog.combobs.set_active(1)
-
         dialog.frames.show_all()
         dialog.framex.hide()

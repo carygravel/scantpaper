@@ -246,6 +246,24 @@ LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LAN
 
 scantpaper provides a GUI for scanning, editing, and saving documents as PDF, DjVu, TIFF, PNG, JPEG, PNM, or GIF. It supports batch scanning, metadata, OCR, and various editing tools.
 
+### Page Numbering
+
+Page numbers are always consecutive (1, 2, 3, …). Deleting a page renumbers the
+remainder automatically, and editing a page's number in the document table moves
+that page to the corresponding position.
+
+### Scan Flow
+
+- **Single-sided:** Each scan is appended at the end.
+- **Double-sided:** Scan all facing pages first (front 1, front 2, …, front n);
+  they are appended in order. When you flip the stack the ADF feeds them in
+  reverse (back of page n, then back of page n-1, …, back of page 1). Each
+  reverse page is inserted immediately after its matching front page, producing
+  a fully interleaved result: front 1, back 1, front 2, back 2, …, front n,
+  back n.
+- **Extended mode (insert before page N):** Each new scan is inserted before the
+  selected page, advancing the insertion point for the next scan.
+
 ### Main Features
 
 - **Scan:** Options for device, page count, source document, side to scan, and device-dependent options (page size, mode, resolution, batch-scan, etc.).
@@ -257,7 +275,6 @@ scantpaper provides a GUI for scanning, editing, and saving documents as PDF, Dj
 ### Edit Menu
 
 - **Delete:** Remove selected page.
-- **Renumber:** Renumber pages.
 - **Select:** Select all, even, odd, blank, dark, or modified pages.
 - **Properties:** Edit image metadata.
 - **Preferences:** Configure default behaviors and frontends.

@@ -12,7 +12,7 @@ import weakref
 from collections import defaultdict
 
 import gi
-from docthread import DocThread
+from docthread import DocThread, INSERT_AT_START
 from helpers import _weak_callback, slurp
 from i18n import _
 from simplelist import SimpleList
@@ -22,7 +22,6 @@ from gi.repository import Gdk, Gtk  # pylint: disable=wrong-import-position
 
 ID_PAGE = 1
 ID_URI = 0
-INFINITE = -1
 
 logger = logging.getLogger(__name__)
 
@@ -120,10 +119,21 @@ class BaseDocument(SimpleList):
 
         self.get_model().handler_block(self.row_changed_signal)
 
-        # Sort pages
-        self._manual_sort_by_column(0)
+        # Move the edited page to the position given by its number
+        edited = None
+        for i, row in enumerate(self.data):
+            if row[0] != i + 1:
+                edited = i
+                break
+        if edited is not None:
+            new_position = max(1, min(int(self.data[edited][0]), len(self.data)))
+            if new_position - 1 != edited:
+                model = self.get_model()
+                row = list(model[edited])
+                del self.data[edited]
+                self.data.insert(new_position - 1, row)
 
-        # And make sure there are no duplicates
+        # Page numbers are always consecutive 1..n
         self.renumber()
         self.get_model().handler_unblock(self.row_changed_signal)
 
@@ -199,65 +209,6 @@ class BaseDocument(SimpleList):
                 )
         return None
 
-    def index_for_page(self, num, min_page=None, max_page=None, direction=1):
-        "does the given page exist?"
-        if len(self.data) < 1:
-            return INFINITE
-        if min_page is None:
-            min_page = 0
-
-        if max_page is None:
-            max_page = num - 1
-
-        start = min_page
-        end = max_page + 1
-        step = 1
-        if direction < 0:
-            step = -step
-            start = min(max_page, len(self.data) - 1)
-            end = min_page - 1
-
-        i = start
-        while (i <= end and i < len(self.data)) if step > 0 else i > end:
-            if self.data[i][0] == num:
-                return i
-
-            i += step
-
-        return INFINITE
-
-    def pages_possible(self, start, step):
-        "Check how many pages could be scanned"
-        i = len(self.data) - 1
-
-        # Empty document and negative step
-        if i < 0 and step < 0:
-            num = -start / step
-            return num if num == int(num) else int(num) + 1
-
-        # Empty document, or start page after end of document, allow infinite pages
-        if i < 0 or (step > 0 and self.data[i][0] < start):
-            return INFINITE
-
-        # scan in appropriate direction, looking for position for last page
-        num = 0
-        max_page_number = self.data[i][0]
-        while True:
-            # fallen off top of index
-            if step > 0 and start + num * step > max_page_number:
-                return INFINITE
-
-            # fallen off bottom of index
-            if step < 0 and start + num * step < 1:
-                return num
-
-            # Found page
-            i = self.index_for_page(start + num * step, 0, start - 1, step)
-            if i > INFINITE:
-                return num
-
-            num += 1
-
     # TODO: now we have SQLite, probably more efficient to write a query
     def find_page_by_uuid(self, uid):
         "return page index given uuid"
@@ -286,38 +237,47 @@ class BaseDocument(SimpleList):
             ref = kwargs["replace"]
         i = None
         if ref is not None:
-            i = self._find_page_by_ref(ref)
+            if ref == INSERT_AT_START:
+                i = -1
+            else:
+                i = self._find_page_by_ref(ref)
 
-        # Block the row-changed signal whilst adding the scan (row) and sorting it.
+        # Block the row-changed signal whilst adding the scan (row).
         if self.row_changed_signal:
             self.get_model().handler_block(self.row_changed_signal)
 
         # Add to the page list
         if i is None:
             self.data.append([number, thumb, page_id])
+            new_index = len(self.data) - 1
             logger.info(
                 "Added page id %s at page number %s",
                 page_id,
-                number,
+                new_index + 1,
             )
 
         else:
             if "replace" in kwargs:
                 old_id = self.data[i][2]
                 self.data[i] = [number, thumb, page_id]
+                new_index = i
                 logger.info(
                     "Replaced page id %s at page number %s with page id %s",
                     old_id,
-                    self.data[i][0],
+                    i + 1,
                     page_id,
                 )
             elif "insert-after" in kwargs:
                 self.data.insert(i + 1, [number, thumb, page_id])
+                new_index = i + 1
                 logger.info(
                     "Inserted %s at page %s",
                     page_id,
-                    number,
+                    new_index + 1,
                 )
+
+        # Page numbers are always consecutive 1..n
+        self.renumber()
 
         # Block selection_changed_signal
         # to prevent its firing changing pagerange to all
@@ -325,7 +285,6 @@ class BaseDocument(SimpleList):
             self.get_selection().handler_block(self.selection_changed_signal)
 
         self.get_selection().unselect_all()
-        self._manual_sort_by_column(0)
 
         if self.selection_changed_signal:
             self.get_selection().handler_unblock(self.selection_changed_signal)
@@ -333,44 +292,8 @@ class BaseDocument(SimpleList):
         if self.row_changed_signal:
             self.get_model().handler_unblock(self.row_changed_signal)
 
-        # Due to the sort, must search for new page
-        page_selection = [0]
-
-        # page_selection[0] < len(self.data) - 1 needed to prevent infinite loop in case of
-        # error importing.
-        while (
-            page_selection[0] < len(self.data) - 1
-            and self.data[page_selection[0]][0] != number
-        ):
-            page_selection[0] += 1
-
-        self.select(page_selection)
-        # if "display" in callback[process_uuid]:
-        #     callback[process_uuid]["display"](new_page_id)
-
-        return page_selection[0]
-
-    def _manual_sort_by_column(self, sortcol):
-        """Helpers:
-
-        Manual one-time sorting of the SimpleList's data"""
-        # The sort function depends on the column type
-        #     sortfuncs = {
-        #     object : compare_text_col,
-        #     str : compare_text_col,
-        #     int    : compare_numeric_col,
-        #     float : compare_numeric_col,
-        # }
-
-        # Remember, this relies on the fact that SimpleList keeps model
-        # and view column indices aligned.
-        # sortfunc = sortfuncs[ self.get_model().get_column_type(sortcol) ]
-
-        # Deep copy the tied data so we can sort it.
-        # Otherwise, very bad things happen.
-        data = [list(x) for x in self.data.model]
-        data = sorted(data, key=lambda row: row[sortcol])
-        self.data = data
+        self.select([new_index])
+        return new_index
 
     def cut_selection(self, **kwargs):
         "Cut the selection"
@@ -399,18 +322,7 @@ class BaseDocument(SimpleList):
             self.get_model().handler_block(self.row_changed_signal)
 
         def _post_paste_logic(dest):
-            # Renumber the newly pasted rows
-            start = None
-            if dest == 0:
-                start = 1
-            else:
-                start = self.data[dest - 1][0] + 1
-
-            for i in range(dest, dest + len(kwargs["data"])):
-                self.data[i][0] = start
-                start += 1
-
-            # Update the start spinbutton if necessary
+            # Renumber the newly pasted rows positionally
             self.renumber()
             self.get_model().emit(
                 "row-changed", Gtk.TreePath(), self.get_model().get_iter_first()
@@ -493,6 +405,7 @@ class BaseDocument(SimpleList):
                     for path in reversed(paths):
                         itr = model.get_iter(path)
                         model.remove(itr)
+                self.renumber()
 
             if "finished_callback" in kwargs:
                 kwargs["finished_callback"]()
@@ -593,6 +506,7 @@ class BaseDocument(SimpleList):
             if self.row_changed_signal is not None:
                 self.get_model().handler_unblock(self.row_changed_signal)
             self.data = response.info
+            self.renumber()
             logger.info("Opened document %s", db)
             logger.info("Found %i pages", len(self.data))
             self.select(0)
@@ -611,78 +525,15 @@ class BaseDocument(SimpleList):
         )
 
     def renumber(self, start=None, step=1, selection="all"):
-        "Renumber pages"
+        "Renumber pages so that page numbers are consecutive 1..n"
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
-        if start is not None:
-            if step is None:
-                step = 1
-            if selection is None:
-                selection = "all"
-            if selection == "selected":
-                selection = self.get_selected_indices()
-            else:
-                selection = range(len(self.data))
-
-            for i in selection:
-                logger.info("Renumbering page %s->%s", self.data[i][0], start)
-                self.data[i][0] = start
-                start += step
-
-        # If start and step are undefined, just make sure that the numbering is
-        # ascending.
-        else:
-            for i in range(1, len(self.data)):
-                if self.data[i][0] <= self.data[i - 1][0]:
-                    new = self.data[i - 1][0] + 1
-                    logger.info("Renumbering page %s->%s", self.data[i][0], new)
-                    self.data[i][0] = new
+        for i in range(len(self.data)):
+            self.data[i][0] = i + 1
 
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
-
-    def valid_renumber(self, start, step, selection):
-        "Check if $start and $step give duplicate page numbers"
-        logger.debug(
-            "Checking renumber validity of: start %s, step %s, selection %s",
-            start,
-            step,
-            selection,
-        )
-        if step == 0 or start < 1:
-            return False
-
-        # if we are renumbering all pages, just make sure the numbers stay positive
-        if selection == "all":
-            if step < 0:
-                return (start + (len(self.data) - 1) * step) > 0
-            return True
-
-        # Get list of pages not in selection
-        selected_pages = self.get_selected_indices()
-        all_pages = list(range(len(self.data)))
-
-        # Convert the indices to sets of page numbers
-        selected_pages = self._index2page_number(selected_pages)
-        all_pages = self._index2page_number(all_pages)
-        selected_pages = set(selected_pages)
-        all_pages = set(all_pages)
-        not_selected_pages = all_pages - selected_pages
-        logger.debug("Page numbers not selected: %s", not_selected_pages)
-
-        # Create a set from the current settings
-        current = {start + step * i for i in range(len(selected_pages))}
-        logger.debug("Current setting would create page numbers: %s", current)
-
-        # Are any of the new page numbers the same as those not selected?
-        if len(current.intersection(not_selected_pages)):
-            return False
-        return True
-
-    def _index2page_number(self, index):
-        "helper function to return an array of page numbers given an array of page indices"
-        return [self.data[i][0] for i in index]
 
     def get_page_index(self, page_range, error_callback):
         "return array index of pages depending on which radiobutton is active"

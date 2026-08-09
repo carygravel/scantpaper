@@ -91,7 +91,7 @@ def test_3():
     mlp.run()
     assert asserts == 2, "checked all expected responses #4"
 
-    def new_page_callback(image, _pagenumber):
+    def new_page_callback(image):
         nonlocal asserts
         assert isinstance(
             image, PIL.Image.Image

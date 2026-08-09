@@ -65,7 +65,6 @@ def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
                 width=70,
                 height=46,
             ),
-            number=1,
         )
         options = {
             "dir": tdir,
@@ -856,7 +855,6 @@ def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
                 height=46,
                 text_layer="[]",
             ),
-            number=1,
         )
         options = {
             "dir": tdir,

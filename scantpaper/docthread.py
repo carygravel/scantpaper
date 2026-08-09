@@ -29,6 +29,10 @@ from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-positi
 
 logger = logging.getLogger(__name__)
 
+# Sentinel used as the insert-after target to place a page at the very start of
+# the document (before position 1), where no existing page precedes it.
+INSERT_AT_START = "<start>"
+
 
 def _loggerise(variables):
     logger_vars = None
@@ -195,7 +199,6 @@ class DocThread(SaveThread):
         self._execute("""CREATE TABLE page_order(
                 action_id INTEGER NOT NULL,
                 row_id INTEGER NOT NULL,
-                page_number INTEGER NOT NULL,
                 page_id INTEGER NOT NULL,
                 initial_page_id INTEGER NOT NULL,
                 FOREIGN KEY (page_id) REFERENCES page(id),
@@ -232,10 +235,33 @@ class DocThread(SaveThread):
                 self._execute("UPDATE page_order SET initial_page_id = page_id")
                 self._execute(f"PRAGMA user_version = {USER_VERSION}")
                 self._con[threading.get_native_id()].commit()
+        self._migrate_page_order_schema()
         self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()
         if row:
             self._action_id = row[0]
+
+    def _migrate_page_order_schema(self):
+        "detect a legacy page_order schema with a page_number column and rebuild it without the column"
+        self._execute("PRAGMA table_info(page_order)")
+        columns = [row[1] for row in self._fetchall()]
+        if "page_number" not in columns:
+            return
+        logger.info("Migrating legacy page_order schema (dropping page_number)")
+        self._execute("""CREATE TABLE page_order_new(
+                action_id INTEGER NOT NULL,
+                row_id INTEGER NOT NULL,
+                page_id INTEGER NOT NULL,
+                initial_page_id INTEGER NOT NULL,
+                FOREIGN KEY (page_id) REFERENCES page(id),
+                PRIMARY KEY (action_id, row_id))""")
+        self._execute(
+            """INSERT INTO page_order_new (action_id, row_id, page_id, initial_page_id)
+               SELECT action_id, row_id, page_id, initial_page_id FROM page_order"""
+        )
+        self._execute("DROP TABLE page_order")
+        self._execute("ALTER TABLE page_order_new RENAME TO page_order")
+        self._con[threading.get_native_id()].commit()
 
     def do_open(self, request):
         "open a saved database on the worker thread"
@@ -305,67 +331,94 @@ class DocThread(SaveThread):
         self._con[tid].commit()
         return self._cur[tid].lastrowid
 
-    def add_page(self, page, number=None):
-        "add a page to the database"
+    def _shift_row_ids(self, start_row_id, shift):
+        "shift the row_ids of all rows at or after start_row_id by the given amount"
+        self._execute(
+            """SELECT row_id, initial_page_id FROM page_order
+               WHERE action_id = ? AND row_id >= ? ORDER BY row_id DESC""",
+            (self._action_id, start_row_id),
+        )
+        for row_id, initial_page_id in self._fetchall():
+            self._execute(
+                "UPDATE page_order SET row_id = ? WHERE initial_page_id = ? AND action_id = ?",
+                (row_id + shift, initial_page_id, self._action_id),
+            )
+
+    def _insert_page_order_after(self, initial_page_id, page_id):
+        "insert a page_order row immediately after the row with the given initial_page_id"
+        self._execute(
+            "SELECT row_id FROM page_order WHERE initial_page_id = ? AND action_id = ?",
+            (initial_page_id, self._action_id),
+        )
+        row = self._fetchone()
+        if row is None:
+            raise ValueError(f"Page {initial_page_id} does not exist")
+        position = row[0] + 1
+        self._shift_row_ids(position, 1)
+        self._execute(
+            """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?)""",
+            (self._action_id, position, page_id, page_id),
+        )
+        return position
+
+    def add_page(self, page, insert_after=None):
+        "add a page to the database, appending it or inserting it after the given page"
         self._check_write_tid()
         self._take_snapshot()
 
-        if number is None:
-            self._execute(
-                "SELECT MAX(page_number) FROM page_order WHERE action_id = ?",
-                (self._action_id,),
-            )
-            number = self._fetchone()[0]
-            if number is None:
-                number = 1
-            else:
-                number += 1
-
-        if self.find_row_id_by_page_number(number):
-            raise ValueError(f"Page {number} already exists")
-
         image_id, thumb = self._insert_image(page)
         page_id = self._insert_page(page, image_id)
-        self._execute(
-            "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
-            (self._action_id,),
-        )
-        max_row_id = self._fetchone()[0]
-        if max_row_id is None:
-            max_row_id = -1
-        self._execute(
-            """INSERT INTO page_order (action_id, row_id, page_number, page_id, initial_page_id)
-               VALUES (?, ?, ?, ?, ?)""",
-            (
-                self._action_id,
-                max_row_id + 1,
-                number,
-                page_id,
-                page_id,
-            ),
-        )
+        if insert_after == INSERT_AT_START:
+            position = 1
+            self._shift_row_ids(1, 1)
+            self._execute(
+                """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+                   VALUES (?, ?, ?, ?)""",
+                (self._action_id, position, page_id, page_id),
+            )
+        elif insert_after is None:
+            self._execute(
+                "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
+                (self._action_id,),
+            )
+            max_row_id = self._fetchone()[0]
+            if max_row_id is None:
+                max_row_id = -1
+            position = max_row_id + 1
+            self._execute(
+                """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+                   VALUES (?, ?, ?, ?)""",
+                (self._action_id, position, page_id, page_id),
+            )
+        else:
+            position = self._insert_page_order_after(insert_after, page_id)
         self._con[threading.get_native_id()].commit()
-        return number, thumb, page_id
+        return position, thumb, page_id
 
-    def replace_page(self, page, number, initial_page_id):
-        "replace a page in the database"
+    def replace_page(self, page, initial_page_id):
+        "replace a page in the database, keeping its position"
         self._check_write_tid()
         self._take_snapshot()
 
         image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
         page_id = self._insert_page(page, image_id)
         self._execute(
-            """UPDATE page_order SET page_number = ?, page_id = ?
+            """UPDATE page_order SET page_id = ?
                WHERE initial_page_id = ? AND action_id = ?""",
             (
-                number,
                 page_id,
                 initial_page_id,
                 self._action_id,
             ),
         )
+        self._execute(
+            "SELECT row_id FROM page_order WHERE initial_page_id = ? AND action_id = ?",
+            (initial_page_id, self._action_id),
+        )
+        position = self._fetchone()[0]
         self._con[threading.get_native_id()].commit()
-        return number, thumb, initial_page_id
+        return position, thumb, initial_page_id
 
     # TODO: Commit a95296e93b392b35285d00bc633a9aa94c76995c fixed a bug
     # seemingly deleting extra pages. Please write a test which passes after
@@ -376,21 +429,11 @@ class DocThread(SaveThread):
         self._take_snapshot()
         kwargs = request.args[0]
 
-        row_ids = []
-        page_ids = []
-        if "numbers" in kwargs:
-            for number in kwargs["numbers"]:
-                row_id = self.find_row_id_by_page_number(number)
-                if row_id is None:
-                    raise ValueError(f"Page {number} does not exist")
-                row_ids.append(row_id)
-        elif "row_ids" in kwargs:
-            row_ids = kwargs["row_ids"]
-        elif "page_ids" in kwargs:
-            page_ids = kwargs["page_ids"]
+        row_ids = kwargs.get("row_ids", [])
+        page_ids = kwargs.get("page_ids", [])
 
         if not row_ids and not page_ids:
-            raise ValueError("Specify either row_id, page_id or number")
+            raise ValueError("Specify either row_id or page_id")
 
         if row_ids:
             self._execute(
@@ -427,35 +470,13 @@ class DocThread(SaveThread):
             }
         )
 
-    def find_row_id_by_page_number(self, number):
-        "find a row id by its page number"
-        self._execute(
-            "SELECT row_id FROM page_order WHERE page_number = ? AND action_id = ?",
-            (number, self._action_id),
-        )
-        row = self._fetchone()
-        if row:
-            return row[0]
-        return None
-
-    def find_page_number_by_initial_id(self, initial_page_id):
-        "find a page number by its initial_page_id"
-        self._execute(
-            "SELECT page_number FROM page_order WHERE initial_page_id = ? AND action_id = ?",
-            (initial_page_id, self._action_id),
-        )
-        row = self._fetchone()
-        if row:
-            return row[0]
-        return None
-
     def do_page_number_table(self, _request):
         "get data for page number/thumb table on the worker thread"
         self._execute(
-            """SELECT page_number, thumb, initial_page_id
+            """SELECT row_id, thumb, initial_page_id
                FROM page_order, page, image
                WHERE page_id = page.id AND image_id = image.id AND action_id = ?
-               ORDER BY page_number""",
+               ORDER BY row_id""",
             (self._action_id,),
         )
         rows = []
@@ -484,23 +505,12 @@ class DocThread(SaveThread):
         mlp.run()
         return result[0]
 
-    # TODO: remove the page_number argument, as it is only used in tests
     def get_page(self, **kwargs):
         "get a page from the database"
-        if "number" in kwargs:
-            self._execute(
-                """SELECT image, x_res, y_res, mean, std_dev, text, annotations, page.id, image.id
-                   FROM page, page_order, image
-                   WHERE page.id = page_id
-                    AND image_id = image.id
-                    AND page_number = ?
-                    AND action_id = ?""",
-                (kwargs["number"], self._action_id),
-            )
-        elif "id" in kwargs:
+        if "id" in kwargs:
             self._execute(
                 """SELECT
-                    image, x_res, y_res, mean, std_dev, text, annotations, page_number, image.id
+                    image, x_res, y_res, mean, std_dev, text, annotations, initial_page_id, image.id
                    FROM page, page_order, image
                    WHERE page.id = page_id
                     AND image_id = image.id
@@ -509,15 +519,13 @@ class DocThread(SaveThread):
                 (kwargs["id"], self._action_id),
             )
         else:
-            raise ValueError("Please specify either page number or page id")
+            raise ValueError("Please specify the page id")
         row = self._fetchone()
         if row is None:
-            if "number" in kwargs:
-                raise ValueError(f"Page number {kwargs['number']} not found")
             raise ValueError(f"Page id {kwargs['id']} not found")
         return Page.from_bytes(
             row[0],
-            id=row[7] if "number" in kwargs else kwargs["id"],
+            id=kwargs["id"],
             resolution=(row[1], row[2], "PixelsPerInch"),
             mean=None if row[3] is None else json.loads(row[3], strict=False),
             std_dev=None if row[4] is None else json.loads(row[4], strict=False),
@@ -582,54 +590,34 @@ class DocThread(SaveThread):
         )
         max_row_id = self._fetchone()[0]
 
-        # if we are not adding the cloned pages to the end, renumber the rows after dest
+        # if we are not adding the cloned pages to the end, shift the rows after dest
         if dest <= max_row_id:
-            self._execute(
-                "SELECT row_id, page_number, initial_page_id, action_id FROM page_order WHERE action_id = ? AND row_id >= ? ORDER BY row_id",
-                (self._action_id, dest),
-            )
-            page_order = self._fetchall()
-            for i, page in enumerate(page_order):
-                page_order[i] = (
-                    page[0] + len(pages),
-                    page[1] + len(pages),
-                    page[2],
-                    self._action_id,
-                )
-            for page in reversed(
-                page_order
-            ):  # reverse list to prevent numbering conflicts during execution
-                self._execute(
-                    "UPDATE page_order SET row_id = ?, page_number = ? WHERE initial_page_id = ? AND action_id = ?",
-                    page,
-                )
-            self._con[tid].commit()
+            self._shift_row_ids(dest, len(pages))
 
         new_pages = [
             (
                 self._action_id,
                 dest + i,
-                dest + i + 1,
                 first_page_id + i,
                 first_page_id + i,
             )
             for i in range(len(pages))
         ]
         self._executemany(
-            """INSERT INTO page_order (action_id, row_id, page_number, page_id, initial_page_id)
-               VALUES (?, ?, ?, ?, ?)""",
+            """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?)""",
             new_pages,
         )
         self._con[tid].commit()
 
         self._execute(
-            f"""SELECT page_number, thumb, initial_page_id
+            f"""SELECT row_id, thumb, initial_page_id
                           FROM page_order, page, image
                           WHERE action_id = ?
                            AND page_id = page.id
                            AND image_id = image.id
                            AND page_id IN ({", ".join(["?"]*len(new_pages))})""",
-            (self._action_id, *[row[3] for row in new_pages]),
+            (self._action_id, *[row[2] for row in new_pages]),
         )
         rows = []
         for row in self._fetchall():
@@ -648,9 +636,9 @@ class DocThread(SaveThread):
         self._execute("DELETE FROM page_order WHERE action_id > ?", (self._action_id,))
         self._execute("DELETE FROM selection WHERE action_id > ?", (self._action_id,))
 
-        # copy page numbers and order to buffer
+        # copy page ids and order to buffer
         self._execute(
-            """SELECT row_id, page_number, page_id, initial_page_id
+            """SELECT row_id, page_id, initial_page_id
                 FROM page_order
                 WHERE action_id = ?""",
             (self._action_id,),
@@ -668,8 +656,8 @@ class DocThread(SaveThread):
         self._action_id += 1
         snapshot = [(self._action_id, *row) for row in snapshot]
         self._executemany(
-            """INSERT INTO page_order (action_id, row_id, page_number, page_id, initial_page_id)
-               VALUES (?, ?, ?, ?, ?)""",
+            """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?)""",
             snapshot,
         )
 
@@ -692,10 +680,10 @@ class DocThread(SaveThread):
     def _get_snapshot(self):
         "fetch the snapshot of the document with the given action id"
         self._execute(
-            """SELECT page_number, thumb, initial_page_id
+            """SELECT row_id, thumb, initial_page_id
                 FROM page_order, page, image
                 WHERE action_id = ? AND page_id = page.id AND image_id = image.id
-                ORDER BY page_number""",
+                ORDER BY row_id""",
             (self._action_id,),
         )
 
@@ -990,9 +978,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(
-                    page, self.find_page_number_by_initial_id(page.id), page.id
-                ),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1036,9 +1022,7 @@ class DocThread(SaveThread):
             request.data(
                 {
                     "type": "page",
-                    "row": self.replace_page(
-                        page, self.find_page_number_by_initial_id(page.id), page.id
-                    ),
+                    "row": self.replace_page(page, page.id),
                     "replace": page.id,
                 }
             )
@@ -1071,9 +1055,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(
-                    page, self.find_page_number_by_initial_id(page.id), page.id
-                ),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1107,9 +1089,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(
-                    page, self.find_page_number_by_initial_id(page.id), page.id
-                ),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1135,9 +1115,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(
-                    page, self.find_page_number_by_initial_id(page.id), page.id
-                ),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1172,9 +1150,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(
-                    page, self.find_page_number_by_initial_id(page.id), page.id
-                ),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1212,9 +1188,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(
-                    page, self.find_page_number_by_initial_id(page.id), page.id
-                ),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1265,18 +1239,17 @@ class DocThread(SaveThread):
 
         # have to insert the extra page first, because after the replacing the
         # input page, it won't exist any more.
-        number = self.find_page_number_by_initial_id(page.id)
         request.data(
             {
                 "type": "page",
-                "row": self.add_page(new2, number + 1),
+                "row": self.add_page(new2, insert_after=page.id),
                 "insert-after": page.id,
             }
         )
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, number, page.id),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1339,9 +1312,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(
-                    page, self.find_page_number_by_initial_id(page.id), page.id
-                ),
+                "row": self.replace_page(page, page.id),
                 "replace": page.id,
             }
         )
@@ -1439,7 +1410,6 @@ class DocThread(SaveThread):
 
                 # have to send the 2nd page 1st, as the page_id for the 1st will
                 # cease to exist after replacing it
-                number = self.find_page_number_by_initial_id(page.id)
                 if out2:
                     new2 = Page(
                         filename=out2.name,
@@ -1452,14 +1422,14 @@ class DocThread(SaveThread):
                     request.data(
                         {
                             "type": "page",
-                            "row": self.add_page(new2, number + 1),
+                            "row": self.add_page(new2, insert_after=page.id),
                             "insert-after": page.id,
                         }
                     )
                 request.data(
                     {
                         "type": "page",
-                        "row": self.replace_page(new, number, page.id),
+                        "row": self.replace_page(new, page.id),
                         "replace": page.id,
                     }
                 )
@@ -1476,25 +1446,26 @@ class DocThread(SaveThread):
     def do_import_page(self, request):
         "import page from file or object"
         kwargs = request.args[0]
-        pagenum = kwargs["page"]
+        insert_after = kwargs.pop("insert_after", None)
         page = Page(**kwargs)
         xresolution, yresolution, units = page.get_resolution()
-        row = self.add_page(page, pagenum)
+        row = self.add_page(page, insert_after=insert_after)
         page_id = row[2]
         logger.info(
-            "Added page id %s at page number %s with resolution %s,%s,%s",
+            "Added page id %s at page %s with resolution %s,%s,%s",
             page_id,
-            pagenum,
+            row[0],
             xresolution,
             yresolution,
             units,
         )
-        request.data(
-            {
-                "type": "page",
-                "row": row,
-            }
-        )
+        data = {
+            "type": "page",
+            "row": row,
+        }
+        if insert_after is not None:
+            data["insert-after"] = insert_after
+        request.data(data)
 
 
 def _calculate_crop_tuples(options, image):

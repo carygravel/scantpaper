@@ -147,13 +147,9 @@ def test_paste_selection_no_pages(mock_edit_window):
 
 def test_delete_selection(mock_edit_window):
     "Test delete_selection"
-    mock_windows = MagicMock()
-    mock_edit_window._windows = mock_windows
-
     mock_edit_window.delete_selection(None, None)
 
     mock_edit_window.slist.delete_selection_extra.assert_called_once()
-    mock_windows.reset_start_page.assert_called_once()
     mock_edit_window._update_uimanager.assert_called_once()
 
 
@@ -405,24 +401,6 @@ def test_properties_selection_changed_callback(mocker, mock_edit_window):
     # Assert that the properties window was updated with the selected properties
     mock_x_spin.set_value.assert_called_with(200)
     mock_y_spin.set_value.assert_called_with(200)
-
-
-def test_renumber_dialog(mocker, mock_edit_window):
-    "Test renumber_dialog"
-    mock_renumber_cls = mocker.patch("edit_menu_mixins.Renumber")
-    mock_renumber_instance = mock_renumber_cls.return_value
-
-    mock_edit_window.renumber_dialog(None, None)
-
-    mock_renumber_cls.assert_called_with(
-        transient_for=mock_edit_window,
-        document=mock_edit_window.slist,
-        hide_on_delete=False,
-    )
-    mock_renumber_instance.show_all.assert_called_once()
-
-    # Verify signal connection
-    assert mock_renumber_instance.connect.call_count >= 1
 
 
 def test_preferences_dialog(mocker, mock_edit_window):

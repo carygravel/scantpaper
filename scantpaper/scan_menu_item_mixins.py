@@ -63,13 +63,6 @@ class ScanMenuItemMixins:
 
         # Update default device
         self._windows.connect("changed-device", self._changed_device_callback)
-        self._windows.connect(
-            "changed-page-number-increment",
-            self._update_postprocessing_options_callback,
-        )
-        self._windows.connect(
-            "changed-side-to-scan", self._changed_side_to_scan_callback
-        )
         signal = None
 
         def started_progress_callback(_widget, message):
@@ -350,26 +343,14 @@ class ScanMenuItemMixins:
         else:
             self._windows = None
 
-    def _changed_side_to_scan_callback(self, widget, side):
-        "Callback function to handle the event when the side to scan is changed."
-        logger.debug("changed_side_to_scan_callback( %s )", side)
-        if len(self.slist.data) > 0:
-            widget.page_number_start = self.slist.data[len(self.slist.data) - 1][0] + 1
-        else:
-            widget.page_number_start = 1
-
     def _update_postprocessing_options_callback(
         self, widget, _option_name=None, _option_val=None, _uuid=None
     ):
         "update the visibility of post-processing options based on the widget's scan options."
         # widget is windows
         options = widget.available_scan_options
-        increment = widget.page_number_increment
         if options is not None:
-            if increment != 1 or options.can_duplex():
-                self._rotate_controls.can_duplex = True
-            else:
-                self._rotate_controls.can_duplex = False
+            self._rotate_controls.can_duplex = options.can_duplex()
 
     def _changed_progress_callback(self, _widget, progress, message):
         "Updates the progress bar based on the given progress value and message."
@@ -388,7 +369,7 @@ class ScanMenuItemMixins:
         self.settings["profile"][name] = profile.get()
 
     def _new_scan_callback(
-        self, _widget, image_object, page_number, xresolution, yresolution
+        self, _widget, image_object, insert_after, side, xresolution, yresolution
     ):
         "Callback function to handle a new scan."
         if image_object is None:
@@ -396,11 +377,10 @@ class ScanMenuItemMixins:
 
         rotate = (
             self.settings["rotate facing"]
-            if page_number % 2
+            if side == "facing"
             else self.settings["rotate reverse"]
         )
         options = {
-            "page": page_number,
             "dir": self.session.name,
             "rotate": rotate,
             "ocr": self.settings["OCR on scan"],
@@ -413,6 +393,8 @@ class ScanMenuItemMixins:
             "image_object": image_object,
             "resolution": (xresolution, yresolution, "PixelsPerInch"),
         }
+        if insert_after is not None:
+            options["insert_after"] = insert_after
         if self.settings["unpaper on scan"]:
             options["unpaper"] = self._unpaper
 

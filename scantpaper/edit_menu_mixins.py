@@ -6,7 +6,6 @@ import re
 import gi
 from const import MAX_DPI
 from dialog import Dialog
-from dialog.renumber import Renumber
 from dialog.preferences import PreferencesDialog
 from i18n import _, d_sane
 
@@ -133,29 +132,7 @@ class EditMenuMixins:
     def delete_selection(self, _action, _param):
         "Delete the selected scans"
         self.slist.delete_selection_extra()
-
-        # Reset start page in scan dialog
-        if self._windows:
-            self._windows.reset_start_page()
         self._update_uimanager()
-
-    def renumber_dialog(self, _action, _param):
-        "Dialog for renumber"
-        dialog = Renumber(
-            transient_for=self,
-            document=self.slist,
-            hide_on_delete=False,
-        )
-        dialog.connect(
-            "error",
-            lambda msg: self._show_message_dialog(
-                parent=dialog,
-                message_type="error",
-                buttons=Gtk.ButtonsType.CLOSE,
-                text=msg,
-            ),
-        )
-        dialog.show_all()
 
     def select_all(self, _action, _param):
         "Select all scans"

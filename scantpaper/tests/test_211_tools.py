@@ -42,7 +42,7 @@ def test_rotate(
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.image_object.mode == "RGB", "valid JPG created"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
     assert slist.data[0][1].get_height() == 100, "thumbnail height after rotation"
@@ -67,7 +67,7 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_syn
     )
     mlp.run()
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.std_dev == [0.0], "Found blank page"
 
     #########################
@@ -91,7 +91,7 @@ def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync
     )
     mlp.run()
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.mean == [0.0], "Found dark page"
 
     #########################
@@ -134,7 +134,7 @@ def test_threshold(
     )
     mlp.run()
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert len(page.mean) == 1, "depth == 1"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
@@ -188,7 +188,7 @@ def test_negate(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert min(page.mean) == expected_mean, "mean before"
 
     mlp = safe_mainloop(2000)
@@ -205,7 +205,7 @@ def test_negate(
     )
     mlp.run()
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert max(page.mean) == 0, "mean afterwards"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
@@ -237,7 +237,7 @@ def test_unsharp_mask(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.mean == [
         179.97422360248447,
         65.09254658385093,
@@ -261,7 +261,7 @@ def test_unsharp_mask(
     )
     mlp.run()
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.mean != [
         179.97422360248447,
         65.09254658385093,
@@ -287,7 +287,7 @@ def test_crop(
 
     import_in_mainloop(slist, [temp_gif.name])
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
@@ -312,7 +312,7 @@ def test_crop(
  </body>
 </html>
 """
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
 
@@ -326,7 +326,7 @@ def test_crop(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.width == 10, "page width after crop"
     assert page.height == 10, "page height after crop"
     image = page.image_object
@@ -370,7 +370,7 @@ def test_split(
 
     import_in_mainloop(slist, [temp_gif.name])
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
@@ -404,10 +404,10 @@ def test_split(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.width == 35, "1st page width after split"
     assert page.height == 46, "1st page height after split"
-    assert page.id == 3, "1st page id after split"
+    assert page.id == 1, "1st page keeps its initial page id after split"
     image = page.image_object
     assert image.width == 35, "1st image width after split"
     assert image.height == 46, "1st image height after split"
@@ -430,7 +430,7 @@ def test_split(
 """
     assert page.export_hocr() == hocr, "split hocr"
 
-    page = get_page_sync(slist.thread, number=2)
+    page = get_page_sync(slist.thread, id=2)
     assert page.width == 35, "2nd page width after split"
     assert page.height == 46, "2nd page height after split"
     assert page.id == 2, "2nd page id after split"
@@ -485,7 +485,7 @@ def test_brightness_contrast(
     )
     mlp.run()
     mean = [179.97422360248447, 65.09254658385093, 99.69409937888199]
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.mean == mean, "mean before"
 
     mlp = safe_mainloop(2000)
@@ -502,7 +502,7 @@ def test_brightness_contrast(
         finished_callback=lambda response: mlp.quit(),
     )
     mlp.run()
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.mean != mean, "mean after"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not slist.thread.pages_saved(), "modification removed saved tag"

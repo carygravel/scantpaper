@@ -1,10 +1,13 @@
-## 3.0.15 (2026-08-08)
+## 3.0.15 (2026-08-09)
 
 * Add new metadata to suggestions
 * Match metadata suggestions against any part of the entered text,
   ordering prefix matches above the rest
 * Ensure progress bar is hidden after scanner error
 * Fix untitled title in metadata
+* Change page numbering to always run from 1-n with no gaps.
+  Scanning reverse pages therefore interleaves.
+  Please see README.md for more details.
 
 
 ## 3.0.14 (2026-07-31)

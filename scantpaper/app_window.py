@@ -219,7 +219,6 @@ class ApplicationWindow(
             ("copy", self.copy_selection),
             ("paste", self.paste_selection),
             ("delete", self.delete_selection),
-            ("renumber", self.renumber_dialog),
             ("select-all", self.select_all),
             ("select-odd", self._select_odd),
             ("select-even", self._select_even),
@@ -719,7 +718,6 @@ class ApplicationWindow(
             "cut",
             "copy",
             "delete",
-            "renumber",
             "select-all",
             "select-odd",
             "select-even",
@@ -806,10 +804,6 @@ class ApplicationWindow(
                     buttons=Gtk.ButtonsType.CLOSE,
                     text=text,
                 )
-
-        # If the scan dialog has already been drawn, update the start page spinbutton
-        if self._windows:
-            self._windows.update_start_page()
 
     def _show_message_dialog(self, **kwargs):
         "Displays a message dialog with the given options."

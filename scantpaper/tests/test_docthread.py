@@ -48,7 +48,6 @@ def test_do_tesseract_path_fallback(mocker):
 
     # Mock replace_page and other methods that hit DB
     mocker.patch.object(thread, "replace_page")
-    mocker.patch.object(thread, "find_page_number_by_initial_id")
 
     # Mock pathlib.Path
     mock_path = mocker.patch("pathlib.Path")
@@ -96,9 +95,6 @@ def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
     mocker.patch.object(thread, "get_page", return_value=mock_page)
 
     # Mock finding page number
-    mocker.patch.object(thread, "find_page_number_by_initial_id", return_value=1)
-    mocker.patch.object(thread, "find_row_id_by_page_number", return_value=1)
-
     # Mock DB operations
     mocker.patch.object(thread, "_execute")
     mocker.patch.object(thread, "_fetchone", return_value=[1])
@@ -165,9 +161,6 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
     mock_page.id = 1
     mock_page.image_id = 1
     mocker.patch.object(thread, "get_page", return_value=mock_page)
-
-    # Mock finding page number
-    mocker.patch.object(thread, "find_page_number_by_initial_id", return_value=1)
 
     # Mock DB operations
     mocker.patch.object(thread, "replace_page")
@@ -265,14 +258,16 @@ def test_open_session_file(mocker):
             (10,),  # action_id
         ],
     )
+    mocker.patch.object(thread, "_fetchall", return_value=[])
 
     thread.open("test.db")
 
     assert thread._db == "test.db"
     assert thread._action_id == 10
-    assert mock_execute.call_count == 3
+    assert mock_execute.call_count == 4
     mock_execute.assert_any_call("PRAGMA application_id")
     mock_execute.assert_any_call("PRAGMA user_version")
+    mock_execute.assert_any_call("PRAGMA table_info(page_order)")
     mock_execute.assert_any_call("SELECT MAX(action_id) FROM page_order")
 
 
@@ -601,7 +596,6 @@ def test_do_analyse_empty_image(mocker):
     mock_page.id = 1
     mocker.patch.object(thread, "get_page", return_value=mock_page)
     mocker.patch.object(thread, "replace_page")
-    mocker.patch.object(thread, "find_page_number_by_initial_id")
 
     # Mock ImageStat.Stat to return count=[0]
     mock_stat = mocker.patch("PIL.ImageStat.Stat")
@@ -649,6 +643,7 @@ def test_open_newer_version(mocker):
             (1,),
         ],
     )
+    mocker.patch.object(thread, "_fetchall", return_value=[])
     mock_logger = mocker.patch("docthread.logger")
 
     thread.open("test.db")
@@ -674,18 +669,21 @@ def test_insert_image_not_found(mocker):
         thread._insert_image(mock_page, if_different_from=1)
 
 
-def test_add_page_exists(mocker):
-    "test add_page when page already exists"
+def test_add_page_insert_after_not_found(mocker):
+    "test add_page with a non-existent insert_after page"
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
     mocker.patch.object(thread, "_take_snapshot")
-    mocker.patch.object(thread, "find_row_id_by_page_number", return_value=1)
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=None)
+    mocker.patch.object(thread, "_insert_image", return_value=(1, "thumb"))
+    mocker.patch.object(thread, "_insert_page", return_value=1)
 
     mock_page = mocker.Mock(spec=Page)
 
-    with pytest.raises(ValueError, match="Page 1 already exists"):
-        thread.add_page(mock_page, number=1)
+    with pytest.raises(ValueError, match="Page 999 does not exist"):
+        thread.add_page(mock_page, insert_after=999)
 
 
 def test_do_delete_pages_row_ids(mocker):
@@ -710,21 +708,6 @@ def test_do_delete_pages_row_ids(mocker):
     assert thread._execute.call_count >= 1
 
 
-def test_do_delete_pages_not_found(mocker):
-    "test do_delete_pages when page number does not exist"
-    thread = DocThread(db=":memory:")
-    thread._write_tid = threading.get_native_id()
-
-    mocker.patch.object(thread, "_take_snapshot")
-    mocker.patch.object(thread, "find_row_id_by_page_number", return_value=None)
-
-    request = mocker.Mock()
-    request.args = [{"numbers": [1]}]
-
-    with pytest.raises(ValueError, match="Page 1 does not exist"):
-        thread.do_delete_pages(request)
-
-
 def test_do_delete_pages_no_args(mocker):
     "test do_delete_pages with no args"
     thread = DocThread(db=":memory:")
@@ -735,32 +718,8 @@ def test_do_delete_pages_no_args(mocker):
     request = mocker.Mock()
     request.args = [{}]
 
-    with pytest.raises(ValueError, match="Specify either row_id, page_id or number"):
+    with pytest.raises(ValueError, match="Specify either row_id or page_id"):
         thread.do_delete_pages(request)
-
-
-def test_find_page_number_by_initial_id_found(mocker):
-    "test find_page_number_by_initial_id when found"
-    thread = DocThread(db=":memory:")
-    thread._write_tid = threading.get_native_id()
-
-    mocker.patch.object(thread, "_execute")
-    mocker.patch.object(thread, "_fetchone", return_value=[5])
-
-    result = thread.find_page_number_by_initial_id(1)
-    assert result == 5
-
-
-def test_find_page_number_by_initial_id_not_found(mocker):
-    "test find_page_number_by_initial_id when not found"
-    thread = DocThread(db=":memory:")
-    thread._write_tid = threading.get_native_id()
-
-    mocker.patch.object(thread, "_execute")
-    mocker.patch.object(thread, "_fetchone", return_value=None)
-
-    result = thread.find_page_number_by_initial_id(1)
-    assert result is None
 
 
 def test_get_page_errors(mocker):
@@ -769,17 +728,11 @@ def test_get_page_errors(mocker):
     thread._write_tid = threading.get_native_id()
 
     # Test no args
-    with pytest.raises(
-        ValueError, match="Please specify either page number or page id"
-    ):
+    with pytest.raises(ValueError, match="Please specify the page id"):
         thread.get_page()
 
     mocker.patch.object(thread, "_execute")
     mocker.patch.object(thread, "_fetchone", return_value=None)
-
-    # Test number not found
-    with pytest.raises(ValueError, match="Page number 1 not found"):
-        thread.get_page(number=1)
 
     # Test id not found
     with pytest.raises(ValueError, match="Page id 1 not found"):
@@ -832,7 +785,7 @@ def test_pages_saved_after_replace(temp_db, mocker):
     # 1. Add a page
     img = Image.new("RGB", (10, 10), color="red")
     page = Page(image_object=img)
-    _, _, page_id = thread.add_page(page, number=1)
+    _, _, page_id = thread.add_page(page)
 
     # 2. Check if pages are saved (should be False)
     assert not thread.pages_saved()
@@ -841,9 +794,7 @@ def test_pages_saved_after_replace(temp_db, mocker):
     img2 = Image.new("RGB", (10, 10), color="blue")
     page2 = Page(image_object=img2)
 
-    _, _, initial_page_id = thread.replace_page(
-        page2, number=1, initial_page_id=page_id
-    )
+    _, _, initial_page_id = thread.replace_page(page2, initial_page_id=page_id)
     assert initial_page_id == page_id
 
     # 4. Mark as saved using initial_page_id

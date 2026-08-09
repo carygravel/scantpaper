@@ -30,10 +30,6 @@ class MockOptions:
         "Get option by index"
         return self.options[i]
 
-    def flatbed_selected(self, _handle):
-        "Is flatbed selected?"
-        return False
-
 
 class MockOption:
     "A mock scan option"

@@ -10,6 +10,7 @@ from dialog.paperlist import PaperList
 from dialog.pagecontrols import PageControls, MAX_PAGES
 from scanner.profile import Profile
 from scanner.options import Options, within_tolerance
+from docthread import INSERT_AT_START
 from i18n import _, d_sane
 from const import POINTS_PER_INCH
 from frontend import enums
@@ -36,7 +37,8 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
             None,
             (
                 object,  # Image object
-                int,  # page number
+                object,  # insert_after - page id, INSERT_AT_START, or None to append
+                str,  # side to scan - "facing" or "reverse"
                 float,  # x-resolution
                 float,  # y-resolution
             ),
@@ -1051,6 +1053,43 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
 
     def scan(self):
         "placeholder to be overrided by subclass"
+
+    def _insert_target(self, k):
+        "return (insert_after, side) for the k-th page scanned in this pass"
+        side = self.side_to_scan
+        if self.checkx.get_active():
+            position = self.page_number_start + (k - 1) * self.page_number_increment
+            return self._uuid_before_position(position), side
+        if self.sided == "single":
+            return None, "facing"
+        if side == "facing":
+            if self._batch_start is None:
+                slist = self.document
+                self._batch_start = len(slist.data) + 1 if slist else 1
+            self._batch_n += 1
+            return None, "facing"
+        if self._batch_n == 0:
+            return None, "reverse"
+        position = self._batch_start + self._batch_n - k
+        return self._uuid_at_position(position), "reverse"
+
+    def _uuid_at_position(self, position):
+        "return the page id at the given 1-based position, or None"
+        slist = self.document
+        if slist is None or position is None:
+            return None
+        if position < 1 or position > len(slist.data):
+            return None
+        return slist.data[position - 1][2]
+
+    def _uuid_before_position(self, position):
+        """return the page id to insert after so that a new page lands at the
+        given 1-based position, or None to append"""
+        if position is None or position < 1:
+            return None
+        if position == 1:
+            return INSERT_AT_START
+        return self._uuid_at_position(position - 1)
 
     def set_profile(self, name):
         "apply the give profile"

@@ -70,10 +70,6 @@
           <attribute name='action'>app.delete</attribute>
         </item>
         <item>
-          <attribute name='label' translatable='yes'>_Renumber</attribute>
-          <attribute name='action'>app.renumber</attribute>
-        </item>
-        <item>
           <attribute name='label' translatable='yes'>_Select</attribute>
           <link name="submenu">
             <item>

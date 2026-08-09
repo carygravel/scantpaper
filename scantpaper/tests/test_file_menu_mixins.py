@@ -274,7 +274,6 @@ class TestFileMenuMixins:
         app.t_canvas.clear_text = unittest.mock.Mock()
         app.a_canvas.clear_text = unittest.mock.Mock()
         app._current_page = 1
-        app._windows.reset_start_page = unittest.mock.Mock()
         app._pages_saved = unittest.mock.Mock(return_value=True)
 
         app.new_(None, None)
@@ -285,7 +284,6 @@ class TestFileMenuMixins:
         app.t_canvas.clear_text.assert_called_once()
         app.a_canvas.clear_text.assert_called_once()
         assert app._current_page is None
-        app._windows.reset_start_page.assert_called_once()
 
     def test_new_before_scan_dialog(self, app):
         "Verify fix for #28 File/New straight after start causes Traceback"

@@ -71,7 +71,7 @@ def test_process_chain(temp_db, temp_pnm, get_page_sync):
     assert (
         asserts == 4
     ), "display callback called for import, rotate, unpaper, tesseract"
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()
@@ -118,7 +118,7 @@ def test_process_chain2(temp_db, temp_pnm, get_page_sync):
     )
     mlp.run()
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.mean == [0.0], "User-defined with %i and %o"
 
 
@@ -154,7 +154,7 @@ def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, get_page_syn
     mlp.run()
 
     assert asserts == 3, "display callback called for import, rotate, tesseract"
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()
@@ -192,7 +192,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync
     mlp.run()
 
     assert asserts == 3, "display callback called for import, rotate, tesseract"
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 
     hocr = page.export_hocr()

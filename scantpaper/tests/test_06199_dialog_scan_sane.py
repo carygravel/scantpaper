@@ -229,7 +229,7 @@ def test_scan_resolution(
     set_device_wait_reload(dialog, "mock_name")
     loop = mainloop_with_timeout()
 
-    def new_scan_cb(_widget, _image_ob, _pagenumber, xres, yres):
+    def new_scan_cb(_widget, _image_ob, _insert_after, _side, xres, yres):
         dialog.disconnect(dialog.new_signal)
         assert xres == 300, "x-resolution defaults"
         assert yres == 300, "y-resolution defaults"
@@ -254,7 +254,7 @@ def test_scan_resolution(
 
     loop = mainloop_with_timeout()
 
-    def new_scan_cb2(_widget, _image_ob, _pagenumber, xres, yres):
+    def new_scan_cb2(_widget, _image_ob, _insert_after, _side, xres, yres):
         dialog.disconnect(dialog.new_signal)
         assert xres == 600, "x-resolution from resolution option"
         assert yres == 600, "y-resolution from resolution option"
@@ -271,7 +271,7 @@ def test_scan_resolution(
 
     loop = mainloop_with_timeout()
 
-    def new_scan_cb3(_widget, _image_ob, _pagenumber, xres, yres):
+    def new_scan_cb3(_widget, _image_ob, _insert_after, _side, xres, yres):
         dialog.disconnect(dialog.new_signal)
         assert xres == 150, "x-resolution from x-resolution option"
         assert yres == 600, "y-resolution from resolution option"

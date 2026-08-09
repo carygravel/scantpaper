@@ -592,13 +592,6 @@ def test_update_uimanager_ghost_ocr_and_hide_email(app_window):
     app_window._windowe.hide.assert_called_once()
 
 
-def test_update_uimanager_with_scan_dialog(app_window):
-    "Test _update_uimanager when scan dialog exists (covers 801)"
-    app_window._windows = MagicMock()
-    app_window._update_uimanager()
-    app_window._windows.update_start_page.assert_called_once()
-
-
 def test_process_error_reopen(app_window, mocker):
     "Test _process_error_callback with reopen response (covers 892)"
     app_window._scan_progress = MagicMock()

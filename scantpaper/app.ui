@@ -82,13 +82,6 @@
         <attribute name="label" translatable="yes">_Delete</attribute>
       </item>
     </section>
-    <section>
-      <item>
-        <attribute name="action">win.renumber</attribute>
-        <attribute name="label" translatable="yes">_Renumber</attribute>
-        <attribute name="accel">&lt;control&gt;r</attribute>
-      </item>
-    </section>
     <submenu>
       <attribute name="label" translatable="yes">_Select</attribute>
       <item>
@@ -432,12 +425,6 @@
     <child><object class="GtkSeparatorMenuItem" /></child>
     <child>
       <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Renumber</property>
-        <signal name="activate" handler="_on_renumber"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
         <property name="label" translatable="yes">Select All</property>
         <signal name="activate" handler="_on_select_all"/>
       </object>
@@ -654,16 +641,6 @@
           </object>
         </child>
         <child><object class="GtkSeparatorToolItem" /></child>
-        <child>
-          <object class="GtkToolButton" id="toolbutton_renumber">
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Renumber pages</property>
-            <property name="action_name">win.renumber</property>
-            <property name="stock_id">gtk-sort-ascending</property>
-            <property name="hexpand">False</property>
-            <property name="vexpand">False</property>
-          </object>
-        </child>
         <child>
           <object class="GtkToolButton" id="toolbutton_select_all">
             <property name="can_focus">False</property>

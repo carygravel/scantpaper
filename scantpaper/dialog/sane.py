@@ -455,11 +455,13 @@ class SaneScanDialog(Scan):
 
         # Get selected number of pages
         num_pages = self.num_pages
-        start = self.page_number_start
-        step = self.page_number_increment
-        if step < 0 < num_pages:
+        if num_pages == 0 and self.max_pages > 0:
             num_pages = self.max_pages
-        if start == 1 and step < 0:
+        if (
+            self.sided == "double"
+            and self.side_to_scan == "reverse"
+            and self._batch_n == 0
+        ):
             self.emit("process-error", "scan", _("Must scan facing pages first"))
 
         xresolution, yresolution = self._get_xy_resolution()
@@ -468,12 +470,8 @@ class SaneScanDialog(Scan):
         def started_callback(_data):
             nonlocal i
             nonlocal num_pages
-            if num_pages == 0 and self.max_pages > 0:
-                num_pages = self.max_pages
 
-            logger.info(
-                "Scanning %s pages from %s with step %s", num_pages, start, step
-            )
+            logger.info("Scanning %s pages", num_pages)
             self.emit("started-process", make_progress_string(i, num_pages))
 
         def running_callback(_progress):
@@ -497,11 +495,14 @@ class SaneScanDialog(Scan):
                 signal = self.connect("reloaded-scan-options", reloaded_scan_options_cb)
                 self.scan_options(self.device)
 
-        def new_page_callback(image_ob, pagenumber):
+        def new_page_callback(image_ob):
             nonlocal i
             nonlocal xresolution
             nonlocal yresolution
-            self.emit("new-scan", image_ob, pagenumber, xresolution, yresolution)
+            insert_after, side = self._insert_target(i)
+            self.emit(
+                "new-scan", image_ob, insert_after, side, xresolution, yresolution
+            )
             i += 1
             self.emit(
                 "changed-progress",
@@ -516,8 +517,6 @@ class SaneScanDialog(Scan):
         self.thread.scan_pages(
             dir=self.dir,
             num_pages=num_pages,
-            start=start,
-            step=step,
             cancel_between_pages=(
                 self.cancel_between_pages
                 and self.available_scan_options.flatbed_selected(

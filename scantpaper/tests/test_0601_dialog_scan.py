@@ -39,8 +39,8 @@ def test_basics():
     dialog.page_number_increment = 3
     dialog.checkx.set_active(False)
     assert (
-        dialog.page_number_increment == 2
-    ), "turning off extended page numbering resets increment"
+        dialog.page_number_increment == 3
+    ), "turning off extended page numbering keeps increment"
 
     assert dialog.allow_batch_flatbed == 0, "default allow-batch-flatbed"
     dialog.allow_batch_flatbed = True
@@ -73,25 +73,16 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
         options = {
             "filename": rose_pnm,
             "resolution": (72, 72, "PixelsPerInch"),
-            "page": 1,
             "dir": tempdir,
         }
         slist.import_scan(**options)
-        options["page"] = 2
         slist.import_scan(**options)
-        options["page"] = 4
-        slist.import_scan(**options)
-        options["page"] = 5
 
         asserts = 0
         mlp = safe_mainloop(2000)
 
         def finished_callback(_response):
             nonlocal asserts
-            assert (
-                dialog.page_number_start == 3
-            ), "adding pages should update page-number-start"
-            assert dialog.num_pages == 1, "adding pages should update num-pages"
             asserts += 1
             mlp.quit()
 
@@ -100,12 +91,16 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
         mlp.run()
         assert asserts == 1, "ran finished callback"
 
+        # importing pages does not change the dialog's num-pages
+        assert dialog.num_pages == 1, "num-pages unaffected by document import"
+
         # v2.6.3 had the bug where scanning 10 pages on single-sided, followed by
         # 10 pages double-sided reverse resulted in the reverse pages being numbered:
         # 11, 9, 7, 5, 3, 1, -1, -3, -5, -7
         dialog.allow_batch_flatbed = True
         slist.data = [[1, None, None], [3, None, None], [5, None, None]]
-        dialog.page_number_start = 6
+        dialog._batch_start = 1
+        dialog._batch_n = 3
         dialog.num_pages = 0
         dialog.side_to_scan = "reverse"
         assert (

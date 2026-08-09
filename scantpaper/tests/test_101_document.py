@@ -51,15 +51,6 @@ def get_page_index_selected_callback(_uuid, _process, _message):
 def test_basics(temp_db):
     "test basics"
     slist = Document(db=temp_db.name)
-    assert (
-        slist.pages_possible(1, 1) == -1
-    ), "pages_possible infinite forwards in empty document"
-    assert (
-        slist.pages_possible(2, -1) == 2
-    ), "pages_possible finite backwards in empty document"
-    assert (
-        slist.pages_possible(1, -2) == 1
-    ), "pages_possible finite backwards in empty document #2"
 
     selected = slist.get_page_index("all", get_page_index_all_callback)
     assert selected == [], "no pages"
@@ -80,51 +71,8 @@ def test_basics(temp_db):
     selected = slist.get_page_index("all", get_page_index_all_callback2)
     get_page_index_all_callback2.assert_not_called()
     assert selected == [0], "all"
-    assert slist.pages_possible(2, 1) == 0, "pages_possible 0 due to existing page"
-    assert (
-        slist.pages_possible(1, 1) == 1
-    ), "pages_possible finite forwards in non-empty document"
-    assert (
-        slist.pages_possible(1, -1) == 1
-    ), "pages_possible finite backwards in non-empty document"
-
-    slist.data[0][0] = 1
-    assert (
-        slist.pages_possible(2, 1) == -1
-    ), "pages_possible infinite forwards in non-empty document"
-
-    slist.data = [[1, None, None], [2, None, None], [3, None, None]]
-    assert (
-        slist.pages_possible(2, -2) == 0
-    ), "pages_possible several existing pages and negative step"
 
     slist.data = [[1, None, None], [3, None, None], [5, None, None]]
-    assert (
-        slist.pages_possible(2, 1) == 1
-    ), "pages_possible finite forwards starting in middle of range"
-    assert (
-        slist.pages_possible(2, -1) == 1
-    ), "pages_possible finite backwards starting in middle of range"
-    assert (
-        slist.pages_possible(6, -2) == 3
-    ), "pages_possible finite backwards starting at end of range"
-    assert (
-        slist.pages_possible(2, 2) == -1
-    ), "pages_possible infinite forwards starting in middle of range"
-
-    #########################
-
-    assert slist.valid_renumber(1, 1, "all"), "valid_renumber all step 1"
-    assert slist.valid_renumber(3, -1, "all"), "valid_renumber all start 3 step -1"
-    assert (
-        slist.valid_renumber(2, -1, "all") is False
-    ), "valid_renumber all start 2 step -1"
-
-    slist.select(0)
-    assert slist.valid_renumber(1, 1, "selected"), "valid_renumber selected ok"
-    assert (
-        slist.valid_renumber(3, 1, "selected") is False
-    ), "valid_renumber selected nok"
 
     #########################
 
@@ -133,7 +81,7 @@ def test_basics(temp_db):
         1,
         2,
         3,
-    ), "renumber start 1 step 1"
+    ), "renumber makes numbers consecutive"
 
 
 def test_indexing(temp_db):
@@ -141,9 +89,13 @@ def test_indexing(temp_db):
 
     slist = Document(db=temp_db.name)
     slist.data = [[1, None, None], [6, None, None], [7, None, None], [8, None, None]]
-    assert (
-        slist.pages_possible(2, 1) == 4
-    ), "pages_possible finite forwards starting in middle of range2"
+    slist.renumber()
+    assert [row[0] for row in slist.data] == [
+        1,
+        2,
+        3,
+        4,
+    ], "renumber makes numbers consecutive"
 
     #########################
 
@@ -159,10 +111,11 @@ def test_indexing(temp_db):
         [17, None, 9],
         [19, None, 10],
     ]
-    assert (
-        slist.index_for_page(12, 0, 11, 1) == -1
-    ), "index_for_page correctly returns no index"
-    assert len(slist.data) - 1 == 9, "index_for_page does not inadvertanty create pages"
+    slist.renumber()
+    assert [row[0] for row in slist.data] == list(
+        range(1, 11)
+    ), "renumber gives consecutive page numbers"
+    assert len(slist.data) == 10, "renumber does not create pages"
 
     #########################
 
@@ -650,32 +603,29 @@ def test_db(temp_db):
 
     # spoof the write thread check
     thread._write_tid = threading.get_native_id()
-    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 1)
-    page = thread.get_page(number=1)
+    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))))
+    page = thread.get_page(id=1)
     assert page.id == 1, "add page"
 
     thread = DocThread(db=temp_db.name)
-    page = thread.get_page(number=1)
+    page = thread.get_page(id=1)
     assert page.id == 1, "load from db"
 
     # spoof the write thread check
     thread._write_tid = threading.get_native_id()
-    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))), 2)
-    request = Request("delete_pages", ({"numbers": [1]},), thread.responses)
+    thread.add_page(Page(image_object=Image.new("RGB", (210, 297))))
+    request = Request("delete_pages", ({"row_ids": [0]},), thread.responses)
     thread.do_delete_pages(request)
-    assert thread.page_number_table()[0][0] == 2, "deleted page"
-
-    page = thread.get_page(number=2)
-    assert isinstance(page, Page), "get_page by number"
+    assert thread.page_number_table()[0][0] == 0, "deleted page"
 
     page = thread.get_page(id=2)
     assert isinstance(page, Page), "get_page by id"
 
     result = thread.do_undo(Request("undo", (), thread.responses))
-    assert result["snapshot"][0][0] == 1, "undo"
+    assert result["snapshot"][0][0] == 0, "undo"
 
     result = thread.do_redo(Request("redo", (), thread.responses))
-    assert result["snapshot"][0][0] == 2, "redo"
+    assert result["snapshot"][0][0] == 0, "redo"
 
     thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
     assert not thread.pages_saved(), "not all pages saved"
@@ -1083,11 +1033,11 @@ def test_get_selected_properties(temp_db):
     # Add two pages with same resolution
     img1 = Image.new("RGB", (100, 100))
     p1 = Page(image_object=img1, resolution=(300, 300, "PixelsPerInch"))
-    slist.thread.add_page(p1, 1)
+    slist.thread.add_page(p1)
 
     img2 = Image.new("RGB", (100, 100))
     p2 = Page(image_object=img2, resolution=(300, 300, "PixelsPerInch"))
-    slist.thread.add_page(p2, 2)
+    slist.thread.add_page(p2)
 
     # Update slist.data
     slist.data = slist.thread.page_number_table()
@@ -1104,7 +1054,7 @@ def test_get_selected_properties(temp_db):
     # Add a third page with different resolution
     img3 = Image.new("RGB", (100, 100))
     p3 = Page(image_object=img3, resolution=(150, 150, "PixelsPerInch"))
-    slist.thread.add_page(p3, 3)
+    slist.thread.add_page(p3)
     slist.data = slist.thread.page_number_table()
 
     # Select first and third pages (different resolutions)

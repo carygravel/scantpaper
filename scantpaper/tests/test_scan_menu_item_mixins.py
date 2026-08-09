@@ -455,29 +455,13 @@ def test_changed_device_list_callback_match_existing(mock_scan_window):
     assert mock_widget.device == "dev1"
 
 
-def test_changed_side_to_scan_callback(mock_scan_window):
-    "Test _changed_side_to_scan_callback"
-    mock_widget = MagicMock()
-
-    # Case 1: Existing pages
-    mock_scan_window.slist.data = [[4, 0, 0]]  # Last page number is 4
-    mock_scan_window._changed_side_to_scan_callback(mock_widget, None)
-    assert mock_widget.page_number_start == 5
-
-    # Case 2: No pages
-    mock_scan_window.slist.data = []
-    mock_scan_window._changed_side_to_scan_callback(mock_widget, None)
-    assert mock_widget.page_number_start == 1
-
-
 def test_update_postprocessing_options_callback(mock_scan_window):
     "Test _update_postprocessing_options_callback"
     mock_widget = MagicMock()
-    mock_widget.page_number_increment = 1
     mock_options = MagicMock()
     mock_widget.available_scan_options = mock_options
 
-    # Not duplex, increment 1
+    # Not duplex
     mock_options.can_duplex.return_value = False
     mock_scan_window._update_postprocessing_options_callback(mock_widget)
     assert mock_scan_window._rotate_controls.can_duplex is False
@@ -487,9 +471,8 @@ def test_update_postprocessing_options_callback(mock_scan_window):
     mock_scan_window._update_postprocessing_options_callback(mock_widget)
     assert mock_scan_window._rotate_controls.can_duplex is True
 
-    # Increment != 1
-    mock_widget.page_number_increment = 2
-    mock_options.can_duplex.return_value = False
+    # No available scan options
+    mock_widget.available_scan_options = None
     mock_scan_window._update_postprocessing_options_callback(mock_widget)
     assert mock_scan_window._rotate_controls.can_duplex is True
 
@@ -535,21 +518,34 @@ def test_new_scan_callback(mock_scan_window):
     mock_scan_window.post_process_progress = MagicMock()
     mock_scan_window.slist.import_scan = MagicMock()
 
-    mock_scan_window._new_scan_callback(None, mock_image, 1, 300, 300)
+    mock_scan_window._new_scan_callback(None, mock_image, None, "single", 300, 300)
 
     mock_scan_window.slist.import_scan.assert_called_once()
     call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
 
-    assert call_kwargs["page"] == 1
+    assert "page" not in call_kwargs
     assert call_kwargs["dir"] == "session_name"
     assert call_kwargs["image_object"] == mock_image
     assert call_kwargs["resolution"] == (300, 300, "PixelsPerInch")
 
 
+def test_new_scan_callback_insert_after(mock_scan_window):
+    "Test _new_scan_callback passes insert_after when not None"
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+
+    mock_scan_window._new_scan_callback(
+        None, mock_image, "some-uuid", "reverse", 300, 300
+    )
+
+    call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
+    assert call_kwargs["insert_after"] == "some-uuid"
+
+
 def test_new_scan_callback_none_image(mock_scan_window):
     "Test _new_scan_callback with None image"
     mock_scan_window.slist.import_scan = MagicMock()
-    mock_scan_window._new_scan_callback(None, None, 1, 300, 300)
+    mock_scan_window._new_scan_callback(None, None, None, "single", 300, 300)
     mock_scan_window.slist.import_scan.assert_not_called()
 
 
@@ -565,18 +561,20 @@ def test_new_scan_callback_options(mock_scan_window):
     mock_scan_window.settings["udt_on_scan"] = True
     mock_scan_window.settings["current_udt"] = "tool1"
 
-    # Even page number -> rotate reverse
     mock_scan_window.settings["rotate reverse"] = 90
     mock_scan_window.settings["rotate facing"] = 180
 
-    # Page 2 is even, 2 % 2 == 0, should use rotate reverse
-    mock_scan_window._new_scan_callback(None, mock_image, 2, 300, 300)
+    # Reverse side -> rotate reverse
+    mock_scan_window._new_scan_callback(None, mock_image, None, "reverse", 300, 300)
 
     call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
     assert call_kwargs["rotate"] == 90
+    assert call_kwargs["unpaper"] is not None
+    assert call_kwargs["threshold"] == 10
+    assert call_kwargs["udt"] == "tool1"
 
-    # Page 1 is odd, 1 % 2 == 1, should use rotate facing
-    mock_scan_window._new_scan_callback(None, mock_image, 1, 300, 300)
+    # Facing side -> rotate facing
+    mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
     call_kwargs = mock_scan_window.slist.import_scan.call_args_list[1][1]
     assert call_kwargs["rotate"] == 180
 

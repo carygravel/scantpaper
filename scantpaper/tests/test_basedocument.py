@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 import gi
 import pytest
 from basedocument import ID_PAGE, ID_URI, drag_data_received_callback
+from docthread import INSERT_AT_START
 from document import Document
 
 gi.require_version("Gtk", "3.0")
@@ -203,7 +204,7 @@ def test_save_open_session():
 
 
 def test_renumber_ascending():
-    "Test renumber ascending logic when start/step are undefined"
+    "Test renumber makes page numbers consecutive 1..n regardless of start/step"
     slist = Document()
     # Manually set non-ascending numbers
     slist.get_model().handler_block(slist.row_changed_signal)
@@ -211,9 +212,9 @@ def test_renumber_ascending():
     slist.get_model().handler_unblock(slist.row_changed_signal)
 
     slist.renumber()
-    assert slist.data[0][0] == 5
-    assert slist.data[1][0] == 6
-    assert slist.data[2][0] == 7
+    assert slist.data[0][0] == 1
+    assert slist.data[1][0] == 2
+    assert slist.data[2][0] == 3
 
 
 def test_generated_methods():
@@ -229,29 +230,29 @@ def test_generated_methods():
     slist.thread.rotate.assert_called_once()
 
 
-def test_index_for_page_direction():
-    "Test index_for_page with negative direction"
+def test_add_page_insert_before():
+    "Test add_page inserts at the start of the document"
     slist = Document()
     slist.add_page(1, None, 101)
     slist.add_page(2, None, 102)
-    slist.add_page(3, None, 103)
-
-    # Search for page 2 from end to start
-    assert slist.index_for_page(2, min_page=0, max_page=2, direction=-1) == 1
-    # Search for non-existent page
-    assert slist.index_for_page(4, direction=-1) == -1
+    slist.add_page(3, None, 103, **{"insert-after": INSERT_AT_START})
+    assert [row[2] for row in slist.data] == [103, 101, 102], "inserted at start"
+    assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
 
 
-def test_pages_possible_infinite():
-    "Test pages_possible infinite cases"
+def test_add_page_renumbers():
+    "Test add_page keeps page numbers consecutive"
     slist = Document()
 
-    # Empty document, step > 0
-    assert slist.pages_possible(1, 1) == -1  # INFINITE is -1
+    # Empty document, out-of-order add
+    slist.add_page(10, None, 101)
+    slist.add_page(10, None, 102)
+    assert [row[0] for row in slist.data] == [1, 2], "renumbered consecutively"
 
-    # Start page after end of document
-    slist.add_page(1, None, 101)
-    assert slist.pages_possible(5, 1) == -1
+    # Insert after a given page renumbers the remainder
+    slist.add_page(10, None, 103, **{"insert-after": 101})
+    assert [row[2] for row in slist.data] == [101, 103, 102], "inserted after 101"
+    assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
 
 
 def test_paste_selection_complex(mock_thread):
@@ -280,28 +281,6 @@ def test_paste_selection_complex(mock_thread):
     assert slist.data[1][2] == 103
 
 
-def test_valid_renumber_complex():
-    "Test valid_renumber with various scenarios"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(2, None, 102)
-    slist.add_page(3, None, 103)
-
-    # Invalid start
-    assert not slist.valid_renumber(0, 1, "all")
-    # Invalid step
-    assert not slist.valid_renumber(1, 0, "all")
-
-    # selection="all", negative step resulting in negative page number
-    # 3 pages, start 2, step -1 -> 2, 1, 0 (invalid)
-    assert not slist.valid_renumber(2, -1, "all")
-
-    # selection="selected", overlap with non-selected
-    slist.select(0)  # select page 1 (uuid 101)
-    # try to renumber page 1 to 2, but 2 is already taken by non-selected
-    assert not slist.valid_renumber(2, 1, "selected")
-
-
 def test_get_page_index_errors():
     "Test get_page_index error handling"
     slist = Document()
@@ -316,21 +295,6 @@ def test_get_page_index_errors():
     slist.get_selection().unselect_all()
     assert slist.get_page_index("selected", error_callback) == []
     error_callback.assert_called_with(None, "Get page", "No pages selected")
-
-
-def test_renumber_selected():
-    "Test renumbering only selected pages"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(2, None, 102)
-    slist.add_page(3, None, 103)
-
-    slist.get_selection().unselect_all()
-    slist.select(2)  # page 3 (index 2)
-    slist.renumber(start=10, step=1, selection="selected")
-    assert slist.data[0][0] == 1
-    assert slist.data[1][0] == 2
-    assert slist.data[2][0] == 10
 
 
 def test_on_row_changed_sorting():
@@ -468,16 +432,17 @@ def test_drag_data_received_callback_path_to_string():
         mock_drag_finish.assert_called_once_with(context, True, False, time)
 
 
-def test_pages_possible_extra():
-    "Test pages_possible edge cases"
+def test_on_row_changed_moves_page():
+    "Test _on_row_changed moves the edited page to its number's position"
     slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
 
-    # Empty document, negative step
-    # start=10, step=-2 -> 10, 8, 6, 4, 2 -> 5 pages
-    assert slist.pages_possible(10, -2) == 5
-
-    # start=10, step=-3 -> 10, 7, 4, 1 -> 4 pages
-    assert slist.pages_possible(10, -3) == 4
+    slist.select(0)
+    slist.data[0][0] = 3
+    assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to position 3"
+    assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
 
 
 def test_drag_data_received_callback_repeat(mocker):
@@ -612,13 +577,6 @@ def test_selection_changed_blocked(mock_thread):
     assert calls
 
 
-def test_valid_renumber_all_positive_step():
-    "Test valid_renumber with all pages and positive step"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    assert slist.valid_renumber(1, 1, "all")
-
-
 def test_drag_drop_callback_logic():
     "Test drag_drop_callback logic"
     # This is an internal function defined in __init__, so we can't test it directly easily
@@ -728,67 +686,15 @@ def test_delete_selection_extra_reselect():
     assert len(slist.data) == 0
 
 
-def test_valid_renumber_not_all_overlap():
-    "Test valid_renumber with selection != all and overlapping page numbers"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(2, None, 102)
-
-    slist.get_selection().unselect_all()
-    slist.select(0)  # page 1
-    # Try renumbering page 1 (selected) to 2.
-    # Page 2 (not selected) already exists.
-    # intersection should be {2} which is not empty, so returns False.
-    assert not slist.valid_renumber(2, 1, "selected")
-    # Try renumbering page 1 to 10, should be valid
-    assert slist.valid_renumber(10, 1, "selected")
-
-
-def test_index_for_page_direction_step_logic():
-    "Test index_for_page direction and step logic"
+def test_find_page_by_uuid_index():
+    "Test find_page_by_uuid returns the page index"
     slist = Document()
     slist.add_page(1, None, 101)
     slist.add_page(2, None, 102)
     slist.add_page(3, None, 103)
 
-    # direction < 0
-    # i starts at min(max_page, len-1) = min(1, 2) = 1
-    # end = min_page - 1 = 0 - 1 = -1
-    # i=1: self.data[1][0] is 2. return 1.
-    assert slist.index_for_page(2, max_page=1, direction=-1) == 1
-
-    # direction > 0, num < len(data) but num > end
-    # start=0, end=1. i starts at 0.
-    # i=0: data[0][0]=1 != 4.
-    # i=1: data[1][0]=2 != 4.
-    # i=2: loop terminates as i > end. returns INFINITE (-1).
-    assert slist.index_for_page(4, max_page=1) == -1
-
-
-def test_pages_possible_direction_step_logic():
-    "Test pages_possible direction and step logic"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(3, None, 103)
-
-    # step < 0, start + num*step falls off bottom
-    # start=2, step=-1
-    # num=0: start+0=2. index_for_page(2) -> -1. num=1.
-    # num=1: start-1=1. index_for_page(1) -> 0. i=0 > -1. return num=1.
-    assert slist.pages_possible(2, -1) == 1
-
-    # start page after end of document, step < 0
-    # i=1 (page 3). start=10, step=-1.
-    # num=0: 10. index_for_page(10, 0, 9, -1) -> -1. num=1.
-    # ...
-    # num=7: 10-7=3. index_for_page(3, 0, 9, -1) -> i=1 > -1. return num=7.
-    assert slist.pages_possible(10, -1) == 7
-
-
-def test_pages_possible_empty_doc_step_positive():
-    "Test pages_possible with empty document and positive step"
-    slist = Document()
-    assert slist.pages_possible(1, 1) == -1  # INFINITE
+    assert slist.find_page_by_uuid(102) == 1, "found page index"
+    assert slist.find_page_by_uuid(999) is None, "missing page returns None"
 
 
 def test_renumber_step_none_selection_none():
@@ -797,8 +703,8 @@ def test_renumber_step_none_selection_none():
     slist.add_page(1, None, 101)
     slist.add_page(2, None, 102)
     slist.renumber(start=10, step=None, selection=None)
-    assert slist.data[0][0] == 10
-    assert slist.data[1][0] == 11
+    assert slist.data[0][0] == 1
+    assert slist.data[1][0] == 2
 
 
 def test_get_page_index_selected_none():
@@ -865,15 +771,6 @@ def test_cancel_with_pid_1(mock_thread):
         mock_killpg.assert_not_called()
 
 
-def test_valid_renumber_all_negative_step():
-    "Test valid_renumber with all pages and negative step"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(2, None, 102)
-    # 2 pages, start 1, step -1 -> 1, 0 (invalid)
-    assert not slist.valid_renumber(1, -1, "all")
-
-
 def test_cancel_with_empty_pid(mock_thread):
     "Test cancel method with empty pid from slurp"
     mock_thread.running_pids = {"empty.pid": "empty.pid"}
@@ -885,34 +782,6 @@ def test_cancel_with_empty_pid(mock_thread):
     ):
         slist.cancel(MagicMock())
         mock_killpg.assert_not_called()
-
-
-def test_pages_possible_complex():
-    "Test pages_possible with more complex document states"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(3, None, 103)
-    slist.add_page(5, None, 105)
-
-    # step > 0, start + num*step falls into gap
-    # start=2, step=1 -> num=0, start=2. index_for_page(2) -> -1. returns 0.
-    # Wait, the logic is:
-    # while True:
-    #   if step > 0 and start + num * step > max_page_number: return INFINITE
-    #   i = self.index_for_page(start + num * step, 0, start - 1, step)
-    #   if i > INFINITE: return num
-    #   num += 1
-    # max_page_number is 5.
-    # start=2, step=1:
-    # num=0: 2 <= 5. index_for_page(2) -> -1. num=1
-    # num=1: 3 <= 5. index_for_page(3) -> 1. i=1 > -1. returns num=1.
-    assert slist.pages_possible(2, 1) == 1
-
-    # step < 0, start + num*step falls off bottom
-    # start=2, step=-2:
-    # num=0: 2 >= 1. index_for_page(2) -> -1. num=1
-    # num=1: 0 < 1. returns num=1.
-    assert slist.pages_possible(2, -2) == 1
 
 
 def test_delete_selection_callback_removes_rows():
@@ -967,24 +836,17 @@ def test_delete_selection_extra_signal():
     mock_changed.assert_called()
 
 
-def test_index_for_page_edge_cases():
-    "Test index_for_page branches"
+def test_renumber_ignore_args():
+    "Test renumber ignores legacy step/selection arguments"
     slist = Document()
-    # empty doc
-    assert slist.index_for_page(1) == -1
-
     slist.add_page(1, None, 101)
-    slist.add_page(5, None, 105)
-
-    # step > 0, i falls off end of data
-    # start=0, end=2, step=1.
-    # i=0: data[0][0]=1 != 10.
-    # i=1: data[1][0]=5 != 10.
-    # i=2: loop condition (i < len(data)) fails.
-    assert slist.index_for_page(10, min_page=0, max_page=1) == -1
+    slist.add_page(2, None, 102)
+    slist.renumber(start=10, step=None, selection=None)
+    assert slist.data[0][0] == 1
+    assert slist.data[1][0] == 2
 
 
-def test_paste_selection_insert_after(mock_thread):
+def test_paste_selection_insert_after():
     "Test paste_selection with Gtk.TreeViewDropPosition.AFTER"
     slist = Document()
     slist.add_page(1, None, 101)
@@ -1007,6 +869,27 @@ def test_paste_selection_insert_after(mock_thread):
     # 102 should be inserted at index 1
     assert slist.data[1][2] == 102
     assert slist.data[1][0] == 2  # renumbered to dest-1[0] + 1 = 1 + 1 = 2
+
+
+def test_delete_renumbers():
+    "Delete renumbers remaining pages consecutively"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
+
+    slist.get_selection().unselect_all()
+    slist.select(1)  # select page 2
+    mlp = safe_mainloop()
+
+    def _done(_result=None):
+        mlp.quit()
+
+    slist.delete_selection(finished_callback=_done)
+    mlp.run()
+
+    assert [row[0] for row in slist.data] == [1, 2], "pages renumbered"
+    assert [row[2] for row in slist.data] == [101, 103], "correct pages remain"
 
 
 def test_create_pidfile_ioerror():

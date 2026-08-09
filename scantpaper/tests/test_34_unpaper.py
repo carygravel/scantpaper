@@ -195,7 +195,7 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
 
     import_in_mainloop(slist, [temp_pbm.name])
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of imported image"
 
     asserts = 0
@@ -216,7 +216,7 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 25.74208754208754, "Resolution of processed image"
 
 
@@ -290,7 +290,7 @@ def test_unpaper2(
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 300, "Resolution of processed image"
 
 
@@ -358,7 +358,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
 
     import_in_mainloop(slist, [temp_pnm.name])
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 72, "Resolution of imported image"
 
     asserts = 0
@@ -379,9 +379,9 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
     mlp.run()
 
     assert asserts == 2, "all callbacks run"
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 72, "Resolution of 1st page"
-    page = get_page_sync(slist.thread, number=2)
+    page = get_page_sync(slist.thread, id=2)
     assert page.resolution[0] == 72, "Resolution of 2nd page"
 
     #########################
@@ -443,7 +443,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
 
     out_level = []
     for i in [0, 1]:
-        page = get_page_sync(slist.thread, number=i + 1)
+        page = get_page_sync(slist.thread, id=i + 1)
         out_level.append(page.image_object.getpixel((100, 100)))
     assert (
         len(in_level) == 2

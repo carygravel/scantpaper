@@ -117,10 +117,6 @@ class FileMenuMixins:
         self.a_canvas.clear_text()
         self._current_page = None
 
-        # Reset start page in scan dialog
-        if self._windows:
-            self._windows.reset_start_page()
-
     def open_dialog(self, _action, _param):
         "Throw up file selector and open selected file"
         # cd back to cwd to get filename

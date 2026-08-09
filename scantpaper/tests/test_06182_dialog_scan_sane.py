@@ -108,7 +108,7 @@ def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
         nonlocal callbacks
         callbacks += 1
 
-    def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
+    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
         nonlocal n
         n += 1
 
@@ -135,7 +135,7 @@ def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
     # is reached by piggybacking the next two lines."""
     loop = mainloop_with_timeout()
 
-    def new_scan_cb2(_widget, _image_ob, _pagenumber, _xres, _yres):
+    def new_scan_cb2(_widget, _image_ob, _insert_after, _side, _xres, _yres):
         dialog.disconnect(dialog.new_signal)
         nonlocal callbacks
         callbacks += 1

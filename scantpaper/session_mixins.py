@@ -716,10 +716,6 @@ class SessionMixins:
         "displays the print dialog."
         self.print_dialog(None, None)
 
-    def _on_renumber(self, _widget):
-        "Displays the renumber dialog."
-        self.renumber_dialog(None, None)
-
     def _on_select_all(self, _widget):
         "selects all pages."
         self.select_all(None, None)

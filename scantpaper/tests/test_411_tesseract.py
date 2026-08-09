@@ -101,7 +101,7 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_syn
     )
     mlp.run()
 
-    page = get_page_sync(slist.thread, number=1)
+    page = get_page_sync(slist.thread, id=1)
     hocr = page.export_hocr()
     assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'

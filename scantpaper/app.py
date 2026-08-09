@@ -1,7 +1,6 @@
 "scantpaper --- to aid the scan to PDF or DjVu process"
 
 # TODO:
-# change page numbering to always run from 1-n with no gaps
 # fix readme
 # lint
 # use pathlib for all paths

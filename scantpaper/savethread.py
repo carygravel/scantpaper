@@ -588,9 +588,7 @@ class SaveThread(Importhread):
                     resolution=page.resolution,
                     text_layer=page.text_layer,
                 )
-                row = self.replace_page(
-                    new, self.find_page_number_by_initial_id(page.id), page.id
-                )
+                row = self.replace_page(new, page.id)
                 request.data(
                     {
                         "type": "page",

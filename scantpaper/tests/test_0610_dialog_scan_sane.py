@@ -66,7 +66,9 @@ def test_1(sane_scan_dialog):
     def changed_side_to_scan_cb(_widget, side):
         dialog.disconnect(dialog.signal)
         assert side == "reverse", "changed-side-to-scan"
-        assert dialog.page_number_increment == -2, "reverse side gives increment -2"
+        assert (
+            dialog.max_pages == 0
+        ), "reverse side with no facing batch gives max_pages 0"
         nonlocal callbacks
         callbacks += 1
 
@@ -433,7 +435,7 @@ def test_8(sane_scan_dialog, mainloop_with_timeout):
     loop = mainloop_with_timeout()
     n = 0
 
-    def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
+    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
         nonlocal n
         n += 1
 
@@ -767,11 +769,11 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
-    page_numbers = []
+    scans = []
     loop = mainloop_with_timeout()
 
-    def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
-        page_numbers.append(pagenumber)
+    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
+        scans.append((insert_after, side))
 
     def finished_process_cb(_widget, process):
         if process == "scan_pages":
@@ -794,7 +796,10 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
     loop.run()
 
     assert callbacks == 2, "all callbacks executed"
-    assert page_numbers == list(range(1, 11)), "page numbers emitted correctly"
+    assert len(scans) == 10, "10 pages scanned"
+    assert all(
+        insert_after is None and side == "facing" for insert_after, side in scans
+    ), "single-sided scans append in order"
 
 
 def test_scan_reverse_pages(
@@ -803,21 +808,20 @@ def test_scan_reverse_pages(
     """The test backend conveniently gives us
     Source = Automatic Document Feeder,
     which returns SANE_STATUS_NO_DOCS after the 10th scan.
-    Test that we catch this.
-    this should also unblock num-page to allow-batch-flatbed."""
+    Test that the reverse pass interleaves the back pages after the front
+    pages in reverse order."""
 
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
-    page_numbers = []
+    scans = []
     loop = mainloop_with_timeout()
 
-    def new_scan_cb(_widget, image_ob, pagenumber, xres, yres):
-        page_numbers.append(pagenumber)
+    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
+        scans.append((insert_after, side))
 
     def changed_scan_option_cb(widget, option, value, _data):
         dialog.num_pages = 0
-        dialog.page_number_increment = -2
         dialog.scan()
         nonlocal callbacks
         callbacks += 1
@@ -829,22 +833,34 @@ def test_scan_reverse_pages(
             loop.quit()
 
     error_process_cb = MagicMock()
+
+    # Simulate a facing pass of 10 pages (1-based positions) already scanned
+    dialog.document = SimpleNamespace(
+        data=[[i, None, f"uuid-{i}"] for i in range(1, 11)]
+    )
+    dialog._batch_start = 1
+    dialog._batch_n = 10
+    dialog.sided = "double"
+    dialog.side_to_scan = "reverse"
+    assert dialog.max_pages == 10, "reverse pass bounded by facing pages"
     dialog.connect("new-scan", new_scan_cb)
     dialog.connect("finished-process", finished_process_cb)
     dialog.connect("process-error", error_process_cb)
     dialog.connect("changed-scan-option", changed_scan_option_cb)
-    dialog.side_to_scan = "reverse"
-    dialog.page_number_start = 20
-    dialog.max_pages = 10
     dialog.set_option(
         dialog.available_scan_options.by_name("source"), "Automatic Document Feeder"
     )
     loop.run()
 
     assert callbacks == 2, "all callbacks executed"
-    assert page_numbers == list(
-        range(dialog.page_number_start, 0, -2)
-    ), "page numbers emitted correctly"
+    assert len(scans) == 10, "10 reverse pages scanned"
+    assert all(
+        side == "reverse" for _insert_after, side in scans
+    ), "all scans are the reverse side"
+    insert_afters = [insert_after for insert_after, _side in scans]
+    assert insert_afters == [
+        f"uuid-{i}" for i in range(10, 0, -1)
+    ], "back pages inserted after front pages in reverse order"
     error_process_cb.assert_not_called()
 
 
@@ -1174,25 +1190,29 @@ def test_set_option_clamping(sane_scan_dialog):
 
 
 def test_scan_errors_and_clamping(mocker, sane_scan_dialog):
-    "test scan errors and clamping to cover lines 459, 461, 507, 508"
+    "test scan errors and clamping of num_pages to max_pages"
     dialog = sane_scan_dialog
     callbacks = 0
 
-    # Line 461: start == 1 and step < 0
+    mocker.patch.object(dialog, "_get_xy_resolution", return_value=(300, 300))
+
+    # Case 1: reverse double-sided scan without a facing batch
     def process_error_cb(_widget, process, message):
         assert process == "scan"
         assert "Must scan facing pages first" in message
         nonlocal callbacks
         callbacks += 1
 
-    dialog.connect("process-error", process_error_cb)
-    dialog.page_number_start = 1
-    dialog.page_number_increment = -1
+    signal = dialog.connect("process-error", process_error_cb)
+    dialog.sided = "double"
+    dialog.side_to_scan = "reverse"
+    assert dialog.max_pages == 0, "no facing batch -> max_pages 0"
+    mocker.patch.object(dialog.thread, "scan_pages", return_value=None)
     dialog.scan()
     assert callbacks == 1
+    dialog.disconnect(signal)
 
-    # Line 459: step < 0 < num_pages
-    # Also trigger lines 507, 508 by mocking scan_pages to call error_callback
+    # Case 2: scan error callback, and num_pages clamped to max_pages
     def mocked_scan_pages(**kwargs):
         response = SimpleNamespace(status="Error scanning", info=None)
         kwargs["error_callback"](response)
@@ -1206,24 +1226,21 @@ def test_scan_errors_and_clamping(mocker, sane_scan_dialog):
         callbacks += 1
 
     dialog.connect("process-error", process_error_cb2)
-    dialog.page_number_start = 2
-    dialog.page_number_increment = -1
-    dialog.num_pages = 1
+    dialog.side_to_scan = "facing"
+    dialog.allow_batch_flatbed = True
+    dialog.num_pages = 0
     dialog.max_pages = 10
-
-    # We need to mock _get_xy_resolution too as it might fail if not fully initialized
-    mocker.patch.object(dialog, "_get_xy_resolution", return_value=(300, 300))
 
     dialog.scan()
 
     dialog.thread.scan_pages.assert_called_once()
     _, kwargs = dialog.thread.scan_pages.call_args
     assert kwargs["num_pages"] == 10  # max_pages
-    assert kwargs["start"] == 2
-    assert kwargs["step"] == -1
+    assert "start" not in kwargs
+    assert "step" not in kwargs
 
     assert callbacks == 2
-    # Verify cursor was reset to default (Line 508)
+    # Verify cursor was reset to default
     assert dialog.cursor == "default"
 
 
