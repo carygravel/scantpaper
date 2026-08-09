@@ -359,19 +359,16 @@ def _create_qbfox_image():
         except OSError:
             continue
     if font is None:
-        try:
-            result = subprocess.run(
-                ["fc-match", "--format=%{file}", "sans:style=Regular"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-                check=False,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                font = ImageFont.truetype(result.stdout.strip(), font_size)
-                font_source = f"fc-match:{result.stdout.strip()}"
-        except (OSError, subprocess.TimeoutExpired):
-            pass
+        result = subprocess.run(
+            ["fc-match", "--format=%{file}", "sans:style=Regular"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            font = ImageFont.truetype(result.stdout.strip(), font_size)
+            font_source = f"fc-match:{result.stdout.strip()}"
     if font is None:
         try:
             font = ImageFont.load_default(size=font_size)
