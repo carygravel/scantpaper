@@ -705,8 +705,7 @@ class Canvas(Gtk.DrawingArea):
             words = []
             for i in sorted_word_indices:
                 bbox = bbox_map.get(i)
-                if bbox:
-                    words.append((bbox, bbox.confidence))
+                words.append((bbox, bbox.confidence))
             self.confidence_index.list = words
             self.confidence_index.index = EMPTY_LIST
 
@@ -1310,10 +1309,9 @@ class TreeIter:
         n = current.get_n_children()
         for i in range(n):
             child = current.get_child(i)
-            if isinstance(child, Bbox):
-                self._bbox.append(child)
-                self._iter.append(i)
-                return child
+            self._bbox.append(child)
+            self._iter.append(i)
+            return child
 
         while len(self._bbox) > 1:
             self._bbox.pop()
@@ -1323,10 +1321,9 @@ class TreeIter:
 
             for i in range(last_idx + 1, n_parent):
                 sibling = parent.get_child(i)
-                if isinstance(sibling, Bbox):
-                    self._bbox.append(sibling)
-                    self._iter.append(i)
-                    return sibling
+                self._bbox.append(sibling)
+                self._iter.append(i)
+                return sibling
 
         self._bbox = old_bbox
         self._iter = old_iter
@@ -1357,10 +1354,9 @@ class TreeIter:
 
         for i in range(last_idx - 1, -1, -1):
             sibling = parent.get_child(i)
-            if isinstance(sibling, Bbox):
-                self._bbox.append(sibling)
-                self._iter.append(i)
-                return self.last_leaf()
+            self._bbox.append(sibling)
+            self._iter.append(i)
+            return self.last_leaf()
         return parent
 
     def previous_word(self):
@@ -1400,11 +1396,9 @@ class TreeIter:
         n = self._bbox[-1].get_n_children() - 1
         while n > EMPTY_LIST:
             child = self._bbox[-1].get_child(n)
-            if isinstance(child, Bbox):
-                self._iter.append(n)
-                self._bbox.append(child)
-                return self.last_leaf()
-            n -= 1
+            self._iter.append(n)
+            self._bbox.append(child)
+            return self.last_leaf()
         return self._bbox[-1]
 
     def get_current_bbox(self):

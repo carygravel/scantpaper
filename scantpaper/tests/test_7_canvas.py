@@ -473,11 +473,7 @@ def test_hocr(rose_pnm):
         carea = page.get_children()[0]
         # carea children: either [line_1_1, line_1_2] (no para level) or [para1, para2]
         kids = carea.get_children()
-        if kids[0].type == "para":
-            # Two paras, each containing one line
-            line_1_2 = kids[1].get_children()[0]
-        else:
-            line_1_2 = kids[1]
+        line_1_2 = kids[1]
         bbox = line_1_2.get_children()[1]  # word_1_3
 
         assert isinstance(bbox, Bbox)
@@ -2153,3 +2149,488 @@ def test_hit_test_nonzero_offset(mocker):
     result = canvas._hit_test(170, 130)
     assert result is not None
     assert result.type == "line"
+
+
+def test_button_press_callback_edge_cases():
+    "Test button_press_callback with button != 1 and no canvas"
+    bbox = MagicMock()
+    bbox.canvas = None
+
+    event = MagicMock()
+    event.button = 2
+    callback = MagicMock()
+    button_press_callback(bbox, None, event, callback)
+    callback.assert_not_called()
+    bbox.emit.assert_not_called()
+
+    event = MagicMock()
+    event.button = 1
+    callback = MagicMock()
+    button_press_callback(bbox, None, event, callback)
+    callback.assert_called_once_with(bbox, None)
+    bbox.emit.assert_called_once_with("clicked")
+
+
+def test_bbox_connect_duplicate_signal():
+    "Test Bbox.connect when signal already registered"
+    bbox = Bbox()
+    cb = MagicMock()
+    bbox.connect("sig", cb)
+    bbox.connect("sig", cb)
+    assert len(bbox._callbacks["sig"]) == 2
+
+
+def test_bbox_get_position_index_non_bbox_parent(mocker):
+    "Test get_position_index traverses non-Bbox parents"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    child = canvas_obj.add_box(
+        text="c1",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        parent=page,
+    )
+
+    class NonBboxParent:
+        parent = page
+
+    child.parent = NonBboxParent()
+    idx = child.get_position_index()
+    assert idx == 0
+
+
+def test_bbox_walk_children_none_callback(mocker):
+    "Test walk_children with None callback"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    canvas_obj.add_box(
+        text="child",
+        bbox=Rectangle(x=0, y=0, width=50, height=50),
+        type="word",
+        parent=page,
+    )
+    page.walk_children(None)
+
+
+def test_bbox_update_box_no_canvas(mocker):
+    "Test update_box when canvas is None (covers 302->305, 327->exit)"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    word = canvas_obj.add_box(
+        text="word",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+    word.canvas = None
+    word.update_box("new", Rectangle(x=5, y=5, width=15, height=15))
+    assert word.text == "new"
+
+
+def test_bbox_update_box_page_type_skips_bbox(mocker):
+    "Test update_box with type 'page' skips bbox update (covers 307->310)"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    canvas_obj.position_index = MagicMock()
+    root = canvas_obj.get_root_item()
+    container = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=200, height=200),
+        type="line",
+        parent=root,
+    )
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=container,
+    )
+    page.update_box("title", Rectangle(x=10, y=10, width=80, height=80))
+    assert page.text == "title"
+    assert page.bbox.x == 0
+
+
+def test_bbox_update_box_indices_out_of_range(mocker):
+    "Test update_box when indices are out of parent_children bounds"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    word = canvas_obj.add_box(
+        text="old",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+    with patch.object(Bbox, "get_position_index", side_effect=[0, 99]):
+        word.update_box("new", Rectangle(x=5, y=5, width=15, height=15))
+    assert word.text == "new"
+
+
+def test_bbox_delete_box_no_canvas():
+    "Test delete_box with bbox that has no canvas"
+    bbox = Bbox(
+        text="test",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+    )
+    bbox.delete_box()
+
+
+def test_bbox_delete_box_parent_none_or_not_found(mocker):
+    "Test delete_box with parent None or self not found in children"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    word = canvas_obj.add_box(
+        text="w",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+    word.parent = None
+    word.delete_box()
+
+
+def test_bbox_delete_box_self_not_in_children(mocker):
+    "Test delete_box when self is not found in parent_children"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    word = canvas_obj.add_box(
+        text="w",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+    page.children.remove(word)
+    word.delete_box()
+
+
+def test_bbox_to_hocr_falsy_bbox_or_type():
+    "Test to_hocr returns empty string when bbox or type is falsy"
+    bbox_no_bbox = Bbox(text="test", type="word")
+    assert bbox_no_bbox.to_hocr() == ""
+
+    bbox_no_type = Bbox(
+        text="test",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type=None,
+    )
+    assert bbox_no_type.to_hocr() == ""
+
+
+def test_get_color_for_confidence_lookup_exists(mocker):
+    "Test get_color_for_confidence when lookup table already built"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj._color_lookup_table = ["#ff0000"]
+    result = canvas_obj.get_color_for_confidence(75)
+    assert result == "#ff0000"
+
+
+def test_canvas_set_text_finished_with_rebuild_edge(mocker, rose_pnm):
+    "Test set_text finished_with_rebuild with missing bbox and no callback"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=72,
+            dir=dirname,
+        )
+        page.text_layer = json.dumps(
+            [
+                {
+                    "depth": 0,
+                    "bbox": (0, 0, 100, 100),
+                    "type": "page",
+                    "text": "",
+                },
+                {
+                    "depth": 1,
+                    "bbox": (0, 0, 50, 20),
+                    "type": "word",
+                    "text": "",
+                    "confidence": 90,
+                },
+                {
+                    "depth": 1,
+                    "bbox": (10, 0, 50, 20),
+                    "type": "word",
+                    "text": "hello",
+                    "confidence": 80,
+                },
+            ]
+        )
+        canvas_obj = Canvas()
+        mlp = safe_mainloop(2000)
+        bboxes, indices = get_bboxes_and_indices(page.text_layer)
+        callback_mock = MagicMock()
+        canvas_obj.set_text(
+            bboxes=bboxes,
+            sorted_word_indices=indices,
+            finished_callback=callback_mock,
+        )
+        GLib.timeout_add(500, mlp.quit)
+        mlp.run()
+        callback_mock.assert_called_once()
+
+
+def test_canvas_on_draw(mocker):
+    "Test _on_draw handler"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 100, 100)
+    ctx = cairo.Context(surface)
+    canvas._on_draw(None, ctx)
+
+
+def test_draw_bbox_more_branches(mocker):
+    "Test _draw_bbox with layout cached, layout None, zero-width, no rotation"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    rect = Gdk.Rectangle()
+    rect.width = 200
+    rect.height = 200
+    canvas.get_allocation = MagicMock(return_value=rect)
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+
+    page = canvas.add_box(
+        text="title",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+        textangle=0,
+        transformation=[0, 0, 0],
+        confidence=100,
+    )
+
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
+    ctx = cairo.Context(surface)
+
+    def make_layout(ctx2, bbox):
+        layout = PangoCairo.create_layout(ctx2)
+        font_desc = Pango.FontDescription.from_string("Sans 10")
+        layout.set_font_description(font_desc)
+        layout.set_text(bbox.text, -1)
+        return layout
+
+    page._pango_layout = make_layout(ctx, page)
+    canvas._draw_scene(ctx)
+
+    word = canvas.add_box(
+        text="zero",
+        bbox=Rectangle(x=50, y=50, width=50, height=10),
+        type="word",
+        parent=page,
+        textangle=0,
+        transformation=[0, 0, 0],
+        confidence=100,
+    )
+    canvas._create_pango_layout = MagicMock(return_value=None)
+    canvas._draw_scene(ctx)
+
+    mock_layout = MagicMock()
+    ink = MagicMock()
+    ink.width = 0
+    ink.height = 10
+    mock_layout.get_pixel_extents.return_value = (ink, MagicMock())
+    word._pango_layout = mock_layout
+    del canvas._create_pango_layout
+    canvas._draw_scene(ctx)
+
+    word2 = canvas.add_box(
+        text="new",
+        bbox=Rectangle(x=30, y=30, width=40, height=10),
+        type="word",
+        parent=page,
+        textangle=0,
+        transformation=[0, 0, 0],
+        confidence=100,
+    )
+    canvas._draw_scene(ctx)
+
+    canvas._draw_tree(ctx, None)
+
+
+def test_find_bbox_at_edge_cases(mocker):
+    "Test _find_bbox_at with item=None and child with bbox=None"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    result = canvas_obj._find_bbox_at(None, 10, 10)
+    assert result is None
+
+    root = canvas_obj.get_root_item()
+    child = Bbox(text="test")
+    root.children.append(child)
+    result = canvas_obj._find_bbox_at(root, 10, 10)
+    assert result is None
+
+
+def test_boxed_text_no_callback(mocker):
+    "Test _boxed_text when finished_callback is falsy"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    canvas.confidence_index = ListIter()
+    canvas.position_index = MagicMock()
+    parent_mock = MagicMock()
+    options = {
+        "iter": iter([]),
+        "idx": 0,
+        "box": {"depth": 0, "bbox": (0, 0, 10, 10), "text": "t"},
+        "transformations": [[0, 0, 0]],
+        "parents": [parent_mock],
+        "edit_callback": None,
+        "bbox_map": {},
+        "skip_confidence_index": True,
+        "finished_callback": None,
+    }
+    result = canvas._boxed_text(options)
+    assert result == GLib.SOURCE_REMOVE
+
+
+def test_button_pressed_released_more(mocker):
+    "Test _button_pressed and _button_released edge cases"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    rect = Gdk.Rectangle()
+    rect.width = 200
+    rect.height = 200
+    canvas.get_allocation = MagicMock(return_value=rect)
+    canvas.get_window = MagicMock(return_value=MagicMock())
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+    canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+        edit_callback=MagicMock(),
+    )
+
+    event = MagicMock()
+    event.button = 1
+    event.x = 50
+    event.y = 50
+    canvas._button_pressed(None, event)
+
+    event = MagicMock()
+    event.button = 3
+    canvas._button_pressed(None, event)
+
+    canvas._pixbuf_size = None
+    event = MagicMock()
+    event.button = 1
+    canvas._button_pressed(None, event)
+
+
+def test_list_iter_get_previous_bbox_at_zero():
+    "Test get_previous_bbox when index is already 0"
+    li = ListIter()
+    bbox = MagicMock()
+    li.add_box_to_index(bbox, 90)
+    li.get_first_bbox()
+    result = li.get_previous_bbox()
+    assert result == bbox
+    assert li.index == 0
+
+
+def test_tree_iter_non_bbox_children(mocker):
+    "Test TreeIter with non-Bbox children and siblings"
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+
+    page = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    canvas_obj.add_box(
+        text="w1",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+    canvas_obj.add_box(
+        text="w2",
+        bbox=Rectangle(x=20, y=0, width=10, height=10),
+        type="word",
+        parent=page,
+    )
+
+    non_bbox = MagicMock()
+    page.children.insert(0, non_bbox)
+    page.children.append(MagicMock())
+
+    ti = TreeIter(page)
+    ti.next_bbox()
+    ti.next_bbox()
