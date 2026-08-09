@@ -919,3 +919,134 @@ def test_save_as(temp_db, mocker):
     execute = mocker.patch.object(thread, "_execute")
     thread.save_as(temp_db.name)
     execute.assert_called_with(f"VACUUM INTO '{temp_db.name}'")
+
+
+def test_init_no_dir_db():
+    "Test __init__ falls back to temp dir when no dir or db given"
+    thread = DocThread()
+    assert thread._dir is not None
+    assert thread._db is not None
+    thread.quit()
+
+
+def test_do_open(mocker):
+    "Test do_open calls open with the given path"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    mock_open = mocker.patch.object(thread, "open")
+    request = mocker.Mock()
+    request.args = ["/tmp/test.db"]
+    thread.do_open(request)
+    mock_open.assert_called_with("/tmp/test.db")
+
+
+def test_add_page_insert_at_start(mocker):
+    "Test add_page with INSERT_AT_START position"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    thread._con[threading.get_native_id()] = mocker.Mock()
+    mocker.patch.object(thread, "_take_snapshot")
+    mocker.patch.object(thread, "_insert_image", return_value=(1, None))
+    mocker.patch.object(thread, "_insert_page", return_value=99)
+    mock_shift = mocker.patch.object(thread, "_shift_row_ids")
+    mock_execute = mocker.patch.object(thread, "_execute")
+
+    page = mocker.Mock(spec=Page)
+    page.resolution = (300, 300, 3)
+
+    from docthread import INSERT_AT_START
+
+    result = thread.add_page(page, insert_after=INSERT_AT_START)
+    mock_shift.assert_called_with(1, 1)
+    mock_execute.assert_called()
+
+
+def test_page_number_table_error(mocker):
+    "Test page_number_table error callback"
+    thread = DocThread(db=":memory:")
+    mock_send = mocker.patch.object(thread, "send")
+
+    def send_side_effect(*args, **kwargs):
+        error_callback = kwargs["error_callback"]
+        response = mocker.Mock()
+        response.info = None
+        GLib.idle_add(lambda: error_callback(response))
+
+    mock_send.side_effect = send_side_effect
+    result = thread.page_number_table()
+    assert result is None
+
+
+def test_do_import_page_insert_after(mocker):
+    "Test do_import_page with insert_after set"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    mock_page_cls = mocker.patch("docthread.Page")
+    mock_page_cls.return_value.get_resolution.return_value = (300, 300, 3)
+    mock_add_page = mocker.patch.object(thread, "add_page", return_value=(1, None, 99))
+    request = mocker.Mock()
+    request.args = [{"filename": "/tmp/test.png", "insert_after": 5}]
+    thread.do_import_page(request)
+    mock_add_page.assert_called_with(mocker.ANY, insert_after=5)
+    request.data.assert_called_once_with(
+        {"type": "page", "row": (1, None, 99), "insert-after": 5}
+    )
+
+
+def test_close_tid_not_in_con():
+    "Test close when tid is not in _con"
+    thread = DocThread(db=":memory:")
+    thread.close()
+
+
+def test_insert_page_no_resolution(mocker):
+    "Test _insert_page when page.resolution is falsy"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    mock_execute = mocker.patch.object(thread, "_execute")
+    tid = threading.get_native_id()
+    thread._con[tid] = mocker.Mock()
+    thread._cur[tid] = mocker.Mock()
+    thread._cur[tid].lastrowid = 1
+    mocker.patch.object(thread, "_fetchone", return_value=[1])
+
+    page = mocker.Mock(spec=Page)
+    page.resolution = None
+    page.mean = None
+    page.std_dev = None
+
+    thread._insert_page(page, 1)
+    execute_call = mock_execute.call_args_list[0]
+    assert None in execute_call[0][1][2:4]
+
+
+def test_do_rotate_not_90(mocker):
+    "Test do_rotate with angle not in (-90, 90)"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    mocker.patch.object(thread, "check_cancelled")
+    mock_replace = mocker.patch.object(
+        thread, "replace_page", return_value=(1, None, 99)
+    )
+
+    page = mocker.Mock(spec=Page)
+    page.id = 1
+    page.resolution = (200, 300, 3)
+    page.width = 100
+    page.height = 200
+    page.dirty_time = None
+    page.saved = False
+    img = mocker.Mock()
+    img.width = 100
+    img.height = 200
+    img.rotate.return_value = img
+    page.image_object = img
+    mocker.patch.object(thread, "get_page", return_value=page)
+
+    request = mocker.Mock()
+    request.args = [{"angle": 45, "dir": "/tmp", "page": 1}]
+    thread.do_rotate(request)
+
+    assert page.width == 100
+    assert page.height == 200
+    mock_replace.assert_called_once()
