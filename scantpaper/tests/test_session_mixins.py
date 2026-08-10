@@ -288,6 +288,21 @@ def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
     mock_session_window._open_session.assert_not_called()
 
 
+def test_find_crashed_sessions_skips_current(mocker, mock_session_window):
+    "Test _find_crashed_sessions skips the current running session"
+    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-running.sdb"])
+    mock_session_window.session = mocker.Mock()
+    mock_session_window.session.name = "/tmp/scantpaper-running"
+    mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp")
+    mock_session_window._open_session = mocker.Mock()
+    mock_session_window._create_lockfile = mocker.Mock()
+
+    mock_session_window._find_crashed_sessions()
+
+    mock_session_window._create_lockfile.assert_not_called()
+    mock_session_window._open_session.assert_not_called()
+
+
 def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session"
     mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed.sdb"])
@@ -463,6 +478,29 @@ def test_display_image(mocker, mock_session_window):
     # Case 5: No pageid (page not found)
     mock_session_window.slist.find_page_by_uuid.return_value = None
     mock_session_window._display_image("nonexistent_page")
+
+
+def test_display_image_error(caplog, mocker, mock_session_window):
+    "Test _display_image error callback"
+    mock_session_window.slist.find_page_by_uuid.return_value = 0
+    mock_session_window.slist.data = [["page_num", None, "page_id"]]
+
+    captured_callbacks = {}
+
+    def capture_send(process, *args, **kwargs):
+        captured_callbacks["error_callback"] = kwargs.get("error_callback")
+        return mocker.Mock()
+
+    mock_session_window.slist.thread.send.side_effect = capture_send
+
+    mock_session_window._display_image("page_id")
+
+    mock_response = mocker.Mock()
+    mock_response.status = "Some error"
+    with caplog.at_level(logging.ERROR):
+        captured_callbacks["error_callback"](mock_response)
+
+    assert "Error loading page page_id: Some error" in caplog.text
 
 
 def test_error_callback(mocker, mock_session_window):
