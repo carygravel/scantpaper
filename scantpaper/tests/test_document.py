@@ -270,6 +270,32 @@ def test_undo_redo():
         assert doc._data_list == "newer_data"
 
 
+def test_undo_redo_with_error_callback():
+    "test undo and redo with an error callback"
+    doc = create_doc()
+    error_callback = unittest.mock.Mock()
+    with unittest.mock.patch.object(
+        Document, "data", new_callable=unittest.mock.PropertyMock
+    ) as mock_data:
+        mock_data.return_value = doc._data_list
+
+        last_call = {}
+
+        def mock_send(process, *args, **kwargs):
+            last_call.update(kwargs)
+            if process in ("undo", "redo"):
+                kwargs["finished_callback"](
+                    MockResponse({"snapshot": "new_data", "selection": [0]})
+                )
+
+        doc.thread.send = mock_send
+
+        doc.undo(error_callback=error_callback)
+        assert last_call["error_callback"] is error_callback
+        doc.unundo(error_callback=error_callback)
+        assert last_call["error_callback"] is error_callback
+
+
 def test_get_selected_properties():
     "test get_selected_properties"
     doc = create_doc()
