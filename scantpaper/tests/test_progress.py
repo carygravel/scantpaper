@@ -34,6 +34,25 @@ def test_progress_methods():
     progress.pulse()
 
 
+def test_progress_pulse_interval(mocker):
+    "Test that pulse returns early when called within the minimum interval"
+    progress = Progress()
+    mock_pulse = mocker.patch.object(
+        progress._pbar, "pulse"  # pylint: disable=protected-access
+    )
+    mocker.patch("progress.time.monotonic", return_value=100.0)
+
+    progress._last_pulse = 99.95  # pylint: disable=protected-access
+    progress.pulse()
+    mock_pulse.assert_not_called()
+    assert progress._last_pulse == 99.95  # pylint: disable=protected-access
+
+    progress._last_pulse = 99.0  # pylint: disable=protected-access
+    progress.pulse()
+    mock_pulse.assert_called_once()
+    assert progress._last_pulse == 100.0  # pylint: disable=protected-access
+
+
 def test_set_fraction_clamps_values():
     "Test that set_fraction clamps values to [0.0, 1.0]"
     progress = Progress()
