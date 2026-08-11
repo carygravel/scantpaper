@@ -39,7 +39,7 @@ and have installed the necessary dependencies.
     ```bash
     python3 -m venv .venv
     source .venv/bin/activate
-    pip install -r requirements.txt
+    pip install -e .
     ```
     You will also need to install the system-level dependencies mentioned in
     the `README.md` file.

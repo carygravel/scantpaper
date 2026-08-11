@@ -2,19 +2,190 @@
 
 A GUI to produce PDFs or DjVus from scanned documents.
 
+ScantPaper is a Linux application (it needs GTK3, SANE, and a Python 3
+interpreter, all of which are available on other Unix-like systems like MacOS or BSD as well).
+It is the Python rewrite (v3) of the popular
+[gscan2pdf](https://gscan2pdf.sourceforge.net/).
+
+[![Test package](https://github.com/carygravel/scantpaper/actions/workflows/test.yml/badge.svg)](https://github.com/carygravel/scantpaper/actions/workflows/test.yml)
+[![Build packages](https://github.com/carygravel/scantpaper/actions/workflows/deb.yml/badge.svg)](https://github.com/carygravel/scantpaper/actions/workflows/deb.yml)
+[![Release](https://img.shields.io/github/v/release/carygravel/scantpaper)](https://github.com/carygravel/scantpaper/releases)
+[![License](https://img.shields.io/badge/License-GPL--3.0-only-blue.svg)](https://www.gnu.org/licenses/)
+
+- **Scan** single- or double-sided, with automatic interleaving
+- **OCR** with tesseract for searchable PDF/A
+- **Edit** with crop, rotate, threshold, unsharp mask, and unpaper clean-up
+- **Save** as PDF, DjVu, TIFF, PS, TXT, hOCR, or image files
+- **Recover** crashed sessions and restore them on the next start
+
 <p align="center">
-    <img width="1254" height="656" alt="Image" src="https://github.com/user-attachments/assets/14078f4b-9cde-404e-aaab-958c77f90c5a" />
-    <em>Screenshot: Main page v3.0.0</em>
+    <img width="1254" height="656" alt="Screenshot of the scantpaper main window with thumbnails on the left and a page preview on the right" src="screenshot.png" />
+    <em>Screenshot: Main page</em>
 </p>
 
 ---
 
-## Usage
+## Table of Contents
 
-1. Start the application with `python3 scantpaper/app.py`.
+- [Quick Start](#quick-start)
+- [Description](#description)
+- [Command-line Options](#command-line-options)
+- [Diagnostics](#diagnostics)
+- [Configuration](#configuration)
+- [Dependencies](#dependencies)
+- [Download, Installation & Removal](#download-installation--removal)
+- [Support](#support)
+- [Reporting Bugs](#reporting-bugs)
+- [Translations](#translations)
+- [FAQs](#faqs)
+- [See Also](#see-also)
+- [History](#history)
+- [Author](#author)
+- [Thanks To](#thanks-to)
+- [Contributing](#contributing)
+- [Donate](#donate)
+- [License](#license)
+
+---
+
+## Quick Start
+
+Install scantpaper and its dependencies (see [Download, Installation & Removal](#download-installation--removal)), then:
+
+1. Start the application with `scantpaper` (or `python3 scantpaper/app.py` from a source checkout).
    Add `--debug|info|warn|error|fatal` to enable logging at the required level.
-1. Scan one or several pages with **File → Scan**.
-1. Create a PDF of selected pages with **File → Save**.
+2. Scan one or several pages with **File → Scan**.
+3. Select the pages and create a PDF with **File → Save**.
+4. To make the saved PDF searchable, enable **OCR** in the scan window or run **Tools → OCR** before saving.
+
+---
+
+## Description
+
+scantpaper provides a GUI for scanning, editing, and saving documents as PDF, DjVu, TIFF, PS, TXT, hOCR, SDB (scantpaper session), or image files (PNG, JPEG, PNM, GIF), and can prepend or append to an existing PDF. It supports batch scanning, metadata, OCR, and various editing tools.
+
+### How it works
+
+Scans are acquired with SANE and held in a session database while you edit
+them. When saving, PDFs are produced with `img2pdf` and OCR'd with `ocrmypdf`
+(which produces PDF/A out of the box); DjVu export uses `djvulibre-bin`, TIFF
+export uses `libtiff`, and images are written with ImageMagick.
+
+```
+┌─────────┐   ┌─────────────────┐   ┌──────────────┐   ┌──────────────────┐
+│  SANE   │   │ SQLite session  │   │ edit tools / │   │ img2pdf /        │──▶ PDF (PDF/A)
+│ scanner │──▶│ (pages in temp  │──▶│ OCR          │──▶│ ocrmypdf         │
+│         │   │  directory)     │   │ (tesseract)  │   ├──────────────────┤──▶ DjVu
+└─────────┘   └─────────────────┘   └──────────────┘   │ djvulibre-bin    │
+                                                       ├──────────────────┤──▶ TIFF
+                                                       │ libtiff          │
+                                                       ├──────────────────┤──▶ PNG, JPEG, PNM, GIF
+                                                       │ imagemagick      │
+                                                       └──────────────────┘
+```
+
+### Page Numbering
+
+Page numbers are always consecutive (1, 2, 3, …). Deleting a page renumbers the
+remainder automatically, and editing a page's number in the document table moves
+that page to the corresponding position.
+
+### Scan Flow
+
+- **Single-sided:** Each scan is appended at the end.
+- **Double-sided:** Scan all facing pages first (front 1, front 2, …, front n);
+  they are appended in order. When you flip the stack the ADF feeds them in
+  reverse (back of page n, then back of page n-1, …, back of page 1). Each
+  reverse page is inserted immediately after its matching front page, producing
+  a fully interleaved result: front 1, back 1, front 2, back 2, …, front n,
+  back n.
+
+  ```
+  scan pass 1 (fronts):     front 1, front 2, ..., front n
+  flip stack
+  scan pass 2 (backs):      back n, back n-1, ..., back 1
+  interleaved result:       front 1, back 1, front 2, back 2, ..., front n, back n
+  ```
+- **Extended mode (insert before page N):** Each new scan is inserted before the
+  selected page, advancing the insertion point for the next scan.
+
+### Main Features
+
+- **Scan:** Options for device, page count, source document, side to scan, and device-dependent options (page size, mode, resolution, batch-scan, etc.). Optionally OCR each page on scan.
+- **Save:** Save selected/all pages in multiple formats. Supports metadata. The Title, Author, Subject, and Keywords fields offer autocompletion, suggesting values from imported documents and values you have entered before.
+- **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
+- **Print:** Print selected/all pages.
+
+### Edit Menu
+
+- **Undo, Redo:** Undo or redo the last action.
+- **Cut, Copy, Paste:** Cut, copy, or paste selected pages.
+- **Delete:** Remove selected pages.
+- **Select:** Select all, odd, even, inverted, blank, dark, or modified pages, or pages without (up-to-date) OCR.
+- **Properties:** Edit image metadata.
+- **Preferences:** Configure default behaviors and frontends.
+
+### View Menu
+
+- Pan, Select, Select & Pan tools:
+    - Pan: Use the left mouse button to drag the image or canvas to pan the view
+    - Select: Use the left mouse button to select a rectangular box
+    - Select & Pan: Use the left mouse button to select a rectangular box, and
+      the middle mouse button to drag the image or canvas to pan the view
+    - In all of the above, the mouse wheel zooms in or out.
+- Zoom: 100%, fit to window, in, and out.
+- Rotate: 90° clockwise, 180°, and 90° anticlockwise.
+
+### Keyboard Shortcuts
+
+| Action       | Shortcut       |
+|--------------|----------------|
+| New          | Ctrl+N         |
+| Open         | Ctrl+O         |
+| Scan         | Ctrl+G         |
+| Save         | Ctrl+S         |
+| Email as PDF | Ctrl+E         |
+| Print        | Ctrl+P         |
+| Quit         | Ctrl+Q         |
+| Undo         | Ctrl+Z         |
+| Redo         | Ctrl+Shift+Z   |
+| Cut          | Ctrl+X         |
+| Copy         | Ctrl+C         |
+| Paste        | Ctrl+V         |
+| Delete       | Del            |
+| **Select**   |                |
+| All          | Ctrl+A         |
+| Odd          | Ctrl+1         |
+| Even         | Ctrl+2         |
+| Invert       | Ctrl+I         |
+| Blank        | Ctrl+B         |
+| Dark         | Ctrl+D         |
+| Modified     | Ctrl+M         |
+| **View**     |                |
+| Zoom in      | +              |
+| Zoom out     | −              |
+| Rotate 90° clockwise   | Ctrl+Shift+R |
+| Rotate 180°            | Ctrl+Shift+F |
+| Rotate 90° anticlockwise | Ctrl+Shift+C |
+| Help         | Ctrl+H         |
+
+### Tools
+
+- **Threshold:** Binarize images.
+- **Brightness / Contrast:** Adjust brightness and contrast.
+- **Negate:** Invert colours.
+- **Unsharp mask:** Sharpen images.
+- **Crop:** Crop selected pages.
+- **Clean up:** Use unpaper to clean up scans.
+- **Split:** Split pages vertically or horizontally.
+- **OCR:** Use tesseract to create a text layer for the selected pages. The text layer is embedded into saved PDFs, making them searchable, and can be viewed and edited in the text layer window.
+- **User-defined:** Run user-defined commands.
+
+#### User-defined Tool Variables
+
+- `%i` - input filename
+- `%o` - output filename
+- `%r` - resolution
 
 ---
 
@@ -22,17 +193,17 @@ A GUI to produce PDFs or DjVus from scanned documents.
 
 scantpaper supports the following options:
 
-- `--device=<device>`  
-    Specifies the device to use, instead of getting the list from the SANE API. Useful for remote scanners.
+- `--device <device> [...]`
+    Specifies the device(s) to use, instead of getting the list from the SANE API. Useful for remote scanners. May be repeated, or given multiple space-separated devices.
 
 - `--help`  
     Displays help and exits.
 
 - `--log=<log-file>`  
-    Specifies a file to store logging messages.
+    Specifies a file to store logging messages. On exit, the log is compressed to `<log-file>.xz`.
 
 - `--debug`, `--info`, `--warn`, `--error`, `--fatal`  
-    Defines the log level. Defaults to `--debug` if a log file is specified, otherwise `--error`.
+    Defines the log level. Defaults to `--debug` if a log file is specified, otherwise `--warn`.
 
 - `--import=<PDF|DjVu|images>`  
     Imports the specified file(s). For multi-page documents, a window is displayed to select required pages.
@@ -40,8 +211,60 @@ scantpaper supports the following options:
 - `--import-all=<PDF|DjVu|images>`  
     Imports all pages of the specified file(s).
 
+- `--locale=<directory>`
+    Sets the directory containing translated messages. See [Translations](#translations).
+
 - `--version`  
     Displays the program version and exits.
+
+### Example output
+
+```sh
+$ scantpaper --version
+scantpaper X.Y.Z
+```
+
+(Replace `X.Y.Z` with your installed version.)
+
+```sh
+$ scantpaper --help
+usage: scantpaper [-h] [--device DEVICE [DEVICE ...]]
+                  [--import IMPORT_FILES [IMPORT_FILES ...]]
+                  [--import-all IMPORT_ALL [IMPORT_ALL ...]] [--locale LOCALE]
+                  [--log LOG] [--version] [--debug] [--info] [--warn]
+                  [--error] [--fatal]
+
+A GUI to produce PDFs or DjVus from scanned documents
+
+options:
+  -h, --help            show this help message and exit
+  --device DEVICE [DEVICE ...]
+  --import IMPORT_FILES [IMPORT_FILES ...]
+  --import-all IMPORT_ALL [IMPORT_ALL ...]
+  --locale LOCALE
+  --log LOG
+  --version             show program's version number and exit
+  --debug
+  --info
+  --warn
+  --error
+  --fatal
+
+Please see /usr/share/doc/C/scantpaper/documentation.html for more detail
+```
+
+### Examples
+
+```sh
+# Import every page of a PDF, letting you edit before saving
+scantpaper --import-all ~/scans/document.pdf
+
+# Import a PDF, choosing the pages to import in a dialog
+scantpaper --import ~/scans/document.pdf
+
+# Use a remote scanner
+scantpaper --device "net:scanner.example.com:6566"
+```
 
 Scanning is handled with SANE. PDF conversion uses `img2pdf` and `ocrmypdf`. TIFF export uses `libtiff`.
 
@@ -61,9 +284,23 @@ python3 scantpaper/app.py --debug
 
 scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can be changed by setting `$XDG_CONFIG_HOME`. Preferences are usually set via **Edit → Preferences**.
 
+### Sessions
+
+All session data (pages, edits, OCR, annotations) is stored in an SQLite
+database in a temporary directory named `scantpaper-????????`, created under
+`$TMPDIR` (or `/tmp`) by default. You can change this location in
+**Edit → Preferences**. On exit the session directory is cleaned up.
+
+If scantpaper crashes, the session directory survives. On the next start you
+are asked whether to restore it via **File → Open crashed session**.
+
 ---
 
 ## Dependencies
+
+Package names below are the Debian package names. Equivalent packages for other
+distributions are given in the [wheel file](#from-a-wheel-file) installation
+instructions.
 
 ### Required
 
@@ -84,6 +321,7 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 ### Optional
 
 - djvulibre-bin
+- qpdf (for PDF encryption)
 - unpaper
 - xdg-utils
 
@@ -99,7 +337,16 @@ scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can 
 
 ## Download, Installation & Removal
 
-### Debian-based
+### Requirements
+
+- Python 3.10 or later.
+- The [dependencies](#dependencies) listed below. They are installed
+  automatically when installing from a wheel or with `uv`, but must be
+  installed manually when running from a tarball or the repository.
+
+### Packaged installs
+
+#### Debian-based
 
 - Debian `sid` should automatically have the latest version.
 
@@ -122,7 +369,7 @@ In either case to remove scantpaper afterwards:
 sudo apt remove scantpaper
 ```
 
-### From a wheel file
+#### From a wheel file
 
 Download `.whl` from [Github](https://github.com/carygravel/scantpaper/releases/).
 ```sh
@@ -155,7 +402,7 @@ To then remove it:
 pip uninstall scantpaper
 ```
 
-### With `uv`
+#### With `uv`
 
 To install the runtime dependencies with `uv`:
 
@@ -175,18 +422,23 @@ After which you can start it with:
 uv scantpaper
 ```
 
-### From Tarball
+### From source
+
+#### From a tarball
 
 Download `.tar.gz` from [Github](https://github.com/carygravel/scantpaper/releases/).
+After installing the [dependencies](#dependencies) listed above:
+
 ```sh
 tar xvfz scantpaper-x.x.x.tar.gz
 cd scantpaper-x.x.x
 python3 scantpaper/app.py
 ```
 
-### From the Repository
+#### From the repository
 
-Browse the code at [Github](https://github.com/carygravel/scantpaper):
+Browse the code at [Github](https://github.com/carygravel/scantpaper).
+After installing the [dependencies](#dependencies) listed above:
 
 ```sh
 git clone https://github.com/carygravel/scantpaper.git
@@ -215,6 +467,7 @@ In either of the above two cases, just delete the source directory to remove it.
 - Alternatively, use the
 [Github issue tracker](https://github.com/carygravel/scantpaper/issues).
 - Include the log file created by `scantpaper --log=log` with your report.
+  On exit the log is compressed to `log.xz`, so submit that file.
 
 ---
 
@@ -239,69 +492,6 @@ Set locale variables as needed (e.g., for Russian):
 ```sh
 LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 python3 scantpaper/app.py --log=log --locale=locale
 ```
-
----
-
-## Description
-
-scantpaper provides a GUI for scanning, editing, and saving documents as PDF, DjVu, TIFF, PNG, JPEG, PNM, or GIF. It supports batch scanning, metadata, OCR, and various editing tools.
-
-### Page Numbering
-
-Page numbers are always consecutive (1, 2, 3, …). Deleting a page renumbers the
-remainder automatically, and editing a page's number in the document table moves
-that page to the corresponding position.
-
-### Scan Flow
-
-- **Single-sided:** Each scan is appended at the end.
-- **Double-sided:** Scan all facing pages first (front 1, front 2, …, front n);
-  they are appended in order. When you flip the stack the ADF feeds them in
-  reverse (back of page n, then back of page n-1, …, back of page 1). Each
-  reverse page is inserted immediately after its matching front page, producing
-  a fully interleaved result: front 1, back 1, front 2, back 2, …, front n,
-  back n.
-- **Extended mode (insert before page N):** Each new scan is inserted before the
-  selected page, advancing the insertion point for the next scan.
-
-### Main Features
-
-- **Scan:** Options for device, page count, source document, side to scan, and device-dependent options (page size, mode, resolution, batch-scan, etc.).
-- **Save:** Save selected/all pages in multiple formats. Supports metadata.
-- **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
-- **Print:** Print selected/all pages.
-- **Compress temporary files:** Compress images to save space.
-
-### Edit Menu
-
-- **Delete:** Remove selected page.
-- **Select:** Select all, even, odd, blank, dark, or modified pages.
-- **Properties:** Edit image metadata.
-- **Preferences:** Configure default behaviors and frontends.
-
-### View Menu
-
-- Pan, Select, Select & Pan tools:
-    - Pan: Use the left mouse button to drag the image or canvas to pan the view
-    - Select: Use the left mouse button to select a rectangular box
-    - Select & Pan: Use the left mouse button to select a rectangular box, and
-      the middle mouse button to drag the image or canvas to pan the view
-    - In all of the above, the mouse wheel (middle mouse button) zooms in or out.
-- Zoom, rotate, and fit options.
-
-### Tools
-
-- **Threshold:** Binarize images.
-- **Unsharp mask:** Sharpen images.
-- **Crop**
-- **unpaper:** Clean up scans.
-- **OCR:** Use tesseract to extract text.
-
-#### User-defined Tool Variables
-
-- `%i` - input filename
-- `%o` - output filename
-- `%r` - resolution
 
 ---
 
@@ -367,6 +557,7 @@ treeview.view rubberband,
 
 ## See Also
 
+- [gscan2pdf](https://gscan2pdf.sourceforge.net/) (the Perl predecessor of scantpaper)
 - [XSane](http://xsane.org/)
 - [Scan Tailor](http://scantailor.org/)
 
@@ -392,6 +583,8 @@ renamed it for v3 `scantpaper`. The rewrite:
 - Stores all session data in a single Sqlite database
 - Should be simple to migrate to Gtk4
 
+See also the [changelog](changelog.md) for detailed release notes.
+
 ---
 
 ## Author
@@ -416,12 +609,7 @@ See [contributing](CONTRIBUTING.md).
 
 ## Donate
 
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-<input type="hidden" name="lc" value="US">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="GYQGXYD5UZS6S">
-<input type="image" src="https://www.paypalobjects.com/en_US/DE/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-</form>
+[![Donate via PayPal](https://www.paypalobjects.com/en_US/DE/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=GYQGXYD5UZS6S)
 
 ---
 
@@ -437,8 +625,3 @@ This program is distributed in the hope that it will be useful, but **WITHOUT
 ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
 **FITNESS FOR A PARTICULAR PURPOSE**. See the
 [GNU General Public License](https://www.gnu.org/licenses/) for more details.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether
-or not all the tests are passing for the project. You can use Shields to add
-some to your README. Many services also have instructions for adding a badge.

@@ -1,7 +1,6 @@
 "scantpaper --- to aid the scan to PDF or DjVu process"
 
 # TODO:
-# fix readme
 # lint
 # use pathlib for all paths
 # refactor methods using self.slist.clipboard
