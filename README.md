@@ -10,7 +10,7 @@ It is the Python rewrite (v3) of the popular
 [![Test package](https://github.com/carygravel/scantpaper/actions/workflows/test.yml/badge.svg)](https://github.com/carygravel/scantpaper/actions/workflows/test.yml)
 [![Build packages](https://github.com/carygravel/scantpaper/actions/workflows/deb.yml/badge.svg)](https://github.com/carygravel/scantpaper/actions/workflows/deb.yml)
 [![Release](https://img.shields.io/github/v/release/carygravel/scantpaper)](https://github.com/carygravel/scantpaper/releases)
-[![License](https://img.shields.io/badge/License-GPL--3.0-only-blue.svg)](https://www.gnu.org/licenses/)
+[![License](https://img.shields.io/badge/License-GPL--3.0--only-blue.svg)](https://www.gnu.org/licenses/)
 
 - **Scan** single- or double-sided, with automatic interleaving
 - **OCR** with tesseract for searchable PDF/A
