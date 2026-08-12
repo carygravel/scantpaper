@@ -40,7 +40,7 @@ class Crop(Dialog):
         nick="Selection",
         blurb="Current selection",
     )
-    def selection(self):  # pylint: disable=method-hidden
+    def selection(self):
         "getter for selection attribute"
         return self._selection
 

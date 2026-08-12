@@ -29,7 +29,7 @@ class Dialog(Gtk.Dialog):
         type=str, default="selected", nick="page-range", blurb="Either selected or all"
     )
 
-    def do_delete_event(self, _event):  # pylint: disable=arguments-differ
+    def do_delete_event(self, _event):
         "delete event"
         if self.hide_on_delete:
             self.hide()
@@ -125,7 +125,7 @@ class MultipleMessage(Dialog):
         self.cbn = Gtk.CheckButton()
         self.cbn.set_halign(Gtk.Align.CENTER)
         self.grid.attach(self.cbn, COL_CHECKBUTTON, self.grid_rows, 1, 1)
-        scwin.add(self.grid)  # pylint: disable=no-member
+        scwin.add(self.grid)
         self.cbn.connect("toggled", self.on_toggled)
         self.add_actions([("gtk-close", close_callback)])
 

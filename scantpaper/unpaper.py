@@ -370,7 +370,7 @@ class Unpaper:
         # Having added the widgets with callbacks if necessary, set the defaults
         self.set_options(self.default)
 
-    def _add_combobox(self, vbox, hashref, option):  # pylint: disable=no-self-use
+    def _add_combobox(self, vbox, hashref, option):
         hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=hashref[option]["string"])
@@ -394,7 +394,7 @@ class Unpaper:
         widget.connect("changed", combobox_changed_cb)
         return widget
 
-    def _add_checkbutton(self, vbox, hashref, option):  # pylint: disable=no-self-use
+    def _add_checkbutton(self, vbox, hashref, option):
         widget = Gtk.CheckButton(label=hashref[option]["string"])
         widget.set_tooltip_text(hashref[option]["tooltip"])
         vbox.pack_start(widget, True, True, 0)
@@ -452,7 +452,7 @@ class Unpaper:
         ]:
             method_name = "_add_" + hashref[option]["type"].lower()
             method = getattr(self, method_name, None)
-            widget = method(vbox, hashref, option)  # pylint: disable=not-callable
+            widget = method(vbox, hashref, option)
 
         hashref[option]["widget"] = widget
         return widget
@@ -507,7 +507,7 @@ class Unpaper:
         ]:
             method_name = "_" + options[option]["type"].lower() + "_get_option"
             method = getattr(self, method_name, None)
-            return method(option)  # pylint: disable=not-callable
+            return method(option)
 
         if option in default:
             return default[option]

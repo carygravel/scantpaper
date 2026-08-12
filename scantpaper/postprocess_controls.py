@@ -48,7 +48,7 @@ class RotateControls(Gtk.Box):
         nick="Rotate facing",
         blurb="Angle to rotate facing side",
     )
-    def rotate_facing(self):  # pylint: disable=method-hidden
+    def rotate_facing(self):
         "getter for rotate_facing attribute"
         return self._rotate_facing
 
@@ -66,7 +66,7 @@ class RotateControls(Gtk.Box):
         nick="Rotate reverse",
         blurb="Angle to rotate reverse side",
     )
-    def rotate_reverse(self):  # pylint: disable=method-hidden
+    def rotate_reverse(self):
         "getter for rotate_reverse attribute"
         return self._rotate_reverse
 
@@ -85,7 +85,7 @@ class RotateControls(Gtk.Box):
         nick="Can duplex",
         blurb="Scanner capable of duplex scanning",
     )
-    def can_duplex(self):  # pylint: disable=method-hidden
+    def can_duplex(self):
         "getter for can_duplex attribute"
         return self._can_duplex
 
@@ -251,7 +251,7 @@ class OCRControls(Gtk.Box):
         nick="OCR engine",
         blurb="Currently selected OCR engine",
     )
-    def engine(self):  # pylint: disable=method-hidden
+    def engine(self):
         "getter for engine attribute"
         return self._engine
 
@@ -267,7 +267,7 @@ class OCRControls(Gtk.Box):
         nick="OCR language",
         blurb="Currently selected OCR language",
     )
-    def language(self):  # pylint: disable=method-hidden
+    def language(self):
         "getter for language attribute"
         return self._language
 
@@ -283,7 +283,7 @@ class OCRControls(Gtk.Box):
         nick="Active",
         blurb="Whether OCR will be automatically performed",
     )
-    def active(self):  # pylint: disable=method-hidden
+    def active(self):
         "getter for active attribute"
         return self._active
 
@@ -301,7 +301,7 @@ class OCRControls(Gtk.Box):
         nick="Threshold",
         blurb="Whether to threshold before performing OCR",
     )
-    def threshold(self):  # pylint: disable=method-hidden
+    def threshold(self):
         "getter for threshold attribute"
         return self._threshold
 
@@ -319,7 +319,7 @@ class OCRControls(Gtk.Box):
         nick="Threshold value",
         blurb="Pixels lighter than this percentage will be made white",
     )
-    def threshold_value(self):  # pylint: disable=method-hidden
+    def threshold_value(self):
         "getter for threshold_value attribute"
         return self._threshold_value
 

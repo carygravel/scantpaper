@@ -13,12 +13,8 @@ def test_1():
     "test dialog"
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
     assert isinstance(dialog, Crop), "Created dialog"
-    assert (
-        dialog.page_width == 100  # pylint: disable=comparison-with-callable
-    ), "default page-width"
-    assert (
-        dialog.page_height == 100  # pylint: disable=comparison-with-callable
-    ), "default page-height"
+    assert dialog.page_width == 100, "default page-width"
+    assert dialog.page_height == 100, "default page-height"
 
     flag = False
     mlp = safe_mainloop(2000)
@@ -34,9 +30,7 @@ def test_1():
     dialog.selection = selection
     mlp.run()
     assert flag, "updating selection emits signal"
-    assert (
-        dialog._sb_x.get_value() == 10  # pylint: disable=protected-access,no-member
-    ), "updating selection changes spinbutton"
+    assert dialog._sb_x.get_value() == 10, "updating selection changes spinbutton"
 
 
 def test_coverage():
@@ -58,12 +52,10 @@ def test_coverage():
     dialog.selection = rect
 
     # Line 142: on_sb_selector_value_changed if self.selection is None
-    dialog._selection = None  # pylint: disable=protected-access
+    dialog._selection = None
     # This should trigger on_sb_selector_value_changed which sets self.selection
     # We call it directly to hit line 142
-    dialog.on_sb_selector_value_changed(
-        dialog._sb_x, "x"
-    )  # pylint: disable=protected-access,no-member
+    dialog.on_sb_selector_value_changed(dialog._sb_x, "x")
     assert dialog.selection is not None
 
 

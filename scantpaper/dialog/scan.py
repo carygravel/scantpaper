@@ -1,4 +1,4 @@
-"Scan dialog"  # pylint: disable=too-many-lines
+"Scan dialog"
 
 import re
 import weakref
@@ -28,7 +28,7 @@ NO_INDEX = -1
 logger = logging.getLogger(__name__)
 
 
-class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
+class Scan(PageControls):
     "Scan dialog"
 
     __gsignals__ = {
@@ -104,7 +104,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
     _profile = None
 
     @GObject.Property(type=object, nick="Profile", blurb="Name of current profile")
-    def profile(self):  # pylint: disable=method-hidden
+    def profile(self):
         "getter for profile attribute"
         return self._profile
 
@@ -278,7 +278,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         type=object,
         nick="Scan options available",
         blurb="Scan options currently available, whether active, selected, or not",
-    )  # pylint: disable=method-hidden
+    )
     def available_scan_options(self):
         "getter for available_scan_options attribute"
         return self._available_scan_options
@@ -305,7 +305,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         self.emit("reloaded-scan-options")
 
     @GObject.Property(type=object, nick="Cursor", blurb="name of current cursor")
-    def cursor(self):  # pylint: disable=method-hidden
+    def cursor(self):
         "getter for cursor attribute"
         return self._cursor
 
@@ -327,7 +327,7 @@ class Scan(PageControls):  # pylint: disable=too-many-instance-attributes
         type=object,
         nick="Current scan options",
         blurb="Scan options making up current profile",
-    )  # pylint: disable=method-hidden
+    )
     def current_scan_options(self):
         "getter for current_scan_options attribute"
         return self._current_scan_options

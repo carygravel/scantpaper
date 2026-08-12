@@ -11,7 +11,7 @@ MAX_PAGES = 9999
 MAX_INCREMENT = 99
 
 
-class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
+class PageControls(Dialog):
     "The page controls for the Scan dialog"
 
     __gsignals__ = {
@@ -54,7 +54,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         default=1,
         nick="Number of pages",
         blurb="Number of pages to be scanned",
-    )  # pylint: disable=method-hidden
+    )
     def num_pages(self):
         "getter for num_pages attribute"
         return self._num_pages
@@ -84,8 +84,8 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         default=1,
         nick="Starting page number",
         blurb="Page number of first page to be scanned",
-    )  # pylint: disable=method-hidden
-    def page_number_start(self):  # pylint: disable=method-hidden
+    )
+    def page_number_start(self):
         "getter for page_number_start attribute"
         return self._page_number_start
 
@@ -101,7 +101,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
         default=1,
         nick="Page number increment",
         blurb="Amount to increment page number when scanning multiple pages",
-    )  # pylint: disable=method-hidden
+    )
     def page_number_increment(self):
         "getter for page_number_increment attribute"
         return self._page_number_increment
@@ -116,7 +116,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
     #         ["single","double"] )
     @GObject.Property(
         type=str, default="single", nick="Sided", blurb="Either single or double"
-    )  # pylint: disable=method-hidden
+    )
     def sided(self):
         "getter for sided attribute"
         return self._sided
@@ -137,7 +137,7 @@ class PageControls(Dialog):  # pylint: disable=too-many-instance-attributes
     #         ["facing","reverse"] )
     @GObject.Property(
         type=object, nick="Side to scan", blurb="Either facing or reverse"
-    )  # pylint: disable=method-hidden
+    )
     def side_to_scan(self):
         "getter for side_to_scan attribute"
         return self._side_to_scan

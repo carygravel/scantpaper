@@ -194,7 +194,7 @@ class Document(BaseDocument):
         rotate_options["page"] = page_id
         rotate_options["updated_page_callback"] = updated_page_callback
         del rotate_options["finished_callback"]
-        self.rotate(**rotate_options)  # pylint: disable=no-member
+        self.rotate(**rotate_options)
 
     def _post_process_unpaper(self, page_id, options):
 
@@ -314,7 +314,7 @@ class Document(BaseDocument):
         for page in kwargs["pages"]:
             kwargs["page"] = page
             if kwargs["engine"] == "tesseract":
-                self.tesseract(**kwargs)  # pylint: disable=no-member
+                self.tesseract(**kwargs)
 
     def unpaper(self, **kwargs):
         "run unpaper on the given page"

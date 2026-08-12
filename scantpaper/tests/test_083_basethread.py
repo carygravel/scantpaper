@@ -11,7 +11,7 @@ from loop_helpers import safe_mainloop
 class MyThread(BaseThread):
     "test thread class"
 
-    def do_div(self, request):  # pylint: disable=no-self-use
+    def do_div(self, request):
         "test method"
         arg1, arg2 = request.args
         request.data("arg1 / arg2")

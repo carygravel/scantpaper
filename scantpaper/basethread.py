@@ -116,7 +116,7 @@ class BaseThread(threading.Thread):
             # We don't need a response queue for finalization
             request = Request("quit", [], None)
             requests_queue.put(request)
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             # If the interpreter is shutting down, queues might be closed/None
             pass
 
@@ -164,7 +164,7 @@ class BaseThread(threading.Thread):
         "quit the thread"
         return self.send("quit")
 
-    def input_handler(self, request):  # pylint: disable=no-self-use
+    def input_handler(self, request):
         "dummy input handler to be overridden as required"
         return request.args
 
@@ -230,7 +230,7 @@ class BaseThread(threading.Thread):
             request.finished(handler(request))
             if request.process == "quit":
                 return False
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:
             logger.error(
                 "Error running process '%s': %s",
                 request.process,
@@ -287,7 +287,7 @@ class BaseThread(threading.Thread):
         ):
             try:
                 self.callbacks[uid][callback](data)
-            except Exception as err:  # pylint: disable=broad-except
+            except Exception as err:
                 logger.error(
                     "Error running %s callback '%s' for process '%s' with args: %s: %s",
                     stage,

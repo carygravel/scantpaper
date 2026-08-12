@@ -38,11 +38,7 @@ class SessionMixins:
         "Create a temporary directory for the session"
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
-            self.session = (
-                tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
-                    prefix="scantpaper-"
-                )
-            )
+            self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
         else:
             if not os.path.isdir(tmpdir):
                 os.mkdir(tmpdir)
@@ -71,9 +67,7 @@ class SessionMixins:
         "create a lockfile in the session directory"
         if session is None:
             session = self.session.name
-        lockfd = open(  # pylint: disable=consider-using-with
-            os.path.join(session, "lockfile"), "w", encoding="utf-8"
-        )
+        lockfd = open(os.path.join(session, "lockfile"), "w", encoding="utf-8")
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
 

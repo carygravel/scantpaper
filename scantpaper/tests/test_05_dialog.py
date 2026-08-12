@@ -97,7 +97,7 @@ def test_multiple_message():
 
     # list_checkbuttons should return 2 buttons (for row1 and row2)
     # row 3 doesn't have a checkbutton because store_response=False
-    cbs = dialog._list_checkbuttons()  # pylint: disable=protected-access
+    cbs = dialog._list_checkbuttons()
     assert len(cbs) == 2, "2 checkbuttons"
 
     # Activate all checkbuttons

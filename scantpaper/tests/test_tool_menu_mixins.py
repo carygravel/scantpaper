@@ -39,7 +39,7 @@ def mock_tool_window(mocker):
         _dependencies = {}
         session = None
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+        def get_application(self, *args, **kwargs):
             "mock"
             return mock_app
 

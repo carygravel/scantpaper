@@ -384,7 +384,7 @@ def test_canvas_clear_text(mocker):
     "Test clearing text from canvas"
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
-    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+    canvas_obj._pixbuf_size = {
         "width": 100,
         "height": 100,
     }
@@ -552,8 +552,8 @@ def test_drag_text_layer(mocker):
         "mock enough of the event class to test it"
 
         button: int
-        x: int  # pylint: disable=invalid-name
-        y: int  # pylint: disable=invalid-name
+        x: int
+        y: int
 
     mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
     mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.side_effect = [
@@ -624,15 +624,15 @@ def test_canvas_hocr_empty(mocker):
     assert canvas.hocr() == ""
 
 
-def test_canvas_set_offset_clamping(mocker):  # pylint: disable=unused-argument
+def test_canvas_set_offset_clamping(mocker):
     "Test set_offset clamping logic"
     canvas_obj = Canvas()
 
-    canvas_obj._pixbuf_size = None  # pylint: disable=protected-access
+    canvas_obj._pixbuf_size = None
     canvas_obj.set_offset(10, 10)
     assert canvas_obj.offset.x == 0 and canvas_obj.offset.y == 0
 
-    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+    canvas_obj._pixbuf_size = {
         "width": 100,
         "height": 100,
     }
@@ -641,23 +641,18 @@ def test_canvas_set_offset_clamping(mocker):  # pylint: disable=unused-argument
     rect.width = 200
     rect.height = 200
     canvas_obj.get_allocation = MagicMock(return_value=rect)
-
-    canvas_obj._to_image_distance = MagicMock(  # pylint: disable=protected-access
-        return_value=(200, 200)
-    )
+    canvas_obj._to_image_distance = MagicMock(return_value=(200, 200))
     canvas_obj.get_scale_factor = MagicMock(return_value=1)
 
     canvas_obj.set_offset(0, 0)
     assert canvas_obj.offset.x == 50
     assert canvas_obj.offset.y == 50
 
-    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+    canvas_obj._pixbuf_size = {
         "width": 300,
         "height": 300,
     }
-    canvas_obj._to_image_distance = MagicMock(  # pylint: disable=protected-access
-        return_value=(200, 200)
-    )
+    canvas_obj._to_image_distance = MagicMock(return_value=(200, 200))
 
     canvas_obj.set_offset(10, 10)
     assert canvas_obj.offset.x == 0
@@ -668,7 +663,7 @@ def test_canvas_set_offset_clamping(mocker):  # pylint: disable=unused-argument
     assert canvas_obj.offset.y == -100
 
 
-def test_canvas_scroll(mocker):  # pylint: disable=unused-argument
+def test_canvas_scroll(mocker):
     "Test scroll event zooming"
     canvas_obj = Canvas()
     canvas_obj.zoom = 1.0
@@ -680,7 +675,7 @@ def test_canvas_scroll(mocker):  # pylint: disable=unused-argument
     event.y = 50
     event.direction = Gdk.ScrollDirection.UP
 
-    canvas_obj._pixbuf_size = {  # pylint: disable=protected-access
+    canvas_obj._pixbuf_size = {
         "width": 1000,
         "height": 1000,
     }
@@ -692,16 +687,16 @@ def test_canvas_scroll(mocker):  # pylint: disable=unused-argument
     with patch.object(
         canvas_obj, "set_offset", wraps=canvas_obj.set_offset
     ) as mock_set_offset:
-        canvas_obj._scroll(canvas_obj, event)  # pylint: disable=protected-access
+        canvas_obj._scroll(canvas_obj, event)
         assert canvas_obj.zoom == 2.0
         mock_set_offset.assert_called()
 
     event.direction = Gdk.ScrollDirection.DOWN
-    canvas_obj._scroll(canvas_obj, event)  # pylint: disable=protected-access
+    canvas_obj._scroll(canvas_obj, event)
     assert canvas_obj.zoom == 1.0
 
 
-def test_canvas_get_bbox_at(mocker):  # pylint: disable=unused-argument
+def test_canvas_get_bbox_at(mocker):
     "Test get_bbox_at"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -777,7 +772,7 @@ def test_list_iter_edge_cases():
         mock_logger.warning.assert_called()
 
 
-def test_bbox_methods_via_canvas(mocker):  # pylint: disable=unused-argument
+def test_bbox_methods_via_canvas(mocker):
     "Test Bbox methods by creating them on canvas"
     # This avoids segfaults by letting Canvas manage hierarchy
     canvas_obj = Canvas()
@@ -1159,7 +1154,7 @@ def test_list_iter_more(mocker):
     assert li.list[li.index][0] == bbox2
 
 
-def test_tree_iter_exceptions(mocker):  # pylint: disable=unused-argument
+def test_tree_iter_exceptions(mocker):
     "Test TreeIter exceptions"
 
     # Init with non-Bbox

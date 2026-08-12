@@ -42,7 +42,7 @@ class SaneThread(BaseThread):
             request.finished(handler(request))
             if request.process == "quit":
                 return False
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:
             logger.error(
                 "Error running process '%s': %s",
                 request.process,

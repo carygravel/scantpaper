@@ -1,6 +1,6 @@
 [MAIN]
 source-roots = scantpaper
-extension-pkg-allow-list=_sane
+extension-pkg-allow-list=_sane,gi,cairo
 
 [TYPECHECK]
 # List of members which are set dynamically and missed by pylint inference
@@ -9,4 +9,4 @@ extension-pkg-allow-list=_sane
 
 # false positives (not dynamically created) in ComboBoxText
 # false positives dynamically created in BaseDocument
-generated-members=[gs]et_active_index,save_(djvu|hocr|image|pdf|text|tiff),(rotate|threshold|brightness_contrast|negate|unsharp|crop)
+generated-members=[gs]et_active_index,save_(djvu|hocr|image|pdf|text|tiff),(rotate|threshold|brightness_contrast|negate|unsharp|crop|analyse|tesseract|user_defined),pack_start,pack_end,get_children,show_all,add,set_border_width,set_image,set_no_show_all,run,reorder_child,set_position,set_do_overwrite_confirmation,destroy,get_filename,get_filenames

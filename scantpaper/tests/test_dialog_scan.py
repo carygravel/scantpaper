@@ -93,7 +93,6 @@ def test_ignore_duplex_capabilities_property():
 
 def test_show(mocker):
     "test show method"
-    # pylint: disable=protected-access
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock PageControls.show to avoid GTK warnings or errors if not fully initialized
@@ -128,7 +127,6 @@ def test_show(mocker):
 
 def test_device_dropdown_changed(mocker):
     "test do_device_dropdown_changed callback"
-    # pylint: disable=protected-access
 
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -145,7 +143,6 @@ def test_device_dropdown_changed(mocker):
 
     # Test selecting device
     dialog.combobd.set_active(0)
-    # pylint: disable=comparison-with-callable
     assert dialog.device == "dev1"
     dialog.get_devices.assert_not_called()
 
@@ -159,7 +156,6 @@ def test_device_dropdown_changed(mocker):
 
 def test_edit_paper_apply(mocker):
     "test _edit_paper and applying changes"
-    # pylint: disable=protected-access
 
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.paper_formats = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
@@ -212,7 +208,6 @@ def test_edit_paper_apply(mocker):
     assert apply_callback is not None
 
     # Call the callback
-    # pylint: disable=not-callable
     apply_callback(None)  # argument is widget, ignored
 
     # Verify paper_formats updated
@@ -228,7 +223,6 @@ def test_edit_paper_apply(mocker):
 
 def test_delete_profile_frontend_item(mocker):
     "test deleting a frontend item from the profile editor"
-    # pylint: disable=protected-access
 
     # Setup
     profile = Profile()
@@ -293,7 +287,6 @@ def test_delete_profile_frontend_item(mocker):
 
 def test_delete_profile_backend_item(mocker):
     "test deleting a backend item from the profile editor"
-    # pylint: disable=protected-access
 
     # Setup
     profile = Profile(backend=[("mode", "Color")])
@@ -364,7 +357,6 @@ def test_delete_profile_backend_item(mocker):
 
 def test_rescan_hides_widgets(mocker):
     "test that selecting rescan hides the device widgets"
-    # pylint: disable=protected-access
 
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -464,7 +456,6 @@ def test_scan_button(mocker):
 
 def test_available_scan_options_flatbed_selected(mocker):
     "test available_scan_options setter when flatbed is selected"
-    # pylint: disable=protected-access
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock thread and device handle
@@ -495,7 +486,6 @@ def test_available_scan_options_flatbed_selected(mocker):
 
 def test_available_scan_options_flatbed_not_selected(mocker):
     "test available_scan_options setter when flatbed is NOT selected"
-    # pylint: disable=protected-access
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.thread = mocker.Mock()
     mock_set_sensitive = mocker.patch.object(dialog.framen, "set_sensitive")
@@ -759,7 +749,6 @@ def test_device_dropdown_changed_garbage_collection(mocker):
 
 def test_paper_dimension_changed_unsets_paper(mocker):
     "test that changing geometry unsets paper format"
-    # pylint: disable=protected-access
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock necessary parts for _pack_widget and _create_paper_widget
@@ -807,7 +796,6 @@ def test_paper_dimension_changed_unsets_paper(mocker):
 
 def test_get_paper_by_geometry(mocker):
     "test _get_paper_by_geometry method"
-    # pylint: disable=protected-access
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Test formats is None (Line 667)
@@ -1124,7 +1112,6 @@ def test_get_label_for_option():
 
 def test_pack_widget_unknown_type(mocker):
     "test _pack_widget with None widget (unknown type)"
-    # pylint: disable=protected-access
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     mock_logger = mocker.patch("dialog.scan.logger")
@@ -1187,7 +1174,6 @@ def test_update_widget_value_widget_undefined(mocker):
 
 def test_update_options_error_return(mocker):
     "test _update_options returns early if _update_option returns True (line 717)"
-    # pylint: disable=protected-access
     dialog = MockScan()
 
     # Mock copy to just return the same object
@@ -1212,7 +1198,6 @@ def test_update_options_error_return(mocker):
 
 def test_get_label_for_option_none():
     "test _get_label_for_option returns None if no label is found (line 1333)"
-    # pylint: disable=protected-access
     dialog = MockScan()
 
     hbox = Gtk.Box()

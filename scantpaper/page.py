@@ -52,6 +52,7 @@ class Page:
     std_dev = None
     mean = None
     image_id = None
+    id = None
 
     def __init__(self, **kwargs):
         if ("image_object" not in kwargs and "filename" not in kwargs) or (

@@ -21,7 +21,7 @@ class MockedDateTime(datetime):
     "mock now"
 
     @classmethod
-    def now(cls):  # pylint: disable=arguments-differ
+    def now(cls):
         return datetime(2018, 1, 1, 0, 0, 0)
 
 

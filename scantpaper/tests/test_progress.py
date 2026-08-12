@@ -37,20 +37,18 @@ def test_progress_methods():
 def test_progress_pulse_interval(mocker):
     "Test that pulse returns early when called within the minimum interval"
     progress = Progress()
-    mock_pulse = mocker.patch.object(
-        progress._pbar, "pulse"  # pylint: disable=protected-access
-    )
+    mock_pulse = mocker.patch.object(progress._pbar, "pulse")
     mocker.patch("progress.time.monotonic", return_value=100.0)
 
-    progress._last_pulse = 99.95  # pylint: disable=protected-access
+    progress._last_pulse = 99.95
     progress.pulse()
     mock_pulse.assert_not_called()
-    assert progress._last_pulse == 99.95  # pylint: disable=protected-access
+    assert progress._last_pulse == 99.95
 
-    progress._last_pulse = 99.0  # pylint: disable=protected-access
+    progress._last_pulse = 99.0
     progress.pulse()
     mock_pulse.assert_called_once()
-    assert progress._last_pulse == 100.0  # pylint: disable=protected-access
+    assert progress._last_pulse == 100.0
 
 
 def test_set_fraction_clamps_values():
@@ -215,7 +213,7 @@ def test_progress_finish():
     response_q.total_jobs = 10
     progress.queued(response_q)
 
-    assert progress._signal is not None  # pylint: disable=protected-access
+    assert progress._signal is not None
 
     progress.finish(response)
     assert not progress.get_visible()
@@ -225,7 +223,7 @@ def test_progress_finish():
     progress.finish(None)
     assert not progress.get_visible()
 
-    assert progress._signal is None  # pylint: disable=protected-access
+    assert progress._signal is None
 
 
 def test_progress_finish_with_pending():
@@ -240,7 +238,7 @@ def test_progress_finish_with_pending():
     response_q.total_jobs = 10
     progress.queued(response_q)
 
-    assert progress._signal is not None  # pylint: disable=protected-access
+    assert progress._signal is not None
     assert progress.get_visible()
 
     response = Mock()
@@ -250,7 +248,7 @@ def test_progress_finish_with_pending():
     # Should still be visible (pending is True, so not hidden)
     assert progress.get_visible()
     # Signal should still be disconnected
-    assert progress._signal is None  # pylint: disable=protected-access
+    assert progress._signal is None
 
 
 def test_progress_queued_no_total():
@@ -267,7 +265,7 @@ def test_progress_queued_no_total():
 
     assert pbar.get_text() is None
     assert not progress.get_visible()
-    assert progress._signal is None  # pylint: disable=protected-access
+    assert progress._signal is None
 
 
 def test_progress_queued_no_process_name():
@@ -284,7 +282,7 @@ def test_progress_queued_no_process_name():
 
     assert pbar.get_text() is None
     assert not progress.get_visible()
-    assert progress._signal is None  # pylint: disable=protected-access
+    assert progress._signal is None
 
 
 def test_progress_update_data_other_type():

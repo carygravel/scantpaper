@@ -3,7 +3,7 @@
 from pagerange import PageRange
 
 
-class SignalCatch:  # pylint: disable=too-few-public-methods
+class SignalCatch:
     "catch signal"
 
     def __init__(self):

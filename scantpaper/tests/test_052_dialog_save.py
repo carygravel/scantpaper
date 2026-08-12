@@ -13,7 +13,7 @@ class MockedDateTime(datetime):
     "mock now"
 
     @classmethod
-    def now(cls):  # pylint: disable=arguments-differ
+    def now(cls):
         return datetime(2018, 1, 1, 0, 0, 0)
 
 
@@ -36,9 +36,7 @@ def test_basic(mocker):
     )
     assert isinstance(dialog, Save)
 
-    assert dialog.meta_datetime == date(  # pylint: disable=comparison-with-callable
-        2017, 1, 1
-    ), "date"
+    assert dialog.meta_datetime == date(2017, 1, 1), "date"
     assert dialog.meta_author == "author", "author"
     assert dialog.meta_title == "title", "title"
     assert dialog.meta_subject == "subject", "subject"
@@ -105,9 +103,7 @@ def test_datetime():
         meta_datetime=datetime(2017, 1, 1, 23, 59, 5),
         select_datetime=True,
     )
-    assert dialog.meta_datetime == datetime(  # pylint: disable=comparison-with-callable
-        2017, 1, 1, 23, 59, 5
-    ), "date and time"
+    assert dialog.meta_datetime == datetime(2017, 1, 1, 23, 59, 5), "date and time"
 
 
 def test_now(mocker):
@@ -119,9 +115,7 @@ def test_now(mocker):
         include_time=True,
         meta_datetime=datetime(2017, 1, 1, 23, 59, 5),
     )
-    assert (
-        dialog.meta_datetime == now  # pylint: disable=comparison-with-callable
-    ), "now"
+    assert dialog.meta_datetime == now, "now"
 
 
 def test_image_type_selection(mocker):

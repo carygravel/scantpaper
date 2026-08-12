@@ -41,7 +41,7 @@ def mock_scan_window(mocker):
         _finished_process_callback = mocker.Mock()
         _process_error_callback = mocker.Mock()
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+        def get_application(self, *args, **kwargs):
             "mock"
             return mock_app
 

@@ -23,8 +23,8 @@ class MockEvent:
     "mock enough of the event class to test it"
 
     button: int
-    x: float  # pylint: disable=invalid-name
-    y: float  # pylint: disable=invalid-name
+    x: float
+    y: float
     direction: Gdk.ScrollDirection = Gdk.ScrollDirection.UP
 
 
@@ -158,9 +158,7 @@ def test_transparency(datadir):
     window = Gtk.Window()
     window.set_default_size(300, 200)
     css_provider_alpha = Gtk.CssProvider()
-    Gtk.StyleContext.add_provider_for_screen(  # pylint: disable=no-member
-        window.get_screen(), css_provider_alpha, 0  # pylint: disable=no-member
-    )
+    Gtk.StyleContext.add_provider_for_screen(window.get_screen(), css_provider_alpha, 0)
     css_provider_alpha.load_from_data(f"""
     .imageview.transparent {{
         background-color: #ff0000;
@@ -175,9 +173,9 @@ def test_transparency(datadir):
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
         True,
     )
-    window.add(view)  # pylint: disable=no-member
-    window.show_all()  # pylint: disable=no-member
-    gdkw = window.get_window()  # pylint: disable=no-member
+    window.add(view)
+    window.show_all()
+    gdkw = window.get_window()
 
     # can't use a simple scalar, because it won't be in scope in the timeout
     var = {"pb": None}
@@ -287,8 +285,8 @@ def test_filter(datadir):
     window.add(view)
     window.show_all()
     view.set_zoom(15)
-    view.set_interpolation(cairo.FILTER_BILINEAR)  # pylint: disable=no-member
-    gdkw = window.get_window()  # pylint: disable=no-member
+    view.set_interpolation(cairo.FILTER_BILINEAR)
+    gdkw = window.get_window()
 
     # can't use a simple scalar, because it won't be in scope in the timeout
     var = {"pb": None}
@@ -330,7 +328,7 @@ def test_filter(datadir):
     fullblue_x = p_x
     assert fullblue_x < blurred_x, "blue outside red"
 
-    view.set_interpolation(cairo.FILTER_NEAREST)  # pylint: disable=no-member
+    view.set_interpolation(cairo.FILTER_NEAREST)
     GLib.timeout_add(1000, grab_window)
     Gtk.main()
 

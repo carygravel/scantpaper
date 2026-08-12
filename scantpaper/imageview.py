@@ -40,9 +40,7 @@ class Tool:
     def cursor_at_point(self, ptx, pty):
         "Returns the name of the cursor at the specified coords"
         display = Gdk.Display.get_default()
-        cursor_type = (  # pylint: disable=assignment-from-no-return
-            self.cursor_type_at_point(ptx, pty)
-        )
+        cursor_type = self.cursor_type_at_point(ptx, pty)
         if cursor_type is not None:
             return Gdk.Cursor.new_from_name(display, cursor_type)
         return None
@@ -407,7 +405,7 @@ class ImageView(Gtk.DrawingArea):
     @GObject.Property(
         type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
     )
-    def offset(self):  # pylint: disable=method-hidden
+    def offset(self):
         "getter for offset attribute"
         return self._offset
 
@@ -446,7 +444,7 @@ class ImageView(Gtk.DrawingArea):
         nick="zoom",
         blurb="zoom level",
     )
-    def zoom(self):  # pylint: disable=method-hidden
+    def zoom(self):
         "getter for zoom attribute"
         return self._zoom
 
@@ -502,7 +500,7 @@ class ImageView(Gtk.DrawingArea):
         "/documentation/pycairo/3/reference/constants.html#cairo-filter",
     )
 
-    def do_draw(self, context, **kwargs):  # pylint: disable=arguments-differ
+    def do_draw(self, context, **kwargs):
         "respond to the draw signal"
         allocation = self.get_allocation()
         style = self.get_style_context()
@@ -570,26 +568,20 @@ class ImageView(Gtk.DrawingArea):
 
         return True
 
-    def do_button_press_event(
-        self, event, **kwargs
-    ):  # pylint: disable=arguments-differ
+    def do_button_press_event(self, event, **kwargs):
         "respond to the button_press event"
         return self.get_tool().button_pressed(event)
 
-    def do_button_release_event(
-        self, event, **kwargs
-    ):  # pylint: disable=arguments-differ
+    def do_button_release_event(self, event, **kwargs):
         "respond to the button_release event"
         self.get_tool().button_released(event)
 
-    def do_motion_notify_event(
-        self, event, **kwargs
-    ):  # pylint: disable=arguments-differ
+    def do_motion_notify_event(self, event, **kwargs):
         "respond to the motion_notify event"
         self.update_cursor(event.x, event.y)
         self.get_tool().motion(event)
 
-    def do_scroll_event(self, event, **kwargs):  # pylint: disable=arguments-differ
+    def do_scroll_event(self, event, **kwargs):
         "respond to the scroll event"
         image_x, image_y = self.to_image_coords(event.x, event.y)
         if image_x is None:
@@ -610,7 +602,7 @@ class ImageView(Gtk.DrawingArea):
         offset_y = event.y / zoom * factor - image_y
         self.set_offset(offset_x, offset_y)
 
-    def do_configure_event(self, _event, **kwargs):  # pylint: disable=arguments-differ
+    def do_configure_event(self, _event, **kwargs):
         "respond to the configure event"
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())

@@ -610,9 +610,7 @@ for method_name_ in [
     setattr(BaseDocument, method_name_, _modify_method_generator(method_name_))
 
 
-def drag_data_received_callback(  # pylint: disable=too-many-positional-arguments, too-many-arguments
-    tree, context, xpos, ypos, data, info, time
-):
+def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
     "callback to receive DnD data"
 
     # This callback is fired twice, seemingly once for the drop flag,

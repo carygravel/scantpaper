@@ -73,14 +73,14 @@ class MockSlist:
         "Mock save_session"
 
 
-class MockView:  # pylint: disable=too-few-public-methods
+class MockView:
     "A mock view class"
 
     def set_pixbuf(self, pixbuf):
         "Set the pixbuf for the view."
 
 
-class MockCanvas:  # pylint: disable=too-few-public-methods
+class MockCanvas:
     "A mock canvas class"
 
     def clear_text(self):
@@ -942,7 +942,7 @@ class TestFileMenuMixins:
 
         # The callback is defined inside _save_pdf, so we need to call it from there
         app.slist.save_pdf = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (
-            finished_callback(response)  # pylint: disable=line-too-long
+            finished_callback(response)
         )
         app._save_pdf("file.pdf", ["uuid1"], "pdf")
 
@@ -959,7 +959,7 @@ class TestFileMenuMixins:
 
         # The callback is defined inside _save_pdf, so we need to call it from there
         app.slist.save_pdf = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (
-            finished_callback(response)  # pylint: disable=line-too-long
+            finished_callback(response)
         )
         app._save_pdf("file.ps", ["uuid1"], "ps")
 
@@ -977,7 +977,7 @@ class TestFileMenuMixins:
 
         # The callback is defined inside _save_djvu, so we need to call it from there
         app.slist.save_djvu = lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, finished_callback, error_callback: (
-            finished_callback(response)  # pylint: disable=line-too-long
+            finished_callback(response)
         )
         app._save_djvu("file.djvu", ["uuid1"])
 

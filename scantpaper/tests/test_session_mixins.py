@@ -66,7 +66,7 @@ def mock_session_window(mocker):
         rotate_270 = mocker.Mock()
         _pack_viewer_tools = mocker.Mock()
 
-        def get_application(self, *args, **kwargs):  # pylint: disable=arguments-differ
+        def get_application(self, *args, **kwargs):
             "mock"
             return mock_app
 

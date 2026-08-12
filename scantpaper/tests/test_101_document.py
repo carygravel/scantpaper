@@ -156,7 +156,7 @@ def test_file_dates(temp_txt):
             },
         },
     )
-    _set_timestamp(options)  # pylint: disable=protected-access
+    _set_timestamp(options)
     stb = os.stat(temp_txt.name)
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
