@@ -116,10 +116,10 @@ class ApplicationWindow(
     _current_ann_bbox = None
     _rotate_controls = None
     session = None  # session dir
-    _args = None  # GooCanvas for text layer
+    _args = None
     view = None
-    t_canvas = None  # GooCanvas for annotation layer
-    a_canvas = None
+    t_canvas = None  # Canvas for text layer
+    a_canvas = None  # Canvas for annotation layer
     _ocr_text_hbox = None
     _ocr_textbuffer = None
     _ann_hbox = None
@@ -456,7 +456,7 @@ class ApplicationWindow(
         )
         self.view.connect("notify::selection", self._on_view_selection_notify)
 
-        # GooCanvas for text layer
+        # Canvas for text layer
         self.t_canvas = Canvas()
         self.view.bind_property(
             "zoom",
@@ -471,7 +471,7 @@ class ApplicationWindow(
             GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
 
-        # GooCanvas for annotation layer
+        # Canvas for annotation layer
         self.a_canvas = Canvas()
         self.view.bind_property(
             "zoom",

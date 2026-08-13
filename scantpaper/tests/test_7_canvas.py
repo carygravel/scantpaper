@@ -974,7 +974,7 @@ def test_bbox_init_zero_width_text(mocker):
             parent=page,
         )
         # In Cairo implementation, zero-width text just gets a Pango layout
-        # No GooCanvas error is emitted
+        # No Canvas error is emitted
         assert bbox.text == "zerowidth"
 
 
