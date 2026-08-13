@@ -1,26 +1,12 @@
 "object and helper methods to manipulate scan options"
 
 import re
-from collections import defaultdict, namedtuple
-from types import SimpleNamespace
-from gi.repository import GObject
+from collections import namedtuple
+
 from frontend import enums
+from gi.repository import GObject
 
 EMPTY = ""
-EMPTY_ARRAY = -1
-MAX_VALUES = 255
-UNITS = r"(pel|bit|mm|dpi|%|us)"
-UNIT2ENUM = defaultdict(
-    dict,
-    {
-        "pel": enums.UNIT_PIXEL,
-        "bit": enums.UNIT_BIT,
-        "mm": enums.UNIT_MM,
-        "dpi": enums.UNIT_DPI,
-        "%": enums.UNIT_PERCENT,
-        "us": enums.UNIT_MICROSECOND,
-    },
-)
 Option = namedtuple(
     "Option",
     ["index", "name", "title", "desc", "type", "unit", "size", "cap", "constraint"],
@@ -35,7 +21,6 @@ class Options(GObject.Object):
     def __init__(self, options):
         GObject.Object.__init__(self)
         self.hash = {}
-        self.device = None
         self.geometry = {}
         if options is None:
             raise ValueError("Error: no options supplied")
@@ -47,7 +32,7 @@ class Options(GObject.Object):
                 options[i] = opt
             self.array = options
         else:
-            self.array = self._parse_scanimage_output(options)
+            raise TypeError("Error: options must be a list")
 
         # add hash for easy retrieval
         for option in self.array:
@@ -83,27 +68,9 @@ class Options(GObject.Object):
         "return option by name"
         return self.hash[name] if name is not None and name in self.hash else None
 
-    def by_title(self, title):
-        "return option by title"
-        for option in self.array:
-            if option.title == title:
-                return option
-        return None
-
     def num_options(self):
         "return number of options"
         return len(self.array) - 1 + 1
-
-    def delete_by_index(self, i):
-        "delete option by index"
-        if self.array[i].name != "":
-            del self.hash[self.array[i].name]
-        self.array[i] = None
-
-    def delete_by_name(self, name):
-        "delete option by name"
-        self.array[self.hash[name].index] = None
-        del self.hash[name]
 
     def parse_geometry(self):
         """Parse out the geometry from libimage-sane-perl or scanimage option names"""
@@ -203,213 +170,13 @@ class Options(GObject.Object):
             )
         )
 
-    def _parse_scanimage_output(self, output):
-        "parse the scanimage/scanadf output into an array and a hash"
-
-        # Remove everything above the options
-        regex = re.search(
-            r"""
-                       Options[ ]specific[ ]to[ ]device[ ] # string
-                       `(.+)':\n # device name
-                       (.*) # options
-                """,
-            output,
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-        if regex:
-            self.device = regex.group(1)
-            output = regex.group(2)
-        else:
-            return []
-
-        options = []
-        while True:
-            option = SimpleNamespace()
-            option.unit = enums.UNIT_NONE
-            option.constraint_type = "CONSTRAINT_NONE"
-            option.constraint = None
-            option.val = None
-            values = r"(?:(?:[ ]|[\[]=[(])([^[].*?)(?:[)]\])?)?"
-
-            # parse group
-            regex = re.search(
-                r"""
-                      \A[ ]{2} # two-character indent
-                      ([^\n]*) # the title
-                      :\n  # a colon at the end of the line
-                      (.*) # the rest of the output
-                    """,
-                output,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            regex2 = re.search(
-                rf"""
-                      \A[ ]{{4,}} # four-character indent
-                      -+        # at least one dash
-                      ([\w\-]+) # the option name
-                      {values}      # optionally followed by the possible values
-                        # optionally a space,
-                        # followed by the current value in square brackets
-                      (?:[ ][\[](.*?)[\]])?
-                      [ ]*\n     # the rest of the line
-                      (.*) # the rest of the output
-                    """,
-                output,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            if regex:
-                option.title = regex.group(1)
-                option.type = enums.TYPE_GROUP
-                option.cap = 0
-                option.max_values = 0
-                option.name = EMPTY
-                option.desc = EMPTY
-
-                # Remove everything on the option line and above.
-                output = regex.group(2)
-
-            # parse option
-            elif regex2:
-                output = _parse_option(regex2, option)
-
-            else:
-                break
-
-            options.append(
-                Option(
-                    len(options) + 1,
-                    option.name,
-                    option.title,
-                    option.desc,
-                    option.type,
-                    option.unit,
-                    option.max_values,
-                    option.cap,
-                    option.constraint,
-                )
-            )
-
-        if options:
-            options.insert(
-                0,
-                Option(
-                    0,
-                    "",
-                    "Number of options",
-                    "Read-only option that specifies how many options a specific device supports.",
-                    enums.TYPE_INT,
-                    enums.UNIT_NONE,
-                    4,
-                    4,
-                    None,
-                ),
-            )
-        return options
-
-
-def _parse_option(regex, option):
-    # scanimage & scanadf only display options
-    # if SANE_CAP_SOFT_DETECT is set
-    option.cap = enums.CAP_SOFT_DETECT + enums.CAP_SOFT_SELECT
-    option.name = regex.group(1)
-    if regex.group(3) is not None:
-        if regex.group(3) == "inactive":
-            option.cap += enums.CAP_INACTIVE
-
-        else:
-            option.val = regex.group(3)
-
-        option.max_values = 1
-
-    else:
-        option.type = enums.TYPE_BUTTON
-        option.max_values = 0
-
-    # parse the constraint after the current value
-    # in order to be able to reset boolean values
-    parse_constraint(option, regex.group(2))
-    type2value(option)
-
-    # Remove everything on the option line and above.
-    output = regex.group(4)
-    option.title = option.name
-    option.title = re.sub(
-        r"[-_]",
-        r" ",
-        option.title,
-        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-    )  # dashes and underscores to spaces
-    option.title = re.sub(
-        r"\b(adf|cct|jpeg)\b",
-        lambda x: x.group(1).upper(),
-        option.title,
-        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-    )  # upper case comment abbreviations
-    option.title = re.sub(
-        r"(^\w)",
-        lambda x: x.group(1).upper(),
-        option.title,
-        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
-    )  # capitalise at the beginning of the line
-
-    # Parse option description based on an 8-character indent.
-    desc = EMPTY
-    regex = re.search(
-        r"""
-            \A[ ]{8,}   # 8-character indent
-            ([^\n]*)\n    # text
-            (.*) # rest of output
-            """,
-        output,
-        re.MULTILINE | re.DOTALL | re.VERBOSE,
-    )
-    while regex:
-        if desc == EMPTY:
-            desc = regex.group(1)
-        else:
-            desc = f"{desc} {regex.group(1)}"
-
-        # Remove everything on the description line and above.
-        output = regex.group(2)
-        regex = re.search(
-            r"""
-            \A[ ]{8,}   # 8-character indent
-            ([^\n]*)\n    # text
-            (.*) # rest of output
-            """,
-            output,
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-
-    option.desc = desc
-    if option.name == "l":
-        option.name = "tl-x"
-        option.title = "Top-left x"
-
-    elif option.name == "t":
-        option.name = "tl-y"
-        option.title = "Top-left y"
-
-    elif option.name == "x":
-        option.name = "br-x"
-        option.title = "Bottom-right x"
-        option.desc = "Bottom-right x position of scan area."
-
-    elif option.name == "y":
-        option.name = "br-y"
-        option.title = "Bottom-right y"
-        option.desc = "Bottom-right y position of scan area."
-
-    return output
-
 
 def within_tolerance(option, current_value, new_value, tolerance=0):
     "helper function, returning whether new_value is within the tolerance of current_value"
     if isinstance(option.constraint, tuple):
-        if len(option.constraint) == 3:
-            return bool(
-                abs(new_value - current_value) <= option.constraint[2] / 2 + tolerance
-            )
+        return bool(
+            abs(new_value - current_value) <= option.constraint[2] / 2 + tolerance
+        )
 
     if isinstance(option.constraint, list) or option.type in [
         enums.TYPE_BOOL,
@@ -421,150 +188,3 @@ def within_tolerance(option, current_value, new_value, tolerance=0):
         return abs(new_value - current_value) <= tolerance
 
     return False
-
-
-def parse_constraint(option, values):
-    "parse out range, step and units from the values string"
-    option.type = enums.TYPE_INT
-    if option.val is not None and re.search(
-        r"[.]", option.val, re.MULTILINE | re.DOTALL | re.VERBOSE
-    ):
-        option.type = enums.TYPE_FIXED
-
-    # if we haven't got a boolean, and there is no constraint, we have a button
-    if values is None:
-        option.type = enums.TYPE_BUTTON
-        option.max_values = 0
-        return
-
-    regex = re.search(
-        rf"""
-            (-?\d+[.]?\d*)          # min value, possibly negative or floating
-            [.]{{2}}                # two dots
-            (\d+[.]?\d*)            # max value, possible floating
-            {UNITS}?                # optional unit
-            (,...)?                 # multiple values
-        """,
-        values,
-        re.MULTILINE | re.DOTALL | re.VERBOSE,
-    )
-    regex2 = re.search(
-        r"^<(\w+)>(,...)?$", values, re.MULTILINE | re.DOTALL | re.VERBOSE
-    )
-    if regex:
-        parse_range_constraint(option, values, regex)
-
-    elif regex2:
-        if regex2.group(1) == "float":
-            option.type = enums.TYPE_FIXED
-
-        elif regex2.group(1) == "string":
-            option.type = enums.TYPE_STRING
-
-        if regex2.group(2) is not None:
-            option.max_values = MAX_VALUES
-
-    else:
-        parse_list_constraint(option, values)
-
-
-def parse_range_constraint(option, values, regex):
-    "parse min, max, step"
-    mini = regex.group(1)
-    maxi = regex.group(2)
-    quant = "0"
-    option.constraint_type = "CONSTRAINT_RANGE"
-    if regex.group(3) is not None:
-        option.unit = UNIT2ENUM[regex.group(3)]
-    if regex.group(4) is not None:
-        option.max_values = MAX_VALUES
-    regex = re.search(
-        r"""
-                       [(]              # opening round bracket
-                       in[ ]steps[ ]of[ ] # text
-                       (\d+[.]?\d*)     # step
-                       [)]              # closing round bracket
-                     """,
-        values,
-        re.MULTILINE | re.DOTALL | re.VERBOSE,
-    )
-    if regex:
-        quant = regex.group(1)
-
-    if (
-        re.search(
-            r"[.]",
-            mini,
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-        or re.search(
-            r"[.]",
-            maxi,
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-        or re.search(
-            r"[.]",
-            quant,
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
-        )
-    ):
-        option.type = enums.TYPE_FIXED
-        option.constraint = (float(mini), float(maxi), float(quant))
-    else:
-        option.constraint = (int(mini), int(maxi), int(quant))
-
-
-def parse_list_constraint(option, values):
-    "parse list constraint"
-    regex = re.search(r"(.*),...", values, re.MULTILINE | re.DOTALL | re.VERBOSE)
-    if regex:
-        values = regex.group(1)
-        option.max_values = MAX_VALUES
-
-    regex = re.search(rf"(.*){UNITS}$", values, re.MULTILINE | re.DOTALL | re.VERBOSE)
-    if regex:
-        values = regex.group(1)
-        option.unit = UNIT2ENUM[regex.group(2)]
-
-    array = re.split(r"[|]+", values)
-    if array:
-        if array[0] == "auto":
-            option.cap += enums.CAP_AUTOMATIC
-            array.pop(0)
-
-        if len(array) == 2 and array[0] == "yes" and array[1] == "no":
-            option.type = enums.TYPE_BOOL
-            type2value(option)
-
-        else:
-
-            # Can't check before because 'auto' would mess things up
-            for i, val in enumerate(array):
-                if re.search(r"[A-Za-z]", val, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                    option.type = enums.TYPE_STRING
-
-                elif re.search(r"[.]", val, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                    option.type = enums.TYPE_FIXED
-
-                if option.type == enums.TYPE_INT:
-                    array[i] = int(val)
-            option.constraint = array
-            option.constraint_type = (
-                "CONSTRAINT_STRING_LIST"
-                if option.type == enums.TYPE_STRING
-                else "CONSTRAINT_WORD_LIST"
-            )
-
-
-def type2value(option):
-    "typify the value of the option"
-    if option.val is not None:
-        if option.type == enums.TYPE_INT:
-            option.val = int(option.val)
-        elif option.type == enums.TYPE_FIXED:
-            option.val = float(option.val)
-        elif option.type == enums.TYPE_BOOL and isinstance(option.val, str):
-            if option.val == "yes":
-                option.val = True
-            else:
-                option.val = False

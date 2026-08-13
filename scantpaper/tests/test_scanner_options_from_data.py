@@ -264,8 +264,8 @@ def test_1():
         0,
     ), "page-width paper too tall"
 
-    options.delete_by_name("page-width")
-    options.delete_by_name("page-height")
+    del options.hash["page-width"]
+    del options.hash["page-height"]
     del options.geometry["w"]
     del options.geometry["h"]
 
