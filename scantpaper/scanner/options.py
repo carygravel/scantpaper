@@ -56,10 +56,6 @@ class Options(GObject.Object):
     def __str__(self):
         return f"Options({self.array})"
 
-    def val(self, name, device_handle):
-        "return option value by name"
-        return getattr(device_handle, name.replace("-", "_"))
-
     def by_index(self, i):
         "return option by index"
         return self.array[i]
@@ -143,12 +139,12 @@ class Options(GObject.Object):
 
         return False
 
-    def flatbed_selected(self, device_handle):
+    def flatbed_selected(self, get_value):
         "returns whether the flatbed is selected"
         source = None
         if self.source is not None:
             try:
-                source = self.val(self.source.name, device_handle)
+                source = get_value(self.source.name)
             except AttributeError:
                 pass
         return bool(

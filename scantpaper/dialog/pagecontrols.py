@@ -70,7 +70,7 @@ class PageControls(Dialog):
             or (
                 hasattr(self, "thread")  # in __init__(), thread may not yet exist
                 and self.thread.device_handle is not None
-                and not options.flatbed_selected(self.thread.device_handle)
+                and not options.flatbed_selected(self.thread.get_option_value)
             )
         ):
             self._num_pages = newval
@@ -403,7 +403,7 @@ class PageControls(Dialog):
     def _flatbed_or_duplex_callback(self):
         options = self.available_scan_options
         if options is not None and hasattr(self, "thread") and hasattr(self, "_vboxx"):
-            if options.flatbed_selected(self.thread.device_handle) or (
+            if options.flatbed_selected(self.thread.get_option_value) or (
                 options.can_duplex() and not self.ignore_duplex_capabilities
             ):
                 self._vboxx.hide()

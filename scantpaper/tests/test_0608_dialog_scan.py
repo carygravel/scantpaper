@@ -368,7 +368,7 @@ def test_source_default(
 
     options = dlg.available_scan_options
     assert options.flatbed_selected(
-        dlg.thread.device_handle
+        dlg.thread.get_option_value
     ), "flatbed_selected() without value"
     assert not dlg.framen.is_sensitive(), "num-page gui ghosted"
     dlg.num_pages = 2

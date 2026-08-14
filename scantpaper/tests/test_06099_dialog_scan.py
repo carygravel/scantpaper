@@ -101,6 +101,11 @@ class MockScan(Scan):
         self.setting_current_scan_options = []
         self.thread = unittest.mock.Mock()
         self.thread.device_handle = unittest.mock.Mock()
+        self.thread.get_option_value = unittest.mock.Mock(
+            side_effect=lambda name: getattr(
+                self.thread.device_handle, name.replace("-", "_")
+            )
+        )
         self.framen = unittest.mock.Mock()
         self.scan_button = unittest.mock.Mock()
         self.combobp = unittest.mock.Mock()
@@ -545,7 +550,7 @@ class TestScanDialog:
         scan._available_scan_options = options
 
         # All resolutions defined
-        options.val.side_effect = lambda name, handle: {
+        scan.thread.get_option_value.side_effect = lambda name: {
             "resolution": 300,
             "x-resolution": 0,
             "y-resolution": 0,
@@ -562,7 +567,7 @@ class TestScanDialog:
             ("x-resolution", 600),
             ("y-resolution", 1200),
         ]
-        options.val.side_effect = lambda name, handle: {
+        scan.thread.get_option_value.side_effect = lambda name: {
             "resolution": 300,
             "x-resolution": 1,
             "y-resolution": 1,
@@ -956,7 +961,7 @@ def test_get_xy_resolution_zero_fallback():
     scan.available_scan_options = MockOptions([])
 
     with unittest.mock.patch.object(
-        scan.available_scan_options, "val", side_effect=AttributeError
+        scan.thread, "get_option_value", side_effect=AttributeError
     ):
         xres, yres = scan._get_xy_resolution()
     assert xres in (0, POINTS_PER_INCH)

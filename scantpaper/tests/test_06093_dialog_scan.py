@@ -783,7 +783,7 @@ def test_infinite_reloads_due_to_inexact(
     # EPSON DS-1660W calls the flatbed a document table
     options = dlg.available_scan_options
     assert options.flatbed_selected(
-        dlg.thread.device_handle
+        dlg.thread.get_option_value
     ), "Document Table means flatbed"
 
     # as cct-1 does not have a title, test for label text

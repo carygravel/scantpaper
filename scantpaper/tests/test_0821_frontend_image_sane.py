@@ -1,5 +1,6 @@
 "test frontend/image_sane.py"
 
+import pytest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 import PIL
@@ -531,3 +532,16 @@ def test_9_quit_handles_sane_exit_exception():
 
         # Verify sane.exit() was called and the exception was handled
         mock_exit.assert_called_once()
+
+
+def test_get_option_value_timeout():
+    "get_option_value raises TimeoutError when the worker does not respond in time"
+    thread = SaneThread()
+    thread.start()
+    # Replace the worker-side handler with one that never sets the completion
+    # event, so the blocking wait must time out.
+    with patch.object(thread, "do_get_option_blocking", lambda request: None):
+        with pytest.raises(TimeoutError):
+            thread.get_option_value("enable-test-options", timeout=0.05)
+    thread.send("quit")
+    thread.join(timeout=1)

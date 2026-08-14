@@ -179,7 +179,7 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
     dialog.num_pages = 2
     assert dialog.num_pages == 1, "allow-batch-flatbed should force num-pages2"
     assert options.flatbed_selected(
-        dialog.thread.device_handle
+        dialog.thread.get_option_value
     ), "flatbed_selected() via value"
     assert not dialog._vboxx.get_visible(), "flatbed, so hide vbox for page numbering"
 
@@ -217,7 +217,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
             dialog.num_pages == 0
         ), "adf-defaults-scan-all-pages should force num-pages"
         assert not options.flatbed_selected(
-            dialog.thread.device_handle
+            dialog.thread.get_option_value
         ), "not flatbed_selected() via value"
         asserts += 1
         loop.quit()

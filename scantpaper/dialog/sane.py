@@ -203,7 +203,7 @@ class SaneScanDialog(Scan):
             # Widget
             widget = None
             try:
-                val = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
+                val = self.thread.get_option_value(opt.name)
             except (KeyError, AttributeError):
                 val = None
 
@@ -520,7 +520,7 @@ class SaneScanDialog(Scan):
             cancel_between_pages=(
                 self.cancel_between_pages
                 and self.available_scan_options.flatbed_selected(
-                    self.thread.device_handle
+                    self.thread.get_option_value
                 )
             ),
             started_callback=started_callback,

@@ -808,22 +808,16 @@ def test_get_paper_by_geometry(mocker):
     mock_options = mocker.Mock()
     dialog.available_scan_options = mock_options
 
-    def options_val(name, _device_handle):
-        values = {"tl-x": 0, "tl-y": 0, "br-x": 210, "br-y": 297}
-        return values[name]
-
-    mock_options.val.side_effect = options_val
+    values = {"tl-x": 0, "tl-y": 0, "br-x": 210, "br-y": 297}
+    dialog.thread.get_option_value.side_effect = lambda name: values[name]
 
     # Test match found
     assert dialog._get_paper_by_geometry() == "A4"
 
     # Test mismatch (Lines 679, 680, 684)
-    def options_val_mismatch(name, _device_handle):
-        # Change br-x to cause mismatch
-        values = {"tl-x": 0, "tl-y": 0, "br-x": 200, "br-y": 297}
-        return values[name]
-
-    mock_options.val.side_effect = options_val_mismatch
+    # Change br-x to cause mismatch
+    values = {"tl-x": 0, "tl-y": 0, "br-x": 200, "br-y": 297}
+    dialog.thread.get_option_value.side_effect = lambda name: values[name]
     assert dialog._get_paper_by_geometry() is None
 
 

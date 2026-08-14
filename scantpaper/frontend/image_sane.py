@@ -3,6 +3,7 @@
 import gc
 import logging
 import math
+import threading
 from types import SimpleNamespace
 
 import sane
@@ -113,6 +114,16 @@ class SaneThread(BaseThread):
         "get options"
         return self.device_handle.get_options()
 
+    def do_get_option_blocking(self, request):
+        "read a single option value in the worker and signal the caller"
+        name, holder, event = request.args
+        try:
+            holder.append(getattr(self.device_handle, name.replace("-", "_")))
+        except Exception as err:
+            holder.append(err)
+        finally:
+            event.set()
+
     def do_set_option(self, request):
         """Until sane.__setattr__() returns the INFO, put its functionality
         here to return it ourselves"""
@@ -210,6 +221,18 @@ class SaneThread(BaseThread):
     def set_option(self, name, value, **kwargs):
         "set option"
         return self.send("set_option", name, value, **kwargs)
+
+    def get_option_value(self, name, timeout=10):
+        "synchronously fetch a single option value via the worker thread"
+        holder = []
+        event = threading.Event()
+        self.send("get_option_blocking", name, holder, event)
+        if not event.wait(timeout):
+            raise TimeoutError(f"Timed out reading option '{name}'")
+        result = holder[0]
+        if isinstance(result, Exception):
+            raise result
+        return result
 
     def scan_page(self, **kwargs):
         "scan page"

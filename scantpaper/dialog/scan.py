@@ -251,7 +251,7 @@ class Scan(PageControls):
             if (
                 hasattr(self, "thread")
                 and options is not None
-                and options.flatbed_selected(self.thread.device_handle)
+                and options.flatbed_selected(self.thread.get_option_value)
             ):
                 self.framen.set_sensitive(False)
 
@@ -288,7 +288,7 @@ class Scan(PageControls):
         self._available_scan_options = newval
         if hasattr(self, "framen") and hasattr(self, "thread"):
             if not self.allow_batch_flatbed and newval.flatbed_selected(
-                self.thread.device_handle
+                self.thread.get_option_value
             ):
                 if self.num_pages != 1:
                     self.num_pages = 1
@@ -672,11 +672,11 @@ class Scan(PageControls):
             return None
         options = self.available_scan_options
         current = {
-            "l": options.val("tl-x", self.thread.device_handle),
-            "t": options.val("tl-y", self.thread.device_handle),
+            "l": self.thread.get_option_value("tl-x"),
+            "t": self.thread.get_option_value("tl-y"),
         }
-        current["x"] = current["l"] + options.val("br-x", self.thread.device_handle)
-        current["y"] = current["t"] + options.val("br-y", self.thread.device_handle)
+        current["x"] = current["l"] + self.thread.get_option_value("br-x")
+        current["y"] = current["t"] + self.thread.get_option_value("br-y")
         for name, value in formats.items():
             match = True
             for edge in ["l", "t", "x", "y"]:
@@ -748,7 +748,7 @@ class Scan(PageControls):
         widget = self.option_widgets[opt.name]
         value = None
         if opt.type != enums.TYPE_BUTTON:
-            value = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
+            value = self.thread.get_option_value(opt.name)
 
         # Switch
         if opt.type == enums.TYPE_BOOL:
@@ -881,29 +881,29 @@ class Scan(PageControls):
             paper_profile.add_backend_option(
                 "page-height",
                 formats[paper]["y"] + formats[paper]["t"],
-                self.thread.device_handle.page_height,
+                self.thread.get_option_value("page-height"),
             )
             paper_profile.add_backend_option(
                 "page-width",
                 formats[paper]["x"] + formats[paper]["l"],
-                self.thread.device_handle.page_width,
+                self.thread.get_option_value("page-width"),
             )
 
         paper_profile.add_backend_option(
-            "tl-x", formats[paper]["l"], self.thread.device_handle.tl_x
+            "tl-x", formats[paper]["l"], self.thread.get_option_value("tl-x")
         )
         paper_profile.add_backend_option(
-            "tl-y", formats[paper]["t"], self.thread.device_handle.tl_y
+            "tl-y", formats[paper]["t"], self.thread.get_option_value("tl-y")
         )
         paper_profile.add_backend_option(
             "br-x",
             formats[paper]["x"] + formats[paper]["l"],
-            self.thread.device_handle.br_x,
+            self.thread.get_option_value("br-x"),
         )
         paper_profile.add_backend_option(
             "br-y",
             formats[paper]["y"] + formats[paper]["t"],
-            self.thread.device_handle.br_y,
+            self.thread.get_option_value("br-y"),
         )
 
         # forget the previous option info calls, as these are only interesting
@@ -1252,7 +1252,7 @@ class Scan(PageControls):
                 return
 
             # Ignore option if value already within tolerance
-            curval = getattr(self.thread.device_handle, opt.name.replace("-", "_"))
+            curval = self.thread.get_option_value(opt.name)
             if within_tolerance(opt, curval, val, OPTION_TOLERANCE):
                 logger.info(
                     "No need to set option '%s': already within tolerance.", name
@@ -1342,7 +1342,7 @@ class Scan(PageControls):
         resolutions = []
         for name in ["resolution", "x-resolution", "y-resolution"]:
             try:
-                resolutions.append(options.val(name, self.thread.device_handle))
+                resolutions.append(self.thread.get_option_value(name))
             except AttributeError:
                 resolutions.append(0)
         resolution, xres, yres = resolutions
@@ -1389,7 +1389,7 @@ class Scan(PageControls):
         opt = options.by_name("source")
         if opt is not None and name == opt.name:
             if self.allow_batch_flatbed or not options.flatbed_selected(
-                self.thread.device_handle
+                self.thread.get_option_value
             ):
                 self.framen.set_sensitive(True)
             else:

@@ -148,7 +148,7 @@ def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
 
     dialog.cancel_between_pages = True
     assert dialog.available_scan_options.flatbed_selected(
-        dialog.thread.device_handle
+        dialog.thread.get_option_value
     ), "flatbed selected"
     dialog.new_signal = dialog.connect("new-scan", new_scan_cb2)
     dialog.connect("finished-process", finished_process_cb2)
