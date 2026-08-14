@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from basethread import BaseThread, Response, ResponseType
+from basethread import BaseThread, Request, Response, ResponseType
 from gi.repository import GLib
 from loop_helpers import safe_mainloop
 
@@ -425,6 +425,36 @@ def test_cleanup_thread_exception_caught(mocker):
     mock_queue.put.side_effect = Exception("queue closed")
     BaseThread._cleanup_thread(mock_queue)
     mock_queue.put.assert_called_once()
+
+
+def test_stage_callback_exception_invokes_error_callback():
+    "test that a failing non-error stage callback triggers the error_callback"
+    thread = BaseThread()
+    error_callback = MagicMock()
+
+    def failing_callback(_response):
+        raise ValueError("boom")
+
+    request = Request("div", (1, 2), None)
+    data = Response(
+        type=ResponseType.FINISHED,
+        request=request,
+        info=None,
+        status=None,
+        num_completed_jobs=0,
+        total_jobs=1,
+        pending=False,
+    )
+    uid = "test-uid"
+    thread.callbacks[uid] = {
+        "finished_callback": failing_callback,
+        "error_callback": error_callback,
+    }
+
+    thread._execute_single_callback("finished_callback", "finished", uid, data)
+
+    error_callback.assert_called_once()
+    assert error_callback.call_args[0][0].status == "boom"
 
 
 def test_release_sources_close_oserror(mocker):
