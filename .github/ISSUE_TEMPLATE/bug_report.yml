@@ -1,0 +1,99 @@
+name: Bug report
+description: Report a problem with scantpaper
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! A **debug log** is required to diagnose the issue
+        (see below). Issues without a log may be closed as unactionable.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you do, and what went wrong?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps, starting from launching the app.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "## Environment"
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How was scantpaper installed?
+      options:
+        - Debian/Ubuntu package
+        - pip
+        - From git source
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and desktop environment
+      description: e.g. Debian 12, Xfce 4.18
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Debug log (required)
+
+        Generate it like this, then reproduce the bug:
+
+        ```
+        scantpaper --log=scantpaper.log
+        ```
+
+        (from source: `python3 scantpaper/app.py --log=scantpaper.log`)
+
+        1. Run the command above.
+        2. Reproduce the bug.
+        3. Quit scantpaper. The log is compressed to `scantpaper.log.xz` on exit.
+           If it wasn't compressed (e.g. after a crash), attach the
+           uncompressed `scantpaper.log` instead.
+        4. Attach the file to this issue (drag & drop it below once the issue is
+           opened).
+
+        > Debug logs contain file and scanner device names. Redact anything you
+        > don't want to share before attaching.
+
+  - type: checkboxes
+    id: log
+    attributes:
+      label: Log file
+      options:
+        - label: I have attached the debug log file (`scantpaper.log.xz`)
+          required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Screenshots, error messages, or anything else that helps.
