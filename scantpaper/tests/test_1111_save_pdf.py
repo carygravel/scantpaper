@@ -835,6 +835,51 @@ def test_import_pdf_without_text_and_resave(
             clean_up_files([temp_pdf2.name])
 
 
+def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
+    """
+    Regression test for issue #43: opening a PDF created from a transparent
+    image must import a single page, not an extra page for the alpha mask.
+    The imported page must be the image composited over a white background.
+    """
+    image = Image.new("LA", (100, 50), (255, 0))
+    image.putpixel((5, 5), (0, 255))
+    image.putpixel((6, 5), (0, 128))
+    png = str(tmp_path / "transparent.png")
+    image.save(png)
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf:
+        temp_pdf.write(img2pdf.convert(png))
+        temp_pdf.flush()
+
+        slist = Document(db=temp_db.name)
+        errors = []
+
+        mlp = safe_mainloop(10000)
+
+        def error_cb(response):
+            errors.append(response)
+            mlp.quit()
+
+        slist.import_files(
+            paths=[temp_pdf.name],
+            error_callback=error_cb,
+            finished_callback=lambda response: mlp.quit(),
+        )
+        mlp.run()
+
+        assert len(slist.data) == 1, "exactly one page imported"
+        assert not errors, "no spurious warning or error raised"
+
+        page = slist.thread.get_page(id=slist.data[0][2])
+        imported = page.image_object.convert("L")
+        assert imported.size == (100, 50)
+        assert imported.getpixel((5, 5)) == 0, "opaque pixel stays black"
+        assert (
+            imported.getpixel((6, 5)) == 127
+        ), "half-transparent pixel blended with white"
+        assert imported.getpixel((0, 0)) == 255, "transparent pixel becomes white"
+
+
 def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
     """
     Regression test for bug where saving a PDF with text_layer set to '[]'

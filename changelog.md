@@ -1,3 +1,10 @@
+## 3.0.16 (unreleased)
+
+* Fix import creating an extra page when a PDF contains a soft mask or stencil
+  image, e.g. a PDF created including an image with a transparent layer.
+  Closes #43 (Added page when opening a PDF created from a transparent image)
+
+
 ## 3.0.15 (2026-08-09)
 
 * Add new metadata to suggestions

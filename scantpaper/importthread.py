@@ -1,18 +1,19 @@
 "Threading model for the Document class"
 
-import threading
-import pathlib
-import logging
-import re
-import os
-import subprocess
 import glob
+import logging
+import os
+import pathlib
+import re
+import subprocess
 import tempfile
-from PIL import Image
+import threading
+
 from basethread import BaseThread
-from page import Page
-from i18n import _
 from helpers import exec_command
+from i18n import _
+from page import Page
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -411,8 +412,12 @@ class Importhread(BaseThread):
         args = request.args[0]
 
         # Extract images from PDF
-        warning_flag, xresolution, yresolution = False, None, None
+        warning_flag = False
         for i in range(args["first"], args["last"] + 1):
+            # Remove any extraction files left over from a previous page
+            for fname in glob.glob("x-*"):
+                os.remove(fname)
+
             out = subprocess.check_output(
                 _pdf_cmd_with_password(
                     [
@@ -428,11 +433,7 @@ class Importhread(BaseThread):
                 ),
                 text=True,
             )
-            for line in re.split(r"\n", out):
-                xresolution, yresolution = line[70:75], line[76:81]
-                if re.search(r"\d", xresolution, re.MULTILINE | re.DOTALL | re.VERBOSE):
-                    xresolution, yresolution = float(xresolution), float(yresolution)
-                    break
+            entries = _parse_pdfimages_list(out)
 
             try:
                 subprocess.run(
@@ -455,34 +456,9 @@ class Importhread(BaseThread):
                 return
             self.check_cancelled()
 
-            # Import each image
-            images = glob.glob("x-??*.???")
-            if len(images) != 1:
-                warning_flag = True
-            for fname in images:
-                regex = re.search(
-                    r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                if regex:
-                    ext = regex.group(1)
-                    try:
-                        page = Page(
-                            filename=fname,
-                            dir=args["dir"],
-                            format=image_format[ext],
-                            resolution=(xresolution, yresolution, "PixelsPerInch"),
-                        )
-                        page.import_pdftotext(self._extract_text_from_pdf(request, i))
-                        request.data(
-                            {
-                                "type": "page",
-                                "row": self.add_page(page),
-                            }
-                        )
-                        os.remove(fname)
-                    except (PermissionError, IOError) as err:
-                        logger.error("Caught error importing PDF: %s", err)
-                        request.error(_("Error importing PDF"))
+            images_and_resolution, warning = _correlate_pdf_images(entries)
+            warning_flag = warning_flag or warning
+            self._import_pdf_images(request, i, images_and_resolution)
 
         if warning_flag:
             request.error(
@@ -495,6 +471,34 @@ class Importhread(BaseThread):
                     "PDF options in the Save dialogue."
                 ),
             )
+
+    def _import_pdf_images(self, request, i, images_and_resolution):
+        "import the images extracted from a PDF page"
+        for fname, xresolution, yresolution, mask_fname in images_and_resolution:
+            if mask_fname is not None:
+                _composite_over_white(fname, mask_fname)
+                os.remove(mask_fname)
+            regex = re.search(r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE)
+            if regex:
+                ext = regex.group(1)
+                try:
+                    page = Page(
+                        filename=fname,
+                        dir=request.args[0]["dir"],
+                        format=image_format[ext],
+                        resolution=(xresolution, yresolution, "PixelsPerInch"),
+                    )
+                    page.import_pdftotext(self._extract_text_from_pdf(request, i))
+                    request.data(
+                        {
+                            "type": "page",
+                            "row": self.add_page(page),
+                        }
+                    )
+                    os.remove(fname)
+                except (PermissionError, IOError) as err:
+                    logger.error("Caught error importing PDF: %s", err)
+                    request.error(_("Error importing PDF"))
 
     def _extract_text_from_pdf(self, request, i):
         args = request.args[0]
@@ -546,6 +550,74 @@ def _pdf_cmd_with_password(cmd, password):
         cmd.insert(1, "-upw")
         cmd.insert(2, password)
     return cmd
+
+
+def _parse_pdfimages_list(out):
+    "parse pdfimages -list output into a list of image entries"
+    entries = []
+    for line in out.splitlines():
+        tokens = line.split()
+        if len(tokens) < 14:
+            continue
+        try:
+            page = int(tokens[0])
+            num = int(tokens[1])
+        except ValueError:
+            continue
+        entries.append(
+            {
+                "page": page,
+                "num": num,
+                "type": tokens[2],
+                "x_ppi": float(tokens[-4]),
+                "y_ppi": float(tokens[-3]),
+            }
+        )
+    return entries
+
+
+def _composite_over_white(image_path, mask_path):
+    "composite the image over a white background using its soft mask, in place"
+    try:
+        image = Image.open(image_path)
+        mask = Image.open(mask_path)
+        if image.size != mask.size:
+            return False
+        background = Image.new("RGB", image.size, "white")
+        result = Image.composite(image.convert("RGB"), background, mask.convert("L"))
+        if image.mode not in ("RGB", "RGBA"):
+            result = result.convert("L")
+        result.save(image_path)
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+def _correlate_pdf_images(entries):
+    "correlate extracted files with pdfimages -list entries by index"
+    images = sorted(glob.glob("x-??*.???"))
+    if len(images) != len(entries):
+        # Unexpected structure: import every file and warn
+        xresolution, yresolution = None, None
+        if entries:
+            xresolution = entries[0]["x_ppi"]
+            yresolution = entries[0]["y_ppi"]
+        return [(fname, xresolution, yresolution, None) for fname in images], True
+    images_and_resolution = []
+    paired_masks = set()
+    for i, (fname, entry) in enumerate(zip(images, entries)):
+        if entry["type"] == "image":
+            mask_fname = None
+            if i + 1 < len(entries) and entries[i + 1]["type"] == "smask":
+                mask_fname = images[i + 1]
+                paired_masks.add(images[i + 1])
+            images_and_resolution.append(
+                (fname, entry["x_ppi"], entry["y_ppi"], mask_fname)
+            )
+    for fname, entry in zip(images, entries):
+        if entry["type"] != "image" and fname not in paired_masks:
+            os.remove(fname)
+    return images_and_resolution, len(images_and_resolution) != 1
 
 
 def _note_callbacks(kwargs):
