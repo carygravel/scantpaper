@@ -311,13 +311,13 @@ class OCRControls(Gtk.Box):
         if hasattr(self, "_threshold_button"):
             self._threshold_button.set_active(newval)
 
-    _threshold_value = 80.0
+    _threshold_value = 20.0
 
     @GObject.Property(
         type=float,
-        default=80.0,
+        default=20.0,
         nick="Threshold value",
-        blurb="Pixels lighter than this percentage will be made white",
+        blurb="Pixels that differ from the paper colour by more than this percentage are rendered black",
     )
     def threshold_value(self):
         "getter for threshold_value attribute"
@@ -374,6 +374,13 @@ class OCRControls(Gtk.Box):
         labelp = Gtk.Label(label="%")
         hboxt.pack_end(labelp, False, True, 0)
         self._threshold_spin = Gtk.SpinButton.new_with_range(0, 100, 1)
+        self._threshold_spin.set_tooltip_text(
+            _(
+                "Pixels that differ from the paper colour by more than this "
+                "percentage are rendered black. Higher values only keep "
+                "stronger marks."
+            )
+        )
         self._threshold_spin.set_value(self.threshold_value)
         self._threshold_spin.set_sensitive(self.threshold)
         hboxt.pack_end(self._threshold_spin, False, True, 0)

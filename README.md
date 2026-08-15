@@ -171,7 +171,7 @@ that page to the corresponding position.
 
 ### Tools
 
-- **Threshold:** Binarize images.
+- **Threshold:** Binarize images. The value is an ink-strength cutoff: pixels that differ from the paper colour by more than the given percentage are rendered black, so coloured text and annotations (stamps, highlighters) on white paper are kept. The default is 20; values saved by older versions are migrated automatically.
 - **Brightness / Contrast:** Adjust brightness and contrast.
 - **Negate:** Invert colours.
 - **Unsharp mask:** Sharpen images.

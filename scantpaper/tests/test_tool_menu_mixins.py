@@ -153,6 +153,32 @@ def test_threshold_dialog_no_pages(mocker, mock_tool_window):
     mock_tool_window.slist.threshold.assert_not_called()
 
 
+def test_threshold_dialog_ink_strength_label(mocker, mock_tool_window):
+    "Test the threshold dialog labels the slider as ink strength"
+    mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_vbox = mocker.Mock()
+    mock_dialog_instance.get_content_area.return_value = mock_vbox
+
+    mock_tool_window.settings = {"threshold tool": 20}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.data = [[0, 0, "uuid"]]
+
+    mock_tool_window.threshold(None, None)
+
+    hboxt = next(
+        call.args[0]
+        for call in mock_vbox.pack_start.call_args_list
+        if isinstance(call.args[0], Gtk.Box)
+    )
+    labels = [
+        child.get_text()
+        for child in hboxt.get_children()
+        if isinstance(child, Gtk.Label)
+    ]
+    assert "Ink strength" in labels
+
+
 def test_brightness_contrast_dialog(mocker, mock_tool_window):
     "Test the brightness_contrast dialog"
 

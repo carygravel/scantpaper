@@ -86,12 +86,19 @@ class ToolsMenuMixins:
         hboxt = Gtk.Box()
         vbox = windowt.get_content_area()
         vbox.pack_start(hboxt, False, True, 0)
-        label = Gtk.Label(label=_("Threshold"))
+        label = Gtk.Label(label=_("Ink strength"))
         hboxt.pack_start(label, False, True, 0)
         labelp = Gtk.Label(label=PERCENT)
         hboxt.pack_end(labelp, False, True, 0)
         spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
         spinbutton.set_value(self.settings["threshold tool"])
+        spinbutton.set_tooltip_text(
+            _(
+                "Pixels that differ from the paper colour by more than this "
+                "percentage are rendered black. Higher values only keep "
+                "stronger marks."
+            )
+        )
         hboxt.pack_end(spinbutton, False, True, 0)
 
         def threshold_apply_callback():

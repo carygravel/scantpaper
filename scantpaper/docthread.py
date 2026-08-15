@@ -21,7 +21,7 @@ from const import APPLICATION_ID, THUMBNAIL, USER_VERSION
 from i18n import _
 from importthread import _note_callbacks
 from page import Page
-from PIL import ImageEnhance, ImageFilter, ImageOps, ImageStat
+from PIL import ImageChops, ImageEnhance, ImageFilter, ImageOps, ImageStat
 from savethread import SaveThread
 
 gi.require_version("Gtk", "3.0")
@@ -1038,16 +1038,17 @@ class DocThread(SaveThread):
         page = self.get_page(id=options["page"])
         self.check_cancelled()
 
-        logger.info("Threshold %s with %s", page.id, options["threshold"])
+        threshold = options["threshold"]
+        logger.info("Threshold %s with %s", page.id, threshold)
 
-        # To grayscale
-        page.image_object = page.image_object.convert("L")
-        # Threshold
-        page.image_object = page.image_object.point(
-            lambda p: 255 if p > options["threshold"] else 0
-        )
-        # To mono
-        page.image_object = page.image_object.convert("1")
+        # A pixel is ink when it differs from white in any channel by more than
+        # the threshold, i.e. when min(R,G,B) falls below the cutoff.
+        cutoff = round(255 * (100 - threshold) / 100)
+        red, green, blue = page.image_object.convert("RGB").split()
+        min_channel = ImageChops.darker(ImageChops.darker(red, green), blue)
+        page.image_object = min_channel.point(
+            lambda p: 0 if p < cutoff else 255
+        ).convert("1")
         self.check_cancelled()
 
         page.dirty_time = datetime.datetime.now()  # flag as dirty

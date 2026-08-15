@@ -610,6 +610,83 @@ def test_do_analyse_empty_image(mocker):
     assert mock_page.std_dev == [0.0]
 
 
+def test_do_threshold_colour(mocker):
+    "test do_threshold preserves colour content on white"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    page = mocker.Mock(spec=Page)
+    page.id = 1
+    page.dirty_time = None
+    page.saved = True
+    img = Image.new("RGB", (4, 3))
+    pixels = img.load()
+    rows = [
+        [(255, 255, 255), (250, 250, 250), (240, 240, 240), (255, 255, 255)],
+        [(255, 0, 0), (255, 255, 0), (0, 0, 255), (0, 180, 0)],
+        [(255, 180, 180), (150, 200, 255), (0, 0, 0), (128, 128, 128)],
+    ]
+    for y in range(3):
+        for x in range(4):
+            pixels[x, y] = rows[y][x]
+    page.image_object = img
+    mocker.patch.object(thread, "get_page", return_value=page)
+    mocker.patch.object(thread, "replace_page")
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "threshold": 20}]
+    thread.do_threshold(request)
+
+    out = page.image_object
+    assert out.mode == "1", "output is 1-bit"
+    pix = out.load()
+    assert [pix[x, 0] for x in range(4)] == [255, 255, 255, 255], "white stays white"
+    assert [pix[x, 1] for x in range(4)] == [0, 0, 0, 0], "saturated colours kept"
+    assert [pix[x, 2] for x in range(4)] == [0, 0, 0, 0], "light colours kept"
+
+
+def test_do_threshold_percent(mocker):
+    "test do_threshold value is a percentage of the range"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    page = mocker.Mock(spec=Page)
+    page.id = 1
+    page.dirty_time = None
+    page.saved = True
+    values = [0, 50, 51, 100, 203, 204, 240, 255]
+    img = Image.new("L", (len(values), 1))
+    img.putdata(values)
+    page.image_object = img
+    mocker.patch.object(thread, "get_page", return_value=page)
+    mocker.patch.object(thread, "replace_page")
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "threshold": 20}]
+    thread.do_threshold(request)
+    assert page.image_object.mode == "1"
+    pix = page.image_object.load()
+    assert [pix[x, 0] for x in range(len(values))] == [0, 0, 0, 0, 0, 255, 255, 255]
+
+    img = Image.new("L", (len(values), 1))
+    img.putdata(values)
+    page.image_object = img
+    request.args = [{"page": 1, "threshold": 80}]
+    thread.do_threshold(request)
+    assert page.image_object.mode == "1"
+    pix = page.image_object.load()
+    assert [pix[x, 0] for x in range(len(values))] == [
+        0,
+        0,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+    ]
+
+
 def test_executemany_no_params(mocker):
     "test _executemany when params is None to cover line 111"
     thread = DocThread(db=":memory:")

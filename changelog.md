@@ -3,6 +3,8 @@
 * Fix import creating an extra page when a PDF contains a soft mask or stencil
   image, e.g. a PDF created including an image with a transparent layer.
   Closes #43 (Added page when opening a PDF created from a transparent image)
+* Improve threshold tool behaviour for colour images.
+  Closes #20 (threshold does poorly for colour images)
 
 
 ## 3.0.15 (2026-08-09)

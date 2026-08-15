@@ -4,6 +4,7 @@ import datetime
 import json
 import logging
 import os
+import re
 import shutil
 from types import SimpleNamespace
 
@@ -80,7 +81,7 @@ DEFAULTS = {
     "threshold-before-ocr": False,
     "brightness tool": 65,
     "contrast tool": 65,
-    "threshold tool": 80,
+    "threshold tool": 20,
     "Blank threshold": 0.005,  # Blank page standard deviation threshold
     "Dark threshold": 0.12,  # Dark page mean threshold
     "OCR on scan": True,
@@ -135,6 +136,18 @@ def _get_convert_command():
 
 CONVERT_COMMAND = _get_convert_command()
 logger = logging.getLogger(__name__)
+
+# Release version that introduced the colour-aware threshold. Configs written
+# by older versions have their "threshold tool" value migrated to the new
+# ink-strength scale (v -> 100 - v). Keep in sync with the release version.
+THRESHOLD_MIGRATION_VERSION = (3, 0, 16)
+
+
+def _version_tuple(version):
+    "parse a version string into a comparable tuple of integers"
+    if not version:
+        return (0,)
+    return tuple(int(x) for x in re.findall(r"\d+", str(version))[:3])
 
 
 def read_config(filename):
@@ -198,6 +211,14 @@ def read_config(filename):
     for k in "image_control_tool", "viewer_tools":
         if k in config and isinstance(config[k], int):
             del config[k]
+
+    # migrate the threshold tool value from the pre-colour-aware scale. The old
+    # slider was a raw 0-255 cutoff despite its 0-100 range; 100 - v preserves
+    # the cut-off the user intended on the new ink-strength scale.
+    if "threshold tool" in config and (
+        _version_tuple(config.get("version")) < THRESHOLD_MIGRATION_VERSION
+    ):
+        config["threshold tool"] = 100 - config["threshold tool"]
 
     logger.debug(config)
     return config

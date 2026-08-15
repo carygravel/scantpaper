@@ -121,7 +121,7 @@ def test_threshold(
 
     mlp = safe_mainloop(2000)
     slist.threshold(
-        threshold=80,
+        threshold=20,
         page=slist.data[0][2],
         finished_callback=lambda response: mlp.quit(),
     )

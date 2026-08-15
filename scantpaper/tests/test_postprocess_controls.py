@@ -289,6 +289,9 @@ class TestOCRControls:
         controls.threshold_value = 60
         assert controls.threshold_value == 60
 
+        controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
+        assert controls.threshold_value == 20.0
+
         # engines + active
         controls = OCRControls(
             available_engines=[["tesseract", "Tesseract", "Desc"]], active=True
