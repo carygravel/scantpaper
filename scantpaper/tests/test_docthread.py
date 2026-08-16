@@ -36,7 +36,6 @@ def test_do_tesseract_path_fallback(mocker):
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
     mock_api_instance.__enter__.return_value = mock_api_instance
-    mock_api_instance.ProcessPages.return_value = True
 
     # Mock Page
     mock_page = mocker.Mock(spec=Page)
@@ -48,12 +47,6 @@ def test_do_tesseract_path_fallback(mocker):
 
     # Mock replace_page and other methods that hit DB
     mocker.patch.object(thread, "replace_page")
-
-    # Mock pathlib.Path
-    mock_path = mocker.patch("pathlib.Path")
-    mock_path_instance = mock_path.return_value
-    mock_path_instance.with_suffix.return_value = mock_path_instance
-    mock_path_instance.read_text.return_value = "hocr content"
 
     # Mock cancel
     thread.cancel = False
@@ -70,6 +63,42 @@ def test_do_tesseract_path_fallback(mocker):
     mock_api.assert_called_with(
         lang="eng", path="/usr/share/tesseract-ocr/4.00/tessdata"
     )
+
+
+def test_do_tesseract_in_memory_pixels(mocker):
+    "test do_tesseract feeds page pixels to tesseract in memory"
+    thread = DocThread(db=":memory:")
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetHOCRText.return_value = "hocr content"
+
+    image = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = image
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
+
+    thread.do_tesseract(request)
+
+    expected = image.convert("L")
+    mock_api_instance.SetImageBytes.assert_called_once_with(
+        expected.tobytes(), expected.width, expected.height, 1, expected.width
+    )
+    mock_api_instance.Recognize.assert_called_once_with()
+    mock_api_instance.GetHOCRText.assert_called_once_with(0)
+    assert "hocr content" in mock_page.import_hocr.call_args.args[0]
+    assert mock_page.ocr_flag is True
 
 
 def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
@@ -102,15 +131,10 @@ def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
     mocker.patch.object(thread, "_take_snapshot")
     mocker.patch.object(thread, "_insert_image", return_value=(1, "thumb"))
     mocker.patch.object(thread, "_insert_page", return_value=1)
+    mocker.patch.object(thread, "_bytes_to_pixbuf", return_value="thumb")
 
     # Mock _con for commit
     thread._con[threading.get_native_id()] = mocker.Mock()
-
-    # Mock pathlib.Path
-    mock_path = mocker.patch("pathlib.Path")
-    mock_path_instance = mock_path.return_value
-    mock_path_instance.with_suffix.return_value = mock_path_instance
-    mock_path_instance.read_text.return_value = "hocr content"
 
     request = mocker.Mock()
     request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
@@ -153,7 +177,6 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
     mock_api_instance.__enter__.return_value = mock_api_instance
-    mock_api_instance.ProcessPages.return_value = True
 
     # Mock Page
     mock_page = mocker.Mock(spec=Page)
@@ -164,12 +187,6 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
 
     # Mock DB operations
     mocker.patch.object(thread, "replace_page")
-
-    # Mock pathlib.Path (the one used for reading hocr)
-    mock_pathlib_path = mocker.patch("pathlib.Path")
-    mock_pathlib_path_instance = mock_pathlib_path.return_value
-    mock_pathlib_path_instance.with_suffix.return_value = mock_pathlib_path_instance
-    mock_pathlib_path_instance.read_text.return_value = "hocr content"
 
     request = mocker.Mock()
     request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
@@ -881,6 +898,113 @@ def test_pages_saved_after_replace(temp_db, mocker):
 
     # 5. Check if pages are saved
     assert thread.pages_saved()
+
+
+def test_replace_page_reuse_image(temp_db, mocker):
+    "test replace_page with reuse_image=True keeps the stored image"
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    img = Image.new("RGB", (10, 10), color="red")
+    page = Page(image_object=img)
+    _, _, page_id = thread.add_page(page)
+
+    stored_page = thread.get_page(id=page_id)
+    image_id = stored_page.image_id
+    assert image_id is not None
+
+    insert_image_spy = mocker.spy(thread, "_insert_image")
+    reuse_thumb_spy = mocker.spy(thread, "_reuse_image_thumb")
+
+    position, thumb, returned_id = thread.replace_page(
+        stored_page, page_id, reuse_image=True
+    )
+
+    insert_image_spy.assert_not_called()
+    reuse_thumb_spy.assert_called_once_with(image_id)
+    assert returned_id == page_id
+    assert position == 0
+    assert thumb is not None
+
+    assert thread.get_page(id=page_id).image_id == image_id
+
+
+def test_replace_page_default_inserts_image(temp_db, mocker):
+    "test replace_page default reuse_image=False calls _insert_image"
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    img = Image.new("RGB", (10, 10), color="red")
+    page = Page(image_object=img)
+    _, _, page_id = thread.add_page(page)
+
+    insert_image_spy = mocker.spy(thread, "_insert_image")
+    img2 = Image.new("RGB", (10, 10), color="blue")
+    page2 = Page(image_object=img2)
+
+    thread.replace_page(page2, page_id)
+
+    insert_image_spy.assert_called_once()
+
+
+def test_ocr_undo_redo(temp_db, mocker):
+    "test OCR text layer changes are undoable and redoable, image preserved"
+    hocr = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 10 10'>
+   <div class='ocr_carea' id='block_1_1' title='bbox 0 0 10 10'>
+    <span class='ocr_line' id='line_1_1' title='bbox 0 0 10 10'>
+     <span class='ocrx_word' id='word_1_1' title='bbox 0 0 10 10; x_wconf 95'>hello</span>
+    </span>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    img = Image.new("RGB", (10, 10), color="red")
+    page = Page(image_object=img)
+    _, _, page_id = thread.add_page(page)
+
+    image_id_before = thread.get_page(id=page_id).image_id
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetHOCRText.return_value = hocr
+
+    request = mocker.Mock()
+    request.args = [{"page": page_id, "language": "eng", "dir": "/tmp"}]
+
+    thread.do_tesseract(request)
+
+    ocr_page = thread.get_page(id=page_id)
+    assert '"text": "hello"' in ocr_page.text_layer
+    assert (
+        thread.get_page(id=page_id).image_id == image_id_before
+    ), "no new image inserted by OCR"
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    undone_page = thread.get_page(id=page_id)
+    assert undone_page.text_layer is None, "undo removes OCR text layer"
+    assert thread.get_page(id=page_id).image_id == image_id_before, "undo keeps image"
+
+    thread.do_redo(Request("redo", (), thread.responses))
+    redone_page = thread.get_page(id=page_id)
+    assert '"text": "hello"' in redone_page.text_layer, "redo restores OCR text layer"
+    assert thread.get_page(id=page_id).image_id == image_id_before, "redo keeps image"
 
 
 def test_open_migration_v1_to_v2(temp_db):

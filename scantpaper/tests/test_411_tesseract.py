@@ -93,6 +93,8 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_syn
 
     import_in_mainloop(slist, [temp_png.name])
 
+    image_id_before = get_page_sync(slist.thread, id=1).image_id
+
     mlp = safe_mainloop(10000)
     slist.tesseract(
         page=slist.data[0][2],
@@ -102,6 +104,7 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_syn
     mlp.run()
 
     page = get_page_sync(slist.thread, id=1)
+    assert page.image_id == image_id_before, "OCR does not change the stored image"
     hocr = page.export_hocr()
     assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'

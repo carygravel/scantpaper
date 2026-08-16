@@ -306,6 +306,15 @@ class DocThread(SaveThread):
             return self._cur[threading.get_native_id()].lastrowid, thumb
         return if_different_from, thumb
 
+    def _reuse_image_thumb(self, image_id):
+        "return the thumbnail pixbuf of the stored image with the given id"
+        self._check_write_tid()
+        self._execute("SELECT thumb FROM image WHERE id = ?", (image_id,))
+        row = self._fetchone()
+        if row is None:
+            raise ValueError(f"Image id {image_id} not found")
+        return self._bytes_to_pixbuf(row[0])
+
     def _insert_page(self, page, image_id):
         "insert a page to the database"
         self._check_write_tid()
@@ -396,12 +405,16 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
         return position, thumb, page_id
 
-    def replace_page(self, page, initial_page_id):
+    def replace_page(self, page, initial_page_id, reuse_image=False):
         "replace a page in the database, keeping its position"
         self._check_write_tid()
         self._take_snapshot()
 
-        image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
+        if reuse_image:
+            image_id = page.image_id
+            thumb = self._reuse_image_thumb(image_id)
+        else:
+            image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
         page_id = self._insert_page(page, image_id)
         self._execute(
             """UPDATE page_order SET page_id = ?
@@ -1293,17 +1306,28 @@ class DocThread(SaveThread):
             else:
                 path = paths[0]
         with tesserocr.PyTessBaseAPI(lang=options["language"], path=path) as api:
-            output = "image_out"
             api.SetVariable("tessedit_create_hocr", "T")
             api.SetVariable("hocr_font_info", "T")
-            with tempfile.NamedTemporaryFile(dir=options["dir"], suffix=".png") as file:
-                page.image_object.save(file.name)
-                _pp = api.ProcessPages(output, file.name)
-
-            # Unnecessary filesystem write/read
-            path_hocr = pathlib.Path(output).with_suffix(".hocr")
-            hocr = path_hocr.read_text(encoding="utf-8")
-            path_hocr.unlink()
+            image = page.image_object.convert("L")
+            api.SetImageBytes(
+                image.tobytes(), image.width, image.height, 1, image.width
+            )
+            api.Recognize()
+            # GetHOCRText returns only the body fragment, so wrap it in a
+            # full document for import_hocr to parse.
+            hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+ </head>
+ <body>
+{api.GetHOCRText(0)}
+ </body>
+</html>
+"""
 
             page.import_hocr(hocr)
             page.ocr_flag = True
@@ -1313,7 +1337,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, page.id, reuse_image=True),
                 "replace": page.id,
             }
         )

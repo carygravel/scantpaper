@@ -13,7 +13,7 @@ It is the Python rewrite (v3) of the popular
 [![License](https://img.shields.io/badge/License-GPL--3.0--only-blue.svg)](https://www.gnu.org/licenses/)
 
 - **Scan** single- or double-sided, with automatic interleaving
-- **OCR** with tesseract for searchable PDF/A
+- **OCR** with tesseract for searchable PDF/A, without the need for temporary files
 - **Edit** with crop, rotate, threshold, unsharp mask, and unpaper clean-up
 - **Save** as PDF, DjVu, TIFF, PS, TXT, hOCR, or image files
 - **Recover** crashed sessions and restore them on the next start
@@ -178,7 +178,7 @@ that page to the corresponding position.
 - **Crop:** Crop selected pages.
 - **Clean up:** Use unpaper to clean up scans.
 - **Split:** Split pages vertically or horizontally.
-- **OCR:** Use tesseract to create a text layer for the selected pages. The text layer is embedded into saved PDFs, making them searchable, and can be viewed and edited in the text layer window.
+- **OCR:** Use tesseract to create a text layer for the selected pages. The text layer is embedded into saved PDFs, making them searchable, and can be viewed and edited in the text layer window. Page pixels are fed to tesseract in memory and the stored image is reused, so OCR is faster than in previous versions.
 - **User-defined:** Run user-defined commands.
 
 #### User-defined Tool Variables
