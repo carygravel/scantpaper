@@ -281,7 +281,7 @@ class DocThread(SaveThread):
     def _insert_image(self, page, if_different_from=None):
         "insert an image to the database"
         self._check_write_tid()
-        bytes_image = page.to_bytes()
+        bytes_image = page.to_stored_bytes()
         insert = True
         if if_different_from is not None:
             self._execute(

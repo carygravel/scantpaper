@@ -5,6 +5,8 @@
   Closes #43 (Added page when opening a PDF created from a transparent image)
 * Improve threshold tool behaviour for colour images.
   Closes #20 (threshold does poorly for colour images)
+* Optimise PDF pipeline tasks by storing a compact intermediate blob instead
+  of always re-encoding to PNG
 
 
 ## 3.0.15 (2026-08-09)

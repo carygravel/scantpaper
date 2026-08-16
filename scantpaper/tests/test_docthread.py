@@ -737,7 +737,7 @@ def test_insert_image_not_found(mocker):
     thread._write_tid = threading.get_native_id()
 
     mock_page = mocker.Mock(spec=Page)
-    mock_page.to_bytes.return_value = b"image"
+    mock_page.to_stored_bytes.return_value = b"image"
 
     mocker.patch.object(thread, "_execute")
     mocker.patch.object(thread, "_fetchone", return_value=None)

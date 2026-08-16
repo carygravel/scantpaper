@@ -1,5 +1,6 @@
 "Tests for Page class"
 
+import io
 import os
 import subprocess
 import tempfile
@@ -392,3 +393,111 @@ def test_import_hocr_empty():
         page = Page(image_object=Image.new("RGB", (210, 297)), dir=dirname)
         page.import_hocr(empty_hocr)
         assert page.text_layer is None, "empty hOCR should set text_layer to None"
+
+
+def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif):
+    "continuous-tone TIFF pages are stored as JPEG"
+    Image.new("L", (210, 297), 128).save(temp_tif.name)
+    page = Page(filename=temp_tif.name)
+    stored = page.to_stored_bytes()
+    assert Image.open(io.BytesIO(stored)).format == "JPEG"
+
+
+def test_to_stored_bytes_bilevel_is_png(temp_tif):
+    "1-bit pages are stored losslessly as PNG"
+    Image.new("1", (210, 297), 0).save(temp_tif.name)
+    page = Page(filename=temp_tif.name)
+    stored = page.to_stored_bytes()
+    assert Image.open(io.BytesIO(stored)).format == "PNG"
+
+
+def test_to_stored_bytes_rgba_is_png():
+    "images with an alpha channel are stored losslessly"
+    page = Page(image_object=Image.new("RGBA", (210, 297)))
+    stored = page.to_stored_bytes()
+    image = Image.open(io.BytesIO(stored))
+    assert image.format == "PNG"
+    assert image.mode == "RGBA"
+
+
+def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
+    "importing a JPEG file stores the original bytes"
+    Image.new("RGB", (210, 297)).save(temp_jpg.name, format="JPEG")
+    with open(temp_jpg.name, "rb") as fhd:
+        original = fhd.read()
+    page = Page(filename=temp_jpg.name)
+    assert page.to_stored_bytes() == original
+
+
+def test_to_stored_bytes_png_file_passthrough(temp_png):
+    "importing a PNG file stores the original bytes"
+    Image.new("RGB", (210, 297)).save(temp_png.name, format="PNG")
+    with open(temp_png.name, "rb") as fhd:
+        original = fhd.read()
+    page = Page(filename=temp_png.name)
+    assert page.to_stored_bytes() == original
+
+
+def test_get_pixbuf_at_scale_downscales_before_save(mocker):
+    "thumbnails are produced from a downscaled image, not a full-size one"
+    page = Page(image_object=Image.new("RGB", (1000, 1000)))
+    saved_sizes = []
+    original_save = Image.Image.save
+
+    def spy_save(self, fp, *args, **kwargs):
+        saved_sizes.append(self.size)
+        return original_save(self, fp, *args, **kwargs)
+
+    mocker.patch.object(Image.Image, "save", spy_save)
+    pixbuf = page.get_pixbuf_at_scale(100, 100)
+    assert pixbuf is not None, "get_pixbuf_at_scale()"
+    assert pixbuf.get_width() == 100, "downscaled pixbuf width"
+    assert pixbuf.get_height() == 100, "downscaled pixbuf height"
+    assert saved_sizes == [(100, 100)], "image downscaled before save"
+
+
+def test_write_image_for_pdf_passthrough():
+    "stored JPEG bytes are written to the PDF without re-encoding"
+    buf = io.BytesIO()
+    Image.new("RGB", (210, 297)).save(buf, format="JPEG", quality=92)
+    stored = buf.getvalue()
+    page = Page.from_bytes(stored)
+    page.resolution = (72, 72, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(filename.name, None)
+        with open(filename.name, "rb") as fhd:
+            assert fhd.read() == stored, "bytes passed through"
+
+
+def test_write_image_for_pdf_reenocodes_with_options():
+    "downsampling or compression forces a re-encode"
+    buf = io.BytesIO()
+    Image.new("RGB", (210, 297)).save(buf, format="JPEG", quality=92)
+    stored = buf.getvalue()
+    page = Page.from_bytes(stored)
+    page.resolution = (72, 72, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        options = {"options": {"downsample": True, "downsample dpi": 36}}
+        page.write_image_for_pdf(filename.name, options)
+        with open(filename.name, "rb") as fhd:
+            output = fhd.read()
+        assert output != stored, "downsampled image re-encoded"
+        assert Image.open(io.BytesIO(output)).size == (105, 148), "downsampled size"
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        options = {"options": {"compression": "g4"}}
+        page.write_image_for_pdf(filename.name, options)
+        with open(filename.name, "rb") as fhd:
+            output = fhd.read()
+        assert output != stored, "compressed image re-encoded"
+        assert Image.open(io.BytesIO(output)).mode == "1", "thresholded to bilevel"
+
+
+def test_from_bytes_png_blob_readable():
+    "PNG blobs from sessions before this change remain readable"
+    img = Image.new("RGB", (210, 297))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    page = Page.from_bytes(buf.getvalue(), id=1)
+    assert page.image_object.format == "PNG", "stored format detected"
+    assert page.get_size() == (210, 297), "page size read from blob"
+    assert isinstance(page.get_pixbuf(), GdkPixbuf.Pixbuf), "PNG blob displays"

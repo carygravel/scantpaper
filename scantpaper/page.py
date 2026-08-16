@@ -53,6 +53,7 @@ class Page:
     mean = None
     image_id = None
     id = None
+    _stored_bytes = None
 
     def __init__(self, **kwargs):
         if ("image_object" not in kwargs and "filename" not in kwargs) or (
@@ -70,6 +71,9 @@ class Page:
 
         if "filename" in kwargs:
             self.image_object = Image.open(kwargs["filename"])
+            if self.image_object.format in ("JPEG", "PNG"):
+                with open(kwargs["filename"], "rb") as fhd:
+                    self._stored_bytes = fhd.read()
 
         # set this before setting attributes from kwargs in order to reuse uuid
         # if necessary. Therefore, the uuid tracks the page through import,
@@ -90,19 +94,38 @@ class Page:
             self.uuid,
         )
 
-    def to_bytes(self):
-        "return the image as bytes, e.g. suitable for storing as a blob in SQLite"
+    def to_stored_bytes(self):
+        """return the image as bytes for storing as a blob in SQLite, choosing
+        a compact format that can be embedded in a PDF without re-encoding"""
+        if self.image_object.format in ("JPEG", "PNG") and self._stored_bytes:
+            return self._stored_bytes
+        if self.image_object.mode == "1":
+            return self._to_png_bytes()
+        if self.image_object.mode in ("RGBA", "LA", "PA"):
+            return self._to_png_bytes()
+        return self._to_jpeg_bytes()
+
+    def _to_png_bytes(self):
+        "return the image encoded as PNG bytes"
         img_byte_arr = io.BytesIO()
         image = self.image_object
-        if image.mode == "I":
-            image = image.convert("L")
         image.save(img_byte_arr, format="PNG")
+        return img_byte_arr.getvalue()
+
+    def _to_jpeg_bytes(self):
+        "return the image encoded as JPEG bytes at the storage quality"
+        img_byte_arr = io.BytesIO()
+        image = self.image_object
+        if image.mode in ("I", "F", "P"):
+            image = image.convert("RGB" if image.mode == "P" else "L")
+        image.save(img_byte_arr, format="JPEG", quality=92)
         return img_byte_arr.getvalue()
 
     @classmethod
     def from_bytes(cls, blob, **kwargs):
         "create a page from bytes"
         page = Page(image_object=Image.open(io.BytesIO(blob)))
+        page._stored_bytes = blob
         page.get_size()
         for key in [
             "id",
@@ -327,6 +350,10 @@ class Page:
             image = self.image_object
             if image.mode == "I":
                 image = image.convert("L")
+            width = max(1, int(width))
+            height = max(1, int(height))
+            if image.size != (width, height):
+                image = image.resize((width, height), resample=Image.Resampling.BOX)
             image.save(filename.name)
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
@@ -357,36 +384,26 @@ class Page:
         return xresolution, self.image_object
 
     def write_image_for_pdf(self, filename, options):
-        "write the image as a PNG file"
+        "write the image as a file suitable for embedding in a PDF"
         image = self.image_object
+        opts = {}
+        if options and options.get("options"):
+            opts = options["options"]
         if (
-            options
-            and "options" in options
-            and options["options"]
-            and "downsample" in options["options"]
-            and options["options"]["downsample"]
+            self._stored_bytes is not None
+            and self.image_object.format == "JPEG"
+            and not opts.get("downsample")
+            and not (opts.get("compression") and opts["compression"][0] == "g")
         ):
-            if options["options"]["downsample dpi"] < min(
-                self.resolution[0], self.resolution[1]
-            ):
-                width = int(
-                    self.width
-                    * options["options"]["downsample dpi"]
-                    // self.resolution[0]
-                )
-                height = int(
-                    self.height
-                    * options["options"]["downsample dpi"]
-                    // self.resolution[1]
-                )
+            with open(filename, "wb") as fhd:
+                fhd.write(self._stored_bytes)
+            return
+        if opts and "downsample" in opts and opts["downsample"]:
+            if opts["downsample dpi"] < min(self.resolution[0], self.resolution[1]):
+                width = int(self.width * opts["downsample dpi"] // self.resolution[0])
+                height = int(self.height * opts["downsample dpi"] // self.resolution[1])
                 image = image.resize((width, height))
-        if (
-            options
-            and "options" in options
-            and options["options"]
-            and "compression" in options["options"]
-            and options["options"]["compression"][0] == "g"  # g3 or g4
-        ):
+        if opts and "compression" in opts and opts["compression"][0] == "g":  # g3 or g4
             # Grayscale
             image = image.convert("L")
             # Threshold

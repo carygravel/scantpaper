@@ -445,11 +445,16 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
     for i in [0, 1]:
         page = get_page_sync(slist.thread, id=i + 1)
         out_level.append(page.image_object.getpixel((100, 100)))
+
+    def close(a, b):
+        "return whether two RGB pixels differ by no more than 8 in any channel"
+        return all(abs(c1 - c2) <= 8 for c1, c2 in zip(a, b))
+
     assert (
         len(in_level) == 2
         and len(out_level) == 2
-        and in_level[0] == out_level[1]
-        and in_level[1] == out_level[0]
+        and close(in_level[0], out_level[1])
+        and close(in_level[1], out_level[0])
     ), "rtl"
 
 
