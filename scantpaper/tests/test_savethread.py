@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 from basethread import Request
+from i18n import _
 from page import Page
 from savethread import (
     SaveThread,
@@ -917,3 +918,75 @@ def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_in
 
         # Verify progress was updated during the operation
         request.data.assert_called_with(1.0)
+
+
+def test_save_pdf_per_page_progress(mock_thread_instance, mock_page_instance):
+    "Test that per-page progress is reported during the image-write loop"
+    mock_page_instance.text_layer = "text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+    request.data = MagicMock()
+
+    events = []
+
+    def record_data(*_args, **_kwargs):
+        "Record each request.data call"
+        events.append(("data", _args[0]))
+
+    def convert(*_args, **_kwargs):
+        "Record when img2pdf.convert runs"
+        events.append(("convert", None))
+        return b"pdf_data"
+
+    request.data.side_effect = record_data
+
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", side_effect=convert),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread._remove_pdf_title"),
+        patch("savethread.os.remove"),
+        patch("savethread._set_timestamp"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path") as mock_path,
+    ):
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+    assert 1 / 2 in [
+        value for kind, value in events if kind == "data" and isinstance(value, float)
+    ], "per-page fraction reported during the image-write loop"
+
+    convert_index = next(i for i, event in enumerate(events) if event[0] == "convert")
+    writing_page_indices = [
+        i
+        for i, event in enumerate(events)
+        if event[0] == "data"
+        and isinstance(event[1], str)
+        and event[1].startswith(_("Writing page"))
+    ]
+    assert writing_page_indices, "per-page message reported"
+    assert (
+        max(writing_page_indices) < convert_index
+    ), "per-page message reported before img2pdf.convert"
+
+    writing_pdf_indices = [
+        i
+        for i, event in enumerate(events)
+        if event[0] == "data" and event[1] == _("Writing PDF")
+    ]
+    assert writing_pdf_indices, '"Writing PDF" message reported'
+    assert (
+        writing_pdf_indices[0] < convert_index
+    ), '"Writing PDF" message reported before img2pdf.convert'

@@ -123,9 +123,17 @@ class SaveThread(Importhread):
             ) as fhd:  # turn off buffering
                 filenames = []
                 resolutions = []
-                for page_id in options["list_of_pages"]:
+                for i, page_id in enumerate(options["list_of_pages"], start=1):
                     page = self.get_page(id=page_id)
                     list_of_pages.append(page)
+                    request.data(i / (len(options["list_of_pages"]) + 1))
+                    request.data(
+                        _("Writing page %i of %i")
+                        % (
+                            i,
+                            len(options["list_of_pages"]),
+                        )
+                    )
 
                     # store the filename and not the tempfile object to avoid potentially
                     # holding many open filehandles
@@ -147,6 +155,7 @@ class SaveThread(Importhread):
                     return pagewidth, pageheight, imgwidthpdf, imgheightpdf
 
                 metadata["layout_fun"] = layout_fun
+                request.data(_("Writing PDF"))
                 fhd.write(img2pdf.convert(filenames, **metadata))
                 for fname in filenames:
                     os.remove(fname)
@@ -168,14 +177,6 @@ class SaveThread(Importhread):
                         json_fh.write(
                             json.dumps({"pageno": pagenr, "orientation_correction": 0})
                         )
-                request.data(pagenr / (len(options["list_of_pages"]) + 1))
-                request.data(
-                    _("Saving page %i of %i")
-                    % (
-                        pagenr,
-                        len(list_of_pages),
-                    )
-                )
                 self.check_cancelled()
 
             # Embed text layer using ocrmypdf

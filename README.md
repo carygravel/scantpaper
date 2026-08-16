@@ -112,7 +112,7 @@ that page to the corresponding position.
 ### Main Features
 
 - **Scan:** Options for device, page count, source document, side to scan, and device-dependent options (page size, mode, resolution, batch-scan, etc.). Optionally OCR each page on scan.
-- **Save:** Save selected/all pages in multiple formats. Supports metadata. The Title, Author, Subject, and Keywords fields offer autocompletion, suggesting values from imported documents and values you have entered before.
+- **Save:** Save selected/all pages in multiple formats. Supports metadata. The Title, Author, Subject, and Keywords fields offer autocompletion, suggesting values from imported documents and values you have entered before. When saving as PDF, the progress bar tracks each page as it is written and reports the PDF conversion step.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.
 
