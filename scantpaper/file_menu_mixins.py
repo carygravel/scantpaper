@@ -231,6 +231,11 @@ class FileMenuMixins:
     def _import_files_finished_callback(self, response):
         "import_files finished callback"
         self.post_process_progress.finish(response)
+        # Resume full-resolution loading and show the final imported page.
+        self._suppress_full_display = False
+        indices = self.slist.get_selected_indices()
+        if indices:
+            self._display_image(self.slist.data[indices[0]][2])
 
     def _import_files_metadata_callback(self, metadata):
         "Update the metadata from the imported file"
@@ -243,6 +248,9 @@ class FileMenuMixins:
     def _import_files(self, filenames, all_pages=False):
         "Import given files"
         # FIXME: import_files() now returns an array of pids.
+        # During a bulk import only show thumbnails; the final page is loaded
+        # full-res once the import finishes (see _import_files_finished_callback).
+        self._suppress_full_display = True
         options = {
             "paths": filenames,
             "password_callback": self._import_files_password_callback,

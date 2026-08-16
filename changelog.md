@@ -7,6 +7,9 @@
   Closes #20 (threshold does poorly for colour images)
 * Optimise PDF pipeline tasks by storing a compact intermediate blob instead
   of always re-encoding to PNG
+* When importing many pages, continue to display thumbnail in image viewer to
+  show the UI is alive, but only show the last page at the correct resolution
+  in order to allow the UI to keep up.
 
 
 ## 3.0.15 (2026-08-09)

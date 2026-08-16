@@ -503,6 +503,41 @@ def test_display_image_error(caplog, mocker, mock_session_window):
     assert "Error loading page page_id: Some error" in caplog.text
 
 
+def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
+    "Test _display_image shows only the thumbnail while import suppresses full-res"
+    mock_session_window.slist.find_page_by_uuid.return_value = 0
+    mock_thumbnail = mocker.Mock()
+    mock_session_window.slist.data = [["page_num", mock_thumbnail, "page_id"]]
+
+    sent_requests = []
+    mock_session_window.slist.thread.send.side_effect = (
+        lambda process, *args, **kwargs: sent_requests.append((process, args))
+    )
+
+    mock_session_window._suppress_full_display = True
+    mock_session_window._display_image("page_id")
+
+    mock_session_window.view.set_pixbuf.assert_called_with(mock_thumbnail, True)
+    assert sent_requests == [], "no get_page while import is in progress"
+
+
+def test_display_image_not_suppressed_sends(mock_session_window):
+    "Test a _display_image call sends get_page when not suppressed"
+    mock_session_window.slist.find_page_by_uuid.return_value = 0
+    mock_session_window.slist.data = [["page_num", None, "page_id"]]
+    mock_session_window._suppress_full_display = False
+
+    sent_requests = []
+    mock_session_window.slist.thread.send.side_effect = (
+        lambda process, *args, **kwargs: sent_requests.append((process, args))
+    )
+
+    mock_session_window._display_image("page_id")
+
+    assert len(sent_requests) == 1
+    assert sent_requests[0][0] == "get_page"
+
+
 def test_error_callback(mocker, mock_session_window):
     "Test _error_callback"
     mock_response = mocker.Mock()

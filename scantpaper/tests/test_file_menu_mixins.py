@@ -486,8 +486,25 @@ class TestFileMenuMixins:
 
     def test_import_files_finished_callback(self, app):
         "Test _import_files_finished_callback calls finish."
+        app.slist.get_selected_indices = unittest.mock.Mock(return_value=[])
         app._import_files_finished_callback("response")
         app.post_process_progress.finish.assert_called_with("response")
+        assert app._suppress_full_display is False
+
+    def test_import_files_finished_callback_displays_last_page(self, app):
+        "Test _import_files_finished_callback displays the last imported page."
+        app.slist.get_selected_indices = unittest.mock.Mock(return_value=[1])
+        app._display_image = unittest.mock.Mock()
+        app._import_files_finished_callback("response")
+        app._display_image.assert_called_once_with(app.slist.data[1][2])
+        assert app._suppress_full_display is False
+
+    def test_import_files_sets_suppress_flag(self, app):
+        "Test _import_files suppresses full-res loading during the import."
+        app.slist.import_files = unittest.mock.Mock()
+        app._select_pagerange_callback = unittest.mock.Mock(return_value=(1, 5))
+        FileMenuMixins._import_files(app, ["file1.pdf", "file2.pdf"])
+        assert app._suppress_full_display is True
 
     @unittest.mock.patch("file_menu_mixins.config")
     def test_import_files_metadata_callback(self, mock_config, app):

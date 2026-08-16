@@ -248,7 +248,12 @@ class SessionMixins:
         if thumbnail_pixbuf is not None:
             self.view.set_pixbuf(thumbnail_pixbuf, True)
 
-        # Deferred: send "get_page" async with callback for full-res
+        # Deferred: send "get_page" async with callback for full-res. During a
+        # bulk import this is suppressed (thumbnails only) and a single
+        # full-resolution load is triggered when the import finishes.
+        if getattr(self, "_suppress_full_display", False):
+            return
+
         def on_page_loaded(response):
             self._current_page = response.info
             self.view.set_pixbuf(self._current_page.get_pixbuf(), True)
