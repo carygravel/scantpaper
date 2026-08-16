@@ -852,13 +852,9 @@ def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
         temp_pdf.flush()
 
         slist = Document(db=temp_db.name)
-        errors = []
+        error_cb = MagicMock()
 
         mlp = safe_mainloop(10000)
-
-        def error_cb(response):
-            errors.append(response)
-            mlp.quit()
 
         slist.import_files(
             paths=[temp_pdf.name],
@@ -868,7 +864,7 @@ def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
         mlp.run()
 
         assert len(slist.data) == 1, "exactly one page imported"
-        assert not errors, "no spurious warning or error raised"
+        error_cb.assert_not_called()
 
         page = slist.thread.get_page(id=slist.data[0][2])
         imported = page.image_object.convert("L")
