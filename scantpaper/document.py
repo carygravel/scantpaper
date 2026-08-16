@@ -126,7 +126,14 @@ class Document(BaseDocument):
                 options["metadata_callback"](_extract_metadata(item))
 
             if i == len(info) - 1:
-                options["finished_callback"] = finished_callback
+
+                def batch_finished_callback(response):
+                    # Renumber once after the whole batch in case a concurrent
+                    # action occurred mid-import; a single pass is negligible.
+                    self.renumber()
+                    finished_callback(response)
+
+                options["finished_callback"] = batch_finished_callback
 
             self.import_file(info=item, first_page=1, last_page=1, **options)
 

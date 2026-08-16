@@ -255,6 +255,29 @@ def test_add_page_renumbers():
     assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
 
 
+def test_add_page_in_order_append_skips_renumber():
+    "Test add_page does not renumber when an in-order page is appended"
+    slist = Document()
+    slist.add_page(1, None, 101)
+
+    with patch("basedocument.BaseDocument.renumber") as mock_renumber:
+        slist.add_page(2, None, 102)
+
+    mock_renumber.assert_not_called()
+    assert [row[0] for row in slist.data] == [1, 2], "numbers remain consecutive"
+
+
+def test_add_page_out_of_order_append_renumbers():
+    "Test add_page renumbers when an out-of-order page is appended"
+    slist = Document()
+    slist.add_page(10, None, 101)
+
+    with patch("basedocument.BaseDocument.renumber") as mock_renumber:
+        slist.add_page(10, None, 102)
+
+    mock_renumber.assert_called_once()
+
+
 def test_paste_selection_complex(mock_thread):
     "Test paste_selection with specific destination and position"
     slist = Document()

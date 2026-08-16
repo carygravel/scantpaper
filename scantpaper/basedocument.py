@@ -276,8 +276,10 @@ class BaseDocument(SimpleList):
                     new_index + 1,
                 )
 
-        # Page numbers are always consecutive 1..n
-        self.renumber()
+        # Page numbers are always consecutive 1..n. A pure append whose number
+        # already equals its position needs no renumbering; only middle inserts,
+        # replaces, and out-of-order appends require the global rewrite.
+        self._renumber_after_add(i, number)
 
         # Block selection_changed_signal
         # to prevent its firing changing pagerange to all
@@ -294,6 +296,11 @@ class BaseDocument(SimpleList):
 
         self.select([new_index])
         return new_index
+
+    def _renumber_after_add(self, i, number):
+        "Renumber after adding a page, unless it is an in-order append"
+        if i is not None or number != len(self.data):
+            self.renumber()
 
     def cut_selection(self, **kwargs):
         "Cut the selection"

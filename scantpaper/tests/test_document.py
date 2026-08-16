@@ -80,6 +80,31 @@ def test_import_files_multiple_success():
     assert doc.thread.import_file.call_count == 2
 
 
+def test_multiple_files_renumber_once_on_finish():
+    "test a multi-file import renumbers once at the end of the batch"
+    doc = create_doc()
+    finished_callback = unittest.mock.Mock()
+    info = [
+        {"format": "image", "path": "i1.png", "pages": 1, "title": "T1"},
+        {"format": "image", "path": "i2.png", "pages": 1, "title": "T2"},
+    ]
+    options = {
+        "finished_callback": finished_callback,
+        "paths": ["i1.png", "i2.png"],
+        "error_callback": None,
+    }
+    with unittest.mock.patch.object(doc, "renumber") as mock_renumber:
+        doc._get_file_info_finished_callback2_multiple_files(info, options)
+
+        # Only the last import_file carries the batch finished_callback
+        last_kwargs = doc.thread.import_file.call_args_list[-1][1]
+        assert "finished_callback" in last_kwargs
+        last_kwargs["finished_callback"](MockResponse(None))
+
+        assert mock_renumber.call_count == 1
+        finished_callback.assert_called_once()
+
+
 def test_get_file_info_finished_callback2_pagerange():
     "test pagerange_callback"
     doc = create_doc()
