@@ -10,6 +10,10 @@
 * When importing many pages, continue to display thumbnail in image viewer to
   show the UI is alive, but only show the last page at the correct resolution
   in order to allow the UI to keep up.
+* Refuse to save PDFs estimated to exceed 2 GiB, since downstream tools
+  (img2pdf, Ghostscript, pikepdf) overflow 32-bit file offsets at that size
+  and produce corrupt output.  Documented the three known overflow bugs
+  in README.md for future reference.
 
 
 ## 3.0.15 (2026-08-09)

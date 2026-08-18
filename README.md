@@ -38,6 +38,7 @@ It is the Python rewrite (v3) of the popular
 - [Reporting Bugs](#reporting-bugs)
 - [Translations](#translations)
 - [FAQs](#faqs)
+- [Known Limitations](#known-limitations)
 - [See Also](#see-also)
 - [History](#history)
 - [Author](#author)
@@ -552,6 +553,24 @@ treeview.view rubberband,
 ### What's in a name?
 
 "scant" (https://en.wiktionary.org/wiki/scant) in this sense means "short (of)", as I am trying to digitalise my paperwork, and I liked the play on "scan".
+
+---
+
+## Known Limitations
+
+### PDFs larger than 2 GiB
+
+Saving more than approximately 250 uncompressed scanned pages (at 300 dpi, 8-bit grayscale) produces a PDF exceeding 2 GiB.  At that size, three tools in the save pipeline overflow 32-bit file offsets and produce truncated or corrupt output:
+
+| Component | Tested version | Overflow point | Symptom |
+|---|---|---|---|
+| **img2pdf** (pikepdf engine, linearization) | 0.6.2 | 32-bit xref offsets in linearized output | Truncated PDF; first pages readable, later pages missing |
+| **Ghostscript** (PDF/A conversion via ocrmypdf) | 10.07.1 | 32-bit file access in gs interpreter | Ghostscript error or corrupt output |
+| **pikepdf** / **qpdf** (xref-stream linearization, metadata save) | pikepdf 10.5.0, qpdf 12.4.0 | 32-bit offsets in xref streams | "unable to find /Root dictionary"; PDF unopenable |
+
+Scantpaper now estimates the output size before conversion and refuses to save when it would exceed 2 GiB, showing an error message suggesting fewer pages.
+
+**When updating dependencies**, re-test by saving ~250 high-resolution uncompressed pages (e.g., 7000×5000 px grayscale TIFFs) and verifying the output PDF opens correctly in a PDF viewer.  Note that Ghostscript's 64-bit integer support (needed for >2 GiB files) is build-dependent — see the [Ghostscript documentation on word size](https://ghostscript.readthedocs.io/en/latest/Use.html#word-size-32-or-64-bits).
 
 ---
 

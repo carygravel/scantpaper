@@ -10,6 +10,7 @@ from page import Page
 from savethread import (
     SaveThread,
     SaveThreadProgressBar,
+    _2GIB,
     _add_annotations_to_pdf,
     _append_pdf,
     _current_request_for_progress,
@@ -134,7 +135,7 @@ def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
         patch("savethread.open", mock_open()),
         patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
         patch("savethread.ocrmypdf.api._pdf_to_hocr"),
-        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf") as mock_hocr_to_ocr_pdf,
         patch("savethread._remove_pdf_title"),
         patch("savethread.os.remove"),
         patch("savethread._set_timestamp"),
@@ -145,6 +146,7 @@ def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
 
         # Verify HOCR was exported/written
         assert mock_page_instance.export_hocr.called
+        mock_hocr_to_ocr_pdf.assert_called()
 
 
 def test_save_pdf_with_title_skips_remove_title(
@@ -178,6 +180,90 @@ def test_save_pdf_with_title_skips_remove_title(
         mock_thread_instance.do_save_pdf(request)
 
         assert not mock_remove_pdf_title.called
+
+
+def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
+    "Test ocrmypdf failure falls back to saving without text layer"
+    mock_page_instance.text_layer = "some text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    class _EmptyError(Exception):
+        "exception with empty str() like ocrmypdf errors"
+
+        def __str__(self):
+            return ""
+
+    with (
+        patch("savethread.tempfile.TemporaryDirectory"),
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf", side_effect=_EmptyError()),
+        patch("savethread.os.remove"),
+        patch("savethread._remove_pdf_title") as mock_remove_title,
+        patch("savethread._append_pdf") as mock_append,
+        patch("savethread._post_save_hook") as mock_post_save,
+        patch("savethread.pathlib.Path"),
+        patch("savethread.shutil.copyfile") as mock_copyfile,
+        patch("savethread.logging.warning") as mock_warning,
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+        # Should fall back to copying origin.pdf without error
+        mock_copyfile.assert_called_once()
+        mock_warning.assert_called_once()
+        assert "_EmptyError" in mock_warning.call_args[0][1]
+
+        # Subsequent pikepdf operations must be skipped on fallback
+        mock_remove_title.assert_not_called()
+        mock_append.assert_not_called()
+        mock_post_save.assert_called_once()
+
+
+def test_save_pdf_rejects_oversized_output(mock_thread_instance, mock_page_instance):
+    "Test save_pdf rejects output exceeding 2 GiB with RuntimeError"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now()},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("savethread.tempfile.TemporaryDirectory") as mock_tempdir,
+        patch("savethread.tempfile.NamedTemporaryFile"),
+        patch("savethread.open", mock_open()),
+        patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("savethread.os.remove") as mock_remove,
+        patch("savethread._remove_pdf_title"),
+        patch("savethread._post_save_hook"),
+        patch("savethread.pathlib.Path"),
+        patch(
+            "savethread._estimate_page_pdf_size",
+            return_value=_2GIB + 1,
+        ),
+    ):
+        mock_tempdir.return_value.__enter__.return_value = "/tmp/tempdir"
+
+        with pytest.raises(RuntimeError, match="2\\.0 GiB"):
+            mock_thread_instance.do_save_pdf(request)
+
+        # Temp files must be cleaned up before the error is raised
+        assert mock_remove.called
 
 
 def test_save_djvu(mock_thread_instance, mock_page_instance):

@@ -29,6 +29,23 @@ logger = logging.getLogger(__name__)
 
 img2pdf.default_dpi = 72.0
 
+# PDFs larger than 2 GiB hit 32-bit file-offset limits in img2pdf's
+# linearizing engine, Ghostscript's PDF/A conversion, and pikepdf's
+# xref-stream linearization, producing truncated or corrupt output.
+_2GIB = 2 * 1024 * 1024 * 1024
+
+# Bytes per pixel used to estimate PDF size from the source image mode.
+_PIXEL_BPP = {
+    "1": 0.125,
+    "L": 1,
+    "LA": 2,
+    "P": 3,
+    "RGB": 3,
+    "RGBA": 4,
+    "CMYK": 4,
+    "I": 4,
+}
+
 LEFT = 0
 TOP = 1
 RIGHT = 2
@@ -98,6 +115,45 @@ class SaveThread(Importhread):
         callbacks = _note_callbacks(kwargs)
         return self.send("save_pdf", kwargs, **callbacks)
 
+    def _embed_text_layer(self, outdir, filename, request):
+        "Embed the text layer into the PDF using ocrmypdf"
+        request.data(_("Embedding text layer"))
+
+        # Set up progress tracking via plugin
+        _current_request_for_progress[0] = request
+
+        # Call ocrmypdf with our custom progress plugin
+        # The savethread module provides get_progressbar_class hook
+        try:
+            ocrmypdf.api._hocr_to_ocr_pdf(
+                outdir,
+                filename,
+                optimize=0,
+                plugins=["savethread"],
+            )
+        except Exception as err:
+            # ocrmypdf may fail if pikepdf cannot parse the PDF produced by
+            # img2pdf (InputFileError wraps PdfError).  The raw origin.pdf is
+            # still valid, so fall back to copying it rather than failing the
+            # entire save.  The text layer and PDF/A title metadata will be
+            # absent but the PDF remains usable.  Return False so the caller
+            # can skip subsequent pikepdf operations that would also fail on
+            # the malformed PDF.
+            msg = str(err) or err.__class__.__name__
+            logging.warning(
+                "Could not embed text layer (%s): %s – "
+                "saving without embedded text layer",
+                err.__class__.__name__,
+                msg,
+            )
+            shutil.copyfile(outdir / "origin.pdf", filename)
+            return False
+        finally:
+            request.data(1.0)
+            _current_request_for_progress[0] = None
+
+        return True
+
     def do_save_pdf(self, request):
         "save PDF in thread"
         options = defaultdict(None, request.args[0])
@@ -123,6 +179,10 @@ class SaveThread(Importhread):
             ) as fhd:  # turn off buffering
                 filenames = []
                 resolutions = []
+                opts = {}
+                if options.get("options"):
+                    opts = options["options"]
+                estimated_size = 0
                 for i, page_id in enumerate(options["list_of_pages"], start=1):
                     page = self.get_page(id=page_id)
                     list_of_pages.append(page)
@@ -142,8 +202,22 @@ class SaveThread(Importhread):
                     ) as tmp:
                         page.write_image_for_pdf(tmp.name, options)
                         filenames.append(tmp.name)
+                        estimated_size += _estimate_page_pdf_size(
+                            page.image_object, tmp.name, opts
+                        )
                     xres, yres, _units = page.get_resolution(self.paper_sizes)
                     resolutions.append((xres, yres))
+
+                if estimated_size >= _2GIB:
+                    for fname in filenames:
+                        os.remove(fname)
+                    raise RuntimeError(
+                        _(
+                            "The estimated PDF size (%.1f GiB) exceeds 2 GiB."
+                            "  Please save fewer pages."
+                        )
+                        % (estimated_size / (1024 * 1024 * 1024),)
+                    )
                 index = 0
 
                 def layout_fun(imgwidthpx, imgheightpx, _ndpi):
@@ -179,47 +253,45 @@ class SaveThread(Importhread):
                         )
                 self.check_cancelled()
 
-            # Embed text layer using ocrmypdf
-            request.data(_("Embedding text layer"))
+            # Embed text layer using ocrmypdf (also applies PDF/A metadata such
+            # as the title), so it runs even when no page has a text layer.
+            embed_ok = self._embed_text_layer(outdir, filename, request)
 
-            # Set up progress tracking via plugin
-            _current_request_for_progress[0] = request
+            # When embed fell back (embed_ok is False) the output PDF may be
+            # malformed – pikepdf-dependent operations would fail too, so skip
+            # them and hand the user a usable (but textless) PDF.
+            if embed_ok:
+                if "title" not in metadata:
+                    _remove_pdf_title(filename)
 
-            # Call ocrmypdf with our custom progress plugin
-            # The savethread module provides get_progressbar_class hook
-            ocrmypdf.api._hocr_to_ocr_pdf(
-                outdir,
-                filename,
-                optimize=0,
-                plugins=["savethread"],
-            )
+                _append_pdf(filename, options, request)
 
-            request.data(1.0)
-            _current_request_for_progress[0] = None
+                if options.get("options") and options["options"].get("user-password"):
+                    if _encrypt_pdf(filename, options, request):
+                        return
 
-            if "title" not in metadata:
-                _remove_pdf_title(filename)
+                _set_timestamp(options)
+                if options.get("options") and options["options"].get("ps"):
+                    request.data(_("Converting to PS"))
+                    proc = exec_command(
+                        [
+                            options["options"]["pstool"],
+                            filename,
+                            options["options"]["ps"],
+                        ],
+                        options["pidfile"],
+                    )
+                    if proc.returncode or proc.stderr:
+                        logger.info(proc.stderr)
+                        request.error(
+                            _("Error converting PDF to PS: %s") % (proc.stderr)
+                        )
+                        return
 
-            _append_pdf(filename, options, request)
+                    _post_save_hook(options["options"]["ps"], options["options"])
 
-            if options.get("options") and options["options"].get("user-password"):
-                if _encrypt_pdf(filename, options, request):
-                    return
-
-            _set_timestamp(options)
-            if options.get("options") and options["options"].get("ps"):
-                request.data(_("Converting to PS"))
-                proc = exec_command(
-                    [options["options"]["pstool"], filename, options["options"]["ps"]],
-                    options["pidfile"],
-                )
-                if proc.returncode or proc.stderr:
-                    logger.info(proc.stderr)
-                    request.error(_("Error converting PDF to PS: %s") % (proc.stderr))
-                    return
-
-                _post_save_hook(options["options"]["ps"], options["options"])
-
+                else:
+                    _post_save_hook(filename, options.get("options"))
             else:
                 _post_save_hook(filename, options.get("options"))
             self.do_set_saved(
@@ -612,6 +684,21 @@ def _need_temp_pdf(options):
         or "ps" in options
         or ("user-password" in options and options["user-password"] != "")
     )
+
+
+def _estimate_page_pdf_size(image, temp_filename, opts):
+    "Estimate a page's contribution to the output PDF size in bytes"
+    if (
+        image.format == "JPEG"
+        and not opts.get("downsample")
+        and not (opts.get("compression") and opts["compression"][0] == "g")
+    ):
+        # JPEG is stored verbatim, so the written file size is the size it
+        # will take in the PDF.
+        return os.path.getsize(temp_filename)
+    # Other formats are stored uncompressed, so estimate from the pixel data.
+    bpp = _PIXEL_BPP.get(image.mode, 4)
+    return int(image.width * image.height * bpp)
 
 
 def _remove_pdf_title(path):
