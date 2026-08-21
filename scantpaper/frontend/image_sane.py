@@ -56,6 +56,8 @@ class SaneThread(BaseThread):
                 request.finished(None, str(err))
             else:
                 request.error(None, str(err))
+                if request.process == "scan_page" and self.device_handle is not None:
+                    self.cancel()
         return True
 
     def do_quit(self, _request):
@@ -171,6 +173,7 @@ class SaneThread(BaseThread):
         "scan page"
         if self.device_handle is None:
             raise ValueError("must open device before starting scan")
+        cancel_between_pages = request.args[0] if request.args else False
         self.scan_page_progress = 0.0
         logger.debug("calling sane_start() on device %s", self.device_name)
         self.device_handle.start()
@@ -185,7 +188,9 @@ class SaneThread(BaseThread):
                 self.scan_page_progress = min(1.0, current_line / total_lines)
 
         self._scan_progress_cb = _progress_cb
-        return self.device_handle.snap(progress=self._scan_progress_cb)
+        return self.device_handle.snap(
+            no_cancel=not cancel_between_pages, progress=self._scan_progress_cb
+        )
 
     def do_cancel(self, _request):
         "cancel"
@@ -234,12 +239,13 @@ class SaneThread(BaseThread):
             raise result
         return result
 
-    def scan_page(self, **kwargs):
+    def scan_page(self, cancel_between_pages=False, **kwargs):
         "scan page"
-        return self.send("scan_page", **kwargs)
+        return self.send("scan_page", cancel_between_pages, **kwargs)
 
     def _scan_pages_finished_callback(self, response, **kwargs):
         _set_default_callbacks(kwargs)
+        cancel_between_pages = kwargs.get("cancel_between_pages", False)
         if response.info is not None:
             self.num_pages_scanned += 1
             if kwargs["new_page_callback"] is not None:
@@ -247,15 +253,18 @@ class SaneThread(BaseThread):
         if response.status == "Document feeder out of documents" or (
             self.num_pages != 0 and self.num_pages_scanned >= self.num_pages
         ):
+            self.cancel()
             if kwargs["finished_callback"] is not None:
                 kwargs["finished_callback"](response)
             return
         self.scan_page(
+            cancel_between_pages=cancel_between_pages,
             started_callback=kwargs["started_callback"],
             running_callback=kwargs["running_callback"],
             error_callback=kwargs["error_callback"],
             finished_callback=lambda response: self._scan_pages_finished_callback(
                 response,
+                cancel_between_pages=cancel_between_pages,
                 running_callback=kwargs["running_callback"],
                 finished_callback=kwargs["finished_callback"],
                 error_callback=kwargs["error_callback"],
@@ -263,17 +272,19 @@ class SaneThread(BaseThread):
             ),
         )
 
-    def scan_pages(self, **kwargs):
+    def scan_pages(self, cancel_between_pages=False, **kwargs):
         "scan pages"
         self.num_pages_scanned = 0
         self.num_pages = kwargs["num_pages"]
         _set_default_callbacks(kwargs)
         return self.scan_page(
+            cancel_between_pages=cancel_between_pages,
             started_callback=kwargs["started_callback"],
             running_callback=kwargs["running_callback"],
             error_callback=kwargs["error_callback"],
             finished_callback=lambda response: self._scan_pages_finished_callback(
                 response,
+                cancel_between_pages=cancel_between_pages,
                 running_callback=kwargs["running_callback"],
                 finished_callback=kwargs["finished_callback"],
                 error_callback=kwargs["error_callback"],

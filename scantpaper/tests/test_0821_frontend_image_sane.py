@@ -1,5 +1,7 @@
 "test frontend/image_sane.py"
 
+import threading
+
 import pytest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -8,6 +10,58 @@ from gi.repository import GLib
 from frontend import enums
 from frontend.image_sane import SaneThread
 from loop_helpers import safe_mainloop
+
+
+class FakeBrscan5Device:
+    """Emulate a backend with brscan5-style frame prefetching.
+
+    The feeder starts successfully while pages remain buffered, otherwise it
+    fails like a feeder that has run out of paper. Calling cancel() drops any
+    prefetched-but-unread frames, mirroring ``sane_cancel()`` discarding the
+    backend's buffer. Flatbed mode refills the glass on every ``start()``.
+    """
+
+    def __init__(self, frames=None, refill=False):
+        self.buffered = list(frames) if frames is not None else []
+        self.refill = refill
+        self.page_counter = 0
+        self.cancel_calls = 0
+        self.start_calls = 0
+        self.snap_no_cancel = []
+        self.error_on_frame = None
+        self.block_after_first = False
+        self.slow_event = threading.Event()
+
+    def start(self):
+        "start a page: flatbed refills the glass, feeder runs out when empty"
+        if self.refill:
+            self.page_counter += 1
+            self.buffered.append(self.page_counter)
+        if not self.buffered:
+            raise Exception("Document feeder out of documents")
+        self.start_calls += 1
+
+    def get_parameters(self):
+        "report scan parameters with a small but positive line count"
+        return ("color", 1, (100, 10), 8, 30)
+
+    def snap(self, no_cancel=False, progress=None):
+        "read the next buffered frame, optionally blocking to emulate a transfer"
+        self.snap_no_cancel.append(no_cancel)
+        frame = self.buffered.pop(0)
+        if self.block_after_first:
+            self.block_after_first = False
+            self.slow_event.wait(2)
+        if frame == self.error_on_frame:
+            raise Exception("SANE device exploded")
+        if not no_cancel:
+            self.cancel()
+        return frame
+
+    def cancel(self):
+        "cancel: drop any prefetched-but-unread frames"
+        self.cancel_calls += 1
+        self.buffered.clear()
 
 
 def test_error_handling():
@@ -545,3 +599,138 @@ def test_get_option_value_timeout():
             thread.get_option_value("enable-test-options", timeout=0.05)
     thread.send("quit")
     thread.join(timeout=1)
+
+
+def _run_with_fake(fake, scan_kwargs):
+    "open a fake device, run scan_pages with the given kwargs, then quit"
+    thread = SaneThread()
+    thread.start()
+
+    pages = []
+    errors = []
+
+    def new_page(image):
+        pages.append(image)
+
+    def error(response):
+        errors.append(response.status)
+        mlp.quit()
+
+    def quit_mlp(_response):
+        mlp.quit()
+
+    mlp = safe_mainloop(2000)
+    with patch("sane.open", return_value=fake):
+        thread.open_device(device_name="fake", finished_callback=quit_mlp)
+        mlp.run()
+
+    mlp = safe_mainloop(2000)
+    thread.scan_pages(
+        new_page_callback=new_page,
+        error_callback=error,
+        finished_callback=quit_mlp,
+        **scan_kwargs,
+    )
+    mlp.run()
+
+    mlp = safe_mainloop(2000)
+    thread.send("quit", finished_callback=quit_mlp)
+    mlp.run()
+    return thread, pages, errors
+
+
+def test_duplex_feeder_imports_both_sides():
+    "regression test for issue #73: a duplex feeder imports both sides"
+    fake = FakeBrscan5Device(frames=[1, 2])
+    thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
+    assert pages == [1, 2], "both sides of the duplex sheet imported"
+    assert fake.cancel_calls == 1, "a single cancel at batch end"
+    assert fake.snap_no_cancel == [True, True], "no cancel requested between pages"
+
+
+def test_flatbed_cancel_between_pages_enabled():
+    "flatbed with the setting enabled cancels the session between pages"
+    fake = FakeBrscan5Device(refill=True)
+    thread, pages, _errors = _run_with_fake(
+        fake, {"num_pages": 2, "cancel_between_pages": True}
+    )
+    assert pages == [1, 2], "both flatbed pages imported"
+    assert fake.cancel_calls == 3, "cancelled after each page and at batch end"
+    assert fake.snap_no_cancel == [False, False], "cancel requested between pages"
+
+
+def test_flatbed_cancel_between_pages_disabled():
+    "flatbed with the setting disabled only cancels at batch end"
+    fake = FakeBrscan5Device(refill=True)
+    thread, pages, _errors = _run_with_fake(
+        fake, {"num_pages": 2, "cancel_between_pages": False}
+    )
+    assert pages == [1, 2], "both flatbed pages imported"
+    assert fake.cancel_calls == 1, "only one cancel at batch end"
+    assert fake.snap_no_cancel == [True, True], "no cancel requested between pages"
+
+
+def test_page_limit_discards_buffered_frames():
+    "reaching the requested page count terminates and drops buffered frames"
+    fake = FakeBrscan5Device(frames=[1, 2, 3])
+    thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
+    assert pages == [1, 2], "only the requested two pages imported"
+    assert fake.cancel_calls == 1, "session terminated at page count"
+    assert fake.buffered == [], "prefetched page 3 discarded by the terminal cancel"
+
+
+def test_mid_batch_error_reports_and_terminates():
+    "an error mid-batch is reported and the session is terminated"
+    fake = FakeBrscan5Device(frames=[1, 2, 3])
+    fake.error_on_frame = 2
+    thread, pages, errors = _run_with_fake(fake, {"num_pages": 5})
+    assert pages == [1], "only the first page imported"
+    assert errors == ["SANE device exploded"], "mid-batch error reported"
+    assert fake.cancel_calls >= 1, "session terminated after the error"
+
+
+def test_user_cancel_terminates_session():
+    "a user cancel during a page transfer terminates the session"
+    thread = SaneThread()
+    thread.start()
+    fake = FakeBrscan5Device(frames=[1, 2])
+    fake.block_after_first = True
+    pages = []
+    cancel_sent = [False]
+
+    def new_page(image):
+        pages.append(image)
+
+    def started(_response):
+        pass
+
+    def running(_response):
+        if not cancel_sent[0]:
+            cancel_sent[0] = True
+            thread.cancel()
+            fake.slow_event.set()
+
+    def quit_mlp(_response):
+        mlp.quit()
+
+    mlp = safe_mainloop(2000)
+    with patch("sane.open", return_value=fake):
+        thread.open_device(device_name="fake", finished_callback=quit_mlp)
+        mlp.run()
+
+    mlp = safe_mainloop(2000)
+    thread.scan_pages(
+        num_pages=2,
+        started_callback=started,
+        running_callback=running,
+        new_page_callback=new_page,
+        error_callback=quit_mlp,
+        finished_callback=quit_mlp,
+    )
+    mlp.run()
+
+    mlp = safe_mainloop(2000)
+    thread.send("quit", finished_callback=quit_mlp)
+    mlp.run()
+    assert pages == [1], "only the in-flight page imported"
+    assert fake.cancel_calls >= 1, "user cancel terminated the session"

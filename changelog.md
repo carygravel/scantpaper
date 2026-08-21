@@ -18,6 +18,15 @@
   New File now clears the document through the document thread like
   ordinary page deletion, making the clear itself an undoable step.
   Closes #74 (Undo brings old pages back to life)
+* Fix ADF/duplex scans importing only the first page on some Brother
+  scanners (e.g. the DS-740D), which prefetch the reverse side of a sheet
+  and discard it when the session is cancelled between pages. The session
+  is no longer cancelled between pages when scanning from a feeder; it is
+  still cancelled at the end of the batch, when the requested page count is
+  reached, on error, or when the scan is cancelled. Multi-page flatbed
+  batches now follow gscan2pdf semantics, honouring the "Force new scan
+  job between pages" preference.
+  Closes #73 (Second page is ignored in duplex scanning mode)
 
 
 ## 3.0.15 (2026-08-09)

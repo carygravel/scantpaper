@@ -227,6 +227,46 @@ def test_apply_callback_allows_valid_tool(mock_which):
     ), "Valid tool should be saved"
 
 
+@pytest.mark.parametrize(
+    "allow_batch_flatbed,expected_sensitive",
+    [(True, True), (False, False)],
+)
+def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitive):
+    "the cancel-between-pages checkbox tracks allow-batch-flatbed sensitivity"
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["allow-batch-flatbed"] = allow_batch_flatbed
+
+    dialog = PreferencesDialog(settings=settings)
+
+    cancel_cb = dialog._cb_cancel_btw_pages
+    assert (
+        cancel_cb.get_sensitive() is expected_sensitive
+    ), "cancel-between-pages sensitivity should mirror allow-batch-flatbed"
+
+
+def test_cancel_between_pages_sensitivity_toggles():
+    "toggling allow-batch-flatbed updates the cancel-between-pages sensitivity"
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["allow-batch-flatbed"] = False
+
+    dialog = PreferencesDialog(settings=settings)
+    cancel_cb = dialog._cb_cancel_btw_pages
+    batch_cb = dialog._cb_batch_flatbed
+    assert not cancel_cb.get_sensitive()
+
+    batch_cb.set_active(True)
+    assert (
+        cancel_cb.get_sensitive()
+    ), "enabling allow-batch-flatbed should enable the cancel checkbox"
+
+    batch_cb.set_active(False)
+    assert (
+        not cancel_cb.get_sensitive()
+    ), "disabling allow-batch-flatbed should disable the cancel checkbox"
+
+
 @patch("dialog.preferences.Gtk.MessageDialog")
 def test_apply_callback_shows_error_for_empty_tool(mock_message_dialog):
     "Test that an error dialog is shown when a user-defined tool is empty or whitespace-only"

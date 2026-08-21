@@ -1,8 +1,8 @@
-# ScantPaper
+# Scantpaper
 
 A GUI to produce PDFs or DjVus from scanned documents.
 
-ScantPaper is a Linux application (it needs GTK3, SANE, and a Python 3
+Scantpaper is a Linux application (it needs GTK3, SANE, and a Python 3
 interpreter, all of which are available on other Unix-like systems like MacOS or BSD as well).
 It is the Python rewrite (v3) of the popular
 [gscan2pdf](https://gscan2pdf.sourceforge.net/).
@@ -109,6 +109,23 @@ that page to the corresponding position.
   ```
 - **Extended mode (insert before page N):** Each new scan is inserted before the
   selected page, advancing the insertion point for the next scan.
+
+#### ADF / duplex scanning
+
+Automatic document feeder (ADF) and duplex scans now import every side of the
+document. Some Brother scanners (e.g. the DS-740D) prefetch the reverse side of a
+sheet as soon as the front side finishes reading; cancelling the scan session
+between pages discarded that buffered side, so only the first page of a duplex
+job was imported. Scantpaper no longer cancels the session between pages when
+scanning from a feeder, which preserves the prefetched side. The session is
+still cancelled at the end of the batch, when the requested page count is
+reached, on error, or when you cancel the scan.
+
+For multi-page flatbed batches the behaviour follows gscan2pdf semantics: the
+**Force new scan job between pages** preference (enabled via
+**Edit → Preferences**, only available when **Allow batch scanning from
+flatbed** is enabled) controls whether the session is cancelled between flatbed
+pages; the session is always cancelled at the end of the batch.
 
 ### Main Features
 
