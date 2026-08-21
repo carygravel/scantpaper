@@ -28,14 +28,6 @@ class MockSlist:
         self.selection_changed_signal = "selection-changed"
         self.thread = unittest.mock.Mock()
 
-    def get_model(self):
-        "Return the current instance as the model."
-        return self
-
-    def get_selection(self):
-        "Return the current selection object."
-        return self
-
     def handler_block(self, signal):
         "Block the handler for the specified signal (currently a placeholder)."
 
@@ -44,6 +36,9 @@ class MockSlist:
 
     def unselect_all(self):
         "Deselects all currently selected items."
+
+    def delete_all_pages(self, **kwargs):
+        "Mock delete_all_pages"
 
     def import_files(self, **kwargs):
         "Mock import_files"
@@ -268,18 +263,21 @@ class TestFileMenuMixins:
         return app
 
     def test_new(self, app):
-        "new_() resets state and clears data."
+        "new_() resets state and dispatches deletion via the thread."
         app.slist.data = [1, 2, 3]
         app.view.set_pixbuf = unittest.mock.Mock()
         app.t_canvas.clear_text = unittest.mock.Mock()
         app.a_canvas.clear_text = unittest.mock.Mock()
         app._current_page = 1
         app._pages_saved = unittest.mock.Mock(return_value=True)
+        app.slist.delete_all_pages = unittest.mock.Mock()
 
         app.new_(None, None)
 
         app._pages_saved.assert_called_once()
-        assert app.slist.data == []
+        app.slist.delete_all_pages.assert_called_once()
+        # the page list is cleared by the thread response callback, not here
+        assert app.slist.data == [1, 2, 3]
         app.view.set_pixbuf.assert_called_with(None)
         app.t_canvas.clear_text.assert_called_once()
         app.a_canvas.clear_text.assert_called_once()
@@ -289,18 +287,33 @@ class TestFileMenuMixins:
         "Verify fix for #28 File/New straight after start causes Traceback"
         app._windows = None
         app.slist.data = [1, 2, 3]
+        app.slist.delete_all_pages = unittest.mock.Mock()
         app.new_(None, None)
-        assert app.slist.data == []
+        app.slist.delete_all_pages.assert_called_once()
 
     def test_new_cancel(self, app):
         "Test new_() does not clear data if pages not saved."
         app.slist.data = [1, 2, 3]
         app._pages_saved = unittest.mock.Mock(return_value=False)
+        app.slist.delete_all_pages = unittest.mock.Mock()
 
         app.new_(None, None)
 
         app._pages_saved.assert_called_once()
+        app.slist.delete_all_pages.assert_not_called()
         assert app.slist.data == [1, 2, 3]
+
+    def test_new_empty_document(self, app):
+        "Test new_() on an empty document sends no request."
+        app.slist.data = []
+        app.view.set_pixbuf = unittest.mock.Mock()
+        app._pages_saved = unittest.mock.Mock(return_value=True)
+        app.slist.delete_all_pages = unittest.mock.Mock()
+
+        app.new_(None, None)
+
+        app._pages_saved.assert_called_once()
+        app.slist.delete_all_pages.assert_not_called()
 
     def test_quit_app(self, app):
         "Test quit_app() calls application quit method."
@@ -746,6 +759,22 @@ class TestFileMenuMixins:
 
         assert app.settings["image type"] == "jpg"
         assert app.settings["quality"] == 90
+        app._save_image.assert_called_with(["uuid1"])
+
+    def test_save_button_clicked_callback_png(self, app):
+        "Test _save_button_clicked_callback for PNG type (no quality setting)."
+        app._windowi = unittest.mock.Mock()
+        app._windowi.image_type = "png"
+        app._windowi.comboboxpsh.get_active.return_value = -1
+        app._list_of_page_uuids = unittest.mock.Mock(return_value=["uuid1"])
+        app._save_image = unittest.mock.Mock()
+        mock_kbutton = unittest.mock.Mock()
+        mock_pshbutton = unittest.mock.Mock()
+
+        app._save_button_clicked_callback(mock_kbutton, mock_pshbutton)
+
+        assert app.settings["image type"] == "png"
+        assert app.settings["quality"] == 80, "quality untouched for non-jpg"
         app._save_image.assert_called_with(["uuid1"])
 
     @unittest.mock.patch("file_menu_mixins.Gtk")

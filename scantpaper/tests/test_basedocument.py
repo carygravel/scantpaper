@@ -8,7 +8,7 @@ import signal
 import tempfile
 import threading
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import gi
 import pytest
@@ -838,6 +838,88 @@ def test_delete_selection_callback_removes_rows():
     assert len(slist.get_model()) == 2
     captured_callback(response)
     # After calling, model should be empty because we selected 0 and 1
+    assert len(slist.get_model()) == 0
+
+
+def test_delete_all_pages_sends_page_ids_and_clears_on_response():
+    "Test delete_all_pages sends all page ids and clears rows in data_callback"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+
+    captured = {}
+
+    def mock_send(cmd, args, data_callback=None, **kwargs):
+        captured["cmd"] = cmd
+        captured["args"] = args
+        captured["data_callback"] = data_callback
+        captured["kwargs"] = kwargs
+
+    slist.thread.send = mock_send
+    finished = Mock()
+    slist.delete_all_pages(finished_callback=finished)
+
+    assert captured["cmd"] == "delete_pages"
+    assert captured["args"] == {"page_ids": [101, 102]}
+    assert (
+        "finished_callback" not in captured["kwargs"]
+    ), "finished_callback not forwarded to the thread"
+
+    # rows are only removed once the thread responds
+    assert len(slist.get_model()) == 2
+
+    response = MagicMock()
+    response.info = {"type": "page", "remove": [0, 1]}
+    captured["data_callback"](response)
+
+    assert len(slist.get_model()) == 0
+    finished.assert_called_once_with()
+
+
+def test_delete_all_pages_finished_called_on_other_response():
+    "Test delete_all_pages calls finished_callback even for other responses"
+    slist = Document()
+    slist.add_page(1, None, 101)
+
+    captured = {}
+
+    def mock_send(cmd, _args, data_callback=None, **kwargs):
+        captured["data_callback"] = data_callback
+
+    slist.thread.send = mock_send
+    finished = Mock()
+    slist.delete_all_pages(finished_callback=finished)
+
+    response = MagicMock()
+    response.info = {"type": "other"}
+    captured["data_callback"](response)
+
+    assert len(slist.get_model()) == 1, "rows untouched"
+    finished.assert_called_once_with()
+
+
+def test_delete_all_pages_without_finished_callback():
+    "Test delete_all_pages works without a finished_callback"
+    slist = Document()
+    slist.add_page(1, None, 101)
+
+    captured = {}
+
+    def mock_send(cmd, args, data_callback=None, **kwargs):
+        captured["args"] = args
+        captured["data_callback"] = data_callback
+        captured["kwargs"] = kwargs
+
+    slist.thread.send = mock_send
+    slist.delete_all_pages()
+
+    assert captured["args"] == {"page_ids": [101]}
+    assert captured["kwargs"] == {}, "no extra kwargs forwarded"
+
+    response = MagicMock()
+    response.info = {"type": "page", "remove": [0]}
+    captured["data_callback"](response)
+
     assert len(slist.get_model()) == 0
 
 

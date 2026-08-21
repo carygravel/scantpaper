@@ -1007,6 +1007,60 @@ def test_ocr_undo_redo(temp_db, mocker):
     assert thread.get_page(id=page_id).image_id == image_id_before, "redo keeps image"
 
 
+def test_issue_74_ghost_page_mechanism(temp_db):
+    "issue #74: a clear that bypasses the thread leaves ghosts in the undo chain"
+
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    page_a = Page(image_object=Image.new("RGB", (10, 10), color="red"))
+    _, _, id_a = thread.add_page(page_a)
+
+    # Pre-fix "New File" cleared only the frontend list without informing the
+    # thread, so page A remains in the snapshot chain. Simulate that here by
+    # sending nothing to the thread before scanning the next page.
+
+    page_b = Page(image_object=Image.new("RGB", (10, 10), color="blue"))
+    _, _, id_b = thread.add_page(page_b)
+
+    # edit page B
+    edited = Page(image_object=Image.new("RGB", (10, 10), color="green"))
+    thread.replace_page(edited, id_b)
+
+    result = thread.do_undo(Request("undo", (), thread.responses))
+    ids = [row[2] for row in result["snapshot"]]
+    assert ids == [
+        id_a,
+        id_b,
+    ], "a frontend-only clear leaves page A in the undo chain (issue #74)"
+
+
+def test_undo_after_delete_all_has_no_ghost(temp_db):
+    "issue #74 regression: clearing all pages via the thread keeps undo coherent"
+
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    page_a = Page(image_object=Image.new("RGB", (10, 10), color="red"))
+    _, _, id_a = thread.add_page(page_a)
+
+    # fixed "New File": the clear is routed through the thread like any other
+    # deletion
+    request = Request("delete_pages", ({"page_ids": [id_a]},), thread.responses)
+    thread.do_delete_pages(request)
+
+    page_b = Page(image_object=Image.new("RGB", (10, 10), color="blue"))
+    _, _, id_b = thread.add_page(page_b)
+
+    # edit page B
+    edited = Page(image_object=Image.new("RGB", (10, 10), color="green"))
+    thread.replace_page(edited, id_b)
+
+    result = thread.do_undo(Request("undo", (), thread.responses))
+    ids = [row[2] for row in result["snapshot"]]
+    assert ids == [id_b], "undo after New File restores only unedited page B"
+
+
 def test_open_migration_v1_to_v2(temp_db):
     "test migration from version 1 to 2"
 

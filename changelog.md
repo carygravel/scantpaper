@@ -14,6 +14,10 @@
   (img2pdf, Ghostscript, pikepdf) overflow 32-bit file offsets at that size
   and produce corrupt output.  Documented the three known overflow bugs
   in README.md for future reference.
+* Fix Undo resurrecting pages that existed before "New File" was used.
+  New File now clears the document through the document thread like
+  ordinary page deletion, making the clear itself an undoable step.
+  Closes #74 (Undo brings old pages back to life)
 
 
 ## 3.0.15 (2026-08-09)

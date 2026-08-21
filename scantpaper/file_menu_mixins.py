@@ -96,26 +96,19 @@ class FileMenuMixins:
         ):
             return
 
-        # in certain circumstances, before v2.5.5, having deleted one of several
-        # pages, pressing the new button would cause some sort of race condition
-        # between the tied array of the self.slist and the callbacks displaying the
-        # thumbnails, so block this whilst clearing the array.
-        self.slist.get_model().handler_block(self.slist.row_changed_signal)
-        self.slist.get_selection().handler_block(self.slist.selection_changed_signal)
+        # Starting a new file with an empty document is a no-op: don't send a
+        # request or create an undo step
+        if not self.slist.data:
+            return
 
-        # Depopulate the thumbnail list
-        self.slist.data = []
-
-        # Unblock self.slist signals now finished
-        self.slist.get_selection().handler_unblock(self.slist.selection_changed_signal)
-        self.slist.get_model().handler_unblock(self.slist.row_changed_signal)
-
-        # Now we have to clear everything manually
-        self.slist.get_selection().unselect_all()
+        # Reset the view immediately; the page list is cleared via the thread
+        # so that the deletion is an ordinary undoable step (issue #74)
         self.view.set_pixbuf(None)
         self.t_canvas.clear_text()
         self.a_canvas.clear_text()
         self._current_page = None
+
+        self.slist.delete_all_pages()
 
     def open_dialog(self, _action, _param):
         "Throw up file selector and open selected file"

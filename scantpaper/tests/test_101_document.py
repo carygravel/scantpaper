@@ -748,6 +748,84 @@ def test_document(rose_tif):
         assert ran_callback, "ran finished callback"
 
 
+def test_delete_all_pages_undo_redo(rose_tif):
+    "tests for Document.delete_all_pages() with undo/redo"
+    with tempfile.TemporaryDirectory() as tempdir:
+        slist = Document(dir=tempdir)
+        ran_callback = False
+
+        def after_import(_result):
+            nonlocal ran_callback
+            assert len(slist.data) == 1, "imported 1 page"
+
+            def after_clear():
+                assert len(slist.data) == 0, "all pages cleared"
+                assert slist.thread.can_undo(), "clear is undoable"
+                assert not slist.thread.can_redo(), "nothing to redo after clear"
+
+                def after_undo():
+                    assert len(slist.data) == 1, "undo restores cleared pages"
+                    assert slist.thread.can_redo(), "redo available after undo"
+
+                    def after_redo():
+                        nonlocal ran_callback
+                        assert len(slist.data) == 0, "redo clears pages again"
+                        assert not slist.thread.can_redo(), "redo exhausted"
+                        ran_callback = True
+                        mlp.quit()
+
+                    slist.unundo(finished_callback=after_redo)
+
+                slist.undo(finished_callback=after_undo)
+
+            slist.delete_all_pages(finished_callback=after_clear)
+
+        slist.import_files(paths=[rose_tif], finished_callback=after_import)
+        mlp = safe_mainloop(5000)
+        mlp.run()
+        assert ran_callback, "ran finished callback"
+
+
+def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
+    "issue #74 regression: undo after New File must not resurrect old pages"
+    with tempfile.TemporaryDirectory() as tempdir:
+        slist = Document(dir=tempdir)
+        ran_callback = False
+
+        def step2():
+            nonlocal ran_callback
+            # page B has been scanned; edit it (as the crop tool would)
+            b_id = slist.data[0][2]
+            edited = Page(image_object=Image.new("RGB", (70, 46), color="blue"))
+            slist.thread._write_tid = threading.get_native_id()
+            slist.thread.replace_page(edited, b_id)
+
+            def after_undo():
+                nonlocal ran_callback
+                assert len(slist.data) == 1, "only page B remains after undo"
+                assert slist.data[0][2] == b_id, "page A was not resurrected"
+                ran_callback = True
+                mlp.quit()
+
+            slist.undo(finished_callback=after_undo)
+
+        def after_import_b(_result):
+            assert len(slist.data) == 1, "1 page after New File + scan"
+            GLib.idle_add(step2)
+
+        def after_clear():
+            slist.import_files(paths=[rose_tif], finished_callback=after_import_b)
+
+        def after_import_a(_result):
+            assert len(slist.data) == 1, "imported page A"
+            slist.delete_all_pages(finished_callback=after_clear)
+
+        slist.import_files(paths=[rose_tif], finished_callback=after_import_a)
+        mlp = safe_mainloop(10000)
+        mlp.run()
+        assert ran_callback, "ran finished callback"
+
+
 def test_import_scan(
     temp_db,
     temp_pnm,

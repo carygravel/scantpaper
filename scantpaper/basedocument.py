@@ -429,6 +429,39 @@ class BaseDocument(SimpleList):
             **send_kwargs,
         )
 
+    def delete_all_pages(self, **kwargs):
+        "Delete all pages"
+
+        def _data_callback(response):
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                # Block slist signals whilst updating
+                self.get_model().handler_block(self.row_changed_signal)
+                self.get_selection().handler_block(self.selection_changed_signal)
+                self._block_signals = True
+                self.data = []
+                self._block_signals = False
+
+                # Unblock slist signals now finished
+                self.get_selection().handler_unblock(self.selection_changed_signal)
+                self.get_model().handler_unblock(self.row_changed_signal)
+
+                self.renumber()
+
+            if "finished_callback" in kwargs:
+                kwargs["finished_callback"]()
+
+        page_ids = [row[2] for row in self.data]
+        send_kwargs = kwargs.copy()
+        if "finished_callback" in send_kwargs:
+            del send_kwargs["finished_callback"]
+        self.thread.send(
+            "delete_pages",
+            {"page_ids": page_ids},
+            data_callback=_data_callback,
+            **send_kwargs,
+        )
+
     def delete_selection_extra(self, **kwargs):
         "wrapper for delete_selection()"
         page = self.get_selected_indices()
