@@ -129,7 +129,9 @@ pages; the session is always cancelled at the end of the batch.
 
 ### Main Features
 
-- **Scan:** Options for device, page count, source document, side to scan, and device-dependent options (page size, mode, resolution, batch-scan, etc.). Optionally OCR each page on scan.
+- **Scan:** Options for device, page count, source document, side to scan, and
+  device-dependent options (page size, mode, resolution, batch-scan, etc.).
+  Optionally OCR each page on scan.
 - **Save:** Save selected/all pages in multiple formats. Supports metadata. The Title, Author, Subject, and Keywords fields offer autocompletion, suggesting values from imported documents and values you have entered before. When saving as PDF, the progress bar tracks each page as it is written and reports the PDF conversion step. Imported images are stored in a compact format (JPEG for scanned pages, the original bytes for imported JPEG/PNG files, lossless PNG for bilevel or transparent pages), and PDF saves embed stored JPEG images directly instead of re-encoding them.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.

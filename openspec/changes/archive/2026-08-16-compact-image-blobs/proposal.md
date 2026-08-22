@@ -1,6 +1,13 @@
 ## Why
 
-Importing a large TIFF archive (e.g. 250 uncompressed 200 dpi grayscale pages) takes hours because every page is re-encoded twice: once as a PNG blob for the database and once more as a full-size PNG just to make a 100 px thumbnail. Saving those pages as a PDF is then equally slow, because img2pdf cannot embed uncompressed 8-bit grayscale TIFFs natively and re-encodes them at full PNG-encode cost. Storing the raw TIFF instead would only right-shift that encoding cost into img2pdf, so the fix is to store an intermediate format that img2pdf can embed without re-encoding, chosen per image mode.
+Importing a large TIFF archive (e.g. 250 uncompressed 200 dpi grayscale pages)
+takes hours because every page is re-encoded twice: once as a PNG blob for the
+database and once more as a full-size PNG just to make a 100 px thumbnail.
+Saving those pages as a PDF is then equally slow, because img2pdf cannot embed
+uncompressed 8-bit grayscale TIFFs natively and re-encodes them at full PNG-encode
+cost. Storing the raw TIFF instead would only right-shift that encoding cost into
+img2pdf, so the fix is to store an intermediate format that img2pdf can embed
+without re-encoding, chosen per image mode.
 
 ## What Changes
 

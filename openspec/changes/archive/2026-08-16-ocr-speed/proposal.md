@@ -1,6 +1,14 @@
 ## Why
 
-OCR of a scanned page takes roughly 15–19 seconds, and only ~15s of that is tesseract itself. The gap is overhead around it: `do_tesseract` re-encodes the page image to a temporary PNG (~4.1s), writes it to disk, runs `ProcessPages` (which also writes the hOCR result to disk and re-reads it), and finally saves the OCR result through the image byte-compare/re-insert path — even though OCR never changes the page pixels. Users OCR entire archives, so this per-page overhead multiplies. We already removed the PNG re-encode for storage (compact-image-blobs); now we remove the PNG encode + disk round-trip for OCR input, and stop treating OCR as an image-changing operation.
+OCR of a scanned page takes roughly 15–19 seconds, and only ~15s of that is
+tesseract itself. The gap is overhead around it: `do_tesseract` re-encodes the
+page image to a temporary PNG (~4.1s), writes it to disk, runs `ProcessPages`
+(which also writes the hOCR result to disk and re-reads it), and finally saves
+the OCR result through the image byte-compare/re-insert path — even though OCR
+never changes the page pixels. Users OCR entire archives, so this per-page
+overhead multiplies. We already removed the PNG re-encode for storage
+(compact-image-blobs); now we remove the PNG encode + disk round-trip for OCR
+input, and stop treating OCR as an image-changing operation.
 
 ## What Changes
 

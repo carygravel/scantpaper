@@ -1,8 +1,22 @@
 ## 1. In-memory OCR input (D)
 
-- [x] 1.1 In `do_tesseract` (docthread.py:1295-1306), replace the temp-PNG `page.image_object.save(file.name)` + `api.ProcessPages(output, file.name)` + hocr file read/unlink block with: convert `page.image_object` to 8-bit `"L"`, then `api.SetImageBytes(image.tobytes(), image.width, image.height, 1, image.width)`, `api.Recognize()`, `hocr = api.GetHOCRText(0)`; keep the `tessedit_create_hocr`/`hocr_font_info` `SetVariable` calls and the `page.import_hocr(hocr)` / `ocr_flag` / `ocr_time` updates; remove the `output = "image_out"` and `pathlib.Path` hocr read.
-- [x] 1.2 Add a unit test asserting the tesseract API receives the page's in-memory pixels: mock `PyTessBaseAPI` and assert `SetImageBytes` is called with the `"L"`-mode bytes, `width`, `height`, `bytes_per_pixel=1`, `bytes_per_line=width`, followed by `Recognize()`, and that `GetHOCRText(0)` output is passed to `page.import_hocr`.
-- [x] 1.3 Update `test_do_tesseract_path_fallback` and `test_do_tesseract_path_fallback_symlink`: remove the `ProcessPages` and `pathlib.Path` mocks; set up `SetImageBytes`/`Recognize`/`GetHOCRText` on the mock API and keep the tessdata-path assertions.
+- [x] 1.1 In `do_tesseract` (docthread.py:1295-1306), replace the temp-PNG
+  `page.image_object.save(file.name)` + `api.ProcessPages(output, file.name)`
+  + hocr file read/unlink block with: convert `page.image_object` to 8-bit
+  `"L"`, then `api.SetImageBytes(image.tobytes(), image.width, image.height, 1,
+  image.width)`, `api.Recognize()`, `hocr = api.GetHOCRText(0)`; keep the
+  `tessedit_create_hocr`/`hocr_font_info` `SetVariable` calls and the
+  `page.import_hocr(hocr)` / `ocr_flag` / `ocr_time` updates; remove the
+  `output = "image_out"` and `pathlib.Path` hocr read.
+- [x] 1.2 Add a unit test asserting the tesseract API receives the page's
+  in-memory pixels: mock `PyTessBaseAPI` and assert `SetImageBytes` is called
+  with the `"L"`-mode bytes, `width`, `height`, `bytes_per_pixel=1`,
+  `bytes_per_line=width`, followed by `Recognize()`, and that `GetHOCRText(0)`
+  output is passed to `page.import_hocr`.
+- [x] 1.3 Update `test_do_tesseract_path_fallback` and
+  `test_do_tesseract_path_fallback_symlink`: remove the `ProcessPages` and
+  `pathlib.Path` mocks; set up `SetImageBytes`/`Recognize`/`GetHOCRText` on the
+  mock API and keep the tessdata-path assertions.
 
 ## 2. Reuse stored image on OCR (E)
 

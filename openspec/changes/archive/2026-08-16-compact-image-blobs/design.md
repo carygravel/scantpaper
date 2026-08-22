@@ -38,7 +38,14 @@ Rationale for JPEG-not-TIFF: storing raw uncompressed TIFF only right-shifts the
 `get_pixbuf_at_scale` (page.py:307) keeps its `_prepare_scale` sizing and the `.load()` race-condition fix, but resizes the PIL image to the target box (`Image.resize` with `Image.BOX` on the full-size image down to ~100 px) before saving to the temp file. GdkPixbuf then loads an already-small PNG; the full-size re-encode disappears (~4.1s → ~10ms).
 
 **4. PDF save passes stored JPEG bytes through.**
-`write_image_for_pdf` (page.py:359) writes the stored blob directly to the temp file when: the page's stored format is JPEG (detected via `self.image_object.format`, which PIL sets from the blob header), no downsampling option, and no G3/G4 compression option. Otherwise it behaves as today. To make the stored bytes available, `Page.from_bytes` (page.py:103) stashes the blob on the page (`page._stored_bytes`). img2pdf reads DPI from `layout_fun` (savethread.py:149-155), not from the JPEG header, so embedded DPI is irrelevant. Bilevel pages keep the current PNG write path.
+`write_image_for_pdf` (page.py:359) writes the stored blob directly to the temp
+file when: the page's stored format is JPEG (detected via `self.image_object.format`,
+which PIL sets from the blob header), no downsampling option, and no G3/G4
+compression option. Otherwise it behaves as today. To make the stored bytes
+available, `Page.from_bytes` (page.py:103) stashes the blob on the page
+(`page._stored_bytes`). img2pdf reads DPI from `layout_fun` (savethread.py:149-155),
+not from the JPEG header, so embedded DPI is irrelevant. Bilevel pages keep the
+current PNG write path.
 
 **5. Byte-compare reuse still works.**
 `_insert_image(if_different_from=...)` compares stored blobs. PIL's PNG and JPEG encodes are deterministic for identical pixels, so edited-but-unchanged pixels (e.g. the OCR path) still match and reuse the existing image row. No change needed here for correctness.

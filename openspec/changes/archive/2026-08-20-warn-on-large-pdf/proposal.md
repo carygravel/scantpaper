@@ -1,6 +1,13 @@
 ## Why
 
-Saving many uncompressed scanned pages produces a PDF larger than 2 GiB.  At that size, three downstream tools — img2pdf's linearizing engine (0.6.2), Ghostscript's PDF/A conversion (10.07.1), and pikepdf's xref-stream linearization (10.5.0/qpdf 12.4.0) — overflow 32-bit file offsets and produce truncated or corrupt output.  Attempts to work around each tool individually (switching to a non-linearizing engine, disabling PDF/A, suppressing linearization) proved fragile: pikepdf's metadata-save step still corrupts the file at ~7 GiB because qpdf itself has internal 32-bit limits.
+Saving many uncompressed scanned pages produces a PDF larger than 2 GiB.  At
+that size, three downstream tools — img2pdf's linearizing engine (0.6.2),
+Ghostscript's PDF/A conversion (10.07.1), and pikepdf's xref-stream
+linearization (10.5.0/qpdf 12.4.0) — overflow 32-bit file offsets and produce
+truncated or corrupt output.  Attempts to work around each tool individually
+(switching to a non-linearizing engine, disabling PDF/A, suppressing
+linearization) proved fragile: pikepdf's metadata-save step still corrupts the
+file at ~7 GiB because qpdf itself has internal 32-bit limits.
 
 The simplest correct approach is to **estimate the output size before conversion** and, if it would exceed 2 GiB, **refuse to save with a clear error message** telling the user to save fewer pages at a time.  This avoids silent data loss and gives the user an actionable path forward.
 

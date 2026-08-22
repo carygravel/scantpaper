@@ -1,6 +1,13 @@
 ## Context
 
-`do_save_pdf()` (savethread.py:101-225) currently reports per-page progress ("Saving page i of n" + fraction) only in the hocr text-write loop that runs *after* `img2pdf.convert()`. The stage that actually dominates wall time — the image-write loop that PNG-encodes each page into a tempdir (savethread.py:126-138) — sends no progress at all. The `data_callback` wiring already exists (file_menu_mixins.py:641 wires `post_process_progress.update`, which renders DATA strings as text and floats as fraction — progress.py:82-88), so this is purely about *what* the thread emits.
+`do_save_pdf()` (savethread.py:101-225) currently reports per-page progress
+("Saving page i of n" + fraction) only in the hocr text-write loop that runs
+*after* `img2pdf.convert()`. The stage that actually dominates wall time — the
+image-write loop that PNG-encodes each page into a tempdir (savethread.py:126-138)
+— sends no progress at all. The `data_callback` wiring already exists
+(file_menu_mixins.py:641 wires `post_process_progress.update`, which renders DATA
+strings as text and floats as fraction — progress.py:82-88), so this is purely
+about *what* the thread emits.
 
 The DjVu save path (`do_save_djvu`, savethread.py:233-248) already shows the intended pattern: per-iteration `request.data(fraction)` followed by `request.data(_("Writing page %i of %i"))`.
 
