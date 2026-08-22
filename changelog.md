@@ -1,4 +1,4 @@
-## 3.0.16 (unreleased)
+## 3.0.16 (2026-08-22)
 
 * Fix import creating an extra page when a PDF contains a soft mask or stencil
   image, e.g. a PDF created including an image with a transparent layer.
