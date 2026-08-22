@@ -622,10 +622,10 @@ def test_db(temp_db):
     assert isinstance(page, Page), "get_page by id"
 
     result = thread.do_undo(Request("undo", (), thread.responses))
-    assert result["snapshot"][0][0] == 0, "undo"
+    assert result["snapshot"][0][0] == 1, "undo"
 
     result = thread.do_redo(Request("redo", (), thread.responses))
-    assert result["snapshot"][0][0] == 0, "redo"
+    assert result["snapshot"][0][0] == 1, "redo"
 
     thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
     assert not thread.pages_saved(), "not all pages saved"
@@ -669,6 +669,26 @@ def test_db(temp_db):
     request = Request("set_selection", ([2],), thread.responses)
     thread.do_set_selection(request)
     assert thread.get_selection() == [2], "g/set_selection"
+
+
+def test_undo_redo_snapshot_page_numbers(temp_db):
+    "undo and redo snapshots carry 1-based page numbers"
+    thread = DocThread(db=temp_db.name)
+
+    # spoof the write thread check
+    thread._write_tid = threading.get_native_id()
+    for _ in range(3):
+        thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
+
+    page_ids = [row[2] for row in thread.page_number_table()]
+    request = Request("delete_pages", ({"page_ids": [page_ids[0]]},), thread.responses)
+    thread.do_delete_pages(request)
+
+    result = thread.do_undo(Request("undo", (), thread.responses))
+    assert [row[0] for row in result["snapshot"]] == [1, 2, 3], "undo"
+
+    result = thread.do_redo(Request("redo", (), thread.responses))
+    assert [row[0] for row in result["snapshot"]] == [1, 2], "redo"
 
 
 def test_document(rose_tif):

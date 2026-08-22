@@ -1,3 +1,8 @@
+## 3.0.17 (unreleased)
+
+* Fix 0-based page numbering after undo
+
+
 ## 3.0.16 (2026-08-22)
 
 * Fix import creating an extra page when a PDF contains a soft mask or stencil

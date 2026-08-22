@@ -703,6 +703,7 @@ class DocThread(SaveThread):
         rows = []
         for row in self._fetchall():
             row = list(row)
+            row[0] += 1  # page numbers shown to the user are 1-based
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
         return rows
