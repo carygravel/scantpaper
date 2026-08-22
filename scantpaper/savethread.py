@@ -261,8 +261,18 @@ class SaveThread(Importhread):
             # malformed – pikepdf-dependent operations would fail too, so skip
             # them and hand the user a usable (but textless) PDF.
             if embed_ok:
-                if "title" not in metadata:
-                    _remove_pdf_title(filename)
+                # Metadata fixup is cosmetic - if it fails, deliver an
+                # unbranded but otherwise usable PDF rather than failing
+                # the save.
+                try:
+                    _fix_pdf_metadata(filename, "title" not in metadata)
+                except Exception as err:
+                    logging.warning(
+                        "Could not fix PDF metadata (%s): %s - "
+                        "saving without creator branding",
+                        err.__class__.__name__,
+                        err,
+                    )
 
                 _append_pdf(filename, options, request)
 
@@ -701,15 +711,22 @@ def _estimate_page_pdf_size(image, temp_filename, opts):
     return int(image.width * image.height * bpp)
 
 
-def _remove_pdf_title(path):
-    "remove the title from a PDF's document info and XMP metadata"
+def _fix_pdf_metadata(path, remove_title):
+    "brand scantpaper as the PDF creator and remove any placeholder title"
+    creator = f"scantpaper v{VERSION}"
     with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        existing_creator = str(pdf.docinfo.get("/Creator", "")).strip()
+        if existing_creator:
+            creator = f"{creator} / {existing_creator}"
         with pdf.open_metadata(
             set_pikepdf_as_editor=False, update_docinfo=False
         ) as metadata:
-            metadata.pop("dc:title", None)
-        if "/Title" in pdf.docinfo:
+            if remove_title:
+                metadata.pop("dc:title", None)
+            metadata["xmp:CreatorTool"] = creator
+        if remove_title and "/Title" in pdf.docinfo:
             del pdf.docinfo["/Title"]
+        pdf.docinfo["/Creator"] = creator
         pdf.save(path, preserve_pdfa=True, linearize=True)
 
 

@@ -619,6 +619,73 @@ def test_save_pdf_with_title_retains_title_in_xmp(
             assert md.get("dc:title") == "metadata title", "metadata title in XMP"
 
 
+def test_save_pdf_creator_branded(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
+    "Test writing PDF brands scantpaper as creator, keeping toolchain provenance"
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    metadata = {
+        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+    }
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        metadata=metadata,
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        docinfo = pdf.docinfo or {}
+        creator = str(docinfo.get("/Creator", ""))
+        assert creator.startswith("scantpaper v"), "scantpaper first in Creator"
+        assert "OCRmyPDF" in creator, "OCRmyPDF provenance retained"
+        assert "Tesseract" in creator, "Tesseract provenance retained"
+        producer = str(docinfo.get("/Producer", ""))
+        assert producer.startswith("pikepdf"), "producer untouched"
+        with pdf.open_metadata() as md:
+            assert md.get("xmp:CreatorTool") == creator, "XMP creator matches docinfo"
+            assert str(md.get("pdf:Producer")).startswith(
+                "pikepdf"
+            ), "XMP producer untouched"
+            assert md.get("pdfaid:part") is not None, "PDF/A identification kept"
+
+
+def test_save_pdf_creator_branded_with_title(
+    rose_pnm, temp_pdf, temp_db, import_in_mainloop
+):
+    "Test writing PDF with a title still brands scantpaper as creator"
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    metadata = {
+        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "title": "metadata title",
+    }
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        metadata=metadata,
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        docinfo = pdf.docinfo or {}
+        assert docinfo.get("/Title") == "metadata title", "user title kept"
+        creator = str(docinfo.get("/Creator", ""))
+        assert creator.startswith("scantpaper v"), "branded despite user title"
+        assert "OCRmyPDF" in creator, "toolchain provenance retained"
+        with pdf.open_metadata() as md:
+            assert md.get("dc:title") == "metadata title", "user title in XMP"
+            assert md.get("xmp:CreatorTool") == creator, "XMP creator matches docinfo"
+            assert md.get("pdfaid:part") is not None, "PDF/A identification kept"
+
+
 def test_save_import_without_title_roundtrip(
     rose_pnm, temp_pdf, temp_db, import_in_mainloop
 ):

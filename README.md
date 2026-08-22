@@ -288,6 +288,12 @@ scantpaper --device "net:scanner.example.com:6566"
 
 Scanning is handled with SANE. PDF conversion uses `img2pdf` and `ocrmypdf`. TIFF export uses `libtiff`.
 
+Saved PDFs are marked as created by scantpaper: the document info `Creator`
+field and the XMP creator tool begin with `scantpaper v<version>`, followed
+by the OCR toolchain used, e.g.
+`scantpaper v3.0.16 / OCRmyPDF 16.13.0 / Tesseract OCR-hOCR 5.5.0`. The
+`Producer` field continues to name the library that wrote the file.
+
 ---
 
 ## Diagnostics
