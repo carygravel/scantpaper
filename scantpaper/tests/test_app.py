@@ -1,6 +1,7 @@
 "Tests for app.py"
 
 import logging
+import os
 import sys
 from unittest.mock import MagicMock, patch
 import pytest
@@ -207,6 +208,18 @@ def test_application_init_iconpath_fallback(mock_deps, mocker):
     # It should have called prepend_search_path with the fallback path
     app_module.Gtk.IconTheme.get_default().prepend_search_path.assert_called_with(
         "/usr/share/scantpaper/icons"
+    )
+
+
+def test_application_init_iconpath_in_package(mock_deps, mocker):
+    "Test Application.__init__ resolves icons from inside the package"
+    mocker.patch("app.os.path.isdir", return_value=True)
+    app = Application()
+    in_package = os.path.abspath(
+        os.path.join(os.path.dirname(app_module.__file__), "icons")
+    )
+    app_module.Gtk.IconTheme.get_default().prepend_search_path.assert_called_with(
+        in_package
     )
 
 

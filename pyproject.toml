@@ -41,7 +41,7 @@ include = ["scantpaper*"]
 exclude = ["scantpaper.tests"]
 
 [tool.setuptools.package-data]
-scantpaper = ["app.ui"]
+scantpaper = ["app.ui", "icons/**/*"]
 
 [tool.pytest.ini_options]
 addopts = "--timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=98"

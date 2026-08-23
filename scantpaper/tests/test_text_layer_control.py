@@ -33,9 +33,7 @@ def test_text_layer_sort_combo_box(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-    app.iconpath = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../icons")
-    )
+    app.iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "../icons"))
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
@@ -76,9 +74,7 @@ def test_text_layer_add_and_ok_buttons(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-    app.iconpath = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../icons")
-    )
+    app.iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "../icons"))
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
@@ -160,9 +156,7 @@ def test_edit_ocr_text_updates_selection(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-    app.iconpath = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../icons")
-    )
+    app.iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "../icons"))
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
