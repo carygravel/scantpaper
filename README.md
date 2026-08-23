@@ -154,6 +154,9 @@ pages; the session is always cancelled at the end of the batch.
       the middle mouse button to drag the image or canvas to pan the view
     - In all of the above, the mouse wheel zooms in or out.
 - Zoom: 100%, fit to window, in, and out.
+- Rendering: pages are shown at high quality whenever they are static, so the
+  full-page view is easy to assess; a faster rendering is used only while you
+  are panning or zooming, for smooth interaction.
 - Rotate: 90° clockwise, 180°, and 90° anticlockwise.
 
 ### Keyboard Shortcuts

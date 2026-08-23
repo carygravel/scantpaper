@@ -1030,12 +1030,59 @@ def test_selection_drawing_coordinates():
 
 
 def test_adaptive_filter():
-    "Test _get_adaptive_filter zoom levels"
+    "Test _get_adaptive_filter is interaction-driven, not zoom-driven"
     view = ImageView()
-    view._set_zoom(0.4)
-    assert view._get_adaptive_filter() == cairo.FILTER_FAST
-    view._set_zoom(0.6)
+    # static: configured interpolation regardless of zoom
     assert view._get_adaptive_filter() == cairo.FILTER_GOOD
-    view._set_zoom(1.1)
     view.set_interpolation(cairo.FILTER_BEST)
     assert view._get_adaptive_filter() == cairo.FILTER_BEST
+    # interacting: fast filtering overrides configured interpolation
+    view.set_interacting(True)
+    assert view._get_adaptive_filter() == cairo.FILTER_FAST
+    view.set_interacting(False)
+    assert view._get_adaptive_filter() == cairo.FILTER_BEST
+
+
+def test_static_fit_zoom_high_quality():
+    "Static full-page (fit) view renders with the configured filter, not point sampling"
+    view = ImageView()
+    view._set_zoom(0.3)
+    assert view._get_adaptive_filter() == cairo.FILTER_GOOD
+
+
+def test_dragger_toggles_interacting():
+    "Dragger pan toggles the view's interaction state"
+    view = ImageView()
+    dragger = Dragger(view)
+    event = MockEvent(button=1, x=5, y=5)
+    dragger.button_pressed(event)
+    assert view.get_interacting() is True
+    dragger.button_released(event)
+    assert view.get_interacting() is False
+
+
+def test_selector_does_not_toggle_interacting(mocker):
+    "Selector rubber-band drag does not mark the view as interacting"
+    view = ImageView()
+    selector = Selector(view)
+    mocker.patch.object(selector, "_update_selection")
+    event = MockEvent(button=1, x=5, y=5)
+    selector.button_pressed(event)
+    assert view.get_interacting() is False
+
+
+def test_scroll_toggles_interacting_and_idle_returns(mocker):
+    "Scroll-zoom marks interacting; the idle callback restores quality"
+    view = ImageView()
+    mocker.patch.object(view, "to_image_coords", return_value=(1.0, 1.0))
+    event = Gdk.EventScroll()
+    event.direction = Gdk.ScrollDirection.UP
+    view.do_scroll_event(event)
+    assert view.get_interacting() is True
+    assert view._scroll_timeout is not None
+    queue = mocker.patch.object(view, "queue_draw")
+    view.do_destroy()  # destroy while a scroll timeout is armed removes it
+    assert view._scroll_timeout is None
+    assert view._scroll_idle() == GLib.SOURCE_REMOVE
+    assert view.get_interacting() is False
+    queue.assert_called_once()

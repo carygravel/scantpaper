@@ -1,6 +1,9 @@
 ## 3.0.17 (unreleased)
 
 * Fix 0-based page numbering after undo
+* Render with high-quality interpolation at all zoom levels. A faster filter is
+  used only while panning or zooming.
+  Closes #75 (Rendering quality is significantly worse than gscan2pdf for A4)
 
 
 ## 3.0.16 (2026-08-22)

@@ -8,6 +8,7 @@ gi.require_version("Gdk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position
     Gdk,
     GdkPixbuf,
+    GLib,
     GObject,
     Gtk,
 )
@@ -75,12 +76,14 @@ class Dragger(Tool):
         self.dnd_eligible = True
         self.dragging = True
         self.button = event.button
+        self.view().set_interacting(True)
         self.view().update_cursor(event.x, event.y)
         return True
 
     def button_released(self, event):
         "react to button-release events from the view"
         self.dragging = False
+        self.view().set_interacting(False)
         self.view().update_cursor(event.x, event.y)
 
     def motion(self, event):
@@ -365,6 +368,7 @@ class SelectorDragger(Tool):
 
 MIN_ZOOM = 0.001
 MAX_ZOOM = 100
+SCROLL_IDLE_TIMEOUT = 150
 
 
 class ImageView(Gtk.DrawingArea):
@@ -581,11 +585,25 @@ class ImageView(Gtk.DrawingArea):
         self.update_cursor(event.x, event.y)
         self.get_tool().motion(event)
 
+    def _arm_scroll_timeout(self):
+        "Reset the idle timer that ends scroll-zoom fast rendering"
+        if self._scroll_timeout is not None:
+            GLib.source_remove(self._scroll_timeout)
+        self._scroll_timeout = GLib.timeout_add(SCROLL_IDLE_TIMEOUT, self._scroll_idle)
+
+    def _scroll_idle(self):
+        "Return to high-quality rendering when the scroll burst stops"
+        self._scroll_timeout = None
+        self.set_interacting(False)
+        return GLib.SOURCE_REMOVE
+
     def do_scroll_event(self, event, **kwargs):
         "respond to the scroll event"
         image_x, image_y = self.to_image_coords(event.x, event.y)
         if image_x is None:
             return
+        self.set_interacting(True)
+        self._arm_scroll_timeout()
         zoom = None
         self.setzoom_is_fit(False)
         if event.direction == Gdk.ScrollDirection.UP:
@@ -607,6 +625,12 @@ class ImageView(Gtk.DrawingArea):
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
 
+    def do_destroy(self):
+        "respond to widget destruction"
+        if self._scroll_timeout is not None:
+            GLib.source_remove(self._scroll_timeout)
+            self._scroll_timeout = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -624,6 +648,8 @@ class ImageView(Gtk.DrawingArea):
         self._cached_surface = None
         self._cached_pixbuf_id = None
         self._offset = None
+        self._interacting = False
+        self._scroll_timeout = None
 
     def set_pixbuf(self, pixbuf, zoom_to_fit=False):
         "set pixbuf, optionally zooming to fit"
@@ -661,12 +687,9 @@ class ImageView(Gtk.DrawingArea):
         return self._cached_surface
 
     def _get_adaptive_filter(self):
-        "Use faster filtering when zoomed out, better quality when zoomed in"
-        zoom = self.get_zoom()
-        if zoom < 0.5:
+        "Use faster filtering while interacting, better quality when static"
+        if self.get_interacting():
             return cairo.FILTER_FAST
-        if zoom < 1.0:
-            return cairo.FILTER_GOOD
         return self.get_interpolation()
 
     def set_zoom(self, zoom):
@@ -860,6 +883,16 @@ class ImageView(Gtk.DrawingArea):
         cursor = self.get_tool().cursor_at_point(x, y)
         if cursor is not None:
             win.set_cursor(cursor)
+
+    def set_interacting(self, interacting):
+        "set whether the user is actively manipulating the view"
+        if interacting != self._interacting:
+            self._interacting = interacting
+            self.queue_draw()
+
+    def get_interacting(self):
+        "return whether the user is actively manipulating the view"
+        return self._interacting
 
     def set_interpolation(self, interpolation):
         "set interpolation method"
