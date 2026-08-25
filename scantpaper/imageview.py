@@ -627,7 +627,7 @@ class ImageView(Gtk.DrawingArea):
 
     def do_destroy(self):
         "respond to widget destruction"
-        if self._scroll_timeout is not None:
+        if getattr(self, "_scroll_timeout", None) is not None:
             GLib.source_remove(self._scroll_timeout)
             self._scroll_timeout = None
 
