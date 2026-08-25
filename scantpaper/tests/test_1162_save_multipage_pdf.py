@@ -5,10 +5,10 @@ import os
 import re
 import subprocess
 import tempfile
+
+import img2pdf
 import pikepdf
 import pytest
-from gi.repository import GLib
-import img2pdf
 from document import Document
 from loop_helpers import safe_mainloop
 

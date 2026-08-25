@@ -1,20 +1,23 @@
 "Scan dialog"
 
+import logging
 import re
 import weakref
 from copy import copy
-import logging
-from gi.repository import Gdk, Gtk, GObject
+
 from comboboxtext import ComboBoxText
-from dialog.paperlist import PaperList
-from dialog.pagecontrols import PageControls, MAX_PAGES
-from scanner.profile import Profile
-from scanner.options import Options, within_tolerance
-from docthread import INSERT_AT_START
-from i18n import _, d_sane
 from const import POINTS_PER_INCH
+from docthread import INSERT_AT_START
 from frontend import enums
+from gi.repository import Gdk, GObject, Gtk
 from helpers import _weak_callback
+from i18n import _, d_sane
+from scanner.options import Options, within_tolerance
+from scanner.profile import Profile
+
+from dialog.pagecontrols import MAX_PAGES, PageControls
+from dialog.paperlist import PaperList
+
 from . import Dialog
 
 PAPER_TOLERANCE = 1

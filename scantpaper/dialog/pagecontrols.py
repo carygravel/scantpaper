@@ -1,11 +1,12 @@
 "The page controls for the Scan dialog"
 
-from gi.repository import Gtk, GObject
-from dialog import Dialog
+from comboboxtext import ComboBoxText
+from gi.repository import GObject, Gtk
+from i18n import _
 from scanner.options import Options
 from scanner.profile import Profile
-from comboboxtext import ComboBoxText
-from i18n import _
+
+from dialog import Dialog
 
 MAX_PAGES = 9999
 MAX_INCREMENT = 99

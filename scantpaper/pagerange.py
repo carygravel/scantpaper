@@ -4,7 +4,7 @@ import gi
 from i18n import _
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GObject  # pylint: disable=wrong-import-position
+from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
 
 # does not yet work. see https://gitlab.gnome.org/GNOME/pygobject/-/issues/215
 # GObject.TypeModule.register_enum( 'Scantpaper::PageRange::Range', ["selected","all"] )

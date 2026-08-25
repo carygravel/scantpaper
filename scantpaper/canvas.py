@@ -65,10 +65,10 @@ def rect2bboxarray(rect):
 
 def rgb2hsv(rgb):
     "convert from rgb to hsv colour space"
-    minv = rgb.red if rgb.red < rgb.green else rgb.green
-    minv = minv if minv < rgb.blue else rgb.blue
-    maxv = rgb.red if rgb.red > rgb.green else rgb.green
-    maxv = maxv if maxv > rgb.blue else rgb.blue
+    minv = min(rgb.green, rgb.red)
+    minv = min(rgb.blue, minv)
+    maxv = max(rgb.green, rgb.red)
+    maxv = max(rgb.blue, maxv)
     hsv = {}
     hsv["v"] = maxv
     delta = maxv - minv
@@ -679,7 +679,7 @@ class Canvas(Gtk.DrawingArea):
         "set the canvas text from a list of bboxes"
         if not bboxes:
             self.clear_text()
-            if "finished_callback" in kwargs and kwargs["finished_callback"]:
+            if kwargs.get("finished_callback"):
                 kwargs["finished_callback"]()
             return
 

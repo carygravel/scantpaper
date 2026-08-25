@@ -76,11 +76,11 @@ def drag_motion_callback(tree, context, x, y, t):
     if y > adj.get_page_size() - step / 2:
         v = value + step
         m = adj.get_upper(-adj.get_page_size())
-        adj.set_value(m if v > m else v)
+        adj.set_value(min(v, m))
     elif y < step / 2:
         v = value - step
         m = adj.get_lower()
-        adj.set_value(m if v < m else v)
+        adj.set_value(max(v, m))
 
 
 def view_html(_action, _param):

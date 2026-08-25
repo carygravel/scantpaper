@@ -12,7 +12,7 @@ import weakref
 from collections import defaultdict
 
 import gi
-from docthread import DocThread, INSERT_AT_START
+from docthread import INSERT_AT_START, DocThread
 from helpers import _weak_callback, slurp
 from i18n import _
 from simplelist import SimpleList
@@ -199,7 +199,7 @@ class BaseDocument(SimpleList):
         options = defaultdict(None, options)
         try:
             return tempfile.TemporaryFile(dir=self.dir, suffix=".pid", mode="wt")
-        except (PermissionError, IOError) as err:
+        except (OSError, PermissionError) as err:
             logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
                 options["error_callback"](
@@ -478,8 +478,7 @@ class BaseDocument(SimpleList):
 
                 # Select just the first one
                 new_sel = [page[0]]
-                if new_sel[0] > len(self.data) - 1:
-                    new_sel[0] = len(self.data) - 1
+                new_sel[0] = min(new_sel[0], len(self.data) - 1)
 
                 self.select(new_sel)
 

@@ -5,13 +5,14 @@ import os
 import subprocess
 import tempfile
 from unittest.mock import patch
-from PIL import Image
+
 import config
-from const import VERSION
-from page import Page, _prepare_scale
-from helpers import Proc
-from gi.repository import GdkPixbuf
 import pytest
+from const import VERSION
+from gi.repository import GdkPixbuf
+from helpers import Proc
+from page import Page, _prepare_scale
+from PIL import Image
 
 
 def test_1(temp_pnm, temp_jpg):

@@ -3,17 +3,18 @@
 import io
 import json
 import locale
+import logging
 import re
 import subprocess
 import tempfile
 import uuid
-import logging
-from PIL import Image, ImageFile
+
 import config
-from const import POINTS_PER_INCH, MM_PER_INCH, CM_PER_INCH
-from bboxtree import Bboxtree
-from helpers import exec_command
 import gi
+from bboxtree import Bboxtree
+from const import CM_PER_INCH, MM_PER_INCH, POINTS_PER_INCH
+from helpers import exec_command
+from PIL import Image, ImageFile
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -289,9 +290,7 @@ class Page:
                 < PAGE_TOLERANCE
             ):
                 matching[key] = (
-                    (height if (height > width) else width)
-                    / paper_sizes[key]["y"]
-                    * MM_PER_INCH
+                    (max(width, height)) / paper_sizes[key]["y"] * MM_PER_INCH
                 )
 
         return matching

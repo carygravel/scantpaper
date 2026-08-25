@@ -590,7 +590,7 @@ class Unpaper:
                 continue
 
             if hashref[option]["type"] == "CheckButton":
-                if option in options and options[option]:
+                if options.get(option):
                     items.append(f"--{option}")
             elif hashref[option]["type"] == "SpinButton":
                 if option in options:

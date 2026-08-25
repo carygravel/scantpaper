@@ -803,10 +803,7 @@ class ToolsMenuMixins:
             def email_finished_callback(response):
                 self.post_process_progress.finish(response)
                 self.slist.thread.send("set_saved", uuids)
-                if (
-                    "view files toggle" in self.settings
-                    and self.settings["view files toggle"]
-                ):
+                if self.settings.get("view files toggle"):
                     launch_default_for_file(self._pdf_email)
 
                 status = exec_command(["xdg-email", "--attach", self._pdf_email, "x@y"])

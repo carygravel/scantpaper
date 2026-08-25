@@ -1,11 +1,11 @@
 "test dialog"
 
-from dialog.crop import Crop
 import gi
+from dialog.crop import Crop
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gdk, GLib, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gdk, Gtk  # pylint: disable=wrong-import-position
 from loop_helpers import safe_mainloop
 
 

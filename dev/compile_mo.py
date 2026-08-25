@@ -8,9 +8,10 @@ Usage:
   python3 compile_mo.py --src po --out locale --domain scantpaper
 """
 
-from pathlib import Path
 import argparse
 import sys
+from pathlib import Path
+
 import polib
 
 

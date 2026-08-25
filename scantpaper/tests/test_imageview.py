@@ -167,7 +167,7 @@ def test_transparency(datadir):
     .imageview {{
         background-image: url('{datadir}transp-blue.svg');
     }}
-""".encode("UTF-8"))
+""".encode())
     view = ImageView()
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
@@ -1008,11 +1008,13 @@ def test_selection_drawing_coordinates():
         if style_ctx.has_class(Gtk.STYLE_CLASS_RUBBERBAND):
             rubberband_calls.append((x, y, w, h))
 
-    with patch(
-        "gi.repository.Gtk.render_background", side_effect=capture_render_background
+    with (
+        patch(
+            "gi.repository.Gtk.render_background", side_effect=capture_render_background
+        ),
+        patch("gi.repository.Gtk.render_frame"),
     ):
-        with patch("gi.repository.Gtk.render_frame"):
-            view.do_draw(context)
+        view.do_draw(context)
 
     assert len(rubberband_calls) == 1, "Selection background was not rendered"
     x, y, w, h = rubberband_calls[0]

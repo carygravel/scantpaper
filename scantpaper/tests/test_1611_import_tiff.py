@@ -2,15 +2,14 @@
 
 import os
 import pathlib
-import re
 import subprocess
 import tempfile
 from unittest.mock import MagicMock
-from PIL import Image
-from gi.repository import GLib
+
 import config
 from document import Document
 from loop_helpers import safe_mainloop
+from PIL import Image
 
 
 def test_import_tiff(rose_tif, temp_db, get_page_sync):

@@ -343,6 +343,7 @@ def test_none_callback():
 def test_monitor_processes_one_at_a_time():
     "test that monitor processes exactly one response per call"
     from unittest.mock import patch
+
     from basethread import Request
 
     thread = BaseThread()
@@ -375,6 +376,7 @@ def test_monitor_processes_one_at_a_time():
 def test_monitor_schedules_idle_when_responses_remain():
     "test that GLib.idle_add is called when responses still in queue"
     from unittest.mock import patch
+
     from basethread import Request
 
     thread = BaseThread()

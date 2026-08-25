@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position
 from loop_helpers import safe_mainloop
 
 

@@ -1,7 +1,8 @@
 "Some helper functions around tesseract"
 
-import re
 import logging
+import re
+
 import iso639
 from helpers import exec_command
 from i18n import _

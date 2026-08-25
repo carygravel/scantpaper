@@ -1,7 +1,7 @@
 "test dialog"
 
-from dialog import Dialog, MultipleMessage
 import gi
+from dialog import Dialog, MultipleMessage
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")

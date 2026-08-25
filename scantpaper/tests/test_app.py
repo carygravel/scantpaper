@@ -4,12 +4,12 @@ import logging
 import os
 import sys
 from unittest.mock import MagicMock, patch
-import pytest
 
 # Import the module under test
 import app as app_module
-from app import Application, _parse_arguments, main, PROG_NAME
 import gi
+import pytest
+from app import PROG_NAME, Application, _parse_arguments, main
 
 gi.require_version("Gtk", "3.0")
 

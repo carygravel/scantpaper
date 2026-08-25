@@ -1,13 +1,14 @@
 "subclass Gtk.Dialog to add some boilerplate"
 
 import re
-from pagerange import PageRange
+
 import gi
 from i18n import _
+from pagerange import PageRange
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gdk, Gtk, GObject  # pylint: disable=wrong-import-position
+from gi.repository import Gdk, GObject, Gtk  # pylint: disable=wrong-import-position
 
 
 class Dialog(Gtk.Dialog):
@@ -162,7 +163,7 @@ class MultipleMessage(Dialog):
         view.set_hexpand(True)
         self.grid.attach(view, COL_MESSAGE, self.grid_rows, 1, 1)
         self.grid_rows += 1
-        if "store_response" in row and row["store_response"]:
+        if row.get("store_response"):
             button = Gtk.CheckButton()
             button.connect("toggled", self._checkbutton_consistency)
             button.set_halign(Gtk.Align.CENTER)
@@ -234,7 +235,7 @@ class MultipleMessage(Dialog):
             cbn = self.grid.get_child_at(COL_CHECKBUTTON, row)
             if (cbn is not None) and cbn.get_active():
                 filt = True
-                if row in self.stored_responses and self.stored_responses[row]:
+                if self.stored_responses.get(row):
                     filt = False
                     for i in self.stored_responses[row]:
                         if i == response:

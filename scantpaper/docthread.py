@@ -1471,7 +1471,7 @@ class DocThread(SaveThread):
                     }
                 )
 
-        except (PermissionError, IOError) as err:
+        except (OSError, PermissionError) as err:
             logger.error("Error creating file in %s: %s", options["dir"], err)
             request.error(f"Error creating file in {options['dir']}: {err}.")
 

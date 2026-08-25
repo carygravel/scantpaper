@@ -1,13 +1,14 @@
 "A thread backed by internal queues for simple messaging"
 
-import os
-import threading
-import queue
 import collections
-from enum import Enum
-import uuid
 import logging
+import os
+import queue
+import threading
+import uuid
 import weakref
+from enum import Enum
+
 from gi.repository import GLib
 
 logger = logging.getLogger(__name__)
@@ -268,10 +269,10 @@ class BaseThread(threading.Thread):
     def _execute_stage_callbacks(self, stage, uid, data):
         if uid not in self.callbacks:
             return
-        for callback in getattr(self, "before")[stage]:
+        for callback in self.before[stage]:
             self._execute_single_callback(callback + "_callback", stage, uid, data)
         self._execute_single_callback(stage + "_callback", stage, uid, data)
-        for callback in getattr(self, "after")[stage]:
+        for callback in self.after[stage]:
             self._execute_single_callback(callback + "_callback", stage, uid, data)
 
     def _execute_single_callback(self, callback, stage, uid, data):

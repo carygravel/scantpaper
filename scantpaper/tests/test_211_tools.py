@@ -3,15 +3,15 @@
 import re
 import subprocess
 from unittest.mock import MagicMock
-from PIL import Image
-import pytest
-from document import Document
+
 import config
-from const import VERSION
 import gi
+import pytest
+from const import VERSION
+from document import Document
+from PIL import Image
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib  # pylint: disable=wrong-import-position
 from loop_helpers import safe_mainloop
 
 

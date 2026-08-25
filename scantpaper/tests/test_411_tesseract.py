@@ -3,13 +3,13 @@
 import re
 import shutil
 import subprocess
-import pytest
-from gi.repository import GLib
+
 import config
+import pytest
 from document import Document
-from tesseract import languages, _iso639_1to3, locale_installed, get_tesseract_codes
 from helpers import Proc
 from loop_helpers import safe_mainloop
+from tesseract import _iso639_1to3, get_tesseract_codes, languages, locale_installed
 
 
 def test_tesseract_code_conversions():

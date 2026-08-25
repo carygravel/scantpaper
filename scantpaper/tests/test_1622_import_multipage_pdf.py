@@ -3,13 +3,13 @@
 import datetime
 import os
 import re
-import subprocess
 import shutil
+import subprocess
 import tempfile
+
+import config
 import img2pdf
 import pytest
-from gi.repository import GLib
-import config
 from document import Document
 from loop_helpers import safe_mainloop
 

@@ -3,7 +3,6 @@
 from types import SimpleNamespace
 from unittest.mock import ANY, MagicMock
 
-import pytest
 from dialog.sane import SaneScanDialog
 from frontend import enums
 from frontend.enums import TYPE_INT
@@ -1008,7 +1007,7 @@ def test_multiple_values_option(mocker, sane_scan_dialog):
 
     # Mock device_handle to have a list value for this option
     dialog.thread.device_handle = MagicMock()
-    setattr(dialog.thread.device_handle, "test_multiple", [1, 2, 3])
+    dialog.thread.device_handle.test_multiple = [1, 2, 3]
 
     # Update d_sane to just return the input
     mocker.patch("dialog.sane.d_sane", side_effect=lambda x: x)
@@ -1079,7 +1078,7 @@ def test_switch_and_button_widgets(mocker, sane_scan_dialog):
 
     # Mock device_handle
     dialog.thread.device_handle = MagicMock()
-    setattr(dialog.thread.device_handle, "test_bool", False)
+    dialog.thread.device_handle.test_bool = False
 
     dialog._initialise_options(options)
 
@@ -1129,7 +1128,7 @@ def test_entry_widget_activate(mocker, sane_scan_dialog):
 
     # Mock device_handle
     dialog.thread.device_handle = MagicMock()
-    setattr(dialog.thread.device_handle, "test_entry", "initial value")
+    dialog.thread.device_handle.test_entry = "initial value"
 
     dialog._initialise_options(options)
 

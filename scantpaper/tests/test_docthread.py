@@ -890,7 +890,7 @@ def test_do_unpaper_ioerror(mocker):
     mock_page.get_depth.return_value = 1
     # Raising IOError from image.save to trigger the except block
     mock_page.image_object = mocker.Mock()
-    mock_page.image_object.save.side_effect = IOError("Mocked IOError")
+    mock_page.image_object.save.side_effect = OSError("Mocked IOError")
 
     mocker.patch.object(thread, "get_page", return_value=mock_page)
 

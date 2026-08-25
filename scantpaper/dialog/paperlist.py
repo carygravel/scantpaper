@@ -1,8 +1,9 @@
 "A list of paper sizes"
 
 import re
-from simplelist import SimpleList
+
 from i18n import _
+from simplelist import SimpleList
 
 
 class PaperList(SimpleList):

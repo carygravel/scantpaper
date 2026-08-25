@@ -1,13 +1,14 @@
 "main document IO methods"
 
-from collections import defaultdict
 import datetime
-import re
 import logging
+import re
 import sys
-from i18n import _
+from collections import defaultdict
+
 from basedocument import BaseDocument
 from bboxtree import unescape_utf8
+from i18n import _
 
 logger = logging.getLogger(__name__)
 
@@ -256,23 +257,23 @@ class Document(BaseDocument):
     def _post_process_scan(self, page_id, options):
         options = defaultdict(None, options)
 
-        if "rotate" in options and options["rotate"]:
+        if options.get("rotate"):
             self._post_process_rotate(page_id, options)
             return
 
-        if "unpaper" in options and options["unpaper"]:
+        if options.get("unpaper"):
             self._post_process_unpaper(page_id, options)
             return
 
-        if "udt" in options and options["udt"]:
+        if options.get("udt"):
             self._post_process_udt(page_id, options)
             return
 
-        if "ocr" in options and options["ocr"]:
+        if options.get("ocr"):
             self._post_process_ocr(page_id, options)
             return
 
-        if "finished_callback" in options and options["finished_callback"]:
+        if options.get("finished_callback"):
             options["finished_callback"](None)
 
     def import_scan(self, **kwargs):

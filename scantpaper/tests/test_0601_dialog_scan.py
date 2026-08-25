@@ -4,15 +4,16 @@ import glob
 import tempfile
 from types import SimpleNamespace
 from unittest.mock import Mock
+
 import gi
-from document import Document
 from dialog.scan import Scan
+from document import Document
 from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 from loop_helpers import safe_mainloop
 
 

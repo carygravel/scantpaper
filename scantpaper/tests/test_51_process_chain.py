@@ -1,15 +1,15 @@
 "Test process chain"
 
-import subprocess
-import shutil
 import re
+import shutil
+import subprocess
 from unittest.mock import MagicMock
-import pytest
-from gi.repository import GLib
+
 import config
+import pytest
 from document import Document
-from unpaper import Unpaper
 from loop_helpers import safe_mainloop
+from unpaper import Unpaper
 
 
 @pytest.mark.skipif(

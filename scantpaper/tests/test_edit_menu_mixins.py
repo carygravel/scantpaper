@@ -2,8 +2,9 @@
 
 import datetime
 from unittest.mock import MagicMock
-import pytest
+
 import gi
+import pytest
 from edit_menu_mixins import EditMenuMixins
 
 gi.require_version("Gtk", "3.0")

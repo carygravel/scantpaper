@@ -1,12 +1,11 @@
 "test frontend/image_sane.py"
 
 import threading
-
-import pytest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+
 import PIL
-from gi.repository import GLib
+import pytest
 from frontend import enums
 from frontend.image_sane import SaneThread
 from loop_helpers import safe_mainloop

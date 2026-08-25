@@ -1,9 +1,10 @@
 "Data and methods for profiles of scan options"
 
-from copy import deepcopy
 import uuid
-from gi.repository import GObject
+from copy import deepcopy
+
 from frontend import enums
+from gi.repository import GObject
 
 
 class Profile(GObject.Object):

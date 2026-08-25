@@ -2,7 +2,7 @@
 
 import re
 import subprocess
-from gi.repository import GLib
+
 import config
 from document import Document
 from loop_helpers import safe_mainloop

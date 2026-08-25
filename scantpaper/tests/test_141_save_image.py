@@ -1,11 +1,11 @@
 "Test writing image"
 
 import tempfile
-from PIL import Image
-from gi.repository import GLib
+
 import config
 from document import Document
 from loop_helpers import safe_mainloop
+from PIL import Image
 
 
 def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):

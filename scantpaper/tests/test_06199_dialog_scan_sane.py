@@ -1,11 +1,12 @@
 "test scan dialog"
 
-from types import SimpleNamespace
 import logging
+from types import SimpleNamespace
+
 import pytest
+from frontend import enums
 from PIL import Image
 from scanner.options import Option
-from frontend import enums
 
 logger = logging.getLogger(__name__)
 
@@ -196,9 +197,9 @@ def mocked_do_set_option(self, _request):
     key, value = _request.args
     if key == "source" and value == "Automatic Document Feeder":
         raw_options[10] = raw_options[10]._replace(constraint=(0, 215.899993896484, 0))
-        setattr(self.device_handle, "br_x", 215.899993896484)
+        self.device_handle.br_x = 215.899993896484
         raw_options[11] = raw_options[11]._replace(constraint=(0, 355.599990844727, 0))
-        setattr(self.device_handle, "br_y", 355.599990844727)
+        self.device_handle.br_y = 355.599990844727
         info = enums.INFO_RELOAD_OPTIONS
     setattr(self.device_handle, key.replace("-", "_"), value)
     return info

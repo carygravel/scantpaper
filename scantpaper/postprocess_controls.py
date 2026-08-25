@@ -1,9 +1,9 @@
 "provide postprocessing rotate controls for the scan dialog"
 
 import gi
-from tesseract import languages, get_tesseract_codes
 from comboboxtext import ComboBoxText
 from i18n import _
+from tesseract import get_tesseract_codes, languages
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position

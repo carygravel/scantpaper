@@ -1,10 +1,11 @@
 "Tests for postprocess_controls.py"
 
 from unittest.mock import MagicMock
-import pytest
-from postprocess_controls import RotateControlRow, RotateControls, OCRControls
-from session_mixins import SessionMixins
+
 import gi
+import pytest
+from postprocess_controls import OCRControls, RotateControlRow, RotateControls
+from session_mixins import SessionMixins
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position

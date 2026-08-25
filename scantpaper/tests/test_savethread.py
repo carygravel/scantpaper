@@ -8,9 +8,9 @@ from basethread import Request
 from i18n import _
 from page import Page
 from savethread import (
+    _2GIB,
     SaveThread,
     SaveThreadProgressBar,
-    _2GIB,
     _add_annotations_to_pdf,
     _append_pdf,
     _current_request_for_progress,

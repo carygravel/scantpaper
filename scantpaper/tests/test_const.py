@@ -2,8 +2,9 @@
 
 import sys
 from unittest.mock import patch
-import pytest
+
 import const
+import pytest
 
 
 @pytest.mark.skipif(sys.version_info < (3, 11), reason="Requires Python 3.11 or higher")
@@ -13,6 +14,7 @@ def test_import_tomllib_for_python_311(monkeypatch):
 
     # Reload the const module to apply the mocked version_info
     import importlib  # pylint: disable=import-outside-toplevel
+
     import const  # pylint: disable=import-outside-toplevel, redefined-outer-name, reimported
 
     importlib.reload(const)
@@ -27,6 +29,7 @@ def test_import_tomli_for_python_310(monkeypatch):
 
     # Reload the const module to apply the mocked version_info
     import importlib  # pylint: disable=import-outside-toplevel
+
     import const  # pylint: disable=import-outside-toplevel, redefined-outer-name, reimported
 
     importlib.reload(const)

@@ -626,7 +626,6 @@ def test_drag_drop_callback_logic():
     # But we can try to find the callback function in the signal connections?
     # Easier to trigger it via emit if possible.
     # Or just rely on the fact that we can't easily reach it without heavy mocking of Gtk.
-    pass
 
 
 def test_drag_data_get_and_drop_callbacks(mocker):
@@ -1001,7 +1000,7 @@ def test_create_pidfile_ioerror():
     "Test create_pidfile with IOError"
     slist = Document()
     # Mock tempfile.TemporaryFile to raise IOError
-    with patch("tempfile.TemporaryFile", side_effect=IOError("disk full")):
+    with patch("tempfile.TemporaryFile", side_effect=OSError("disk full")):
         assert slist.create_pidfile({}) is None
 
 

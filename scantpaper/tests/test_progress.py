@@ -1,8 +1,9 @@
 "Test Progress widget"
 
 from unittest.mock import Mock
-from progress import Progress
+
 import gi
+from progress import Progress
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position

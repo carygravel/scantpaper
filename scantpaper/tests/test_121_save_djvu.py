@@ -12,9 +12,8 @@ from unittest.mock import MagicMock
 import config
 import pytest
 from document import Document
-from gi.repository import GLib
-from PIL import Image
 from loop_helpers import safe_mainloop
+from PIL import Image
 
 
 @pytest.mark.skipif(

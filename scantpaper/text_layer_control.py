@@ -1,6 +1,7 @@
 "provide controls for editing the text layer"
 
 import logging
+
 import gi
 from comboboxtext import ComboBoxText
 from i18n import _

@@ -1,9 +1,10 @@
 "test dialog.save"
 
 from datetime import date, datetime, timedelta
+
+import gi
 from dialog import Dialog
 from dialog.save import Save
-import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position

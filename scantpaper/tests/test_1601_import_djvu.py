@@ -1,18 +1,18 @@
 "Test importing DjVu"
 
+import datetime
 import os
 import re
+import shutil
 import subprocess
 import tempfile
-import shutil
-import datetime
 from unittest.mock import MagicMock
+
 import pytest
-from gi.repository import GLib
-from document import Document
 from bboxtree import VERSION
-from page import Page
+from document import Document
 from loop_helpers import safe_mainloop
+from page import Page
 
 
 @pytest.mark.skipif(

@@ -1,10 +1,11 @@
 "test scan dialog"
 
-from types import SimpleNamespace
 import logging
-from scanner.options import Option
-from frontend.image_sane import decode_info
+from types import SimpleNamespace
+
 from frontend import enums
+from frontend.image_sane import decode_info
+from scanner.options import Option
 
 logger = logging.getLogger(__name__)
 

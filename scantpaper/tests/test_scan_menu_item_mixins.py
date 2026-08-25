@@ -3,6 +3,7 @@
 import os
 from types import SimpleNamespace
 from unittest.mock import MagicMock
+
 import pytest
 import scan_menu_item_mixins
 from scan_menu_item_mixins import ScanMenuItemMixins

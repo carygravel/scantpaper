@@ -1,7 +1,5 @@
 "Expose SANE enums from the underlying C extension."
 
-# pylint: disable=unused-import
-
 from _sane import (
     CAP_ADVANCED,
     CAP_AUTOMATIC,
@@ -40,3 +38,42 @@ from _sane import (
     UNIT_PERCENT,
     UNIT_PIXEL,
 )
+
+__all__ = [
+    "CAP_ADVANCED",
+    "CAP_AUTOMATIC",
+    "CAP_EMULATED",
+    "CAP_HARD_SELECT",
+    "CAP_INACTIVE",
+    "CAP_SOFT_DETECT",
+    "CAP_SOFT_SELECT",
+    "CONSTRAINT_NONE",
+    "CONSTRAINT_RANGE",
+    "CONSTRAINT_STRING_LIST",
+    "CONSTRAINT_WORD_LIST",
+    "FRAME_BLUE",
+    "FRAME_GRAY",
+    "FRAME_GREEN",
+    "FRAME_RED",
+    "FRAME_RGB",
+    "INFO_INEXACT",
+    "INFO_RELOAD_OPTIONS",
+    "INFO_RELOAD_PARAMS",
+    "OPTION_IS_ACTIVE",
+    "OPTION_IS_SETTABLE",
+    "RELOAD_PARAMS",
+    "SANE_WORD_SIZE",
+    "TYPE_BOOL",
+    "TYPE_BUTTON",
+    "TYPE_FIXED",
+    "TYPE_GROUP",
+    "TYPE_INT",
+    "TYPE_STRING",
+    "UNIT_BIT",
+    "UNIT_DPI",
+    "UNIT_MICROSECOND",
+    "UNIT_MM",
+    "UNIT_NONE",
+    "UNIT_PERCENT",
+    "UNIT_PIXEL",
+]

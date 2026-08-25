@@ -7,6 +7,7 @@ import logging
 import os
 import tempfile
 from pathlib import PurePath
+
 import config
 import gi
 import tesserocr
@@ -92,7 +93,7 @@ class SessionMixins:
             try:
                 self._create_lockfile(session)
                 crashed.append(db)
-            except (OSError, IOError) as e:
+            except OSError as e:
                 logger.warning("Error opening lockfile %s", str(e))
 
         # Allow user to pick a crashed session to restore

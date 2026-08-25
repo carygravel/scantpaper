@@ -144,7 +144,7 @@ def expand_metadata_pattern(**kwargs):
 
     # avoid leading and trailing whitespace in expanded filename template
     kwargs["template"] = kwargs["template"].strip()
-    if "convert_whitespace" in kwargs and kwargs["convert_whitespace"]:
+    if kwargs.get("convert_whitespace"):
         kwargs["template"] = re.sub(
             r"\s", r"_", kwargs["template"], flags=re.MULTILINE | re.DOTALL
         )

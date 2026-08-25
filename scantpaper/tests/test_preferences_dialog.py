@@ -1,10 +1,11 @@
 "Test preferences dialog"
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import gi
 import pytest
 from config import DEFAULTS
 from dialog.preferences import PreferencesDialog
-import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position

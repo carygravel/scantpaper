@@ -1,16 +1,17 @@
 "Test scan dialog"
 
 from unittest.mock import MagicMock
+
 import pytest
-from gi.repository import Gtk
+from dialog.paperlist import PaperList
 from dialog.scan import (
     Scan,
     _edit_profile_callback,
     _save_profile_callback,
 )
-from dialog.paperlist import PaperList
-from scanner.profile import Profile
+from gi.repository import Gtk
 from scanner.options import Options
+from scanner.profile import Profile
 
 
 class Sane:

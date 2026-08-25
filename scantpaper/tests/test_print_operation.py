@@ -1,9 +1,10 @@
 "Tests for the PrintOperation class"
 
 from unittest.mock import MagicMock
+
+import gi
 import pytest
 from print_operation import PrintOperation
-import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position

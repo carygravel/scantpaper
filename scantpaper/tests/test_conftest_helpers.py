@@ -4,9 +4,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from conftest import _create_qbfox_image
 from gi.repository import GLib
 from PIL import Image, ImageFont
-from conftest import _create_qbfox_image
 
 
 def test_qbfox_font_fallback():

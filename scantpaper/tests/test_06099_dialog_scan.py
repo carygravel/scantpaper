@@ -1,24 +1,25 @@
 "Tests for dialog.scan.Scan class coverage edge cases."
 
 import logging
-from types import SimpleNamespace
 import unittest.mock
-from gi.repository import Gtk, GObject
+from types import SimpleNamespace
+
+import gi
 from dialog.scan import (
     Scan,
-    _value_for_active_option,
-    make_progress_string,
+    _build_profile_table,
+    _edit_profile_callback,
     _new_val,
     _save_profile_callback,
-    _edit_profile_callback,
+    _value_for_active_option,
     do_delete_profile_backend_item,
-    _build_profile_table,
+    make_progress_string,
 )
 from docthread import INSERT_AT_START
 from frontend import enums
+from gi.repository import GObject, Gtk
 from scanner.options import Option
 from scanner.profile import Profile
-import gi
 
 gi.require_version("Gtk", "3.0")
 
@@ -117,7 +118,7 @@ class MockScan(Scan):
     # Mock methods that would otherwise interact with GUI or SANE
     def get_window(self):
         "Get the parent window"
-        return None
+        return
 
     def emit(self, *args):
         "Mock emit method"

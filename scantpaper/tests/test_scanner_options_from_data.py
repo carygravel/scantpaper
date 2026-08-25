@@ -1,7 +1,7 @@
 "options from data"
 
-from scanner.options import Options, Option
 from frontend import enums
+from scanner.options import Option, Options
 
 
 def test_1():

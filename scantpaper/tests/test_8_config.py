@@ -2,18 +2,19 @@
 
 import os
 import tempfile
-from types import SimpleNamespace
 from datetime import datetime, timedelta
-from gi.repository import Gdk
+from types import SimpleNamespace
+
 from config import (
-    read_config,
-    write_config,
+    DEFAULTS,
+    _get_convert_command,
     add_defaults,
+    read_config,
     remove_invalid_paper,
     update_config_from_imported_metadata,
-    _get_convert_command,
-    DEFAULTS,
+    write_config,
 )
+from gi.repository import Gdk
 from helpers import slurp
 
 

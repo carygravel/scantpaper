@@ -1,9 +1,9 @@
 "Test saving text"
 
 import tempfile
-from gi.repository import GLib
-from document import Document
+
 from bboxtree import VERSION
+from document import Document
 from loop_helpers import safe_mainloop
 
 

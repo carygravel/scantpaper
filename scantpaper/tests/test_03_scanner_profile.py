@@ -2,9 +2,10 @@
 
 import copy
 import unittest.mock
+
 import pytest
-from scanner.profile import Profile, _synonyms
 from frontend import enums
+from scanner.profile import Profile, _synonyms
 
 
 def test_synonyms():

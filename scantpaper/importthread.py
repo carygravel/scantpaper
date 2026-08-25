@@ -388,14 +388,14 @@ class Importhread(BaseThread):
                     )
                     try:
                         page.import_djvu_txt(txt)
-                    except (PermissionError, IOError, ValueError) as err:
+                    except (OSError, PermissionError, ValueError) as err:
                         request.data(
                             None, f"Caught error parsing DjVU text layer: {err}"
                         )
 
                     try:
                         page.import_djvu_ann(ann)
-                    except (PermissionError, IOError) as err:
+                    except (OSError, PermissionError) as err:
                         logger.error(
                             "Caught error parsing DjVU annotation layer: %s", err
                         )
@@ -496,7 +496,7 @@ class Importhread(BaseThread):
                         }
                     )
                     os.remove(fname)
-                except (PermissionError, IOError) as err:
+                except (OSError, PermissionError) as err:
                     logger.error("Caught error importing PDF: %s", err)
                     request.error(_("Error importing PDF"))
 

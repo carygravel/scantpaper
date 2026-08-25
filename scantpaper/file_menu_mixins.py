@@ -422,9 +422,10 @@ class FileMenuMixins:
             self.settings["tiff compression"] = self._windowi.tiff_compression
             self.settings["quality"] = self._windowi.jpeg_quality
             self._save_file_chooser(uuids)
-        elif self.settings["image type"] == "txt":
-            self._save_file_chooser(uuids)
-        elif self.settings["image type"] == "hocr":
+        elif (
+            self.settings["image type"] == "txt"
+            or self.settings["image type"] == "hocr"
+        ):
             self._save_file_chooser(uuids)
         elif self.settings["image type"] == "ps":
             self.settings["ps_backend"] = self._windowi.ps_backend
@@ -620,10 +621,7 @@ class FileMenuMixins:
         def save_pdf_finished_callback(response):
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", list_of_page_uuids)
-            if (
-                "view files toggle" in self.settings
-                and self.settings["view files toggle"]
-            ):
+            if self.settings.get("view files toggle"):
                 if "ps" in options:
                     launch_default_for_file(options["ps"])
                 else:
@@ -665,10 +663,7 @@ class FileMenuMixins:
             filename = response.request.args[0]["path"]
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
-            if (
-                "view files toggle" in self.settings
-                and self.settings["view files toggle"]
-            ):
+            if self.settings.get("view files toggle"):
                 launch_default_for_file(filename)
             logger.debug("Finished saving %s", filename)
 
@@ -699,10 +694,7 @@ class FileMenuMixins:
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
             file = ps if ps is not None else filename
-            if (
-                "view files toggle" in self.settings
-                and self.settings["view files toggle"]
-            ):
+            if self.settings.get("view files toggle"):
                 launch_default_for_file(file)
 
             logger.debug("Finished saving %s", file)
@@ -727,10 +719,7 @@ class FileMenuMixins:
         def save_text_finished_callback(response):
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
-            if (
-                "view files toggle" in self.settings
-                and self.settings["view files toggle"]
-            ):
+            if self.settings.get("view files toggle"):
                 launch_default_for_file(filename)
 
             logger.debug("Finished saving %s", filename)
@@ -755,10 +744,7 @@ class FileMenuMixins:
         def save_hocr_finished_callback(response):
             self.slist.thread.send("set_saved", uuids)
             self.post_process_progress.finish(response)
-            if (
-                "view files toggle" in self.settings
-                and self.settings["view files toggle"]
-            ):
+            if self.settings.get("view files toggle"):
                 launch_default_for_file(filename)
 
             logger.debug("Finished saving %s", filename)
@@ -849,10 +835,7 @@ class FileMenuMixins:
                 filename = response.request.args[0]["path"]
                 self.post_process_progress.finish(response)
                 self.slist.thread.send("set_saved", uuids)
-                if (
-                    "view files toggle" in self.settings
-                    and self.settings["view files toggle"]
-                ):
+                if self.settings.get("view files toggle"):
                     w = len(uuids)
                     if w > 1:
                         for i in range(1, w + 1):

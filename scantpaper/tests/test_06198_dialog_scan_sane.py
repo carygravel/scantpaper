@@ -1,10 +1,11 @@
 "test scan dialog"
 
-from types import SimpleNamespace
 import logging
+from types import SimpleNamespace
+
+from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile
-from frontend import enums
 
 logger = logging.getLogger(__name__)
 
@@ -201,11 +202,11 @@ def test_reloads_in_profile(
             raw_options[10] = raw_options[10]._replace(
                 constraint=(0, 215.899993896484, 0)
             )
-            setattr(self.device_handle, "br_x", 215.899993896484)
+            self.device_handle.br_x = 215.899993896484
             raw_options[11] = raw_options[11]._replace(
                 constraint=(0, 355.599990844727, 0)
             )
-            setattr(self.device_handle, "br_y", 355.599990844727)
+            self.device_handle.br_y = 355.599990844727
             info = enums.INFO_RELOAD_OPTIONS
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info

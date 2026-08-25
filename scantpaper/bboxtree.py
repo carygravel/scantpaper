@@ -1,10 +1,11 @@
 "Classes and methods for reading and writing the bounding box trees from HOCR files"
 
-import re
-import html
-from html.parser import HTMLParser
-import json
 import codecs
+import html
+import json
+import re
+from html.parser import HTMLParser
+
 from const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
 
 DOUBLE_QUOTES = '"'
@@ -32,8 +33,7 @@ def flatten_tree(oldbox, newtree):
     "refactor a nested tree into a list"
     # clone bbox without children
     newbox = dict(oldbox.items())
-    if "contents" in newbox:
-        del newbox["contents"]
+    newbox.pop("contents", None)
     newtree.append(newbox)
 
 
@@ -252,7 +252,7 @@ class Bboxtree:
                 ]
                 text = regex.group(7)
                 if regex.group(8):
-                    depth -= int(len(regex.group(8)))
+                    depth -= len(regex.group(8))
                 regex = re.search(
                     r'^\s*"(.*)"\s*\Z', text, re.MULTILINE | re.DOTALL | re.VERBOSE
                 )

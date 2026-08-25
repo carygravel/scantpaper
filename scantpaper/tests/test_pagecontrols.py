@@ -2,11 +2,12 @@
 
 import tempfile
 from unittest.mock import MagicMock
+
+import gi
 import pytest
-from document import Document
 from dialog.pagecontrols import PageControls, _extended_pagenumber_checkbox_callback
 from dialog.scan import Scan
-import gi
+from document import Document
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position

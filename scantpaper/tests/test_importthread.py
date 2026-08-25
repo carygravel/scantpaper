@@ -3,15 +3,16 @@
 import subprocess
 import unittest.mock
 from types import SimpleNamespace
+
 import pytest
-from PIL import Image
+from helpers import Proc
 from importthread import (
     Importhread,
     _composite_over_white,
     _correlate_pdf_images,
     _parse_pdfimages_list,
 )
-from helpers import Proc
+from PIL import Image
 
 _PDFIMAGES_LIST_HEADER = (
     "page   num  type   width height color comp bpc  enc interp"

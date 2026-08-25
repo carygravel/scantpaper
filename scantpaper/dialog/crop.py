@@ -1,8 +1,9 @@
 "The crop dialog"
 
-from gi.repository import Gtk, Gdk, GObject
-from dialog import Dialog
+from gi.repository import Gdk, GObject, Gtk
 from i18n import _
+
+from dialog import Dialog
 
 LAYOUT = [
     [

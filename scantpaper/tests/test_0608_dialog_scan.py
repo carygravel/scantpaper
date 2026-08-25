@@ -1,6 +1,7 @@
 "test scan dialog"
 
 from types import SimpleNamespace
+
 from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile

@@ -1,8 +1,9 @@
 "provide methods called from edit menu"
 
-import logging
 import datetime
+import logging
 import re
+
 import gi
 from const import MAX_DPI
 from dialog import Dialog

@@ -1,20 +1,24 @@
 "Create pot for translation strings. Requires intltool package"
 
-from pathlib import Path
-import subprocess
-import glob
-from contextlib import chdir
-import os
-import sys
 import datetime
+import glob
+import os
+import subprocess
+import sys
+from contextlib import chdir
+from pathlib import Path
 
 root = Path(__file__).resolve().parents[1] / "scantpaper"
 sys.path.insert(0, str(root))
+from const import (
+    AUTHOR,
+    VERSION,
+)
+from const import (
+    AUTHOR_EMAIL as EMAIL,
+)
 from const import (  # pylint: disable=wrong-import-position,import-error
     PROG_NAME as NAME,
-    VERSION,
-    AUTHOR,
-    AUTHOR_EMAIL as EMAIL,
 )
 
 

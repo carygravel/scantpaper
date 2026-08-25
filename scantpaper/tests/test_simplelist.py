@@ -1,7 +1,7 @@
 "tests for SimpleList"
 
-import pytest
 import gi
+import pytest
 from simplelist import SimpleList
 
 gi.require_version("Gtk", "3.0")
