@@ -12,6 +12,22 @@ from scanned images, with features such as batch scanning, optical character
 recognition (OCR), and image editing. The project is written in Python and uses
 the GTK+ toolkit for its user interface.
 
+## Architecture
+
+*   **Overall Architecture:** Monolithic Desktop Application. It is a standalone
+    GUI application, not a client-server or web application.
+*   **Directory Structure:**
+    *   `scantpaper/`: Contains the primary Python source code for the application.
+    *   `scantpaper/dialog/`: Contains UI dialog components.
+    *   `dev/`: Contains development-related scripts (e.g., `generate_pot.py` for
+        translations).
+    *   `tests/`: Contains all unit and integration tests, managed by pytest.
+*   **Main Entrypoint:** `scantpaper/app.py`. When installed, the package
+    provides a `gui_scripts` entrypoint via `pyproject.toml`.
+*   **Key Dependencies:** `ocrmypdf`, `img2pdf`, `pikepdf`, `python-sane`,
+    `PyGObject`, `pycairo`, `tesserocr`, `python-iso639`. All listed in
+    `pyproject.toml`.
+
 ## Getting Started
 
 Before you begin, make sure you have a local clone of the scantpaper repository
@@ -104,7 +120,7 @@ Please ensure that any changes made do not reduce the pylint score.
 
 Please ensure that all commits have meaningful messages:
 
-1. Start with at least one [git emoji](see https//:gitmoji.dev)
+1. Start with at least one [git emoji](see https://gitmoji.dev)
 2. Include at least one sentence describing the change
 
 ## Testing
@@ -117,7 +133,7 @@ pytest
 ```
 
 This will run all tests and generate a coverage report. Please ensure that your
-changes do not decrease the test coverage.
+changes do not increase the number of uncovered or partially-covered lines.
 
 ## Documentation
 
