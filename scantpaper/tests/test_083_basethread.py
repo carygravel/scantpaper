@@ -234,9 +234,9 @@ def test_job_counters_persist_within_batch():
             if n_callbacks == 3:
                 mlp.quit()
 
-    uid1 = thread.send("div", 1, 2, finished_callback=callback)
-    uid2 = thread.send("div", 3, 4, finished_callback=callback)
-    uid3 = thread.send("div", 5, 6, finished_callback=callback)
+    thread.send("div", 1, 2, finished_callback=callback)
+    thread.send("div", 3, 4, finished_callback=callback)
+    thread.send("div", 5, 6, finished_callback=callback)
 
     # total_jobs should be 3 (all three sent before any finished)
     assert thread.total_jobs == 3

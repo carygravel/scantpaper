@@ -15,7 +15,7 @@ from pathlib import Path
 import polib
 
 
-def guess_lang_and_domain(po_file: Path, given_domain: str = None):
+def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
     """Try to infer language and domain from filename:
     common forms:
        <domain>-<lang>.po  -> domain, lang

@@ -381,7 +381,7 @@ class Unpaper:
         # Add text and tooltips
         tooltip = []
         i = 0
-        for key in hashref[option]["options"].keys():
+        for key in hashref[option]["options"]:
             widget.append_text(hashref[option]["options"][key]["string"])
             tooltip.append(hashref[option]["options"][key]["tooltip"])
             hashref[option]["options"][key]["index"] = i
@@ -407,7 +407,7 @@ class Unpaper:
         vboxf.set_border_width(vbox.get_border_width())
         widget.add(vboxf)
         widget.set_tooltip_text(hashref[option]["tooltip"])
-        for key in hashref[option]["options"].keys():
+        for key in hashref[option]["options"]:
             self.add_widget(vboxf, hashref[option]["options"], key)
         return widget
 
@@ -545,7 +545,7 @@ class Unpaper:
             for key in re.split(r",", options[option]):
                 default[key] = True
 
-        for key in hashref[option]["options"].keys():
+        for key in hashref[option]["options"]:
             hashref[option]["options"][key]["widget"].set_active(key in default)
 
     def _spinbutton_set_option(self, option, options):
@@ -568,7 +568,7 @@ class Unpaper:
     def set_options(self, options):
         "set options"
         hashref = self.options
-        for option in options.keys():
+        for option in options:
             if "widget" in hashref[option] and hashref[option]["type"] in [
                 "ComboBox",
                 "CheckButton",

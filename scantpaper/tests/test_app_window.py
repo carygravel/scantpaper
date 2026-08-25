@@ -509,7 +509,7 @@ def test_update_uimanager_low_disk_space(app_window, mocker):
     app_window._update_uimanager()
 
     mock_show_dialog.assert_called_once()
-    args, kwargs = mock_show_dialog.call_args
+    _args, kwargs = mock_show_dialog.call_args
     assert kwargs["message_type"] == "warning"
     assert "50Mb free" in kwargs["text"]
 

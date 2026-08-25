@@ -110,10 +110,14 @@ def test_1():
             '0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
         )
         == [
-            "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
-            "'GeglConfig' has no property named 'cache-size'",
-            "(gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of "
-            'operation class 0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
+            (
+                "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
+                "'GeglConfig' has no property named 'cache-size'"
+            ),
+            (
+                "(gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of "
+                'operation class 0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"'
+            ),
         ]
     ), "split gimp messages"
 
@@ -124,8 +128,10 @@ def test_1():
 [image2 @ 0x1338180] Encoder did not produce proper pts, making some up.""",
         )
         == [
-            "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
-            "muxers is deprecated, use AVStream.codecpar instead.",
+            (
+                "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
+                "muxers is deprecated, use AVStream.codecpar instead."
+            ),
             "[image2 @ 0x1338180] Encoder did not produce proper pts, making some up.",
         ]
     ), "split unpaper messages"

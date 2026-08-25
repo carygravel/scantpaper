@@ -203,7 +203,7 @@ def test_application_init_iconpath_fallback(mock_deps, mocker):
     "Test Application.__init__ with iconpath fallback"
     mocker.patch("app.os.path.isdir", return_value=False)
     # Gtk.IconTheme.get_default() was already mocked in mock_deps
-    app = Application()
+    Application()
     app_module.os.path.isdir.assert_called()
     # It should have called prepend_search_path with the fallback path
     app_module.Gtk.IconTheme.get_default().prepend_search_path.assert_called_with(
@@ -214,7 +214,7 @@ def test_application_init_iconpath_fallback(mock_deps, mocker):
 def test_application_init_iconpath_in_package(mock_deps, mocker):
     "Test Application.__init__ resolves icons from inside the package"
     mocker.patch("app.os.path.isdir", return_value=True)
-    app = Application()
+    Application()
     in_package = os.path.abspath(
         os.path.join(os.path.dirname(app_module.__file__), "icons")
     )

@@ -24,7 +24,7 @@ def test_progress_methods():
     progress = Progress()
 
     # Identify children
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     progress.set_fraction(0.5)
     assert pbar.get_fraction() == 0.5
@@ -55,7 +55,7 @@ def test_progress_pulse_interval(mocker):
 def test_set_fraction_clamps_values():
     "Test that set_fraction clamps values to [0.0, 1.0]"
     progress = Progress()
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     progress.set_fraction(1.5)
     assert pbar.get_fraction() == 1.0
@@ -76,7 +76,7 @@ def test_set_fraction_clamps_values():
 def test_progress_queued_clamps_fraction():
     "Test that queued clamps fraction when num_completed >= total"
     progress = Progress()
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     response = Mock()
     response.request.process = "test"
@@ -98,7 +98,7 @@ def test_progress_update_clamps_fraction():
 
     progress.update(response)
 
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
     assert pbar.get_fraction() <= 1.0
 
 
@@ -107,7 +107,7 @@ def test_progress_update_data_string():
     from basethread import ResponseType
 
     progress = Progress()
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     response = Mock()
     response.type = ResponseType.DATA
@@ -123,7 +123,7 @@ def test_progress_update_data_float_clamps():
     from basethread import ResponseType
 
     progress = Progress()
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     response = Mock()
     response.type = ResponseType.DATA
@@ -146,7 +146,7 @@ def test_progress_signal():
     progress.connect("clicked", on_clicked)
 
     # Find button and click it
-    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+    btn = next(c for c in progress.get_children() if isinstance(c, Gtk.Button))
     btn.clicked()
 
     assert signal_received
@@ -163,7 +163,7 @@ def test_progress_queued():
 
     progress.queued(response)
 
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
     # "Process 2 of 10 (test_process)"
     assert "test_process" in pbar.get_text()
     assert abs(pbar.get_fraction() - (1 + 0.5) / 10) < 0.001
@@ -172,7 +172,7 @@ def test_progress_queued():
     # Test that cancel logic connected in queued works (hides the progress)
     # Note: queued connects a signal handler that calls self.hide()
     # The button click will trigger self.emit("clicked"), which triggers the handler.
-    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+    btn = next(c for c in progress.get_children() if isinstance(c, Gtk.Button))
     btn.clicked()
     assert not progress.get_visible()
 
@@ -188,7 +188,7 @@ def test_progress_update():
 
     progress.update(response)
 
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
     assert "test_process" in pbar.get_text()
     assert abs(pbar.get_fraction() - (2 + 0.5) / 10) < 0.001
 
@@ -255,7 +255,7 @@ def test_progress_finish_with_pending():
 def test_progress_queued_no_total():
     "Test queued does nothing when total is 0"
     progress = Progress()
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     response = Mock()
     response.request.process = "test"
@@ -272,7 +272,7 @@ def test_progress_queued_no_total():
 def test_progress_queued_no_process_name():
     "Test queued does nothing when process_name is None"
     progress = Progress()
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     response = Mock()
     response.request.process = None
@@ -291,7 +291,7 @@ def test_progress_update_data_other_type():
     from basethread import ResponseType
 
     progress = Progress()
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
     # Set some initial text/fraction to verify they don't change
     progress.set_text("initial")
@@ -321,8 +321,8 @@ def test_progress_child_widgets_visible_after_show_all():
     assert progress.get_visible()
 
     # Get child widgets
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
-    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
+    btn = next(c for c in progress.get_children() if isinstance(c, Gtk.Button))
 
     # Children should be visible
     assert pbar.get_visible()
@@ -343,8 +343,8 @@ def test_progress_visibility_after_hide_then_show():
     progress = Progress()
 
     # Get child widgets
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
-    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
+    btn = next(c for c in progress.get_children() if isinstance(c, Gtk.Button))
 
     # Prepare: show_all() then hide() (app_window.py pattern)
     progress.show_all()
@@ -374,8 +374,8 @@ def test_progress_child_widgets_shown_after_init():
     progress = Progress()
 
     # Get child widgets
-    pbar = [c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar)][0]
-    btn = [c for c in progress.get_children() if isinstance(c, Gtk.Button)][0]
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
+    btn = next(c for c in progress.get_children() if isinstance(c, Gtk.Button))
 
     # After creation, parent is not visible, but children are
     assert not progress.get_visible()

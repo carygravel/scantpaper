@@ -637,7 +637,7 @@ def test_profile_cleared_when_user_changes_option(mocker):
     assert dialog.profile == "my_profile"
 
     # Mock the combobox set_active method to track when profile is cleared
-    mock_set_active = mocker.patch.object(dialog.combobsp, "set_active_by_text")
+    mocker.patch.object(dialog.combobsp, "set_active_by_text")
 
     # Mock option that user is changing
     mock_opt = mocker.Mock()

@@ -641,7 +641,7 @@ def _run_with_fake(fake, scan_kwargs):
 def test_duplex_feeder_imports_both_sides():
     "regression test for issue #73: a duplex feeder imports both sides"
     fake = FakeBrscan5Device(frames=[1, 2])
-    thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
+    _thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
     assert pages == [1, 2], "both sides of the duplex sheet imported"
     assert fake.cancel_calls == 1, "a single cancel at batch end"
     assert fake.snap_no_cancel == [True, True], "no cancel requested between pages"
@@ -650,7 +650,7 @@ def test_duplex_feeder_imports_both_sides():
 def test_flatbed_cancel_between_pages_enabled():
     "flatbed with the setting enabled cancels the session between pages"
     fake = FakeBrscan5Device(refill=True)
-    thread, pages, _errors = _run_with_fake(
+    _thread, pages, _errors = _run_with_fake(
         fake, {"num_pages": 2, "cancel_between_pages": True}
     )
     assert pages == [1, 2], "both flatbed pages imported"
@@ -661,7 +661,7 @@ def test_flatbed_cancel_between_pages_enabled():
 def test_flatbed_cancel_between_pages_disabled():
     "flatbed with the setting disabled only cancels at batch end"
     fake = FakeBrscan5Device(refill=True)
-    thread, pages, _errors = _run_with_fake(
+    _thread, pages, _errors = _run_with_fake(
         fake, {"num_pages": 2, "cancel_between_pages": False}
     )
     assert pages == [1, 2], "both flatbed pages imported"
@@ -672,7 +672,7 @@ def test_flatbed_cancel_between_pages_disabled():
 def test_page_limit_discards_buffered_frames():
     "reaching the requested page count terminates and drops buffered frames"
     fake = FakeBrscan5Device(frames=[1, 2, 3])
-    thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
+    _thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
     assert pages == [1, 2], "only the requested two pages imported"
     assert fake.cancel_calls == 1, "session terminated at page count"
     assert fake.buffered == [], "prefetched page 3 discarded by the terminal cancel"
@@ -682,7 +682,7 @@ def test_mid_batch_error_reports_and_terminates():
     "an error mid-batch is reported and the session is terminated"
     fake = FakeBrscan5Device(frames=[1, 2, 3])
     fake.error_on_frame = 2
-    thread, pages, errors = _run_with_fake(fake, {"num_pages": 5})
+    _thread, pages, errors = _run_with_fake(fake, {"num_pages": 5})
     assert pages == [1], "only the first page imported"
     assert errors == ["SANE device exploded"], "mid-batch error reported"
     assert fake.cancel_calls >= 1, "session terminated after the error"

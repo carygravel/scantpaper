@@ -720,7 +720,7 @@ def test_canvas_get_bbox_at(mocker):
     assert result == line
 
     # Case where it returns a word and we want the parent
-    word = canvas_obj.add_box(
+    canvas_obj.add_box(
         text="w", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=line
     )
     result = canvas_obj.get_bbox_at(Rectangle(x=5, y=5, width=1, height=1))
@@ -967,7 +967,7 @@ def test_bbox_init_zero_width_text(mocker):
         parent=root,
     )
 
-    with patch("canvas.logger") as mock_logger:
+    with patch("canvas.logger"):
         bbox = canvas_obj.add_box(
             text="zerowidth",
             bbox=Rectangle(x=0, y=0, width=10, height=10),
@@ -1397,7 +1397,7 @@ def test_canvas_get_bbox_at_more(mocker):
     assert res == line
 
     # Case where it returns a word -> we want the parent (line)
-    word = canvas_obj.add_box(
+    canvas_obj.add_box(
         text="w", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=line
     )
     res = canvas_obj.get_bbox_at(Rectangle(x=5, y=5, width=1, height=1))
@@ -2069,7 +2069,7 @@ def test_draw_bbox_none_confidence(mocker):
     canvas.confidence_index = ListIter()
     root = canvas.get_root_item()
 
-    page = canvas.add_box(
+    canvas.add_box(
         text="",
         bbox=Rectangle(x=0, y=0, width=100, height=100),
         type="page",
@@ -2131,7 +2131,7 @@ def test_hit_test_nonzero_offset(mocker):
         parent=root,
     )
 
-    line = canvas.add_box(
+    canvas.add_box(
         text="",
         bbox=Rectangle(x=30, y=30, width=10, height=10),
         type="line",
@@ -2490,7 +2490,7 @@ def test_draw_bbox_more_branches(mocker):
     del canvas._create_pango_layout
     canvas._draw_scene(ctx)
 
-    word2 = canvas.add_box(
+    canvas.add_box(
         text="new",
         bbox=Rectangle(x=30, y=30, width=40, height=10),
         type="word",

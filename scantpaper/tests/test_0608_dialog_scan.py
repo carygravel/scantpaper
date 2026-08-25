@@ -365,7 +365,7 @@ def test_source_default(
     dlg = sane_scan_dialog
     trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
-    loop = mainloop_with_timeout()
+    mainloop_with_timeout()
 
     options = dlg.available_scan_options
     assert options.flatbed_selected(

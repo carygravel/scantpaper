@@ -56,7 +56,7 @@ class Document(BaseDocument):
 
         # File in which to store the process ID
         # so that it can be killed if necessary
-        pidfile = self.create_pidfile(options)
+        self.create_pidfile(options)
 
         def _select_next_finished_callback(response):
             if (
@@ -410,7 +410,7 @@ class Document(BaseDocument):
 
     def indices2pages(self, list_of_indices):
         "Helper function to convert an array of indices into an array of uuids"
-        return map(lambda x: self.data[x][2], list_of_indices)
+        return (self.data[x][2] for x in list_of_indices)
 
     def get_selected_properties(self):
         "Helper function for properties()"
@@ -450,7 +450,7 @@ def _is_placeholder_title(value):
 
 def _extract_metadata(info):
     metadata = {}
-    for key in info.keys():
+    for key in info:
         if (
             re.search(
                 r"(author|title|subject|keywords)",

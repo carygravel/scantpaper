@@ -171,7 +171,7 @@ def test_apply_callback_shows_error_for_nonexistent_tool(
     dialog._apply_callback()
 
     mock_message_dialog.assert_called_once()
-    args, kwargs = mock_message_dialog.call_args
+    _args, kwargs = mock_message_dialog.call_args
     text = kwargs.get("text", "")
     assert (
         "nonexistent_tool" in text
@@ -204,7 +204,7 @@ def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
     dialog._apply_callback()
 
     mock_message_dialog.assert_called_once()
-    args, kwargs = mock_message_dialog.call_args
+    _args, kwargs = mock_message_dialog.call_args
     text = kwargs.get("text", "")
     assert (
         "bad1" in text and "bad2" in text
@@ -283,7 +283,7 @@ def test_apply_callback_shows_error_for_empty_tool(mock_message_dialog):
     dialog._apply_callback()
 
     mock_message_dialog.assert_called_once()
-    args, kwargs = mock_message_dialog.call_args
+    _args, kwargs = mock_message_dialog.call_args
     text = kwargs.get("text", "")
     assert (
         "could not be found" in text

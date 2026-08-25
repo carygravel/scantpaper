@@ -423,7 +423,7 @@ class ScanMenuItemMixins:
             )
 
         elif profiles:
-            widget.profile = list(profiles)[0]
+            widget.profile = next(iter(profiles))
 
         self._update_postprocessing_options_callback(widget)
 

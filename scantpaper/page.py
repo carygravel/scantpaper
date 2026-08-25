@@ -283,7 +283,7 @@ class Page:
         ratio = height / width
         if ratio < 1:
             ratio = 1 / ratio
-        for key in paper_sizes.keys():
+        for key in paper_sizes:
             if (
                 paper_sizes[key]["x"] > 0
                 and abs(ratio - paper_sizes[key]["y"] / paper_sizes[key]["x"])

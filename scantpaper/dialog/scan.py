@@ -365,7 +365,7 @@ class Scan(PageControls):
         vboxsp.set_border_width(border_width)
         framesp.add(vboxsp)
         self.combobsp = ComboBoxText()
-        for profile in profiles.keys():
+        for profile in profiles:
             self._add_profile(
                 profile,
                 Profile(
@@ -673,7 +673,6 @@ class Scan(PageControls):
         formats = self.paper_formats
         if formats is None:
             return None
-        options = self.available_scan_options
         current = {
             "l": self.thread.get_option_value("tl-x"),
             "t": self.thread.get_option_value("tl-y"),
@@ -1327,9 +1326,8 @@ class Scan(PageControls):
                     index = opt.constraint.index(val)
                     if index > NO_INDEX:
                         widget.set_active(index)
-            elif isinstance(widget, Gtk.Entry):
-                if widget.get_text() != val:
-                    widget.set_text(val)
+            elif isinstance(widget, Gtk.Entry) and widget.get_text() != val:
+                widget.set_text(val)
 
             if blocked:
                 widget.handler_unblock(widget.signal)

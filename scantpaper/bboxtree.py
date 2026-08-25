@@ -49,9 +49,8 @@ class Bboxtree:
         "return whether the bboxes are valid"
         for bbox in self.each_bbox():
             _x_1, _y_1, x_2, y_2 = bbox["bbox"]
-            if bbox["type"] == "page":
-                if x_2 == 0 or y_2 == 0:
-                    return False
+            if bbox["type"] == "page" and (x_2 == 0 or y_2 == 0):
+                return False
         return True
 
     def json(self):
@@ -212,9 +211,8 @@ class Bboxtree:
         "Escape backslashes and inverted commas, return as plain text"
         string = ""
         for bbox in self.each_bbox():
-            if string != "":
-                if bbox["type"] == "para":
-                    string += "\n\n"
+            if string != "" and bbox["type"] == "para":
+                string += "\n\n"
 
             if "text" in bbox:
                 string += bbox["text"] + " "
@@ -350,7 +348,7 @@ class HOCRParser(HTMLParser):
 
             # put information xocr_word information in parent ocr_word
             if self.data["type"] == "word" and self.stack[-1]["type"] == "word":
-                for key in self.data.keys():
+                for key in self.data:
                     if key not in self.stack[-1]:
                         self.stack[-1][key] = self.data[key]
 
@@ -379,11 +377,10 @@ class HOCRParser(HTMLParser):
         self.stack.append(self.data)
 
     def _parse_style(self, tag):
-        if self.data:
-            if tag in ["strong", "em"]:
-                if "style" not in self.data:
-                    self.data["style"] = []
-                self.data["style"].append(tag)
+        if self.data and tag in ["strong", "em"]:
+            if "style" not in self.data:
+                self.data["style"] = []
+            self.data["style"].append(tag)
 
     def _parse_title(self, title):
         data = {}

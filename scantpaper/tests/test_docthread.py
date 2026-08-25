@@ -1243,7 +1243,7 @@ def test_add_page_insert_at_start(mocker):
 
     from docthread import INSERT_AT_START
 
-    result = thread.add_page(page, insert_after=INSERT_AT_START)
+    thread.add_page(page, insert_after=INSERT_AT_START)
     mock_shift.assert_called_with(1, 1)
     mock_execute.assert_called()
 

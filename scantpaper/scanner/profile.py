@@ -40,7 +40,7 @@ class Profile(GObject.Object):
             # then convert the dict pairs to tuples
             for i, opt in enumerate(self.backend):
                 if isinstance(opt, dict):
-                    name = list(opt.keys())[0]
+                    name = next(iter(opt.keys()))
                     val = opt[name]
                     self.backend[i] = (name, val)
 

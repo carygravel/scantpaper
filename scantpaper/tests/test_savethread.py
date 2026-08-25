@@ -95,7 +95,7 @@ def test_save_pdf(mock_thread_instance, mock_page_instance):
         patch("savethread.tempfile.NamedTemporaryFile"),
         patch("savethread.open", mock_open()),
         patch("savethread.img2pdf.convert", return_value=b"pdf_data") as mock_img2pdf,
-        patch("savethread.ocrmypdf.api._pdf_to_hocr") as mock_pdf_to_hocr,
+        patch("savethread.ocrmypdf.api._pdf_to_hocr"),
         patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf") as mock_hocr_to_ocr_pdf,
         patch("savethread._fix_pdf_metadata") as mock_fix_metadata,
         patch("savethread.os.remove"),

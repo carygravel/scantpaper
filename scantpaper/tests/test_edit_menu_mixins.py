@@ -14,7 +14,7 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 @pytest.fixture
 def mock_edit_window(mocker):
     "Fixture to provide a configured MockWindow"
-    mock_app = mocker.Mock()
+    mocker.Mock()
 
     class MockWindow(Gtk.Window, EditMenuMixins):
         "Test class to hold mixin"

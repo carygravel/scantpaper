@@ -295,7 +295,6 @@ class Bbox:
     def update_box(self, text, selection):
         "Set the text in the given bbox"
         if len(text) > 0:
-            old_box = self.bbox
             old_pos_ind = self.get_position_index()
             old_conf = self.confidence
 
@@ -1021,11 +1020,11 @@ class Canvas(Gtk.DrawingArea):
             transformations = options["transformations"]
             parents = options["parents"]
             rotation, _, _ = transformations[box["depth"]]
-            textangle = box["textangle"] if "textangle" in box else 0
+            textangle = box.get("textangle", 0)
 
             options2 = {"parent": parents[box["depth"]]}
             options2["edit_callback"] = options["edit_callback"]
-            options2["text"] = box["text"] if "text" in box else ""
+            options2["text"] = box.get("text", "")
             options2["skip_confidence_index"] = options.get(
                 "skip_confidence_index", False
             )

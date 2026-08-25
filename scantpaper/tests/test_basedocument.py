@@ -612,8 +612,7 @@ def test_drag_drop_callback_logic():
     tree.drag_dest_find_target = MagicMock()
     tree.drag_get_data = MagicMock()
 
-    context = MagicMock()
-    time = 123
+    MagicMock()
 
     # Case 1: No target found
     tree.drag_dest_find_target.return_value = None

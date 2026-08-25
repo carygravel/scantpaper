@@ -466,7 +466,7 @@ class BaseDocument(SimpleList):
         "wrapper for delete_selection()"
         page = self.get_selected_indices()
         npages = len(page)
-        ids = map(lambda x: str(self.data[x][2]), page)
+        ids = (str(self.data[x][2]) for x in page)
         logger.info("Deleting page ids %s", " ".join(ids))
         if self.selection_changed_signal is not None:
             self.get_selection().handler_block(self.selection_changed_signal)

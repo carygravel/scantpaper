@@ -69,17 +69,9 @@ class SimpleList(Gtk.TreeView):
                         column_types[typekey]["renderer"]()
                         if "renderer" in column_types[typekey]
                         and isinstance(column_types[typekey]["renderer"], type)
-                        else (
-                            column_types[typekey]["renderer"]
-                            if "renderer" in column_types[typekey]
-                            else None
-                        )
+                        else (column_types[typekey].get("renderer", None))
                     ),
-                    "attr": (
-                        column_types[typekey]["attr"]
-                        if "attr" in column_types[typekey]
-                        else "hidden"
-                    ),
+                    "attr": (column_types[typekey].get("attr", "hidden")),
                 }
             )
 

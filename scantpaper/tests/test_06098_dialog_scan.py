@@ -595,8 +595,10 @@ raw_options = [
         constraint=[
             "First entry",
             "Second entry",
-            "This is the very long third entry. Maybe the frontend has an "
-            "idea how to display it",
+            (
+                "This is the very long third entry. Maybe the frontend has an "
+                "idea how to display it"
+            ),
         ],
     ),
     Option(
