@@ -395,7 +395,9 @@ def _create_qbfox_image():
     draw = ImageDraw.Draw(canvas)
     draw.text((100, 200), text, fill=0, font=font)
     canvas.save("/tmp/qbfox_before_crop.png")
-    pixels = list(canvas.get_flattened_data())
+    # get_flattened_data was added in Pillow 12.1.0; fall back to getdata for older versions
+    _get_data = getattr(canvas, "get_flattened_data", canvas.getdata)
+    pixels = list(_get_data())
     print(
         f"[conftest] _create_qbfox_image: pixel min={min(pixels)} max={max(pixels)} non_white={sum(1 for p in pixels if p != 255)}",
         flush=True,
