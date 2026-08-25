@@ -1290,6 +1290,16 @@ class DocThread(SaveThread):
             # some systems allow multiple tessdata dirs, e.g. parallel v4 & v5
             paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
 
+            # SUSE flat layout, Fedora/RHEL
+            if len(paths) == 0:
+                for candidate in [
+                    "/usr/share/tesseract-ocr/tessdata",
+                    "/usr/share/tessdata",
+                ]:
+                    if os.path.isdir(candidate):
+                        paths = [candidate]
+                        break
+
             # maybe we can guess the path if we have a symlink, e.g. homebrew
             if len(paths) == 0:
                 tesseract_exe = shutil.which("tesseract")
@@ -1304,6 +1314,7 @@ class DocThread(SaveThread):
 
             if len(paths) == 0:
                 request.error(_("tessdata directory not found"))
+                return
             else:
                 path = paths[0]
         with tesserocr.PyTessBaseAPI(lang=options["language"], path=path) as api:

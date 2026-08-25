@@ -65,6 +65,38 @@ def test_do_tesseract_path_fallback(mocker):
     )
 
 
+def test_do_tesseract_path_fallback_suse(mocker):
+    "test do_tesseract when path is ./ and tessdata found via SUSE flat layout"
+
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch("tesserocr.get_languages", return_value=("./", []))
+    mocker.patch("glob.glob", return_value=[])
+    mocker.patch(
+        "os.path.isdir",
+        side_effect=lambda p: p == "/usr/share/tesseract-ocr/tessdata",
+    )
+
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = mocker.Mock()
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
+
+    thread.do_tesseract(request)
+
+    mock_api.assert_called_with(lang="eng", path="/usr/share/tesseract-ocr/tessdata")
+
+
 def test_do_tesseract_in_memory_pixels(mocker):
     "test do_tesseract feeds page pixels to tesseract in memory"
     thread = DocThread(db=":memory:")
