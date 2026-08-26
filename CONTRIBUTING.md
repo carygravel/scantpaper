@@ -116,6 +116,18 @@ linting configuration.
 
 Please ensure that any changes made do not reduce the pylint score.
 
+### Lint Suppression
+
+Do not add `pylint: disable` or `noqa` comments without explicit approval from
+a maintainer. If a linter warning cannot be resolved by correcting the code, discuss
+the issue in a pull request before suppressing the warning. This ensures that
+suppressions are intentional, documented, and limited to cases where they are
+truly necessary.
+
+### Line Length
+
+Wrap markdown documentation at 80 characters per line.
+
 ## Commit messages
 
 Please ensure that all commits have meaningful messages:
