@@ -388,14 +388,17 @@ class HOCRParser(HTMLParser):
         regex = re.search(
             rf"\bbbox\s+{BBOX_REGEX}", title, re.MULTILINE | re.DOTALL | re.VERBOSE
         )
-        if regex:
-            if regex.group(1) != regex.group(3) and regex.group(2) != regex.group(4):
-                data["bbox"] = [
-                    int(regex.group(1)),
-                    int(regex.group(2)),
-                    int(regex.group(3)),
-                    int(regex.group(4)),
-                ]
+        if (
+            regex
+            and regex.group(1) != regex.group(3)
+            and regex.group(2) != regex.group(4)
+        ):
+            data["bbox"] = [
+                int(regex.group(1)),
+                int(regex.group(2)),
+                int(regex.group(3)),
+                int(regex.group(4)),
+            ]
 
         regex = re.search(
             r"\btextangle\s+(\d+)", title, re.MULTILINE | re.DOTALL | re.VERBOSE

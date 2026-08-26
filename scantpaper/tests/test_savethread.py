@@ -212,7 +212,7 @@ def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
         patch("savethread._post_save_hook") as mock_post_save,
         patch("savethread.pathlib.Path"),
         patch("savethread.shutil.copyfile") as mock_copyfile,
-        patch("savethread.logging.warning") as mock_warning,
+        patch("savethread.logger.warning") as mock_warning,
     ):
         mock_thread_instance.do_save_pdf(request)
 
@@ -257,7 +257,7 @@ def test_save_pdf_metadata_fixup_failure_is_non_fatal(
         ),
         patch("savethread._post_save_hook") as mock_post_save,
         patch("savethread.pathlib.Path"),
-        patch("savethread.logging.warning") as mock_warning,
+        patch("savethread.logger.warning") as mock_warning,
     ):
         mock_thread_instance.do_save_pdf(request)
 

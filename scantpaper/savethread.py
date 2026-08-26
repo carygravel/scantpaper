@@ -140,7 +140,7 @@ class SaveThread(Importhread):
             # can skip subsequent pikepdf operations that would also fail on
             # the malformed PDF.
             msg = str(err) or err.__class__.__name__
-            logging.warning(
+            logger.warning(
                 "Could not embed text layer (%s): %s – "
                 "saving without embedded text layer",
                 err.__class__.__name__,
@@ -267,7 +267,7 @@ class SaveThread(Importhread):
                 try:
                     _fix_pdf_metadata(filename, "title" not in metadata)
                 except Exception as err:
-                    logging.warning(
+                    logger.warning(
                         "Could not fix PDF metadata (%s): %s - "
                         "saving without creator branding",
                         err.__class__.__name__,
@@ -276,9 +276,12 @@ class SaveThread(Importhread):
 
                 _append_pdf(filename, options, request)
 
-                if options.get("options") and options["options"].get("user-password"):
-                    if _encrypt_pdf(filename, options, request):
-                        return
+                if (
+                    options.get("options")
+                    and options["options"].get("user-password")
+                    and _encrypt_pdf(filename, options, request)
+                ):
+                    return
 
                 _set_timestamp(options)
                 if options.get("options") and options["options"].get("ps"):

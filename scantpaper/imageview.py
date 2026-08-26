@@ -274,9 +274,8 @@ class Selector(Tool):
                                 sx2 if self.v_edge == "lower" else sx1
                             )
 
-                elif self.v_edge == "mid":
-                    if "y" not in self.drag_start:
-                        self.drag_start["y"] = sy2 if self.h_edge == "lower" else sy1
+                elif self.v_edge == "mid" and "y" not in self.drag_start:
+                    self.drag_start["y"] = sy2 if self.h_edge == "lower" else sy1
 
             else:
                 self._update_undragged_edge("h_edge", (x, y, sx1, sy1, sx2, sy2))

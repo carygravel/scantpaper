@@ -14,5 +14,6 @@ def test_appstream_validate():
         ["appstreamcli", "validate", "--no-net", str(filepath)],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr

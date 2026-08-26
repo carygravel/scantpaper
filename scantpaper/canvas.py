@@ -1004,9 +1004,8 @@ class Canvas(Gtk.DrawingArea):
         if self.position_index is None:
             self.position_index = TreeIter(bbox)
 
-        if len(kwargs["text"]) > 0:
-            if not kwargs.get("skip_confidence_index", False):
-                self.confidence_index.add_box_to_index(bbox, bbox.confidence)
+        if len(kwargs["text"]) > 0 and not kwargs.get("skip_confidence_index", False):
+            self.confidence_index.add_box_to_index(bbox, bbox.confidence)
 
         self.queue_draw()
         return bbox

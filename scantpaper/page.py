@@ -397,11 +397,15 @@ class Page:
             with open(filename, "wb") as fhd:
                 fhd.write(self._stored_bytes)
             return
-        if opts and "downsample" in opts and opts["downsample"]:
-            if opts["downsample dpi"] < min(self.resolution[0], self.resolution[1]):
-                width = int(self.width * opts["downsample dpi"] // self.resolution[0])
-                height = int(self.height * opts["downsample dpi"] // self.resolution[1])
-                image = image.resize((width, height))
+        if (
+            opts
+            and "downsample" in opts
+            and opts["downsample"]
+            and opts["downsample dpi"] < min(self.resolution[0], self.resolution[1])
+        ):
+            width = int(self.width * opts["downsample dpi"] // self.resolution[0])
+            height = int(self.height * opts["downsample dpi"] // self.resolution[1])
+            image = image.resize((width, height))
         if opts and "compression" in opts and opts["compression"][0] == "g":  # g3 or g4
             # Grayscale
             image = image.convert("L")

@@ -213,13 +213,16 @@ class DocThread(SaveThread):
         self._connect()
         self._execute("PRAGMA application_id")
         application_id = self._fetchone()
-        if application_id and application_id[0] is not None:
-            if application_id[0] != APPLICATION_ID:
-                raise TypeError(
-                    "%s is not a scantpaper session file (application_id=%s)",
-                    self._db,
-                    application_id[0],
-                )
+        if (
+            application_id
+            and application_id[0] is not None
+            and application_id[0] != APPLICATION_ID
+        ):
+            raise TypeError(
+                "%s is not a scantpaper session file (application_id=%s)",
+                self._db,
+                application_id[0],
+            )
         self._execute("PRAGMA user_version")
         user_version = self._fetchone()
         if user_version:

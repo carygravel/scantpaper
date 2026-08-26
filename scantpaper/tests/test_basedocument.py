@@ -179,9 +179,8 @@ def test_save_open_session():
             if process == "open":
                 if "finished_callback" in kwargs:
                     kwargs["finished_callback"](MagicMock())
-            elif process == "page_number_table":
-                if "finished_callback" in kwargs:
-                    kwargs["finished_callback"](MagicMock(info=[[1, None, 101]]))
+            elif process == "page_number_table" and "finished_callback" in kwargs:
+                kwargs["finished_callback"](MagicMock(info=[[1, None, 101]]))
             return MagicMock()
 
         slist2.thread.send = mock_send

@@ -1209,13 +1209,12 @@ class Scan(PageControls):
                 val = bool(val)
 
             # Don't try to set invalid option
-            if isinstance(opt.constraint, list):
-                if val not in opt.constraint:
-                    logger.warning(
-                        "Ignoring invalid argument '%s' for option '%s'.", val, name
-                    )
-                    self._set_option_profile(profile, itr)
-                    return
+            if isinstance(opt.constraint, list) and val not in opt.constraint:
+                logger.warning(
+                    "Ignoring invalid argument '%s' for option '%s'.", val, name
+                )
+                self._set_option_profile(profile, itr)
+                return
 
             # Ignore option if info from previous set_option() reported SANE_INFO_INEXACT
             if (

@@ -861,9 +861,11 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
                     # In GTK3 get_icon_name might return None if set from stock or otherwise.
                     # The code uses Gtk.Image.new_from_icon_name("list-remove", ...)
                     storage_type = image.get_storage_type()
-                    if storage_type == Gtk.ImageType.ICON_NAME:
-                        if image.get_icon_name()[0] == icon_name:
-                            return child
+                    if (
+                        storage_type == Gtk.ImageType.ICON_NAME
+                        and image.get_icon_name()[0] == icon_name
+                    ):
+                        return child
             if isinstance(child, Gtk.Container):
                 found = find_button_with_icon(child, icon_name)
                 if found:

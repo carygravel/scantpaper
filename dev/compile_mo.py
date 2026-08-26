@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Compile .po files into .mo files.
 
