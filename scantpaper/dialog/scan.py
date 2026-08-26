@@ -10,7 +10,7 @@ from const import POINTS_PER_INCH
 from docthread import INSERT_AT_START
 from frontend import enums
 from gi.repository import Gdk, GObject, Gtk
-from helpers import _weak_callback
+from helpers import _weak_callback, show_message_dialog
 from i18n import _, d_sane
 from scanner.options import Options, within_tolerance
 from scanner.profile import Profile
@@ -979,10 +979,9 @@ class Scan(PageControls):
                     formats[row[0]][_side] = row[j]
 
             # Add new definitions
-            # TODO: fix main reference
             self.paper_formats = formats
             if self.ignored_paper_formats:
-                main.show_message_dialog(
+                show_message_dialog(
                     parent=window,
                     type="warning",
                     buttons="close",

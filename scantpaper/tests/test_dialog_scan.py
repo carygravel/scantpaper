@@ -175,7 +175,7 @@ def test_edit_paper_apply(mocker):
     mock_window.get_content_area.return_value = mock_vbox
 
     # Mock main module if it's used
-    mock_main = mocker.patch("dialog.scan.main", create=True)
+    mock_show_message_dialog = mocker.patch("dialog.scan.show_message_dialog")
 
     # Patch Gtk in dialog.scan to avoid TypeErrors when mixing real/mock widgets
     mock_gtk = mocker.patch("dialog.scan.Gtk")
@@ -215,7 +215,7 @@ def test_edit_paper_apply(mocker):
     assert dialog.paper_formats["NewFormat"] == {"x": 100, "y": 200, "l": 0, "t": 0}
 
     # Verify message dialog shown
-    mock_main.show_message_dialog.assert_called_once()
+    mock_show_message_dialog.assert_called_once()
 
     # Verify window destroyed
     mock_window.destroy.assert_called_once()
