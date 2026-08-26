@@ -823,7 +823,7 @@ class ImageView(Gtk.DrawingArea):
     def set_tool(self, tool):
         "set tool"
         if not isinstance(tool, Tool):
-            raise ValueError("invalid set_tool call")
+            raise TypeError("invalid set_tool call")
         self.tool = tool
         if self.get_selection() is not None:
             self.queue_draw()

@@ -15,6 +15,8 @@ from i18n import _
 logger = logging.getLogger(__name__)
 
 PROCESS_FAILED = -1
+SETTING = {}
+message_dialog = None
 
 
 def _weak_callback(obj, method_name):
@@ -153,7 +155,7 @@ def expand_metadata_pattern(**kwargs):
 
 def show_message_dialog(**options):
     "show message dialog"
-    global message_dialog, SETTING
+    global message_dialog
     if not message_dialog:
         message_dialog = MultipleMessage(
             title=_("Messages"), transient_for=options["parent"]

@@ -943,7 +943,7 @@ def test_imageview_coverage_complex(rose_png, mock_view):
     assert view.zoom_to_fit_limit == 5.0
 
     # 5. Line 756: set_tool raise ValueError
-    with pytest.raises(ValueError, match="invalid set_tool call"):
+    with pytest.raises(TypeError, match="invalid set_tool call"):
         view.set_tool("Not a tool")
 
     # 6. Line 770: set_selection return if pixbuf_size is None

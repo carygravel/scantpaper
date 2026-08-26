@@ -286,7 +286,6 @@ class Importhread(BaseThread):
                         i,
                         args["last"] - args["first"] + 1,
                     )
-                    tif = None
                     with tempfile.NamedTemporaryFile(
                         dir=args["dir"], suffix=".tif"
                     ) as tif:
