@@ -29,6 +29,8 @@ from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-positi
 
 logger = logging.getLogger(__name__)
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 # Sentinel used as the insert-after target to place a page at the very start of
 # the document (before position 1), where no existing page precedes it.
 INSERT_AT_START = "<start>"
@@ -983,7 +985,7 @@ class DocThread(SaveThread):
         page.image_object = page.image_object.rotate(options["angle"], expand=True)
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         if options["angle"] in (-90, 90):
             page.width, page.height = page.height, page.width
@@ -1035,7 +1037,7 @@ class DocThread(SaveThread):
             #   blur or low-pass filter the image (so words look like ovals)
             #   look at few vertical narrow slices of the image and get the Standard Deviation
             #   if most of the Std Dev are high, then it might be portrait
-            page.analyse_time = datetime.datetime.now()
+            page.analyse_time = datetime.datetime.now(_LOCAL_TZ)
             request.data(
                 {
                     "type": "page",
@@ -1068,7 +1070,7 @@ class DocThread(SaveThread):
         ).convert("1")
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1102,7 +1104,7 @@ class DocThread(SaveThread):
         page.image_object = ImageEnhance.Contrast(page.image_object).enhance(contrast)
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1128,7 +1130,7 @@ class DocThread(SaveThread):
         page.image_object = ImageOps.invert(page.image_object)
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1163,7 +1165,7 @@ class DocThread(SaveThread):
         )
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1201,7 +1203,7 @@ class DocThread(SaveThread):
             bboxtree = Bboxtree(page.text_layer)
             page.text_layer = bboxtree.crop(left, top, width, height).json()
 
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1239,7 +1241,7 @@ class DocThread(SaveThread):
         # Write them
         page.width = page.image_object.width
         page.height = page.image_object.height
-        page.dirty_time = datetime.datetime.now()  # flag as dirty
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
 
         # split doesn't change the resolution, so we can safely copy it
         new2 = Page(
@@ -1346,7 +1348,7 @@ class DocThread(SaveThread):
 
             page.import_hocr(hocr)
             page.ocr_flag = True
-            page.ocr_time = datetime.datetime.now()
+            page.ocr_time = datetime.datetime.now(_LOCAL_TZ)
         self.check_cancelled()
 
         request.data(
@@ -1364,13 +1366,19 @@ class DocThread(SaveThread):
 
     def _run_unpaper_cmd(self, request):
         options = request.args[0]
-        out = tempfile.NamedTemporaryFile(dir=options.get("dir"), suffix=".pnm")
+        # SIM115: cross-scope file handle used intentionally
+        out = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            dir=options.get("dir"), suffix=".pnm"
+        )
         out2 = None
         options["options"]["command"][-2] = out.name
 
         index = options["options"]["command"].index("--output-pages")
         if options["options"]["command"][index + 1] == "2":
-            out2 = tempfile.NamedTemporaryFile(dir=options.get("dir"), suffix=".pnm")
+            # SIM115: cross-scope file handle used intentionally
+            out2 = tempfile.NamedTemporaryFile(  # noqa: SIM115
+                dir=options.get("dir"), suffix=".pnm"
+            )
             options["options"]["command"][-1] = out2.name
         else:
             del options["options"]["command"][-1]
@@ -1445,7 +1453,7 @@ class DocThread(SaveThread):
                     delete=True,
                     format="Portable anymap",
                     resolution=page.resolution,
-                    dirty_time=datetime.datetime.now(),  # flag as dirty
+                    dirty_time=datetime.datetime.now(_LOCAL_TZ),
                 )
 
                 # have to send the 2nd page 1st, as the page_id for the 1st will
@@ -1457,7 +1465,7 @@ class DocThread(SaveThread):
                         delete=True,
                         format="Portable anymap",
                         resolution=page.resolution,
-                        dirty_time=datetime.datetime.now(),  # flag as dirty
+                        dirty_time=datetime.datetime.now(_LOCAL_TZ),
                     )
                     request.data(
                         {

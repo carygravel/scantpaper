@@ -1,5 +1,7 @@
 "The crop dialog"
 
+from typing import ClassVar
+
 from gi.repository import Gdk, GObject, Gtk
 from i18n import _
 
@@ -32,7 +34,7 @@ LAYOUT = [
 class Crop(Dialog):
     "The crop dialog"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "changed-selection": (GObject.SignalFlags.RUN_FIRST, None, (Gdk.Rectangle,)),
     }
 

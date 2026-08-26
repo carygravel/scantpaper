@@ -1,6 +1,7 @@
 "HBox with progress bar and cancel button."
 
 import time
+from typing import ClassVar
 
 import gi
 from basethread import ResponseType
@@ -15,7 +16,9 @@ _PULSE_MIN_INTERVAL = 0.1  # seconds
 class Progress(Gtk.Box):
     "HBox with progress bar and cancel button"
 
-    __gsignals__ = {"clicked": (GObject.SignalFlags.RUN_FIRST, None, ())}
+    __gsignals__: ClassVar[dict] = {
+        "clicked": (GObject.SignalFlags.RUN_FIRST, None, ())
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

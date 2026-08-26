@@ -137,6 +137,8 @@ def _get_convert_command():
 CONVERT_COMMAND = _get_convert_command()
 logger = logging.getLogger(__name__)
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 # Release version that introduced the colour-aware threshold. Configs written
 # by older versions have their "threshold tool" value migrated to the new
 # ink-strength scale (v -> 100 - v). Keep in sync with the release version.
@@ -295,9 +297,9 @@ def update_config_from_imported_metadata(config, metadata):
         if name in metadata:
             config[name] = metadata[name]
     if "datetime" in metadata and metadata["datetime"] is not None:
-        config["datetime offset"] = (
-            metadata["datetime"].replace(tzinfo=None) - datetime.datetime.now()
-        )
+        config["datetime offset"] = metadata["datetime"].replace(
+            tzinfo=None
+        ) - datetime.datetime.now(_LOCAL_TZ).replace(tzinfo=None)
         if "use_time" not in config or not config["use_time"]:
             config["datetime offset"] = datetime.timedelta(
                 days=config["datetime offset"].days

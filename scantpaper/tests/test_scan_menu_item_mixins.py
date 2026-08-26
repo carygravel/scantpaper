@@ -2,6 +2,7 @@
 
 import os
 from types import SimpleNamespace
+from typing import ClassVar
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,7 +26,7 @@ def mock_scan_window(mocker):
 
         slist = None
         post_process_progress = None
-        settings = {}
+        settings: ClassVar[dict] = {}
         _windows = None
         _scan_progress = None
         _rotate_controls = None
@@ -33,9 +34,9 @@ def mock_scan_window(mocker):
         _scan_udt_hbox = None
         _scan_udt_button = None
         _unpaper = None
-        _dependencies = {}
+        _dependencies: ClassVar[dict] = {}
         session = None
-        _ocr_engine = [["tesseract", "Tesseract"]]
+        _ocr_engine: ClassVar[list] = [["tesseract", "Tesseract"]]
 
         # Callbacks
         _error_callback = mocker.Mock()

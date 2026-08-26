@@ -1,6 +1,7 @@
 "Test tool_menu_mixins.py"
 
 import datetime
+from typing import ClassVar
 
 import gi
 import pytest
@@ -10,6 +11,8 @@ from tools_menu_mixins import ToolsMenuMixins
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
+
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 @pytest.fixture
@@ -24,7 +27,8 @@ def mock_tool_window(mocker):
         post_process_progress = None
         _display_callback = None
         _error_callback = None
-        settings = {}
+        settings: ClassVar[dict] = {}
+        _dependencies: ClassVar[dict] = {}
 
         # Attributes often used across tests, defined here to avoid AttributeError
         _windowc = None
@@ -36,7 +40,6 @@ def mock_tool_window(mocker):
         _unpaper = None
         _ocr_engine = None
         _pref_udt_cmbx = None
-        _dependencies = {}
         session = None
 
         def get_application(self, *args, **kwargs):
@@ -862,7 +865,7 @@ def test_email_execution_flow(mocker, mock_tool_window):
 
     mock_save_dialog_cls = mocker.patch("tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
-    mock_save_dialog.meta_datetime = datetime.datetime.now()
+    mock_save_dialog.meta_datetime = datetime.datetime.now(_LOCAL_TZ)
     # Mock attributes accessed in callback
     mock_save_dialog.downsample = False
     mock_save_dialog.downsample_dpi = 300
@@ -932,7 +935,7 @@ def test_email_default_filename(mocker, mock_tool_window):
 
     mock_save_dialog_cls = mocker.patch("tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
-    mock_save_dialog.meta_datetime = datetime.datetime.now()
+    mock_save_dialog.meta_datetime = datetime.datetime.now(_LOCAL_TZ)
     mock_save_dialog.downsample = False
     mock_save_dialog.downsample_dpi = 300
     mock_save_dialog.pdf_compression = "auto"

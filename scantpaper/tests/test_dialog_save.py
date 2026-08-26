@@ -9,6 +9,8 @@ from dialog.save import Save, filter_table
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
+_LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
+
 
 def test_filter_table():
     "Test filter_table function"
@@ -64,7 +66,7 @@ def test_include_time_toggle():
 
 def test_meta_datetime_property(mocker):
     "Test meta_datetime property logic"
-    mock_now = dt.datetime(2023, 1, 1, 12, 0, 0)
+    mock_now = dt.datetime(2023, 1, 1, 12, 0, 0, tzinfo=_LOCAL_TZ)
     # Capture the real class and its fromisoformat before patching
     real_datetime = dt.datetime
     real_fromisoformat = dt.datetime.fromisoformat
@@ -248,7 +250,7 @@ def test_update_config_dict():
     dialog._meta_specify_widget.set_active(True)
     dialog.meta_author = "author"
     dialog.meta_title = "title"
-    dialog.meta_datetime = dt.datetime(2023, 1, 1)
+    dialog.meta_datetime = dt.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ)
 
     config = {}
     dialog.update_config_dict(config)
@@ -319,7 +321,8 @@ def test_datetime_focus_out_callback():
     mock_entry.get_text.return_value = "2023-01-01"
 
     dialog._datetime_focus_out_callback(mock_entry, None)
-    assert dialog.meta_datetime == dt.datetime(2023, 1, 1)
+    # DTZ001 — widget text parses via naive fromisoformat, matching tz-less user entry
+    assert dialog.meta_datetime == dt.datetime(2023, 1, 1)  # noqa: DTZ001
 
 
 def test_clicked_specify_date_button():
@@ -384,7 +387,7 @@ def test_meta_datetime_reads_from_widget_immediately():
     'Save' immediately after typing), the updated date is still captured.
     """
     # Initialize dialog with an arbitrary date
-    initial_date = dt.datetime(2026, 5, 8, 10, 0, 0)
+    initial_date = dt.datetime(2026, 5, 8, 10, 0, 0, tzinfo=_LOCAL_TZ)
     dialog = Save(
         image_types=["pdf"],
         image_type="pdf",
@@ -411,7 +414,8 @@ def test_meta_datetime_preserves_time_when_not_included():
     Test that if include_time is False, we still preserve the original time
     if the date part hasn't changed in the widget.
     """
-    initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)
+    # DTZ001 — naive so isoformat() omits tz suffix, matching the expected widget text
+    initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)  # noqa: DTZ001
     dialog = Save(
         image_types=["pdf"],
         image_type="pdf",
@@ -435,7 +439,8 @@ def test_meta_datetime_preserves_datetime_when_not_changed():
     Test that if include_time is True, we return the original datetime
     if the widget text hasn't changed.
     """
-    initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)
+    # DTZ001 — naive so isoformat() omits tz suffix, matching the expected widget text
+    initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)  # noqa: DTZ001
     dialog = Save(
         image_types=["pdf"],
         image_type="pdf",
@@ -494,7 +499,8 @@ def test_meta_datetime_when_initial_is_none():
     dialog._meta_specify_widget.set_active(True)
     dialog._meta_datetime_widget.get_buffer().set_text("2026-05-08 12:34:56", -1)
 
-    assert dialog.meta_datetime == dt.datetime(2026, 5, 8, 12, 34, 56)
+    # DTZ001 — widget text parses via naive fromisoformat, matching tz-less user entry
+    assert dialog.meta_datetime == dt.datetime(2026, 5, 8, 12, 34, 56)  # noqa: DTZ001
 
     dialog.include_time = False
     assert dialog.meta_datetime == dt.date(2026, 5, 8)

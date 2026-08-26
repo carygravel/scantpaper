@@ -1,5 +1,7 @@
 "pagerange widget"
 
+from typing import ClassVar
+
 import gi
 from i18n import _
 
@@ -15,7 +17,7 @@ from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
 class PageRange(Gtk.Box):
     "pagerange widget"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
     # active=GObject.Property(
@@ -24,7 +26,7 @@ class PageRange(Gtk.Box):
     active = GObject.Property(
         type=str, default="selected", nick="active", blurb="Either selected or all"
     )
-    widget_list = []  # list of all PageRange widgets
+    widget_list: ClassVar[list] = []  # list of all PageRange widgets
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

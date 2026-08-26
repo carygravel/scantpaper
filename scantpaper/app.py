@@ -2,6 +2,9 @@
 
 # TODO:
 # lint
+# paper_formats in scantpaper/dialog/scan.py,
+#  but paper_sizes in a/scantpaper/basedocument.py ?
+#  both mutable class-level defaults ?
 # use pathlib for all paths
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class

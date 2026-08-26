@@ -21,6 +21,8 @@ from helpers import (
     slurp,
 )
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 
 class MockObj:
     "A mock object for testing weak callbacks"
@@ -137,8 +139,8 @@ def test_expand_metadata_pattern():
         "subject": "S",
         "keywords": "K",
         "extension": "E",
-        "docdate": datetime.datetime(2022, 1, 1),
-        "today_and_now": datetime.datetime(2023, 1, 1),
+        "docdate": datetime.datetime(2022, 1, 1, tzinfo=_LOCAL_TZ),
+        "today_and_now": datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ),
         "convert_whitespace": True,
     }
 
@@ -159,8 +161,8 @@ def test_expand_metadata_pattern():
     # Test missing keys or None values
     kwargs = {
         "template": "%Da %Dt",
-        "docdate": datetime.datetime(2022, 1, 1),
-        "today_and_now": datetime.datetime(2023, 1, 1),
+        "docdate": datetime.datetime(2022, 1, 1, tzinfo=_LOCAL_TZ),
+        "today_and_now": datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ),
     }
     res = expand_metadata_pattern(**kwargs)
     # regex = r"%D" + key[0] -> re.sub(regex, "", template)

@@ -1,5 +1,7 @@
 "The page controls for the Scan dialog"
 
+from typing import ClassVar
+
 from comboboxtext import ComboBoxText
 from gi.repository import GObject, Gtk
 from i18n import _
@@ -15,7 +17,7 @@ MAX_INCREMENT = 99
 class PageControls(Dialog):
     "The page controls for the Scan dialog"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "changed-num-pages": (GObject.SignalFlags.RUN_FIRST, None, (int,)),
         "changed-page-number-start": (GObject.SignalFlags.RUN_FIRST, None, (int,)),
         "changed-page-number-increment": (GObject.SignalFlags.RUN_FIRST, None, (int,)),

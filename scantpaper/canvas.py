@@ -4,6 +4,7 @@ import html
 import logging
 import math
 import re
+from typing import ClassVar
 
 import gi
 
@@ -451,7 +452,7 @@ class _CanvasRoot:
 class Canvas(Gtk.DrawingArea):
     "Subclass Gtk.DrawingArea to display OCR text and annotations using Cairo"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "zoom-changed": (GObject.SignalFlags.RUN_FIRST, None, (float,)),
         "offset-changed": (
             GObject.SignalFlags.RUN_FIRST,

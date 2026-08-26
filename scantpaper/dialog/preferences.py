@@ -3,6 +3,7 @@
 import logging
 import pathlib
 import shutil
+from typing import ClassVar
 
 import gi
 from comboboxtext import ComboBoxText
@@ -22,7 +23,7 @@ UNIT_SLIDER_STEP = 0.001
 class PreferencesDialog(Dialog):
     "dialogue for setting preferences"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "changed-preferences": (
             GObject.SignalFlags.RUN_FIRST,
             None,

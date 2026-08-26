@@ -21,6 +21,8 @@ from savethread import (
     prepare_output_metadata,
 )
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 
 class MockSaveThread(SaveThread):
     "Mock subclass of SaveThread for testing"
@@ -85,7 +87,7 @@ def test_save_pdf(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -124,7 +126,7 @@ def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -157,7 +159,10 @@ def test_save_pdf_with_title_keeps_title(mock_thread_instance, mock_page_instanc
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now(), "title": "My Title"},
+        "metadata": {
+            "datetime": datetime.datetime.now(_LOCAL_TZ),
+            "title": "My Title",
+        },
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -189,7 +194,7 @@ def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -237,7 +242,7 @@ def test_save_pdf_metadata_fixup_failure_is_non_fatal(
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -274,7 +279,7 @@ def test_save_pdf_rejects_oversized_output(mock_thread_instance, mock_page_insta
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -310,7 +315,7 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.djvu",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
         "pidfile": "pidfile",
     }
@@ -346,7 +351,7 @@ def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.djvu",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
         "pidfile": "pidfile",
     }
@@ -627,7 +632,9 @@ def test_set_timestamp():
     "Test _set_timestamp function"
     options = {
         "path": "/tmp/file",
-        "metadata": {"datetime": datetime.datetime(2023, 1, 1, 12, 0, 0)},
+        "metadata": {
+            "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=_LOCAL_TZ),
+        },
         "options": {"set_timestamp": True},
     }
 
@@ -677,7 +684,7 @@ def test_encrypt_pdf_failure():
 def test_prepare_output_metadata():
     "Test prepare_output_metadata function"
     metadata = {
-        "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0),
+        "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=_LOCAL_TZ),
         "author": "Author",
         "title": "Title",
     }
@@ -694,7 +701,7 @@ def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {"prepend": "/tmp/existing.pdf"},
         "pidfile": "pidfile",
     }
@@ -754,7 +761,7 @@ def test_save_pdf_with_password(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {"user-password": "password"},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -786,7 +793,7 @@ def test_save_pdf_with_password_failure(mock_thread_instance, mock_page_instance
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {"user-password": "password"},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -819,7 +826,7 @@ def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {"ps": "/tmp/output.ps", "pstool": "pdf2ps"},
         "pidfile": "pidfile",
     }
@@ -971,7 +978,7 @@ def test_save_pdf_with_progress_hooks(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -1009,7 +1016,7 @@ def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_in
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
@@ -1052,7 +1059,7 @@ def test_save_pdf_per_page_progress(mock_thread_instance, mock_page_instance):
         "dir": "/tmp",
         "path": "/tmp/output.pdf",
         "list_of_pages": [1],
-        "metadata": {"datetime": datetime.datetime.now()},
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
         "options": {},
     }
     request = Request("save_pdf", (options,), mock_thread_instance.responses)

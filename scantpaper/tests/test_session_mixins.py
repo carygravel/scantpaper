@@ -2,6 +2,7 @@
 
 import logging
 import os
+from typing import ClassVar
 from unittest.mock import MagicMock
 
 import gi
@@ -23,11 +24,12 @@ def mock_session_window(mocker):
         "Test class to hold mixin"
 
         slist = None
-        settings = {}
+        settings: ClassVar[dict] = {}
+        _dependencies: ClassVar[dict] = {}
+        _ocr_engine: ClassVar[list] = []
+        _actions: ClassVar[dict] = {}
         session = None
         _lockfd = None
-        _dependencies = {}
-        _ocr_engine = []
         view = None
         builder = None
         t_canvas = None
@@ -35,7 +37,6 @@ def mock_session_window(mocker):
         _windowc = None
         _windowi = None
         _windowe = None
-        _actions = {}
         _current_page = None
         _current_ocr_bbox = None
         _current_ann_bbox = None

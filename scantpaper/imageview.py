@@ -1,5 +1,7 @@
 "Image viewer widget that can zoom, pan, select"
 
+from typing import ClassVar
+
 import cairo
 import gi
 
@@ -18,10 +20,11 @@ class Tool:
     "Base tool class for Dragger, Selector & DraggerSelector"
 
     dragging = False
-    drag_start = {"x": None, "y": None}
 
     def __init__(self, view):
         self._view = view
+        self.drag_start = {"x": None, "y": None}
+        self.dnd_start = {"x": None, "y": None}
 
     def view(self):
         "Base view() method"
@@ -61,7 +64,6 @@ class Tool:
 class Dragger(Tool):
     "Tool to drag (pan) the image"
 
-    dnd_start = {"x": None, "y": None}
     dnd_eligible = False
     button = 1
 
@@ -374,7 +376,7 @@ class ImageView(Gtk.DrawingArea):
     "ImageView widget"
 
     __gtype_name__ = "GtkImageView"
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "zoom-changed": (GObject.SignalFlags.RUN_FIRST, None, (float,)),
         "offset-changed": (
             GObject.SignalFlags.RUN_FIRST,

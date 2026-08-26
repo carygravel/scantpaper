@@ -33,6 +33,8 @@ from gi.repository import (  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 
 class ToolsMenuMixins:
     "provide methods called from tools menu"
@@ -734,7 +736,8 @@ class ToolsMenuMixins:
             hide_on_delete=True,
             page_range=self.settings["Page range"],
             include_time=self.settings["use_time"],
-            meta_datetime=datetime.datetime.now() + self.settings["datetime offset"],
+            meta_datetime=datetime.datetime.now(_LOCAL_TZ)
+            + self.settings["datetime offset"],
             select_datetime=bool(self.settings["datetime offset"]),
             meta_title=self.settings["title"],
             meta_title_suggestions=self.settings["title-suggestions"],
@@ -786,7 +789,7 @@ class ToolsMenuMixins:
                 author=self.settings["author"],
                 title=self.settings["title"],
                 docdate=self._windowe.meta_datetime,
-                today_and_now=datetime.datetime.now(),
+                today_and_now=datetime.datetime.now(_LOCAL_TZ),
                 extension="pdf",
                 subject=self.settings["subject"],
                 keywords=self.settings["keywords"],
@@ -814,7 +817,10 @@ class ToolsMenuMixins:
             self.slist.save_pdf(
                 path=self._pdf_email,
                 list_of_pages=uuids,
-                metadata=collate_metadata(self.settings, datetime.datetime.now()),
+                metadata=collate_metadata(
+                    self.settings,
+                    datetime.datetime.now(_LOCAL_TZ),
+                ),
                 options=options,
                 queued_callback=self.post_process_progress.queued,
                 started_callback=self.post_process_progress.update,

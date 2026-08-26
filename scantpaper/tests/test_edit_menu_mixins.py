@@ -1,7 +1,10 @@
 "Tests for the EditMenuMixins."
 
 import datetime
+from typing import ClassVar
 from unittest.mock import MagicMock
+
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 import gi
 import pytest
@@ -22,7 +25,7 @@ def mock_edit_window(mocker):
         slist = None
         post_process_progress = None
         t_canvas = None
-        settings = {}
+        settings: ClassVar[dict] = {}
         _windowp = None
         _windowr = None
         _windows = None
@@ -203,13 +206,15 @@ def test_select_modified_since_ocr(mock_edit_window):
     "Test select_modified_since_ocr"
     page1 = MagicMock()
     page1.ocr_flag = True
-    page1.ocr_time = datetime.datetime(2023, 1, 1)
-    page1.dirty_time = datetime.datetime(2023, 1, 2)  # Dirty after OCR
+    page1.ocr_time = datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ)
+    page1.dirty_time = datetime.datetime(
+        2023, 1, 2, tzinfo=_LOCAL_TZ
+    )  # Dirty after OCR
 
     page2 = MagicMock()
     page2.ocr_flag = True
-    page2.ocr_time = datetime.datetime(2023, 1, 2)
-    page2.dirty_time = datetime.datetime(2023, 1, 1)  # Clean
+    page2.ocr_time = datetime.datetime(2023, 1, 2, tzinfo=_LOCAL_TZ)
+    page2.dirty_time = datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ)  # Clean
 
     page3 = MagicMock()
     page3.ocr_flag = False  # No OCR
@@ -525,13 +530,13 @@ def test_analyse(mock_edit_window):
     "Test analyse"
     page1 = MagicMock()
     page1.uuid = "uuid1"
-    page1.analyse_time = datetime.datetime(2023, 1, 1)
-    page1.dirty_time = datetime.datetime(2023, 1, 2)  # Needs analysis
+    page1.analyse_time = datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ)
+    page1.dirty_time = datetime.datetime(2023, 1, 2, tzinfo=_LOCAL_TZ)  # Needs analysis
 
     page2 = MagicMock()
     page2.uuid = "uuid2"
-    page2.analyse_time = datetime.datetime(2023, 1, 2)
-    page2.dirty_time = datetime.datetime(2023, 1, 1)  # Fresh
+    page2.analyse_time = datetime.datetime(2023, 1, 2, tzinfo=_LOCAL_TZ)
+    page2.dirty_time = datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ)  # Fresh
 
     mock_edit_window.slist.data = [[0, 0, page1], [1, 0, page2]]
 
@@ -574,8 +579,8 @@ def test_analyse(mock_edit_window):
 def test_analyse_cached(mock_edit_window):
     "Test analyse when no pages need analysis"
     page1 = MagicMock()
-    page1.analyse_time = datetime.datetime(2023, 1, 2)
-    page1.dirty_time = datetime.datetime(2023, 1, 1)
+    page1.analyse_time = datetime.datetime(2023, 1, 2, tzinfo=_LOCAL_TZ)
+    page1.dirty_time = datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ)
 
     mock_edit_window.slist.data = [[0, 0, page1]]
     mock_edit_window.select_blank_pages = MagicMock()

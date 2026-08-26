@@ -17,13 +17,15 @@ from config import (
 from gi.repository import Gdk
 from helpers import slurp
 
+_LOCAL_TZ = datetime.now().astimezone().tzinfo
+
 
 class MockedDateTime(datetime):
     "mock now"
 
     @classmethod
-    def now(cls):
-        return datetime(2018, 1, 1, 0, 0, 0)
+    def now(cls, tz=None):
+        return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 
 
 def test_config():
@@ -207,7 +209,10 @@ def test_config2(mocker):
 
     mocker.patch("config.datetime.datetime", MockedDateTime)
     config = {"version": "1.7.3", "datetime offset": timedelta(seconds=0)}
-    metadata = {"title": "title", "datetime": datetime(2017, 12, 31, 0, 0, 0)}
+    metadata = {
+        "title": "title",
+        "datetime": datetime(2017, 12, 31, 0, 0, 0, tzinfo=_LOCAL_TZ),
+    }
     update_config_from_imported_metadata(config, metadata)
     example = {
         "datetime offset": timedelta(days=-1),

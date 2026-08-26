@@ -1,6 +1,7 @@
 "provide controls for editing the text layer"
 
 import logging
+from typing import ClassVar
 
 import gi
 from comboboxtext import ComboBoxText
@@ -24,7 +25,7 @@ INDEX = [
 class TextLayerControls(Gtk.Box):
     "provide controls for editing the text layer"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "text-changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
         "bbox-changed": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
         "sort-changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),

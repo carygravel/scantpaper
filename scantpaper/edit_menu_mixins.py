@@ -15,6 +15,8 @@ from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
 logger = logging.getLogger(__name__)
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 
 class EditMenuMixins:
     "provide methods called from edit menu"
@@ -175,12 +177,12 @@ class EditMenuMixins:
             dirty_time = (
                 page.dirty_time
                 if hasattr(page, "dirty_time")
-                else datetime.datetime(1970, 1, 1)
+                else datetime.datetime(1970, 1, 1, tzinfo=_LOCAL_TZ)
             )
             ocr_time = (
                 page.ocr_time
                 if hasattr(page, "ocr_time")
-                else datetime.datetime(1970, 1, 1)
+                else datetime.datetime(1970, 1, 1, tzinfo=_LOCAL_TZ)
             )
             ocr_flag = page.ocr_flag if hasattr(page, "ocr_flag") else False
             if ocr_flag and (ocr_time <= dirty_time):
@@ -277,12 +279,12 @@ class EditMenuMixins:
             dirty_time = (
                 page.dirty_time
                 if hasattr(page, "dirty_time")
-                else datetime.datetime(1970, 1, 1)
+                else datetime.datetime(1970, 1, 1, tzinfo=_LOCAL_TZ)
             )
             analyse_time = (
                 page.analyse_time
                 if hasattr(page, "analyse_time")
-                else datetime.datetime(1970, 1, 1)
+                else datetime.datetime(1970, 1, 1, tzinfo=_LOCAL_TZ)
             )
             if analyse_time <= dirty_time:
                 logger.info(

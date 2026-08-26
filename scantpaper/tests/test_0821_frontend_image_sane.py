@@ -11,6 +11,14 @@ from frontend.image_sane import SaneThread
 from loop_helpers import safe_mainloop
 
 
+class FeederEmptyError(Exception):
+    "Raised when a document feeder has no more pages to scan"
+
+
+class DeviceError(Exception):
+    "Raised to emulate a SANE device failure during scanning"
+
+
 class FakeBrscan5Device:
     """Emulate a backend with brscan5-style frame prefetching.
 
@@ -37,7 +45,7 @@ class FakeBrscan5Device:
             self.page_counter += 1
             self.buffered.append(self.page_counter)
         if not self.buffered:
-            raise Exception("Document feeder out of documents")
+            raise FeederEmptyError("Document feeder out of documents")
         self.start_calls += 1
 
     def get_parameters(self):
@@ -52,7 +60,7 @@ class FakeBrscan5Device:
             self.block_after_first = False
             self.slow_event.wait(2)
         if frame == self.error_on_frame:
-            raise Exception("SANE device exploded")
+            raise DeviceError("SANE device exploded")
         if not no_cancel:
             self.cancel()
         return frame

@@ -68,7 +68,10 @@ class SessionMixins:
         "create a lockfile in the session directory"
         if session is None:
             session = self.session.name
-        lockfd = open(os.path.join(session, "lockfile"), "w", encoding="utf-8")
+        # SIM115: cross-scope file handle used intentionally
+        lockfd = open(  # noqa: SIM115
+            os.path.join(session, "lockfile"), "w", encoding="utf-8"
+        )
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
 

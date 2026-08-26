@@ -9,13 +9,15 @@ from dialog.save import Save
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
+_LOCAL_TZ = datetime.now().astimezone().tzinfo
+
 
 class MockedDateTime(datetime):
     "mock now"
 
     @classmethod
-    def now(cls):
-        return datetime(2018, 1, 1, 0, 0, 0)
+    def now(cls, tz=None):
+        return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 
 
 def test_basic(mocker):
@@ -85,11 +87,13 @@ def test_basic(mocker):
         "title": "old title",
         "subject": "old subject",
         "keywords": "old keywords",
-        "datetime": datetime(2017, 1, 1, 23, 59, 5),
+        "datetime": datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ),
         "other key": "other key",
     }
     dialog.update_from_import_metadata(metadata)
-    assert dialog.meta_datetime == datetime(2017, 1, 1, 23, 59, 5), "date"
+    assert dialog.meta_datetime == datetime(
+        2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ
+    ), "date"
     assert dialog.meta_author == "old author", "author"
     assert dialog.meta_title == "old title", "title"
     assert dialog.meta_subject == "old subject", "subject"
@@ -101,20 +105,22 @@ def test_datetime():
     dialog = Save(
         transient_for=Gtk.Window(),
         include_time=True,
-        meta_datetime=datetime(2017, 1, 1, 23, 59, 5),
+        meta_datetime=datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ),
         select_datetime=True,
     )
-    assert dialog.meta_datetime == datetime(2017, 1, 1, 23, 59, 5), "date and time"
+    assert dialog.meta_datetime == datetime(
+        2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ
+    ), "date and time"
 
 
 def test_now(mocker):
     "test not setting datetime"
-    now = datetime(2018, 1, 1, 0, 0, 0)
+    now = datetime(2018, 1, 1, 0, 0, 0, tzinfo=_LOCAL_TZ)
     mocker.patch("dialog.save.datetime.datetime", MockedDateTime)
     dialog = Save(
         transient_for=Gtk.Window(),
         include_time=True,
-        meta_datetime=datetime(2017, 1, 1, 23, 59, 5),
+        meta_datetime=datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ),
     )
     assert dialog.meta_datetime == now, "now"
 
@@ -281,7 +287,7 @@ def test_edit_date_button(mocker):
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(
         transient_for=Gtk.Window(),
-        meta_datetime=datetime(2020, 1, 1),
+        meta_datetime=datetime(2020, 1, 1, tzinfo=_LOCAL_TZ),
         select_datetime=True,
     )
 
@@ -342,7 +348,7 @@ def test_edit_date_button(mocker):
         calendar, "get_date", return_value=(2021, 1, 2)
     )  # 2021, Feb 2nd
     calendar.emit("day-selected")
-    assert dialog.meta_datetime == datetime(2021, 2, 2)
+    assert dialog.meta_datetime == datetime(2021, 2, 2, tzinfo=_LOCAL_TZ)
 
     # Simulate double click
     calendar.emit("day-selected-double-click")
@@ -350,7 +356,7 @@ def test_edit_date_button(mocker):
 
     # Simulate "Today" button click
     today_b.clicked()
-    expected_today = date.today().isoformat()
+    expected_today = datetime.now(_LOCAL_TZ).date().isoformat()
     assert dialog._meta_datetime_widget.get_text() == expected_today
 
 
@@ -410,14 +416,16 @@ def test_datetime_focus_out(mocker):
 
     # Simulate focus out
     dialog._datetime_focus_out_callback(entry, None)
-    assert dialog.meta_datetime == datetime(2022, 2, 22)
+    # DTZ001 — widget text parses via naive fromisoformat, matching tz-less user entry
+    assert dialog.meta_datetime == datetime(2022, 2, 22)  # noqa: DTZ001
 
 
 def test_datetime_setter(mocker):
     "test meta_datetime setter updates widget"
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window(), include_time=True)
-    new_dt = datetime(2023, 3, 23, 12, 0, 0)
+    # DTZ001 — naive so isoformat() omits tz suffix, matching the expected widget text
+    new_dt = datetime(2023, 3, 23, 12, 0, 0)  # noqa: DTZ001
     dialog.meta_datetime = new_dt
     assert dialog._meta_datetime_widget.get_text() == "2023-03-23 12:00:00"
 

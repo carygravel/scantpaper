@@ -117,8 +117,10 @@ class BaseThread(threading.Thread):
             # We don't need a response queue for finalization
             request = Request("quit", [], None)
             requests_queue.put(request)
-        except Exception:
-            # If the interpreter is shutting down, queues might be closed/None
+        except Exception:  # noqa: S110, BLE001
+            # S110, BLE001 — swallowed intentionally: during interpreter shutdown
+            # the queue may be closed/None, logging is unreliable there, and
+            # requests_queue.put() can raise arbitrary errors, so we ignore them.
             pass
 
     def _release_sources(self):
@@ -231,7 +233,11 @@ class BaseThread(threading.Thread):
             request.finished(handler(request))
             if request.process == "quit":
                 return False
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
+            # BLE001 — the handler is a do_<process> method that may raise
+            # arbitrary exceptions from external code (SANE, file I/O, ...),
+            # so no narrower set can be caught; the error is wrapped and
+            # returned to the caller via request.error() below.
             logger.error(
                 "Error running process '%s': %s",
                 request.process,
@@ -288,7 +294,10 @@ class BaseThread(threading.Thread):
         ):
             try:
                 self.callbacks[uid][callback](data)
-            except Exception as err:
+            except Exception as err:  # noqa: BLE001
+                # BLE001 — the callback is user-supplied arbitrary code that
+                # can raise anything, so no narrower set is catchable; the
+                # error is routed to the caller's error_callback below.
                 logger.error(
                     "Error running %s callback '%s' for process '%s' with args: %s: %s",
                     stage,

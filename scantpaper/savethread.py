@@ -131,7 +131,13 @@ class SaveThread(Importhread):
                 optimize=0,
                 plugins=["savethread"],
             )
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
+            # BLE001 — ocrmypdf may fail for many reasons beyond "pikepdf
+            # cannot parse the PDF produced by img2pdf" (bare exceptions with
+            # an empty str() observed in practice).  Any failure here falls
+            # back to copying the still-valid origin.pdf rather than failing
+            # the entire save; no narrower set can be caught without losing
+            # the graceful fallback, so we catch broadly and wrap.
             # ocrmypdf may fail if pikepdf cannot parse the PDF produced by
             # img2pdf (InputFileError wraps PdfError).  The raw origin.pdf is
             # still valid, so fall back to copying it rather than failing the
@@ -164,7 +170,7 @@ class SaveThread(Importhread):
             filename = options["path"]
             temp_pdf = None
             if _need_temp_pdf(options.get("options")):
-                temp_pdf = tempfile.NamedTemporaryFile(
+                temp_pdf = tempfile.NamedTemporaryFile(  # noqa: SIM115 — cross-scope file handle used intentionally
                     dir=options.get("dir"), suffix=".pdf"
                 )
                 filename = temp_pdf.name
@@ -266,7 +272,12 @@ class SaveThread(Importhread):
                 # the save.
                 try:
                     _fix_pdf_metadata(filename, "title" not in metadata)
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001
+                    # BLE001 — metadata fixup can fail for arbitrary reasons
+                    # (e.g. RuntimeError during PDF metadata access); it is
+                    # cosmetic, so any failure degrades gracefully to an
+                    # unbranded but usable PDF, and no narrower set is
+                    # catchable without changing that behavior.
                     logger.warning(
                         "Could not fix PDF metadata (%s): %s - "
                         "saving without creator branding",

@@ -75,6 +75,8 @@ TIFF_COMPRESSION_ALGS = [
     ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 
 class Save(Dialog):
     "subclass dialog for save options"
@@ -86,7 +88,7 @@ class Save(Dialog):
     def meta_datetime(self):
         "Datetime object for document date"
         if self.meta_now_widget.get_active():
-            return datetime.datetime.now()
+            return datetime.datetime.now(_LOCAL_TZ)
         if (
             self._meta_datetime_widget is not None
             and self._meta_specify_widget.get_active()
@@ -452,7 +454,9 @@ class Save(Dialog):
 
         def calendar_day_selected_callback(_widget):
             year, month, day = calendar.get_date()
-            self.meta_datetime = datetime.datetime(year, month + 1, day)
+            self.meta_datetime = datetime.datetime(
+                year, month + 1, day, tzinfo=_LOCAL_TZ
+            )
 
         calendar_s = calendar.connect("day-selected", calendar_day_selected_callback)
 
@@ -467,7 +471,7 @@ class Save(Dialog):
         today_b = Gtk.Button(label=_("Today"))
 
         def today_clicked_callback(_widget):
-            today = datetime.date.today()
+            today = datetime.datetime.now(_LOCAL_TZ).date()
 
             # block and unblock signal, and update entry manually
             # to remove possibility of race conditions
@@ -833,9 +837,9 @@ class Save(Dialog):
         if self.meta_datetime is not None:
             # convert from date to datetime if necessary
             args = self.meta_datetime.timetuple()[:6]
-            doc_datetime = datetime.datetime(*args)
+            doc_datetime = datetime.datetime(*args, tzinfo=_LOCAL_TZ)
 
-            config["datetime offset"] = doc_datetime - datetime.datetime.now()
+            config["datetime offset"] = doc_datetime - datetime.datetime.now(_LOCAL_TZ)
 
     def update_from_import_metadata(self, metadata):
         "update instance from imported metadata"

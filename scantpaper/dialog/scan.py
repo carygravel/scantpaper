@@ -4,6 +4,7 @@ import logging
 import re
 import weakref
 from copy import copy
+from typing import ClassVar
 
 from comboboxtext import ComboBoxText
 from const import POINTS_PER_INCH
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 class Scan(PageControls):
     "Scan dialog"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "new-scan": (
             GObject.SignalFlags.RUN_FIRST,
             None,
@@ -100,7 +101,7 @@ class Scan(PageControls):
         "clicked-scan-button": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
     _device = ""
-    _device_list = []
+    _device_list: ClassVar[list] = []
     dir = GObject.Property(
         type=object, nick="Directory", blurb="Directory in which to store scans"
     )
@@ -157,7 +158,7 @@ class Scan(PageControls):
         signal = self.connect("changed-paper", do_changed_paper)
         self._set_paper(newval)
 
-    _paper_formats = {}
+    _paper_formats: ClassVar[dict] = {}
 
     @GObject.Property(
         type=object,

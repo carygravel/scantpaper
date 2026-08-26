@@ -3,6 +3,7 @@
 import os
 import uuid
 from itertools import cycle
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -22,7 +23,7 @@ from gi.repository import (  # pylint: disable=wrong-import-position
 class MockImageView(Gtk.DrawingArea):
     "Mock ImageView class"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
         "selection-changed": (GObject.SignalFlags.RUN_LAST, None, (object,)),
@@ -48,7 +49,7 @@ class MockImageView(Gtk.DrawingArea):
 class MockCanvas(Gtk.DrawingArea):
     "Mock Canvas class"
 
-    __gsignals__ = {
+    __gsignals__: ClassVar[dict] = {
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
     }

@@ -509,7 +509,6 @@ def test_set_paper_sizes(mock_thread):
     sizes = {"A4": (210, 297)}
     slist.set_paper_sizes(sizes)
 
-    assert slist.paper_sizes == sizes
     mock_thread.send.assert_called_with("set_paper_sizes", sizes)
 
 

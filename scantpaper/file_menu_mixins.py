@@ -23,6 +23,8 @@ from gi.repository import Gio, GLib, Gtk  # pylint: disable=wrong-import-positio
 
 logger = logging.getLogger(__name__)
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 
 def add_filter(file_chooser, name, file_extensions):
     "Create a file filter to show only supported file types in FileChooser dialog"
@@ -320,7 +322,8 @@ class FileMenuMixins:
             hide_on_delete=True,
             page_range=self.settings["Page range"],
             include_time=self.settings["use_time"],
-            meta_datetime=datetime.datetime.now() + self.settings["datetime offset"],
+            meta_datetime=datetime.datetime.now(_LOCAL_TZ)
+            + self.settings["datetime offset"],
             select_datetime=bool(self.settings["datetime offset"]),
             meta_title=self.settings["title"],
             meta_title_suggestions=self.settings["title-suggestions"],
@@ -488,7 +491,7 @@ class FileMenuMixins:
                 author=self.settings["author"],
                 title=self.settings["title"],
                 docdate=self._windowi.meta_datetime,
-                today_and_now=datetime.datetime.now(),
+                today_and_now=datetime.datetime.now(_LOCAL_TZ),
                 extension=self.settings["image type"],
                 subject=self.settings["subject"],
                 keywords=self.settings["keywords"],
@@ -541,7 +544,10 @@ class FileMenuMixins:
 
             elif filetype == "ps":
                 if self.settings["ps_backend"] == "libtiff":
-                    tif = tempfile.TemporaryFile(dir=self.session, suffix=".tif")
+                    # SIM115: cross-scope file handle used intentionally
+                    tif = tempfile.TemporaryFile(  # noqa: SIM115
+                        dir=self.session, suffix=".tif"
+                    )
                     self._save_tif(tif.filename(), uuids, filename)
                 else:
                     self._save_pdf(filename, uuids, "ps")
@@ -632,7 +638,7 @@ class FileMenuMixins:
         self.slist.save_pdf(
             path=filename,
             list_of_pages=list_of_page_uuids,
-            metadata=collate_metadata(self.settings, datetime.datetime.now()),
+            metadata=collate_metadata(self.settings, datetime.datetime.now(_LOCAL_TZ)),
             options=options,
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
@@ -671,7 +677,7 @@ class FileMenuMixins:
             path=filename,
             list_of_pages=uuids,
             options=options,
-            metadata=collate_metadata(self.settings, datetime.datetime.now()),
+            metadata=collate_metadata(self.settings, datetime.datetime.now(_LOCAL_TZ)),
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,

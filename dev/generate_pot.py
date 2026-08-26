@@ -45,7 +45,8 @@ def main():
         for x in uih_sources:
             os.remove(x)
 
-    year = datetime.datetime.today().year
+    local_tz = datetime.datetime.now().astimezone().tzinfo
+    year = datetime.datetime.now(local_tz).year
     out = (
         out.replace("SOME DESCRIPTIVE TITLE", f"messages.pot for {NAME}", 1)
         .replace("PACKAGE VERSION", f"{NAME}-{VERSION}", 1)

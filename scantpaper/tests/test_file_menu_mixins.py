@@ -17,6 +17,8 @@ from file_menu_mixins import (
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
 
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
 
 class MockSlist:
     "A mock class simulating a simple list for testing purposes."
@@ -621,7 +623,9 @@ class TestFileMenuMixins:
         # ScrolledWindow (in the production code) works during tests.
         mock_dialog.comboboxpsh = ComboBoxText()
         mock_save_dialog.return_value = mock_dialog
-        mock_datetime.datetime.now.return_value = datetime.datetime(2025, 1, 1)
+        mock_datetime.datetime.now.return_value = datetime.datetime(
+            2025, 1, 1, tzinfo=_LOCAL_TZ
+        )
 
         # Test with windowi as None
         app.save_dialog(None, None)

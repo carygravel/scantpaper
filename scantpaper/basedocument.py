@@ -31,7 +31,6 @@ class BaseDocument(SimpleList):
 
     jobs_completed = 0
     jobs_total = 0
-    paper_sizes = {}
 
     def __init__(self, **kwargs):
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page ID": "hint"}
@@ -150,7 +149,6 @@ class BaseDocument(SimpleList):
 
     def set_paper_sizes(self, paper_sizes=None):
         "Set the paper sizes in the manager and worker threads"
-        self.paper_sizes = paper_sizes
         self.thread.send("set_paper_sizes", paper_sizes)
 
     def cancel(self, cancel_callback, process_callback=None):

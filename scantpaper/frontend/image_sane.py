@@ -43,7 +43,11 @@ class SaneThread(BaseThread):
             request.finished(handler(request))
             if request.process == "quit":
                 return False
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
+            # BLE001 — the handler is a do_<process> SANE method that may
+            # raise arbitrary Python/SANE C-level errors, so no narrower
+            # set is catchable; the error is wrapped and routed to the
+            # caller via request.error()/request.finished() below.
             logger.error(
                 "Error running process '%s': %s",
                 request.process,
@@ -66,8 +70,11 @@ class SaneThread(BaseThread):
         if self.device_handle is not None:
             try:
                 self.device_handle.close()
-            except:
-                pass  # Ignore errors during cleanup
+            except Exception as e:  # noqa: BLE001
+                # BLE001 — device_handle.close() maps to SANE C bindings that
+                # can raise arbitrary errors during teardown; any failure here
+                # is best-effort cleanup, so we catch broadly and log.
+                logger.debug("Ignoring error closing device handle: %s", e)
             self.device_handle = None
 
         # Force garbage collection to ensure all device handles are freed
@@ -78,8 +85,11 @@ class SaneThread(BaseThread):
         if _sane_initialized[0]:
             try:
                 sane.exit()
-            except:
-                pass  # Ignore errors during cleanup
+            except Exception as e:  # noqa: BLE001
+                # BLE001 — sane.exit() maps to SANE C bindings that can raise
+                # arbitrary errors during teardown; any failure here is
+                # best-effort cleanup, so we catch broadly and log.
+                logger.debug("Ignoring error during sane.exit(): %s", e)
             _sane_initialized[0] = False
 
     @classmethod
@@ -121,7 +131,11 @@ class SaneThread(BaseThread):
         name, holder, event = request.args
         try:
             holder.append(getattr(self.device_handle, name.replace("-", "_")))
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
+            # BLE001 — reading a SANE device attribute can raise arbitrary
+            # Python/SANE C-level errors, so no narrower set is catchable;
+            # the worker must not die, and the error is wrapped and returned
+            # to the caller via holder below.
             holder.append(err)
         finally:
             event.set()
