@@ -874,32 +874,34 @@ def test_import_pdf_without_text_and_resave(
     """
 
     # Create a PDF from a TIFF (no text layer)
-    with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf1:
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf2:
-            temp_pdf1.write(img2pdf.convert(rose_png))
-            temp_pdf1.flush()
+    with (
+        tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf1,
+        tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf2,
+    ):
+        temp_pdf1.write(img2pdf.convert(rose_png))
+        temp_pdf1.flush()
 
-            # Import the PDF without text layer
-            slist = Document(db=temp_db.name)
-            import_in_mainloop(slist, [temp_pdf1.name])
+        # Import the PDF without text layer
+        slist = Document(db=temp_db.name)
+        import_in_mainloop(slist, [temp_pdf1.name])
 
-            assert len(slist.data) == 1, "imported 1 page"
+        assert len(slist.data) == 1, "imported 1 page"
 
-            # Re-save it as PDF - this should not fail
-            mlp = safe_mainloop(10000)
+        # Re-save it as PDF - this should not fail
+        mlp = safe_mainloop(10000)
 
-            slist.save_pdf(
-                path=temp_pdf2.name,
-                list_of_pages=[slist.data[0][2]],
-                finished_callback=lambda response: mlp.quit(),
-            )
-            mlp.run()
+        slist.save_pdf(
+            path=temp_pdf2.name,
+            list_of_pages=[slist.data[0][2]],
+            finished_callback=lambda response: mlp.quit(),
+        )
+        mlp.run()
 
-            # Verify the output PDF is valid
-            width, height = get_page_size(temp_pdf2.name)
-            assert width > 0 and height > 0, "valid PDF created"
+        # Verify the output PDF is valid
+        width, height = get_page_size(temp_pdf2.name)
+        assert width > 0 and height > 0, "valid PDF created"
 
-            clean_up_files([temp_pdf2.name])
+        clean_up_files([temp_pdf2.name])
 
 
 def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):

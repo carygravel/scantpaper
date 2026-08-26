@@ -316,11 +316,9 @@ class SaveThread(Importhread):
     def do_save_djvu(self, request):
         "save DjvU in thread"
         args = request.args[0]
-        i = 0
         filelist = []
-        for page_id in args["list_of_pages"]:
+        for i, page_id in enumerate(args["list_of_pages"], start=1):
             page = self.get_page(id=page_id)
-            i += 1
             request.data(i / (len(args["list_of_pages"]) + 1))
             request.data(
                 _("Writing page %i of %i")
@@ -422,12 +420,10 @@ class SaveThread(Importhread):
         "save TIFF in thread"
         options = request.args[0]
 
-        i = 0
         filelist = []
-        for page_id in options["list_of_pages"]:
+        for i, page_id in enumerate(options["list_of_pages"]):
             page = self.get_page(id=page_id)
             request.data(i / (len(options["list_of_pages"]) + 1))
-            i += 1
             # self.message = _("Converting image %i of %i to TIFF") % (
             #     page,
             #     len(options["list_of_pages"]) - 1 + 1,
@@ -500,10 +496,8 @@ class SaveThread(Importhread):
         "save pages as image files in thread"
         options = defaultdict(None, request.args[0])
 
-        i = 0
-        for page_id in options["list_of_pages"]:
+        for i, page_id in enumerate(options["list_of_pages"], start=1):
             page = self.get_page(id=page_id)
-            i += 1
             if len(options["list_of_pages"]) > 1:
                 filename = options["path"] % (i)
             else:

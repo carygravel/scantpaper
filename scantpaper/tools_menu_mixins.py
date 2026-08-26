@@ -109,9 +109,7 @@ class ToolsMenuMixins:
             )
             if not pagelist:
                 return
-            page = 0
             for i in pagelist:
-                page += 1
 
                 def threshold_finished_callback(response):
                     self.post_process_progress.finish(response)
@@ -497,9 +495,7 @@ class ToolsMenuMixins:
             )
             if not pagelist:
                 return
-            page = 0
             for i in pagelist:
-                page += 1
 
                 def split_finished_callback(response):
                     self.post_process_progress.finish(response)

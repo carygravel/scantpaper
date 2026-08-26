@@ -1530,9 +1530,11 @@ def test_tree_iter_previous_word_same_node(mocker):
 
     # Force previous_bbox to return w1 (which is current_bbox[-1])
     # and ensure it's a word so loop terminates
-    with patch.object(TreeIter, "previous_bbox", return_value=w1):
-        with pytest.raises(StopIteration):
-            ti.previous_word()
+    with (
+        patch.object(TreeIter, "previous_bbox", return_value=w1),
+        pytest.raises(StopIteration),
+    ):
+        ti.previous_word()
 
 
 def test_list_iter_insert_before_position_warnings(mocker):
@@ -1616,9 +1618,11 @@ def test_bbox_get_position_index_more(mocker):
 
     # Case 4: IndexError (line 978) via mocking
     # We mock get_children to return a list NOT containing self
-    with patch.object(Bbox, "get_children", return_value=[w1]):
-        with pytest.raises(IndexError):
-            w2.get_position_index()
+    with (
+        patch.object(Bbox, "get_children", return_value=[w1]),
+        pytest.raises(IndexError),
+    ):
+        w2.get_position_index()
 
 
 def test_canvas_color_setters():
@@ -1820,8 +1824,7 @@ def create_test_page_with_words(num_words, words_per_line=10):
     )
 
     # Add lines and words
-    line_num = 0
-    for i in range(0, num_words, words_per_line):
+    for line_num, i in enumerate(range(0, num_words, words_per_line)):
         # Add line
         y_pos = 50 + line_num * 30
         boxes.append(
@@ -1845,8 +1848,6 @@ def create_test_page_with_words(num_words, words_per_line=10):
                     "confidence": 50 + (i + j) % 50,  # Vary confidence
                 }
             )
-
-        line_num += 1
 
     return json.dumps(boxes)
 

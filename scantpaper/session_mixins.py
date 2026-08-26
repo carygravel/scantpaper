@@ -493,17 +493,8 @@ class SessionMixins:
         else:
             logger.info("Creating new text layer with '%s'", text)
             self._current_page.text_layer = (
-                '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
-                '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
-                % (
-                    self._current_page["width"],
-                    self._current_page["height"],
-                    selection["x"],
-                    selection["y"],
-                    selection["x"] + selection["width"],
-                    selection["y"] + selection["height"],
-                    text,
-                )
+                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},{self._current_page["height"]}],"depth":0}},'
+                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},{selection["x"] + selection["width"]},{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 
             def ocr_new_page(_widget):
@@ -552,17 +543,8 @@ class SessionMixins:
         else:
             logger.info("Creating new annotation canvas with '%s'", text)
             self._current_page["annotations"] = (
-                '[{"type":"page","bbox":[0,0,%d,%d],"depth":0},'
-                '{"type":"word","bbox":[%d,%d,%d,%d],"text":"%s","depth":1}]'
-                % (
-                    self._current_page["width"],
-                    self._current_page["height"],
-                    selection["x"],
-                    selection["y"],
-                    selection["x"] + selection["width"],
-                    selection["y"] + selection["height"],
-                    text,
-                )
+                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},{self._current_page["height"]}],"depth":0}},'
+                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},{selection["x"] + selection["width"]},{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 
             def ann_text_new_page(_widget):

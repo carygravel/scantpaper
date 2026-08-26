@@ -380,12 +380,10 @@ class Unpaper:
 
         # Add text and tooltips
         tooltip = []
-        i = 0
-        for key in hashref[option]["options"]:
+        for i, key in enumerate(hashref[option]["options"]):
             widget.append_text(hashref[option]["options"][key]["string"])
             tooltip.append(hashref[option]["options"][key]["tooltip"])
             hashref[option]["options"][key]["index"] = i
-            i += 1
 
         def combobox_changed_cb(_widget):
             if 0 <= widget.get_active() < len(tooltip):

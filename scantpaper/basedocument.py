@@ -337,9 +337,7 @@ class BaseDocument(SimpleList):
 
             # Select the new pages
             if kwargs.get("select_new_pages"):
-                selection = []
-                for _ in range(dest, dest + len(kwargs["data"])):
-                    selection.append(_)
+                selection = list(range(dest, dest + len(kwargs["data"])))
 
                 self.get_selection().unselect_all()
                 self.select(selection)

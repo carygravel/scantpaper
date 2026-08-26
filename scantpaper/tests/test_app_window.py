@@ -305,39 +305,39 @@ def test_read_config_restore_window(mocker):
 
     app = Gtk.Application()
     app.iconpath = "/tmp"
-    with patch.object(app, "set_menubar"):
-        with patch.object(Gtk.Window, "set_icon_from_file"):
-            with patch.object(Gtk.ApplicationWindow, "set_default_size") as mock_size:
-                with patch.object(Gtk.ApplicationWindow, "move") as mock_move:
-                    with patch.object(
-                        Gtk.ApplicationWindow, "maximize"
-                    ) as mock_maximize:
-                        with patch.object(ApplicationWindow, "_populate_main_window"):
+    with (
+        patch.object(app, "set_menubar"),
+        patch.object(Gtk.Window, "set_icon_from_file"),
+        patch.object(Gtk.ApplicationWindow, "set_default_size") as mock_size,
+        patch.object(Gtk.ApplicationWindow, "move") as mock_move,
+        patch.object(Gtk.ApplicationWindow, "maximize") as mock_maximize,
+        patch.object(ApplicationWindow, "_populate_main_window"),
+    ):
 
-                            def mock_read_config_side_effect(self):
-                                self.settings = mock_settings
+        def mock_read_config_side_effect(self):
+            self.settings = mock_settings
 
-                            with patch.object(
-                                ApplicationWindow,
-                                "_read_config",
-                                side_effect=mock_read_config_side_effect,
-                                autospec=True,
-                            ):
-                                win = ApplicationWindow(application=app)
-                                # Manually trigger the logic that happens in __init__
-                                win.set_default_size(
-                                    win.settings["window_width"],
-                                    win.settings["window_height"],
-                                )
-                                win.move(
-                                    win.settings["window_x"],
-                                    win.settings["window_y"],
-                                )
-                                win.maximize()
+        with patch.object(
+            ApplicationWindow,
+            "_read_config",
+            side_effect=mock_read_config_side_effect,
+            autospec=True,
+        ):
+            win = ApplicationWindow(application=app)
+            # Manually trigger the logic that happens in __init__
+            win.set_default_size(
+                win.settings["window_width"],
+                win.settings["window_height"],
+            )
+            win.move(
+                win.settings["window_x"],
+                win.settings["window_y"],
+            )
+            win.maximize()
 
-                                mock_size.assert_called_with(800, 600)
-                                mock_move.assert_called_with(100, 100)
-                                mock_maximize.assert_called()
+            mock_size.assert_called_with(800, 600)
+            mock_move.assert_called_with(100, 100)
+            mock_maximize.assert_called()
 
 
 def test_init_actions(app_window):

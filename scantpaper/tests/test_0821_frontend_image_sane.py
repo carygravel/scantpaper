@@ -593,9 +593,11 @@ def test_get_option_value_timeout():
     thread.start()
     # Replace the worker-side handler with one that never sets the completion
     # event, so the blocking wait must time out.
-    with patch.object(thread, "do_get_option_blocking", lambda request: None):
-        with pytest.raises(TimeoutError):
-            thread.get_option_value("enable-test-options", timeout=0.05)
+    with (
+        patch.object(thread, "do_get_option_blocking", lambda request: None),
+        pytest.raises(TimeoutError),
+    ):
+        thread.get_option_value("enable-test-options", timeout=0.05)
     thread.send("quit")
     thread.join(timeout=1)
 

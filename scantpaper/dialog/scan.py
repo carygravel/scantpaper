@@ -975,9 +975,7 @@ class Scan(PageControls):
             for row in slist.data:
                 if row[0] not in formats:
                     formats[row[0]] = {}
-                j = 0
-                for _side in ["x", "y", "l", "t"]:
-                    j += 1
+                for j, _side in enumerate(["x", "y", "l", "t"], start=1):
                     formats[row[0]][_side] = row[j]
 
             # Add new definitions
