@@ -118,11 +118,24 @@ Please ensure that any changes made do not reduce the pylint score.
 
 ### Lint Suppression
 
-Do not add `pylint: disable` or `noqa` comments without explicit approval from
-a maintainer. If a linter warning cannot be resolved by correcting the code, discuss
-the issue in a pull request before suppressing the warning. This ensures that
-suppressions are intentional, documented, and limited to cases where they are
+**Ask before adding any suppression.** Do not add `pylint: disable` or `noqa`
+comments on your own initiative. If a linter warning cannot be resolved by
+correcting the code, stop and discuss the case with a maintainer first, and only
+add the suppression after it has been explicitly approved. Approvals may be
+given per-case or once for a clearly-scoped class of cases (e.g. "BL001 on
+thread dispatch boundaries").
+
+Whenever a suppression is approved and added, it must carry an explanation that
+states why the warning is being suppressed. Either:
+- put the explanation inline after an em dash (`# noqa: RULE — reason`), or
+- put a comment line immediately above the offending code explaining the reason.
+
+Keep suppressions intentional, documented, and limited to cases where they are
 truly necessary.
+
+Do not add rules to the `ignore` list in `pyproject.toml` without prior
+agreement from a maintainer. Each suppression should be discussed and justified
+in the pull request that introduces it.
 
 ### Line Length
 
