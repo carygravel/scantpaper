@@ -3,6 +3,7 @@
 import datetime
 from unittest.mock import MagicMock, mock_open, patch
 
+import pikepdf
 import pytest
 from basethread import Request
 from i18n import _
@@ -15,6 +16,7 @@ from savethread import (
     _append_pdf,
     _current_request_for_progress,
     _encrypt_pdf,
+    _fix_pdf_metadata,
     _post_save_hook,
     _set_timestamp,
     get_progressbar_class,
@@ -641,6 +643,41 @@ def test_set_timestamp():
     with patch("savethread.os.utime") as mock_utime:
         _set_timestamp(options)
         assert mock_utime.called
+
+
+def test_set_timestamp_naive_converts_to_utc():
+    "Test _set_timestamp converts a naive datetime to a UTC-aware one"
+    options = {
+        "path": "/tmp/file",
+        # Intentionally naive to exercise the tzinfo-is-None branch in _set_timestamp
+        "metadata": {
+            "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0),  # noqa: DTZ001
+        },
+        "options": {"set_timestamp": True},
+    }
+
+    with patch("savethread.os.utime") as mock_utime:
+        _set_timestamp(options)
+    mock_utime.assert_called_once()
+    args, _ = mock_utime.call_args
+    assert isinstance(args[1][0], float), "epoch timestamp is a float"
+
+
+@pytest.mark.parametrize("remove_title", [True, False], ids=["remove", "keep"])
+def test_fix_pdf_metadata_removes_title(temp_pdf, remove_title):
+    "Test _fix_pdf_metadata removes the docinfo /Title when remove_title is set"
+    with pikepdf.Pdf.new() as pdf:
+        if remove_title:
+            pdf.docinfo["/Title"] = "placeholder"
+        pdf.add_blank_page(page_size=(200, 200))
+        pdf.save(temp_pdf.name)
+
+    _fix_pdf_metadata(temp_pdf.name, remove_title=remove_title)
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        if remove_title:
+            assert "/Title" not in pdf.docinfo, "placeholder title removed from docinfo"
+        assert "/Creator" in pdf.docinfo, "creator set on PDF"
 
 
 def test_post_save_hook():
