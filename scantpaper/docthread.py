@@ -1320,8 +1320,7 @@ class DocThread(SaveThread):
             if len(paths) == 0:
                 request.error(_("tessdata directory not found"))
                 return
-            else:
-                path = paths[0]
+            path = paths[0]
         with tesserocr.PyTessBaseAPI(lang=options["language"], path=path) as api:
             api.SetVariable("tessedit_create_hocr", "T")
             api.SetVariable("hocr_font_info", "T")

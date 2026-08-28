@@ -103,14 +103,13 @@ class Save(Dialog):
                             return self._meta_datetime
 
                         # If include_time is False, we only care about the date part
-                        else:
-                            old_date = (
-                                self._meta_datetime.date()
-                                if hasattr(self._meta_datetime, "hour")
-                                else self._meta_datetime
-                            )
-                            if res.date() == old_date:
-                                return self._meta_datetime
+                        old_date = (
+                            self._meta_datetime.date()
+                            if hasattr(self._meta_datetime, "hour")
+                            else self._meta_datetime
+                        )
+                        if res.date() == old_date:
+                            return self._meta_datetime
 
                     if hasattr(self._meta_datetime, "hour"):
                         return res
