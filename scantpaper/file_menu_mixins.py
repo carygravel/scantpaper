@@ -566,9 +566,7 @@ class FileMenuMixins:
     def _file_writable(self, chooser, filename):
         "Check if a file or its directory is writable and show an error dialog if not."
 
-        if not os.access(
-            os.path.dirname(filename), os.W_OK
-        ):  # FIXME: replace with try/except
+        if not os.access(os.path.dirname(filename), os.W_OK):
             text = _("Directory %s is read-only") % (os.path.dirname(filename))
             self._show_message_dialog(
                 parent=chooser,
@@ -578,9 +576,7 @@ class FileMenuMixins:
             )
             return False
 
-        if os.path.isfile(filename) and not os.access(
-            filename, os.W_OK
-        ):  # FIXME: replace with try/except
+        if os.path.isfile(filename) and not os.access(filename, os.W_OK):
             text = _("File %s is read-only") % (filename)
             self._show_message_dialog(
                 parent=chooser,
