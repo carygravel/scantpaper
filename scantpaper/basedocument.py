@@ -154,7 +154,7 @@ class BaseDocument(SimpleList):
 
     def cancel(self, cancel_callback, process_callback=None):
         "Kill all running processes"
-        with self.thread.lock:  # FIXME: move most of this to basethread.py
+        with self.thread.lock:
             # Empty process queue first to stop any new process from starting
             logger.info("Emptying process queue")
             try:
@@ -167,9 +167,6 @@ class BaseDocument(SimpleList):
                     pass
             except queue.Empty:
                 pass
-
-            # jobs_completed = 0
-            # jobs_total = 0
 
             # Then send the thread a cancel signal
             # to stop it going beyond the next break point
@@ -224,7 +221,6 @@ class BaseDocument(SimpleList):
                 self.thread.running_pids[pidfile] = pidfile
         return pidfile
 
-    # TODO: now we have SQLite, probably more efficient to write a query
     def find_page_by_uuid(self, uid):
         "return page index given uuid"
         if uid is None:
