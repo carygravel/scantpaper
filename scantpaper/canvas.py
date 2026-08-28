@@ -277,8 +277,8 @@ class Bbox:
     def get_child_ordinal(self, child):
         "return index of given child"
         children = self.get_children()
-        for i in range(len(children)):
-            if child == children[i]:
+        for i, candidate in enumerate(children):
+            if child == candidate:
                 return i
         return NOT_FOUND
 
@@ -344,8 +344,8 @@ class Bbox:
 
             if self.parent is not None:
                 parent_children = self.parent.get_children()
-                for i in range(len(parent_children)):
-                    if parent_children[i] == self:
+                for i, parent_child in enumerate(parent_children):
+                    if parent_child == self:
                         parent_children.pop(i)
                         break
 

@@ -488,7 +488,7 @@ class Scan(PageControls):
         if device not in [None, ""]:
             idev = None
             device_list = self.device_list
-            if len(device_list):
+            if device_list:
                 for i, dev in enumerate(device_list):
                     if device == dev.name:
                         idev = i

@@ -564,8 +564,8 @@ class BaseDocument(SimpleList):
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
-        for i in range(len(self.data)):
-            self.data[i][0] = i + 1
+        for i, row in enumerate(self.data):
+            row[0] = i + 1
 
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
