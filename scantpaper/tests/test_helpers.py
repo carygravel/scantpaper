@@ -234,7 +234,7 @@ def test_show_message_dialog(mocker):
     # Mock global variables and MultipleMessage
     mocker.patch("helpers.MultipleMessage")
 
-    helpers.MESSAGE_DIALOG = None
+    helpers._MESSAGE_DIALOG = {"dialog": None}
     helpers.SETTING = {
         "message_window_width": 100,
         "message_window_height": 100,
@@ -252,7 +252,7 @@ def test_show_message_dialog(mocker):
     mock_mm.destroy.assert_called()
 
     # Test second call when MESSAGE_DIALOG already exists
-    helpers.MESSAGE_DIALOG = mock_mm
+    helpers._MESSAGE_DIALOG = {"dialog": mock_mm}
     mock_mm.grid_rows = 2
     show_message_dialog(parent=MagicMock())
 

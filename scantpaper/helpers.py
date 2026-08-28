@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 PROCESS_FAILED = -1
 SETTING = {}
-MESSAGE_DIALOG = None
+_MESSAGE_DIALOG = {"dialog": None}
 
 
 def _weak_callback(obj, method_name):
@@ -202,31 +202,29 @@ def expand_metadata_pattern(**kwargs):
 
 def show_message_dialog(**options):
     "show message dialog"
-    global MESSAGE_DIALOG
-    if not MESSAGE_DIALOG:
-        MESSAGE_DIALOG = MultipleMessage(
-            title=_("Messages"), transient_for=options["parent"]
-        )
-        MESSAGE_DIALOG.set_default_size(
+    dialog = _MESSAGE_DIALOG["dialog"]
+    if not dialog:
+        dialog = MultipleMessage(title=_("Messages"), transient_for=options["parent"])
+        dialog.set_default_size(
             SETTING["message_window_width"], SETTING["message_window_height"]
         )
+        _MESSAGE_DIALOG["dialog"] = dialog
 
     options["responses"] = SETTING["message"]
-    MESSAGE_DIALOG.add_message(options)
+    dialog.add_message(options)
 
     response = None
-    if MESSAGE_DIALOG.grid_rows > 1:
-        MESSAGE_DIALOG.show_all()
-        response = MESSAGE_DIALOG.run()
+    if dialog.grid_rows > 1:
+        dialog.show_all()
+        response = dialog.run()
 
-    if MESSAGE_DIALOG:  # could be undefined for multiple calls
-        if response is not None:
-            MESSAGE_DIALOG.store_responses(response, SETTING["message"])
-        (
-            SETTING["message_window_width"],
-            SETTING["message_window_height"],
-        ) = MESSAGE_DIALOG.get_size()
-        MESSAGE_DIALOG.destroy()
+    if response is not None:
+        dialog.store_responses(response, SETTING["message"])
+    (
+        SETTING["message_window_width"],
+        SETTING["message_window_height"],
+    ) = dialog.get_size()
+    dialog.destroy()
 
 
 def get_tmp_dir(dirname, pattern):
