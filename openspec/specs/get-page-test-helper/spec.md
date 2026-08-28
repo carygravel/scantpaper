@@ -1,6 +1,8 @@
 # get-page-test-helper
 
-Purpose: Provide a synchronous test helper for the async get_page mechanism.
+## Purpose
+
+Provide a synchronous test helper for the async get_page mechanism.
 
 ## Requirements
 

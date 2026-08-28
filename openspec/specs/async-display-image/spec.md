@@ -1,6 +1,8 @@
 # async-display-image
 
-Purpose: Async image display with thumbnail-first UX for the document viewer.
+## Purpose
+
+Async image display with thumbnail-first UX for the document viewer.
 
 ## Requirements
 

@@ -1,4 +1,10 @@
-## ADDED Requirements
+# async-undo-redo
+
+## Purpose
+
+Dispatch undo and redo through the worker thread's message-passing mechanism so document snapshot restoration and selection don't block the GUI.
+
+## Requirements
 
 ### Requirement: Async undo dispatch
 `DocThread` SHALL handle undo requests via the `send("undo", ...)` message-passing

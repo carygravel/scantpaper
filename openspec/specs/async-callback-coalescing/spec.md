@@ -1,6 +1,8 @@
 # async-callback-coalescing
 
-Purpose: One-at-a-time response processing with GLib.idle_add chaining to prevent GUI stalls during response bursts.
+## Purpose
+
+One-at-a-time response processing with GLib.idle_add chaining to prevent GUI stalls during response bursts.
 
 ## Requirements
 

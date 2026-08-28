@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD
+Open a document session asynchronously through the worker thread so the database load and page snapshot don't block the GUI.
 
 ## Requirements
 

@@ -1,8 +1,10 @@
+# ocr-recognition
+
 ## Purpose
 
 Generate a searchable text layer for a scanned page with tesseract, feeding page pixels to the recognition engine in memory and preserving the page's stored image.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: OCR feeds page pixels to the recognition engine without intermediate files
 When OCR is run on a page, the page's current in-memory pixels SHALL be passed directly to the tesseract engine; the system SHALL NOT write the page image to a temporary file as OCR input and SHALL NOT read the OCR output from a file written to disk.
