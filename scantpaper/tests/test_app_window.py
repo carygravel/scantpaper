@@ -109,6 +109,7 @@ def mock_config(mocker):
 @pytest.fixture
 def app_window(mocker, mock_builder, mock_config):
     "Fixture to create an ApplicationWindow instance with mocked dependencies"
+    del mock_builder, mock_config
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
 
@@ -997,7 +998,8 @@ def test_show_message_dialog_already_exists(app_window, mocker):
     assert app_window._message_dialog is None
 
 
-def test_pre_flight_linux(mocker, mock_builder, mock_config):
+@pytest.mark.usefixtures("mock_builder", "mock_config")
+def test_pre_flight_linux(mocker):
     "Test that recursive_slurp is called on Linux"
     mocker.patch("app_window.sys.platform", "linux")
     mock_slurp = mocker.patch("app_window.recursive_slurp")
@@ -1067,7 +1069,8 @@ def test_pre_flight_linux(mocker, mock_builder, mock_config):
         app.quit()
 
 
-def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
+@pytest.mark.usefixtures("mock_builder")
+def test_pre_flight_cwd_none(mocker, mock_config):
     "Test that cwd is set to os.getcwd() if it is None"
     mock_config.read_config.return_value["cwd"] = None
 
@@ -1141,7 +1144,8 @@ def test_pre_flight_cwd_none(mocker, mock_builder, mock_config):
         app.quit()
 
 
-def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp_path):
+@pytest.mark.usefixtures("mock_builder", "mock_config")
+def test_populate_main_window_cwd_missing(mocker, tmp_path):
     "Test that cwd is set to os.getcwd() if it is missing in _populate_main_window"
 
     mocker.patch("app_window.Document")
@@ -1230,7 +1234,8 @@ def test_populate_main_window_cwd_missing(mocker, mock_builder, mock_config, tmp
         app.quit()
 
 
-def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_path):
+@pytest.mark.usefixtures("mock_builder")
+def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
     "Test that scan_dialog and _import_files are called during init if configured"
     mock_config.read_config.return_value["auto-open-scan-dialog"] = True
 
@@ -1317,7 +1322,8 @@ def test_init_with_auto_open_and_imports(mocker, mock_builder, mock_config, tmp_
         app.quit()
 
 
-def test_populate_panes_tool_selection(mocker, mock_builder, mock_config, tmp_path):
+@pytest.mark.usefixtures("mock_builder")
+def test_populate_panes_tool_selection(mocker, mock_config, tmp_path):
     "Test _populate_panes with different image_control_tool settings"
 
     mocker.patch("app_window.Document")

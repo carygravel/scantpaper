@@ -31,7 +31,8 @@ def mock_ocr_setup(mocker):
     mocker.patch("postprocess_controls.languages", side_effect=mock_languages)
 
 
-def test_ocr_controls_default_language(mock_ocr_setup):
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_ocr_controls_default_language():
     "Test that OCRControls defaults to the first language if none provided"
 
     controls = OCRControls(
@@ -326,7 +327,8 @@ class TestOCRControls:
         assert controls.language == "deu"
 
 
-def test_engine_property(mock_ocr_setup):
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_engine_property():
     "Test engine property"
     controls = OCRControls(
         available_engines=[["tesseract", "Tesseract", "Desc"]], engine="tesseract"

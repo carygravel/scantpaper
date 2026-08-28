@@ -235,9 +235,10 @@ def test_can_duplex():
     assert not options.can_duplex(), "no duplex option"
 
 
-def test_option_name_none(
-    sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+@pytest.mark.usefixtures(
+    "sane_scan_dialog", "set_device_wait_reload", "mainloop_with_timeout"
+)
+def test_option_name_none():
     "test option.name=None"
 
     raw_options = [

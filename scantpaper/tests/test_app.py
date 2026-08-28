@@ -46,7 +46,8 @@ def mock_deps(mocker):
     mocker.patch("app.os.remove")
 
 
-def test_application_do_activate(mock_deps):
+@pytest.mark.usefixtures("mock_deps")
+def test_application_do_activate():
     "Test Application.do_activate"
     app = Application()
     app.window = None
@@ -71,7 +72,8 @@ def test_application_do_activate(mock_deps):
     mock_window.present.assert_called_once()
 
 
-def test_parse_arguments_default(mock_deps):
+@pytest.mark.usefixtures("mock_deps")
+def test_parse_arguments_default():
     "Test _parse_arguments with default arguments"
     with patch("sys.argv", ["prog"]):
         args = _parse_arguments()
@@ -80,14 +82,16 @@ def test_parse_arguments_default(mock_deps):
         app_module.logging.basicConfig.assert_called_with(level=logging.WARNING)
 
 
-def test_parse_arguments_debug(mock_deps):
+@pytest.mark.usefixtures("mock_deps")
+def test_parse_arguments_debug():
     "Test _parse_arguments with --debug"
     with patch("sys.argv", ["prog", "--debug"]):
         args = _parse_arguments()
         assert args.log_level == logging.DEBUG
 
 
-def test_parse_arguments_log_file(mock_deps, mocker):
+@pytest.mark.usefixtures("mock_deps")
+def test_parse_arguments_log_file(mocker):
     "Test _parse_arguments with --log"
     with patch("sys.argv", ["prog", "--log", "test.log"]):
         _parse_arguments()
@@ -119,7 +123,8 @@ def test_parse_arguments_log_file(mock_deps, mocker):
         mock_remove.assert_called()
 
 
-def test_parse_arguments_log_compression_error(mock_deps, mocker):
+@pytest.mark.usefixtures("mock_deps")
+def test_parse_arguments_log_compression_error(mocker):
     "Test log compression error handling"
     with patch("sys.argv", ["prog", "--log", "test.log"]):
         _parse_arguments()
@@ -134,7 +139,8 @@ def test_parse_arguments_log_compression_error(mock_deps, mocker):
         logger.error.assert_called()
 
 
-def test_parse_arguments_locale(mock_deps, mocker):
+@pytest.mark.usefixtures("mock_deps")
+def test_parse_arguments_locale(mocker):
     "Test _parse_arguments with --locale"
     # Test specific locale path (starts with /)
     with patch("sys.argv", ["prog", "--locale", "/usr/share/locale"]):
@@ -159,7 +165,8 @@ def test_parse_arguments_locale(mock_deps, mocker):
             )
 
 
-def test_parse_arguments_multiple_instances(mock_deps):
+@pytest.mark.usefixtures("mock_deps")
+def test_parse_arguments_multiple_instances():
     "Test _parse_arguments with multiple instances of --device, --import, and --import-all"
     test_args = [
         "prog",
@@ -187,7 +194,8 @@ def test_parse_arguments_multiple_instances(mock_deps):
         assert args.import_all == ["dir1", "dir2", "dir3"]
 
 
-def test_main(mock_deps, mocker):
+@pytest.mark.usefixtures("mock_deps")
+def test_main(mocker):
     "Test main function"
     mock_app_cls = mocker.patch("app.Application")
     mock_app = mock_app_cls.return_value
@@ -199,7 +207,8 @@ def test_main(mock_deps, mocker):
         mock_app.run.assert_called()
 
 
-def test_application_init_iconpath_fallback(mock_deps, mocker):
+@pytest.mark.usefixtures("mock_deps")
+def test_application_init_iconpath_fallback(mocker):
     "Test Application.__init__ with iconpath fallback"
     mocker.patch("app.os.path.isdir", return_value=False)
     # Gtk.IconTheme.get_default() was already mocked in mock_deps
@@ -211,7 +220,8 @@ def test_application_init_iconpath_fallback(mock_deps, mocker):
     )
 
 
-def test_application_init_iconpath_in_package(mock_deps, mocker):
+@pytest.mark.usefixtures("mock_deps")
+def test_application_init_iconpath_in_package(mocker):
     "Test Application.__init__ resolves icons from inside the package"
     mocker.patch("app.os.path.isdir", return_value=True)
     Application()
@@ -223,7 +233,8 @@ def test_application_init_iconpath_in_package(mock_deps, mocker):
     )
 
 
-def test_application_do_startup(mock_deps):
+@pytest.mark.usefixtures("mock_deps")
+def test_application_do_startup():
     "Test Application.do_startup"
     app = Application()
     app.do_startup()
