@@ -188,16 +188,6 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _import_file_data_callback
         self.thread.import_file(**kwargs)
 
-    def _data_callback(self, response, options, post_process=False):
-        "add a page from a worker response, then log any errors"
-        info = response.info
-        if info and "type" in info and info["type"] == "page":
-            self.add_page(*info["row"], **info)
-            if post_process:
-                self._post_process_scan(info["row"][2], options)
-        elif "logger_callback" in options:
-            options["logger_callback"](response)
-
     def _post_process_rotate(self, page_id, options):
 
         def updated_page_callback(response):
@@ -298,7 +288,7 @@ class Document(BaseDocument):
 
         import_scan_kwargs = kwargs.copy()
         import_scan_kwargs["data_callback"] = partial(
-            self._data_callback, options=kwargs, post_process=True
+            self.data_callback, options=kwargs, post_process=True
         )
         if "finished_callback" in import_scan_kwargs:
             del import_scan_kwargs["finished_callback"]
@@ -308,7 +298,7 @@ class Document(BaseDocument):
         """split the given page either vertically or horizontally, creating an
         additional page"""
 
-        kwargs["data_callback"] = partial(self._data_callback, options=kwargs)
+        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.split_page(**kwargs)
 
     def ocr_pages(self, **kwargs):
@@ -321,13 +311,13 @@ class Document(BaseDocument):
     def unpaper(self, **kwargs):
         "run unpaper on the given page"
 
-        kwargs["data_callback"] = partial(self._data_callback, options=kwargs)
+        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.unpaper(**kwargs)
 
     def user_defined(self, **kwargs):
         "run a user-defined command on a page"
 
-        kwargs["data_callback"] = partial(self._data_callback, options=kwargs)
+        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.user_defined(**kwargs)
 
     def undo(self, finished_callback=None, error_callback=None):

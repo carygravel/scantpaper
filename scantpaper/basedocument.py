@@ -10,6 +10,7 @@ import signal
 import tempfile
 import weakref
 from collections import defaultdict
+from functools import partial
 
 import gi
 from docthread import INSERT_AT_START, DocThread
@@ -220,6 +221,16 @@ class BaseDocument(SimpleList):
             with self.thread.lock:
                 self.thread.running_pids[pidfile] = pidfile
         return pidfile
+
+    def data_callback(self, response, options, post_process=False):
+        "add a page from a worker response, then log any errors"
+        info = response.info
+        if info and "type" in info and info["type"] == "page":
+            self.add_page(*info["row"], **info)
+            if post_process:
+                self._post_process_scan(info["row"][2], options)
+        elif "logger_callback" in options:
+            options["logger_callback"](response)
 
     def find_page_by_uuid(self, uid):
         "return page index given uuid"
@@ -609,17 +620,7 @@ def _save_method_generator(method_name):
 
 def _modify_method_generator(method_name):
     def _generic_method(self, _method_name, **kwargs):
-
-        # FIXME: duplicate to _import_file_data_callback()
-        def _data_callback(response):
-            info = response.info
-            if info and "type" in info and info["type"] == "page":
-                self.add_page(*info["row"], **info)
-            else:
-                if "logger_callback" in kwargs:
-                    kwargs["logger_callback"](response)
-
-        kwargs["data_callback"] = _data_callback
+        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self._note_callbacks(kwargs)
         method = getattr(self.thread, _method_name)
         method(**kwargs)
