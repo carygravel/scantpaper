@@ -1366,7 +1366,7 @@ class DocThread(SaveThread):
     def _run_unpaper_cmd(self, request):
         options = request.args[0]
         # SIM115: cross-scope file handle used intentionally
-        out = tempfile.NamedTemporaryFile(  # noqa: SIM115
+        out = tempfile.NamedTemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
             dir=options.get("dir"), suffix=".pnm"
         )
         out2 = None
@@ -1375,7 +1375,7 @@ class DocThread(SaveThread):
         index = options["options"]["command"].index("--output-pages")
         if options["options"]["command"][index + 1] == "2":
             # SIM115: cross-scope file handle used intentionally
-            out2 = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            out2 = tempfile.NamedTemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
                 dir=options.get("dir"), suffix=".pnm"
             )
             options["options"]["command"][-1] = out2.name

@@ -49,7 +49,12 @@ class SessionMixins:
                 )
             except (FileNotFoundError, PermissionError) as e:
                 logger.error("Error creating temporary directory: %s", e)
-                self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
+                # Keep as fallback: handle stored on self for session lifetime
+                self.session = (
+                    tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
+                        prefix="scantpaper-"
+                    )
+                )
 
         self._lockfd = self._create_lockfile()
         logger.info("Using %s for temporary files", self.session.name)
@@ -69,7 +74,7 @@ class SessionMixins:
         if session is None:
             session = self.session.name
         # SIM115: cross-scope file handle used intentionally
-        lockfd = open(  # noqa: SIM115
+        lockfd = open(  # noqa: SIM115  # pylint: disable=consider-using-with
             os.path.join(session, "lockfile"), "w", encoding="utf-8"
         )
         fcntl.lockf(lockfd, fcntl.LOCK_EX)

@@ -248,7 +248,9 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 def temp_db():
     "return a temporary db"
     # SIM115 — cross-scope file handle used intentionally
-    f = tempfile.NamedTemporaryFile(suffix=".db", delete=False)  # noqa: SIM115
+    f = tempfile.NamedTemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
+        suffix=".db", delete=False
+    )
     f.close()
     yield SimpleNamespace(name=f.name)
     for suffix in ("", "-wal", "-shm"):
