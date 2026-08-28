@@ -795,6 +795,18 @@ def test_insert_image_not_found(mocker):
         thread._insert_image(mock_page, if_different_from=1)
 
 
+def test_reuse_image_thumb_not_found(mocker):
+    "test _reuse_image_thumb with an unknown image id"
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch.object(thread, "_execute")
+    mocker.patch.object(thread, "_fetchone", return_value=None)
+
+    with pytest.raises(ValueError, match="Image id 99 not found"):
+        thread._reuse_image_thumb(99)
+
+
 def test_add_page_insert_after_not_found(mocker):
     "test add_page with a non-existent insert_after page"
     thread = DocThread(db=":memory:")
