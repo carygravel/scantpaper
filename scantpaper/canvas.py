@@ -969,6 +969,7 @@ class Canvas(Gtk.DrawingArea):
 
     def add_box(self, **kwargs):
         "add box to canvas"
+        # pylint: disable=consider-using-get -- eager default would call get_bbox_at() unconditionally
         if "parent" in kwargs:
             parent = kwargs["parent"]
         else:

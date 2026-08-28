@@ -228,11 +228,7 @@ class BaseDocument(SimpleList):
 
     def add_page(self, number, thumb, page_id, **kwargs):
         "Add a new page to the document"
-        ref = None
-        if "insert-after" in kwargs:
-            ref = kwargs["insert-after"]
-        elif "replace" in kwargs:
-            ref = kwargs["replace"]
+        ref = kwargs.get("insert-after", kwargs.get("replace"))
         i = None
         if ref is not None:
             if ref == INSERT_AT_START:
