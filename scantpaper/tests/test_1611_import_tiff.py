@@ -4,10 +4,13 @@ import os
 import pathlib
 import subprocess
 import tempfile
+import threading
+import time
 from unittest.mock import MagicMock
 
 import config
 from document import Document
+from helpers import exec_command_run
 from loop_helpers import safe_mainloop
 from PIL import Image
 
@@ -215,3 +218,44 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync
     assert (
         page.image_object.mode == "RGB"
     ), "TIFF imported correctly after cancelling previous import"
+
+
+def test_cancel_kills_registered_pidfile_process(temp_db):
+    "Test cancel() kills a process spawned through a registered pidfile"
+    slist = Document(db=temp_db.name)
+    pidfile = slist.create_pidfile({})
+    assert pidfile is not None
+
+    result = {}
+
+    def run_sleep():
+        result["proc"] = exec_command_run(["sleep", "30"], pidfile, check=False)
+
+    worker = threading.Thread(target=run_sleep)
+    worker.start()
+
+    # Wait until the spawn pid has been written to the pidfile
+    pid = ""
+    for _ in range(200):
+        pidfile.seek(0)
+        pid = pidfile.read().strip()
+        if pid:
+            break
+        time.sleep(0.01)
+    assert pid, "spawn pid written to pidfile"
+    assert pidfile in slist.thread.running_pids, "pidfile registered while running"
+
+    mlp = safe_mainloop(3000)
+    cancelled = []
+
+    def cancelled_callback(_response):
+        cancelled.append(True)
+        mlp.quit()
+
+    slist.cancel(cancelled_callback)
+    mlp.run()
+
+    assert cancelled, "cancel callback ran"
+    worker.join(timeout=5)
+    assert not worker.is_alive(), "sleep process was killed"
+    assert pidfile not in slist.thread.running_pids, "pidfile deregistered after cancel"

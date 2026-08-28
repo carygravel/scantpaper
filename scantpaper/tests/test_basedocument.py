@@ -75,6 +75,16 @@ def test_create_pidfile_error():
     assert error_called
 
 
+def test_create_pidfile_registers_in_running_pids(mock_thread, tmp_path):
+    "Test create_pidfile registers the pidfile in running_pids"
+    slist = Document(dir=tmp_path)
+    slist.thread.running_pids = {}
+    pidfile = slist.create_pidfile({})
+    assert pidfile is not None
+    assert pidfile in slist.thread.running_pids
+    assert slist.thread.running_pids[pidfile] is pidfile
+
+
 def test_cancel(mock_thread):
     "Test cancel method"
     mock_thread.running_pids = {"dummy.pid": "dummy.pid"}
@@ -94,7 +104,7 @@ def test_cancel(mock_thread):
         slist.cancel(cancel_callback, process_callback)
 
         assert slist.thread.cancel is True
-        process_callback.assert_called_with("12345")
+        process_callback.assert_called_with(12345)
         mock_killpg.assert_called_once_with(12345, signal.SIGKILL)
         assert "dummy.pid" not in slist.thread.running_pids
 
@@ -796,6 +806,20 @@ def test_cancel_with_empty_pid(mock_thread):
     ):
         slist.cancel(MagicMock())
         mock_killpg.assert_not_called()
+
+
+def test_cancel_already_dead_pid(mock_thread):
+    "Test cancel handles a pid that is already dead (ProcessLookupError)"
+    mock_thread.running_pids = {"dead.pid": "dead.pid"}
+    slist = Document()
+
+    with (
+        patch("basedocument.slurp", return_value="99999"),
+        patch("os.killpg", side_effect=ProcessLookupError),
+    ):
+        slist.cancel(MagicMock())
+
+    assert "dead.pid" not in slist.thread.running_pids, "pidfile deregistered"
 
 
 def test_delete_selection_callback_removes_rows():

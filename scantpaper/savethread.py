@@ -7,7 +7,6 @@ import os
 import pathlib
 import re
 import shutil
-import subprocess
 import tempfile
 from collections import defaultdict
 
@@ -17,7 +16,7 @@ import pikepdf
 from basethread import Request
 from bboxtree import Bboxtree
 from const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
-from helpers import exec_command
+from helpers import exec_command, exec_command_run
 from i18n import _
 from importthread import Importhread, _note_callbacks
 from ocrmypdf import hookimpl
@@ -314,12 +313,20 @@ class SaveThread(Importhread):
                         )
                         return
 
-                    _post_save_hook(options["options"]["ps"], options["options"])
+                    _post_save_hook(
+                        options["options"]["ps"],
+                        options["options"],
+                        pidfile=options.get("pidfile"),
+                    )
 
                 else:
-                    _post_save_hook(filename, options.get("options"))
+                    _post_save_hook(
+                        filename, options.get("options"), pidfile=options.get("pidfile")
+                    )
             else:
-                _post_save_hook(filename, options.get("options"))
+                _post_save_hook(
+                    filename, options.get("options"), pidfile=options.get("pidfile")
+                )
             self.do_set_saved(
                 Request("set_saved", (options["list_of_pages"], True), self.responses)
             )
@@ -372,7 +379,7 @@ class SaveThread(Importhread):
 
         self._add_metadata_to_djvu(args)
         _set_timestamp(args)
-        _post_save_hook(args["path"], args.get("options"))
+        _post_save_hook(args["path"], args.get("options"), pidfile=args.get("pidfile"))
         self.do_set_saved(
             Request("set_saved", (args["list_of_pages"], True), self.responses)
         )
@@ -416,7 +423,7 @@ class SaveThread(Importhread):
                     options["path"],
                     "-s",
                 ]
-                subprocess.run(cmd, check=True)
+                exec_command_run(cmd, options.get("pidfile"), check=True)
                 self.check_cancelled()
                 # if status:
                 #     logger.error("Error adding metadata info to DjVu file")
@@ -471,7 +478,7 @@ class SaveThread(Importhread):
         request.data(1.0)
         # self.message = _("Concatenating TIFFs")
         cmd = ["tiffcp", *compression, *filelist, options["path"]]
-        subprocess.run(cmd, check=True)
+        exec_command_run(cmd, options.get("pidfile"), check=True)
         for filename in filelist:
             os.remove(filename)
         self.check_cancelled()
@@ -495,10 +502,16 @@ class SaveThread(Importhread):
                 request.error(_("Error converting TIFF to PS: %s") % (proc.stderr))
                 return
 
-            _post_save_hook(options["options"]["ps"], options["options"])
+            _post_save_hook(
+                options["options"]["ps"],
+                options["options"],
+                pidfile=options.get("pidfile"),
+            )
 
         else:
-            _post_save_hook(options["path"], options["options"])
+            _post_save_hook(
+                options["path"], options["options"], pidfile=options.get("pidfile")
+            )
         self.do_set_saved(
             Request("set_saved", (options["list_of_pages"], True), self.responses)
         )
@@ -523,7 +536,9 @@ class SaveThread(Importhread):
             # if proc.returncode:
             #     request.error(_("Error saving image"))
 
-            _post_save_hook(filename, options.get("options"))
+            _post_save_hook(
+                filename, options.get("options"), pidfile=options.get("pidfile")
+            )
         self.do_set_saved(
             Request("set_saved", (options["list_of_pages"], True), self.responses)
         )
@@ -548,7 +563,9 @@ class SaveThread(Importhread):
 
         if "options" not in options:
             options["options"] = None
-        _post_save_hook(options["path"], options["options"])
+        _post_save_hook(
+            options["path"], options["options"], pidfile=options.get("pidfile")
+        )
 
     def save_hocr(self, **kwargs):
         "save hocr file"
@@ -584,7 +601,9 @@ class SaveThread(Importhread):
 
         if "options" not in options:
             options["options"] = None
-        _post_save_hook(options["path"], options["options"])
+        _post_save_hook(
+            options["path"], options["options"], pidfile=options.get("pidfile")
+        )
 
     def do_set_paper_sizes(self, request):
         "set paper sizes in thread"
@@ -644,8 +663,9 @@ class SaveThread(Importhread):
                     flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
                 # options["command"] = options["command"].split(" ")
-                sbp = subprocess.run(
+                sbp = exec_command_run(
                     command,
+                    options.get("pidfile"),
                     capture_output=True,
                     check=True,
                     text=True,
@@ -816,7 +836,7 @@ def _set_timestamp(options):
     os.utime(options["path"], (adatetime, adatetime))
 
 
-def _post_save_hook(filename, options):
+def _post_save_hook(filename, options, pidfile=None):
     if options is not None and "post_save_hook" in options:
         args = options["post_save_hook"].split(" ")
         for i, arg in enumerate(args):
@@ -824,7 +844,7 @@ def _post_save_hook(filename, options):
                 "%i", filename, arg, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
             )
         logger.info(args)
-        subprocess.run(args, check=True)
+        exec_command_run(args, pidfile, check=True)
 
 
 def _encrypt_pdf(filename, options, request):
@@ -840,8 +860,9 @@ def _encrypt_pdf(filename, options, request):
         ]
     cmd += [filename, options["path"]]
 
-    spo = subprocess.run(
+    spo = exec_command_run(
         cmd,
+        options.get("pidfile"),
         check=True,
         capture_output=True,
         text=True,

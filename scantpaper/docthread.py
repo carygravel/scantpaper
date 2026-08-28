@@ -18,6 +18,7 @@ import gi
 import tesserocr
 from bboxtree import Bboxtree
 from const import APPLICATION_ID, THUMBNAIL, USER_VERSION
+from helpers import exec_command_run
 from i18n import _
 from importthread import _note_callbacks
 from page import Page
@@ -1382,8 +1383,9 @@ class DocThread(SaveThread):
         else:
             del options["options"]["command"][-1]
 
-        spo = subprocess.run(
+        spo = exec_command_run(
             options["options"]["command"],
+            options.get("pidfile"),
             check=True,
             capture_output=True,
             text=True,

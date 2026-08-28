@@ -45,19 +45,66 @@ def exec_command(cmd, pidfile=None):
     "wrapper for subprocess.Popen()"
 
     logger.info(" ".join(cmd))
+    kwargs = {}
+    if pidfile is not None:
+        # Put the child in its own session so that cancel() can killpg() it
+        # without taking down the process group of the whole application.
+        kwargs["start_new_session"] = True
     try:
         with subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            **kwargs,
         ) as proc:
             logger.info("Spawned PID %s", proc.pid)
             if pidfile is not None:
                 pidfile.write(str(proc.pid))
+                pidfile.flush()
             stdout_data, stderr_data = proc.communicate()
             returncode = proc.returncode
     except FileNotFoundError as err:
         returncode, stdout_data, stderr_data = -1, None, str(err)
 
     return Proc(returncode, stdout_data, stderr_data)
+
+
+def exec_command_run(
+    cmd,
+    pidfile=None,
+    *,
+    check=False,
+    capture_output=False,
+    text=True,
+    shell=False,
+    **kwargs,
+):
+    """run a command like subprocess.run() but record the spawn pid in the
+    pidfile so that cancellation can kill the child process group"""
+    kwargs = dict(kwargs)
+    if pidfile is not None:
+        kwargs["start_new_session"] = True
+    if capture_output:
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.PIPE
+    kwargs["text"] = text
+    try:
+        with subprocess.Popen(cmd, shell=shell, **kwargs) as proc:
+            if pidfile is not None:
+                pidfile.write(str(proc.pid))
+                pidfile.flush()
+            stdout_data, stderr_data = proc.communicate()
+            returncode = proc.returncode
+    except FileNotFoundError as err:
+        if check:
+            raise
+        return subprocess.CompletedProcess(cmd, PROCESS_FAILED, None, str(err))
+    if check and returncode != 0:
+        raise subprocess.CalledProcessError(
+            returncode, cmd, output=stdout_data, stderr=stderr_data
+        )
+    return subprocess.CompletedProcess(cmd, returncode, stdout_data, stderr_data)
 
 
 def program_version(stream, regex, cmd):
@@ -193,6 +240,12 @@ def get_tmp_dir(dirname, pattern):
 
 def slurp(file):
     "slurp file"
+    if hasattr(file, "read"):
+        file.seek(0)
+        content = file.read()
+        if isinstance(content, bytes):
+            return content.decode("utf-8", "replace")
+        return content
     with open(file, "r", encoding="utf-8") as fhd:
         return fhd.read()
 

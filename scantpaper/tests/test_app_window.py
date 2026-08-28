@@ -190,6 +190,15 @@ def test_init(app_window):
     assert app_window.session.name == "/tmp/session"
 
 
+def test_post_process_progress_cancel_callback_wired(app_window):
+    "Test the post-process progress bar has a cancel callback wired to slist.cancel"
+    assert callable(app_window.post_process_progress.cancel_callback)
+    assert app_window.post_process_progress.cancel_callback.__self__ is app_window
+    app_window.slist.cancel = mocker = MagicMock()
+    app_window.post_process_progress.cancel_callback()
+    mocker.assert_called_once_with(app_window.post_process_progress.finish)
+
+
 def test_drag_motion_callback(mocker):
     "Test drag_motion_callback"
     mocker.patch("app_window.Gdk.drag_status")

@@ -330,7 +330,7 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
         patch("savethread.os.remove"),
         patch("savethread._set_timestamp"),
         patch("savethread._post_save_hook"),
-        patch("savethread.subprocess.run") as mock_run,
+        patch("savethread.exec_command_run") as mock_run,
     ):
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
         mock_exec.return_value.returncode = 0
@@ -366,7 +366,7 @@ def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
         patch("savethread.os.remove"),
         patch("savethread._set_timestamp"),
         patch("savethread._post_save_hook"),
-        patch("savethread.subprocess.run"),
+        patch("savethread.exec_command_run"),
     ):
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
         mock_exec.return_value.returncode = 1
@@ -393,7 +393,7 @@ def test_save_tiff(mock_thread_instance, mock_page_instance):
 
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
-        patch("savethread.subprocess.run") as mock_run,
+        patch("savethread.exec_command_run") as mock_run,
         patch("savethread.os.remove"),
         patch("savethread._post_save_hook"),
     ):
@@ -422,7 +422,7 @@ def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
 
     with (
         patch("savethread.tempfile.NamedTemporaryFile"),
-        patch("savethread.subprocess.run"),
+        patch("savethread.exec_command_run"),
         patch("savethread.exec_command") as mock_exec,
         patch("savethread.os.remove"),
         patch("savethread._post_save_hook"),
@@ -450,7 +450,7 @@ def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
 
     with (
         patch("savethread.tempfile.NamedTemporaryFile"),
-        patch("savethread.subprocess.run"),
+        patch("savethread.exec_command_run"),
         patch("savethread.exec_command") as mock_exec,
         patch("savethread.os.remove"),
         patch("savethread._post_save_hook"),
@@ -480,7 +480,7 @@ def test_save_image(mock_thread_instance, mock_page_instance):
     with patch("savethread._post_save_hook") as mock_hook:
         mock_thread_instance.do_save_image(request)
         assert mock_page_instance.image_object.save.called
-        mock_hook.assert_called_with("/tmp/output.png", {})
+        mock_hook.assert_called_with("/tmp/output.png", {}, pidfile=None)
 
 
 def test_save_image_multiple(mock_thread_instance, mock_page_instance):
@@ -498,8 +498,8 @@ def test_save_image_multiple(mock_thread_instance, mock_page_instance):
     with patch("savethread._post_save_hook") as mock_hook:
         mock_thread_instance.do_save_image(request)
         assert mock_page_instance.image_object.save.call_count == 2
-        mock_hook.assert_any_call("/tmp/output-1.png", {})
-        mock_hook.assert_any_call("/tmp/output-2.png", {})
+        mock_hook.assert_any_call("/tmp/output-1.png", {}, pidfile=None)
+        mock_hook.assert_any_call("/tmp/output-2.png", {}, pidfile=None)
 
 
 def test_save_text(mock_thread_instance, mock_page_instance):
@@ -548,7 +548,7 @@ def test_user_defined(mock_thread_instance, mock_page_instance):
 
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
-        patch("savethread.subprocess.run") as mock_run,
+        patch("savethread.exec_command_run") as mock_run,
         patch("savethread.Image.open"),
         patch("savethread.Page"),
     ):
@@ -683,7 +683,7 @@ def test_fix_pdf_metadata_removes_title(temp_pdf, remove_title):
 
 def test_post_save_hook():
     "Test _post_save_hook function"
-    with patch("savethread.subprocess.run") as mock_run:
+    with patch("savethread.exec_command_run") as mock_run:
         _post_save_hook("/tmp/file", {"post_save_hook": "echo %i"})
         assert mock_run.called
         assert "echo" in mock_run.call_args[0][0]
@@ -693,7 +693,7 @@ def test_post_save_hook():
 def test_encrypt_pdf():
     "Test _encrypt_pdf function"
     request = MagicMock()
-    with patch("savethread.subprocess.run") as mock_run:
+    with patch("savethread.exec_command_run") as mock_run:
         mock_run.return_value.returncode = 0
         options = {"path": "/tmp/output.pdf", "options": {"user-password": "password"}}
         ret = _encrypt_pdf("/tmp/input.pdf", options, request)
@@ -711,7 +711,7 @@ def test_encrypt_pdf_failure():
     mock_spo = MagicMock()
     mock_spo.returncode = 1
     mock_spo.stderr = "qpdf error"
-    with patch("savethread.subprocess.run", return_value=mock_spo):
+    with patch("savethread.exec_command_run", return_value=mock_spo):
         ret = _encrypt_pdf("/tmp/input.pdf", options, request)
         assert ret == 1
         assert request.error.called

@@ -202,6 +202,10 @@ class BaseThread(threading.Thread):
         for k, val in kwargs.items():
             if k[:-9] in self.additional_callbacks:
                 callbacks[k] = val
+            # Non-callback kwargs (e.g. a pidfile for a get_file_info request)
+            # are attached to the request so the handler can reach them.
+            elif k not in callbacks:
+                setattr(request, k, val)
         if not self.callbacks:
             self.total_jobs = 0
             self.num_completed_jobs = 0
@@ -233,6 +237,7 @@ class BaseThread(threading.Thread):
             request.finished(handler(request))
             if request.process == "quit":
                 return False
+            self._request_completed(request)
         except Exception as err:  # noqa: BLE001
             # BLE001 — the handler is a do_<process> method that may raise
             # arbitrary exceptions from external code (SANE, file I/O, ...),
@@ -243,8 +248,12 @@ class BaseThread(threading.Thread):
                 request.process,
                 err,
             )
+            self._request_completed(request)
             request.error(None, str(err))
         return True
+
+    def _request_completed(self, _request):
+        "hook called when a request's handler has finished or failed"
 
     def monitor(self):
         "monitor the thread, triggering one response callback"

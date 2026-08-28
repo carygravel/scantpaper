@@ -304,17 +304,11 @@ def test_get_djvu_info_corrupt(mocker):
         thread._get_djvu_info({}, None)
 
 
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("importthread.Page")
-def test_do_import_djvu_annotation_error(mock_page, mock_co, mock_run):
+def test_do_import_djvu_annotation_error(mock_page, mock_run):
     "Test that error is raised when import_djvu_ann raises an error"
     mock_run.return_value = Proc(
-        returncode=0,
-        stdout="",
-        stderr="",
-    )
-    mock_co.return_value = Proc(
         returncode=0,
         stdout="",
         stderr="",
@@ -348,7 +342,7 @@ def test_do_import_djvu_annotation_error(mock_page, mock_co, mock_run):
     mock_request.error.assert_called_once_with("Error: parsing DjVU annotation layer")
 
 
-@unittest.mock.patch("subprocess.run")
+@unittest.mock.patch("importthread.exec_command_run")
 def test_get_pdf_info_error(mock_run):
     "Test that request.error is thrown when pdfinfo returns error"
     mock_run.side_effect = subprocess.CalledProcessError(
@@ -363,22 +357,25 @@ def test_get_pdf_info_error(mock_run):
     mock_request.error.assert_called_once_with("Permission denied")
 
 
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
-def test_get_pdf_images_error(mock_co, mock_run):
+@unittest.mock.patch("importthread.exec_command_run")
+def test_get_pdf_images_error(mock_run):
     "Test that request.error is thrown when pdfimages returns error"
-    mock_co.return_value = (
-        _PDFIMAGES_LIST_HEADER
-        + "   1     0 image     157   196  gray    1   1  ccitt  no   [inline]"
-        + "      72    72    0B 0.0%"
-        + "\n"
-    )
-    mock_run.side_effect = subprocess.CalledProcessError(
-        returncode=1,
-        cmd=["pdfimages", "-f"],
-        output="",
-        stderr="Permission denied",
-    )
+    mock_run.side_effect = [
+        Proc(
+            returncode=0,
+            stdout=_PDFIMAGES_LIST_HEADER
+            + "   1     0 image     157   196  gray    1   1  ccitt  no   [inline]"
+            + "      72    72    0B 0.0%"
+            + "\n",
+            stderr="",
+        ),
+        subprocess.CalledProcessError(
+            returncode=1,
+            cmd=["pdfimages", "-f"],
+            output="",
+            stderr="Permission denied",
+        ),
+    ]
     thread = Importhread()
     mock_request = unittest.mock.Mock()
     mock_request.args = (
@@ -397,18 +394,22 @@ def test_get_pdf_images_error(mock_co, mock_run):
     mock_request.error.assert_called_once_with("Error extracting images from PDF")
 
 
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
-def test_import_pdf_image_error(mock_page, mock_glob, mock_co, _mock_run):
+def test_import_pdf_image_error(mock_page, mock_glob, mock_run):
     "Test that request.error is thrown when importing individual images fails"
-    mock_co.return_value = (
-        _PDFIMAGES_LIST_HEADER
-        + "   1     0 image     157   196  gray    1   1  ccitt  no   [inline]"
-        + "      72    72    0B 0.0%"
-        + "\n"
-    )
+    mock_run.side_effect = [
+        Proc(
+            returncode=0,
+            stdout=_PDFIMAGES_LIST_HEADER
+            + "   1     0 image     157   196  gray    1   1  ccitt  no   [inline]"
+            + "      72    72    0B 0.0%"
+            + "\n",
+            stderr="",
+        ),
+        unittest.mock.Mock(returncode=0),
+    ]
 
     # Simulate the presence of image files
     mock_glob.side_effect = [[], ["x-01.pnm"]]
@@ -474,16 +475,25 @@ def _pdf_import_request(mock_request, first, last):
     mock_request.args = (_pdf_import_args(first, last), None)
 
 
+def _pdf_exec_command_run_side_effect(list_output):
+    "mock exec_command_run for _do_import_pdf tests"
+
+    def _side_effect(cmd, pidfile=None, **kwargs):
+        if "-list" in cmd:
+            return Proc(returncode=0, stdout=list_output, stderr="")
+        return unittest.mock.Mock(returncode=0)
+
+    return _side_effect
+
+
 @unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
-def test_import_pdf_skips_smask(mock_page, mock_glob, mock_co, mock_run, _mock_remove):
+def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, _mock_remove):
     "Test that a soft mask is not imported as a page"
-    mock_co.return_value = _LIST_IMAGE_SMASK
+    mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE_SMASK)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
-    mock_run.return_value = unittest.mock.Mock(returncode=0)
 
     thread = Importhread()
     thread.add_page = unittest.mock.Mock()
@@ -499,17 +509,13 @@ def test_import_pdf_skips_smask(mock_page, mock_glob, mock_co, mock_run, _mock_r
 
 
 @unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
-def test_import_pdf_no_warning_for_smask(
-    _mock_page, mock_glob, mock_co, mock_run, _mock_remove
-):
+def test_import_pdf_no_warning_for_smask(_mock_page, mock_glob, mock_run, _mock_remove):
     "Test that an image plus soft mask does not trigger a warning"
-    mock_co.return_value = _LIST_IMAGE_SMASK
+    mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE_SMASK)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
-    mock_run.return_value = unittest.mock.Mock(returncode=0)
 
     thread = Importhread()
     thread.add_page = unittest.mock.Mock()
@@ -522,17 +528,15 @@ def test_import_pdf_no_warning_for_smask(
 
 
 @unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_warning_for_two_images(
-    mock_page, mock_glob, mock_co, mock_run, _mock_remove
+    mock_page, mock_glob, mock_run, _mock_remove
 ):
     "Test that two real images on a page trigger a warning"
-    mock_co.return_value = _LIST_TWO_IMAGES
+    mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_TWO_IMAGES)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
-    mock_run.return_value = unittest.mock.Mock(returncode=0)
 
     thread = Importhread()
     thread.add_page = unittest.mock.Mock()
@@ -548,17 +552,17 @@ def test_import_pdf_warning_for_two_images(
 
 
 @unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_resolution_from_own_entry(
-    mock_page, mock_glob, mock_co, mock_run, _mock_remove
+    mock_page, mock_glob, mock_run, _mock_remove
 ):
     "Test that the imported page resolution comes from its own -list entry"
-    mock_co.return_value = _LIST_IMAGE_SMASK_DIFFERENT_PPI
+    mock_run.side_effect = _pdf_exec_command_run_side_effect(
+        _LIST_IMAGE_SMASK_DIFFERENT_PPI
+    )
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
-    mock_run.return_value = unittest.mock.Mock(returncode=0)
 
     thread = Importhread()
     thread.add_page = unittest.mock.Mock()
@@ -572,17 +576,15 @@ def test_import_pdf_resolution_from_own_entry(
 
 
 @unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_count_mismatch_fallback(
-    mock_page, mock_glob, mock_co, mock_run, _mock_remove
+    mock_page, mock_glob, mock_run, _mock_remove
 ):
     "Test that a count mismatch imports every file and warns"
-    mock_co.return_value = _LIST_IMAGE
+    mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
-    mock_run.return_value = unittest.mock.Mock(returncode=0)
 
     thread = Importhread()
     thread.add_page = unittest.mock.Mock()
@@ -598,22 +600,20 @@ def test_import_pdf_count_mismatch_fallback(
 
 
 @unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_cleans_up_leftover_files(
-    mock_page, mock_glob, mock_co, mock_run, _mock_remove
+    mock_page, mock_glob, mock_run, _mock_remove
 ):
     "Test that leftover extraction files are removed before the next page"
-    mock_co.return_value = _LIST_IMAGE
+    mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE)
     mock_glob.side_effect = [
         [],
         ["x-000.pnm"],
         ["x-002.pnm"],
         ["x-000.pnm"],
     ]
-    mock_run.return_value = unittest.mock.Mock(returncode=0)
 
     thread = Importhread()
     thread.add_page = unittest.mock.Mock()
@@ -627,11 +627,10 @@ def test_import_pdf_cleans_up_leftover_files(
 
 
 @unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("subprocess.run")
-@unittest.mock.patch("subprocess.check_output")
+@unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 def test_import_pdf_imports_composited_image(
-    mock_glob, mock_co, mock_run, _mock_remove, monkeypatch, tmp_path
+    mock_glob, mock_run, _mock_remove, monkeypatch, tmp_path
 ):
     "Test that an image with a soft mask is imported as a single composited page"
     image = Image.new("L", (2, 1))
@@ -643,9 +642,8 @@ def test_import_pdf_imports_composited_image(
     mask.putpixel((1, 0), 0)
     mask.save(tmp_path / "x-001.pgm")
     monkeypatch.chdir(tmp_path)
-    mock_co.return_value = _LIST_IMAGE_SMASK
+    mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE_SMASK)
     mock_glob.side_effect = [[], ["x-000.pgm", "x-001.pgm"]]
-    mock_run.return_value = unittest.mock.Mock(returncode=0)
 
     thread = Importhread()
     thread.add_page = unittest.mock.Mock()
@@ -662,7 +660,7 @@ def test_import_pdf_imports_composited_image(
     _mock_remove.assert_any_call("x-001.pgm")
 
 
-@unittest.mock.patch("subprocess.run")
+@unittest.mock.patch("importthread.exec_command_run")
 def test_extract_text_from_pdf_error(mock_run):
     "Test that request.error is thrown when pdftotext fails"
     # Simulate a subprocess error when running pdftotext
@@ -684,3 +682,45 @@ def test_extract_text_from_pdf_error(mock_run):
     # Call the method and check for the error
     thread._extract_text_from_pdf(mock_request, 1)
     mock_request.error.assert_called_once_with("Error extracting text layer from PDF")
+
+
+def test_request_pidfile_from_attribute():
+    "Test _request_pidfile returns a pidfile attached as a request attribute"
+    thread = Importhread()
+    pidfile = SimpleNamespace()
+    request = SimpleNamespace(pidfile=pidfile, args=())
+    assert thread._request_pidfile(request) is pidfile
+
+
+def test_request_pidfile_from_args_dict():
+    "Test _request_pidfile finds a pidfile in the request args dict"
+    thread = Importhread()
+    pidfile = SimpleNamespace()
+    request = SimpleNamespace(pidfile=None, args=({"pidfile": pidfile},))
+    assert thread._request_pidfile(request) is pidfile
+
+
+def test_request_pidfile_none():
+    "Test _request_pidfile returns None when no pidfile is present"
+    thread = Importhread()
+    request = SimpleNamespace(pidfile=None, args=())
+    assert thread._request_pidfile(request) is None
+
+
+def test_request_completed_deregisters_pidfile():
+    "Test _request_completed removes the pidfile from running_pids"
+    thread = Importhread()
+    pidfile = "pidfile"
+    thread.running_pids[pidfile] = pidfile
+    request = SimpleNamespace(pidfile=pidfile, args=())
+    thread._request_completed(request)
+    assert pidfile not in thread.running_pids
+
+
+def test_request_completed_ignores_missing():
+    "Test _request_completed tolerates a pidfile not in running_pids"
+    thread = Importhread()
+    pidfile = "pidfile"
+    request = SimpleNamespace(pidfile=pidfile, args=())
+    thread._request_completed(request)
+    assert pidfile not in thread.running_pids

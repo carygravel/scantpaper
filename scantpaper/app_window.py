@@ -384,6 +384,7 @@ class ApplicationWindow(
         self.post_process_progress = Progress()
         phbox.pack_start(self.post_process_progress, True, True, 0)
         # Child widgets are already shown in Progress.__init__, container starts hidden
+        self.post_process_progress.cancel_callback = self._cancel_post_process
 
         # OCR text editing interface
         self._ocr_text_hbox.hide()
@@ -401,6 +402,10 @@ class ApplicationWindow(
             self._import_files(args.import_files)
         if args.import_all is not None:
             self._import_files(args.import_all, True)
+
+    def _cancel_post_process(self):
+        "cancel all queued and running post-process jobs"
+        self.slist.cancel(self.post_process_progress.finish)
 
     def _changed_text_sort_method(self, _widget, sort_method):
         if sort_method == "confidence":

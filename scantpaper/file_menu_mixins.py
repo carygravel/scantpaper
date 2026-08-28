@@ -242,7 +242,6 @@ class FileMenuMixins:
 
     def _import_files(self, filenames, all_pages=False):
         "Import given files"
-        # FIXME: import_files() now returns an array of pids.
         # During a bulk import only show thumbnails; the final page is loaded
         # full-res once the import finishes (see _import_files_finished_callback).
         self._suppress_full_display = True

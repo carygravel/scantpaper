@@ -4,6 +4,11 @@
 * Render with high-quality interpolation at all zoom levels. A faster filter is
   used only while panning or zooming.
   Closes #75 (Rendering quality is significantly worse than gscan2pdf for A4)
+* Make the progress bar's Cancel button actually stop the running background
+  work. Cancelling an import, save or conversion now kills the underlying
+  helper processes (rather than just hiding the bar), so the job stops
+  promptly and the application remains usable: pages already imported are
+  kept and further files are not processed.
 
 
 ## 3.0.16 (2026-08-22)

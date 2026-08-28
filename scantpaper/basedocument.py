@@ -178,15 +178,23 @@ class BaseDocument(SimpleList):
             # Kill all running processes in the thread
             for pidfile in list(self.thread.running_pids):
                 pid = slurp(pidfile)
-                if pid != "":
-                    if pid == 1:
-                        continue
-                    if process_callback is not None:
-                        process_callback(pid)
+                try:
+                    pid = int(pid)
+                except (TypeError, ValueError):
+                    continue
+                if pid <= 1:
+                    del self.thread.running_pids[pidfile]
+                    continue
+                if process_callback is not None:
+                    process_callback(pid)
 
-                    logger.info("Killing PID %s", pid)
+                logger.info("Killing PID %s", pid)
 
+                try:
                     os.killpg(os.getpgid(pid), signal.SIGKILL)
+                except ProcessLookupError:
+                    logger.info("PID %s already dead", pid)
+                finally:
                     del self.thread.running_pids[pidfile]
 
         # Add a cancel request to ensure the reply is not blocked
@@ -197,7 +205,11 @@ class BaseDocument(SimpleList):
         "create file in which to store the PID"
         options = defaultdict(None, options)
         try:
-            return tempfile.TemporaryFile(dir=self.dir, suffix=".pid", mode="wt")
+            # SIM115: the pidfile handle escapes to the thread's running_pids
+            # registry so that cancel() can later read the spawn pid from it.
+            pidfile = tempfile.TemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
+                dir=self.dir, suffix=".pid", mode="w+t"
+            )
         except (OSError, PermissionError) as err:
             logger.error("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
@@ -206,7 +218,11 @@ class BaseDocument(SimpleList):
                     "create PID file",
                     f"Error: unable to write to {self.dir}.",
                 )
-        return None
+            return None
+        if getattr(self.thread, "running_pids", None) is not None:
+            with self.thread.lock:
+                self.thread.running_pids[pidfile] = pidfile
+        return pidfile
 
     # TODO: now we have SQLite, probably more efficient to write a query
     def find_page_by_uuid(self, uid):

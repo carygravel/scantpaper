@@ -537,7 +537,7 @@ def test_run_unpaper_cmd_rtl(mocker):
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
-    mock_run = mocker.patch("subprocess.run")
+    mock_run = mocker.patch("docthread.exec_command_run")
     mock_run.return_value.stdout = "Processing sheet 1.pnm\n"
     mock_run.return_value.stderr = ""
 
@@ -587,7 +587,7 @@ def test_run_unpaper_cmd_rtl_error(mocker):
     ]
 
     # Test stderr error
-    mock_run = mocker.patch("subprocess.run")
+    mock_run = mocker.patch("docthread.exec_command_run")
     mock_run.return_value.stdout = ""
     mock_run.return_value.stderr = "some error"
 

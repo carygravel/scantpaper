@@ -177,6 +177,35 @@ def test_progress_queued():
     assert not progress.get_visible()
 
 
+def test_progress_queued_cancel_callback():
+    "Test that clicking cancel invokes cancel_callback and hides the bar"
+    progress = Progress()
+    cancel_called = []
+
+    def cancel_callback():
+        cancel_called.append(True)
+
+    progress.cancel_callback = cancel_callback
+
+    response = Mock()
+    response.request.process = "test_process"
+    response.num_completed_jobs = 0
+    response.total_jobs = 10
+    progress.queued(response)
+
+    btn = next(c for c in progress.get_children() if isinstance(c, Gtk.Button))
+    btn.clicked()
+
+    assert cancel_called == [True]
+    assert not progress.get_visible()
+
+
+def test_progress_init_cancel_callback_none():
+    "Test that cancel_callback defaults to None"
+    progress = Progress()
+    assert progress.cancel_callback is None
+
+
 def test_progress_update():
     "Test update method"
     progress = Progress()

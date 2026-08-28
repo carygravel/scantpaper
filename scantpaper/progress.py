@@ -22,6 +22,7 @@ class Progress(Gtk.Box):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.cancel_callback = None
         self._signal = None
         self._last_pulse = 0.0
         self._pbar = Gtk.ProgressBar()
@@ -73,7 +74,8 @@ class Progress(Gtk.Box):
                 2. flag that the progress bar has been set up
                 and avoid the race condition where the callback is
                 entered before the num_completed and total variables have caught up"""
-                # slist.cancel([pid])
+                if self.cancel_callback is not None:
+                    self.cancel_callback()
                 self.hide()
 
             self._signal = self.connect("clicked", cancel_process)

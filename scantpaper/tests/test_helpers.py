@@ -2,6 +2,7 @@
 
 import datetime
 import gc
+import subprocess
 from unittest.mock import MagicMock, patch
 
 import helpers
@@ -13,6 +14,7 @@ from helpers import (
     _weak_callback,
     collate_metadata,
     exec_command,
+    exec_command_run,
     expand_metadata_pattern,
     get_tmp_dir,
     program_version,
@@ -66,6 +68,63 @@ def test_exec_command_filenotfound(mocker):
     assert res.returncode == -1
     assert res.stdout is None
     assert "not found" in res.stderr
+
+
+def test_exec_command_run_success(mocker):
+    "Test exec_command_run success path"
+    mock_popen = mocker.patch("subprocess.Popen")
+    proc = mock_popen.return_value.__enter__.return_value
+    proc.pid = 4321
+    proc.communicate.return_value = ("out", "err")
+    proc.returncode = 0
+
+    pidfile = MagicMock()
+    res = exec_command_run(["ls"], pidfile=pidfile, capture_output=True, check=True)
+
+    assert res.returncode == 0
+    assert res.stdout == "out"
+    assert res.stderr == "err"
+    pidfile.write.assert_called_with("4321")
+    pidfile.flush.assert_called_once()
+
+
+def test_exec_command_run_check_failure(mocker):
+    "Test exec_command_run raises CalledProcessError when check and nonzero"
+    mock_popen = mocker.patch("subprocess.Popen")
+    proc = mock_popen.return_value.__enter__.return_value
+    proc.communicate.return_value = ("", "boom")
+    proc.returncode = 1
+
+    with pytest.raises(subprocess.CalledProcessError) as exc_info:
+        exec_command_run(["false"], capture_output=True, check=True)
+    assert exc_info.value.returncode == 1
+    assert exc_info.value.stderr == "boom"
+
+
+def test_exec_command_run_no_check_returns_failed(mocker):
+    "Test exec_command_run with check=False returns PROCESS_FAILED on FileNotFoundError"
+    mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
+    res = exec_command_run(["nonexistent"], check=False)
+    assert res.returncode == PROCESS_FAILED
+    assert res.stdout is None
+
+
+def test_exec_command_run_check_propagates_filenotfound(mocker):
+    "Test exec_command_run with check=True propagates FileNotFoundError"
+    mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
+    with pytest.raises(FileNotFoundError):
+        exec_command_run(["nonexistent"], check=True)
+
+
+def test_exec_command_run_sets_new_session(mocker):
+    "Test exec_command_run starts a new session when a pidfile is given"
+    mock_popen = mocker.patch("subprocess.Popen")
+    proc = mock_popen.return_value.__enter__.return_value
+    proc.communicate.return_value = ("", "")
+    proc.returncode = 0
+
+    exec_command_run(["ls"], pidfile=MagicMock())
+    assert mock_popen.call_args.kwargs["start_new_session"] is True
 
 
 def test_program_version(mocker):
@@ -210,6 +269,23 @@ def test_slurp(tmp_path):
     f = tmp_path / "test.txt"
     f.write_text("content", encoding="utf-8")
     assert slurp(str(f)) == "content"
+
+
+def test_slurp_file_object(tmp_path):
+    "Test slurp reads a file object (e.g. a TemporaryFile pidfile)"
+    f = tmp_path / "pid"
+    with open(f, "w+t", encoding="utf-8") as fhd:
+        fhd.write("1234")
+        fhd.flush()
+        assert slurp(fhd) == "1234"
+
+
+def test_slurp_binary_file_object():
+    "Test slurp decodes bytes read from a binary file object"
+    from io import BytesIO
+
+    fhd = BytesIO(b"1234")
+    assert slurp(fhd) == "1234"
 
 
 def test_recursive_slurp(tmp_path, mocker):

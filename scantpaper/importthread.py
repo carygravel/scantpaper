@@ -10,7 +10,7 @@ import tempfile
 import threading
 
 from basethread import BaseThread
-from helpers import exec_command
+from helpers import exec_command, exec_command_run
 from i18n import _
 from page import Page
 from PIL import Image
@@ -35,11 +35,28 @@ class Importhread(BaseThread):
     def __init__(self):
         BaseThread.__init__(self)
         self.lock = threading.Lock()
-        self.running_pids = []
+        self.running_pids = {}
         self.message = None
         self.progress = None
         self.cancel = False
         self.paper_sizes = {}
+
+    def _request_pidfile(self, request):
+        "locate the pidfile attached to a request for this thread"
+        pidfile = getattr(request, "pidfile", None)
+        if pidfile is not None:
+            return pidfile
+        for args in request.args:
+            if isinstance(args, dict) and "pidfile" in args:
+                return args["pidfile"]
+        return None
+
+    def _request_completed(self, request):
+        "deregister the request's pidfile now that its handler has finished"
+        pidfile = self._request_pidfile(request)
+        if pidfile is not None:
+            with self.lock:
+                self.running_pids.pop(pidfile, None)
 
     def do_cancel(self, _request):
         "cancel running tasks"
@@ -53,12 +70,13 @@ class Importhread(BaseThread):
     def do_get_file_info(self, request):
         "get file info"
         path, password = request.args
+        pidfile = getattr(request, "pidfile", None)
         info = {}
         if not pathlib.Path(path).exists():
             raise FileNotFoundError(_("File %s not found") % (path,))
 
         logger.info("Getting info for %s", path)
-        proc = exec_command(["file", "-Lb", path])
+        proc = exec_command(["file", "-Lb", path], pidfile)
         if proc.stdout is None:
             raise RuntimeError(
                 _("Error getting file info for %s: %s") % (path, proc.stderr)
@@ -73,13 +91,13 @@ class Importhread(BaseThread):
             info["format"] = "session file"
 
         elif re.search(r"DjVu", proc.stdout):
-            self._get_djvu_info(info, path)
+            self._get_djvu_info(info, path, pidfile)
 
         elif re.search(r"PDF[ ]document", proc.stdout):
-            self._get_pdf_info(info, path, password, request)
+            self._get_pdf_info(info, path, password, request, pidfile)
 
         elif re.search(r"^TIFF[ ]image[ ]data", proc.stdout):
-            self._get_tif_info(info, path, request)
+            self._get_tif_info(info, path, request, pidfile)
 
         else:
             # Get file type
@@ -96,10 +114,10 @@ class Importhread(BaseThread):
         info["path"] = path
         return info
 
-    def _get_djvu_info(self, info, path):
+    def _get_djvu_info(self, info, path, pidfile=None):
         "get DjVu info"
         # Dig out the number of pages
-        proc = exec_command(["djvudump", path])
+        proc = exec_command(["djvudump", path], pidfile)
         if proc.stdout is None:
             raise RuntimeError(
                 _("Please install djvulibre-bin in order to open DjVu files: %s")
@@ -142,7 +160,7 @@ class Importhread(BaseThread):
         info["pages"] = pages
         info["path"] = path
         # Dig out the metadata
-        proc = exec_command(["djvused", path, "-e", "print-meta"])
+        proc = exec_command(["djvused", path, "-e", "print-meta"], pidfile)
         if proc.stdout is None:
             raise RuntimeError(
                 _("Please install djvulibre-bin in order to open DjVu files: %s")
@@ -155,7 +173,7 @@ class Importhread(BaseThread):
         # extract the metadata from the file
         _add_metadata_to_info(info, proc.stdout, r'\s+"([^"]+)')
 
-    def _get_pdf_info(self, info, path, password, request):
+    def _get_pdf_info(self, info, path, password, request, pidfile=None):
         "get PDF info"
         info["format"] = "Portable Document Format"
         args = ["pdfinfo", "-isodates", path]
@@ -164,7 +182,9 @@ class Importhread(BaseThread):
             args.insert(3, password)
 
         try:
-            process = subprocess.run(args, capture_output=True, text=True, check=True)
+            process = exec_command_run(
+                args, pidfile, capture_output=True, text=True, check=True
+            )
         except subprocess.CalledProcessError as err:
             logger.info("stdout: %s", err.stdout)
             logger.info("stderr: %s", err.stderr)
@@ -212,10 +232,10 @@ class Importhread(BaseThread):
         # extract the metadata from the file
         _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
 
-    def _get_tif_info(self, info, path, request):
+    def _get_tif_info(self, info, path, request, pidfile=None):
         "get TIFF info"
         info["format"] = "Tagged Image File Format"
-        proc = exec_command(["tiffinfo", path])
+        proc = exec_command(["tiffinfo", path], pidfile)
         if proc.stdout is None:
             raise RuntimeError(
                 _("Please install libtiff-tools in order to open TIFF files: %s")
@@ -289,8 +309,9 @@ class Importhread(BaseThread):
                     with tempfile.NamedTemporaryFile(
                         dir=args["dir"], suffix=".tif"
                     ) as tif:
-                        subprocess.run(
+                        exec_command_run(
                             ["tiffcp", f"{args['info']['path']},{i}", tif.name],
+                            args.get("pidfile"),
                             check=True,
                         )
                         self.check_cancelled()
@@ -344,7 +365,7 @@ class Importhread(BaseThread):
                     args["last"] - args["first"] + 1,
                 )
                 with tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".tif") as tif:
-                    subprocess.run(
+                    exec_command_run(
                         [
                             "ddjvu",
                             "-format=tiff",
@@ -352,26 +373,33 @@ class Importhread(BaseThread):
                             args["info"]["path"],
                             tif.name,
                         ],
+                        args.get("pidfile"),
                         check=True,
                     )
-                    txt = subprocess.check_output(
+                    txt = exec_command_run(
                         [
                             "djvused",
                             args["info"]["path"],
                             "-e",
                             f"select {i}; print-txt",
                         ],
+                        args.get("pidfile"),
+                        check=True,
+                        capture_output=True,
                         text=True,
-                    )
-                    ann = subprocess.check_output(
+                    ).stdout
+                    ann = exec_command_run(
                         [
                             "djvused",
                             args["info"]["path"],
                             "-e",
                             f"select {i}; print-ant",
                         ],
+                        args.get("pidfile"),
+                        check=True,
+                        capture_output=True,
                         text=True,
-                    )
+                    ).stdout
                     self.check_cancelled()
                     page = Page(
                         filename=tif.name,
@@ -417,7 +445,7 @@ class Importhread(BaseThread):
             for fname in glob.glob("x-*"):
                 os.remove(fname)
 
-            out = subprocess.check_output(
+            out = exec_command_run(
                 _pdf_cmd_with_password(
                     [
                         "pdfimages",
@@ -430,12 +458,15 @@ class Importhread(BaseThread):
                     ],
                     args["password"],
                 ),
+                args.get("pidfile"),
+                check=True,
+                capture_output=True,
                 text=True,
-            )
+            ).stdout
             entries = _parse_pdfimages_list(out)
 
             try:
-                subprocess.run(
+                exec_command_run(
                     _pdf_cmd_with_password(
                         [
                             "pdfimages",
@@ -448,6 +479,7 @@ class Importhread(BaseThread):
                         ],
                         args["password"],
                     ),
+                    args.get("pidfile"),
                     check=True,
                 )
             except subprocess.CalledProcessError:
@@ -504,7 +536,7 @@ class Importhread(BaseThread):
         with tempfile.NamedTemporaryFile(
             mode="w+t", dir=args["dir"], suffix=".html"
         ) as html:
-            spo = subprocess.run(
+            spo = exec_command_run(
                 _pdf_cmd_with_password(
                     [
                         "pdftotext",
@@ -518,7 +550,7 @@ class Importhread(BaseThread):
                     ],
                     args["password"],
                 ),
-                check=True,
+                args.get("pidfile"),
                 capture_output=True,
                 text=True,
             )
