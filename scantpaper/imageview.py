@@ -49,8 +49,9 @@ class Tool:
             return Gdk.Cursor.new_from_name(display, cursor_type)
         return None
 
-    def cursor_type_at_point(self, _x, _y) -> str:
+    def cursor_type_at_point(self, _x, _y) -> str | None:
         "Base cursor_type_at_point() method"
+        return None
 
     def connect(self, *args):
         "Base connect() method"
