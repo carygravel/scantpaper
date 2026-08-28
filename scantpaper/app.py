@@ -27,11 +27,12 @@ import warnings
 
 # check for pyinstaller
 if hasattr(sys, "frozen"):
-    base_dir = sys._MEIPASS
+    base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 else:
     base_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, base_dir)
 
+# pylint: disable=wrong-import-position
 import gi
 from app_window import ApplicationWindow
 from const import LOCAL_DOCS_URI, PROG_NAME, SPACE, VERSION
