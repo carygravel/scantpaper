@@ -37,7 +37,7 @@ class Request:
     "Attributes and methods around requests"
 
     def __init__(
-        self, process_name, process_args, return_queue, notify_cb=None, *args, **kwargs
+        self, process_name, process_args, return_queue, *args, notify_cb=None, **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.process = process_name
@@ -193,7 +193,7 @@ class BaseThread(threading.Thread):
         **kwargs,
     ):
         "Puts the process and args as a `Request` on the requests queue"
-        request = Request(process, args, self.responses, self._notify)
+        request = Request(process, args, self.responses, notify_cb=self._notify)
         callbacks = {"started": False}
         for callback in CALLBACKS:
             name = callback + "_callback"
