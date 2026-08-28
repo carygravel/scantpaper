@@ -287,8 +287,12 @@ class Document(BaseDocument):
                 page_kwargs[key] = kwargs[key]
 
         import_scan_kwargs = kwargs.copy()
+
+        def _post_process(page_id, options):
+            self._post_process_scan(page_id, options)
+
         import_scan_kwargs["data_callback"] = partial(
-            self.data_callback, options=kwargs, post_process=True
+            self.data_callback, options=kwargs, post_process=_post_process
         )
         if "finished_callback" in import_scan_kwargs:
             del import_scan_kwargs["finished_callback"]

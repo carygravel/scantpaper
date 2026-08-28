@@ -222,13 +222,13 @@ class BaseDocument(SimpleList):
                 self.thread.running_pids[pidfile] = pidfile
         return pidfile
 
-    def data_callback(self, response, options, post_process=False):
+    def data_callback(self, response, options, post_process=None):
         "add a page from a worker response, then log any errors"
         info = response.info
         if info and "type" in info and info["type"] == "page":
             self.add_page(*info["row"], **info)
             if post_process:
-                self._post_process_scan(info["row"][2], options)
+                post_process(info["row"][2], options)
         elif "logger_callback" in options:
             options["logger_callback"](response)
 
@@ -329,7 +329,7 @@ class BaseDocument(SimpleList):
     def copy_selection(self):
         "Copy the selection"
         selection = self.get_selected_indices()
-        logger.debug(f"copy_selection {selection}")
+        logger.debug("copy_selection %s", selection)
         if selection == []:
             return None
         data = []
@@ -372,7 +372,7 @@ class BaseDocument(SimpleList):
             dest = len(self.data)
 
             def _data_callback(response):
-                logger.debug(f"extend _data_callback({response})")
+                logger.debug("extend _data_callback(%s)", response)
                 info = response.info
                 if info and "type" in info and info["type"] == "page":
                     self.data.extend(info["new_pages"])
@@ -392,7 +392,7 @@ class BaseDocument(SimpleList):
                 dest += 1
 
             def _data_callback(response):
-                logger.debug(f"insert _data_callback({response})")
+                logger.debug("insert _data_callback(%s)", response)
                 info = response.info
                 if info and "type" in info and info["type"] == "page":
                     for row in info["new_pages"]:
