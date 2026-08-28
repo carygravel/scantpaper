@@ -40,13 +40,13 @@ from tools_menu_mixins import ToolsMenuMixins
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (
+from gi.repository import (  # pylint: disable=wrong-import-position
     Gdk,
     Gio,
     GLib,
     GObject,
     Gtk,
-)  # pylint: disable=wrong-import-position
+)
 
 logger = logging.getLogger(__name__)
 

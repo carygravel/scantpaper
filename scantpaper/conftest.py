@@ -9,11 +9,11 @@ import config
 import gi
 import pytest
 from dialog.sane import SaneScanDialog
+from loop_helpers import _MainLoopWrapper, safe_mainloop
 from PIL import Image, ImageDraw, ImageFont
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
-from loop_helpers import _MainLoopWrapper, safe_mainloop
 
 Image.MAX_IMAGE_PIXELS = None
 
