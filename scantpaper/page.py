@@ -300,18 +300,6 @@ class Page:
         if self.image_object is None:
             logger.warning("Cannot get pixbuf from None")
             return None
-        # TODO: This doesn't work, probably because I didn't test it with an RGB image,
-        # but would be a better solution
-        # width, height = self.image_object.size
-        # return GdkPixbuf.Pixbuf.new_from_bytes(
-        #     GLib.Bytes.new(self.image_object.tobytes()),
-        #     GdkPixbuf.Colorspace.RGB,
-        #     False,
-        #     8,
-        #     width,
-        #     height,
-        #     width * 3,
-        # )
         with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as filename:
             # Force PIL to load the data before the file is deleted.
             # The upgrade to gdk-pixbuf 2.44.5+dfsg-3/4 without this threw
