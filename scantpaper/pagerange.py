@@ -8,10 +8,13 @@ from i18n import _
 gi.require_version("Gtk", "3.0")
 from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
 
-# does not yet work. see https://gitlab.gnome.org/GNOME/pygobject/-/issues/215
+# TODO: can now be done with enums:
+# Enumerations can now be registered from Python since pygobject 3.52.0
+# (see https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/400
+#  and https://gitlab.gnome.org/GNOME/pygobject/-/issues/215).
+# Some target distros currently ship < 3.52 (e.g. noble LTS: 3.48.2,
+# Debian trixie/stable: 3.50), so this must stay behind a runtime guard:
 # GObject.TypeModule.register_enum( 'Scantpaper::PageRange::Range', ["selected","all"] )
-# TODO: can now be done. Workout which version of pygobject this was added in.
-# https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/400
 
 
 class PageRange(Gtk.Box):
