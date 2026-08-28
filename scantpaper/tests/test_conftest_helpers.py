@@ -52,11 +52,7 @@ def test_qbfox_fc_match_fallback():
     def mock_truetype(path, size, **kwargs):
         if path in KNOWN_FONT_PATHS:
             raise OSError("font not found")
-        for known in KNOWN_FONT_PATHS:
-            try:
-                return original_truetype(known, size, **kwargs)
-            except OSError:
-                continue
+        return original_truetype(KNOWN_FONT_PATHS[0], size, **kwargs)
 
     mock_result = MagicMock()
     mock_result.returncode = 0
