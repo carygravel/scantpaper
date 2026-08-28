@@ -471,8 +471,8 @@ class Scan(PageControls):
         self.num_reloads = 0  # num-reloads is read-only
         self.profile = combobsp.get_active_text()
 
-    def show(self, *args, **kwargs):
-        PageControls.show(self, **kwargs)
+    def show(self, _widget=None):
+        "respond to the show signal"
         self.framex.hide()
         self._flatbed_or_duplex_callback()
         if (
