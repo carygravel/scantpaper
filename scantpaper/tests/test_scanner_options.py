@@ -1,3 +1,5 @@
+"Tests for scanner option handling"
+
 import pytest
 from frontend import enums
 from scanner.options import Option, Options, within_tolerance

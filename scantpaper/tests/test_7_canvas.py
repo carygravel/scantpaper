@@ -203,7 +203,7 @@ def test_canvas_basics(rose_pnm):
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
-            finished_callback=lambda: mlp.quit(),
+            finished_callback=mlp.quit,
         )
         mlp.run()
 
@@ -261,7 +261,7 @@ def test_canvas_basics2(rose_pnm):
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
-            finished_callback=lambda: mlp.quit(),
+            finished_callback=mlp.quit,
         )
         mlp.run()
 
@@ -440,7 +440,7 @@ def test_hocr(rose_pnm):
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
-            finished_callback=lambda: mlp.quit(),
+            finished_callback=mlp.quit,
         )
         mlp.run()
         canvas.sort_by_confidence()
@@ -524,7 +524,7 @@ def test_bbox_text_placement(rose_pnm):
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
-            finished_callback=lambda: mlp.quit(),
+            finished_callback=mlp.quit,
         )
         mlp.run()
 
@@ -1257,7 +1257,7 @@ def test_canvas_set_text_full(mocker, rose_pnm):
         canvas_obj.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
-            finished_callback=lambda: mlp.quit(),
+            finished_callback=mlp.quit,
         )
         mlp.run()
 
@@ -1878,7 +1878,7 @@ def test_canvas_no_stack_overflow(rose_pnm):
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
-            finished_callback=lambda: mlp.quit(),
+            finished_callback=mlp.quit,
         )
         mlp.run()
 
@@ -2196,6 +2196,8 @@ def test_bbox_get_position_index_non_bbox_parent(mocker):
     )
 
     class NonBboxParent:
+        "parent object lacking IBbox for get_position_index testing"
+
         parent = page
 
     child.parent = NonBboxParent()

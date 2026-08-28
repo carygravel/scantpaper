@@ -12,11 +12,11 @@ _log_buffer = []
 # Try to find a translation in the package locale directory first, then
 # common system locale locations. Log which one we end up using so it's
 # easier to debug packaging/install issues.
-translate = None
+TRANSLATE = None
 for ld in locales_to_try:
     try:
         t = gettext.translation("scantpaper", localedir=ld)
-        translate = t
+        TRANSLATE = t
         _log_buffer.append(
             ("warning", "Loaded translations for 'scantpaper' from %s", ld)
         )
@@ -25,14 +25,14 @@ for ld in locales_to_try:
         _log_buffer.append(("warning", "No translations for 'scantpaper' in %s", ld))
 
 # Fallback to a null translation if none found
-if translate is None:
+if TRANSLATE is None:
     _log_buffer.append(
         (
             "warning",
             "No translations found for 'scantpaper'; falling back to untranslated strings",
         )
     )
-    translate = gettext.NullTranslations()
+    TRANSLATE = gettext.NullTranslations()
 
 
 def log_i18n_status():
@@ -42,7 +42,7 @@ def log_i18n_status():
     _log_buffer.clear()
 
 
-_ = translate.gettext
+_ = TRANSLATE.gettext
 
 # sane-backends translations are usually provided by the system; try to load
 # them from the default locations and otherwise fall back silently.

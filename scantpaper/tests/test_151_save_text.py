@@ -40,9 +40,9 @@ def test_save_text(
         )
         mlp.run()
 
-        with open(temp_txt.name) as f:
+        with open(temp_txt.name, encoding="utf-8") as f:
             assert f.read() == "The quick brown fox", "saved ASCII"
-        with open(temp_txt2.name) as f:
+        with open(temp_txt2.name, encoding="utf-8") as f:
             assert f.read() == "The quick brown fox", "ran post-save hook"
 
 
@@ -63,9 +63,9 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop):
         )
         mlp.run()
 
-        with open(temp_txt.name) as f:
+        with open(temp_txt.name, encoding="utf-8") as f:
             assert f.read() == "", "saved ASCII"
-        with open(temp_txt2.name) as f:
+        with open(temp_txt2.name, encoding="utf-8") as f:
             assert f.read() == "", "ran post-save hook"
 
 
@@ -99,7 +99,7 @@ def test_save_utf8(
     )
     mlp.run()
 
-    with open(temp_txt.name) as f:
+    with open(temp_txt.name, encoding="utf-8") as f:
         assert f.read() == "пени способствовала сохранению", "saved ASCII"
 
 
@@ -146,7 +146,7 @@ def test_save_hocr_as_text(
     )
     mlp.run()
 
-    with open(temp_txt.name) as f:
+    with open(temp_txt.name, encoding="utf-8") as f:
         assert f.read() == "The quick brown fox", "saved hOCR"
 
 
@@ -197,9 +197,9 @@ def test_save_hocr(
         )
         mlp.run()
 
-        with open(temp_txt.name) as f:
+        with open(temp_txt.name, encoding="utf-8") as f:
             assert f.read() == hocr, "saved hOCR"
-        with open(temp_txt2.name) as f:
+        with open(temp_txt2.name, encoding="utf-8") as f:
             assert f.read() == hocr, "ran post-save hook"
 
 
@@ -255,7 +255,7 @@ def test_save_hocr_with_encoding(
     )
     mlp.run()
 
-    with open(temp_txt.name) as f:
+    with open(temp_txt.name, encoding="utf-8") as f:
         assert f.read() == hocr, "saved hOCR"
 
 
@@ -337,7 +337,7 @@ def test_save_multipage_hocr(
  </body>
 </html>
 """
-    with open(temp_txt.name) as f:
+    with open(temp_txt.name, encoding="utf-8") as f:
         assert f.read() == hocr, "saved hOCR"
 
 
@@ -464,5 +464,5 @@ def test_save_hocr_structure(
  </body>
 </html>
 """
-    with open(temp_txt.name) as f:
+    with open(temp_txt.name, encoding="utf-8") as f:
         assert f.read() == hocr, "saved hOCR"

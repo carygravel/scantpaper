@@ -74,7 +74,7 @@ def test_save_djvu_text_layer(
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    with open(temp_txt.name) as f:
+    with open(temp_txt.name, encoding="utf-8") as f:
         capture = f.read()
     assert len(capture) > 0, "ran post-save hook"
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"

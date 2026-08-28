@@ -21,8 +21,8 @@ def test_i18n_fallbacks(caplog):
     )
 
     # Check fallbacks are correctly set
-    assert isinstance(i18n.translate, gettext.NullTranslations)
-    assert i18n._ == i18n.translate.gettext
+    assert isinstance(i18n.TRANSLATE, gettext.NullTranslations)
+    assert i18n._ == i18n.TRANSLATE.gettext
     assert i18n.d_sane is gettext.gettext
 
 
@@ -33,6 +33,6 @@ def test_i18n_load_success():
         importlib.reload(i18n)
         i18n.log_i18n_status()
 
-    assert i18n.translate == mock_translation
+    assert i18n.TRANSLATE == mock_translation
     assert i18n._ == mock_translation.gettext
     assert i18n.d_sane == mock_translation.gettext

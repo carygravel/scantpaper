@@ -985,6 +985,7 @@ def test_imageview_set_selection_none():
 
 
 def test_selection_drawing_coordinates():
+    "Test selection rubberband is drawn at widget coordinates with zoom applied"
     view = ImageView()
 
     pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 100, 100)

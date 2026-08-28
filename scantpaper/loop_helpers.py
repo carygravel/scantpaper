@@ -18,6 +18,7 @@ class _MainLoopWrapper:
         self._loop.quit()
 
     def run(self):
+        "run the wrapped main loop, failing if the safety timeout fires"
         if self._quit_before_run:
             return
         self._loop.run()
@@ -28,6 +29,7 @@ class _MainLoopWrapper:
         )
 
     def quit(self, *_args):
+        "quit the wrapped main loop, recording a pre-run quit"
         if not self._loop.is_running():
             self._quit_before_run = True
         self._loop.quit()
