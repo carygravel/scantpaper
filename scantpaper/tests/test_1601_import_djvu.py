@@ -255,5 +255,5 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db):
         mlp.run()
 
         assert asserts == 2, "callbacks all run"
-        error_cb.assert_not_called(), "no error callback called"
+        assert not error_cb.called, "no error callback called"
         assert len(slist.data) == 2, "imported 2 pages"

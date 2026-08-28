@@ -153,7 +153,7 @@ def test_correlate_pdf_images_pairs_smask(mocker):
 
     assert warning is False
     assert result == [("x-000.pnm", 300.0, 300.0, "x-001.pnm")]
-    remove.assert_not_called(), "paired mask is not removed by the correlator"
+    assert not remove.called, "paired mask is not removed by the correlator"
 
 
 def test_correlate_pdf_images_removes_unpaired_smask(mocker):

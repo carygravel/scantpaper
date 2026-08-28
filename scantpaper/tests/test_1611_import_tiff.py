@@ -208,7 +208,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    finished_cb.assert_not_called(), "no error callback called"
+    assert not finished_cb.called, "no error callback called"
 
     import_in_mainloop(slist, [rose_tif])
     page = get_page_sync(slist.thread, id=1)

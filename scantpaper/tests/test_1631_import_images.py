@@ -54,4 +54,4 @@ def test_import_corrupt_png(temp_png, temp_db):
     mlp.run()
 
     assert asserts == 1, "all callbacks run"
-    finished_cb.assert_not_called(), "no finished callback called"
+    assert not finished_cb.called, "no finished callback called"
