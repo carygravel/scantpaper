@@ -221,9 +221,8 @@ class DocThread(SaveThread):
             and application_id[0] != APPLICATION_ID
         ):
             raise TypeError(
-                "%s is not a scantpaper session file (application_id=%s)",
-                self._db,
-                application_id[0],
+                f"{self._db} is not a scantpaper session file "
+                f"(application_id={application_id[0]})"
             )
         self._execute("PRAGMA user_version")
         user_version = self._fetchone()
