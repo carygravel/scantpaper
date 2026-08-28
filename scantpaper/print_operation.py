@@ -16,7 +16,7 @@ class PrintOperation(Gtk.PrintOperation):
         self.slist = kwargs["slist"]
         self.page_list = None
         self.connect("begin-print", self.begin_print_callback)
-        # FIXME: check print preview works for pages with ratios other than 1.
+        # scale in draw_page_callback fits pages with any pixel aspect ratio
         self.connect("draw-page", self.draw_page_callback)
 
     def begin_print_callback(self, _self, _context):

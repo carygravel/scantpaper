@@ -131,3 +131,38 @@ def test_draw_page_mapped(mock_slist, mocker):
     # Verify it used page index 2
     page3_pixbuf = mock_slist.thread.get_page(id=mock_slist.data[2][2]).get_pixbuf()
     mock_cairo_set.assert_called_with(cr, page3_pixbuf, 0, 0)
+
+
+@pytest.mark.parametrize(
+    "iwidth,iheight,xres,yres,expected_scale",
+    [
+        (100, 200, 300, 150, (0.5, 1.0)),  # ratio > 1
+        (100, 200, 150, 300, (2.0, 1.0)),  # ratio < 1
+        (100, 200, 300, 300, (1.0, 1.0)),  # ratio == 1
+    ],
+)
+def test_draw_page_ratio(mocker, iwidth, iheight, xres, yres, expected_scale):
+    "Test draw_page_callback scales correctly for non-1:1 pixel aspect ratios"
+    page = MagicMock()
+    page.get_pixbuf.return_value.get_width.return_value = iwidth
+    page.get_pixbuf.return_value.get_height.return_value = iheight
+    page.resolution = (xres, yres, "pixels")
+
+    slist = MagicMock()
+    slist.data = [[1, "thumb1", 1]]
+    slist.thread = MagicMock()
+    slist.thread.get_page.return_value = page
+
+    op = PrintOperation(slist=slist, settings=None)
+
+    context = MagicMock()
+    cr = MagicMock()
+    context.get_cairo_context.return_value = cr
+    context.get_width.return_value = 200
+    context.get_height.return_value = 200
+
+    mocker.patch("print_operation.Gdk.cairo_set_source_pixbuf")
+
+    op.draw_page_callback(op, context, 0)
+
+    cr.scale.assert_called_with(*expected_scale)
