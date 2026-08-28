@@ -141,6 +141,13 @@ in the pull request that introduces it.
 
 Wrap markdown documentation at 80 characters per line.
 
+### Docstrings
+
+For single-line docstrings, use straight double quotes (`"..."`). For
+multiline docstrings, use triple double quotes (`"""..."""`). Keep the
+convention consistent within a file; prefer single-line docstrings when the
+full text fits on one line.
+
 ## Commit messages
 
 Please ensure that all commits have meaningful messages:
