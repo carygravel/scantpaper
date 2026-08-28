@@ -1,5 +1,7 @@
 "Some helper functions to reduce boilerplate"
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 import os
 import subprocess
 import tempfile

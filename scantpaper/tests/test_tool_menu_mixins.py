@@ -1,5 +1,7 @@
 "Test tool_menu_mixins.py"
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 import datetime
 from typing import ClassVar
 

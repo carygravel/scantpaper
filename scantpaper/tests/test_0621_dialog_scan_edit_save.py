@@ -1,5 +1,7 @@
 "Test scan dialog"
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 from unittest.mock import MagicMock
 
 import pytest

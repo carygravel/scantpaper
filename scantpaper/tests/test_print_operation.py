@@ -1,5 +1,7 @@
 "Tests for the PrintOperation class"
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 from unittest.mock import MagicMock
 
 import gi

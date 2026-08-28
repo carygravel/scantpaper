@@ -1,5 +1,7 @@
 "Basic tests for imageview"
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 from dataclasses import dataclass
 from types import MethodType
 from unittest.mock import MagicMock, patch

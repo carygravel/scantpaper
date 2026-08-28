@@ -1,5 +1,7 @@
 "Tests for the EditMenuMixins."
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 import datetime
 from typing import ClassVar
 from unittest.mock import MagicMock

@@ -1,5 +1,7 @@
 "Tests for ApplicationWindow"
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 import os
 import uuid
 from itertools import cycle

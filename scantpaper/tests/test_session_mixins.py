@@ -1,5 +1,7 @@
 "Coverage tests for SessionMixins"
 
+# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+
 import logging
 import os
 from typing import ClassVar
