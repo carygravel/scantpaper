@@ -76,7 +76,7 @@ def test_basics(temp_db):
 
     #########################
 
-    slist.renumber(1, 1, "all")
+    slist.renumber()
     assert (slist.data[0][0], slist.data[1][0], slist.data[2][0]) == (
         1,
         2,

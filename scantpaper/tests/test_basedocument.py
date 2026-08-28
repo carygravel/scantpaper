@@ -204,7 +204,7 @@ def test_save_open_session():
 
 
 def test_renumber_ascending():
-    "Test renumber makes page numbers consecutive 1..n regardless of start/step"
+    "Test renumber makes page numbers consecutive 1..n"
     slist = Document()
     # Manually set non-ascending numbers
     slist.get_model().handler_block(slist.row_changed_signal)
@@ -720,16 +720,6 @@ def test_find_page_by_uuid_index():
     assert slist.find_page_by_uuid(999) is None, "missing page returns None"
 
 
-def test_renumber_step_none_selection_none():
-    "Test renumber with step=None and selection=None"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(2, None, 102)
-    slist.renumber(start=10, step=None, selection=None)
-    assert slist.data[0][0] == 1
-    assert slist.data[1][0] == 2
-
-
 def test_get_page_index_selected_none():
     "Test get_page_index with 'selected' and no pages selected"
     slist = Document()
@@ -943,16 +933,6 @@ def test_delete_selection_extra_signal():
     mlp.run()
 
     mock_changed.assert_called()
-
-
-def test_renumber_ignore_args():
-    "Test renumber ignores legacy step/selection arguments"
-    slist = Document()
-    slist.add_page(1, None, 101)
-    slist.add_page(2, None, 102)
-    slist.renumber(start=10, step=None, selection=None)
-    assert slist.data[0][0] == 1
-    assert slist.data[1][0] == 2
 
 
 def test_paste_selection_insert_after():

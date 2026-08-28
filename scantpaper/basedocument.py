@@ -555,7 +555,7 @@ class BaseDocument(SimpleList):
             error_callback=on_error,
         )
 
-    def renumber(self, start=None, step=1, selection="all"):
+    def renumber(self):
         "Renumber pages so that page numbers are consecutive 1..n"
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
