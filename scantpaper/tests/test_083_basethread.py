@@ -459,6 +459,7 @@ def test_stage_callback_exception_invokes_error_callback():
     assert error_callback.call_args[0][0].status == "boom"
 
 
+@pytest.mark.filterwarnings("ignore:Source ID .* was not found.*")
 def test_release_sources_close_oserror(mocker):
     "Test _release_sources catches OSError from os.close"
     thread = BaseThread()
