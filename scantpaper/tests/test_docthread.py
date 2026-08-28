@@ -526,7 +526,8 @@ def test_do_delete_pages_ids(mocker):
 
     mock_execute.assert_any_call(
         """DELETE FROM page_order
-                    WHERE initial_page_id IN (?) AND action_id = ?""",
+                    WHERE initial_page_id IN (?)
+                        AND action_id = ?""",
         (1, 0),
     )
 

@@ -1027,9 +1027,10 @@ def test_selection_drawing_coordinates():
     expected_w = x2 - x1
     expected_h = y2 - y1
 
-    assert (x, y, w, h) == pytest.approx(
-        (x1, y1, expected_w, expected_h)
-    ), f"Selection drawn at wrong coordinates: got {(x, y, w, h)}, expected {(x1, y1, expected_w, expected_h)}"
+    assert (x, y, w, h) == pytest.approx((x1, y1, expected_w, expected_h)), (
+        f"Selection drawn at wrong coordinates: got {(x, y, w, h)}, expected "
+        f"{(x1, y1, expected_w, expected_h)}"
+    )
 
 
 def test_adaptive_filter():

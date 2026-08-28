@@ -367,10 +367,12 @@ def test_get_pdf_info_error(mock_run):
 @unittest.mock.patch("subprocess.check_output")
 def test_get_pdf_images_error(mock_co, mock_run):
     "Test that request.error is thrown when pdfimages returns error"
-    mock_co.return_value = """page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
---------------------------------------------------------------------------------------------
-   1     0 image     157   196  gray    1   1  ccitt  no   [inline]      72    72    0B 0.0%
-"""
+    mock_co.return_value = (
+        _PDFIMAGES_LIST_HEADER
+        + "   1     0 image     157   196  gray    1   1  ccitt  no   [inline]"
+        + "      72    72    0B 0.0%"
+        + "\n"
+    )
     mock_run.side_effect = subprocess.CalledProcessError(
         returncode=1,
         cmd=["pdfimages", "-f"],
@@ -401,10 +403,12 @@ def test_get_pdf_images_error(mock_co, mock_run):
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_image_error(mock_page, mock_glob, mock_co, _mock_run):
     "Test that request.error is thrown when importing individual images fails"
-    mock_co.return_value = """page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
---------------------------------------------------------------------------------------------
-   1     0 image     157   196  gray    1   1  ccitt  no   [inline]      72    72    0B 0.0%
-"""
+    mock_co.return_value = (
+        _PDFIMAGES_LIST_HEADER
+        + "   1     0 image     157   196  gray    1   1  ccitt  no   [inline]"
+        + "      72    72    0B 0.0%"
+        + "\n"
+    )
 
     # Simulate the presence of image files
     mock_glob.side_effect = [[], ["x-01.pnm"]]

@@ -496,8 +496,11 @@ class SessionMixins:
         else:
             logger.info("Creating new text layer with '%s'", text)
             self._current_page.text_layer = (
-                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},{self._current_page["height"]}],"depth":0}},'
-                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},{selection["x"] + selection["width"]},{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
+                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},'
+                f'{self._current_page["height"]}],"depth":0}},'
+                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
+                f'{selection["x"] + selection["width"]},'
+                f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 
             def ocr_new_page(_widget):
@@ -546,8 +549,11 @@ class SessionMixins:
         else:
             logger.info("Creating new annotation canvas with '%s'", text)
             self._current_page["annotations"] = (
-                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},{self._current_page["height"]}],"depth":0}},'
-                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},{selection["x"] + selection["width"]},{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
+                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},'
+                f'{self._current_page["height"]}],"depth":0}},'
+                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
+                f'{selection["x"] + selection["width"]},'
+                f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 
             def ann_text_new_page(_widget):

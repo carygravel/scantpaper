@@ -170,7 +170,8 @@ class SaveThread(Importhread):
             filename = options["path"]
             temp_pdf = None
             if _need_temp_pdf(options.get("options")):
-                temp_pdf = tempfile.NamedTemporaryFile(  # noqa: SIM115 — cross-scope file handle used intentionally
+                # SIM115 — cross-scope file handle used intentionally
+                temp_pdf = tempfile.NamedTemporaryFile(  # noqa: SIM115
                     dir=options.get("dir"), suffix=".pdf"
                 )
                 filename = temp_pdf.name

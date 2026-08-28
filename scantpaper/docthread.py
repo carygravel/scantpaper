@@ -247,7 +247,8 @@ class DocThread(SaveThread):
             self._action_id = row[0]
 
     def _migrate_page_order_schema(self):
-        "detect a legacy page_order schema with a page_number column and rebuild it without the column"
+        """detect a legacy page_order schema with a page_number column and
+        rebuild it without the column"""
         self._execute("PRAGMA table_info(page_order)")
         columns = [row[1] for row in self._fetchall()]
         if "page_number" not in columns:
@@ -463,13 +464,15 @@ class DocThread(SaveThread):
         if page_ids:
             self._execute(
                 f"""DELETE FROM page_order
-                    WHERE initial_page_id IN ({", ".join(["?"]*len(page_ids))}) AND action_id = ?""",
+                    WHERE initial_page_id IN ({", ".join(["?"]*len(page_ids))})
+                        AND action_id = ?""",
                 (*page_ids, self._action_id),
             )
 
         # renumber remaining rows
         self._execute(
-            "SELECT row_id, initial_page_id, action_id FROM page_order WHERE action_id = ? ORDER BY row_id",
+            """SELECT row_id, initial_page_id, action_id FROM page_order
+               WHERE action_id = ? ORDER BY row_id""",
             (self._action_id,),
         )
         page_order = self._fetchall()
@@ -733,8 +736,6 @@ class DocThread(SaveThread):
         min_page = self._fetchone()[0]
         self._execute("SELECT min(action_id) FROM selection")
         min_sel = self._fetchone()[0]
-        # min_action_id = min(filter(None, [min_page, min_sel])) if any([min_page, min_sel]) else None
-        # Simpler:
         ids = [x for x in [min_page, min_sel] if x is not None]
         min_action_id = min(ids) if ids else None
         return min_action_id is not None and min_action_id <= self._action_id

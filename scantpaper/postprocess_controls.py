@@ -317,7 +317,8 @@ class OCRControls(Gtk.Box):
         type=float,
         default=20.0,
         nick="Threshold value",
-        blurb="Pixels that differ from the paper colour by more than this percentage are rendered black",
+        blurb="Pixels that differ from the paper colour by more than this "
+        "percentage are rendered black",
     )
     def threshold_value(self):
         "getter for threshold_value attribute"

@@ -398,7 +398,8 @@ def _create_qbfox_image():
     _get_data = getattr(canvas, "get_flattened_data", canvas.getdata)
     pixels = list(_get_data())
     print(
-        f"[conftest] _create_qbfox_image: pixel min={min(pixels)} max={max(pixels)} non_white={sum(1 for p in pixels if p != 255)}",
+        f"[conftest] _create_qbfox_image: pixel min={min(pixels)} max={max(pixels)} "
+        f"non_white={sum(1 for p in pixels if p != 255)}",
         flush=True,
     )
     mask = canvas.point(lambda x: 0 if x == 255 else 255)
