@@ -339,7 +339,7 @@ class OCRControls(Gtk.Box):
         self._active_button.set_tooltip_text(_("OCR scanned pages"))
 
         tesseract = False
-        for engine in self.available_engines:
+        for engine in list(self.available_engines or []):
             if engine[0] == "tesseract":
                 tesseract = True
 
