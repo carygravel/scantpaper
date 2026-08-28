@@ -46,6 +46,7 @@ class BaseDocument(SimpleList):
         self.set_reorderable(True)
         self.dir = None
         self.clipboard = None
+        self._context = {}
         for key, val in kwargs.items():
             setattr(self, key, val)
         if not self.dir:
@@ -388,12 +389,10 @@ class BaseDocument(SimpleList):
         # a hash of the context hashes and ignore the second drop. There must be a
         # less hacky way of solving this. FIXME
         if context is not None:
-            if hasattr(self, "_context") and context in self._context:
+            if context in self._context:
                 self._context = {}
                 return
 
-            if not hasattr(self, "_context"):
-                self._context = {}
             self._context[context] = 1
 
         def _data_callback(response):

@@ -36,6 +36,9 @@ class SaneThread(BaseThread):
     device_name = None
     num_pages_scanned = 0
     num_pages = 0
+    scan_page_progress = 0.0
+    scan_page_total_lines = None
+    _scan_progress_cb = None
 
     def handler_wrapper(self, request, handler):
         "override the handler wrapper logic to deal with SANE_STATUS_NO_DOCS"

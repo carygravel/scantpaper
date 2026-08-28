@@ -122,6 +122,7 @@ class DocThread(SaveThread):
         if tid not in self._con:
             logger.debug("Connecting to database %s in thread %s", self._db, tid)
             self._con[tid] = sqlite3.connect(self._db)
+            self._con[tid].isolation_level = "IMMEDIATE"
             self._cur[tid] = self._con[tid].cursor()
 
     def _execute(self, query, params=None):
@@ -182,7 +183,6 @@ class DocThread(SaveThread):
         self._execute("PRAGMA journal_mode=WAL")
         self._execute(f"PRAGMA application_id={APPLICATION_ID}")
         self._execute(f"PRAGMA user_version={USER_VERSION}")
-        self.isolation_level = "IMMEDIATE"
         self._execute("""CREATE TABLE image(
                 id INTEGER PRIMARY KEY,
                 image BLOB,

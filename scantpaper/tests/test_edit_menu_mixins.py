@@ -25,6 +25,7 @@ def mock_edit_window(mocker):
         slist = None
         post_process_progress = None
         t_canvas = None
+        _actions = None
         settings: ClassVar[dict] = {}
         _windowp = None
         _windowr = None

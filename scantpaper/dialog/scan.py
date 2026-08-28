@@ -351,6 +351,7 @@ class Scan(PageControls):
         self.ignored_paper_formats = []
         self.option_widgets = {}
         self._geometry_boxes = {}
+        self._option_info = {}
 
         self.connect("show", self.show)
         self._add_device_combobox()
