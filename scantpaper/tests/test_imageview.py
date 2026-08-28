@@ -1,6 +1,7 @@
 "Basic tests for imageview"
 
 from dataclasses import dataclass
+from types import MethodType
 from unittest.mock import MagicMock, patch
 
 import cairo
@@ -974,7 +975,7 @@ def test_imageview_set_selection_none():
     "Verify that ImageView.set_selection(None) does not raise AttributeError"
     view = MagicMock(spec=ImageView)
     view.selection = MagicMock()  # existing selection
-    view.set_selection = ImageView.set_selection.__get__(view, ImageView)
+    view.set_selection = MethodType(ImageView.set_selection, view)
 
     # Mock get_pixbuf_size to return something so it doesn't return early
     view.get_pixbuf_size.return_value = MagicMock(width=100, height=100)

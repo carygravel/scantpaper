@@ -44,7 +44,7 @@ class Tool:
     def cursor_at_point(self, ptx, pty):
         "Returns the name of the cursor at the specified coords"
         display = Gdk.Display.get_default()
-        cursor_type = self.cursor_type_at_point(ptx, pty)
+        cursor_type: str | None = self.cursor_type_at_point(ptx, pty)
         if cursor_type is not None:
             return Gdk.Cursor.new_from_name(display, cursor_type)
         return None
