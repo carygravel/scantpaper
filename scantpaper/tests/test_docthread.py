@@ -1148,7 +1148,7 @@ def test_open_migration_v1_to_v2(temp_db):
     assert thread._fetchone()[0] == 1
 
 
-def test_pixbuf_to_bytes(mocker):
+def test_pixbuf_to_bytes():
     "test _pixbuf_to_bytes"
     thread = DocThread(db=":memory:")
     assert (
@@ -1189,6 +1189,7 @@ def test_init_timeout_logging(tmp_path, mocker, caplog):
     original_timeout_add = GLib.timeout_add
 
     def mock_timeout_add(ms, callback, *args):
+        del ms
         return original_timeout_add(1, callback, *args)
 
     mocker.patch("gi.repository.GLib.timeout_add", side_effect=mock_timeout_add)
@@ -1266,7 +1267,7 @@ def test_page_number_table_error(mocker):
     thread = DocThread(db=":memory:")
     mock_send = mocker.patch.object(thread, "send")
 
-    def send_side_effect(*args, **kwargs):
+    def send_side_effect(*_args, **kwargs):
         error_callback = kwargs["error_callback"]
         response = mocker.Mock()
         response.info = None

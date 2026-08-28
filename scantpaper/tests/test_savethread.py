@@ -41,6 +41,7 @@ class MockSaveThread(SaveThread):
 
     def get_page(self, page_id=None, **kwargs):
         "Mock get_page"
+        del page_id
         return self.mock_pages[kwargs.get("id")]
 
     def do_set_saved(self, request):
@@ -1064,6 +1065,7 @@ def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_in
 
     def track_progress(*args, **kwargs):
         "Capture progress values during the call"
+        del args, kwargs
         progress_values.append(mock_thread_instance.progress)
         message_values.append(mock_thread_instance.message)
 

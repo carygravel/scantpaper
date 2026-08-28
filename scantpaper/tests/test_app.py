@@ -46,7 +46,7 @@ def mock_deps(mocker):
     mocker.patch("app.os.remove")
 
 
-def test_application_do_activate(mock_deps, mocker):
+def test_application_do_activate(mock_deps):
     "Test Application.do_activate"
     app = Application()
     app.window = None
@@ -71,7 +71,7 @@ def test_application_do_activate(mock_deps, mocker):
     mock_window.present.assert_called_once()
 
 
-def test_parse_arguments_default(mock_deps, mocker):
+def test_parse_arguments_default(mock_deps):
     "Test _parse_arguments with default arguments"
     with patch("sys.argv", ["prog"]):
         args = _parse_arguments()
@@ -80,7 +80,7 @@ def test_parse_arguments_default(mock_deps, mocker):
         app_module.logging.basicConfig.assert_called_with(level=logging.WARNING)
 
 
-def test_parse_arguments_debug(mock_deps, mocker):
+def test_parse_arguments_debug(mock_deps):
     "Test _parse_arguments with --debug"
     with patch("sys.argv", ["prog", "--debug"]):
         args = _parse_arguments()
@@ -159,7 +159,7 @@ def test_parse_arguments_locale(mock_deps, mocker):
             )
 
 
-def test_parse_arguments_multiple_instances(mock_deps, mocker):
+def test_parse_arguments_multiple_instances(mock_deps):
     "Test _parse_arguments with multiple instances of --device, --import, and --import-all"
     test_args = [
         "prog",
@@ -223,7 +223,7 @@ def test_application_init_iconpath_in_package(mock_deps, mocker):
     )
 
 
-def test_application_do_startup(mock_deps, mocker):
+def test_application_do_startup(mock_deps):
     "Test Application.do_startup"
     app = Application()
     app.do_startup()

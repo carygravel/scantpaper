@@ -127,7 +127,7 @@ def get_bboxes_and_indices(json_string):
     return bboxes, [x[0] for x in words]
 
 
-def test_canvas_offset_setter_no_change(mocker):
+def test_canvas_offset_setter_no_change():
     "Test offset setter when values don't change"
     canvas_obj = Canvas()
     canvas_obj.emit = MagicMock()
@@ -624,7 +624,7 @@ def test_canvas_hocr_empty(mocker):
     assert canvas.hocr() == ""
 
 
-def test_canvas_set_offset_clamping(mocker):
+def test_canvas_set_offset_clamping():
     "Test set_offset clamping logic"
     canvas_obj = Canvas()
 
@@ -663,7 +663,7 @@ def test_canvas_set_offset_clamping(mocker):
     assert canvas_obj.offset.y == -100
 
 
-def test_canvas_scroll(mocker):
+def test_canvas_scroll():
     "Test scroll event zooming"
     canvas_obj = Canvas()
     canvas_obj.zoom = 1.0
@@ -696,7 +696,7 @@ def test_canvas_scroll(mocker):
     assert canvas_obj.zoom == 1.0
 
 
-def test_canvas_get_bbox_at(mocker):
+def test_canvas_get_bbox_at():
     "Test get_bbox_at"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -772,7 +772,7 @@ def test_list_iter_edge_cases():
         mock_logger.warning.assert_called()
 
 
-def test_bbox_methods_via_canvas(mocker):
+def test_bbox_methods_via_canvas():
     "Test Bbox methods by creating them on canvas"
     # This avoids segfaults by letting Canvas manage hierarchy
     canvas_obj = Canvas()
@@ -832,7 +832,7 @@ def test_bbox_methods_via_canvas(mocker):
     assert child2.get_position_index() == 1
 
 
-def test_canvas_indices(mocker):
+def test_canvas_indices():
     "Test Canvas indices switching and manipulation"
     canvas_obj = Canvas()
 
@@ -882,7 +882,7 @@ def test_canvas_indices(mocker):
         mock_confidence.set_index_by_bbox.assert_called_with(bbox, 90)
 
 
-def test_bbox_stack_index(mocker):
+def test_bbox_stack_index():
     "Test get_stack_index_by_position logic"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -920,7 +920,7 @@ def test_bbox_stack_index(mocker):
     assert idx == 1
 
 
-def test_add_box_callbacks(mocker):
+def test_add_box_callbacks():
     "Test add_box with callbacks and transformation"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -955,7 +955,7 @@ def test_add_box_callbacks(mocker):
     mock_edit.assert_called_once()
 
 
-def test_bbox_init_zero_width_text(mocker):
+def test_bbox_init_zero_width_text():
     "Test Bbox init with zero width text"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -978,7 +978,7 @@ def test_bbox_init_zero_width_text(mocker):
         assert bbox.text == "zerowidth"
 
 
-def test_tree_iter_navigation(mocker):
+def test_tree_iter_navigation():
     "Test TreeIter navigation methods"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1036,7 +1036,7 @@ def test_tree_iter_navigation(mocker):
         ti.next_word()
 
 
-def test_bbox_to_hocr_types(mocker):
+def test_bbox_to_hocr_types():
     "Test Bbox.to_hocr with different types"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1103,7 +1103,7 @@ def test_canvas_event_handlers(mocker):
     assert not canvas_obj._dragging
 
 
-def test_bbox_update_box_empty_text(mocker):
+def test_bbox_update_box_empty_text():
     "Test Bbox.update_box with empty text (deletes box)"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1133,7 +1133,7 @@ def test_bbox_update_box_empty_text(mocker):
     word.delete_box.assert_called_once()
 
 
-def test_list_iter_more(mocker):
+def test_list_iter_more():
     "Test ListIter additional methods"
     li = ListIter()
     bbox = MagicMock()
@@ -1154,7 +1154,7 @@ def test_list_iter_more(mocker):
     assert li.list[li.index][0] == bbox2
 
 
-def test_tree_iter_exceptions(mocker):
+def test_tree_iter_exceptions():
     "Test TreeIter exceptions"
 
     # Init with non-Bbox
@@ -1185,7 +1185,7 @@ def test_tree_iter_exceptions(mocker):
         ti.previous_word()
 
 
-def test_bbox_update_box_full(mocker):
+def test_bbox_update_box_full():
     "Test Bbox.update_box with more branches"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1231,7 +1231,7 @@ def test_bbox_update_box_full(mocker):
     assert word2.get_centroid()[0] < word.get_centroid()[0]
 
 
-def test_canvas_set_text_full(mocker, rose_pnm):
+def test_canvas_set_text_full(rose_pnm):
     "Test Canvas.set_text with real-ish page"
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
@@ -1264,7 +1264,7 @@ def test_canvas_set_text_full(mocker, rose_pnm):
         assert canvas_obj.get_pixbuf_size() == {"width": 100, "height": 100}
 
 
-def test_canvas_set_offset_pixbuf_none(mocker):
+def test_canvas_set_offset_pixbuf_none():
     "Test Canvas.set_offset when pixbuf_size is None"
     canvas_obj = Canvas()
     canvas_obj._pixbuf_size = None
@@ -1273,7 +1273,7 @@ def test_canvas_set_offset_pixbuf_none(mocker):
     assert canvas_obj.get_offset().x == 0
 
 
-def test_canvas_get_max_min_color_hsv(mocker):
+def test_canvas_get_max_min_color_hsv():
     "Test color HSV getters"
     canvas_obj = Canvas()
     hsv = canvas_obj.get_max_color_hsv()
@@ -1317,7 +1317,7 @@ def test_set_text_empty_list_with_none_callback():
     canvas.clear_text.assert_called_once()
 
 
-def test_bbox_button_press_callback(mocker):
+def test_bbox_button_press_callback():
     "Test Bbox button_press_callback"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1343,7 +1343,7 @@ def test_bbox_button_press_callback(mocker):
     mock_edit.assert_called_once()
 
 
-def test_bbox_walk_children(mocker):
+def test_bbox_walk_children():
     "Test Bbox.walk_children"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1374,7 +1374,7 @@ def test_bbox_walk_children(mocker):
     assert word in visited
 
 
-def test_canvas_get_bbox_at_more(mocker):
+def test_canvas_get_bbox_at_more():
     "Test Canvas.get_bbox_at"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1404,7 +1404,7 @@ def test_canvas_get_bbox_at_more(mocker):
     assert res == line
 
 
-def test_bbox_to_hocr_more(mocker):
+def test_bbox_to_hocr_more():
     "Test Bbox.to_hocr with extended properties"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1427,7 +1427,7 @@ def test_bbox_to_hocr_more(mocker):
     assert "textangle 90" in hocr
 
 
-def test_bbox_stack_index_coverage(mocker):
+def test_bbox_stack_index_coverage():
     "Test get_stack_index_by_position coverage and robust binary search"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1472,7 +1472,7 @@ def test_bbox_stack_index_coverage(mocker):
     assert idx == 0
 
 
-def test_tree_iter_next_word_stop_iteration(mocker):
+def test_tree_iter_next_word_stop_iteration():
     "Test TreeIter.next_word() state restoration on StopIteration (lines 1358-1361)"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1508,7 +1508,7 @@ def test_tree_iter_next_word_stop_iteration(mocker):
     assert ti._bbox == old_bbox
 
 
-def test_tree_iter_previous_word_same_node(mocker):
+def test_tree_iter_previous_word_same_node():
     "Test TreeIter.previous_word() when previous_bbox returns same node (lines 1399-1401)"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1556,7 +1556,7 @@ def test_list_iter_insert_before_position_warnings(mocker):
     )
 
 
-def test_bbox_get_position_index_more(mocker):
+def test_bbox_get_position_index_more():
     "Test Bbox.get_position_index() coverage (lines 966-978)"
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -2020,6 +2020,7 @@ def test_draw_bbox_full(mocker):
         return layout
 
     def patched_create_pango_layout(ctx, bbox):
+        del ctx
         return make_layout(bbox.text)
 
     canvas._create_pango_layout = patched_create_pango_layout

@@ -277,7 +277,7 @@ def test_undo_redo():
             doc._data_list if not args else setattr(doc, "_data_list", args[0])
         )
 
-        def mock_send(process, *args, **kwargs):
+        def mock_send(process, *_args, **kwargs):
             if process == "undo":
                 kwargs["finished_callback"](
                     MockResponse({"snapshot": "new_data", "selection": [0]})
@@ -306,7 +306,7 @@ def test_undo_redo_with_error_callback():
 
         last_call = {}
 
-        def mock_send(process, *args, **kwargs):
+        def mock_send(process, *_args, **kwargs):
             last_call.update(kwargs)
             if process in ("undo", "redo"):
                 kwargs["finished_callback"](

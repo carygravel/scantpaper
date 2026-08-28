@@ -1268,6 +1268,7 @@ def test_get_options_error(mocker, sane_scan_dialog):
         finished_callback,
         error_callback,
     ):
+        del name, value, started_callback, running_callback, error_callback
         response = SimpleNamespace(
             status="OK",
             info=enums.INFO_RELOAD_OPTIONS,
@@ -1277,6 +1278,7 @@ def test_get_options_error(mocker, sane_scan_dialog):
     def mocked_get_options(
         started_callback, running_callback, finished_callback, error_callback
     ):
+        del started_callback, running_callback, finished_callback
         response = SimpleNamespace(
             status="Error retrieving options",
             info=None,

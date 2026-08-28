@@ -45,6 +45,7 @@ def mock_scan_window(mocker):
 
         def get_application(self, *args, **kwargs):
             "mock"
+            del args, kwargs
             return mock_app
 
     # Instantiate
@@ -144,7 +145,7 @@ def test_scan_dialog_callbacks(mocker, mock_scan_window):
     # Capture callbacks
     callbacks = {}
 
-    def side_effect(signal, callback, *args):
+    def side_effect(signal, callback, *_args):
         callbacks[signal] = callback
         return mocker.Mock()
 
@@ -192,7 +193,7 @@ def test_scan_dialog_process_error_signal_forwarding(mocker, mock_scan_window):
 
     callbacks = {}
 
-    def side_effect(signal, callback, *args):
+    def side_effect(signal, callback, *_args):
         callbacks[signal] = callback
         return mocker.Mock()
 

@@ -222,6 +222,7 @@ def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window)
     mock_program_version = mocker.patch("session_mixins.program_version")
 
     def side_effect(stream, regex, cmd):
+        del stream, regex
         if "gm" in cmd:
             return "1.3"
         return None
@@ -425,7 +426,8 @@ def test_display_image(mocker, mock_session_window):
     # Capture the callbacks passed to send()
     captured_callbacks = {}
 
-    def capture_send(process, *args, **kwargs):
+    def capture_send(process, *_args, **kwargs):
+        del process
         captured_callbacks["finished_callback"] = kwargs.get("finished_callback")
         captured_callbacks["error_callback"] = kwargs.get("error_callback")
         return mocker.Mock()
@@ -488,7 +490,8 @@ def test_display_image_error(caplog, mocker, mock_session_window):
 
     captured_callbacks = {}
 
-    def capture_send(process, *args, **kwargs):
+    def capture_send(process, *_args, **kwargs):
+        del process
         captured_callbacks["error_callback"] = kwargs.get("error_callback")
         return mocker.Mock()
 

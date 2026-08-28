@@ -39,7 +39,7 @@ def mock_thread(mocker):
     mock_inst._con = MagicMock()
 
     # Mock DocThread.send to avoid blocking on queues
-    def mock_send(_process, *args, **kwargs):
+    def mock_send(_process, *_args, **kwargs):
         def run_callbacks():
             if "data_callback" in kwargs:
                 response = MagicMock()
@@ -132,6 +132,7 @@ def test_delete_selection_extra_edge_cases():
 
     # Mock delete_selection to actually remove the rows since we've mocked the thread
     def mock_delete_selection(_self=None, context=None, **kwargs):
+        del context
         indices = slist.get_selected_indices()
         for i in reversed(indices):
             del slist.data[i]
@@ -175,7 +176,7 @@ def test_save_open_session():
         error_callback = MagicMock()
 
         # Override send to simulate async responses synchronously
-        def mock_send(process, *args, **kwargs):
+        def mock_send(process, *_args, **kwargs):
             if process == "open":
                 if "finished_callback" in kwargs:
                     kwargs["finished_callback"](MagicMock())
@@ -277,7 +278,7 @@ def test_add_page_out_of_order_append_renumbers():
     mock_renumber.assert_called_once()
 
 
-def test_paste_selection_complex(mock_thread):
+def test_paste_selection_complex():
     "Test paste_selection with specific destination and position"
     slist = Document()
     slist.add_page(1, None, 101)
@@ -287,6 +288,7 @@ def test_paste_selection_complex(mock_thread):
 
     # Mock the clone_pages response
     def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+        del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[3, None, 103]]}
@@ -341,7 +343,7 @@ def test_find_page_by_uuid_none():
     assert slist.find_page_by_uuid(None) is None
 
 
-def test_open_session_error_copy(mock_thread):
+def test_open_session_error_copy():
     "Test open_session when shutil.copy fails"
     slist = Document()
     error_callback = MagicMock()
@@ -391,7 +393,7 @@ def test_open_session_error_no_db():
     error_callback.assert_called_once()
 
 
-def test_drag_data_received_callback_no_rows(mocker):
+def test_drag_data_received_callback_no_rows():
     "Test drag_data_received_callback with no selection"
     tree = MagicMock(spec=Document)
     tree.get_selected_indices.return_value = []
@@ -399,7 +401,7 @@ def test_drag_data_received_callback_no_rows(mocker):
     tree.paste_selection.assert_not_called()
 
 
-def test_drag_data_received_callback_abort(mocker):
+def test_drag_data_received_callback_abort():
     "Test drag_data_received_callback abort case"
     context = MagicMock()
     drag_data_received_callback(MagicMock(), context, 0, 0, MagicMock(), 999, 123)
@@ -512,7 +514,7 @@ def test_set_paper_sizes(mock_thread):
     mock_thread.send.assert_called_with("set_paper_sizes", sizes)
 
 
-def test_paste_selection_default_dest(mock_thread):
+def test_paste_selection_default_dest():
     "Test paste_selection with default destination (append)"
     slist = Document()
     slist.add_page(1, None, 101)
@@ -520,6 +522,7 @@ def test_paste_selection_default_dest(mock_thread):
     data_to_paste = [[1, None, 101]]
 
     def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+        del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[2, None, 102]]}
@@ -667,6 +670,7 @@ def test_delete_selection_extra_reselect():
     slist.add_page(3, None, 103)
 
     def mock_delete_selection(_self=None, context=None, **kwargs):
+        del context
         # We MUST capture the indices before deleting anything from data.
         indices_to_del = sorted(slist.get_selected_indices(), reverse=True)
         model = slist.get_model()
@@ -758,7 +762,7 @@ def test_cancel_empty_queues(mock_thread):
     assert slist.thread.cancel is True
 
 
-def test_paste_selection_after_into_or_after(mock_thread):
+def test_paste_selection_after_into_or_after():
     "Test paste_selection with INTO_OR_AFTER"
     slist = Document()
     slist.add_page(1, None, 101)
@@ -766,6 +770,7 @@ def test_paste_selection_after_into_or_after(mock_thread):
     data_to_paste = [[1, None, 101]]
 
     def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+        del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[2, None, 102]]}
@@ -814,6 +819,7 @@ def test_delete_selection_callback_removes_rows():
 
     def mock_send(cmd, args, data_callback=None, **kwargs):
         nonlocal captured_callback
+        del args, kwargs
         if cmd == "delete_pages":
             captured_callback = data_callback
 
@@ -880,6 +886,7 @@ def test_delete_all_pages_finished_called_on_other_response():
     captured = {}
 
     def mock_send(cmd, _args, data_callback=None, **kwargs):
+        del cmd, kwargs
         captured["data_callback"] = data_callback
 
     slist.thread.send = mock_send
@@ -902,6 +909,7 @@ def test_delete_all_pages_without_finished_callback():
     captured = {}
 
     def mock_send(cmd, args, data_callback=None, **kwargs):
+        del cmd
         captured["args"] = args
         captured["data_callback"] = data_callback
         captured["kwargs"] = kwargs
@@ -956,6 +964,7 @@ def test_paste_selection_insert_after():
     data_to_paste = [[1, None, 101]]
 
     def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+        del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[2, None, 102]]}

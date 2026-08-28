@@ -101,6 +101,7 @@ def get_progressbar_class():
 
     def create_progress_bar(total, desc, unit, disable=False, **kwargs):
         """Factory function that accepts all ocrmypdf progress bar parameters"""
+        del kwargs
         request_instance = _current_request_for_progress[0]
         return SaveThreadProgressBar(request_instance, total, desc, unit, disable)
 

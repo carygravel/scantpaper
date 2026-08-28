@@ -54,6 +54,7 @@ class FakeBrscan5Device:
 
     def snap(self, no_cancel=False, progress=None):
         "read the next buffered frame, optionally blocking to emulate a transfer"
+        del progress
         self.snap_no_cancel.append(no_cancel)
         frame = self.buffered.pop(0)
         if self.block_after_first:
@@ -445,6 +446,7 @@ def test_6_mock_device():
 
         # Setup set_option return values on the inner 'dev' mock
         def set_option_side_effect(index, _value):
+            del index
             return enums.INFO_RELOAD_OPTIONS
 
         mock_dev_instance.dev.set_option.side_effect = set_option_side_effect

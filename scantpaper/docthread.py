@@ -513,7 +513,7 @@ class DocThread(SaveThread):
             result[0] = response.info
             mlp.quit()
 
-        def on_error(response):
+        def on_error(_response):
             result[0] = None
             mlp.quit()
 

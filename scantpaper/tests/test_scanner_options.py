@@ -236,7 +236,7 @@ def test_can_duplex():
 
 
 def test_option_name_none(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+    sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     "test option.name=None"
 

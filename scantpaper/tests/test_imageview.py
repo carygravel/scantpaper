@@ -1006,6 +1006,7 @@ def test_selection_drawing_coordinates():
     rubberband_calls = []
 
     def capture_render_background(style_ctx, cr, x, y, w, h):
+        del cr
         if style_ctx.has_class(Gtk.STYLE_CLASS_RUBBERBAND):
             rubberband_calls.append((x, y, w, h))
 
