@@ -1,5 +1,7 @@
 "test EntryCompletion"
 
+# pylint: disable=protected-access  # tests access private members
+
 from entry_completion import EntryCompletion
 
 

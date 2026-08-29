@@ -1,5 +1,7 @@
 "test scan dialog current_scan_options property"
 
+# pylint: disable=protected-access  # tests access private members
+
 import threading
 import time
 from types import SimpleNamespace

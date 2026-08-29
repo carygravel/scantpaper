@@ -1,5 +1,7 @@
 "Test Progress widget"
 
+# pylint: disable=protected-access  # tests access private members
+
 from unittest.mock import Mock
 
 import gi

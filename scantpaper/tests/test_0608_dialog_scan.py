@@ -1,5 +1,7 @@
 "test scan dialog"
 
+# pylint: disable=protected-access  # tests access private members
+
 from types import SimpleNamespace
 
 from frontend import enums

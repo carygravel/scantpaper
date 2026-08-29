@@ -1,5 +1,7 @@
 "Tests for Importhread"
 
+# pylint: disable=protected-access  # tests access private members
+
 import subprocess
 import unittest.mock
 from types import SimpleNamespace

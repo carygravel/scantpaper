@@ -1,5 +1,7 @@
 "Tests for postprocess_controls.py"
 
+# pylint: disable=protected-access  # tests access private members
+
 from unittest.mock import MagicMock
 
 import gi

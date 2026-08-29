@@ -1,5 +1,7 @@
 "Test Canvas class"
 
+# pylint: disable=protected-access  # tests access private members
+
 import json
 import tempfile
 from dataclasses import dataclass

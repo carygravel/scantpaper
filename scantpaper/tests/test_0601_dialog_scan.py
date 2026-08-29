@@ -1,5 +1,7 @@
 "test scan dialog"
 
+# pylint: disable=protected-access  # tests access private members
+
 import glob
 import tempfile
 from types import SimpleNamespace

@@ -1,5 +1,7 @@
 "Test writing basic PDF"
 
+# pylint: disable=protected-access  # tests access private members
+
 import datetime
 import glob
 import locale

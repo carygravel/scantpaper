@@ -1,5 +1,7 @@
 "Tests for DocThread"
 
+# pylint: disable=protected-access  # tests access private members
+
 import sqlite3
 import subprocess
 import threading

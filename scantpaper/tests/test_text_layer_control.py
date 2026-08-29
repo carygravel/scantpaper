@@ -1,5 +1,7 @@
 "test TextLayerControls widget"
 
+# pylint: disable=protected-access  # tests access private members
+
 import os
 from unittest.mock import MagicMock
 

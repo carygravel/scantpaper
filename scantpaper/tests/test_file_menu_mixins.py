@@ -1,5 +1,7 @@
 "test file_menu_mixins"
 
+# pylint: disable=protected-access  # tests access private members
+
 import datetime
 import os
 import unittest.mock

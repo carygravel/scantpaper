@@ -1,6 +1,6 @@
 "Tests for the ScanMenuItemMixins."
 
-# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
 import os
 from types import SimpleNamespace

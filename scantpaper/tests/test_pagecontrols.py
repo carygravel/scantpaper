@@ -1,5 +1,7 @@
 "tests for PageControls dialog component"
 
+# pylint: disable=protected-access  # tests access private members
+
 import tempfile
 from unittest.mock import MagicMock
 

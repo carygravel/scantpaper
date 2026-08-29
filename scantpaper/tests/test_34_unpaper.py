@@ -1,5 +1,7 @@
 "Test unpaper"
 
+# pylint: disable=protected-access  # tests access private members
+
 import shutil
 import subprocess
 

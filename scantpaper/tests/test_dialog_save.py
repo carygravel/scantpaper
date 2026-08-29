@@ -1,5 +1,7 @@
 "Coverage tests for dialog.save"
 
+# pylint: disable=protected-access  # tests access private members
+
 import datetime as dt
 from unittest.mock import MagicMock
 

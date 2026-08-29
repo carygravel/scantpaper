@@ -1,5 +1,7 @@
 "Tests for dialog.scan.Scan class coverage edge cases."
 
+# pylint: disable=protected-access  # tests access private members
+
 import logging
 import unittest.mock
 from types import SimpleNamespace

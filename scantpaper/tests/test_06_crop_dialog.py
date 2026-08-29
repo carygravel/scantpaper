@@ -1,5 +1,7 @@
 "test dialog"
 
+# pylint: disable=protected-access  # tests access private members
+
 import gi
 from dialog.crop import Crop
 

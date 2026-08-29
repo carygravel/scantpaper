@@ -1,5 +1,7 @@
 "test document module"
 
+# pylint: disable=protected-access  # tests access private members
+
 import datetime
 import unittest.mock
 

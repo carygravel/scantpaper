@@ -1,5 +1,7 @@
 "Tests for document.py"
 
+# pylint: disable=protected-access  # tests access private members
+
 import datetime
 import os
 import shutil

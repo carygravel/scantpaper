@@ -1,5 +1,7 @@
 "test dialog.save"
 
+# pylint: disable=protected-access  # tests access private members
+
 from datetime import date, datetime, timedelta
 
 import gi

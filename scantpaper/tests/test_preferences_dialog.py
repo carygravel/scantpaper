@@ -1,5 +1,7 @@
 "Test preferences dialog"
 
+# pylint: disable=protected-access  # tests access private members
+
 from unittest.mock import MagicMock, patch
 
 import gi

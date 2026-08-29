@@ -1,5 +1,7 @@
 "Tests for Page class"
 
+# pylint: disable=protected-access  # tests access private members
+
 import io
 import os
 import subprocess

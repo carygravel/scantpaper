@@ -1,6 +1,6 @@
 "Tests for the EditMenuMixins."
 
-# pylint: disable=redefined-outer-name  # pytest fixtures are injected as params
+# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
 import datetime
 from typing import ClassVar
