@@ -156,18 +156,17 @@ class BaseDocument(SimpleList):
     def cancel(self, cancel_callback, process_callback=None):
         "Kill all running processes"
         with self.thread.lock:
-            # Empty process queue first to stop any new process from starting
+            # Empty the response queue first so the cancelled notifications
+            # queued below are not swallowed by the drain
             logger.info("Emptying process queue")
-            try:
-                while self.thread.requests.get(False):
-                    pass
-            except queue.Empty:
-                pass
             try:
                 while self.thread.responses.get(False):
                     pass
             except queue.Empty:
                 pass
+
+            # Cancel queued requests so their requesters are notified
+            self.thread.drain_cancelled_requests()
 
             # Then send the thread a cancel signal
             # to stop it going beyond the next break point

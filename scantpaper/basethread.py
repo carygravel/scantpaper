@@ -30,7 +30,7 @@ Response = collections.namedtuple(
 ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "DATA"]
 ResponseType = Enum("ResponseType", ResponseTypes)
 
-CALLBACKS = ["queued", "started", "running", "data", "finished", "error"]
+CALLBACKS = ["queued", "started", "running", "data", "finished", "cancelled", "error"]
 
 
 class Request:
@@ -78,6 +78,10 @@ class Request:
     def error(self, info=None, status=None):
         "error notification"
         self.put(info, ResponseType.ERROR, status)
+
+    def cancelled(self, info=None, status=None):
+        "cancelled notification"
+        self.put(info, ResponseType.CANCELLED, status)
 
     def data(self, info, status=None):
         "pass data back to main thread"
@@ -179,9 +183,17 @@ class BaseThread(threading.Thread):
         should be triggered before or after the reference callback"""
         if when not in ["before", "after"]:
             raise ValueError("when can only be 'before' or 'after'")
-        if reference_cb not in ["queued", "started", "running", "data", "finished"]:
+        if reference_cb not in [
+            "queued",
+            "started",
+            "running",
+            "data",
+            "cancelled",
+            "finished",
+        ]:
             raise ValueError(
-                "reference_cb can only be 'queued', 'started', 'running', 'data', or 'finished'"
+                "reference_cb can only be 'queued', 'started', 'running', "
+                "'data', 'cancelled', or 'finished'"
             )
         getattr(self, when)[reference_cb].add(name)
         self.additional_callbacks[name] = when, reference_cb
@@ -254,6 +266,17 @@ class BaseThread(threading.Thread):
 
     def _request_completed(self, _request):
         "hook called when a request's handler has finished or failed"
+
+    def drain_cancelled_requests(self):
+        "emit a CANCELLED response for every request still queued and unstarted"
+        drained = []
+        while True:
+            try:
+                drained.append(self.requests.get(False))
+            except queue.Empty:
+                break
+        for request in drained:
+            request.cancelled()
 
     def monitor(self):
         "monitor the thread, triggering one response callback"

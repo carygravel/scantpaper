@@ -1,5 +1,7 @@
 "test frontend/image_sane.py"
 
+# pylint: disable=protected-access  # tests access private members
+
 import threading
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -38,6 +40,7 @@ class FakeBrscan5Device:
         self.error_on_frame = None
         self.block_after_first = False
         self.slow_event = threading.Event()
+        self.cancel_event = threading.Event()
 
     def start(self):
         "start a page: flatbed refills the glass, feeder runs out when empty"
@@ -47,6 +50,8 @@ class FakeBrscan5Device:
         if not self.buffered:
             raise FeederEmptyError("Document feeder out of documents")
         self.start_calls += 1
+        # a transfer intentionally interrupted by cancel() is not a fresh start
+        self.cancel_event.clear()
 
     def get_parameters(self):
         "report scan parameters with a small but positive line count"
@@ -59,7 +64,11 @@ class FakeBrscan5Device:
         frame = self.buffered.pop(0)
         if self.block_after_first:
             self.block_after_first = False
-            self.slow_event.wait(2)
+            # block until either the transfer completes (slow_event) or a
+            # cancel arrives from another thread (cancel_event)
+            while not self.slow_event.wait(0.05):
+                if self.cancel_event.is_set():
+                    raise DeviceError("SANE_STATUS_CANCELLED")
         if frame == self.error_on_frame:
             raise DeviceError("SANE device exploded")
         if not no_cancel:
@@ -70,6 +79,15 @@ class FakeBrscan5Device:
         "cancel: drop any prefetched-but-unread frames"
         self.cancel_calls += 1
         self.buffered.clear()
+        self.cancel_event.set()
+
+
+class CancelRaisesDevice(FakeBrscan5Device):
+    "emulate a backend whose cross-thread cancel() raises before cancelling"
+
+    def cancel(self):
+        super().cancel()
+        raise DeviceError("Invalid argument")
 
 
 def test_error_handling():
@@ -245,32 +263,6 @@ def test_4():
     thread.get_option("enable-test-options", finished_callback=get_option_callback2)
     mlp.run()
     assert asserts == 3, "checked all expected responses #9"
-
-    # FIXME: get cancel() working
-    # ran_finished = False
-
-    # mlp = GLib.MainLoop()
-    # def get_options_callback2(response):
-    #     nonlocal ran_finished
-    #     ran_finished = True
-    #     mlp.quit()
-
-    # ran_cancelled = False
-
-    # def cancelled_callback(response):
-    #     nonlocal ran_cancelled
-    #     ran_cancelled = True
-    #     mlp.quit()
-
-    # thread.get_options(
-    #     finished_callback=get_options_callback2, cancelled_callback=cancelled_callback
-    # )
-    # thread.cancel(cancelled_callback=cancelled_callback)
-    # GLib.timeout_add(2000, mlp.quit)  # to prevent it hanging
-    # mlp.run()
-
-    # assert not ran_finished, "cancelled jobs don't run the finished callback"
-    # assert ran_cancelled, "ran the cancelled callback"
 
     mlp = safe_mainloop(2000)
 
@@ -562,12 +554,41 @@ def test_8_cancel_empties_queue():
 
     thread.cancel()
 
-    # cancel() calls requests.get() for each existing request, then send("cancel")
+    # cancel() drains each existing request (notifying its requester), then
     # send("cancel") puts 1 request in the queue.
     assert thread.requests.qsize() == 1
 
     request = thread.requests.get()
     assert request.process == "cancel"
+
+
+def test_queued_job_reports_cancelled(mocker):
+    "a cancel drops a queued scan-job and notifies its requester via cancelled_callback"
+    thread = SaneThread()
+    finished_cb = mocker.Mock()
+    cancelled_calls = []
+
+    def cancelled_cb(_response):
+        cancelled_calls.append(_response)
+        mlp.quit()
+
+    # Queue a request and cancel it before the worker thread is started, so
+    # the request is guaranteed to still be queued when the cancel drains it.
+    uid = thread.get_options(
+        finished_callback=finished_cb, cancelled_callback=cancelled_cb
+    )
+    thread.cancel()
+    thread.start()
+
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    assert cancelled_calls, "dropped request reported cancelled"
+    finished_cb.assert_not_called()
+    assert uid not in thread.callbacks, "cancelled request removed from the registry"
+
+    thread.send("quit", finished_callback=lambda _response: mlp.quit())
+    mlp.run()
 
 
 def test_9_quit_handles_sane_exit_exception():
@@ -700,26 +721,23 @@ def test_mid_batch_error_reports_and_terminates():
     assert fake.cancel_calls >= 1, "session terminated after the error"
 
 
-def test_user_cancel_terminates_session():
-    "a user cancel during a page transfer terminates the session"
+def test_user_cancel_terminates_session(mocker):
+    "a user cancel interrupts an in-flight transfer without importing the page"
     thread = SaneThread()
     thread.start()
     fake = FakeBrscan5Device(frames=[1, 2])
     fake.block_after_first = True
-    pages = []
+    new_page = mocker.Mock()
+    error = mocker.Mock()
     cancel_sent = [False]
 
-    def new_page(image):
-        pages.append(image)
-
-    def started(_response):
-        pass
-
     def running(_response):
-        if not cancel_sent[0]:
+        # only cancel once the in-flight transfer is actually active, so the
+        # direct device cancel interrupts a blocked snap() rather than racing
+        # with the still-unstarted page
+        if not cancel_sent[0] and thread._scan_active:
             cancel_sent[0] = True
             thread.cancel()
-            fake.slow_event.set()
 
     def quit_mlp(_response):
         mlp.quit()
@@ -732,16 +750,102 @@ def test_user_cancel_terminates_session():
     mlp = safe_mainloop(2000)
     thread.scan_pages(
         num_pages=2,
-        started_callback=started,
+        started_callback=lambda _response: None,
         running_callback=running,
         new_page_callback=new_page,
-        error_callback=quit_mlp,
+        error_callback=error,
         finished_callback=quit_mlp,
     )
     mlp.run()
 
+    assert cancel_sent[0], "the user cancel was issued"
+    new_page.assert_not_called()
+    error.assert_not_called()
+    assert fake.cancel_calls >= 1, "user cancel terminated the session"
+
     mlp = safe_mainloop(2000)
     thread.send("quit", finished_callback=quit_mlp)
     mlp.run()
-    assert pages == [1], "only the in-flight page imported"
-    assert fake.cancel_calls >= 1, "user cancel terminated the session"
+
+
+def test_feeder_empty_ends_batch_cleanly(mocker):
+    "the batch ends cleanly with the acquired pages when the feeder runs dry"
+    thread = SaneThread()
+    thread.start()
+    fake = FakeBrscan5Device(frames=[1])
+    pages = []
+    error = mocker.Mock()
+
+    def new_page(page):
+        pages.append(page)
+
+    def quit_mlp(_response):
+        mlp.quit()
+
+    mlp = safe_mainloop(2000)
+    with patch("sane.open", return_value=fake):
+        thread.open_device(device_name="fake", finished_callback=quit_mlp)
+        mlp.run()
+
+    mlp = safe_mainloop(2000)
+    thread.scan_pages(
+        num_pages=0,
+        started_callback=lambda _response: None,
+        running_callback=lambda _response: None,
+        new_page_callback=new_page,
+        error_callback=error,
+        finished_callback=quit_mlp,
+    )
+    mlp.run()
+
+    assert pages == [1], "the available page was imported"
+    error.assert_not_called()
+    assert fake.cancel_calls >= 1, "session terminated when the feeder ran dry"
+
+    mlp = safe_mainloop(2000)
+    thread.send("quit", finished_callback=quit_mlp)
+    mlp.run()
+
+
+def test_cancel_raises_on_device_terminates_cleanly(mocker):
+    "a device cancel() that raises is tolerated; the session still ends cleanly"
+    thread = SaneThread()
+    thread.start()
+    fake = CancelRaisesDevice(frames=[1, 2])
+    fake.block_after_first = True
+    new_page = mocker.Mock()
+    error = mocker.Mock()
+    cancel_sent = [False]
+
+    def running(_response):
+        if not cancel_sent[0] and thread._scan_active:
+            cancel_sent[0] = True
+            thread.cancel()
+
+    def quit_mlp(_response):
+        mlp.quit()
+
+    mlp = safe_mainloop(2000)
+    with patch("sane.open", return_value=fake):
+        thread.open_device(device_name="fake", finished_callback=quit_mlp)
+        mlp.run()
+
+    mlp = safe_mainloop(2000)
+    thread.scan_pages(
+        num_pages=2,
+        started_callback=lambda _response: None,
+        running_callback=running,
+        new_page_callback=new_page,
+        error_callback=error,
+        finished_callback=quit_mlp,
+    )
+    mlp.run()
+
+    assert cancel_sent[0], "the user cancel was issued"
+    new_page.assert_not_called()
+    error.assert_not_called()
+    assert fake.cancel_calls >= 2, "direct and queued device cancels both attempted"
+
+    mlp = safe_mainloop(2000)
+    thread.send("quit", finished_callback=quit_mlp)
+    mlp.run()

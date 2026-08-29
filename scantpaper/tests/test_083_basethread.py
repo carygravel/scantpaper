@@ -382,7 +382,10 @@ def test_monitor_schedules_idle_when_responses_remain():
         mock_idle.assert_called_once_with(thread._drain_one)
 
 
-@pytest.mark.parametrize("terminal_type", [ResponseType.FINISHED, ResponseType.ERROR])
+@pytest.mark.parametrize(
+    "terminal_type",
+    [ResponseType.FINISHED, ResponseType.ERROR, ResponseType.CANCELLED],
+)
 def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_type):
     "test that running callbacks don't fire while a terminal callback is dispatched"
     thread = BaseThread()
@@ -409,6 +412,56 @@ def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_t
 
     assert terminal_dispatched == [True]
     running_cb.assert_not_called()
+
+
+def test_cancelled_response_dispatches_cancelled_callback(mocker):
+    "CANCELLED fires cancelled_callback, suppresses finished, and cleans the registry"
+    thread = BaseThread()
+    cancelled_cb = mocker.Mock()
+    finished_cb = mocker.Mock()
+
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "cancelled_callback": cancelled_cb,
+        "finished_callback": finished_cb,
+    }
+    request.cancelled(info="aborted")
+
+    thread._monitor_response()
+
+    cancelled_cb.assert_called_once()
+    assert cancelled_cb.call_args.args[0].type == ResponseType.CANCELLED
+    finished_cb.assert_not_called()
+    assert request.uuid not in thread.callbacks, "cancelled job removed from registry"
+    assert thread.num_completed_jobs == 1, "cancelled job counted as complete"
+
+
+def test_drain_cancelled_requests_notifies_queued_jobs(mocker):
+    "drain_cancelled_requests drops queued requests and notifies their requesters"
+    thread = BaseThread()
+    cancelled_cb = mocker.Mock()
+    finished_cb = mocker.Mock()
+
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {
+        "started": False,
+        "cancelled_callback": cancelled_cb,
+        "finished_callback": finished_cb,
+    }
+    thread.requests.put(request)
+
+    thread.drain_cancelled_requests()
+
+    assert thread.requests.empty(), "queued requests drained"
+    assert thread.responses.qsize() == 1, "cancelled response emitted per request"
+
+    thread._monitor_response()
+
+    cancelled_cb.assert_called_once()
+    assert cancelled_cb.call_args.args[0].type == ResponseType.CANCELLED
+    finished_cb.assert_not_called()
+    assert request.uuid not in thread.callbacks, "registry entry removed"
 
 
 def test_cleanup_thread_exception_caught(mocker):

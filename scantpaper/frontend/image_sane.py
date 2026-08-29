@@ -39,6 +39,8 @@ class SaneThread(BaseThread):
     scan_page_progress = 0.0
     scan_page_total_lines = None
     _scan_progress_cb = None
+    _scan_active = False
+    _cancel_requested = False
 
     def handler_wrapper(self, request, handler):
         "override the handler wrapper logic to deal with SANE_STATUS_NO_DOCS"
@@ -61,6 +63,8 @@ class SaneThread(BaseThread):
                 and str(err) == "Document feeder out of documents"
             ):
                 request.finished(None, str(err))
+            elif request.process == "scan_page" and self._cancel_requested:
+                request.cancelled()
             else:
                 request.error(None, str(err))
                 if request.process == "scan_page" and self.device_handle is not None:
@@ -205,9 +209,14 @@ class SaneThread(BaseThread):
                 self.scan_page_progress = min(1.0, current_line / total_lines)
 
         self._scan_progress_cb = _progress_cb
-        return self.device_handle.snap(
-            no_cancel=not cancel_between_pages, progress=self._scan_progress_cb
-        )
+        self._cancel_requested = False
+        self._scan_active = True
+        try:
+            return self.device_handle.snap(
+                no_cancel=not cancel_between_pages, progress=self._scan_progress_cb
+            )
+        finally:
+            self._scan_active = False
 
     def do_cancel(self, _request):
         "cancel"
@@ -287,7 +296,18 @@ class SaneThread(BaseThread):
                 error_callback=kwargs["error_callback"],
                 new_page_callback=kwargs["new_page_callback"],
             ),
+            cancelled_callback=lambda response: self._scan_pages_cancelled_callback(
+                response,
+                finished_callback=kwargs["finished_callback"],
+            ),
         )
+
+    def _scan_pages_cancelled_callback(self, response, **kwargs):
+        "a page transfer was interrupted by a cancel: terminate the session cleanly"
+        # the queued "cancel" request terminates the device session via do_cancel;
+        # the partial page was never handed to new_page_callback
+        if kwargs["finished_callback"] is not None:
+            kwargs["finished_callback"](response)
 
     def scan_pages(self, cancel_between_pages=False, **kwargs):
         "scan pages"
@@ -307,6 +327,10 @@ class SaneThread(BaseThread):
                 error_callback=kwargs["error_callback"],
                 new_page_callback=kwargs["new_page_callback"],
             ),
+            cancelled_callback=lambda response: self._scan_pages_cancelled_callback(
+                response,
+                finished_callback=kwargs["finished_callback"],
+            ),
         )
 
     def close_device(self, **kwargs):
@@ -320,17 +344,34 @@ class SaneThread(BaseThread):
     def cancel(self, **kwargs):
         "Flag the scan routine to abort"
 
-        # empty process queue first to stop any new process from starting
-        while not self.requests.empty():
-            self.requests.get()
+        # drop queued requests, notifying their requesters
+        self.drain_cancelled_requests()
 
-        # Then send the thread a cancel signal
-        # _self["abort_scan"] = 1
-        # uuid = str(uuid_object())
-        # callback[uuid]["cancelled"] = callback
+        # Mark the transfer as deliberately cancelled before anything else:
+        # whatever the backend reports for the interrupted page (a cancelled
+        # status, or an error like "Invalid argument" on backends whose
+        # sane_cancel is not safe to call from another thread), the failure
+        # is classified as CANCELLED by handler_wrapper and never surfaced
+        # as an error to the user.
+        self._cancel_requested = True
 
-        # Add a cancel request to ensure the reply is not blocked
-        return self.send("cancel", **kwargs)
+        # Queue the cancel request first, so that the serialized do_cancel
+        # runs even if the best-effort direct call below raises.
+        request = self.send("cancel", **kwargs)
+
+        # During an active transfer, cancel the device directly from this
+        # thread: SANE allows sane_cancel to be called from a thread other
+        # than the one blocked in a transfer, and this is what unblocks the
+        # worker's snap() call so that an in-flight page is interrupted.
+        # Some backends raise on a cross-thread cancel racing a read, so this
+        # call is best-effort; the queued cancel request already guarantees
+        # the session is torn down by the worker.
+        if self._scan_active and self.device_handle is not None:
+            try:
+                self.device_handle.cancel()
+            except Exception as e:  # noqa: BLE001
+                logger.error("Error cancelling device: %s", e)
+        return request
 
 
 def decode_info(info):
