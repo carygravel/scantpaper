@@ -32,6 +32,14 @@ NO_INDEX = -1
 logger = logging.getLogger(__name__)
 
 
+def _resolution_value(thread, name):
+    "return the value of the named resolution option, or 0 if unavailable"
+    try:
+        return thread.get_option_value(name)
+    except AttributeError:
+        return 0
+
+
 class Scan(PageControls):
     "Scan dialog"
 
@@ -1338,13 +1346,10 @@ class Scan(PageControls):
         options = self.available_scan_options
         if not options:
             return None, None
-        resolutions = []
-        for name in ["resolution", "x-resolution", "y-resolution"]:
-            try:
-                resolutions.append(self.thread.get_option_value(name))
-            except AttributeError:
-                resolutions.append(0)
-        resolution, xres, yres = resolutions
+        resolution, xres, yres = [
+            _resolution_value(self.thread, name)
+            for name in ("resolution", "x-resolution", "y-resolution")
+        ]
 
         # Potentially, a scanner could offer all three options, but then unset
         # resolution once the other two have been set.
