@@ -37,6 +37,10 @@ class Crop(Dialog):
     __gsignals__: ClassVar[dict] = {
         "changed-selection": (GObject.SignalFlags.RUN_FIRST, None, (Gdk.Rectangle,)),
     }
+    _sb_x = None  # created in _create_spinbuttons()
+    _sb_y = None
+    _sb_width = None
+    _sb_height = None
 
     @GObject.Property(
         type=Gdk.Rectangle,
@@ -166,7 +170,7 @@ class Crop(Dialog):
         otherattr = {"x": "width", "y": "height", "width": "x", "height": "y"}[
             dimension
         ]
-        if hasattr(self, f"_sb_{otherattr}"):  # spinbuttons created after properties
+        if getattr(self, f"_sb_{otherattr}", None) is not None:
             getattr(self, f"_sb_{otherattr}").set_range(
                 0, getattr(self, pagedim) - getattr(self.selection, dimension)
             )

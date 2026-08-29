@@ -4,11 +4,11 @@
 
 import gi
 from dialog.crop import Crop
+from loop_helpers import safe_mainloop
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, Gtk  # pylint: disable=wrong-import-position
-from loop_helpers import safe_mainloop
 
 
 def test_1():
