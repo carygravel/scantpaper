@@ -2,7 +2,7 @@
 
 # pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from basethread import BaseThread, Request, Response, ResponseType
@@ -287,8 +287,6 @@ def test_pipe_notification():
 
 def test_running_callback_on_empty_queue():
     "Test that monitor triggers running callbacks even when response queue is empty"
-    from basethread import Request
-
     thread = BaseThread()
     running_called = []
 
@@ -344,10 +342,6 @@ def test_none_callback():
 
 def test_monitor_processes_one_at_a_time():
     "test that monitor processes exactly one response per call"
-    from unittest.mock import patch
-
-    from basethread import Request
-
     thread = BaseThread()
     finished_calls = []
 
@@ -377,10 +371,6 @@ def test_monitor_processes_one_at_a_time():
 
 def test_monitor_schedules_idle_when_responses_remain():
     "test that GLib.idle_add is called when responses still in queue"
-    from unittest.mock import patch
-
-    from basethread import Request
-
     thread = BaseThread()
 
     req = Request("test", (), thread.responses)
@@ -395,8 +385,6 @@ def test_monitor_schedules_idle_when_responses_remain():
 @pytest.mark.parametrize("terminal_type", [ResponseType.FINISHED, ResponseType.ERROR])
 def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_type):
     "test that running callbacks don't fire while a terminal callback is dispatched"
-    from basethread import Request
-
     thread = BaseThread()
     running_cb = mocker.Mock()
     terminal_dispatched = []
