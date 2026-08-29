@@ -122,48 +122,6 @@ def test_process_chain2(temp_db, temp_pnm, get_page_sync):
     assert page.mean == [0.0], "User-defined with %i and %o"
 
 
-# FIXME: there is no reason why this can't be made to work on a recent CI. It works locally
-@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-@pytest.mark.xfail(
-    reason="Pillow FreeType glyph metrics broken on CI (getbbox x_min=-19M)"
-)
-def test_tesseract_in_process_chain_pil(temp_db, rotated_qbfox_pnm, get_page_sync):
-    "Test tesseract in process chain using Pillow-generated image"
-
-    slist = Document(db=temp_db.name)
-
-    asserts = 0
-
-    def display_cb(response):
-        nonlocal asserts
-        asserts += 1
-
-    mlp = safe_mainloop(5000)
-    slist.import_scan(
-        filename=rotated_qbfox_pnm,
-        page=1,
-        rotate=-90,
-        ocr=True,
-        resolution=300,
-        delete=True,
-        engine="tesseract",
-        language="eng",
-        display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
-    )
-    mlp.run()
-
-    assert asserts == 3, "display callback called for import, rotate, tesseract"
-    page = get_page_sync(slist.thread, id=1)
-    assert page.resolution[0] == 300, "Resolution of imported image"
-
-    hocr = page.export_hocr()
-    assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
-    assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
-    assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
-    assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
-
-
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
 def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync):
     "Test tesseract in process chain using ImageMagick-generated image"
