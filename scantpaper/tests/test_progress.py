@@ -5,6 +5,7 @@
 from unittest.mock import Mock
 
 import gi
+from basethread import ResponseType
 from progress import Progress
 
 gi.require_version("Gtk", "3.0")
@@ -106,8 +107,6 @@ def test_progress_update_clamps_fraction():
 
 def test_progress_update_data_string():
     "Test that update sets text when response.info is a string"
-    from basethread import ResponseType
-
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -122,8 +121,6 @@ def test_progress_update_data_string():
 
 def test_progress_update_data_float_clamps():
     "Test that update clamps float DATA values > 1.0"
-    from basethread import ResponseType
-
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -319,8 +316,6 @@ def test_progress_queued_no_process_name():
 
 def test_progress_update_data_other_type():
     "Test update with DATA type and non-str/non-float info returns early"
-    from basethread import ResponseType
-
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
