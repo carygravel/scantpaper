@@ -40,6 +40,7 @@ class PageControls(Dialog):
     _sided = "single"
     _side_to_scan = "facing"
     _document = None
+    thread = None  # set by subclasses such as SaneScanDialog
     available_scan_options = Options([])
     allow_batch_flatbed = False
     ignore_duplex_capabilities = False
@@ -71,7 +72,7 @@ class PageControls(Dialog):
             newval == 1
             or self.allow_batch_flatbed
             or (
-                hasattr(self, "thread")  # in __init__(), thread may not yet exist
+                self.thread is not None
                 and self.thread.device_handle is not None
                 and not options.flatbed_selected(self.thread.get_option_value)
             )
@@ -405,7 +406,7 @@ class PageControls(Dialog):
 
     def _flatbed_or_duplex_callback(self):
         options = self.available_scan_options
-        if options is not None and hasattr(self, "thread") and hasattr(self, "_vboxx"):
+        if options is not None and self.thread is not None and hasattr(self, "_vboxx"):
             if options.flatbed_selected(self.thread.get_option_value) or (
                 options.can_duplex() and not self.ignore_duplex_capabilities
             ):

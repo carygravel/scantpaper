@@ -251,9 +251,9 @@ class Scan(PageControls):
         else:
             options = self.available_scan_options
 
-            # on startup, self.thread doesn't get defined until later
+            # on startup, self.thread doesn't get set until later
             if (
-                hasattr(self, "thread")
+                self.thread is not None
                 and options is not None
                 and options.flatbed_selected(self.thread.get_option_value)
             ):
@@ -290,7 +290,7 @@ class Scan(PageControls):
     @available_scan_options.setter
     def available_scan_options(self, newval):
         self._available_scan_options = newval
-        if hasattr(self, "framen") and hasattr(self, "thread"):
+        if hasattr(self, "framen") and self.thread is not None:
             if not self.allow_batch_flatbed and newval.flatbed_selected(
                 self.thread.get_option_value
             ):
