@@ -14,7 +14,7 @@ from frontend import enums
 from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, GObject, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
 
 
 class MockOptions:
@@ -39,24 +39,6 @@ class MockOption:
     def __init__(self, name):
         self.name = name
         self.type = enums.TYPE_INT
-
-
-class MockScan(Scan):
-    "A mock Scan class"
-
-    def __init__(self):
-        # Initialize GObject to allow property access
-        GObject.GObject.__init__(self)
-
-        # Bypass Scan.__init__ logic by manually setting attributes
-        self.option_widgets = {}
-        self.setting_current_scan_options = []
-        self.num_reloads = 0
-        self.reload_recursion_limit = 10
-        self._current_scan_options = Profile()
-        self._available_scan_options = MockOptions([])
-        self.thread = MagicMock()
-        self.thread.device_handle = MagicMock()
 
 
 def test_current_scan_options_property():
@@ -145,7 +127,7 @@ def test_device_dropdown_changed(mocker):
 
     # Test selecting device
     dialog.combobd.set_active(0)
-    assert dialog.device == "dev1"
+    assert str(dialog.device) == "dev1"
     dialog.get_devices.assert_not_called()
 
     # Test selecting Rescan
@@ -185,7 +167,7 @@ def test_edit_paper_apply(mocker):
     # We need to capture the 'Apply' button callback.
     # The button is created with Gtk.Button.new_with_label(_("Apply"))
 
-    apply_callback = None
+    apply_cb = {}
 
     def mock_new_with_label(label):
         btn = mocker.Mock()
@@ -193,8 +175,7 @@ def test_edit_paper_apply(mocker):
 
             def connect(signal, callback, *_args):
                 if signal == "clicked":
-                    nonlocal apply_callback
-                    apply_callback = callback
+                    apply_cb["callback"] = callback
 
             btn.connect.side_effect = connect
         return btn
@@ -207,10 +188,10 @@ def test_edit_paper_apply(mocker):
     # Call _edit_paper
     dialog._edit_paper()
 
-    assert apply_callback is not None
+    assert apply_cb["callback"] is not None
 
     # Call the callback
-    apply_callback(None)  # argument is widget, ignored
+    apply_cb["callback"](None)  # argument is widget, ignored
 
     # Verify paper_formats updated
     assert "NewFormat" in dialog.paper_formats
@@ -1170,7 +1151,7 @@ def test_update_widget_value_widget_undefined(mocker):
 
 def test_update_options_error_return(mocker):
     "test _update_options returns early if _update_option returns True (line 717)"
-    dialog = MockScan()
+    dialog = Scan()
 
     # Mock copy to just return the same object
     mocker.patch("dialog.scan.copy", side_effect=lambda x: x)
@@ -1194,7 +1175,7 @@ def test_update_options_error_return(mocker):
 
 def test_get_label_for_option_none():
     "test _get_label_for_option returns None if no label is found (line 1333)"
-    dialog = MockScan()
+    dialog = Scan()
 
     hbox = Gtk.Box()
     # No Gtk.Label child
