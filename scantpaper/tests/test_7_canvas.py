@@ -26,6 +26,7 @@ from canvas import (
     rgb2hsv,
     string2rgb,
 )
+from loop_helpers import safe_mainloop
 from page import Page
 
 gi.require_version("Gdk", "3.0")
@@ -37,7 +38,6 @@ from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-
     Pango,
     PangoCairo,
 )
-from loop_helpers import safe_mainloop
 
 
 def assert_rgba_equal(c1, c2):
