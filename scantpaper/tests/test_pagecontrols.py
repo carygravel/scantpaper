@@ -19,8 +19,10 @@ def test_side_to_scan_invalid_value():
     "Test that ValueError is raised for invalid side-to-scan values"
     page_controls = PageControls()
 
+    set_side_to_scan = vars(PageControls.side_to_scan)["fset"]
+
     with pytest.raises(ValueError, match="Invalid value for side-to-scan: invalid"):
-        PageControls.side_to_scan.fset(page_controls, "invalid")
+        set_side_to_scan(page_controls, "invalid")
 
 
 def test_do_spin_buttoni_value_changed():
