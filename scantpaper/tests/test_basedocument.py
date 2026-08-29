@@ -17,10 +17,10 @@ import pytest
 from basedocument import ID_PAGE, ID_URI, drag_data_received_callback
 from docthread import INSERT_AT_START
 from document import Document
+from loop_helpers import safe_mainloop
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
-from loop_helpers import safe_mainloop
 
 
 @pytest.fixture(autouse=True)
