@@ -5,6 +5,7 @@
 import datetime
 import gc
 import subprocess
+from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import helpers
@@ -234,7 +235,7 @@ def test_expand_metadata_pattern():
 def test_show_message_dialog(mocker):
     "Test show_message_dialog"
     # Mock global variables and MultipleMessage
-    mocker.patch("helpers.MultipleMessage")
+    mock_multiple_message = mocker.patch("helpers.MultipleMessage")
 
     helpers._MESSAGE_DIALOG = {"dialog": None}
     helpers.SETTING = {
@@ -243,7 +244,7 @@ def test_show_message_dialog(mocker):
         "message": {},
     }
 
-    mock_mm = helpers.MultipleMessage.return_value
+    mock_mm = mock_multiple_message.return_value
     mock_mm.grid_rows = 2
     mock_mm.run.return_value = 1
     mock_mm.get_size.return_value = (200, 200)
@@ -284,8 +285,6 @@ def test_slurp_file_object(tmp_path):
 
 def test_slurp_binary_file_object():
     "Test slurp decodes bytes read from a binary file object"
-    from io import BytesIO
-
     fhd = BytesIO(b"1234")
     assert slurp(fhd) == "1234"
 
