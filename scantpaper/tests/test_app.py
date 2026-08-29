@@ -2,8 +2,10 @@
 
 # pylint: disable=protected-access  # tests access private members
 
+import importlib
 import logging
 import os
+import runpy
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -49,13 +51,13 @@ def mock_deps(mocker):
 
 
 @pytest.mark.usefixtures("mock_deps")
-def test_application_do_activate():
+def test_application_do_activate(mocker):
     "Test Application.do_activate"
     app = Application()
     app.window = None
 
     # Mock ApplicationWindow constructor
-    mock_window_cls = app_module.ApplicationWindow
+    mock_window_cls = mocker.patch("app.ApplicationWindow")
     mock_window = mock_window_cls.return_value
 
     app.do_activate()
@@ -75,13 +77,14 @@ def test_application_do_activate():
 
 
 @pytest.mark.usefixtures("mock_deps")
-def test_parse_arguments_default():
+def test_parse_arguments_default(mocker):
     "Test _parse_arguments with default arguments"
     with patch("sys.argv", ["prog"]):
+        mock_basicconfig = mocker.patch.object(app_module.logging, "basicConfig")
         args = _parse_arguments()
 
         assert args.log_level == logging.WARNING
-        app_module.logging.basicConfig.assert_called_with(level=logging.WARNING)
+        mock_basicconfig.assert_called_with(level=logging.WARNING)
 
 
 @pytest.mark.usefixtures("mock_deps")
@@ -96,11 +99,12 @@ def test_parse_arguments_debug():
 def test_parse_arguments_log_file(mocker):
     "Test _parse_arguments with --log"
     with patch("sys.argv", ["prog", "--log", "test.log"]):
+        mock_basicconfig = mocker.patch.object(app_module.logging, "basicConfig")
         _parse_arguments()
 
         # Check basic config
-        app_module.logging.basicConfig.assert_called()
-        call_args = app_module.logging.basicConfig.call_args[1]
+        mock_basicconfig.assert_called()
+        call_args = mock_basicconfig.call_args[1]
         assert "filename" in call_args
         assert call_args["filename"].endswith("test.log")
         assert call_args["level"] == logging.DEBUG  # Default when log file is set
@@ -113,8 +117,8 @@ def test_parse_arguments_log_file(mocker):
 
         # Test the cleanup function
         mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data=b"data"))
-        mock_lzma_open = app_module.lzma.open
-        mock_shutil_copy = app_module.shutil.copyfileobj
+        mock_lzma_open = mocker.patch.object(app_module.lzma, "open")
+        mock_shutil_copy = mocker.patch.object(app_module.shutil, "copyfileobj")
         mock_remove = app_module.os.remove
 
         cleanup_func()
@@ -144,6 +148,7 @@ def test_parse_arguments_log_compression_error(mocker):
 @pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_locale(mocker):
     "Test _parse_arguments with --locale"
+    mock_bindtextdomain = mocker.patch.object(app_module.gettext, "bindtextdomain")
     # Test specific locale path (starts with /)
     with patch("sys.argv", ["prog", "--locale", "/usr/share/locale"]):
         mocker.patch(
@@ -152,9 +157,7 @@ def test_parse_arguments_locale(mocker):
 
         _parse_arguments()
 
-        app_module.gettext.bindtextdomain.assert_called_with(
-            PROG_NAME, "/usr/share/locale"
-        )
+        mock_bindtextdomain.assert_called_with(PROG_NAME, "/usr/share/locale")
 
     # Test relative locale (no /)
     with patch("sys.argv", ["prog", "--locale", "local_locale"]):
@@ -162,7 +165,7 @@ def test_parse_arguments_locale(mocker):
         with patch("os.getcwd", return_value="/current/dir"):
             _parse_arguments()
 
-            app_module.gettext.bindtextdomain.assert_called_with(
+            mock_bindtextdomain.assert_called_with(
                 PROG_NAME, "/current/dir/local_locale"
             )
 
@@ -213,11 +216,11 @@ def test_main(mocker):
 def test_application_init_iconpath_fallback(mocker):
     "Test Application.__init__ with iconpath fallback"
     mocker.patch("app.os.path.isdir", return_value=False)
-    # Gtk.IconTheme.get_default() was already mocked in mock_deps
+    mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
+    # It should have called prepend_search_path with the fallback path
     Application()
     app_module.os.path.isdir.assert_called()
-    # It should have called prepend_search_path with the fallback path
-    app_module.Gtk.IconTheme.get_default().prepend_search_path.assert_called_with(
+    mock_icon_theme.get_default().prepend_search_path.assert_called_with(
         "/usr/share/scantpaper/icons"
     )
 
@@ -226,27 +229,25 @@ def test_application_init_iconpath_fallback(mocker):
 def test_application_init_iconpath_in_package(mocker):
     "Test Application.__init__ resolves icons from inside the package"
     mocker.patch("app.os.path.isdir", return_value=True)
+    mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
     Application()
     in_package = os.path.abspath(
         os.path.join(os.path.dirname(app_module.__file__), "icons")
     )
-    app_module.Gtk.IconTheme.get_default().prepend_search_path.assert_called_with(
-        in_package
-    )
+    mock_icon_theme.get_default().prepend_search_path.assert_called_with(in_package)
 
 
 @pytest.mark.usefixtures("mock_deps")
-def test_application_do_startup():
+def test_application_do_startup(mocker):
     "Test Application.do_startup"
     app = Application()
+    mock_do_startup = mocker.patch.object(app_module.Gtk.Application, "do_startup")
     app.do_startup()
-    app_module.Gtk.Application.do_startup.assert_called_with(app)
+    mock_do_startup.assert_called_with(app)
 
 
 def test_pyinstaller_path(mocker):
     "Test that base_dir is set correctly when running as a PyInstaller bundle"
-    import importlib
-
     # Mock sys.frozen and sys._MEIPASS
     mocker.patch.object(sys, "frozen", True, create=True)
     mocker.patch.object(sys, "_MEIPASS", "/fake/meipass", create=True)
@@ -265,8 +266,6 @@ def test_pyinstaller_path(mocker):
 
 def test_script_entry_point():
     "Test that the script entry point calls main() when run as __main__"
-    import runpy
-
     with patch("sys.argv", ["scantpaper", "--version"]):
         try:
             runpy.run_module("app", run_name="__main__")
