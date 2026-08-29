@@ -923,6 +923,7 @@ def test_append_pdf_pdfunite_failure():
 def test_savethread_progressbar_basic():
     "Test SaveThreadProgressBar basic functionality"
     mock_request = MagicMock()
+    mock_request.data = MagicMock()
     progressbar = SaveThreadProgressBar(
         request=mock_request, total=10, desc="Test operation", unit="page"
     )
@@ -957,6 +958,7 @@ def test_savethread_progressbar_context_manager():
 def test_savethread_progressbar_disabled():
     "Test SaveThreadProgressBar when disabled"
     mock_request = MagicMock()
+    mock_request.data = MagicMock()
     progressbar = SaveThreadProgressBar(
         request=mock_request,
         total=10,
@@ -984,6 +986,7 @@ def test_savethread_progressbar_no_thread():
 def test_get_progressbar_class_hook():
     "Test get_progressbar_class hook implementation"
     mock_request = MagicMock()
+    mock_request.data = MagicMock()
 
     # Set the current request
     _current_request_for_progress[0] = mock_request
