@@ -657,12 +657,13 @@ def test_changed_device_list_callback_cache_libusb_ok(mocker, mock_scan_window):
     device1.name = "libusb:001:002"
     device_list = [device1]
 
-    mock_dialog = scan_menu_item_mixins.Gtk.MessageDialog.return_value
+    mock_dialog_cls = mocker.patch("scan_menu_item_mixins.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
     mock_dialog.run.return_value = scan_menu_item_mixins.Gtk.ResponseType.OK
 
     mock_scan_window._changed_device_list_callback(mock_widget, device_list)
 
-    scan_menu_item_mixins.Gtk.MessageDialog.assert_called_once()
+    mock_dialog_cls.assert_called_once()
     assert mock_scan_window.settings["device list"] == device_list
     assert mock_scan_window.settings["cache-device-list"] is True
 
@@ -678,11 +679,12 @@ def test_changed_device_list_callback_cache_libusb_cancel(mocker, mock_scan_wind
     device1.name = "libusb:001:002"
     device_list = [device1]
 
-    mock_dialog = scan_menu_item_mixins.Gtk.MessageDialog.return_value
+    mock_dialog_cls = mocker.patch("scan_menu_item_mixins.Gtk.MessageDialog")
+    mock_dialog = mock_dialog_cls.return_value
     mock_dialog.run.return_value = scan_menu_item_mixins.Gtk.ResponseType.CANCEL
 
     mock_scan_window._changed_device_list_callback(mock_widget, device_list)
 
-    scan_menu_item_mixins.Gtk.MessageDialog.assert_called_once()
+    mock_dialog_cls.assert_called_once()
     assert mock_scan_window.settings["device list"] == []
     assert mock_scan_window.settings["cache-device-list"] is False
