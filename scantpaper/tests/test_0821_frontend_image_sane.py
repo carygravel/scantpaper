@@ -708,7 +708,7 @@ def test_page_limit_discards_buffered_frames():
     _thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
     assert pages == [1, 2], "only the requested two pages imported"
     assert fake.cancel_calls == 1, "session terminated at page count"
-    assert fake.buffered == [], "prefetched page 3 discarded by the terminal cancel"
+    assert not fake.buffered, "prefetched page 3 discarded by the terminal cancel"
 
 
 def test_mid_batch_error_reports_and_terminates():
