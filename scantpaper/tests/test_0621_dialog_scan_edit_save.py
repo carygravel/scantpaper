@@ -76,11 +76,11 @@ def test_edit_profile_dialog(mocker, available_scan_options):
     )
     parent.current_scan_options = Profile()
     dialog_mock = MagicMock()
-    mocker.patch("dialog.scan.Gtk.Dialog", return_value=dialog_mock)
+    patch_dialog = mocker.patch("dialog.scan.Gtk.Dialog", return_value=dialog_mock)
 
     _edit_profile_callback(None, parent)
 
-    Gtk.Dialog.assert_called_once()
+    patch_dialog.assert_called_once()
     dialog_mock.add_buttons.assert_called_once_with(
         "OK", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL
     )
