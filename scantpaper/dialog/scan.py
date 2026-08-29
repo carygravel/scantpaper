@@ -792,7 +792,7 @@ class Scan(PageControls):
 
             elif opt.constraint is None and opt.type != enums.TYPE_BUTTON:  # entry
                 if _value_for_active_option(value, opt):
-                    widget.set_text(value)
+                    widget.set_text(str(value))
 
     def _update_option(self, opt, new_opt):
 
@@ -1423,7 +1423,7 @@ def _geometry_option(opt):
 
 def _value_for_active_option(value, opt):
     "return if the value is defined and the option is active"
-    return not value and not opt.cap & enums.CAP_INACTIVE
+    return value is not None and not opt.cap & enums.CAP_INACTIVE
 
 
 def _save_profile_callback(_widget, parent):

@@ -135,14 +135,14 @@ class MockScan(Scan):
 class TestScanDialog:
     "Test Scan dialog edge cases"
 
-    # FIXME: why is the logic strange here?
     def test_value_for_active_option(self):
-        """Testing the strange logic of _value_for_active_option
-        return not value and not opt.cap & enums.CAP_INACTIVE"""
+        """Testing _value_for_active_option: only refresh a widget when the
+        driver has reported a value (not None) for an option that is active"""
         opt_active = MockOption("opt", enums.TYPE_BOOL, cap=0)
         opt_inactive = MockOption("opt", enums.TYPE_BOOL, cap=enums.CAP_INACTIVE)
-        assert not _value_for_active_option(True, opt_active)
+        assert _value_for_active_option(True, opt_active)
         assert _value_for_active_option(False, opt_active)
+        assert not _value_for_active_option(None, opt_active)
         assert not _value_for_active_option(False, opt_inactive)
 
     def test_do_profile_changed(self):
@@ -302,6 +302,18 @@ class TestScanDialog:
 
         scan._update_single_option(opt)
         widget.set_text.assert_called_with("")
+
+    def test_update_single_option_entry_float(self):
+        "Test updating a single float option in an Entry widget"
+        scan = MockScan()
+        opt = MockOption("opt", enums.TYPE_FIXED)
+        widget = unittest.mock.Mock(spec=Gtk.Entry)
+        widget.signal = "signal"
+        scan.option_widgets = {"opt": widget}
+        scan.thread.device_handle.opt = 1.07818603515625
+
+        scan._update_single_option(opt)
+        widget.set_text.assert_called_with("1.07818603515625")
 
     def test_update_option_mismatch(self):
         "Test updating option with mismatched name or type"
