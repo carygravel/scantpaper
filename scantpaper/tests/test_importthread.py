@@ -480,7 +480,7 @@ def _pdf_import_request(mock_request, first, last):
 def _pdf_exec_command_run_side_effect(list_output):
     "mock exec_command_run for _do_import_pdf tests"
 
-    def _side_effect(cmd, pidfile=None, **kwargs):
+    def _side_effect(cmd, _pidfile=None, **_kwargs):
         if "-list" in cmd:
             return Proc(returncode=0, stdout=list_output, stderr="")
         return unittest.mock.Mock(returncode=0)
