@@ -114,7 +114,7 @@ your code adheres to these guidelines. Please use `pylint` to check your code.
 The `.pylintrc` file in the root of the repository contains the project's
 linting configuration.
 
-Please ensure that any changes made do not reduce the pylint score.
+Please ensure that any changes made do not increase the number of pylint warnings.
 
 ### Lint Suppression
 
