@@ -96,29 +96,29 @@ class Save(Dialog):
             text = self._meta_datetime_widget.get_text()
             if text:
                 try:
-                    res = datetime.datetime.fromisoformat(text)
-                    if self._meta_datetime is not None:
-                        # If include_time is True, we care about the whole thing
-                        if self.include_time:
-                            return self._meta_datetime
-
-                        # If include_time is False, we only care about the date part
-                        old_date = (
-                            self._meta_datetime.date()
-                            if hasattr(self._meta_datetime, "hour")
-                            else self._meta_datetime
-                        )
-                        if res.date() == old_date:
-                            return self._meta_datetime
-
-                    if hasattr(self._meta_datetime, "hour"):
-                        return res
-                    if hasattr(self._meta_datetime, "day"):
-                        return res.date()
-                    return res.date() if not self.include_time else res
+                    return self._resolve_meta_datetime(
+                        datetime.datetime.fromisoformat(text)
+                    )
                 except (ValueError, TypeError):
                     pass
         return self._meta_datetime
+
+    def _resolve_meta_datetime(self, parsed):
+        "resolve parsed text against the existing metadata datetime"
+        existing = self._meta_datetime
+        result = parsed if self.include_time else parsed.date()
+        if existing is not None:
+            if self.include_time:
+                result = existing
+            else:
+                old_date = existing.date() if hasattr(existing, "hour") else existing
+                if parsed.date() == old_date:
+                    result = existing
+                elif hasattr(existing, "hour"):
+                    result = parsed
+                elif hasattr(existing, "day"):
+                    result = parsed.date()
+        return result
 
     @meta_datetime.setter
     def meta_datetime(self, newval):
