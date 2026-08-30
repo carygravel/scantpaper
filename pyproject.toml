@@ -100,6 +100,13 @@ ignore = [
     "INP001",  # implicit namespace package: project uses explicit packages
     "TD",      # TODO metadata requirements: not adopted as a convention
     "T201",    # print: legitimate in scripts
+    "FIX002",  # TODO without issue ref: plain `# TODO:` notes are the project convention
+    "PERF203", # try/except in loop: idiomatic for queue drains and iterator exhaustion
+    "C901",    # complex functions: legacy code is deeply nested; refactoring is deferred
+    "PLR0912", # too many branches: legacy functions are branch-heavy
+    "PLR0913", # too many arguments: existing APIs take many params (scan/request dicts)
+    "PLR0915", # too many statements: long legacy methods
+    "PLR0917", # too many positional arguments: existing call sites pass many args
 ]
 
 [tool.ruff.lint.per-file-ignores]
