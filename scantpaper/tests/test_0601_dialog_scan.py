@@ -125,7 +125,7 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
     "first test with test backend"
 
     dialog = sane_scan_dialog
-    dialog.paper_formats = {
+    dialog.paper_sizes = {
         "new": {
             "l": 0.0,
             "y": 10.0,
@@ -651,7 +651,7 @@ def test_officejet_4620(
     dlg = sane_scan_dialog
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_formats = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
+    dlg.paper_sizes = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)
@@ -691,7 +691,7 @@ def test_infinite_reloads(
     dlg = sane_scan_dialog
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_formats = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
+    dlg.paper_sizes = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)

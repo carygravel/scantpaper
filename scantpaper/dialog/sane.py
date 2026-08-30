@@ -127,7 +127,7 @@ class SaneScanDialog(Scan):
                 # This fires the reloaded-scan-options signal,
                 # so don't set this until we have finished
                 self.available_scan_options = options
-                self._set_paper_formats(self.paper_formats)
+                self._set_paper_sizes(self.paper_sizes)
                 self.cursor = "default"
 
             def error_callback(response):

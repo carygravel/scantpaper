@@ -15,7 +15,7 @@ def test_inexact(
     inexact_scan_mocks.patch_all(mocker)
 
     dlg = sane_scan_dialog
-    dlg.paper_formats = {
+    dlg.paper_sizes = {
         "US Legal": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 356.0},
         "US Letter": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 279.0},
     }

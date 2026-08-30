@@ -216,16 +216,16 @@ def test_option_dependency(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    dlg.paper_formats = {
+    dlg.paper_sizes = {
         "US Legal": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 356.0},
         "US Letter": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 279.0},
     }
-    assert dlg.ignored_paper_formats == ["US Legal"], "flatbed paper"
+    assert dlg.ignored_paper_sizes == ["US Legal"], "flatbed paper"
 
     def changed_scan_option_cb(self, option, value, uuid):
         dlg.disconnect(dlg.signal)
         nonlocal asserts
-        assert dlg.ignored_paper_formats == [], "ADF paper"
+        assert dlg.ignored_paper_sizes == [], "ADF paper"
         asserts += 1
         loop.quit()
 
@@ -250,7 +250,7 @@ def test_unsetting_profile(
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
-    dialog.paper_formats = {
+    dialog.paper_sizes = {
         "10x10": {
             "l": 0,
             "y": 10,
@@ -520,7 +520,7 @@ def test_hiding_geometry(
     callbacks = 0
     loop = mainloop_with_timeout()
 
-    def changed_paper_formats(_widget, _formats):
+    def changed_paper_sizes(_widget, _formats):
         nonlocal callbacks
         callbacks += 1
 
@@ -534,8 +534,8 @@ def test_hiding_geometry(
         nonlocal callbacks
         callbacks += 1
 
-    dialog.connect("changed-paper-formats", changed_paper_formats)
-    dialog.paper_formats = {
+    dialog.connect("changed-paper-sizes", changed_paper_sizes)
+    dialog.paper_sizes = {
         "US Letter": {
             "l": 0,
             "y": 279,

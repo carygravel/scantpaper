@@ -178,9 +178,9 @@ def test_scan_dialog_callbacks(mocker, mock_scan_window):
     callbacks["changed-current-scan-options"](None, mock_profile, None)
     assert mock_scan_window.settings["default-scan-options"] == "opts"
 
-    # Test changed-paper-formats callback
-    assert "changed-paper-formats" in callbacks
-    callbacks["changed-paper-formats"](None, "A3")
+    # Test changed-paper-sizes callback
+    assert "changed-paper-sizes" in callbacks
+    callbacks["changed-paper-sizes"](None, "A3")
     assert mock_scan_window.settings["Paper"] == "A3"
 
 

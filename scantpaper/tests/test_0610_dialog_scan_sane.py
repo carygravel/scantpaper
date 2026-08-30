@@ -324,12 +324,12 @@ def test_6(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
 
-    def changed_paper_formats(_widget, _formats):
+    def changed_paper_sizes(_widget, _formats):
         nonlocal callbacks
         callbacks += 1
 
-    dialog.connect("changed-paper-formats", changed_paper_formats)
-    dialog.paper_formats = {
+    dialog.connect("changed-paper-sizes", changed_paper_sizes)
+    dialog.paper_sizes = {
         "new2": {
             "l": 0,
             "y": 10,
@@ -360,12 +360,12 @@ def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
 
-    def changed_paper_formats(_widget, _formats):
+    def changed_paper_sizes(_widget, _formats):
         nonlocal callbacks
         callbacks += 1
 
-    dialog.connect("changed-paper-formats", changed_paper_formats)
-    dialog.paper_formats = {
+    dialog.connect("changed-paper-sizes", changed_paper_sizes)
+    dialog.paper_sizes = {
         "new2": {
             "l": 0,
             "y": 10,
@@ -574,13 +574,13 @@ def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
 
-    def changed_paper_formats(_widget, _formats):
-        assert dialog.ignored_paper_formats == ["large"], "ignored paper formats"
+    def changed_paper_sizes(_widget, _formats):
+        assert dialog.ignored_paper_sizes == ["large"], "ignored paper formats"
         nonlocal callbacks
         callbacks += 1
 
-    dialog.connect("changed-paper-formats", changed_paper_formats)
-    dialog.paper_formats = {
+    dialog.connect("changed-paper-sizes", changed_paper_sizes)
+    dialog.paper_sizes = {
         "large": {
             "l": 0,
             "y": 3000,

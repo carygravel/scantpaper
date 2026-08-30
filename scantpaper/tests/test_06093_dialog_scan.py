@@ -173,7 +173,7 @@ def test_inexact(
     inexact_scan_mocks.patch_all(mocker)
 
     dlg = sane_scan_dialog
-    dlg.paper_formats = {
+    dlg.paper_sizes = {
         "US Legal": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 356.0},
         "US Letter": {"l": 0.0, "t": 0.0, "x": 216.0, "y": 279.0},
     }
@@ -265,7 +265,7 @@ def test_infinite_reloads_due_to_inexact(
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     dlg = sane_scan_dialog
-    dlg.paper_formats = {"new": {"l": 0.0, "t": 1.0, "x": 10.0, "y": 10.0}}
+    dlg.paper_sizes = {"new": {"l": 0.0, "t": 1.0, "x": 10.0, "y": 10.0}}
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
     asserts = 0

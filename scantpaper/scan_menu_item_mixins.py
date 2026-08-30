@@ -39,7 +39,7 @@ class ScanMenuItemMixins:
             "title": _("Scan Document"),
             "dir": self.session,
             "hide_on_delete": True,
-            "paper_formats": self.settings["Paper"],
+            "paper_sizes": self.settings["Paper"],
             "allow_batch_flatbed": self.settings["allow-batch-flatbed"],
             "adf_defaults_scan_all_pages": self.settings["adf-defaults-scan-all-pages"],
             "document": self.slist,
@@ -97,10 +97,10 @@ class ScanMenuItemMixins:
             "changed-current-scan-options", changed_current_scan_options_callback
         )
 
-        def changed_paper_formats_callback(_widget, formats):
+        def changed_paper_sizes_callback(_widget, formats):
             self.settings["Paper"] = formats
 
-        self._windows.connect("changed-paper-formats", changed_paper_formats_callback)
+        self._windows.connect("changed-paper-sizes", changed_paper_sizes_callback)
         self._windows.connect("new-scan", self._new_scan_callback)
         self._windows.connect(
             "changed-scan-option", self._update_postprocessing_options_callback

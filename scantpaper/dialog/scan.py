@@ -87,7 +87,7 @@ class Scan(PageControls):
         ),
         "removed-profile": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
         "changed-paper": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
-        "changed-paper-formats": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
+        "changed-paper-sizes": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
         "started-process": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
         "changed-progress": (
             GObject.SignalFlags.RUN_FIRST,
@@ -150,7 +150,7 @@ class Scan(PageControls):
         if newval == self._paper:
             return
         if newval is not None:
-            for fmt in self.ignored_paper_formats:
+            for fmt in self.ignored_paper_sizes:
                 if fmt == newval:
                     logger.info("Ignoring unsupported paper %s", newval)
                     return
@@ -166,22 +166,22 @@ class Scan(PageControls):
         signal = self.connect("changed-paper", do_changed_paper)
         self._set_paper(newval)
 
-    _paper_formats: ClassVar[dict] = {}
+    _paper_sizes: ClassVar[dict] = {}
 
     @GObject.Property(
         type=object,
         nick="Paper formats",
         blurb="Hash of arrays defining paper formats, e.g. A4, Letter, etc.",
     )
-    def paper_formats(self):
-        "getter for paper_formats attribute"
-        return self._paper_formats
+    def paper_sizes(self):
+        "getter for paper_sizes attribute"
+        return self._paper_sizes
 
-    @paper_formats.setter
-    def paper_formats(self, newval):
-        self._paper_formats = newval
-        self._set_paper_formats(newval)
-        self.emit("changed-paper-formats", newval)
+    @paper_sizes.setter
+    def paper_sizes(self, newval):
+        self._paper_sizes = newval
+        self._set_paper_sizes(newval)
+        self.emit("changed-paper-sizes", newval)
 
     _available_scan_options = Options([])
     _current_scan_options = Profile()
@@ -354,7 +354,7 @@ class Scan(PageControls):
             profiles = kwargs.pop("profiles")
         super().__init__(*args, **kwargs)
 
-        self.ignored_paper_formats = []
+        self.ignored_paper_sizes = []
         self.option_widgets = {}
         self._geometry_boxes = {}
         self._option_info = {}
@@ -678,7 +678,7 @@ class Scan(PageControls):
 
     def _get_paper_by_geometry(self):
         "return the paper size that matches the current geometry settings"
-        formats = self.paper_formats
+        formats = self.paper_sizes
         if formats is None:
             return None
         current = {
@@ -752,7 +752,7 @@ class Scan(PageControls):
 
         # In case the geometry values have changed,
         # update the available paper formats
-        self._set_paper_formats(self.paper_formats)
+        self._set_paper_sizes(self.paper_sizes)
 
     def _update_single_option(self, opt):
         widget = self.option_widgets[opt.name]
@@ -837,7 +837,7 @@ class Scan(PageControls):
             widget.handler_unblock(widget.signal)
         return False
 
-    def _set_paper_formats(self, formats):
+    def _set_paper_sizes(self, formats):
         "Add paper size to combobox if scanner large enough"
         if self.combobp is not None:
 
@@ -846,7 +846,7 @@ class Scan(PageControls):
             while num > 2:
                 num -= 1
                 self.combobp.remove(0)
-            self.ignored_paper_formats = []
+            self.ignored_paper_sizes = []
             options = self.available_scan_options
             for fmt in formats:
                 if options.supports_paper(formats[fmt], PAPER_TOLERANCE):
@@ -855,7 +855,7 @@ class Scan(PageControls):
 
                 else:
                     logger.debug("Options do not support paper size '%s'.", fmt)
-                    self.ignored_paper_formats.append(fmt)
+                    self.ignored_paper_sizes.append(fmt)
 
             # Set the combobox back from Edit to the previous value
             paper = self.paper
@@ -874,13 +874,13 @@ class Scan(PageControls):
             self.emit("changed-paper", paper)
             return
 
-        for name in self.ignored_paper_formats:
+        for name in self.ignored_paper_sizes:
             if name == paper:
                 if logger is not None:
                     logger.info("Ignoring unsupported paper %s", paper)
                 return
 
-        formats = self.paper_formats
+        formats = self.paper_sizes
         options = self.available_scan_options
         paper_profile = Profile()
         if (
@@ -967,7 +967,7 @@ class Scan(PageControls):
         rbutton.set_image(icon)
         vboxb.pack_end(rbutton, True, False, 0)
 
-        slist = PaperList(self.paper_formats)
+        slist = PaperList(self.paper_sizes)
         dbutton.connect("clicked", slist.do_add_clicked)
         rbutton.connect("clicked", slist.do_remove_paper, self)
         slist.get_model().connect("row-changed", slist.do_paper_sizes_row_changed)
@@ -988,8 +988,8 @@ class Scan(PageControls):
                     formats[row[0]][_side] = row[j]
 
             # Add new definitions
-            self.paper_formats = formats
-            if self.ignored_paper_formats:
+            self.paper_sizes = formats
+            if self.ignored_paper_sizes:
                 show_message_dialog(
                     parent=window,
                     type="warning",
@@ -999,7 +999,7 @@ class Scan(PageControls):
                         " the selected device:"
                     )
                     + " "
-                    + ", ".join(self.ignored_paper_formats),
+                    + ", ".join(self.ignored_paper_sizes),
                 )
 
             window.destroy()
@@ -1295,7 +1295,7 @@ class Scan(PageControls):
             # Having set all backend options, set the frontend options
             # Set paper formats first to make sure that any paper required is
             # available
-            self._set_paper_formats(self.paper_formats)
+            self._set_paper_sizes(self.paper_sizes)
             for key in profile.each_frontend_option():
                 setattr(self, key, profile.get_frontend_option(key))
 

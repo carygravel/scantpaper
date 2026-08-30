@@ -142,8 +142,8 @@ def test_edit_paper_cancel(mocker):
     """
     # 1. Mock the Scan instance (self)
     mock_self = MagicMock(spec=Scan)
-    mock_self.paper_formats = {"A4": [1, 2, 3, 4], "Letter": [5, 6, 7, 8]}
-    mock_self.ignored_paper_formats = []
+    mock_self.paper_sizes = {"A4": [1, 2, 3, 4], "Letter": [5, 6, 7, 8]}
+    mock_self.ignored_paper_sizes = []
     mock_self.paper = "A4"  # Simulate current paper selection
     mock_self.combobp = MagicMock()  # Will be used by do_cancel_paper_sizes
 
@@ -220,5 +220,5 @@ def test_edit_paper_cancel(mocker):
     mock_editor_window.destroy.assert_called_once()
     # 4. combobp was set back
     mock_self.combobp.set_active_by_text.assert_called_once_with(mock_self.paper)
-    # 5. PaperList was initialized with self.paper_formats
-    patched_paperlist_class.assert_called_once_with(mock_self.paper_formats)
+    # 5. PaperList was initialized with self.paper_sizes
+    patched_paperlist_class.assert_called_once_with(mock_self.paper_sizes)

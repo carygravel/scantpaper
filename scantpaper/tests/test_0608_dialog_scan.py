@@ -57,7 +57,7 @@ def test_infinite_reloads(
     trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_formats = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
+    dlg.paper_sizes = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)
@@ -298,7 +298,7 @@ def test_inexact_quant(
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
     # Use a paper that sets geometry to inexact values
-    dlg.paper_formats = {"A4": {"x": 210.1, "y": 279.1, "t": 0.1, "l": 0.1}}
+    dlg.paper_sizes = {"A4": {"x": 210.1, "y": 279.1, "t": 0.1, "l": 0.1}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)
@@ -381,7 +381,7 @@ def test_button_press(
     trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_formats = {"A4": {"x": 210, "y": 279, "t": 0, "l": 0}}
+    dlg.paper_sizes = {"A4": {"x": 210, "y": 279, "t": 0, "l": 0}}
     asserts = 0
 
     def changed_paper_cb(_arg1, _arg2):

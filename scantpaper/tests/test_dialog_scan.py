@@ -145,7 +145,7 @@ def test_edit_paper_apply(mocker):
     "test _edit_paper and applying changes"
 
     dialog = Scan(title="title", transient_for=Gtk.Window())
-    dialog.paper_formats = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+    dialog.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
 
     # Mock PaperList
     mock_paperlist_cls = mocker.patch("dialog.scan.PaperList")
@@ -185,8 +185,8 @@ def test_edit_paper_apply(mocker):
 
     mock_gtk.Button.new_with_label.side_effect = mock_new_with_label
 
-    # Set ignored_paper_formats to test the warning dialog path
-    dialog.ignored_paper_formats = ["BadFormat"]
+    # Set ignored_paper_sizes to test the warning dialog path
+    dialog.ignored_paper_sizes = ["BadFormat"]
 
     # Call _edit_paper
     dialog._edit_paper()
@@ -196,9 +196,9 @@ def test_edit_paper_apply(mocker):
     # Call the callback
     apply_cb["callback"](None)  # argument is widget, ignored
 
-    # Verify paper_formats updated
-    assert "NewFormat" in dialog.paper_formats
-    assert dialog.paper_formats["NewFormat"] == {"x": 100, "y": 200, "l": 0, "t": 0}
+    # Verify paper_sizes updated
+    assert "NewFormat" in dialog.paper_sizes
+    assert dialog.paper_sizes["NewFormat"] == {"x": 100, "y": 200, "l": 0, "t": 0}
 
     # Verify message dialog shown
     mock_show_message_dialog.assert_called_once()
@@ -692,8 +692,8 @@ def test_profile_not_cleared_when_paper_changed_during_profile_apply(mocker):
     dialog.setting_profile = [profile.uuid]
 
     # Mock paper setter's dependencies to avoid actual SANE interaction
-    dialog.paper_formats = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
-    dialog.ignored_paper_formats = []
+    dialog.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+    dialog.ignored_paper_sizes = []
     dialog.thread = mocker.Mock()
     dialog.thread.device_handle = mocker.Mock()
     options = mocker.Mock()
@@ -785,11 +785,11 @@ def test_get_paper_by_geometry(mocker):
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Test formats is None (Line 667)
-    dialog.paper_formats = None
+    dialog.paper_sizes = None
     assert dialog._get_paper_by_geometry() is None
 
     # Setup for matching tests
-    dialog.paper_formats = {"A4": {"l": 0, "t": 0, "x": 210, "y": 297}}
+    dialog.paper_sizes = {"A4": {"l": 0, "t": 0, "x": 210, "y": 297}}
     dialog.thread = mocker.Mock()
     mock_options = mocker.Mock()
     dialog.available_scan_options = mock_options

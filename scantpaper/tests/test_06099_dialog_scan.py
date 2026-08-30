@@ -99,7 +99,7 @@ class MockScan(Scan):
         self.combobd_changed_signal = 1
         self.option_widgets = {}
         self._geometry_boxes = {}
-        self.ignored_paper_formats = []
+        self.ignored_paper_sizes = []
         self.profiles = {}
         self.combobsp = unittest.mock.Mock()
         self.combobsp.get_num_rows.return_value = 0
@@ -334,7 +334,7 @@ class TestScanDialog:
         new_opt_type = MockOption("opt", enums.TYPE_BOOL)
         assert scan._update_option(opt, new_opt_type)
 
-    def test_set_paper_formats_unsupported(self):
+    def test_set_paper_sizes_unsupported(self):
         "Test setting paper formats with unsupported paper"
         scan = MockScan()
         scan.combobp = unittest.mock.Mock()
@@ -345,14 +345,14 @@ class TestScanDialog:
         options.supports_paper.return_value = False
         scan._available_scan_options = options
 
-        scan._set_paper_formats(formats)
+        scan._set_paper_sizes(formats)
 
-        assert "A4" in scan.ignored_paper_formats
+        assert "A4" in scan.ignored_paper_sizes
 
     def test_set_paper_unsupported(self):
         "Test setting an unsupported paper size"
         scan = MockScan()
-        scan.ignored_paper_formats = ["A4"]
+        scan.ignored_paper_sizes = ["A4"]
         scan._paper = "A3"
 
         # Try setting unsupported paper
@@ -370,7 +370,7 @@ class TestScanDialog:
         scan = MockScan()
         scan.combobp = unittest.mock.Mock()
         scan.combobp.get_num_rows.return_value = 0
-        scan.paper_formats = {"A4": {"x": 1, "y": 2, "l": 0, "t": 0}}
+        scan.paper_sizes = {"A4": {"x": 1, "y": 2, "l": 0, "t": 0}}
         scan.paper = "A4"
 
         with (
@@ -730,7 +730,7 @@ class TestScanDialog:
         "Test _set_paper with geometry options"
         scan = MockScan()
         scan.combobp.get_num_rows.return_value = 0
-        scan.paper_formats = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+        scan.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
 
         options = unittest.mock.Mock()
         opt = MockOption("page-height", enums.TYPE_INT)
@@ -831,7 +831,7 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
     assert dialog.combobp is not None
 
     # Setup paper formats so we have something to edit/remove
-    dialog.paper_formats = {"TestPaper": {"x": 100, "y": 100, "l": 0, "t": 0}}
+    dialog.paper_sizes = {"TestPaper": {"x": 100, "y": 100, "l": 0, "t": 0}}
 
     # Find "Edit" index
     model = dialog.combobp.get_model()
