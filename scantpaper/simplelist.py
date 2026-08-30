@@ -230,8 +230,7 @@ class SimpleList(Gtk.TreeView):
     @classmethod
     def add_column_type(cls, **kwargs):
         "add column type"
-        for name, typedict in kwargs.items():
-            column_types[name] = typedict
+        column_types.update(kwargs)
 
     @classmethod
     def get_column_types(cls):
@@ -313,6 +312,8 @@ class TiedList(list):
 
     def __eq__(self, other):
         return [list(x) for x in self.model] == other
+
+    __hash__ = None
 
     def append(self, values):
         self.model.append(values)

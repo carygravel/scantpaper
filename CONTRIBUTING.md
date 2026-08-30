@@ -148,6 +148,15 @@ multiline docstrings, use triple double quotes (`"""..."""`). Keep the
 convention consistent within a file; prefer single-line docstrings when the
 full text fits on one line.
 
+### Type Annotations
+
+Do not use `typing.Any` (or bare `Any`) as a type annotation. `Any` disables
+type checking entirely and hides real bugs, so prefer the most specific type
+that is accurate. Where a value genuinely has several possible types, use a
+`Union` (e.g. `int | None`, `list | tuple | None`) of the concrete types; for
+a truly polymorphic payload use `object` rather than `Any`, so consumers are
+forced to narrow it explicitly.
+
 ## Commit messages
 
 Please ensure that all commits have meaningful messages:

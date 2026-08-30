@@ -1,6 +1,5 @@
 "A thread backed by internal queues for simple messaging"
 
-import collections
 import contextlib
 import logging
 import os
@@ -9,6 +8,7 @@ import threading
 import uuid
 import weakref
 from enum import Enum
+from typing import NamedTuple
 
 from gi.repository import GLib
 
@@ -16,18 +16,17 @@ logger = logging.getLogger(__name__)
 
 _RUNNING_TICK_MS = 200
 
-Response = collections.namedtuple(
-    "Response",
-    [
-        "type",
-        "request",
-        "info",
-        "status",
-        "num_completed_jobs",
-        "total_jobs",
-        "pending",
-    ],
-)  # , "pid"
+
+class Response(NamedTuple):
+    type: "ResponseType"
+    request: "Request"
+    info: object
+    status: str | None
+    num_completed_jobs: int | None
+    total_jobs: int | None
+    pending: object
+
+
 ResponseTypes = ["QUEUED", "STARTED", "FINISHED", "CANCELLED", "ERROR", "DATA"]
 ResponseType = Enum("ResponseType", ResponseTypes)
 

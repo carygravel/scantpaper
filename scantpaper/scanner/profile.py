@@ -58,6 +58,8 @@ class Profile(GObject.Object):
     def __eq__(self, other):
         return self.frontend == other.frontend and self.backend == other.backend
 
+    __hash__ = None
+
     def add_backend_option(self, name, val, oldval=None):
         """the oldval option is a hack to allow us not to apply geometry options
         if setting paper as part of a profile"""

@@ -2,16 +2,24 @@
 
 import contextlib
 import re
-from collections import namedtuple
+from typing import NamedTuple
 
 from frontend import enums
 from gi.repository import GObject
 
 EMPTY = ""
-Option = namedtuple(
-    "Option",
-    ["index", "name", "title", "desc", "type", "unit", "size", "cap", "constraint"],
-)
+
+
+class Option(NamedTuple):
+    index: int
+    name: str
+    title: str
+    desc: str
+    type: int
+    unit: str
+    size: int
+    cap: int
+    constraint: list | tuple | None
 
 
 class Options(GObject.Object):
