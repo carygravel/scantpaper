@@ -15,6 +15,8 @@ from loop_helpers import safe_mainloop
 from scanner.options import Option
 from scanner.profile import Profile
 
+from tests.scan_mocks import build_scan_options
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     GLib,
@@ -601,85 +603,10 @@ def test_officejet_4620(
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            index=1,
-            name="resolution",
-            title="Scan resolution",
-            desc="Sets the resolution of the scanned image.",
-            type=1,
-            unit=4,
-            size=4,
-            cap=5,
-            constraint=[100, 200, 300, 600],
-        ),
-        Option(
-            type=3,
-            size=1,
-            name="source",
-            constraint=["Flatbed", "ADF"],
-            title="Scan source",
-            desc="Selects the scan source (such as a document-feeder).",
-            index=2,
-            cap=5,
-            unit=0,
-        ),
-        Option(
-            type=2,
-            name="tl-x",
-            size=1,
-            constraint=(0, 215.900009155273, 0),
-            title="Top-left x",
-            desc="Top-left x position of scan area.",
-            index=3,
-            cap=5,
-            unit=3,
-        ),
-        Option(
-            desc="Top-left y position of scan area.",
-            title="Top-left y",
-            cap=5,
-            index=4,
-            name="tl-y",
-            size=1,
-            constraint=(0, 297.010681152344, 0),
-            type=2,
-            unit=3,
-        ),
-        Option(
-            unit=3,
-            size=1,
-            name="br-x",
-            constraint=(0, 215.900009155273, 0),
-            type=2,
-            desc="Bottom-right x position of scan area.",
-            title="Bottom-right x",
-            cap=5,
-            index=5,
-        ),
-        Option(
-            type=2,
-            name="br-y",
-            size=1,
-            constraint=(0, 297.010681152344, 0),
-            index=6,
-            cap=5,
-            desc="Bottom-right y position of scan area.",
-            title="Bottom-right y",
-            unit=3,
-        ),
-    ]
+    raw_options = build_scan_options(
+        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y"],
+        overrides={"resolution": {"size": 4}},
+    )
 
     def mocked_do_get_options(_self, _request):
         """An Officejet_4620_series was resetting the resolution and geometry when

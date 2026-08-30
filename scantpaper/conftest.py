@@ -18,6 +18,7 @@ from frontend.image_sane import decode_info
 from loop_helpers import _MainLoopWrapper, safe_mainloop
 from PIL import Image, ImageDraw, ImageFont
 from scanner.options import Option
+from tests.scan_mocks import build_scan_options
 
 gi.require_version("Gtk", "3.0")
 
@@ -415,85 +416,9 @@ def inexact_scan_mocks():
 @pytest.fixture
 def infinite_reloads_scan_mocks():
     "raw_options and open/get mocks for the test_infinite_reloads family"
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            unit=4,
-            cap=5,
-            index=1,
-            desc="Sets the resolution of the scanned image.",
-            title="Scan resolution",
-            type=1,
-            name="resolution",
-            size=1,
-            constraint=[100, 200, 300, 600],
-        ),
-        Option(
-            type=3,
-            size=1,
-            name="source",
-            constraint=["Flatbed", "ADF"],
-            title="Scan source",
-            desc="Selects the scan source (such as a document-feeder).",
-            index=2,
-            cap=5,
-            unit=0,
-        ),
-        Option(
-            type=2,
-            name="tl-x",
-            size=1,
-            constraint=(0, 215.900009155273, 0),
-            title="Top-left x",
-            desc="Top-left x position of scan area.",
-            index=3,
-            cap=5,
-            unit=3,
-        ),
-        Option(
-            desc="Top-left y position of scan area.",
-            title="Top-left y",
-            cap=5,
-            index=4,
-            name="tl-y",
-            size=1,
-            constraint=(0, 297.010681152344, 0),
-            type=2,
-            unit=3,
-        ),
-        Option(
-            unit=3,
-            size=1,
-            name="br-x",
-            constraint=(0, 215.900009155273, 0),
-            type=2,
-            desc="Bottom-right x position of scan area.",
-            title="Bottom-right x",
-            cap=5,
-            index=5,
-        ),
-        Option(
-            type=2,
-            name="br-y",
-            size=1,
-            constraint=(0, 297.010681152344, 0),
-            index=6,
-            cap=5,
-            desc="Bottom-right y position of scan area.",
-            title="Bottom-right y",
-            unit=3,
-        ),
-    ]
+    raw_options = build_scan_options(
+        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y"]
+    )
 
     def mocked_do_open_device(self, request):
         "open device"

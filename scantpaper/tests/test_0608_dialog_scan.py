@@ -8,6 +8,8 @@ from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile
 
+from tests.scan_mocks import build_scan_options
+
 
 def mocked_do_get_devices(_cls, _request):
     "mocked_do_get_devices"
@@ -256,96 +258,9 @@ def test_inexact_quant(
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            unit=4,
-            cap=5,
-            index=1,
-            desc="Sets the resolution of the scanned image.",
-            title="Scan resolution",
-            type=1,
-            name="resolution",
-            size=1,
-            constraint=[100, 200, 300, 600],
-        ),
-        Option(
-            type=3,
-            size=1,
-            name="source",
-            constraint=["Flatbed", "ADF"],
-            title="Scan source",
-            desc="Selects the scan source (such as a document-feeder).",
-            index=2,
-            cap=5,
-            unit=0,
-        ),
-        Option(
-            type=2,
-            name="tl-x",
-            size=1,
-            constraint=(0, 215.87219238281, 0.0211639404296875),
-            title="Top-left x",
-            desc="Top-left x position of scan area.",
-            index=3,
-            cap=5,
-            unit=3,
-        ),
-        Option(
-            desc="Top-left y position of scan area.",
-            title="Top-left y",
-            cap=5,
-            index=4,
-            name="tl-y",
-            size=1,
-            constraint=(0, 279.364013671875, 0.0211639404296875),
-            type=2,
-            unit=3,
-        ),
-        Option(
-            unit=3,
-            size=1,
-            name="br-x",
-            constraint=(0, 215.87219238281, 0.0211639404296875),
-            type=2,
-            desc="Bottom-right x position of scan area.",
-            title="Bottom-right x",
-            cap=5,
-            index=5,
-        ),
-        Option(
-            type=2,
-            name="br-y",
-            size=1,
-            constraint=(0, 279.364013671875, 0.0211639404296875),
-            index=6,
-            cap=5,
-            desc="Bottom-right y position of scan area.",
-            title="Bottom-right y",
-            unit=3,
-        ),
-        Option(
-            unit=0,
-            name="swcrop",
-            type=0,
-            index=7,
-            cap=69,
-            size=1,
-            desc="Request driver to remove border from pages digitally.",
-            title="Software crop",
-            constraint=None,
-        ),
-    ]
+    raw_options = build_scan_options(
+        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y", "swcrop"]
+    )
 
     def mocked_do_get_options(_self, _request):
         "mocked_do_get_options"
@@ -420,85 +335,9 @@ def test_button_press(
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            unit=4,
-            cap=5,
-            index=1,
-            desc="Sets the resolution of the scanned image.",
-            title="Scan resolution",
-            type=1,
-            name="resolution",
-            size=1,
-            constraint=[4800, 2400, 1200, 600, 300, 150, 100, 75],
-        ),
-        Option(
-            type=2,
-            name="tl-x",
-            size=1,
-            constraint=(0, 216.699996948242, 0.0),
-            title="Top-left x",
-            desc="Top-left x position of scan area.",
-            index=4,
-            cap=5,
-            unit=3,
-        ),
-        Option(
-            desc="Top-left y position of scan area.",
-            title="Top-left y",
-            cap=5,
-            index=5,
-            name="tl-y",
-            size=1,
-            constraint=(0, 300.0, 0.0),
-            type=2,
-            unit=3,
-        ),
-        Option(
-            unit=3,
-            size=1,
-            name="br-x",
-            constraint=(0, 216.699996948242, 0.0),
-            type=2,
-            desc="Bottom-right x position of scan area.",
-            title="Bottom-right x",
-            cap=5,
-            index=6,
-        ),
-        Option(
-            type=2,
-            name="br-y",
-            size=1,
-            constraint=(0, 300.0, 0.0),
-            index=7,
-            cap=5,
-            desc="Bottom-right y position of scan area.",
-            title="Bottom-right y",
-            unit=3,
-        ),
-        Option(
-            unit=0,
-            name="clear-calibration",
-            type=4,
-            index=8,
-            cap=5,
-            size=1,
-            desc="Clear calibration cache",
-            title="Clear calibration",
-            constraint=None,
-        ),
-    ]
+    raw_options = build_scan_options(
+        ["resolution", "tl-x", "tl-y", "br-x", "br-y", "clear-calibration"]
+    )
 
     def mocked_do_get_options(_self, _request):
         "mocked_do_get_options"
@@ -592,96 +431,9 @@ def test_get_invalid_option(
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            unit=4,
-            cap=5,
-            index=1,
-            desc="Sets the resolution of the scanned image.",
-            title="Scan resolution",
-            type=1,
-            name="resolution",
-            size=1,
-            constraint=[100, 200, 300, 600],
-        ),
-        Option(
-            type=3,
-            size=1,
-            name="source",
-            constraint=["Flatbed", "ADF"],
-            title="Scan source",
-            desc="Selects the scan source (such as a document-feeder).",
-            index=2,
-            cap=5,
-            unit=0,
-        ),
-        Option(
-            type=2,
-            name="tl-x",
-            size=1,
-            constraint=(0, 215.900009155273, 0),
-            title="Top-left x",
-            desc="Top-left x position of scan area.",
-            index=3,
-            cap=5,
-            unit=3,
-        ),
-        Option(
-            desc="Top-left y position of scan area.",
-            title="Top-left y",
-            cap=5,
-            index=4,
-            name="tl-y",
-            size=1,
-            constraint=(0, 297.010681152344, 0),
-            type=2,
-            unit=3,
-        ),
-        Option(
-            unit=3,
-            size=1,
-            name="br-x",
-            constraint=(0, 215.900009155273, 0),
-            type=2,
-            desc="Bottom-right x position of scan area.",
-            title="Bottom-right x",
-            cap=5,
-            index=5,
-        ),
-        Option(
-            type=2,
-            name="br-y",
-            size=1,
-            constraint=(0, 297.010681152344, 0),
-            index=6,
-            cap=5,
-            desc="Bottom-right y position of scan area.",
-            title="Bottom-right y",
-            unit=3,
-        ),
-        Option(
-            cap=enums.CAP_SOFT_SELECT + enums.CAP_SOFT_DETECT,
-            name=None,  # "select-detect"
-            title=None,
-            desc=None,
-            constraint=None,
-            size=1,
-            type=enums.TYPE_BOOL,
-            unit=None,
-            index=7,
-        ),
-    ]
+    raw_options = build_scan_options(
+        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y", "select-detect"]
+    )
 
     def mocked_do_get_options(_self, _request):
         "mocked_do_get_options"
