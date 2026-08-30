@@ -150,10 +150,7 @@ class RotateControls(Gtk.Box):
         while self._side2.side_cmbx.get_num_rows() > 0:
             self._side2.side_cmbx.remove(0)
 
-        side2 = []
-        for s in SIDE:
-            if s[0] not in ["both", SIDE[side1_cmbx_i][0]]:
-                side2.append(s)
+        side2 = [s for s in SIDE if s[0] not in ["both", SIDE[side1_cmbx_i][0]]]
         for s in side2:
             self._side2.side_cmbx.append_text(s[1])
         self._side2.side_cmbx.data = side2
@@ -418,11 +415,9 @@ class OCRControls(Gtk.Box):
         hbox.pack_start(label, False, True, 0)
 
         # Tesseract language files
-        tesslang = []
         tesscodes = get_tesseract_codes()
         langs = languages(tesscodes)
-        for lang in sorted(tesscodes):
-            tesslang.append([lang, langs[lang]])
+        tesslang = [[lang, langs[lang]] for lang in sorted(tesscodes)]
 
         combobox = ComboBoxText(data=tesslang)
         combobox.set_active_index(self.language)

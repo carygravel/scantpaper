@@ -111,9 +111,7 @@ class ScanMenuItemMixins:
         self._update_postprocessing_options_callback(self._windows)
         args = self.get_application().args
         if args.device:
-            device_list = []
-            for d in args.device:
-                device_list.append(SimpleNamespace(name=d, label=d))
+            device_list = [SimpleNamespace(name=d, label=d) for d in args.device]
 
             self._windows.device_list = device_list
 
@@ -246,9 +244,7 @@ class ScanMenuItemMixins:
 
     def _add_udt_combobox(self, hbox):
         "Adds a ComboBoxText widget to the given hbox containing user-defined tools."
-        toolarray = []
-        for t in self.settings["user_defined_tools"]:
-            toolarray.append([t, t])
+        toolarray = [[t, t] for t in self.settings["user_defined_tools"]]
 
         combobox = ComboBoxText(data=toolarray)
         combobox.set_active_index(self.settings["current_udt"])

@@ -55,8 +55,7 @@ class PaperList(SimpleList):
 
         line = [f"{name} ({version})"]
         columns = self.get_columns()
-        for i in range(1, len(columns)):
-            line.append(self.data[rows[0]][i])
+        line.extend(self.data[rows[0]][i] for i in range(1, len(columns)))
 
         self.data.insert(rows[0] + 1, line)
 

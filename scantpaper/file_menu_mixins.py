@@ -34,11 +34,8 @@ def add_filter(file_chooser, name, file_extensions):
     "Create a file filter to show only supported file types in FileChooser dialog"
     ffilter = Gtk.FileFilter()
     for extension in file_extensions:
-        pattern = []
-
         # Create case insensitive pattern
-        for char in extension:
-            pattern.append("[" + char.upper() + char.lower() + "]")
+        pattern = ["[" + char.upper() + char.lower() + "]" for char in extension]
 
         ffilter.add_pattern("*." + EMPTY.join(pattern))
 
@@ -314,10 +311,11 @@ class FileMenuMixins:
 
         if self._dependencies["djvu"]:
             image_types.append("djvu")
-        ps_backends = []
-        for backend in ["libtiff", "pdf2ps", "pdftops"]:
-            if self._dependencies[backend]:
-                ps_backends.append(backend)
+        ps_backends = [
+            backend
+            for backend in ["libtiff", "pdf2ps", "pdftops"]
+            if self._dependencies[backend]
+        ]
 
         self._windowi = SaveDialog(
             transient_for=self,

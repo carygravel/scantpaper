@@ -471,10 +471,11 @@ class Unpaper:
     def _checkbuttongroup_get_option(self, option):
         "get option for checkbuttongroup"
         hashref = self.options
-        items = []
-        for key in sorted(hashref[option]["options"]):
-            if hashref[option]["options"][key]["widget"].get_active():
-                items.append(key)
+        items = [
+            key
+            for key in sorted(hashref[option]["options"])
+            if hashref[option]["options"][key]["widget"].get_active()
+        ]
 
         if items:
             return ",".join(items)

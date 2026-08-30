@@ -154,10 +154,7 @@ class EditMenuMixins:
     def select_invert(self, _action, _param):
         "Invert selection"
         selection = self.slist.get_selected_indices()
-        inverted = []
-        for i in range(len(self.slist.data)):
-            if i not in selection:
-                inverted.append(i)
+        inverted = [i for i in range(len(self.slist.data)) if i not in selection]
         self.slist.get_selection().unselect_all()
         self.slist.select(inverted)
 

@@ -117,9 +117,7 @@ class BaseDocument(SimpleList):
         "Set-up the callback when the page number has been edited."
         # Note uuids for selected pages
         selection = self.get_selected_indices()
-        uuids = []
-        for i in selection:
-            uuids.append(self.data[i][2])
+        uuids = [self.data[i][2] for i in selection]
 
         self.get_model().handler_block(self.row_changed_signal)
 
@@ -331,9 +329,10 @@ class BaseDocument(SimpleList):
         logger.debug("copy_selection %s", selection)
         if selection == []:
             return None
-        data = []
-        for index in selection:
-            data.append([self.data[index][0], self.data[index][1], self.data[index][2]])
+        data = [
+            [self.data[index][0], self.data[index][1], self.data[index][2]]
+            for index in selection
+        ]
         logger.info("Copied %s pages", len(data))
         return data
 

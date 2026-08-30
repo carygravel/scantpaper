@@ -853,8 +853,5 @@ class Save(Dialog):
 
 def filter_table(table, types):
     "filter table list by types"
-    sub_table = []
-    for row in table:
-        if row[0] in types:
-            sub_table.append(row)
+    sub_table = [row for row in table if row[0] in types]
     return sub_table
