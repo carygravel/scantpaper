@@ -11,12 +11,12 @@ import gi
 from dialog.scan import Scan
 from document import Document
 from frontend import enums
+from loop_helpers import safe_mainloop
 from scanner.options import Option
 from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
-from loop_helpers import safe_mainloop
 
 
 def test_basics():
