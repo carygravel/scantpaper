@@ -508,9 +508,9 @@ class DocThread(SaveThread):
             rows.append([row[0], self._bytes_to_pixbuf(row[1]), row[2]])
         return rows
 
-    def page_number_table(self):
+    def page_number_table(self) -> list | None:
         "synchronous wrapper for do_page_number_table via send()"
-        result = [None]
+        result = [[]]
         mlp = GLib.MainLoop()
 
         def on_finished(response):
