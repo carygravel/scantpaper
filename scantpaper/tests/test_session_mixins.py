@@ -524,7 +524,7 @@ def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
     mock_session_window._display_image("page_id")
 
     mock_session_window.view.set_pixbuf.assert_called_with(mock_thumbnail, True)
-    assert sent_requests == [], "no get_page while import is in progress"
+    assert not sent_requests, "no get_page while import is in progress"
 
 
 def test_display_image_not_suppressed_sends(mock_session_window):
