@@ -9,7 +9,7 @@ from basethread import ResponseType
 from progress import Progress
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 
 def test_progress_init():

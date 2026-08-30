@@ -26,7 +26,10 @@ from PIL import ImageChops, ImageEnhance, ImageFilter, ImageOps, ImageStat
 from savethread import SaveThread
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+    GdkPixbuf,
+    GLib,
+)
 
 logger = logging.getLogger(__name__)
 

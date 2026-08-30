@@ -31,13 +31,16 @@ from helpers import (
     exec_command,
     expand_metadata_pattern,
 )
+from loop_helpers import safe_mainloop
 from page import Page
 from PIL import Image
 from savethread import _bbox2markup, _set_timestamp, prepare_output_metadata
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk  # pylint: disable=wrong-import-position
-from loop_helpers import safe_mainloop
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+    GLib,
+    Gtk,
+)
 
 
 def get_page_index_all_callback(_uuid, _process, _message):

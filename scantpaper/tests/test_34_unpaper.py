@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 
 def test_unpaper_program_version(mocker):

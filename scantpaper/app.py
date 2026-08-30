@@ -39,7 +39,7 @@ from const import LOCAL_DOCS_URI, PROG_NAME, SPACE, VERSION
 from i18n import log_i18n_status
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (
+from gi.repository import (  # noqa: E402
     Gio,
     Gtk,
 )

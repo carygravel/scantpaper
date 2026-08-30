@@ -32,7 +32,7 @@ from page import Page
 gi.require_version("Gdk", "3.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
-from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-module
+from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-module  # noqa: E402
     Gdk,
     GLib,
     Pango,

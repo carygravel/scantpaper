@@ -9,10 +9,10 @@ import gi
 import pytest
 from const import VERSION
 from document import Document
+from loop_helpers import safe_mainloop
 from PIL import Image
 
 gi.require_version("Gtk", "3.0")
-from loop_helpers import safe_mainloop
 
 
 def test_rotate(

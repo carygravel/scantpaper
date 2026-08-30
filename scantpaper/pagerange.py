@@ -6,7 +6,10 @@ import gi
 from i18n import _
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+    GObject,
+    Gtk,
+)
 
 # TODO: can now be done with enums:
 # Enumerations can now be registered from Python since pygobject 3.52.0

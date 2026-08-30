@@ -14,7 +14,7 @@ from const import EMPTY
 from session_mixins import SessionMixins
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 
 @pytest.fixture

@@ -8,7 +8,10 @@ from basethread import ResponseType
 from i18n import _
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import GObject, Gtk  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+    GObject,
+    Gtk,
+)
 
 _PULSE_MIN_INTERVAL = 0.1  # seconds
 

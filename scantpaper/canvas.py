@@ -12,7 +12,7 @@ gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
-from gi.repository import (  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     Gdk,
     GLib,
     GObject,

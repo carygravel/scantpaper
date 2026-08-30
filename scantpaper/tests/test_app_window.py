@@ -13,7 +13,7 @@ import pytest
 from app_window import ApplicationWindow, drag_motion_callback, view_html
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     Gdk,
     Gio,
     GLib,

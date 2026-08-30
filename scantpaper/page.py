@@ -19,7 +19,10 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 gi.require_version("GdkPixbuf", "2.0")
-from gi.repository import GdkPixbuf, GLib  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+    GdkPixbuf,
+    GLib,
+)
 
 PAGE_TOLERANCE = 0.02
 MODE2DEPTH = {

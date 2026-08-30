@@ -10,14 +10,14 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1] / "scantpaper"
 sys.path.insert(0, str(root))
-from const import (
+from const import (  # noqa: E402
     AUTHOR,
     VERSION,
 )
-from const import (
+from const import (  # noqa: E402
     AUTHOR_EMAIL as EMAIL,
 )
-from const import (  # pylint: disable=wrong-import-position,import-error
+from const import (  # pylint: disable=wrong-import-position,import-error  # noqa: E402
     PROG_NAME as NAME,
 )
 

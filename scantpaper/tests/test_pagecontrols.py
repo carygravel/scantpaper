@@ -12,7 +12,7 @@ from dialog.scan import Scan
 from document import Document
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 
 def test_side_to_scan_invalid_value():

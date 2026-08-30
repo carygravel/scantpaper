@@ -12,7 +12,7 @@ from const import PROG_NAME, VERSION
 from text_layer_control import TextLayerControls
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 
 def test_text_layer_sort_combo_box(mocker):

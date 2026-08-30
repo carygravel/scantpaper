@@ -24,7 +24,7 @@ from i18n import _
 from postprocess_controls import OCRControls
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position
+from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     Gdk,
     GLib,
     GObject,

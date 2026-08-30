@@ -14,7 +14,7 @@ from helpers import slurp
 from i18n import _
 
 gi.require_version("Gdk", "3.0")
-from gi.repository import Gdk  # pylint: disable=wrong-import-position
+from gi.repository import Gdk  # pylint: disable=wrong-import-position  # noqa: E402
 
 DEFAULTS = {
     "window_width": 800,

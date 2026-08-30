@@ -9,7 +9,7 @@ from dialog import Dialog
 from dialog.save import Save
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 _LOCAL_TZ = datetime.now().astimezone().tzinfo
 

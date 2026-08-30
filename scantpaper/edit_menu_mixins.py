@@ -11,7 +11,7 @@ from dialog.preferences import PreferencesDialog
 from i18n import _, d_sane
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position
+from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
