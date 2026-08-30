@@ -593,9 +593,8 @@ class Unpaper:
             elif hashref[option]["type"] == "SpinButton":
                 if option in options:
                     items += [f"--{option}", f"{self.get_option(option)}"]
-            else:
-                if option in options:
-                    items += [f"--{option}", f"{options[option]}"]
+            elif option in options:
+                items += [f"--{option}", f"{options[option]}"]
         return items + ["--overwrite", "%s", "%s", "%s"]
 
     def program_version(self):

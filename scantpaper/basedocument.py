@@ -276,25 +276,24 @@ class BaseDocument(SimpleList):
                 new_index + 1,
             )
 
-        else:
-            if "replace" in kwargs:
-                old_id = self.data[i][2]
-                self.data[i] = [number, thumb, page_id]
-                new_index = i
-                logger.info(
-                    "Replaced page id %s at page number %s with page id %s",
-                    old_id,
-                    i + 1,
-                    page_id,
-                )
-            elif "insert-after" in kwargs:
-                self.data.insert(i + 1, [number, thumb, page_id])
-                new_index = i + 1
-                logger.info(
-                    "Inserted %s at page %s",
-                    page_id,
-                    new_index + 1,
-                )
+        elif "replace" in kwargs:
+            old_id = self.data[i][2]
+            self.data[i] = [number, thumb, page_id]
+            new_index = i
+            logger.info(
+                "Replaced page id %s at page number %s with page id %s",
+                old_id,
+                i + 1,
+                page_id,
+            )
+        elif "insert-after" in kwargs:
+            self.data.insert(i + 1, [number, thumb, page_id])
+            new_index = i + 1
+            logger.info(
+                "Inserted %s at page %s",
+                page_id,
+                new_index + 1,
+            )
 
         # Page numbers are always consecutive 1..n. A pure append whose number
         # already equals its position needs no renumbering; only middle inserts,

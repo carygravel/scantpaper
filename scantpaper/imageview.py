@@ -271,11 +271,8 @@ class Selector(Tool):
                         self.v_edge = "upper"
                         self.drag_start = {"x": x, "y": y}
 
-                    else:
-                        if "x" not in self.drag_start:
-                            self.drag_start["x"] = (
-                                sx2 if self.v_edge == "lower" else sx1
-                            )
+                    elif "x" not in self.drag_start:
+                        self.drag_start["x"] = sx2 if self.v_edge == "lower" else sx1
 
                 elif self.v_edge == "mid" and "y" not in self.drag_start:
                     self.drag_start["y"] = sy2 if self.h_edge == "lower" else sy1
@@ -284,13 +281,12 @@ class Selector(Tool):
                 self._update_undragged_edge("h_edge", (x, y, sx1, sy1, sx2, sy2))
                 self._update_undragged_edge("v_edge", (y, x, sy1, sx1, sy2, sx2))
 
-        else:
-            if self.dragging:
-                self.drag_start = {"x": x, "y": y}
-                self.h_edge, self.v_edge = ("upper", "upper")
+        elif self.dragging:
+            self.drag_start = {"x": x, "y": y}
+            self.h_edge, self.v_edge = ("upper", "upper")
 
-            else:
-                self.h_edge, self.v_edge = ("mid", "mid")
+        else:
+            self.h_edge, self.v_edge = ("mid", "mid")
 
         return cursorhash[self.h_edge][self.v_edge]
 

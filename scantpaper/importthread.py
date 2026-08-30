@@ -65,7 +65,7 @@ class Importhread(BaseThread):
     def check_cancelled(self):
         "check if operation was cancelled"
         if self.cancel:
-            raise CancelledError()
+            raise CancelledError
 
     def do_get_file_info(self, request):
         "get file info"

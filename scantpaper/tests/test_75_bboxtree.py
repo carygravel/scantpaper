@@ -164,7 +164,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
     expected = (
         '[{"type": "page", "bbox": [0, 0, 422, 61], '
-        + '"text": "The quick brown fox", "depth": 0}]'
+        '"text": "The quick brown fox", "depth": 0}]'
     )
     assert tree.json() == expected, "to json"
     assert Bboxtree(expected).bbox_tree == [simple_box], "from json"

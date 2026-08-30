@@ -170,11 +170,10 @@ def _parse_arguments():
     logger.info("Log level %s", args.log_level)
     if args.locale is None:
         gettext.bindtextdomain(f"{PROG_NAME}")
+    elif re.search(r"^\/", args.locale, re.MULTILINE | re.DOTALL | re.VERBOSE):
+        gettext.bindtextdomain(f"{PROG_NAME}", args.locale)
     else:
-        if re.search(r"^\/", args.locale, re.MULTILINE | re.DOTALL | re.VERBOSE):
-            gettext.bindtextdomain(f"{PROG_NAME}", args.locale)
-        else:
-            gettext.bindtextdomain(f"{PROG_NAME}", os.getcwd() + f"/{args.locale}")
+        gettext.bindtextdomain(f"{PROG_NAME}", os.getcwd() + f"/{args.locale}")
     gettext.textdomain(PROG_NAME)
 
     logger.info("Using %s locale", locale.setlocale(locale.LC_CTYPE))

@@ -374,8 +374,8 @@ class Bbox:
             idn = f"id='{self.id}'" if self.id else EMPTY
             title = (
                 "title="
-                + "'"
-                + "bbox "
+                "'"
+                "bbox "
                 + SPACE.join([str(x) for x in rect2bboxarray(self.bbox)])
                 + ("; textangle " + str(self.textangle) if self.textangle else EMPTY)
                 + (

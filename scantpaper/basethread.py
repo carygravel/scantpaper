@@ -121,7 +121,7 @@ class BaseThread(threading.Thread):
             # We don't need a response queue for finalization
             request = Request("quit", [], None)
             requests_queue.put(request)
-        except Exception:  # noqa: S110, BLE001
+        except Exception:  # noqa: BLE001
             # S110, BLE001 — swallowed intentionally: during interpreter shutdown
             # the queue may be closed/None, logging is unreliable there, and
             # requests_queue.put() can raise arbitrary errors, so we ignore them.
@@ -237,9 +237,8 @@ class BaseThread(threading.Thread):
             handler = getattr(self, f"do_{request.process}", None)
             if handler is None:
                 request.error(None, f"no handler for [{request.process}]")
-            else:
-                if not self.handler_wrapper(request, handler):
-                    break
+            elif not self.handler_wrapper(request, handler):
+                break
             self.requests.task_done()
         self._release_sources()
 

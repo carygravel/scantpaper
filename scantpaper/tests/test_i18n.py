@@ -33,6 +33,6 @@ def test_i18n_load_success():
         importlib.reload(i18n)
         i18n.log_i18n_status()
 
-    assert i18n.TRANSLATE == mock_translation
+    assert mock_translation == i18n.TRANSLATE
     assert i18n._ == mock_translation.gettext
     assert i18n.d_sane == mock_translation.gettext

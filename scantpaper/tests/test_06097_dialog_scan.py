@@ -128,8 +128,8 @@ def test_inexact(
             value -= 0.5
             logger.info(
                 f"sane_set_option {opt.index} ({opt.name})"
-                + f" to {value} returned info "
-                + f"{info} ({decode_info(info)})"
+                f" to {value} returned info "
+                f"{info} ({decode_info(info)})"
             )
 
         setattr(self.device_handle, key.replace("-", "_"), value)

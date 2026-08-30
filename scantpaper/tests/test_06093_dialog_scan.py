@@ -378,7 +378,7 @@ def test_infinite_reloads_due_to_tolerance(
                 break
 
         info = 0
-        if key == "br-x" and value == 216 or key == "br-y" and value == 279:
+        if (key == "br-x" and value == 216) or (key == "br-y" and value == 279):
             value = 215.899993896484 if key == "br-x" else 279.399993896484
             info = (
                 21936
@@ -388,8 +388,8 @@ def test_infinite_reloads_due_to_tolerance(
             )
             logger.info(
                 f"sane_set_option {opt.index} ({opt.name})"
-                + f" to {value} returned info "
-                + f"{info} ({decode_info(info)})"
+                f" to {value} returned info "
+                f"{info} ({decode_info(info)})"
             )
 
         setattr(self.device_handle, key.replace("-", "_"), value)
@@ -747,8 +747,8 @@ def test_infinite_reloads_due_to_inexact(
                 value = 0.999984741210938
             logger.info(
                 f"sane_set_option {opt.index} ({opt.name})"
-                + f" to {value} returned info "
-                + f"{info} ({decode_info(info)})"
+                f" to {value} returned info "
+                f"{info} ({decode_info(info)})"
             )
 
         setattr(self.device_handle, key.replace("-", "_"), value)

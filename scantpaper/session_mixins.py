@@ -362,7 +362,7 @@ class SessionMixins:
         if response_stored(text, self.settings["message"]):
             logger.debug(
                 f"Skipped MessageDialog with '{kwargs['text']}', "
-                + f"automatically replying '{self.settings['message'][text]['response']}'"
+                f"automatically replying '{self.settings['message'][text]['response']}'"
             )
             return self.settings["message"][text]["response"]
 

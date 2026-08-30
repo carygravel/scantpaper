@@ -244,7 +244,7 @@ def slurp(file):
         if isinstance(content, bytes):
             return content.decode("utf-8", "replace")
         return content
-    with open(file, "r", encoding="utf-8") as fhd:
+    with open(file, encoding="utf-8") as fhd:
         return fhd.read()
 
 

@@ -56,7 +56,7 @@ def main():
         .replace("Report-Msgid-Bugs-To: ", f"Report-Msgid-Bugs-To: {EMAIL}", 1)
     )
     filename = NAME + ".pot"
-    with open(filename, "wt", encoding="utf-8") as fhd:
+    with open(filename, "w", encoding="utf-8") as fhd:
         fhd.write(out)
     print(f"Wrote {filename}")
 

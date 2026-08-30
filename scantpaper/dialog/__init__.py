@@ -209,11 +209,10 @@ class MultipleMessage(Dialog):
                     row["text"], row["responses"]
                 ):
                     self.add_row(row)
-        else:
-            if "responses" not in row or not response_stored(
-                filter_message(row["text"]), row["responses"]
-            ):
-                self.add_row(row)
+        elif "responses" not in row or not response_stored(
+            filter_message(row["text"]), row["responses"]
+        ):
+            self.add_row(row)
 
     def store_responses(self, response, responses):
         "store response in responses"

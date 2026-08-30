@@ -767,32 +767,31 @@ class Scan(PageControls):
             if _value_for_active_option(value, opt):
                 widget.set_active(value)
 
-        else:
-            if isinstance(opt.constraint, tuple):
-                step, page = widget.get_increments()
-                step = 1
-                if opt.constraint[2] > 0:
-                    step = opt.constraint[2]
+        elif isinstance(opt.constraint, tuple):
+            step, page = widget.get_increments()
+            step = 1
+            if opt.constraint[2] > 0:
+                step = opt.constraint[2]
 
-                widget.set_range(opt.constraint[0], opt.constraint[1])
-                widget.set_increments(step, page)
-                if _value_for_active_option(value, opt):
-                    widget.set_value(value)
+            widget.set_range(opt.constraint[0], opt.constraint[1])
+            widget.set_increments(step, page)
+            if _value_for_active_option(value, opt):
+                widget.set_value(value)
 
-            elif isinstance(opt.constraint, list):
-                widget.get_model().clear()
-                index = 0
-                for i, entry in enumerate(opt.constraint):
-                    widget.append_text(d_sane(str(entry)))
-                    if entry == value:
-                        index = i
+        elif isinstance(opt.constraint, list):
+            widget.get_model().clear()
+            index = 0
+            for i, entry in enumerate(opt.constraint):
+                widget.append_text(d_sane(str(entry)))
+                if entry == value:
+                    index = i
 
-                if index is not None:
-                    widget.set_active(index)
+            if index is not None:
+                widget.set_active(index)
 
-            elif opt.constraint is None and opt.type != enums.TYPE_BUTTON:  # entry
-                if _value_for_active_option(value, opt):
-                    widget.set_text(str(value))
+        elif opt.constraint is None and opt.type != enums.TYPE_BUTTON:  # entry
+            if _value_for_active_option(value, opt):
+                widget.set_text(str(value))
 
     def _update_option(self, opt, new_opt):
 

@@ -277,7 +277,7 @@ def test_slurp(tmp_path):
 def test_slurp_file_object(tmp_path):
     "Test slurp reads a file object (e.g. a TemporaryFile pidfile)"
     f = tmp_path / "pid"
-    with open(f, "w+t", encoding="utf-8") as fhd:
+    with open(f, "w+", encoding="utf-8") as fhd:
         fhd.write("1234")
         fhd.flush()
         assert slurp(fhd) == "1234"

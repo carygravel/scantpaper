@@ -47,8 +47,8 @@ class SimpleList(Gtk.TreeView):
         if len(columns.keys()) < 1:
             raise TypeError(
                 f"Usage: {__class__.__name__}(title=type, ...)\n"
-                + " expecting a list of column title and type name pairs.\n"
-                + " can't create a SimpleList with no columns"
+                " expecting a list of column title and type name pairs.\n"
+                " can't create a SimpleList with no columns"
             )
         column_info = []
         for name, typekey in columns.items():
@@ -61,8 +61,8 @@ class SimpleList(Gtk.TreeView):
                 column_types[typekey]["type"] = str
                 warn(
                     f"column type '{typekey}' has no 'type' field; did you"
-                    + " create a custom column type incorrectly?\n"
-                    + f"limping along with '{column_types[typekey]['type']}'"
+                    " create a custom column type incorrectly?\n"
+                    f"limping along with '{column_types[typekey]['type']}'"
                 )
             column_info.append(
                 {

@@ -76,11 +76,10 @@ class DocThread(SaveThread):
             self._db = pathlib.Path(self._db)
         if self._dir:
             self._dir = pathlib.Path(self._dir)
+        elif self._db:
+            self._dir = self._db.parent
         else:
-            if self._db:
-                self._dir = self._db.parent
-            else:
-                self._dir = pathlib.Path(tempfile.gettempdir())
+            self._dir = pathlib.Path(tempfile.gettempdir())
         if self._db is None:
             self._db = self._dir / "document.sdb"
 
