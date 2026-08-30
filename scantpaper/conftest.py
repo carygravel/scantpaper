@@ -274,8 +274,11 @@ def sane_scan_mocks():
 
 
 @pytest.fixture
-def inexact_scan_mocks():
+def inexact_scan_mocks(request):
     "raw_options and mocked SaneThread do_* methods for the test_inexact family"
+    extra_options = getattr(request, "param", None) or {}
+    extra_handle = extra_options.get("handle", {})
+    extra_option_names = extra_options.get("options", [])
     raw_options = [
         Option(
             index=0,
@@ -355,6 +358,8 @@ def inexact_scan_mocks():
             unit=3,
         ),
     ]
+    for i, name in enumerate(extra_option_names, start=len(raw_options)):
+        raw_options.append(build_scan_options([name])[1]._replace(index=i))
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -366,6 +371,7 @@ def inexact_scan_mocks():
             tl_y=0,
             br_x=215.899993896484,
             br_y=297.179992675781,
+            **extra_handle,
         )
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
@@ -404,12 +410,18 @@ def inexact_scan_mocks():
         mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
         mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
+    def patch_open_get(mocker):
+        "patch do_open_device/do_get_options, leaving do_set_option to the caller"
+        mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
+        mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
+
     return SimpleNamespace(
         raw_options=raw_options,
         mocked_do_open_device=mocked_do_open_device,
         mocked_do_get_options=mocked_do_get_options,
         mocked_do_set_option=mocked_do_set_option,
         patch_all=patch_all,
+        patch_open_get=patch_open_get,
     )
 
 
