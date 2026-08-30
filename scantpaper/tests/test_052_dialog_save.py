@@ -543,9 +543,9 @@ def test_other_save_dialog_callbacks():
                     isinstance(gc, Gtk.Label) and gc.get_text() == label_text
                     for gc in grand_children
                 ):
-                    for gc in grand_children:
-                        if isinstance(gc, Gtk.SpinButton):
-                            found.append(gc)
+                    found.extend(
+                        gc for gc in grand_children if isinstance(gc, Gtk.SpinButton)
+                    )
                 found.extend(find_all_spinbuttons_near_label(child, label_text))
         return found
 
