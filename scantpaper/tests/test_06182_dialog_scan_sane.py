@@ -9,6 +9,8 @@ from frontend import enums
 from scanner.options import Option
 from scanner.profile import Profile
 
+from tests.scan_mocks import build_scan_options
+
 logger = logging.getLogger(__name__)
 
 
@@ -166,74 +168,15 @@ def test_option_dependency(
 ):
     "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            cap=5,
-            constraint=["Flatbed", "ADF", "Duplex"],
-            desc="Selects the scan source (such as a document-feeder).",
-            index=1,
-            size=1,
-            name="source",
-            title="Scan source",
-            type=3,
-            unit=0,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 215.899993896484, 0),
-            desc="Top Left X",
-            index=2,
-            size=1,
-            name="tl-x",
-            title="Top Left X",
-            type=2,
-            unit=3,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 296.925994873047, 0),
-            desc="Top Left Y",
-            index=3,
-            size=1,
-            name="tl-y",
-            title="Top Left Y",
-            type=2,
-            unit=3,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 215.899993896484, 0),
-            desc="Bottom Right X",
-            index=4,
-            size=1,
-            name="br-x",
-            title="Bottom Right X",
-            type=2,
-            unit=3,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 296.925994873047, 0),
-            desc="Bottom Right Y",
-            index=5,
-            size=1,
-            name="br-y",
-            title="Bottom Right Y",
-            type=2,
-            unit=3,
-        ),
-    ]
+    raw_options = build_scan_options(
+        [
+            "source-flatbed-adf-duplex",
+            "tl-x-top-left-x",
+            "tl-y-296925",
+            "br-x-bottom-right-x",
+            "br-y-296925",
+        ]
+    )
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -431,98 +374,17 @@ def test_scanner_with_no_source(
 ):
     "test behavour with scanner without source option"
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            type=2,
-            size=1,
-            desc="Bottom-right y position of scan area. You should use it in "
-            '"User defined" mode only!',
-            index=14,
-            constraint=(0, 355.599990844727, 0),
-            name="br-y",
-            cap=5,
-            unit=3,
-            title="br-y",
-        ),
-        Option(
-            size=1,
-            type=3,
-            desc="Scan mode",
-            index=2,
-            name="mode",
-            constraint=["Gray", "Color", "Black & White", "Error Diffusion", "ATEII"],
-            cap=5,
-            unit=0,
-            title="Scan mode",
-        ),
-        Option(
-            size=1,
-            type=2,
-            index=11,
-            desc='Top-left x position of scan area. You should use it in "User defined" mode only!',
-            name="tl-x",
-            constraint=(0, 216, 0),
-            title="tl-x",
-            cap=5,
-            unit=3,
-        ),
-        Option(
-            name="resolution",
-            constraint=[150, 200, 300, 400, 600],
-            title="Scan resolution",
-            cap=5,
-            unit=4,
-            type=1,
-            size=1,
-            desc="Scan resolution",
-            index=3,
-        ),
-        Option(
-            desc='Top-left y position of scan area. You should use it in "User defined" mode only!',
-            index=12,
-            type=2,
-            size=1,
-            title="tl-y",
-            cap=5,
-            unit=3,
-            name="tl-y",
-            constraint=(0, 355.599990844727, 0),
-        ),
-        Option(
-            type=3,
-            size=1,
-            desc="scanmode,choose simplex or duplex scan",
-            index=8,
-            constraint=["Simplex", "Duplex"],
-            name="ScanMode",
-            title="ScanMode",
-            cap=5,
-            unit=0,
-        ),
-        Option(
-            constraint=(0, 216, 0),
-            name="br-x",
-            unit=3,
-            cap=5,
-            title="br-x",
-            type=2,
-            size=1,
-            desc="Bottom-right x position of scan area. You should use it in "
-            '"User defined" mode only!',
-            index=13,
-        ),
-    ]
+    raw_options = build_scan_options(
+        [
+            "br-y-355-user",
+            "mode-scan",
+            "tl-x-216-user",
+            "resolution-150-200-300-400-600",
+            "tl-y-355-user",
+            "ScanMode",
+            "br-x-216-user",
+        ]
+    )
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -621,63 +483,14 @@ def test_hiding_geometry(
 ):
     "test behavour with scanner without source option"
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            type=2,
-            size=1,
-            desc="Bottom-right y position of scan area.",
-            index=1,
-            constraint=(0, 299.212005615234, 0),
-            name="br-y",
-            cap=5,
-            unit=3,
-            title="Bottom-right y",
-        ),
-        Option(
-            size=1,
-            type=2,
-            index=2,
-            desc="Top-left x position of scan area.",
-            name="tl-x",
-            constraint=(0, 215.900009155273, 0),
-            title="Top-left x",
-            cap=5,
-            unit=3,
-        ),
-        Option(
-            desc="Top-left y position of scan area.",
-            index=3,
-            type=2,
-            size=1,
-            title="Top-left y",
-            cap=5,
-            unit=3,
-            name="tl-y",
-            constraint=(0, 299.212005615234, 0),
-        ),
-        Option(
-            constraint=(0, 215.900009155273, 0),
-            name="br-x",
-            unit=3,
-            cap=5,
-            title="Bottom-right x",
-            type=2,
-            size=1,
-            desc="Bottom-right x position of scan area.",
-            index=4,
-        ),
-    ]
+    raw_options = build_scan_options(
+        [
+            "br-y-299212",
+            "tl-x-215900",
+            "tl-y-299212",
+            "br-x-215900",
+        ]
+    )
 
     def mocked_do_open_device(self, request):
         "open device"
@@ -743,41 +556,12 @@ def test_combobox_on_reload(
     """Check the scan options in a combobox are updated if necessary, if
     values are changed by a reload"""
 
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            index=1,
-            name="source",
-            title="Scan source",
-            desc="Selects the scan source (such as a document-feeder).",
-            type=3,
-            unit=0,
-            size=1,
-            cap=5,
-            constraint=["Flatbed", "ADF", "Duplex"],
-        ),
-        Option(
-            index=2,
-            name="resolution",
-            title="Scan resolution",
-            desc="Sets the resolution of the scanned image.",
-            type=1,
-            unit=4,
-            size=1,
-            cap=5,
-            constraint=[75, 100, 200, 300],
-        ),
-    ]
+    raw_options = build_scan_options(
+        [
+            "source-flatbed-adf-duplex",
+            "resolution-75-100-200-300",
+        ]
+    )
 
     def mocked_do_open_device(self, request):
         "open device"
