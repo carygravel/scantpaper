@@ -10,7 +10,7 @@ import time
 import pytest
 from basethread import Request
 from const import APPLICATION_ID, USER_VERSION
-from docthread import DocThread, _calculate_crop_tuples
+from docthread import INSERT_AT_START, DocThread, _calculate_crop_tuples
 from gi.repository import GLib
 from importthread import CancelledError
 from page import Page
@@ -833,7 +833,7 @@ def test_do_delete_pages_row_ids(mocker):
     thread._write_tid = threading.get_native_id()
 
     mocker.patch.object(thread, "_take_snapshot")
-    mocker.patch.object(thread, "_execute")
+    mock_execute = mocker.patch.object(thread, "_execute")
     mocker.patch.object(thread, "_executemany")
     mocker.patch.object(thread, "_fetchall", return_value=[])
     tid = threading.get_native_id()
@@ -846,7 +846,7 @@ def test_do_delete_pages_row_ids(mocker):
     thread.do_delete_pages(request)
 
     # We can inspect the calls if needed, or rely on execution
-    assert thread._execute.call_count >= 1
+    assert mock_execute.call_count >= 1
 
 
 def test_do_delete_pages_no_args(mocker):
@@ -1256,8 +1256,6 @@ def test_add_page_insert_at_start(mocker):
 
     page = mocker.Mock(spec=Page)
     page.resolution = (300, 300, 3)
-
-    from docthread import INSERT_AT_START
 
     thread.add_page(page, insert_after=INSERT_AT_START)
     mock_shift.assert_called_with(1, 1)
