@@ -420,7 +420,7 @@ class Importhread(BaseThread):
 
                     try:
                         page.import_djvu_ann(ann)
-                    except (OSError, PermissionError) as err:
+                    except (OSError, PermissionError):
                         logger.exception("Caught error parsing DjVU annotation layer")
                         request.error("Error: parsing DjVU annotation layer")
 
@@ -523,7 +523,7 @@ class Importhread(BaseThread):
                         }
                     )
                     os.remove(fname)
-                except (OSError, PermissionError) as err:
+                except (OSError, PermissionError):
                     logger.exception("Caught error importing PDF")
                     request.error(_("Error importing PDF"))
 

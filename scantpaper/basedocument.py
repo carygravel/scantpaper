@@ -210,7 +210,7 @@ class BaseDocument(SimpleList):
             pidfile = tempfile.TemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
                 dir=self.dir, suffix=".pid", mode="w+t"
             )
-        except (OSError, PermissionError) as err:
+        except (OSError, PermissionError):
             logger.exception("Caught error writing to %s", self.dir)
             if "error_callback" in options:
                 options["error_callback"](

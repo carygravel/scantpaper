@@ -50,7 +50,7 @@ class SessionMixins:
                 self.session = tempfile.TemporaryDirectory(
                     prefix="scantpaper-", dir=tmpdir
                 )
-            except (FileNotFoundError, PermissionError) as e:
+            except (FileNotFoundError, PermissionError):
                 logger.exception("Error creating temporary directory")
                 # Keep as fallback: handle stored on self for session lifetime
                 self.session = (

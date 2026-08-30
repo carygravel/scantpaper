@@ -370,7 +370,7 @@ class SaneThread(BaseThread):
         if self._scan_active and self.device_handle is not None:
             try:
                 self.device_handle.cancel()
-            except Exception as e:
+            except Exception:
                 logger.exception("Error cancelling device")
         return request
 
