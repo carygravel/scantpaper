@@ -656,6 +656,56 @@ class DocThread(SaveThread):
         request.data({"type": "page", "new_pages": rows})
         return [dest + i for i in range(len(pages))]
 
+    def do_reorder_pages(self, request):
+        "reorder pages in the database"
+        self._check_write_tid()
+        self._take_snapshot()
+        kwargs = request.args[0]
+        page_ids = kwargs["page_ids"]
+        dest = kwargs["dest"]
+        self._execute(
+            """SELECT initial_page_id FROM page_order
+               WHERE action_id = ? ORDER BY row_id""",
+            (self._action_id,),
+        )
+        current = [row[0] for row in self._fetchall()]
+        moved = [pid for pid in page_ids if pid in current]
+        moved_set = set(moved)
+        remaining = [pid for pid in current if pid not in moved_set]
+        remaining[dest:dest] = moved
+        # In-place row_id updates can transiently collide on the
+        # (action_id, row_id) UNIQUE constraint. Shift all row ids beyond the
+        # final range first, then write the final permutation.
+        offset = len(remaining)
+        self._execute(
+            "UPDATE page_order SET row_id = row_id + ? WHERE action_id = ?",
+            (offset, self._action_id),
+        )
+        self._executemany(
+            """UPDATE page_order SET row_id = ?
+               WHERE initial_page_id = ? AND action_id = ?""",
+            [(i, pid, self._action_id) for i, pid in enumerate(remaining)],
+        )
+        self._con[threading.get_native_id()].commit()
+
+        placeholders = ", ".join(["?"] * len(moved))
+        self._execute(
+            f"""SELECT row_id, thumb, initial_page_id
+                FROM page_order, page, image
+                WHERE action_id = ?
+                 AND page_id = page.id AND image_id = image.id
+                 AND initial_page_id IN ({placeholders})
+                ORDER BY row_id""",
+            (self._action_id, *moved),
+        )
+        rows = []
+        for record in self._fetchall():
+            row = list(record)
+            row[1] = self._bytes_to_pixbuf(row[1])
+            rows.append(row)
+        request.data({"type": "page", "new_pages": rows})
+        return [row[0] for row in rows]
+
     def _take_snapshot(self):
         "take a snapshot of the current state of the document"
         self._check_write_tid()

@@ -696,6 +696,91 @@ def test_undo_redo_snapshot_page_numbers(temp_db):
     assert [row[0] for row in result["snapshot"]] == [1, 2], "redo"
 
 
+def test_reorder_pages(temp_db):
+    "reorder pages via do_reorder_pages"
+    thread = DocThread(db=temp_db.name)
+
+    # spoof the write thread check
+    thread._write_tid = threading.get_native_id()
+    for _ in range(5):
+        thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
+
+    ids = [row[2] for row in thread.page_number_table()]
+
+    # image row count should be unchanged by a reorder
+    thread._execute("SELECT COUNT(*) FROM image")
+    image_count_before = thread._fetchone()[0]
+
+    # move the first page to the end (after the last page)
+    request = Request(
+        "reorder_pages",
+        ({"page_ids": [ids[0]], "dest": 5},),
+        thread.responses,
+    )
+    thread.do_reorder_pages(request)
+
+    after = [row[2] for row in thread.page_number_table()]
+    assert after == [*ids[1:], ids[0]], "first page moved to the end"
+
+    thread._execute("SELECT COUNT(*) FROM image")
+    image_count_after = thread._fetchone()[0]
+    assert image_count_after == image_count_before, "no image duplication on reorder"
+
+    # a single undo restores the original order
+    result = thread.do_undo(Request("undo", (), thread.responses))
+    assert [row[2] for row in result["snapshot"]] == ids, "single undo restores order"
+
+
+def test_reorder_pages_block(temp_db):
+    "reorder a block of pages preserving relative order"
+    thread = DocThread(db=temp_db.name)
+
+    # spoof the write thread check
+    thread._write_tid = threading.get_native_id()
+    for _ in range(5):
+        thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
+
+    ids = [row[2] for row in thread.page_number_table()]
+
+    # move the middle two pages to the end as a block
+    request = Request(
+        "reorder_pages",
+        ({"page_ids": [ids[1], ids[2]], "dest": 5},),
+        thread.responses,
+    )
+    thread.do_reorder_pages(request)
+
+    after = [row[2] for row in thread.page_number_table()]
+    assert after == [ids[0], ids[3], ids[4], ids[1], ids[2]], "block preserved order"
+
+
+def test_reorder_pages_consecutive_numbering(temp_db):
+    "reorder keeps page numbers consecutive"
+    thread = DocThread(db=temp_db.name)
+
+    # spoof the write thread check
+    thread._write_tid = threading.get_native_id()
+    for _ in range(4):
+        thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
+
+    ids = [row[2] for row in thread.page_number_table()]
+
+    # move the last page to the front
+    request = Request(
+        "reorder_pages",
+        ({"page_ids": [ids[3]], "dest": 0},),
+        thread.responses,
+    )
+    thread.do_reorder_pages(request)
+
+    assert [row[0] for row in thread.page_number_table()] == [
+        0,
+        1,
+        2,
+        3,
+    ], "row ids consecutive after reorder"
+
+
 def test_document(rose_tif):
     "tests for Document()"
     with tempfile.TemporaryDirectory() as tempdir:

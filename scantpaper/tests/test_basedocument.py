@@ -435,22 +435,20 @@ def test_drag_data_received_callback_uri(mocker):
 
 
 def test_drag_data_received_callback_path_to_string():
-    "Test that path.to_string() is called when a valid path is provided"
+    "Test that path.to_string() is called and reorder_pages is dispatched"
     # Mock the tree and context
     tree = MagicMock()
     context = MagicMock()
 
     # Mock the row returned by get_dest_row_at_pos
     mock_path = MagicMock()
-    mock_path.to_string.return_value = "mock_path"
+    mock_path.to_string.return_value = "2"
     tree.get_dest_row_at_pos.return_value = (mock_path, Gtk.TreeViewDropPosition.AFTER)
-
-    # Mock the copy_selection method to return an empty list
-    tree.copy_selection.return_value = []
+    tree.get_selected_indices.return_value = [0]
+    tree.data = [[1, None, 101], [2, None, 102], [3, None, 103]]
 
     # Mock the data and other parameters
     data = MagicMock()
-    data.get_uris.return_value = []
     xpos, ypos, info, time = 0, 0, ID_PAGE, 0
 
     # Patch Gtk.drag_finish to avoid the TypeError
@@ -461,13 +459,68 @@ def test_drag_data_received_callback_path_to_string():
         # Assert that path.to_string() was called
         mock_path.to_string.assert_called_once()
 
-        # Assert that tree.paste_selection was called with the correct path
-        tree.paste_selection.assert_called_once_with(
-            data=[], dest="mock_path", how=Gtk.TreeViewDropPosition.AFTER
+        # AFTER at path "2" → dest = 2 + 1 = 3
+        tree.reorder_pages.assert_called_once_with(
+            [101], 3, Gtk.TreeViewDropPosition.AFTER
         )
 
         # Assert that Gtk.drag_finish was called
         mock_drag_finish.assert_called_once_with(context, True, False, time)
+
+
+def test_reorder_data_moves_pages():
+    "Test _reorder_data reorders self.data and reselects moved pages"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
+
+    # move page 101 to the end (worker returns 0-based positions)
+    slist._reorder_data([101], [[2, None, 101]])
+
+    assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to end"
+    assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
+    assert slist.get_selected_indices() == [2], "moved page reselected"
+
+
+def test_reorder_pages_data_callback():
+    "Test reorder_pages data callback reorders data and clears the suppress flag"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
+    slist.thread.send = MagicMock()
+
+    slist.reorder_pages([101], 2, None)
+    assert slist._suppress_delete is True, "deletion suppressed during reorder"
+
+    # invoke the data callback captured from thread.send to simulate the
+    # worker thread's async response
+    data_callback = slist.thread.send.call_args.kwargs["data_callback"]
+    response = MagicMock()
+    response.info = {"type": "page", "new_pages": [[2, None, 101]]}
+    data_callback(response)
+
+    assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to end"
+    assert slist._suppress_delete is False, "suppress flag cleared after response"
+
+
+def test_delete_selection_suppressed_after_reorder():
+    "Test delete_selection is suppressed during a reorder drag"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.thread.send = MagicMock()
+
+    slist._suppress_delete = True
+    slist.select([0, 1])
+    slist.delete_selection()
+
+    assert len(slist.data) == 2, "delete suppressed"
+    assert slist._suppress_delete is False, "flag cleared"
+    # no delete_pages request was dispatched
+    for call in slist.thread.send.call_args_list:
+        assert call.args[0] != "delete_pages"
 
 
 def test_on_row_changed_moves_page():

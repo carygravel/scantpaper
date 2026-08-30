@@ -50,6 +50,7 @@ class BaseDocument(SimpleList):
         self.dir = None
         self.clipboard = None
         self._context = {}
+        self._suppress_delete = False
         for key, val in kwargs.items():
             setattr(self, key, val)
         if not self.dir:
@@ -405,6 +406,12 @@ class BaseDocument(SimpleList):
     def delete_selection(self, _self=None, context=None, **kwargs):
         "Delete the selected pages"
 
+        # A drag-and-drop reorder triggers drag-data-delete after the drop;
+        # suppress that deletion so the reorder is not followed by a delete.
+        if getattr(self, "_suppress_delete", False):
+            self._suppress_delete = False
+            return
+
         # The drag-data-delete callback seems to be fired twice. Therefore, create
         # a hash of the context hashes and ignore the second drop. There must be a
         # less hacky way of solving this. FIXME
@@ -471,6 +478,44 @@ class BaseDocument(SimpleList):
             {"page_ids": page_ids},
             data_callback=_data_callback,
             **send_kwargs,
+        )
+
+    def _reorder_data(self, page_ids, new_pages):
+        "reorder self.data to match the worker's new ordering after a drag"
+        if self.row_changed_signal is not None:
+            self.get_model().handler_block(self.row_changed_signal)
+
+        rows = [list(row) for row in self.data]
+        moved = {row[2]: row for row in rows if row[2] in page_ids}
+        self.data = [row for row in rows if row[2] not in moved]
+        for pos, _thumb, pid in new_pages:
+            self.data.insert(pos, moved[pid])
+
+        # Page numbers are always consecutive 1..n
+        self.renumber()
+
+        if self.row_changed_signal is not None:
+            self.get_model().handler_unblock(self.row_changed_signal)
+
+        self.get_selection().unselect_all()
+        self.select([i for i, row in enumerate(self.data) if row[2] in moved])
+
+    def reorder_pages(self, page_ids, dest, how):
+        "reorder the given pages to the given position by drag-and-drop"
+
+        def _data_callback(response):
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                self._reorder_data(page_ids, info["new_pages"])
+            self._suppress_delete = False
+
+        # The drag triggers drag-data-delete after the drop; suppress the
+        # resulting deletion so the reorder is not followed by a delete.
+        self._suppress_delete = True
+        self.thread.send(
+            "reorder_pages",
+            {"page_ids": page_ids, "dest": dest, "how": how},
+            data_callback=_data_callback,
         )
 
     def delete_selection_extra(self, **kwargs):
@@ -688,11 +733,17 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
             if path is not None:
                 path = path.to_string()
 
-        data = tree.copy_selection()
+        dest = len(tree.data)
+        if path is not None:
+            dest = int(path)
+            if how in (
+                Gtk.TreeViewDropPosition.AFTER,
+                Gtk.TreeViewDropPosition.INTO_OR_AFTER,
+            ):
+                dest += 1
 
-        # pasting without updating the selection
-        # in order not to defeat the finish() call below.
-        tree.paste_selection(data=data, dest=path, how=how)
+        page_ids = [tree.data[i][2] for i in rows]
+        tree.reorder_pages(page_ids, dest, how)
         Gtk.drag_finish(context, True, False, time)
 
     else:

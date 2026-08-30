@@ -9,6 +9,10 @@
   helper processes (rather than just hiding the bar), so the job stops
   promptly and the application remains usable: pages already imported are
   kept and further files are not processed.
+* Speed up drag-and-drop page reordering in large documents. Reordering a page
+  no longer duplicates it through the database (image blobs are left untouched);
+  the pages are moved in place as a single undoable step, so dragging a page
+  across a large scan is several times faster.
 
 
 ## 3.0.16 (2026-08-22)
