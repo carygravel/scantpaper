@@ -316,7 +316,6 @@ def test_save_pdf_with_hocr(
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
     set_text_in_mainloop(slist, 1, page.text_layer)
-    # slist.data[0][2].import_annotations(hocr)
 
     mlp = safe_mainloop(5000)
     slist.save_pdf(
@@ -331,9 +330,6 @@ def test_save_pdf_with_hocr(
     assert re.search(  # some tesseract installations find an extra "r"
         r"Thr?e.*quick.*brow[mn].*f", capture, re.DOTALL
     ), "PDF with expected text"
-    # capture = subprocess.check_output(["cat", temp_pdf.name], text=True)
-    # assert re.search(r"/Type\s/Annot\s/Subtype\s/Highlight\s/C.+/Contents.+fox",
-    #                  capture) is not None, 'PDF with expected annotation'
 
     import_in_mainloop(slist, [temp_pdf.name])
 
@@ -348,8 +344,6 @@ def test_save_pdf_with_hocr(
         page_width, page_height = int(regex.group(1)), int(regex.group(2))
     assert abs(page_width - width) < 2, "imported page width correct"
     assert abs(page_height - height) < 2, "imported page height correct"
-    # assert re.search(r"The.+quick.+brown.+fox", slist.data[1][2].annotations) \
-    #     is not None, 'import annotations'
 
 
 @pytest.mark.xfail(

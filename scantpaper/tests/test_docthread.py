@@ -199,7 +199,6 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
     mock_tess_path = mock_path.return_value
     mock_tess_path.is_symlink.return_value = True
 
-    # tess_path.resolve() / "../../share/tessdata"
     mock_resolved = mock_tess_path.resolve.return_value
     mock_tessdata = mock_resolved.__truediv__.return_value.resolve.return_value
     mock_tessdata.exists.return_value = True

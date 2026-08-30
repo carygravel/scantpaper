@@ -24,12 +24,6 @@ class Dialog(Gtk.Dialog):
         nick="Hide on delete",
         blurb="Whether to destroy or hide the dialog when it is dismissed",
     )
-    # page_range = GObject.Property(
-    #     type=GObject.GEnum,
-    #     default="selected",
-    #     nick="page-range",
-    #     blurb="Either selected or all",
-    # )
     page_range = GObject.Property(
         type=str, default="selected", nick="page-range", blurb="Either selected or all"
     )

@@ -163,7 +163,6 @@ def test_progress_queued():
     progress.queued(response)
 
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
-    # "Process 2 of 10 (test_process)"
     assert "test_process" in pbar.get_text()
     assert abs(pbar.get_fraction() - (1 + 0.5) / 10) < 0.001
     assert progress.get_visible()

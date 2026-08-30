@@ -221,11 +221,6 @@ class SaneScanDialog(Scan):
 
             if isinstance(val, list):  # $opt->{max_values} > 1
                 widget = Gtk.Button(label=d_sane(opt.title))
-                # widget.signal = widget.connect(
-                #     "clicked",
-                #     self.multiple_values_button_callback,
-                #     [opt],
-                # )
             else:
                 widget = self._create_widget(opt, val, hbox)
                 if widget is None:

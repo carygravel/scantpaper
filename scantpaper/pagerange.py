@@ -26,9 +26,6 @@ class PageRange(Gtk.Box):
     __gsignals__: ClassVar[dict] = {
         "changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
-    # active=GObject.Property(
-    #     type=GObject.GEnum,default='selected',nick='active',blurb='Either selected or all'
-    # )
     active = GObject.Property(
         type=str, default="selected", nick="active", blurb="Either selected or all"
     )

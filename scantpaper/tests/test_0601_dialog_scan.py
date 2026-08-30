@@ -849,8 +849,6 @@ def test_infinite_reloads(
     def mocked_do_set_option(_self, _request):
         """Force a reload for every option to trigger an infinite reload loop and test
         that the reload-recursion-limit is respected."""
-        # key, value = _request.args
-        # setattr(self.device_handle, key.replace("-", "_"), value)
         return enums.INFO_RELOAD_OPTIONS
 
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)

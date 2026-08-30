@@ -201,7 +201,6 @@ def test_pdf_options(mocker):
     dialog._encrypt_clicked_callback(None)
 
     # Capture the actions passed to add_actions
-    # passwin.add_actions([("gtk-ok", clicked_ok_callback), ...])
     args, _ = mock_instance.add_actions.call_args
     actions = args[0]
     ok_callback = next(cb for name, cb in actions if name == "gtk-ok")

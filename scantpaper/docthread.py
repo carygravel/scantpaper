@@ -65,7 +65,6 @@ class DocThread(SaveThread):
     _action_id = 0
     _db = None
     _dir = None
-    # number_undo_steps = 10
 
     def __init__(self, *args, **kwargs):
         for key in ["dir", "db"]:
@@ -702,10 +701,6 @@ class DocThread(SaveThread):
         # TODO: after deleting from selection, page_order, also delete rows in
         # page & image that are no longer referenced.
         # delete those outside the undo limit
-        # self._execute(
-        #     "DELETE FROM page_order WHERE action_id < ?",
-        #     (self._action_id - self.number_undo_steps,),
-        # )
         self._con[threading.get_native_id()].commit()
 
     def _get_snapshot(self):

@@ -59,14 +59,6 @@ class Application(Gtk.Application):
             **kwargs,
         )
         self.window = None
-        # self.add_main_option(
-        #     "test",
-        #     ord("t"),
-        #     GLib.OptionFlags.NONE,
-        #     GLib.OptionArg.NONE,
-        #     "Command line test",
-        #     None,
-        # )
 
         # Add extra icons early to be available for Gtk.Builder
         # Check for icons in the package first, then fallback to system icons.

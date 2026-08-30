@@ -353,17 +353,6 @@ class SaveThread(Importhread):
             with tempfile.NamedTemporaryFile(
                 dir=args.get("dir"), suffix=".djvu", delete=False
             ) as djvu:
-                # logger.error("Caught error writing DjVu: %s", err)
-                # self._thread_throw_error(
-                #     args["uuid"],
-                #     args["page"]["uuid"],
-                #     "Save file",
-                #     f"Caught error writing DjVu: {_}.",
-                # )
-                # error = True
-
-                # if error:
-                #     return
                 page.write_image_for_djvu(djvu.name, args)
                 filelist.append(djvu.name)
 
@@ -425,14 +414,6 @@ class SaveThread(Importhread):
                 ]
                 exec_command_run(cmd, options.get("pidfile"), check=True)
                 self.check_cancelled()
-                # if status:
-                #     logger.error("Error adding metadata info to DjVu file")
-                #     self._thread_throw_error(
-                #         options["uuid"],
-                #         options["page"]["uuid"],
-                #         "Save file",
-                #         _("Error adding metadata to DjVu"),
-                #     )
 
     def save_tiff(self, **kwargs):
         "save TIFF"
@@ -447,24 +428,11 @@ class SaveThread(Importhread):
         for i, page_id in enumerate(options["list_of_pages"]):
             page = self.get_page(id=page_id)
             request.data(i / (len(options["list_of_pages"]) + 1))
-            # self.message = _("Converting image %i of %i to TIFF") % (
-            #     page,
-            #     len(options["list_of_pages"]) - 1 + 1,
-            # )
             with tempfile.NamedTemporaryFile(
                 dir=options.get("dir"), suffix=".tif", delete=False
             ) as out:
                 page.write_image_for_tiff(out.name, options)
                 self.check_cancelled()
-                # if status:
-                #     logger.error("Error writing TIFF")
-                #     self._thread_throw_error(
-                #         options["uuid"],
-                #         options["page"]["uuid"],
-                #         "Save file",
-                #         _("Error writing TIFF"),
-                #     )
-                #     return
                 filelist.append(out.name)
 
         compression = []
@@ -476,24 +444,13 @@ class SaveThread(Importhread):
 
         # Create the tiff
         request.data(1.0)
-        # self.message = _("Concatenating TIFFs")
         cmd = ["tiffcp", *compression, *filelist, options["path"]]
         exec_command_run(cmd, options.get("pidfile"), check=True)
         for filename in filelist:
             os.remove(filename)
         self.check_cancelled()
-        # if status or error != EMPTY:
-        #     logger.info(error)
-        #     self._thread_throw_error(
-        #         options["uuid"],
-        #         options["page"]["uuid"],
-        #         "Save file",
-        #         _("Error compressing image: %s") % (error),
-        #     )
-        #     return
 
         if "ps" in options["options"] and options["options"]["ps"] is not None:
-            # self.message = _("Converting to PS")
             # MacOS requires the input TIFF to be last argument
             cmd = ["tiff2ps", "-3", "-O", options["options"]["ps"], options["path"]]
             proc = exec_command(cmd, options["pidfile"])
@@ -533,8 +490,6 @@ class SaveThread(Importhread):
                 filename = options["path"]
             page.image_object.save(filename)
             self.check_cancelled()
-            # if proc.returncode:
-            #     request.error(_("Error saving image"))
 
             _post_save_hook(
                 filename, options.get("options"), pidfile=options.get("pidfile")
@@ -662,7 +617,6 @@ class SaveThread(Importhread):
                     command,
                     flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
-                # options["command"] = options["command"].split(" ")
                 sbp = exec_command_run(
                     command,
                     options.get("pidfile"),
@@ -678,12 +632,7 @@ class SaveThread(Importhread):
                 # don't return in here, just in case we can ignore the error -
                 # e.g. theming errors from gimp
                 if sbp.stderr != "":
-                    request.data(
-                        {"type": "message", "info": sbp.stderr}
-                        # options["uuid"],
-                        # options["page"].uuid,
-                        # "user-defined",
-                    )
+                    request.data({"type": "message", "info": sbp.stderr})
 
                 # Get file type
                 image = Image.open(out.name)

@@ -282,8 +282,6 @@ class Importhread(BaseThread):
         elif args["info"]["format"] == "Tagged Image File Format":
             # Only one page, so skip tiffcp in case it gives us problems
             if args["last"] == 1:
-                #                self.progress = 1
-                #                self.message = _("Importing page %i of %i") % (1, 1)
                 page = Page(
                     filename=args["info"]["path"],
                     dir=args["dir"],

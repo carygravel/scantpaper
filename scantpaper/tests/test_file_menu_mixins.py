@@ -1378,7 +1378,6 @@ class TestFileMenuMixins:
         mock_launch.reset_mock()
         # The callback logic uses the length of uuids captured in closure.
         # calling _save_image(["uuid1", "uuid2"]) -> len(uuids) is 2.
-        # filename in launch_default_for_file(filename % (i))
         app._save_image(["uuid1", "uuid2"])
         assert mock_launch.call_count == 2
 

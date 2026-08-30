@@ -200,7 +200,6 @@ class ApplicationWindow(
 
         self._thumb_popup = self.builder.get_object("thumb_popup")
 
-        # app.add_window(window)
         self._populate_main_window()
 
     def _init_actions(self):

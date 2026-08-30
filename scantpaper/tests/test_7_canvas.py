@@ -61,7 +61,6 @@ def test_color_functions_more():
     assert res["h"] == pytest.approx(240)
 
     # rgb2hsv negative hue wrap
-    # (rgb.green - rgb.blue) / delta * 60
     # if red is max, green < blue
     res = rgb2hsv(Gdk.RGBA(0.8, 0.1, 0.2))
     # delta = 0.7. (0.1-0.2)/0.7 * 60 = -8.57. wrap to 351.43
@@ -146,7 +145,6 @@ def test_canvas_offset_setter_no_change():
 
 def test_hsv2rgb_coverage():
     "Test hsv2rgb all branches"
-    # s=0
     assert hsv2rgb({"h": 0, "s": 0, "v": 1.0}).red == 1.0
 
     # sectors

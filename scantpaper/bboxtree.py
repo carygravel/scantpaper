@@ -637,7 +637,6 @@ def _crop_axis(text1, text2, crop1, crop2):
         text2 -= crop1
 
     # crop over 1st edge of box
-    # elif crop1 <= text1 <= crop2:
     else:
         text1 -= crop1
         text2 = crop2 - crop1

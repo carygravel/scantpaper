@@ -645,7 +645,6 @@ class ToolsMenuMixins:
             # (triggered when OCR data returns) internally calls unselect_all()
             # and select(). This triggers the selection-changed signal, which
             # ApplicationWindow handles by calling _display_image().
-            # "display_callback": self._ocr_display_callback,
             "engine": engine,
             "language": self.settings["ocr language"],
         }

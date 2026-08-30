@@ -458,9 +458,6 @@ class TestScanDialog:
         scan._available_scan_options = MockOptions([])
         # val() raises AttributeError if not found
         # MockOptions.val returns 0 by default but here we test absence
-        # scan._available_scan_options.val = unittest.mock.Mock(side_effect=AttributeError)
-        # x, y = scan._get_xy_resolution()
-        # assert x == enums.POINTS_PER_INCH # Fallback
 
     def test_changed_scan_option_callback_adf(self):
         "Test changed scan option callback for ADF and Flatbed"
