@@ -414,13 +414,6 @@ class ToolsMenuMixins:
     def split_dialog(self, _action, _param):
         "Display page selector and on apply crop accordingly"
 
-        # Until we have a separate tool for the divider, kill the whole
-        #        sub { $windowsp->hide }
-        #    if ( defined $windowsp ) {
-        #        $windowsp->present;
-        #        return;
-        #    }
-
         windowsp = Dialog(
             transient_for=self,
             title=_("Split"),
@@ -523,8 +516,6 @@ class ToolsMenuMixins:
                 ("gtk-apply", split_apply_callback),
                 (
                     "gtk-cancel",
-                    # Until we have a separate tool for the divider, kill the whole
-                    #        sub { $windowsp->hide }
                     split_cancel_callback,
                 ),
             ]
@@ -838,9 +829,6 @@ class ToolsMenuMixins:
     def about(self, _action, _param):
         "Display about dialog"
         about = Gtk.AboutDialog()
-
-        # Gtk.AboutDialog->set_url_hook ($func, $data=undef);
-        # Gtk.AboutDialog->set_email_hook ($func, $data=undef);
 
         about.set_program_name(GLib.get_application_name())
         about.set_version(VERSION)

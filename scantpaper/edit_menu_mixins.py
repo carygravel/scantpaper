@@ -139,15 +139,7 @@ class EditMenuMixins:
 
     def select_all(self, _action, _param):
         "Select all scans"
-        # if ($textview -> has_focus) {
-        #  my ($start, $end) = $textbuffer->get_bounds;
-        #  $textbuffer->select_range ($start, $end);
-        # }
-        # else {
-
         self.slist.get_selection().select_all()
-
-        # }
 
     def select_odd_even(self, odd):
         "Select all odd(0) or even(1) scans"

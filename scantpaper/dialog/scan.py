@@ -267,8 +267,6 @@ class Scan(PageControls):
             ):
                 self.framen.set_sensitive(False)
 
-                # emits changed-num-pages signal, allowing us to test
-                # for $self->{framen}->set_sensitive(FALSE)
                 self.num_pages = 1
 
     @GObject.Property(

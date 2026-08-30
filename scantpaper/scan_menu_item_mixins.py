@@ -188,7 +188,6 @@ class ScanMenuItemMixins:
                 self.settings["threshold tool"] = ocr_controls.threshold_value
 
         widget.connect("clicked-scan-button", clicked_scan_button_cb)
-        # self->{notebook}->get_nth_page(1)->show_all;
 
     def _add_postprocessing_unpaper(self, vboxp):
         hboxu = Gtk.Box()
