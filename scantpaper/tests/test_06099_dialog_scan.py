@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 import gi
 from dialog.scan import (
+    POINTS_PER_INCH,
     Scan,
     _build_profile_table,
     _edit_profile_callback,
@@ -63,6 +64,10 @@ class MockOptions:
         "Is flatbed selected?"
         return False
 
+    def can_duplex(self):
+        "Can the device scan both sides?"
+        return False
+
     def supports_paper(self, _paper, _tolerance):
         "Does it support the given paper?"
         return True
@@ -85,10 +90,9 @@ class MockScan(Scan):
     "A mock Scan class"
 
     def __init__(self):
-        # Initialize GObject to allow property access
-        GObject.GObject.__init__(self)
+        super().__init__()
 
-        # Bypass Scan.__init__ logic by manually setting attributes
+        # Replace the widgets built by the real constructor with mocks
         self._device_list = []
         self.combobd = unittest.mock.Mock()
         self.combobd.get_num_rows.return_value = 0
@@ -374,7 +378,6 @@ class TestScanDialog:
             unittest.mock.patch("dialog.scan.PaperList") as mockpaperlist,
             unittest.mock.patch("dialog.scan.Gtk.Box"),
         ):
-
             mock_window = mockdialog.return_value
             mock_window.get_content_area.return_value = unittest.mock.Mock()
 
@@ -603,7 +606,6 @@ class TestScanDialog:
             unittest.mock.patch("dialog.scan.Gtk.Box"),
             unittest.mock.patch("dialog.scan.Gtk.Label"),
         ):
-
             mock_dialog = mockdialogclass.return_value
             mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
@@ -625,7 +627,6 @@ class TestScanDialog:
             unittest.mock.patch("dialog.scan.Gtk.Box"),
             unittest.mock.patch("dialog.scan.Gtk.Label"),
         ):
-
             mock_dialog = mockdialogclass.return_value
             mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
@@ -648,7 +649,6 @@ class TestScanDialog:
             unittest.mock.patch("dialog.scan.Gtk.Label"),
             unittest.mock.patch("dialog.scan._build_profile_table"),
         ):
-
             mock_dialog = mockdialogclass.return_value
             mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
@@ -676,7 +676,6 @@ class TestScanDialog:
             unittest.mock.patch("dialog.scan.Gtk.Label"),
             unittest.mock.patch("dialog.scan._build_profile_table"),
         ):
-
             mock_dialog = mockdialogclass.return_value
             mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
@@ -698,7 +697,6 @@ class TestScanDialog:
             unittest.mock.patch("dialog.scan.Gtk.Label"),
             unittest.mock.patch("dialog.scan._build_profile_table"),
         ):
-
             mock_dialog = mockdialogclass.return_value
             mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
@@ -965,8 +963,6 @@ def test_uuid_before_position_edge_cases():
 
 def test_get_xy_resolution_zero_fallback():
     "Test _get_xy_resolution falls back to POINTS_PER_INCH when values are 0"
-    from dialog.scan import POINTS_PER_INCH
-
     scan = MockScan()
     scan.current_scan_options = Profile()
 
