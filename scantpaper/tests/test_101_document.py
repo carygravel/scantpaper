@@ -5,6 +5,7 @@
 import datetime
 import os
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -694,6 +695,19 @@ def test_undo_redo_snapshot_page_numbers(temp_db):
 
     result = thread.do_redo(Request("redo", (), thread.responses))
     assert [row[0] for row in result["snapshot"]] == [1, 2], "redo"
+
+
+def test_do_quit_closes_database_connection(temp_db):
+    "test that do_quit closes the worker thread's database connection"
+    thread = DocThread(db=temp_db.name)
+    tid = threading.get_native_id()
+    thread._con[tid] = thread._con.get(tid) or sqlite3.connect(temp_db.name)
+    assert tid in thread._con, "connection present"
+
+    request = Request("quit", (), thread.responses)
+    thread.do_quit(request)
+
+    assert tid not in thread._con, "connection closed after quit"
 
 
 def test_reorder_pages(temp_db):

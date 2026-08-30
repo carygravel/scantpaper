@@ -283,6 +283,11 @@ class DocThread(SaveThread):
             self._con[tid].close()
             del self._con[tid]
 
+    def do_quit(self, _request):
+        "close the worker thread's database connection before stopping"
+        self.close()
+        super().do_quit(_request)
+
     def save_as(self, db_name):
         "save the current database to a new file"
         self._execute(f"VACUUM INTO '{db_name}'")

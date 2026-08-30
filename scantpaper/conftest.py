@@ -12,6 +12,7 @@ from types import SimpleNamespace
 import config
 import gi
 import pytest
+from basethread import BaseThread
 from dialog.sane import SaneScanDialog
 from frontend import enums
 from frontend.image_sane import decode_info
@@ -34,6 +35,13 @@ logger = logging.getLogger(__name__)
 def pytest_configure(config):
     "globals"
     config.timeout = 10000
+
+
+@pytest.fixture(autouse=True)
+def quit_lingering_threads():
+    "quit any BaseThread still alive after a test, releasing its resources"
+    yield
+    BaseThread.quit_all_live_threads()
 
 
 @pytest.fixture

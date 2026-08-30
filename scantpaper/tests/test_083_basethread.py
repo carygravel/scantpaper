@@ -518,3 +518,20 @@ def test_release_sources_close_oserror(mocker):
     GLib.timeout_add(100, mlp.quit)
     mlp.run()
     assert mock_close.call_count >= 2
+
+
+def test_quit_all_live_threads():
+    "Test quit_all_live_threads stops all registered live threads"
+    t1 = BaseThread()
+    t2 = BaseThread()
+    t1.start()
+    t2.start()
+    assert t1 in BaseThread.LiveThreads
+    assert t2 in BaseThread.LiveThreads
+
+    BaseThread.quit_all_live_threads()
+
+    t1.join(timeout=2)
+    t2.join(timeout=2)
+    assert not t1.is_alive(), "t1 quit"
+    assert not t2.is_alive(), "t2 quit"

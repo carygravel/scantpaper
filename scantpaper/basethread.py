@@ -91,6 +91,9 @@ class Request:
 class BaseThread(threading.Thread):
     "A thread backed by internal queues for simple messaging"
 
+    # Every live thread, so tests can quit any that are not explicitly stopped.
+    LiveThreads = weakref.WeakSet()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.daemon = True
@@ -106,6 +109,7 @@ class BaseThread(threading.Thread):
         os.set_blocking(self._notify_r, False)
         os.set_blocking(self._notify_w, False)
         self._finalizer = weakref.finalize(self, self._cleanup_thread, self.requests)
+        self.LiveThreads.add(self)
         self._io_watch_id = GLib.io_add_watch(
             self._notify_r, GLib.PRIORITY_DEFAULT, GLib.IO_IN, self._on_readable
         )
@@ -164,6 +168,16 @@ class BaseThread(threading.Thread):
     def quit(self):
         "quit the thread"
         return self.send("quit")
+
+    @classmethod
+    def quit_all_live_threads(cls):
+        "send a quit request to every live thread (used for test teardown)"
+        for thread in list(cls.LiveThreads):
+            if thread.is_alive():
+                try:
+                    thread.quit()
+                except Exception:
+                    logger.exception("Error quitting thread %s", thread)
 
     def input_handler(self, request):
         "dummy input handler to be overridden as required"
