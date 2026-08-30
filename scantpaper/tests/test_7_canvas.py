@@ -2141,7 +2141,6 @@ def test_hit_test_nonzero_offset(mocker):
         parent=page,
     )
 
-    # Forward: wx = (ix + ox) * zoom
     # For image pixel (35, 35): wx = (35 + 50) * 2 = 170, wy = (35 + 30) * 2 = 130
     # hit_test should recover (35, 35) and find the line
     result = canvas._hit_test(170, 130)

@@ -302,9 +302,7 @@ def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
         dialog.disconnect(dialog.signal)
         backend = [("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)]
 
-        # resolution=50 is the default,
-        # so doesn't appear in current-scan-options
-        # ( resolution, 50 )
+        # resolution=50 is the default, so it doesn't appear in current-scan-options
         assert dialog.current_scan_options == Profile(
             backend=backend
         ), "CLI geometry option names"

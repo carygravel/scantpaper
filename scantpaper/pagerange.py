@@ -17,7 +17,6 @@ from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E4
 #  and https://gitlab.gnome.org/GNOME/pygobject/-/issues/215).
 # Some target distros currently ship < 3.52 (e.g. noble LTS: 3.48.2,
 # Debian trixie/stable: 3.50), so this must stay behind a runtime guard:
-# GObject.TypeModule.register_enum( 'Scantpaper::PageRange::Range', ["selected","all"] )
 
 
 class PageRange(Gtk.Box):

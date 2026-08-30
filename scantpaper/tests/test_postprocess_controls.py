@@ -153,7 +153,6 @@ class TestRotateControls:
         # Enable rotation
         rotate_controls._side1.cbutton.set_active(True)
         # Side 1 defaults to 'both', so side 2 should remain disabled
-        # Note: SIDE = [["both", ...], ["facing", ...], ["reverse", ...]]
         # Default index is usually 0 ('both')
         rotate_controls._side1.side_cmbx.set_active(0)
 

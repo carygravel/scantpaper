@@ -572,14 +572,6 @@ def test_delete_selection_with_context():
     slist.delete_selection(context=context)
     slist.thread.send.assert_not_called()
 
-    # Third call with new context (or after reset) - simulating reset mechanism
-    # The code deletes slist._context on successful ignore? No, it deletes it if found.
-    # Actually logic:
-    # if context in self._context: self._context={}; return
-    # else: self._context[context]=1
-    # So the second call returns early AND clears _context.
-    # So a third call with same context should proceed again.
-
     slist.delete_selection(context=context)
     slist.thread.send.assert_called_once()
 
@@ -847,11 +839,6 @@ def test_delete_selection_callback_removes_rows():
     assert captured["data_callback"] is not None
     response = MagicMock()
     response.info = {"type": "page"}
-    # The callback uses 'model' and 'paths' from the outer scope
-    # We need to make sure they are available or mocked.
-    # In the real code:
-    # model, paths = self.get_selection().get_selected_rows()
-    # It relies on these being captured in the closure.
 
     # Before calling, verify model has 2 rows
     assert len(slist.get_model()) == 2

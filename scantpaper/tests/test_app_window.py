@@ -433,21 +433,18 @@ def test_change_view_cb(app_window):
     app_window._vpanei = MagicMock()
     app_window._vpaned = MagicMock()
 
-    # Old = tabbed, New = horizontal
     app_window.settings["viewer_tools"] = "tabbed"
     variant = GLib.Variant("s", "horizontal")
     app_window._change_view_cb(action, variant)
     assert app_window.settings["viewer_tools"] == "horizontal"
     app_window._vnotebook.remove.assert_called()
 
-    # Old = horizontal, New = vertical
     app_window.settings["viewer_tools"] = "horizontal"
     variant = GLib.Variant("s", "vertical")
     app_window._change_view_cb(action, variant)
     assert app_window.settings["viewer_tools"] == "vertical"
     app_window._hpanei.remove.assert_called()
 
-    # Old = vertical, New = tabbed
     app_window.settings["viewer_tools"] = "vertical"
     variant = GLib.Variant("s", "tabbed")
     app_window._change_view_cb(action, variant)
@@ -753,11 +750,6 @@ def test_view_selection_changed_callback(app_window):
 
 def test_view_selection_changed_callback_none(app_window):
     "Test _view_selection_changed_callback with None"
-    # Actually sel.copy() would fail if sel is None in the real code
-    # Lines 669-672 in app_window.py:
-    # def _view_selection_changed_callback(self, _view, sel):
-    #     self.settings["selection"] = sel.copy()
-    # There is NO guard before sel.copy().
     with pytest.raises(AttributeError):
         app_window._view_selection_changed_callback(None, None)
 

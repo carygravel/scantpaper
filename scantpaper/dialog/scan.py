@@ -798,7 +798,6 @@ class Scan(PageControls):
 
         # could be undefined for !(new_opt.cap & SANE_CAP_SOFT_DETECT)
         # or where opt.name is not defined
-        # e.g. opt.type == SANE_TYPE_GROUP
         if opt.type == enums.TYPE_GROUP or opt.name not in self.option_widgets:
             return False
 
@@ -1240,8 +1239,8 @@ class Scan(PageControls):
                 return
 
             # Avoid a race condition where device_handle is None after a reload
-            # Tested by test_race_condition_device_switching() and
-            # test_infinite_loop_reproduction()
+            # Tested by test_race_condition_device_switching and
+            # test_infinite_loop_reproduction
             if self.thread.device_handle is None:
                 logger.warning("Device handle is None. Skipping option '%s'.", name)
 
