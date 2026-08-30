@@ -604,8 +604,14 @@ def test_officejet_4620(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     raw_options = build_scan_options(
-        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y"],
-        overrides={"resolution": {"size": 4}},
+        [
+            "resolution-100-200-300-600-size4",
+            "source-flatbed-adf",
+            "tl-x-215900",
+            "tl-y-297010",
+            "br-x-215900",
+            "br-y-297010",
+        ]
     )
 
     def mocked_do_get_options(_self, _request):

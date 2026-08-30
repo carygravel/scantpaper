@@ -279,85 +279,16 @@ def inexact_scan_mocks(request):
     extra_options = getattr(request, "param", None) or {}
     extra_handle = extra_options.get("handle", {})
     extra_option_names = extra_options.get("options", [])
-    raw_options = [
-        Option(
-            index=0,
-            name="",
-            title="Number of options",
-            desc="Read-only option that specifies how many options a specific device supports.",
-            type=1,
-            unit=0,
-            size=4,
-            cap=4,
-            constraint=None,
-        ),
-        Option(
-            cap=5,
-            constraint=["ADF", "Document Table"],
-            desc="Document Source",
-            index=1,
-            size=1,
-            name="source",
-            title="Document Source",
-            type=3,
-            unit=0,
-        ),
-        Option(
-            cap=5,
-            constraint=(50, 1200, 0),
-            desc="Resolution",
-            index=4,
-            size=1,
-            name="resolution",
-            title="Resolution",
-            type=1,
-            unit=4,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 356.0, 0),
-            desc="Bottom Right X",
-            index=11,
-            size=1,
-            name="br-x",
-            title="Bottom Right X",
-            type=2,
-            unit=3,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 356.0, 0),
-            desc="Bottom Right Y",
-            index=12,
-            size=1,
-            name="br-y",
-            title="Bottom Right Y",
-            type=2,
-            unit=3,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 215.899993896484, 0),
-            desc="Top Left X",
-            index=13,
-            size=1,
-            name="tl-x",
-            title="Top Left X",
-            type=2,
-            unit=3,
-        ),
-        Option(
-            cap=5,
-            constraint=(0, 297.179992675781, 0),
-            desc="Top Left Y",
-            index=14,
-            size=1,
-            name="tl-y",
-            title="Top Left Y",
-            type=2,
-            unit=3,
-        ),
-    ]
+    raw_options = build_scan_options(
+        [
+            "source-adf-document-table",
+            "resolution-50-1200",
+            "br-x-356",
+            "br-y-356",
+            "tl-x-top-left-x",
+            "tl-y-top-left-y",
+        ]
+    )
     for i, name in enumerate(extra_option_names, start=len(raw_options)):
         raw_options.append(build_scan_options([name])[1]._replace(index=i))
 
@@ -429,7 +360,14 @@ def inexact_scan_mocks(request):
 def infinite_reloads_scan_mocks():
     "raw_options and open/get mocks for the test_infinite_reloads family"
     raw_options = build_scan_options(
-        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y"]
+        [
+            "resolution-100-200-300-600",
+            "source-flatbed-adf",
+            "tl-x-215900",
+            "tl-y-297010",
+            "br-x-215900",
+            "br-y-297010",
+        ]
     )
 
     def mocked_do_open_device(self, request):

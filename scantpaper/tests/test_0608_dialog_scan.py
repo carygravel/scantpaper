@@ -259,7 +259,15 @@ def test_inexact_quant(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     raw_options = build_scan_options(
-        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y", "swcrop"]
+        [
+            "resolution-100-200-300-600",
+            "source-flatbed-adf",
+            "tl-x-215900",
+            "tl-y-297010",
+            "br-x-215900",
+            "br-y-297010",
+            "swcrop",
+        ]
     )
 
     def mocked_do_get_options(_self, _request):
@@ -336,7 +344,14 @@ def test_button_press(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     raw_options = build_scan_options(
-        ["resolution", "tl-x", "tl-y", "br-x", "br-y", "clear-calibration"]
+        [
+            "resolution-100-200-300-600",
+            "tl-x-215900",
+            "tl-y-297010",
+            "br-x-215900",
+            "br-y-297010",
+            "clear-calibration",
+        ]
     )
 
     def mocked_do_get_options(_self, _request):
@@ -432,7 +447,15 @@ def test_get_invalid_option(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     raw_options = build_scan_options(
-        ["resolution", "source", "tl-x", "tl-y", "br-x", "br-y", "select-detect"]
+        [
+            "resolution-100-200-300-600",
+            "source-flatbed-adf",
+            "tl-x-215900",
+            "tl-y-297010",
+            "br-x-215900",
+            "br-y-297010",
+            "select-detect",
+        ]
     )
 
     def mocked_do_get_options(_self, _request):
