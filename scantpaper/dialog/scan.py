@@ -1266,12 +1266,13 @@ class Scan(PageControls):
                 return
 
             logger.debug(
-                f"Setting option '{name}'"
-                + (
+                "Setting option '%s'%s",
+                name,
+                (
                     ""
                     if opt.type == enums.TYPE_BUTTON
                     else f" from '{curval}' to '{val}'."
-                )
+                ),
             )
             signal = None
 
@@ -1310,8 +1311,9 @@ class Scan(PageControls):
         if opt.name in self.option_widgets:
             widget = self.option_widgets[opt.name]
             logger.debug(
-                f"Setting widget '{opt.name}'"
-                + ("" if opt.type == enums.TYPE_BUTTON else f" to '{val}'.")
+                "Setting widget '%s'%s",
+                opt.name,
+                "" if opt.type == enums.TYPE_BUTTON else f" to '{val}'.",
             )
             blocked = widget.signal is not None and widget.handler_is_connected(
                 widget.signal

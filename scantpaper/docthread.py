@@ -1496,7 +1496,7 @@ class DocThread(SaveThread):
                 )
 
         except (OSError, PermissionError) as err:
-            logger.exception("Error creating file in %s: %s", options["dir"], err)
+            logger.exception("Error creating file in %s", options["dir"])
             request.error(f"Error creating file in {options['dir']}: {err}.")
 
     def import_page(self, **kwargs):

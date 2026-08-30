@@ -54,9 +54,8 @@ class SaneThread(BaseThread):
             # set is catchable; the error is wrapped and routed to the
             # caller via request.error()/request.finished() below.
             logger.exception(
-                "Error running process '%s': %s",
+                "Error running process '%s'",
                 request.process,
-                err,
             )
             if (
                 request.process == "scan_page"
@@ -372,7 +371,7 @@ class SaneThread(BaseThread):
             try:
                 self.device_handle.cancel()
             except Exception as e:
-                logger.exception("Error cancelling device: %s", e)
+                logger.exception("Error cancelling device")
         return request
 
 

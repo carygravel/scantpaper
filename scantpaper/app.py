@@ -150,7 +150,7 @@ def _parse_arguments():
                     shutil.copyfileobj(f_in, f_out)
                 os.remove(args.log)
             except (OSError, lzma.LZMAError) as e:
-                logging.getLogger(__name__).exception("Failed to compress log: %s", e)
+                logging.getLogger(__name__).exception("Failed to compress log")
 
         atexit.register(compress_log)
     else:

@@ -51,7 +51,7 @@ class SessionMixins:
                     prefix="scantpaper-", dir=tmpdir
                 )
             except (FileNotFoundError, PermissionError) as e:
-                logger.exception("Error creating temporary directory: %s", e)
+                logger.exception("Error creating temporary directory")
                 # Keep as fallback: handle stored on self for session lifetime
                 self.session = (
                     tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
@@ -361,8 +361,9 @@ class SessionMixins:
         text = filter_message(kwargs["text"])
         if response_stored(text, self.settings["message"]):
             logger.debug(
-                f"Skipped MessageDialog with '{kwargs['text']}', "
-                f"automatically replying '{self.settings['message'][text]['response']}'"
+                "Skipped MessageDialog with '%s', automatically replying '%s'",
+                kwargs["text"],
+                self.settings["message"][text]["response"],
             )
             return self.settings["message"][text]["response"]
 

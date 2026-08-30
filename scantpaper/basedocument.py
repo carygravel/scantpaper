@@ -211,7 +211,7 @@ class BaseDocument(SimpleList):
                 dir=self.dir, suffix=".pid", mode="w+t"
             )
         except (OSError, PermissionError) as err:
-            logger.exception("Caught error writing to %s: %s", self.dir, err)
+            logger.exception("Caught error writing to %s", self.dir)
             if "error_callback" in options:
                 options["error_callback"](
                     options.get("page"),

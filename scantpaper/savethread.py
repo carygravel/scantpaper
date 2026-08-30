@@ -711,7 +711,7 @@ class SaveThread(Importhread):
                 )
 
         except (OSError, PermissionError) as err:
-            logger.exception("Error creating file in %s: %s", options.get("dir"), err)
+            logger.exception("Error creating file in %s", options.get("dir"))
             request.error(
                 f"Error creating file in {options.get('dir')}: {err}.",
             )

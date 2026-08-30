@@ -252,9 +252,8 @@ class BaseThread(threading.Thread):
             # so no narrower set can be caught; the error is wrapped and
             # returned to the caller via request.error() below.
             logger.exception(
-                "Error running process '%s': %s",
+                "Error running process '%s'",
                 request.process,
-                err,
             )
             self._request_completed(request)
             request.error(None, str(err))
@@ -327,12 +326,11 @@ class BaseThread(threading.Thread):
                 # can raise anything, so no narrower set is catchable; the
                 # error is routed to the caller's error_callback below.
                 logger.exception(
-                    "Error running %s callback '%s' for process '%s' with args: %s: %s",
+                    "Error running %s callback '%s' for process '%s' with args: %s",
                     stage,
                     callback,
                     data.request.process,
                     data.request.args,
-                    err,
                 )
                 if (
                     callback != "error_callback"

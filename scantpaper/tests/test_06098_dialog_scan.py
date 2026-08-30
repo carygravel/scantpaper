@@ -713,9 +713,12 @@ def mocked_do_set_option(self, _request):
             break
     info = 0
     logger.info(
-        f"sane_set_option {opt.index} ({opt.name})"
-        f" to {value} returned info "
-        f"{info} ({decode_info(info)})"
+        "sane_set_option %s (%s) to %s returned info %s (%s)",
+        opt.index,
+        opt.name,
+        value,
+        info,
+        decode_info(info),
     )
     setattr(self.device_handle, key.replace("-", "_"), value)
     return info

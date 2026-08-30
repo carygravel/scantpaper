@@ -80,7 +80,7 @@ def launch_default_for_file(filename):
     try:
         Gio.AppInfo.launch_default_for_uri(uri, context)
     except Gio.Error as e:
-        logger.exception("Unable to launch viewer: %s", e)
+        logger.exception("Unable to launch viewer")
 
 
 class FileMenuMixins:

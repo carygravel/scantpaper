@@ -387,9 +387,12 @@ def test_infinite_reloads_due_to_tolerance(
                 + enums.INFO_INEXACT
             )
             logger.info(
-                f"sane_set_option {opt.index} ({opt.name})"
-                f" to {value} returned info "
-                f"{info} ({decode_info(info)})"
+                "sane_set_option %s (%s) to %s returned info %s (%s)",
+                opt.index,
+                opt.name,
+                value,
+                info,
+                decode_info(info),
             )
 
         setattr(self.device_handle, key.replace("-", "_"), value)
@@ -746,9 +749,12 @@ def test_infinite_reloads_due_to_inexact(
             if value == 1:
                 value = 0.999984741210938
             logger.info(
-                f"sane_set_option {opt.index} ({opt.name})"
-                f" to {value} returned info "
-                f"{info} ({decode_info(info)})"
+                "sane_set_option %s (%s) to %s returned info %s (%s)",
+                opt.index,
+                opt.name,
+                value,
+                info,
+                decode_info(info),
             )
 
         setattr(self.device_handle, key.replace("-", "_"), value)
