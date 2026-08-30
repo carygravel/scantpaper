@@ -13,9 +13,9 @@ def test_import_tomllib_for_python_311(monkeypatch):
     monkeypatch.setattr(sys, "version_info", (3, 11))
 
     # Reload the const module to apply the mocked version_info
-    import importlib  # pylint: disable=import-outside-toplevel
+    import importlib  # pylint: disable=import-outside-toplevel  # noqa: PLC0415
 
-    import const  # pylint: disable=import-outside-toplevel, redefined-outer-name, reimported
+    import const  # pylint: disable=import-outside-toplevel, redefined-outer-name, reimported  # noqa: PLC0415
 
     importlib.reload(const)
 
@@ -28,9 +28,9 @@ def test_import_tomli_for_python_310(monkeypatch):
     monkeypatch.setattr(sys, "version_info", (3, 10))
 
     # Reload the const module to apply the mocked version_info
-    import importlib  # pylint: disable=import-outside-toplevel
+    import importlib  # pylint: disable=import-outside-toplevel  # noqa: PLC0415
 
-    import const  # pylint: disable=import-outside-toplevel, redefined-outer-name, reimported
+    import const  # pylint: disable=import-outside-toplevel, redefined-outer-name, reimported  # noqa: PLC0415
 
     importlib.reload(const)
 
