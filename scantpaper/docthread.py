@@ -507,10 +507,9 @@ class DocThread(SaveThread):
                ORDER BY row_id""",
             (self._action_id,),
         )
-        rows = [
+        return [
             [row[0], self._bytes_to_pixbuf(row[1]), row[2]] for row in self._fetchall()
         ]
-        return rows
 
     def page_number_table(self) -> list | None:
         "synchronous wrapper for do_page_number_table via send()"
