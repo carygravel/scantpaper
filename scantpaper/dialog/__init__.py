@@ -323,8 +323,7 @@ def filter_message(message):
     message = re.sub(r"\b0[xX][0-9a-fA-F]+\b", "%%x", message)
 
     # int -> %%d
-    message = re.sub(r"\b\d+\b", "%%d", message)
-    return message
+    return re.sub(r"\b\d+\b", "%%d", message)
 
 
 def close_callback():

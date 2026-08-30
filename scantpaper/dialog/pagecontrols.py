@@ -149,7 +149,8 @@ class PageControls(Dialog):
     @side_to_scan.setter
     def side_to_scan(self, newval):
         if newval not in ["facing", "reverse"]:
-            raise ValueError(f"Invalid value for side-to-scan: {newval}")
+            msg = f"Invalid value for side-to-scan: {newval}"
+            raise ValueError(msg)
         self._side_to_scan = newval
         self.combobs.set_active(0 if newval == "facing" else 1)
         self.emit("changed-side-to-scan", newval)

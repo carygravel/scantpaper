@@ -80,7 +80,7 @@ def launch_default_for_file(filename):
     try:
         Gio.AppInfo.launch_default_for_uri(uri, context)
     except Gio.Error as e:
-        logger.error("Unable to launch viewer: %s", e)
+        logger.exception("Unable to launch viewer: %s", e)
 
 
 class FileMenuMixins:
@@ -940,7 +940,7 @@ class FileMenuMixins:
     def _restart(self):
         "Restart the application"
         self._can_quit()
-        os.execv(sys.executable, ["python"] + sys.argv)
+        os.execv(sys.executable, ["python", *sys.argv])
 
     def _pages_saved(self, message):
         "Check that all pages have been saved"

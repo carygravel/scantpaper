@@ -63,15 +63,15 @@ class Page:
         if ("image_object" not in kwargs and "filename" not in kwargs) or (
             "image_object" in kwargs and "filename" in kwargs
         ):
-            raise ValueError(
-                "Error: please supply either a filename or an image object"
-            )
+            msg = "Error: please supply either a filename or an image object"
+            raise ValueError(msg)
         if "image_object" in kwargs and not isinstance(
             kwargs["image_object"], Image.Image
         ):
-            raise TypeError(
+            msg = (
                 f"Error: image_object is type {type(kwargs['image_object'])} not Image"
             )
+            raise TypeError(msg)
 
         if "filename" in kwargs:
             self.image_object = Image.open(kwargs["filename"])
@@ -223,7 +223,8 @@ class Page:
             logger.debug("PDF size %sx%s %s", self.size[0], self.size[1], self.size[2])
             logger.debug("image size %s %s", width, height)
             if self.size[2] != "pts":
-                raise ValueError(f"Error: unknown units '{self.size[2]}'")
+                msg = f"Error: unknown units '{self.size[2]}'"
+                raise ValueError(msg)
 
             self.resolution = (
                 width / self.size[0] * POINTS_PER_INCH,

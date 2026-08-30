@@ -182,7 +182,8 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
 
 def mock_import_djvu_txt(self, _text):
     "mock import_djvu_txt method to test error handling"
-    raise ValueError("Error parsing djvu text")
+    msg = "Error parsing djvu text"
+    raise ValueError(msg)
 
 
 @pytest.mark.skipif(

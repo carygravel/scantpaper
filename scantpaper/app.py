@@ -150,7 +150,7 @@ def _parse_arguments():
                     shutil.copyfileobj(f_in, f_out)
                 os.remove(args.log)
             except (OSError, lzma.LZMAError) as e:
-                logging.getLogger(__name__).error("Failed to compress log: %s", e)
+                logging.getLogger(__name__).exception("Failed to compress log: %s", e)
 
         atexit.register(compress_log)
     else:
@@ -161,7 +161,7 @@ def _parse_arguments():
     log_i18n_status()  # log the messages from i18n during import
     logger = logging.getLogger(__name__)
     logger.info("Starting %s %s", PROG_NAME, VERSION)
-    logger.info("Called with %s", SPACE.join([sys.executable] + sys.argv))
+    logger.info("Called with %s", SPACE.join([sys.executable, *sys.argv]))
 
     # make sure argv has absolute paths in case we change directories
     # and then restart the program

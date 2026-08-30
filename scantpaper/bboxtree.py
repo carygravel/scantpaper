@@ -111,10 +111,7 @@ class Bboxtree:
                 regex = re.search(
                     r"([A-Za-z]+)", bbox["id"], re.MULTILINE | re.DOTALL | re.VERBOSE
                 )
-                if regex:
-                    bbox_type = regex.group(1)
-                else:
-                    bbox_type = "line"
+                bbox_type = regex.group(1) if regex else "line"
 
             if bbox_type == "page":
                 height = bbox["bbox"][-1]
@@ -205,7 +202,8 @@ class Bboxtree:
                 )
 
             else:
-                raise ValueError(f"Error parsing djvu annotation '{line}'")
+                msg = f"Error parsing djvu annotation '{line}'"
+                raise ValueError(msg)
 
     def to_text(self):
         "Escape backslashes and inverted commas, return as plain text"
@@ -218,10 +216,9 @@ class Bboxtree:
                 string += bbox["text"] + " "
 
         # squash whitespace at the end of any line
-        string = re.sub(
+        return re.sub(
             r"[ ]+$", r"", string, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
         )
-        return string
 
     def from_djvu_txt(self, djvutext):
         "create bboxtree from djvu text layer"
@@ -260,7 +257,8 @@ class Bboxtree:
                 self.bbox_tree.append(bbox)
 
             else:
-                raise ValueError(f"Error parsing djvu line '{line}'")
+                msg = f"Error parsing djvu line '{line}'"
+                raise ValueError(msg)
 
     def from_pdftotext(self, text, resolution, image_size):
         "create bboxtree from PDF text layer"
@@ -485,8 +483,7 @@ def _prune_empty_branches(boxes):
 def _escape_text(txt):
 
     txt = re.sub(r"\\", r"\\\\", txt, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
-    txt = re.sub(r"\"", r"\\\\\"", txt, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
-    return txt
+    return re.sub(r"\"", r"\\\\\"", txt, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
 
 
 class PDFTextParser(HTMLParser):

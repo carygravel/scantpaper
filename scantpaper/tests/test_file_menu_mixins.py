@@ -215,7 +215,7 @@ class TestStandaloneFunctions(unittest.TestCase):
 
         launch_default_for_file("test.pdf")
 
-        mock_logger.error.assert_called()
+        mock_logger.exception.assert_called()
 
 
 class TestFileMenuMixins:

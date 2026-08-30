@@ -48,7 +48,8 @@ class FakeBrscan5Device:
             self.page_counter += 1
             self.buffered.append(self.page_counter)
         if not self.buffered:
-            raise FeederEmptyError("Document feeder out of documents")
+            msg = "Document feeder out of documents"
+            raise FeederEmptyError(msg)
         self.start_calls += 1
         # a transfer intentionally interrupted by cancel() is not a fresh start
         self.cancel_event.clear()
@@ -68,9 +69,11 @@ class FakeBrscan5Device:
             # cancel arrives from another thread (cancel_event)
             while not self.slow_event.wait(0.05):
                 if self.cancel_event.is_set():
-                    raise DeviceError("SANE_STATUS_CANCELLED")
+                    msg = "SANE_STATUS_CANCELLED"
+                    raise DeviceError(msg)
         if frame == self.error_on_frame:
-            raise DeviceError("SANE device exploded")
+            msg = "SANE device exploded"
+            raise DeviceError(msg)
         if not no_cancel:
             self.cancel()
         return frame
@@ -87,7 +90,8 @@ class CancelRaisesDevice(FakeBrscan5Device):
 
     def cancel(self):
         super().cancel()
-        raise DeviceError("Invalid argument")
+        msg = "Invalid argument"
+        raise DeviceError(msg)
 
 
 def test_error_handling():

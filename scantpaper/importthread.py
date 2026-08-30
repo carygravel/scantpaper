@@ -423,7 +423,7 @@ class Importhread(BaseThread):
                     try:
                         page.import_djvu_ann(ann)
                     except (OSError, PermissionError) as err:
-                        logger.error(
+                        logger.exception(
                             "Caught error parsing DjVU annotation layer: %s", err
                         )
                         request.error("Error: parsing DjVU annotation layer")
@@ -528,7 +528,7 @@ class Importhread(BaseThread):
                     )
                     os.remove(fname)
                 except (OSError, PermissionError) as err:
-                    logger.error("Caught error importing PDF: %s", err)
+                    logger.exception("Caught error importing PDF: %s", err)
                     request.error(_("Error importing PDF"))
 
     def _extract_text_from_pdf(self, request, i):
@@ -636,7 +636,7 @@ def _correlate_pdf_images(entries):
         return [(fname, xresolution, yresolution, None) for fname in images], True
     images_and_resolution = []
     paired_masks = set()
-    for i, (fname, entry) in enumerate(zip(images, entries)):
+    for i, (fname, entry) in enumerate(zip(images, entries, strict=False)):
         if entry["type"] == "image":
             mask_fname = None
             if i + 1 < len(entries) and entries[i + 1]["type"] == "smask":
@@ -645,7 +645,7 @@ def _correlate_pdf_images(entries):
             images_and_resolution.append(
                 (fname, entry["x_ppi"], entry["y_ppi"], mask_fname)
             )
-    for fname, entry in zip(images, entries):
+    for fname, entry in zip(images, entries, strict=False):
         if entry["type"] != "image" and fname not in paired_masks:
             os.remove(fname)
     return images_and_resolution, len(images_and_resolution) != 1

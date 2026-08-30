@@ -150,7 +150,7 @@ xfail_image_types = [
 
 
 @pytest.mark.parametrize(
-    "suffix, mode, white, expected_mean", image_types + xfail_image_types
+    ("suffix", "mode", "white", "expected_mean"), image_types + xfail_image_types
 )
 def test_negate(
     import_in_mainloop,

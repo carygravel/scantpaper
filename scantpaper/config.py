@@ -165,7 +165,7 @@ def read_config(filename):
         try:
             config = json.loads(configstr)
         except json.decoder.JSONDecodeError:
-            logger.error(
+            logger.exception(
                 "Error: unable to load settings.\nBacking up settings\nReverting to defaults"
             )
             os.rename(filename, f"{filename}.old")

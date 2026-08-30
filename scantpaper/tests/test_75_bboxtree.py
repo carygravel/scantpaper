@@ -392,7 +392,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
    <div class='ocr_carea' id='block_1_5' title="bbox 1808 552 2290 1020">
     <p class='ocr_par' dir='ltr' id='par_1_6' title="bbox 1810 552 2288 1020">
      <span class='ocr_line' id='line_1_9' title="bbox 1810 552 2288 1020; baseline 2487">
-      <span class='ocrx_word' id='word_1_17' title='bbox 1810 552 2288 1020; x_wconf 95' lang='deu' dir='ltr'></span> 
+      <span class='ocrx_word' id='word_1_17' title='bbox 1810 552 2288 1020; x_wconf 95' lang='deu' dir='ltr'></span>
      </span>
     </p>
    </div>
@@ -423,10 +423,10 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
    <div class='ocr_carea' id='block_1_1' title="bbox 295 263 546 440">
     <p class='ocr_par' dir='ltr' id='par_1_1' title="bbox 297 263 545 440">
      <span class='ocr_line' id='line_1_1' title="bbox 368 263 527 310; baseline 0 3197">
-      <span class='ocrx_word' id='word_1_1' title='bbox 368 263 527 310; x_wconf 95' lang='deu' dir='ltr'> </span> 
+      <span class='ocrx_word' id='word_1_1' title='bbox 368 263 527 310; x_wconf 95' lang='deu' dir='ltr'> </span>
      </span>
      <span class='ocr_line' id='line_1_2' title="bbox 297 310 545 440; baseline 0 0">
-      <span class='ocrx_word' id='word_1_2' title='bbox 297 310 545 440; x_wconf 95' lang='deu' dir='ltr'>  </span> 
+      <span class='ocrx_word' id='word_1_2' title='bbox 297 310 545 440; x_wconf 95' lang='deu' dir='ltr'>  </span>
      </span>
     </p>
    </div>

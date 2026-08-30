@@ -1,5 +1,6 @@
 "object and helper methods to manipulate scan options"
 
+import contextlib
 import re
 from collections import namedtuple
 
@@ -23,7 +24,8 @@ class Options(GObject.Object):
         self.hash = {}
         self.geometry = {}
         if options is None:
-            raise ValueError("Error: no options supplied")
+            msg = "Error: no options supplied"
+            raise ValueError(msg)
         if isinstance(options, list):
             for i, option in enumerate(options):
                 opt = Option(*option)
@@ -32,7 +34,8 @@ class Options(GObject.Object):
                 options[i] = opt
             self.array = options
         else:
-            raise TypeError("Error: options must be a list")
+            msg = "Error: options must be a list"
+            raise TypeError(msg)
 
         # add hash for easy retrieval
         for option in self.array:
@@ -143,10 +146,8 @@ class Options(GObject.Object):
         "returns whether the flatbed is selected"
         source = None
         if self.source is not None:
-            try:
+            with contextlib.suppress(AttributeError):
                 source = get_value(self.source.name)
-            except AttributeError:
-                pass
         return bool(
             source is None
             or re.search(

@@ -48,12 +48,12 @@ class SaneThread(BaseThread):
             request.finished(handler(request))
             if request.process == "quit":
                 return False
-        except Exception as err:  # noqa: BLE001
+        except Exception as err:
             # BLE001 — the handler is a do_<process> SANE method that may
             # raise arbitrary Python/SANE C-level errors, so no narrower
             # set is catchable; the error is wrapped and routed to the
             # caller via request.error()/request.finished() below.
-            logger.error(
+            logger.exception(
                 "Error running process '%s': %s",
                 request.process,
                 err,
@@ -193,7 +193,8 @@ class SaneThread(BaseThread):
     def do_scan_page(self, request):
         "scan page"
         if self.device_handle is None:
-            raise ValueError("must open device before starting scan")
+            msg = "must open device before starting scan"
+            raise ValueError(msg)
         cancel_between_pages = request.args[0] if request.args else False
         self.scan_page_progress = 0.0
         logger.debug("calling sane_start() on device %s", self.device_name)
@@ -259,7 +260,8 @@ class SaneThread(BaseThread):
         event = threading.Event()
         self.send("get_option_blocking", name, holder, event)
         if not event.wait(timeout):
-            raise TimeoutError(f"Timed out reading option '{name}'")
+            msg = f"Timed out reading option '{name}'"
+            raise TimeoutError(msg)
         result = holder[0]
         if isinstance(result, Exception):
             raise result
@@ -369,8 +371,8 @@ class SaneThread(BaseThread):
         if self._scan_active and self.device_handle is not None:
             try:
                 self.device_handle.cancel()
-            except Exception as e:  # noqa: BLE001
-                logger.error("Error cancelling device: %s", e)
+            except Exception as e:
+                logger.exception("Error cancelling device: %s", e)
         return request
 
 

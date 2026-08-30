@@ -711,7 +711,7 @@ class SaveThread(Importhread):
                 )
 
         except (OSError, PermissionError) as err:
-            logger.error("Error creating file in %s: %s", options.get("dir"), err)
+            logger.exception("Error creating file in %s: %s", options.get("dir"), err)
             request.error(
                 f"Error creating file in {options.get('dir')}: {err}.",
             )
@@ -832,7 +832,8 @@ def _set_timestamp(options):
     epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
     adatetime = (adatetime - epoch).total_seconds()
     if adatetime < 0:
-        raise ValueError("Unable to set file timestamp for dates prior to 1970")
+        msg = "Unable to set file timestamp for dates prior to 1970"
+        raise ValueError(msg)
     os.utime(options["path"], (adatetime, adatetime))
 
 

@@ -101,3 +101,9 @@ ignore = [
     "TD",      # TODO metadata requirements: not adopted as a convention
     "T201",    # print: legitimate in scripts
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Whitespace rules rewrite blank-line indentation inside the hOCR string
+# literals this test compares byte-for-byte against saved output; fixing
+# them corrupts the expected fixtures.
+"scantpaper/tests/test_151_save_text.py" = ["W291", "W293"]

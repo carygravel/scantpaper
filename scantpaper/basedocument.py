@@ -211,7 +211,7 @@ class BaseDocument(SimpleList):
                 dir=self.dir, suffix=".pid", mode="w+t"
             )
         except (OSError, PermissionError) as err:
-            logger.error("Caught error writing to %s: %s", self.dir, err)
+            logger.exception("Caught error writing to %s: %s", self.dir, err)
             if "error_callback" in options:
                 options["error_callback"](
                     options.get("page"),
@@ -249,7 +249,8 @@ class BaseDocument(SimpleList):
         i = self.find_page_by_uuid(uid)
         if i is None:
             logger.error("Requested page %s does not exist.", uid)
-            raise ValueError(f"Requested page {uid} does not exist.")
+            msg = f"Requested page {uid} does not exist."
+            raise ValueError(msg)
         return i
 
     def add_page(self, number, thumb, page_id, **kwargs):
@@ -257,10 +258,7 @@ class BaseDocument(SimpleList):
         ref = kwargs.get("insert-after", kwargs.get("replace"))
         i = None
         if ref is not None:
-            if ref == INSERT_AT_START:
-                i = -1
-            else:
-                i = self._find_page_by_ref(ref)
+            i = -1 if ref == INSERT_AT_START else self._find_page_by_ref(ref)
 
         # Block the row-changed signal whilst adding the scan (row).
         if self.row_changed_signal:

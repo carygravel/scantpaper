@@ -12,6 +12,8 @@ gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
+import contextlib
+
 from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     Gdk,
     GLib,
@@ -193,7 +195,8 @@ class Rectangle(Gdk.Rectangle):
         super().__init__()
         for key in ["x", "y", "width", "height"]:
             if key not in kwargs:
-                raise AttributeError(f"Rectangle requires attribute '{key}'.")
+                msg = f"Rectangle requires attribute '{key}'."
+                raise AttributeError(msg)
             setattr(self, key, kwargs[key])
 
     @classmethod
@@ -337,10 +340,8 @@ class Bbox:
             try:
                 self.canvas.position_index.next_word()
             except StopIteration:
-                try:
+                with contextlib.suppress(StopIteration):
                     self.canvas.position_index.previous_word()
-                except StopIteration:
-                    pass
 
             if self.parent is not None:
                 parent_children = self.parent.get_children()
@@ -790,10 +791,7 @@ class Canvas(Gtk.DrawingArea):
                 text_h = ink_extents.height
 
                 if text_w > 0:
-                    if angle:
-                        scale = h / text_w
-                    else:
-                        scale = w / text_w
+                    scale = h / text_w if angle else w / text_w
 
                     if bbox.type == "page":
                         scale *= FULLPAGE_OCR_SCALE
@@ -1276,7 +1274,8 @@ class TreeIter:
 
     def __init__(self, bbox):
         if not isinstance(bbox, Bbox):
-            raise TypeError("bbox is not a Bbox object")
+            msg = "bbox is not a Bbox object"
+            raise TypeError(msg)
         self._bbox = [bbox]
         self._iter = []
         while bbox.type != "page":

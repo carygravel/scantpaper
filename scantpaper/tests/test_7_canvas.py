@@ -632,7 +632,8 @@ def test_canvas_set_offset_clamping():
 
     canvas_obj._pixbuf_size = None
     canvas_obj.set_offset(10, 10)
-    assert canvas_obj.offset.x == 0 and canvas_obj.offset.y == 0
+    assert canvas_obj.offset.x == 0
+    assert canvas_obj.offset.y == 0
 
     canvas_obj._pixbuf_size = {
         "width": 100,

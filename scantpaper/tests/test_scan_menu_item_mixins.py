@@ -92,7 +92,7 @@ def mock_scan_window(mocker):
     window._dependencies = {"unpaper": True}
     window._unpaper = mocker.Mock()
 
-    yield window
+    return window
 
 
 def test_scan_dialog_show_existing(mock_scan_window):

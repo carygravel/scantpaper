@@ -595,7 +595,7 @@ class Unpaper:
                     items += [f"--{option}", f"{self.get_option(option)}"]
             elif option in options:
                 items += [f"--{option}", f"{options[option]}"]
-        return items + ["--overwrite", "%s", "%s", "%s"]
+        return [*items, "--overwrite", "%s", "%s", "%s"]
 
     def program_version(self):
         "return program version"

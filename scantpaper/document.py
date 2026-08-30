@@ -1,5 +1,6 @@
 "main document IO methods"
 
+import contextlib
 import datetime
 import logging
 import re
@@ -442,9 +443,7 @@ def _extract_metadata(info):
                 r"^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d$", info["datetime"]
             ):
                 info["datetime"] += ":00"
-        try:
+        with contextlib.suppress(ValueError):
             metadata["datetime"] = datetime.datetime.fromisoformat(info["datetime"])
-        except ValueError:
-            pass
 
     return metadata

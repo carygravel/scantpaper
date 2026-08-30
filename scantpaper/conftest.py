@@ -15,6 +15,8 @@ from loop_helpers import _MainLoopWrapper, safe_mainloop
 from PIL import Image, ImageDraw, ImageFont
 
 gi.require_version("Gtk", "3.0")
+import contextlib
+
 from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     GLib,
     Gtk,
@@ -259,10 +261,8 @@ def temp_db():
     f.close()
     yield SimpleNamespace(name=f.name)
     for suffix in ("", "-wal", "-shm"):
-        try:
+        with contextlib.suppress(FileNotFoundError):
             os.remove(f.name + suffix)
-        except FileNotFoundError:
-            pass
 
 
 @pytest.fixture
@@ -429,8 +429,7 @@ def _create_qbfox_image():
         canvas = canvas.resize(
             (int(w * scale), int(h * scale)), Image.Resampling.LANCZOS
         )
-    rotated = canvas.rotate(90, expand=True)
-    return rotated
+    return canvas.rotate(90, expand=True)
 
 
 @pytest.fixture(scope="session")

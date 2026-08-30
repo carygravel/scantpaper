@@ -31,15 +31,7 @@ def main():
         uih_sources = [x + ".h" for x in ui_sources]
         py_sources = glob.glob("**/*.py", recursive=True)
         out = subprocess.check_output(
-            [
-                "pygettext3",
-                "-o",
-                "-",
-                "-kN_",
-                "-k_",
-            ]
-            + uih_sources
-            + py_sources,
+            ["pygettext3", "-o", "-", "-kN_", "-k_", *uih_sources, *py_sources],
             text=True,
         )
         for x in uih_sources:

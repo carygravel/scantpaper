@@ -45,11 +45,12 @@ class SimpleList(Gtk.TreeView):
     def __init__(self, **columns):
         super().__init__()
         if len(columns.keys()) < 1:
-            raise TypeError(
+            msg = (
                 f"Usage: {__class__.__name__}(title=type, ...)\n"
                 " expecting a list of column title and type name pairs.\n"
                 " can't create a SimpleList with no columns"
             )
+            raise TypeError(msg)
         column_info = []
         for name, typekey in columns.items():
             if typekey not in column_types:
@@ -62,7 +63,8 @@ class SimpleList(Gtk.TreeView):
                 warn(
                     f"column type '{typekey}' has no 'type' field; did you"
                     " create a custom column type incorrectly?\n"
-                    f"limping along with '{column_types[typekey]['type']}'"
+                    f"limping along with '{column_types[typekey]['type']}'",
+                    stacklevel=2,
                 )
             column_info.append(
                 {
@@ -159,7 +161,8 @@ class SimpleList(Gtk.TreeView):
         "set whether a column can be edited"
         column = self.get_column(index)
         if column is None:
-            raise ValueError(f"invalid column index {index}")
+            msg = f"invalid column index {index}"
+            raise ValueError(msg)
         cell_renderer = column.get_cells()
         return cell_renderer[0].set_property("editable", editable)
 
@@ -167,7 +170,8 @@ class SimpleList(Gtk.TreeView):
         "return whether a column can be edited"
         column = self.get_column(index)
         if column is None:
-            raise ValueError(f"invalid column index {index}")
+            msg = f"invalid column index {index}"
+            raise ValueError(msg)
         cell_renderer = column.get_cells()
         return cell_renderer[0].get_property("editable")
 
@@ -256,34 +260,28 @@ class TiedRow(list):
         return index < self.model.get_n_columns()
 
     def __delitem__(self, _index):
-        raise NotImplementedError(
-            "delete called on a TiedRow, but you can't change its size"
-        )
+        msg = "delete called on a TiedRow, but you can't change its size"
+        raise NotImplementedError(msg)
 
     def extend(self, _items):
-        raise NotImplementedError(
-            "extend called on a TiedRow, but you can't change its size"
-        )
+        msg = "extend called on a TiedRow, but you can't change its size"
+        raise NotImplementedError(msg)
 
     def clear(self):
-        raise NotImplementedError(
-            "clear called on a TiedRow, but you can't change its size"
-        )
+        msg = "clear called on a TiedRow, but you can't change its size"
+        raise NotImplementedError(msg)
 
     def pop(self):
-        raise NotImplementedError(
-            "pop called on a TiedRow, but you can't change its size"
-        )
+        msg = "pop called on a TiedRow, but you can't change its size"
+        raise NotImplementedError(msg)
 
     def append(self, _item):
-        raise NotImplementedError(
-            "append called on a TiedRow, but you can't change its size"
-        )
+        msg = "append called on a TiedRow, but you can't change its size"
+        raise NotImplementedError(msg)
 
     def insert(self, _index, _item):
-        raise NotImplementedError(
-            "push called on a TiedRow, but you can't change its size"
-        )
+        msg = "push called on a TiedRow, but you can't change its size"
+        raise NotImplementedError(msg)
 
 
 class TiedList(list):
@@ -296,13 +294,15 @@ class TiedList(list):
     def __getitem__(self, index):
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
-            raise IndexError("list index out of range")
+            msg = "list index out of range"
+            raise IndexError(msg)
         return TiedRow(self.model, itr)
 
     def __setitem__(self, index, value):
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
-            raise IndexError("list index out of range")
+            msg = "list index out of range"
+            raise IndexError(msg)
         self.model[itr] = value
 
     def __len__(self):
@@ -332,7 +332,8 @@ class TiedList(list):
         index = model.iter_n_children(None) - 1
         itr = model.iter_nth_child(None, index)
         if itr is None:
-            raise IndexError("pop from empty list")
+            msg = "pop from empty list"
+            raise IndexError(msg)
         ret = list(model[itr])
         model.remove(itr)
         return ret
@@ -341,5 +342,6 @@ class TiedList(list):
         model = self.model
         itr = model.iter_nth_child(None, index)
         if itr is None:
-            raise IndexError("list assignment index out of range")
+            msg = "list assignment index out of range"
+            raise IndexError(msg)
         model.remove(itr)

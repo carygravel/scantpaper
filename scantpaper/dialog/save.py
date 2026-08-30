@@ -833,7 +833,7 @@ class Save(Dialog):
             config[name] = value
             suggestions = list(getattr(self, f"meta_{name}_suggestions"))
             if value and value not in suggestions:
-                setattr(self, f"meta_{name}_suggestions", suggestions + [value])
+                setattr(self, f"meta_{name}_suggestions", [*suggestions, value])
                 suggestions = list(getattr(self, f"meta_{name}_suggestions"))
             config[f"{name}-suggestions"] = suggestions
 

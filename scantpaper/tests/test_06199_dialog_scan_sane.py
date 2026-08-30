@@ -208,7 +208,8 @@ def mocked_do_set_option(self, _request):
 def mocked_do_scan_page(self, _request):
     "mocked_do_scan_page page"
     if self.device_handle is None:
-        raise ValueError("must open device before starting scan")
+        msg = "must open device before starting scan"
+        raise ValueError(msg)
     return Image.new("1", (100, 100))
 
 

@@ -18,7 +18,8 @@ def test_qbfox_font_fallback():
     def mock_truetype(path, size):
         call_count[0] += 1
         if call_count[0] == 1:
-            raise OSError("font not found")
+            msg = "font not found"
+            raise OSError(msg)
         return original_truetype(path, size)
 
     with patch("PIL.ImageFont.truetype", side_effect=mock_truetype):
@@ -51,7 +52,8 @@ def test_qbfox_fc_match_fallback():
 
     def mock_truetype(path, size, **kwargs):
         if path in KNOWN_FONT_PATHS:
-            raise OSError("font not found")
+            msg = "font not found"
+            raise OSError(msg)
         return original_truetype(KNOWN_FONT_PATHS[0], size, **kwargs)
 
     mock_result = MagicMock()
@@ -72,7 +74,8 @@ def test_qbfox_load_default_with_size():
 
     def mock_truetype(path, size, **kwargs):
         if path in KNOWN_FONT_PATHS:
-            raise OSError("font not found")
+            msg = "font not found"
+            raise OSError(msg)
         return original_truetype(path, size, **kwargs)
 
     mock_result = MagicMock()
@@ -93,7 +96,8 @@ def test_qbfox_load_default_bitmap():
 
     def mock_truetype(path, size, **kwargs):
         if path in KNOWN_FONT_PATHS:
-            raise OSError("font not found")
+            msg = "font not found"
+            raise OSError(msg)
         return original_truetype(path, size, **kwargs)
 
     mock_result = MagicMock()
@@ -104,7 +108,8 @@ def test_qbfox_load_default_bitmap():
 
     def mock_load_default_with_size(size=None):
         if size is not None:
-            raise TypeError("this PIL version does not support size")
+            msg = "this PIL version does not support size"
+            raise TypeError(msg)
         return original_load_default()
 
     with (

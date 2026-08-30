@@ -2,6 +2,7 @@
 
 # pylint: disable=protected-access  # tests access private members
 
+import contextlib
 import importlib
 import logging
 import os
@@ -142,7 +143,7 @@ def test_parse_arguments_log_compression_error(mocker):
 
         cleanup_func()
 
-        logger.error.assert_called()
+        logger.exception.assert_called()
 
 
 @pytest.mark.usefixtures("mock_deps")
@@ -267,10 +268,8 @@ def test_pyinstaller_path(mocker):
 def test_script_entry_point():
     "Test that the script entry point calls main() when run as __main__"
     with patch("sys.argv", ["scantpaper", "--version"]):
-        try:
+        with contextlib.suppress(SystemExit):
             runpy.run_module("app", run_name="__main__")
-        except SystemExit:
-            pass
 
 
 def test_handle_exception(mocker):

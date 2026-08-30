@@ -478,7 +478,8 @@ def test_stage_callback_exception_invokes_error_callback():
     error_callback = MagicMock()
 
     def failing_callback(_response):
-        raise ValueError("boom")
+        msg = "boom"
+        raise ValueError(msg)
 
     request = Request("div", (1, 2), None)
     data = Response(

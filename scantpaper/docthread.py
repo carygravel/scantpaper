@@ -166,10 +166,11 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         if self._write_tid:
             if self._write_tid != tid:
-                raise RuntimeError(
+                msg = (
                     f"Attempted to write to database with tid {tid}, but the "
                     f"database was created with tid {self._write_tid}"
                 )
+                raise RuntimeError(msg)
         else:
             self._write_tid = tid
 
@@ -223,10 +224,11 @@ class DocThread(SaveThread):
             and application_id[0] is not None
             and application_id[0] != APPLICATION_ID
         ):
-            raise TypeError(
+            msg = (
                 f"{self._db} is not a scantpaper session file "
                 f"(application_id={application_id[0]})"
             )
+            raise TypeError(msg)
         self._execute("PRAGMA user_version")
         user_version = self._fetchone()
         if user_version:
@@ -298,7 +300,8 @@ class DocThread(SaveThread):
             )
             row = self._fetchone()
             if not row:
-                raise ValueError(f"Image id {if_different_from} not found")
+                msg = f"Image id {if_different_from} not found"
+                raise ValueError(msg)
             if row[0] == bytes_image:
                 insert = False
                 thumb = self._bytes_to_pixbuf(row[1])
@@ -320,7 +323,8 @@ class DocThread(SaveThread):
         self._execute("SELECT thumb FROM image WHERE id = ?", (image_id,))
         row = self._fetchone()
         if row is None:
-            raise ValueError(f"Image id {image_id} not found")
+            msg = f"Image id {image_id} not found"
+            raise ValueError(msg)
         return self._bytes_to_pixbuf(row[0])
 
     def _insert_page(self, page, image_id):
@@ -369,7 +373,8 @@ class DocThread(SaveThread):
         )
         row = self._fetchone()
         if row is None:
-            raise ValueError(f"Page {initial_page_id} does not exist")
+            msg = f"Page {initial_page_id} does not exist"
+            raise ValueError(msg)
         position = row[0] + 1
         self._shift_row_ids(position, 1)
         self._execute(
@@ -454,7 +459,8 @@ class DocThread(SaveThread):
         page_ids = kwargs.get("page_ids", [])
 
         if not row_ids and not page_ids:
-            raise ValueError("Specify either row_id or page_id")
+            msg = "Specify either row_id or page_id"
+            raise ValueError(msg)
 
         if row_ids:
             self._execute(
@@ -542,10 +548,12 @@ class DocThread(SaveThread):
                 (kwargs["id"], self._action_id),
             )
         else:
-            raise ValueError("Please specify the page id")
+            msg = "Please specify the page id"
+            raise ValueError(msg)
         row = self._fetchone()
         if row is None:
-            raise ValueError(f"Page id {kwargs['id']} not found")
+            msg = f"Page id {kwargs['id']} not found"
+            raise ValueError(msg)
         return Page.from_bytes(
             row[0],
             id=kwargs["id"],
@@ -596,7 +604,7 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         self._execute("SELECT last_insert_rowid()")
         first_image_id = self._fetchone()[0] - len(pages) + 1
-        for i, page in enumerate(pages):
+        for i, _page in enumerate(pages):
             pages[i] = list(pages[i])
             pages[i][0] = first_image_id + i  # new image id
         self._executemany(
@@ -755,7 +763,8 @@ class DocThread(SaveThread):
     def do_undo(self, _request):
         "undo handler — decrements action_id, returns snapshot and selection"
         if not self.can_undo():
-            raise StopIteration("No more undo steps possible")
+            msg = "No more undo steps possible"
+            raise StopIteration(msg)
 
         self._action_id -= 1
         return {
@@ -766,7 +775,8 @@ class DocThread(SaveThread):
     def do_redo(self, _request):
         "redo handler — increments action_id, returns snapshot and selection"
         if not self.can_redo():
-            raise StopIteration("No more redo steps possible")
+            msg = "No more redo steps possible"
+            raise StopIteration(msg)
 
         self._action_id += 1
         return {
@@ -1486,7 +1496,7 @@ class DocThread(SaveThread):
                 )
 
         except (OSError, PermissionError) as err:
-            logger.error("Error creating file in %s: %s", options["dir"], err)
+            logger.exception("Error creating file in %s: %s", options["dir"], err)
             request.error(f"Error creating file in {options['dir']}: {err}.")
 
     def import_page(self, **kwargs):

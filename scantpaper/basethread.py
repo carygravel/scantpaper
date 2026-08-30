@@ -1,6 +1,7 @@
 "A thread backed by internal queues for simple messaging"
 
 import collections
+import contextlib
 import logging
 import os
 import queue
@@ -133,24 +134,18 @@ class BaseThread(threading.Thread):
         def _cleanup():
             GLib.source_remove(self._io_watch_id)
             GLib.source_remove(self._tick_id)
-            try:
+            with contextlib.suppress(OSError):
                 os.close(self._notify_r)
-            except OSError:
-                pass
-            try:
+            with contextlib.suppress(OSError):
                 os.close(self._notify_w)
-            except OSError:
-                pass
             return GLib.SOURCE_REMOVE
 
         GLib.idle_add(_cleanup)
 
     def _notify(self):
         "wake up the GLib main loop to process responses"
-        try:
+        with contextlib.suppress(OSError):
             os.write(self._notify_w, b"\x01")
-        except OSError:
-            pass
 
     def _on_readable(self, _fd, _condition):
         "called when the notification pipe is readable"
@@ -182,7 +177,8 @@ class BaseThread(threading.Thread):
         """register a callback, giving it a name, and defining whether it
         should be triggered before or after the reference callback"""
         if when not in ["before", "after"]:
-            raise ValueError("when can only be 'before' or 'after'")
+            msg = "when can only be 'before' or 'after'"
+            raise ValueError(msg)
         if reference_cb not in [
             "queued",
             "started",
@@ -191,10 +187,11 @@ class BaseThread(threading.Thread):
             "cancelled",
             "finished",
         ]:
-            raise ValueError(
+            msg = (
                 "reference_cb can only be 'queued', 'started', 'running', "
                 "'data', 'cancelled', or 'finished'"
             )
+            raise ValueError(msg)
         getattr(self, when)[reference_cb].add(name)
         self.additional_callbacks[name] = when, reference_cb
 
@@ -249,12 +246,12 @@ class BaseThread(threading.Thread):
             if request.process == "quit":
                 return False
             self._request_completed(request)
-        except Exception as err:  # noqa: BLE001
+        except Exception as err:
             # BLE001 — the handler is a do_<process> method that may raise
             # arbitrary exceptions from external code (SANE, file I/O, ...),
             # so no narrower set can be caught; the error is wrapped and
             # returned to the caller via request.error() below.
-            logger.error(
+            logger.exception(
                 "Error running process '%s': %s",
                 request.process,
                 err,
@@ -325,11 +322,11 @@ class BaseThread(threading.Thread):
         ):
             try:
                 self.callbacks[uid][callback](data)
-            except Exception as err:  # noqa: BLE001
+            except Exception as err:
                 # BLE001 — the callback is user-supplied arbitrary code that
                 # can raise anything, so no narrower set is catchable; the
                 # error is routed to the caller's error_callback below.
-                logger.error(
+                logger.exception(
                     "Error running %s callback '%s' for process '%s' with args: %s: %s",
                     stage,
                     callback,

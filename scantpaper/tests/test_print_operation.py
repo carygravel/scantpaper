@@ -134,7 +134,7 @@ def test_draw_page_mapped(mock_slist, mocker):
 
 
 @pytest.mark.parametrize(
-    "iwidth,iheight,xres,yres,expected_scale",
+    ("iwidth", "iheight", "xres", "yres", "expected_scale"),
     [
         (100, 200, 300, 150, (0.5, 1.0)),  # ratio > 1
         (100, 200, 150, 300, (2.0, 1.0)),  # ratio < 1

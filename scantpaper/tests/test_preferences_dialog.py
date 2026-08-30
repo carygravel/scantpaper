@@ -231,7 +231,7 @@ def test_apply_callback_allows_valid_tool(mock_which):
 
 
 @pytest.mark.parametrize(
-    "allow_batch_flatbed,expected_sensitive",
+    ("allow_batch_flatbed", "expected_sensitive"),
     [(True, True), (False, False)],
 )
 def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitive):

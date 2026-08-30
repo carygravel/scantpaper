@@ -62,7 +62,8 @@ class Profile(GObject.Object):
         """the oldval option is a hack to allow us not to apply geometry options
         if setting paper as part of a profile"""
         if name is None or name == "":
-            raise ValueError("Error: no option name")
+            msg = "Error: no option name"
+            raise ValueError(msg)
 
         if oldval is not None and val == oldval:
             return
@@ -117,7 +118,8 @@ class Profile(GObject.Object):
     def add_frontend_option(self, name, val):
         "add_frontend_option"
         if name is None or name == "":
-            raise ValueError("Error: no option name")
+            msg = "Error: no option name"
+            raise ValueError(msg)
 
         self.frontend[name] = val
         self.uuid = str(uuid.uuid1())
