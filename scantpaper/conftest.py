@@ -3,6 +3,7 @@
 # pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
 import contextlib
+import logging
 import os
 import subprocess
 import tempfile
@@ -13,6 +14,7 @@ import gi
 import pytest
 from dialog.sane import SaneScanDialog
 from frontend import enums
+from frontend.image_sane import decode_info
 from loop_helpers import _MainLoopWrapper, safe_mainloop
 from PIL import Image, ImageDraw, ImageFont
 from scanner.options import Option
@@ -25,6 +27,8 @@ from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E4
 )
 
 Image.MAX_IMAGE_PIXELS = None
+
+logger = logging.getLogger(__name__)
 
 
 def pytest_configure(config):
@@ -264,6 +268,146 @@ def sane_scan_mocks():
         mocked_do_get_options=mocked_do_get_options,
         mocked_do_set_option=mocked_do_set_option,
         mocked_do_scan_page=mocked_do_scan_page,
+        patch_all=patch_all,
+    )
+
+
+@pytest.fixture
+def inexact_scan_mocks():
+    "raw_options and mocked SaneThread do_* methods for the test_inexact family"
+    raw_options = [
+        Option(
+            index=0,
+            name="",
+            title="Number of options",
+            desc="Read-only option that specifies how many options a specific device supports.",
+            type=1,
+            unit=0,
+            size=4,
+            cap=4,
+            constraint=None,
+        ),
+        Option(
+            cap=5,
+            constraint=["ADF", "Document Table"],
+            desc="Document Source",
+            index=1,
+            size=1,
+            name="source",
+            title="Document Source",
+            type=3,
+            unit=0,
+        ),
+        Option(
+            cap=5,
+            constraint=(50, 1200, 0),
+            desc="Resolution",
+            index=4,
+            size=1,
+            name="resolution",
+            title="Resolution",
+            type=1,
+            unit=4,
+        ),
+        Option(
+            cap=5,
+            constraint=(0, 356.0, 0),
+            desc="Bottom Right X",
+            index=11,
+            size=1,
+            name="br-x",
+            title="Bottom Right X",
+            type=2,
+            unit=3,
+        ),
+        Option(
+            cap=5,
+            constraint=(0, 356.0, 0),
+            desc="Bottom Right Y",
+            index=12,
+            size=1,
+            name="br-y",
+            title="Bottom Right Y",
+            type=2,
+            unit=3,
+        ),
+        Option(
+            cap=5,
+            constraint=(0, 215.899993896484, 0),
+            desc="Top Left X",
+            index=13,
+            size=1,
+            name="tl-x",
+            title="Top Left X",
+            type=2,
+            unit=3,
+        ),
+        Option(
+            cap=5,
+            constraint=(0, 297.179992675781, 0),
+            desc="Top Left Y",
+            index=14,
+            size=1,
+            name="tl-y",
+            title="Top Left Y",
+            type=2,
+            unit=3,
+        ),
+    ]
+
+    def mocked_do_open_device(self, request):
+        "open device"
+        device_name = request.args[0]
+        self.device_handle = SimpleNamespace(
+            source="Document Table",
+            resolution=75,
+            tl_x=0,
+            tl_y=0,
+            br_x=215.899993896484,
+            br_y=297.179992675781,
+        )
+        self.device = device_name
+        request.data(f"opened device '{self.device_name}'")
+
+    def mocked_do_get_options(_self, _request):
+        "mocked_do_get_options"
+        return raw_options
+
+    def mocked_do_set_option(self, _request):
+        """A fujitsu:fi-4220C2dj was ignoring paper change requests because setting
+        initial geometry set INFO_INEXACT"""
+        key, value = _request.args
+        for opt in raw_options:
+            if opt.name == key:
+                break
+
+        info = 0
+        if key in ["br-x", "br-y", "tl-x", "tl-y"]:
+            info = enums.INFO_RELOAD_PARAMS + enums.INFO_INEXACT
+            value -= 0.5
+            logger.info(
+                "sane_set_option %s (%s) to %s returned info %s (%s)",
+                opt.index,
+                opt.name,
+                value,
+                info,
+                decode_info(info),
+            )
+
+        setattr(self.device_handle, key.replace("-", "_"), value)
+        return info
+
+    def patch_all(mocker):
+        "patch the SaneThread do_* methods used by the test_inexact family"
+        mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
+        mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
+        mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
+
+    return SimpleNamespace(
+        raw_options=raw_options,
+        mocked_do_open_device=mocked_do_open_device,
+        mocked_do_get_options=mocked_do_get_options,
+        mocked_do_set_option=mocked_do_set_option,
         patch_all=patch_all,
     )
 
