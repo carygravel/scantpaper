@@ -1,5 +1,6 @@
 "Test importing PPM"
 
+import os
 import subprocess
 from unittest.mock import MagicMock
 
@@ -25,6 +26,37 @@ def test_import_ppm(temp_db, temp_ppm, get_page_sync):
 
     page = get_page_sync(slist.thread, id=1)
     assert page.image_object.mode == "RGB", "PPM imported correctly"
+
+
+def test_import_truncated_ppm(temp_db, temp_pnm, get_page_sync):
+    "Test importing a truncated PPM still gives a full-size page"
+
+    # build a cropped (i.e. too little data compared with header) pnm
+    # to test padding code
+    with subprocess.Popen(
+        (config.CONVERT_COMMAND, "rose:", "-"), stdout=subprocess.PIPE
+    ) as rose:
+        output = rose.stdout.read()
+        rose.wait()
+        temp_pnm.write(output)
+        temp_pnm.flush()
+        os.fsync(temp_pnm.fileno())
+        temp_pnm.seek(0)
+        temp_pnm.truncate(1000)
+
+    slist = Document(db=temp_db.name)
+
+    mlp = safe_mainloop(2000)
+
+    slist.import_files(
+        paths=[temp_pnm.name],
+        finished_callback=lambda response: mlp.quit(),
+    )
+    mlp.run()
+
+    page = get_page_sync(slist.thread, id=1)
+    assert page.image_object.size == (70, 46), "padded pnm imported at full size"
+    assert page.image_object.mode == "RGB", "padded pnm imported as RGB"
 
 
 def test_import_corrupt_png(temp_png, temp_db):

@@ -721,8 +721,6 @@ def test_document(rose_tif):
                 assert slist.get_selected_indices() == [
                     0
                 ], "selection changed to previous page"
-                # TODO = "Don't know how to trigger update of page-number-start from Document"
-                # assert dialog.page_number_start== 2,               'page-number-start after cut'
                 slist.paste_selection(
                     data=[clipboard[0]],
                     dest=0,
@@ -849,71 +847,6 @@ def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
         mlp = safe_mainloop(10000)
         mlp.run()
         assert ran_callback, "ran finished callback"
-
-
-def test_import_scan(
-    temp_db,
-    temp_pnm,
-    temp_ppm,
-):  # FIXME: not sure we need this anymore, now we are passed Image objects around
-    "test Document.import_scan()"
-
-    slist = Document(db=temp_db.name)
-
-    # build a cropped (i.e. too little data compared with header) pnm
-    # to test padding code
-    with subprocess.Popen(
-        (config.CONVERT_COMMAND, "rose:", "-"), stdout=subprocess.PIPE
-    ) as rose:
-        output = rose.stdout.read()
-        rose.wait()
-        temp_pnm.write(output)
-        temp_pnm.flush()
-        os.fsync(temp_pnm.fileno())
-        temp_pnm.seek(0)
-        temp_pnm.truncate(1000)
-
-    subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
-    old = subprocess.check_output(
-        ["identify", "-format", "%m %G %g %z-bit %r", temp_ppm.name]
-    )
-
-    asserts = 0
-    mlp = safe_mainloop(2000)
-
-    def _finished_callback(_response):
-        nonlocal asserts
-        with tempfile.NamedTemporaryFile(suffix=".ppm") as temp_ppm2:
-            page_id = slist.data[0][2]
-            page = slist.thread.get_page(id=page_id)
-            with tempfile.NamedTemporaryFile(suffix=".png") as temp_png:
-                page.image_object.save(temp_png.name)
-                subprocess.run(
-                    [config.CONVERT_COMMAND, temp_png.name, temp_ppm2.name],
-                    check=True,
-                )
-            assert (
-                subprocess.check_output(
-                    ["identify", "-format", "%m %G %g %z-bit %r", temp_ppm2.name]
-                )
-                == old
-            ), "padded pnm imported correctly (as PNG)"
-            asserts += 1
-            assert os.path.getsize(temp_ppm2.name) == os.path.getsize(
-                temp_ppm.name
-            ), "padded pnm correct size"
-            asserts += 1
-            mlp.quit()
-
-    slist.import_scan(
-        filename=temp_pnm.name,
-        page=1,
-        delete=True,
-        resolution=70,
-        finished_callback=_finished_callback,
-    )
-    mlp.run()
-    assert asserts == 2, "all tests run"
 
 
 def test_import_files_encrypted():
