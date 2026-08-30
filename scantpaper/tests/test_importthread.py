@@ -300,9 +300,7 @@ def test_get_djvu_info_corrupt(mocker):
         stderr="",
     )
     thread = Importhread()
-    with pytest.raises(
-        RuntimeError, match="Unknown DjVu file structure. Please contact the author"
-    ):
+    with pytest.raises(RuntimeError, match="Unknown DjVu file structure"):
         thread._get_djvu_info({}, None)
 
 
@@ -492,7 +490,7 @@ def _pdf_exec_command_run_side_effect(list_output):
 @unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
-def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, _mock_remove):
+def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, mock_remove):
     "Test that a soft mask is not imported as a page"
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE_SMASK)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
@@ -506,16 +504,16 @@ def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, _mock_remove):
 
     assert mock_page.call_count == 1, "only the image is imported as a page"
     assert mock_page.call_args.kwargs["filename"] == "x-000.pnm"
-    _mock_remove.assert_any_call("x-001.pnm")
+    mock_remove.assert_any_call("x-001.pnm")
     mock_request.error.assert_not_called()
 
 
-@unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
-@unittest.mock.patch("importthread.Page")
-def test_import_pdf_no_warning_for_smask(_mock_page, mock_glob, mock_run, _mock_remove):
+def test_import_pdf_no_warning_for_smask(mocker):
     "Test that an image plus soft mask does not trigger a warning"
+    mocker.patch("importthread.Page")
+    mock_glob = mocker.patch("glob.glob")
+    mock_run = mocker.patch("importthread.exec_command_run")
+    mocker.patch("importthread.os.remove")
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE_SMASK)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
 
@@ -529,14 +527,12 @@ def test_import_pdf_no_warning_for_smask(_mock_page, mock_glob, mock_run, _mock_
     mock_request.error.assert_not_called()
 
 
-@unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
-@unittest.mock.patch("importthread.Page")
-def test_import_pdf_warning_for_two_images(
-    mock_page, mock_glob, mock_run, _mock_remove
-):
+def test_import_pdf_warning_for_two_images(mocker):
     "Test that two real images on a page trigger a warning"
+    mock_page = mocker.patch("importthread.Page")
+    mock_glob = mocker.patch("glob.glob")
+    mock_run = mocker.patch("importthread.exec_command_run")
+    mocker.patch("importthread.os.remove")
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_TWO_IMAGES)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
 
@@ -553,14 +549,12 @@ def test_import_pdf_warning_for_two_images(
     assert "expects one image per page" in args[1]
 
 
-@unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
-@unittest.mock.patch("importthread.Page")
-def test_import_pdf_resolution_from_own_entry(
-    mock_page, mock_glob, mock_run, _mock_remove
-):
+def test_import_pdf_resolution_from_own_entry(mocker):
     "Test that the imported page resolution comes from its own -list entry"
+    mock_page = mocker.patch("importthread.Page")
+    mock_glob = mocker.patch("glob.glob")
+    mock_run = mocker.patch("importthread.exec_command_run")
+    mocker.patch("importthread.os.remove")
     mock_run.side_effect = _pdf_exec_command_run_side_effect(
         _LIST_IMAGE_SMASK_DIFFERENT_PPI
     )
@@ -577,14 +571,12 @@ def test_import_pdf_resolution_from_own_entry(
     assert mock_page.call_args.kwargs["resolution"] == (150.0, 150.0, "PixelsPerInch")
 
 
-@unittest.mock.patch("importthread.os.remove")
-@unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
-@unittest.mock.patch("importthread.Page")
-def test_import_pdf_count_mismatch_fallback(
-    mock_page, mock_glob, mock_run, _mock_remove
-):
+def test_import_pdf_count_mismatch_fallback(mocker):
     "Test that a count mismatch imports every file and warns"
+    mock_page = mocker.patch("importthread.Page")
+    mock_glob = mocker.patch("glob.glob")
+    mock_run = mocker.patch("importthread.exec_command_run")
+    mocker.patch("importthread.os.remove")
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
 
@@ -606,7 +598,7 @@ def test_import_pdf_count_mismatch_fallback(
 @unittest.mock.patch("glob.glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_cleans_up_leftover_files(
-    mock_page, mock_glob, mock_run, _mock_remove
+    mock_page, mock_glob, mock_run, mock_remove
 ):
     "Test that leftover extraction files are removed before the next page"
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE)
@@ -625,14 +617,14 @@ def test_import_pdf_cleans_up_leftover_files(
     thread._do_import_pdf(mock_request)
 
     assert mock_page.call_count == 2, "one page imported per PDF page"
-    _mock_remove.assert_any_call("x-002.pnm")
+    mock_remove.assert_any_call("x-002.pnm")
 
 
 @unittest.mock.patch("importthread.os.remove")
 @unittest.mock.patch("importthread.exec_command_run")
 @unittest.mock.patch("glob.glob")
 def test_import_pdf_imports_composited_image(
-    mock_glob, mock_run, _mock_remove, monkeypatch, tmp_path
+    mock_glob, mock_run, mock_remove, monkeypatch, tmp_path
 ):
     "Test that an image with a soft mask is imported as a single composited page"
     image = Image.new("L", (2, 1))
@@ -659,7 +651,7 @@ def test_import_pdf_imports_composited_image(
     assert page.image_object.size == (2, 1)
     assert page.image_object.getpixel((0, 0)) == 200, "opaque mask keeps the value"
     assert page.image_object.getpixel((1, 0)) == 255, "transparent mask becomes white"
-    _mock_remove.assert_any_call("x-001.pgm")
+    mock_remove.assert_any_call("x-001.pgm")
 
 
 @unittest.mock.patch("importthread.exec_command_run")

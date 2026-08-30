@@ -260,9 +260,9 @@ def test_job_counters_persist_within_batch():
 def test_register_callback_errors():
     "test errors raised by register_callback"
     thread = BaseThread()
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="when can only be"):
         thread.register_callback("name", "with", "finished")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="reference_cb can only be"):
         thread.register_callback("name", "before", "nonexistent")
 
 

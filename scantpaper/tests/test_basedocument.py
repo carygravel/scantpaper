@@ -133,7 +133,7 @@ def test_add_page_extra():
     assert slist.data[1][2] == 103
 
     # Test error case for _find_page_by_ref
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="does not exist"):
         slist.add_page(3, None, 104, replace=999)
 
 

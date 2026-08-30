@@ -114,13 +114,15 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
         # Single-sided scans append without touching the facing batch
         page_controls.sided = "single"
         insert_after, side = page_controls._insert_target(1)
-        assert insert_after is None and side == "facing", "single-sided scans append"
+        assert insert_after is None, "single-sided scans append"
+        assert side == "facing", "single-sided scans append"
 
         # Double-sided facing pass tracks the batch after the last page
         page_controls.sided = "double"
         page_controls.side_to_scan = "facing"
         insert_after, side = page_controls._insert_target(1)
-        assert insert_after is None and side == "facing", "facing scans append"
+        assert insert_after is None, "facing scans append"
+        assert side == "facing", "facing scans append"
         assert (
             page_controls._batch_start == 2
         ), "facing batch starts after the last page"

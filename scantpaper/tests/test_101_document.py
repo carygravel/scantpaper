@@ -513,13 +513,13 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
         thread = DocThread(db=temp_db.name)
         clean_up_files([tif.name])
+        request = Request("get_file_info", (tif.name, None), thread.responses)
         with pytest.raises(FileNotFoundError):
-            request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
 
+        subprocess.run(["touch", tif.name], check=True)
+        request = Request("get_file_info", (tif.name, None), thread.responses)
         with pytest.raises(RuntimeError):
-            subprocess.run(["touch", tif.name], check=True)
-            request = Request("get_file_info", (tif.name, None), thread.responses)
             thread.do_get_file_info(request)
 
         temp_pdf.write(img2pdf.convert(rose_png))

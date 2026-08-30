@@ -452,12 +452,10 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
         "return whether two RGB pixels differ by no more than 8 in any channel"
         return all(abs(c1 - c2) <= 8 for c1, c2 in zip(a, b, strict=False))
 
-    assert (
-        len(in_level) == 2
-        and len(out_level) == 2
-        and close(in_level[0], out_level[1])
-        and close(in_level[1], out_level[0])
-    ), "rtl"
+    assert len(in_level) == 2, "rtl"
+    assert len(out_level) == 2, "rtl"
+    assert close(in_level[0], out_level[1]), "rtl"
+    assert close(in_level[1], out_level[0]), "rtl"
 
 
 def test_unpaper_ui_toggles():

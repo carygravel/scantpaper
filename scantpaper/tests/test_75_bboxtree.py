@@ -715,7 +715,7 @@ def test_from_djvu_txt():
     djvu = """(page 0 0 2480 3507
   (word 157 3030 241 "()"))
 """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Error parsing djvu line"):
         tree.from_djvu_txt(djvu)
 
     #########################
@@ -728,7 +728,7 @@ def test_from_djvu_txt():
     tree.from_djvu_ann(ann, 2480, 3507)
     assert tree.bbox_tree == expected, "from_djvu_ann() basic functionality"
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Error parsing djvu annotation"):
         tree.from_djvu_ann(
             """(maparea "" "()" (rect 157 3030 84 65) (hilite #cccg00) (xor))
 """,

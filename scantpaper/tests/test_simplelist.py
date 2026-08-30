@@ -106,10 +106,10 @@ def test_error():
     ), "unknown custom renderers default to str"
 
     slist = SimpleList(col1="text")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="invalid column index"):
         slist.get_column_editable(1)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="invalid column index"):
         slist.set_column_editable(1, True)
 
     with pytest.raises(IndexError):

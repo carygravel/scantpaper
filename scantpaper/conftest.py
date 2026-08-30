@@ -2,6 +2,7 @@
 
 # pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
+import contextlib
 import os
 import subprocess
 import tempfile
@@ -15,7 +16,6 @@ from loop_helpers import _MainLoopWrapper, safe_mainloop
 from PIL import Image, ImageDraw, ImageFont
 
 gi.require_version("Gtk", "3.0")
-import contextlib
 
 from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     GLib,

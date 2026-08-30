@@ -208,9 +208,8 @@ def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
     mock_message_dialog.assert_called_once()
     _args, kwargs = mock_message_dialog.call_args
     text = kwargs.get("text", "")
-    assert (
-        "bad1" in text and "bad2" in text
-    ), f"Error message should mention both tool names, got: {text}"
+    assert "bad1" in text, f"Error message should mention both tool names, got: {text}"
+    assert "bad2" in text, f"Error message should mention both tool names, got: {text}"
 
 
 @patch("dialog.preferences.shutil.which")

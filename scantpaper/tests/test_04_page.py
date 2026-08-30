@@ -6,7 +6,6 @@ import io
 import os
 import subprocess
 import tempfile
-from unittest.mock import patch
 
 import config
 import pytest
@@ -22,10 +21,10 @@ def test_1(temp_pnm, temp_jpg):
     with pytest.raises(TypeError):
         page = Page(image_object=None)
     with tempfile.TemporaryDirectory() as dirname:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="please supply either"):
             page = Page(dir=dirname)
+        os.remove(temp_pnm.name)
         with pytest.raises(FileNotFoundError):
-            os.remove(temp_pnm.name)
             page = Page(filename=temp_pnm.name, format="PBM", dir=dirname)
 
         # Create test image
@@ -165,12 +164,12 @@ def test_2(temp_pnm):
     )
 
     with tempfile.TemporaryDirectory() as dirname:
-        with pytest.raises(ValueError):
-            page = Page(
-                filename=temp_pnm.name,
-                dir=dirname,
-                size=[105, 148, "elephants"],
-            )
+        page = Page(
+            filename=temp_pnm.name,
+            dir=dirname,
+            size=[105, 148, "elephants"],
+        )
+        with pytest.raises(ValueError, match="unknown units"):
             page.get_resolution()
 
         page = Page(
@@ -324,10 +323,10 @@ def test_2(temp_pnm):
         ), "get_pixbuf_at_scale() doesn't fall over with an error"
 
 
-@patch("page.GdkPixbuf.Pixbuf.new_from_file", side_effect=TypeError)
-@patch("page.GdkPixbuf.Pixbuf.new_from_file_at_scale", side_effect=TypeError)
-def test_get_pixbuf_error(_mock_new_from_file_at_scale, _mock_new_from_file):
+def test_get_pixbuf_error(mocker):
     "Test error handling in get_pixbuf()"
+    mocker.patch("page.GdkPixbuf.Pixbuf.new_from_file", side_effect=TypeError)
+    mocker.patch("page.GdkPixbuf.Pixbuf.new_from_file_at_scale", side_effect=TypeError)
     page = Page(image_object=Image.new("RGB", (210, 297)))
     assert page.get_pixbuf() is None, "TypeError from Pixbuf.new_from_file not caught"
     assert (

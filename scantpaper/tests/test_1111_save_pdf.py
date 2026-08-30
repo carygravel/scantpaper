@@ -808,7 +808,8 @@ def test_save_pdf_with_downsample(
         subprocess.run(["pdfimages", temp_pdf2.name, "x"], check=True)
         img = Image.open("x-000.pbm")
         assert img.mode == "1", "downsampled"
-        assert img.size[0] > 0 and img.size[1] > 0, "downsampled dimensions"
+        assert img.size[0] > 0, "downsampled dimensions"
+        assert img.size[1] > 0, "downsampled dimensions"
 
     clean_up_files(["x-000.pbm"])
 
@@ -886,7 +887,8 @@ def test_import_pdf_without_text_and_resave(
 
         # Verify the output PDF is valid
         width, height = get_page_size(temp_pdf2.name)
-        assert width > 0 and height > 0, "valid PDF created"
+        assert width > 0, "valid PDF created"
+        assert height > 0, "valid PDF created"
 
         clean_up_files([temp_pdf2.name])
 
