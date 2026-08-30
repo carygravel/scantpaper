@@ -12,7 +12,7 @@ def test_paperlist():
     "Test PaperList class"
 
     with pytest.raises(TypeError):
-        PaperList()
+        PaperList()  # pylint: disable=no-value-for-parameter
     plist = PaperList({"A4": {"x": 210, "y": 297, "l": 0, "t": 0}})
     assert plist is not None
 
