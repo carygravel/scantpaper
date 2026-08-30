@@ -6,14 +6,14 @@ import datetime
 from typing import ClassVar
 from unittest.mock import MagicMock
 
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
-
 import gi
 import pytest
 from edit_menu_mixins import EditMenuMixins
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # pylint: disable=wrong-import-position
+
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 @pytest.fixture
