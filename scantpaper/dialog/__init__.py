@@ -210,8 +210,8 @@ class MultipleMessage(Dialog):
 
     def store_responses(self, response, responses):
         "store response in responses"
-        for text in self.list_messages_to_ignore(response):
-            text = filter_message(text)
+        for raw_text in self.list_messages_to_ignore(response):
+            text = filter_message(raw_text)
             responses[text] = {}
             responses[text]["response"] = response
 

@@ -524,7 +524,7 @@ class Save(Dialog):
         widget.stop_emission_by_name("insert-text")
 
     def _add_metadata_widgets(self, grid, row):
-        for name, label in [
+        for name, label_text in [
             ("title", _("Title")),
             ("author", _("Author")),
             ("subject", _("Subject")),
@@ -532,7 +532,7 @@ class Save(Dialog):
         ]:
             hbox = Gtk.Box()
             grid.attach(hbox, 0, row, 1, 1)
-            label = Gtk.Label(label=label)
+            label = Gtk.Label(label=label_text)
             hbox.pack_start(label, False, True, 0)
             hbox = Gtk.Box()
             grid.attach(hbox, 1, row, 1, 1)

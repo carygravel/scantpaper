@@ -384,13 +384,13 @@ class SaveThread(Importhread):
                 fhd.write("(metadata\n")
 
                 # Write the metadata
-                for key, val in metadata.items():
-                    if val is not None:
+                for key, raw_val in metadata.items():
+                    if raw_val is not None:
                         # backslash-escape any double quotes and bashslashes
                         val = re.sub(
                             r"\\",
                             r"\\\\",
-                            val,
+                            raw_val,
                             flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                         )
                         val = re.sub(

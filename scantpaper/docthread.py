@@ -650,8 +650,8 @@ class DocThread(SaveThread):
             (self._action_id, *[row[2] for row in new_pages]),
         )
         rows = []
-        for row in self._fetchall():
-            row = list(row)
+        for record in self._fetchall():
+            row = list(record)
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
         request.data({"type": "page", "new_pages": rows})
@@ -714,8 +714,8 @@ class DocThread(SaveThread):
         )
 
         rows = []
-        for row in self._fetchall():
-            row = list(row)
+        for record in self._fetchall():
+            row = list(record)
             row[0] += 1  # page numbers shown to the user are 1-based
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)

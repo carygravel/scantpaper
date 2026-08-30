@@ -4,7 +4,6 @@ import logging
 import os
 import pathlib
 import queue
-import re
 import shutil
 import signal
 import tempfile
@@ -673,10 +672,6 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
 
     if info == ID_URI:
         uris = data.get_uris()
-        for uri in uris:
-            uri = re.sub(
-                r"^file://", r"", uri, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
-            )
 
         tree.import_files(paths=uris)
         Gtk.drag_finish(context, True, False, time)
