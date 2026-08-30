@@ -267,9 +267,11 @@ def test_pyinstaller_path(mocker):
 
 def test_script_entry_point():
     "Test that the script entry point calls main() when run as __main__"
-    with patch("sys.argv", ["scantpaper", "--version"]):
-        with contextlib.suppress(SystemExit):
-            runpy.run_module("app", run_name="__main__")
+    with (
+        patch("sys.argv", ["scantpaper", "--version"]),
+        contextlib.suppress(SystemExit),
+    ):
+        runpy.run_module("app", run_name="__main__")
 
 
 def test_handle_exception(mocker):

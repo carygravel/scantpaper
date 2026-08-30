@@ -1,5 +1,6 @@
 "application window"
 
+import contextlib
 import glob
 import locale
 import logging
@@ -697,10 +698,9 @@ class ApplicationWindow(
             path = Gtk.TreePath.new_from_indices([i])
             self.slist.scroll_to_cell(path, self.slist.get_column(0), True, HALF, HALF)
             sel = self.view.get_selection()
-            try:
+            with contextlib.suppress(ValueError):
+                # if a page is deleted this is still fired, so ignore it
                 self._display_image(self.slist.data[i][2])
-            except ValueError:
-                pass  # if a page is deleted this is still fired, so ignore it
             if sel is not None:
                 self.view.set_selection(sel)
         else:

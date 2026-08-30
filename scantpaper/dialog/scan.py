@@ -787,9 +787,12 @@ class Scan(PageControls):
             if index is not None:
                 widget.set_active(index)
 
-        elif opt.constraint is None and opt.type != enums.TYPE_BUTTON:  # entry
-            if _value_for_active_option(value, opt):
-                widget.set_text(str(value))
+        elif (
+            opt.constraint is None
+            and opt.type != enums.TYPE_BUTTON
+            and _value_for_active_option(value, opt)
+        ):  # entry
+            widget.set_text(str(value))
 
     def _update_option(self, opt, new_opt):
 

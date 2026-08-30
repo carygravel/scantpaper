@@ -37,7 +37,7 @@ def mock_slist():
     slist.data = [[1, "thumb1", 1], [2, "thumb2", 2], [3, "thumb3", 3]]
     pages = {1: page1, 2: page2, 3: page3}
     slist.thread = MagicMock()
-    slist.thread.get_page.side_effect = lambda id: pages[id]
+    slist.thread.get_page.side_effect = lambda **kw: pages[kw["id"]]
     return slist
 
 

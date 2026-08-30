@@ -2,7 +2,7 @@
 
 from gi.repository import GLib
 
-SAFETY_TIMEOUT = 2000  # ms – safety-net for GLib.MainLoop
+SAFETY_TIMEOUT = 2000  # ms - safety-net for GLib.MainLoop
 
 
 class _MainLoopWrapper:
@@ -23,7 +23,7 @@ class _MainLoopWrapper:
             return
         self._loop.run()
         assert not self._timed_out, (
-            "Safety timeout fired – the operation under test did not complete "
+            "Safety timeout fired - the operation under test did not complete "
             "within the allowed time. If this test is expected to be slow, "
             "increase SAFETY_TIMEOUT in loop_helpers.py."
         )

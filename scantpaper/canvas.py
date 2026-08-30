@@ -413,22 +413,22 @@ class Bbox:
         where the new box should be inserted in the stack of children.
         Using binary search"""
         children = self.get_children()
-        l = 0
+        lo = 0
         r = len(children) - 1
 
         newboxpos = bbox.get_centroid()
         axis = 0 if self.type == "line" else 1
 
-        while l <= r:
-            m = (l + r) // 2
+        while lo <= r:
+            m = (lo + r) // 2
             child = children[m]
             boxpos = child.get_centroid()
             if boxpos[axis] > newboxpos[axis]:
                 r = m - 1
             else:
-                l = m + 1
+                lo = m + 1
 
-        return l
+        return lo
 
 
 class _CanvasRoot:
@@ -1199,8 +1199,8 @@ class ListIter:
 
     def set_index_by_bbox(self, bbox, value):
         "set the index to the given bbox"
-        l = self.get_index_for_value(value - 1)
-        for i in range(l, len(self.list)):
+        lo = self.get_index_for_value(value - 1)
+        for i in range(lo, len(self.list)):
             if self.list[i][0] == bbox:
                 self.index = i
                 return i
@@ -1209,19 +1209,19 @@ class ListIter:
 
     def get_index_for_value(self, value):
         "Return index of value using binary search"
-        l = 0
+        lo = 0
         r = len(self.list) - 1
         if r == EMPTY_LIST:
             return 0
-        while l != r:
-            m = math.ceil((l + r) / 2)
+        while lo != r:
+            m = math.ceil((lo + r) / 2)
             if self.list[m][1] > value:
                 r = m - 1
             else:
-                l = m
-        if self.list[l][1] < value:
-            l += 1
-        return l
+                lo = m
+        if self.list[lo][1] < value:
+            lo += 1
+        return lo
 
     def insert_after_position(self, bbox, i, value):
         "insert bbox after given index"

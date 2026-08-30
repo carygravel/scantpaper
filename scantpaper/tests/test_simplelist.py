@@ -102,7 +102,7 @@ def test_error():
     with pytest.warns(UserWarning, match="column type 'new' has no 'type' field"):
         slist = SimpleList(col1="new", col2="markup", col3="bool", col4="scalar")
     assert (
-        slist.get_column_types()["new"]["type"] == str
+        slist.get_column_types()["new"]["type"] is str
     ), "unknown custom renderers default to str"
 
     slist = SimpleList(col1="text")

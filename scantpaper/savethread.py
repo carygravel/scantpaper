@@ -147,7 +147,7 @@ class SaveThread(Importhread):
             # the malformed PDF.
             msg = str(err) or err.__class__.__name__
             logger.warning(
-                "Could not embed text layer (%s): %s – "
+                "Could not embed text layer (%s): %s - "
                 "saving without embedded text layer",
                 err.__class__.__name__,
                 msg,
@@ -265,7 +265,7 @@ class SaveThread(Importhread):
             embed_ok = self._embed_text_layer(outdir, filename, request)
 
             # When embed fell back (embed_ok is False) the output PDF may be
-            # malformed – pikepdf-dependent operations would fail too, so skip
+            # malformed - pikepdf-dependent operations would fail too, so skip
             # them and hand the user a usable (but textless) PDF.
             if embed_ok:
                 # Metadata fixup is cosmetic - if it fails, deliver an

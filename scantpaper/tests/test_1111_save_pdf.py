@@ -32,9 +32,10 @@ def has_locale(name):
         old_locale = locale.setlocale(locale.LC_CTYPE)
         locale.setlocale(locale.LC_CTYPE, name)
         locale.setlocale(locale.LC_CTYPE, old_locale)
-        return True
     except locale.Error:
         return False
+    else:
+        return True
 
 
 def get_page_size(path):

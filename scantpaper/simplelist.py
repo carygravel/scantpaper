@@ -151,9 +151,9 @@ class SimpleList(Gtk.TreeView):
         "callback for edited signal of text cell"
         path = Gtk.TreePath.new_from_string(text_path)
         model = self.get_model()
-        if col_type == int:
+        if col_type is int:
             new_text = int(new_text)
-        elif col_type == float:
+        elif col_type is float:
             new_text = float(new_text)
         model[model.get_iter(path)][renderer.column] = new_text
 
