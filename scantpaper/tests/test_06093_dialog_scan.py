@@ -515,6 +515,7 @@ def test_infinite_reloads_due_to_inexact(
     mainloop_with_timeout,
     inexact_scan_mocks,
 ):
+    "test that SANE_INFO_INEXACT geometry changes do not hit the reload-recursion-limit"
     inexact_scan_mocks.patch_open_get(mocker)
 
     def mocked_do_set_option(self, _request):
@@ -522,9 +523,7 @@ def test_infinite_reloads_due_to_inexact(
         setting SANE_INFO_INEXACT, which was hitting the
         reload-recursion-limit."""
         key, value = _request.args
-        for opt in inexact_scan_mocks.raw_options:
-            if opt.name == key:
-                break
+        opt = next((o for o in inexact_scan_mocks.raw_options if o.name == key), None)
 
         info = 0
         if key in ["br-x", "br-y", "tl-x", "tl-y"]:
