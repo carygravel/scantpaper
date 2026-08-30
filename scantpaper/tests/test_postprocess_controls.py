@@ -335,4 +335,4 @@ def test_engine_property():
     controls = OCRControls(
         available_engines=[["tesseract", "Tesseract", "Desc"]], engine="tesseract"
     )
-    assert controls.engine == "tesseract"
+    assert controls.get_property("engine") == "tesseract"
