@@ -3,7 +3,7 @@
 # pylint: disable=protected-access  # tests access private members
 
 import datetime
-import os
+import pathlib
 import unittest.mock
 
 import gi
@@ -176,7 +176,7 @@ class TestStandaloneFunctions(unittest.TestCase):
             ]
         )
 
-    @unittest.mock.patch("file_menu_mixins.os.path.isfile")
+    @unittest.mock.patch.object(pathlib.Path, "is_file")
     @unittest.mock.patch("file_menu_mixins.GLib")
     def test_file_exists_true(self, mock_glib, mock_isfile):
         "file_exists returns True if file exists"
@@ -187,7 +187,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         chooser.set_filename.assert_called_with("test.txt")
         mock_glib.idle_add.assert_called()
 
-    @unittest.mock.patch("file_menu_mixins.os.path.isfile")
+    @unittest.mock.patch.object(pathlib.Path, "is_file")
     def test_file_exists_false(self, mock_isfile):
         "file_exists returns False if file does not exist"
         mock_isfile.return_value = False
@@ -334,25 +334,23 @@ class TestFileMenuMixins:
         assert not app._can_quit()
 
     @unittest.mock.patch("file_menu_mixins.os")
-    @unittest.mock.patch("file_menu_mixins.glob")
     @unittest.mock.patch("file_menu_mixins.fcntl")
     @unittest.mock.patch("file_menu_mixins.config")
-    def test_can_quit(self, mock_config, mock_fcntl, mock_glob, mock_os, app):
+    def test_can_quit(self, mock_config, mock_fcntl, mock_os, mocker, app):
         "Test _can_quit performs cleanup and saves settings."
         app._pages_saved = unittest.mock.Mock(return_value=True)
-        mock_glob.glob.return_value = ["file1", "file2"]
+        mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = [
+            pathlib.Path("file1"),
+            pathlib.Path("file2"),
+        ]
+        mock_unlink = mocker.patch.object(pathlib.Path, "unlink", autospec=True)
+        mock_rmdir = mocker.patch.object(pathlib.Path, "rmdir", autospec=True)
 
         assert app._can_quit()
 
         mock_os.chdir.assert_called_with(app.settings["cwd"])
-        mock_glob.glob.assert_called()
-        mock_os.remove.assert_has_calls(
-            [
-                unittest.mock.call("file1"),
-                unittest.mock.call("file2"),
-            ]
-        )
-        mock_os.rmdir.assert_called()
+        mock_unlink.assert_called()
+        mock_rmdir.assert_called_once()
         mock_config.write_config.assert_called_with(app._configfile, app.settings)
         mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
 
@@ -915,7 +913,8 @@ class TestFileMenuMixins:
             save_method.assert_called_with(f"/path/to/file.{fmt}", ["uuid1"])
 
     @unittest.mock.patch("file_menu_mixins.os")
-    def test_file_writable_errors(self, mock_os, app):
+    @unittest.mock.patch.object(pathlib.Path, "is_file")
+    def test_file_writable_errors(self, mock_isfile, mock_os, app):
         "Test _file_writable error cases."
         app._show_message_dialog = unittest.mock.Mock()
         mock_chooser = unittest.mock.Mock()
@@ -930,7 +929,7 @@ class TestFileMenuMixins:
         app._show_message_dialog.reset_mock()
         mock_os.path.dirname.return_value = "/tmp"
         mock_os.access.side_effect = [True, False]  # dir writable, file not
-        mock_os.path.isfile.return_value = True
+        mock_isfile.return_value = True
         assert not app._file_writable(mock_chooser, "/tmp/readonly.pdf")
         app._show_message_dialog.assert_called()
 
@@ -1039,8 +1038,8 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("file_menu_mixins.Gtk")
     @unittest.mock.patch("file_menu_mixins.file_exists")
-    @unittest.mock.patch("file_menu_mixins.os")
-    def test_save_image_logic(self, mock_os, mock_file_exists, mock_gtk, app):
+    @unittest.mock.patch.object(pathlib.Path, "is_file")
+    def test_save_image_logic(self, mock_isfile, mock_file_exists, mock_gtk, app):
         "Test _save_image with multiple pages and overwrite check."
         app.slist.save_image = unittest.mock.Mock()
         app._windowi = unittest.mock.Mock()
@@ -1054,12 +1053,12 @@ class TestFileMenuMixins:
         mock_file_exists.return_value = False
 
         # Multiple pages overwrite case
-        mock_os.path.isfile.return_value = True
+        mock_isfile.return_value = True
         app._save_image(["uuid1", "uuid2"])
         app._show_message_dialog.assert_called()
 
         # Single page success
-        mock_os.path.isfile.return_value = False
+        mock_isfile.return_value = False
         app._save_image(["uuid1"])
         app.slist.save_image.assert_called()
         app._windowi.hide.assert_called_once()
@@ -1398,5 +1397,5 @@ class TestFileMenuMixins:
 
         app.open_dialog(None, None)
 
-        assert app.settings["cwd"] == os.path.expanduser("~")
+        assert app.settings["cwd"] == str(pathlib.Path("~").expanduser())
         assert mock_chdir.call_count >= 2

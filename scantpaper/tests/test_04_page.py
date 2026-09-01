@@ -3,7 +3,7 @@
 # pylint: disable=protected-access  # tests access private members
 
 import io
-import os
+import pathlib
 import subprocess
 import tempfile
 
@@ -23,7 +23,7 @@ def test_1(temp_pnm, temp_jpg):
     with tempfile.TemporaryDirectory() as dirname:
         with pytest.raises(ValueError, match="please supply either"):
             page = Page(dir=dirname)
-        os.remove(temp_pnm.name)
+        pathlib.Path(temp_pnm.name).unlink()
         with pytest.raises(FileNotFoundError):
             page = Page(filename=temp_pnm.name, format="PBM", dir=dirname)
 
@@ -342,7 +342,9 @@ def test_write_image_for_djvu():
     ):
         page = Page(image_object=Image.new("1", (210, 297)))
         page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
-        assert os.path.isfile(filename.name), "write_image_for_djvu() creates a file"
+        assert pathlib.Path(
+            filename.name
+        ).is_file(), "write_image_for_djvu() creates a file"
 
 
 def test_write_image_for_tiff():
@@ -356,7 +358,9 @@ def test_write_image_for_tiff():
         page.write_image_for_tiff(
             filename.name, {"dir": dirname, "options": {"compression": "jpeg"}}
         )
-        assert os.path.isfile(filename.name), "write_image_for_tiff() creates a file"
+        assert pathlib.Path(
+            filename.name
+        ).is_file(), "write_image_for_tiff() creates a file"
 
 
 def test_write_image_for_djvu_error(mocker):
@@ -425,7 +429,7 @@ def test_to_stored_bytes_rgba_is_png():
 def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
     "importing a JPEG file stores the original bytes"
     Image.new("RGB", (210, 297)).save(temp_jpg.name, format="JPEG")
-    with open(temp_jpg.name, "rb") as fhd:
+    with pathlib.Path(temp_jpg.name).open("rb") as fhd:
         original = fhd.read()
     page = Page(filename=temp_jpg.name)
     assert page.to_stored_bytes() == original
@@ -434,7 +438,7 @@ def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
 def test_to_stored_bytes_png_file_passthrough(temp_png):
     "importing a PNG file stores the original bytes"
     Image.new("RGB", (210, 297)).save(temp_png.name, format="PNG")
-    with open(temp_png.name, "rb") as fhd:
+    with pathlib.Path(temp_png.name).open("rb") as fhd:
         original = fhd.read()
     page = Page(filename=temp_png.name)
     assert page.to_stored_bytes() == original
@@ -467,7 +471,7 @@ def test_write_image_for_pdf_passthrough():
     page.resolution = (72, 72, "PixelsPerInch")
     with tempfile.NamedTemporaryFile(suffix=".png") as filename:
         page.write_image_for_pdf(filename.name, None)
-        with open(filename.name, "rb") as fhd:
+        with pathlib.Path(filename.name).open("rb") as fhd:
             assert fhd.read() == stored, "bytes passed through"
 
 
@@ -481,14 +485,14 @@ def test_write_image_for_pdf_reenocodes_with_options():
     with tempfile.NamedTemporaryFile(suffix=".png") as filename:
         options = {"options": {"downsample": True, "downsample dpi": 36}}
         page.write_image_for_pdf(filename.name, options)
-        with open(filename.name, "rb") as fhd:
+        with pathlib.Path(filename.name).open("rb") as fhd:
             output = fhd.read()
         assert output != stored, "downsampled image re-encoded"
         assert Image.open(io.BytesIO(output)).size == (105, 148), "downsampled size"
     with tempfile.NamedTemporaryFile(suffix=".png") as filename:
         options = {"options": {"compression": "g4"}}
         page.write_image_for_pdf(filename.name, options)
-        with open(filename.name, "rb") as fhd:
+        with pathlib.Path(filename.name).open("rb") as fhd:
             output = fhd.read()
         assert output != stored, "compressed image re-encoded"
         assert Image.open(io.BytesIO(output)).mode == "1", "thresholded to bilevel"

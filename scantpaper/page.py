@@ -4,6 +4,7 @@ import io
 import json
 import locale
 import logging
+import pathlib
 import re
 import subprocess
 import tempfile
@@ -76,7 +77,7 @@ class Page:
         if "filename" in kwargs:
             self.image_object = Image.open(kwargs["filename"])
             if self.image_object.format in ("JPEG", "PNG"):
-                with open(kwargs["filename"], "rb") as fhd:
+                with pathlib.Path(kwargs["filename"]).open("rb") as fhd:
                     self._stored_bytes = fhd.read()
 
         # set this before setting attributes from kwargs in order to reuse uuid
@@ -379,7 +380,7 @@ class Page:
             and not opts.get("downsample")
             and not (opts.get("compression") and opts["compression"][0] == "g")
         ):
-            with open(filename, "wb") as fhd:
+            with pathlib.Path(filename).open("wb") as fhd:
                 fhd.write(self._stored_bytes)
             return
         if (

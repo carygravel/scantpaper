@@ -1,7 +1,7 @@
 "Test writing multipage PDF with utf8"
 
 import datetime
-import os
+import pathlib
 import re
 import subprocess
 import tempfile
@@ -124,8 +124,10 @@ def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloo
         mlp = safe_mainloop(5000)
         mlp.run()
 
-        assert os.path.getsize(temp_ps.name) > 194000, "non-empty postscript created"
-        assert os.path.getsize(temp_ps2.name) > 194000, "ran post-save hook"
+        assert (
+            pathlib.Path(temp_ps.name).stat().st_size > 194000
+        ), "non-empty postscript created"
+        assert pathlib.Path(temp_ps2.name).stat().st_size > 194000, "ran post-save hook"
 
 
 def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
@@ -154,8 +156,10 @@ def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainlo
         mlp = safe_mainloop(5000)
         mlp.run()
 
-        assert os.path.getsize(temp_ps.name) > 14000, "non-empty postscript created"
-        assert os.path.getsize(temp_ps2.name) > 14000, "ran post-save hook"
+        assert (
+            pathlib.Path(temp_ps.name).stat().st_size > 14000
+        ), "non-empty postscript created"
+        assert pathlib.Path(temp_ps2.name).stat().st_size > 14000, "ran post-save hook"
 
 
 def test_prepend_pdf(
@@ -182,7 +186,7 @@ def test_prepend_pdf(
 
     with pikepdf.open(temp_pdf.name) as pdf:
         assert len(pdf.pages) == 2, "PDF prepended"
-    assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
+    assert pathlib.Path(f"{temp_pdf.name}.bak").is_file(), "Backed up original"
 
     #########################
 
@@ -213,7 +217,7 @@ def test_append_pdf(
 
     with pikepdf.open(temp_pdf.name) as pdf:
         assert len(pdf.pages) == 2, "PDF appended"
-    assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
+    assert pathlib.Path(f"{temp_pdf.name}.bak").is_file(), "Backed up original"
 
     #########################
 
@@ -224,7 +228,7 @@ def test_prepend_with_space(
     rose_pnm, rose_png, temp_db, import_in_mainloop, clean_up_files
 ):
     "Test prepending a page to a PDF with a space"
-    with open("te st.pdf", "wb") as temp_pdf:
+    with pathlib.Path("te st.pdf").open("wb") as temp_pdf:
         temp_pdf.write(img2pdf.convert(rose_png))
         temp_pdf.flush()
 
@@ -245,7 +249,7 @@ def test_prepend_with_space(
 
     with pikepdf.open("te st.pdf") as pdf:
         assert len(pdf.pages) == 2, "PDF prepended"
-    assert os.path.isfile("te st.pdf.bak"), "Backed up original"
+    assert pathlib.Path("te st.pdf.bak").is_file(), "Backed up original"
 
     #########################
 
@@ -256,7 +260,7 @@ def test_prepend_with_inverted_comma(
     rose_pnm, rose_png, temp_db, import_in_mainloop, clean_up_files
 ):
     "Test prepending a page to a PDF"
-    with open("te'st.pdf", "wb") as temp_pdf:
+    with pathlib.Path("te'st.pdf").open("wb") as temp_pdf:
         temp_pdf.write(img2pdf.convert(rose_png))
         temp_pdf.flush()
 
@@ -277,7 +281,7 @@ def test_prepend_with_inverted_comma(
 
     with pikepdf.open("te'st.pdf") as pdf:
         assert len(pdf.pages) == 2, "PDF prepended"
-    assert os.path.isfile("te'st.pdf.bak"), "Backed up original"
+    assert pathlib.Path("te'st.pdf.bak").is_file(), "Backed up original"
 
     #########################
 
@@ -315,8 +319,8 @@ def test_append_pdf_with_timestamp(
 
     with pikepdf.open(temp_pdf.name) as pdf:
         assert len(pdf.pages) == 2, "PDF appended"
-    assert os.path.isfile(f"{temp_pdf.name}.bak"), "Backed up original"
-    stb = os.stat(temp_pdf.name)
+    assert pathlib.Path(f"{temp_pdf.name}.bak").is_file(), "Backed up original"
+    stb = pathlib.Path(temp_pdf.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
     ) == datetime.datetime(

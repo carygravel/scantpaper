@@ -1,6 +1,6 @@
 "test config helper functions"
 
-import os
+import pathlib
 import tempfile
 from datetime import datetime, timedelta
 from types import SimpleNamespace
@@ -37,7 +37,7 @@ def test_config():
     config = """{
     "version": "1.3.3"
 }"""
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
     example = {"version": "1.3.3"}
     output = read_config(rc)
@@ -90,7 +90,7 @@ def test_config():
     config = """{
    "user_defined_tools" : "gimp %i"
 }"""
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
 
     example = {"user_defined_tools": ["gimp %i"]}
@@ -107,7 +107,7 @@ def test_config():
    "version" : "1.7.3"
 }
 """
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
 
     example = {"profile": {}, "version": "1.7.3"}
@@ -124,7 +124,7 @@ def test_config_string_conversion():
     "image_control_tool": 1,
     "viewer_tools": 2
 }"""
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
 
     output = read_config(rc)
@@ -135,7 +135,7 @@ def test_config_string_conversion():
     ), "image_control_tool should be a string"
     assert isinstance(output["viewer_tools"], str), "viewer_tools should be a string"
 
-    os.remove(rc)
+    pathlib.Path(rc).unlink()
 
 
 def test_config2(mocker):
@@ -155,7 +155,7 @@ def test_config2(mocker):
     ],
     "version": "1.7.3"
 }"""
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
 
     example = {
@@ -190,7 +190,7 @@ def test_config2(mocker):
     ],
     "version": "1.7.3"
 }"""
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
     example = {"version": "1.7.3", "datetime offset": timedelta(seconds=0)}
     output = read_config(rc)
@@ -232,7 +232,7 @@ def test_config2(mocker):
     },
     "version": "1.7.3"
 }"""
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
     selection = Gdk.Rectangle()
     selection.x, selection.y, selection.width, selection.height = 1, 2, 3, 4
@@ -258,7 +258,7 @@ def test_config2(mocker):
    "version" : "
 }
 """
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
 
     output = read_config(rc)
@@ -267,28 +267,28 @@ def test_config2(mocker):
 
     #########################
 
-    os.remove(f"{rc}.old")  # rc doesn't exist because it was corrupt
+    pathlib.Path(f"{rc}.old").unlink()  # rc doesn't exist because it was corrupt
 
 
 def test_threshold_tool_migration():
     "test migration of threshold tool to the ink-strength scale"
     with tempfile.TemporaryDirectory() as tmpdirname:
-        rc = os.path.join(tmpdirname, "config")
+        rc = pathlib.Path(tmpdirname) / "config"
 
         # config predating the change: value migrated to 100 - v
-        with open(rc, "w", encoding="utf-8") as fh:
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
             fh.write('{"version": "3.0.15", "threshold tool": 80}')
         output = read_config(rc)
         assert output["threshold tool"] == 20, "legacy value migrated"
 
         # config written by the change version is not migrated again
-        with open(rc, "w", encoding="utf-8") as fh:
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
             fh.write('{"version": "3.0.16", "threshold tool": 20}')
         output = read_config(rc)
         assert output["threshold tool"] == 20, "current version not migrated"
 
         # config without a version is treated as legacy
-        with open(rc, "w", encoding="utf-8") as fh:
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
             fh.write('{"threshold tool": 60}')
         output = read_config(rc)
         assert output["threshold tool"] == 40, "absent version treated as legacy"
@@ -298,7 +298,7 @@ def test_threshold_tool_default():
     "test that the default threshold tool value is 20"
     assert DEFAULTS["threshold tool"] == 20
     with tempfile.TemporaryDirectory() as tmpdirname:
-        rc = os.path.join(tmpdirname, "config")
+        rc = pathlib.Path(tmpdirname) / "config"
         output = read_config(rc)
         add_defaults(output)
         assert output["threshold tool"] == 20, "default threshold tool is 20"
@@ -320,11 +320,11 @@ def test_get_convert_command(mocker):
 def test_read_non_existent_config():
     "test reading a config file that doesn't exist"
     with tempfile.TemporaryDirectory() as tmpdirname:
-        rc = os.path.join(tmpdirname, "non_existent_config")
+        rc = pathlib.Path(tmpdirname) / "non_existent_config"
         output = read_config(rc)
         assert (
             output == {}
         ), "read_config should return empty dict for non-existent file"
-        assert os.path.exists(
+        assert pathlib.Path(
             rc
-        ), "read_config should create the file if it doesn't exist"
+        ).exists(), "read_config should create the file if it doesn't exist"

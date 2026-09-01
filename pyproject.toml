@@ -88,7 +88,6 @@ ignore = [
     "ANN",     # type annotations: would require typing the whole codebase
     "SLF001",  # private member access: legitimately used across dialog/GTK code
     "FBT",     # boolean positional args: existing API surface is too large
-    "PTH",     # pathlib: 60k lines still use os.path everywhere
     "PLR2004", # magic values: ubiquitous GUI widget constants
     "S",       # bandit: dominated by `assert` (S101) in tests
     "E501",    # line length: tracked by black's own width

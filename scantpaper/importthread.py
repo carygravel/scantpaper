@@ -1,8 +1,6 @@
 "Threading model for the Document class"
 
-import glob
 import logging
-import os
 import pathlib
 import re
 import subprocess
@@ -438,8 +436,8 @@ class Importhread(BaseThread):
         warning_flag = False
         for i in range(args["first"], args["last"] + 1):
             # Remove any extraction files left over from a previous page
-            for fname in glob.glob("x-*"):
-                os.remove(fname)
+            for fname in pathlib.Path().glob("x-*"):
+                pathlib.Path(fname).unlink()
 
             out = exec_command_run(
                 _pdf_cmd_with_password(
@@ -504,7 +502,7 @@ class Importhread(BaseThread):
         for fname, xresolution, yresolution, mask_fname in images_and_resolution:
             if mask_fname is not None:
                 _composite_over_white(fname, mask_fname)
-                os.remove(mask_fname)
+                pathlib.Path(mask_fname).unlink()
             regex = re.search(r"([^.]+)$", fname, re.MULTILINE | re.DOTALL | re.VERBOSE)
             if regex:
                 ext = regex.group(1)
@@ -522,7 +520,7 @@ class Importhread(BaseThread):
                             "row": self.add_page(page),
                         }
                     )
-                    os.remove(fname)
+                    pathlib.Path(fname).unlink()
                 except (OSError, PermissionError):
                     logger.exception("Caught error importing PDF")
                     request.error(_("Error importing PDF"))
@@ -622,7 +620,7 @@ def _composite_over_white(image_path, mask_path):
 
 def _correlate_pdf_images(entries):
     "correlate extracted files with pdfimages -list entries by index"
-    images = sorted(glob.glob("x-??*.???"))
+    images = sorted(str(x) for x in pathlib.Path().glob("x-??*.???"))
     if len(images) != len(entries):
         # Unexpected structure: import every file and warn
         xresolution, yresolution = None, None
@@ -643,7 +641,7 @@ def _correlate_pdf_images(entries):
             )
     for fname, entry in zip(images, entries, strict=False):
         if entry["type"] != "image" and fname not in paired_masks:
-            os.remove(fname)
+            pathlib.Path(fname).unlink()
     return images_and_resolution, len(images_and_resolution) != 1
 
 

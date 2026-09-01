@@ -1,9 +1,8 @@
 "Various helper functions"
 
 import datetime
-import glob
 import logging
-import os
+import pathlib
 import re
 import subprocess
 import weakref
@@ -232,7 +231,7 @@ def get_tmp_dir(dirname, pattern):
     if dirname is None:
         return None
     while re.search(pattern, dirname):
-        dirname = os.path.dirname(dirname)
+        dirname = str(pathlib.Path(dirname).parent)
     return dirname
 
 
@@ -244,7 +243,7 @@ def slurp(file):
         if isinstance(content, bytes):
             return content.decode("utf-8", "replace")
         return content
-    with open(file, encoding="utf-8") as fhd:
+    with pathlib.Path(file).open(encoding="utf-8") as fhd:
         return fhd.read()
 
 
@@ -254,8 +253,8 @@ def recursive_slurp(files):
     of each file.
     """
     for file in files:
-        if os.path.isdir(file):
-            recursive_slurp(glob.glob(f"{file}/*"))
+        if pathlib.Path(file).is_dir():
+            recursive_slurp(pathlib.Path(file).glob("*"))
         else:
             output = slurp(file)
             if output is not None:

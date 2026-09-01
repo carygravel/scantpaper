@@ -1,7 +1,6 @@
 "application window"
 
 import contextlib
-import glob
 import locale
 import logging
 import os
@@ -142,11 +141,11 @@ class ApplicationWindow(
         super().__init__(*args, **kwargs)
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
-        base_path = os.path.abspath(os.path.dirname(__file__))
+        base_path = pathlib.Path(pathlib.Path(__file__).parent).resolve()
         self.builder = Gtk.Builder()
         # Ensure Gtk.Builder uses the same gettext domain as the application
         self.builder.set_translation_domain(PROG_NAME)
-        self.builder.add_from_file(os.path.join(base_path, "app.ui"))
+        self.builder.add_from_file(str(base_path / "app.ui"))
         self.builder.connect_signals(self)
         self.detail_popup = self.builder.get_object("detail_popup")
 
@@ -280,12 +279,12 @@ class ApplicationWindow(
         and initialise various components"""
 
         if self.settings["cwd"] is None:
-            self.settings["cwd"] = os.getcwd()
+            self.settings["cwd"] = str(pathlib.Path.cwd())
         self.settings["version"] = VERSION
 
         logger.info("Operating system: %s", sys.platform)
         if sys.platform == "linux":
-            recursive_slurp(glob.glob("/etc/*-release"))
+            recursive_slurp(pathlib.Path("/etc").glob("*-release"))
 
         logger.info("Python version %s", sys.version_info)
         logger.info("GLib VERSION_MIN_REQUIRED %s", GLib.VERSION_MIN_REQUIRED)
@@ -329,7 +328,10 @@ class ApplicationWindow(
         )
         self._configfile = f"{rcdir}/{PROG_NAME}rc"
         old_configfile = f"{rcdir}/gscan2pdfrc"
-        if not os.path.exists(self._configfile) and os.path.exists(old_configfile):
+        if (
+            not pathlib.Path(self._configfile).exists()
+            and pathlib.Path(old_configfile).exists()
+        ):
             shutil.copy(old_configfile, self._configfile)
         self.settings = config.read_config(self._configfile)
         config.add_defaults(self.settings)
@@ -371,7 +373,7 @@ class ApplicationWindow(
 
         # If defined in the config file, set the current directory
         if "cwd" not in self.settings:
-            self.settings["cwd"] = os.getcwd()
+            self.settings["cwd"] = str(pathlib.Path.cwd())
         self._unpaper = Unpaper(self.settings["unpaper options"])
         self._update_uimanager()
         self.show_all()

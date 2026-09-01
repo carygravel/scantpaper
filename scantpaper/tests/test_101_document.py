@@ -3,7 +3,7 @@
 # pylint: disable=protected-access  # tests access private members
 
 import datetime
-import os
+import pathlib
 import shutil
 import sqlite3
 import subprocess
@@ -38,6 +38,7 @@ from PIL import Image
 from savethread import _bbox2markup, _set_timestamp, prepare_output_metadata
 
 gi.require_version("Gtk", "3.0")
+
 from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     GLib,
     Gtk,
@@ -163,7 +164,7 @@ def test_file_dates(temp_txt):
         },
     )
     _set_timestamp(options)
-    stb = os.stat(temp_txt.name)
+    stb = pathlib.Path(temp_txt.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
     ) == datetime.datetime(

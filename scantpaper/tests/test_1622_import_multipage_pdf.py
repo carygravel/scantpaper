@@ -1,7 +1,7 @@
 "Test importing PDF"
 
 import datetime
-import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -201,7 +201,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf):
                 asserts += 1
 
                 # inject error during import file
-                os.chmod(dirname, 0o500)  # no write access
+                pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_cb(*args):
             nonlocal asserts
@@ -210,7 +210,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf):
             asserts += 1
 
             # inject error during import file
-            os.chmod(dirname, 0o700)  # allow write access
+            pathlib.Path(dirname).chmod(0o700)  # allow write access
 
         slist.import_files(
             paths=[temp_pdf.name],

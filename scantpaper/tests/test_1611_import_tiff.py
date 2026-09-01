@@ -1,6 +1,5 @@
 "Test importing TIFF"
 
-import os
 import pathlib
 import subprocess
 import tempfile
@@ -71,7 +70,7 @@ def test_import_tiff_with_error(rose_tif):
         asserts = 0
 
         # inject error during import file
-        os.chmod(dirname, 0o500)  # allow access
+        pathlib.Path(dirname).chmod(0o500)  # allow access
 
         def error_cb(*args):
             nonlocal asserts
@@ -80,7 +79,7 @@ def test_import_tiff_with_error(rose_tif):
             asserts += 1
 
             # inject error during import file
-            os.chmod(dirname, 0o700)  # allow write access
+            pathlib.Path(dirname).chmod(0o700)  # allow write access
 
         slist.import_files(
             paths=[rose_tif],
@@ -95,7 +94,7 @@ def test_import_tiff_with_error(rose_tif):
                 asserts += 1
 
                 # inject error during import file
-                os.chmod(dirname, 0o500)  # no write access
+                pathlib.Path(dirname).chmod(0o500)  # no write access
 
         slist.import_files(
             paths=[rose_tif],

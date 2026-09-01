@@ -2,7 +2,6 @@
 
 # pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
-import os
 import pathlib
 import queue
 import shutil
@@ -175,7 +174,7 @@ def test_save_open_session():
 
     # Create a dummy document.db
     db_path = slist.dir.name + ".sdb"
-    with open(db_path, "w", encoding="utf-8") as f:
+    with pathlib.Path(db_path).open("w", encoding="utf-8") as f:
         f.write("dummy db")
 
     with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
@@ -183,7 +182,7 @@ def test_save_open_session():
 
     try:
         slist.save_session(tmp_name)
-        assert os.path.exists(tmp_name)
+        assert pathlib.Path(tmp_name).exists()
 
         slist2 = Document()
         temp_dir2 = tempfile.mkdtemp()
@@ -208,13 +207,13 @@ def test_save_open_session():
 
         shutil.rmtree(temp_dir2)
     finally:
-        if os.path.exists(tmp_name):
-            os.remove(tmp_name)
-        if os.path.exists(db_path):
-            os.remove(db_path)
+        if pathlib.Path(tmp_name).exists():
+            pathlib.Path(tmp_name).unlink()
+        if pathlib.Path(db_path).exists():
+            pathlib.Path(db_path).unlink()
         open_session_db = slist2.dir.name + ".sdb"
-        if os.path.exists(open_session_db):
-            os.remove(open_session_db)
+        if pathlib.Path(open_session_db).exists():
+            pathlib.Path(open_session_db).unlink()
         shutil.rmtree(temp_dir)
 
 

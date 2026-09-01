@@ -2,7 +2,7 @@
 
 import codecs
 import datetime
-import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -34,7 +34,9 @@ def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    assert os.path.getsize(temp_djvu.name) > 0, "DjVu created with expected size"
+    assert (
+        pathlib.Path(temp_djvu.name).stat().st_size > 0
+    ), "DjVu created with expected size"
     assert slist.thread.pages_saved(), "pages tagged as saved"
 
 
@@ -74,7 +76,7 @@ def test_save_djvu_text_layer(
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    with open(temp_txt.name, encoding="utf-8") as f:
+    with pathlib.Path(temp_txt.name).open(encoding="utf-8") as f:
         capture = f.read()
     assert len(capture) > 0, "ran post-save hook"
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
@@ -215,7 +217,7 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
         import_in_mainloop(slist, [rose_pnm])
 
         # inject error before save_djvu
-        os.chmod(dirname, 0o500)  # no write access
+        pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_callback1(_page, _process, _message):
             "no write access"
@@ -234,7 +236,7 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
 
         def error_callback2(_page, _process, _message):
             assert True, "save_djvu caught error injected in queue"
-            os.chmod(dirname, 0o700)  # allow write access
+            pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
             asserts += 1
             mlp.quit()
@@ -274,7 +276,9 @@ def test_save_djvu_with_float_resolution(
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    assert os.path.getsize(temp_djvu.name) > 0, "DjVu created with expected size"
+    assert (
+        pathlib.Path(temp_djvu.name).stat().st_size > 0
+    ), "DjVu created with expected size"
 
 
 @pytest.mark.skipif(
@@ -338,7 +342,7 @@ def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloo
     assert re.search(r"metadata title", info) is not None, "metadata title in DjVu"
     assert re.search(r"2016-02-10", info) is not None, "metadata ModDate in DjVu"
 
-    stb = os.stat(temp_djvu.name)
+    stb = pathlib.Path(temp_djvu.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
     ) == datetime.datetime(

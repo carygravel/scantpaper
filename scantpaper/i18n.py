@@ -2,10 +2,10 @@
 
 import gettext
 import logging
-import os
+import pathlib
 
-localedir_pkg = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "locale")
-locales_to_try = [localedir_pkg, "/usr/share/locale", "/usr/local/share/locale"]
+LOCALEDIR_PKG = str(pathlib.Path(__file__).parent.resolve() / ".." / "locale")
+locales_to_try = [LOCALEDIR_PKG, "/usr/share/locale", "/usr/local/share/locale"]
 logger = logging.getLogger(__name__)
 _log_buffer = []
 

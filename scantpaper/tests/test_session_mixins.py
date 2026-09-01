@@ -3,7 +3,7 @@
 # pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
 import logging
-import os
+import pathlib
 from typing import ClassVar
 from unittest.mock import MagicMock
 
@@ -106,14 +106,14 @@ def mock_session_window(mocker):
 def test_create_temp_directory_success(mocker, mock_session_window):
     "Test _create_temp_directory success"
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/found")
-    mocker.patch("os.path.isdir", return_value=True)
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mocker.patch("session_mixins.fcntl.lockf")
 
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mock_temp_dir_instance = mock_temp_dir.return_value
     mock_temp_dir_instance.name = "/tmp/found/scantpaper-1234"
 
-    mocker.patch("builtins.open", mocker.mock_open())
+    mocker.patch.object(pathlib.Path, "open", mocker.mock_open())
 
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
@@ -130,7 +130,7 @@ def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mock_temp_dir_instance = mock_temp_dir.return_value
     mock_temp_dir_instance.name = "/tmp/scantpaper-fallback"
-    mocker.patch("builtins.open", mocker.mock_open())
+    mocker.patch.object(pathlib.Path, "open", mocker.mock_open())
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
     mock_session_window._create_temp_directory()
@@ -145,7 +145,7 @@ def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mock_temp_dir_instance = mock_temp_dir.return_value
     mock_temp_dir_instance.name = "/tmp/scantpaper-fallback"
-    mocker.patch("builtins.open", mocker.mock_open())
+    mocker.patch.object(pathlib.Path, "open", mocker.mock_open())
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
     mock_session_window._create_temp_directory()
@@ -155,7 +155,7 @@ def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
 def test_create_temp_directory_fallback(mocker, mock_session_window):
     "Test _create_temp_directory fallback when preferred dir fails"
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/bad")
-    mocker.patch("os.path.isdir", return_value=True)
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mocker.patch("session_mixins.fcntl.lockf")
 
     # Simulate PermissionError on first try
@@ -165,7 +165,7 @@ def test_create_temp_directory_fallback(mocker, mock_session_window):
         MagicMock(name="/tmp/fallback/scantpaper-1234"),
     ]
 
-    mocker.patch("builtins.open", mocker.mock_open())
+    mocker.patch.object(pathlib.Path, "open", mocker.mock_open())
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
     mock_session_window._create_temp_directory()
@@ -181,15 +181,15 @@ def test_create_temp_directory_fallback(mocker, mock_session_window):
 def test_create_temp_directory_non_existent_tmpdir(mocker, mock_session_window):
     "Test _create_temp_directory when tmpdir does not exist"
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/new")
-    mocker.patch("os.path.isdir", return_value=False)
-    mocker.patch("os.mkdir")
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
+    mock_mkdir = mocker.patch.object(pathlib.Path, "mkdir")
     mocker.patch("session_mixins.fcntl.lockf")
     mocker.patch("tempfile.TemporaryDirectory")
-    mocker.patch("builtins.open", mocker.mock_open())
+    mocker.patch.object(pathlib.Path, "open", mocker.mock_open())
     mock_session_window._find_crashed_sessions = mocker.Mock()
 
     mock_session_window._create_temp_directory()
-    os.mkdir.assert_called_with("/tmp/new")
+    mock_mkdir.assert_called_once_with()
 
 
 def test_check_dependencies(mocker, mock_session_window):
@@ -253,7 +253,7 @@ def test_zoom_methods(mock_session_window):
 
 def test_find_crashed_sessions_default_tmpdir_none(mocker, mock_session_window):
     "Test _find_crashed_sessions when get_tmp_dir returns None"
-    mocker.patch("glob.glob", return_value=[])
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
     mocker.patch("session_mixins.get_tmp_dir", return_value=None)
     mock_gettempdir = mocker.patch(
         "session_mixins.tempfile.gettempdir", return_value="/fallback"
@@ -266,7 +266,7 @@ def test_find_crashed_sessions_default_tmpdir_none(mocker, mock_session_window):
 
 def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window):
     "Test _find_crashed_sessions when get_tmp_dir returns EMPTY"
-    mocker.patch("glob.glob", return_value=[])
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
     mocker.patch("session_mixins.get_tmp_dir", return_value=EMPTY)
     mock_gettempdir = mocker.patch(
         "session_mixins.tempfile.gettempdir", return_value="/fallback"
@@ -279,13 +279,15 @@ def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window)
 
 def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
     "Test _find_crashed_sessions with currently running sessions (locked)"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-other.sdb"])
+    mocker.patch.object(
+        pathlib.Path, "glob", return_value=["/tmp/scantpaper-other.sdb"]
+    )
     mock_session_window.session = mocker.Mock()
     mock_session_window.session.name = "/tmp/scantpaper-running"
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp")
 
     # Mock _create_lockfile to fail (simulating running session)
-    mocker.patch("os.path.isdir", return_value=True)
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mock_session_window._create_lockfile = mocker.Mock(side_effect=OSError("Locked"))
     mock_session_window._open_session = mocker.Mock()
     mock_session_window._find_crashed_sessions()
@@ -294,7 +296,9 @@ def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
 
 def test_find_crashed_sessions_skips_current(mocker, mock_session_window):
     "Test _find_crashed_sessions skips the current running session"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-running.sdb"])
+    mocker.patch.object(
+        pathlib.Path, "glob", return_value=["/tmp/scantpaper-running.sdb"]
+    )
     mock_session_window.session = mocker.Mock()
     mock_session_window.session.name = "/tmp/scantpaper-running"
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp")
@@ -309,12 +313,14 @@ def test_find_crashed_sessions_skips_current(mocker, mock_session_window):
 
 def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed.sdb"])
+    mocker.patch.object(
+        pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed.sdb"]
+    )
     mock_session_window.session = mocker.Mock()
     mock_session_window.session.name = "/tmp/scantpaper-running"
 
     # Mock _create_lockfile to succeed (not running)
-    mocker.patch("os.path.isdir", return_value=True)
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mock_session_window._create_lockfile = mocker.Mock()
 
     # Mock Dialog
@@ -335,7 +341,7 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
 
 def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window):
     "Test _find_crashed_sessions with a recoverable session but no selection"
-    mocker.patch("glob.glob", return_value=["/tmp/scantpaper-crashed"])
+    mocker.patch.object(pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed"])
     mock_session_window.session = mocker.Mock()
     mock_session_window.session.name = "/tmp/scantpaper-running"
     mock_session_window._create_lockfile = mocker.Mock()

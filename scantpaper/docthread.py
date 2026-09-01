@@ -1,10 +1,8 @@
 "Threading model for the Document class"
 
 import datetime
-import glob
 import json
 import logging
-import os
 import pathlib
 import re
 import shutil
@@ -177,7 +175,7 @@ class DocThread(SaveThread):
         "open a saved database"
         self._check_write_tid()
         self._db = request.args[0]
-        if pathlib.Path(self._db).exists() and os.path.getsize(self._db):
+        if pathlib.Path(self._db).exists() and Path(self._db).stat().st_size:
             logger.warning(
                 "Database %s already exists, not creating it again", self._db
             )
@@ -1355,7 +1353,10 @@ class DocThread(SaveThread):
         if path == "./":
 
             # some systems allow multiple tessdata dirs, e.g. parallel v4 & v5
-            paths = glob.glob("/usr/share/tesseract-ocr/*/tessdata")
+            paths = sorted(
+                str(p)
+                for p in pathlib.Path("/usr/share/tesseract-ocr").glob("*/tessdata")
+            )
 
             # SUSE flat layout, Fedora/RHEL
             if len(paths) == 0:
@@ -1363,7 +1364,7 @@ class DocThread(SaveThread):
                     "/usr/share/tesseract-ocr/tessdata",
                     "/usr/share/tessdata",
                 ]:
-                    if os.path.isdir(candidate):
+                    if Path(candidate).is_dir():
                         paths = [candidate]
                         break
 
@@ -1455,7 +1456,7 @@ class DocThread(SaveThread):
         if spo.stderr:
             logger.error(spo.stderr)
             request.data(spo.stderr)
-            if not os.path.getsize(out.name):
+            if not Path(out.name).stat().st_size:
                 raise subprocess.CalledProcessError(
                     spo.returncode, options["options"]["command"]
                 )
@@ -1471,7 +1472,7 @@ class DocThread(SaveThread):
         if spo.stdout:
             logger.warning(spo.stdout)
             request.data(spo.stdout)
-            if not os.path.getsize(out.name):
+            if not Path(out.name).stat().st_size:
                 raise subprocess.CalledProcessError(
                     spo.returncode, options["options"]["command"]
                 )

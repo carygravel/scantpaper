@@ -2,7 +2,7 @@
 
 # pylint: disable=protected-access  # tests access private members
 
-import os
+import pathlib
 from unittest.mock import MagicMock
 
 import gi
@@ -12,6 +12,7 @@ from const import PROG_NAME, VERSION
 from text_layer_control import TextLayerControls
 
 gi.require_version("Gtk", "3.0")
+
 from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
 
 
@@ -35,7 +36,7 @@ def test_text_layer_sort_combo_box(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-    app.iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "../icons"))
+    app.iconpath = (pathlib.Path(__file__).parent / "../icons").resolve()
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
@@ -76,7 +77,7 @@ def test_text_layer_add_and_ok_buttons(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-    app.iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "../icons"))
+    app.iconpath = (pathlib.Path(__file__).parent / "../icons").resolve()
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
@@ -158,7 +159,7 @@ def test_edit_ocr_text_updates_selection(mocker):
     app.args.device = None
     app.args.import_files = None
     app.args.import_all = None
-    app.iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "../icons"))
+    app.iconpath = (pathlib.Path(__file__).parent / "../icons").resolve()
     mocker.patch("app_window.ApplicationWindow.get_application", return_value=app)
 
     window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")

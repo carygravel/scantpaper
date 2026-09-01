@@ -4,6 +4,7 @@ import datetime
 import json
 import logging
 import os
+import pathlib
 import re
 import shutil
 from types import SimpleNamespace
@@ -157,7 +158,7 @@ def read_config(filename):
     config = {}
     logger.info("Reading config from %s", filename)
     if not os.access(filename, os.R_OK):
-        with open(filename, "w", encoding="utf-8") as fh:
+        with pathlib.Path(filename).open("w", encoding="utf-8") as fh:
             fh.write("")
 
     configstr = slurp(filename)
@@ -168,7 +169,7 @@ def read_config(filename):
             logger.exception(
                 "Error: unable to load settings.\nBacking up settings\nReverting to defaults"
             )
-            os.rename(filename, f"{filename}.old")
+            pathlib.Path(filename).rename(f"{filename}.old")
 
     if "user_defined_tools" in config and not isinstance(
         config["user_defined_tools"], list
@@ -286,7 +287,7 @@ def write_config(rc, config):
         )
         config["selection"] = selection
 
-    with open(rc, "w", encoding="utf-8") as fh:
+    with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(json.dumps(config, sort_keys=True, indent=4))
     logger.info("Wrote config to %s", rc)
 

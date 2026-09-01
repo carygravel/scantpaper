@@ -1,7 +1,7 @@
 "Test importing DjVu"
 
 import datetime
-import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -38,7 +38,7 @@ def test_import_djvu(
     temp_txt.flush()
     text = """(maparea "" "()" (rect 157 3030 84 65) (hilite #cccf00) (xor))
 """
-    with open("ann.txt", "w", encoding="utf-8") as fhd:
+    with pathlib.Path("ann.txt").open("w", encoding="utf-8") as fhd:
         fhd.write(text)
     subprocess.run(
         [
@@ -56,7 +56,7 @@ Title	"Titleß"
 Subject	"Sübject"
 CreationDate	"2018-12-31 13:00:00+01:00"
 """
-    with open("text.txt", "w", encoding="utf-8") as fhd:
+    with pathlib.Path("text.txt").open("w", encoding="utf-8") as fhd:
         fhd.write(text)
     subprocess.run(
         ["djvused", temp_djvu.name, "-e", "set-meta text.txt", "-s"], check=True
@@ -158,7 +158,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
                 asserts += 1
 
                 # inject error during import file
-                os.chmod(dirname, 0o500)  # no write access
+                pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_cb(*args):
             nonlocal asserts
@@ -167,7 +167,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
             asserts += 1
 
             # inject error during import file
-            os.chmod(dirname, 0o700)  # no write access
+            pathlib.Path(dirname).chmod(0o700)  # no write access
 
         slist.import_files(
             paths=[temp_djvu.name],

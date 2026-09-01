@@ -2,7 +2,7 @@
 
 # pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
 
-import os
+import pathlib
 import uuid
 from itertools import cycle
 from typing import ClassVar
@@ -284,7 +284,7 @@ def test_view_html(mocker):
 def test_read_config_migration(app_window, mocker):
     "Test configuration file migration from old name"
     mocker.patch("app_window.os.environ", {"HOME": "/home/user"})
-    mock_exists = mocker.patch("app_window.os.path.exists")
+    mock_exists = mocker.patch.object(pathlib.Path, "exists", autospec=True)
     mock_copy = mocker.patch("app_window.shutil.copy")
     mocker.patch("app_window.config.read_config", return_value={"Paper": {}})
     mocker.patch("app_window.config.add_defaults")
@@ -1138,7 +1138,7 @@ def test_pre_flight_cwd_none(mocker, mock_config):
         with patch.object(Gtk.Application, "register", autospec=True):
             app.register(None)
             win = ApplicationWindow(application=app)
-            assert win.settings["cwd"] == os.getcwd()
+            assert win.settings["cwd"] == str(pathlib.Path.cwd())
     finally:
         if win:
             win.destroy()
@@ -1228,7 +1228,7 @@ def test_populate_main_window_cwd_missing(mocker, tmp_path):
         with patch.object(Gtk.Application, "register", autospec=True):
             app.register(None)
             win = ApplicationWindow(application=app)
-            assert win.settings["cwd"] == os.getcwd()
+            assert win.settings["cwd"] == str(pathlib.Path.cwd())
     finally:
         if win:
             win.destroy()

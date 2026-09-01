@@ -4,7 +4,7 @@
 
 import contextlib
 import logging
-import os
+import pathlib
 import subprocess
 import tempfile
 from types import SimpleNamespace
@@ -489,7 +489,7 @@ def temp_db():
     yield SimpleNamespace(name=f.name)
     for suffix in ("", "-wal", "-shm"):
         with contextlib.suppress(FileNotFoundError):
-            os.remove(f.name + suffix)
+            pathlib.Path(f.name + suffix).unlink()
 
 
 @pytest.fixture
@@ -665,7 +665,7 @@ def rose_pnm():
     path = tempfile.mktemp(suffix=".pnm")
     _create_rose_image().save(path, "PPM")
     yield path
-    os.unlink(path)
+    pathlib.Path(path).unlink()
 
 
 @pytest.fixture(scope="session")
@@ -674,7 +674,7 @@ def rose_png():
     path = tempfile.mktemp(suffix=".png")
     _create_rose_image().save(path, "PNG")
     yield path
-    os.unlink(path)
+    pathlib.Path(path).unlink()
 
 
 @pytest.fixture(scope="session")
@@ -683,7 +683,7 @@ def rose_jpg():
     path = tempfile.mktemp(suffix=".jpg")
     _create_rose_image().save(path, "JPEG")
     yield path
-    os.unlink(path)
+    pathlib.Path(path).unlink()
 
 
 @pytest.fixture(scope="session")
@@ -692,7 +692,7 @@ def rose_tif():
     path = tempfile.mktemp(suffix=".tif")
     _create_rose_image().save(path, "TIFF")
     yield path
-    os.unlink(path)
+    pathlib.Path(path).unlink()
 
 
 @pytest.fixture(scope="session")
@@ -701,7 +701,7 @@ def rotated_qbfox_pnm():
     path = tempfile.mktemp(suffix=".pnm")
     _create_qbfox_image().save(path)
     yield path
-    os.unlink(path)
+    pathlib.Path(path).unlink()
 
 
 @pytest.fixture
@@ -738,8 +738,8 @@ def clean_up_files():
 
     def anonymous(files):
         for fname in files:
-            if os.path.isfile(fname) or os.path.islink(fname):
-                os.remove(fname)
+            if pathlib.Path(fname).is_file() or pathlib.Path(fname).is_symlink():
+                pathlib.Path(fname).unlink()
 
     return anonymous
 
@@ -747,4 +747,4 @@ def clean_up_files():
 @pytest.fixture
 def datadir(request):
     """Return the directory for test data"""
-    return os.path.join(request.fspath.dirname, "")
+    return f"{request.fspath.dirname}/"

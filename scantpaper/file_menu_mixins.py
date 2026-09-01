@@ -2,9 +2,9 @@
 
 import datetime
 import fcntl
-import glob
 import logging
 import os
+import pathlib
 import re
 import sys
 import tempfile
@@ -19,6 +19,7 @@ from i18n import _
 from print_operation import PrintOperation
 
 gi.require_version("Gtk", "3.0")
+
 from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
     Gio,
     GLib,
@@ -58,7 +59,7 @@ def add_filter(file_chooser, name, file_extensions):
 def file_exists(chooser, filename):
     "Check if a file exists and prompt the user for confirmation if it does."
 
-    if os.path.isfile(filename):
+    if pathlib.Path(filename).is_file():
         # File exists; get the file chooser to ask the user to confirm.
         chooser.set_filename(filename)
 
@@ -71,7 +72,7 @@ def file_exists(chooser, filename):
 
 def launch_default_for_file(filename):
     "Launch default viewer for file"
-    uri = GLib.filename_to_uri(os.path.abspath(filename), None)
+    uri = GLib.filename_to_uri(str(pathlib.Path(filename).resolve()), None)
     logger.info("Opening %s via default launcher", uri)
     context = Gio.AppLaunchContext()
     try:
@@ -89,7 +90,7 @@ class FileMenuMixins:
         try:
             os.chdir(self.settings["cwd"])
         except FileNotFoundError:
-            self.settings["cwd"] = os.path.expanduser("~")
+            self.settings["cwd"] = str(pathlib.Path("~").expanduser())
             os.chdir(self.settings["cwd"])
 
     def new_(self, _action, _param):
@@ -157,7 +158,7 @@ class FileMenuMixins:
             file_chooser.destroy()
 
             # Update cwd
-            self.settings["cwd"] = os.path.dirname(filenames[0])
+            self.settings["cwd"] = str(pathlib.Path(filenames[0]).parent)
             self._import_files(filenames)
         else:
             file_chooser.destroy()
@@ -539,7 +540,7 @@ class FileMenuMixins:
                 return
 
             # Update cwd
-            self.settings["cwd"] = os.path.dirname(filename)
+            self.settings["cwd"] = str(pathlib.Path(filename).parent)
             if re.search(r"pdf", filetype, re.IGNORECASE):
                 self._save_pdf(filename, uuids, filetype)
 
@@ -568,8 +569,8 @@ class FileMenuMixins:
     def _file_writable(self, chooser, filename):
         "Check if a file or its directory is writable and show an error dialog if not."
 
-        if not os.access(os.path.dirname(filename), os.W_OK):
-            text = _("Directory %s is read-only") % (os.path.dirname(filename))
+        if not os.access(pathlib.Path(filename).parent, os.W_OK):
+            text = _("Directory %s is read-only") % (pathlib.Path(filename).parent)
             self._show_message_dialog(
                 parent=chooser,
                 message_type="error",
@@ -578,7 +579,7 @@ class FileMenuMixins:
             )
             return False
 
-        if os.path.isfile(filename) and not os.access(filename, os.W_OK):
+        if pathlib.Path(filename).is_file() and not os.access(filename, os.W_OK):
             text = _("File %s is read-only") % (filename)
             self._show_message_dialog(
                 parent=chooser,
@@ -793,7 +794,7 @@ class FileMenuMixins:
             filename = file_chooser.get_filename()
 
             # Update cwd
-            self.settings["cwd"] = os.path.dirname(filename)
+            self.settings["cwd"] = str(pathlib.Path(filename).parent)
 
             # cd back to tempdir
             os.chdir(self.session.name)
@@ -803,7 +804,7 @@ class FileMenuMixins:
                     current_filename = (
                         f"{filename}_%0{w}d.{self.settings['image type']}" % (i)
                     )
-                    if os.path.isfile(current_filename):
+                    if pathlib.Path(current_filename).is_file():
                         text = _("This operation would overwrite %s") % (
                             current_filename
                         )
@@ -907,11 +908,12 @@ class FileMenuMixins:
         self._chdir_cwd()
 
         # Remove temporary files and session db
-        for file in glob.glob(self.session.name + "/*") + glob.glob(
-            self.session.name + ".sdb*"
+        session_path = pathlib.Path(self.session.name)
+        for file in list(session_path.glob("*")) + list(
+            session_path.parent.glob(session_path.name + ".sdb*")
         ):
-            os.remove(file)
-        os.rmdir(self.session.name)
+            file.unlink()
+        pathlib.Path(self.session.name).rmdir()
         # Write window state to settings
         self.settings["window_width"], self.settings["window_height"] = self.get_size()
         self.settings["window_x"], self.settings["window_y"] = self.get_position()

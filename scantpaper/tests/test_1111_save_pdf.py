@@ -3,9 +3,8 @@
 # pylint: disable=protected-access  # tests access private members
 
 import datetime
-import glob
 import locale
-import os
+import pathlib
 import queue
 import re
 import shutil
@@ -173,7 +172,7 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
         import_in_mainloop(slist, [rose_pnm])
 
         # inject error before save_pdf
-        os.chmod(dirname, 0o500)  # no write access
+        pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_callback1(_page, _process, _message):
             "no write access"
@@ -192,7 +191,7 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
 
         def error_callback2(_page, _process, _message):
             assert True, "save_pdf caught error injected in queue"
-            os.chmod(dirname, 0o700)  # allow write access
+            pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
             asserts += 1
             mlp.quit()
@@ -405,12 +404,12 @@ def test_save_pdf_with_1bpp(
     mlp.run()
 
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
-    img = Image.open(glob.glob("x-000.p*m")[0])
+    img = Image.open(next(pathlib.Path().glob("x-000.p*m")))
     assert img.mode == "1", "PDF with 1bpp created"
 
     #########################
 
-    clean_up_files(glob.glob("x-000.p*m"))
+    clean_up_files(pathlib.Path().glob("x-000.p*m"))
 
 
 def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
@@ -429,12 +428,12 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
     mlp.run()
 
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
-    img = Image.open(glob.glob("x-000.p*m")[0])
+    img = Image.open(next(pathlib.Path().glob("x-000.p*m")))
     assert img.mode == "1", "PDF with 1bpp created from 8-bit image"
 
     #########################
 
-    clean_up_files(glob.glob("x-000.p*m"))
+    clean_up_files(pathlib.Path().glob("x-000.p*m"))
 
 
 def test_save_pdf_g4_alpha(temp_tif, temp_png, temp_db, temp_pdf, import_in_mainloop):
@@ -539,7 +538,7 @@ def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop)
         ), "don't add blank metadata"
         creationdate = str(docinfo.get("/CreationDate", ""))
         assert "20160210" in creationdate, "metadata CreationDate in PDF"
-    stb = os.stat(temp_pdf.name)
+    stb = pathlib.Path(temp_pdf.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
     ) == datetime.datetime(
@@ -801,8 +800,9 @@ def test_save_pdf_with_downsample(
         )
         mlp.run()
 
-        assert os.path.getsize(temp_pdf.name) > os.path.getsize(
-            temp_pdf2.name
+        assert (
+            pathlib.Path(temp_pdf.name).stat().st_size
+            > pathlib.Path(temp_pdf2.name).stat().st_size
         ), "downsampled PDF smaller than original"
 
         subprocess.run(["pdfimages", temp_pdf2.name, "x"], check=True)

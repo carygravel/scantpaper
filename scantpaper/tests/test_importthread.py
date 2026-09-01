@@ -2,6 +2,7 @@
 
 # pylint: disable=protected-access  # tests access private members
 
+import pathlib
 import subprocess
 import unittest.mock
 from types import SimpleNamespace
@@ -144,8 +145,8 @@ def test_composite_over_white_size_mismatch(tmp_path):
 
 def test_correlate_pdf_images_pairs_smask(mocker):
     "Test that an image entry is paired with the smask that follows it"
-    mocker.patch("importthread.glob.glob", return_value=["x-000.pnm", "x-001.pnm"])
-    remove = mocker.patch("importthread.os.remove")
+    mocker.patch.object(pathlib.Path, "glob", return_value=["x-000.pnm", "x-001.pnm"])
+    remove = mocker.patch.object(pathlib.Path, "unlink", autospec=True)
     entries = [
         {"page": 1, "num": 0, "type": "image", "x_ppi": 300.0, "y_ppi": 300.0},
         {"page": 1, "num": 1, "type": "smask", "x_ppi": 300.0, "y_ppi": 300.0},
@@ -160,8 +161,8 @@ def test_correlate_pdf_images_pairs_smask(mocker):
 
 def test_correlate_pdf_images_removes_unpaired_smask(mocker):
     "Test that an smask without a preceding image is removed"
-    mocker.patch("importthread.glob.glob", return_value=["x-000.pnm", "x-001.pnm"])
-    remove = mocker.patch("importthread.os.remove")
+    mocker.patch.object(pathlib.Path, "glob", return_value=["x-000.pnm", "x-001.pnm"])
+    remove = mocker.patch.object(pathlib.Path, "unlink", autospec=True)
     entries = [
         {"page": 1, "num": 0, "type": "smask", "x_ppi": 300.0, "y_ppi": 300.0},
         {"page": 1, "num": 1, "type": "image", "x_ppi": 300.0, "y_ppi": 300.0},
@@ -171,7 +172,7 @@ def test_correlate_pdf_images_removes_unpaired_smask(mocker):
 
     assert warning is False
     assert result == [("x-001.pnm", 300.0, 300.0, None)]
-    remove.assert_any_call("x-000.pnm")
+    remove.assert_any_call(pathlib.Path("x-000.pnm"))
 
 
 def test_get_file_info_session(mocker, temp_db):
@@ -395,7 +396,7 @@ def test_get_pdf_images_error(mock_run):
 
 
 @unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
+@unittest.mock.patch.object(pathlib.Path, "glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_image_error(mock_page, mock_glob, mock_run):
     "Test that request.error is thrown when importing individual images fails"
@@ -486,9 +487,9 @@ def _pdf_exec_command_run_side_effect(list_output):
     return _side_effect
 
 
-@unittest.mock.patch("importthread.os.remove")
+@unittest.mock.patch.object(pathlib.Path, "unlink", autospec=True)
 @unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
+@unittest.mock.patch.object(pathlib.Path, "glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, mock_remove):
     "Test that a soft mask is not imported as a page"
@@ -504,16 +505,16 @@ def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, mock_remove):
 
     assert mock_page.call_count == 1, "only the image is imported as a page"
     assert mock_page.call_args.kwargs["filename"] == "x-000.pnm"
-    mock_remove.assert_any_call("x-001.pnm")
+    mock_remove.assert_any_call(pathlib.Path("x-001.pnm"))
     mock_request.error.assert_not_called()
 
 
 def test_import_pdf_no_warning_for_smask(mocker):
     "Test that an image plus soft mask does not trigger a warning"
     mocker.patch("importthread.Page")
-    mock_glob = mocker.patch("glob.glob")
+    mock_glob = mocker.patch.object(pathlib.Path, "glob")
     mock_run = mocker.patch("importthread.exec_command_run")
-    mocker.patch("importthread.os.remove")
+    mocker.patch.object(pathlib.Path, "unlink", autospec=True)
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE_SMASK)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
 
@@ -530,9 +531,9 @@ def test_import_pdf_no_warning_for_smask(mocker):
 def test_import_pdf_warning_for_two_images(mocker):
     "Test that two real images on a page trigger a warning"
     mock_page = mocker.patch("importthread.Page")
-    mock_glob = mocker.patch("glob.glob")
+    mock_glob = mocker.patch.object(pathlib.Path, "glob")
     mock_run = mocker.patch("importthread.exec_command_run")
-    mocker.patch("importthread.os.remove")
+    mocker.patch.object(pathlib.Path, "unlink", autospec=True)
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_TWO_IMAGES)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
 
@@ -552,9 +553,9 @@ def test_import_pdf_warning_for_two_images(mocker):
 def test_import_pdf_resolution_from_own_entry(mocker):
     "Test that the imported page resolution comes from its own -list entry"
     mock_page = mocker.patch("importthread.Page")
-    mock_glob = mocker.patch("glob.glob")
+    mock_glob = mocker.patch.object(pathlib.Path, "glob")
     mock_run = mocker.patch("importthread.exec_command_run")
-    mocker.patch("importthread.os.remove")
+    mocker.patch.object(pathlib.Path, "unlink", autospec=True)
     mock_run.side_effect = _pdf_exec_command_run_side_effect(
         _LIST_IMAGE_SMASK_DIFFERENT_PPI
     )
@@ -574,9 +575,9 @@ def test_import_pdf_resolution_from_own_entry(mocker):
 def test_import_pdf_count_mismatch_fallback(mocker):
     "Test that a count mismatch imports every file and warns"
     mock_page = mocker.patch("importthread.Page")
-    mock_glob = mocker.patch("glob.glob")
+    mock_glob = mocker.patch.object(pathlib.Path, "glob")
     mock_run = mocker.patch("importthread.exec_command_run")
-    mocker.patch("importthread.os.remove")
+    mocker.patch.object(pathlib.Path, "unlink", autospec=True)
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
 
@@ -593,9 +594,9 @@ def test_import_pdf_count_mismatch_fallback(mocker):
     assert "expects one image per page" in args[1]
 
 
-@unittest.mock.patch("importthread.os.remove")
+@unittest.mock.patch.object(pathlib.Path, "unlink", autospec=True)
 @unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
+@unittest.mock.patch.object(pathlib.Path, "glob")
 @unittest.mock.patch("importthread.Page")
 def test_import_pdf_cleans_up_leftover_files(
     mock_page, mock_glob, mock_run, mock_remove
@@ -617,12 +618,12 @@ def test_import_pdf_cleans_up_leftover_files(
     thread._do_import_pdf(mock_request)
 
     assert mock_page.call_count == 2, "one page imported per PDF page"
-    mock_remove.assert_any_call("x-002.pnm")
+    mock_remove.assert_any_call(pathlib.Path("x-002.pnm"))
 
 
-@unittest.mock.patch("importthread.os.remove")
+@unittest.mock.patch.object(pathlib.Path, "unlink", autospec=True)
 @unittest.mock.patch("importthread.exec_command_run")
-@unittest.mock.patch("glob.glob")
+@unittest.mock.patch.object(pathlib.Path, "glob")
 def test_import_pdf_imports_composited_image(
     mock_glob, mock_run, mock_remove, monkeypatch, tmp_path
 ):
@@ -651,7 +652,7 @@ def test_import_pdf_imports_composited_image(
     assert page.image_object.size == (2, 1)
     assert page.image_object.getpixel((0, 0)) == 200, "opaque mask keeps the value"
     assert page.image_object.getpixel((1, 0)) == 255, "transparent mask becomes white"
-    mock_remove.assert_any_call("x-001.pgm")
+    mock_remove.assert_any_call(pathlib.Path("x-001.pgm"))
 
 
 @unittest.mock.patch("importthread.exec_command_run")

@@ -1,6 +1,6 @@
 "Test writing TIFF"
 
-import os
+import pathlib
 import subprocess
 import tempfile
 
@@ -84,7 +84,7 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
         import_in_mainloop(slist, [rose_pnm])
 
         # inject error before save_djvu
-        os.chmod(dirname, 0o500)  # no write access
+        pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_callback1(_page, _process, _message):
             "no write access"
@@ -103,7 +103,7 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
 
         def error_callback2(_page, _process, _message):
             assert True, "save_djvu caught error injected in queue"
-            os.chmod(dirname, 0o700)  # allow write access
+            pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
             asserts += 1
             mlp.quit()

@@ -5,7 +5,7 @@
 import contextlib
 import importlib
 import logging
-import os
+import pathlib
 import runpy
 import sys
 from unittest.mock import MagicMock, patch
@@ -48,7 +48,6 @@ def mock_deps(mocker):
 
     mocker.patch("app.shutil")
     mocker.patch("app.atexit")
-    mocker.patch("app.os.remove")
 
 
 @pytest.mark.usefixtures("mock_deps")
@@ -117,10 +116,12 @@ def test_parse_arguments_log_file(mocker):
         cleanup_func = app_module.atexit.register.call_args[0][0]
 
         # Test the cleanup function
-        mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data=b"data"))
+        mock_open = mocker.patch.object(
+            pathlib.Path, "open", mocker.mock_open(read_data=b"data")
+        )
         mock_lzma_open = mocker.patch.object(app_module.lzma, "open")
         mock_shutil_copy = mocker.patch.object(app_module.shutil, "copyfileobj")
-        mock_remove = app_module.os.remove
+        mock_remove = mocker.patch.object(pathlib.Path, "unlink")
 
         cleanup_func()
 
@@ -137,7 +138,7 @@ def test_parse_arguments_log_compression_error(mocker):
         _parse_arguments()
         cleanup_func = app_module.atexit.register.call_args[0][0]
 
-        mocker.patch("builtins.open", side_effect=OSError("Error"))
+        mocker.patch.object(pathlib.Path, "open", side_effect=OSError("Error"))
         logger = MagicMock()
         mocker.patch("app.logging.getLogger", return_value=logger)
 
@@ -216,11 +217,11 @@ def test_main(mocker):
 @pytest.mark.usefixtures("mock_deps")
 def test_application_init_iconpath_fallback(mocker):
     "Test Application.__init__ with iconpath fallback"
-    mocker.patch("app.os.path.isdir", return_value=False)
+    mock_is_dir = mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
     mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
     # It should have called prepend_search_path with the fallback path
     Application()
-    app_module.os.path.isdir.assert_called()
+    mock_is_dir.assert_called()
     mock_icon_theme.get_default().prepend_search_path.assert_called_with(
         "/usr/share/scantpaper/icons"
     )
@@ -229,12 +230,10 @@ def test_application_init_iconpath_fallback(mocker):
 @pytest.mark.usefixtures("mock_deps")
 def test_application_init_iconpath_in_package(mocker):
     "Test Application.__init__ resolves icons from inside the package"
-    mocker.patch("app.os.path.isdir", return_value=True)
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
     Application()
-    in_package = os.path.abspath(
-        os.path.join(os.path.dirname(app_module.__file__), "icons")
-    )
+    in_package = str((pathlib.Path(app_module.__file__).parent / "icons").resolve())
     mock_icon_theme.get_default().prepend_search_path.assert_called_with(in_package)
 
 

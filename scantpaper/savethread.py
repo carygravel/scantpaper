@@ -181,8 +181,8 @@ class SaveThread(Importhread):
                 metadata = prepare_output_metadata("PDF", options["metadata"])
 
             list_of_pages = []
-            with open(
-                outdir / "origin.pdf", "wb", buffering=0
+            with pathlib.Path(outdir / "origin.pdf").open(
+                "wb", buffering=0
             ) as fhd:  # turn off buffering
                 filenames = []
                 resolutions = []
@@ -217,7 +217,7 @@ class SaveThread(Importhread):
 
                 if estimated_size >= _2GIB:
                     for fname in filenames:
-                        os.remove(fname)
+                        pathlib.Path(fname).unlink()
                     raise RuntimeError(
                         _(
                             "The estimated PDF size (%.1f GiB) exceeds 2 GiB."
@@ -239,19 +239,15 @@ class SaveThread(Importhread):
                 request.data(_("Writing PDF"))
                 fhd.write(img2pdf.convert(filenames, **metadata))
                 for fname in filenames:
-                    os.remove(fname)
+                    pathlib.Path(fname).unlink()
             for pagenr, page in enumerate(list_of_pages):
                 if page.text_layer and page.text_layer != "[]":
                     with (
-                        open(
-                            outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr",
-                            "w",
-                            encoding="utf-8",
+                        pathlib.Path(outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr").open(
+                            "w", encoding="utf-8"
                         ) as hocr_fh,
-                        open(
-                            outdir / f"{pagenr + 1:-06}_hocr.json",
-                            "w",
-                            encoding="utf-8",
+                        pathlib.Path(outdir / f"{pagenr + 1:-06}_hocr.json").open(
+                            "w", encoding="utf-8"
                         ) as json_fh,
                     ):
                         hocr_fh.write(page.export_hocr())
@@ -360,7 +356,7 @@ class SaveThread(Importhread):
         request.data(_("Merging DjVu"))
         proc = exec_command(["djvm", "-c", args["path"], *filelist], args["pidfile"])
         for filename in filelist:
-            os.remove(filename)
+            pathlib.Path(filename).unlink()
         self.check_cancelled()
         if proc.returncode:
             logger.error("Error merging DjVu: %s", proc.stderr)
@@ -447,7 +443,7 @@ class SaveThread(Importhread):
         cmd = ["tiffcp", *compression, *filelist, options["path"]]
         exec_command_run(cmd, options.get("pidfile"), check=True)
         for filename in filelist:
-            os.remove(filename)
+            pathlib.Path(filename).unlink()
         self.check_cancelled()
 
         if "ps" in options["options"] and options["options"]["ps"] is not None:
@@ -513,7 +509,7 @@ class SaveThread(Importhread):
             string += page.export_text()
             self.check_cancelled()
 
-        with open(options["path"], "w", encoding="utf-8") as fhd:
+        with pathlib.Path(options["path"]).open("w", encoding="utf-8") as fhd:
             fhd.write(string)
 
         if "options" not in options:
@@ -531,7 +527,7 @@ class SaveThread(Importhread):
         "save hocr file in thread"
         options = defaultdict(None, request.args[0])
 
-        with open(options["path"], "w", encoding="utf-8") as fhd:
+        with pathlib.Path(options["path"]).open("w", encoding="utf-8") as fhd:
             written_header = False
             for page_id in options["list_of_pages"]:
                 page = self.get_page(id=page_id)
@@ -684,7 +680,7 @@ def _estimate_page_pdf_size(image, temp_filename, opts):
     ):
         # JPEG is stored verbatim, so the written file size is the size it
         # will take in the PDF.
-        return os.path.getsize(temp_filename)
+        return pathlib.Path(temp_filename).stat().st_size
     # Other formats are stored uncompressed, so estimate from the pixel data.
     bpp = _PIXEL_BPP.get(image.mode, 4)
     return int(image.width * image.height * bpp)
@@ -751,7 +747,7 @@ def _append_pdf(filename, options, request):
         return None
 
     try:
-        os.rename(out, bak)
+        pathlib.Path(out).rename(bak)
     except ValueError:
         request.error(_("Error creating backup of PDF"))
         return None

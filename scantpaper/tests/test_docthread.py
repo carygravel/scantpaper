@@ -2,6 +2,7 @@
 
 # pylint: disable=protected-access  # tests access private members
 
+import pathlib
 import sqlite3
 import subprocess
 import threading
@@ -30,8 +31,8 @@ def test_do_tesseract_path_fallback(mocker):
     mocker.patch("tesserocr.get_languages", return_value=("./", []))
 
     # Mock glob to simulate finding tessdata
-    mock_glob = mocker.patch(
-        "glob.glob", return_value=["/usr/share/tesseract-ocr/4.00/tessdata"]
+    mock_glob = mocker.patch.object(
+        pathlib.Path, "glob", return_value=["/usr/share/tesseract-ocr/4.00/tessdata"]
     )
 
     # Mock PyTessBaseAPI
@@ -59,7 +60,7 @@ def test_do_tesseract_path_fallback(mocker):
     thread.do_tesseract(request)
 
     # Check if glob was called
-    mock_glob.assert_called_with("/usr/share/tesseract-ocr/*/tessdata")
+    mock_glob.assert_called_with("*/tessdata")
 
     # Check if PyTessBaseAPI was initialized with the found path
     mock_api.assert_called_with(
@@ -74,10 +75,13 @@ def test_do_tesseract_path_fallback_suse(mocker):
     thread._write_tid = threading.get_native_id()
 
     mocker.patch("tesserocr.get_languages", return_value=("./", []))
-    mocker.patch("glob.glob", return_value=[])
-    mocker.patch(
-        "os.path.isdir",
-        side_effect=lambda p: p == "/usr/share/tesseract-ocr/tessdata",
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
+    mocker.patch.object(
+        pathlib.Path,
+        "is_dir",
+        autospec=True,
+        side_effect=lambda self: self
+        == pathlib.Path("/usr/share/tesseract-ocr/tessdata"),
     )
 
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
@@ -144,7 +148,7 @@ def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
     mocker.patch("tesserocr.get_languages", return_value=("./", []))
 
     # Mock glob to return empty list
-    mocker.patch("glob.glob", return_value=[])
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
     mocker.patch("shutil.which", return_value=None)
 
     # Mock PyTessBaseAPI to prevent RuntimeError
@@ -189,7 +193,7 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
     mocker.patch("tesserocr.get_languages", return_value=("./", []))
 
     # Mock glob to return empty list
-    mocker.patch("glob.glob", return_value=[])
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
 
     # Mock shutil.which to return a path
     mocker.patch("shutil.which", return_value="/usr/local/bin/tesseract")
@@ -197,6 +201,7 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
     # Mock Path
     mock_path = mocker.patch("docthread.Path", autospec=True)
     mock_tess_path = mock_path.return_value
+    mock_tess_path.is_dir.return_value = False
     mock_tess_path.is_symlink.return_value = True
 
     mock_resolved = mock_tess_path.resolve.return_value
@@ -571,8 +576,13 @@ def test_run_unpaper_cmd_rtl_error(mocker):
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
-    # Mock os.path.getsize to return 0 (empty file), triggering the error check
-    mocker.patch("os.path.getsize", return_value=0)
+    # Mock Path.stat to return st_size=0 (empty file), triggering the error check
+    mocker.patch.object(
+        pathlib.Path,
+        "stat",
+        autospec=True,
+        return_value=type("Stat", (), {"st_size": 0})(),
+    )
     mock_temp = mocker.patch("tempfile.NamedTemporaryFile")
     mock_temp.return_value.name = "temp_file"
 

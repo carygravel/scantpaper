@@ -1,8 +1,6 @@
 "Create pot for translation strings. Requires intltool package"
 
 import datetime
-import glob
-import os
 import subprocess
 import sys
 from contextlib import chdir
@@ -25,17 +23,17 @@ from const import (  # pylint: disable=wrong-import-position,import-error  # noq
 def main():
     "main"
     with chdir(root):
-        ui_sources = glob.glob("**/*.ui", recursive=True)
+        ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))
         for x in ui_sources:
             subprocess.run(["intltool-extract", "--type=gettext/glade", x], check=True)
         uih_sources = [x + ".h" for x in ui_sources]
-        py_sources = glob.glob("**/*.py", recursive=True)
+        py_sources = sorted(str(x) for x in Path().rglob("*.py"))
         out = subprocess.check_output(
             ["pygettext3", "-o", "-", "-kN_", "-k_", *uih_sources, *py_sources],
             text=True,
         )
         for x in uih_sources:
-            os.remove(x)
+            Path(x).unlink()
 
     local_tz = datetime.datetime.now().astimezone().tzinfo
     year = datetime.datetime.now(local_tz).year
@@ -48,7 +46,7 @@ def main():
         .replace("Report-Msgid-Bugs-To: ", f"Report-Msgid-Bugs-To: {EMAIL}", 1)
     )
     filename = NAME + ".pot"
-    with open(filename, "w", encoding="utf-8") as fhd:
+    with Path(filename).open("w", encoding="utf-8") as fhd:
         fhd.write(out)
     print(f"Wrote {filename}")
 

@@ -15,7 +15,7 @@ import gettext
 import locale
 import logging
 import lzma
-import os
+import pathlib
 import re
 import shutil
 import sys
@@ -23,10 +23,10 @@ import warnings
 
 # check for pyinstaller
 if hasattr(sys, "frozen"):
-    base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    BASE_DIR = getattr(sys, "_MEIPASS", str(pathlib.Path(__file__).resolve().parent))
 else:
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, base_dir)
+    BASE_DIR = str(pathlib.Path(__file__).resolve().parent)
+sys.path.insert(0, BASE_DIR)
 
 # pylint: disable=wrong-import-position
 import gi
@@ -58,8 +58,8 @@ class Application(Gtk.Application):
 
         # Add extra icons early to be available for Gtk.Builder
         # Check for icons in the package first, then fallback to system icons.
-        iconpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "icons"))
-        if not os.path.isdir(iconpath):
+        iconpath = str((pathlib.Path(__file__).parent / "icons").resolve())
+        if not pathlib.Path(iconpath).is_dir():
             iconpath = "/usr/share/scantpaper/icons"
         Gtk.IconTheme.get_default().prepend_search_path(iconpath)
 
@@ -124,7 +124,7 @@ def _parse_arguments():
     args = parser.parse_args()
 
     if args.log:
-        args.log = os.path.abspath(args.log)
+        args.log = str(pathlib.Path(args.log).resolve())
         if args.log_level is None:
             args.log_level = logging.DEBUG
         logging.basicConfig(filename=args.log, filemode="w", level=args.log_level)
@@ -132,11 +132,11 @@ def _parse_arguments():
         def compress_log():
             try:
                 with (
-                    open(args.log, "rb") as f_in,
-                    lzma.open(args.log + ".xz", "wb") as f_out,
+                    pathlib.Path(args.log).open("rb") as f_in,
+                    lzma.open(str(args.log) + ".xz", "wb") as f_out,
                 ):
                     shutil.copyfileobj(f_in, f_out)
-                os.remove(args.log)
+                pathlib.Path(args.log).unlink()
             except (OSError, lzma.LZMAError):
                 logging.getLogger(__name__).exception("Failed to compress log")
 
@@ -153,7 +153,11 @@ def _parse_arguments():
 
     # make sure argv has absolute paths in case we change directories
     # and then restart the program
-    sys.argv = [os.path.abspath(path) for path in sys.argv if os.path.isfile(path)]
+    sys.argv = [
+        str(pathlib.Path(path).resolve())
+        for path in sys.argv
+        if pathlib.Path(path).is_file()
+    ]
 
     logger.info("Log level %s", args.log_level)
     if args.locale is None:
@@ -161,7 +165,9 @@ def _parse_arguments():
     elif re.search(r"^\/", args.locale, re.MULTILINE | re.DOTALL | re.VERBOSE):
         gettext.bindtextdomain(f"{PROG_NAME}", args.locale)
     else:
-        gettext.bindtextdomain(f"{PROG_NAME}", os.getcwd() + f"/{args.locale}")
+        gettext.bindtextdomain(
+            f"{PROG_NAME}", str(pathlib.Path.cwd()) + f"/{args.locale}"
+        )
     gettext.textdomain(PROG_NAME)
 
     logger.info("Using %s locale", locale.setlocale(locale.LC_CTYPE))

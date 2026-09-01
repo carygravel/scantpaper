@@ -293,10 +293,10 @@ def test_save_pdf_rejects_oversized_output(mock_thread_instance, mock_page_insta
         patch("savethread.open", mock_open()),
         patch("savethread.img2pdf.convert", return_value=b"pdf_data"),
         patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
-        patch("savethread.os.remove") as mock_remove,
+        patch("savethread.os.remove"),
         patch("savethread._fix_pdf_metadata"),
         patch("savethread._post_save_hook"),
-        patch("savethread.pathlib.Path"),
+        patch("savethread.pathlib.Path") as mock_path,
         patch(
             "savethread._estimate_page_pdf_size",
             return_value=_2GIB + 1,
@@ -308,7 +308,7 @@ def test_save_pdf_rejects_oversized_output(mock_thread_instance, mock_page_insta
             mock_thread_instance.do_save_pdf(request)
 
         # Temp files must be cleaned up before the error is raised
-        assert mock_remove.called
+        assert mock_path.return_value.unlink.called
 
 
 def test_save_djvu(mock_thread_instance, mock_page_instance):
@@ -327,7 +327,7 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.remove"),
+        patch("savethread.os.unlink"),
         patch("savethread._set_timestamp"),
         patch("savethread._post_save_hook"),
         patch("savethread.exec_command_run") as mock_run,
@@ -363,7 +363,7 @@ def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.remove"),
+        patch("savethread.os.unlink"),
         patch("savethread._set_timestamp"),
         patch("savethread._post_save_hook"),
         patch("savethread.exec_command_run"),
@@ -394,7 +394,7 @@ def test_save_tiff(mock_thread_instance, mock_page_instance):
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
         patch("savethread.exec_command_run") as mock_run,
-        patch("savethread.os.remove"),
+        patch("savethread.os.unlink"),
         patch("savethread._post_save_hook"),
     ):
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.tif"
@@ -424,7 +424,7 @@ def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
         patch("savethread.tempfile.NamedTemporaryFile"),
         patch("savethread.exec_command_run"),
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.remove"),
+        patch("savethread.os.unlink"),
         patch("savethread._post_save_hook"),
     ):
         mock_exec.return_value.returncode = 0
@@ -452,7 +452,7 @@ def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
         patch("savethread.tempfile.NamedTemporaryFile"),
         patch("savethread.exec_command_run"),
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.remove"),
+        patch("savethread.os.unlink"),
         patch("savethread._post_save_hook"),
     ):
         mock_exec.return_value.returncode = 1
@@ -509,7 +509,7 @@ def test_save_text(mock_thread_instance, mock_page_instance):
     request = Request("save_text", (options,), mock_thread_instance.responses)
 
     with (
-        patch("savethread.open", mock_open()) as mock_file,
+        patch("savethread.pathlib.Path.open", mock_open()) as mock_file,
         patch("savethread._post_save_hook"),
     ):
         mock_thread_instance.do_save_text(request)
@@ -525,7 +525,7 @@ def test_save_hocr(mock_thread_instance, mock_page_instance):
     request = Request("save_hocr", (options,), mock_thread_instance.responses)
 
     with (
-        patch("savethread.open", mock_open()) as mock_file,
+        patch("savethread.pathlib.Path.open", mock_open()) as mock_file,
         patch("savethread._post_save_hook"),
     ):
         mock_thread_instance.do_save_hocr(request)
@@ -754,15 +754,15 @@ def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):
         patch("savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
         patch("savethread._fix_pdf_metadata"),
         patch("savethread.os.remove"),
-        patch("savethread.os.rename") as mock_rename,
+        patch("savethread.os.rename"),
         patch("savethread.exec_command") as mock_exec,
         patch("savethread._post_save_hook"),
-        patch("savethread.pathlib.Path"),
+        patch("savethread.pathlib.Path") as mock_path,
     ):
         mock_exec.return_value.returncode = 0
         mock_thread_instance.do_save_pdf(request)
 
-        assert mock_rename.called
+        assert mock_path.return_value.rename.called
         assert mock_exec.called
         assert "pdfunite" in mock_exec.call_args[0][0]
 

@@ -1,12 +1,10 @@
 "provide methods around session files"
 
 import fcntl
-import glob
 import inspect
 import logging
-import os
 import tempfile
-from pathlib import PurePath
+from pathlib import Path, PurePath
 
 import config
 import gi
@@ -44,8 +42,8 @@ class SessionMixins:
         if tmpdir is None or tmpdir == EMPTY:
             self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
         else:
-            if not os.path.isdir(tmpdir):
-                os.mkdir(tmpdir)
+            if not Path(tmpdir).is_dir():
+                Path(tmpdir).mkdir()
             try:
                 self.session = tempfile.TemporaryDirectory(
                     prefix="scantpaper-", dir=tmpdir
@@ -61,7 +59,7 @@ class SessionMixins:
 
         self._lockfd = self._create_lockfile()
         logger.info("Using %s for temporary files", self.session.name)
-        tmpdir = os.path.dirname(self.session.name)
+        tmpdir = str(Path(self.session.name).parent)
         if "TMPDIR" in self.settings and self.settings["TMPDIR"] != tmpdir:
             logger.warning(
                 _(
@@ -77,9 +75,8 @@ class SessionMixins:
         if session is None:
             session = self.session.name
         # SIM115: cross-scope file handle used intentionally
-        lockfd = open(  # noqa: SIM115  # pylint: disable=consider-using-with
-            os.path.join(session, "lockfile"), "w", encoding="utf-8"
-        )
+        lockfile = Path(session) / "lockfile"
+        lockfd = lockfile.open("w", encoding="utf-8")
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
 
@@ -90,15 +87,15 @@ class SessionMixins:
             tmpdir = tempfile.gettempdir()
 
         logger.info("Checking %s for crashed sessions", tmpdir)
-        dbs = glob.glob(os.path.join(tmpdir, "scantpaper-????????.sdb"))
+        dbs = sorted(Path(tmpdir).glob("scantpaper-????????.sdb"))
         crashed, selected = [], []
 
         # Forget those used by running sessions
         for db in dbs:
-            session = os.path.join(tmpdir, PurePath(db).stem)
+            session = str(Path(tmpdir) / PurePath(db).stem)
             if session == self.session.name:
                 continue
-            if not os.path.isdir(session):
+            if not Path(session).is_dir():
                 crashed.append(db)
                 continue
             try:
