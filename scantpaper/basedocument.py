@@ -88,6 +88,7 @@ class BaseDocument(SimpleList):
         self.connect("drag-data-get", drag_data_get_callback)
         self.connect("drag-data-delete", _weak_callback(self, "delete_selection"))
         self.connect("drag-data-received", drag_data_received_callback)
+        self.connect("drag-end", _weak_callback(self, "_on_drag_end"))
 
         def drag_drop_callback(tree, context, _x, _y, when):
             "Callback for dropped signal"
@@ -507,16 +508,27 @@ class BaseDocument(SimpleList):
             info = response.info
             if info and "type" in info and info["type"] == "page":
                 self._reorder_data(page_ids, info["new_pages"])
-            self._suppress_delete = False
 
         # The drag triggers drag-data-delete after the drop; suppress the
         # resulting deletion so the reorder is not followed by a delete.
+        # NOTE: the flag is deliberately NOT cleared in _data_callback. The
+        # worker reorder response (which updates self.data) can be delivered on
+        # the main thread before the drag-data-delete signal is processed. If we
+        # cleared the flag there, the drop's deletion would go through and remove
+        # the just-moved page from the database while self.data still holds it,
+        # making a subsequent save fail with "Page id ... not found". Instead the
+        # flag is consumed by delete_selection (which clears it when it
+        # suppresses the delete) and reset by the drag-end safety net.
         self._suppress_delete = True
         self.thread.send(
             "reorder_pages",
             {"page_ids": page_ids, "dest": dest, "how": how},
             data_callback=_data_callback,
         )
+
+    def _on_drag_end(self, _context):
+        "clear any leftover reorder suppression once the drag is over"
+        self._suppress_delete = False
 
     def delete_selection_extra(self, **kwargs):
         "wrapper for delete_selection()"

@@ -484,7 +484,7 @@ def test_reorder_data_moves_pages():
 
 
 def test_reorder_pages_data_callback():
-    "Test reorder_pages data callback reorders data and clears the suppress flag"
+    "Test reorder_pages data callback reorders data but keeps the suppress flag set"
     slist = Document()
     slist.add_page(1, None, 101)
     slist.add_page(2, None, 102)
@@ -495,14 +495,52 @@ def test_reorder_pages_data_callback():
     assert slist._suppress_delete is True, "deletion suppressed during reorder"
 
     # invoke the data callback captured from thread.send to simulate the
-    # worker thread's async response
+    # worker thread's async response arriving before the drag-data-delete
     data_callback = slist.thread.send.call_args.kwargs["data_callback"]
     response = MagicMock()
     response.info = {"type": "page", "new_pages": [[2, None, 101]]}
     data_callback(response)
 
     assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to end"
-    assert slist._suppress_delete is False, "suppress flag cleared after response"
+    assert (
+        slist._suppress_delete is True
+    ), "suppress flag survives the worker response so the later drag-data-delete is suppressed"
+
+
+def test_reorder_then_drag_data_delete_not_double_deleted():
+    "Test the drag-data-delete after a reorder is suppressed even after the reorder completes"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
+    slist.thread.send = MagicMock()
+
+    slist.reorder_pages([101], 2, None)
+
+    # the worker reorder response is delivered (fast path) before drag-data-delete
+    data_callback = slist.thread.send.call_args.kwargs["data_callback"]
+    data_callback(MagicMock(info={"type": "page", "new_pages": [[2, None, 101]]}))
+    assert slist._suppress_delete is True, "still suppressed after reorder response"
+
+    # now the drop's drag-data-delete fires delete_selection
+    slist.select([0])
+    slist.delete_selection()
+
+    # the deletion must have been suppressed - no delete_pages request
+    for call in slist.thread.send.call_args_list:
+        assert call.args[0] != "delete_pages", "delete_pages must not be dispatched"
+    assert [row[2] for row in slist.data] == [102, 103, 101], "reorder preserved"
+
+
+def test_drag_end_clears_suppress_flag():
+    "Test a lingering reorder suppression is cleared once the drag ends"
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist._suppress_delete = True
+
+    slist._on_drag_end(None)
+
+    assert slist._suppress_delete is False, "drag-end clears the suppress flag"
 
 
 def test_delete_selection_suppressed_after_reorder():
