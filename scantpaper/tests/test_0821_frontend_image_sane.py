@@ -1,4 +1,4 @@
-"test frontend/image_sane.py"
+"""test frontend/image_sane.py"""
 
 import threading
 from types import SimpleNamespace
@@ -12,11 +12,11 @@ from loop_helpers import safe_mainloop
 
 
 class FeederEmptyError(Exception):
-    "Raised when a document feeder has no more pages to scan"
+    """Raised when a document feeder has no more pages to scan"""
 
 
 class DeviceError(Exception):
-    "Raised to emulate a SANE device failure during scanning"
+    """Raised to emulate a SANE device failure during scanning"""
 
 
 class FakeBrscan5Device:
@@ -41,7 +41,7 @@ class FakeBrscan5Device:
         self.cancel_event = threading.Event()
 
     def start(self):
-        "start a page: flatbed refills the glass, feeder runs out when empty"
+        """Start a page: flatbed refills the glass, feeder runs out when empty"""
         if self.refill:
             self.page_counter += 1
             self.buffered.append(self.page_counter)
@@ -53,11 +53,11 @@ class FakeBrscan5Device:
         self.cancel_event.clear()
 
     def get_parameters(self):
-        "report scan parameters with a small but positive line count"
+        """Report scan parameters with a small but positive line count"""
         return ("color", 1, (100, 10), 8, 30)
 
     def snap(self, no_cancel=False, progress=None):
-        "read the next buffered frame, optionally blocking to emulate a transfer"
+        """Read the next buffered frame, optionally blocking to emulate a transfer"""
         del progress
         self.snap_no_cancel.append(no_cancel)
         frame = self.buffered.pop(0)
@@ -77,14 +77,14 @@ class FakeBrscan5Device:
         return frame
 
     def cancel(self):
-        "cancel: drop any prefetched-but-unread frames"
+        """cancel: drop any prefetched-but-unread frames"""
         self.cancel_calls += 1
         self.buffered.clear()
         self.cancel_event.set()
 
 
 class CancelRaisesDevice(FakeBrscan5Device):
-    "emulate a backend whose cross-thread cancel() raises before cancelling"
+    """emulate a backend whose cross-thread cancel() raises before cancelling"""
 
     def cancel(self):
         super().cancel()
@@ -93,7 +93,7 @@ class CancelRaisesDevice(FakeBrscan5Device):
 
 
 def test_error_handling():
-    "test frontend/image_sane.py"
+    """Test frontend/image_sane.py"""
     thread = SaneThread()
     thread.start()
 
@@ -117,7 +117,7 @@ def test_error_handling():
 
 
 def test_2():
-    "test frontend/image_sane.py #2"
+    """Test frontend/image_sane.py #2"""
     thread = SaneThread()
     thread.start()
 
@@ -139,7 +139,7 @@ def test_2():
 
 
 def test_3():
-    "test frontend/image_sane.py #3"
+    """Test frontend/image_sane.py #3"""
     thread = SaneThread()
     thread.start()
 
@@ -215,7 +215,7 @@ def test_3():
 
 
 def test_4():
-    "test frontend/image_sane.py #4"
+    """Test frontend/image_sane.py #4"""
     thread = SaneThread()
     thread.start()
 
@@ -282,7 +282,7 @@ def test_4():
 
 
 def test_5_edge_cases_part_1():
-    "test frontend/image_sane.py edge cases part 1"
+    """Test frontend/image_sane.py edge cases part 1"""
     thread = SaneThread()
     thread.start()
 
@@ -327,7 +327,7 @@ def test_5_edge_cases_part_1():
 
 
 def test_5_edge_cases_part_2():
-    "test frontend/image_sane.py edge cases part 2"
+    """Test frontend/image_sane.py edge cases part 2"""
     thread = SaneThread()
     thread.start()
 
@@ -386,13 +386,13 @@ def test_5_edge_cases_part_2():
 
 
 def test_6_mock_device():
-    "test with mocked device for specific edge cases"
+    """Test with mocked device for specific edge cases"""
 
     class MockDevice:
-        "Custom mock device class to avoid MagicMock hasattr issues and ensure structure"
+        """Custom mock device class to avoid MagicMock hasattr issues and ensure structure"""
 
         def __init__(self):
-            "Initialize mock device with options and dev mock"
+            """Initialize mock device with options and dev mock"""
             self.opt = {}
             self.dev = MagicMock()
             # Initial setup for first reload test
@@ -404,7 +404,7 @@ def test_6_mock_device():
             ]
 
         def close(self):
-            "Mock close method"
+            """Mock close method"""
 
     with patch("sane.open") as mock_open:
         mock_dev_instance = MockDevice()
@@ -517,7 +517,7 @@ def test_6_mock_device():
 
 
 def test_7_close_device_not_open():
-    "test do_close_device when device is not open (line 145)"
+    """Test do_close_device when device is not open (line 145)"""
     thread = SaneThread()
     thread.start()
 
@@ -546,7 +546,7 @@ def test_7_close_device_not_open():
 
 
 def test_8_cancel_empties_queue():
-    "test cancel() empties the requests queue (line 240)"
+    """Test cancel() empties the requests queue (line 240)"""
     thread = SaneThread()
     # Don't start the thread yet, so requests stay in the queue
 
@@ -565,7 +565,7 @@ def test_8_cancel_empties_queue():
 
 
 def test_queued_job_reports_cancelled(mocker):
-    "a cancel drops a queued scan-job and notifies its requester via cancelled_callback"
+    """A cancel drops a queued scan-job and notifies its requester via cancelled_callback"""
     thread = SaneThread()
     finished_cb = mocker.Mock()
     cancelled_calls = []
@@ -594,7 +594,7 @@ def test_queued_job_reports_cancelled(mocker):
 
 
 def test_9_quit_handles_sane_exit_exception():
-    "test do_quit handles exception from sane.exit() (lines 78-79)"
+    """Test do_quit handles exception from sane.exit() (lines 78-79)"""
     with patch("sane.exit") as mock_exit:
         # Make sane.exit() raise an exception
         mock_exit.side_effect = RuntimeError("sane.exit() failed")
@@ -621,7 +621,7 @@ def test_9_quit_handles_sane_exit_exception():
 
 
 def test_get_option_value_timeout():
-    "get_option_value raises TimeoutError when the worker does not respond in time"
+    """get_option_value raises TimeoutError when the worker does not respond in time"""
     thread = SaneThread()
     thread.start()
     # Replace the worker-side handler with one that never sets the completion
@@ -636,7 +636,7 @@ def test_get_option_value_timeout():
 
 
 def _run_with_fake(fake, scan_kwargs):
-    "open a fake device, run scan_pages with the given kwargs, then quit"
+    """Open a fake device, run scan_pages with the given kwargs, then quit"""
     thread = SaneThread()
     thread.start()
 
@@ -674,7 +674,7 @@ def _run_with_fake(fake, scan_kwargs):
 
 
 def test_duplex_feeder_imports_both_sides():
-    "regression test for issue #73: a duplex feeder imports both sides"
+    """Regression test for issue #73: a duplex feeder imports both sides"""
     fake = FakeBrscan5Device(frames=[1, 2])
     _thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
     assert pages == [1, 2], "both sides of the duplex sheet imported"
@@ -683,7 +683,7 @@ def test_duplex_feeder_imports_both_sides():
 
 
 def test_flatbed_cancel_between_pages_enabled():
-    "flatbed with the setting enabled cancels the session between pages"
+    """Flatbed with the setting enabled cancels the session between pages"""
     fake = FakeBrscan5Device(refill=True)
     _thread, pages, _errors = _run_with_fake(
         fake, {"num_pages": 2, "cancel_between_pages": True}
@@ -694,7 +694,7 @@ def test_flatbed_cancel_between_pages_enabled():
 
 
 def test_flatbed_cancel_between_pages_disabled():
-    "flatbed with the setting disabled only cancels at batch end"
+    """Flatbed with the setting disabled only cancels at batch end"""
     fake = FakeBrscan5Device(refill=True)
     _thread, pages, _errors = _run_with_fake(
         fake, {"num_pages": 2, "cancel_between_pages": False}
@@ -705,7 +705,7 @@ def test_flatbed_cancel_between_pages_disabled():
 
 
 def test_page_limit_discards_buffered_frames():
-    "reaching the requested page count terminates and drops buffered frames"
+    """Reaching the requested page count terminates and drops buffered frames"""
     fake = FakeBrscan5Device(frames=[1, 2, 3])
     _thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
     assert pages == [1, 2], "only the requested two pages imported"
@@ -714,7 +714,7 @@ def test_page_limit_discards_buffered_frames():
 
 
 def test_mid_batch_error_reports_and_terminates():
-    "an error mid-batch is reported and the session is terminated"
+    """An error mid-batch is reported and the session is terminated"""
     fake = FakeBrscan5Device(frames=[1, 2, 3])
     fake.error_on_frame = 2
     _thread, pages, errors = _run_with_fake(fake, {"num_pages": 5})
@@ -724,7 +724,7 @@ def test_mid_batch_error_reports_and_terminates():
 
 
 def test_user_cancel_terminates_session(mocker):
-    "a user cancel interrupts an in-flight transfer without importing the page"
+    """A user cancel interrupts an in-flight transfer without importing the page"""
     thread = SaneThread()
     thread.start()
     fake = FakeBrscan5Device(frames=[1, 2])
@@ -771,7 +771,7 @@ def test_user_cancel_terminates_session(mocker):
 
 
 def test_feeder_empty_ends_batch_cleanly(mocker):
-    "the batch ends cleanly with the acquired pages when the feeder runs dry"
+    """The batch ends cleanly with the acquired pages when the feeder runs dry"""
     thread = SaneThread()
     thread.start()
     fake = FakeBrscan5Device(frames=[1])
@@ -810,7 +810,7 @@ def test_feeder_empty_ends_batch_cleanly(mocker):
 
 
 def test_cancel_raises_on_device_terminates_cleanly(mocker):
-    "a device cancel() that raises is tolerated; the session still ends cleanly"
+    """A device cancel() that raises is tolerated; the session still ends cleanly"""
     thread = SaneThread()
     thread.start()
     fake = CancelRaisesDevice(frames=[1, 2])

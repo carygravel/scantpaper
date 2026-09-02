@@ -1,4 +1,4 @@
-"Tests for conftest helper functions"
+"""Tests for conftest helper functions"""
 
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -10,8 +10,7 @@ from PIL import Image, ImageFont
 
 
 def test_qbfox_font_fallback():
-    "Test _create_qbfox_image falls back to system font path"
-
+    """Test _create_qbfox_image falls back to system font path"""
     call_count = [0]
     original_truetype = ImageFont.truetype
 
@@ -29,7 +28,7 @@ def test_qbfox_font_fallback():
 
 
 def test_qbfox_no_bbox():
-    "Test _create_qbfox_image handles getbbox returning None"
+    """Test _create_qbfox_image handles getbbox returning None"""
 
     def mock_getbbox(_self):
         return None
@@ -139,7 +138,6 @@ def test_clean_up_files_non_existent(clean_up_files):
 
 def test_get_page_sync_error(get_page_sync):
     """Test get_page_sync raises ValueError on error callback"""
-
     thread = MagicMock()
 
     def send_side_effect(*_, **kwargs):

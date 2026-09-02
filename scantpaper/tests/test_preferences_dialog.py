@@ -1,4 +1,4 @@
-"Test preferences dialog"
+"""Test preferences dialog"""
 
 from unittest.mock import MagicMock, patch
 
@@ -13,7 +13,7 @@ from gi.repository import Gtk  # noqa: E402
 
 @patch("dialog.preferences.shutil.which")
 def test_preferences_dialog(mock_which):
-    "Test preferences dialog"
+    """Test preferences dialog"""
     mock_which.return_value = "/usr/bin/gimp"
 
     with pytest.raises(KeyError):
@@ -29,7 +29,7 @@ def test_preferences_dialog(mock_which):
 
 
 def test_preferences_blacklist_setting():
-    "Test that the device blacklist is set correctly in the preferences dialog"
+    """Test that the device blacklist is set correctly in the preferences dialog"""
     # Mock settings with a device blacklist
     settings = DEFAULTS.copy()
     settings["device blacklist"] = "scanner1|scanner2"
@@ -45,7 +45,7 @@ def test_preferences_blacklist_setting():
 @patch("dialog.preferences.Gtk.FileChooserDialog")
 @patch("dialog.preferences.get_tmp_dir")
 def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
-    "Test the _choose_temp_dir method"
+    """Test the _choose_temp_dir method"""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
 
@@ -82,7 +82,7 @@ def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
 
 
 def test_clicked_add_udt():
-    "Test the _clicked_add_udt method"
+    """Test the _clicked_add_udt method"""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
     settings["user_defined_tools"] = []
@@ -110,7 +110,7 @@ def test_clicked_add_udt():
 
 
 def test_delete_udt():
-    "Test the delete_udt callback"
+    """Test the delete_udt callback"""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
     settings["user_defined_tools"] = []
@@ -157,7 +157,7 @@ def test_delete_udt():
 def test_apply_callback_shows_error_for_nonexistent_tool(
     mock_message_dialog, mock_which
 ):
-    "Test that an error dialog is shown when a user-defined tool is not found"
+    """Test that an error dialog is shown when a user-defined tool is not found"""
     mock_which.return_value = None
     mock_dialog = MagicMock()
     mock_message_dialog.return_value = mock_dialog
@@ -187,7 +187,7 @@ def test_apply_callback_shows_error_for_nonexistent_tool(
 @patch("dialog.preferences.shutil.which")
 @patch("dialog.preferences.Gtk.MessageDialog")
 def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
-    "Test that all invalid tools are reported in the error dialog"
+    """Test that all invalid tools are reported in the error dialog"""
     mock_which.return_value = None
     mock_dialog = MagicMock()
     mock_message_dialog.return_value = mock_dialog
@@ -212,7 +212,7 @@ def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
 
 @patch("dialog.preferences.shutil.which")
 def test_apply_callback_allows_valid_tool(mock_which):
-    "Test that a valid executable is saved without error"
+    """Test that a valid executable is saved without error"""
     mock_which.return_value = "/usr/bin/convert"
 
     settings = DEFAULTS.copy()
@@ -232,7 +232,7 @@ def test_apply_callback_allows_valid_tool(mock_which):
     [(True, True), (False, False)],
 )
 def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitive):
-    "the cancel-between-pages checkbox tracks allow-batch-flatbed sensitivity"
+    """The cancel-between-pages checkbox tracks allow-batch-flatbed sensitivity"""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
     settings["allow-batch-flatbed"] = allow_batch_flatbed
@@ -246,7 +246,7 @@ def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitiv
 
 
 def test_cancel_between_pages_sensitivity_toggles():
-    "toggling allow-batch-flatbed updates the cancel-between-pages sensitivity"
+    """Toggling allow-batch-flatbed updates the cancel-between-pages sensitivity"""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
     settings["allow-batch-flatbed"] = False
@@ -269,7 +269,7 @@ def test_cancel_between_pages_sensitivity_toggles():
 
 @patch("dialog.preferences.Gtk.MessageDialog")
 def test_apply_callback_shows_error_for_empty_tool(mock_message_dialog):
-    "Test that an error dialog is shown when a user-defined tool is empty or whitespace-only"
+    """Test that an error dialog is shown when a user-defined tool is empty or whitespace-only"""
     mock_dialog = MagicMock()
     mock_message_dialog.return_value = mock_dialog
     mock_dialog.run.return_value = Gtk.ResponseType.OK

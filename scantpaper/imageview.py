@@ -1,4 +1,4 @@
-"Image viewer widget that can zoom, pan, select"
+"""Image viewer widget that can zoom, pan, select"""
 
 from typing import ClassVar
 
@@ -17,7 +17,7 @@ from gi.repository import (  # noqa: E402
 
 
 class Tool:
-    "Base tool class for Dragger, Selector & DraggerSelector"
+    """Base tool class for Dragger, Selector & DraggerSelector"""
 
     dragging = False
 
@@ -27,22 +27,22 @@ class Tool:
         self.dnd_start = {"x": None, "y": None}
 
     def view(self):
-        "Base view() method"
+        """Base view() method"""
         return self._view
 
     def button_pressed(self, _event):
-        "Base button_pressed() method"
+        """Base button_pressed() method"""
         return False
 
     def button_released(self, _event):
-        "Base button_released() method"
+        """Base button_released() method"""
         return False
 
     def motion(self, _event):
-        "Base motion() method"
+        """Base motion() method"""
 
     def cursor_at_point(self, ptx, pty):
-        "Returns the name of the cursor at the specified coords"
+        """Returns the name of the cursor at the specified coords"""
         display = Gdk.Display.get_default()
         cursor_type: str | None = self.cursor_type_at_point(ptx, pty)
         if cursor_type is not None:
@@ -50,26 +50,26 @@ class Tool:
         return None
 
     def cursor_type_at_point(self, _x, _y) -> str | None:
-        "Base cursor_type_at_point() method"
+        """Base cursor_type_at_point() method"""
         return None
 
     def connect(self, *args):
-        "Base connect() method"
+        """Base connect() method"""
         return self.view().connect(*args)
 
     def disconnect(self, *args):
-        "Base disconnect() method"
+        """Base disconnect() method"""
         return self.view().disconnect(*args)
 
 
 class Dragger(Tool):
-    "Tool to drag (pan) the image"
+    """Tool to drag (pan) the image"""
 
     dnd_eligible = False
     button = 1
 
     def button_pressed(self, event):
-        "react to button-press events from the view"
+        """React to button-press events from the view"""
         # Don't block context menu
         if event.button == 3:
             return False
@@ -84,13 +84,13 @@ class Dragger(Tool):
         return True
 
     def button_released(self, event):
-        "react to button-release events from the view"
+        """React to button-release events from the view"""
         self.dragging = False
         self.view().set_interacting(False)
         self.view().update_cursor(event.x, event.y)
 
     def motion(self, event):
-        "react to motion events from the view"
+        """React to motion events from the view"""
         if not self.dragging:
             return
         offset = self.view().get_offset()
@@ -122,7 +122,7 @@ class Dragger(Tool):
             self.dragging = False
 
     def cursor_type_at_point(self, x, y):
-        "given the coordinates, return the cursor type"
+        """Given the coordinates, return the cursor type"""
         x, y = self.view().to_image_coords(x, y)
         pixbuf_size = self.view().get_pixbuf_size()
         if 0 < x < pixbuf_size.width and 0 < y < pixbuf_size.height:
@@ -169,13 +169,13 @@ def _drag_edge(edge, v1, v2, vevent, vdrag):
 
 
 class Selector(Tool):
-    "Tool to draw rubber band boxes"
+    """Tool to draw rubber band boxes"""
 
     h_edge = None
     v_edge = None
 
     def button_pressed(self, event):
-        "react to button-press events from the view"
+        """React to button-press events from the view"""
         # Don't block context menu
         if event.button == 3:
             return False
@@ -187,12 +187,12 @@ class Selector(Tool):
         return True
 
     def button_released(self, event):
-        "react to button_release events from the view"
+        """React to button_release events from the view"""
         self.dragging = False
         self.view().update_cursor(event.x, event.y)
 
     def motion(self, event):
-        "react to motion events from the view"
+        """React to motion events from the view"""
         if not self.dragging:
             return
         self._update_selection(event)
@@ -250,7 +250,7 @@ class Selector(Tool):
         self.view().set_selection(sel)
 
     def cursor_type_at_point(self, x, y):
-        "given the coordinates, return the cursor type"
+        """Given the coordinates, return the cursor type"""
         selection = self.view().get_selection()
         if selection is not None:
             sx1, sy1 = self.view().to_widget_coords(selection.x, selection.y)
@@ -322,16 +322,16 @@ class Selector(Tool):
                 setattr(self, edge, "upper")
 
     def get_selection(self):
-        "get the selection from the view"
+        """Get the selection from the view"""
         return self.view().get_selection()
 
     def set_selection(self, *args):
-        "set the selection in the view"
+        """Set the selection in the view"""
         self.view().set_selection(*args)
 
 
 class SelectorDragger(Tool):
-    "Select with LMB, drag with MMB"
+    """Select with LMB, drag with MMB"""
 
     def __init__(self, view):
         super().__init__(view)
@@ -340,7 +340,7 @@ class SelectorDragger(Tool):
         self._tool = self._selector
 
     def button_pressed(self, event):
-        "react to button-press events from the view"
+        """React to button-press events from the view"""
         # left mouse button
         if event.button == 1:
             self._tool = self._selector
@@ -351,16 +351,16 @@ class SelectorDragger(Tool):
         return self._tool.button_pressed(event)
 
     def button_released(self, event):
-        "react to button-release events from the view"
+        """React to button-release events from the view"""
         self._tool.button_released(event)
         self._tool = self._selector
 
     def motion(self, event):
-        "react to motion events from the view"
+        """React to motion events from the view"""
         self._tool.motion(event)
 
     def cursor_type_at_point(self, x, y):
-        "given the coordinates, return the cursor type"
+        """Given the coordinates, return the cursor type"""
         return self._tool.cursor_type_at_point(x, y)
 
 
@@ -370,7 +370,7 @@ SCROLL_IDLE_TIMEOUT = 150
 
 
 class ImageView(Gtk.DrawingArea):
-    "ImageView widget"
+    """ImageView widget"""
 
     __gtype_name__ = "GtkImageView"
     __gsignals__: ClassVar[dict] = {
@@ -408,12 +408,12 @@ class ImageView(Gtk.DrawingArea):
         type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
     )
     def offset(self):
-        "getter for offset attribute"
+        """Getter for offset attribute"""
         return self._offset
 
     @offset.setter
     def offset(self, newval):
-        "setter for offset attribute"
+        """Setter for offset attribute"""
         if newval is None:
             self._offset = None
             return
@@ -447,12 +447,12 @@ class ImageView(Gtk.DrawingArea):
         blurb="zoom level",
     )
     def zoom(self):
-        "getter for zoom attribute"
+        """Getter for zoom attribute"""
         return self._zoom
 
     @zoom.setter
     def zoom(self, value):
-        "setter for zoom attribute"
+        """Setter for zoom attribute"""
         value = min(value, MAX_ZOOM)
         value = max(value, MIN_ZOOM)
         if value != self._zoom:
@@ -503,7 +503,7 @@ class ImageView(Gtk.DrawingArea):
     )
 
     def do_draw(self, context, **_kwargs):
-        "respond to the draw signal"
+        """Respond to the draw signal"""
         allocation = self.get_allocation()
         style = self.get_style_context()
         pixbuf = self.get_pixbuf()
@@ -571,32 +571,32 @@ class ImageView(Gtk.DrawingArea):
         return True
 
     def do_button_press_event(self, event, **_kwargs):
-        "respond to the button_press event"
+        """Respond to the button_press event"""
         return self.get_tool().button_pressed(event)
 
     def do_button_release_event(self, event, **_kwargs):
-        "respond to the button_release event"
+        """Respond to the button_release event"""
         self.get_tool().button_released(event)
 
     def do_motion_notify_event(self, event, **_kwargs):
-        "respond to the motion_notify event"
+        """Respond to the motion_notify event"""
         self.update_cursor(event.x, event.y)
         self.get_tool().motion(event)
 
     def _arm_scroll_timeout(self):
-        "Reset the idle timer that ends scroll-zoom fast rendering"
+        """Reset the idle timer that ends scroll-zoom fast rendering"""
         if self._scroll_timeout is not None:
             GLib.source_remove(self._scroll_timeout)
         self._scroll_timeout = GLib.timeout_add(SCROLL_IDLE_TIMEOUT, self._scroll_idle)
 
     def _scroll_idle(self):
-        "Return to high-quality rendering when the scroll burst stops"
+        """Return to high-quality rendering when the scroll burst stops"""
         self._scroll_timeout = None
         self.set_interacting(False)
         return GLib.SOURCE_REMOVE
 
     def do_scroll_event(self, event, **_kwargs):
-        "respond to the scroll event"
+        """Respond to the scroll event"""
         image_x, image_y = self.to_image_coords(event.x, event.y)
         if image_x is None:
             return
@@ -619,12 +619,12 @@ class ImageView(Gtk.DrawingArea):
         self.set_offset(offset_x, offset_y)
 
     def do_configure_event(self, _event, **_kwargs):
-        "respond to the configure event"
+        """Respond to the configure event"""
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
 
     def do_destroy(self):
-        "respond to widget destruction"
+        """Respond to widget destruction"""
         if getattr(self, "_scroll_timeout", None) is not None:
             GLib.source_remove(self._scroll_timeout)
             self._scroll_timeout = None
@@ -650,7 +650,7 @@ class ImageView(Gtk.DrawingArea):
         self._scroll_timeout = None
 
     def set_pixbuf(self, pixbuf, zoom_to_fit=False):
-        "set pixbuf, optionally zooming to fit"
+        """Set pixbuf, optionally zooming to fit"""
         self.pixbuf = pixbuf
         self._cached_surface = None
         self._cached_pixbuf_id = id(pixbuf) if pixbuf else None
@@ -660,11 +660,11 @@ class ImageView(Gtk.DrawingArea):
         self.queue_draw()
 
     def get_pixbuf(self):
-        "return current pixbuf"
+        """Return current pixbuf"""
         return self.pixbuf
 
     def get_pixbuf_size(self):
-        "return size of current pixbuf"
+        """Return size of current pixbuf"""
         pixbuf = self.get_pixbuf()
         if pixbuf is None:
             return None
@@ -673,7 +673,7 @@ class ImageView(Gtk.DrawingArea):
         return size
 
     def _get_or_create_surface(self, pixbuf):
-        "Cache the Cairo surface to avoid repeated pixbuf conversions"
+        """Cache the Cairo surface to avoid repeated pixbuf conversions"""
         if self._cached_surface is None or id(pixbuf) != self._cached_pixbuf_id:
             width, height = pixbuf.get_width(), pixbuf.get_height()
             surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
@@ -685,13 +685,13 @@ class ImageView(Gtk.DrawingArea):
         return self._cached_surface
 
     def _get_adaptive_filter(self):
-        "Use faster filtering while interacting, better quality when static"
+        """Use faster filtering while interacting, better quality when static"""
         if self.get_interacting():
             return cairo.FILTER_FAST
         return self.get_interpolation()
 
     def set_zoom(self, zoom):
-        "setting the zoom via the public API disables zoom-to-fit"
+        """Setting the zoom via the public API disables zoom-to-fit"""
         self.setzoom_is_fit(False)
         self._set_zoom_no_center(zoom)
 
@@ -699,11 +699,11 @@ class ImageView(Gtk.DrawingArea):
         self.zoom = zoom
 
     def get_zoom(self):
-        "return current zoom"
+        """Return current zoom"""
         return self.zoom
 
     def to_widget_coords(self, x, y):
-        "convert x, y in image coords to widget coords"
+        """Convert x, y in image coords to widget coords"""
         zoom = self.get_zoom()
         ratio = self.get_resolution_ratio()
         offset = self.get_offset()
@@ -711,7 +711,7 @@ class ImageView(Gtk.DrawingArea):
         return (x + offset.x) * zoom / factor / ratio, (y + offset.y) * zoom / factor
 
     def to_image_coords(self, x, y):
-        "convert x, y in widget coords to image coords"
+        """Convert x, y in widget coords to image coords"""
         zoom = self.get_zoom()
         ratio = self.get_resolution_ratio()
         offset = self.get_offset()
@@ -721,7 +721,7 @@ class ImageView(Gtk.DrawingArea):
         return x * factor / zoom * ratio - offset.x, y * factor / zoom - offset.y
 
     def to_image_distance(self, x, y):
-        "convert x, y in widget distance to image distance"
+        """Convert x, y in widget distance to image distance"""
         zoom = self.get_zoom()
         ratio = self.get_resolution_ratio()
         factor = self.get_scale_factor()
@@ -744,7 +744,7 @@ class ImageView(Gtk.DrawingArea):
         self._set_zoom_with_center(zoom, center_x, center_y)
 
     def setzoom_is_fit(self, zoom_to_fit, limit=None):
-        "zoom to fit current pixbuf"
+        """Zoom to fit current pixbuf"""
         self.zoom_is_fit = zoom_to_fit
         if limit is not None:
             self.zoom_to_fit_limit = limit
@@ -753,7 +753,7 @@ class ImageView(Gtk.DrawingArea):
             self.zoom_to_box(self.get_pixbuf_size())
 
     def zoom_to_box(self, box, additional_factor=None):
-        "zoom to fit given box, with an optional factor for a border"
+        """Zoom to fit given box, with an optional factor for a border"""
         if box is None:
             return
         if additional_factor is None:
@@ -770,43 +770,43 @@ class ImageView(Gtk.DrawingArea):
         )
 
     def zoom_to_selection(self, context_factor):
-        "zoom to fit current selection, with an optional factor for a border"
+        """Zoom to fit current selection, with an optional factor for a border"""
         self.zoom_to_box(self.get_selection(), context_factor)
 
     def getzoom_is_fit(self):
-        "return value of zoom_to_fit property"
+        """Return value of zoom_to_fit property"""
         return self.zoom_is_fit
 
     def zoom_in(self):
-        "zoom in one step"
+        """Zoom in one step"""
         self.setzoom_is_fit(False)
         self._set_zoom_no_center(self.get_zoom() * self.zoom_step)
 
     def zoom_out(self):
-        "zoom out one step"
+        """Zoom out one step"""
         self.setzoom_is_fit(False)
         self._set_zoom_no_center(self.get_zoom() / self.zoom_step)
 
     def zoom_to_fit(self):
-        "set zoom-to-fit property True"
+        """Set zoom-to-fit property True"""
         self.setzoom_is_fit(True)
 
     def set_fitting(self, value):
-        "set zoom-to-fit property"
+        """Set zoom-to-fit property"""
         self.setzoom_is_fit(value)
 
     def set_offset(self, offset_x, offset_y):
-        "set offset (pan)"
+        """Set offset (pan)"""
         rect = Gdk.Rectangle()
         rect.x, rect.y, rect.width, rect.height = int(offset_x), int(offset_y), 0, 0
         self.offset = rect
 
     def get_offset(self):
-        "get current offset (pan)"
+        """Get current offset (pan)"""
         return self.offset
 
     def get_viewport(self):
-        "get current viewport"
+        """Get current viewport"""
         allocation = self.get_allocation()
         pixbuf = self.get_pixbuf()
         viewport = Gdk.Rectangle()
@@ -820,7 +820,7 @@ class ImageView(Gtk.DrawingArea):
         return viewport
 
     def set_tool(self, tool):
-        "set tool"
+        """Set tool"""
         if not isinstance(tool, Tool):
             msg = "invalid set_tool call"
             raise TypeError(msg)
@@ -830,11 +830,11 @@ class ImageView(Gtk.DrawingArea):
         self.emit("tool-changed", tool)
 
     def get_tool(self):
-        "get current tool"
+        """Get current tool"""
         return self.tool
 
     def set_selection(self, selection):
-        "set selection"
+        """Set selection"""
         if (self.selection is not None) or (selection is not None):
             if selection is not None:
                 pixbuf_size = self.get_pixbuf_size()
@@ -859,22 +859,22 @@ class ImageView(Gtk.DrawingArea):
             self.emit("selection-changed", selection)
 
     def get_selection(self):
-        "get current selection"
+        """Get current selection"""
         return self.selection
 
     def set_resolution_ratio(self, ratio):
-        "set ratio between x and y resolutions"
+        """Set ratio between x and y resolutions"""
         self.resolution_ratio = ratio
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
         self.queue_draw()
 
     def get_resolution_ratio(self):
-        "get ratio between x and y resolutions"
+        """Get ratio between x and y resolutions"""
         return self.resolution_ratio
 
     def update_cursor(self, x, y):
-        "update cursor based on given coords"
+        """Update cursor based on given coords"""
         pixbuf_size = self.get_pixbuf_size()
         if pixbuf_size is None:
             return
@@ -884,22 +884,22 @@ class ImageView(Gtk.DrawingArea):
             win.set_cursor(cursor)
 
     def set_interacting(self, interacting):
-        "set whether the user is actively manipulating the view"
+        """Set whether the user is actively manipulating the view"""
         if interacting != self._interacting:
             self._interacting = interacting
             self.queue_draw()
 
     def get_interacting(self):
-        "return whether the user is actively manipulating the view"
+        """Return whether the user is actively manipulating the view"""
         return self._interacting
 
     def set_interpolation(self, interpolation):
-        "set interpolation method"
+        """Set interpolation method"""
         self.interpolation = interpolation
         self.queue_draw()
 
     def get_interpolation(self):
-        "get current interpolation method"
+        """Get current interpolation method"""
         return self.interpolation
 
 

@@ -1,4 +1,4 @@
-"Test tesseract helper functions"
+"""Test tesseract helper functions"""
 
 import re
 import shutil
@@ -13,8 +13,7 @@ from tesseract import _iso639_1to3, get_tesseract_codes, languages, locale_insta
 
 
 def test_tesseract_code_conversions():
-    "Test tesseract helper functions"
-
+    """Test tesseract helper functions"""
     assert languages(["eng", "deu", "chi-sim-vert"]) == {
         "chi-sim-vert": "Chinese - Simplified (vertical)",
         "eng": "English",
@@ -44,12 +43,12 @@ def test_tesseract_code_conversions():
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
 def test_get_tesseract_codes():
-    "test get_tesseract_codes()"
+    """Test get_tesseract_codes()"""
     assert isinstance(get_tesseract_codes(), list), "get_tesseract_codes() returns list"
 
 
 def test_get_tesseract_codes_mocked(mocker):
-    "test get_tesseract_codes() with mocked exec_command"
+    """Test get_tesseract_codes() with mocked exec_command"""
     mock_exec = mocker.patch("tesseract.exec_command")
 
     # Case 1: stdout is None (tesseract not found)
@@ -68,8 +67,7 @@ def test_get_tesseract_codes_mocked(mocker):
 
 
 def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_sync):
-    "Test importing PDF"
-
+    """Test importing PDF"""
     args = [
         config.CONVERT_COMMAND,
         "-density",

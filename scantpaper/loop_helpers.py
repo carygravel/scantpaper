@@ -1,4 +1,4 @@
-"Safe GLib.MainLoop wrapper that fails if the safety timeout fires"
+"""Safe GLib.MainLoop wrapper that fails if the safety timeout fires"""
 
 from gi.repository import GLib
 
@@ -6,7 +6,7 @@ SAFETY_TIMEOUT = 2000  # ms - safety-net for GLib.MainLoop
 
 
 class _MainLoopWrapper:
-    "Wraps GLib.MainLoop to fail if the safety timeout fires"
+    """Wraps GLib.MainLoop to fail if the safety timeout fires"""
 
     def __init__(self, loop):
         self._loop = loop
@@ -18,7 +18,7 @@ class _MainLoopWrapper:
         self._loop.quit()
 
     def run(self):
-        "run the wrapped main loop, failing if the safety timeout fires"
+        """Run the wrapped main loop, failing if the safety timeout fires"""
         if self._quit_before_run:
             return
         self._loop.run()
@@ -29,7 +29,7 @@ class _MainLoopWrapper:
         )
 
     def quit(self, *_args):
-        "quit the wrapped main loop, recording a pre-run quit"
+        """Quit the wrapped main loop, recording a pre-run quit"""
         if not self._loop.is_running():
             self._quit_before_run = True
         self._loop.quit()
@@ -39,7 +39,7 @@ class _MainLoopWrapper:
 
 
 def safe_mainloop(timeout=SAFETY_TIMEOUT):
-    "Return a MainLoop wrapper that fails if the safety timeout fires"
+    """Return a MainLoop wrapper that fails if the safety timeout fires"""
     loop = GLib.MainLoop()
     wrapper = _MainLoopWrapper(loop)
     GLib.timeout_add(timeout, wrapper._on_timeout)

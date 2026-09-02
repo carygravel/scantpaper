@@ -1,4 +1,4 @@
-"Test writing image"
+"""Test writing image"""
 
 import tempfile
 
@@ -9,7 +9,7 @@ from PIL import Image
 
 
 def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):
-    "Test writing image"
+    """Test writing image"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -35,7 +35,7 @@ def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):
 
 
 def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
-    "Test writing image"
+    """Test writing image"""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_pnm])
     with tempfile.NamedTemporaryFile(prefix="'", suffix=".jpg") as temp_jpg:
@@ -55,7 +55,7 @@ def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
 def test_save_image_with_ampersand(
     rose_pnm, temp_db, import_in_mainloop, clean_up_files
 ):
-    "Test writing image"
+    """Test writing image"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])

@@ -1,4 +1,4 @@
-"Tests for postprocess_controls.py"
+"""Tests for postprocess_controls.py"""
 
 from unittest.mock import MagicMock
 
@@ -13,18 +13,18 @@ from gi.repository import Gtk  # noqa: E402
 
 # Mock tesseract functions
 def mock_get_tesseract_codes():
-    "mock get_tesseract_codes"
+    """Mock get_tesseract_codes"""
     return ["eng", "deu"]
 
 
 def mock_languages(_codes):
-    "mock languages"
+    """Mock languages"""
     return {"eng": "English", "deu": "German"}
 
 
 @pytest.fixture
 def mock_ocr_setup(mocker):
-    "fixture for ocr setup"
+    """Fixture for ocr setup"""
     mocker.patch(
         "postprocess_controls.get_tesseract_codes", side_effect=mock_get_tesseract_codes
     )
@@ -33,8 +33,7 @@ def mock_ocr_setup(mocker):
 
 @pytest.mark.usefixtures("mock_ocr_setup")
 def test_ocr_controls_default_language():
-    "Test that OCRControls defaults to the first language if none provided"
-
+    """Test that OCRControls defaults to the first language if none provided"""
     controls = OCRControls(
         available_engines=[["tesseract", "Tesseract", "desc"]],
         engine="tesseract",
@@ -50,11 +49,11 @@ def test_ocr_controls_default_language():
 
 
 def test_error_callback_crash(mocker):
-    "Test that _error_callback does not crash with int page"
+    """Test that _error_callback does not crash with int page"""
 
     # Mocking SessionMixins which contains _error_callback
     class MockApp(SessionMixins):
-        "Mock App"
+        """Mock App"""
 
         def __init__(self):
             self.slist = mocker.Mock()
@@ -79,7 +78,7 @@ def test_error_callback_crash(mocker):
 
 
 def test_rotate_control_row_init():
-    "Test RotateControlRow initialization"
+    """Test RotateControlRow initialization"""
     row = RotateControlRow()
     assert isinstance(row.cbutton, Gtk.CheckButton)
     assert isinstance(row.side_cmbx, Gtk.ComboBox)
@@ -87,15 +86,15 @@ def test_rotate_control_row_init():
 
 
 class TestRotateControls:
-    "Tests for RotateControls class"
+    """Tests for RotateControls class"""
 
     @pytest.fixture
     def rotate_controls(self):
-        "Fixture to create RotateControls instance"
+        """Fixture to create RotateControls instance"""
         return RotateControls()
 
     def test_init(self, rotate_controls):
-        "Test initialization"
+        """Test initialization"""
         assert isinstance(rotate_controls, Gtk.Box)
         assert rotate_controls.get_orientation() == Gtk.Orientation.VERTICAL
         assert rotate_controls.rotate_facing == 0
@@ -103,7 +102,7 @@ class TestRotateControls:
         assert rotate_controls.can_duplex is True
 
     def test_init_with_properties(self):
-        "Test initialization with properties (prevents AttributeError regression)"
+        """Test initialization with properties (prevents AttributeError regression)"""
         controls = RotateControls(
             rotate_facing=90, rotate_reverse=180, can_duplex=False
         )
@@ -113,7 +112,7 @@ class TestRotateControls:
         assert not controls._side1.side_cmbx.get_visible()
 
     def test_rotate_facing_property(self, rotate_controls):
-        "Test rotate_facing property"
+        """Test rotate_facing property"""
         rotate_controls.rotate_facing = 90
         assert rotate_controls.rotate_facing == 90
 
@@ -121,7 +120,7 @@ class TestRotateControls:
         rotate_controls.rotate_facing = 90
 
     def test_rotate_reverse_property(self, rotate_controls):
-        "Test rotate_reverse property"
+        """Test rotate_reverse property"""
         rotate_controls.rotate_reverse = 180
         assert rotate_controls.rotate_reverse == 180
 
@@ -129,7 +128,7 @@ class TestRotateControls:
         rotate_controls.rotate_reverse = 180
 
     def test_can_duplex_property(self, rotate_controls):
-        "Test can_duplex property"
+        """Test can_duplex property"""
         rotate_controls.can_duplex = False
         assert rotate_controls.can_duplex is False
         assert not rotate_controls._side1.side_cmbx.get_visible()
@@ -144,7 +143,7 @@ class TestRotateControls:
         rotate_controls.can_duplex = True
 
     def test_toggled_rotate_callback(self, rotate_controls):
-        "Test _toggled_rotate_callback"
+        """Test _toggled_rotate_callback"""
         # Initially disabled
         assert not rotate_controls._side2.get_sensitive()
 
@@ -172,7 +171,7 @@ class TestRotateControls:
         assert not rotate_controls._side2.get_sensitive()
 
     def test_toggled_rotate_side_callback(self, rotate_controls):
-        "Test _toggled_rotate_side_callback"
+        """Test _toggled_rotate_side_callback"""
         # Enable rotation first
         rotate_controls._side1.cbutton.set_active(True)
 
@@ -195,7 +194,7 @@ class TestRotateControls:
         assert rotate_controls._side2.get_sensitive()
 
     def test_update_attributes(self, rotate_controls):
-        "Test _update_attributes logic"
+        """Test _update_attributes logic"""
         rotate_controls._side1.cbutton.set_active(True)
         rotate_controls._side1.angle_cmbx.set_active_index(90)
         rotate_controls._side1.side_cmbx.set_active_index("facing")
@@ -217,7 +216,7 @@ class TestRotateControls:
         assert rotate_controls.rotate_reverse == 90
 
     def test_update_attributes_side2_reverse(self, rotate_controls):
-        "Test more _update_attributes logic"
+        """Test more _update_attributes logic"""
         rotate_controls._side1.cbutton.set_active(True)
         rotate_controls._side2.cbutton.set_active(True)
         rotate_controls._side1.angle_cmbx.set_active_index(90)
@@ -228,7 +227,7 @@ class TestRotateControls:
         assert rotate_controls.rotate_reverse == 180
 
     def test_update_gui(self, rotate_controls):
-        "Test _update_gui logic"
+        """Test _update_gui logic"""
         # Case 1: Both 90
         rotate_controls.rotate_facing = 90
         rotate_controls.rotate_reverse = 90
@@ -260,23 +259,23 @@ class TestRotateControls:
 
 
 class TestOCRControls:
-    "Tests for OCRControls class"
+    """Tests for OCRControls class"""
 
     def test_init_no_engines(self):
-        "Test initialization with no engines"
+        """Test initialization with no engines"""
         controls = OCRControls(available_engines=[])
         assert not controls._active_button.get_active()
         assert not controls.get_children()[0].get_sensitive()
 
     def test_init_with_tesseract(self):
-        "Test initialization with tesseract"
+        """Test initialization with tesseract"""
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
         assert isinstance(controls, Gtk.Box)
         # Check if active button is present
         assert controls._active_button.get_label() == "OCR scanned pages"
 
     def test_properties(self):
-        "Test properties"
+        """Test properties"""
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
 
         # active
@@ -300,7 +299,7 @@ class TestOCRControls:
         assert controls._active_button.get_active()
 
     def test_callbacks(self):
-        "Test callback methods"
+        """Test callback methods"""
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
 
         # on_toggled_active
@@ -328,7 +327,7 @@ class TestOCRControls:
 
 @pytest.mark.usefixtures("mock_ocr_setup")
 def test_engine_property():
-    "Test engine property"
+    """Test engine property"""
     controls = OCRControls(
         available_engines=[["tesseract", "Tesseract", "Desc"]], engine="tesseract"
     )

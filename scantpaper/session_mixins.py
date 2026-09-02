@@ -1,4 +1,4 @@
-"provide methods around session files"
+"""provide methods around session files"""
 
 import fcntl
 import inspect
@@ -32,10 +32,10 @@ logger = logging.getLogger(__name__)
 
 
 class SessionMixins:
-    "provide methods around session files"
+    """provide methods around session files"""
 
     def _create_temp_directory(self):
-        "Create a temporary directory for the session"
+        """Create a temporary directory for the session"""
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
             self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
@@ -65,7 +65,7 @@ class SessionMixins:
             self.settings["TMPDIR"] = tmpdir
 
     def _create_lockfile(self, session=None):
-        "create a lockfile in the session directory"
+        """Create a lockfile in the session directory"""
         if session is None:
             session = self.session.name
         # SIM115: cross-scope file handle used intentionally
@@ -75,7 +75,7 @@ class SessionMixins:
         return lockfd
 
     def _find_crashed_sessions(self):
-        "Look for crashed sessions"
+        """Look for crashed sessions"""
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
             tmpdir = tempfile.gettempdir()
@@ -123,8 +123,7 @@ class SessionMixins:
                 self._open_session(crashed[selected[0]])
 
     def _check_dependencies(self):
-        "Check for presence of various packages"
-
+        """Check for presence of various packages"""
         self._dependencies["tesseract"] = tesserocr.tesseract_version()
         self._dependencies["tesserocr"] = tesserocr.__version__
         if self._dependencies["tesseract"]:
@@ -196,7 +195,7 @@ class SessionMixins:
             )
 
     def _finished_process_callback(self, widget, process, button_signal=None):
-        "Callback function to handle the completion of a process."
+        """Callback function to handle the completion of a process."""
         logger.debug("signal 'finished-process' emitted with data: %s", process)
         if button_signal is not None:
             self._scan_progress.disconnect(button_signal)
@@ -228,7 +227,7 @@ class SessionMixins:
             GLib.idle_add(prompt_reverse_sides)
 
     def _display_callback(self, response):
-        "Find the page from the input uuid and display it"
+        """Find the page from the input uuid and display it"""
         if response.info and "row" in response.info:
             uuid = response.info["row"][2]
             i = self.slist.find_page_by_uuid(uuid)
@@ -238,8 +237,7 @@ class SessionMixins:
                 self._display_image(self.slist.data[i][2])
 
     def _display_image(self, pageid):
-        "Display the image in the view"
-
+        """Display the image in the view"""
         # Find the index for this pageid to get the thumbnail
         i = self.slist.find_page_by_uuid(pageid)
         if i is None:
@@ -303,7 +301,7 @@ class SessionMixins:
         )
 
     def _error_callback(self, response):
-        "Handle errors"
+        """Handle errors"""
         args = response.request.args
         process = response.request.process
         stage = response.type.name.lower()
@@ -339,15 +337,15 @@ class SessionMixins:
         def show_message_dialog_wrapper():
             """Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
             return immediately in order to allow it to work on subsequent pages
-            despite errors on previous ones"""
+            despite errors on previous ones
+            """
             self._show_message_dialog(**kwargs)
 
         GLib.idle_add(show_message_dialog_wrapper)
         self.post_process_progress.hide()
 
     def _ask_question(self, **kwargs):
-        "Helper function to display a message dialog, wait for a response, and return it"
-
+        """Helper function to display a message dialog, wait for a response, and return it"""
         # replace any numbers with metacharacters to compare to filter
         text = filter_message(kwargs["text"])
         if response_stored(text, self.settings["message"]):
@@ -568,7 +566,7 @@ class SessionMixins:
         self._edit_annotation(self.t_canvas.get_current_bbox())
 
     def _edit_mode_callback(self, action, parameter):
-        "Show/hide the edit tools"
+        """Show/hide the edit tools"""
         action.set_state(parameter)
         if parameter.get_string() == "text":
             self._ocr_text_hbox.show()
@@ -578,7 +576,7 @@ class SessionMixins:
         self._ann_hbox.show()
 
     def _edit_ocr_text(self, bbox, _target=None):
-        "Edit OCR text"
+        """Edit OCR text"""
         if bbox is None:
             logger.debug("edit_ocr_text did not return a bbox")
             return
@@ -594,7 +592,7 @@ class SessionMixins:
             self.t_canvas.set_index_by_bbox(bbox)
 
     def _edit_annotation(self, bbox, _target=None):
-        "Edit annotation"
+        """Edit annotation"""
         self._current_ann_bbox = bbox
         self._ann_hbox._textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
@@ -606,7 +604,7 @@ class SessionMixins:
             self.a_canvas.set_index_by_bbox(bbox)
 
     def _create_txt_canvas(self, page, finished_callback=None):
-        "Create the text canvas"
+        """Create the text canvas"""
 
         def on_parsed(result):
             self.t_canvas.set_text(
@@ -629,7 +627,7 @@ class SessionMixins:
                 finished_callback()
 
     def _create_ann_canvas(self, page, finished_callback=None):
-        "Create the annotation canvas"
+        """Create the annotation canvas"""
 
         def on_parsed(result):
             self.a_canvas.set_text(
@@ -652,105 +650,105 @@ class SessionMixins:
                 finished_callback()
 
     def zoom_100(self, _action, _param):
-        "Sets the zoom level of the view to 100%."
+        """Sets the zoom level of the view to 100%."""
         self.view.set_zoom(1.0)
 
     def zoom_to_fit(self, _action, _param):
-        "Adjusts the view to fit the content within the visible area."
+        """Adjusts the view to fit the content within the visible area."""
         self.view.zoom_to_fit()
 
     def zoom_in(self, _action, _param):
-        "Zooms in the current view"
+        """Zooms in the current view"""
         self.view.zoom_in()
 
     def zoom_out(self, _action, _param):
-        "Zooms out the current view"
+        """Zooms out the current view"""
         self.view.zoom_out()
 
     def _on_zoom_100(self, _widget):
-        "Zooms the current page to 100%"
+        """Zooms the current page to 100%"""
         self.zoom_100(None, None)
 
     def _on_zoom_to_fit(self, _widget):
-        "Zooms the current page so that it fits the viewing pane."
+        """Zooms the current page so that it fits the viewing pane."""
         self.zoom_to_fit(None, None)
 
     def _on_zoom_in(self, _widget):
-        "Zooms in the current page."
+        """Zooms in the current page."""
         self.zoom_in(None, None)
 
     def _on_zoom_out(self, _widget):
-        "Zooms out the current page."
+        """Zooms out the current page."""
         self.zoom_out(None, None)
 
     def _on_rotate_90(self, _widget):
-        "Rotate the selected pages by 90 degrees."
+        """Rotate the selected pages by 90 degrees."""
         self.rotate_90(None, None)
 
     def _on_rotate_180(self, _widget):
-        "Rotate the selected pages by 180 degrees."
+        """Rotate the selected pages by 180 degrees."""
         self.rotate_180(None, None)
 
     def _on_rotate_270(self, _widget):
-        "Rotate the selected pages by 270 degrees."
+        """Rotate the selected pages by 270 degrees."""
         self.rotate_270(None, None)
 
     def _on_save(self, _widget):
-        "Displays the save dialog."
+        """Displays the save dialog."""
         self.save_dialog(None, None)
 
     def _on_email(self, _widget):
-        "displays the email dialog."
+        """Displays the email dialog."""
         self.email(None, None)
 
     def _on_print(self, _widget):
-        "displays the print dialog."
+        """Displays the print dialog."""
         self.print_dialog(None, None)
 
     def _on_select_all(self, _widget):
-        "selects all pages."
+        """Selects all pages."""
         self.select_all(None, None)
 
     def _on_select_odd(self, _widget):
-        "selects the pages with odd numbers."
+        """Selects the pages with odd numbers."""
         self.select_odd_even(0)
 
     def _on_select_even(self, _widget):
-        "selects the pages with even numbers."
+        """Selects the pages with even numbers."""
         self.select_odd_even(1)
 
     def _on_invert_selection(self, _widget):
-        "Inverts the current selection."
+        """Inverts the current selection."""
         self.select_invert(None, None)
 
     def _on_crop(self, _widget):
-        "Displays the crop dialog."
+        """Displays the crop dialog."""
         self.crop_selection(None, None)
 
     def _on_cut(self, _widget):
-        "cuts the selected pages to the clipboard."
+        """Cuts the selected pages to the clipboard."""
         self.cut_selection(None, None)
 
     def _on_copy(self, _widget):
-        "copies the selected pages to the clipboard."
+        """Copies the selected pages to the clipboard."""
         self.copy_selection(None, None)
 
     def _on_paste(self, _widget):
-        "pastes the copied pages."
+        """Pastes the copied pages."""
         self.paste_selection(None, None)
 
     def _on_delete(self, _widget):
-        "deletes the selected pages."
+        """Deletes the selected pages."""
         self.delete_selection(None, None)
 
     def _on_clear_ocr(self, _widget):
-        "Clears the OCR (Optical Character Recognition) data."
+        """Clears the OCR (Optical Character Recognition) data."""
         self.clear_ocr(None, None)
 
     def _on_properties(self, _widget):
-        "displays the properties dialog."
+        """Displays the properties dialog."""
         self.properties(None, None)
 
     def _on_quit(self, _action, _param):
-        "Handles the quit action."
+        """Handles the quit action."""
         self.get_application().quit()

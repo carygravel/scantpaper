@@ -1,4 +1,4 @@
-"test scan dialog"
+"""test scan dialog"""
 
 import logging
 
@@ -15,8 +15,8 @@ def test_reloads_in_profile(
     sane_scan_mocks,
 ):
     """Given a profile of scan options that trigger multiple reloads, check
-    the changed-profile signal is only emitted once"""
-
+    the changed-profile signal is only emitted once
+    """
     sane_scan_mocks.patch_all(mocker)
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "mock_name")

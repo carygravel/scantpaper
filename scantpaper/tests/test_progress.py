@@ -1,4 +1,4 @@
-"Test Progress widget"
+"""Test Progress widget"""
 
 from unittest.mock import Mock
 
@@ -11,7 +11,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 def test_progress_init():
-    "Test initialization"
+    """Test initialization"""
     progress = Progress()
     assert isinstance(progress, Gtk.Box)
     children = progress.get_children()
@@ -21,7 +21,7 @@ def test_progress_init():
 
 
 def test_progress_methods():
-    "Test simple methods"
+    """Test simple methods"""
     progress = Progress()
 
     # Identify children
@@ -37,7 +37,7 @@ def test_progress_methods():
 
 
 def test_progress_pulse_interval(mocker):
-    "Test that pulse returns early when called within the minimum interval"
+    """Test that pulse returns early when called within the minimum interval"""
     progress = Progress()
     mock_pulse = mocker.patch.object(progress._pbar, "pulse")
     mocker.patch("progress.time.monotonic", return_value=100.0)
@@ -54,7 +54,7 @@ def test_progress_pulse_interval(mocker):
 
 
 def test_set_fraction_clamps_values():
-    "Test that set_fraction clamps values to [0.0, 1.0]"
+    """Test that set_fraction clamps values to [0.0, 1.0]"""
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -75,7 +75,7 @@ def test_set_fraction_clamps_values():
 
 
 def test_progress_queued_clamps_fraction():
-    "Test that queued clamps fraction when num_completed >= total"
+    """Test that queued clamps fraction when num_completed >= total"""
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -89,7 +89,7 @@ def test_progress_queued_clamps_fraction():
 
 
 def test_progress_update_clamps_fraction():
-    "Test that update clamps fraction when num_completed_jobs >= total_jobs"
+    """Test that update clamps fraction when num_completed_jobs >= total_jobs"""
     progress = Progress()
     response = Mock()
     response.type = None  # not DATA
@@ -104,7 +104,7 @@ def test_progress_update_clamps_fraction():
 
 
 def test_progress_update_data_string():
-    "Test that update sets text when response.info is a string"
+    """Test that update sets text when response.info is a string"""
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -118,7 +118,7 @@ def test_progress_update_data_string():
 
 
 def test_progress_update_data_float_clamps():
-    "Test that update clamps float DATA values > 1.0"
+    """Test that update clamps float DATA values > 1.0"""
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -131,7 +131,7 @@ def test_progress_update_data_float_clamps():
 
 
 def test_progress_signal():
-    "Test cancel button signal"
+    """Test cancel button signal"""
     progress = Progress()
 
     signal_received = False
@@ -150,7 +150,7 @@ def test_progress_signal():
 
 
 def test_progress_queued():
-    "Test queued method"
+    """Test queued method"""
     progress = Progress()
 
     response = Mock()
@@ -174,7 +174,7 @@ def test_progress_queued():
 
 
 def test_progress_queued_cancel_callback():
-    "Test that clicking cancel invokes cancel_callback and hides the bar"
+    """Test that clicking cancel invokes cancel_callback and hides the bar"""
     progress = Progress()
     cancel_called = []
 
@@ -197,13 +197,13 @@ def test_progress_queued_cancel_callback():
 
 
 def test_progress_init_cancel_callback_none():
-    "Test that cancel_callback defaults to None"
+    """Test that cancel_callback defaults to None"""
     progress = Progress()
     assert progress.cancel_callback is None
 
 
 def test_progress_update():
-    "Test update method"
+    """Test update method"""
     progress = Progress()
 
     response = Mock()
@@ -225,7 +225,7 @@ def test_progress_update():
 
 
 def test_progress_finish():
-    "Test finish method"
+    """Test finish method"""
     progress = Progress()
     progress.show()
 
@@ -253,7 +253,7 @@ def test_progress_finish():
 
 
 def test_progress_finish_with_pending():
-    "Test finish with pending=True does not hide but disconnects signal"
+    """Test finish with pending=True does not hide but disconnects signal"""
     progress = Progress()
     progress.show()
 
@@ -278,7 +278,7 @@ def test_progress_finish_with_pending():
 
 
 def test_progress_queued_no_total():
-    "Test queued does nothing when total is 0"
+    """Test queued does nothing when total is 0"""
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -295,7 +295,7 @@ def test_progress_queued_no_total():
 
 
 def test_progress_queued_no_process_name():
-    "Test queued does nothing when process_name is None"
+    """Test queued does nothing when process_name is None"""
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -312,7 +312,7 @@ def test_progress_queued_no_process_name():
 
 
 def test_progress_update_data_other_type():
-    "Test update with DATA type and non-str/non-float info returns early"
+    """Test update with DATA type and non-str/non-float info returns early"""
     progress = Progress()
     pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
 
@@ -333,7 +333,7 @@ def test_progress_update_data_other_type():
 
 
 def test_progress_child_widgets_visible_after_show_all():
-    "Test that child widgets are visible after calling show_all()"
+    """Test that child widgets are visible after calling show_all()"""
     progress = Progress()
 
     # Initially, nothing should be visible
@@ -362,7 +362,7 @@ def test_progress_child_widgets_visible_after_show_all():
 
 
 def test_progress_visibility_after_hide_then_show():
-    "Test that show() makes progress visible after hide(), not show_all()"
+    """Test that show() makes progress visible after hide(), not show_all()"""
     progress = Progress()
 
     # Get child widgets
@@ -386,14 +386,14 @@ def test_progress_visibility_after_hide_then_show():
 
 
 def test_progress_update_none():
-    "Test that update returns early on falsy response"
+    """Test that update returns early on falsy response"""
     progress = Progress()
     progress.update(None)
     progress.update(False)
 
 
 def test_progress_child_widgets_shown_after_init():
-    "Test that Progress child widgets are shown after init"
+    """Test that Progress child widgets are shown after init"""
     progress = Progress()
 
     # Get child widgets

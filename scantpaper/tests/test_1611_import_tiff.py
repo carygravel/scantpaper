@@ -1,4 +1,4 @@
-"Test importing TIFF"
+"""Test importing TIFF"""
 
 import pathlib
 import subprocess
@@ -15,7 +15,7 @@ from PIL import Image
 
 
 def test_import_tiff(rose_tif, temp_db, get_page_sync):
-    "Test importing basic TIFF"
+    """Test importing basic TIFF"""
     slist = Document(db=temp_db.name)
 
     mlp = safe_mainloop(2000)
@@ -31,8 +31,7 @@ def test_import_tiff(rose_tif, temp_db, get_page_sync):
 
 
 def test_import_tiff_with_units(temp_tif, temp_db, get_page_sync):
-    "Test importing TIFF with units"
-
+    """Test importing TIFF with units"""
     subprocess.run(
         [
             config.CONVERT_COMMAND,
@@ -61,7 +60,7 @@ def test_import_tiff_with_units(temp_tif, temp_db, get_page_sync):
 
 
 def test_import_tiff_with_error(rose_tif):
-    "Test importing TIFF"
+    """Test importing TIFF"""
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
 
@@ -108,7 +107,7 @@ def test_import_tiff_with_error(rose_tif):
 
 
 def test_import_multipage_tiff(rose_tif, temp_db):
-    "Test importing TIFF"
+    """Test importing TIFF"""
     with tempfile.NamedTemporaryFile(suffix=".tif") as temp_tif2:
         subprocess.run(["tiffcp", rose_tif, rose_tif, temp_tif2.name], check=True)
 
@@ -126,7 +125,7 @@ def test_import_multipage_tiff(rose_tif, temp_db):
 
 
 def test_import_linked_tiff(rose_tif, temp_db, get_page_sync):
-    "Test importing TIFF"
+    """Test importing TIFF"""
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_tif = pathlib.Path(temp_dir) / "test.tif"
         subprocess.run(["ln", "-s", rose_tif, temp_tif], check=True)
@@ -148,8 +147,7 @@ def test_import_linked_tiff(rose_tif, temp_db, get_page_sync):
 
 
 def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
-    "Test importing TIFF"
-
+    """Test importing TIFF"""
     slist = Document(db=temp_db.name)
     paths = [rose_tif for _ in range(9)]
 
@@ -184,7 +182,7 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
 
 
 def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync):
-    "Test importing TIFF"
+    """Test importing TIFF"""
     img = Image.open(rose_tif)
     img.load()  # verify file is readable
 
@@ -220,7 +218,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync
 
 
 def test_cancel_kills_registered_pidfile_process(temp_db):
-    "Test cancel() kills a process spawned through a registered pidfile"
+    """Test cancel() kills a process spawned through a registered pidfile"""
     slist = Document(db=temp_db.name)
     pidfile = slist.create_pidfile({})
     assert pidfile is not None

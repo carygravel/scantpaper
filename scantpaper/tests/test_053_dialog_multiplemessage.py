@@ -1,4 +1,4 @@
-"test MultipleMessage class"
+"""test MultipleMessage class"""
 
 import gi
 from dialog import MultipleMessage, filter_message, munge_message
@@ -8,7 +8,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 def test_1():
-    "test MultipleMessage class"
+    """Test MultipleMessage class"""
     window = Gtk.Window()
 
     dialog = MultipleMessage(title="title", transient_for=window)

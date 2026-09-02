@@ -1,4 +1,4 @@
-"Tests for app.py"
+"""Tests for app.py"""
 
 import contextlib
 import importlib
@@ -19,7 +19,7 @@ gi.require_version("Gtk", "3.0")
 
 @pytest.fixture
 def mock_deps(mocker):
-    "Mock external dependencies"
+    """Mock external dependencies"""
     mocker.patch("app.Gtk")
 
     # Mock Gio but ensure flags are valid
@@ -50,7 +50,7 @@ def mock_deps(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_application_do_activate(mocker):
-    "Test Application.do_activate"
+    """Test Application.do_activate"""
     app = Application()
     app.window = None
 
@@ -76,7 +76,7 @@ def test_application_do_activate(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_default(mocker):
-    "Test _parse_arguments with default arguments"
+    """Test _parse_arguments with default arguments"""
     with patch("sys.argv", ["prog"]):
         mock_basicconfig = mocker.patch.object(app_module.logging, "basicConfig")
         args = _parse_arguments()
@@ -87,7 +87,7 @@ def test_parse_arguments_default(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_debug():
-    "Test _parse_arguments with --debug"
+    """Test _parse_arguments with --debug"""
     with patch("sys.argv", ["prog", "--debug"]):
         args = _parse_arguments()
         assert args.log_level == logging.DEBUG
@@ -95,7 +95,7 @@ def test_parse_arguments_debug():
 
 @pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_log_file(mocker):
-    "Test _parse_arguments with --log"
+    """Test _parse_arguments with --log"""
     with patch("sys.argv", ["prog", "--log", "test.log"]):
         mock_basicconfig = mocker.patch.object(app_module.logging, "basicConfig")
         _parse_arguments()
@@ -131,7 +131,7 @@ def test_parse_arguments_log_file(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_log_compression_error(mocker):
-    "Test log compression error handling"
+    """Test log compression error handling"""
     with patch("sys.argv", ["prog", "--log", "test.log"]):
         _parse_arguments()
         cleanup_func = app_module.atexit.register.call_args[0][0]
@@ -147,7 +147,7 @@ def test_parse_arguments_log_compression_error(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_locale(mocker):
-    "Test _parse_arguments with --locale"
+    """Test _parse_arguments with --locale"""
     mock_bindtextdomain = mocker.patch.object(app_module.gettext, "bindtextdomain")
     # Test specific locale path (starts with /)
     with patch("sys.argv", ["prog", "--locale", "/usr/share/locale"]):
@@ -174,7 +174,7 @@ def test_parse_arguments_locale(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_multiple_instances():
-    "Test _parse_arguments with multiple instances of --device, --import, and --import-all"
+    """Test _parse_arguments with multiple instances of --device, --import, and --import-all"""
     test_args = [
         "prog",
         "--device",
@@ -203,7 +203,7 @@ def test_parse_arguments_multiple_instances():
 
 @pytest.mark.usefixtures("mock_deps")
 def test_main(mocker):
-    "Test main function"
+    """Test main function"""
     mock_app_cls = mocker.patch("app.Application")
     mock_app = mock_app_cls.return_value
 
@@ -216,7 +216,7 @@ def test_main(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_application_init_iconpath_fallback(mocker):
-    "Test Application.__init__ with iconpath fallback"
+    """Test Application.__init__ with iconpath fallback"""
     mock_is_dir = mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
     mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
     # It should have called prepend_search_path with the fallback path
@@ -229,7 +229,7 @@ def test_application_init_iconpath_fallback(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_application_init_iconpath_in_package(mocker):
-    "Test Application.__init__ resolves icons from inside the package"
+    """Test Application.__init__ resolves icons from inside the package"""
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
     Application()
@@ -239,7 +239,7 @@ def test_application_init_iconpath_in_package(mocker):
 
 @pytest.mark.usefixtures("mock_deps")
 def test_application_do_startup(mocker):
-    "Test Application.do_startup"
+    """Test Application.do_startup"""
     app = Application()
     mock_do_startup = mocker.patch.object(app_module.Gtk.Application, "do_startup")
     app.do_startup()
@@ -247,7 +247,7 @@ def test_application_do_startup(mocker):
 
 
 def test_pyinstaller_path(mocker):
-    "Test that base_dir is set correctly when running as a PyInstaller bundle"
+    """Test that base_dir is set correctly when running as a PyInstaller bundle"""
     # Mock sys.frozen and sys._MEIPASS
     mocker.patch.object(sys, "frozen", True, create=True)
     mocker.patch.object(sys, "_MEIPASS", "/fake/meipass", create=True)
@@ -265,7 +265,7 @@ def test_pyinstaller_path(mocker):
 
 
 def test_script_entry_point():
-    "Test that the script entry point calls main() when run as __main__"
+    """Test that the script entry point calls main() when run as __main__"""
     with (
         patch("sys.argv", ["scantpaper", "--version"]),
         contextlib.suppress(SystemExit),
@@ -274,7 +274,7 @@ def test_script_entry_point():
 
 
 def test_handle_exception(mocker):
-    "Test _handle_exception"
+    """Test _handle_exception"""
     mock_logger = mocker.patch("app.logging.getLogger")
     mock_critical = mock_logger.return_value.critical
 

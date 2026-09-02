@@ -1,4 +1,4 @@
-"Test saving text"
+"""Test saving text"""
 
 import pathlib
 import tempfile
@@ -15,7 +15,7 @@ def test_save_text(
     temp_db,
     temp_txt,
 ):
-    "Test saving text"
+    """Test saving text"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -48,7 +48,7 @@ def test_save_text(
 
 
 def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop):
-    "Test saving text"
+    """Test saving text"""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_pnm])
 
@@ -77,7 +77,7 @@ def test_save_utf8(
     temp_db,
     temp_txt,
 ):
-    "Test writing text"
+    """Test writing text"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -107,7 +107,7 @@ def test_save_utf8(
 def test_save_hocr_as_text(
     import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
 ):
-    "Test saving HOCR as text"
+    """Test saving HOCR as text"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -154,7 +154,7 @@ def test_save_hocr_as_text(
 def test_save_hocr(
     import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
 ):
-    "Test writing text"
+    """Test writing text"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -207,7 +207,7 @@ def test_save_hocr(
 def test_save_hocr_with_encoding(
     import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
 ):
-    "Test writing text"
+    """Test writing text"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -263,7 +263,7 @@ def test_save_hocr_with_encoding(
 def test_save_multipage_hocr(
     import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
 ):
-    "Test writing text"
+    """Test writing text"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm, rose_pnm])
@@ -347,7 +347,7 @@ def test_save_multipage_hocr(
 def test_save_hocr_structure(
     import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
 ):
-    "Test writing text"
+    """Test writing text"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])

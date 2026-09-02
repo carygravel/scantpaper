@@ -1,4 +1,4 @@
-"Some helper functions to reduce boilerplate"
+"""Some helper functions to reduce boilerplate"""
 
 import contextlib
 import logging
@@ -31,20 +31,20 @@ logger = logging.getLogger(__name__)
 
 
 def pytest_configure(config):
-    "globals"
+    """Globals"""
     config.timeout = 10000
 
 
 @pytest.fixture(autouse=True)
 def quit_lingering_threads():
-    "quit any BaseThread still alive after a test, releasing its resources"
+    """Quit any BaseThread still alive after a test, releasing its resources"""
     yield
     BaseThread.quit_all_live_threads()
 
 
 @pytest.fixture
 def sane_scan_dialog():
-    "return a SaneScanDialog instance"
+    """Return a SaneScanDialog instance"""
     dialog = SaneScanDialog(
         title="title",
         transient_for=Gtk.Window(),
@@ -58,7 +58,7 @@ def sane_scan_dialog():
 
 @pytest.fixture
 def sane_scan_mocks():
-    "raw_options and mocked SaneThread do_* methods for scan-dialog tests"
+    """raw_options and mocked SaneThread do_* methods for scan-dialog tests"""
     raw_options = build_scan_options(
         [
             "brightness-100-100-1",
@@ -77,13 +77,13 @@ def sane_scan_mocks():
     )
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
     def mocked_do_get_options(self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         self.device_handle = SimpleNamespace(
             brightness=0,
             contrast=0,
@@ -100,7 +100,7 @@ def sane_scan_mocks():
         return raw_options
 
     def mocked_do_set_option(self, _request):
-        "mocked_do_set_option"
+        """mocked_do_set_option"""
         info = 0
         key, value = _request.args
         if key == "source" and value == "Automatic Document Feeder":
@@ -117,14 +117,14 @@ def sane_scan_mocks():
         return info
 
     def mocked_do_scan_page(self, _request):
-        "mocked_do_scan_page page"
+        """mocked_do_scan_page page"""
         if self.device_handle is None:
             msg = "must open device before starting scan"
             raise ValueError(msg)
         return Image.new("1", (100, 100))
 
     def patch_all(mocker):
-        "patch the SaneThread do_* methods used by scan-dialog tests"
+        """Patch the SaneThread do_* methods used by scan-dialog tests"""
         mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
         mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
         mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
@@ -142,7 +142,7 @@ def sane_scan_mocks():
 
 @pytest.fixture
 def inexact_scan_mocks(request):
-    "raw_options and mocked SaneThread do_* methods for the test_inexact family"
+    """raw_options and mocked SaneThread do_* methods for the test_inexact family"""
     extra_options = getattr(request, "param", None) or {}
     extra_handle = extra_options.get("handle", {})
     extra_option_names = extra_options.get("options", [])
@@ -160,7 +160,7 @@ def inexact_scan_mocks(request):
         raw_options.append(build_scan_options([name])[1]._replace(index=i))
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             source="Document Table",
@@ -175,12 +175,13 @@ def inexact_scan_mocks(request):
         request.data(f"opened device '{self.device_name}'")
 
     def mocked_do_get_options(_self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         return raw_options
 
     def mocked_do_set_option(self, _request):
         """A fujitsu:fi-4220C2dj was ignoring paper change requests because setting
-        initial geometry set INFO_INEXACT"""
+        initial geometry set INFO_INEXACT
+        """
         key, value = _request.args
         for opt in raw_options:
             if opt.name == key:
@@ -203,13 +204,13 @@ def inexact_scan_mocks(request):
         return info
 
     def patch_all(mocker):
-        "patch the SaneThread do_* methods used by the test_inexact family"
+        """Patch the SaneThread do_* methods used by the test_inexact family"""
         mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
         mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
         mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
 
     def patch_open_get(mocker):
-        "patch do_open_device/do_get_options, leaving do_set_option to the caller"
+        """Patch do_open_device/do_get_options, leaving do_set_option to the caller"""
         mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
         mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
@@ -225,7 +226,7 @@ def inexact_scan_mocks(request):
 
 @pytest.fixture
 def infinite_reloads_scan_mocks():
-    "raw_options and open/get mocks for the test_infinite_reloads family"
+    """raw_options and open/get mocks for the test_infinite_reloads family"""
     raw_options = build_scan_options(
         [
             "resolution-100-200-300-600",
@@ -238,7 +239,7 @@ def infinite_reloads_scan_mocks():
     )
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -252,12 +253,12 @@ def infinite_reloads_scan_mocks():
         request.data(f"opened device '{self.device_name}'")
 
     def mocked_do_get_options(_self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         nonlocal raw_options
         return raw_options
 
     def patch_open_and_get(mocker):
-        "patch the SaneThread do_open_device/do_get_options methods"
+        """Patch the SaneThread do_open_device/do_get_options methods"""
         mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
         mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
@@ -271,7 +272,7 @@ def infinite_reloads_scan_mocks():
 
 @pytest.fixture
 def import_in_mainloop():
-    "import paths in a blocking mainloop"
+    """Import paths in a blocking mainloop"""
 
     def anonymous(slist, paths):
         mlp = safe_mainloop()
@@ -286,7 +287,7 @@ def import_in_mainloop():
 
 @pytest.fixture
 def set_saved_in_mainloop():
-    "set_saved in a blocking mainloop"
+    """set_saved in a blocking mainloop"""
 
     def anonymous(slist, page_id, saved=True):
         mlp = safe_mainloop()
@@ -300,7 +301,7 @@ def set_saved_in_mainloop():
 
 @pytest.fixture
 def set_text_in_mainloop():
-    "set_text in a blocking mainloop"
+    """set_text in a blocking mainloop"""
 
     def anonymous(slist, page_id, text):
         mlp = safe_mainloop()
@@ -314,7 +315,7 @@ def set_text_in_mainloop():
 
 @pytest.fixture
 def set_annotations_in_mainloop():
-    "set_annotations in a blocking mainloop"
+    """set_annotations in a blocking mainloop"""
 
     def anonymous(slist, page_id, annotations):
         mlp = safe_mainloop()
@@ -331,7 +332,7 @@ def set_annotations_in_mainloop():
 
 @pytest.fixture
 def set_resolution_in_mainloop():
-    "set_resolution in a blocking mainloop"
+    """set_resolution in a blocking mainloop"""
 
     def anonymous(slist, page_id, xres, yres):
         mlp = safe_mainloop()
@@ -349,7 +350,7 @@ def set_resolution_in_mainloop():
 
 @pytest.fixture
 def get_page_sync():
-    "get a page synchronously via async send()"
+    """Get a page synchronously via async send()"""
 
     def anonymous(thread, **kwargs):
         result = [None]
@@ -382,7 +383,7 @@ def get_page_sync():
 
 @pytest.fixture
 def mainloop_with_timeout(request):
-    "start a mainloop with a timeout"
+    """Start a mainloop with a timeout"""
 
     def anonymous():
         loop = GLib.MainLoop()
@@ -395,7 +396,7 @@ def mainloop_with_timeout(request):
 
 @pytest.fixture
 def set_device_wait_reload(mainloop_with_timeout):
-    "set the device and wait for the options to load"
+    """Set the device and wait for the options to load"""
 
     def anonymous(dialog, device):
         loop = mainloop_with_timeout()
@@ -417,7 +418,7 @@ def set_device_wait_reload(mainloop_with_timeout):
 
 @pytest.fixture
 def set_option_in_mainloop(mainloop_with_timeout):
-    "set the given option, and wait for it to finish"
+    """Set the given option, and wait for it to finish"""
 
     def anonymous(dialog, name, value):
         loop = mainloop_with_timeout()
@@ -442,7 +443,7 @@ def set_option_in_mainloop(mainloop_with_timeout):
 
 @pytest.fixture
 def set_paper_in_mainloop(mainloop_with_timeout):
-    "set the given paper, and wait for it to finish"
+    """Set the given paper, and wait for it to finish"""
 
     def anonymous(dialog, paper):
         loop = mainloop_with_timeout()
@@ -476,7 +477,7 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 
 @pytest.fixture
 def temp_db():
-    "return a temporary db"
+    """Return a temporary db"""
     # SIM115 — cross-scope file handle used intentionally
     f = tempfile.NamedTemporaryFile(  # noqa: SIM115
         suffix=".db", delete=False
@@ -490,72 +491,72 @@ def temp_db():
 
 @pytest.fixture
 def temp_cjb2():
-    "return a temporary cjb2"
+    """Return a temporary cjb2"""
     return tempfile.NamedTemporaryFile(suffix=".cjb2")
 
 
 @pytest.fixture
 def temp_djvu():
-    "return a temporary djvu"
+    """Return a temporary djvu"""
     return tempfile.NamedTemporaryFile(suffix=".djvu")
 
 
 @pytest.fixture
 def temp_gif():
-    "return a temporary gif"
+    """Return a temporary gif"""
     return tempfile.NamedTemporaryFile(suffix=".gif")
 
 
 @pytest.fixture
 def temp_jpg():
-    "return a temporary jpg"
+    """Return a temporary jpg"""
     return tempfile.NamedTemporaryFile(suffix=".jpg")
 
 
 @pytest.fixture
 def temp_pbm():
-    "return a temporary pbm"
+    """Return a temporary pbm"""
     return tempfile.NamedTemporaryFile(suffix=".pbm")
 
 
 @pytest.fixture
 def temp_pnm():
-    "return a temporary pnm"
+    """Return a temporary pnm"""
     return tempfile.NamedTemporaryFile(suffix=".pnm")
 
 
 @pytest.fixture
 def temp_ppm():
-    "return a temporary ppm"
+    """Return a temporary ppm"""
     return tempfile.NamedTemporaryFile(suffix=".ppm")
 
 
 @pytest.fixture
 def temp_png():
-    "return a temporary png"
+    """Return a temporary png"""
     return tempfile.NamedTemporaryFile(suffix=".png")
 
 
 @pytest.fixture
 def temp_pdf():
-    "return a temporary pdf"
+    """Return a temporary pdf"""
     return tempfile.NamedTemporaryFile(suffix=".pdf")
 
 
 @pytest.fixture
 def temp_tif():
-    "return a temporary tif file"
+    """Return a temporary tif file"""
     return tempfile.NamedTemporaryFile(suffix=".tif")
 
 
 @pytest.fixture
 def temp_txt():
-    "return a temporary txt file"
+    """Return a temporary txt file"""
     return tempfile.NamedTemporaryFile(suffix=".txt", mode="wt")
 
 
 def _create_rose_image():
-    "Create a 70x46 RGB image resembling the ImageMagick rose: sample"
+    """Create a 70x46 RGB image resembling the ImageMagick rose: sample"""
     img = Image.new("RGB", (70, 46))
     pixels = img.load()
     for y in range(46):
@@ -572,7 +573,7 @@ def _create_rose_image():
 
 
 def _create_qbfox_image():
-    "Create a rotated grayscale image with 'The quick brown fox' text"
+    """Create a rotated grayscale image with 'The quick brown fox' text"""
     font_size = 72
     font = None
     font_source = None
@@ -657,7 +658,7 @@ def _create_qbfox_image():
 
 @pytest.fixture(scope="session")
 def rose_pnm():
-    "return a session-scoped pnm file with a rose image"
+    """Return a session-scoped pnm file with a rose image"""
     path = tempfile.mktemp(suffix=".pnm")
     _create_rose_image().save(path, "PPM")
     yield path
@@ -666,7 +667,7 @@ def rose_pnm():
 
 @pytest.fixture(scope="session")
 def rose_png():
-    "return a session-scoped png file with a rose image"
+    """Return a session-scoped png file with a rose image"""
     path = tempfile.mktemp(suffix=".png")
     _create_rose_image().save(path, "PNG")
     yield path
@@ -675,7 +676,7 @@ def rose_png():
 
 @pytest.fixture(scope="session")
 def rose_jpg():
-    "return a session-scoped jpg file with a rose image"
+    """Return a session-scoped jpg file with a rose image"""
     path = tempfile.mktemp(suffix=".jpg")
     _create_rose_image().save(path, "JPEG")
     yield path
@@ -684,7 +685,7 @@ def rose_jpg():
 
 @pytest.fixture(scope="session")
 def rose_tif():
-    "return a session-scoped tif file with a rose image"
+    """Return a session-scoped tif file with a rose image"""
     path = tempfile.mktemp(suffix=".tif")
     _create_rose_image().save(path, "TIFF")
     yield path
@@ -693,7 +694,7 @@ def rose_tif():
 
 @pytest.fixture(scope="session")
 def rotated_qbfox_pnm():
-    "return a session-scoped image with quick brown fox text"
+    """Return a session-scoped image with quick brown fox text"""
     path = tempfile.mktemp(suffix=".pnm")
     _create_qbfox_image().save(path)
     yield path
@@ -702,7 +703,7 @@ def rotated_qbfox_pnm():
 
 @pytest.fixture
 def rotated_qbfox_pnm_im(temp_pnm):
-    "return an ImageMagick-generated image with quick brown fox text"
+    """Return an ImageMagick-generated image with quick brown fox text"""
     subprocess.run(
         [
             config.CONVERT_COMMAND,
@@ -730,7 +731,7 @@ def rotated_qbfox_pnm_im(temp_pnm):
 
 @pytest.fixture
 def clean_up_files():
-    "clean up given files"
+    """Clean up given files"""
 
     def anonymous(files):
         for fname in files:

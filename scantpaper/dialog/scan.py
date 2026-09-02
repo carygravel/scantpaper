@@ -1,4 +1,4 @@
-"Scan dialog"
+"""Scan dialog"""
 
 import logging
 import re
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def _resolution_value(thread, name):
-    "return the value of the named resolution option, or 0 if unavailable"
+    """Return the value of the named resolution option, or 0 if unavailable"""
     try:
         return thread.get_option_value(name)
     except AttributeError:
@@ -41,7 +41,7 @@ def _resolution_value(thread, name):
 
 
 class Scan(PageControls):
-    "Scan dialog"
+    """Scan dialog"""
 
     __gsignals__: ClassVar[dict] = {
         "new-scan": (
@@ -117,7 +117,7 @@ class Scan(PageControls):
 
     @GObject.Property(type=object, nick="Profile", blurb="Name of current profile")
     def profile(self):
-        "getter for profile attribute"
+        """Getter for profile attribute"""
         return self._profile
 
     @profile.setter
@@ -142,7 +142,7 @@ class Scan(PageControls):
         blurb="Name of currently selected paper format",
     )
     def paper(self):
-        "getter for paper attribute"
+        """Getter for paper attribute"""
         return self._paper
 
     @paper.setter
@@ -174,7 +174,7 @@ class Scan(PageControls):
         blurb="Hash of arrays defining paper formats, e.g. A4, Letter, etc.",
     )
     def paper_sizes(self):
-        "getter for paper_sizes attribute"
+        """Getter for paper_sizes attribute"""
         return self._paper_sizes
 
     @paper_sizes.setter
@@ -216,7 +216,7 @@ class Scan(PageControls):
 
     @GObject.Property(type=str, default="", nick="Device", blurb="Device name")
     def device(self):
-        "getter for device attribute"
+        """Getter for device attribute"""
         return self._device
 
     @device.setter
@@ -230,7 +230,7 @@ class Scan(PageControls):
         type=object, nick="Device list", blurb="Array of hashes of available devices"
     )
     def device_list(self):
-        "getter for device_list attribute"
+        """Getter for device_list attribute"""
         return self._device_list
 
     @device_list.setter
@@ -246,7 +246,7 @@ class Scan(PageControls):
         blurb="Allow batch scanning from flatbed",
     )
     def allow_batch_flatbed(self):
-        "getter for allow_batch_flatbed attribute"
+        """Getter for allow_batch_flatbed attribute"""
         return self._allow_batch_flatbed
 
     @allow_batch_flatbed.setter
@@ -276,7 +276,7 @@ class Scan(PageControls):
         blurb="Ignore duplex capabilities",
     )
     def ignore_duplex_capabilities(self):
-        "getter for ignore_duplex_capabilities attribute"
+        """Getter for ignore_duplex_capabilities attribute"""
         return self._ignore_duplex_capabilities
 
     @ignore_duplex_capabilities.setter
@@ -290,7 +290,7 @@ class Scan(PageControls):
         blurb="Scan options currently available, whether active, selected, or not",
     )
     def available_scan_options(self):
-        "getter for available_scan_options attribute"
+        """Getter for available_scan_options attribute"""
         return self._available_scan_options
 
     @available_scan_options.setter
@@ -316,12 +316,12 @@ class Scan(PageControls):
 
     @GObject.Property(type=object, nick="Cursor", blurb="name of current cursor")
     def cursor(self):
-        "getter for cursor attribute"
+        """Getter for cursor attribute"""
         return self._cursor
 
     @cursor.setter
     def cursor(self, newval):
-        "set the cursor"
+        """Set the cursor"""
         win = self.get_window()
         if newval is None:
             return
@@ -339,7 +339,7 @@ class Scan(PageControls):
         blurb="Scan options making up current profile",
     )
     def current_scan_options(self):
-        "getter for current_scan_options attribute"
+        """Getter for current_scan_options attribute"""
         return self._current_scan_options
 
     @current_scan_options.setter
@@ -481,7 +481,7 @@ class Scan(PageControls):
         self.profile = combobsp.get_active_text()
 
     def show(self, _widget=None):
-        "respond to the show signal"
+        """Respond to the show signal"""
         self.framex.hide()
         self._flatbed_or_duplex_callback()
         if (
@@ -493,7 +493,7 @@ class Scan(PageControls):
         self.cursor = "default"
 
     def set_device(self, device):
-        "set the active device"
+        """Set the active device"""
         if device not in [None, ""]:
             idev = None
             device_list = self.device_list
@@ -517,7 +517,7 @@ class Scan(PageControls):
                     )
 
     def set_device_list(self, device_list):
-        "fill the combobox with the list of devices"
+        """Fill the combobox with the list of devices"""
         # Note any duplicate device names and delete if necessary
         seen = {}
         i = 0
@@ -564,7 +564,7 @@ class Scan(PageControls):
         self.combobd.handler_unblock(self.combobd_changed_signal)
 
     def _pack_widget(self, widget, data):
-        "pack the given widget in the dialog"
+        """Pack the given widget in the dialog"""
         options, opt, hbox, hboxp = data
         if widget is not None:
             # Add label for units
@@ -610,7 +610,7 @@ class Scan(PageControls):
             logger.warning("Unknown type %s", opt.type)
 
     def _create_paper_widget(self, options, hboxp):
-        "create the paper widget"
+        """Create the paper widget"""
         # Only define the paper size once the rest of the geometry widgets
         # have been created
         if (
@@ -671,13 +671,13 @@ class Scan(PageControls):
                     widget.connect("changed", do_paper_dimension_changed)
 
     def _hide_geometry(self, _options):
-        "hide geometry options"
+        """Hide geometry options"""
         for option in ("tl-x", "tl-y", "br-x", "br-y", "page-height", "page-width"):
             if option in self._geometry_boxes:
                 self._geometry_boxes[option].hide()
 
     def _get_paper_by_geometry(self):
-        "return the paper size that matches the current geometry settings"
+        """Return the paper size that matches the current geometry settings"""
         formats = self.paper_sizes
         if formats is None:
             return None
@@ -700,7 +700,8 @@ class Scan(PageControls):
 
     def _update_options(self, new_options):
         """If setting an option triggers a reload, the widgets must be updated to reflect
-        the new options"""
+        the new options
+        """
         logger.debug("Sane.get_option_descriptor() returned: %s", new_options)
         loops = self.num_reloads
         loops += 1
@@ -838,7 +839,7 @@ class Scan(PageControls):
         return False
 
     def _set_paper_sizes(self, formats):
-        "Add paper size to combobox if scanner large enough"
+        """Add paper size to combobox if scanner large enough"""
         if self.combobp is not None:
             # Remove all formats, leaving Manual and Edit
             num = self.combobp.get_num_rows()
@@ -864,7 +865,8 @@ class Scan(PageControls):
 
     def _set_paper(self, paper):
         """Treat a paper size as a profile, so build up the required profile of
-        geometry settings and apply it"""
+        geometry settings and apply it
+        """
         if not self.setting_profile:
             self.profile = None
         if paper is None:
@@ -945,7 +947,7 @@ class Scan(PageControls):
         self._add_current_scan_options(paper_profile)
 
     def _edit_paper(self):
-        "Paper editor"
+        """Paper editor"""
         combobp = self.combobp
         window = Dialog(
             transient_for=self,
@@ -1018,7 +1020,7 @@ class Scan(PageControls):
         window.show_all()
 
     def save_current_profile(self, name):
-        "keeping this as a separate sub allows us to test it"
+        """Keeping this as a separate sub allows us to test it"""
         self._add_profile(name, self.current_scan_options)
 
         # Block signal or else we fire another round of profile loads
@@ -1028,7 +1030,7 @@ class Scan(PageControls):
         self._profile = name
 
     def _add_profile(self, name, profile):
-        "apply the given profile without resetting the current one"
+        """Apply the given profile without resetting the current one"""
         if name is None:
             logger.error("Cannot add profile with no name")
             return
@@ -1050,19 +1052,19 @@ class Scan(PageControls):
         self.emit("added-profile", name, self.profiles[name])
 
     def set_option(self, option, value, uuid=None):
-        "placeholder to be overrided by subclass"
+        """Placeholder to be overrided by subclass"""
 
     def scan_options(self, device=None):
-        "placeholder to be overrided by subclass"
+        """Placeholder to be overrided by subclass"""
 
     def get_devices(self):
-        "placeholder to be overrided by subclass"
+        """Placeholder to be overrided by subclass"""
 
     def scan(self):
-        "placeholder to be overrided by subclass"
+        """Placeholder to be overrided by subclass"""
 
     def _insert_target(self, k):
-        "return (insert_after, side) for the k-th page scanned in this pass"
+        """Return (insert_after, side) for the k-th page scanned in this pass"""
         side = self.side_to_scan
         if self.checkx.get_active():
             position = self.page_number_start + (k - 1) * self.page_number_increment
@@ -1081,7 +1083,7 @@ class Scan(PageControls):
         return self._uuid_at_position(position), "reverse"
 
     def _uuid_at_position(self, position):
-        "return the page id at the given 1-based position, or None"
+        """Return the page id at the given 1-based position, or None"""
         slist = self.document
         if slist is None or position is None:
             return None
@@ -1090,8 +1092,9 @@ class Scan(PageControls):
         return slist.data[position - 1][2]
 
     def _uuid_before_position(self, position):
-        """return the page id to insert after so that a new page lands at the
-        given 1-based position, or None to append"""
+        """Return the page id to insert after so that a new page lands at the
+        given 1-based position, or None to append
+        """
         if position is None or position < 1:
             return None
         if position == 1:
@@ -1099,7 +1102,7 @@ class Scan(PageControls):
         return self._uuid_at_position(position - 1)
 
     def set_profile(self, name):
-        "apply the give profile"
+        """Apply the give profile"""
         if name is not None and name != "":
             # Only emit the changed-profile signal when the GUI has caught up
             signal = None
@@ -1143,7 +1146,7 @@ class Scan(PageControls):
             del self.profiles[name]
 
     def set_current_scan_options(self, profile):
-        "Set options to given profile"
+        """Set options to given profile"""
         if profile is None:
             logger.error("Cannot add undefined profile")
             return
@@ -1174,7 +1177,7 @@ class Scan(PageControls):
         self.scan_options(self.device)
 
     def _add_current_scan_options(self, profile):
-        "Apply options referenced by hashref without resetting existing options"
+        """Apply options referenced by hashref without resetting existing options"""
         if profile is None:
             logger.error("Cannot add undefined profile")
             return
@@ -1306,7 +1309,7 @@ class Scan(PageControls):
             self.cursor = "default"
 
     def _update_widget_value(self, opt, val):
-        "update widget with value"
+        """Update widget with value"""
         if opt.name in self.option_widgets:
             widget = self.option_widgets[opt.name]
             logger.debug(
@@ -1340,7 +1343,7 @@ class Scan(PageControls):
             logger.warning("Widget for option '%s' undefined.", opt.name)
 
     def _get_xy_resolution(self):
-        "return x and y values for resolution"
+        """Return x and y values for resolution"""
         options = self.available_scan_options
         if not options:
             return None, None
@@ -1377,7 +1380,7 @@ class Scan(PageControls):
         return xres, yres
 
     def _get_label_for_option(self, name):
-        "return the label text of the option"
+        """Return the label text of the option"""
         widget = self.option_widgets[name]
         hbox = widget.get_parent()
         for child in hbox.get_children():
@@ -1410,7 +1413,7 @@ class Scan(PageControls):
 
 
 def _geometry_option(opt):
-    "Return true if we have a valid geometry option"
+    """Return true if we have a valid geometry option"""
     return (
         opt.type in [enums.TYPE_FIXED, enums.TYPE_INT]
         and opt.unit in [enums.UNIT_MM, enums.UNIT_PIXEL]
@@ -1419,7 +1422,7 @@ def _geometry_option(opt):
 
 
 def _value_for_active_option(value, opt):
-    "return if the value is defined and the option is active"
+    """Return if the value is defined and the option is active"""
     return value is not None and not opt.cap & enums.CAP_INACTIVE
 
 
@@ -1537,7 +1540,7 @@ def _edit_profile_callback(_widget, parent):
 
 
 def do_delete_profile_backend_item(_widget, data):
-    "callback for delete profile button click"
+    """Callback for delete profile button click"""
     profile, options, vbox, frameb, framef, name, i = data
     logger.debug("removing option '%s' from profile", name)
     profile.remove_backend_option_by_index(i)
@@ -1612,7 +1615,7 @@ def _new_val(oldval, newval):
 
 
 def make_progress_string(i, num_pages):
-    "return a progress string"
+    """Return a progress string"""
     if num_pages > 0:
         return _("Scanning page %d of %d") % (i, num_pages)
     return _("Scanning page %d") % (i)

@@ -1,4 +1,4 @@
-"Test scan dialog"
+"""Test scan dialog"""
 
 from unittest.mock import MagicMock
 
@@ -15,7 +15,7 @@ from scanner.profile import Profile
 
 
 class Sane:
-    "Mock Sane object"
+    """Mock Sane object"""
 
     def __init__(self):
         self.options = [
@@ -42,7 +42,7 @@ sane_mock = Sane()
 
 
 class TestScan(Scan):
-    "Test-friendly Scan class"
+    """Test-friendly Scan class"""
 
     __test__ = False
 
@@ -58,13 +58,12 @@ class TestScan(Scan):
 
 @pytest.fixture
 def available_scan_options():
-    "Fixture for available_scan_options"
+    """Fixture for available_scan_options"""
     return Options(sane_mock.options)
 
 
 def test_edit_profile_dialog(mocker, available_scan_options):
-    """
-    Tests that the edit profile dialog is created with the correct buttons.
+    """Tests that the edit profile dialog is created with the correct buttons.
     This covers changes from commit ff79698.
     """
     parent = TestScan(
@@ -85,8 +84,7 @@ def test_edit_profile_dialog(mocker, available_scan_options):
 
 
 def test_save_profile_overwrite_dialog(mocker):
-    """
-    Tests that the save profile overwrite dialog is created with the correct buttons.
+    """Tests that the save profile overwrite dialog is created with the correct buttons.
     This covers changes from commit 1bd730e.
     """
     parent = MagicMock(spec=Gtk.Window)
@@ -135,9 +133,7 @@ def test_save_profile_overwrite_dialog(mocker):
 
 
 def test_edit_paper_cancel(mocker):
-    """
-    Tests that _edit_paper() method correctly opens the dialog and cancels.
-    """
+    """Tests that _edit_paper() method correctly opens the dialog and cancels."""
     # 1. Mock the Scan instance (self)
     mock_self = MagicMock(spec=Scan)
     mock_self.paper_sizes = {"A4": [1, 2, 3, 4], "Letter": [5, 6, 7, 8]}

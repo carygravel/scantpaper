@@ -1,4 +1,4 @@
-"GUI for unpaper"
+"""GUI for unpaper"""
 
 import logging
 import re
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Unpaper:
-    "GUI for unpaper"
+    """GUI for unpaper"""
 
     _version = None
 
@@ -258,7 +258,7 @@ class Unpaper:
                 dframe.set_sensitive(True)
 
         def deskew_scan_direction_button_cb(widget):
-            "Ensure that at least one checkbutton stays active"
+            """Ensure that at least one checkbutton stays active"""
             if count_active_children(dframe) == 0:
                 widget.set_active(True)
 
@@ -301,7 +301,7 @@ class Unpaper:
         bmframe = self.add_widget(vbox2, options, "border-margin")
 
         def border_align_button_cb(_widget):
-            "Ghost margin if nothing selected"
+            """Ghost margin if nothing selected"""
             bmframe.set_sensitive(count_active_children(bframe) > 0)
 
         for key in options["border-align"]["options"]:
@@ -312,7 +312,7 @@ class Unpaper:
         return vbox2
 
     def add_options(self, vbox):
-        "Add options to given vbox"
+        """Add options to given vbox"""
         options = self.options
 
         # Layout ComboBox
@@ -359,7 +359,7 @@ class Unpaper:
         self.add_widget(vbox3, options, "no-blurfilter")
 
         def msbutton_toggled_cb(_widget):
-            "make no-mask-center depend on no-mask-scan"
+            """Make no-mask-center depend on no-mask-scan"""
             if msbutton.get_active():
                 mcbutton.set_sensitive(False)
             else:
@@ -435,7 +435,7 @@ class Unpaper:
         return widget
 
     def add_widget(self, vbox, hashref, option):
-        "Add widget to unpaper dialog"
+        """Add widget to unpaper dialog"""
         default = self.default
         widget = None
         if "default" in hashref[option] and option not in default:
@@ -456,7 +456,7 @@ class Unpaper:
         return widget
 
     def _combobox_get_option(self, option):
-        "get option for combobox"
+        """Get option for combobox"""
         hashref = self.options
         i = hashref[option]["widget"].get_active()
         for key in hashref[option]["options"]:
@@ -465,11 +465,11 @@ class Unpaper:
         return None
 
     def _checkbutton_get_option(self, option):
-        "get option for checkbutton"
+        """Get option for checkbutton"""
         return self.options[option]["widget"].get_active()
 
     def _checkbuttongroup_get_option(self, option):
-        "get option for checkbuttongroup"
+        """Get option for checkbuttongroup"""
         hashref = self.options
         items = [
             key
@@ -482,19 +482,19 @@ class Unpaper:
         return None
 
     def _spinbutton_get_option(self, option):
-        "get option for spinbutton"
+        """Get option for spinbutton"""
         if self.options[option]["step"] >= 1:
             return self.options[option]["widget"].get_value_as_int()
         return self.options[option]["widget"].get_value()
 
     def _spinbuttongroup_get_option(self, option):
-        "get option for spinbuttongroup"
+        """Get option for spinbuttongroup"""
         options = self.options[option]["options"]
         items = [str(options[key]["widget"].get_value()) for key in options]
         return ",".join(items) if items else ""
 
     def get_option(self, option):
-        "return given option"
+        """Return given option"""
         options = self.options
         default = self.default
         if "widget" in options[option] and options[option]["type"] in [
@@ -515,7 +515,7 @@ class Unpaper:
         return None
 
     def get_options(self):
-        "return all options"
+        """Return all options"""
         options = self.options
         default = self.default
         for option in options:
@@ -526,18 +526,18 @@ class Unpaper:
         return default
 
     def _combobox_set_option(self, option, options):
-        "set option for combobox"
+        """Set option for combobox"""
         hashref = self.options
         i = hashref[option]["options"][options[option]]["index"]
         if i is not None:
             hashref[option]["widget"].set_active(i)
 
     def _checkbutton_set_option(self, option, options):
-        "set option for checkbutton"
+        """Set option for checkbutton"""
         self.options[option]["widget"].set_active(options[option])
 
     def _checkbuttongroup_set_option(self, option, options):
-        "set option for checkbuttongroup"
+        """Set option for checkbuttongroup"""
         hashref = self.options
         default = {}
         if option in options:
@@ -548,11 +548,11 @@ class Unpaper:
             hashref[option]["options"][key]["widget"].set_active(key in default)
 
     def _spinbutton_set_option(self, option, options):
-        "set option for spinbutton"
+        """Set option for spinbutton"""
         self.options[option]["widget"].set_value(options[option])
 
     def _spinbuttongroup_set_option(self, option, options):
-        "set option for spinbuttongroup"
+        """Set option for spinbuttongroup"""
         hashref = self.options
         default = []
         if option in options:
@@ -565,7 +565,7 @@ class Unpaper:
                 )
 
     def set_options(self, options):
-        "set options"
+        """Set options"""
         hashref = self.options
         for option in options:
             if "widget" in hashref[option] and hashref[option]["type"] in [
@@ -580,7 +580,7 @@ class Unpaper:
                 method(option, options)
 
     def get_cmdline(self):
-        "return list for unpaper subprocess call"
+        """Return list for unpaper subprocess call"""
         hashref = self.options
         options = self.get_options()
         items = ["unpaper"]
@@ -599,7 +599,7 @@ class Unpaper:
         return [*items, "--overwrite", "%s", "%s", "%s"]
 
     def program_version(self):
-        "return program version"
+        """Return program version"""
         if self._version is None:
             version = program_version("stdout", r"([\d.]+)", ["unpaper", "--version"])
             if version is not None:
@@ -608,7 +608,7 @@ class Unpaper:
 
 
 def count_active_children(frame):
-    "helper function to count active children in the frame"
+    """Helper function to count active children in the frame"""
     num = 0
     for child in frame.get_child().get_children():
         if child.get_active():

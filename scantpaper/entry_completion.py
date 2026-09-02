@@ -1,4 +1,4 @@
-"Subclass Gtk.Entry to add completion suggestions"
+"""Subclass Gtk.Entry to add completion suggestions"""
 
 import gi
 
@@ -7,7 +7,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 class EntryCompletion(Gtk.Entry):
-    "Subclass Gtk.Entry to add completion suggestions"
+    """Subclass Gtk.Entry to add completion suggestions"""
 
     def __init__(self, text=None, suggestions=None):
         super().__init__()
@@ -60,17 +60,17 @@ class EntryCompletion(Gtk.Entry):
             self._model.append([text])
 
     def get_suggestions(self):
-        "return suggestions"
+        """Return suggestions"""
         return list(self._suggestions)
 
     def add_to_suggestions(self, suggestions):
-        "add to suggestions"
+        """Add to suggestions"""
         for text in suggestions:
             if text not in self._suggestions:
                 self._suggestions.append(text)
         self._refresh_model()
 
     def set_suggestions(self, suggestions):
-        "clear and set suggestions"
+        """Clear and set suggestions"""
         self._suggestions = []
         self.add_to_suggestions(suggestions)

@@ -1,4 +1,4 @@
-"test scan dialog"
+"""test scan dialog"""
 
 from types import SimpleNamespace
 
@@ -10,7 +10,7 @@ from tests.scan_mocks import build_scan_options
 
 
 def mocked_do_get_devices(_cls, _request):
-    "mocked_do_get_devices"
+    """mocked_do_get_devices"""
     devices = [("mock_name", "", "", "")]
     return [
         SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1]) for x in devices
@@ -18,7 +18,7 @@ def mocked_do_get_devices(_cls, _request):
 
 
 def trigger_get_devices(dlg, mainloop_with_timeout):
-    "Trigger get_devices to cover mocked_do_get_devices"
+    """Trigger get_devices to cover mocked_do_get_devices"""
     loop = mainloop_with_timeout()
 
     def reloaded_devices_cb(_arg1, _arg2):
@@ -37,14 +37,14 @@ def test_infinite_reloads(
     mainloop_with_timeout,
     infinite_reloads_scan_mocks,
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(self, _request):
         """Force a reload for every option to trigger an infinite reload loop and test
-        that the reload-recursion-limit is respected."""
+        that the reload-recursion-limit is respected.
+        """
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
         return enums.INFO_RELOAD_OPTIONS
@@ -80,14 +80,14 @@ def test_changed_profile(
     mainloop_with_timeout,
     infinite_reloads_scan_mocks,
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(self, _request):
         """The changed-profile signal was being emitted too early, resulting in
-        the profile dropdown being set to None"""
+        the profile dropdown being set to None
+        """
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
         return enums.INFO_RELOAD_OPTIONS
@@ -124,12 +124,11 @@ def test_changed_profile(
 def test_source_default(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -140,7 +139,8 @@ def test_source_default(
     def mocked_do_get_options(_self, _request):
         """An Acer flatbed scanner using a snapscan backend had no default for the source
         option, and as it only had one possibility, which was never set, the source
-        option never had a value. Check that the number of pages frame is ghosted."""
+        option never had a value. Check that the number of pages frame is ghosted.
+        """
         return [
             Option(
                 index=0,
@@ -187,8 +187,7 @@ def test_source_default(
 
 
 def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
-    "Check options are reset before applying a profile"
-
+    """Check options are reset before applying a profile"""
     dlg = sane_scan_dialog
     dlg._add_profile("my profile", Profile(backend=[("resolution", 100)]))
     loop = mainloop_with_timeout()
@@ -235,12 +234,11 @@ def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
 def test_button_press(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -267,7 +265,7 @@ def test_button_press(
     )
 
     def mocked_do_get_options(_self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         nonlocal raw_options
         return raw_options
 
@@ -275,7 +273,8 @@ def test_button_press(
 
     def mocked_do_set_option(self, _request):
         """Reload clear-calibration button pressed to test that this doesn't trigger an
-        infinite reload loop."""
+        infinite reload loop.
+        """
         key, value = _request.args
         for opt in raw_options:
             if opt.name == key:
@@ -332,18 +331,18 @@ def test_button_press(
 def test_get_invalid_option(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """test getting an invalid option (gscan2pdf bug #313).
+    """Test getting an invalid option (gscan2pdf bug #313).
     scanimage was segfaulting when retrieving the options from a Brother
     ADS-2800W via --help. xsane and simplescan worked.
 
     gscan2pdf tested this with 06092_dialog_scan, but without a load of
     debugging help from someone with access to a similar scanner, it is
-    hard to predict how the python sane module would react."""
-
+    hard to predict how the python sane module would react.
+    """
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -371,7 +370,7 @@ def test_get_invalid_option(
     )
 
     def mocked_do_get_options(_self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         nonlocal raw_options
         return raw_options
 

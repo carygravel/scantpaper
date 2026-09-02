@@ -1,4 +1,4 @@
-"Test PaperList class"
+"""Test PaperList class"""
 
 import gi
 import pytest
@@ -9,8 +9,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 def test_paperlist():
-    "Test PaperList class"
-
+    """Test PaperList class"""
     with pytest.raises(TypeError):
         PaperList()
     plist = PaperList({"A4": {"x": 210, "y": 297, "l": 0, "t": 0}})
@@ -53,7 +52,7 @@ def test_paperlist():
 
 
 def test_remove_paper_empty(mocker):
-    "Test do_remove_paper when no papers left"
+    """Test do_remove_paper when no papers left"""
     plist = PaperList({})
     mock_window = mocker.Mock()
     mock_app = mocker.Mock()

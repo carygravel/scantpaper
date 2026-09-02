@@ -1,4 +1,4 @@
-"The crop dialog"
+"""The crop dialog"""
 
 from typing import ClassVar
 
@@ -32,7 +32,7 @@ LAYOUT = [
 
 
 class Crop(Dialog):
-    "The crop dialog"
+    """The crop dialog"""
 
     __gsignals__: ClassVar[dict] = {
         "changed-selection": (GObject.SignalFlags.RUN_FIRST, None, (Gdk.Rectangle,)),
@@ -48,7 +48,7 @@ class Crop(Dialog):
         blurb="Current selection",
     )
     def selection(self):
-        "getter for selection attribute"
+        """Getter for selection attribute"""
         return self._selection
 
     @selection.setter
@@ -77,7 +77,7 @@ class Crop(Dialog):
         blurb="Width of current page in pixels",
     )
     def page_width(self):
-        "getter for page_width attribute"
+        """Getter for page_width attribute"""
         return self._page_width
 
     @page_width.setter
@@ -97,7 +97,7 @@ class Crop(Dialog):
         blurb="Height of current page in pixels",
     )
     def page_height(self):
-        "getter for page_width attribute"
+        """Getter for page_width attribute"""
         return self._page_height
 
     @page_height.setter
@@ -152,7 +152,7 @@ class Crop(Dialog):
             widget.set_tooltip_text(row[2])
 
     def on_sb_selector_value_changed(self, widget, dimension):
-        "update selection when spinbutton changes"
+        """Update selection when spinbutton changes"""
         if self._updating_selection:
             return
         new_selection = Gdk.Rectangle()

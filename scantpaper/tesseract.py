@@ -1,4 +1,4 @@
-"Some helper functions around tesseract"
+"""Some helper functions around tesseract"""
 
 import logging
 import re
@@ -168,7 +168,7 @@ non_iso639_1 = {"zh": "chi-sim"}
 
 
 def get_tesseract_codes():
-    "query tesseract for installed languages"
+    """Query tesseract for installed languages"""
     proc = exec_command(["tesseract", "--list-langs"])
     if proc.stdout is None:
         logger.info(proc.stderr)
@@ -182,7 +182,7 @@ def get_tesseract_codes():
 
 
 def code2name(code):
-    "given a tesseract language code, return the appropriate name"
+    """Given a tesseract language code, return the appropriate name"""
     if code in non_iso639_3:
         return non_iso639_3[code]
     try:
@@ -192,7 +192,7 @@ def code2name(code):
 
 
 def languages(codes):
-    "given a list of tesseract language codes, return a dictionary of their names"
+    """Given a list of tesseract language codes, return a dictionary of their names"""
     langs = {}
     for code in codes:
         name = code2name(code)
@@ -201,7 +201,7 @@ def languages(codes):
 
 
 def installable_languages():
-    "return a dictionary of the installable languages"
+    """Return a dictionary of the installable languages"""
     _installable_languages = non_iso639_3.copy()
     for code in installable_language_codes:
         name = code2name(code)
@@ -218,7 +218,7 @@ def _iso639_1to3(code1):
 
 
 def locale_installed(locale, installed_codes):
-    "check that the given locale is installed or installable as a tesseract language"
+    """Check that the given locale is installed or installable as a tesseract language"""
     # Handle C and C.UTF-8 locales specially
     code1 = "c" if locale.upper().startswith("C") else locale.lower()[0:2]
     try:

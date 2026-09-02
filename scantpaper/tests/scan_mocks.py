@@ -1,11 +1,11 @@
-"Shared scan-option definitions for scan-dialog tests"
+"""Shared scan-option definitions for scan-dialog tests"""
 
 from frontend import enums
 from scanner.options import Option
 
 
 def _number_of_options():
-    "the read-only option that heads every raw_options list"
+    """The read-only option that heads every raw_options list"""
     return Option(
         index=0,
         name="",
@@ -20,7 +20,7 @@ def _number_of_options():
 
 
 def _geo(name, constraint, title, desc):
-    "build a 2D-geometry option (tl-x/tl-y/br-x/br-y)"
+    """Build a 2D-geometry option (tl-x/tl-y/br-x/br-y)"""
     return Option(
         index=0,
         name=name,
@@ -40,7 +40,7 @@ def _res(
     desc="Sets the resolution of the scanned image.",
     size=1,
 ):
-    "build a resolution option"
+    """Build a resolution option"""
     return Option(
         index=0,
         name="resolution",
@@ -59,7 +59,7 @@ def _src(
     title="Scan source",
     desc="Selects the scan source (such as a document-feeder).",
 ):
-    "build a source option"
+    """Build a source option"""
     return Option(
         index=0,
         name="source",
@@ -573,7 +573,7 @@ OPTIONS = {
 
 
 def build_scan_options(keys):
-    "build a raw_options list from named option keys, auto-assigning indices"
+    """Build a raw_options list from named option keys, auto-assigning indices"""
     opts = [_number_of_options()]
     for i, key in enumerate(keys, start=1):
         opts.append(OPTIONS[key]._replace(index=i))

@@ -1,4 +1,4 @@
-"Tests for i18n helpers"
+"""Tests for i18n helpers"""
 
 import gettext
 import importlib
@@ -8,7 +8,7 @@ import i18n
 
 
 def test_i18n_fallbacks(caplog):
-    "Test the fallback logic when translations are not found."
+    """Test the fallback logic when translations are not found."""
     with patch("gettext.translation", side_effect=FileNotFoundError):
         # Reload the module to trigger the logic at the module level
         importlib.reload(i18n)
@@ -27,7 +27,7 @@ def test_i18n_fallbacks(caplog):
 
 
 def test_i18n_load_success():
-    "Test the successful loading of translations."
+    """Test the successful loading of translations."""
     mock_translation = MagicMock()
     with patch("gettext.translation", return_value=mock_translation):
         importlib.reload(i18n)

@@ -1,4 +1,4 @@
-"provide postprocessing rotate controls for the scan dialog"
+"""provide postprocessing rotate controls for the scan dialog"""
 
 import gi
 from comboboxtext import ComboBoxText
@@ -24,7 +24,7 @@ ROTATE = [
 
 
 class RotateControlRow(Gtk.Box):
-    "provide a row of postprocessing rotate controls for the scan dialog"
+    """provide a row of postprocessing rotate controls for the scan dialog"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -41,7 +41,7 @@ class RotateControlRow(Gtk.Box):
 
 
 class RotateControls(Gtk.Box):
-    "provide postprocessing rotate controls for the scan dialog"
+    """provide postprocessing rotate controls for the scan dialog"""
 
     _recomputing = False
     _rotate_facing = 0
@@ -52,7 +52,7 @@ class RotateControls(Gtk.Box):
         blurb="Angle to rotate facing side",
     )
     def rotate_facing(self):
-        "getter for rotate_facing attribute"
+        """Getter for rotate_facing attribute"""
         return self._rotate_facing
 
     @rotate_facing.setter
@@ -70,7 +70,7 @@ class RotateControls(Gtk.Box):
         blurb="Angle to rotate reverse side",
     )
     def rotate_reverse(self):
-        "getter for rotate_reverse attribute"
+        """Getter for rotate_reverse attribute"""
         return self._rotate_reverse
 
     @rotate_reverse.setter
@@ -89,7 +89,7 @@ class RotateControls(Gtk.Box):
         blurb="Scanner capable of duplex scanning",
     )
     def can_duplex(self):
-        "getter for can_duplex attribute"
+        """Getter for can_duplex attribute"""
         return self._can_duplex
 
     @can_duplex.setter
@@ -236,7 +236,7 @@ class RotateControls(Gtk.Box):
 
 
 class OCRControls(Gtk.Box):
-    "Provides post-processing OCR options for the scan dialog."
+    """Provides post-processing OCR options for the scan dialog."""
 
     available_engines = GObject.Property(
         type=object,
@@ -252,7 +252,7 @@ class OCRControls(Gtk.Box):
         blurb="Currently selected OCR engine",
     )
     def engine(self):
-        "getter for engine attribute"
+        """Getter for engine attribute"""
         return self._engine
 
     @engine.setter
@@ -268,7 +268,7 @@ class OCRControls(Gtk.Box):
         blurb="Currently selected OCR language",
     )
     def language(self):
-        "getter for language attribute"
+        """Getter for language attribute"""
         return self._language
 
     @language.setter
@@ -284,7 +284,7 @@ class OCRControls(Gtk.Box):
         blurb="Whether OCR will be automatically performed",
     )
     def active(self):
-        "getter for active attribute"
+        """Getter for active attribute"""
         return self._active
 
     @active.setter
@@ -302,7 +302,7 @@ class OCRControls(Gtk.Box):
         blurb="Whether to threshold before performing OCR",
     )
     def threshold(self):
-        "getter for threshold attribute"
+        """Getter for threshold attribute"""
         return self._threshold
 
     @threshold.setter
@@ -321,7 +321,7 @@ class OCRControls(Gtk.Box):
         "percentage are rendered black",
     )
     def threshold_value(self):
-        "getter for threshold_value attribute"
+        """Getter for threshold_value attribute"""
         return self._threshold_value
 
     @threshold_value.setter
@@ -391,21 +391,21 @@ class OCRControls(Gtk.Box):
         self._threshold_spin.connect("value-changed", self.on_threshold_changed)
 
     def on_toggled_active(self, checkbox, hboxtl):
-        "callback for OCR active checkbox"
+        """Callback for OCR active checkbox"""
         self.active = checkbox.get_active()
         hboxtl.set_sensitive(self.active)
 
     def on_toggled_threshold(self, checkbox, spinbutton):
-        "callback for threshold checkbox"
+        """Callback for threshold checkbox"""
         self.threshold = checkbox.get_active()
         spinbutton.set_sensitive(self.threshold)
 
     def on_threshold_changed(self, _widget, value):
-        "callback for threshold value spinbutton"
+        """Callback for threshold value spinbutton"""
         self.threshold_value = value
 
     def on_language_changed(self, widget):
-        "callback for OCR language combobox"
+        """Callback for OCR language combobox"""
         self.language = widget.get_active_index()
 
     def _add_tess_languages(self):

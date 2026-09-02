@@ -1,4 +1,4 @@
-"test scan dialog"
+"""test scan dialog"""
 
 import logging
 from types import SimpleNamespace
@@ -686,7 +686,7 @@ raw_options = [
 
 
 def mocked_do_open_device(self, request):
-    "open device"
+    """Open device"""
     device_name = request.args[0]
     self.device_handle = SimpleNamespace(
         source="Document Table",
@@ -701,12 +701,12 @@ def mocked_do_open_device(self, request):
 
 
 def mocked_do_get_options(_self, _request):
-    "mocked_do_get_options"
+    """mocked_do_get_options"""
     return raw_options
 
 
 def mocked_do_set_option(self, _request):
-    "Create tests for the widgets for all options types"
+    """Create tests for the widgets for all options types"""
     key, value = _request.args
     for opt in raw_options:
         if opt.name == key:
@@ -727,7 +727,7 @@ def mocked_do_set_option(self, _request):
 def test_test_backend_options(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)

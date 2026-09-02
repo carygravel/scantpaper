@@ -1,4 +1,4 @@
-"object and helper methods to manipulate scan options"
+"""object and helper methods to manipulate scan options"""
 
 import contextlib
 import re
@@ -25,7 +25,8 @@ class Option(NamedTuple):
 class Options(GObject.Object):
     """object to manipulate scan options.
     Have to subclass Glib::Object to be able to name it as an object in
-    Glib.ParamSpec object in Scantpaper.Dialog.Scan"""
+    Glib.ParamSpec object in Scantpaper.Dialog.Scan
+    """
 
     def __init__(self, options):
         GObject.Object.__init__(self)
@@ -68,15 +69,15 @@ class Options(GObject.Object):
         return f"Options({self.array})"
 
     def by_index(self, i):
-        "return option by index"
+        """Return option by index"""
         return self.array[i]
 
     def by_name(self, name):
-        "return option by name"
+        """Return option by name"""
         return self.hash[name] if name is not None and name in self.hash else None
 
     def num_options(self):
-        "return number of options"
+        """Return number of options"""
         return len(self.array) - 1 + 1
 
     def parse_geometry(self):
@@ -100,7 +101,7 @@ class Options(GObject.Object):
             self.geometry["y"] = self.hash["br-y"].constraint[1] - self.geometry["t"]
 
     def supports_paper(self, paper, tolerance):
-        "Check the geometry against the paper size"
+        """Check the geometry against the paper size"""
         if not (
             "l" in self.geometry
             and "x" in self.geometry
@@ -124,9 +125,10 @@ class Options(GObject.Object):
         )
 
     def can_duplex(self):
-        """returns TRUE if the current options support duplex, even if not currently
+        """Returns TRUE if the current options support duplex, even if not currently
         selected. Alternatively expressed, return FALSE if the scanner is not capable
-        of duplex scanner, or if the capability is inactive."""
+        of duplex scanner, or if the capability is inactive.
+        """
         for option in self.array:
             if not enums.CAP_INACTIVE & option.cap:
                 if option.name is not None and re.search(
@@ -151,7 +153,7 @@ class Options(GObject.Object):
         return False
 
     def flatbed_selected(self, get_value):
-        "returns whether the flatbed is selected"
+        """Returns whether the flatbed is selected"""
         source = None
         if self.source is not None:
             with contextlib.suppress(AttributeError):
@@ -177,7 +179,7 @@ class Options(GObject.Object):
 
 
 def within_tolerance(option, current_value, new_value, tolerance=0):
-    "helper function, returning whether new_value is within the tolerance of current_value"
+    """Helper function, returning whether new_value is within the tolerance of current_value"""
     if isinstance(option.constraint, tuple):
         return bool(
             abs(new_value - current_value) <= option.constraint[2] / 2 + tolerance

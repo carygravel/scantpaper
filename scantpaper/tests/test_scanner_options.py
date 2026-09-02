@@ -1,4 +1,4 @@
-"Tests for scanner option handling"
+"""Tests for scanner option handling"""
 
 import pytest
 from frontend import enums
@@ -6,7 +6,7 @@ from scanner.options import Option, Options, within_tolerance
 
 
 def test_within_tolerance():
-    "test within_tolerance branches"
+    """Test within_tolerance branches"""
     options = Options(
         [
             Option(
@@ -176,13 +176,13 @@ def test_within_tolerance():
     [(None, ValueError), ("", TypeError)],
 )
 def test_options_constructor_errors(options, exception):
-    "test that Options raises an error on invalid input"
+    """Test that Options raises an error on invalid input"""
     with pytest.raises(exception):
         Options(options)
 
 
 def test_can_duplex():
-    "test can_duplex from the option name"
+    """Test can_duplex from the option name"""
     options = Options(
         [
             Option(
@@ -239,8 +239,7 @@ def test_can_duplex():
     "sane_scan_dialog", "set_device_wait_reload", "mainloop_with_timeout"
 )
 def test_option_name_none():
-    "test option.name=None"
-
+    """Test option.name=None"""
     raw_options = [
         Option(
             index=0,

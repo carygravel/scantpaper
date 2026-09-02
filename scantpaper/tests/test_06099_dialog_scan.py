@@ -1,4 +1,4 @@
-"Tests for dialog.scan.Scan class coverage edge cases."
+"""Tests for dialog.scan.Scan class coverage edge cases."""
 
 import logging
 import unittest.mock
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class MockOption:
-    "A mock scan option"
+    """A mock scan option"""
 
     def __init__(
         self, name, otype, unit=enums.UNIT_NONE, cap=0, constraint=None, desc=""
@@ -44,38 +44,38 @@ class MockOption:
 
 
 class MockOptions:
-    "A mock scan options collection"
+    """A mock scan options collection"""
 
     def __init__(self, options):
         self.options = options
         self.options_dict = {o.name: o for o in options}
 
     def num_options(self):
-        "Number of options"
+        """Number of options"""
         return len(self.options)
 
     def by_name(self, name):
-        "Get option by name"
+        """Get option by name"""
         return self.options_dict.get(name)
 
     def flatbed_selected(self, _handle):
-        "Is flatbed selected?"
+        """Is flatbed selected?"""
         return False
 
     def can_duplex(self):
-        "Can the device scan both sides?"
+        """Can the device scan both sides?"""
         return False
 
     def supports_paper(self, _paper, _tolerance):
-        "Does it support the given paper?"
+        """Does it support the given paper?"""
         return True
 
     def val(self, _name, _handle):
-        "Get option value"
+        """Get option value"""
 
 
 class MockDevice:
-    "A mock scan device"
+    """A mock scan device"""
 
     def __init__(self, name, model="model", vendor="vendor"):
         self.name = name
@@ -85,7 +85,7 @@ class MockDevice:
 
 
 class MockScan(Scan):
-    "A mock Scan class"
+    """A mock Scan class"""
 
     def __init__(self):
         super().__init__()
@@ -121,25 +121,26 @@ class MockScan(Scan):
 
     # Mock methods that would otherwise interact with GUI or SANE
     def get_window(self):
-        "Get the parent window"
+        """Get the parent window"""
         return
 
     def emit(self, *args):
-        "Mock emit method"
+        """Mock emit method"""
         return GObject.GObject.emit(self, *args)
 
     def save_current_profile(self, name):
-        "Mock save_current_profile"
+        """Mock save_current_profile"""
         self.profiles[name] = Profile()
         self._profile = name
 
 
 class TestScanDialog:
-    "Test Scan dialog edge cases"
+    """Test Scan dialog edge cases"""
 
     def test_value_for_active_option(self):
         """Testing _value_for_active_option: only refresh a widget when the
-        driver has reported a value (not None) for an option that is active"""
+        driver has reported a value (not None) for an option that is active
+        """
         opt_active = MockOption("opt", enums.TYPE_BOOL, cap=0)
         opt_inactive = MockOption("opt", enums.TYPE_BOOL, cap=enums.CAP_INACTIVE)
         assert _value_for_active_option(True, opt_active)
@@ -148,7 +149,7 @@ class TestScanDialog:
         assert not _value_for_active_option(False, opt_inactive)
 
     def test_do_profile_changed(self):
-        "Test _do_profile_changed"
+        """Test _do_profile_changed"""
         scan = MockScan()
         combobsp = unittest.mock.Mock()
         combobsp.get_active_text.return_value = "new_profile"
@@ -158,7 +159,7 @@ class TestScanDialog:
         assert scan._profile == "new_profile"
 
     def test_set_device_unknown(self):
-        "Test setting an unknown device"
+        """Test setting an unknown device"""
         scan = MockScan()
         scan.emit = unittest.mock.Mock()
         scan.device_list = [MockDevice("dev1")]
@@ -166,7 +167,7 @@ class TestScanDialog:
         scan.emit.assert_called_with("process-error", "open_device", unittest.mock.ANY)
 
     def test_set_device_list_dedup(self):
-        "Test setting device list with duplicate names/models"
+        """Test setting device list with duplicate names/models"""
         scan = MockScan()
         dev1 = MockDevice("dev1", "model1", "vendor1")
         dev2 = MockDevice("dev1", "model1", "vendor1")  # Duplicate name
@@ -184,7 +185,7 @@ class TestScanDialog:
         scan.combobd.insert_text.assert_any_call(1, dev3.label)
 
     def test_pack_widget_units(self):
-        "Test _pack_widget adds correct unit labels"
+        """Test _pack_widget adds correct unit labels"""
         scan = MockScan()
 
         units = [
@@ -209,7 +210,7 @@ class TestScanDialog:
                 mocklabel.assert_called_with(label=text)
 
     def test_create_paper_widget_manual(self):
-        "Test creating paper widget with 'Manual' selection"
+        """Test creating paper widget with 'Manual' selection"""
         scan = MockScan()
         scan.combobp = None
         scan._geometry_boxes = {
@@ -240,7 +241,7 @@ class TestScanDialog:
             assert scan.paper is None
 
     def test_create_paper_widget_edit(self):
-        "Test creating paper widget with 'Edit' selection"
+        """Test creating paper widget with 'Edit' selection"""
         scan = MockScan()
         scan.combobp = None
         scan._geometry_boxes = {
@@ -268,7 +269,7 @@ class TestScanDialog:
             scan._edit_paper.assert_called()
 
     def test_update_options_recursion_limit(self):
-        "Test update_options with recursion limit"
+        """Test update_options with recursion limit"""
         scan = MockScan()
         scan.num_reloads = 10
         scan.reload_recursion_limit = 5
@@ -281,7 +282,7 @@ class TestScanDialog:
         )
 
     def test_update_single_option_bool_false(self):
-        "Test updating a single boolean option to False"
+        """Test updating a single boolean option to False"""
         scan = MockScan()
         opt = MockOption("opt", enums.TYPE_BOOL)
         widget = unittest.mock.Mock()
@@ -294,7 +295,7 @@ class TestScanDialog:
         widget.set_active.assert_called_with(False)
 
     def test_update_single_option_entry(self):
-        "Test updating a single string option in an Entry widget"
+        """Test updating a single string option in an Entry widget"""
         scan = MockScan()
         opt = MockOption("opt", enums.TYPE_STRING)
         widget = unittest.mock.Mock(spec=Gtk.Entry)
@@ -306,7 +307,7 @@ class TestScanDialog:
         widget.set_text.assert_called_with("")
 
     def test_update_single_option_entry_float(self):
-        "Test updating a single float option in an Entry widget"
+        """Test updating a single float option in an Entry widget"""
         scan = MockScan()
         opt = MockOption("opt", enums.TYPE_FIXED)
         widget = unittest.mock.Mock(spec=Gtk.Entry)
@@ -318,7 +319,7 @@ class TestScanDialog:
         widget.set_text.assert_called_with("1.07818603515625")
 
     def test_update_option_mismatch(self):
-        "Test updating option with mismatched name or type"
+        """Test updating option with mismatched name or type"""
         scan = MockScan()
         opt = MockOption("opt", enums.TYPE_INT)
         widget = unittest.mock.Mock()
@@ -333,7 +334,7 @@ class TestScanDialog:
         assert scan._update_option(opt, new_opt_type)
 
     def test_set_paper_sizes_unsupported(self):
-        "Test setting paper formats with unsupported paper"
+        """Test setting paper formats with unsupported paper"""
         scan = MockScan()
         scan.combobp = unittest.mock.Mock()
         scan.combobp.get_num_rows.return_value = 0
@@ -348,7 +349,7 @@ class TestScanDialog:
         assert "A4" in scan.ignored_paper_sizes
 
     def test_set_paper_unsupported(self):
-        "Test setting an unsupported paper size"
+        """Test setting an unsupported paper size"""
         scan = MockScan()
         scan.ignored_paper_sizes = ["A4"]
         scan._paper = "A3"
@@ -364,7 +365,7 @@ class TestScanDialog:
         scan.emit.assert_not_called()
 
     def test_edit_paper(self):
-        "Test editing paper size"
+        """Test editing paper size"""
         scan = MockScan()
         scan.combobp = unittest.mock.Mock()
         scan.combobp.get_num_rows.return_value = 0
@@ -385,7 +386,7 @@ class TestScanDialog:
             scan._edit_paper()
 
     def test_add_profile_errors(self):
-        "Test adding profiles with invalid inputs"
+        """Test adding profiles with invalid inputs"""
         scan = MockScan()
         scan._add_profile(None, Profile())  # No name
         scan._add_profile("name", None)  # No profile
@@ -393,14 +394,14 @@ class TestScanDialog:
         assert len(scan.profiles) == 0
 
     def test_set_current_scan_options_errors(self):
-        "Test setting current scan options with invalid inputs"
+        """Test setting current scan options with invalid inputs"""
         scan = MockScan()
         scan.set_current_scan_options(None)
         scan.set_current_scan_options("not_a_profile")
         # Should just log errors and return
 
     def test_set_option_profile_errors(self):
-        "Test setting option profile with invalid inputs"
+        """Test setting option profile with invalid inputs"""
         scan = MockScan()
         scan.combobp.get_num_rows.return_value = 0
         profile = unittest.mock.Mock()
@@ -417,7 +418,7 @@ class TestScanDialog:
         scan._set_option_profile(profile, iter([1]))
 
     def test_set_option_profile_bool_conversion(self):
-        "Profile backend values of TYPE_BOOL are coerced to bool"
+        """Profile backend values of TYPE_BOOL are coerced to bool"""
         scan = MockScan()
         scan.combobp.get_num_rows.return_value = 0
         # Device reports swcrop True; profile asks for False, so
@@ -436,7 +437,7 @@ class TestScanDialog:
         assert scan.set_option.call_args[0][1] is False
 
     def test_update_widget_value_types(self):
-        "Test updating widget values for different option types"
+        """Test updating widget values for different option types"""
         scan = MockScan()
 
         # Switch/CheckButton
@@ -467,7 +468,7 @@ class TestScanDialog:
         widget.set_active.assert_called_with(1)
 
     def test_get_xy_resolution_missing(self):
-        "Test getting XY resolution when options are missing"
+        """Test getting XY resolution when options are missing"""
         scan = MockScan()
         scan._available_scan_options = None
         assert scan._get_xy_resolution() == (None, None)
@@ -477,7 +478,7 @@ class TestScanDialog:
         # MockOptions.val returns 0 by default but here we test absence
 
     def test_changed_scan_option_callback_adf(self):
-        "Test changed scan option callback for ADF and Flatbed"
+        """Test changed scan option callback for ADF and Flatbed"""
         scan = MockScan()
         scan.framen = unittest.mock.Mock()
         scan.adf_defaults_scan_all_pages = True
@@ -495,12 +496,12 @@ class TestScanDialog:
         # Should set num_pages = 1 if not allow_batch_flatbed (default False)
 
     def test_make_progress_string(self):
-        "Test make_progress_string"
+        """Test make_progress_string"""
         assert "1 of 2" in make_progress_string(1, 2)
         assert "Scanning page 1" in make_progress_string(1, 0)
 
     def test_set_device_list_vendor(self):
-        "Test set_device_list with vendor"
+        """Test set_device_list with vendor"""
         scan = MockScan()
         dev = MockDevice("dev1", "model1", "vendor1")
         dev.vendor = "vendor1"
@@ -508,7 +509,7 @@ class TestScanDialog:
         assert "vendor1 model1" in dev.label
 
     def test_pack_widget_button(self):
-        "Test _pack_widget with TYPE_BUTTON"
+        """Test _pack_widget with TYPE_BUTTON"""
         scan = MockScan()
         opt = MockOption("opt", enums.TYPE_BUTTON)
         widget = unittest.mock.Mock()
@@ -518,7 +519,7 @@ class TestScanDialog:
         hbox.pack_end.assert_called_with(widget, True, True, 0)
 
     def test_update_widget_value_entry_empty(self):
-        "Test _update_widget_value with Gtk.Entry and empty value"
+        """Test _update_widget_value with Gtk.Entry and empty value"""
         scan = MockScan()
         opt = MockOption("opt", enums.TYPE_STRING)
         widget = unittest.mock.Mock(spec=Gtk.Entry)
@@ -528,7 +529,7 @@ class TestScanDialog:
         widget.set_text.assert_called_with("")
 
     def test_new_val(self):
-        "Test _new_val utility function"
+        """Test _new_val utility function"""
         assert _new_val(1, 2)
         assert _new_val(None, 1)
         assert _new_val(1, None)
@@ -536,7 +537,7 @@ class TestScanDialog:
         assert not _new_val(None, None)
 
     def test_allow_batch_flatbed(self):
-        "Test allow_batch_flatbed property"
+        """Test allow_batch_flatbed property"""
         scan = MockScan()
         scan.framen = unittest.mock.Mock()
 
@@ -553,7 +554,7 @@ class TestScanDialog:
         assert scan.num_pages == 1
 
     def test_allow_batch_flatbed_before_framen(self):
-        "Test allow_batch_flatbed property when framen doesn't exist yet"
+        """Test allow_batch_flatbed property when framen doesn't exist yet"""
         scan = MockScan()
         if hasattr(scan, "framen"):
             delattr(scan, "framen")
@@ -565,7 +566,7 @@ class TestScanDialog:
         assert scan._allow_batch_flatbed is False
 
     def test_available_scan_options_before_framen(self):
-        "Test available_scan_options setter when framen doesn't exist yet"
+        """Test available_scan_options setter when framen doesn't exist yet"""
         scan = MockScan()
         if hasattr(scan, "framen"):
             delattr(scan, "framen")
@@ -576,7 +577,7 @@ class TestScanDialog:
         assert scan._available_scan_options is options
 
     def test_get_xy_resolution_complex(self):
-        "Test get_xy_resolution with multiple resolutions defined"
+        """Test get_xy_resolution with multiple resolutions defined"""
         scan = MockScan()
         options = unittest.mock.Mock()
         scan._available_scan_options = options
@@ -610,7 +611,7 @@ class TestScanDialog:
         assert y == 1200
 
     def test_save_profile_callback(self):
-        "Test _save_profile_callback"
+        """Test _save_profile_callback"""
         parent = MockScan()
         parent.profiles = {}
 
@@ -631,7 +632,7 @@ class TestScanDialog:
             assert "New Profile" in parent.profiles
 
     def test_save_profile_callback_cancel(self):
-        "Test cancelling _save_profile_callback"
+        """Test cancelling _save_profile_callback"""
         parent = MockScan()
         parent.profiles = {}
 
@@ -651,7 +652,7 @@ class TestScanDialog:
             _save_profile_callback(None, parent)
 
     def test_edit_profile_callback(self):
-        "Test _edit_profile_callback"
+        """Test _edit_profile_callback"""
         parent = MockScan()
         parent.combobp.get_num_rows.return_value = 0
         parent.profiles = {"test": Profile()}
@@ -671,7 +672,7 @@ class TestScanDialog:
             parent.scan_options.assert_called()
 
     def test_edit_profile_callback_reloaded(self):
-        "Test _edit_profile_callback and reloaded-scan-options"
+        """Test _edit_profile_callback and reloaded-scan-options"""
         parent = MockScan()
         parent.combobp.get_num_rows.return_value = 0
         parent.profiles = {"test": Profile()}
@@ -698,7 +699,7 @@ class TestScanDialog:
             parent.set_profile.assert_called_with("test")
 
     def test_edit_profile_callback_no_name(self):
-        "Test _edit_profile_callback with no profile name"
+        """Test _edit_profile_callback with no profile name"""
         parent = MockScan()
         parent.combobp.get_num_rows.return_value = 0
         parent._profile = None
@@ -719,7 +720,7 @@ class TestScanDialog:
             parent.set_current_scan_options.assert_called()
 
     def test_do_delete_profile_backend_item(self):
-        "Test do_delete_profile_backend_item"
+        """Test do_delete_profile_backend_item"""
         profile = Profile()
         profile.add_backend_option("opt", 1)
         options = MockOptions([MockOption("opt", enums.TYPE_INT)])
@@ -733,7 +734,7 @@ class TestScanDialog:
         assert profile.num_backend_options() == 0
 
     def test_build_profile_table(self):
-        "Test _build_profile_table"
+        """Test _build_profile_table"""
         profile = Profile()
         profile.add_backend_option("opt", 1, 1)
         profile.add_frontend_option("fopt", "val")
@@ -744,7 +745,7 @@ class TestScanDialog:
         vbox.show_all.assert_called()
 
     def test_set_paper_with_geometry(self):
-        "Test _set_paper with geometry options"
+        """Test _set_paper with geometry options"""
         scan = MockScan()
         scan.combobp.get_num_rows.return_value = 0
         scan.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
@@ -763,7 +764,7 @@ class TestScanDialog:
 
 
 def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
-    "Reproduce AttributeError: 'Dialog' object has no attribute 'parent'"
+    """Reproduce AttributeError: 'Dialog' object has no attribute 'parent'"""
 
     # Mocking necessary parts to get the Scan dialog to load options and create the paper widget
     def mocked_do_open_device(self, request):
@@ -906,7 +907,7 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
 
 
 def test_insert_target_checkx_active():
-    "Test _insert_target with checkx active"
+    """Test _insert_target with checkx active"""
     scan = MockScan()
     scan.checkx = unittest.mock.Mock()
     scan.checkx.get_active.return_value = True
@@ -919,7 +920,7 @@ def test_insert_target_checkx_active():
 
 
 def test_insert_target_batch_n_zero():
-    "Test _insert_target when _batch_n == 0"
+    """Test _insert_target when _batch_n == 0"""
     scan = MockScan()
     scan.checkx = unittest.mock.Mock()
     scan.checkx.get_active.return_value = False
@@ -931,7 +932,7 @@ def test_insert_target_batch_n_zero():
 
 
 def test_insert_target_facing_no_batch_start():
-    "Test _insert_target when side is facing and _batch_start is None"
+    """Test _insert_target when side is facing and _batch_start is None"""
     scan = MockScan()
     scan.checkx = unittest.mock.Mock()
     scan.checkx.get_active.return_value = False
@@ -946,7 +947,7 @@ def test_insert_target_facing_no_batch_start():
 
 
 def test_uuid_at_position_edge_cases():
-    "Test _uuid_at_position with None or out-of-range positions"
+    """Test _uuid_at_position with None or out-of-range positions"""
     scan = MockScan()
 
     result = scan._uuid_at_position(None)
@@ -962,7 +963,7 @@ def test_uuid_at_position_edge_cases():
 
 
 def test_uuid_before_position_edge_cases():
-    "Test _uuid_before_position edge cases"
+    """Test _uuid_before_position edge cases"""
     scan = MockScan()
 
     result = scan._uuid_before_position(None)
@@ -976,7 +977,7 @@ def test_uuid_before_position_edge_cases():
 
 
 def test_get_xy_resolution_zero_fallback():
-    "Test _get_xy_resolution falls back to POINTS_PER_INCH when values are 0"
+    """Test _get_xy_resolution falls back to POINTS_PER_INCH when values are 0"""
     scan = MockScan()
     scan.current_scan_options = Profile()
 

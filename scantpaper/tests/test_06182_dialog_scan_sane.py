@@ -1,4 +1,4 @@
-"test scan dialog"
+"""test scan dialog"""
 
 import logging
 from types import SimpleNamespace
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
-    "test ignoring options with impossible values"
+    """Test ignoring options with impossible values"""
     asserts = 0
 
     def mocked_do_get_devices(_cls, _request):
@@ -28,7 +28,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -37,7 +37,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(_self, _request):
-        """option with min>max"""
+        """Option with min>max"""
         return [
             Option(
                 index=0,
@@ -99,8 +99,8 @@ def test_cancel_scan(
 ):
     """Cancel the scan immediately after starting it and test that:
     a. the new-scan signal is not emitted.
-    b. we can successfully scan afterwards."""
-
+    b. we can successfully scan afterwards.
+    """
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
@@ -162,8 +162,7 @@ def test_cancel_scan(
 def test_option_dependency(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"
-
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
     raw_options = build_scan_options(
         [
             "source-flatbed-adf-duplex",
@@ -175,7 +174,7 @@ def test_option_dependency(
     )
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             source="Flatbed",
@@ -189,11 +188,11 @@ def test_option_dependency(
         request.data(f"opened device '{self.device_name}'")
 
     def mocked_do_get_options(_self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         return raw_options
 
     def mocked_do_set_option(self, _request):
-        "mocked_do_set_option"
+        """mocked_do_set_option"""
         info = 0
         key, value = _request.args
         if key == "source" and value == "ADF":
@@ -241,8 +240,8 @@ def test_unsetting_profile(
     mainloop_with_timeout,
 ):
     """Having applied geometry settings via a paper size, if a profile is set
-    that changes the geometry, ensure the paper size is unset"""
-
+    that changes the geometry, ensure the paper size is unset
+    """
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
@@ -323,8 +322,8 @@ def test_restore_options_after_cycle(
     mainloop_with_timeout,
 ):
     """Check that with the cycle-sane-handle option activated, after scanning,
-    the open-device process has fired, and then that options are still the same"""
-
+    the open-device process has fired, and then that options are still the same
+    """
     dialog = sane_scan_dialog
     dialog.cycle_sane_handle = True
     set_device_wait_reload(dialog, "test:0")
@@ -368,8 +367,7 @@ def test_restore_options_after_cycle(
 def test_scanner_with_no_source(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test behavour with scanner without source option"
-
+    """Test behavour with scanner without source option"""
     raw_options = build_scan_options(
         [
             "br-y-355-user",
@@ -383,13 +381,13 @@ def test_scanner_with_no_source(
     )
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
     def mocked_do_get_options(self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         self.device_handle = SimpleNamespace(
             mode="Gray",
             ScanMode="Simplex",
@@ -402,7 +400,7 @@ def test_scanner_with_no_source(
         return raw_options
 
     def mocked_do_set_option(_self, _request):
-        "mocked_do_set_option"
+        """mocked_do_set_option"""
         return 0
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
@@ -438,8 +436,8 @@ def test_defaults(
     """Scan options are set to defaults before applying profile. Check
     that this doesn't happen immediately after initially opening the device.
     Ensure num_pages defaults to all with Source = Automatic Document Feeder
-    in the default scan options"""
-
+    in the default scan options
+    """
     dialog = sane_scan_dialog
     callbacks = 0
     loop = mainloop_with_timeout()
@@ -477,8 +475,7 @@ def test_defaults(
 def test_hiding_geometry(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test behavour with scanner without source option"
-
+    """Test behavour with scanner without source option"""
     raw_options = build_scan_options(
         [
             "br-y-299212",
@@ -489,13 +486,13 @@ def test_hiding_geometry(
     )
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
     def mocked_do_get_options(self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         self.device_handle = SimpleNamespace(
             tl_x=0,
             tl_y=0,
@@ -505,7 +502,7 @@ def test_hiding_geometry(
         return raw_options
 
     def mocked_do_set_option(_self, _request):
-        "mocked_do_set_option"
+        """mocked_do_set_option"""
         return 0
 
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
@@ -550,8 +547,8 @@ def test_combobox_on_reload(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     """Check the scan options in a combobox are updated if necessary, if
-    values are changed by a reload"""
-
+    values are changed by a reload
+    """
     raw_options = build_scan_options(
         [
             "source-flatbed-adf-duplex",
@@ -560,13 +557,13 @@ def test_combobox_on_reload(
     )
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
     def mocked_do_get_options(self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         self.device_handle = SimpleNamespace(
             resolution=75,
             source="Flatbed",
@@ -574,7 +571,7 @@ def test_combobox_on_reload(
         return raw_options
 
     def mocked_do_set_option(self, _request):
-        "mocked_do_set_option"
+        """mocked_do_set_option"""
         info = 0
         key, value = _request.args
         if key == "source" and value == "Flatbed":

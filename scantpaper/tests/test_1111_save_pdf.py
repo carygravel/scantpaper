@@ -1,4 +1,4 @@
-"Test writing basic PDF"
+"""Test writing basic PDF"""
 
 import datetime
 import locale
@@ -24,7 +24,7 @@ from PIL import Image
 
 
 def has_locale(name):
-    "Check if the given locale is available on the system."
+    """Check if the given locale is available on the system."""
     try:
         old_locale = locale.setlocale(locale.LC_CTYPE)
         locale.setlocale(locale.LC_CTYPE, name)
@@ -36,7 +36,7 @@ def has_locale(name):
 
 
 def get_page_size(path):
-    "Get page size from PDF using pikepdf. Returns (width, height) in points."
+    """Get page size from PDF using pikepdf. Returns (width, height) in points."""
     with pikepdf.open(path) as pdf:
         page = pdf.pages[0]
         width = float(page.MediaBox[2]) - float(page.MediaBox[0])
@@ -45,13 +45,13 @@ def get_page_size(path):
 
 
 def test_has_locale():
-    "Test has_locale function"
+    """Test has_locale function"""
     assert has_locale("C") is True
     assert has_locale("non-existent-locale") is False
 
 
 def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
-    "Test writing basic PDF"
+    """Test writing basic PDF"""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
     with tempfile.TemporaryDirectory() as tdir:
@@ -79,7 +79,7 @@ def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
 
 
 def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
-    "Test writing basic PDF"
+    """Test writing basic PDF"""
     slist = Document(db=temp_db.name)
 
     asserts = 0
@@ -142,7 +142,7 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     not has_locale("de_DE.utf8"), reason="Locale de_DE.utf8 not available"
 )
 def test_save_pdf_with_locale(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
-    "Test with non-English locale"
+    """Test with non-English locale"""
     locale.setlocale(locale.LC_CTYPE, "de_DE.utf8")
 
     slist = Document(db=temp_db.name)
@@ -162,7 +162,7 @@ def test_save_pdf_with_locale(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
 
 
 def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
-    "Test saving a PDF and triggering an error"
+    """Test saving a PDF and triggering an error"""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
         asserts = 0
@@ -173,7 +173,7 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_callback1(_page, _process, _message):
-            "no write access"
+            """No write access"""
             assert True, "caught error injected before save_pdf"
             nonlocal asserts
             asserts += 1
@@ -208,8 +208,7 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
 def test_save_pdf_different_resolutions(
     temp_png, temp_db, temp_pdf, import_in_mainloop
 ):
-    "test saving a PDF with different resolutions in the height and width directions"
-
+    """Test saving a PDF with different resolutions in the height and width directions"""
     # Create test image
     subprocess.run(
         [config.CONVERT_COMMAND, "rose:", "-density", "100x200", temp_png.name],
@@ -234,7 +233,7 @@ def test_save_pdf_different_resolutions(
 
 @pytest.mark.skipif(shutil.which("qpdf") is None, reason="qpdf not found")
 def test_save_encrypted_pdf(rose_jpg, temp_db, temp_pdf, import_in_mainloop):
-    "test saving an encrypted PDF"
+    """Test saving an encrypted PDF"""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
     mlp = safe_mainloop(5000)
@@ -253,8 +252,7 @@ def test_save_encrypted_pdf(rose_jpg, temp_db, temp_pdf, import_in_mainloop):
 def test_save_pdf_with_hocr(
     import_in_mainloop, set_text_in_mainloop, temp_db, temp_pdf, temp_png, get_page_sync
 ):
-    "Test writing PDF with text layer from hocr"
-
+    """Test writing PDF with text layer from hocr"""
     subprocess.run(
         [
             config.CONVERT_COMMAND,
@@ -350,7 +348,7 @@ def test_save_pdf_with_hocr(
 def test_save_pdf_with_utf8(
     rose_pnm, temp_pdf, temp_db, import_in_mainloop, set_text_in_mainloop
 ):
-    "Test writing PDF with utf8 in text layer"
+    """Test writing PDF with utf8 in text layer"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -383,8 +381,7 @@ def test_save_pdf_with_utf8(
 def test_save_pdf_with_1bpp(
     temp_pbm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
-    "Test writing PDF with a 1bpp image"
-
+    """Test writing PDF with a 1bpp image"""
     subprocess.run(
         [config.CONVERT_COMMAND, "magick:netscape", temp_pbm.name], check=True
     )
@@ -411,7 +408,7 @@ def test_save_pdf_with_1bpp(
 
 
 def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
-    "Test writing PDF with group 4 compression"
+    """Test writing PDF with group 4 compression"""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])
     mlp = safe_mainloop(5000)
@@ -435,8 +432,7 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
 
 
 def test_save_pdf_g4_alpha(temp_tif, temp_png, temp_db, temp_pdf, import_in_mainloop):
-    "Test writing PDF with group 4 compression"
-
+    """Test writing PDF with group 4 compression"""
     subprocess.run(
         [
             config.CONVERT_COMMAND,
@@ -508,7 +504,7 @@ def test_save_pdf_g4_alpha(temp_tif, temp_png, temp_db, temp_pdf, import_in_main
 
 
 def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
-    "Test writing PDF with metadata"
+    """Test writing PDF with metadata"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -547,7 +543,7 @@ def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop)
 def test_save_pdf_without_title_has_no_placeholder_title(
     rose_pnm, temp_pdf, temp_db, import_in_mainloop
 ):
-    "Test writing PDF without title gets no placeholder title"
+    """Test writing PDF without title gets no placeholder title"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -578,7 +574,7 @@ def test_save_pdf_without_title_has_no_placeholder_title(
 def test_save_pdf_with_title_retains_title_in_xmp(
     rose_pnm, temp_pdf, temp_db, import_in_mainloop
 ):
-    "Test writing PDF with title retains it in docinfo and XMP"
+    """Test writing PDF with title retains it in docinfo and XMP"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -604,7 +600,7 @@ def test_save_pdf_with_title_retains_title_in_xmp(
 
 
 def test_save_pdf_creator_branded(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
-    "Test writing PDF brands scantpaper as creator, keeping toolchain provenance"
+    """Test writing PDF brands scantpaper as creator, keeping toolchain provenance"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -640,7 +636,7 @@ def test_save_pdf_creator_branded(rose_pnm, temp_pdf, temp_db, import_in_mainloo
 def test_save_pdf_creator_branded_with_title(
     rose_pnm, temp_pdf, temp_db, import_in_mainloop
 ):
-    "Test writing PDF with a title still brands scantpaper as creator"
+    """Test writing PDF with a title still brands scantpaper as creator"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -673,7 +669,7 @@ def test_save_pdf_creator_branded_with_title(
 def test_save_import_without_title_roundtrip(
     rose_pnm, temp_pdf, temp_db, import_in_mainloop
 ):
-    "Test saving without title and re-importing yields no title"
+    """Test saving without title and re-importing yields no title"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -710,7 +706,7 @@ def test_save_import_without_title_roundtrip(
 
 
 def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
-    "Test writing PDF with old metadata"
+    """Test writing PDF with old metadata"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -750,8 +746,7 @@ def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainl
 def test_save_pdf_with_downsample(
     temp_png, temp_pdf, temp_db, import_in_mainloop, clean_up_files
 ):
-    "Test writing PDF with downsampled image"
-
+    """Test writing PDF with downsampled image"""
     subprocess.run(
         [
             config.CONVERT_COMMAND,
@@ -813,7 +808,7 @@ def test_save_pdf_with_downsample(
 
 
 def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainloop):
-    "Test writing PDF with downsampled image"
+    """Test writing PDF with downsampled image"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -853,12 +848,10 @@ def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainlo
 def test_import_pdf_without_text_and_resave(
     rose_png, temp_db, import_in_mainloop, clean_up_files
 ):
-    """
-    Regression test for bug where importing a PDF without a text layer
+    """Regression test for bug where importing a PDF without a text layer
     and then re-saving it as a PDF would fail with:
     'HocrTransform' object has no attribute 'width'
     """
-
     # Create a PDF from a TIFF (no text layer)
     with (
         tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf1,
@@ -892,8 +885,7 @@ def test_import_pdf_without_text_and_resave(
 
 
 def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
-    """
-    Regression test for issue #43: opening a PDF created from a transparent
+    """Regression test for issue #43: opening a PDF created from a transparent
     image must import a single page, not an extra page for the alpha mask.
     The imported page must be the image composited over a white background.
     """
@@ -933,8 +925,7 @@ def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
 
 
 def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
-    """
-    Regression test for bug where saving a PDF with text_layer set to '[]'
+    """Regression test for bug where saving a PDF with text_layer set to '[]'
     (empty JSON array, as produced by tesseract when no text is found)
     would fail with: 'HocrTransform' object has no attribute 'width'
     """

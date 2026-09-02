@@ -1,12 +1,11 @@
-"Tests for bboxtree"
+"""Tests for bboxtree"""
 
 import pytest
 from bboxtree import HOCR_HEADER, VERSION, Bboxtree
 
 
 def test_1():
-    "tests for bboxtree"
-
+    """Tests for bboxtree"""
     tree = Bboxtree()
     tree.from_hocr(None)
     assert tree.bbox_tree == [], "no hocr"
@@ -283,8 +282,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 
 def test_2():
-    "tests for bboxtree"
-
+    """Tests for bboxtree"""
     hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD
 HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html><head><title></title>
@@ -570,7 +568,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 
 def test_from_djvu_txt():
-    "tests for bboxtree.from_djvu_txt()"
+    """Tests for bboxtree.from_djvu_txt()"""
     djvu = """(page 0 0 2236 3185
   (column 157 3011 1725 3105
     (para 157 3014 1725 3101
@@ -741,8 +739,7 @@ def test_from_djvu_txt():
 
 
 def test_from_pdftotext():
-    "tests for bboxtree.from_pdftotext()"
-
+    """Tests for bboxtree.from_pdftotext()"""
     pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -944,7 +941,7 @@ def test_from_pdftotext():
 
 
 def test_valid():
-    "test valid() method"
+    """Test valid() method"""
     tree = Bboxtree()
     tree.from_text("The quick brown fox", 422, 61)
     assert tree.valid(), "valid"
@@ -960,7 +957,7 @@ def test_valid():
 
 
 def test_crop():
-    "test crop() method"
+    """Test crop() method"""
     tree = Bboxtree()
     tree.from_text("The quick brown fox", 422, 61)
     tree.crop(10, 10, 390, 30)

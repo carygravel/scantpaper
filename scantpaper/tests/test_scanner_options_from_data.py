@@ -1,11 +1,11 @@
-"options from data"
+"""options from data"""
 
 from frontend import enums
 from scanner.options import Option, Options
 
 
 def test_1():
-    "options from data"
+    """Options from data"""
     data = [
         Option(
             index=0,

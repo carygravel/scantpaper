@@ -1,4 +1,4 @@
-"Test writing multipage PDF with utf8"
+"""Test writing multipage PDF with utf8"""
 
 import datetime
 import pathlib
@@ -20,8 +20,7 @@ def test_save_multipage_pdf(
     temp_db,
     temp_pdf,
 ):
-    "Test writing multipage PDF"
-
+    """Test writing multipage PDF"""
     num = 3  # number of pages
     files = [rose_pnm for i in range(num)]
     slist = Document(db=temp_db.name)
@@ -59,7 +58,7 @@ def test_save_multipage_pdf(
 def test_save_multipage_pdf_with_utf8(
     rose_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, temp_pdf
 ):
-    "Test writing multipage PDF with utf8"
+    """Test writing multipage PDF with utf8"""
     num = 3  # number of pages
     files = [rose_pnm for i in range(num)]
     slist = Document(db=temp_db.name)
@@ -99,7 +98,7 @@ def test_save_multipage_pdf_with_utf8(
 
 
 def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
-    "Test writing multipage PDF as Postscript"
+    """Test writing multipage PDF as Postscript"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm, rose_pnm])
@@ -131,7 +130,7 @@ def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloo
 
 
 def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
-    "Test writing multipage PDF as Postscript"
+    """Test writing multipage PDF as Postscript"""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm, rose_pnm])
@@ -165,7 +164,7 @@ def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainlo
 def test_prepend_pdf(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
-    "Test prepending a page to a PDF"
+    """Test prepending a page to a PDF"""
     temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
 
@@ -196,7 +195,7 @@ def test_prepend_pdf(
 def test_append_pdf(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
-    "Test appending a page to a PDF"
+    """Test appending a page to a PDF"""
     temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
 
@@ -227,7 +226,7 @@ def test_append_pdf(
 def test_prepend_with_space(
     rose_pnm, rose_png, temp_db, import_in_mainloop, clean_up_files
 ):
-    "Test prepending a page to a PDF with a space"
+    """Test prepending a page to a PDF with a space"""
     with pathlib.Path("te st.pdf").open("wb") as temp_pdf:
         temp_pdf.write(img2pdf.convert(rose_png))
         temp_pdf.flush()
@@ -259,7 +258,7 @@ def test_prepend_with_space(
 def test_prepend_with_inverted_comma(
     rose_pnm, rose_png, temp_db, import_in_mainloop, clean_up_files
 ):
-    "Test prepending a page to a PDF"
+    """Test prepending a page to a PDF"""
     with pathlib.Path("te'st.pdf").open("wb") as temp_pdf:
         temp_pdf.write(img2pdf.convert(rose_png))
         temp_pdf.flush()
@@ -291,7 +290,7 @@ def test_prepend_with_inverted_comma(
 def test_append_pdf_with_timestamp(
     rose_pnm, rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files
 ):
-    "Test appending a page to a PDF with a timestamp"
+    """Test appending a page to a PDF with a timestamp"""
     temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
 

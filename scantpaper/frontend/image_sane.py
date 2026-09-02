@@ -1,4 +1,4 @@
-"subclass basethread for SANE"
+"""subclass basethread for SANE"""
 
 import gc
 import logging
@@ -30,7 +30,7 @@ def _set_default_callbacks(kwargs):
 
 
 class SaneThread(BaseThread):
-    "subclass basethread for SANE"
+    """subclass basethread for SANE"""
 
     device_handle = None
     device_name = None
@@ -43,7 +43,7 @@ class SaneThread(BaseThread):
     _cancel_requested = False
 
     def handler_wrapper(self, request, handler):
-        "override the handler wrapper logic to deal with SANE_STATUS_NO_DOCS"
+        """Override the handler wrapper logic to deal with SANE_STATUS_NO_DOCS"""
         try:
             request.finished(handler(request))
             if request.process == "quit":
@@ -71,7 +71,7 @@ class SaneThread(BaseThread):
         return True
 
     def do_quit(self, _request):
-        "exit"
+        """Exit"""
         # Close the device handle properly before setting to None
         if self.device_handle is not None:
             try:
@@ -100,14 +100,14 @@ class SaneThread(BaseThread):
 
     @classmethod
     def do_get_devices(cls, _request):
-        "get devices"
+        """Get devices"""
         return [
             SimpleNamespace(name=x[0], vendor=x[1], model=x[2], label=x[3])
             for x in sane.get_devices()
         ]
 
     def do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         # close the handle if it is open
         if self.device_handle is not None:
@@ -124,16 +124,16 @@ class SaneThread(BaseThread):
         request.data(f"opened device '{self.device_name}'")
 
     def do_get_option(self, request):
-        "get options"
+        """Get options"""
         name = request.args[0]
         return getattr(self.device_handle, name.replace("-", "_"))
 
     def do_get_options(self, _request):
-        "get options"
+        """Get options"""
         return self.device_handle.get_options()
 
     def do_get_option_blocking(self, request):
-        "read a single option value in the worker and signal the caller"
+        """Read a single option value in the worker and signal the caller"""
         name, holder, event = request.args
         try:
             holder.append(getattr(self.device_handle, name.replace("-", "_")))
@@ -148,7 +148,8 @@ class SaneThread(BaseThread):
 
     def do_set_option(self, request):
         """Until sane.__setattr__() returns the INFO, put its functionality
-        here to return it ourselves"""
+        here to return it ourselves
+        """
         key, value = request.args
         key = key.replace("-", "_")
         dic = self.device_handle.__dict__
@@ -190,7 +191,7 @@ class SaneThread(BaseThread):
         return info
 
     def do_scan_page(self, request):
-        "scan page"
+        """Scan page"""
         if self.device_handle is None:
             msg = "must open device before starting scan"
             raise ValueError(msg)
@@ -219,12 +220,12 @@ class SaneThread(BaseThread):
             self._scan_active = False
 
     def do_cancel(self, _request):
-        "cancel"
+        """Cancel"""
         if self.device_handle is not None:
             self.device_handle.cancel()
 
     def do_close_device(self, request):
-        "close device"
+        """Close device"""
         if self.device_handle is None:
             request.data("Ignoring close_device() call - no device open.")
         else:
@@ -234,27 +235,27 @@ class SaneThread(BaseThread):
             self.device_name = None
 
     def get_devices(self, **kwargs):
-        "get devices"
+        """Get devices"""
         return self.send("get_devices", **kwargs)
 
     def open_device(self, device_name, **kwargs):
-        "open device"
+        """Open device"""
         return self.send("open_device", device_name, **kwargs)
 
     def get_options(self, **kwargs):
-        "get options"
+        """Get options"""
         return self.send("get_options", **kwargs)
 
     def get_option(self, name, **kwargs):
-        "get option"
+        """Get option"""
         return self.send("get_option", name, **kwargs)
 
     def set_option(self, name, value, **kwargs):
-        "set option"
+        """Set option"""
         return self.send("set_option", name, value, **kwargs)
 
     def get_option_value(self, name, timeout=10):
-        "synchronously fetch a single option value via the worker thread"
+        """Synchronously fetch a single option value via the worker thread"""
         holder = []
         event = threading.Event()
         self.send("get_option_blocking", name, holder, event)
@@ -267,7 +268,7 @@ class SaneThread(BaseThread):
         return result
 
     def scan_page(self, cancel_between_pages=False, **kwargs):
-        "scan page"
+        """Scan page"""
         return self.send("scan_page", cancel_between_pages, **kwargs)
 
     def _scan_pages_finished_callback(self, response, **kwargs):
@@ -304,14 +305,14 @@ class SaneThread(BaseThread):
         )
 
     def _scan_pages_cancelled_callback(self, response, **kwargs):
-        "a page transfer was interrupted by a cancel: terminate the session cleanly"
+        """A page transfer was interrupted by a cancel: terminate the session cleanly"""
         # the queued "cancel" request terminates the device session via do_cancel;
         # the partial page was never handed to new_page_callback
         if kwargs["finished_callback"] is not None:
             kwargs["finished_callback"](response)
 
     def scan_pages(self, cancel_between_pages=False, **kwargs):
-        "scan pages"
+        """Scan pages"""
         self.num_pages_scanned = 0
         self.num_pages = kwargs["num_pages"]
         _set_default_callbacks(kwargs)
@@ -335,16 +336,15 @@ class SaneThread(BaseThread):
         )
 
     def close_device(self, **kwargs):
-        "close device"
+        """Close device"""
         return self.send("close_device", **kwargs)
 
     def quit(self, **kwargs):
-        "quit"
+        """Quit"""
         return self.send("quit", **kwargs)
 
     def cancel(self, **kwargs):
-        "Flag the scan routine to abort"
-
+        """Flag the scan routine to abort"""
         # drop queued requests, notifying their requesters
         self.drain_cancelled_requests()
 
@@ -376,7 +376,7 @@ class SaneThread(BaseThread):
 
 
 def decode_info(info):
-    "decode the info binary mask for logs that are easier to read"
+    """Decode the info binary mask for logs that are easier to read"""
     if info == 0:
         return "none"
     opts = ["INEXACT", "RELOAD_OPTIONS", "RELOAD_PARAMS"]

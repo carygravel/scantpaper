@@ -1,5 +1,4 @@
-"""
-Compile .po files into .mo files.
+"""Compile .po files into .mo files.
 
 Usage:
   python3 compile_mo.py # compiles po/*.po into locale/<lang>/LC_MESSAGES/<domain>.mo
@@ -18,7 +17,8 @@ def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
     """Try to infer language and domain from filename:
     common forms:
        <domain>-<lang>.po  -> domain, lang
-       <lang>.po           -> domain from given_domain, lang"""
+       <lang>.po           -> domain from given_domain, lang
+    """
     name = po_file.name
     if name.count("-") >= 1 and name.endswith(".po"):
         # Try domain-lang.po -> split last '-' occurrence
@@ -34,7 +34,7 @@ def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
 
 
 def main():
-    "main"
+    """Main"""
     p = argparse.ArgumentParser(description="Compile .po to .mo")
     p.add_argument(
         "--src", default="po", help="Source dir containing .po files (default: po)"

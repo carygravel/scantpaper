@@ -1,4 +1,4 @@
-"test helpers coverage"
+"""test helpers coverage"""
 
 import datetime
 import gc
@@ -29,15 +29,15 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 class MockObj:
-    "A mock object for testing weak callbacks"
+    """A mock object for testing weak callbacks"""
 
     def method(self, *args, **kwargs):
-        "A mock method that returns its arguments"
+        """A mock method that returns its arguments"""
         return args, kwargs
 
 
 def test_weak_callback():
-    "Test _weak_callback"
+    """Test _weak_callback"""
     obj = MockObj()
     cb = _weak_callback(obj, "method")
     assert cb(1, a=2) == ((1,), {"a": 2})
@@ -47,7 +47,7 @@ def test_weak_callback():
 
 
 def test_exec_command_success(mocker):
-    "Test exec_command success"
+    """Test exec_command success"""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
     proc.pid = 1234
@@ -64,7 +64,7 @@ def test_exec_command_success(mocker):
 
 
 def test_exec_command_filenotfound(mocker):
-    "Test exec_command file not found"
+    """Test exec_command file not found"""
     mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
     res = exec_command(["nonexistent"])
     assert res.returncode == -1
@@ -73,7 +73,7 @@ def test_exec_command_filenotfound(mocker):
 
 
 def test_exec_command_run_success(mocker):
-    "Test exec_command_run success path"
+    """Test exec_command_run success path"""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
     proc.pid = 4321
@@ -91,7 +91,7 @@ def test_exec_command_run_success(mocker):
 
 
 def test_exec_command_run_check_failure(mocker):
-    "Test exec_command_run raises CalledProcessError when check and nonzero"
+    """Test exec_command_run raises CalledProcessError when check and nonzero"""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
     proc.communicate.return_value = ("", "boom")
@@ -104,7 +104,7 @@ def test_exec_command_run_check_failure(mocker):
 
 
 def test_exec_command_run_no_check_returns_failed(mocker):
-    "Test exec_command_run with check=False returns PROCESS_FAILED on FileNotFoundError"
+    """Test exec_command_run with check=False returns PROCESS_FAILED on FileNotFoundError"""
     mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
     res = exec_command_run(["nonexistent"], check=False)
     assert res.returncode == PROCESS_FAILED
@@ -112,14 +112,14 @@ def test_exec_command_run_no_check_returns_failed(mocker):
 
 
 def test_exec_command_run_check_propagates_filenotfound(mocker):
-    "Test exec_command_run with check=True propagates FileNotFoundError"
+    """Test exec_command_run with check=True propagates FileNotFoundError"""
     mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
     with pytest.raises(FileNotFoundError):
         exec_command_run(["nonexistent"], check=True)
 
 
 def test_exec_command_run_sets_new_session(mocker):
-    "Test exec_command_run starts a new session when a pidfile is given"
+    """Test exec_command_run starts a new session when a pidfile is given"""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
     proc.communicate.return_value = ("", "")
@@ -130,13 +130,13 @@ def test_exec_command_run_sets_new_session(mocker):
 
 
 def test_program_version(mocker):
-    "Test program_version"
+    """Test program_version"""
     mocker.patch("helpers.exec_command", return_value=Proc(0, "version 1.2.3", ""))
     assert program_version("stdout", r"version ([\d.]+)", ["cmd"]) == "1.2.3"
 
 
 def test_program_version_helper_branches():
-    "Test _program_version branches"
+    """Test _program_version branches"""
     # both stream
     proc = Proc(0, "out", "err")
     assert _program_version("both", r"(.*)", proc) == "outerr"
@@ -164,7 +164,7 @@ def test_program_version_helper_branches():
 
 
 def test_collate_metadata():
-    "Test collate_metadata"
+    """Test collate_metadata"""
     settings = {
         "author": "me",
         "title": "work",
@@ -192,7 +192,7 @@ def test_collate_metadata():
 
 
 def test_expand_metadata_pattern():
-    "Test expand_metadata_pattern"
+    """Test expand_metadata_pattern"""
     kwargs = {
         "template": "%Da %Dt %Ds %Dk %De",
         "author": "A",
@@ -232,7 +232,7 @@ def test_expand_metadata_pattern():
 
 
 def test_show_message_dialog(mocker):
-    "Test show_message_dialog"
+    """Test show_message_dialog"""
     # Mock global variables and MultipleMessage
     mock_multiple_message = mocker.patch("helpers.MultipleMessage")
 
@@ -260,21 +260,21 @@ def test_show_message_dialog(mocker):
 
 
 def test_get_tmp_dir():
-    "Test get_tmp_dir"
+    """Test get_tmp_dir"""
     assert get_tmp_dir(None, "pattern") is None
     assert get_tmp_dir("/a/b/c", "b") == "/a"
     assert get_tmp_dir("/a/b/c", "notfound") == "/a/b/c"
 
 
 def test_slurp(tmp_path):
-    "Test slurp"
+    """Test slurp"""
     f = tmp_path / "test.txt"
     f.write_text("content", encoding="utf-8")
     assert slurp(str(f)) == "content"
 
 
 def test_slurp_file_object(tmp_path):
-    "Test slurp reads a file object (e.g. a TemporaryFile pidfile)"
+    """Test slurp reads a file object (e.g. a TemporaryFile pidfile)"""
     f = tmp_path / "pid"
     with pathlib.Path(f).open("w+", encoding="utf-8") as fhd:
         fhd.write("1234")
@@ -283,13 +283,13 @@ def test_slurp_file_object(tmp_path):
 
 
 def test_slurp_binary_file_object():
-    "Test slurp decodes bytes read from a binary file object"
+    """Test slurp decodes bytes read from a binary file object"""
     fhd = BytesIO(b"1234")
     assert slurp(fhd) == "1234"
 
 
 def test_recursive_slurp(tmp_path, mocker):
-    "Test recursive_slurp"
+    """Test recursive_slurp"""
     d = tmp_path / "dir"
     d.mkdir()
     f1 = d / "f1.txt"

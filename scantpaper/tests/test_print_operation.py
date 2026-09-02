@@ -1,4 +1,4 @@
-"Tests for the PrintOperation class"
+"""Tests for the PrintOperation class"""
 
 from unittest.mock import MagicMock
 
@@ -12,7 +12,7 @@ from gi.repository import Gtk  # noqa: E402
 
 @pytest.fixture
 def mock_slist():
-    "Fixture for mock simplelist"
+    """Fixture for mock simplelist"""
     slist = MagicMock()
     # Mock data structure: [page_number, ?, page_object]
     page1 = MagicMock()
@@ -40,14 +40,14 @@ def mock_slist():
 
 
 def test_init(mock_slist):
-    "Test initialization"
+    """Test initialization"""
     settings = Gtk.PrintSettings()
     op = PrintOperation(slist=mock_slist, settings=settings)
     assert op.slist == mock_slist
 
 
 def test_begin_print_all(mock_slist):
-    "Test begin_print_callback with ALL pages"
+    """Test begin_print_callback with ALL pages"""
     settings = MagicMock()
     settings.get_print_pages.return_value = Gtk.PrintPages.ALL
 
@@ -61,7 +61,7 @@ def test_begin_print_all(mock_slist):
 
 
 def test_begin_print_ranges(mock_slist):
-    "Test begin_print_callback with RANGES"
+    """Test begin_print_callback with RANGES"""
     settings = MagicMock()
     settings.get_print_pages.return_value = Gtk.PrintPages.RANGES
 
@@ -86,7 +86,7 @@ def test_begin_print_ranges(mock_slist):
 
 
 def test_draw_page(mock_slist, mocker):
-    "Test draw_page_callback"
+    """Test draw_page_callback"""
     op = PrintOperation(slist=mock_slist, settings=None)
 
     context = MagicMock()
@@ -110,7 +110,7 @@ def test_draw_page(mock_slist, mocker):
 
 
 def test_draw_page_mapped(mock_slist, mocker):
-    "Test draw_page_callback with mapping"
+    """Test draw_page_callback with mapping"""
     op = PrintOperation(slist=mock_slist, settings=None)
 
     # Simulate mapped pages: print only index 2 (Page 3)
@@ -140,7 +140,7 @@ def test_draw_page_mapped(mock_slist, mocker):
     ],
 )
 def test_draw_page_ratio(mocker, iwidth, iheight, xres, yres, expected_scale):
-    "Test draw_page_callback scales correctly for non-1:1 pixel aspect ratios"
+    """Test draw_page_callback scales correctly for non-1:1 pixel aspect ratios"""
     page = MagicMock()
     page.get_pixbuf.return_value.get_width.return_value = iwidth
     page.get_pixbuf.return_value.get_height.return_value = iheight

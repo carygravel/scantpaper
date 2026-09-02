@@ -1,4 +1,4 @@
-"a ComboBoxText widget with an index"
+"""a ComboBoxText widget with an index"""
 
 import gi
 
@@ -10,7 +10,7 @@ from gi.repository import (  # noqa: E402
 
 
 class ComboBoxText(Gtk.ComboBoxText):
-    "a ComboBoxText widget with an index"
+    """a ComboBoxText widget with an index"""
 
     index_column = GObject.Property(
         type=int,
@@ -42,7 +42,8 @@ class ComboBoxText(Gtk.ComboBoxText):
 
     def set_active_index(self, index):
         """Set the current active item of a combobox
-        based on the index column of the array"""
+        based on the index column of the array
+        """
         if index is None:
             return
         col = self.index_column
@@ -52,7 +53,8 @@ class ComboBoxText(Gtk.ComboBoxText):
 
     def get_active_index(self):
         """Get the current active item of a combobox
-        based on the index column of the array"""
+        based on the index column of the array
+        """
         i = self.get_active()
         if i == -1:
             return None
@@ -69,20 +71,20 @@ class ComboBoxText(Gtk.ComboBoxText):
         return -1
 
     def set_active_by_text(self, text):
-        "set row by the item text"
+        """Set row by the item text"""
         index = self.get_row_by_text(text)
         if index > -1 and text is not None:
             self.set_active(index)
 
     def get_num_rows(self):
-        "return number of rows"
+        """Return number of rows"""
         model = self.get_model()
         if model is None:
             return 0
         return len(model)
 
     def remove_item_by_text(self, text):
-        "remove row by the item text"
+        """Remove row by the item text"""
         if text is not None:
             i = self.get_row_by_text(text)
             if i > -1:

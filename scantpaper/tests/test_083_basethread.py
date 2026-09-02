@@ -1,4 +1,4 @@
-"test basethread class"
+"""test basethread class"""
 
 from unittest.mock import MagicMock, patch
 
@@ -9,10 +9,10 @@ from loop_helpers import safe_mainloop
 
 
 class MyThread(BaseThread):
-    "test thread class"
+    """test thread class"""
 
     def do_div(self, request):
-        "test method"
+        """Test method"""
         arg1, arg2 = request.args
         request.data("arg1 / arg2")
         return arg1 / arg2
@@ -97,12 +97,11 @@ EXPECTED = [
 
 
 def test_1():
-    "test baseprocess class"
-
+    """Test baseprocess class"""
     n_callbacks = 0
 
     def callback(response=None):
-        "callback"
+        """Callback"""
         nonlocal n_callbacks
         if response is None:
             assert response == EXPECTED[n_callbacks], str(n_callbacks)
@@ -166,20 +165,20 @@ def test_1():
 
 
 def test_mainloop_wrapper_getattr():
-    "test that __getattr__ proxies to the underlying GLib.MainLoop"
+    """Test that __getattr__ proxies to the underlying GLib.MainLoop"""
     mlp = safe_mainloop(2000)
     ctx = mlp.get_context()
     assert ctx is not None
 
 
 def test_empty_queue():
-    "test _monitor_response with empty queue"
+    """Test _monitor_response with empty queue"""
     thread = BaseThread()
     assert thread._monitor_response() == GLib.SOURCE_CONTINUE
 
 
 def test_job_counters_do_not_leak_across_batches():
-    "Test that num_completed_jobs and total_jobs are reset between batches"
+    """Test that num_completed_jobs and total_jobs are reset between batches"""
     thread = MyThread()
     thread.start()
 
@@ -219,7 +218,7 @@ def test_job_counters_do_not_leak_across_batches():
 
 
 def test_job_counters_persist_within_batch():
-    "Test that counters accumulate within a multi-job batch"
+    """Test that counters accumulate within a multi-job batch"""
     thread = MyThread()
     thread.start()
 
@@ -256,7 +255,7 @@ def test_job_counters_persist_within_batch():
 
 
 def test_register_callback_errors():
-    "test errors raised by register_callback"
+    """Test errors raised by register_callback"""
     thread = BaseThread()
     with pytest.raises(ValueError, match="when can only be"):
         thread.register_callback("name", "with", "finished")
@@ -265,7 +264,7 @@ def test_register_callback_errors():
 
 
 def test_pipe_notification():
-    "test that _notify wakes up the IO watcher and processes responses"
+    """Test that _notify wakes up the IO watcher and processes responses"""
     thread = BaseThread()
     thread.start()
 
@@ -284,7 +283,7 @@ def test_pipe_notification():
 
 
 def test_running_callback_on_empty_queue():
-    "Test that monitor triggers running callbacks even when response queue is empty"
+    """Test that monitor triggers running callbacks even when response queue is empty"""
     thread = BaseThread()
     running_called = []
 
@@ -309,7 +308,7 @@ def test_running_callback_on_empty_queue():
 
 
 def test_none_callback():
-    "test that None callbacks don't cause errors"
+    """Test that None callbacks don't cause errors"""
     thread = MyThread()
     thread.start()
 
@@ -339,7 +338,7 @@ def test_none_callback():
 
 
 def test_monitor_processes_one_at_a_time():
-    "test that monitor processes exactly one response per call"
+    """Test that monitor processes exactly one response per call"""
     thread = BaseThread()
     finished_calls = []
 
@@ -368,7 +367,7 @@ def test_monitor_processes_one_at_a_time():
 
 
 def test_monitor_schedules_idle_when_responses_remain():
-    "test that GLib.idle_add is called when responses still in queue"
+    """Test that GLib.idle_add is called when responses still in queue"""
     thread = BaseThread()
 
     req = Request("test", (), thread.responses)
@@ -385,7 +384,7 @@ def test_monitor_schedules_idle_when_responses_remain():
     [ResponseType.FINISHED, ResponseType.ERROR, ResponseType.CANCELLED],
 )
 def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_type):
-    "test that running callbacks don't fire while a terminal callback is dispatched"
+    """Test that running callbacks don't fire while a terminal callback is dispatched"""
     thread = BaseThread()
     running_cb = mocker.Mock()
     terminal_dispatched = []
@@ -413,7 +412,7 @@ def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_t
 
 
 def test_cancelled_response_dispatches_cancelled_callback(mocker):
-    "CANCELLED fires cancelled_callback, suppresses finished, and cleans the registry"
+    """CANCELLED fires cancelled_callback, suppresses finished, and cleans the registry"""
     thread = BaseThread()
     cancelled_cb = mocker.Mock()
     finished_cb = mocker.Mock()
@@ -436,7 +435,7 @@ def test_cancelled_response_dispatches_cancelled_callback(mocker):
 
 
 def test_drain_cancelled_requests_notifies_queued_jobs(mocker):
-    "drain_cancelled_requests drops queued requests and notifies their requesters"
+    """drain_cancelled_requests drops queued requests and notifies their requesters"""
     thread = BaseThread()
     cancelled_cb = mocker.Mock()
     finished_cb = mocker.Mock()
@@ -463,7 +462,7 @@ def test_drain_cancelled_requests_notifies_queued_jobs(mocker):
 
 
 def test_cleanup_thread_exception_caught(mocker):
-    "Test _cleanup_thread catches exceptions from queue.put during interpreter shutdown"
+    """Test _cleanup_thread catches exceptions from queue.put during interpreter shutdown"""
     mock_queue = mocker.Mock()
     mock_queue.put.side_effect = Exception("queue closed")
     BaseThread._cleanup_thread(mock_queue)
@@ -471,7 +470,7 @@ def test_cleanup_thread_exception_caught(mocker):
 
 
 def test_stage_callback_exception_invokes_error_callback():
-    "test that a failing non-error stage callback triggers the error_callback"
+    """Test that a failing non-error stage callback triggers the error_callback"""
     thread = BaseThread()
     error_callback = MagicMock()
 
@@ -503,7 +502,7 @@ def test_stage_callback_exception_invokes_error_callback():
 
 @pytest.mark.filterwarnings("ignore:Source ID .* was not found.*")
 def test_release_sources_close_oserror(mocker):
-    "Test _release_sources catches OSError from os.close"
+    """Test _release_sources catches OSError from os.close"""
     thread = BaseThread()
     thread._io_watch_id = 999999
     thread._tick_id = 999998
@@ -519,7 +518,7 @@ def test_release_sources_close_oserror(mocker):
 
 
 def test_quit_all_live_threads():
-    "Test quit_all_live_threads stops all registered live threads"
+    """Test quit_all_live_threads stops all registered live threads"""
     t1 = BaseThread()
     t2 = BaseThread()
     t1.start()

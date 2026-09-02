@@ -1,4 +1,4 @@
-"Test unpaper"
+"""Test unpaper"""
 
 import shutil
 import subprocess
@@ -16,7 +16,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 def test_unpaper_program_version(mocker):
-    "Test Unpaper.program_version caching and retrieval"
+    """Test Unpaper.program_version caching and retrieval"""
     unpaper = Unpaper()
     assert unpaper._version is None
     mocker.patch("unpaper.program_version", return_value="6.2")
@@ -28,13 +28,13 @@ def test_unpaper_program_version(mocker):
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_version():
-    "Test unpaper version"
+    """Test unpaper version"""
     unpaper = Unpaper()
     assert unpaper.program_version() is not None, "version"
 
 
 def test_1():
-    "Test unpaper dialog"
+    """Test unpaper dialog"""
     unpaper = Unpaper()
 
     assert unpaper.get_option("direction") == "ltr", "default direction"
@@ -160,8 +160,7 @@ def test_1():
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
-    "Test unpaper"
-
+    """Test unpaper"""
     unpaper = Unpaper()
     paper_sizes = {
         "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
@@ -228,8 +227,7 @@ def test_unpaper2(
     set_resolution_in_mainloop,
     get_page_sync,
 ):
-    "Test unpaper"
-
+    """Test unpaper"""
     unpaper = Unpaper()
     paper_sizes = {
         "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
@@ -296,8 +294,7 @@ def test_unpaper2(
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
-    "Test unpaper"
-
+    """Test unpaper"""
     unpaper = Unpaper({"output-pages": 2, "layout": "double"})
     subprocess.run(
         [
@@ -391,8 +388,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
-    "Test unpaper"
-
+    """Test unpaper"""
     unpaper = Unpaper({"output-pages": 2, "layout": "double", "direction": "rtl"})
 
     # Image dimensions
@@ -447,7 +443,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
         out_level.append(page.image_object.getpixel((100, 100)))
 
     def close(a, b):
-        "return whether two RGB pixels differ by no more than 8 in any channel"
+        """Return whether two RGB pixels differ by no more than 8 in any channel"""
         return all(abs(c1 - c2) <= 8 for c1, c2 in zip(a, b, strict=False))
 
     assert len(in_level) == 2, "rtl"
@@ -457,7 +453,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
 
 
 def test_unpaper_ui_toggles():
-    "Test UI interaction and toggles in Unpaper"
+    """Test UI interaction and toggles in Unpaper"""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
@@ -509,7 +505,7 @@ def test_unpaper_ui_toggles():
 
 
 def test_unpaper_ui_border_margins():
-    "Test border margin sensitivity based on alignment"
+    """Test border margin sensitivity based on alignment"""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
@@ -541,7 +537,7 @@ def test_unpaper_ui_border_margins():
 
 
 def test_unpaper_mask_scan_sync():
-    "Test no-mask-scan affecting no-mask-center sensitivity"
+    """Test no-mask-scan affecting no-mask-center sensitivity"""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
@@ -557,7 +553,7 @@ def test_unpaper_mask_scan_sync():
 
 
 def test_combobox_tooltip():
-    "Test ComboBox tooltip change on selection"
+    """Test ComboBox tooltip change on selection"""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
@@ -573,7 +569,7 @@ def test_combobox_tooltip():
 
 
 def test_combobox_tooltip_explicit():
-    "Test ComboBox tooltip change on selection with explicit assertions"
+    """Test ComboBox tooltip change on selection with explicit assertions"""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
@@ -593,7 +589,7 @@ def test_combobox_tooltip_explicit():
 
 
 def test_set_options_mixed_types():
-    "Test set_options with various types including group ones"
+    """Test set_options with various types including group ones"""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
@@ -610,7 +606,7 @@ def test_set_options_mixed_types():
 
 
 def test_get_cmdline_branches():
-    "Test get_cmdline branches"
+    """Test get_cmdline branches"""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)

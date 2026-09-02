@@ -1,4 +1,4 @@
-"scantpaper --- to aid the scan to PDF or DjVu process"
+"""scantpaper --- to aid the scan to PDF or DjVu process"""
 
 # TODO:
 # refactor methods using self.slist.clipboard
@@ -40,7 +40,7 @@ from gi.repository import (  # noqa: E402
 
 
 class Application(Gtk.Application):
-    "Application class"
+    """Application class"""
 
     def __init__(self, *args, **kwargs):
         self.args = kwargs.pop("cmdline", None) or []
@@ -63,8 +63,7 @@ class Application(Gtk.Application):
         Gtk.Application.do_startup(self)
 
     def do_activate(self, *_args, **_kwargs):
-        "only allow a single window and raise any existing ones"
-
+        """Only allow a single window and raise any existing ones"""
         # Windows are associated with the application
         # until the last one is closed and the application shuts down
         if not self.window:
@@ -73,7 +72,7 @@ class Application(Gtk.Application):
 
 
 def _handle_exception(exc_type, exc_value, exc_traceback):
-    "handle uncaught exceptions by logging them"
+    """Handle uncaught exceptions by logging them"""
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
@@ -87,7 +86,7 @@ sys.excepthook = _handle_exception
 
 
 def _parse_arguments():
-    "parse command line arguments"
+    """Parse command line arguments"""
     parser = argparse.ArgumentParser(
         prog=PROG_NAME,
         description="A GUI to produce PDFs or DjVus from scanned documents",
@@ -181,7 +180,7 @@ def _parse_arguments():
 
 
 def main():
-    "main"
+    """Main"""
     app = Application(cmdline=_parse_arguments())
     app.run()
 

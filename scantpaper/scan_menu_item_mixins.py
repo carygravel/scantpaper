@@ -1,4 +1,4 @@
-"provide methods called from scan menu item"
+"""provide methods called from scan menu item"""
 
 import logging
 import os
@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 
 
 class ScanMenuItemMixins:
-    "provide methods called from scan menu item"
+    """provide methods called from scan menu item"""
 
     def scan_dialog(self, _action, _param, hidden=False, scan=False):
-        "Scan"
+        """Scan"""
         if self._windows:
             self._windows.show_all()
             self._update_postprocessing_options_callback(self._windows)
@@ -90,7 +90,7 @@ class ScanMenuItemMixins:
         self._windows.connect("removed-profile", removed_profile_callback)
 
         def changed_current_scan_options_callback(_widget, profile, _uuid):
-            "Update the default profile when the scan options change"
+            """Update the default profile when the scan options change"""
             self.settings["default-scan-options"] = profile.get()
 
         self._windows.connect(
@@ -125,7 +125,7 @@ class ScanMenuItemMixins:
             self._windows.get_devices()
 
     def add_postprocessing_options(self, widget):
-        "Adds post-processing options to the dialog window."
+        """Adds post-processing options to the dialog window."""
         scwin = Gtk.ScrolledWindow()
         widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -225,7 +225,7 @@ class ScanMenuItemMixins:
         windowuo.show_all()
 
     def _add_postprocessing_udt(self, vboxp):
-        "Adds a user-defined tool (UDT) post-processing option to the given VBox."
+        """Adds a user-defined tool (UDT) post-processing option to the given VBox."""
         hboxudt = Gtk.Box()
         vboxp.pack_start(hboxudt, False, False, 0)
         self._scan_udt_hbox = hboxudt
@@ -243,7 +243,7 @@ class ScanMenuItemMixins:
         return udtbutton, self._add_udt_combobox(hboxudt)
 
     def _add_udt_combobox(self, hbox):
-        "Adds a ComboBoxText widget to the given hbox containing user-defined tools."
+        """Adds a ComboBoxText widget to the given hbox containing user-defined tools."""
         toolarray = [[t, t] for t in self.settings["user_defined_tools"]]
 
         combobox = ComboBoxText(data=toolarray)
@@ -252,7 +252,7 @@ class ScanMenuItemMixins:
         return combobox
 
     def _changed_device_callback(self, widget, device):
-        "callback for changed device"
+        """Callback for changed device"""
         # widget is windows
         logger.info("signal 'changed-device' emitted with data: '%s'", device)
         if device is not None:
@@ -266,7 +266,7 @@ class ScanMenuItemMixins:
             )
 
     def _changed_device_list_callback(self, widget, device_list):  # widget is windows
-        "callback for changed device list"
+        """Callback for changed device list"""
         logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
         if len(device_list):
             # Apply the device blacklist
@@ -341,14 +341,14 @@ class ScanMenuItemMixins:
     def _update_postprocessing_options_callback(
         self, widget, _option_name=None, _option_val=None, _uuid=None
     ):
-        "update the visibility of post-processing options based on the widget's scan options."
+        """Update the visibility of post-processing options based on the widget's scan options."""
         # widget is windows
         options = widget.available_scan_options
         if options is not None:
             self._rotate_controls.can_duplex = options.can_duplex()
 
     def _changed_progress_callback(self, _widget, progress, message):
-        "Updates the progress bar based on the given progress value and message."
+        """Updates the progress bar based on the given progress value and message."""
         if progress is not None and (0 < progress <= 1):
             self._scan_progress.set_fraction(progress)
         else:
@@ -366,7 +366,7 @@ class ScanMenuItemMixins:
     def _new_scan_callback(
         self, _widget, image_object, insert_after, side, xresolution, yresolution
     ):
-        "Callback function to handle a new scan."
+        """Callback function to handle a new scan."""
         if image_object is None:
             return
 
@@ -403,7 +403,7 @@ class ScanMenuItemMixins:
         self.slist.import_scan(**options)
 
     def _reloaded_scan_options_callback(self, widget):  # widget is windows
-        "This should only be called the first time after loading the available options"
+        """This should only be called the first time after loading the available options"""
         widget.disconnect(widget.reloaded_signal)
         profiles = self.settings["profile"].keys()
         if (
@@ -423,5 +423,5 @@ class ScanMenuItemMixins:
         self._update_postprocessing_options_callback(widget)
 
     def _import_scan_finished_callback(self, response):
-        "Callback function to handle the completion of a scan import process."
+        """Callback function to handle the completion of a scan import process."""
         self.post_process_progress.finish(response)

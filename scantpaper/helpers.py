@@ -1,4 +1,4 @@
-"Various helper functions"
+"""Various helper functions"""
 
 import datetime
 import logging
@@ -19,7 +19,7 @@ _MESSAGE_DIALOG = {"dialog": None}
 
 
 def _weak_callback(obj, method_name):
-    "create a weak callback"
+    """Create a weak callback"""
     ref = weakref.ref(obj)
 
     def callback(*args, **kwargs):
@@ -41,8 +41,7 @@ class Proc:
 
 
 def exec_command(cmd, pidfile=None):
-    "wrapper for subprocess.Popen()"
-
+    """Wrapper for subprocess.Popen()"""
     logger.info(" ".join(cmd))
     kwargs = {}
     if pidfile is not None:
@@ -79,8 +78,9 @@ def exec_command_run(
     shell=False,
     **kwargs,
 ):
-    """run a command like subprocess.run() but record the spawn pid in the
-    pidfile so that cancellation can kill the child process group"""
+    """Run a command like subprocess.run() but record the spawn pid in the
+    pidfile so that cancellation can kill the child process group
+    """
     kwargs = dict(kwargs)
     if pidfile is not None:
         kwargs["start_new_session"] = True
@@ -107,7 +107,7 @@ def exec_command_run(
 
 
 def program_version(stream, regex, cmd):
-    "run command and parse version string from output"
+    """Run command and parse version string from output"""
     return _program_version(stream, regex, exec_command(cmd))
 
 
@@ -141,7 +141,7 @@ def _program_version(stream, regex, proc):
 
 
 def collate_metadata(settings, today_and_now):
-    "collect metadata from settings dictionary"
+    """Collect metadata from settings dictionary"""
     metadata = {}
     for key in ["author", "title", "subject", "keywords"]:
         if key in settings:
@@ -158,8 +158,7 @@ def collate_metadata(settings, today_and_now):
 
 
 def expand_metadata_pattern(**kwargs):
-    "expand metadata template"
-
+    """Expand metadata template"""
     # Expand author, title and extension
     for key in ["author", "title", "subject", "keywords", "extension"]:
         if key not in kwargs or kwargs[key] is None:
@@ -200,7 +199,7 @@ def expand_metadata_pattern(**kwargs):
 
 
 def show_message_dialog(**options):
-    "show message dialog"
+    """Show message dialog"""
     dialog = _MESSAGE_DIALOG["dialog"]
     if not dialog:
         dialog = MultipleMessage(title=_("Messages"), transient_for=options["parent"])
@@ -227,7 +226,7 @@ def show_message_dialog(**options):
 
 
 def get_tmp_dir(dirname, pattern):
-    "If user selects session dir as tmp dir, return parent dir"
+    """If user selects session dir as tmp dir, return parent dir"""
     if dirname is None:
         return None
     while re.search(pattern, dirname):
@@ -236,7 +235,7 @@ def get_tmp_dir(dirname, pattern):
 
 
 def slurp(file):
-    "slurp file"
+    """Slurp file"""
     if hasattr(file, "read"):
         file.seek(0)
         content = file.read()
@@ -248,8 +247,7 @@ def slurp(file):
 
 
 def recursive_slurp(files):
-    """
-    Recursively processes a list of files and directories, logging the contents
+    """Recursively processes a list of files and directories, logging the contents
     of each file.
     """
     for file in files:

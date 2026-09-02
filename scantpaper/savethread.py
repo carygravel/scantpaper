@@ -1,4 +1,4 @@
-"Threading model for the Document class"
+"""Threading model for the Document class"""
 
 import datetime
 import json
@@ -96,7 +96,7 @@ class SaveThreadProgressBar(ProgressBar):
 
 @hookimpl
 def get_progressbar_class():
-    """ocrmypdf plugin hook to provide custom progress bar class"""
+    """Ocrmypdf plugin hook to provide custom progress bar class"""
 
     def create_progress_bar(total, desc, unit, disable=False, **kwargs):
         """Factory function that accepts all ocrmypdf progress bar parameters"""
@@ -108,15 +108,15 @@ def get_progressbar_class():
 
 
 class SaveThread(Importhread):
-    "subclass basethread for document"
+    """subclass basethread for document"""
 
     def save_pdf(self, **kwargs):
-        "save pdf"
+        """Save pdf"""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_pdf", kwargs, **callbacks)
 
     def _embed_text_layer(self, outdir, filename, request):
-        "Embed the text layer into the PDF using ocrmypdf"
+        """Embed the text layer into the PDF using ocrmypdf"""
         request.data(_("Embedding text layer"))
 
         # Set up progress tracking via plugin
@@ -161,7 +161,7 @@ class SaveThread(Importhread):
         return True
 
     def do_save_pdf(self, request):
-        "save PDF in thread"
+        """Save PDF in thread"""
         options = defaultdict(None, request.args[0])
 
         request.data(_("Setting up PDF"))
@@ -328,12 +328,12 @@ class SaveThread(Importhread):
             )
 
     def save_djvu(self, **kwargs):
-        "save DjvU"
+        """Save DjvU"""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_djvu", kwargs, **callbacks)
 
     def do_save_djvu(self, request):
-        "save DjvU in thread"
+        """Save DjvU in thread"""
         args = request.args[0]
         filelist = []
         for i, page_id in enumerate(args["list_of_pages"], start=1):
@@ -412,12 +412,12 @@ class SaveThread(Importhread):
                 self.check_cancelled()
 
     def save_tiff(self, **kwargs):
-        "save TIFF"
+        """Save TIFF"""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_tiff", kwargs, **callbacks)
 
     def do_save_tiff(self, request):
-        "save TIFF in thread"
+        """Save TIFF in thread"""
         options = request.args[0]
 
         filelist = []
@@ -470,12 +470,12 @@ class SaveThread(Importhread):
         )
 
     def save_image(self, **kwargs):
-        "save pages as image files"
+        """Save pages as image files"""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_image", kwargs, **callbacks)
 
     def do_save_image(self, request):
-        "save pages as image files in thread"
+        """Save pages as image files in thread"""
         options = defaultdict(None, request.args[0])
 
         for i, page_id in enumerate(options["list_of_pages"], start=1):
@@ -495,12 +495,12 @@ class SaveThread(Importhread):
         )
 
     def save_text(self, **kwargs):
-        "save text file"
+        """Save text file"""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_text", kwargs, **callbacks)
 
     def do_save_text(self, request):
-        "save text file in thread"
+        """Save text file in thread"""
         options = defaultdict(None, request.args[0])
 
         string = ""
@@ -519,12 +519,12 @@ class SaveThread(Importhread):
         )
 
     def save_hocr(self, **kwargs):
-        "save hocr file"
+        """Save hocr file"""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_hocr", kwargs, **callbacks)
 
     def do_save_hocr(self, request):
-        "save hocr file in thread"
+        """Save hocr file in thread"""
         options = defaultdict(None, request.args[0])
 
         with pathlib.Path(options["path"]).open("w", encoding="utf-8") as fhd:
@@ -557,17 +557,17 @@ class SaveThread(Importhread):
         )
 
     def do_set_paper_sizes(self, request):
-        "set paper sizes in thread"
+        """Set paper sizes in thread"""
         paper_sizes = request.args[0]
         self.paper_sizes = paper_sizes
 
     def user_defined(self, **kwargs):
-        "run user defined command on page"
+        """Run user defined command on page"""
         callbacks = _note_callbacks(kwargs)
         return self.send("user_defined", kwargs, **callbacks)
 
     def do_user_defined(self, request):
-        "run user defined command on page in thread"
+        """Run user defined command on page in thread"""
         options = request.args[0]
         try:
             with (
@@ -672,7 +672,7 @@ def _need_temp_pdf(options):
 
 
 def _estimate_page_pdf_size(image, temp_filename, opts):
-    "Estimate a page's contribution to the output PDF size in bytes"
+    """Estimate a page's contribution to the output PDF size in bytes"""
     if (
         image.format == "JPEG"
         and not opts.get("downsample")
@@ -687,7 +687,7 @@ def _estimate_page_pdf_size(image, temp_filename, opts):
 
 
 def _fix_pdf_metadata(path, remove_title):
-    "brand scantpaper as the PDF creator and remove any placeholder title"
+    """Brand scantpaper as the PDF creator and remove any placeholder title"""
     creator = f"scantpaper v{VERSION}"
     with pikepdf.open(path, allow_overwriting_input=True) as pdf:
         existing_creator = str(pdf.docinfo.get("/Creator", "")).strip()
@@ -706,7 +706,7 @@ def _fix_pdf_metadata(path, remove_title):
 
 
 def prepare_output_metadata(ftype, metadata):
-    "format metadata for PDF or DjVu"
+    """Format metadata for PDF or DjVu"""
     out = {}
     if metadata and ftype in ["PDF", "DjVu"]:
         if ftype == "PDF":
@@ -820,8 +820,9 @@ def _encrypt_pdf(filename, options, request):
 
 
 def px2pt(pixels, resolution):
-    """helper function to return length in points given a number of pixels
-    and the resolution"""
+    """Helper function to return length in points given a number of pixels
+    and the resolution
+    """
     return pixels / resolution * POINTS_PER_INCH
 
 
@@ -846,7 +847,8 @@ def _bbox2markup(xresolution, yresolution, height, bbox):
 def _add_annotations_to_pdf(page, gs_page):
     """Box is the same size as the page. We don't know the text position.
     Start at the top of the page (PDF coordinate system starts
-    at the bottom left of the page)"""
+    at the bottom left of the page)
+    """
     xresolution, yresolution, _units = gs_page.get_resolution()
     height = px2pt(gs_page.height, yresolution)
     for box in Bboxtree(gs_page.annotations).each_bbox():

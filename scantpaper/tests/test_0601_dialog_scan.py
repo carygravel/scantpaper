@@ -1,4 +1,4 @@
-"test scan dialog"
+"""test scan dialog"""
 
 import pathlib
 import tempfile
@@ -23,8 +23,7 @@ from gi.repository import (  # noqa: E402
 
 
 def test_basics():
-    "test basic functionality of scan dialog"
-
+    """Test basic functionality of scan dialog"""
     window = Gtk.Window()
 
     dialog = Scan(
@@ -61,8 +60,7 @@ def test_basics():
 
 
 def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
-    "test interaction of scan dialog and document"
-
+    """Test interaction of scan dialog and document"""
     window = Gtk.Window()
 
     dialog = Scan(
@@ -120,8 +118,7 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
 
 
 def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
-    "first test with test backend"
-
+    """First test with test backend"""
     dialog = sane_scan_dialog
     dialog.paper_sizes = {
         "new": {
@@ -194,7 +191,7 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
 
 
 def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
-    "splitting test_1 up into chunks"
+    """Splitting test_1 up into chunks"""
     options = dialog.available_scan_options
 
     dialog.allow_batch_flatbed = True
@@ -257,7 +254,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 
 
 def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
-    "splitting test_1 up into chunks"
+    """Splitting test_1 up into chunks"""
     loop = mainloop_with_timeout()
 
     changed_scan_option_cb4 = Mock()
@@ -348,11 +345,11 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 def test_scan_threads(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
     asserts = 0
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -363,7 +360,8 @@ def test_scan_threads(
     def mocked_do_get_options(self, _request):
         """Options with opt.type == SANE_TYPE_GROUP don't necessarily then have
         opt.name defined, which was triggering an error
-        when reloading the options. Override enough to test for this."""
+        when reloading the options. Override enough to test for this.
+        """
         nonlocal asserts
         asserts += 1
         self.device_handle.source = "Auto"
@@ -432,11 +430,11 @@ def test_scan_threads(
 def test_source_without_val(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
     asserts = 0
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -447,7 +445,8 @@ def test_source_without_val(
     def mocked_do_get_options(self, _request):
         """A Canon Lide 220 was producing scanimage output without a val for source,
         producing the error: Use of uninitialized value in pattern match (m//)
-        when loading the options. Override enough to test for this."""
+        when loading the options. Override enough to test for this.
+        """
         nonlocal asserts
         asserts += 1
         self.device_handle.source = None
@@ -516,11 +515,11 @@ def test_source_without_val(
 def test_no_source(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
     asserts = 0
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -531,7 +530,8 @@ def test_no_source(
     def mocked_do_get_options(self, _request):
         """A Samsung CLX-4190 has a doc-source options instead of source, meaning that
         the property allow-batch-flatbed had to be enabled to scan more than one
-        page from the ADF. Override enough to test for this."""
+        page from the ADF. Override enough to test for this.
+        """
         self.device_handle.doc_source = "Auto"
         return [
             Option(
@@ -583,10 +583,10 @@ def test_no_source(
 def test_officejet_4620(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -616,7 +616,8 @@ def test_officejet_4620(
         """An Officejet_4620_series was resetting the resolution and geometry when
         changing from ADF to Flatbed. Ensure that valid parts of the current profile
         are still active (updating if necessary) after changing an option that forces
-        a reload."""
+        a reload.
+        """
         nonlocal raw_options
         return raw_options
 
@@ -676,12 +677,13 @@ def test_infinite_reloads(
     mainloop_with_timeout,
     infinite_reloads_scan_mocks,
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(_self, _request):
         """Force a reload for every option to trigger an infinite reload loop and test
-        that the reload-recursion-limit is respected."""
+        that the reload-recursion-limit is respected.
+        """
         return enums.INFO_RELOAD_OPTIONS
 
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)

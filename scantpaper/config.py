@@ -1,4 +1,4 @@
-"helper functions to read and write config"
+"""helper functions to read and write config"""
 
 import datetime
 import json
@@ -147,14 +147,14 @@ THRESHOLD_MIGRATION_VERSION = (3, 0, 16)
 
 
 def _version_tuple(version):
-    "parse a version string into a comparable tuple of integers"
+    """Parse a version string into a comparable tuple of integers"""
     if not version:
         return (0,)
     return tuple(int(x) for x in re.findall(r"\d+", str(version))[:3])
 
 
 def read_config(filename):
-    "read the config"
+    """Read the config"""
     config = {}
     logger.info("Reading config from %s", filename)
     if not os.access(filename, os.R_OK):
@@ -228,8 +228,7 @@ def read_config(filename):
 
 
 def add_defaults(config):
-    "add defaults"
-
+    """Add defaults"""
     # remove unused settings
     for k in list(config.keys()):
         if k not in DEFAULTS:
@@ -242,7 +241,7 @@ def add_defaults(config):
 
 
 def remove_invalid_paper(hashref):
-    "remove invalid paper formats"
+    """Remove invalid paper formats"""
     for paper in list(hashref.keys()):
         if paper in ["<>", "</>"]:
             del hashref[paper]
@@ -254,8 +253,7 @@ def remove_invalid_paper(hashref):
 
 
 def write_config(rc, config):
-    "write config"
-
+    """Write config"""
     # serialise device list
     if "device list" in config:
         dl = []
@@ -293,7 +291,7 @@ def write_config(rc, config):
 
 
 def update_config_from_imported_metadata(config, metadata):
-    "update config from imported metadata"
+    """Update config from imported metadata"""
     for name in ["author", "title", "subject", "keywords"]:
         if name in metadata:
             config[name] = metadata[name]

@@ -1,4 +1,4 @@
-"Tests for ApplicationWindow"
+"""Tests for ApplicationWindow"""
 
 import pathlib
 import uuid
@@ -21,7 +21,7 @@ from gi.repository import (  # noqa: E402
 
 
 class MockImageView(Gtk.DrawingArea):
-    "Mock ImageView class"
+    """Mock ImageView class"""
 
     __gsignals__: ClassVar[dict] = {
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
@@ -34,20 +34,20 @@ class MockImageView(Gtk.DrawingArea):
     )
 
     def set_tool(self, tool):
-        "mock set_tool"
+        """Mock set_tool"""
 
     def set_pixbuf(self, pixbuf, *args):
-        "mock set_pixbuf"
+        """Mock set_pixbuf"""
 
     def set_resolution_ratio(self, ratio):
-        "mock set_resolution_ratio"
+        """Mock set_resolution_ratio"""
 
     def set_selection(self, selection):
-        "mock set_selection"
+        """Mock set_selection"""
 
 
 class MockCanvas(Gtk.DrawingArea):
-    "Mock Canvas class"
+    """Mock Canvas class"""
 
     __gsignals__: ClassVar[dict] = {
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
@@ -59,18 +59,18 @@ class MockCanvas(Gtk.DrawingArea):
     )
 
     def clear_text(self):
-        "mock clear_text"
+        """Mock clear_text"""
 
     def sort_by_confidence(self):
-        "mock sort_by_confidence"
+        """Mock sort_by_confidence"""
 
     def sort_by_position(self):
-        "mock sort_by_position"
+        """Mock sort_by_position"""
 
 
 @pytest.fixture
 def mock_builder(mocker):
-    "Mock Gtk.Builder"
+    """Mock Gtk.Builder"""
     builder_cls = mocker.patch("app_window.Gtk.Builder")
     builder = builder_cls.return_value
     # Return a MagicMock for any object requested
@@ -80,7 +80,7 @@ def mock_builder(mocker):
 
 @pytest.fixture
 def mock_config(mocker):
-    "Mock config module"
+    """Mock config module"""
     config = mocker.patch("app_window.config")
     config.read_config.return_value = {
         "restore window": False,
@@ -108,7 +108,7 @@ def mock_config(mocker):
 
 @pytest.fixture
 def app_window(mocker, mock_builder, mock_config):
-    "Fixture to create an ApplicationWindow instance with mocked dependencies"
+    """Fixture to create an ApplicationWindow instance with mocked dependencies"""
     del mock_builder, mock_config
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
@@ -185,13 +185,13 @@ def app_window(mocker, mock_builder, mock_config):
 
 
 def test_init(app_window):
-    "Test initialization"
+    """Test initialization"""
     assert isinstance(app_window, ApplicationWindow)
     assert app_window.session.name == "/tmp/session"
 
 
 def test_post_process_progress_cancel_callback_wired(app_window):
-    "Test the post-process progress bar has a cancel callback wired to slist.cancel"
+    """Test the post-process progress bar has a cancel callback wired to slist.cancel"""
     assert callable(app_window.post_process_progress.cancel_callback)
     assert app_window.post_process_progress.cancel_callback.__self__ is app_window
     app_window.slist.cancel = mocker = MagicMock()
@@ -200,7 +200,7 @@ def test_post_process_progress_cancel_callback_wired(app_window):
 
 
 def test_drag_motion_callback(mocker):
-    "Test drag_motion_callback"
+    """Test drag_motion_callback"""
     mocker.patch("app_window.Gdk.drag_status")
     tree = MagicMock()
     context = MagicMock()
@@ -236,7 +236,7 @@ def test_drag_motion_callback(mocker):
 
 
 def test_drag_motion_callback_error():
-    "Test drag_motion_callback with TypeError"
+    """Test drag_motion_callback with TypeError"""
     tree = MagicMock()
     # Mock get_dest_row_at_pos to raise TypeError (e.g. returns None)
     tree.get_dest_row_at_pos.side_effect = TypeError
@@ -245,7 +245,7 @@ def test_drag_motion_callback_error():
 
 
 def test_drag_motion_callback_copy(mocker):
-    "Test drag_motion_callback with COPY action"
+    """Test drag_motion_callback with COPY action"""
     mock_drag_status = mocker.patch("app_window.Gdk.drag_status")
     tree = MagicMock()
     context = MagicMock()
@@ -265,7 +265,7 @@ def test_drag_motion_callback_copy(mocker):
 
 
 def test_view_html(mocker):
-    "Test view_html"
+    """Test view_html"""
     mocker.patch("pathlib.Path.exists", return_value=True)
     mock_launch = mocker.patch("gi.repository.Gio.AppInfo.launch_default_for_uri")
 
@@ -280,7 +280,7 @@ def test_view_html(mocker):
 
 
 def test_read_config_migration(app_window, mocker):
-    "Test configuration file migration from old name"
+    """Test configuration file migration from old name"""
     mocker.patch("app_window.os.environ", {"HOME": "/home/user"})
     mock_exists = mocker.patch.object(pathlib.Path, "exists", autospec=True)
     mock_copy = mocker.patch("app_window.shutil.copy")
@@ -297,7 +297,7 @@ def test_read_config_migration(app_window, mocker):
 
 
 def test_read_config_restore_window(mocker):
-    "Test window restoration from config"
+    """Test window restoration from config"""
     mock_settings = {
         "restore window": True,
         "window_width": 800,
@@ -352,7 +352,7 @@ def test_read_config_restore_window(mocker):
 
 
 def test_init_actions(app_window):
-    "Test that actions are initialized"
+    """Test that actions are initialized"""
     actions = app_window.list_actions()
     assert "scan" in actions
     assert "save" in actions
@@ -364,7 +364,7 @@ def test_init_actions(app_window):
 
 
 def test_change_image_tool_cb(app_window, mocker):
-    "Test changing image tool"
+    """Test changing image tool"""
     app_window.view = MagicMock()
 
     # Mock Dragger to return a known object
@@ -403,7 +403,8 @@ def test_change_image_tool_cb(app_window, mocker):
 def test_change_image_tool_no_reentrant_loop(app_window, mocker):
     """GtkCheckMenuItem.set_active() calls gtk_menu_item_activate(),
     re-activating the action with the old item's target.  Verify this doesn't
-    cause a loop."""
+    cause a loop.
+    """
     app_window.view = MagicMock()
     mocker.patch("app_window.Dragger")
 
@@ -424,7 +425,7 @@ def test_change_image_tool_no_reentrant_loop(app_window, mocker):
 
 
 def test_change_view_cb(app_window):
-    "Test changing view type and covering all old mode branches"
+    """Test changing view type and covering all old mode branches"""
     action = app_window._actions["viewtype"]
     app_window._vnotebook = MagicMock()
     app_window._hpanei = MagicMock()
@@ -451,7 +452,7 @@ def test_change_view_cb(app_window):
 
 
 def test_create_toolbar_missing_deps(app_window):
-    "Test toolbar creation with missing dependencies"
+    """Test toolbar creation with missing dependencies"""
     app_window._dependencies = {
         "imagemagick": False,
         "libtiff": False,
@@ -470,7 +471,7 @@ def test_create_toolbar_missing_deps(app_window):
 
 
 def test_create_toolbar_tesseract_lang_missing(app_window, mocker):
-    "Test toolbar creation when tesseract language is missing (covers 530-531)"
+    """Test toolbar creation when tesseract language is missing (covers 530-531)"""
     app_window._dependencies["tesseract"] = True
     mock_locale_installed = mocker.patch(
         "app_window.locale_installed", return_value="Missing language package"
@@ -487,7 +488,7 @@ def test_create_toolbar_tesseract_lang_missing(app_window, mocker):
 
 
 def test_update_uimanager(app_window):
-    "Test _update_uimanager"
+    """Test _update_uimanager"""
     # Simulate no selection
     app_window.slist.get_selected_indices.return_value = []
     app_window.slist.data = []
@@ -508,7 +509,7 @@ def test_update_uimanager(app_window):
 
 
 def test_update_uimanager_low_disk_space(app_window, mocker):
-    "Test _update_uimanager when disk space is low"
+    """Test _update_uimanager when disk space is low"""
     # Set free space to 50 MB, which is less than available-tmp-warning (100 MB)
     mock_shutil = mocker.patch("app_window.shutil")
     mock_shutil.disk_usage.return_value.free = 50 * 1024 * 1024
@@ -524,7 +525,7 @@ def test_update_uimanager_low_disk_space(app_window, mocker):
 
 
 def test_update_uimanager_unpaper_missing(app_window):
-    "Test _update_uimanager when unpaper is missing"
+    """Test _update_uimanager when unpaper is missing"""
     app_window._dependencies["unpaper"] = False
     assert "unpaper" in app_window._actions
 
@@ -539,14 +540,14 @@ def test_update_uimanager_unpaper_missing(app_window):
 
 
 def test_update_uimanager_ocr_missing(app_window):
-    "Test _update_uimanager when ocr is missing"
+    """Test _update_uimanager when ocr is missing"""
     app_window._dependencies["ocr"] = False
     app_window._update_uimanager()
     assert not app_window._actions["ocr"].get_enabled()
 
 
 def test_update_uimanager_no_pages_hide_email_dialog(app_window):
-    "Test _update_uimanager hides email dialog if no pages"
+    """Test _update_uimanager hides email dialog if no pages"""
     app_window.slist.data = []
     app_window._dependencies["xdg"] = True
     app_window._windowe = MagicMock()
@@ -558,7 +559,7 @@ def test_update_uimanager_no_pages_hide_email_dialog(app_window):
 
 
 def test_update_uimanager_xdg_missing(app_window):
-    "Test _update_uimanager when xdg is missing (covers branches)"
+    """Test _update_uimanager when xdg is missing (covers branches)"""
     app_window._dependencies["xdg"] = False
 
     # case with pages
@@ -573,7 +574,7 @@ def test_update_uimanager_xdg_missing(app_window):
 
 
 def test_update_uimanager_no_pages_no_email_dialog(app_window):
-    "Test _update_uimanager does not hide email dialog if it is None"
+    """Test _update_uimanager does not hide email dialog if it is None"""
     app_window.slist.data = []
     app_window._dependencies["xdg"] = True
     app_window._windowe = None
@@ -582,14 +583,14 @@ def test_update_uimanager_no_pages_no_email_dialog(app_window):
 
 
 def test_update_uimanager_ocr_present(app_window):
-    "Test _update_uimanager when ocr is present"
+    """Test _update_uimanager when ocr is present"""
     app_window._dependencies["ocr"] = True
     app_window._update_uimanager()
     # covers branch jump 755->758
 
 
 def test_update_uimanager_ghost_ocr_and_hide_email(app_window):
-    "Test ghosting ocr and hiding email dialog in one go (covers 756 & 769)"
+    """Test ghosting ocr and hiding email dialog in one go (covers 756 & 769)"""
     app_window._dependencies["ocr"] = False
     app_window._dependencies["xdg"] = True
     app_window.slist.data = []
@@ -602,7 +603,7 @@ def test_update_uimanager_ghost_ocr_and_hide_email(app_window):
 
 
 def test_process_error_reopen(app_window, mocker):
-    "Test _process_error_callback with reopen response (covers 892)"
+    """Test _process_error_callback with reopen response (covers 892)"""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
     app_window.settings["message"]["error opening device"] = {"response": None}
@@ -635,7 +636,7 @@ def test_process_error_reopen(app_window, mocker):
 
 
 def test_process_error_rescan(app_window, mocker):
-    "Test _process_error_callback with rescan response (covers 900)"
+    """Test _process_error_callback with rescan response (covers 900)"""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
     app_window.settings["message"]["error opening device"] = {"response": None}
@@ -666,7 +667,7 @@ def test_process_error_rescan(app_window, mocker):
 
 
 def test_process_error_ignore(app_window, mocker):
-    "Test _process_error_callback with ignore response (covers 892)"
+    """Test _process_error_callback with ignore response (covers 892)"""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
     app_window.settings["message"]["error opening device"] = {"response": None}
@@ -687,7 +688,7 @@ def test_process_error_ignore(app_window, mocker):
 
 
 def test_window_state_event_callback(app_window):
-    "Test _window_state_event_callback"
+    """Test _window_state_event_callback"""
     event = MagicMock()
     event.new_window_state = Gdk.WindowState.MAXIMIZED
     app_window._window_state_event_callback(None, event)
@@ -699,7 +700,7 @@ def test_window_state_event_callback(app_window):
 
 
 def test_changed_text_sort_method(app_window):
-    "Test _changed_text_sort_method"
+    """Test _changed_text_sort_method"""
     app_window.t_canvas = MagicMock()
 
     app_window._changed_text_sort_method(None, "confidence")
@@ -710,7 +711,7 @@ def test_changed_text_sort_method(app_window):
 
 
 def test_handle_clicks(app_window):
-    "Test _handle_clicks"
+    """Test _handle_clicks"""
     event = MagicMock()
     event.button = 3  # Right click
 
@@ -735,7 +736,7 @@ def test_handle_clicks(app_window):
 
 
 def test_view_selection_changed_callback(app_window):
-    "Test _view_selection_changed_callback"
+    """Test _view_selection_changed_callback"""
     sel = MagicMock()
     copied_sel = MagicMock()
     sel.copy.return_value = copied_sel
@@ -747,13 +748,13 @@ def test_view_selection_changed_callback(app_window):
 
 
 def test_view_selection_changed_callback_none(app_window):
-    "Test _view_selection_changed_callback with None"
+    """Test _view_selection_changed_callback with None"""
     with pytest.raises(AttributeError):
         app_window._view_selection_changed_callback(None, None)
 
 
 def test_on_key_press(app_window):
-    "Test _on_key_press"
+    """Test _on_key_press"""
     app_window.delete_selection = MagicMock()
 
     # Delete key
@@ -768,7 +769,7 @@ def test_on_key_press(app_window):
 
 
 def test_on_view_selection_notify(app_window):
-    "Test _on_view_selection_notify with a non-None selection"
+    """Test _on_view_selection_notify with a non-None selection"""
     sel = MagicMock()
     copied = MagicMock()
     sel.copy.return_value = copied
@@ -783,7 +784,7 @@ def test_on_view_selection_notify(app_window):
 
 
 def test_process_error_callback(app_window, mocker):
-    "Test _process_error_callback"
+    """Test _process_error_callback"""
     app_window._scan_progress = MagicMock()
     app_window._show_message_dialog = MagicMock()
 
@@ -844,7 +845,7 @@ def test_process_error_callback(app_window, mocker):
 
 
 def test_process_error_callback_ignore_hides_bar_after_dialog(app_window, mocker):
-    "Test that selecting 'ignore' in the open_device error dialog hides the progress bar"
+    """Test that selecting 'ignore' in the open_device error dialog hides the progress bar"""
     app_window._scan_progress = MagicMock()
     app_window._show_message_dialog = MagicMock()
     app_window.scan_dialog = MagicMock()
@@ -877,7 +878,7 @@ def test_process_error_callback_ignore_hides_bar_after_dialog(app_window, mocker
 
 
 def test_page_selection_changed_callback(app_window):
-    "Test _page_selection_changed_callback"
+    """Test _page_selection_changed_callback"""
     app_window.view = MagicMock()
     app_window.t_canvas = MagicMock()
     app_window.a_canvas = MagicMock()
@@ -909,7 +910,7 @@ def test_page_selection_changed_callback(app_window):
 
 
 def test_page_selection_changed_with_value_error(app_window, mocker):
-    "Test _page_selection_changed_callback handles ValueError (covers 690-691)"
+    """Test _page_selection_changed_callback handles ValueError (covers 690-691)"""
     app_window.slist.get_selected_indices.return_value = [0]
     app_window.slist.data = [[1, None, "page_id"]]
     app_window._display_image = mocker.Mock(side_effect=ValueError)
@@ -920,7 +921,7 @@ def test_page_selection_changed_with_value_error(app_window, mocker):
 
 
 def test_page_selection_changed_restore_selection(app_window, mocker):
-    "Test _page_selection_changed_callback restores selection (covers 692-693)"
+    """Test _page_selection_changed_callback restores selection (covers 692-693)"""
     app_window.slist.get_selected_indices.return_value = [0]
     app_window.slist.data = [[1, None, "page_id"]]
     app_window._display_image = mocker.Mock()
@@ -934,7 +935,7 @@ def test_page_selection_changed_restore_selection(app_window, mocker):
 
 
 def test_pack_viewer_tools(app_window):
-    "Test _pack_viewer_tools"
+    """Test _pack_viewer_tools"""
     app_window._vnotebook = MagicMock()
     app_window._hpanei = MagicMock()
     app_window._vpanei = MagicMock()
@@ -962,7 +963,7 @@ def test_pack_viewer_tools(app_window):
 
 
 def test_show_message_dialog(app_window, mocker):
-    "Test _show_message_dialog"
+    """Test _show_message_dialog"""
     mock_mm_cls = mocker.patch("app_window.MultipleMessage")
     mock_mm = mock_mm_cls.return_value
     mock_mm.grid_rows = 2
@@ -984,7 +985,7 @@ def test_show_message_dialog(app_window, mocker):
 
 
 def test_show_message_dialog_already_exists(app_window, mocker):
-    "Test _show_message_dialog when _message_dialog is already created"
+    """Test _show_message_dialog when _message_dialog is already created"""
     mock_mm_cls = mocker.patch("app_window.MultipleMessage")
     mock_mm = MagicMock()
     mock_mm.grid_rows = 1
@@ -1001,7 +1002,7 @@ def test_show_message_dialog_already_exists(app_window, mocker):
 
 @pytest.mark.usefixtures("mock_builder", "mock_config")
 def test_pre_flight_linux(mocker):
-    "Test that recursive_slurp is called on Linux"
+    """Test that recursive_slurp is called on Linux"""
     mocker.patch("app_window.sys.platform", "linux")
     mock_slurp = mocker.patch("app_window.recursive_slurp")
 
@@ -1072,7 +1073,7 @@ def test_pre_flight_linux(mocker):
 
 @pytest.mark.usefixtures("mock_builder")
 def test_pre_flight_cwd_none(mocker, mock_config):
-    "Test that cwd is set to os.getcwd() if it is None"
+    """Test that cwd is set to os.getcwd() if it is None"""
     mock_config.read_config.return_value["cwd"] = None
 
     # Mock MultipleMessage to prevent blocking dialogs
@@ -1147,8 +1148,7 @@ def test_pre_flight_cwd_none(mocker, mock_config):
 
 @pytest.mark.usefixtures("mock_builder", "mock_config")
 def test_populate_main_window_cwd_missing(mocker, tmp_path):
-    "Test that cwd is set to os.getcwd() if it is missing in _populate_main_window"
-
+    """Test that cwd is set to os.getcwd() if it is missing in _populate_main_window"""
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
     mocker.patch("app_window.ImageView", MockImageView)
@@ -1237,7 +1237,7 @@ def test_populate_main_window_cwd_missing(mocker, tmp_path):
 
 @pytest.mark.usefixtures("mock_builder")
 def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
-    "Test that scan_dialog and _import_files are called during init if configured"
+    """Test that scan_dialog and _import_files are called during init if configured"""
     mock_config.read_config.return_value["auto-open-scan-dialog"] = True
 
     mocker.patch("app_window.Document")
@@ -1325,8 +1325,7 @@ def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
 
 @pytest.mark.usefixtures("mock_builder")
 def test_populate_panes_tool_selection(mocker, mock_config, tmp_path):
-    "Test _populate_panes with different image_control_tool settings"
-
+    """Test _populate_panes with different image_control_tool settings"""
     mocker.patch("app_window.Document")
     mocker.patch("app_window.Unpaper")
     # Don't mock ImageView, we need it to verify set_tool calls, or at least mock it enough

@@ -1,4 +1,4 @@
-"Test importing DjVu"
+"""Test importing DjVu"""
 
 import datetime
 import pathlib
@@ -21,8 +21,7 @@ from page import Page
 def test_import_djvu(
     rose_jpg, temp_djvu, temp_txt, clean_up_files, temp_db, get_page_sync
 ):
-    "Test importing DjVu"
-
+    """Test importing DjVu"""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
     text = """(page 0 0 2236 3185
   (column 157 3011 1725 3105
@@ -141,8 +140,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_import_djvu_with_error(rose_jpg, temp_djvu):
-    "Test importing DjVu"
-
+    """Test importing DjVu"""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
 
     with tempfile.TemporaryDirectory() as dirname:
@@ -181,7 +179,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
 
 
 def mock_import_djvu_txt(_self, _text):
-    "mock import_djvu_txt method to test error handling"
+    """Mock import_djvu_txt method to test error handling"""
     msg = "Error parsing djvu text"
     raise ValueError(msg)
 
@@ -192,8 +190,7 @@ def mock_import_djvu_txt(_self, _text):
 def test_import_djvu_with_error2(
     monkeypatch, rose_jpg, temp_djvu, temp_db, get_page_sync
 ):
-    "Test importing DjVu"
-
+    """Test importing DjVu"""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
 
     # apply the monkeypatch for Page.import_djvu_txt to mock_import_djvu_txt
@@ -226,8 +223,7 @@ def test_import_djvu_with_error2(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db):
-    "Test importing multipage DjVu"
-
+    """Test importing multipage DjVu"""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
     with tempfile.NamedTemporaryFile(suffix=".djvu") as temp_djvu2:
         subprocess.run(

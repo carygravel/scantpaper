@@ -1,4 +1,4 @@
-"test dialog"
+"""test dialog"""
 
 import gi
 from dialog import Dialog, MultipleMessage
@@ -12,7 +12,7 @@ from gi.repository import (  # noqa: E402
 
 
 def test_dialog():
-    "test dialog"
+    """Test dialog"""
     window = Gtk.Window()
     dialog = Dialog(title="title", transient_for=window)
     assert isinstance(dialog, Dialog), "Created dialog"
@@ -69,8 +69,7 @@ def test_dialog():
 
 
 def test_multiple_message():
-    "test MultipleMessage"
-
+    """Test MultipleMessage"""
     dialog = MultipleMessage()
 
     # row with store_response=True and stored_responses
@@ -127,7 +126,7 @@ def test_multiple_message():
 
 
 def test_dialog_page_range():
-    "test dialog page-range"
+    """Test dialog page-range"""
     dialog = Dialog()
     dialog.add_page_range()
 
@@ -144,7 +143,7 @@ def test_dialog_page_range():
 
 
 def test_add_actions_limit():
-    "test add_actions with more buttons than responses"
+    """Test add_actions with more buttons than responses"""
     dialog = Dialog()
     # add_actions only supports 2 responses (OK, CANCEL)
     buttons = dialog.add_actions(
@@ -154,7 +153,7 @@ def test_add_actions_limit():
 
 
 def test_multiple_message_none_text():
-    "test MultipleMessage with None text"
+    """Test MultipleMessage with None text"""
     dialog = MultipleMessage()
     row = {
         "text": None,
@@ -165,7 +164,7 @@ def test_multiple_message_none_text():
 
 
 def test_multiple_message_list_text():
-    "test MultipleMessage with text that gets munged into a list"
+    """Test MultipleMessage with text that gets munged into a list"""
     dialog = MultipleMessage()
     row = {
         "text": "(gimp:123): message\nsomething else",
@@ -179,7 +178,7 @@ def test_multiple_message_list_text():
 
 
 def test_add_actions_callback():
-    "test add_actions callback"
+    """Test add_actions callback"""
     dialog = Dialog()
     called = False
 
@@ -193,7 +192,7 @@ def test_add_actions_callback():
 
 
 def test_multiple_message_duplicate():
-    "test MultipleMessage skipping duplicate message"
+    """Test MultipleMessage skipping duplicate message"""
     dialog = MultipleMessage()
     responses = {"message": {"response": "ok"}}
     row = {

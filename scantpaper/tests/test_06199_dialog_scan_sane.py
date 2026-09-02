@@ -1,4 +1,4 @@
-"test scan dialog"
+"""test scan dialog"""
 
 import logging
 from types import SimpleNamespace
@@ -17,7 +17,6 @@ def test_scan_resolution(
     sane_scan_mocks,
 ):
     """Test the resolution options passed with the new-scan signal"""
-
     sane_scan_mocks.patch_all(mocker)
     dialog = sane_scan_dialog
     callbacks = 0
@@ -88,7 +87,6 @@ def test_scan_source_adf(
     sane_scan_mocks,
 ):
     """Test setting source to ADF triggers reload options"""
-
     sane_scan_mocks.patch_all(mocker)
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "mock_name")

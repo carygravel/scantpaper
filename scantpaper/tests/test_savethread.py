@@ -1,4 +1,4 @@
-"Tests for savethread.py"
+"""Tests for savethread.py"""
 
 import datetime
 from unittest.mock import MagicMock, mock_open, patch
@@ -27,7 +27,7 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 class MockSaveThread(SaveThread):
-    "Mock subclass of SaveThread for testing"
+    """Mock subclass of SaveThread for testing"""
 
     def __init__(self):
         super().__init__()
@@ -40,27 +40,27 @@ class MockSaveThread(SaveThread):
         self.mock_pages = {}
 
     def get_page(self, page_id=None, **kwargs):
-        "Mock get_page"
+        """Mock get_page"""
         del page_id
         return self.mock_pages[kwargs.get("id")]
 
     def do_set_saved(self, request):
-        "Mock do_set_saved"
+        """Mock do_set_saved"""
 
     def replace_page(self, _page, _initial_page_id):
-        "Mock replace_page"
+        """Mock replace_page"""
         return [1, None, "uuid"]
 
 
 @pytest.fixture
 def mock_thread_instance():
-    "Fixture for MockSaveThread"
+    """Fixture for MockSaveThread"""
     return MockSaveThread()
 
 
 @pytest.fixture
 def mock_page_instance():
-    "Fixture for mocked Page"
+    """Fixture for mocked Page"""
     page = MagicMock(spec=Page)
     page.id = 1
     page.uuid = "uuid1"
@@ -80,7 +80,7 @@ def mock_page_instance():
 
 
 def test_save_pdf(mock_thread_instance, mock_page_instance):
-    "Test save_pdf method"
+    """Test save_pdf method"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
     options = {
@@ -118,7 +118,7 @@ def test_save_pdf(mock_thread_instance, mock_page_instance):
 
 
 def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
-    "Test save_pdf method with HOCR"
+    """Test save_pdf method with HOCR"""
     mock_page_instance.text_layer = "some text layer data"
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
@@ -152,7 +152,7 @@ def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
 
 
 def test_save_pdf_with_title_keeps_title(mock_thread_instance, mock_page_instance):
-    "Test save_pdf brands metadata but does not strip a provided title"
+    """Test save_pdf brands metadata but does not strip a provided title"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
     options = {
@@ -186,7 +186,7 @@ def test_save_pdf_with_title_keeps_title(mock_thread_instance, mock_page_instanc
 
 
 def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
-    "Test ocrmypdf failure falls back to saving without text layer"
+    """Test ocrmypdf failure falls back to saving without text layer"""
     mock_page_instance.text_layer = "some text layer data"
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
@@ -200,7 +200,7 @@ def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
     request = Request("save_pdf", (options,), mock_thread_instance.responses)
 
     class _EmptyError(Exception):
-        "exception with empty str() like ocrmypdf errors"
+        """exception with empty str() like ocrmypdf errors"""
 
         def __str__(self):
             return ""
@@ -235,7 +235,7 @@ def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
 def test_save_pdf_metadata_fixup_failure_is_non_fatal(
     mock_thread_instance, mock_page_instance
 ):
-    "Test a metadata fixup failure warns but does not fail the save"
+    """Test a metadata fixup failure warns but does not fail the save"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
     options = {
@@ -272,7 +272,7 @@ def test_save_pdf_metadata_fixup_failure_is_non_fatal(
 
 
 def test_save_pdf_rejects_oversized_output(mock_thread_instance, mock_page_instance):
-    "Test save_pdf rejects output exceeding 2 GiB with RuntimeError"
+    """Test save_pdf rejects output exceeding 2 GiB with RuntimeError"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
     options = {
@@ -309,7 +309,7 @@ def test_save_pdf_rejects_oversized_output(mock_thread_instance, mock_page_insta
 
 
 def test_save_djvu(mock_thread_instance, mock_page_instance):
-    "Test save_djvu method"
+    """Test save_djvu method"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "dir": "/tmp",
@@ -345,7 +345,7 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
 
 
 def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
-    "Test save_djvu method with merging failure"
+    """Test save_djvu method with merging failure"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "dir": "/tmp",
@@ -377,7 +377,7 @@ def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
 
 
 def test_save_tiff(mock_thread_instance, mock_page_instance):
-    "Test save_tiff method"
+    """Test save_tiff method"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "dir": "/tmp",
@@ -406,7 +406,7 @@ def test_save_tiff(mock_thread_instance, mock_page_instance):
 
 
 def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
-    "Test save_tiff method to PS"
+    """Test save_tiff method to PS"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "dir": "/tmp",
@@ -434,7 +434,7 @@ def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
 
 
 def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
-    "Test save_tiff method to PS with failure"
+    """Test save_tiff method to PS with failure"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "dir": "/tmp",
@@ -464,7 +464,7 @@ def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
 
 
 def test_save_image(mock_thread_instance, mock_page_instance):
-    "Test save_image method"
+    """Test save_image method"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "dir": "/tmp",
@@ -481,7 +481,7 @@ def test_save_image(mock_thread_instance, mock_page_instance):
 
 
 def test_save_image_multiple(mock_thread_instance, mock_page_instance):
-    "Test save_image method with multiple pages"
+    """Test save_image method with multiple pages"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     mock_thread_instance.mock_pages[2] = mock_page_instance
     options = {
@@ -500,7 +500,7 @@ def test_save_image_multiple(mock_thread_instance, mock_page_instance):
 
 
 def test_save_text(mock_thread_instance, mock_page_instance):
-    "Test save_text method"
+    """Test save_text method"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {"path": "/tmp/output.txt", "list_of_pages": [1]}
     request = Request("save_text", (options,), mock_thread_instance.responses)
@@ -516,7 +516,7 @@ def test_save_text(mock_thread_instance, mock_page_instance):
 
 
 def test_save_hocr(mock_thread_instance, mock_page_instance):
-    "Test save_hocr method"
+    """Test save_hocr method"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {"path": "/tmp/output.hocr", "list_of_pages": [1], "options": {}}
     request = Request("save_hocr", (options,), mock_thread_instance.responses)
@@ -532,7 +532,7 @@ def test_save_hocr(mock_thread_instance, mock_page_instance):
 
 
 def test_user_defined(mock_thread_instance, mock_page_instance):
-    "Test user_defined method"
+    """Test user_defined method"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "page": 1,
@@ -571,7 +571,7 @@ def test_user_defined(mock_thread_instance, mock_page_instance):
 
 
 def test_user_defined_copy_failure(mock_thread_instance, mock_page_instance):
-    "Test user_defined method with copy failure"
+    """Test user_defined method with copy failure"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "page": 1,
@@ -605,7 +605,7 @@ def test_user_defined_copy_failure(mock_thread_instance, mock_page_instance):
 
 
 def test_user_defined_exception(mock_thread_instance, mock_page_instance):
-    "Test user_defined method with PermissionError"
+    """Test user_defined method with PermissionError"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "page": 1,
@@ -629,7 +629,7 @@ def test_user_defined_exception(mock_thread_instance, mock_page_instance):
 
 
 def test_set_timestamp():
-    "Test _set_timestamp function"
+    """Test _set_timestamp function"""
     options = {
         "path": "/tmp/file",
         "metadata": {
@@ -644,7 +644,7 @@ def test_set_timestamp():
 
 
 def test_set_timestamp_naive_converts_to_utc():
-    "Test _set_timestamp converts a naive datetime to a UTC-aware one"
+    """Test _set_timestamp converts a naive datetime to a UTC-aware one"""
     options = {
         "path": "/tmp/file",
         # Intentionally naive to exercise the tzinfo-is-None branch in _set_timestamp
@@ -663,7 +663,7 @@ def test_set_timestamp_naive_converts_to_utc():
 
 @pytest.mark.parametrize("remove_title", [True, False], ids=["remove", "keep"])
 def test_fix_pdf_metadata_removes_title(temp_pdf, remove_title):
-    "Test _fix_pdf_metadata removes the docinfo /Title when remove_title is set"
+    """Test _fix_pdf_metadata removes the docinfo /Title when remove_title is set"""
     with pikepdf.Pdf.new() as pdf:
         if remove_title:
             pdf.docinfo["/Title"] = "placeholder"
@@ -679,7 +679,7 @@ def test_fix_pdf_metadata_removes_title(temp_pdf, remove_title):
 
 
 def test_post_save_hook():
-    "Test _post_save_hook function"
+    """Test _post_save_hook function"""
     with patch("savethread.exec_command_run") as mock_run:
         _post_save_hook("/tmp/file", {"post_save_hook": "echo %i"})
         assert mock_run.called
@@ -688,7 +688,7 @@ def test_post_save_hook():
 
 
 def test_encrypt_pdf():
-    "Test _encrypt_pdf function"
+    """Test _encrypt_pdf function"""
     request = MagicMock()
     with patch("savethread.exec_command_run") as mock_run:
         mock_run.return_value.returncode = 0
@@ -702,7 +702,7 @@ def test_encrypt_pdf():
 
 
 def test_encrypt_pdf_failure():
-    "Test _encrypt_pdf function when qpdf fails"
+    """Test _encrypt_pdf function when qpdf fails"""
     request = MagicMock()
     options = {"path": "/tmp/output.pdf", "options": {"user-password": "password"}}
     mock_spo = MagicMock()
@@ -717,7 +717,7 @@ def test_encrypt_pdf_failure():
 
 
 def test_prepare_output_metadata():
-    "Test prepare_output_metadata function"
+    """Test prepare_output_metadata function"""
     metadata = {
         "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=_LOCAL_TZ),
         "author": "Author",
@@ -730,7 +730,7 @@ def test_prepare_output_metadata():
 
 
 def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):
-    "Test save_pdf method with prepend"
+    """Test save_pdf method with prepend"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
     options = {
         "dir": "/tmp",
@@ -765,7 +765,7 @@ def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):
 
 
 def test_add_annotations_to_pdf():
-    "Test _add_annotations_to_pdf function"
+    """Test _add_annotations_to_pdf function"""
     mock_pdf_page = MagicMock()
     mock_gs_page = MagicMock()
     mock_gs_page.get_resolution.return_value = (300, 300, "units")
@@ -789,7 +789,7 @@ def test_add_annotations_to_pdf():
 
 
 def test_save_pdf_with_password(mock_thread_instance, mock_page_instance):
-    "Test save_pdf method with password protection"
+    """Test save_pdf method with password protection"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
     options = {
@@ -821,7 +821,7 @@ def test_save_pdf_with_password(mock_thread_instance, mock_page_instance):
 
 
 def test_save_pdf_with_password_failure(mock_thread_instance, mock_page_instance):
-    "Test save_pdf method with password protection failure"
+    """Test save_pdf method with password protection failure"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
     options = {
@@ -854,7 +854,7 @@ def test_save_pdf_with_password_failure(mock_thread_instance, mock_page_instance
 
 
 def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
-    "Test save_pdf method with PS conversion failure"
+    """Test save_pdf method with PS conversion failure"""
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
     options = {
@@ -892,7 +892,7 @@ def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
 
 
 def test_append_pdf_rename_failure():
-    "Test _append_pdf function when Path.rename raises ValueError"
+    """Test _append_pdf function when Path.rename raises ValueError"""
     request = MagicMock()
     options = {"options": {"prepend": "/tmp/prepend.pdf"}, "pidfile": "pidfile"}
     with patch(
@@ -904,7 +904,7 @@ def test_append_pdf_rename_failure():
 
 
 def test_append_pdf_pdfunite_failure():
-    "Test _append_pdf function when pdfunite fails"
+    """Test _append_pdf function when pdfunite fails"""
     request = MagicMock()
     options = {"options": {"prepend": "/tmp/prepend.pdf"}, "pidfile": "pidfile"}
     mock_proc = MagicMock()
@@ -920,7 +920,7 @@ def test_append_pdf_pdfunite_failure():
 
 
 def test_savethread_progressbar_basic():
-    "Test SaveThreadProgressBar basic functionality"
+    """Test SaveThreadProgressBar basic functionality"""
     mock_request = MagicMock()
     mock_request.data = MagicMock()
     progressbar = SaveThreadProgressBar(
@@ -943,7 +943,7 @@ def test_savethread_progressbar_basic():
 
 
 def test_savethread_progressbar_context_manager():
-    "Test SaveThreadProgressBar as context manager"
+    """Test SaveThreadProgressBar as context manager"""
     mock_request = MagicMock()
 
     with SaveThreadProgressBar(
@@ -955,7 +955,7 @@ def test_savethread_progressbar_context_manager():
 
 
 def test_savethread_progressbar_disabled():
-    "Test SaveThreadProgressBar when disabled"
+    """Test SaveThreadProgressBar when disabled"""
     mock_request = MagicMock()
     mock_request.data = MagicMock()
     progressbar = SaveThreadProgressBar(
@@ -972,7 +972,7 @@ def test_savethread_progressbar_disabled():
 
 
 def test_savethread_progressbar_no_thread():
-    "Test SaveThreadProgressBar when thread_instance is None"
+    """Test SaveThreadProgressBar when thread_instance is None"""
     progressbar = SaveThreadProgressBar(
         request=None, total=10, desc="No thread test", unit="page"
     )
@@ -983,7 +983,7 @@ def test_savethread_progressbar_no_thread():
 
 
 def test_get_progressbar_class_hook():
-    "Test get_progressbar_class hook implementation"
+    """Test get_progressbar_class hook implementation"""
     mock_request = MagicMock()
     mock_request.data = MagicMock()
 
@@ -1010,7 +1010,7 @@ def test_get_progressbar_class_hook():
 
 
 def test_save_pdf_with_progress_hooks(mock_thread_instance, mock_page_instance):
-    "Test that ocrmypdf progress hooks are used during PDF save"
+    """Test that ocrmypdf progress hooks are used during PDF save"""
     mock_page_instance.text_layer = "text layer data"
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
@@ -1048,7 +1048,7 @@ def test_save_pdf_with_progress_hooks(mock_thread_instance, mock_page_instance):
 
 
 def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_instance):
-    "Test that progress is updated during OCR embedding"
+    """Test that progress is updated during OCR embedding"""
     mock_page_instance.text_layer = "text layer"
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
@@ -1066,7 +1066,7 @@ def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_in
     message_values = []
 
     def track_progress(*args, **kwargs):
-        "Capture progress values during the call"
+        """Capture progress values during the call"""
         del args, kwargs
         progress_values.append(mock_thread_instance.progress)
         message_values.append(mock_thread_instance.message)
@@ -1092,7 +1092,7 @@ def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_in
 
 
 def test_save_pdf_per_page_progress(mock_thread_instance, mock_page_instance):
-    "Test that per-page progress is reported during the image-write loop"
+    """Test that per-page progress is reported during the image-write loop"""
     mock_page_instance.text_layer = "text layer data"
     mock_thread_instance.mock_pages[1] = mock_page_instance
 
@@ -1109,11 +1109,11 @@ def test_save_pdf_per_page_progress(mock_thread_instance, mock_page_instance):
     events = []
 
     def record_data(*_args, **_kwargs):
-        "Record each request.data call"
+        """Record each request.data call"""
         events.append(("data", _args[0]))
 
     def convert(*_args, **_kwargs):
-        "Record when img2pdf.convert runs"
+        """Record when img2pdf.convert runs"""
         events.append(("convert", None))
         return b"pdf_data"
 

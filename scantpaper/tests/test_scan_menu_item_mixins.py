@@ -1,4 +1,4 @@
-"Tests for the ScanMenuItemMixins."
+"""Tests for the ScanMenuItemMixins."""
 
 import os
 from types import SimpleNamespace
@@ -12,7 +12,7 @@ from scan_menu_item_mixins import ScanMenuItemMixins
 
 @pytest.fixture
 def mock_scan_window(mocker):
-    "Fixture to provide a configured MockWindow"
+    """Fixture to provide a configured MockWindow"""
     mock_app = mocker.Mock()
     mock_app.args = mocker.Mock()
     mock_app.args.device = None
@@ -22,7 +22,7 @@ def mock_scan_window(mocker):
     mocker.patch("scan_menu_item_mixins._", side_effect=lambda x: x)
 
     class MockWindow(ScanMenuItemMixins):
-        "Test class to hold mixin"
+        """Test class to hold mixin"""
 
         slist = None
         post_process_progress = None
@@ -44,7 +44,7 @@ def mock_scan_window(mocker):
         _process_error_callback = mocker.Mock()
 
         def get_application(self, *args, **kwargs):
-            "mock"
+            """Mock"""
             del args, kwargs
             return mock_app
 
@@ -94,7 +94,7 @@ def mock_scan_window(mocker):
 
 
 def test_scan_dialog_show_existing(mock_scan_window):
-    "Test scan_dialog when window already exists"
+    """Test scan_dialog when window already exists"""
     mock_scan_window._windows = MagicMock()
 
     mock_scan_window.scan_dialog(None, None)
@@ -103,7 +103,7 @@ def test_scan_dialog_show_existing(mock_scan_window):
 
 
 def test_scan_dialog_sane_default_device(mocker, mock_scan_window):
-    "Test scan_dialog uses SANE_DEFAULT_DEVICE if no device in settings"
+    """Test scan_dialog uses SANE_DEFAULT_DEVICE if no device in settings"""
     del mock_scan_window.settings["device"]
     mocker.patch.dict(os.environ, {"SANE_DEFAULT_DEVICE": "env_dev"})
     mocker.patch("scan_menu_item_mixins.SaneScanDialog")
@@ -116,7 +116,7 @@ def test_scan_dialog_sane_default_device(mocker, mock_scan_window):
 
 
 def test_scan_dialog_create_new(mocker, mock_scan_window):
-    "Test scan_dialog creating a new window"
+    """Test scan_dialog creating a new window"""
     mock_sane_dialog_cls = mocker.patch("scan_menu_item_mixins.SaneScanDialog")
     mock_sane_dialog_instance = mock_sane_dialog_cls.return_value
     mock_sane_dialog_instance.notebook = mocker.Mock()
@@ -134,7 +134,7 @@ def test_scan_dialog_create_new(mocker, mock_scan_window):
 
 
 def test_scan_dialog_callbacks(mocker, mock_scan_window):
-    "Test callbacks defined inside scan_dialog"
+    """Test callbacks defined inside scan_dialog"""
     mock_sane_dialog_cls = mocker.patch("scan_menu_item_mixins.SaneScanDialog")
     mock_sane_dialog_instance = mock_sane_dialog_cls.return_value
     mock_sane_dialog_instance.notebook = mocker.Mock()
@@ -183,7 +183,7 @@ def test_scan_dialog_callbacks(mocker, mock_scan_window):
 
 
 def test_scan_dialog_process_error_signal_forwarding(mocker, mock_scan_window):
-    "Test that process-error forwards the current cancel signal id"
+    """Test that process-error forwards the current cancel signal id"""
     mock_sane_dialog_cls = mocker.patch("scan_menu_item_mixins.SaneScanDialog")
     mock_sane_dialog_instance = mock_sane_dialog_cls.return_value
     mock_sane_dialog_instance.notebook = mocker.Mock()
@@ -220,7 +220,7 @@ def test_scan_dialog_process_error_signal_forwarding(mocker, mock_scan_window):
 
 
 def test_scan_dialog_args_device(mocker, mock_scan_window):
-    "Test scan_dialog with args.device"
+    """Test scan_dialog with args.device"""
     mocker.patch("scan_menu_item_mixins.SaneScanDialog")
     mocker.patch("scan_menu_item_mixins.OCRControls")
     mocker.patch("scan_menu_item_mixins.RotateControls")
@@ -234,7 +234,7 @@ def test_scan_dialog_args_device(mocker, mock_scan_window):
 
 
 def test_scan_dialog_cached_device(mocker, mock_scan_window):
-    "Test scan_dialog with cached device list"
+    """Test scan_dialog with cached device list"""
     mocker.patch("scan_menu_item_mixins.SaneScanDialog")
     mocker.patch("scan_menu_item_mixins.OCRControls")
     mocker.patch("scan_menu_item_mixins.RotateControls")
@@ -250,7 +250,7 @@ def test_scan_dialog_cached_device(mocker, mock_scan_window):
 
 
 def test_add_postprocessing_options_clicked_cb(mocker, mock_scan_window):
-    "Test add_postprocessing_options and the clicked-scan-button callback"
+    """Test add_postprocessing_options and the clicked-scan-button callback"""
     mock_widget = mocker.Mock()
     mock_widget.notebook = mocker.Mock()
     # Capture callbacks
@@ -307,7 +307,7 @@ def test_add_postprocessing_options_clicked_cb(mocker, mock_scan_window):
 
 
 def test_add_postprocessing_options_ocr_fallback(mocker, mock_scan_window):
-    "Test OCR engine fallback in clicked callback"
+    """Test OCR engine fallback in clicked callback"""
     mock_widget = mocker.Mock()
     callbacks = {}
     mock_widget.connect.side_effect = lambda s, c: callbacks.update({s: c})
@@ -327,7 +327,7 @@ def test_add_postprocessing_options_ocr_fallback(mocker, mock_scan_window):
 
 
 def test_add_postprocessing_unpaper_disabled(mocker, mock_scan_window):
-    "Test unpaper option when dependency missing"
+    """Test unpaper option when dependency missing"""
     mock_scan_window._dependencies["unpaper"] = False
     mock_vbox = mocker.Mock()
     mock_btn = mocker.Mock()
@@ -340,7 +340,7 @@ def test_add_postprocessing_unpaper_disabled(mocker, mock_scan_window):
 
 
 def test_add_postprocessing_unpaper_enabled_active(mocker, mock_scan_window):
-    "Test unpaper option when enabled and active in settings"
+    """Test unpaper option when enabled and active in settings"""
     mock_scan_window._dependencies["unpaper"] = True
     mock_scan_window.settings["unpaper on scan"] = True
     mock_vbox = mocker.Mock()
@@ -353,7 +353,7 @@ def test_add_postprocessing_unpaper_enabled_active(mocker, mock_scan_window):
 
 
 def test_add_postprocessing_udt_enabled(mocker, mock_scan_window):
-    "Test UDT option when enabled"
+    """Test UDT option when enabled"""
     mock_scan_window.settings["user_defined_tools"] = ["tool1"]
     mock_scan_window.settings["udt_on_scan"] = True
     mock_vbox = mocker.Mock()
@@ -366,7 +366,7 @@ def test_add_postprocessing_udt_enabled(mocker, mock_scan_window):
 
 
 def test_add_postprocessing_udt_disabled(mocker, mock_scan_window):
-    "Test UDT option when no tools defined"
+    """Test UDT option when no tools defined"""
     mock_scan_window.settings["user_defined_tools"] = []
     mock_vbox = mocker.Mock()
     mock_btn = mocker.Mock()
@@ -381,7 +381,7 @@ def test_add_postprocessing_udt_disabled(mocker, mock_scan_window):
 
 
 def test_changed_device_callback(mock_scan_window):
-    "Test _changed_device_callback"
+    """Test _changed_device_callback"""
     mock_widget = MagicMock()
 
     mock_scan_window._changed_device_callback(mock_widget, "new_device")
@@ -393,7 +393,7 @@ def test_changed_device_callback(mock_scan_window):
 
 
 def test_changed_device_callback_empty(mock_scan_window):
-    "Test _changed_device_callback with None device"
+    """Test _changed_device_callback with None device"""
     mock_widget = MagicMock()
     original_device = mock_scan_window.settings["device"]
 
@@ -404,7 +404,7 @@ def test_changed_device_callback_empty(mock_scan_window):
 
 
 def test_changed_device_list_callback(mock_scan_window):
-    "Test _changed_device_list_callback"
+    """Test _changed_device_list_callback"""
     mock_widget = MagicMock()
     device1 = MagicMock()
     device1.name = "dev1"
@@ -418,7 +418,7 @@ def test_changed_device_list_callback(mock_scan_window):
 
 
 def test_changed_device_list_callback_blacklist(mock_scan_window):
-    "Test _changed_device_list_callback with blacklist"
+    """Test _changed_device_list_callback with blacklist"""
     mock_scan_window.settings["device blacklist"] = "dev1"
 
     mock_widget = MagicMock()
@@ -437,7 +437,7 @@ def test_changed_device_list_callback_blacklist(mock_scan_window):
 
 
 def test_changed_device_list_callback_empty(mock_scan_window):
-    "Test _changed_device_list_callback with empty list"
+    """Test _changed_device_list_callback with empty list"""
     mock_widget = MagicMock()
     mock_scan_window._windows = mock_widget
 
@@ -447,7 +447,7 @@ def test_changed_device_list_callback_empty(mock_scan_window):
 
 
 def test_changed_device_list_callback_match_existing(mock_scan_window):
-    "Test _changed_device_list_callback matches existing device setting"
+    """Test _changed_device_list_callback matches existing device setting"""
     mock_widget = MagicMock()
     device1 = MagicMock()
     device1.name = "dev1"
@@ -459,7 +459,7 @@ def test_changed_device_list_callback_match_existing(mock_scan_window):
 
 
 def test_update_postprocessing_options_callback(mock_scan_window):
-    "Test _update_postprocessing_options_callback"
+    """Test _update_postprocessing_options_callback"""
     mock_widget = MagicMock()
     mock_options = MagicMock()
     mock_widget.available_scan_options = mock_options
@@ -481,7 +481,7 @@ def test_update_postprocessing_options_callback(mock_scan_window):
 
 
 def test_changed_progress_callback(mock_scan_window):
-    "Test _changed_progress_callback"
+    """Test _changed_progress_callback"""
     # Normal update with progress > 0
     mock_scan_window._changed_progress_callback(None, 0.5, "halfway")
     mock_scan_window._scan_progress.set_fraction.assert_called_with(0.5)
@@ -503,7 +503,7 @@ def test_changed_progress_callback(mock_scan_window):
 
 
 def test_profile_callbacks(mock_scan_window):
-    "Test profile related callbacks"
+    """Test profile related callbacks"""
     # Changed profile
     mock_scan_window._changed_profile_callback(None, "new_prof")
     assert mock_scan_window.settings["default profile"] == "new_prof"
@@ -516,7 +516,7 @@ def test_profile_callbacks(mock_scan_window):
 
 
 def test_new_scan_callback(mock_scan_window):
-    "Test _new_scan_callback with normal flow"
+    """Test _new_scan_callback with normal flow"""
     mock_image = MagicMock()
     mock_scan_window.post_process_progress = MagicMock()
     mock_scan_window.slist.import_scan = MagicMock()
@@ -533,7 +533,7 @@ def test_new_scan_callback(mock_scan_window):
 
 
 def test_new_scan_callback_insert_after(mock_scan_window):
-    "Test _new_scan_callback passes insert_after when not None"
+    """Test _new_scan_callback passes insert_after when not None"""
     mock_image = MagicMock()
     mock_scan_window.slist.import_scan = MagicMock()
 
@@ -546,14 +546,14 @@ def test_new_scan_callback_insert_after(mock_scan_window):
 
 
 def test_new_scan_callback_none_image(mock_scan_window):
-    "Test _new_scan_callback with None image"
+    """Test _new_scan_callback with None image"""
     mock_scan_window.slist.import_scan = MagicMock()
     mock_scan_window._new_scan_callback(None, None, None, "single", 300, 300)
     mock_scan_window.slist.import_scan.assert_not_called()
 
 
 def test_new_scan_callback_options(mock_scan_window):
-    "Test _new_scan_callback with various options"
+    """Test _new_scan_callback with various options"""
     mock_image = MagicMock()
     mock_scan_window.slist.import_scan = MagicMock()
 
@@ -583,7 +583,7 @@ def test_new_scan_callback_options(mock_scan_window):
 
 
 def test_reloaded_scan_options_callback(mocker, mock_scan_window):
-    "Test _reloaded_scan_options_callback"
+    """Test _reloaded_scan_options_callback"""
     mock_widget = MagicMock()
 
     # 1. Default Profile
@@ -612,14 +612,14 @@ def test_reloaded_scan_options_callback(mocker, mock_scan_window):
 
 
 def test_import_scan_finished_callback(mock_scan_window):
-    "Test _import_scan_finished_callback"
+    """Test _import_scan_finished_callback"""
     mock_response = MagicMock()
     mock_scan_window._import_scan_finished_callback(mock_response)
     mock_scan_window.post_process_progress.finish.assert_called_with(mock_response)
 
 
 def test_show_unpaper_options(mocker, mock_scan_window):
-    "Test _show_unpaper_options"
+    """Test _show_unpaper_options"""
     mock_dialog_cls = mocker.patch("scan_menu_item_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
 
@@ -647,8 +647,7 @@ def test_show_unpaper_options(mocker, mock_scan_window):
 
 
 def test_changed_device_list_callback_cache_libusb_ok(mocker, mock_scan_window):
-    "Test _changed_device_list_callback with libusb device and user clicks OK"
-
+    """Test _changed_device_list_callback with libusb device and user clicks OK"""
     mock_scan_window.settings["cache-device-list"] = True
     mock_widget = mocker.Mock()
     device1 = mocker.Mock()
@@ -667,8 +666,7 @@ def test_changed_device_list_callback_cache_libusb_ok(mocker, mock_scan_window):
 
 
 def test_changed_device_list_callback_cache_libusb_cancel(mocker, mock_scan_window):
-    "Test _changed_device_list_callback with libusb device and user cancels"
-
+    """Test _changed_device_list_callback with libusb device and user cancels"""
     mock_scan_window.settings["cache-device-list"] = True
     mock_scan_window.settings["device list"] = []
 

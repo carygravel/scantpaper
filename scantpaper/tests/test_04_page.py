@@ -1,4 +1,4 @@
-"Tests for Page class"
+"""Tests for Page class"""
 
 import io
 import pathlib
@@ -15,7 +15,7 @@ from PIL import Image
 
 
 def test_1(temp_pnm, temp_jpg):
-    "Tests for Page class"
+    """Tests for Page class"""
     with pytest.raises(TypeError):
         page = Page(image_object=None)
     with tempfile.TemporaryDirectory() as dirname:
@@ -154,8 +154,7 @@ def test_1(temp_pnm, temp_jpg):
 
 
 def test_2(temp_pnm):
-    "Tests for Page class"
-
+    """Tests for Page class"""
     subprocess.run(
         [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
         check=True,
@@ -322,7 +321,7 @@ def test_2(temp_pnm):
 
 
 def test_get_pixbuf_error(mocker):
-    "Test error handling in get_pixbuf()"
+    """Test error handling in get_pixbuf()"""
     mocker.patch("page.GdkPixbuf.Pixbuf.new_from_file", side_effect=TypeError)
     mocker.patch("page.GdkPixbuf.Pixbuf.new_from_file_at_scale", side_effect=TypeError)
     page = Page(image_object=Image.new("RGB", (210, 297)))
@@ -333,7 +332,7 @@ def test_get_pixbuf_error(mocker):
 
 
 def test_write_image_for_djvu():
-    "Test write_image_for_djvu()"
+    """Test write_image_for_djvu()"""
     with (
         tempfile.TemporaryDirectory() as dirname,
         tempfile.NamedTemporaryFile(suffix=".pbm") as filename,
@@ -346,7 +345,7 @@ def test_write_image_for_djvu():
 
 
 def test_write_image_for_tiff():
-    "Test write_image_for_djvu()"
+    """Test write_image_for_djvu()"""
     with (
         tempfile.TemporaryDirectory() as dirname,
         tempfile.NamedTemporaryFile(suffix=".tif") as filename,
@@ -362,7 +361,7 @@ def test_write_image_for_tiff():
 
 
 def test_write_image_for_djvu_error(mocker):
-    "Test error handling in write_image_for_djvu()"
+    """Test error handling in write_image_for_djvu()"""
     with (
         tempfile.TemporaryDirectory() as dirname,
         tempfile.NamedTemporaryFile(suffix=".pbm") as filename,
@@ -378,8 +377,7 @@ def test_write_image_for_djvu_error(mocker):
 
 
 def test_import_hocr_empty():
-    "Test that importing empty hOCR sets text_layer to None"
-
+    """Test that importing empty hOCR sets text_layer to None"""
     empty_hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -400,7 +398,7 @@ def test_import_hocr_empty():
 
 
 def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif):
-    "continuous-tone TIFF pages are stored as JPEG"
+    """continuous-tone TIFF pages are stored as JPEG"""
     Image.new("L", (210, 297), 128).save(temp_tif.name)
     page = Page(filename=temp_tif.name)
     stored = page.to_stored_bytes()
@@ -408,7 +406,7 @@ def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif):
 
 
 def test_to_stored_bytes_bilevel_is_png(temp_tif):
-    "1-bit pages are stored losslessly as PNG"
+    """1-bit pages are stored losslessly as PNG"""
     Image.new("1", (210, 297), 0).save(temp_tif.name)
     page = Page(filename=temp_tif.name)
     stored = page.to_stored_bytes()
@@ -416,7 +414,7 @@ def test_to_stored_bytes_bilevel_is_png(temp_tif):
 
 
 def test_to_stored_bytes_rgba_is_png():
-    "images with an alpha channel are stored losslessly"
+    """Images with an alpha channel are stored losslessly"""
     page = Page(image_object=Image.new("RGBA", (210, 297)))
     stored = page.to_stored_bytes()
     image = Image.open(io.BytesIO(stored))
@@ -425,7 +423,7 @@ def test_to_stored_bytes_rgba_is_png():
 
 
 def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
-    "importing a JPEG file stores the original bytes"
+    """Importing a JPEG file stores the original bytes"""
     Image.new("RGB", (210, 297)).save(temp_jpg.name, format="JPEG")
     with pathlib.Path(temp_jpg.name).open("rb") as fhd:
         original = fhd.read()
@@ -434,7 +432,7 @@ def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
 
 
 def test_to_stored_bytes_png_file_passthrough(temp_png):
-    "importing a PNG file stores the original bytes"
+    """Importing a PNG file stores the original bytes"""
     Image.new("RGB", (210, 297)).save(temp_png.name, format="PNG")
     with pathlib.Path(temp_png.name).open("rb") as fhd:
         original = fhd.read()
@@ -443,7 +441,7 @@ def test_to_stored_bytes_png_file_passthrough(temp_png):
 
 
 def test_get_pixbuf_at_scale_downscales_before_save(mocker):
-    "thumbnails are produced from a downscaled image, not a full-size one"
+    """Thumbnails are produced from a downscaled image, not a full-size one"""
     page = Page(image_object=Image.new("RGB", (1000, 1000)))
     saved_sizes = []
     original_save = Image.Image.save
@@ -461,7 +459,7 @@ def test_get_pixbuf_at_scale_downscales_before_save(mocker):
 
 
 def test_write_image_for_pdf_passthrough():
-    "stored JPEG bytes are written to the PDF without re-encoding"
+    """Stored JPEG bytes are written to the PDF without re-encoding"""
     buf = io.BytesIO()
     Image.new("RGB", (210, 297)).save(buf, format="JPEG", quality=92)
     stored = buf.getvalue()
@@ -474,7 +472,7 @@ def test_write_image_for_pdf_passthrough():
 
 
 def test_write_image_for_pdf_reenocodes_with_options():
-    "downsampling or compression forces a re-encode"
+    """Downsampling or compression forces a re-encode"""
     buf = io.BytesIO()
     Image.new("RGB", (210, 297)).save(buf, format="JPEG", quality=92)
     stored = buf.getvalue()
@@ -497,7 +495,7 @@ def test_write_image_for_pdf_reenocodes_with_options():
 
 
 def test_from_bytes_png_blob_readable():
-    "PNG blobs from sessions before this change remain readable"
+    """PNG blobs from sessions before this change remain readable"""
     img = Image.new("RGB", (210, 297))
     buf = io.BytesIO()
     img.save(buf, format="PNG")

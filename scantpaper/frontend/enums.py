@@ -1,4 +1,4 @@
-"Expose SANE enums from the underlying C extension."
+"""Expose SANE enums from the underlying C extension."""
 
 from _sane import (
     CAP_ADVANCED,

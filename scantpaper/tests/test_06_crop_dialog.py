@@ -1,4 +1,4 @@
-"test dialog"
+"""test dialog"""
 
 import gi
 from dialog.crop import Crop
@@ -13,7 +13,7 @@ from gi.repository import (  # noqa: E402
 
 
 def test_1():
-    "test dialog"
+    """Test dialog"""
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
     assert isinstance(dialog, Crop), "Created dialog"
     assert dialog.page_width == 100, "default page-width"
@@ -37,7 +37,7 @@ def test_1():
 
 
 def test_coverage():
-    "test coverage for edge cases"
+    """Test coverage for edge cases"""
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
 
     # Line 72: page_width.setter early return
@@ -63,7 +63,7 @@ def test_coverage():
 
 
 def test_crop_selector_with_existing_selection():
-    "test on_sb_selector_value_changed when selection already exists"
+    """Test on_sb_selector_value_changed when selection already exists"""
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
 
     # Set an initial selection

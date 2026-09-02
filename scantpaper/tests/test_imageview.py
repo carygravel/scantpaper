@@ -1,4 +1,4 @@
-"Basic tests for imageview"
+"""Basic tests for imageview"""
 
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
@@ -20,7 +20,7 @@ from gi.repository import (  # noqa: E402
 
 @dataclass
 class MockEvent:
-    "mock enough of the event class to test it"
+    """mock enough of the event class to test it"""
 
     button: int
     x: float
@@ -30,7 +30,7 @@ class MockEvent:
 
 @pytest.fixture
 def mock_view():
-    "Fixture for ImageView with mocked get_window"
+    """Fixture for ImageView with mocked get_window"""
     view = ImageView()
     view.get_window = MagicMock()
     # Mock window.set_cursor
@@ -39,8 +39,7 @@ def mock_view():
 
 
 def test_basics(rose_png):
-    "Basic tests for imageview"
-
+    """Basic tests for imageview"""
     view = ImageView()
     assert isinstance(view, ImageView)
     assert isinstance(view.get_tool(), SelectorDragger), (
@@ -86,7 +85,7 @@ def test_basics(rose_png):
 
 
 def test_selection(rose_png):
-    "Basic tests for imageview"
+    """Basic tests for imageview"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), True)
 
@@ -131,7 +130,7 @@ def test_selection(rose_png):
 
 
 def test_viewport(rose_png):
-    "Basic tests for imageview"
+    """Basic tests for imageview"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), True)
     view.set_resolution_ratio(2)
@@ -154,7 +153,7 @@ def test_viewport(rose_png):
 
 
 def test_transparency(datadir):
-    "Test transparency"
+    """Test transparency"""
     window = Gtk.Window()
     window.set_default_size(300, 200)
     css_provider_alpha = Gtk.CssProvider()
@@ -224,7 +223,7 @@ def test_transparency(datadir):
 
 
 def test_zoom(datadir):
-    "Test zoom"
+    """Test zoom"""
     window = Gtk.Window()
     window.set_default_size(300, 200)
     view = ImageView()
@@ -249,7 +248,7 @@ def test_zoom(datadir):
 
 
 def test_selector_tool(datadir):
-    "Test selector tool"
+    """Test selector tool"""
     window = Gtk.Window()
     window.set_default_size(300, 200)
     view = ImageView()
@@ -279,7 +278,7 @@ def test_selector_tool(datadir):
 
 
 def test_filter(datadir):
-    "Test interpolation (filters)"
+    """Test interpolation (filters)"""
     window = Gtk.Window()
     window.set_size_request(300, 200)
     view = ImageView()
@@ -356,7 +355,7 @@ def test_filter(datadir):
 
 
 def test_drag_no_pixbuf():
-    "Test dragging without a pixbuf"
+    """Test dragging without a pixbuf"""
     view = ImageView()
     view.set_tool(Dragger(view))
     tool = view.get_tool()
@@ -369,7 +368,7 @@ def test_drag_no_pixbuf():
 
 
 def test_tool_base_methods():
-    "Test Tool base class methods"
+    """Test Tool base class methods"""
     view = ImageView()
     tool = Tool(view)
     assert tool.view() == view
@@ -385,7 +384,7 @@ def test_tool_base_methods():
 
 
 def test_dragger_edge_cases(rose_png, mock_view):
-    "Test Dragger tool edge cases"
+    """Test Dragger tool edge cases"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     dragger = Dragger(view)
@@ -416,7 +415,7 @@ def test_dragger_edge_cases(rose_png, mock_view):
 
 
 def test_selector_edge_cases(rose_png, mock_view):
-    "Test Selector tool edge cases"
+    """Test Selector tool edge cases"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     selector = Selector(view)
@@ -440,7 +439,7 @@ def test_selector_edge_cases(rose_png, mock_view):
 
 
 def test_selector_dragger_tool(rose_png, mock_view):
-    "Test SelectorDragger tool"
+    """Test SelectorDragger tool"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     tool = SelectorDragger(view)
@@ -470,7 +469,7 @@ def test_selector_dragger_tool(rose_png, mock_view):
 
 
 def test_imageview_more_basics(rose_png):
-    "Test more ImageView methods"
+    """Test more ImageView methods"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
 
@@ -501,7 +500,7 @@ def test_imageview_more_basics(rose_png):
 
 
 def test_imageview_events(rose_png, mock_view):
-    "Test ImageView event handlers"
+    """Test ImageView event handlers"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
 
@@ -525,7 +524,7 @@ def test_imageview_events(rose_png, mock_view):
 
 
 def test_imageview_draw(rose_png):
-    "Test ImageView do_draw"
+    """Test ImageView do_draw"""
     view = ImageView()
     # Use a pixbuf with alpha to hit line 518
     pixbuf = GdkPixbuf.Pixbuf.new_from_file(rose_png)
@@ -548,7 +547,7 @@ def test_imageview_draw(rose_png):
 
 
 def test_imageview_coordinate_conversions(rose_png):
-    "Test ImageView coordinate conversion methods"
+    """Test ImageView coordinate conversion methods"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     view.set_zoom(1.0)
@@ -566,7 +565,7 @@ def test_imageview_coordinate_conversions(rose_png):
 
 
 def test_imageview_zoom_to_selection(rose_png):
-    "Test zoom_to_selection"
+    """Test zoom_to_selection"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     selection = Gdk.Rectangle()
@@ -576,7 +575,7 @@ def test_imageview_zoom_to_selection(rose_png):
 
 
 def test_selector_drag_edges(rose_png, mock_view):
-    "Test Selector edge dragging logic"
+    """Test Selector edge dragging logic"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     view.set_zoom(1.0)
@@ -629,7 +628,7 @@ def test_selector_drag_edges(rose_png, mock_view):
 
 
 def test_dragger_dnd_start(rose_png, mock_view):
-    "Test Dragger DND start logic"
+    """Test Dragger DND start logic"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     dragger = Dragger(view)
@@ -652,7 +651,7 @@ def test_dragger_dnd_start(rose_png, mock_view):
 
 
 def test_imageview_clamping(rose_png):
-    "Test ImageView offset clamping"
+    """Test ImageView offset clamping"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     # Mock get_allocation
@@ -676,7 +675,7 @@ def test_imageview_clamping(rose_png):
 
 
 def test_zoom_clamping():
-    "Test zoom clamping"
+    """Test zoom clamping"""
     view = ImageView()
     view._set_zoom(1000)
     assert view.get_zoom() == 100
@@ -685,7 +684,7 @@ def test_zoom_clamping():
 
 
 def test_selector_flip_edges(rose_png, mock_view):
-    "Test Selector edge flipping when dragging"
+    """Test Selector edge flipping when dragging"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     selector = Selector(view)
@@ -712,14 +711,14 @@ def test_selector_flip_edges(rose_png, mock_view):
 
 
 def test_imageview_no_pixbuf_offset():
-    "Test set_offset when pixbuf is None"
+    """Test set_offset when pixbuf is None"""
     view = ImageView()
     view.set_offset(10, 10)
     assert view.get_offset() is None
 
 
 def test_update_cursor_none(mock_view, rose_png):
-    "Test update_cursor when cursor_at_point returns None"
+    """Test update_cursor when cursor_at_point returns None"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     view.get_tool().cursor_at_point = MagicMock(return_value=None)
@@ -729,7 +728,7 @@ def test_update_cursor_none(mock_view, rose_png):
 
 
 def test_selector_update_selection_direct(rose_png):
-    "Test Selector._update_selection directly to hit mid/mid branch"
+    """Test Selector._update_selection directly to hit mid/mid branch"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     # Ensure it has an allocation for coordinate conversion if needed,
@@ -754,7 +753,7 @@ def test_selector_update_selection_direct(rose_png):
 
 
 def test_selector_update_selection_edge_branches(rose_png):
-    "Test Selector._update_selection edge branches"
+    """Test Selector._update_selection edge branches"""
     view = ImageView()
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
 
@@ -801,7 +800,7 @@ def test_selector_update_selection_edge_branches(rose_png):
 
 
 def test_selector_cursor_dragging_branches(rose_png, mock_view):
-    "Test Selector.cursor_type_at_point dragging branches"
+    """Test Selector.cursor_type_at_point dragging branches"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     selector = Selector(view)
@@ -848,7 +847,7 @@ def test_selector_cursor_dragging_branches(rose_png, mock_view):
 
 
 def test_dragger_coverage(rose_png, mock_view):
-    "Cover specific lines in Dragger.motion"
+    """Cover specific lines in Dragger.motion"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     dragger = Dragger(view)
@@ -880,7 +879,7 @@ def test_dragger_coverage(rose_png, mock_view):
 
 
 def test_update_dragged_edge_coverage(rose_png, mock_view):
-    "Cover _update_dragged_edge branches"
+    """Cover _update_dragged_edge branches"""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
     selector = Selector(view)
@@ -914,7 +913,7 @@ def test_update_dragged_edge_coverage(rose_png, mock_view):
 
 
 def test_imageview_coverage_complex(rose_png, mock_view):
-    "Cover various specific lines in imageview.py"
+    """Cover various specific lines in imageview.py"""
     view = ImageView()
 
     # 1. Line 518: do_draw return True if w <= 0 or h <= 0
@@ -973,7 +972,7 @@ def test_imageview_coverage_complex(rose_png, mock_view):
 
 
 def test_imageview_set_selection_none():
-    "Verify that ImageView.set_selection(None) does not raise AttributeError"
+    """Verify that ImageView.set_selection(None) does not raise AttributeError"""
     view = MagicMock(spec=ImageView)
     view.selection = MagicMock()  # existing selection
 
@@ -986,7 +985,7 @@ def test_imageview_set_selection_none():
 
 
 def test_selection_drawing_coordinates():
-    "Test selection rubberband is drawn at widget coordinates with zoom applied"
+    """Test selection rubberband is drawn at widget coordinates with zoom applied"""
     view = ImageView()
 
     pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 100, 100)
@@ -1036,7 +1035,7 @@ def test_selection_drawing_coordinates():
 
 
 def test_adaptive_filter():
-    "Test _get_adaptive_filter is interaction-driven, not zoom-driven"
+    """Test _get_adaptive_filter is interaction-driven, not zoom-driven"""
     view = ImageView()
     # static: configured interpolation regardless of zoom
     assert view._get_adaptive_filter() == cairo.FILTER_GOOD
@@ -1050,14 +1049,14 @@ def test_adaptive_filter():
 
 
 def test_static_fit_zoom_high_quality():
-    "Static full-page (fit) view renders with the configured filter, not point sampling"
+    """Static full-page (fit) view renders with the configured filter, not point sampling"""
     view = ImageView()
     view._set_zoom(0.3)
     assert view._get_adaptive_filter() == cairo.FILTER_GOOD
 
 
 def test_dragger_toggles_interacting():
-    "Dragger pan toggles the view's interaction state"
+    """Dragger pan toggles the view's interaction state"""
     view = ImageView()
     dragger = Dragger(view)
     event = MockEvent(button=1, x=5, y=5)
@@ -1068,7 +1067,7 @@ def test_dragger_toggles_interacting():
 
 
 def test_selector_does_not_toggle_interacting(mocker):
-    "Selector rubber-band drag does not mark the view as interacting"
+    """Selector rubber-band drag does not mark the view as interacting"""
     view = ImageView()
     selector = Selector(view)
     mocker.patch.object(selector, "_update_selection")
@@ -1078,7 +1077,7 @@ def test_selector_does_not_toggle_interacting(mocker):
 
 
 def test_scroll_toggles_interacting_and_idle_returns(mocker):
-    "Scroll-zoom marks interacting; the idle callback restores quality"
+    """Scroll-zoom marks interacting; the idle callback restores quality"""
     view = ImageView()
     mocker.patch.object(view, "to_image_coords", return_value=(1.0, 1.0))
     event = Gdk.EventScroll()

@@ -1,4 +1,4 @@
-"test scan dialog"
+"""test scan dialog"""
 
 import logging
 from types import SimpleNamespace
@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 def test_infinite_reloads_due_to_tolerance(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
 
     def mocked_do_open_device(self, request):
-        "open device"
+        """Open device"""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             source="Document Table",
@@ -81,7 +81,7 @@ def test_infinite_reloads_due_to_tolerance(
     )
 
     def mocked_do_get_options(_self, _request):
-        "mocked_do_get_options"
+        """mocked_do_get_options"""
         nonlocal raw_options
         return raw_options
 
@@ -90,7 +90,8 @@ def test_infinite_reloads_due_to_tolerance(
     def mocked_do_set_option(self, _request):
         """An Epson ET-4750 was triggering a reload on setting br-x and -y,
         and the reloaded values were outside the tolerance.
-        Ensure that the reload limit is not hit"""
+        Ensure that the reload limit is not hit
+        """
         key, value = _request.args
         for opt in raw_options:
             if opt.name == key:
@@ -166,8 +167,7 @@ def test_inexact(
     mainloop_with_timeout,
     inexact_scan_mocks,
 ):
-    "test more of scan dialog by mocking do_open_device() & do_get_options()"
-
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
     inexact_scan_mocks.patch_all(mocker)
 
     dlg = sane_scan_dialog
@@ -233,13 +233,14 @@ def test_infinite_reloads_due_to_inexact(
     mainloop_with_timeout,
     inexact_scan_mocks,
 ):
-    "test that SANE_INFO_INEXACT geometry changes do not hit the reload-recursion-limit"
+    """Test that SANE_INFO_INEXACT geometry changes do not hit the reload-recursion-limit"""
     inexact_scan_mocks.patch_open_get(mocker)
 
     def mocked_do_set_option(self, _request):
         """An EPSON DS-1660W was setting tl-y=0.99 instead of 1, but not
         setting SANE_INFO_INEXACT, which was hitting the
-        reload-recursion-limit."""
+        reload-recursion-limit.
+        """
         key, value = _request.args
         opt = next((o for o in inexact_scan_mocks.raw_options if o.name == key), None)
 

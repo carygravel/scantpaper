@@ -1,4 +1,4 @@
-"Class of data and methods for handling page objects"
+"""Class of data and methods for handling page objects"""
 
 import io
 import json
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 
 class Page:
-    "Class of data and methods for handling page objects"
+    """Class of data and methods for handling page objects"""
 
     width = None
     height = None
@@ -100,8 +100,9 @@ class Page:
         )
 
     def to_stored_bytes(self):
-        """return the image as bytes for storing as a blob in SQLite, choosing
-        a compact format that can be embedded in a PDF without re-encoding"""
+        """Return the image as bytes for storing as a blob in SQLite, choosing
+        a compact format that can be embedded in a PDF without re-encoding
+        """
         if self.image_object.format in ("JPEG", "PNG") and self._stored_bytes:
             return self._stored_bytes
         if self.image_object.mode == "1":
@@ -111,14 +112,14 @@ class Page:
         return self._to_jpeg_bytes()
 
     def _to_png_bytes(self):
-        "return the image encoded as PNG bytes"
+        """Return the image encoded as PNG bytes"""
         img_byte_arr = io.BytesIO()
         image = self.image_object
         image.save(img_byte_arr, format="PNG")
         return img_byte_arr.getvalue()
 
     def _to_jpeg_bytes(self):
-        "return the image encoded as JPEG bytes at the storage quality"
+        """Return the image encoded as JPEG bytes at the storage quality"""
         img_byte_arr = io.BytesIO()
         image = self.image_object
         if image.mode in ("I", "F", "P"):
@@ -128,7 +129,7 @@ class Page:
 
     @classmethod
     def from_bytes(cls, blob, **kwargs):
-        "create a page from bytes"
+        """Create a page from bytes"""
         page = Page(image_object=Image.open(io.BytesIO(blob)))
         page._stored_bytes = blob
         page.get_size()
@@ -147,36 +148,36 @@ class Page:
         return page
 
     def import_hocr(self, hocr):
-        "import hocr"
+        """Import hocr"""
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
         json_text = bboxtree.json()
         self.text_layer = None if json_text == "[]" else json_text
 
     def export_hocr(self):
-        "export hocr"
+        """Export hocr"""
         return Bboxtree(self.text_layer).to_hocr()
 
     def import_djvu_txt(self, djvu):
-        "import djvu text"
+        """Import djvu text"""
         tree = Bboxtree()
         tree.from_djvu_txt(djvu)
         self.text_layer = tree.json()
 
     def export_djvu_txt(self):
-        "export djvu text"
+        """Export djvu text"""
         if self.text_layer is None:
             return None
         return Bboxtree(self.text_layer).to_djvu_txt()
 
     def export_text(self):
-        "export simple text"
+        """Export simple text"""
         if self.text_layer is None:
             return ""
         return Bboxtree(self.text_layer).to_text()
 
     def import_pdftotext(self, html):
-        "import text layer from PDF"
+        """Import text layer from PDF"""
         tree = Bboxtree()
         res = self.get_resolution()
         tree.from_pdftotext(html, (res[0], res[1]), self.get_size())
@@ -185,26 +186,26 @@ class Page:
         self.text_layer = None if json_text == "[]" else json_text
 
     def import_annotations(self, hocr):
-        "import annotation layer from hocr"
+        """Import annotation layer from hocr"""
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
         self.annotations = bboxtree.json()
 
     def import_djvu_ann(self, ann):
-        "import annotation layer from djvu"
+        """Import annotation layer from djvu"""
         imagew, imageh = self.get_size()
         tree = Bboxtree()
         tree.from_djvu_ann(ann, imagew, imageh)
         self.annotations = tree.json()
 
     def export_djvu_ann(self):
-        "export annotation for djvu"
+        """Export annotation for djvu"""
         if self.annotations is None:
             return None
         return Bboxtree(self.annotations).to_djvu_ann()
 
     def get_size(self):
-        "get the image size"
+        """Get the image size"""
         if self.width is None or self.height is None:
             self.width = self.image_object.width
             self.height = self.image_object.height
@@ -212,7 +213,7 @@ class Page:
         return self.width, self.height
 
     def get_resolution(self, paper_sizes=None):
-        "get the resolution"
+        """Get the resolution"""
         if isinstance(self.resolution, (int, float)) or (
             isinstance(self.resolution, tuple) and self.resolution[0] is not None
         ):
@@ -273,7 +274,8 @@ class Page:
 
     def matching_paper_sizes(self, paper_sizes):
         """Given paper width and height (mm), and hash of paper sizes,
-        returns hash of matching resolutions (pixels per inch)"""
+        returns hash of matching resolutions (pixels per inch)
+        """
         matching = {}
         if paper_sizes is None:
             return matching
@@ -294,7 +296,7 @@ class Page:
         return matching
 
     def get_pixbuf(self):
-        "return a pixbuf of the image"
+        """Return a pixbuf of the image"""
         if self.image_object is None:
             logger.warning("Cannot get pixbuf from None")
             return None
@@ -313,10 +315,11 @@ class Page:
         return pixbuf
 
     def get_pixbuf_at_scale(self, max_width, max_height):
-        """logic taken from at_scale_size_prepared_cb() in
+        """Logic taken from at_scale_size_prepared_cb() in
         https://gitlab.gnome.org/GNOME/gdk-pixbuf/blob/2.40.0/gdk-pixbuf/gdk-pixbuf-io.c
 
-        Returns the pixbuf scaled to fit in the given box"""
+        Returns the pixbuf scaled to fit in the given box
+        """
         if self.image_object is None:
             logger.warning("Cannot get pixbuf from None")
             return None
@@ -349,13 +352,13 @@ class Page:
         return pixbuf
 
     def get_depth(self):
-        "return image depth based on mode provided by PIL"
+        """Return image depth based on mode provided by PIL"""
         if self._depth is None:
             self._depth = MODE2DEPTH[self.image_object.mode]
         return self._depth
 
     def _equalize_resolution(self):
-        "c44 and cjb2 do not support different resolutions in the x and y directions, so resample"
+        """c44 and cjb2 do not support different resolutions in the x and y directions, so resample"""
         xresolution, yresolution, units = self.get_resolution()
         width, height = self.width, self.height
         if xresolution != yresolution:
@@ -369,7 +372,7 @@ class Page:
         return xresolution, self.image_object
 
     def write_image_for_pdf(self, filename, options):
-        "write the image as a file suitable for embedding in a PDF"
+        """Write the image as a file suitable for embedding in a PDF"""
         image = self.image_object
         opts = {}
         if options and options.get("options"):
@@ -405,7 +408,7 @@ class Page:
         image.save(filename, dpi=(xresolution, yresolution))
 
     def write_image_for_djvu(self, filename, options):
-        "Save the image as a DjVu file."
+        """Save the image as a DjVu file."""
         # Check the image depth to decide what sort of compression to use
 
         # c44 and cjb2 do not support different resolutions in the x and y
@@ -468,7 +471,7 @@ class Page:
                 subprocess.run(cmd, check=True)
 
     def _add_ann_to_djvu(self, djvu, dirname):
-        "FIXME - refactor this together with _add_txt_to_djvu"
+        """FIXME - refactor this together with _add_txt_to_djvu"""
         if self.annotations is not None:
             try:
                 ann = self.export_djvu_ann()
@@ -495,7 +498,7 @@ class Page:
                 subprocess.run(cmd, check=True)
 
     def write_image_for_tiff(self, filename, options):
-        "Save the image as a TIFF file."
+        """Save the image as a TIFF file."""
         with tempfile.NamedTemporaryFile(
             dir=options.get("dir"), suffix=".tif"
         ) as infile:

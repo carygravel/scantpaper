@@ -1,4 +1,4 @@
-"main document IO methods"
+"""main document IO methods"""
 
 import contextlib
 import datetime
@@ -39,11 +39,12 @@ LAST_ELEMENT = -1
 
 
 class Document(BaseDocument):
-    "More methods"
+    """More methods"""
 
     def import_files(self, **options):
         """To avoid race condtions importing multiple files,
-        run get_file_info on all files first before checking for errors and importing"""
+        run get_file_info on all files first before checking for errors and importing
+        """
         info = []
         options["passwords"] = []
         for i in range(len(options["paths"])):
@@ -169,7 +170,7 @@ class Document(BaseDocument):
             )
 
     def import_file(self, **kwargs):
-        "import file"
+        """Import file"""
         # File in which to store the process ID
         # so that it can be killed if necessary
         kwargs["pidfile"] = self.create_pidfile(kwargs)
@@ -277,8 +278,7 @@ class Document(BaseDocument):
             options["finished_callback"](None)
 
     def import_scan(self, **kwargs):
-        "Take new scan, display it, and set off any post-processing chains"
-
+        """Take new scan, display it, and set off any post-processing chains"""
         page_kwargs = {
             "resolution": kwargs["resolution"],
             "format": "Portable anymap",
@@ -300,33 +300,31 @@ class Document(BaseDocument):
         self.thread.import_page(**import_scan_kwargs)
 
     def split_page(self, **kwargs):
-        """split the given page either vertically or horizontally, creating an
-        additional page"""
-
+        """Split the given page either vertically or horizontally, creating an
+        additional page
+        """
         kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.split_page(**kwargs)
 
     def ocr_pages(self, **kwargs):
-        "Wrapper for the various ocr engines"
+        """Wrapper for the various ocr engines"""
         for page in kwargs["pages"]:
             kwargs["page"] = page
             if kwargs["engine"] == "tesseract":
                 self.tesseract(**kwargs)
 
     def unpaper(self, **kwargs):
-        "run unpaper on the given page"
-
+        """Run unpaper on the given page"""
         kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.unpaper(**kwargs)
 
     def user_defined(self, **kwargs):
-        "run a user-defined command on a page"
-
+        """Run a user-defined command on a page"""
         kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.user_defined(**kwargs)
 
     def undo(self, finished_callback=None, error_callback=None):
-        "undo the last action"
+        """Undo the last action"""
         self.thread.send("set_selection", self.get_selected_indices())
 
         def _undo_finished(response):
@@ -353,7 +351,7 @@ class Document(BaseDocument):
         self.thread.send("undo", **callbacks)
 
     def unundo(self, finished_callback=None, error_callback=None):
-        "redo the last action"
+        """Redo the last action"""
         self.thread.send("set_selection", self.get_selected_indices())
 
         def _redo_finished(response):
@@ -380,11 +378,11 @@ class Document(BaseDocument):
         self.thread.send("redo", **callbacks)
 
     def indices2pages(self, list_of_indices):
-        "Helper function to convert an array of indices into an array of uuids"
+        """Helper function to convert an array of indices into an array of uuids"""
         return (self.data[x][2] for x in list_of_indices)
 
     def get_selected_properties(self):
-        "Helper function for properties()"
+        """Helper function for properties()"""
         page = self.get_selected_indices()
         xresolution = None
         yresolution = None
@@ -415,7 +413,7 @@ class Document(BaseDocument):
 
 
 def _is_placeholder_title(value):
-    "check whether a title is a placeholder such as 'Untitled'"
+    """Check whether a title is a placeholder such as 'Untitled'"""
     return value.strip().strip("'").strip().lower() == "untitled"
 
 
