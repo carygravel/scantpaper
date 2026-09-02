@@ -96,7 +96,9 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
     assert asserts == 3, "all callbacks runs"
 
 
-def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
+def test_cancel_scan(
+    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+):
     """Cancel the scan immediately after starting it and test that:
     a. the new-scan signal is not emitted.
     b. we can successfully scan afterwards."""
@@ -104,7 +106,7 @@ def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
-    n = 0
+    new_scan_mock = mocker.Mock()
     loop = mainloop_with_timeout()
 
     def started_process_cb(_widget, process):
@@ -113,22 +115,18 @@ def test_cancel_scan(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
         nonlocal callbacks
         callbacks += 1
 
-    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
-        nonlocal n
-        n += 1
-
     def finished_process_cb(_widget, process):
         if process == "scan_pages":
             dialog.disconnect(dialog.new_signal)
             dialog.disconnect(dialog.finished_signal)
-            assert n < 2, "Did not throw new-scan signal twice"
+            assert new_scan_mock.call_count < 2, "Did not throw new-scan signal twice"
             nonlocal callbacks
             callbacks += 1
             loop.quit()
 
     dialog.num_pages = 2
     dialog.start_signal = dialog.connect("started-process", started_process_cb)
-    dialog.new_signal = dialog.connect("new-scan", new_scan_cb)
+    dialog.new_signal = dialog.connect("new-scan", new_scan_mock)
     dialog.finished_signal = dialog.connect("finished-process", finished_process_cb)
     dialog.scan()
     loop.run()
