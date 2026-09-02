@@ -1,20 +1,29 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  scantpaper is a desktop GUI (PyGObject / GTK3, Python >=3.10) for turning scanned
+  documents into OCR'd PDFs or DjVus. End-user utility; monolithic, not client-server.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Tech stack: GTK3 + pycairo rendering, python-sane for scanner I/O, tesserocr for OCR,
+  ocrmypdf/img2pdf/pikepdf for PDF generation. SQLite stores the entire session state
+  (pages, images as blobs, undo/redo, page order, metadata).
+
+  Conventions:
+    - Editing and interaction is Cairo-based (goocanvas was replaced); a scene graph of
+      OCR elements is rendered with bounding boxes + rotated text.
+    - All long-running work (scan, OCR, PDF save, import) runs off the main thread and
+      reports progress via a lifecycle-managed progress bar that must support cancellation.
+    - Undo/redo and page reordering are async and persisted through SQLite; new changes
+      should keep callbacks coalesced and avoid thrashing the image view during import.
+    - OCR language handling uses python-iso639; PDF metadata is written/read via pikepdf.
+
+  Quality gates: code is black-formatted, pylint-clean (see .pylintrc; no blanket
+  suppressions without approval), type-annotated without `typing.Any`, and covered by
+  pytest with coverage thresholds enforced in pyproject.toml. Full instructions for AI
+  collaborators live in AGENTS.md.
+
+rules:
+  proposal:
+    - Keep proposals focused on one user-visible behavior; split large ideas into separate changes.
+  tasks:
+    - Reflect the async/cancellation/progress conventions from context; break jobs into chunks that fit the pytest workflow.
