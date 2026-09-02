@@ -23,7 +23,7 @@ def test_reloads_in_profile(
     callbacks = 0
     loop = mainloop_with_timeout()
 
-    def added_profile_cb(_widget, name, profile):
+    def added_profile_cb(_widget, name, _profile):
         assert name == "my profile", "added-profile signal emitted"
         nonlocal callbacks
         callbacks += 1

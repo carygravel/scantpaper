@@ -268,7 +268,7 @@ def test_infinite_reloads_due_to_inexact(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_paper_cb(_widget, paper):
+    def changed_paper_cb(_widget, _paper):
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.current_scan_options == Profile(

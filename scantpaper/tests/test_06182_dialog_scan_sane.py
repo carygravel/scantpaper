@@ -67,7 +67,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
 
     dlg = sane_scan_dialog
 
-    def changed_device_list_cb(_arg1, arg2):
+    def changed_device_list_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)
         assert dlg.device_list == [
             SimpleNamespace(
@@ -107,7 +107,7 @@ def test_cancel_scan(
     new_scan_mock = mocker.Mock()
     loop = mainloop_with_timeout()
 
-    def started_process_cb(_widget, process):
+    def started_process_cb(_widget, _process):
         dialog.disconnect(dialog.start_signal)
         dialog.cancel_scan(_widget)
         nonlocal callbacks
@@ -218,7 +218,7 @@ def test_option_dependency(
     }
     assert dlg.ignored_paper_sizes == ["US Legal"], "flatbed paper"
 
-    def changed_scan_option_cb(self, option, value, uuid):
+    def changed_scan_option_cb(_self, _option, _value, _uuid):
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.ignored_paper_sizes == [], "ADF paper"
@@ -259,7 +259,7 @@ def test_unsetting_profile(
     dialog._add_profile("20x20", Profile(backend=[("br-y", 20)]))
     loop = mainloop_with_timeout()
 
-    def changed_profile_cb(_widget, profile):
+    def changed_profile_cb(_widget, _profile):
         dialog.disconnect(dialog.signal)
         assert dialog.paper is None, "paper undefined after changing geometry"
         assert dialog.combobp.get_active_text() == "Manual", (
@@ -414,7 +414,7 @@ def test_scanner_with_no_source(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_scan_option_cb(self, option, value, uuid):
+    def changed_scan_option_cb(_self, _option, _value, _uuid):
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.num_pages == 1, "num-pages reset to 1 because no source option"
@@ -454,7 +454,7 @@ def test_defaults(
         nonlocal callbacks
         callbacks += 1
 
-    def changed_current_scan_options_cb(_widget, profile, _uuid):
+    def changed_current_scan_options_cb(_widget, _profile, _uuid):
         dialog.disconnect(dialog.signal)
         assert dialog.num_pages == 0
         loop.quit()
@@ -594,7 +594,7 @@ def test_combobox_on_reload(
     callbacks = 0
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb(self, option, value, uuid):
+    def changed_scan_option_cb(self, _option, _value, _uuid):
         dialog.disconnect(dialog.signal)
         widget = self.option_widgets["resolution"]
         model = widget.get_model()

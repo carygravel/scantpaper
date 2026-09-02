@@ -87,7 +87,7 @@ def test_2(sane_scan_dialog, mainloop_with_timeout):
         dialog.disconnect(dialog.reloaded_signal)
         loop.quit()
 
-    def changed_device_list_cb(_widget, device_list):
+    def changed_device_list_cb(_widget, _device_list):
         dialog.disconnect(dialog.signal)
         assert dialog.device_list == [
             SimpleNamespace(name="test:0", vendor="", model="test:0", label="test:0"),
@@ -206,7 +206,7 @@ def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
     loop = mainloop_with_timeout()
     callbacks = 0
 
-    def changed_scan_option_cb(_widget, option, value, uuid):
+    def changed_scan_option_cb(_widget, _option, _value, _uuid):
         dialog.disconnect(dialog.signal)
         assert dialog.profile is None, (
             "changing an option deselects the current profile"
@@ -385,12 +385,12 @@ def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
     s_signal, c_signal, f_signal = None, None, None
 
-    def started_process_cb(_widget, process):
+    def started_process_cb(_widget, _process):
         dialog.disconnect(s_signal)
         nonlocal callbacks
         callbacks += 1
 
-    def changed_progress_cb(_widget, progress, _arg):
+    def changed_progress_cb(_widget, _progress, _arg):
         dialog.disconnect(c_signal)
         nonlocal callbacks
         callbacks += 1
@@ -432,7 +432,7 @@ def test_8(sane_scan_dialog, mainloop_with_timeout):
     loop = mainloop_with_timeout()
     n = 0
 
-    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
+    def new_scan_cb(_widget, _image_ob, _insert_after, _side, _xres, _yres):
         nonlocal n
         n += 1
 
@@ -453,7 +453,7 @@ def test_8(sane_scan_dialog, mainloop_with_timeout):
             def reloaded_scan_options_cb(_arg):
                 e_signal = None
 
-                def process_error_cb(_widget, process, message):
+                def process_error_cb(_widget, process, _message):
                     dialog.disconnect(e_signal)
                     assert process == "open_device", "caught error opening device"
                     nonlocal callbacks
@@ -494,7 +494,7 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
     def reloaded_scan_options_cb(_arg):
         dialog.disconnect(dialog.reloaded_signal)
 
-        def process_error_cb(_widget, process, message):
+        def process_error_cb(_widget, process, _message):
             dialog.disconnect(dialog.e_signal)
             nonlocal callbacks
             callbacks += 1
@@ -530,7 +530,7 @@ def test_profile_unset(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
     callbacks = 0
     dialog._add_profile("my profile", Profile(backend=[("resolution", 52)]))
 
-    def changed_scan_option_cb(_widget, option, value, uuid):
+    def changed_scan_option_cb(_widget, _option, _value, _uuid):
         dialog.disconnect(dialog.option_signal)
         assert dialog.current_scan_options == Profile(backend=[("resolution", 52)]), (
             "current-scan-options"
@@ -600,7 +600,7 @@ def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
 
     dialog.connect("changed-paper", changed_paper)
 
-    def changed_scan_option_cb(widget, option, value, _data):
+    def changed_scan_option_cb(_widget, option, _value, _data):
 
         if option == "br-y":
             nonlocal callbacks
@@ -688,7 +688,7 @@ def test_option_dependency(
     callbacks = 0
     process_error_cb = MagicMock()
 
-    def changed_profile_cb(_widget, profile):
+    def changed_profile_cb(_widget, _profile):
         dialog.disconnect(dialog.profile_signal)
         assert dialog.current_scan_options == Profile(backend=[("mode", "Color")]), (
             "correctly set rest of profile"
@@ -726,7 +726,7 @@ def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
     callbacks = 0
     loop = mainloop_with_timeout()
 
-    def changed_profile_cb(_widget, profile):
+    def changed_profile_cb(_widget, _profile):
         dialog.disconnect(dialog.profile_signal)
         assert dialog.thread.device_handle.resolution == 51.0, (
             "correctly updated widget"
@@ -769,7 +769,7 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
     scans = []
     loop = mainloop_with_timeout()
 
-    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
+    def new_scan_cb(_widget, _image_ob, insert_after, side, _xres, _yres):
         scans.append((insert_after, side))
 
     def finished_process_cb(_widget, process):
@@ -778,7 +778,7 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
             callbacks += 1
             loop.quit()
 
-    def changed_scan_option_cb(widget, option, value, _data):
+    def changed_scan_option_cb(_widget, _option, _value, _data):
         dialog.num_pages = 0
         dialog.scan()
         nonlocal callbacks
@@ -814,10 +814,10 @@ def test_scan_reverse_pages(
     scans = []
     loop = mainloop_with_timeout()
 
-    def new_scan_cb(_widget, image_ob, insert_after, side, xres, yres):
+    def new_scan_cb(_widget, _image_ob, insert_after, side, _xres, _yres):
         scans.append((insert_after, side))
 
-    def changed_scan_option_cb(widget, option, value, _data):
+    def changed_scan_option_cb(_widget, _option, _value, _data):
         dialog.num_pages = 0
         dialog.scan()
         nonlocal callbacks
@@ -874,7 +874,7 @@ def test_empty_device_list(mocker, sane_scan_dialog, mainloop_with_timeout):
 
     dlg = sane_scan_dialog
 
-    def changed_device_list_cb(self, devices):
+    def changed_device_list_cb(_self, devices):
         assert devices == [], "changed-device-list called with empty array"
         nonlocal asserts
         asserts += 1

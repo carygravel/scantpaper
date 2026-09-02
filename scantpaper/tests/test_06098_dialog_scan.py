@@ -737,7 +737,7 @@ def test_test_backend_options(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_scan_option_cb(self, option, value, uuid):
+    def changed_scan_option_cb(_self, option, value, _uuid):
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         widget = dlg.option_widgets[option]

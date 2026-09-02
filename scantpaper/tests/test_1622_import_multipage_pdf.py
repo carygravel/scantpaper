@@ -195,7 +195,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf):
 
         asserts = 0
 
-        def queued_cb(response):
+        def queued_cb(_response):
             nonlocal asserts
             if asserts == 0:
                 asserts += 1

@@ -853,7 +853,7 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
         mock_sane_open.side_effect = delayed_open
 
         # 4. Trigger the race
-        def set_option_finished_cb(data):
+        def set_option_finished_cb(_data):
             # Wait for open_device to reach the critical section
             ready_to_crash.wait(timeout=2.0)
             try:

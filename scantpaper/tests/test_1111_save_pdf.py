@@ -89,7 +89,7 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
         assert response.request.process in ["get_file_info", "import_file"]
         asserts += 1
 
-    def import_files_finished_cb(response):
+    def import_files_finished_cb(_response):
         nonlocal asserts
         assert not slist.thread.pages_saved(), "pages not tagged as saved"
         asserts += 1
@@ -108,7 +108,7 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
         assert result.request.process == "save_pdf", "save_pdf"
         asserts += 1
 
-    def save_pdf_finished_cb(result):
+    def save_pdf_finished_cb(_result):
         nonlocal asserts
         width, height = get_page_size(temp_pdf.name)
         assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"

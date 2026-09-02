@@ -200,7 +200,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     dialog.allow_batch_flatbed = True
     dialog.num_pages = 2
 
-    def changed_num_pages_cb(self, _data):
+    def changed_num_pages_cb(_self, _data):
         nonlocal asserts
         nonlocal signal
         dialog.disconnect(signal)
@@ -215,7 +215,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
         "default adf-defaults-scan-all-pages"
     )
 
-    def changed_scan_option_cb(widget, option, value, _data):
+    def changed_scan_option_cb(_widget, _option, _value, _data):
         nonlocal asserts
         nonlocal signal
         dialog.disconnect(signal)

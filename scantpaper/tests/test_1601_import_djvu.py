@@ -152,7 +152,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
 
         asserts = 0
 
-        def queued_cb(response):
+        def queued_cb(_response):
             nonlocal asserts
             if asserts == 0:
                 asserts += 1
@@ -180,7 +180,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
         assert asserts == 2, "all callbacks run"
 
 
-def mock_import_djvu_txt(self, _text):
+def mock_import_djvu_txt(_self, _text):
     "mock import_djvu_txt method to test error handling"
     msg = "Error parsing djvu text"
     raise ValueError(msg)

@@ -88,7 +88,7 @@ def test_import_tiff_with_error(rose_tif):
         )
         mlp.run()
 
-        def queued_cb(response):
+        def queued_cb(_response):
             nonlocal asserts
             if asserts == 1:
                 asserts += 1
@@ -195,7 +195,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync
     asserts = 0
     finished_cb = MagicMock()
 
-    def cancelled_cb(response):
+    def cancelled_cb(_response):
         nonlocal asserts
         assert len(slist.data) == 0, "TIFF not imported"
         asserts += 1

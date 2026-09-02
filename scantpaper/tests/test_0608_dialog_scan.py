@@ -215,7 +215,7 @@ def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
 
     loop = mainloop_with_timeout()
 
-    def changed_profile_cb(widget, profile):
+    def changed_profile_cb(_widget, _profile):
         nonlocal asserts
         dlg.disconnect(dlg.signal)
         assert dlg.current_scan_options == Profile(backend=[("resolution", 100)]), (

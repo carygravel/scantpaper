@@ -27,7 +27,7 @@ def test_rotate(
 
     asserts = 0
 
-    def display_cb(response):
+    def display_cb(_response):
         nonlocal asserts
         assert True, "Triggered display callback"
         asserts += 1

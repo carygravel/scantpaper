@@ -130,7 +130,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync
 
     asserts = 0
 
-    def display_cb(response):
+    def display_cb(_response):
         nonlocal asserts
         asserts += 1
 
