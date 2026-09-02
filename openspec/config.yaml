@@ -1,6 +1,9 @@
 schema: spec-driven
 
 context: |
+  AGENTS.md is the authoritative AI-collaboration guide. This block is a compact,
+  OpenSpec-specific distillation of it; if they diverge, AGENTS.md wins.
+
   scantpaper is a desktop GUI (PyGObject / GTK3, Python >=3.10) for turning scanned
   documents into OCR'd PDFs or DjVus. End-user utility; monolithic, not client-server.
 
