@@ -45,7 +45,7 @@ def mock_tool_window(mocker):
         _pref_udt_cmbx = None
         session = None
 
-        def get_application(self, *args, **kwargs):
+        def get_application(self, *_args, **_kwargs):
             "mock"
             return mock_app
 

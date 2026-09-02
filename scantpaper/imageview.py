@@ -502,7 +502,7 @@ class ImageView(Gtk.DrawingArea):
         "/documentation/pycairo/3/reference/constants.html#cairo-filter",
     )
 
-    def do_draw(self, context, **kwargs):
+    def do_draw(self, context, **_kwargs):
         "respond to the draw signal"
         allocation = self.get_allocation()
         style = self.get_style_context()
@@ -570,15 +570,15 @@ class ImageView(Gtk.DrawingArea):
 
         return True
 
-    def do_button_press_event(self, event, **kwargs):
+    def do_button_press_event(self, event, **_kwargs):
         "respond to the button_press event"
         return self.get_tool().button_pressed(event)
 
-    def do_button_release_event(self, event, **kwargs):
+    def do_button_release_event(self, event, **_kwargs):
         "respond to the button_release event"
         self.get_tool().button_released(event)
 
-    def do_motion_notify_event(self, event, **kwargs):
+    def do_motion_notify_event(self, event, **_kwargs):
         "respond to the motion_notify event"
         self.update_cursor(event.x, event.y)
         self.get_tool().motion(event)
@@ -595,7 +595,7 @@ class ImageView(Gtk.DrawingArea):
         self.set_interacting(False)
         return GLib.SOURCE_REMOVE
 
-    def do_scroll_event(self, event, **kwargs):
+    def do_scroll_event(self, event, **_kwargs):
         "respond to the scroll event"
         image_x, image_y = self.to_image_coords(event.x, event.y)
         if image_x is None:
@@ -618,7 +618,7 @@ class ImageView(Gtk.DrawingArea):
         offset_y = event.y / zoom * factor - image_y
         self.set_offset(offset_x, offset_y)
 
-    def do_configure_event(self, _event, **kwargs):
+    def do_configure_event(self, _event, **_kwargs):
         "respond to the configure event"
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())

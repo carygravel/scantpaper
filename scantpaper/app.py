@@ -59,10 +59,10 @@ class Application(Gtk.Application):
             iconpath = "/usr/share/scantpaper/icons"
         Gtk.IconTheme.get_default().prepend_search_path(iconpath)
 
-    def do_startup(self, *args, **kwargs):
+    def do_startup(self, *_args, **_kwargs):
         Gtk.Application.do_startup(self)
 
-    def do_activate(self, *args, **kwargs):
+    def do_activate(self, *_args, **_kwargs):
         "only allow a single window and raise any existing ones"
 
         # Windows are associated with the application

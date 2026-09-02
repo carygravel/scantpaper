@@ -67,7 +67,7 @@ def mock_session_window(mocker):
         rotate_270 = mocker.Mock()
         _pack_viewer_tools = mocker.Mock()
 
-        def get_application(self, *args, **kwargs):
+        def get_application(self, *_args, **_kwargs):
             "mock"
             return mock_app
 

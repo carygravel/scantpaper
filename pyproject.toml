@@ -98,7 +98,6 @@ ignore = [
     "E501",    # line length: tracked by black's own width
     "COM812",  # trailing commas: black handles style
     "ARG001",  # unused function arguments
-    "ARG002",  # unused method arguments
     "ARG005",  # unused lambda arguments
     "CPY001",  # copyright headers: not required by this project
     "INP001",  # implicit namespace package: project uses explicit packages
