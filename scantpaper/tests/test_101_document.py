@@ -796,6 +796,31 @@ def test_reorder_pages_consecutive_numbering(temp_db):
     ], "row ids consecutive after reorder"
 
 
+def test_reorder_pages_unknown_id(temp_db):
+    "reorder with an id no longer present returns the current order unchanged"
+    thread = DocThread(db=temp_db.name)
+
+    # spoof the write thread check
+    thread._write_tid = threading.get_native_id()
+    for _ in range(4):
+        thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
+
+    ids = [row[2] for row in thread.page_number_table()]
+    before = [row[2] for row in thread.page_number_table()]
+
+    # the frontend asks to reorder an id that is gone from the database
+    request = Request(
+        "reorder_pages",
+        ({"page_ids": [999999], "dest": 0},),
+        thread.responses,
+    )
+    thread.do_reorder_pages(request)
+
+    after = [row[2] for row in thread.page_number_table()]
+    assert after == before, "order unchanged when all ids are unknown"
+    assert after == ids, "ordering matches the pre-reorder page order"
+
+
 def test_document(rose_tif):
     "tests for Document()"
     with tempfile.TemporaryDirectory() as tempdir:

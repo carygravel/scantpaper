@@ -521,14 +521,22 @@ def test_reorder_then_drag_data_delete_not_double_deleted():
     data_callback(MagicMock(info={"type": "page", "new_pages": [[2, None, 101]]}))
     assert slist._suppress_delete is True, "still suppressed after reorder response"
 
-    # now the drop's drag-data-delete fires delete_selection
+    # drag-data-delete can be emitted more than once per drop; every one of
+    # those delete_selection calls must be suppressed, otherwise the second
+    # call would delete the just-moved page while self.data still holds it.
     slist.select([0])
     slist.delete_selection()
+    slist.delete_selection()
 
-    # the deletion must have been suppressed - no delete_pages request
+    # the deletions must all have been suppressed - no delete_pages request
     for call in slist.thread.send.call_args_list:
         assert call.args[0] != "delete_pages", "delete_pages must not be dispatched"
     assert [row[2] for row in slist.data] == [102, 103, 101], "reorder preserved"
+    assert slist._suppress_delete is True, "flag stays set until the drag ends"
+
+    # once the whole drag is over the suppression is lifted
+    slist._on_drag_end(None, None)
+    assert slist._suppress_delete is False, "flag cleared at drag-end"
 
 
 def test_drag_end_clears_suppress_flag():
@@ -537,7 +545,7 @@ def test_drag_end_clears_suppress_flag():
     slist.add_page(1, None, 101)
     slist._suppress_delete = True
 
-    slist._on_drag_end(None)
+    slist._on_drag_end(None, None)
 
     assert slist._suppress_delete is False, "drag-end clears the suppress flag"
 
@@ -554,7 +562,7 @@ def test_delete_selection_suppressed_after_reorder():
     slist.delete_selection()
 
     assert len(slist.data) == 2, "delete suppressed"
-    assert slist._suppress_delete is False, "flag cleared"
+    assert slist._suppress_delete is True, "flag stays set until drag-end"
     # no delete_pages request was dispatched
     for call in slist.thread.send.call_args_list:
         assert call.args[0] != "delete_pages"

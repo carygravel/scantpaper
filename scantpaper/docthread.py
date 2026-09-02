@@ -662,7 +662,6 @@ class DocThread(SaveThread):
     def do_reorder_pages(self, request):
         "reorder pages in the database"
         self._check_write_tid()
-        self._take_snapshot()
         kwargs = request.args[0]
         page_ids = kwargs["page_ids"]
         dest = kwargs["dest"]
@@ -673,6 +672,29 @@ class DocThread(SaveThread):
         )
         current = [row[0] for row in self._fetchall()]
         moved = [pid for pid in page_ids if pid in current]
+        # The frontend may still hold an id that is already gone from the
+        # database (e.g. a page deleted by an earlier interrupted drag). In
+        # that case there is nothing to reorder: return the current order
+        # unchanged instead of building an invalid "IN ()" query.
+        if not moved:
+            places = ", ".join(["?"] * len(current))
+            self._execute(
+                f"""SELECT row_id, thumb, initial_page_id
+                    FROM page_order, page, image
+                    WHERE action_id = ?
+                     AND page_id = page.id AND image_id = image.id
+                     AND initial_page_id IN ({places})
+                    ORDER BY row_id""",
+                (self._action_id, *current),
+            )
+            rows = []
+            for record in self._fetchall():
+                row = list(record)
+                row[1] = self._bytes_to_pixbuf(row[1])
+                rows.append(row)
+            request.data({"type": "page", "new_pages": rows})
+            return [row[0] for row in rows]
+        self._take_snapshot()
         moved_set = set(moved)
         remaining = [pid for pid in current if pid not in moved_set]
         remaining[dest:dest] = moved

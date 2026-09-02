@@ -409,8 +409,11 @@ class BaseDocument(SimpleList):
 
         # A drag-and-drop reorder triggers drag-data-delete after the drop;
         # suppress that deletion so the reorder is not followed by a delete.
+        # NOTE: the flag is deliberately NOT cleared here. drag-data-delete can
+        # be emitted more than once per drop, so consuming the flag on the
+        # first call would let a later call delete the just-moved page. The flag
+        # is cleared by _on_drag_end once the whole drag is over.
         if getattr(self, "_suppress_delete", False):
-            self._suppress_delete = False
             return
 
         # The drag-data-delete callback seems to be fired twice. Therefore, create
@@ -511,14 +514,15 @@ class BaseDocument(SimpleList):
 
         # The drag triggers drag-data-delete after the drop; suppress the
         # resulting deletion so the reorder is not followed by a delete.
-        # NOTE: the flag is deliberately NOT cleared in _data_callback. The
-        # worker reorder response (which updates self.data) can be delivered on
-        # the main thread before the drag-data-delete signal is processed. If we
-        # cleared the flag there, the drop's deletion would go through and remove
-        # the just-moved page from the database while self.data still holds it,
-        # making a subsequent save fail with "Page id ... not found". Instead the
-        # flag is consumed by delete_selection (which clears it when it
-        # suppresses the delete) and reset by the drag-end safety net.
+        # NOTE: the flag is deliberately NOT cleared here, in _data_callback or
+        # in delete_selection. The worker reorder response (which updates self.data)
+        # can be delivered on the main thread before the drag-data-delete signal is
+        # processed, and drag-data-delete can itself be emitted more than once per
+        # drop. Clearing the flag on any of those paths would let the drop's
+        # deletion go through and remove the just-moved page from the database while
+        # self.data still holds it, making a subsequent save fail with "Page id ...
+        # not found". Instead delete_selection just returns (leaving the flag set) for
+        # the duration of the drag, and _on_drag_end clears it once the drag is over.
         self._suppress_delete = True
         self.thread.send(
             "reorder_pages",
@@ -526,7 +530,7 @@ class BaseDocument(SimpleList):
             data_callback=_data_callback,
         )
 
-    def _on_drag_end(self, _context):
+    def _on_drag_end(self, _widget, _context):
         "clear any leftover reorder suppression once the drag is over"
         self._suppress_delete = False
 
