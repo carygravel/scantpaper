@@ -384,7 +384,6 @@ class TestFileMenuMixins:
             "/path/to/file2.png",
         ]
         mock_gtk.FileChooserDialog.return_value = mock_dialog
-        mock_os.path.dirname.return_value = "/path/to"
         app._import_files = unittest.mock.Mock()
 
         app.open_dialog(None, None)
@@ -827,12 +826,9 @@ class TestFileMenuMixins:
         assert uuids == ["uuid1", "uuid3"]
         app.slist.get_page_index.assert_called_with("1,3", app._error_callback)
 
-    @unittest.mock.patch("file_menu_mixins.os")
     @unittest.mock.patch("file_menu_mixins.re")
     @unittest.mock.patch("file_menu_mixins.Gtk")
-    def test_file_chooser_response_callback_ok_pdf(
-        self, mock_gtk, mock_re, mock_os, app
-    ):
+    def test_file_chooser_response_callback_ok_pdf(self, mock_gtk, mock_re, app):
         "Test _file_chooser_response_callback for PDF type."
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
@@ -841,7 +837,6 @@ class TestFileMenuMixins:
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file.pdf"
         mock_re.search.return_value = True
-        mock_os.path.dirname.return_value = "/path/to"
 
         app._file_chooser_response_callback(
             mock_dialog, mock_gtk.ResponseType.OK, ["pdf", ["uuid1"]]
@@ -853,11 +848,10 @@ class TestFileMenuMixins:
         app._windowi.hide.assert_called_once()
         mock_dialog.destroy.assert_called_once()
 
-    @unittest.mock.patch("file_menu_mixins.os")
     @unittest.mock.patch("file_menu_mixins.Gtk")
     @unittest.mock.patch("file_menu_mixins.tempfile")
     def test_file_chooser_response_callback_ok_ps_libtiff(
-        self, mock_tempfile, mock_gtk, mock_os, app
+        self, mock_tempfile, mock_gtk, app
     ):
         "Test _file_chooser_response_callback for PS type with libtiff backend."
         app._save_tif = unittest.mock.Mock()
@@ -865,7 +859,6 @@ class TestFileMenuMixins:
         app.settings["ps_backend"] = "libtiff"
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file.ps"
-        mock_os.path.dirname.return_value = "/path/to"
 
         mock_tif = unittest.mock.Mock()
         mock_tif.filename.return_value = "temp.tif"
@@ -877,16 +870,14 @@ class TestFileMenuMixins:
 
         app._save_tif.assert_called_with("temp.tif", ["uuid1"], "/path/to/file.ps")
 
-    @unittest.mock.patch("file_menu_mixins.os")
     @unittest.mock.patch("file_menu_mixins.Gtk")
-    def test_file_chooser_response_callback_ok_ps_pdf(self, mock_gtk, mock_os, app):
+    def test_file_chooser_response_callback_ok_ps_pdf(self, mock_gtk, app):
         "Test _file_chooser_response_callback for PS type with PDF backend."
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
         app.settings["ps_backend"] = "pdf"
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file.ps"
-        mock_os.path.dirname.return_value = "/path/to"
 
         app._file_chooser_response_callback(
             mock_dialog, mock_gtk.ResponseType.OK, ["ps", ["uuid1"]]
@@ -894,13 +885,11 @@ class TestFileMenuMixins:
 
         app._save_pdf.assert_called_with("/path/to/file.ps", ["uuid1"], "ps")
 
-    @unittest.mock.patch("file_menu_mixins.os")
     @unittest.mock.patch("file_menu_mixins.Gtk")
-    def test_file_chooser_response_callback_ok_formats(self, mock_gtk, mock_os, app):
+    def test_file_chooser_response_callback_ok_formats(self, mock_gtk, app):
         "Test _file_chooser_response_callback for multiple formats."
         app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
-        mock_os.path.dirname.return_value = "/path/to"
 
         for fmt in ["djvu", "tif", "txt", "hocr"]:
             mock_dialog.get_filename.return_value = f"/path/to/file.{fmt}"
@@ -920,14 +909,12 @@ class TestFileMenuMixins:
         mock_chooser = unittest.mock.Mock()
 
         # Case 1: Directory not writable
-        mock_os.path.dirname.return_value = "/read-only-dir"
         mock_os.access.return_value = False
         assert not app._file_writable(mock_chooser, "/read-only-dir/file.pdf")
         app._show_message_dialog.assert_called()
 
         # Case 2: File exists but not writable
         app._show_message_dialog.reset_mock()
-        mock_os.path.dirname.return_value = "/tmp"
         mock_os.access.side_effect = [True, False]  # dir writable, file not
         mock_isfile.return_value = True
         assert not app._file_writable(mock_chooser, "/tmp/readonly.pdf")
@@ -1227,16 +1214,14 @@ class TestFileMenuMixins:
         mock_dialog.show.assert_called_once()
 
     @unittest.mock.patch("file_menu_mixins.file_exists")
-    @unittest.mock.patch("file_menu_mixins.os")
     def test_file_chooser_response_callback_append_extension(
-        self, mock_os, mock_file_exists, app
+        self, mock_file_exists, app
     ):
         "Test appending extension if missing."
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file"
-        mock_os.path.dirname.return_value = "/path/to"
         mock_file_exists.return_value = False
 
         app._file_chooser_response_callback(
@@ -1277,15 +1262,12 @@ class TestFileMenuMixins:
         app._save_pdf = unittest.mock.Mock()
         app._save_pdf.assert_not_called()
 
-    @unittest.mock.patch("file_menu_mixins.os")
-    def test_file_chooser_response_callback_session(self, mock_os, app):
+    def test_file_chooser_response_callback_session(self, app):
         "Test saving session."
         app.slist.save_session = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/session.sdb"
-        mock_os.path.dirname.return_value = "/path/to"
-        mock_os.path.isfile.return_value = False
 
         app._file_chooser_response_callback(
             mock_dialog, Gtk.ResponseType.OK, ["session", []]
@@ -1361,8 +1343,6 @@ class TestFileMenuMixins:
         mock_dialog.get_filename.return_value = "/path/to/file.jpg"
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
-        mock_os.path.isfile.return_value = False
-        mock_os.path.dirname.return_value = "/path/to"
         mock_os.access.return_value = True
 
         def mock_save_image(finished_callback, **_kwargs):

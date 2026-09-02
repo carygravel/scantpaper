@@ -1,7 +1,6 @@
 "scantpaper --- to aid the scan to PDF or DjVu process"
 
 # TODO:
-# use pathlib for all paths
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # various improvements from StackOverflow

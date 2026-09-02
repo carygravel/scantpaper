@@ -547,7 +547,6 @@ def test_run_unpaper_cmd_rtl(mocker):
     mock_run.return_value.stdout = "Processing sheet 1.pnm\n"
     mock_run.return_value.stderr = ""
 
-    mocker.patch("os.path.getsize", return_value=100)
     mock_temp = mocker.patch("tempfile.NamedTemporaryFile")
     mock_temp.return_value.name = "temp_file"
 
