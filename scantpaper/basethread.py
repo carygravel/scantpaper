@@ -281,7 +281,7 @@ class BaseThread(threading.Thread):
         while True:
             try:
                 drained.append(self.requests.get(False))
-            except queue.Empty:
+            except queue.Empty:  # noqa: PERF203 — queue drain; breaking on queue.Empty is the idiomatic pattern
                 break
         for request in drained:
             request.cancelled()

@@ -1339,7 +1339,7 @@ class TreeIter:
         while bbox.type != "word":
             try:
                 bbox = self.next_bbox()
-            except StopIteration as exc:
+            except StopIteration as exc:  # noqa: PERF203 — iterator exhaustion; catch-StopIteration loop is idiomatic here
                 self._iter = current_iter
                 self._bbox = current_bbox
                 raise StopIteration from exc
@@ -1369,7 +1369,7 @@ class TreeIter:
         while bbox.type != "word":
             try:
                 bbox = self.previous_bbox()
-            except StopIteration as exc:
+            except StopIteration as exc:  # noqa: PERF203 — iterator exhaustion; catch-StopIteration loop is idiomatic here
                 self._iter = current_iter
                 self._bbox = current_bbox
                 raise StopIteration from exc
