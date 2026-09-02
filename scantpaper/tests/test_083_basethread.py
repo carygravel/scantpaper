@@ -160,7 +160,7 @@ def test_1():
     mlp.run()
     assert n_callbacks in (9, 10), "checked all expected responses #6"
 
-    thread.send("quit", finished_callback=lambda response: mlp.quit())
+    thread.send("quit", finished_callback=lambda _response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
 
@@ -213,7 +213,7 @@ def test_job_counters_do_not_leak_across_batches():
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    thread.send("quit", finished_callback=lambda response: mlp.quit())
+    thread.send("quit", finished_callback=lambda _response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
 
@@ -250,7 +250,7 @@ def test_job_counters_persist_within_batch():
     assert thread.total_jobs == 3
     assert thread.num_completed_jobs == 3
 
-    thread.send("quit", finished_callback=lambda response: mlp.quit())
+    thread.send("quit", finished_callback=lambda _response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
 
@@ -324,7 +324,7 @@ def test_none_callback():
         2,
         finished_callback=None,
         error_callback=error_callback,
-        after_finished_callback=lambda response: mlp.quit(),
+        after_finished_callback=lambda _response: mlp.quit(),
     )
 
     mlp = safe_mainloop(2000)
@@ -333,7 +333,7 @@ def test_none_callback():
     # Should not have any errors
     error_callback.assert_not_called()
 
-    thread.send("quit", finished_callback=lambda response: mlp.quit())
+    thread.send("quit", finished_callback=lambda _response: mlp.quit())
     mlp = safe_mainloop(2000)
     mlp.run()
 
@@ -372,7 +372,7 @@ def test_monitor_schedules_idle_when_responses_remain():
     thread = BaseThread()
 
     req = Request("test", (), thread.responses)
-    thread.callbacks[req.uuid] = {"started": True, "finished_callback": lambda r: None}
+    thread.callbacks[req.uuid] = {"started": True, "finished_callback": lambda _r: None}
     req.finished(info="result")
 
     with patch("basethread.GLib.idle_add") as mock_idle:

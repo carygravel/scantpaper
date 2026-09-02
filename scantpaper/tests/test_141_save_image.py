@@ -21,7 +21,7 @@ def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):
         options={
             "post_save_hook": f"{config.CONVERT_COMMAND} %i {temp_png.name}",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -43,7 +43,7 @@ def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
         slist.save_image(
             path=temp_jpg.name,
             list_of_pages=[slist.data[0][2]],
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -66,7 +66,7 @@ def test_save_image_with_ampersand(
     slist.save_image(
         path=path,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

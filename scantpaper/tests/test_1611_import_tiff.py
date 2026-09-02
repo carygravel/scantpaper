@@ -22,7 +22,7 @@ def test_import_tiff(rose_tif, temp_db, get_page_sync):
 
     slist.import_files(
         paths=[rose_tif],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -52,7 +52,7 @@ def test_import_tiff_with_units(temp_tif, temp_db, get_page_sync):
 
     slist.import_files(
         paths=[temp_tif.name],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -84,7 +84,7 @@ def test_import_tiff_with_error(rose_tif):
         slist.import_files(
             paths=[rose_tif],
             error_callback=error_cb,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -100,7 +100,7 @@ def test_import_tiff_with_error(rose_tif):
             paths=[rose_tif],
             queued_callback=queued_cb,
             error_callback=error_cb,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -118,7 +118,7 @@ def test_import_multipage_tiff(rose_tif, temp_db):
 
         slist.import_files(
             paths=[temp_tif2.name],
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -139,7 +139,7 @@ def test_import_linked_tiff(rose_tif, temp_db, get_page_sync):
 
         slist.import_files(
             paths=[str(temp_tif)],
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -171,7 +171,7 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
     slist.import_files(
         paths=paths,
         error_callback=error_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

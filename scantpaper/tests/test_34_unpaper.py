@@ -211,7 +211,7 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
         page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -285,7 +285,7 @@ def test_unpaper2(
         page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -374,7 +374,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
         page=slist.data[0][2],
         options={"command": unpaper.get_cmdline()},
         display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -435,7 +435,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
             "direction": unpaper.get_option("direction"),
         },
         display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

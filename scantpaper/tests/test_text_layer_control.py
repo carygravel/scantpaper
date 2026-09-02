@@ -252,7 +252,7 @@ def test_text_layer_control_sort():
     assert sort_combo is not None
 
     received_sort = []
-    tlc.connect("sort-changed", lambda w, val: received_sort.append(val))
+    tlc.connect("sort-changed", lambda _w, val: received_sort.append(val))
 
     # Change selection
     # Index 0 is confidence (default), 1 is position

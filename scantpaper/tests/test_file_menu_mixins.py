@@ -978,7 +978,7 @@ class TestFileMenuMixins:
 
         # The callback is defined inside _save_pdf, so we need to call it from there
         app.slist.save_pdf = (
-            lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (
+            lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (  # noqa: ARG005 — keyword-bound mock signature; params unused but names required
                 finished_callback(response)
             )
         )
@@ -997,7 +997,7 @@ class TestFileMenuMixins:
 
         # The callback is defined inside _save_pdf, so we need to call it from there
         app.slist.save_pdf = (
-            lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (
+            lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, data_callback, finished_callback, error_callback: (  # noqa: ARG005 — keyword-bound mock signature; params unused but names required
                 finished_callback(response)
             )
         )
@@ -1017,7 +1017,7 @@ class TestFileMenuMixins:
 
         # The callback is defined inside _save_djvu, so we need to call it from there
         app.slist.save_djvu = (
-            lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, finished_callback, error_callback: (
+            lambda path, list_of_pages, metadata, options, queued_callback, started_callback, running_callback, finished_callback, error_callback: (  # noqa: ARG005 — keyword-bound mock signature; params unused but names required
                 finished_callback(response)
             )
         )

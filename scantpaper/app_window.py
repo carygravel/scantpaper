@@ -182,7 +182,7 @@ class ApplicationWindow(
         self._vnotebook = self.builder.get_object("vnotebook")
         self._hpanei = Gtk.HPaned()
         self._vpanei = Gtk.VPaned()
-        self.connect("delete-event", lambda w, e: not self._can_quit())
+        self.connect("delete-event", lambda _w, _e: not self._can_quit())
         self.connect("window-state-event", self._window_state_event_callback)
 
         # If defined in the config file, set the window state, size and position

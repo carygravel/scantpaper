@@ -109,7 +109,7 @@ class DocThread(SaveThread):
             "create",
             self._db,
             finished_callback=on_finished,
-            error_callback=lambda x: mlp.quit(),
+            error_callback=lambda _x: mlp.quit(),
         )
         mlp.run()
         if not timed_out:

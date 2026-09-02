@@ -101,7 +101,7 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
             filename=rose_pnm,
             resolution=72,
             dir=tempdir,
-            finished_callback=lambda response: loop1.quit(),
+            finished_callback=lambda _response: loop1.quit(),
         )
         loop1.run()
         page_controls.document = slist

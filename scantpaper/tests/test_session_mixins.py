@@ -199,7 +199,7 @@ def test_check_dependencies(mocker, mock_session_window):
     mock_unpaper.return_value.program_version.return_value = "6.1"
 
     mock_program_version = mocker.patch("session_mixins.program_version")
-    mock_program_version.side_effect = lambda stream, regex, cmd: "1.0"
+    mock_program_version.side_effect = lambda _stream, _regex, _cmd: "1.0"
 
     mocker.patch("tempfile.NamedTemporaryFile")
 
@@ -521,7 +521,7 @@ def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
 
     sent_requests = []
     mock_session_window.slist.thread.send.side_effect = (
-        lambda process, *args, **kwargs: sent_requests.append((process, args))
+        lambda process, *args, **_kwargs: sent_requests.append((process, args))
     )
 
     mock_session_window._suppress_full_display = True
@@ -539,7 +539,7 @@ def test_display_image_not_suppressed_sends(mock_session_window):
 
     sent_requests = []
     mock_session_window.slist.thread.send.side_effect = (
-        lambda process, *args, **kwargs: sent_requests.append((process, args))
+        lambda process, *args, **_kwargs: sent_requests.append((process, args))
     )
 
     mock_session_window._display_image("page_id")
@@ -652,7 +652,7 @@ def test_ocr_text_operations(mocker, mock_session_window):
 
     mock_session_window._current_page = mocker.Mock()
     mock_session_window._current_page.text_layer = "existing_layer"
-    mock_session_window._current_page.__getitem__ = lambda self, key: (
+    mock_session_window._current_page.__getitem__ = lambda _self, _key: (
         100
     )  # width/height
 
@@ -702,7 +702,7 @@ def test_annotation_operations(mocker, mock_session_window):
     mock_session_window._ann_hbox = mocker.Mock()
     mock_session_window._ann_hbox._textbuffer.get_text.return_value = "ann text"
     mock_session_window._current_page = mocker.Mock()
-    mock_session_window._current_page.__getitem__ = lambda self, key: 100
+    mock_session_window._current_page.__getitem__ = lambda _self, _key: 100
     mock_session_window._current_ann_bbox = mocker.Mock()
     mock_session_window.a_canvas.hocr.return_value = "ann_hocr"
 

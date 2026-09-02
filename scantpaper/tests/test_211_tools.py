@@ -37,7 +37,7 @@ def test_rotate(
         angle=-90,
         page=slist.data[0][2],
         display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -63,7 +63,7 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_syn
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -87,7 +87,7 @@ def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -123,14 +123,14 @@ def test_threshold(
     slist.threshold(
         threshold=20,
         page=slist.data[0][2],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -185,7 +185,7 @@ def test_negate(
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     page = get_page_sync(slist.thread, id=1)
@@ -194,14 +194,14 @@ def test_negate(
     mlp = safe_mainloop(2000)
     slist.negate(
         page=slist.data[0][2],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -234,7 +234,7 @@ def test_unsharp_mask(
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     page = get_page_sync(slist.thread, id=1)
@@ -250,14 +250,14 @@ def test_unsharp_mask(
         percent=200,
         threshold=3,
         page=slist.data[0][2],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -323,7 +323,7 @@ def test_crop(
         w=10,
         h=10,
         page=slist.data[0][2],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     page = get_page_sync(slist.thread, id=1)
@@ -401,7 +401,7 @@ def test_split(
         direction="v",
         position=35,
         page=slist.data[0][2],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     page = get_page_sync(slist.thread, id=1)
@@ -481,7 +481,7 @@ def test_brightness_contrast(
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     mean = [179.97422360248447, 65.09254658385093, 99.69409937888199]
@@ -493,13 +493,13 @@ def test_brightness_contrast(
         brightness=65,
         contrast=65,
         page=slist.data[0][2],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     mlp = safe_mainloop(2000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     page = get_page_sync(slist.thread, id=1)
@@ -528,7 +528,7 @@ def test_race_condition_rotate_save(rose_pnm, temp_db, temp_pdf, import_in_mainl
         path=temp_pdf.name,
         list_of_pages=[page_id],
         error_callback=error_callback,
-        finished_callback=lambda x: mlp.quit(),
+        finished_callback=lambda _x: mlp.quit(),
     )
 
     # Wait for both to finish
@@ -557,7 +557,7 @@ def test_race_condition_rotate_rotate(rose_pnm, temp_db, import_in_mainloop):
         page=page_id,
         angle=90,
         error_callback=error_callback,
-        finished_callback=lambda x: mlp.quit(),
+        finished_callback=lambda _x: mlp.quit(),
     )
 
     # Wait for both to finish

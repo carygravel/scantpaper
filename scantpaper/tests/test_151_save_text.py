@@ -37,7 +37,7 @@ def test_save_text(
             options={
                 "post_save_hook": f"cp %i {temp_txt2.name}",
             },
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -60,7 +60,7 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop):
             options={
                 "post_save_hook": f"cp %i {temp_txt2.name}",
             },
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -96,7 +96,7 @@ def test_save_utf8(
     slist.save_text(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -143,7 +143,7 @@ def test_save_hocr_as_text(
     slist.save_text(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -194,7 +194,7 @@ def test_save_hocr(
             options={
                 "post_save_hook": f"cp %i {temp_txt2.name}",
             },
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -252,7 +252,7 @@ def test_save_hocr_with_encoding(
     slist.save_hocr(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -300,7 +300,7 @@ def test_save_multipage_hocr(
     slist.save_hocr(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2], slist.data[1][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -411,7 +411,7 @@ def test_save_hocr_structure(
     slist.save_hocr(
         path=temp_txt.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

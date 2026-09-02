@@ -25,7 +25,7 @@ def test_import_multipage_pdf(rose_png, temp_pdf, temp_db):
 
     slist.import_files(
         paths=[temp_pdf.name],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -134,7 +134,7 @@ startxref
     slist.import_files(
         paths=[temp_pdf.name],
         error_callback=error_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -174,7 +174,7 @@ def test_import_pdf_bw(temp_png, temp_pdf, temp_db, get_page_sync):
 
     slist.import_files(
         paths=[temp_pdf.name],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -216,7 +216,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf):
             paths=[temp_pdf.name],
             queued_callback=queued_cb,
             error_callback=error_cb,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -261,7 +261,7 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
     slist.import_files(
         paths=["output.pdf"],
         password_callback=password_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -309,7 +309,7 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, temp_db):
     slist.import_files(
         paths=[temp_pdf.name],
         metadata_callback=metadata_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -335,7 +335,7 @@ def test_import_pdf_with_placeholder_title(rose_png, temp_pdf, temp_db):
     slist.import_files(
         paths=[temp_pdf.name],
         metadata_callback=metadata_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

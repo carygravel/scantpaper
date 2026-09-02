@@ -277,7 +277,7 @@ def import_in_mainloop():
         mlp = safe_mainloop()
         slist.import_files(
             paths=paths,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -291,7 +291,7 @@ def set_saved_in_mainloop():
     def anonymous(slist, page_id, saved=True):
         mlp = safe_mainloop()
         slist.thread.send(
-            "set_saved", page_id, saved, finished_callback=lambda response: mlp.quit()
+            "set_saved", page_id, saved, finished_callback=lambda _response: mlp.quit()
         )
         mlp.run()
 
@@ -305,7 +305,7 @@ def set_text_in_mainloop():
     def anonymous(slist, page_id, text):
         mlp = safe_mainloop()
         slist.thread.send(
-            "set_text", page_id, text, finished_callback=lambda response: mlp.quit()
+            "set_text", page_id, text, finished_callback=lambda _response: mlp.quit()
         )
         mlp.run()
 
@@ -322,7 +322,7 @@ def set_annotations_in_mainloop():
             "set_annotations",
             page_id,
             annotations,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -340,7 +340,7 @@ def set_resolution_in_mainloop():
             page_id,
             xres,
             yres,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 

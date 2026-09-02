@@ -24,7 +24,7 @@ def test_save_tiff(rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop):
         options={
             "post_save_hook": f"convert %i {temp_png.name}",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -54,7 +54,7 @@ def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainl
     slist.save_tiff(
         path=temp_tif.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     slist.cancel(cancelled_callback)
     mlp.run()
@@ -64,7 +64,7 @@ def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainl
     slist.save_image(
         path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -152,7 +152,7 @@ def test_save_tiff_with_alpha(temp_png, temp_db, temp_tif, import_in_mainloop):
         options={
             "compression": "lzw",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -176,7 +176,7 @@ def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainlo
                 "ps": temp_ps.name,
                 "post_save_hook": f"ps2pdf %i {temp_pdf.name}",
             },
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -203,7 +203,7 @@ def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop):
         options={
             "compression": "g4",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

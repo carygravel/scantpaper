@@ -20,7 +20,7 @@ def test_import_ppm(temp_db, temp_ppm, get_page_sync):
 
     slist.import_files(
         paths=[temp_ppm.name],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -50,7 +50,7 @@ def test_import_truncated_ppm(temp_db, temp_pnm, get_page_sync):
 
     slist.import_files(
         paths=[temp_pnm.name],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

@@ -795,7 +795,7 @@ def test_user_defined_no_pages(mocker, mock_tool_window):
     mock_tool_window.settings = {"Page range": "selected"}
     mock_tool_window.slist.get_page_index.return_value = []
     # mock combobox creation
-    mock_tool_window._add_udt_combobox = lambda x: mocker.Mock()
+    mock_tool_window._add_udt_combobox = lambda _x: mocker.Mock()
 
     mock_tool_window.user_defined_dialog(None, None)
     _trigger_apply(mock_dialog_cls.return_value)

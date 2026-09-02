@@ -43,7 +43,7 @@ def test_save_multipage_pdf(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=pages,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -83,7 +83,7 @@ def test_save_multipage_pdf_with_utf8(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=pages,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -119,7 +119,7 @@ def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloo
                 "post_save_hook": f"cp %i {temp_ps2.name}",
                 "set_timestamp": True,
             },
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp = safe_mainloop(5000)
         mlp.run()
@@ -151,7 +151,7 @@ def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainlo
                 "post_save_hook": f"cp %i {temp_ps2.name}",
                 "set_timestamp": True,
             },
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp = safe_mainloop(5000)
         mlp.run()
@@ -179,7 +179,7 @@ def test_prepend_pdf(
         options={
             "prepend": temp_pdf.name,
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(5000)
     mlp.run()
@@ -210,7 +210,7 @@ def test_append_pdf(
         options={
             "append": temp_pdf.name,
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(5000)
     mlp.run()
@@ -242,7 +242,7 @@ def test_prepend_with_space(
         options={
             "prepend": "te st.pdf",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(5000)
     mlp.run()
@@ -274,7 +274,7 @@ def test_prepend_with_inverted_comma(
         options={
             "prepend": "te'st.pdf",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(5000)
     mlp.run()
@@ -312,7 +312,7 @@ def test_append_pdf_with_timestamp(
             "append": temp_pdf.name,
             "set_timestamp": True,
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(5000)
     mlp.run()

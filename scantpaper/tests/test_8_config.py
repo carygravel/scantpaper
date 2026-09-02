@@ -313,7 +313,7 @@ def test_get_convert_command(mocker):
     assert _get_convert_command() == "magick"
 
     # Test when 'magick' is not available
-    mock_which.side_effect = lambda x: None
+    mock_which.side_effect = lambda _x: None
     assert _get_convert_command() == "convert"
 
 

@@ -250,7 +250,7 @@ def test_4():
 
     mlp = safe_mainloop(2000)
     thread.set_option(
-        "enable-test-options", True, finished_callback=lambda response: mlp.quit()
+        "enable-test-options", True, finished_callback=lambda _response: mlp.quit()
     )
     mlp.run()
 
@@ -627,7 +627,7 @@ def test_get_option_value_timeout():
     # Replace the worker-side handler with one that never sets the completion
     # event, so the blocking wait must time out.
     with (
-        patch.object(thread, "do_get_option_blocking", lambda request: None),
+        patch.object(thread, "do_get_option_blocking", lambda _request: None),
         pytest.raises(TimeoutError),
     ):
         thread.get_option_value("enable-test-options", timeout=0.05)

@@ -777,7 +777,7 @@ def test_add_annotations_to_pdf():
 
     with (
         patch("savethread.Bboxtree") as mock_bboxtree,
-        patch("savethread.px2pt", side_effect=lambda x, y: x),
+        patch("savethread.px2pt", side_effect=lambda x, _y: x),
     ):
         mock_bboxtree.return_value.each_bbox.return_value = [
             {"type": "highlight", "text": "foo", "bbox": [10, 10, 50, 50]}

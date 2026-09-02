@@ -99,7 +99,7 @@ def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_syn
     slist.tesseract(
         page=slist.data[0][2],
         language="eng",
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

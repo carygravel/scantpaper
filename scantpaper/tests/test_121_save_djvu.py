@@ -29,7 +29,7 @@ def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
     slist.save_djvu(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -71,7 +71,7 @@ def test_save_djvu_text_layer(
         options={
             "post_save_hook": "djvutxt %i " + temp_txt.name,
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -128,7 +128,7 @@ def test_save_djvu_with_hocr(
     slist.save_djvu(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -193,7 +193,7 @@ def test_cancel_save_djvu(
     slist.save_image(
         path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -271,7 +271,7 @@ def test_save_djvu_with_float_resolution(
     slist.save_djvu(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -301,7 +301,7 @@ def test_save_djvu_different_resolutions(
     slist.save_djvu(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -331,7 +331,7 @@ def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloo
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(2000)
     mlp.run()
@@ -376,7 +376,7 @@ def test_save_djvu_with_old_metadata(rose_pnm, temp_db, temp_djvu, import_in_mai
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
         error_callback=error_callback,
     )
     mlp = safe_mainloop(2000)

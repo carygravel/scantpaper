@@ -409,7 +409,9 @@ class Scan(PageControls):
         dbutton.set_image(icon)
         dbutton.connect(
             "clicked",
-            lambda x: ref() and ref()._remove_profile(ref().combobsp.get_active_text()),
+            lambda _x: (
+                ref() and ref()._remove_profile(ref().combobsp.get_active_text())
+            ),
         )
         hboxsp.pack_start(dbutton, False, False, 0)
 

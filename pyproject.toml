@@ -97,7 +97,6 @@ ignore = [
     "S",       # bandit: dominated by `assert` (S101) in tests
     "E501",    # line length: tracked by black's own width
     "COM812",  # trailing commas: black handles style
-    "ARG005",  # unused lambda arguments
     "CPY001",  # copyright headers: not required by this project
     "INP001",  # implicit namespace package: project uses explicit packages
     "TD",      # TODO metadata requirements: not adopted as a convention

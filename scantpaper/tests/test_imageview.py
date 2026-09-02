@@ -380,7 +380,7 @@ def test_tool_base_methods():
     assert tool.cursor_at_point(0, 0) is None
 
     # test connect/disconnect
-    handler_id = tool.connect("zoom-changed", lambda *args: None)
+    handler_id = tool.connect("zoom-changed", lambda *_args: None)
     tool.disconnect(handler_id)
 
 

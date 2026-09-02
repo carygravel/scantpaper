@@ -224,7 +224,7 @@ def test_save_pdf_different_resolutions(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -242,7 +242,7 @@ def test_save_encrypted_pdf(rose_jpg, temp_db, temp_pdf, import_in_mainloop):
         path=temp_pdf.name,
         options={"user-password": "123"},
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -319,7 +319,7 @@ def test_save_pdf_with_hocr(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     subprocess.run(["cp", temp_pdf.name, "fox.pdf"], check=True)
@@ -370,7 +370,7 @@ def test_save_pdf_with_utf8(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -397,7 +397,7 @@ def test_save_pdf_with_1bpp(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -421,7 +421,7 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
         options={
             "compression": "g4",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -461,7 +461,7 @@ def test_save_pdf_g4_alpha(temp_tif, temp_png, temp_db, temp_pdf, import_in_main
         options={
             "compression": "g4",
         },
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -524,7 +524,7 @@ def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop)
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -560,7 +560,7 @@ def test_save_pdf_without_title_has_no_placeholder_title(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -592,7 +592,7 @@ def test_save_pdf_with_title_retains_title_in_xmp(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -617,7 +617,7 @@ def test_save_pdf_creator_branded(rose_pnm, temp_pdf, temp_db, import_in_mainloo
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -654,7 +654,7 @@ def test_save_pdf_creator_branded_with_title(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -686,7 +686,7 @@ def test_save_import_without_title_roundtrip(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -702,7 +702,7 @@ def test_save_import_without_title_roundtrip(
     slist2.import_files(
         paths=[temp_pdf.name],
         metadata_callback=metadata_cb,
-        finished_callback=lambda response: mlp2.quit(),
+        finished_callback=lambda _response: mlp2.quit(),
     )
     mlp2.run()
 
@@ -733,7 +733,7 @@ def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainl
         list_of_pages=[slist.data[0][2]],
         metadata=metadata,
         options={"set_timestamp": True},
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
         error_callback=error_callback,
     )
     mlp.run()
@@ -781,7 +781,7 @@ def test_save_pdf_with_downsample(
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -794,7 +794,7 @@ def test_save_pdf_with_downsample(
                 "downsample": True,
                 "downsample dpi": 150,
             },
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -839,7 +839,7 @@ def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainlo
     slist.save_image(
         path=temp_jpg.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp = safe_mainloop(5000)
     mlp.run()
@@ -879,7 +879,7 @@ def test_import_pdf_without_text_and_resave(
         slist.save_pdf(
             path=temp_pdf2.name,
             list_of_pages=[slist.data[0][2]],
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -915,7 +915,7 @@ def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
         slist.import_files(
             paths=[temp_pdf.name],
             error_callback=error_cb,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 

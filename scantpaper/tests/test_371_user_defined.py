@@ -44,14 +44,14 @@ def test_udt(
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i -negate %o",
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
     mlp = safe_mainloop(5000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -76,14 +76,14 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i -negate %i",
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
     mlp = safe_mainloop(5000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -117,7 +117,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i tmp.pbm;mv tmp.pbm %i",
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -128,7 +128,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page
     slist.save_pdf(
         path=temp_pdf.name,
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -158,7 +158,7 @@ def test_udt_resolution(
     slist.user_defined(
         page=slist.data[0][2],
         command="convert %i tmp.ppm;mv tmp.ppm %i",
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -191,14 +191,14 @@ def test_udt_error(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
         page=slist.data[0][2],
         command="echo error > /dev/stderr;convert %i -negate %i",
         logger_callback=logger_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
     mlp = safe_mainloop(5000)
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 

@@ -88,7 +88,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
         paths=[temp_djvu.name],
         started_callback=started_cb,
         metadata_callback=metadata_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -173,7 +173,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
             paths=[temp_djvu.name],
             queued_callback=queued_cb,
             error_callback=error_cb,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 
@@ -213,7 +213,7 @@ def test_import_djvu_with_error2(
     slist.import_files(
         paths=[temp_djvu.name],
         logger_callback=logger_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -251,7 +251,7 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db):
             paths=[temp_djvu2.name],
             started_callback=started_cb,
             error_callback=error_cb,
-            finished_callback=lambda response: mlp.quit(),
+            finished_callback=lambda _response: mlp.quit(),
         )
         mlp.run()
 

@@ -133,7 +133,7 @@ def test_insert_text_handler_filtering(mocker):
 def test_add_image_type(mocker):
     "Test add_image_type and UI setup"
     # Mock filter_table which is imported into save
-    mocker.patch("dialog.save.filter_table", side_effect=lambda x, y: x)
+    mocker.patch("dialog.save.filter_table", side_effect=lambda x, _y: x)
 
     dialog = Save(image_types=["pdf", "tif", "jpg"], ps_backends=["pdftops"])
     dialog.add_image_type()
@@ -141,7 +141,7 @@ def test_add_image_type(mocker):
 
 def test_image_type_changed_callback(mocker):
     "Test image type changed logic"
-    mocker.patch("dialog.save.filter_table", side_effect=lambda x, y: x)
+    mocker.patch("dialog.save.filter_table", side_effect=lambda x, _y: x)
     dialog = Save(
         image_types=["pdf", "tif", "jpg", "ps", "djvu"], ps_backends=["pdftops"]
     )

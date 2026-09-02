@@ -64,7 +64,7 @@ def test_process_chain(temp_db, temp_pnm, get_page_sync):
         engine="tesseract",
         language="eng",
         display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -107,14 +107,14 @@ def test_process_chain2(temp_db, temp_pnm, get_page_sync):
         udt=f"{config.CONVERT_COMMAND} %i -negate %o",
         resolution=300,
         delete=True,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
     mlp = safe_mainloop()
     slist.analyse(
         list_of_pages=[slist.data[0][2]],
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -145,7 +145,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync
         engine="tesseract",
         language="eng",
         display_callback=display_cb,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -189,7 +189,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm):
         language="eng",
         started_callback=started_callback,
         error_callback=error_callback,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -213,7 +213,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm):
         engine="tesseract",
         language="eng",
         error_callback=error_callback,
-        finished_callback=lambda response: mlp.quit(),
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
     error_callback.assert_not_called()
