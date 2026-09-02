@@ -81,14 +81,9 @@ OPTIONS = {
     "resolution-100-200-300-600": _res([100, 200, 300, 600]),
     "resolution-100-200-300-600-size4": _res([100, 200, 300, 600], size=4),
     "resolution-600": _res([600]),
-    "resolution-75-100-200-300-600-1200": _res([75, 100, 200, 300, 600, 1200], size=4),
     "resolution-150-200-300-400-600": _res(
         [150, 200, 300, 400, 600],
         desc="Scan resolution",
-    ),
-    "resolution-150-225-300-600-900-1200": _res([150, 225, 300, 600, 900, 1200]),
-    "resolution-150-225-300-600-900-1200-1800-2400": _res(
-        [150, 225, 300, 600, 900, 1200, 1800, 2400]
     ),
     "resolution-50-1200": _res((50, 1200, 0), title="Resolution", desc="Resolution"),
     # ---- source ----
@@ -100,13 +95,7 @@ OPTIONS = {
     "source-adf-document-table": _src(
         ["ADF", "Document Table"], title="Document Source", desc="Document Source"
     ),
-    "source-flatbed-transparency-adapter": _src(
-        ["Flatbed", "Transparency Adapter"],
-        title="Source",
-        desc="Selects the scan source (such as a document-feeder).",
-    ),
     # ---- geometry ----
-    "tl-x-215": _geo("tl-x", (0, 215, 0), "Top-left x", ""),
     "tl-x-215899": _geo(
         "tl-x",
         (0, 215.899993896484, 0),
@@ -119,16 +108,9 @@ OPTIONS = {
         "Top-left x",
         "Top-left x position of scan area.",
     ),
-    "tl-x-216": _geo(
-        "tl-x",
-        (0, 216, 0),
-        "tl-x",
-        'Top-left x position of scan area. You should use it in "User defined" mode only!',
-    ),
     "tl-x-top-left-x": _geo(
         "tl-x", (0, 215.899993896484, 0), "Top Left X", "Top Left X"
     ),
-    "tl-y-297": _geo("tl-y", (0, 297, 0), "Top-left y", ""),
     "tl-y-297179": _geo(
         "tl-y",
         (0, 297.179992675781, 0),
@@ -141,16 +123,9 @@ OPTIONS = {
         "Top-left y",
         "Top-left y position of scan area.",
     ),
-    "tl-y-355": _geo(
-        "tl-y",
-        (0, 355.599990844727, 0),
-        "tl-y",
-        'Top-left y position of scan area. You should use it in "User defined" mode only!',
-    ),
     "tl-y-top-left-y": _geo(
         "tl-y", (0, 297.179992675781, 0), "Top Left Y", "Top Left Y"
     ),
-    "br-x-215": _geo("br-x", (0, 215, 0), "Bottom-right x", ""),
     "br-x-215899": _geo(
         "br-x",
         (0, 215.899993896484, 0),
@@ -163,17 +138,10 @@ OPTIONS = {
         "Bottom-right x",
         "Bottom-right x position of scan area.",
     ),
-    "br-x-216": _geo(
-        "br-x",
-        (0, 216, 0),
-        "br-x",
-        'Bottom-right x position of scan area. You should use it in "User defined" mode only!',
-    ),
     "br-x-bottom-right-x": _geo(
         "br-x", (0, 215.899993896484, 0), "Bottom Right X", "Bottom Right X"
     ),
     "br-x-356": _geo("br-x", (0, 356.0, 0), "Bottom Right X", "Bottom Right X"),
-    "br-y-297": _geo("br-y", (0, 297, 0), "Bottom-right y", ""),
     "br-y-297179": _geo(
         "br-y",
         (0, 297.179992675781, 0),
@@ -185,12 +153,6 @@ OPTIONS = {
         (0, 297.010681152344, 0),
         "Bottom-right y",
         "Bottom-right y position of scan area.",
-    ),
-    "br-y-355": _geo(
-        "br-y",
-        (0, 355.599990844727, 0),
-        "br-y",
-        'Bottom-right y position of scan area. You should use it in "User defined" mode only!',
     ),
     "br-y-bottom-right-y": _geo(
         "br-y", (0, 297.179992675781, 0), "Bottom Right Y", "Bottom Right Y"
