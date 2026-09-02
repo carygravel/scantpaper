@@ -418,6 +418,25 @@ class TestScanDialog:
 
         scan._set_option_profile(profile, iter([1]))
 
+    def test_set_option_profile_bool_conversion(self):
+        "Profile backend values of TYPE_BOOL are coerced to bool"
+        scan = MockScan()
+        scan.combobp.get_num_rows.return_value = 0
+        # Device reports swcrop True; profile asks for False, so
+        # within_tolerance() returns False and we proceed to set_option()
+        scan.thread.device_handle.swcrop = True
+        scan.available_scan_options = MockOptions(
+            [MockOption("swcrop", enums.TYPE_BOOL)]
+        )
+        scan.set_option = unittest.mock.Mock()
+        profile = unittest.mock.Mock()
+        profile.get_backend_option_by_index.return_value = ("swcrop", 0)
+        profile.each_frontend_option.return_value = []
+        scan._set_option_profile(profile, iter([1]))
+        scan.set_option.assert_called_once()
+        # the value passed onward is a real Python bool, proving bool() ran
+        assert scan.set_option.call_args[0][1] is False
+
     def test_update_widget_value_types(self):
         "Test updating widget values for different option types"
         scan = MockScan()
