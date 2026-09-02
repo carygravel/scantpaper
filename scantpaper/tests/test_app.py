@@ -164,7 +164,9 @@ def test_parse_arguments_locale(mocker):
     # Test relative locale (no /)
     with patch("sys.argv", ["prog", "--locale", "local_locale"]):
         mocker.patch("app.re.search", return_value=False)
-        with patch("os.getcwd", return_value="/current/dir"):
+        with patch.object(
+            pathlib.Path, "cwd", return_value=pathlib.Path("/current/dir")
+        ):
             _parse_arguments()
 
             mock_bindtextdomain.assert_called_with(

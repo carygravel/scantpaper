@@ -327,7 +327,7 @@ def test_save_djvu(mock_thread_instance, mock_page_instance):
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.unlink"),
+        patch("savethread.pathlib.Path.unlink"),
         patch("savethread._set_timestamp"),
         patch("savethread._post_save_hook"),
         patch("savethread.exec_command_run") as mock_run,
@@ -363,7 +363,7 @@ def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.unlink"),
+        patch("savethread.pathlib.Path.unlink"),
         patch("savethread._set_timestamp"),
         patch("savethread._post_save_hook"),
         patch("savethread.exec_command_run"),
@@ -394,7 +394,7 @@ def test_save_tiff(mock_thread_instance, mock_page_instance):
     with (
         patch("savethread.tempfile.NamedTemporaryFile") as mock_temp,
         patch("savethread.exec_command_run") as mock_run,
-        patch("savethread.os.unlink"),
+        patch("savethread.pathlib.Path.unlink"),
         patch("savethread._post_save_hook"),
     ):
         mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.tif"
@@ -424,7 +424,7 @@ def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
         patch("savethread.tempfile.NamedTemporaryFile"),
         patch("savethread.exec_command_run"),
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.unlink"),
+        patch("savethread.pathlib.Path.unlink"),
         patch("savethread._post_save_hook"),
     ):
         mock_exec.return_value.returncode = 0
@@ -452,7 +452,7 @@ def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
         patch("savethread.tempfile.NamedTemporaryFile"),
         patch("savethread.exec_command_run"),
         patch("savethread.exec_command") as mock_exec,
-        patch("savethread.os.unlink"),
+        patch("savethread.pathlib.Path.unlink"),
         patch("savethread._post_save_hook"),
     ):
         mock_exec.return_value.returncode = 1
@@ -895,10 +895,12 @@ def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
 
 
 def test_append_pdf_rename_failure():
-    "Test _append_pdf function when os.rename raises ValueError"
+    "Test _append_pdf function when Path.rename raises ValueError"
     request = MagicMock()
     options = {"options": {"prepend": "/tmp/prepend.pdf"}, "pidfile": "pidfile"}
-    with patch("savethread.os.rename", side_effect=ValueError("Rename error")):
+    with patch(
+        "savethread.pathlib.Path.rename", side_effect=ValueError("Rename error")
+    ):
         ret = _append_pdf("/tmp/temp.pdf", options, request)
         assert ret is None
         assert request.error.called
@@ -912,7 +914,7 @@ def test_append_pdf_pdfunite_failure():
     mock_proc.returncode = 1
     mock_proc.stderr = "pdfunite error"
     with (
-        patch("savethread.os.rename"),
+        patch("savethread.pathlib.Path.rename"),
         patch("savethread.exec_command", return_value=mock_proc),
     ):
         ret = _append_pdf("/tmp/temp.pdf", options, request)
