@@ -3,7 +3,7 @@
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     Gdk,
     Gtk,
 )

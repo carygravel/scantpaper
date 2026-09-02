@@ -56,7 +56,6 @@ filterwarnings = [
 
 [project.optional-dependencies]
 test = [
-    "black==26.3.1",
     "pytest",
     "pytest-cov",
     "pytest-mock",
@@ -76,6 +75,12 @@ scantpaper = "scantpaper.app:main"
 [tool.ruff]
 target-version = "py310"
 line-length = 88
+
+[tool.ruff.format]
+# Ruff formats Python code blocks inside markdown files; exclude the OpenSpec
+# docs tree so the formatter only governs actual Python source (the archived
+# change records under openspec/changes/archive are historical and untouched).
+exclude = ["openspec/**"]
 
 [tool.ruff.lint]
 # Ruff is an editor-time linter (used by zed). It is not a CI or packaging

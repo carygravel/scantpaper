@@ -1,5 +1,13 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 26.3.1
+  - repo: local
     hooks:
-      - id: black
+      - id: ruff
+        name: ruff check
+        entry: venv/bin/ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: venv/bin/ruff format --check
+        language: system
+        types: [python]

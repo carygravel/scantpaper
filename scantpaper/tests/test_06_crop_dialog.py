@@ -1,14 +1,12 @@
 "test dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 import gi
 from dialog.crop import Crop
 from loop_helpers import safe_mainloop
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     Gdk,
     Gtk,
 )

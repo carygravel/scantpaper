@@ -1,7 +1,5 @@
 "test frontend/image_sane.py"
 
-# pylint: disable=protected-access  # tests access private members
-
 import threading
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -103,12 +101,12 @@ def test_error_handling():
 
     def scan_error_callback(response):
         nonlocal asserts
-        assert (
-            response.request.process == "scan_page"
-        ), "scan_page without opening device"
-        assert (
-            response.status == "must open device before starting scan"
-        ), "scan_error_callback status"
+        assert response.request.process == "scan_page", (
+            "scan_page without opening device"
+        )
+        assert response.status == "must open device before starting scan", (
+            "scan_error_callback status"
+        )
         asserts += 1
 
     thread.scan_page(error_callback=scan_error_callback)
@@ -127,9 +125,9 @@ def test_2():
 
     def get_devices_callback(response):
         nonlocal asserts
-        assert (
-            response.request.process == "get_devices"
-        ), "get_devices_finished_callback"
+        assert response.request.process == "get_devices", (
+            "get_devices_finished_callback"
+        )
         assert isinstance(response.info, list), "get_devices_finished_callback"
         asserts += 1
 
@@ -164,9 +162,9 @@ def test_3():
 
     def scan_page_finished_callback(response):
         nonlocal asserts
-        assert isinstance(
-            response.info, PIL.Image.Image
-        ), "scan_page finished_callback returned image"
+        assert isinstance(response.info, PIL.Image.Image), (
+            "scan_page finished_callback returned image"
+        )
         assert response.info.size[0] > 0, "scan_page finished_callback image width"
         assert response.info.size[1] > 0, "scan_page finished_callback image height"
         asserts += 1
@@ -178,9 +176,9 @@ def test_3():
 
     def new_page_callback(image):
         nonlocal asserts
-        assert isinstance(
-            image, PIL.Image.Image
-        ), "scan_page finished_callback returned image"
+        assert isinstance(image, PIL.Image.Image), (
+            "scan_page finished_callback returned image"
+        )
         assert image.size[0] > 0, "scan_page finished_callback image width"
         assert image.size[1] > 0, "scan_page finished_callback image height"
         asserts += 1

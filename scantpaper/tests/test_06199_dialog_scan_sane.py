@@ -1,7 +1,5 @@
 "test scan dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 import logging
 from types import SimpleNamespace
 
@@ -96,9 +94,9 @@ def test_scan_source_adf(
     set_device_wait_reload(dialog, "mock_name")
 
     # This should trigger the first if branch in mocked_do_set_option
-    assert set_option_in_mainloop(
-        dialog, "source", "Automatic Document Feeder"
-    ), "set source to ADF"
+    assert set_option_in_mainloop(dialog, "source", "Automatic Document Feeder"), (
+        "set source to ADF"
+    )
 
 
 def test_scan_page_no_device(sane_scan_mocks):

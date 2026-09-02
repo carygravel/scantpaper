@@ -1,7 +1,5 @@
 "Test preferences dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -10,7 +8,7 @@ from config import DEFAULTS
 from dialog.preferences import PreferencesDialog
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 @patch("dialog.preferences.shutil.which")
@@ -148,9 +146,9 @@ def test_delete_udt():
     delete_button.clicked()
 
     # Verify that the hbox was destroyed
-    assert (
-        hbox not in dialog._vboxt.get_children()
-    ), "User defined tool hbox was not destroyed"
+    assert hbox not in dialog._vboxt.get_children(), (
+        "User defined tool hbox was not destroyed"
+    )
     assert len(dialog._vboxt.get_children()) == 1, "Only 'Add' button should remain"
 
 
@@ -175,15 +173,15 @@ def test_apply_callback_shows_error_for_nonexistent_tool(
     mock_message_dialog.assert_called_once()
     _args, kwargs = mock_message_dialog.call_args
     text = kwargs.get("text", "")
-    assert (
-        "nonexistent_tool" in text
-    ), f"Error message should mention the tool name, got: {text}"
+    assert "nonexistent_tool" in text, (
+        f"Error message should mention the tool name, got: {text}"
+    )
 
     assert dialog.get_visible(), "Dialog should remain visible when validation fails"
 
-    assert dialog.settings["user_defined_tools"] == [
-        "nonexistent_tool %i %o"
-    ], "Settings should remain unchanged when validation fails"
+    assert dialog.settings["user_defined_tools"] == ["nonexistent_tool %i %o"], (
+        "Settings should remain unchanged when validation fails"
+    )
 
 
 @patch("dialog.preferences.shutil.which")
@@ -224,9 +222,9 @@ def test_apply_callback_allows_valid_tool(mock_which):
     dialog = PreferencesDialog(settings=settings)
     dialog._apply_callback()
 
-    assert (
-        "convert %i -negate %o" in dialog.settings["user_defined_tools"]
-    ), "Valid tool should be saved"
+    assert "convert %i -negate %o" in dialog.settings["user_defined_tools"], (
+        "Valid tool should be saved"
+    )
 
 
 @pytest.mark.parametrize(
@@ -242,9 +240,9 @@ def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitiv
     dialog = PreferencesDialog(settings=settings)
 
     cancel_cb = dialog._cb_cancel_btw_pages
-    assert (
-        cancel_cb.get_sensitive() is expected_sensitive
-    ), "cancel-between-pages sensitivity should mirror allow-batch-flatbed"
+    assert cancel_cb.get_sensitive() is expected_sensitive, (
+        "cancel-between-pages sensitivity should mirror allow-batch-flatbed"
+    )
 
 
 def test_cancel_between_pages_sensitivity_toggles():
@@ -259,14 +257,14 @@ def test_cancel_between_pages_sensitivity_toggles():
     assert not cancel_cb.get_sensitive()
 
     batch_cb.set_active(True)
-    assert (
-        cancel_cb.get_sensitive()
-    ), "enabling allow-batch-flatbed should enable the cancel checkbox"
+    assert cancel_cb.get_sensitive(), (
+        "enabling allow-batch-flatbed should enable the cancel checkbox"
+    )
 
     batch_cb.set_active(False)
-    assert (
-        not cancel_cb.get_sensitive()
-    ), "disabling allow-batch-flatbed should disable the cancel checkbox"
+    assert not cancel_cb.get_sensitive(), (
+        "disabling allow-batch-flatbed should disable the cancel checkbox"
+    )
 
 
 @patch("dialog.preferences.Gtk.MessageDialog")
@@ -286,9 +284,9 @@ def test_apply_callback_shows_error_for_empty_tool(mock_message_dialog):
     mock_message_dialog.assert_called_once()
     _args, kwargs = mock_message_dialog.call_args
     text = kwargs.get("text", "")
-    assert (
-        "could not be found" in text
-    ), f"Error message should mention that tools could not be found, got: {text}"
+    assert "could not be found" in text, (
+        f"Error message should mention that tools could not be found, got: {text}"
+    )
 
     assert dialog.get_visible(), "Dialog should remain visible when validation fails"
 

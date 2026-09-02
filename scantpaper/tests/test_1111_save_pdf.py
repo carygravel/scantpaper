@@ -1,7 +1,5 @@
 "Test writing basic PDF"
 
-# pylint: disable=protected-access  # tests access private members
-
 import datetime
 import locale
 import pathlib
@@ -377,9 +375,9 @@ def test_save_pdf_with_utf8(
     mlp.run()
 
     out = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
-    assert (
-        re.search(r"пени\s*способствовала\s*сохранению", out) is not None
-    ), "PDF with expected text"
+    assert re.search(r"пени\s*способствовала\s*сохранению", out) is not None, (
+        "PDF with expected text"
+    )
 
 
 def test_save_pdf_with_1bpp(
@@ -533,17 +531,17 @@ def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop)
     with pikepdf.open(temp_pdf.name) as pdf:
         docinfo = pdf.docinfo or {}
         assert docinfo.get("/Title") == "metadata title", "metadata title in PDF"
-        assert (
-            "/Subject" not in docinfo or docinfo["/Subject"] != ""
-        ), "don't add blank metadata"
+        assert "/Subject" not in docinfo or docinfo["/Subject"] != "", (
+            "don't add blank metadata"
+        )
         creationdate = str(docinfo.get("/CreationDate", ""))
         assert "20160210" in creationdate, "metadata CreationDate in PDF"
     stb = pathlib.Path(temp_pdf.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(
-        2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc
-    ), "timestamp"
+    ) == datetime.datetime(2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc), (
+        "timestamp"
+    )
 
 
 def test_save_pdf_without_title_has_no_placeholder_title(
@@ -633,9 +631,9 @@ def test_save_pdf_creator_branded(rose_pnm, temp_pdf, temp_db, import_in_mainloo
         assert producer.startswith("pikepdf"), "producer untouched"
         with pdf.open_metadata() as md:
             assert md.get("xmp:CreatorTool") == creator, "XMP creator matches docinfo"
-            assert str(md.get("pdf:Producer")).startswith(
-                "pikepdf"
-            ), "XMP producer untouched"
+            assert str(md.get("pdf:Producer")).startswith("pikepdf"), (
+                "XMP producer untouched"
+            )
             assert md.get("pdfaid:part") is not None, "PDF/A identification kept"
 
 
@@ -847,9 +845,9 @@ def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainlo
     mlp.run()
 
     img = Image.open(temp_jpg.name)
-    assert (
-        img.format == "JPEG"
-    ), "can create a valid JPG after cancelling save PDF process"
+    assert img.format == "JPEG", (
+        "can create a valid JPG after cancelling save PDF process"
+    )
 
 
 def test_import_pdf_without_text_and_resave(
@@ -928,9 +926,9 @@ def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
         imported = page.image_object.convert("L")
         assert imported.size == (100, 50)
         assert imported.getpixel((5, 5)) == 0, "opaque pixel stays black"
-        assert (
-            imported.getpixel((6, 5)) == 127
-        ), "half-transparent pixel blended with white"
+        assert imported.getpixel((6, 5)) == 127, (
+            "half-transparent pixel blended with white"
+        )
         assert imported.getpixel((0, 0)) == 255, "transparent pixel becomes white"
 
 

@@ -1,7 +1,5 @@
 "Tests for the ScanMenuItemMixins."
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 import os
 from types import SimpleNamespace
 from typing import ClassVar

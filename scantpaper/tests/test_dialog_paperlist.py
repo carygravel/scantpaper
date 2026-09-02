@@ -5,14 +5,14 @@ import pytest
 from dialog.paperlist import PaperList
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 def test_paperlist():
     "Test PaperList class"
 
     with pytest.raises(TypeError):
-        PaperList()  # pylint: disable=no-value-for-parameter
+        PaperList()
     plist = PaperList({"A4": {"x": 210, "y": 297, "l": 0, "t": 0}})
     assert plist is not None
 

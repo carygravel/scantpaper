@@ -5,7 +5,7 @@ import pytest
 from simplelist import SimpleList
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 def test_basic():
@@ -62,9 +62,9 @@ def test_basic():
     slist.unselect([4])
     assert slist.get_selected_indices() == [], "unselect with invalid indices"
 
-    assert slist.get_row_data_from_path(Gtk.TreePath(0)) == [
-        "row1"
-    ], "get_row_data_from_path"
+    assert slist.get_row_data_from_path(Gtk.TreePath(0)) == ["row1"], (
+        "get_row_data_from_path"
+    )
 
     assert slist.data.pop() == ["row2"], "pop"
     assert slist.data == [["row1"]], "data after pop"
@@ -101,9 +101,9 @@ def test_error():
     SimpleList.add_column_type(new={})
     with pytest.warns(UserWarning, match="column type 'new' has no 'type' field"):
         slist = SimpleList(col1="new", col2="markup", col3="bool", col4="scalar")
-    assert (
-        slist.get_column_types()["new"]["type"] is str
-    ), "unknown custom renderers default to str"
+    assert slist.get_column_types()["new"]["type"] is str, (
+        "unknown custom renderers default to str"
+    )
 
     slist = SimpleList(col1="text")
     with pytest.raises(ValueError, match="invalid column index"):
@@ -186,9 +186,9 @@ def test_shared_renderer_isolation():
     slist1.set_column_editable(0, True)
 
     slist2 = SimpleList(col1="text")
-    assert not slist2.get_column_editable(
-        0
-    ), "Second list should not inherit editability"
+    assert not slist2.get_column_editable(0), (
+        "Second list should not inherit editability"
+    )
 
 
 def test_edited_types():

@@ -24,7 +24,7 @@ from PIL import ImageChops, ImageEnhance, ImageFilter, ImageOps, ImageStat
 from savethread import SaveThread
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GdkPixbuf,
     GLib,
 )
@@ -467,14 +467,14 @@ class DocThread(SaveThread):
         if row_ids:
             self._execute(
                 f"""DELETE FROM page_order
-                    WHERE row_id IN ({", ".join(["?"]*len(row_ids))}) AND action_id = ?""",
+                    WHERE row_id IN ({", ".join(["?"] * len(row_ids))}) AND action_id = ?""",
                 (*row_ids, self._action_id),
             )
 
         if page_ids:
             self._execute(
                 f"""DELETE FROM page_order
-                    WHERE initial_page_id IN ({", ".join(["?"]*len(page_ids))})
+                    WHERE initial_page_id IN ({", ".join(["?"] * len(page_ids))})
                         AND action_id = ?""",
                 (*page_ids, self._action_id),
             )
@@ -594,7 +594,7 @@ class DocThread(SaveThread):
         pages = self._fetchall()
         image_ids = [page[0] for page in pages]
         self._execute(
-            f"SELECT image, thumb FROM image WHERE id IN ({', '.join(['?']*len(image_ids))})",
+            f"SELECT image, thumb FROM image WHERE id IN ({', '.join(['?'] * len(image_ids))})",
             (*image_ids,),
         )
         images = self._fetchall()
@@ -648,7 +648,7 @@ class DocThread(SaveThread):
                           WHERE action_id = ?
                            AND page_id = page.id
                            AND image_id = image.id
-                           AND page_id IN ({", ".join(["?"]*len(new_pages))})""",
+                           AND page_id IN ({", ".join(["?"] * len(new_pages))})""",
             (self._action_id, *[row[2] for row in new_pages]),
         )
         rows = []
@@ -1373,7 +1373,6 @@ class DocThread(SaveThread):
         # otherwise current directory is searched for tesseract files
         path, _languages = tesserocr.get_languages()
         if path == "./":
-
             # some systems allow multiple tessdata dirs, e.g. parallel v4 & v5
             paths = sorted(
                 str(p)
@@ -1451,7 +1450,7 @@ class DocThread(SaveThread):
     def _run_unpaper_cmd(self, request):
         options = request.args[0]
         # SIM115: cross-scope file handle used intentionally
-        out = tempfile.NamedTemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
+        out = tempfile.NamedTemporaryFile(  # noqa: SIM115
             dir=options.get("dir"), suffix=".pnm"
         )
         out2 = None
@@ -1460,7 +1459,7 @@ class DocThread(SaveThread):
         index = options["options"]["command"].index("--output-pages")
         if options["options"]["command"][index + 1] == "2":
             # SIM115: cross-scope file handle used intentionally
-            out2 = tempfile.NamedTemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
+            out2 = tempfile.NamedTemporaryFile(  # noqa: SIM115
                 dir=options.get("dir"), suffix=".pnm"
             )
             options["options"]["command"][-1] = out2.name

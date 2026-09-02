@@ -1,7 +1,5 @@
 "test scan dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 import logging
 
 from scanner.profile import Profile

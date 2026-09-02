@@ -1,7 +1,5 @@
 "Tests for Importhread"
 
-# pylint: disable=protected-access  # tests access private members
-
 import pathlib
 import subprocess
 import unittest.mock

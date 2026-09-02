@@ -1,7 +1,5 @@
 "Coverage tests for basedocument.py"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 import pathlib
 import queue
 import shutil
@@ -19,7 +17,7 @@ from document import Document
 from loop_helpers import safe_mainloop
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
 )
@@ -101,7 +99,6 @@ def test_cancel(mock_thread):
         patch("os.killpg") as mock_killpg,
         patch("os.getpgid", return_value=12345),
     ):
-
         cancel_callback = MagicMock()
         process_callback = MagicMock()
 
@@ -501,9 +498,9 @@ def test_reorder_pages_data_callback():
     data_callback(response)
 
     assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to end"
-    assert (
-        slist._suppress_delete is True
-    ), "suppress flag survives the worker response so the later drag-data-delete is suppressed"
+    assert slist._suppress_delete is True, (
+        "suppress flag survives the worker response so the later drag-data-delete is suppressed"
+    )
 
 
 def test_reorder_then_drag_data_delete_not_double_deleted():
@@ -965,9 +962,9 @@ def test_delete_all_pages_sends_page_ids_and_clears_on_response():
 
     assert captured["cmd"] == "delete_pages"
     assert captured["args"] == {"page_ids": [101, 102]}
-    assert (
-        "finished_callback" not in captured["kwargs"]
-    ), "finished_callback not forwarded to the thread"
+    assert "finished_callback" not in captured["kwargs"], (
+        "finished_callback not forwarded to the thread"
+    )
 
     # rows are only removed once the thread responds
     assert len(slist.get_model()) == 2

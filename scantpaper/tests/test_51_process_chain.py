@@ -68,9 +68,9 @@ def test_process_chain(temp_db, temp_pnm, get_page_sync):
     )
     mlp.run()
 
-    assert (
-        asserts == 4
-    ), "display callback called for import, rotate, unpaper, tesseract"
+    assert asserts == 4, (
+        "display callback called for import, rotate, unpaper, tesseract"
+    )
     page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 300, "Resolution of imported image"
 

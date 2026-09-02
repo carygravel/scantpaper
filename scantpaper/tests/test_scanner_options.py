@@ -111,49 +111,49 @@ def test_within_tolerance():
         ]
     )
 
-    assert not within_tolerance(
-        options.array[1], "value", "value"
-    ), "SANE_CONSTRAINT_NONE"
-    assert within_tolerance(
-        options.by_name("mode"), "Gray", "Gray"
-    ), "SANE_CONSTRAINT_STRING_LIST positive"
-    assert within_tolerance(
-        options.by_name("depth"), 8, 8
-    ), "SANE_CONSTRAINT_WORD_LIST positive"
-    assert within_tolerance(
-        options.by_name("resolution"), 50, 50
-    ), "SANE_CONSTRAINT_RANGE exact"
-    assert within_tolerance(
-        options.by_name("resolution"), 50, 50.1
-    ), "SANE_CONSTRAINT_RANGE inexact"
-    assert not within_tolerance(
-        options.by_name("mode"), "Gray", "gray"
-    ), "SANE_CONSTRAINT_STRING_LIST negative"
-    assert not within_tolerance(
-        options.by_name("depth"), 8, 7
-    ), "SANE_CONSTRAINT_WORD_LIST negative"
-    assert not within_tolerance(
-        options.by_name("resolution"), 50, 51.1
-    ), "SANE_CONSTRAINT_RANGE negative"
-    assert not within_tolerance(
-        options.by_name("hand-scanner"), False, 1
-    ), "SANE_TYPE_BOOL negative"
+    assert not within_tolerance(options.array[1], "value", "value"), (
+        "SANE_CONSTRAINT_NONE"
+    )
+    assert within_tolerance(options.by_name("mode"), "Gray", "Gray"), (
+        "SANE_CONSTRAINT_STRING_LIST positive"
+    )
+    assert within_tolerance(options.by_name("depth"), 8, 8), (
+        "SANE_CONSTRAINT_WORD_LIST positive"
+    )
+    assert within_tolerance(options.by_name("resolution"), 50, 50), (
+        "SANE_CONSTRAINT_RANGE exact"
+    )
+    assert within_tolerance(options.by_name("resolution"), 50, 50.1), (
+        "SANE_CONSTRAINT_RANGE inexact"
+    )
+    assert not within_tolerance(options.by_name("mode"), "Gray", "gray"), (
+        "SANE_CONSTRAINT_STRING_LIST negative"
+    )
+    assert not within_tolerance(options.by_name("depth"), 8, 7), (
+        "SANE_CONSTRAINT_WORD_LIST negative"
+    )
+    assert not within_tolerance(options.by_name("resolution"), 50, 51.1), (
+        "SANE_CONSTRAINT_RANGE negative"
+    )
+    assert not within_tolerance(options.by_name("hand-scanner"), False, 1), (
+        "SANE_TYPE_BOOL negative"
+    )
     assert within_tolerance(options.by_name("int"), 20, 20), "SANE_TYPE_INT positive"
-    assert not within_tolerance(
-        options.by_name("int"), 20, 21
-    ), "SANE_TYPE_INT negative"
-    assert within_tolerance(
-        options.by_name("fixed"), 20.5, 20.5
-    ), "SANE_TYPE_FIXED positive"
-    assert not within_tolerance(
-        options.by_name("fixed"), 20.0, 21
-    ), "SANE_TYPE_FIXED negative"
-    assert within_tolerance(
-        options.by_name("string"), "20.5", "20.5"
-    ), "SANE_TYPE_STRING positive"
-    assert not within_tolerance(
-        options.by_name("string"), "20.5", "21"
-    ), "SANE_TYPE_STRING negative"
+    assert not within_tolerance(options.by_name("int"), 20, 21), (
+        "SANE_TYPE_INT negative"
+    )
+    assert within_tolerance(options.by_name("fixed"), 20.5, 20.5), (
+        "SANE_TYPE_FIXED positive"
+    )
+    assert not within_tolerance(options.by_name("fixed"), 20.0, 21), (
+        "SANE_TYPE_FIXED negative"
+    )
+    assert within_tolerance(options.by_name("string"), "20.5", "20.5"), (
+        "SANE_TYPE_STRING positive"
+    )
+    assert not within_tolerance(options.by_name("string"), "20.5", "21"), (
+        "SANE_TYPE_STRING negative"
+    )
 
     option = Option(
         cap=enums.CAP_SOFT_SELECT + enums.CAP_SOFT_DETECT,
@@ -166,9 +166,9 @@ def test_within_tolerance():
         type=enums.TYPE_FIXED,
         unit=enums.UNIT_MM,
     )
-    assert within_tolerance(
-        option, 0.999984741210938, 1, 0.001
-    ), "SANE_CONSTRAINT_RANGE inexact with tolerance"
+    assert within_tolerance(option, 0.999984741210938, 1, 0.001), (
+        "SANE_CONSTRAINT_RANGE inexact with tolerance"
+    )
 
 
 @pytest.mark.parametrize(

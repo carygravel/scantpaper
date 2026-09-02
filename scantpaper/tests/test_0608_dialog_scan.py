@@ -1,7 +1,5 @@
 "test scan dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 from types import SimpleNamespace
 
 from frontend import enums
@@ -176,9 +174,9 @@ def test_source_default(
     mainloop_with_timeout()
 
     options = dlg.available_scan_options
-    assert options.flatbed_selected(
-        dlg.thread.get_option_value
-    ), "flatbed_selected() without value"
+    assert options.flatbed_selected(dlg.thread.get_option_value), (
+        "flatbed_selected() without value"
+    )
     assert not dlg.framen.is_sensitive(), "num-page gui ghosted"
     dlg.num_pages = 2
     assert dlg.num_pages == 1, "allow-batch-flatbed should force num-pages"
@@ -220,9 +218,9 @@ def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
     def changed_profile_cb(widget, profile):
         nonlocal asserts
         dlg.disconnect(dlg.signal)
-        assert dlg.current_scan_options == Profile(
-            backend=[("resolution", 100)]
-        ), "reset before applying profile"
+        assert dlg.current_scan_options == Profile(backend=[("resolution", 100)]), (
+            "reset before applying profile"
+        )
         asserts += 1
         loop.quit()
 

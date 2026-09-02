@@ -79,9 +79,6 @@ def mock_page_instance():
     return page
 
 
-# pylint: disable=redefined-outer-name
-
-
 def test_save_pdf(mock_thread_instance, mock_page_instance):
     "Test save_pdf method"
     mock_thread_instance.mock_pages[1] = mock_page_instance
@@ -1151,9 +1148,9 @@ def test_save_pdf_per_page_progress(mock_thread_instance, mock_page_instance):
         and event[1].startswith(_("Writing page"))
     ]
     assert writing_page_indices, "per-page message reported"
-    assert (
-        max(writing_page_indices) < convert_index
-    ), "per-page message reported before img2pdf.convert"
+    assert max(writing_page_indices) < convert_index, (
+        "per-page message reported before img2pdf.convert"
+    )
 
     writing_pdf_indices = [
         i
@@ -1161,6 +1158,6 @@ def test_save_pdf_per_page_progress(mock_thread_instance, mock_page_instance):
         if event[0] == "data" and event[1] == _("Writing PDF")
     ]
     assert writing_pdf_indices, '"Writing PDF" message reported'
-    assert (
-        writing_pdf_indices[0] < convert_index
-    ), '"Writing PDF" message reported before img2pdf.convert'
+    assert writing_pdf_indices[0] < convert_index, (
+        '"Writing PDF" message reported before img2pdf.convert'
+    )

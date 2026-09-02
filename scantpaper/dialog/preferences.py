@@ -13,7 +13,7 @@ from i18n import _
 from dialog import Dialog
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
 )
@@ -187,7 +187,8 @@ class PreferencesDialog(Dialog):
         label = Gtk.Label(label=_("Default PDF & DjVu filename"))
         hbox.pack_start(label, False, False, 0)
         self._fileentry = Gtk.Entry()
-        self._fileentry.set_tooltip_text(_("""strftime codes, e.g.:
+        self._fileentry.set_tooltip_text(
+            _("""strftime codes, e.g.:
 %Y	current year
 
 with the following additions:
@@ -201,7 +202,8 @@ All document date codes use strftime codes with a leading D, e.g.:
 %DY	document year
 %Dm	document month
 %Dd	document day
-"""))
+""")
+        )
         hbox.add(self._fileentry)
         self._fileentry.set_text(self.settings["default filename"])
 

@@ -1,7 +1,5 @@
 "Test tool_menu_mixins.py"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 import datetime
 from typing import ClassVar
 
@@ -12,7 +10,7 @@ from helpers import Proc
 from tools_menu_mixins import ToolsMenuMixins
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
 )

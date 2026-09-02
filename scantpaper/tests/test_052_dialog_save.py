@@ -1,7 +1,5 @@
 "test dialog.save"
 
-# pylint: disable=protected-access  # tests access private members
-
 from datetime import date, datetime, timedelta
 
 import gi
@@ -9,7 +7,7 @@ from dialog import Dialog
 from dialog.save import Save
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 _LOCAL_TZ = datetime.now().astimezone().tzinfo
 
@@ -93,9 +91,9 @@ def test_basic(mocker):
         "other key": "other key",
     }
     dialog.update_from_import_metadata(metadata)
-    assert dialog.meta_datetime == datetime(
-        2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ
-    ), "date"
+    assert dialog.meta_datetime == datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ), (
+        "date"
+    )
     assert dialog.meta_author == "old author", "author"
     assert dialog.meta_title == "old title", "title"
     assert dialog.meta_subject == "old subject", "subject"
@@ -110,9 +108,9 @@ def test_datetime():
         meta_datetime=datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ),
         select_datetime=True,
     )
-    assert dialog.meta_datetime == datetime(
-        2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ
-    ), "date and time"
+    assert dialog.meta_datetime == datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ), (
+        "date and time"
+    )
 
 
 def test_now(mocker):

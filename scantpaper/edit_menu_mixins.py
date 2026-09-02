@@ -11,7 +11,7 @@ from dialog.preferences import PreferencesDialog
 from i18n import _, d_sane
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +214,6 @@ class EditMenuMixins:
     def select_blank_pages(self):
         "Select blank pages"
         for page in self.slist.data:
-
             # compare Std Dev to threshold
             # std_dev is a list -- 1 value per channel
             if (
@@ -240,7 +239,6 @@ class EditMenuMixins:
     def select_dark_pages(self):
         "Select dark pages"
         for page in self.slist.data:
-
             # compare Mean to threshold
             # mean is a list -- 1 value per channel
             if (

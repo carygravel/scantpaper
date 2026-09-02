@@ -1,7 +1,5 @@
 "test scan dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 import logging
 from types import SimpleNamespace
 
@@ -264,9 +262,9 @@ def test_unsetting_profile(
     def changed_profile_cb(_widget, profile):
         dialog.disconnect(dialog.signal)
         assert dialog.paper is None, "paper undefined after changing geometry"
-        assert (
-            dialog.combobp.get_active_text() == "Manual"
-        ), "paper undefined means manual geometry"
+        assert dialog.combobp.get_active_text() == "Manual", (
+            "paper undefined means manual geometry"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -333,9 +331,9 @@ def test_restore_options_after_cycle(
     callbacks = 0
 
     assert set_option_in_mainloop(dialog, "resolution", 51), "set resolution"
-    assert dialog.current_scan_options == Profile(
-        backend=[("resolution", 51)]
-    ), "set resolution before scan"
+    assert dialog.current_scan_options == Profile(backend=[("resolution", 51)]), (
+        "set resolution before scan"
+    )
 
     def finished_process_cb(_widget, process):
         if process == "open_device":
@@ -345,12 +343,12 @@ def test_restore_options_after_cycle(
 
     def reloaded_scan_options_cb(_widget):
         # After cycling the device, check that options are still correct
-        assert dialog.current_scan_options == Profile(
-            backend=[("resolution", 51)]
-        ), f"set resolution after scan, got {dialog.current_scan_options.backend}"
-        assert (
-            dialog.option_widgets["resolution"] is not None
-        ), "resolution widget should be defined by the time the scan options have been updated"
+        assert dialog.current_scan_options == Profile(backend=[("resolution", 51)]), (
+            f"set resolution after scan, got {dialog.current_scan_options.backend}"
+        )
+        assert dialog.option_widgets["resolution"] is not None, (
+            "resolution widget should be defined by the time the scan options have been updated"
+        )
         dialog.disconnect(dialog.reload_signal)
         loop.quit()
         nonlocal callbacks
@@ -525,9 +523,9 @@ def test_hiding_geometry(
     def changed_paper(_widget, paper):
         assert paper == "US Letter", "changed-paper"
         assert not dialog.option_widgets["tl-x"].is_visible(), "geometry hidden"
-        assert (
-            dialog.thread.device_handle.br_x == 215.900009155273
-        ), "option value rounded down to max"
+        assert dialog.thread.device_handle.br_x == 215.900009155273, (
+            "option value rounded down to max"
+        )
         loop.quit()
         nonlocal callbacks
         callbacks += 1

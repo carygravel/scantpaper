@@ -1,7 +1,5 @@
 "test scan dialog current_scan_options property"
 
-# pylint: disable=protected-access  # tests access private members
-
 import threading
 import time
 from types import SimpleNamespace
@@ -14,7 +12,7 @@ from frontend import enums
 from scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
 )
@@ -555,9 +553,9 @@ def test_profile_not_cleared_during_profile_setting(mocker):
     dialog._post_set_option_hook(mock_opt, 300, profile.uuid)
 
     # Profile should NOT be cleared because we're actively setting it
-    assert (
-        dialog._profile == "test_profile"
-    ), f"Profile was cleared during profile setting! Current value: {dialog._profile}"
+    assert dialog._profile == "test_profile", (
+        f"Profile was cleared during profile setting! Current value: {dialog._profile}"
+    )
 
 
 def test_profile_not_cleared_by_late_paper_option(mocker):
@@ -876,9 +874,9 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
         print(f"setting_current_scan_options: {dialog.setting_current_scan_options}")
         print(f"cursor: {dialog.cursor}")
 
-        assert (
-            len(dialog.setting_current_scan_options) == 0
-        ), "setting_current_scan_options should be empty (clean state)"
+        assert len(dialog.setting_current_scan_options) == 0, (
+            "setting_current_scan_options should be empty (clean state)"
+        )
         assert dialog.cursor == "default", "cursor should be 'default' (clean state)"
 
 

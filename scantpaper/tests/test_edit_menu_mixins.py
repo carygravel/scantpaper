@@ -1,7 +1,5 @@
 "Tests for the EditMenuMixins."
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 import datetime
 from typing import ClassVar
 from unittest.mock import MagicMock
@@ -11,7 +9,7 @@ import pytest
 from edit_menu_mixins import EditMenuMixins
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 

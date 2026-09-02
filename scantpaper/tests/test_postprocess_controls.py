@@ -1,7 +1,5 @@
 "Tests for postprocess_controls.py"
 
-# pylint: disable=protected-access  # tests access private members
-
 from unittest.mock import MagicMock
 
 import gi
@@ -10,7 +8,7 @@ from postprocess_controls import OCRControls, RotateControlRow, RotateControls
 from session_mixins import SessionMixins
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 # Mock tesseract functions

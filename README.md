@@ -358,7 +358,6 @@ instructions.
 
 - python3-pytest-mock
 - python3-pytest-cov
-- python3-pytest-pylint
 - python3-pytest-timeout
 - python3-pytest-xvfb
 

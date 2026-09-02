@@ -125,9 +125,9 @@ startxref
 
     def error_cb(response):
         nonlocal asserts
-        assert re.search(
-            r"one image per page", response.status
-        ), "one image per page warning"
+        assert re.search(r"one image per page", response.status), (
+            "one image per page warning"
+        )
         asserts += 1
         mlp.quit()
 
@@ -178,9 +178,9 @@ def test_import_pdf_bw(temp_png, temp_pdf, temp_db, get_page_sync):
     )
     mlp.run()
 
-    assert (
-        get_page_sync(slist.thread, id=1).image_object.mode == "1"
-    ), "BW PDF imported correctly"
+    assert get_page_sync(slist.thread, id=1).image_object.mode == "1", (
+        "BW PDF imported correctly"
+    )
 
 
 def test_import_pdf_with_error(rose_png, temp_pdf):

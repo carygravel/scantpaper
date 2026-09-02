@@ -130,9 +130,9 @@ def test_config_string_conversion():
     output = read_config(rc)
     add_defaults(output)
 
-    assert isinstance(
-        output["image_control_tool"], str
-    ), "image_control_tool should be a string"
+    assert isinstance(output["image_control_tool"], str), (
+        "image_control_tool should be a string"
+    )
     assert isinstance(output["viewer_tools"], str), "viewer_tools should be a string"
 
     pathlib.Path(rc).unlink()
@@ -322,9 +322,9 @@ def test_read_non_existent_config():
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "non_existent_config"
         output = read_config(rc)
-        assert (
-            output == {}
-        ), "read_config should return empty dict for non-existent file"
-        assert pathlib.Path(
-            rc
-        ).exists(), "read_config should create the file if it doesn't exist"
+        assert output == {}, (
+            "read_config should return empty dict for non-existent file"
+        )
+        assert pathlib.Path(rc).exists(), (
+            "read_config should create the file if it doesn't exist"
+        )

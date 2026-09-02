@@ -304,6 +304,7 @@ def test_save_multipage_hocr(
     )
     mlp.run()
 
+    # fmt: off
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -338,6 +339,7 @@ def test_save_multipage_hocr(
  </body>
 </html>
 """
+    # fmt: on
     with pathlib.Path(temp_txt.name).open(encoding="utf-8") as f:
         assert f.read() == hocr, "saved hOCR"
 

@@ -1,7 +1,5 @@
 "Test unpaper"
 
-# pylint: disable=protected-access  # tests access private members
-
 import shutil
 import subprocess
 
@@ -14,7 +12,7 @@ from PIL import Image, ImageDraw
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 def test_unpaper_program_version(mocker):
@@ -270,9 +268,9 @@ def test_unpaper2(
 
     set_resolution_in_mainloop(slist, 1, 300, 300)
     page = get_page_sync(slist.thread, id=1)
-    assert (
-        page.resolution[0] == 300
-    ), "simulated having imported non-standard pnm with 300 PPI"
+    assert page.resolution[0] == 300, (
+        "simulated having imported non-standard pnm with 300 PPI"
+    )
 
     asserts = 0
 

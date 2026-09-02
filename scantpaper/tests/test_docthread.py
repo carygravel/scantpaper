@@ -1,7 +1,5 @@
 "Tests for DocThread"
 
-# pylint: disable=protected-access  # tests access private members
-
 import pathlib
 import sqlite3
 import subprocess
@@ -80,8 +78,9 @@ def test_do_tesseract_path_fallback_suse(mocker):
         pathlib.Path,
         "is_dir",
         autospec=True,
-        side_effect=lambda self: self
-        == pathlib.Path("/usr/share/tesseract-ocr/tessdata"),
+        side_effect=lambda self: (
+            self == pathlib.Path("/usr/share/tesseract-ocr/tessdata")
+        ),
     )
 
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
@@ -1047,9 +1046,9 @@ def test_ocr_undo_redo(temp_db, mocker):
 
     ocr_page = thread.get_page(id=page_id)
     assert '"text": "hello"' in ocr_page.text_layer
-    assert (
-        thread.get_page(id=page_id).image_id == image_id_before
-    ), "no new image inserted by OCR"
+    assert thread.get_page(id=page_id).image_id == image_id_before, (
+        "no new image inserted by OCR"
+    )
 
     thread.do_undo(Request("undo", (), thread.responses))
     undone_page = thread.get_page(id=page_id)
@@ -1161,9 +1160,9 @@ def test_open_migration_v1_to_v2(temp_db):
 def test_pixbuf_to_bytes():
     "test _pixbuf_to_bytes"
     thread = DocThread(db=":memory:")
-    assert (
-        thread._pixbuf_to_bytes(None) == b""
-    ), "Expected None pixbuf to return empty bytes"
+    assert thread._pixbuf_to_bytes(None) == b"", (
+        "Expected None pixbuf to return empty bytes"
+    )
 
 
 def test_init_race_condition(tmp_path, monkeypatch):

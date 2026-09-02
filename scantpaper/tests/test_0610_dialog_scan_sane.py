@@ -1,7 +1,5 @@
 "test scan dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 from types import SimpleNamespace
 from unittest.mock import ANY, MagicMock
 
@@ -26,9 +24,9 @@ def test_1(sane_scan_dialog):
     assert dialog.page_number_start == 1, "page-number-start"
     assert dialog.page_number_increment == 1, "page-number-increment"
     assert dialog.side_to_scan == "facing", "side-to-scan"
-    assert str(dialog.available_scan_options) == str(
-        Options([])
-    ), "available-scan-options"
+    assert str(dialog.available_scan_options) == str(Options([])), (
+        "available-scan-options"
+    )
 
     callbacks = 0
 
@@ -67,9 +65,9 @@ def test_1(sane_scan_dialog):
     def changed_side_to_scan_cb(_widget, side):
         dialog.disconnect(dialog.signal)
         assert side == "reverse", "changed-side-to-scan"
-        assert (
-            dialog.max_pages == 0
-        ), "reverse side with no facing batch gives max_pages 0"
+        assert dialog.max_pages == 0, (
+            "reverse side with no facing batch gives max_pages 0"
+        )
         nonlocal callbacks
         callbacks += 1
 
@@ -122,9 +120,9 @@ def test_2(sane_scan_dialog, mainloop_with_timeout):
     def added_profile_cb(_widget, name, profile):
         dialog.disconnect(dialog.signal)
         assert name == "my profile", "added-profile signal emitted"
-        assert profile == Profile(
-            backend=[("resolution", 51), ("mode", "Color")]
-        ), "added-profile profile"
+        assert profile == Profile(backend=[("resolution", 51), ("mode", "Color")]), (
+            "added-profile profile"
+        )
         nonlocal callbacks
         callbacks += 1
 
@@ -136,9 +134,9 @@ def test_2(sane_scan_dialog, mainloop_with_timeout):
     def added_profile_cb2(_widget, name, profile):
         dialog.disconnect(dialog.signal)
         assert name == "my profile", "replaced profile"
-        assert profile == Profile(
-            backend=[("resolution", 52), ("mode", "Color")]
-        ), "new added-profile profile"
+        assert profile == Profile(backend=[("resolution", 52), ("mode", "Color")]), (
+            "new added-profile profile"
+        )
         assert dialog.combobsp.get_num_rows() == 1, "replaced entry in combobox"
         nonlocal callbacks
         callbacks += 1
@@ -210,12 +208,12 @@ def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
     def changed_scan_option_cb(_widget, option, value, uuid):
         dialog.disconnect(dialog.signal)
-        assert (
-            dialog.profile is None
-        ), "changing an option deselects the current profile"
-        assert dialog.current_scan_options == Profile(
-            backend=[("resolution", 51)]
-        ), "current-scan-options without profile"
+        assert dialog.profile is None, (
+            "changing an option deselects the current profile"
+        )
+        assert dialog.current_scan_options == Profile(backend=[("resolution", 51)]), (
+            "current-scan-options without profile"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -256,15 +254,15 @@ def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
     def changed_profile_cb4(_widget, profile):
         dialog.disconnect(dialog.signal)
-        assert (
-            profile is None
-        ), "changing an option fires the changed-profile signal if a profile is set"
+        assert profile is None, (
+            "changing an option fires the changed-profile signal if a profile is set"
+        )
         assert dialog.current_scan_options == Profile(
             backend=[("mode", "Color"), ("resolution", 51)]
         ), "current-scan-options without profile (again)"
-        assert (
-            dialog.thread.device_handle.resolution == 51.0
-        ), "option value updated when reloaded"
+        assert dialog.thread.device_handle.resolution == 51.0, (
+            "option value updated when reloaded"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -303,9 +301,9 @@ def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
         backend = [("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)]
 
         # resolution=50 is the default, so it doesn't appear in current-scan-options
-        assert dialog.current_scan_options == Profile(
-            backend=backend
-        ), "CLI geometry option names"
+        assert dialog.current_scan_options == Profile(backend=backend), (
+            "CLI geometry option names"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -516,9 +514,9 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
     ]
     dialog.device = "test:0"
     loop.run()
-    assert (
-        dialog.current_scan_options == Profile()
-    ), "current-scan-options unchanged if invalid option requested"
+    assert dialog.current_scan_options == Profile(), (
+        "current-scan-options unchanged if invalid option requested"
+    )
     assert callbacks == 1, "all callbacks executed"
     changed_scan_option_cb.assert_not_called()
 
@@ -534,9 +532,9 @@ def test_profile_unset(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
 
     def changed_scan_option_cb(_widget, option, value, uuid):
         dialog.disconnect(dialog.option_signal)
-        assert dialog.current_scan_options == Profile(
-            backend=[("resolution", 52)]
-        ), "current-scan-options"
+        assert dialog.current_scan_options == Profile(backend=[("resolution", 52)]), (
+            "current-scan-options"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -620,9 +618,9 @@ def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
 
     def changed_scan_option_cb2(_widget, option, _value, _data):
         dialog.disconnect(dialog.signal)
-        assert (
-            option == "resolution"
-        ), "set other options after ignoring non-existant one"
+        assert option == "resolution", (
+            "set other options after ignoring non-existant one"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -650,9 +648,9 @@ def test_change_current_scan_option_signal(
     def changed_current_scan_options_cb(_widget, profile, _uuid):
         nonlocal callbacks
         dialog.disconnect(dialog.signal)
-        assert profile == Profile(
-            backend=[("resolution", 51)]
-        ), "emitted changed-current-scan-options"
+        assert profile == Profile(backend=[("resolution", 51)]), (
+            "emitted changed-current-scan-options"
+        )
         callbacks += 1
         loop.quit()
 
@@ -692,9 +690,9 @@ def test_option_dependency(
 
     def changed_profile_cb(_widget, profile):
         dialog.disconnect(dialog.profile_signal)
-        assert dialog.current_scan_options == Profile(
-            backend=[("mode", "Color")]
-        ), "correctly set rest of profile"
+        assert dialog.current_scan_options == Profile(backend=[("mode", "Color")]), (
+            "correctly set rest of profile"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -730,9 +728,9 @@ def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
 
     def changed_profile_cb(_widget, profile):
         dialog.disconnect(dialog.profile_signal)
-        assert (
-            dialog.thread.device_handle.resolution == 51.0
-        ), "correctly updated widget"
+        assert dialog.thread.device_handle.resolution == 51.0, (
+            "correctly updated widget"
+        )
         nonlocal callbacks
         callbacks += 1
         loop.quit()
@@ -853,13 +851,13 @@ def test_scan_reverse_pages(
 
     assert callbacks == 2, "all callbacks executed"
     assert len(scans) == 10, "10 reverse pages scanned"
-    assert all(
-        side == "reverse" for _insert_after, side in scans
-    ), "all scans are the reverse side"
+    assert all(side == "reverse" for _insert_after, side in scans), (
+        "all scans are the reverse side"
+    )
     insert_afters = [insert_after for insert_after, _side in scans]
-    assert insert_afters == [
-        f"uuid-{i}" for i in range(10, 0, -1)
-    ], "back pages inserted after front pages in reverse order"
+    assert insert_afters == [f"uuid-{i}" for i in range(10, 0, -1)], (
+        "back pages inserted after front pages in reverse order"
+    )
     error_process_cb.assert_not_called()
 
 

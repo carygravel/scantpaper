@@ -1,7 +1,5 @@
 "Tests for ApplicationWindow"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 import pathlib
 import uuid
 from itertools import cycle
@@ -13,7 +11,7 @@ import pytest
 from app_window import ApplicationWindow, drag_motion_callback, view_html
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     Gdk,
     Gio,
     GLib,

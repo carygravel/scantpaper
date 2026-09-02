@@ -1,7 +1,5 @@
 "Tests for document.py"
 
-# pylint: disable=protected-access  # tests access private members
-
 import datetime
 import pathlib
 import shutil
@@ -39,7 +37,7 @@ from savethread import _bbox2markup, _set_timestamp, prepare_output_metadata
 
 gi.require_version("Gtk", "3.0")
 
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
 )
@@ -119,16 +117,16 @@ def test_indexing(temp_db):
         [19, None, 10],
     ]
     slist.renumber()
-    assert [row[0] for row in slist.data] == list(
-        range(1, 11)
-    ), "renumber gives consecutive page numbers"
+    assert [row[0] for row in slist.data] == list(range(1, 11)), (
+        "renumber gives consecutive page numbers"
+    )
     assert len(slist.data) == 10, "renumber does not create pages"
 
     #########################
 
-    assert (
-        slist.find_page_by_uuid("someuuid") is None
-    ), "no warning if a page has no uuid for some reason"
+    assert slist.find_page_by_uuid("someuuid") is None, (
+        "no warning if a page has no uuid for some reason"
+    )
 
     #########################
 
@@ -139,9 +137,9 @@ def test_indexing(temp_db):
     slist.data = [[1, None, 1], [2, None, 2]]
     slist.select(0)
     slist.data[0][0] = 3
-    assert slist.get_selected_indices() == [
-        1
-    ], "correctly selected page after manual renumber"
+    assert slist.get_selected_indices() == [1], (
+        "correctly selected page after manual renumber"
+    )
 
 
 def test_file_dates(temp_txt):
@@ -167,9 +165,9 @@ def test_file_dates(temp_txt):
     stb = pathlib.Path(temp_txt.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(
-        2016, 2, 9, 10, 0, 0, tzinfo=datetime.timezone.utc
-    ), "timestamp with timezone"
+    ) == datetime.datetime(2016, 2, 9, 10, 0, 0, tzinfo=datetime.timezone.utc), (
+        "timestamp with timezone"
+    )
 
 
 def test_helpers():
@@ -497,9 +495,9 @@ def test_helpers():
 
     proc = exec_command(["/command/not/found"])
     assert proc.returncode == -1, "status open3 running unknown command"
-    assert (
-        proc.stderr == "[Errno 2] No such file or directory: '/command/not/found'"
-    ), "stderr running unknown command"
+    assert proc.stderr == "[Errno 2] No such file or directory: '/command/not/found'", (
+        "stderr running unknown command"
+    )
 
 
 def test_bbox2markup():
@@ -843,9 +841,9 @@ def test_document(rose_tif):
 
             def step3():
                 assert len(slist.data) == 1, "1 page left in list"
-                assert slist.get_selected_indices() == [
-                    0
-                ], "selection changed to previous page"
+                assert slist.get_selected_indices() == [0], (
+                    "selection changed to previous page"
+                )
                 slist.paste_selection(
                     data=[clipboard[0]],
                     dest=0,
@@ -856,9 +854,9 @@ def test_document(rose_tif):
             def step4():
                 assert len(slist.data) == 2, "2 pages now in list"
                 assert slist.data[0][0] == 1, "cut page renumbered to page 1"
-                assert slist.get_selected_indices() == [
-                    1
-                ], "pasted page not selected, as parameter not TRUE"
+                assert slist.get_selected_indices() == [1], (
+                    "pasted page not selected, as parameter not TRUE"
+                )
                 assert dialog.page_number_start == 3, "page-number-start after paste"
                 slist.select([0, 1])
                 assert slist.get_selected_indices() == [0, 1], "selected all pages"

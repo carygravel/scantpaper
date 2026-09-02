@@ -14,7 +14,7 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
 
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     Gdk,
     GLib,
     GObject,
@@ -1060,10 +1060,13 @@ class Canvas(Gtk.DrawingArea):
             return ""
         root = self.get_root_item()
         string = root.get_child(0).to_hocr(2)
-        return HOCR_HEADER + f""" <body>
+        return (
+            HOCR_HEADER
+            + f""" <body>
 {string} </body>
 </html>
 """
+        )
 
     def _to_image_distance(self, x, y):
         "convert x, y in widget distance to image distance"

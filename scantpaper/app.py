@@ -27,7 +27,6 @@ else:
     BASE_DIR = str(pathlib.Path(__file__).resolve().parent)
 sys.path.insert(0, BASE_DIR)
 
-# pylint: disable=wrong-import-position
 import gi
 from app_window import ApplicationWindow
 from const import LOCAL_DOCS_URI, PROG_NAME, SPACE, VERSION
@@ -38,8 +37,6 @@ from gi.repository import (  # noqa: E402
     Gio,
     Gtk,
 )
-
-# pylint: enable=wrong-import-position
 
 
 class Application(Gtk.Application):

@@ -1,7 +1,5 @@
 "Some helper functions to reduce boilerplate"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 import contextlib
 import logging
 import pathlib
@@ -22,7 +20,7 @@ from tests.scan_mocks import build_scan_options
 
 gi.require_version("Gtk", "3.0")
 
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
 )
@@ -466,7 +464,6 @@ def set_paper_in_mainloop(mainloop_with_timeout):
     return anonymous
 
 
-# pylint: disable=line-too-long
 HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -475,14 +472,13 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 <meta name='ocr-system' content='tesseract'>
 </head>
 """
-# pylint: enable=line-too-long
 
 
 @pytest.fixture
 def temp_db():
     "return a temporary db"
     # SIM115 — cross-scope file handle used intentionally
-    f = tempfile.NamedTemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
+    f = tempfile.NamedTemporaryFile(  # noqa: SIM115
         suffix=".db", delete=False
     )
     f.close()

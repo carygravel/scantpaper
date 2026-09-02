@@ -1,7 +1,5 @@
 "Coverage tests for SessionMixins"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 import logging
 import pathlib
 from typing import ClassVar
@@ -14,7 +12,7 @@ from const import EMPTY
 from session_mixins import SessionMixins
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 @pytest.fixture

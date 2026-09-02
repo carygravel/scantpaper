@@ -70,9 +70,9 @@ def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainl
     mlp.run()
 
     img = Image.open(temp_jpg.name)
-    assert (
-        img.format == "JPEG"
-    ), "can create a valid JPG after cancelling save PDF process"
+    assert img.format == "JPEG", (
+        "can create a valid JPG after cancelling save PDF process"
+    )
 
 
 def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):

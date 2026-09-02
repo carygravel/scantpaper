@@ -1,7 +1,5 @@
 "test TextLayerControls widget"
 
-# pylint: disable=protected-access  # tests access private members
-
 import pathlib
 from unittest.mock import MagicMock
 
@@ -13,7 +11,7 @@ from text_layer_control import TextLayerControls
 
 gi.require_version("Gtk", "3.0")
 
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 def test_text_layer_sort_combo_box(mocker):

@@ -434,7 +434,6 @@ def _extract_metadata(info):
             metadata[key] = unescape_utf8(info[key])
 
     if "datetime" in info and info["format"] in ["Portable Document Format", "DJVU"]:
-
         # before python 3.11, fromisoformat() did not understand Z==UTC, or TZs without minutes
         if sys.version_info < (3, 11):
             if info["datetime"][-1] == "Z":

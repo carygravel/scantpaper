@@ -23,7 +23,7 @@ from text_layer_control import TextLayerControls
 from unpaper import Unpaper
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
 )
@@ -33,8 +33,6 @@ logger = logging.getLogger(__name__)
 
 class SessionMixins:
     "provide methods around session files"
-
-    # pylint: disable=too-many-instance-attributes
 
     def _create_temp_directory(self):
         "Create a temporary directory for the session"
@@ -51,11 +49,7 @@ class SessionMixins:
             except (FileNotFoundError, PermissionError):
                 logger.exception("Error creating temporary directory")
                 # Keep as fallback: handle stored on self for session lifetime
-                self.session = (
-                    tempfile.TemporaryDirectory(  # pylint: disable=consider-using-with
-                        prefix="scantpaper-"
-                    )
-                )
+                self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
 
         self._lockfd = self._create_lockfile()
         logger.info("Using %s for temporary files", self.session.name)
@@ -505,7 +499,7 @@ class SessionMixins:
                 f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},'
                 f'{self._current_page["height"]}],"depth":0}},'
                 f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
-                f'{selection["x"] + selection["width"]},'
+                f"{selection['x'] + selection['width']},"
                 f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 
@@ -558,7 +552,7 @@ class SessionMixins:
                 f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},'
                 f'{self._current_page["height"]}],"depth":0}},'
                 f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
-                f'{selection["x"] + selection["width"]},'
+                f"{selection['x'] + selection['width']},"
                 f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 

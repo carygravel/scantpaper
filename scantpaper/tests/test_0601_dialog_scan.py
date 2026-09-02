@@ -1,7 +1,5 @@
 "test scan dialog"
 
-# pylint: disable=protected-access  # tests access private members
-
 import pathlib
 import tempfile
 from types import SimpleNamespace
@@ -18,7 +16,7 @@ from scanner.profile import Profile
 from tests.scan_mocks import build_scan_options
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
 )
@@ -46,9 +44,9 @@ def test_basics():
     dialog.checkx.set_active(True)
     dialog.page_number_increment = 3
     dialog.checkx.set_active(False)
-    assert (
-        dialog.page_number_increment == 3
-    ), "turning off extended page numbering keeps increment"
+    assert dialog.page_number_increment == 3, (
+        "turning off extended page numbering keeps increment"
+    )
 
     assert dialog.allow_batch_flatbed == 0, "default allow-batch-flatbed"
     dialog.allow_batch_flatbed = True
@@ -56,9 +54,9 @@ def test_basics():
     assert dialog.num_pages == 2, "num-pages"
     assert dialog.framen.is_sensitive(), "num-page gui not ghosted"
     dialog.allow_batch_flatbed = False
-    assert (
-        dialog.num_pages == 2
-    ), "with no source, num-pages not affected by allow-batch-flatbed"
+    assert dialog.num_pages == 2, (
+        "with no source, num-pages not affected by allow-batch-flatbed"
+    )
     assert dialog.framen.is_sensitive(), "with no source, num-page gui not ghosted"
 
 
@@ -111,12 +109,12 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
         dialog._batch_n = 3
         dialog.num_pages = 0
         dialog.side_to_scan = "reverse"
-        assert (
-            dialog.num_pages == 3
-        ), "selecting reverse should automatically limit the number of pages to scan"
-        assert (
-            dialog.max_pages == 3
-        ), "selecting reverse should automatically limit the max number of pages to scan"
+        assert dialog.num_pages == 3, (
+            "selecting reverse should automatically limit the number of pages to scan"
+        )
+        assert dialog.max_pages == 3, (
+            "selecting reverse should automatically limit the max number of pages to scan"
+        )
 
         clean_up_files(pathlib.Path(tempdir).glob("*"))
 
@@ -186,9 +184,9 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
     assert not dialog.framen.is_sensitive(), "num-page gui ghosted"
     dialog.num_pages = 2
     assert dialog.num_pages == 1, "allow-batch-flatbed should force num-pages2"
-    assert options.flatbed_selected(
-        dialog.thread.get_option_value
-    ), "flatbed_selected() via value"
+    assert options.flatbed_selected(dialog.thread.get_option_value), (
+        "flatbed_selected() via value"
+    )
     assert not dialog._vboxx.get_visible(), "flatbed, so hide vbox for page numbering"
 
     asserts = asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts)
@@ -213,20 +211,20 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     signal = dialog.connect("changed-num-pages", changed_num_pages_cb)
     dialog.allow_batch_flatbed = False
     loop = mainloop_with_timeout()
-    assert (
-        dialog.adf_defaults_scan_all_pages == 1
-    ), "default adf-defaults-scan-all-pages"
+    assert dialog.adf_defaults_scan_all_pages == 1, (
+        "default adf-defaults-scan-all-pages"
+    )
 
     def changed_scan_option_cb(widget, option, value, _data):
         nonlocal asserts
         nonlocal signal
         dialog.disconnect(signal)
-        assert (
-            dialog.num_pages == 0
-        ), "adf-defaults-scan-all-pages should force num-pages"
-        assert not options.flatbed_selected(
-            dialog.thread.get_option_value
-        ), "not flatbed_selected() via value"
+        assert dialog.num_pages == 0, (
+            "adf-defaults-scan-all-pages should force num-pages"
+        )
+        assert not options.flatbed_selected(dialog.thread.get_option_value), (
+            "not flatbed_selected() via value"
+        )
         asserts += 1
         loop.quit()
 
@@ -340,9 +338,9 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
             ("br-y", 9.0),
         ],
     ), "set Manual paper"
-    assert (
-        dialog.combobp.get_num_rows() == 3
-    ), "available paper reapplied after setting/changing device"
+    assert dialog.combobp.get_num_rows() == 3, (
+        "available paper reapplied after setting/changing device"
+    )
     assert dialog.combobp.get_active_text() == "Manual", "paper combobox has a value"
     assert asserts == 3, "call callbacks run"
 

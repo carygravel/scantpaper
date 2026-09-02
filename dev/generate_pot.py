@@ -15,7 +15,7 @@ from const import (  # noqa: E402
 from const import (  # noqa: E402
     AUTHOR_EMAIL as EMAIL,
 )
-from const import (  # pylint: disable=wrong-import-position,import-error  # noqa: E402
+from const import (  # noqa: E402
     PROG_NAME as NAME,
 )
 

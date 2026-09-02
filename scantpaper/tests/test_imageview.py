@@ -1,7 +1,5 @@
 "Basic tests for imageview"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
@@ -12,7 +10,7 @@ from imageview import Dragger, ImageView, Selector, SelectorDragger, Tool
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     Gdk,
     GdkPixbuf,
     GLib,
@@ -45,9 +43,9 @@ def test_basics(rose_png):
 
     view = ImageView()
     assert isinstance(view, ImageView)
-    assert isinstance(
-        view.get_tool(), SelectorDragger
-    ), "get_tool() defaults to SelectorDragger"
+    assert isinstance(view.get_tool(), SelectorDragger), (
+        "get_tool() defaults to SelectorDragger"
+    )
 
     def on_offset_changed(_widget, offset_x, offset_y):
         view.disconnect(signal)
@@ -75,9 +73,9 @@ def test_basics(rose_png):
     assert allocation.width == 1, "get_allocation width"
     assert allocation.height == 1, "get_allocation height"
 
-    assert view.get_zoom() == pytest.approx(
-        0.01428 * view.get_scale_factor(), 0.001
-    ), "get_zoom()"
+    assert view.get_zoom() == pytest.approx(0.01428 * view.get_scale_factor(), 0.001), (
+        "get_zoom()"
+    )
 
     def on_zoom_changed(_widget, zoom):
         view.disconnect(signal)
@@ -161,7 +159,8 @@ def test_transparency(datadir):
     window.set_default_size(300, 200)
     css_provider_alpha = Gtk.CssProvider()
     Gtk.StyleContext.add_provider_for_screen(window.get_screen(), css_provider_alpha, 0)
-    css_provider_alpha.load_from_data(f"""
+    css_provider_alpha.load_from_data(
+        f"""
     .imageview.transparent {{
         background-color: #ff0000;
         background-image: none;
@@ -169,7 +168,8 @@ def test_transparency(datadir):
     .imageview {{
         background-image: url('{datadir}transp-blue.svg');
     }}
-""".encode())
+""".encode()
+    )
     view = ImageView()
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),

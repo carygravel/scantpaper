@@ -1,7 +1,5 @@
 "Test Progress widget"
 
-# pylint: disable=protected-access  # tests access private members
-
 from unittest.mock import Mock
 
 import gi
@@ -9,7 +7,7 @@ from basethread import ResponseType
 from progress import Progress
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 def test_progress_init():

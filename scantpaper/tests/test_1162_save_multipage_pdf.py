@@ -50,9 +50,9 @@ def test_save_multipage_pdf(
     capture = subprocess.check_output(["pdffonts", temp_pdf.name], text=True)
     # not all combinations of ocrmypdf, qpdf & ghostsript embed GlyphLessFont
     fonts = 1 if re.search(r"GlyphLessFont", capture) else 0
-    assert (
-        len(capture.splitlines()) == fonts + 2
-    ), "no other fonts embedded in multipage PDF"
+    assert len(capture.splitlines()) == fonts + 2, (
+        "no other fonts embedded in multipage PDF"
+    )
 
 
 @pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
@@ -124,9 +124,9 @@ def test_save_multipage_pdf_as_ps(rose_pnm, temp_db, temp_pdf, import_in_mainloo
         mlp = safe_mainloop(5000)
         mlp.run()
 
-        assert (
-            pathlib.Path(temp_ps.name).stat().st_size > 194000
-        ), "non-empty postscript created"
+        assert pathlib.Path(temp_ps.name).stat().st_size > 194000, (
+            "non-empty postscript created"
+        )
         assert pathlib.Path(temp_ps2.name).stat().st_size > 194000, "ran post-save hook"
 
 
@@ -156,9 +156,9 @@ def test_save_multipage_pdf_as_ps2(rose_pnm, temp_db, temp_pdf, import_in_mainlo
         mlp = safe_mainloop(5000)
         mlp.run()
 
-        assert (
-            pathlib.Path(temp_ps.name).stat().st_size > 14000
-        ), "non-empty postscript created"
+        assert pathlib.Path(temp_ps.name).stat().st_size > 14000, (
+            "non-empty postscript created"
+        )
         assert pathlib.Path(temp_ps2.name).stat().st_size > 14000, "ran post-save hook"
 
 
@@ -323,9 +323,9 @@ def test_append_pdf_with_timestamp(
     stb = pathlib.Path(temp_pdf.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(
-        2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc
-    ), "timestamp"
+    ) == datetime.datetime(2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc), (
+        "timestamp"
+    )
 
     #########################
 

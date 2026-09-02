@@ -1,7 +1,5 @@
 "Test Canvas class"
 
-# pylint: disable=protected-access  # tests access private members
-
 import json
 import tempfile
 from dataclasses import dataclass
@@ -32,7 +30,7 @@ from page import Page
 gi.require_version("Gdk", "3.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
-from gi.repository import (  # pylint: disable=wrong-import-position,no-name-in-module  # noqa: E402
+from gi.repository import (  # noqa: E402
     Gdk,
     GLib,
     Pango,
@@ -171,7 +169,9 @@ def test_canvas_basics(rose_pnm):
             resolution=72,
             dir=dirname,
         )
-        page.import_hocr(HOCR_HEADER + """ <body>
+        page.import_hocr(
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 14 420 59">
     <p class='ocr_par'>
@@ -194,7 +194,8 @@ def test_canvas_basics(rose_pnm):
   </div>
  </body>
 </html>
-""")
+"""
+        )
 
         canvas = Canvas()
         canvas.sort_by_confidence()
@@ -229,7 +230,9 @@ def test_canvas_basics2(rose_pnm):
             resolution=72,
             dir=dirname,
         )
-        page.import_hocr(HOCR_HEADER + """ <body>
+        page.import_hocr(
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 14 420 59">
     <p class='ocr_par'>
@@ -252,7 +255,8 @@ def test_canvas_basics2(rose_pnm):
   </div>
  </body>
 </html>
-""")
+"""
+        )
 
         canvas = Canvas()
         canvas.sort_by_confidence()
@@ -271,7 +275,9 @@ def test_canvas_basics2(rose_pnm):
 
         canvas.add_box(text="foo", bbox=Rectangle(x=355, y=15, width=74, height=32))
 
-        expected = HOCR_HEADER + """ <body>
+        expected = (
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
@@ -286,6 +292,7 @@ def test_canvas_basics2(rose_pnm):
  </body>
 </html>
 """
+        )
 
         assert canvas.hocr() == expected, "updated hocr"
 
@@ -310,7 +317,9 @@ def test_canvas_basics2(rose_pnm):
         # A another bug prevented adding the text '0'
         canvas.add_box(text="0", bbox=Rectangle(x=356, y=15, width=74, height=32))
 
-        expected = HOCR_HEADER + """ <body>
+        expected = (
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
@@ -326,10 +335,11 @@ def test_canvas_basics2(rose_pnm):
  </body>
 </html>
 """
+        )
 
-        assert (
-            canvas.hocr() == expected
-        ), "the parent of a box should not be of the same class"
+        assert canvas.hocr() == expected, (
+            "the parent of a box should not be of the same class"
+        )
 
         #########################
 
@@ -337,9 +347,9 @@ def test_canvas_basics2(rose_pnm):
         canvas.get_last_bbox().update_box(
             "No", Rectangle(x=2, y=15, width=75, height=32)
         )
-        assert (
-            canvas.get_last_bbox().text == "No"
-        ), "don't sort if confidence hasn't changed"
+        assert canvas.get_last_bbox().text == "No", (
+            "don't sort if confidence hasn't changed"
+        )
 
         #########################
 
@@ -360,7 +370,9 @@ def test_canvas_basics2(rose_pnm):
 
         group.update_box("<em>No</em>", Rectangle(x=2, y=15, width=74, height=32))
 
-        expected = HOCR_HEADER + """ <body>
+        expected = (
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
@@ -376,6 +388,7 @@ def test_canvas_basics2(rose_pnm):
  </body>
 </html>
 """
+        )
 
         assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
 
@@ -405,7 +418,9 @@ def test_hocr(rose_pnm):
             dir=dirname,
         )
 
-        page.import_hocr(HOCR_HEADER + """ <body>
+        page.import_hocr(
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 204 288'>
    <div class='ocr_carea' id='block_1_1' title="bbox 1 14 202 286">
     <p class='ocr_par'>
@@ -432,7 +447,8 @@ def test_hocr(rose_pnm):
   </div>
  </body>
 </html>
-""")
+"""
+        )
 
         canvas = Canvas()
         mlp = safe_mainloop(2000)
@@ -445,7 +461,9 @@ def test_hocr(rose_pnm):
         mlp.run()
         canvas.sort_by_confidence()
 
-        expected = HOCR_HEADER + """ <body>
+        expected = (
+            HOCR_HEADER
+            + """ <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 204 288'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 202 286'>
     <span class='ocr_line' id='line_1_1' title='bbox 1 14 202 59; baseline 0.008 -9'>
@@ -461,6 +479,7 @@ def test_hocr(rose_pnm):
  </body>
 </html>
 """
+        )
 
         assert (
             canvas.hocr() == expected
@@ -503,7 +522,9 @@ def test_bbox_text_placement(rose_pnm):
             resolution=72,
             dir=dirname,
         )
-        page.import_hocr(HOCR_HEADER + """<body>
+        page.import_hocr(
+            HOCR_HEADER
+            + """<body>
 <div class='ocr_page' id='page_1' title='image "test.tif"; bbox 0 0 204 288'>
 <div class='ocr_carea' id='block_1_1' title="bbox 1 14 202 286">
 <p class='ocr_par'>
@@ -517,7 +538,8 @@ def test_bbox_text_placement(rose_pnm):
   </div>
  </body>
  </html>
- """)
+ """
+        )
         canvas = Canvas()
         mlp = safe_mainloop(2000)
         bboxes, indices = get_bboxes_and_indices(page.text_layer)

@@ -20,9 +20,10 @@ context: |
       should keep callbacks coalesced and avoid thrashing the image view during import.
     - OCR language handling uses python-iso639; PDF metadata is written/read via pikepdf.
 
-  Quality gates: code is black-formatted, pylint-clean (see .pylintrc; no blanket
-  suppressions without approval), type-annotated without `typing.Any`, and covered by
-  pytest with coverage thresholds enforced in pyproject.toml. Full instructions for AI
+  Quality gates: code is formatted with `ruff format`, passes `ruff check`
+  (see pyproject.toml; no blanket suppressions without approval), is
+  type-annotated without `typing.Any`, and covered by pytest with coverage
+  thresholds enforced in pyproject.toml. Full instructions for AI
   collaborators live in AGENTS.md.
 
 rules:

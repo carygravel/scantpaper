@@ -65,9 +65,9 @@ def test_frontend_options():
 
     itr = profile.each_frontend_option()
     assert next(itr) == "num_pages", "basic functionality each_frontend_option"
-    assert (
-        profile.get_frontend_option("num_pages") == 0
-    ), "basic functionality get_frontend_option"
+    assert profile.get_frontend_option("num_pages") == 0, (
+        "basic functionality get_frontend_option"
+    )
     with pytest.raises(StopIteration):
         next(itr)
 

@@ -1,7 +1,5 @@
 "Test scan dialog"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 from unittest.mock import MagicMock
 
 import pytest

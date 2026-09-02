@@ -1,7 +1,5 @@
 "test helpers coverage"
 
-# pylint: disable=protected-access  # tests access private members
-
 import datetime
 import gc
 import pathlib

@@ -1,7 +1,5 @@
 "Tests for Page class"
 
-# pylint: disable=protected-access  # tests access private members
-
 import io
 import pathlib
 import subprocess
@@ -58,9 +56,9 @@ def test_1(temp_pnm, temp_jpg):
         }
 
         page = Page(image_object=image_object, dir=dirname)
-        assert page.matching_paper_sizes(paper_sizes) == {
-            "A4": 25.4
-        }, "from image object"
+        assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, (
+            "from image object"
+        )
 
         page = Page(filename=temp_pnm.name, dir=dirname)
         assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic portrait"
@@ -146,13 +144,13 @@ def test_1(temp_pnm, temp_jpg):
         assert page.export_text() == "", "export_text() without bboxes"
         assert page.export_djvu_ann() is None, "export_djvu_ann() without bboxes"
         page.text_layer = ""
-        assert (
-            page._add_txt_to_djvu("file.djvu", dirname) is None
-        ), "_add_txt_to_djvu() without bboxes"
+        assert page._add_txt_to_djvu("file.djvu", dirname) is None, (
+            "_add_txt_to_djvu() without bboxes"
+        )
         page.annotations = ""
-        assert (
-            page._add_ann_to_djvu("file.djvu", dirname) is None
-        ), "_add_ann_to_djvu() without bboxes"
+        assert page._add_ann_to_djvu("file.djvu", dirname) is None, (
+            "_add_ann_to_djvu() without bboxes"
+        )
 
 
 def test_2(temp_pnm):
@@ -318,9 +316,9 @@ def test_2(temp_pnm):
 
         page.image_object = None
         assert page.get_pixbuf() is None, "get_pixbuf() doesn't fall over with an error"
-        assert (
-            page.get_pixbuf_at_scale(100, 100) is None
-        ), "get_pixbuf_at_scale() doesn't fall over with an error"
+        assert page.get_pixbuf_at_scale(100, 100) is None, (
+            "get_pixbuf_at_scale() doesn't fall over with an error"
+        )
 
 
 def test_get_pixbuf_error(mocker):
@@ -329,9 +327,9 @@ def test_get_pixbuf_error(mocker):
     mocker.patch("page.GdkPixbuf.Pixbuf.new_from_file_at_scale", side_effect=TypeError)
     page = Page(image_object=Image.new("RGB", (210, 297)))
     assert page.get_pixbuf() is None, "TypeError from Pixbuf.new_from_file not caught"
-    assert (
-        page.get_pixbuf_at_scale(1, 1) is None
-    ), "TypeError from Pixbuf.new_from_file_at_scale not caught"
+    assert page.get_pixbuf_at_scale(1, 1) is None, (
+        "TypeError from Pixbuf.new_from_file_at_scale not caught"
+    )
 
 
 def test_write_image_for_djvu():
@@ -342,9 +340,9 @@ def test_write_image_for_djvu():
     ):
         page = Page(image_object=Image.new("1", (210, 297)))
         page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
-        assert pathlib.Path(
-            filename.name
-        ).is_file(), "write_image_for_djvu() creates a file"
+        assert pathlib.Path(filename.name).is_file(), (
+            "write_image_for_djvu() creates a file"
+        )
 
 
 def test_write_image_for_tiff():
@@ -358,9 +356,9 @@ def test_write_image_for_tiff():
         page.write_image_for_tiff(
             filename.name, {"dir": dirname, "options": {"compression": "jpeg"}}
         )
-        assert pathlib.Path(
-            filename.name
-        ).is_file(), "write_image_for_tiff() creates a file"
+        assert pathlib.Path(filename.name).is_file(), (
+            "write_image_for_tiff() creates a file"
+        )
 
 
 def test_write_image_for_djvu_error(mocker):

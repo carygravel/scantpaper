@@ -565,7 +565,6 @@ class Scan(PageControls):
         "pack the given widget in the dialog"
         options, opt, hbox, hboxp = data
         if widget is not None:
-
             # Add label for units
             if opt.unit != enums.UNIT_NONE:
                 text = None
@@ -621,7 +620,6 @@ class Scan(PageControls):
             and (not hasattr(self, "combobp") or self.combobp is None)
             and hboxp is not None
         ):
-
             # Paper list
             label = Gtk.Label(label=_("Paper size"))
             hboxp.pack_start(label, False, False, 0)
@@ -840,7 +838,6 @@ class Scan(PageControls):
     def _set_paper_sizes(self, formats):
         "Add paper size to combobox if scanner large enough"
         if self.combobp is not None:
-
             # Remove all formats, leaving Manual and Edit
             num = self.combobp.get_num_rows()
             while num > 2:
@@ -1102,7 +1099,6 @@ class Scan(PageControls):
     def set_profile(self, name):
         "apply the give profile"
         if name is not None and name != "":
-
             # Only emit the changed-profile signal when the GUI has caught up
             signal = None
 
@@ -1291,7 +1287,6 @@ class Scan(PageControls):
             self.set_option(opt, val, profile.uuid)
 
         except StopIteration:
-
             # Having set all backend options, set the frontend options
             # Set paper formats first to make sure that any paper required is
             # available
@@ -1355,7 +1350,6 @@ class Scan(PageControls):
         # Potentially, a scanner could offer all three options, but then unset
         # resolution once the other two have been set.
         if resolution:
-
             # The resolution option, plus one of the other two, is defined.
             # Most sensibly, we should look at the order they were set.
             # However, if none of them are in current-scan-options, they still have

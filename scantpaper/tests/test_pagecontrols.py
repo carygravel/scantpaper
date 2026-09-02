@@ -1,7 +1,5 @@
 "tests for PageControls dialog component"
 
-# pylint: disable=protected-access  # tests access private members
-
 import tempfile
 from unittest.mock import MagicMock
 
@@ -12,7 +10,7 @@ from dialog.scan import Scan
 from document import Document
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 def test_side_to_scan_invalid_value():
@@ -107,9 +105,9 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
         )
         loop1.run()
         page_controls.document = slist
-        assert (
-            page_controls.page_number_start == 1
-        ), "page-number-start unaffected by document"
+        assert page_controls.page_number_start == 1, (
+            "page-number-start unaffected by document"
+        )
 
         # Single-sided scans append without touching the facing batch
         page_controls.sided = "single"
@@ -123,9 +121,9 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
         insert_after, side = page_controls._insert_target(1)
         assert insert_after is None, "facing scans append"
         assert side == "facing", "facing scans append"
-        assert (
-            page_controls._batch_start == 2
-        ), "facing batch starts after the last page"
+        assert page_controls._batch_start == 2, (
+            "facing batch starts after the last page"
+        )
         assert page_controls._batch_n == 1, "facing batch counts scanned pages"
 
         # Reverse pass inserts the back page after its front page
@@ -134,6 +132,6 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
         page_controls.side_to_scan = "reverse"
         insert_after, side = page_controls._insert_target(1)
         assert side == "reverse"
-        assert (
-            insert_after == slist.data[0][2]
-        ), "reverse page inserted after front page"
+        assert insert_after == slist.data[0][2], (
+            "reverse page inserted after front page"
+        )

@@ -1,7 +1,5 @@
 "Tests for app.py"
 
-# pylint: disable=protected-access  # tests access private members
-
 import contextlib
 import importlib
 import logging

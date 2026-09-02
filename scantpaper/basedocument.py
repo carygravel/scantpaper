@@ -18,7 +18,7 @@ from i18n import _
 from simplelist import SimpleList
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import (  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import (  # noqa: E402
     Gdk,
     Gtk,
 )
@@ -206,7 +206,7 @@ class BaseDocument(SimpleList):
         try:
             # SIM115: the pidfile handle escapes to the thread's running_pids
             # registry so that cancel() can later read the spawn pid from it.
-            pidfile = tempfile.TemporaryFile(  # noqa: SIM115  # pylint: disable=consider-using-with
+            pidfile = tempfile.TemporaryFile(  # noqa: SIM115
                 dir=self.dir, suffix=".pid", mode="w+t"
             )
         except (OSError, PermissionError):

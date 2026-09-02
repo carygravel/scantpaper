@@ -4,7 +4,7 @@ import gi
 from dialog import MultipleMessage, filter_message, munge_message
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 def test_1():
@@ -31,9 +31,9 @@ def test_1():
     assert dialog.grid_rows == 3, "2 messages"
 
     dialog.cbn.set_active(True)
-    assert dialog.list_messages_to_ignore("ok") == [
-        "message"
-    ], "list_messages_to_ignore"
+    assert dialog.list_messages_to_ignore("ok") == ["message"], (
+        "list_messages_to_ignore"
+    )
 
     dialog.add_row(
         {
@@ -102,39 +102,33 @@ def test_1():
     )
     assert dialog.grid_rows == 1, "add_message added no messages"
 
-    assert (
-        munge_message(
-            "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
-            """'GeglConfig' has no property named 'cache-size'
+    assert munge_message(
+        "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
+        """'GeglConfig' has no property named 'cache-size'
 (gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of operation class """
-            '0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
-        )
-        == [
-            (
-                "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
-                "'GeglConfig' has no property named 'cache-size'"
-            ),
-            (
-                "(gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of "
-                'operation class 0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"'
-            ),
-        ]
-    ), "split gimp messages"
+        '0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"',
+    ) == [
+        (
+            "(gimp:26514): GLib-GObject-WARNING : g_object_set_valist: object class "
+            "'GeglConfig' has no property named 'cache-size'"
+        ),
+        (
+            "(gimp:26514): GEGL-gegl-operation.c-WARNING : Cannot change name of "
+            'operation class 0xE0FD30 from "gimp:point-layer-mode" to "gimp:dissolve-mode"'
+        ),
+    ], "split gimp messages"
 
-    assert (
-        munge_message(
-            "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
-            """muxers is deprecated, use AVStream.codecpar instead.
+    assert munge_message(
+        "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
+        """muxers is deprecated, use AVStream.codecpar instead.
 [image2 @ 0x1338180] Encoder did not produce proper pts, making some up.""",
-        )
-        == [
-            (
-                "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
-                "muxers is deprecated, use AVStream.codecpar instead."
-            ),
-            "[image2 @ 0x1338180] Encoder did not produce proper pts, making some up.",
-        ]
-    ), "split unpaper messages"
+    ) == [
+        (
+            "[image2 @ 0xc596e0] Using AVStream.codec to pass codec parameters to "
+            "muxers is deprecated, use AVStream.codecpar instead."
+        ),
+        "[image2 @ 0x1338180] Encoder did not produce proper pts, making some up.",
+    ], "split unpaper messages"
 
     expected = (
         """Exception 400: memory allocation failed
@@ -144,14 +138,14 @@ This error is normally due to ImageMagick exceeding its resource limits. These "
         "/etc/ImageMagick-6/policy.xml Please see "
         "https://imagemagick.org/script/resources.php for more information"
     )
-    assert (
-        munge_message("Exception 400: memory allocation failed") == expected
-    ), "extend imagemagick Exception 400"
+    assert munge_message("Exception 400: memory allocation failed") == expected, (
+        "extend imagemagick Exception 400"
+    )
 
-    assert (
-        munge_message("""(gimp:26514): GLib-GObject-WARNING
-Some other error""") == ["(gimp:26514): GLib-GObject-WARNING", "Some other error"]
-    ), "split gimp message with other message"
+    assert munge_message("""(gimp:26514): GLib-GObject-WARNING
+Some other error""") == ["(gimp:26514): GLib-GObject-WARNING", "Some other error"], (
+        "split gimp message with other message"
+    )
 
     assert (
         filter_message(

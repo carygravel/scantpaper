@@ -25,19 +25,19 @@ def test_tesseract_code_conversions():
     assert _iso639_1to3("c") == "eng", "_iso639_1to3 c (lowercase)"
     assert _iso639_1to3("zh") == "chi-sim", "_iso639_1to3 zh"
     assert locale_installed("en_GB", ["eng"]) == "", "language installed"
-    assert re.search(
-        r"install", locale_installed("de_DE", ["eng"])
-    ), "language installable"
-    assert re.search(
-        r"developers", locale_installed("kw_KW", ["eng"])
-    ), "language not installable"
-    assert re.search(
-        r"necessary", locale_installed("zz_ZZ", ["eng"])
-    ), "language unknown"
+    assert re.search(r"install", locale_installed("de_DE", ["eng"])), (
+        "language installable"
+    )
+    assert re.search(r"developers", locale_installed("kw_KW", ["eng"])), (
+        "language not installable"
+    )
+    assert re.search(r"necessary", locale_installed("zz_ZZ", ["eng"])), (
+        "language unknown"
+    )
     # Test C.UTF-8 locale - should map to en_US like C does
-    assert (
-        locale_installed("C.UTF-8", ["eng"]) == ""
-    ), "C.UTF-8 locale should map to eng"
+    assert locale_installed("C.UTF-8", ["eng"]) == "", (
+        "C.UTF-8 locale should map to eng"
+    )
     # Test uppercase C locale still works
     assert locale_installed("C", ["eng"]) == "", "C locale should map to eng"
 

@@ -494,6 +494,6 @@ def test_1():
         ),
     ]
     options = Options(data)
-    assert options.supports_paper(
-        {"t": 0, "l": 0, "y": 356, "x": 216}, 2
-    ), "supports_paper with tolerance 2"
+    assert options.supports_paper({"t": 0, "l": 0, "y": 356, "x": 216}, 2), (
+        "supports_paper with tolerance 2"
+    )

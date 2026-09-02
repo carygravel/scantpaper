@@ -3,7 +3,7 @@
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # pylint: disable=wrong-import-position  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
 
 
 class EntryCompletion(Gtk.Entry):

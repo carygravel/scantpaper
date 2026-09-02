@@ -163,9 +163,9 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
 
     def error_cb(response):
         nonlocal asserts
-        assert (
-            response.status == "Error importing zero-length file 5.tif."
-        ), "caught error importing corrupt file"
+        assert response.status == "Error importing zero-length file 5.tif.", (
+            "caught error importing corrupt file"
+        )
         asserts += 1
 
     slist.import_files(
@@ -214,9 +214,9 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync
 
     import_in_mainloop(slist, [rose_tif])
     page = get_page_sync(slist.thread, id=1)
-    assert (
-        page.image_object.mode == "RGB"
-    ), "TIFF imported correctly after cancelling previous import"
+    assert page.image_object.mode == "RGB", (
+        "TIFF imported correctly after cancelling previous import"
+    )
 
 
 def test_cancel_kills_registered_pidfile_process(temp_db):

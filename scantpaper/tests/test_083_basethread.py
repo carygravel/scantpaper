@@ -1,7 +1,5 @@
 "test basethread class"
 
-# pylint: disable=redefined-outer-name, protected-access  # tests access private members and pytest fixtures
-
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -205,12 +203,12 @@ def test_job_counters_do_not_leak_across_batches():
     thread.send("div", 3, 4, finished_callback=callback)
 
     # Check counters immediately after send (before the job finishes)
-    assert (
-        thread.total_jobs == 1
-    ), f"total_jobs should be 1 for new batch, got {thread.total_jobs}"
-    assert (
-        thread.num_completed_jobs == 0
-    ), f"num_completed_jobs should be 0 for new batch, got {thread.num_completed_jobs}"
+    assert thread.total_jobs == 1, (
+        f"total_jobs should be 1 for new batch, got {thread.total_jobs}"
+    )
+    assert thread.num_completed_jobs == 0, (
+        f"num_completed_jobs should be 0 for new batch, got {thread.num_completed_jobs}"
+    )
 
     mlp = safe_mainloop(2000)
     mlp.run()

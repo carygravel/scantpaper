@@ -98,32 +98,21 @@ repository.
 
 ## Coding Style
 
-Please run `black` over new or changed code to automatically format it.
-
-This is best run as pre-commit hook:
-
-    ```bash
-    sudo apt install pre-commit
-    pre-commit install
-    ```
-
-This will install the hook for black, configured in `.pre-commit-config.yaml`.
+Please run `ruff format` over new or changed code to automatically format it,
+and `ruff check` to lint it. Both are configured in `pyproject.toml` and are
+enforced in CI (`ruff format --check .` and `ruff check .`).
 
 Scantpaper follows the PEP 8 style guide for Python code. Please ensure that
-your code adheres to these guidelines. Please use `pylint` to check your code.
-The `.pylintrc` file in the root of the repository contains the project's
-linting configuration.
-
-Please ensure that any changes made do not increase the number of pylint warnings.
+your code adheres to these guidelines. Ruff is used to check your code; the
+configuration lives in `pyproject.toml`.
 
 ### Lint Suppression
 
-**Ask before adding any suppression.** Do not add `pylint: disable` or `noqa`
-comments on your own initiative. If a linter warning cannot be resolved by
-correcting the code, stop and discuss the case with a maintainer first, and only
-add the suppression after it has been explicitly approved. Approvals may be
-given per-case or once for a clearly-scoped class of cases (e.g. "BL001 on
-thread dispatch boundaries").
+**Ask before adding any suppression.** Do not add `noqa` comments on your own
+initiative. If a linter warning cannot be resolved by correcting the code, stop
+and discuss the case with a maintainer first, and only add the suppression after
+it has been explicitly approved. Approvals may be given per-case or once for a
+clearly-scoped class of cases.
 
 Whenever a suppression is approved and added, it must carry an explanation that
 states why the warning is being suppressed. Either:

@@ -34,9 +34,9 @@ def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    assert (
-        pathlib.Path(temp_djvu.name).stat().st_size > 0
-    ), "DjVu created with expected size"
+    assert pathlib.Path(temp_djvu.name).stat().st_size > 0, (
+        "DjVu created with expected size"
+    )
     assert slist.thread.pages_saved(), "pages tagged as saved"
 
 
@@ -199,9 +199,9 @@ def test_cancel_save_djvu(
     mlp.run()
 
     img = Image.open(temp_jpg.name)
-    assert (
-        img.format == "JPEG"
-    ), "can create a valid JPG after cancelling save PDF process"
+    assert img.format == "JPEG", (
+        "can create a valid JPG after cancelling save PDF process"
+    )
 
 
 @pytest.mark.skipif(
@@ -276,9 +276,9 @@ def test_save_djvu_with_float_resolution(
     mlp = safe_mainloop(2000)
     mlp.run()
 
-    assert (
-        pathlib.Path(temp_djvu.name).stat().st_size > 0
-    ), "DjVu created with expected size"
+    assert pathlib.Path(temp_djvu.name).stat().st_size > 0, (
+        "DjVu created with expected size"
+    )
 
 
 @pytest.mark.skipif(
@@ -307,9 +307,9 @@ def test_save_djvu_different_resolutions(
     mlp.run()
 
     capture = subprocess.check_output(["djvudump", temp_djvu.name], text=True)
-    assert re.search(
-        r"DjVu 140x46, v24, 200 dpi, gamma=2.2", capture
-    ), "created djvu with expect size and resolution"
+    assert re.search(r"DjVu 140x46, v24, 200 dpi, gamma=2.2", capture), (
+        "created djvu with expect size and resolution"
+    )
 
 
 @pytest.mark.skipif(
@@ -345,9 +345,9 @@ def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloo
     stb = pathlib.Path(temp_djvu.name).stat()
     assert datetime.datetime.fromtimestamp(
         stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(
-        2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc
-    ), "timestamp"
+    ) == datetime.datetime(2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc), (
+        "timestamp"
+    )
 
 
 @pytest.mark.skipif(
