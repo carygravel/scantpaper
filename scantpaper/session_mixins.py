@@ -195,7 +195,7 @@ class SessionMixins:
             )
 
     def _finished_process_callback(self, widget, process, button_signal=None):
-        """Callback function to handle the completion of a process."""
+        """Handle the completion of a process."""
         logger.debug("signal 'finished-process' emitted with data: %s", process)
         if button_signal is not None:
             self._scan_progress.disconnect(button_signal)
@@ -346,7 +346,7 @@ class SessionMixins:
         self.post_process_progress.hide()
 
     def _ask_question(self, **kwargs):
-        """Helper function to display a message dialog, wait for a response, and return it."""
+        """Display a message dialog, wait for a response, and return it."""
         # replace any numbers with metacharacters to compare to filter
         text = filter_message(kwargs["text"])
         if response_stored(text, self.settings["message"]):
@@ -651,35 +651,35 @@ class SessionMixins:
                 finished_callback()
 
     def zoom_100(self, _action, _param):
-        """Sets the zoom level of the view to 100%."""
+        """Set the zoom level of the view to 100%."""
         self.view.set_zoom(1.0)
 
     def zoom_to_fit(self, _action, _param):
-        """Adjusts the view to fit the content within the visible area."""
+        """Adjust the view to fit the content within the visible area."""
         self.view.zoom_to_fit()
 
     def zoom_in(self, _action, _param):
-        """Zooms in the current view."""
+        """Zoom in the current view."""
         self.view.zoom_in()
 
     def zoom_out(self, _action, _param):
-        """Zooms out the current view."""
+        """Zoom out the current view."""
         self.view.zoom_out()
 
     def _on_zoom_100(self, _widget):
-        """Zooms the current page to 100%."""
+        """Zoom the current page to 100%."""
         self.zoom_100(None, None)
 
     def _on_zoom_to_fit(self, _widget):
-        """Zooms the current page so that it fits the viewing pane."""
+        """Zoom the current page so that it fits the viewing pane."""
         self.zoom_to_fit(None, None)
 
     def _on_zoom_in(self, _widget):
-        """Zooms in the current page."""
+        """Zoom in the current page."""
         self.zoom_in(None, None)
 
     def _on_zoom_out(self, _widget):
-        """Zooms out the current page."""
+        """Zoom out the current page."""
         self.zoom_out(None, None)
 
     def _on_rotate_90(self, _widget):
@@ -695,27 +695,27 @@ class SessionMixins:
         self.rotate_270(None, None)
 
     def _on_save(self, _widget):
-        """Displays the save dialog."""
+        """Display the save dialog."""
         self.save_dialog(None, None)
 
     def _on_email(self, _widget):
-        """Displays the email dialog."""
+        """Display the email dialog."""
         self.email(None, None)
 
     def _on_print(self, _widget):
-        """Displays the print dialog."""
+        """Display the print dialog."""
         self.print_dialog(None, None)
 
     def _on_select_all(self, _widget):
-        """Selects all pages."""
+        """Select all pages."""
         self.select_all(None, None)
 
     def _on_select_odd(self, _widget):
-        """Selects the pages with odd numbers."""
+        """Select the pages with odd numbers."""
         self.select_odd_even(0)
 
     def _on_select_even(self, _widget):
-        """Selects the pages with even numbers."""
+        """Select the pages with even numbers."""
         self.select_odd_even(1)
 
     def _on_invert_selection(self, _widget):
@@ -723,15 +723,15 @@ class SessionMixins:
         self.select_invert(None, None)
 
     def _on_crop(self, _widget):
-        """Displays the crop dialog."""
+        """Display the crop dialog."""
         self.crop_selection(None, None)
 
     def _on_cut(self, _widget):
-        """Cuts the selected pages to the clipboard."""
+        """Cut the selected pages to the clipboard."""
         self.cut_selection(None, None)
 
     def _on_copy(self, _widget):
-        """Copies the selected pages to the clipboard."""
+        """Copy the selected pages to the clipboard."""
         self.copy_selection(None, None)
 
     def _on_paste(self, _widget):
@@ -739,17 +739,17 @@ class SessionMixins:
         self.paste_selection(None, None)
 
     def _on_delete(self, _widget):
-        """Deletes the selected pages."""
+        """Delete the selected pages."""
         self.delete_selection(None, None)
 
     def _on_clear_ocr(self, _widget):
-        """Clears the OCR (Optical Character Recognition) data."""
+        """Clear the OCR (Optical Character Recognition) data."""
         self.clear_ocr(None, None)
 
     def _on_properties(self, _widget):
-        """Displays the properties dialog."""
+        """Display the properties dialog."""
         self.properties(None, None)
 
     def _on_quit(self, _action, _param):
-        """Handles the quit action."""
+        """Handle the quit action."""
         self.get_application().quit()

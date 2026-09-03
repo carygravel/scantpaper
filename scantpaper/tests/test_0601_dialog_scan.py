@@ -191,7 +191,7 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
 
 
 def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
-    """Splitting test_1 up into chunks."""
+    """Split test_1 into chunks for the second set of assertions."""
     options = dialog.available_scan_options
 
     dialog.allow_batch_flatbed = True
@@ -254,7 +254,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 
 
 def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
-    """Splitting test_1 up into chunks."""
+    """Split test_1 into chunks for the third set of assertions."""
     loop = mainloop_with_timeout()
 
     changed_scan_option_cb4 = Mock()
@@ -444,7 +444,7 @@ def test_source_without_val(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(self, _request):
-        """A Canon Lide 220 was producing scanimage output without a val for source.
+        """Guard against a Canon Lide 220 producing scanimage output without a val for source.
 
         This produced the error: Use of uninitialized value in pattern match
         (m//) when loading the options. Override enough to test for this.
@@ -530,7 +530,7 @@ def test_no_source(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(self, _request):
-        """A Samsung CLX-4190 has a doc-source option instead of source.
+        """Reproduce a Samsung CLX-4190 having a doc-source option instead of source.
 
         The property allow-batch-flatbed had to be enabled to scan more than
         one page from the ADF. Override enough to test for this.
@@ -616,7 +616,7 @@ def test_officejet_4620(
     )
 
     def mocked_do_get_options(_self, _request):
-        """An Officejet_4620_series was resetting the resolution and geometry.
+        """Reproduce an Officejet_4620_series resetting the resolution and geometry.
 
         When changing from ADF to Flatbed, ensure that valid parts of the
         current profile are still active (updating if necessary) after changing

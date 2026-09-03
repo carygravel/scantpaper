@@ -182,7 +182,7 @@ def _parse_arguments():
 
 
 def main():
-    """Main."""
+    """Run the application."""
     app = Application(cmdline=_parse_arguments())
     app.run()
 

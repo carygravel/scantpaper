@@ -27,7 +27,7 @@ class MockOptions:
         self.options_dict = {o.name: o for o in options}
 
     def num_options(self):
-        """Number of options."""
+        """Return the number of options."""
         return len(self.options)
 
     def by_index(self, i):

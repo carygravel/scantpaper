@@ -109,7 +109,7 @@ class Profile(GObject.Object):
         self.uuid = str(uuid.uuid1())
 
     def each_backend_option(self, backwards=False):
-        """An iterator for backend options."""
+        """Iterate over backend options."""
         i = len(self.backend) - 1 if backwards else 0
         while -1 < i < len(self.backend):
             yield i
@@ -129,7 +129,7 @@ class Profile(GObject.Object):
         self.uuid = str(uuid.uuid1())
 
     def each_frontend_option(self):
-        """An iterator for frontend options."""
+        """Iterate over frontend options."""
         yield from self.frontend.keys()
 
     def get_frontend_option(self, name):

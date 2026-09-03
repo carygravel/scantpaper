@@ -515,7 +515,7 @@ class DocThread(SaveThread):
         ]
 
     def page_number_table(self) -> list | None:
-        """Synchronous wrapper for do_page_number_table via send()."""
+        """Wrap do_page_number_table via send() synchronously."""
         result = [[]]
         mlp = GLib.MainLoop()
 
@@ -810,7 +810,7 @@ class DocThread(SaveThread):
             return GdkPixbuf.Pixbuf.new_from_file(temp.name)
 
     def can_undo(self):
-        """Checks whether undo is possible."""
+        """Check whether undo is possible."""
         self._execute("SELECT min(action_id) FROM page_order")
         min_page = self._fetchone()[0]
         self._execute("SELECT min(action_id) FROM selection")
@@ -820,7 +820,7 @@ class DocThread(SaveThread):
         return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self):
-        """Checks whether redo is possible."""
+        """Check whether redo is possible."""
         self._execute("SELECT max(action_id) FROM page_order")
         max_page = self._fetchone()[0]
         self._execute("SELECT max(action_id) FROM selection")
@@ -908,7 +908,7 @@ class DocThread(SaveThread):
         return self._fetchone()[0] == 0
 
     def get_thumb(self, page_id):
-        """Gets the thumbnail for the given page_id."""
+        """Get the thumbnail for the given page_id."""
         self._execute(
             """SELECT thumb FROM page, page_order
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
@@ -917,7 +917,7 @@ class DocThread(SaveThread):
         return self._bytes_to_pixbuf(self._fetchone()[0])
 
     def get_text(self, page_id):
-        """Gets the text layer for the given page."""
+        """Get the text layer for the given page."""
         self._execute(
             """SELECT text FROM page, page_order
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
@@ -949,12 +949,12 @@ class DocThread(SaveThread):
         }
 
     def set_text(self, page_id, text, **kwargs):
-        """Sets the text layer for the given page."""
+        """Set the text layer for the given page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("set_text", page_id, text, **callbacks)
 
     def do_set_text(self, request):
-        """Sets the text layer for the given page."""
+        """Set the text layer for the given page."""
         self._take_snapshot()
         self._check_write_tid()
         page_id, text = request.args
@@ -972,7 +972,7 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
 
     def get_annotations(self, page_id):
-        """Gets the annotations layer for the given page."""
+        """Get the annotations layer for the given page."""
         self._execute(
             """SELECT annotations FROM page, page_order
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
@@ -981,7 +981,7 @@ class DocThread(SaveThread):
         return self._fetchone()[0]
 
     def do_set_annotations(self, request):
-        """Sets the annotations layer for the given page."""
+        """Set the annotations layer for the given page."""
         self._check_write_tid()
         page_id, annotations = request.args
         self._execute(
@@ -998,7 +998,7 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
 
     def get_resolution(self, page_id):
-        """Gets the resolution for the given page."""
+        """Get the resolution for the given page."""
         self._execute(
             """SELECT x_res, y_res FROM page, page_order
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
@@ -1007,7 +1007,7 @@ class DocThread(SaveThread):
         return self._fetchone()
 
     def do_set_resolution(self, request):
-        """Sets the resolution for the given page."""
+        """Set the resolution for the given page."""
         self._check_write_tid()
         page_id, x_res, y_res = request.args
         self._execute(
@@ -1025,7 +1025,7 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
 
     def get_mean_std_dev(self, page_id):
-        """Gets the mean and std_dev for the given page."""
+        """Get the mean and std_dev for the given page."""
         self._execute(
             """SELECT mean, std_dev FROM page, page_order
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
@@ -1037,7 +1037,7 @@ class DocThread(SaveThread):
         return mean, std_dev
 
     def do_set_mean_std_dev(self, request):
-        """Sets the mean and std_dev for the given page."""
+        """Set the mean and std_dev for the given page."""
         self._check_write_tid()
         page_id, mean, std_dev = request.args
         self._execute(

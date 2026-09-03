@@ -159,7 +159,7 @@ class Options(GObject.Object):
         return False
 
     def flatbed_selected(self, get_value):
-        """Returns whether the flatbed is selected."""
+        """Return whether the flatbed is selected."""
         source = None
         if self.source is not None:
             with contextlib.suppress(AttributeError):
@@ -185,7 +185,7 @@ class Options(GObject.Object):
 
 
 def within_tolerance(option, current_value, new_value, tolerance=0):
-    """Helper function, returning whether new_value is within the tolerance of current_value."""
+    """Return whether new_value is within the tolerance of current_value."""
     if isinstance(option.constraint, tuple):
         return bool(
             abs(new_value - current_value) <= option.constraint[2] / 2 + tolerance

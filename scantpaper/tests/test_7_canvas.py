@@ -115,7 +115,7 @@ def test_string2rgb():
 
 
 def get_bboxes_and_indices(json_string):
-    """Helper to simulate docthread parsing."""
+    """Simulate docthread parsing."""
     tree = Bboxtree(json_string)
     bboxes = list(tree.each_bbox())
     words = []
@@ -1831,7 +1831,7 @@ def test_tree_iter_first_last_word():
 
 # Performance regression tests
 def create_test_page_with_words(num_words, words_per_line=10):
-    """Helper to create a test page with specified number of words."""
+    """Create a test page with the specified number of words."""
     boxes = []
 
     # Add page

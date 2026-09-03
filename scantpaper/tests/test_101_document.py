@@ -44,12 +44,12 @@ from gi.repository import (  # noqa: E402
 
 
 def get_page_index_all_callback(_uuid, _process, _message):
-    """Callback for get_page_index."""
+    """React to get_page_index for all pages."""
     assert True, "error in all"
 
 
 def get_page_index_selected_callback(_uuid, _process, _message):
-    """Callback for get_page_index."""
+    """React to get_page_index for selected pages."""
     assert True, "error in selected"
 
 

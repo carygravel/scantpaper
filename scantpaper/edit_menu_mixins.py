@@ -159,7 +159,7 @@ class EditMenuMixins:
         self.slist.select(inverted)
 
     def select_modified_since_ocr(self, _action, _param):
-        """Selects pages that have been modified since the last OCR process."""
+        """Select pages that have been modified since the last OCR process."""
         selection = []
         for i, row in enumerate(self.slist.data):
             page = row[2]
@@ -203,11 +203,11 @@ class EditMenuMixins:
         self.analyse(True, False)
 
     def _select_odd(self, _action, _param):
-        """Selects odd-numbered pages."""
+        """Select odd-numbered pages."""
         self.select_odd_even(0)
 
     def _select_even(self, _action, _param):
-        """Selects even-numbered pages."""
+        """Select even-numbered pages."""
         self.select_odd_even(1)
 
     def select_blank_pages(self):

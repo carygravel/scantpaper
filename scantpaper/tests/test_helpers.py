@@ -32,7 +32,7 @@ class MockObj:
     """A mock object for testing weak callbacks."""
 
     def method(self, *args, **kwargs):
-        """A mock method that returns its arguments."""
+        """Return the method's arguments."""
         return args, kwargs
 
 

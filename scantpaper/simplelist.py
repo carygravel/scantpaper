@@ -13,7 +13,7 @@ from gi.repository import (  # noqa: E402
 
 
 def scalar_cell_renderer(_tree_column, cell, model, itr, i):
-    """Custom cell renderer gtype scalar."""
+    """Provide a custom cell renderer gtype scalar."""
     info = model.get(itr, i)
     cell.text = "" if info is None else info
 
@@ -143,14 +143,14 @@ class SimpleList(Gtk.TreeView):
         self.data.extend(new_data)
 
     def do_toggled(self, renderer, row):
-        """Callback for toggled signal of boolean cell."""
+        """Handle toggled signal of boolean cell."""
         col = renderer.column
         model = self.get_model()
         itr = model.iter_nth_child(None, int(row))
         model[itr][col] = not model[itr][col]
 
     def do_text_cell_edited(self, renderer, text_path, new_text, col_type):
-        """Callback for edited signal of text cell."""
+        """Handle edited signal of text cell."""
         path = Gtk.TreePath.new_from_string(text_path)
         model = self.get_model()
         if col_type is int:
@@ -190,7 +190,7 @@ class SimpleList(Gtk.TreeView):
         return [x.get_indices()[0] for x in indices]
 
     def _modify_selection(self, indices, func):
-        """Helper function for select/unselect()."""
+        """Modify selection for select/unselect()."""
         selection = self.get_selection()
         if (
             isinstance(indices, list)

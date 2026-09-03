@@ -87,7 +87,7 @@ def test_changed_profile(
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(self, _request):
-        """The changed-profile signal was being emitted too early.
+        """Guard against the changed-profile signal being emitted too early.
 
         This resulted in the profile dropdown being set to None.
         """
@@ -140,7 +140,7 @@ def test_source_default(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(_self, _request):
-        """An Acer flatbed scanner using a snapscan backend had no source default.
+        """Reproduce an Acer flatbed scanner using a snapscan backend with no source default.
 
         As the source only had one possibility, which was never set, the source
         option never had a value. Check that the number of pages frame is ghosted.

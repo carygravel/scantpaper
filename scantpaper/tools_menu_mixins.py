@@ -522,7 +522,7 @@ class ToolsMenuMixins:
         windowsp.show_all()
 
     def _update_view_position(self, direction, position, width, height):
-        """Updates the view's selection rectangle based on the given direction and dimensions."""
+        """Update the view's selection rectangle based on the given direction and dimensions."""
         selection = Gdk.Rectangle()
         if direction == "v":
             selection.width = position
@@ -666,7 +666,7 @@ class ToolsMenuMixins:
         self._windowo.hide()
 
     def user_defined_dialog(self, _action, _param):
-        """Displays a dialog for selecting and applying user-defined tools."""
+        """Display a dialog for selecting and applying user-defined tools."""
         windowudt = Dialog(
             transient_for=self,
             title=_("User-defined tools"),

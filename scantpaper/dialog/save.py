@@ -189,7 +189,7 @@ class Save(Dialog):
 
     @GObject.Property(type=str, default="")
     def meta_author(self):
-        """Author metadata."""
+        """Return the author metadata."""
         if self._meta_author_widget is None:
             return self._meta_author
         return self._meta_author_widget.get_text()

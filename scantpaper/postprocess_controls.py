@@ -393,21 +393,21 @@ class OCRControls(Gtk.Box):
         self._threshold_spin.connect("value-changed", self.on_threshold_changed)
 
     def on_toggled_active(self, checkbox, hboxtl):
-        """Callback for OCR active checkbox."""
+        """React to OCR active checkbox toggle."""
         self.active = checkbox.get_active()
         hboxtl.set_sensitive(self.active)
 
     def on_toggled_threshold(self, checkbox, spinbutton):
-        """Callback for threshold checkbox."""
+        """React to threshold checkbox toggle."""
         self.threshold = checkbox.get_active()
         spinbutton.set_sensitive(self.threshold)
 
     def on_threshold_changed(self, _widget, value):
-        """Callback for threshold value spinbutton."""
+        """React to threshold value spinbutton change."""
         self.threshold_value = value
 
     def on_language_changed(self, widget):
-        """Callback for OCR language combobox."""
+        """React to OCR language combobox change."""
         self.language = widget.get_active_index()
 
     def _add_tess_languages(self):

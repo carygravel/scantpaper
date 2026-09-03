@@ -101,7 +101,7 @@ def test_1():
     n_callbacks = 0
 
     def callback(response=None):
-        """Callback."""
+        """React to the callback."""
         nonlocal n_callbacks
         if response is None:
             assert response == EXPECTED[n_callbacks], str(n_callbacks)

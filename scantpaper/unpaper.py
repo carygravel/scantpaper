@@ -608,7 +608,7 @@ class Unpaper:
 
 
 def count_active_children(frame):
-    """Helper function to count active children in the frame."""
+    """Count active children in the frame."""
     num = 0
     for child in frame.get_child().get_children():
         if child.get_active():

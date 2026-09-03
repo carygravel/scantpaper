@@ -59,7 +59,7 @@ class Progress(Gtk.Box):
         self._pbar.pulse()
 
     def queued(self, response):  # , pid
-        """Helper function to set up progress bar."""
+        """Set up progress bar from queued response."""
         process_name, num_completed, total = (
             response.request.process,
             response.num_completed_jobs,
@@ -87,7 +87,7 @@ class Progress(Gtk.Box):
             self._signal = self.connect("clicked", cancel_process)
 
     def update(self, response):
-        """Helper function to update progress bar."""
+        """Update progress bar from response."""
         if not response:
             return
         if response.type == ResponseType.DATA:
@@ -119,7 +119,7 @@ class Progress(Gtk.Box):
             self.show()
 
     def finish(self, response):
-        """Helper function to hide progress bar and disconnect signals."""
+        """Hide progress bar and disconnect signals."""
         if not response or not response.pending:
             self.hide()
         if self._signal is not None:

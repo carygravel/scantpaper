@@ -92,7 +92,7 @@ class FileMenuMixins:
             os.chdir(self.settings["cwd"])
 
     def new_(self, _action, _param):
-        """Deletes all scans after warning."""
+        """Delete all scans after warning."""
         if not self._pages_saved(
             _("Some pages have not been saved.\nDo you really want to clear all pages?")
         ):
@@ -520,7 +520,7 @@ class FileMenuMixins:
         return [self.slist.data[i][2] for i in pagelist]
 
     def _file_chooser_response_callback(self, dialog, response, data):
-        """Callback for file chooser dialog."""
+        """Handle file chooser dialog response."""
         filetype, uuids = data
         suffix = filetype
         if re.search(r"pdf", suffix, re.IGNORECASE):
@@ -857,7 +857,7 @@ class FileMenuMixins:
         file_chooser.destroy()
 
     def _update_post_save_hooks(self):
-        """Updates the post-save hooks."""
+        """Update the post-save hooks."""
         if self._windowi is not None:
             if hasattr(self._windowi, "comboboxpsh"):
                 # empty combobox

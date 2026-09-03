@@ -71,7 +71,7 @@ class Request:
         self.put(info, ResponseType.QUEUED, status)
 
     def started(self, info=None, status=None):
-        """Started notification."""
+        """Send a started notification."""
         self.put(info, ResponseType.STARTED, status)
 
     def finished(self, info=None, status=None):
@@ -83,7 +83,7 @@ class Request:
         self.put(info, ResponseType.ERROR, status)
 
     def cancelled(self, info=None, status=None):
-        """Cancelled notification."""
+        """Send a cancelled notification."""
         self.put(info, ResponseType.CANCELLED, status)
 
     def data(self, info, status=None):
@@ -155,7 +155,7 @@ class BaseThread(threading.Thread):
             os.write(self._notify_w, b"\x01")
 
     def _on_readable(self, _fd, _condition):
-        """Called when the notification pipe is readable."""
+        """React when the notification pipe is readable."""
         try:
             while True:
                 os.read(self._notify_r, 1024)
@@ -184,7 +184,7 @@ class BaseThread(threading.Thread):
                     logger.exception("Error quitting thread %s", thread)
 
     def input_handler(self, request):
-        """Dummy input handler to be overridden as required."""
+        """Provide a dummy input handler to be overridden as required."""
         return request.args
 
     def do_quit(self, _request):
@@ -217,7 +217,7 @@ class BaseThread(threading.Thread):
         *args,
         **kwargs,
     ):
-        """Puts the process and args as a `Request` on the requests queue."""
+        """Put the process and args as a `Request` on the requests queue."""
         request = Request(process, args, self.responses, notify_cb=self._notify)
         callbacks = {"started": False}
         for callback in CALLBACKS:
@@ -276,7 +276,7 @@ class BaseThread(threading.Thread):
         return True
 
     def _request_completed(self, _request):
-        """Hook called when a request's handler has finished or failed."""
+        """Provide a hook for when a request's handler finishes or fails."""
 
     def drain_cancelled_requests(self):
         """Emit a CANCELLED response for every request still queued and unstarted."""

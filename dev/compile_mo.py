@@ -35,7 +35,7 @@ def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
 
 
 def main():
-    """Main."""
+    """Run the application entry point."""
     p = argparse.ArgumentParser(description="Compile .po to .mo")
     p.add_argument(
         "--src", default="po", help="Source dir containing .po files (default: po)"

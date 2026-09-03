@@ -92,7 +92,7 @@ class BaseDocument(SimpleList):
         self.connect("drag-end", _weak_callback(self, "_on_drag_end"))
 
         def drag_drop_callback(tree, context, _x, _y, when):
-            """Callback for dropped signal."""
+            """Handle the dropped signal."""
             targets = tree.drag_dest_get_target_list()
             target = tree.drag_dest_find_target(context, targets)
             if target:
@@ -116,7 +116,7 @@ class BaseDocument(SimpleList):
         self._block_signals = False
 
     def _on_row_changed(self, _self, _path, _iter):
-        """Set-up the callback when the page number has been edited."""
+        """Set up the callback when the page number has been edited."""
         # Note uuids for selected pages
         selection = self.get_selected_indices()
         uuids = [self.data[i][2] for i in selection]
@@ -534,7 +534,7 @@ class BaseDocument(SimpleList):
         self._suppress_delete = False
 
     def delete_selection_extra(self, **kwargs):
-        """Wrapper for delete_selection()."""
+        """Delete the current selection."""
         page = self.get_selected_indices()
         npages = len(page)
         ids = (str(self.data[x][2]) for x in page)
@@ -711,7 +711,7 @@ for method_name_ in [
 
 
 def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
-    """Callback to receive DnD data."""
+    """Handle DnD data reception."""
     # This callback is fired twice, seemingly once for the drop flag,
     # and once for the copy flag,
     # or possible once for the new data and once for the old data.

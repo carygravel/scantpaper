@@ -68,7 +68,7 @@ def mock_tool_window(mocker):
 
 
 def _trigger_apply(mock_dialog_instance):
-    """Helper to find and trigger the apply/ok action."""
+    """Find and trigger the apply/ok action."""
     args, _ = mock_dialog_instance.add_actions.call_args
     apply_cb = next(cb for name, cb in args[0] if name in ("gtk-apply", "gtk-ok"))
     apply_cb()

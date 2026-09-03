@@ -130,7 +130,7 @@ class MultipleMessage(Dialog):
         self.add_actions([("gtk-close", close_callback)])
 
     def on_toggled(self, _data=None):
-        """Callback for checkbutton toggle."""
+        """Handle a checkbutton toggle."""
         state = self.cbn.get_active()
         for cbn in self._list_checkbuttons():
             cbn.set_active(state)
@@ -252,7 +252,7 @@ class MultipleMessage(Dialog):
 
 
 def response_stored(text, responses):
-    """Helper function to return whether there is a response stored for the message."""
+    """Return whether there is a response stored for the message."""
     return bool(responses) and text in responses and "response" in responses[text]
 
 

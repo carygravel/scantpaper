@@ -5,7 +5,7 @@ from scanner.options import Option
 
 
 def _number_of_options():
-    """The read-only option that heads every raw_options list."""
+    """Provide the read-only option that heads every raw_options list."""
     return Option(
         index=0,
         name="",

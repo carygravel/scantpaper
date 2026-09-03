@@ -337,7 +337,7 @@ class ApplicationWindow(
         config.remove_invalid_paper(self.settings["Paper"])
 
     def _populate_main_window(self):
-        """Populates the main window with various UI components and sets up necessary callbacks."""
+        """Populate the main window with various UI components and set up necessary callbacks."""
         self._create_temp_directory()
 
         # Set up an SimpleList for the thumbnail view
@@ -666,7 +666,7 @@ class ApplicationWindow(
         self._in_tool_change = False
 
     def _change_view_cb(self, action, parameter):
-        """Callback to switch between tabbed and split views."""
+        """Switch between tabbed and split views."""
         action.set_state(parameter)
 
         # self.settings["viewer_tools"] still has old value
@@ -808,7 +808,7 @@ class ApplicationWindow(
                 )
 
     def _show_message_dialog(self, **kwargs):
-        """Displays a message dialog with the given options."""
+        """Display a message dialog with the given options."""
         if self._message_dialog is None:
             self._message_dialog = MultipleMessage(
                 title=_("Messages"), transient_for=kwargs["parent"]
@@ -835,7 +835,7 @@ class ApplicationWindow(
             self._message_dialog = None
 
     def _process_error_callback(self, widget, process, msg, signal):
-        """Callback function to handle process errors."""
+        """Handle process errors."""
         logger.info("signal 'process-error' emitted with data: %s %s", process, msg)
         if signal is not None:
             self._scan_progress.disconnect(signal)

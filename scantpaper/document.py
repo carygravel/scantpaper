@@ -303,7 +303,7 @@ class Document(BaseDocument):
         self.thread.split_page(**kwargs)
 
     def ocr_pages(self, **kwargs):
-        """Wrapper for the various ocr engines."""
+        """Wrap the various OCR engines."""
         for page in kwargs["pages"]:
             kwargs["page"] = page
             if kwargs["engine"] == "tesseract":
@@ -374,11 +374,11 @@ class Document(BaseDocument):
         self.thread.send("redo", **callbacks)
 
     def indices2pages(self, list_of_indices):
-        """Helper function to convert an array of indices into an array of uuids."""
+        """Convert an array of indices into an array of UUIDs."""
         return (self.data[x][2] for x in list_of_indices)
 
     def get_selected_properties(self):
-        """Helper function for properties()."""
+        """Get the selected properties."""
         page = self.get_selected_indices()
         xresolution = None
         yresolution = None

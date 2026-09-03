@@ -375,7 +375,7 @@ class PageControls(Dialog):
             spin_buttonn.set_value(value)
 
     def _do_num_pages_changed(self, spin_buttonn, bscannum):
-        """Callback on changing number of pages."""
+        """React to a change in the number of pages."""
         self.num_pages = spin_buttonn.get_value()
         bscannum.set_active(True)  # Set the radiobutton active
 

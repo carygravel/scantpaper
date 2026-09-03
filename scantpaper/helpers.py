@@ -41,7 +41,7 @@ class Proc:
 
 
 def exec_command(cmd, pidfile=None):
-    """Wrapper for subprocess.Popen()."""
+    """Wrap subprocess.Popen()."""
     logger.info(" ".join(cmd))
     kwargs = {}
     if pidfile is not None:

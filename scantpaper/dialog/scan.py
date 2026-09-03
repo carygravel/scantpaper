@@ -1017,7 +1017,7 @@ class Scan(PageControls):
         window.show_all()
 
     def save_current_profile(self, name):
-        """Keeping this as a separate sub allows us to test it."""
+        """Save the current profile for testing as a separate sub."""
         self._add_profile(name, self.current_scan_options)
 
         # Block signal or else we fire another round of profile loads
@@ -1049,16 +1049,16 @@ class Scan(PageControls):
         self.emit("added-profile", name, self.profiles[name])
 
     def set_option(self, option, value, uuid=None):
-        """Placeholder to be overrided by subclass."""
+        """Provide a placeholder to be overridden by a subclass."""
 
     def scan_options(self, device=None):
-        """Placeholder to be overrided by subclass."""
+        """Provide a placeholder to be overridden by a subclass."""
 
     def get_devices(self):
-        """Placeholder to be overrided by subclass."""
+        """Provide a placeholder to be overridden by a subclass."""
 
     def scan(self):
-        """Placeholder to be overrided by subclass."""
+        """Provide a placeholder to be overridden by a subclass."""
 
     def _insert_target(self, k):
         """Return (insert_after, side) for the k-th page scanned in this pass."""
@@ -1535,7 +1535,7 @@ def _edit_profile_callback(_widget, parent):
 
 
 def do_delete_profile_backend_item(_widget, data):
-    """Callback for delete profile button click."""
+    """Handle a delete profile button click."""
     profile, options, vbox, frameb, framef, name, i = data
     logger.debug("removing option '%s' from profile", name)
     profile.remove_backend_option_by_index(i)

@@ -28,22 +28,22 @@ class Tool:
         self.dnd_start = {"x": None, "y": None}
 
     def view(self):
-        """Base view() method."""
+        """Provide the base view() method."""
         return self._view
 
     def button_pressed(self, _event):
-        """Base button_pressed() method."""
+        """Provide the base button_pressed() method."""
         return False
 
     def button_released(self, _event):
-        """Base button_released() method."""
+        """Provide the base button_released() method."""
         return False
 
     def motion(self, _event):
-        """Base motion() method."""
+        """Provide the base motion() method."""
 
     def cursor_at_point(self, ptx, pty):
-        """Returns the name of the cursor at the specified coords."""
+        """Return the name of the cursor at the specified coords."""
         display = Gdk.Display.get_default()
         cursor_type: str | None = self.cursor_type_at_point(ptx, pty)
         if cursor_type is not None:
@@ -51,15 +51,15 @@ class Tool:
         return None
 
     def cursor_type_at_point(self, _x, _y) -> str | None:
-        """Base cursor_type_at_point() method."""
+        """Provide the base cursor_type_at_point() method."""
         return None
 
     def connect(self, *args):
-        """Base connect() method."""
+        """Provide the base connect() method."""
         return self.view().connect(*args)
 
     def disconnect(self, *args):
-        """Base disconnect() method."""
+        """Provide the base disconnect() method."""
         return self.view().disconnect(*args)
 
 
@@ -694,7 +694,7 @@ class ImageView(Gtk.DrawingArea):
         return self.get_interpolation()
 
     def set_zoom(self, zoom):
-        """Setting the zoom via the public API disables zoom-to-fit."""
+        """Set the zoom via the public API, disabling zoom-to-fit."""
         self.setzoom_is_fit(False)
         self._set_zoom_no_center(zoom)
 

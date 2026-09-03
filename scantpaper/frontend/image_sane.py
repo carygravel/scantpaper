@@ -253,7 +253,7 @@ class SaneThread(BaseThread):
         return self.send("set_option", name, value, **kwargs)
 
     def get_option_value(self, name, timeout=10):
-        """Synchronously fetch a single option value via the worker thread."""
+        """Fetch a single option value synchronously via the worker thread."""
         holder = []
         event = threading.Event()
         self.send("get_option_blocking", name, holder, event)
@@ -303,7 +303,7 @@ class SaneThread(BaseThread):
         )
 
     def _scan_pages_cancelled_callback(self, response, **kwargs):
-        """A page transfer was interrupted by a cancel: terminate the session cleanly."""
+        """Handle a page transfer interrupted by a cancel: terminate the session cleanly."""
         # the queued "cancel" request terminates the device session via do_cancel;
         # the partial page was never handed to new_page_callback
         if kwargs["finished_callback"] is not None:

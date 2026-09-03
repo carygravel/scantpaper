@@ -70,7 +70,7 @@ class PaperList(SimpleList):
             del self.data[rows.pop(0)]
 
     def do_paper_sizes_row_changed(self, _model, path, _iter):
-        """Setup the callback to check that no two Names are the same."""
+        """Check that no two names are the same."""
         path = int(path.to_string())
         for index, row in enumerate(self.data):
             if index != path and self.data[path][0] == row[0]:

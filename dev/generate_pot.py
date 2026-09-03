@@ -21,7 +21,7 @@ from const import (  # noqa: E402
 
 
 def main():
-    """Main."""
+    """Run the application entry point."""
     with chdir(root):
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))
         for x in ui_sources:
