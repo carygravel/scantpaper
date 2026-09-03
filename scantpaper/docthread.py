@@ -65,6 +65,7 @@ class DocThread(SaveThread):
     _dir = None
 
     def __init__(self, *args, **kwargs):
+        """Initialise DocThread."""
         for key in ["dir", "db"]:
             if key in kwargs:
                 setattr(self, "_" + key, kwargs.pop(key))

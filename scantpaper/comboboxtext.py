@@ -30,6 +30,7 @@ class ComboBoxText(Gtk.ComboBoxText):
     )
 
     def __init__(self, *args, **kwargs):
+        """Initialise ComboBoxText."""
         data = None
         if "data" in kwargs:
             data = kwargs.pop("data")

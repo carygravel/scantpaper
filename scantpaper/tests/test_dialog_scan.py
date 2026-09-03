@@ -22,6 +22,7 @@ class MockOptions:
     """A mock scan options collection"""
 
     def __init__(self, options):
+        """Initialise MockOptions."""
         self.options = options
         self.options_dict = {o.name: o for o in options}
 
@@ -38,6 +39,7 @@ class MockOption:
     """A mock scan option"""
 
     def __init__(self, name):
+        """Initialise MockOptions."""
         self.name = name
         self.type = enums.TYPE_INT
 

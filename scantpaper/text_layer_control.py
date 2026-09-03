@@ -43,6 +43,7 @@ class TextLayerControls(Gtk.Box):
     }
 
     def __init__(self, *args, **kwargs):
+        """Initialise the text layer control with navigation and editing buttons."""
         super().__init__(*args, **kwargs)
         textview = Gtk.TextView()
         textview.set_tooltip_text(_("Text layer"))

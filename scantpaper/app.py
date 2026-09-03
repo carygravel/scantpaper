@@ -43,6 +43,7 @@ class Application(Gtk.Application):
     """Application class"""
 
     def __init__(self, *args, **kwargs):
+        """Initialise Application."""
         self.args = kwargs.pop("cmdline", None) or []
         super().__init__(
             *args,
@@ -60,6 +61,7 @@ class Application(Gtk.Application):
         Gtk.IconTheme.get_default().prepend_search_path(iconpath)
 
     def do_startup(self, *_args, **_kwargs):
+        """Do startup."""
         Gtk.Application.do_startup(self)
 
     def do_activate(self, *_args, **_kwargs):

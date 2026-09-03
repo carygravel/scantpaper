@@ -29,6 +29,7 @@ class FakeBrscan5Device:
     """
 
     def __init__(self, frames=None, refill=False):
+        """Initialise FeederEmptyError."""
         self.buffered = list(frames) if frames is not None else []
         self.refill = refill
         self.page_counter = 0
@@ -87,6 +88,7 @@ class CancelRaisesDevice(FakeBrscan5Device):
     """emulate a backend whose cross-thread cancel() raises before cancelling"""
 
     def cancel(self):
+        """Cancel."""
         super().cancel()
         msg = "Invalid argument"
         raise DeviceError(msg)

@@ -7,6 +7,7 @@ class SignalCatch:
     """catch signal"""
 
     def __init__(self):
+        """Initialise SignalCatch."""
         self.signal_emitted = False
 
     def catch_signal(self, _widget, _data):

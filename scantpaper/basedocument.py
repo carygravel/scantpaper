@@ -36,6 +36,7 @@ class BaseDocument(SimpleList):
     jobs_total = 0
 
     def __init__(self, **kwargs):
+        """Initialise BaseDocument."""
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page ID": "hint"}
         super().__init__(**columns)
         self.thread = DocThread(**kwargs)

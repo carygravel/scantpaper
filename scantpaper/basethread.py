@@ -18,6 +18,8 @@ _RUNNING_TICK_MS = 200
 
 
 class Response(NamedTuple):
+    """Communication tuple sent from a background thread to the main thread."""
+
     type: "ResponseType"
     request: "Request"
     info: object
@@ -39,6 +41,7 @@ class Request:
     def __init__(
         self, process_name, process_args, return_queue, *args, notify_cb=None, **kwargs
     ):
+        """Initialise a request with a name, args, and return queue."""
         super().__init__(*args, **kwargs)
         self.process = process_name
         self.uuid = uuid.uuid1()
@@ -95,6 +98,7 @@ class BaseThread(threading.Thread):
     LiveThreads = weakref.WeakSet()
 
     def __init__(self, *args, **kwargs):
+        """Initialise the daemon thread with request/response queues and a notify pipe."""
         super().__init__(*args, **kwargs)
         self.daemon = True
         self.requests = queue.Queue()

@@ -61,6 +61,7 @@ class Page:
     _stored_bytes = None
 
     def __init__(self, **kwargs):
+        """Initialise Page."""
         if ("image_object" not in kwargs and "filename" not in kwargs) or (
             "image_object" in kwargs and "filename" in kwargs
         ):

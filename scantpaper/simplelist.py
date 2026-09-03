@@ -43,6 +43,7 @@ class SimpleList(Gtk.TreeView):
     """A simple interface to Gtk's complex MVC list widget"""
 
     def __init__(self, **columns):
+        """Create a SimpleList from keyword arguments mapping column names to types."""
         super().__init__()
         if len(columns.keys()) < 1:
             msg = (
@@ -127,6 +128,7 @@ class SimpleList(Gtk.TreeView):
                     i += 1
 
     def __iter__(self, *args, **kwargs):
+        """Iterate over the rows of the list model."""
         return iter(self.get_model(), *args, **kwargs)
 
     @property
@@ -243,43 +245,54 @@ class TiedRow(list):
     """TiedRow is the lowest-level tie, allowing you to treat a row as an array of column data."""
 
     def __init__(self, model, itr):
+        """Store a reference to the TreeModel and tree iterator for this row."""
         super().__init__()
         self.model = model
         self.iter = itr
 
     def __getitem__(self, index):
+        """Return the column data at *index*."""
         return self.model[self.iter][index]
 
     def __setitem__(self, index, value):
+        """Set the item at the given index."""
         self.model[self.iter][index] = value
 
     def __len__(self):
+        """Return the number of items."""
         return self.model.get_n_columns()
 
     def __contains__(self, index):
+        """Check if the index is within range."""
         return index < self.model.get_n_columns()
 
     def __delitem__(self, _index):
+        """Raise NotImplementedError — fixed-size row."""
         msg = "delete called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
     def extend(self, _items):
+        """Extend the list with items (not supported)."""
         msg = "extend called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
     def clear(self):
+        """Clear all items (not supported)."""
         msg = "clear called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
     def pop(self):
+        """Pop the last item (not supported)."""
         msg = "pop called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
     def append(self, _item):
+        """Append an item (not supported)."""
         msg = "append called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
     def insert(self, _index, _item):
+        """Insert an item at position (not supported)."""
         msg = "push called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
@@ -288,10 +301,12 @@ class TiedList(list):
     """TiedList is an array in which each element is a row in the liststore."""
 
     def __init__(self, model):
+        """Init attributes."""
         super().__init__()
         self.model = model
 
     def __getitem__(self, index):
+        """Return the item at the given index."""
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
             msg = "list index out of range"
@@ -299,6 +314,7 @@ class TiedList(list):
         return TiedRow(self.model, itr)
 
     def __setitem__(self, index, value):
+        """Set the item at the given index."""
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
             msg = "list index out of range"
@@ -306,30 +322,38 @@ class TiedList(list):
         self.model[itr] = value
 
     def __len__(self):
+        """Return the number of items."""
         return len(self.model)
 
     def __str__(self):
+        """Return a string representation."""
         return str([list(x) for x in self.model])
 
     def __eq__(self, other):
+        """Compare equality with another instance."""
         return [list(x) for x in self.model] == other
 
     __hash__ = None
 
     def append(self, values):
+        """Append."""
         self.model.append(values)
 
     def __iter__(self):
+        """Iterate over the rows."""
         return iter(self.model)
 
     def extend(self, values):
+        """Extend."""
         for row in values:
             self.model.append(row)
 
     def insert(self, position, row):
+        """Insert."""
         self.model.insert(position, row)
 
     def pop(self):
+        """Pop."""
         model = self.model
         index = model.iter_n_children(None) - 1
         itr = model.iter_nth_child(None, index)
@@ -341,6 +365,7 @@ class TiedList(list):
         return ret
 
     def __delitem__(self, index):
+        """Raise NotImplementedError — fixed-size row."""
         model = self.model
         itr = model.iter_nth_child(None, index)
         if itr is None:

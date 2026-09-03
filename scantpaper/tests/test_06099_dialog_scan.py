@@ -33,6 +33,7 @@ class MockOption:
     def __init__(
         self, name, otype, unit=enums.UNIT_NONE, cap=0, constraint=None, desc=""
     ):
+        """Initialise MockOption."""
         self.name = name
         self.title = name
         self.type = otype
@@ -47,6 +48,7 @@ class MockOptions:
     """A mock scan options collection"""
 
     def __init__(self, options):
+        """Initialise MockOptions with a list of MockOption objects."""
         self.options = options
         self.options_dict = {o.name: o for o in options}
 
@@ -78,6 +80,7 @@ class MockDevice:
     """A mock scan device"""
 
     def __init__(self, name, model="model", vendor="vendor"):
+        """Initialise MockDevice with name, model, and vendor."""
         self.name = name
         self.model = model
         self.vendor = vendor
@@ -88,6 +91,7 @@ class MockScan(Scan):
     """A mock Scan class"""
 
     def __init__(self):
+        """Initialise MockScan with mocked widgets."""
         super().__init__()
 
         # Replace the widgets built by the real constructor with mocks

@@ -22,6 +22,7 @@ class Tool:
     dragging = False
 
     def __init__(self, view):
+        """Initialise Tool."""
         self._view = view
         self.drag_start = {"x": None, "y": None}
         self.dnd_start = {"x": None, "y": None}
@@ -334,6 +335,7 @@ class SelectorDragger(Tool):
     """Select with LMB, drag with MMB"""
 
     def __init__(self, view):
+        """Initialise SelectorDragger."""
         super().__init__(view)
         self._selector = Selector(view)
         self._dragger = Dragger(view)
@@ -630,6 +632,7 @@ class ImageView(Gtk.DrawingArea):
             self._scroll_timeout = None
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         super().__init__(*args, **kwargs)
 
         self.set_app_paintable(True)

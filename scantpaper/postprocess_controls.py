@@ -27,6 +27,7 @@ class RotateControlRow(Gtk.Box):
     """provide a row of postprocessing rotate controls for the scan dialog"""
 
     def __init__(self, *args, **kwargs):
+        """Initialise RotateControlRow."""
         super().__init__(*args, **kwargs)
         self.cbutton = Gtk.CheckButton(label=_("Rotate"))
         self.cbutton.set_tooltip_text(_("Rotate image after scanning"))
@@ -105,7 +106,7 @@ class RotateControls(Gtk.Box):
             self._side2.side_cmbx.hide()
 
     def __init__(self, *args, **kwargs):
-
+        """Initialise ."""
         # have to do this manually, since Gtk.Box messes with the initialization
         rotate_facing = kwargs.pop("rotate_facing", kwargs.pop("rotate-facing", 0))
         rotate_reverse = kwargs.pop("rotate_reverse", kwargs.pop("rotate-reverse", 0))
@@ -331,6 +332,7 @@ class OCRControls(Gtk.Box):
             self._threshold_spin.set_value(newval)
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         super().__init__(*args, **kwargs)
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         hboxo = Gtk.Box()

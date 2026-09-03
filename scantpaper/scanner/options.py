@@ -11,6 +11,8 @@ EMPTY = ""
 
 
 class Option(NamedTuple):
+    """A single SANE scan option with index, name, type, and constraint."""
+
     index: int
     name: str
     title: str
@@ -30,6 +32,7 @@ class Options(GObject.Object):
     """
 
     def __init__(self, options):
+        """Initialise the options hash and geometry from a SANE options list."""
         GObject.Object.__init__(self)
         self.hash = {}
         self.geometry = {}
@@ -67,6 +70,7 @@ class Options(GObject.Object):
         self.parse_geometry()
 
     def __str__(self):
+        """Return a string representation of the options array."""
         return f"Options({self.array})"
 
     def by_index(self, i):

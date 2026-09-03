@@ -66,6 +66,7 @@ class SaveThreadProgressBar(ProgressBar):
         unit: str | None,
         disable: bool = False,
     ):
+        """Initialise the progress bar with request, total, and description."""
         self.request = request
         self.total = total or 1
         self.desc = desc or "Processing PDF"
@@ -88,9 +89,11 @@ class SaveThreadProgressBar(ProgressBar):
             self.request.data(_(self.desc))
 
     def __enter__(self):
+        """Enter the context manager."""
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
+        """Exit the context manager."""
         return False
 
 

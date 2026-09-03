@@ -30,6 +30,7 @@ class MockSaveThread(SaveThread):
     """Mock subclass of SaveThread for testing"""
 
     def __init__(self):
+        """Initialise MockSaveThread."""
         super().__init__()
         self.responses = MagicMock()
         self.paper_sizes = {}

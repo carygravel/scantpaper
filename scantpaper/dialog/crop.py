@@ -109,6 +109,7 @@ class Crop(Dialog):
         self._page_height = newval
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         kwargs["title"] = _("Crop")
         kwargs["hide_on_delete"] = True
         self._selection = Gdk.Rectangle()

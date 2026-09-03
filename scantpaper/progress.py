@@ -24,6 +24,7 @@ class Progress(Gtk.Box):
     }
 
     def __init__(self, *args, **kwargs):
+        """Initialise Progress."""
         super().__init__(*args, **kwargs)
         self.cancel_callback = None
         self._signal = None

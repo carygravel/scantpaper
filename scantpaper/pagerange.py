@@ -31,6 +31,7 @@ class PageRange(Gtk.Box):
     widget_list: ClassVar[list] = []  # list of all PageRange widgets
 
     def __init__(self, *args, **kwargs):
+        """Initialise PageRange."""
         super().__init__(*args, **kwargs)
 
         buttons = {

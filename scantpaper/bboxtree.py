@@ -41,6 +41,7 @@ class Bboxtree:
     """Read and write the bounding box trees from HOCR files"""
 
     def __init__(self, json_string=None):
+        """Initialise Bboxtree."""
         self.bbox_tree = []
         if json_string is not None:
             self.bbox_tree = json.loads(json_string, strict=False)
@@ -328,12 +329,14 @@ class HOCRParser(HTMLParser):
     """parser for HOCR string"""
 
     def __init__(self, *args, **kwargs):
+        """Initialise HOCRParser."""
         super().__init__(*args, **kwargs)
         self.boxes = []
         self.stack = []
         self.data = {}
 
     def handle_starttag(self, tag, attrs):
+        """Handle starttag."""
         token = dict(attrs)
         if "class" in token and "title" in token:
             self._parse_title(token["title"])
@@ -451,10 +454,12 @@ class HOCRParser(HTMLParser):
                     self.boxes.append(self.data)
 
     def handle_endtag(self, _tag):
+        """Handle endtag."""
         if self.stack:
             self.data = self.stack.pop()
 
     def handle_data(self, data):
+        """Handle data."""
         data = data.rstrip()
         if data != "":
             self.data["text"] = data
@@ -492,6 +497,7 @@ class PDFTextParser(HTMLParser):
     """parser for HTML string for PDF text layer"""
 
     def __init__(self, resolution, image_size, *args, **kwargs):
+        """Initialise PDFTextParser."""
         super().__init__(*args, **kwargs)
         self.boxes = []
         self.stack = []
@@ -501,6 +507,7 @@ class PDFTextParser(HTMLParser):
         self.x_offset = 0
 
     def handle_starttag(self, tag, attrs):
+        """Handle starttag."""
         token = dict(attrs)
         if tag == "page":
             self.data["type"] = tag
@@ -539,10 +546,12 @@ class PDFTextParser(HTMLParser):
             self.stack.append(self.data)
 
     def handle_endtag(self, _tag):
+        """Handle endtag."""
         if self.stack:
             self.data = self.stack.pop()
 
     def handle_data(self, data):
+        """Handle data."""
         data = data.rstrip()
         if "type" in self.data and data != "":
             self.data["text"] = data

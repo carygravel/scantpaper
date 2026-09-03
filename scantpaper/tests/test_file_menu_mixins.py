@@ -108,6 +108,7 @@ class MockApp(unittest.mock.Mock, FileMenuMixins):
     """A mock application class"""
 
     def __init__(self, **kwargs):
+        """Initialise MockWindows."""
         super().__init__(**kwargs)
         self.slist = MockSlist()
         self.settings = {"cwd": "/tmp"}

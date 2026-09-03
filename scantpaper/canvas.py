@@ -191,6 +191,7 @@ class Rectangle(Gdk.Rectangle):
     """Helper class so that we can parse arguments when initialising"""
 
     def __init__(self, **kwargs):
+        """Initialise Rectangle."""
         super().__init__()
         for key in ["x", "y", "width", "height"]:
             if key not in kwargs:
@@ -208,6 +209,7 @@ class Bbox:
     """Bounding box with text, rectangle, and hierarchy info for OCR display"""
 
     def __init__(self, **kwargs):
+        """Initialise Rectangle."""
         self.parent = None
         self.children = []
         self._callbacks = {}
@@ -466,6 +468,7 @@ class Canvas(Gtk.DrawingArea):
     }
 
     def __init__(self, *args, **kwargs):
+        """Initialise Canvas."""
         super().__init__(*args, **kwargs)
 
         self.add_events(
@@ -1169,6 +1172,7 @@ class ListIter:
     """an interator to allow us to index around a linear list"""
 
     def __init__(self):
+        """Initialise ListIter."""
         self.list = []
         self.index = EMPTY_LIST
 
@@ -1276,6 +1280,7 @@ class TreeIter:
     """Class allowing us to iterate around the tree of bounding boxes"""
 
     def __init__(self, bbox):
+        """Initialise TreeIter."""
         if not isinstance(bbox, Bbox):
             msg = "bbox is not a Bbox object"
             raise TypeError(msg)

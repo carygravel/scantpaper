@@ -137,6 +137,7 @@ class ApplicationWindow(
     _pdf_email = None
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         kwargs["title"] = f"{PROG_NAME} v{VERSION}"
         super().__init__(*args, **kwargs)
 

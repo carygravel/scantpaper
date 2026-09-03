@@ -338,6 +338,7 @@ class Save(Dialog):
     )
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         super().__init__(*args, **kwargs)
         box = self.get_content_area()
 

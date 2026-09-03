@@ -10,6 +10,7 @@ class PaperList(SimpleList):
     """A list of paper sizes"""
 
     def __init__(self, formats):
+        """Initialise PaperList."""
         columns = {
             _("Name"): "text",
             _("Width"): "int",

@@ -10,6 +10,7 @@ class EntryCompletion(Gtk.Entry):
     """Subclass Gtk.Entry to add completion suggestions"""
 
     def __init__(self, text=None, suggestions=None):
+        """Initialise Gtk."""
         super().__init__()
         completion = Gtk.EntryCompletion()
         completion.set_inline_completion(True)

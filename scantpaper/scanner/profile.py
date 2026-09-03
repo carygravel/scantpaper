@@ -14,6 +14,7 @@ class Profile(GObject.Object):
     backend = None
 
     def __init__(self, frontend=None, backend=None, uid=None):
+        """Initialise the profile with deep-copied frontend and backend dicts."""
         super().__init__()
         if isinstance(frontend, dict):
             if "frontend" in frontend:
@@ -49,12 +50,15 @@ class Profile(GObject.Object):
         self.uuid = str(uuid.uuid1()) if uid is None else uid
 
     def __copy__(self):
+        """Return a shallow copy with deep-copied frontend and backend."""
         return Profile(frontend=self.frontend, backend=self.backend, uid=self.uuid)
 
     def __str__(self):
+        """Return a string representation of the profile."""
         return f"Profile(frontend={self.frontend}, backend={self.backend}, uuid={self.uuid})"
 
     def __eq__(self, other):
+        """Compare profiles by frontend and backend dicts only."""
         return self.frontend == other.frontend and self.backend == other.backend
 
     __hash__ = None

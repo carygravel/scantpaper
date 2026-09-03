@@ -171,6 +171,7 @@ class PageControls(Dialog):
         self._document = newval
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         super().__init__(*args, **kwargs)
 
         self.current_scan_options = Profile()

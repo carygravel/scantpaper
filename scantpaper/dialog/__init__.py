@@ -49,6 +49,7 @@ class Dialog(Gtk.Dialog):
         return Gdk.EVENT_PROPAGATE
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         super().__init__(*args, **kwargs)
         self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
 
@@ -99,6 +100,7 @@ class MultipleMessage(Dialog):
     """Subclass of Dialog to display messages and let the user respond or ignore."""
 
     def __init__(self, *args, **kwargs):
+        """Initialise MultipleMessage."""
         super().__init__(*args, **kwargs)
 
         # to ensure dialog can't grow too big if we have too many messages

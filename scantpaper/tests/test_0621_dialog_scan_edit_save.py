@@ -18,6 +18,7 @@ class Sane:
     """Mock Sane object"""
 
     def __init__(self):
+        """Initialise Sane."""
         self.options = [
             (
                 0,
@@ -47,6 +48,7 @@ class TestScan(Scan):
     __test__ = False
 
     def __init__(self, *args, **kwargs):
+        """Initialise TestScan."""
         self.thread = MagicMock()
         self.thread.device_handle = MagicMock()
         # Mocking Gtk methods to avoid creating real widgets

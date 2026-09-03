@@ -34,6 +34,7 @@ class SaneScanDialog(Scan):
     )
 
     def __init__(self, *args, **kwargs):
+        """Initialise SaneScanDialog."""
         super().__init__(*args, **kwargs)
         self.thread = SaneThread()
         self._finalizer = weakref.finalize(
@@ -447,6 +448,7 @@ class SaneScanDialog(Scan):
         )
 
     def scan(self):
+        """Scan."""
         self.cursor = "progress"
 
         # Get selected number of pages

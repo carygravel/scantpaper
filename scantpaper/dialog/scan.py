@@ -349,6 +349,7 @@ class Scan(PageControls):
     combobp = None
 
     def __init__(self, *args, **kwargs):
+        """Initialise ."""
         profiles = {}
         if "profiles" in kwargs:
             profiles = kwargs.pop("profiles")

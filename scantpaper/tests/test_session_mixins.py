@@ -963,6 +963,7 @@ class MockApp(SessionMixins):
     """mock application class for testing SessionMixins methods"""
 
     def __init__(self):
+        """Initialise MockApp."""
         self.slist = MagicMock()
         # Mock slist.data as a list of lists [page_number, pixbuf, page_id]
         self.slist.data = [[1, None, 1]]

@@ -19,7 +19,7 @@ class Unpaper:
     _version = None
 
     def __init__(self, default=None):
-
+        """Initialise unpaper options from the defaults dict."""
         self.default = default if default is not None else {}
 
         # Set up hash for options
