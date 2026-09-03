@@ -1,4 +1,4 @@
-"""test scan dialog current_scan_options property"""
+"""test scan dialog current_scan_options property."""
 
 import threading
 import time
@@ -19,7 +19,7 @@ from gi.repository import (  # noqa: E402
 
 
 class MockOptions:
-    """A mock scan options collection"""
+    """A mock scan options collection."""
 
     def __init__(self, options):
         """Initialise MockOptions."""
@@ -27,16 +27,16 @@ class MockOptions:
         self.options_dict = {o.name: o for o in options}
 
     def num_options(self):
-        """Number of options"""
+        """Number of options."""
         return len(self.options)
 
     def by_index(self, i):
-        """Get option by index"""
+        """Get option by index."""
         return self.options[i]
 
 
 class MockOption:
-    """A mock scan option"""
+    """A mock scan option."""
 
     def __init__(self, name):
         """Initialise MockOptions."""
@@ -45,7 +45,7 @@ class MockOption:
 
 
 def test_current_scan_options_property():
-    """Test current_scan_options property getter and setter"""
+    """Test current_scan_options property getter and setter."""
     dialog = Scan(
         title="title",
         transient_for=Gtk.Window(),
@@ -62,7 +62,7 @@ def test_current_scan_options_property():
 
 
 def test_ignore_duplex_capabilities_property():
-    """Test ignore_duplex_capabilities property getter and setter"""
+    """Test ignore_duplex_capabilities property getter and setter."""
     dialog = Scan(
         title="title",
         transient_for=Gtk.Window(),
@@ -77,7 +77,7 @@ def test_ignore_duplex_capabilities_property():
 
 
 def test_show(mocker):
-    """Test show method"""
+    """Test show method."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock PageControls.show to avoid GTK warnings or errors if not fully initialized
@@ -111,7 +111,7 @@ def test_show(mocker):
 
 
 def test_device_dropdown_changed(mocker):
-    """Test do_device_dropdown_changed callback"""
+    """Test do_device_dropdown_changed callback."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock get_devices to verify call
@@ -139,7 +139,7 @@ def test_device_dropdown_changed(mocker):
 
 
 def test_edit_paper_apply(mocker):
-    """Test _edit_paper and applying changes"""
+    """Test _edit_paper and applying changes."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
 
@@ -204,7 +204,7 @@ def test_edit_paper_apply(mocker):
 
 
 def test_delete_profile_frontend_item(mocker):
-    """Test deleting a frontend item from the profile editor"""
+    """Test deleting a frontend item from the profile editor."""
     # Setup
     profile = Profile()
     profile.add_frontend_option("test_option", "value")
@@ -267,7 +267,7 @@ def test_delete_profile_frontend_item(mocker):
 
 
 def test_delete_profile_backend_item(mocker):
-    """Test deleting a backend item from the profile editor"""
+    """Test deleting a backend item from the profile editor."""
     # Setup
     profile = Profile(backend=[("mode", "Color")])
 
@@ -336,7 +336,7 @@ def test_delete_profile_backend_item(mocker):
 
 
 def test_rescan_hides_widgets(mocker):
-    """Test that selecting rescan hides the device widgets"""
+    """Test that selecting rescan hides the device widgets."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock get_devices to verify call and prevent actual execution
@@ -373,7 +373,7 @@ def test_rescan_hides_widgets(mocker):
 
 
 def test_cursor_setter_with_window(mocker):
-    """Test cursor setter when window exists"""
+    """Test cursor setter when window exists."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock get_window
@@ -398,7 +398,7 @@ def test_cursor_setter_with_window(mocker):
 
 
 def test_cursor_setter_none():
-    """Test cursor setter with None value"""
+    """Test cursor setter with None value."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.cursor = "wait"
     assert dialog.cursor == "wait"
@@ -407,7 +407,7 @@ def test_cursor_setter_none():
 
 
 def test_scan_button(mocker):
-    """Test scan button action"""
+    """Test scan button action."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock scan method to verify it is called
@@ -434,7 +434,7 @@ def test_scan_button(mocker):
 
 
 def test_available_scan_options_flatbed_selected(mocker):
-    """Test available_scan_options setter when flatbed is selected"""
+    """Test available_scan_options setter when flatbed is selected."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock thread and device handle
@@ -464,7 +464,7 @@ def test_available_scan_options_flatbed_selected(mocker):
 
 
 def test_available_scan_options_flatbed_not_selected(mocker):
-    """Test available_scan_options setter when flatbed is NOT selected"""
+    """Test available_scan_options setter when flatbed is NOT selected."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.thread = mocker.Mock()
     mock_set_sensitive = mocker.patch.object(dialog.framen, "set_sensitive")
@@ -481,7 +481,7 @@ def test_available_scan_options_flatbed_not_selected(mocker):
 
 
 def test_init_with_profiles():
-    """Test __init__ with profiles argument"""
+    """Test __init__ with profiles argument."""
     profiles = {
         "TestProfile": {"frontend": {"paper": "A4"}, "backend": [("mode", "Color")]}
     }
@@ -500,7 +500,7 @@ def test_init_with_profiles():
 
 
 def test_profile_setter_updates_combobox(mocker):
-    """Test that setting profile property updates the combobox"""
+    """Test that setting profile property updates the combobox."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Add a profile
@@ -713,7 +713,7 @@ def test_profile_not_cleared_when_paper_changed_during_profile_apply(mocker):
 
 
 def test_device_dropdown_changed_garbage_collection(mocker):
-    """Test do_device_dropdown_changed callback when dialog is garbage collected"""
+    """Test do_device_dropdown_changed callback when dialog is garbage collected."""
     # Mock weakref in the module scope to return None, simulating garbage collection
     # The callback captures the weakref at creation time.
     mocker.patch("dialog.scan.weakref.ref", return_value=lambda: None)
@@ -726,7 +726,7 @@ def test_device_dropdown_changed_garbage_collection(mocker):
 
 
 def test_paper_dimension_changed_unsets_paper(mocker):
-    """Test that changing geometry unsets paper format"""
+    """Test that changing geometry unsets paper format."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock necessary parts for _pack_widget and _create_paper_widget
@@ -773,7 +773,7 @@ def test_paper_dimension_changed_unsets_paper(mocker):
 
 
 def test_get_paper_by_geometry(mocker):
-    """Test _get_paper_by_geometry method"""
+    """Test _get_paper_by_geometry method."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Test formats is None (Line 667)
@@ -875,7 +875,7 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
 
 
 def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
-    """Test reproduction of infinite loop issue when switching devices and applying profile"""
+    """Test reproduction of infinite loop issue when switching devices and applying profile."""
     dialog = sane_scan_dialog
     loop = mainloop_with_timeout()
 
@@ -944,7 +944,7 @@ def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
 
 
 def test_do_profile_changed(mocker):
-    """Test _do_profile_changed callback"""
+    """Test _do_profile_changed callback."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock combobsp
@@ -961,7 +961,7 @@ def test_do_profile_changed(mocker):
 
 
 def test_update_options_recursion_limit(mocker):
-    """Test _update_options recursion limit"""
+    """Test _update_options recursion limit."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.reload_recursion_limit = 5
     dialog.num_reloads = 5
@@ -976,7 +976,7 @@ def test_update_options_recursion_limit(mocker):
 
 
 def test_set_option_profile_inexact(mocker):
-    """Test _set_option_profile with INFO_INEXACT"""
+    """Test _set_option_profile with INFO_INEXACT."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.thread = mocker.Mock()
     dialog.thread.device_handle = mocker.Mock()
@@ -1013,7 +1013,7 @@ def test_set_option_profile_inexact(mocker):
 
 
 def test_update_widget_value_types(mocker):
-    """Test _update_widget_value with various widget types"""
+    """Test _update_widget_value with various widget types."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # 1. CheckButton (BOOL)
@@ -1069,7 +1069,7 @@ def test_update_widget_value_types(mocker):
 
 
 def test_get_label_for_option():
-    """Test _get_label_for_option"""
+    """Test _get_label_for_option."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     hbox = Gtk.Box()
@@ -1083,7 +1083,7 @@ def test_get_label_for_option():
 
 
 def test_pack_widget_unknown_type(mocker):
-    """Test _pack_widget with None widget (unknown type)"""
+    """Test _pack_widget with None widget (unknown type)."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     mock_logger = mocker.patch("dialog.scan.logger")
@@ -1097,7 +1097,7 @@ def test_pack_widget_unknown_type(mocker):
 
 
 def test_add_current_scan_options_with_none(mocker):
-    """Test _add_profile with None profile"""
+    """Test _add_profile with None profile."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock logger to verify the error message
@@ -1111,7 +1111,7 @@ def test_add_current_scan_options_with_none(mocker):
 
 
 def test_add_current_scan_options_with_error(mocker):
-    """Test _add_profile with None profile"""
+    """Test _add_profile with None profile."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock logger to verify the error message
@@ -1125,7 +1125,7 @@ def test_add_current_scan_options_with_error(mocker):
 
 
 def test_update_widget_value_widget_undefined(mocker):
-    """Test _update_widget_value when widget for option is undefined"""
+    """Test _update_widget_value when widget for option is undefined."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
     # Mock logger to verify the warning message
@@ -1145,7 +1145,7 @@ def test_update_widget_value_widget_undefined(mocker):
 
 
 def test_update_options_error_return(mocker):
-    """Test _update_options returns early if _update_option returns True (line 717)"""
+    """Test _update_options returns early if _update_option returns True (line 717)."""
     dialog = Scan()
 
     # Mock copy to just return the same object
@@ -1169,7 +1169,7 @@ def test_update_options_error_return(mocker):
 
 
 def test_get_label_for_option_none():
-    """Test _get_label_for_option returns None if no label is found (line 1333)"""
+    """Test _get_label_for_option returns None if no label is found (line 1333)."""
     dialog = Scan()
 
     hbox = Gtk.Box()

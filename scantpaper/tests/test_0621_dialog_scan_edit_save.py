@@ -1,4 +1,4 @@
-"""Test scan dialog"""
+"""Test scan dialog."""
 
 from unittest.mock import MagicMock
 
@@ -15,7 +15,7 @@ from scanner.profile import Profile
 
 
 class Sane:
-    """Mock Sane object"""
+    """Mock Sane object."""
 
     def __init__(self):
         """Initialise Sane."""
@@ -43,7 +43,7 @@ sane_mock = Sane()
 
 
 class TestScan(Scan):
-    """Test-friendly Scan class"""
+    """Test-friendly Scan class."""
 
     __test__ = False
 
@@ -60,7 +60,7 @@ class TestScan(Scan):
 
 @pytest.fixture
 def available_scan_options():
-    """Fixture for available_scan_options"""
+    """Fixture for available_scan_options."""
     return Options(sane_mock.options)
 
 

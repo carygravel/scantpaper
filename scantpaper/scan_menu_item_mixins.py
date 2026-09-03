@@ -1,4 +1,4 @@
-"""provide methods called from scan menu item"""
+"""provide methods called from scan menu item."""
 
 import logging
 import os
@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 
 
 class ScanMenuItemMixins:
-    """provide methods called from scan menu item"""
+    """provide methods called from scan menu item."""
 
     def scan_dialog(self, _action, _param, hidden=False, scan=False):
-        """Scan"""
+        """Scan."""
         if self._windows:
             self._windows.show_all()
             self._update_postprocessing_options_callback(self._windows)
@@ -90,7 +90,7 @@ class ScanMenuItemMixins:
         self._windows.connect("removed-profile", removed_profile_callback)
 
         def changed_current_scan_options_callback(_widget, profile, _uuid):
-            """Update the default profile when the scan options change"""
+            """Update the default profile when the scan options change."""
             self.settings["default-scan-options"] = profile.get()
 
         self._windows.connect(
@@ -252,7 +252,7 @@ class ScanMenuItemMixins:
         return combobox
 
     def _changed_device_callback(self, widget, device):
-        """Callback for changed device"""
+        """Callback for changed device."""
         # widget is windows
         logger.info("signal 'changed-device' emitted with data: '%s'", device)
         if device is not None:
@@ -266,7 +266,7 @@ class ScanMenuItemMixins:
             )
 
     def _changed_device_list_callback(self, widget, device_list):  # widget is windows
-        """Callback for changed device list"""
+        """Callback for changed device list."""
         logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
         if len(device_list):
             # Apply the device blacklist
@@ -403,7 +403,7 @@ class ScanMenuItemMixins:
         self.slist.import_scan(**options)
 
     def _reloaded_scan_options_callback(self, widget):  # widget is windows
-        """This should only be called the first time after loading the available options"""
+        """This should only be called the first time after loading the available options."""
         widget.disconnect(widget.reloaded_signal)
         profiles = self.settings["profile"].keys()
         if (

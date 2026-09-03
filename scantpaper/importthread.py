@@ -1,4 +1,4 @@
-"""Threading model for the Document class"""
+"""Threading model for the Document class."""
 
 import logging
 import pathlib
@@ -24,11 +24,11 @@ image_format = {
 
 
 class CancelledError(RuntimeError):
-    """Raised when a job is cancelled"""
+    """Raised when a job is cancelled."""
 
 
 class Importhread(BaseThread):
-    """subclass basethread for document"""
+    """subclass basethread for document."""
 
     def __init__(self):
         """Initialise CancelledError."""
@@ -41,7 +41,7 @@ class Importhread(BaseThread):
         self.paper_sizes = {}
 
     def _request_pidfile(self, request):
-        """Locate the pidfile attached to a request for this thread"""
+        """Locate the pidfile attached to a request for this thread."""
         pidfile = getattr(request, "pidfile", None)
         if pidfile is not None:
             return pidfile
@@ -51,23 +51,23 @@ class Importhread(BaseThread):
         return None
 
     def _request_completed(self, request):
-        """Deregister the request's pidfile now that its handler has finished"""
+        """Deregister the request's pidfile now that its handler has finished."""
         pidfile = self._request_pidfile(request)
         if pidfile is not None:
             with self.lock:
                 self.running_pids.pop(pidfile, None)
 
     def do_cancel(self, _request):
-        """Cancel running tasks"""
+        """Cancel running tasks."""
         self.cancel = False
 
     def check_cancelled(self):
-        """Check if operation was cancelled"""
+        """Check if operation was cancelled."""
         if self.cancel:
             raise CancelledError
 
     def do_get_file_info(self, request):
-        """Get file info"""
+        """Get file info."""
         path, password = request.args
         pidfile = getattr(request, "pidfile", None)
         info = {}
@@ -114,7 +114,7 @@ class Importhread(BaseThread):
         return info
 
     def _get_djvu_info(self, info, path, pidfile=None):
-        """Get DjVu info"""
+        """Get DjVu info."""
         # Dig out the number of pages
         proc = exec_command(["djvudump", path], pidfile)
         if proc.stdout is None:
@@ -173,7 +173,7 @@ class Importhread(BaseThread):
         _add_metadata_to_info(info, proc.stdout, r'\s+"([^"]+)')
 
     def _get_pdf_info(self, info, path, password, request, pidfile=None):
-        """Get PDF info"""
+        """Get PDF info."""
         info["format"] = "Portable Document Format"
         args = ["pdfinfo", "-isodates", path]
         if password is not None:
@@ -232,7 +232,7 @@ class Importhread(BaseThread):
         _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
 
     def _get_tif_info(self, info, path, request, pidfile=None):
-        """Get TIFF info"""
+        """Get TIFF info."""
         info["format"] = "Tagged Image File Format"
         proc = exec_command(["tiffinfo", path], pidfile)
         if proc.stdout is None:
@@ -270,7 +270,7 @@ class Importhread(BaseThread):
         info["height"] = height
 
     def do_import_file(self, request):
-        """Import file in thread"""
+        """Import file in thread."""
         args = request.args[0]
         if args["info"]["format"] == "DJVU":
             self._do_import_djvu(request)
@@ -343,11 +343,11 @@ class Importhread(BaseThread):
             )
 
     def get_file_info(self, path, password, **kwargs):
-        """Get file info"""
+        """Get file info."""
         return self.send("get_file_info", path, password, **kwargs)
 
     def import_file(self, **kwargs):
-        """Import file"""
+        """Import file."""
         callbacks = _note_callbacks(kwargs)
         return self.send("import_file", kwargs, **callbacks)
 
@@ -499,7 +499,7 @@ class Importhread(BaseThread):
             )
 
     def _import_pdf_images(self, request, i, images_and_resolution):
-        """Import the images extracted from a PDF page"""
+        """Import the images extracted from a PDF page."""
         for fname, xresolution, yresolution, mask_fname in images_and_resolution:
             if mask_fname is not None:
                 _composite_over_white(fname, mask_fname)
@@ -579,7 +579,7 @@ def _pdf_cmd_with_password(cmd, password):
 
 
 def _parse_pdfimages_list(out):
-    """Parse pdfimages -list output into a list of image entries"""
+    """Parse pdfimages -list output into a list of image entries."""
     entries = []
     for line in out.splitlines():
         tokens = line.split()
@@ -603,7 +603,7 @@ def _parse_pdfimages_list(out):
 
 
 def _composite_over_white(image_path, mask_path):
-    """Composite the image over a white background using its soft mask, in place"""
+    """Composite the image over a white background using its soft mask, in place."""
     try:
         image = Image.open(image_path)
         mask = Image.open(mask_path)
@@ -620,7 +620,7 @@ def _composite_over_white(image_path, mask_path):
 
 
 def _correlate_pdf_images(entries):
-    """Correlate extracted files with pdfimages -list entries by index"""
+    """Correlate extracted files with pdfimages -list entries by index."""
     images = sorted(str(x) for x in pathlib.Path().glob("x-??*.???"))
     if len(images) != len(entries):
         # Unexpected structure: import every file and warn

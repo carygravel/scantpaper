@@ -1,4 +1,4 @@
-"""Various helper functions"""
+"""Various helper functions."""
 
 import datetime
 import logging
@@ -19,7 +19,7 @@ _MESSAGE_DIALOG = {"dialog": None}
 
 
 def _weak_callback(obj, method_name):
-    """Create a weak callback"""
+    """Create a weak callback."""
     ref = weakref.ref(obj)
 
     def callback(*args, **kwargs):
@@ -41,7 +41,7 @@ class Proc:
 
 
 def exec_command(cmd, pidfile=None):
-    """Wrapper for subprocess.Popen()"""
+    """Wrapper for subprocess.Popen()."""
     logger.info(" ".join(cmd))
     kwargs = {}
     if pidfile is not None:
@@ -105,7 +105,7 @@ def exec_command_run(
 
 
 def program_version(stream, regex, cmd):
-    """Run command and parse version string from output"""
+    """Run command and parse version string from output."""
     return _program_version(stream, regex, exec_command(cmd))
 
 
@@ -139,7 +139,7 @@ def _program_version(stream, regex, proc):
 
 
 def collate_metadata(settings, today_and_now):
-    """Collect metadata from settings dictionary"""
+    """Collect metadata from settings dictionary."""
     metadata = {}
     for key in ["author", "title", "subject", "keywords"]:
         if key in settings:
@@ -156,7 +156,7 @@ def collate_metadata(settings, today_and_now):
 
 
 def expand_metadata_pattern(**kwargs):
-    """Expand metadata template"""
+    """Expand metadata template."""
     # Expand author, title and extension
     for key in ["author", "title", "subject", "keywords", "extension"]:
         if key not in kwargs or kwargs[key] is None:
@@ -197,7 +197,7 @@ def expand_metadata_pattern(**kwargs):
 
 
 def show_message_dialog(**options):
-    """Show message dialog"""
+    """Show message dialog."""
     dialog = _MESSAGE_DIALOG["dialog"]
     if not dialog:
         dialog = MultipleMessage(title=_("Messages"), transient_for=options["parent"])
@@ -224,7 +224,7 @@ def show_message_dialog(**options):
 
 
 def get_tmp_dir(dirname, pattern):
-    """If user selects session dir as tmp dir, return parent dir"""
+    """If user selects session dir as tmp dir, return parent dir."""
     if dirname is None:
         return None
     while re.search(pattern, dirname):
@@ -233,7 +233,7 @@ def get_tmp_dir(dirname, pattern):
 
 
 def slurp(file):
-    """Slurp file"""
+    """Slurp file."""
     if hasattr(file, "read"):
         file.seek(0)
         content = file.read()

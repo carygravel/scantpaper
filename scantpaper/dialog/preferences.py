@@ -1,4 +1,4 @@
-"""dialogue for setting preferences"""
+"""dialogue for setting preferences."""
 
 import logging
 import pathlib
@@ -24,7 +24,7 @@ UNIT_SLIDER_STEP = 0.001
 
 
 class PreferencesDialog(Dialog):
-    """dialogue for setting preferences"""
+    """dialogue for setting preferences."""
 
     __gsignals__: ClassVar[dict] = {
         "changed-preferences": (
@@ -339,7 +339,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._vboxt.reorder_child(button, -1)
 
     def _add_user_defined_tool_entry(self, tool):
-        """Add user-defined tool entry"""
+        """Add user-defined tool entry."""
         hbox = Gtk.Box()
         self._vboxt.pack_start(hbox, True, True, 0)
         entry = Gtk.Entry()

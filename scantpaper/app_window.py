@@ -1,4 +1,4 @@
-"""application window"""
+"""application window."""
 
 import contextlib
 import locale
@@ -55,7 +55,7 @@ GLib.set_prgname("com.github.scantpaper")
 
 
 def drag_motion_callback(tree, context, x, y, t):
-    """Handle drag motion"""
+    """Handle drag motion."""
     try:
         path, how = tree.get_dest_row_at_pos(x, y)
     except TypeError:  # for NoneType, which can't be unpacked
@@ -84,7 +84,7 @@ def drag_motion_callback(tree, context, x, y, t):
 
 
 def view_html(_action, _param):
-    """Perhaps we should use gtk and mallard for this in the future"""
+    """Perhaps we should use gtk and mallard for this in the future."""
     # Or possibly https://github.com/ultrabug/mkdocs-static-i18n
     # At the moment, we have no translations,
     # but when we do, replace C with locale
@@ -107,7 +107,7 @@ class ApplicationWindow(
     EditMenuMixins,
     ToolsMenuMixins,
 ):
-    """ApplicationWindow class"""
+    """ApplicationWindow class."""
 
     settings = None
     _configfile = None
@@ -270,7 +270,7 @@ class ApplicationWindow(
         )
 
     def _window_state_event_callback(self, _w, event):
-        """Note when the window is maximised or not"""
+        """Note when the window is maximised or not."""
         self.settings["window_maximize"] = bool(
             event.new_window_state & Gdk.WindowState.MAXIMIZED
         )
@@ -318,7 +318,7 @@ class ApplicationWindow(
         self.get_application().set_menubar(self.builder.get_object("menubar"))
 
     def _read_config(self):
-        """Read the configuration file"""
+        """Read the configuration file."""
         # config files: XDG_CONFIG_HOME/scantpaperrc or HOME/.config/scantpaperrc
         rcdir = (
             os.environ["XDG_CONFIG_HOME"]
@@ -337,7 +337,7 @@ class ApplicationWindow(
         config.remove_invalid_paper(self.settings["Paper"])
 
     def _populate_main_window(self):
-        """Populates the main window with various UI components and sets up necessary callbacks"""
+        """Populates the main window with various UI components and sets up necessary callbacks."""
         self._create_temp_directory()
 
         # Set up an SimpleList for the thumbnail view
@@ -404,7 +404,7 @@ class ApplicationWindow(
             self._import_files(args.import_all, True)
 
     def _cancel_post_process(self):
-        """Cancel all queued and running post-process jobs"""
+        """Cancel all queued and running post-process jobs."""
         self.slist.cancel(self.post_process_progress.finish)
 
     def _changed_text_sort_method(self, _widget, sort_method):
@@ -666,7 +666,7 @@ class ApplicationWindow(
         self._in_tool_change = False
 
     def _change_view_cb(self, action, parameter):
-        """Callback to switch between tabbed and split views"""
+        """Callback to switch between tabbed and split views."""
         action.set_state(parameter)
 
         # self.settings["viewer_tools"] still has old value

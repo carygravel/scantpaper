@@ -1,4 +1,4 @@
-"""Test tool_menu_mixins.py"""
+"""Test tool_menu_mixins.py."""
 
 import datetime
 from typing import ClassVar
@@ -20,11 +20,11 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 @pytest.fixture
 def mock_tool_window(mocker):
-    """Fixture to provide a configured MockWindow"""
+    """Fixture to provide a configured MockWindow."""
     mock_app = mocker.Mock()
 
     class MockWindow(Gtk.Window, ToolsMenuMixins):
-        """Test class to hold mixin"""
+        """Test class to hold mixin."""
 
         slist = None
         post_process_progress = None
@@ -46,11 +46,11 @@ def mock_tool_window(mocker):
         session = None
 
         def get_application(self, *_args, **_kwargs):
-            """Mock"""
+            """Mock."""
             return mock_app
 
         def _show_message_dialog(self, **kwargs):
-            """Mock"""
+            """Mock."""
 
     # Instantiate
     window = MockWindow()
@@ -68,14 +68,14 @@ def mock_tool_window(mocker):
 
 
 def _trigger_apply(mock_dialog_instance):
-    """Helper to find and trigger the apply/ok action"""
+    """Helper to find and trigger the apply/ok action."""
     args, _ = mock_dialog_instance.add_actions.call_args
     apply_cb = next(cb for name, cb in args[0] if name in ("gtk-apply", "gtk-ok"))
     apply_cb()
 
 
 def test_rotate_90(mock_tool_window):
-    """Test rotate_90"""
+    """Test rotate_90."""
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
@@ -88,7 +88,7 @@ def test_rotate_90(mock_tool_window):
 
 
 def test_rotate_180(mock_tool_window):
-    """Test rotate_180"""
+    """Test rotate_180."""
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
@@ -101,7 +101,7 @@ def test_rotate_180(mock_tool_window):
 
 
 def test_rotate_270(mock_tool_window):
-    """Test rotate_270"""
+    """Test rotate_270."""
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
 
@@ -114,7 +114,7 @@ def test_rotate_270(mock_tool_window):
 
 
 def test_threshold_dialog(mocker, mock_tool_window):
-    """Test the threshold dialog"""
+    """Test the threshold dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -142,7 +142,7 @@ def test_threshold_dialog(mocker, mock_tool_window):
 
 
 def test_threshold_dialog_no_pages(mocker, mock_tool_window):
-    """Test the threshold dialog with no pages selected"""
+    """Test the threshold dialog with no pages selected."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_tool_window.settings = {"threshold tool": 50}
@@ -156,7 +156,7 @@ def test_threshold_dialog_no_pages(mocker, mock_tool_window):
 
 
 def test_threshold_dialog_ink_strength_label(mocker, mock_tool_window):
-    """Test the threshold dialog labels the slider as ink strength"""
+    """Test the threshold dialog labels the slider as ink strength."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -182,7 +182,7 @@ def test_threshold_dialog_ink_strength_label(mocker, mock_tool_window):
 
 
 def test_brightness_contrast_dialog(mocker, mock_tool_window):
-    """Test the brightness_contrast dialog"""
+    """Test the brightness_contrast dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -211,7 +211,7 @@ def test_brightness_contrast_dialog(mocker, mock_tool_window):
 
 
 def test_brightness_contrast_no_pages(mocker, mock_tool_window):
-    """Test brightness_contrast with no pages"""
+    """Test brightness_contrast with no pages."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_tool_window.settings = {"brightness tool": 20, "contrast tool": 30}
     mock_tool_window.slist.get_page_index.return_value = []
@@ -223,7 +223,7 @@ def test_brightness_contrast_no_pages(mocker, mock_tool_window):
 
 
 def test_negate_dialog(mocker, mock_tool_window):
-    """Test the negate dialog"""
+    """Test the negate dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -250,7 +250,7 @@ def test_negate_dialog(mocker, mock_tool_window):
 
 
 def test_negate_no_pages(mocker, mock_tool_window):
-    """Test negate with no pages"""
+    """Test negate with no pages."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_tool_window.settings = {"Page range": "selected"}
     mock_tool_window.slist.get_page_index.return_value = []
@@ -262,7 +262,7 @@ def test_negate_no_pages(mocker, mock_tool_window):
 
 
 def test_unsharp(mocker, mock_tool_window):
-    """Test the unsharp dialog"""
+    """Test the unsharp dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -297,7 +297,7 @@ def test_unsharp(mocker, mock_tool_window):
 
 
 def test_unsharp_no_pages(mocker, mock_tool_window):
-    """Test unsharp with no pages"""
+    """Test unsharp with no pages."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_tool_window.settings = {
         "unsharp radius": 5,
@@ -314,7 +314,7 @@ def test_unsharp_no_pages(mocker, mock_tool_window):
 
 
 def test_crop_dialog(mocker, mock_tool_window):
-    """Test the crop dialog"""
+    """Test the crop dialog."""
     mock_crop_cls = mocker.patch("tools_menu_mixins.Crop")
     mock_crop_instance = mock_crop_cls.return_value
     mock_crop_instance.page_range = "selected"
@@ -357,14 +357,14 @@ def test_crop_dialog(mocker, mock_tool_window):
 
 
 def test_crop_dialog_existing(mocker, mock_tool_window):
-    """Test the crop dialog when already open"""
+    """Test the crop dialog when already open."""
     mock_tool_window._windowc = mocker.Mock()
     mock_tool_window.crop_dialog(None, None)
     mock_tool_window._windowc.present.assert_called_once()
 
 
 def test_crop_dialog_tool_activation(mocker, mock_tool_window):
-    """Test that crop dialog activates the combined tool if necessary"""
+    """Test that crop dialog activates the combined tool if necessary."""
     mocker.patch("tools_menu_mixins.Crop")
     mock_page = mocker.Mock()
     mock_page.get_size.return_value = (100, 50)
@@ -396,14 +396,14 @@ def test_crop_dialog_tool_activation(mocker, mock_tool_window):
 
 
 def test_crop_selection_no_selection(mock_tool_window):
-    """Test crop_selection with no selection in settings"""
+    """Test crop_selection with no selection in settings."""
     mock_tool_window.settings = {"selection": None, "image_control_tool": "selector"}
     mock_tool_window.crop_selection(None, None)
     mock_tool_window.slist.crop.assert_not_called()
 
 
 def test_crop_selection_no_pages(mock_tool_window):
-    """Test crop_selection with no pages selected"""
+    """Test crop_selection with no pages selected."""
     mock_tool_window.settings = {
         "selection": "something",
         "image_control_tool": "selector",
@@ -414,7 +414,7 @@ def test_crop_selection_no_pages(mock_tool_window):
 
 
 def test_crop_dialog_selection_change(mocker, mock_tool_window):
-    """Test that crop dialog binds selection to view"""
+    """Test that crop dialog binds selection to view."""
     mock_crop_cls = mocker.patch("tools_menu_mixins.Crop")
     mock_crop_instance = mock_crop_cls.return_value
     mock_crop_instance.page_range = "selected"
@@ -438,7 +438,7 @@ def test_crop_dialog_selection_change(mocker, mock_tool_window):
 
 
 def test_split_dialog(mocker, mock_tool_window):
-    """Test the split dialog"""
+    """Test the split dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
 
@@ -466,7 +466,7 @@ def test_split_dialog(mocker, mock_tool_window):
 
 
 def test_split_dialog_interaction(mocker, mock_tool_window):
-    """Test split dialog interaction including horizontal split"""
+    """Test split dialog interaction including horizontal split."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog = mock_dialog_cls.return_value
     mock_dialog.get_content_area.return_value = mocker.Mock()  # vbox
@@ -536,7 +536,7 @@ def test_split_dialog_interaction(mocker, mock_tool_window):
 
 
 def test_split_no_pages(mocker, mock_tool_window):
-    """Test split with no pages"""
+    """Test split with no pages."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mocker.patch("tools_menu_mixins.ComboBoxText")
     mocker.patch("tools_menu_mixins.Gtk.Box")
@@ -554,7 +554,7 @@ def test_split_no_pages(mocker, mock_tool_window):
 
 
 def test_split_selection_changed(mocker, mock_tool_window):
-    """Test split dialog selection changed on view"""
+    """Test split dialog selection changed on view."""
     mocker.patch("tools_menu_mixins.Dialog")
     mock_combo_cls = mocker.patch("tools_menu_mixins.ComboBoxText")
     mock_combo = mock_combo_cls.return_value
@@ -583,7 +583,7 @@ def test_split_selection_changed(mocker, mock_tool_window):
 
 
 def test_split_selection_changed_h(mocker, mock_tool_window):
-    """Test split dialog selection changed on view"""
+    """Test split dialog selection changed on view."""
     mocker.patch("tools_menu_mixins.Dialog")
     mock_combo_cls = mocker.patch("tools_menu_mixins.ComboBoxText")
     mock_combo = mock_combo_cls.return_value
@@ -612,7 +612,7 @@ def test_split_selection_changed_h(mocker, mock_tool_window):
 
 
 def test_unpaper_dialog(mocker, mock_tool_window):
-    """Test the unpaper dialog"""
+    """Test the unpaper dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -647,14 +647,14 @@ def test_unpaper_dialog(mocker, mock_tool_window):
 
 
 def test_unpaper_dialog_existing(mocker, mock_tool_window):
-    """Test unpaper_dialog when already open"""
+    """Test unpaper_dialog when already open."""
     mock_tool_window._windowu = mocker.Mock()
     mock_tool_window.unpaper_dialog(None, None)
     mock_tool_window._windowu.present.assert_called_once()
 
 
 def test_ocr_dialog(mocker, mock_tool_window):
-    """Test the ocr dialog"""
+    """Test the ocr dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -697,7 +697,7 @@ def test_ocr_dialog(mocker, mock_tool_window):
 
 
 def test_ocr_dialog_no_pages(mocker, mock_tool_window):
-    """Test the ocr dialog"""
+    """Test the ocr dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -733,14 +733,14 @@ def test_ocr_dialog_no_pages(mocker, mock_tool_window):
 
 
 def test_ocr_dialog_existing(mocker, mock_tool_window):
-    """Test ocr_dialog when already open"""
+    """Test ocr_dialog when already open."""
     mock_tool_window._windowo = mocker.Mock()
     mock_tool_window.ocr_dialog(None, None)
     mock_tool_window._windowo.present.assert_called_once()
 
 
 def test_user_defined_dialog(mocker, mock_tool_window):
-    """Test the user_defined_dialog"""
+    """Test the user_defined_dialog."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
     mock_vbox = mocker.Mock()
@@ -775,7 +775,7 @@ def test_user_defined_dialog(mocker, mock_tool_window):
 
 
 def test_user_defined_no_pages(mocker, mock_tool_window):
-    """Test user_defined with no pages"""
+    """Test user_defined with no pages."""
     mock_dialog_cls = mocker.patch("tools_menu_mixins.Dialog")
     mock_tool_window.settings = {"Page range": "selected"}
     mock_tool_window.slist.get_page_index.return_value = []
@@ -789,7 +789,7 @@ def test_user_defined_no_pages(mocker, mock_tool_window):
 
 
 def test_email_dialog(mocker, mock_tool_window):
-    """Test the email dialog"""
+    """Test the email dialog."""
     mock_save_dialog_cls = mocker.patch("tools_menu_mixins.SaveDialog")
     mock_save_dialog_instance = mock_save_dialog_cls.return_value
     mock_save_dialog_instance.pdf_user_password = "password"
@@ -841,14 +841,14 @@ def test_email_dialog(mocker, mock_tool_window):
 
 
 def test_email_dialog_existing(mocker, mock_tool_window):
-    """Test email dialog when already open"""
+    """Test email dialog when already open."""
     mock_tool_window._windowe = mocker.Mock()
     mock_tool_window.email(None, None)
     mock_tool_window._windowe.present.assert_called_once()
 
 
 def test_email_execution_flow(mocker, mock_tool_window):
-    """Test email execution including success and failure callback"""
+    """Test email execution including success and failure callback."""
     mock_save_dialog_cls = mocker.patch("tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
     mock_save_dialog.meta_datetime = datetime.datetime.now(_LOCAL_TZ)
@@ -917,7 +917,7 @@ def test_email_execution_flow(mocker, mock_tool_window):
 
 
 def test_email_default_filename(mocker, mock_tool_window):
-    """Test email default filename fallback"""
+    """Test email default filename fallback."""
     mock_save_dialog_cls = mocker.patch("tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
     mock_save_dialog.meta_datetime = datetime.datetime.now(_LOCAL_TZ)
@@ -967,7 +967,7 @@ def test_email_default_filename(mocker, mock_tool_window):
 
 
 def test_about_dialog_runs(mocker, mock_tool_window):
-    """Test that ToolsMenuMixins.about runs without error"""
+    """Test that ToolsMenuMixins.about runs without error."""
     mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
 
     mock_tool_window.get_application().iconpath = "."

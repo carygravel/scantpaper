@@ -1,4 +1,4 @@
-"""Create pot for translation strings. Requires intltool package"""
+"""Create pot for translation strings. Requires intltool package."""
 
 import datetime
 import subprocess
@@ -21,7 +21,7 @@ from const import (  # noqa: E402
 
 
 def main():
-    """Main"""
+    """Main."""
     with chdir(root):
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))
         for x in ui_sources:

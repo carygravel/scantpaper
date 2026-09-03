@@ -1,4 +1,4 @@
-"""Tests for conftest helper functions"""
+"""Tests for conftest helper functions."""
 
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -10,7 +10,7 @@ from PIL import Image, ImageFont
 
 
 def test_qbfox_font_fallback():
-    """Test _create_qbfox_image falls back to system font path"""
+    """Test _create_qbfox_image falls back to system font path."""
     call_count = [0]
     original_truetype = ImageFont.truetype
 
@@ -28,7 +28,7 @@ def test_qbfox_font_fallback():
 
 
 def test_qbfox_no_bbox():
-    """Test _create_qbfox_image handles getbbox returning None"""
+    """Test _create_qbfox_image handles getbbox returning None."""
 
     def mock_getbbox(_self):
         return None
@@ -46,7 +46,7 @@ KNOWN_FONT_PATHS = [
 
 
 def test_qbfox_fc_match_fallback():
-    """Test _create_qbfox_image uses fc-match when all explicit paths fail"""
+    """Test _create_qbfox_image uses fc-match when all explicit paths fail."""
     original_truetype = ImageFont.truetype
 
     def mock_truetype(path, size, **kwargs):
@@ -68,7 +68,7 @@ def test_qbfox_fc_match_fallback():
 
 
 def test_qbfox_load_default_with_size():
-    """Test _create_qbfox_image falls back to load_default(size=...)"""
+    """Test _create_qbfox_image falls back to load_default(size=...)."""
     original_truetype = ImageFont.truetype
 
     def mock_truetype(path, size, **kwargs):
@@ -90,7 +90,7 @@ def test_qbfox_load_default_with_size():
 
 
 def test_qbfox_load_default_bitmap():
-    """Test _create_qbfox_image falls back to bitmap load_default()"""
+    """Test _create_qbfox_image falls back to bitmap load_default()."""
     original_truetype = ImageFont.truetype
 
     def mock_truetype(path, size, **kwargs):
@@ -121,7 +121,7 @@ def test_qbfox_load_default_bitmap():
 
 
 def test_qbfox_small_bbox_scale():
-    """Test _create_qbfox_image scales up when cropped image is too small"""
+    """Test _create_qbfox_image scales up when cropped image is too small."""
 
     def mock_getbbox(_self):
         return (0, 0, 10, 10)
@@ -132,12 +132,12 @@ def test_qbfox_small_bbox_scale():
 
 
 def test_clean_up_files_non_existent(clean_up_files):
-    """Test clean_up_files handles non-existent files without error"""
+    """Test clean_up_files handles non-existent files without error."""
     clean_up_files(["/nonexistent/file.txt"])
 
 
 def test_get_page_sync_error(get_page_sync):
-    """Test get_page_sync raises ValueError on error callback"""
+    """Test get_page_sync raises ValueError on error callback."""
     thread = MagicMock()
 
     def send_side_effect(*_, **kwargs):

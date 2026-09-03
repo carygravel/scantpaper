@@ -17,7 +17,7 @@ _PULSE_MIN_INTERVAL = 0.1  # seconds
 
 
 class Progress(Gtk.Box):
-    """HBox with progress bar and cancel button"""
+    """HBox with progress bar and cancel button."""
 
     __gsignals__: ClassVar[dict] = {
         "clicked": (GObject.SignalFlags.RUN_FIRST, None, ())
@@ -43,15 +43,15 @@ class Progress(Gtk.Box):
         self.emit("clicked")
 
     def set_fraction(self, fraction):
-        """Set progress bar fraction"""
+        """Set progress bar fraction."""
         self._pbar.set_fraction(min(1.0, max(0.0, fraction)))
 
     def set_text(self, text):
-        """Set progress bar text"""
+        """Set progress bar text."""
         self._pbar.set_text(text)
 
     def pulse(self):
-        """Pulse progress bar"""
+        """Pulse progress bar."""
         now = time.monotonic()
         if now - self._last_pulse < _PULSE_MIN_INTERVAL:
             return
@@ -59,7 +59,7 @@ class Progress(Gtk.Box):
         self._pbar.pulse()
 
     def queued(self, response):  # , pid
-        """Helper function to set up progress bar"""
+        """Helper function to set up progress bar."""
         process_name, num_completed, total = (
             response.request.process,
             response.num_completed_jobs,
@@ -73,7 +73,7 @@ class Progress(Gtk.Box):
             self.show()
 
             def cancel_process(_widget):
-                """Pass the signal back to:
+                """Pass the signal back.
 
                 1. be able to cancel it when the process has finished
                 2. flag that the progress bar has been set up
@@ -87,7 +87,7 @@ class Progress(Gtk.Box):
             self._signal = self.connect("clicked", cancel_process)
 
     def update(self, response):
-        """Helper function to update progress bar"""
+        """Helper function to update progress bar."""
         if not response:
             return
         if response.type == ResponseType.DATA:
@@ -119,7 +119,7 @@ class Progress(Gtk.Box):
             self.show()
 
     def finish(self, response):
-        """Helper function to hide progress bar and disconnect signals"""
+        """Helper function to hide progress bar and disconnect signals."""
         if not response or not response.pending:
             self.hide()
         if self._signal is not None:

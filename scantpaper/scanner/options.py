@@ -1,4 +1,4 @@
-"""object and helper methods to manipulate scan options"""
+"""object and helper methods to manipulate scan options."""
 
 import contextlib
 import re
@@ -74,19 +74,19 @@ class Options(GObject.Object):
         return f"Options({self.array})"
 
     def by_index(self, i):
-        """Return option by index"""
+        """Return option by index."""
         return self.array[i]
 
     def by_name(self, name):
-        """Return option by name"""
+        """Return option by name."""
         return self.hash[name] if name is not None and name in self.hash else None
 
     def num_options(self):
-        """Return number of options"""
+        """Return number of options."""
         return len(self.array) - 1 + 1
 
     def parse_geometry(self):
-        """Parse out the geometry from libimage-sane-perl or scanimage option names"""
+        """Parse out the geometry from libimage-sane-perl or scanimage option names."""
         for key in ("page-height", "pageheight"):
             if key in self.hash:
                 self.geometry["h"] = self.hash[key].constraint[1]
@@ -106,7 +106,7 @@ class Options(GObject.Object):
             self.geometry["y"] = self.hash["br-y"].constraint[1] - self.geometry["t"]
 
     def supports_paper(self, paper, tolerance):
-        """Check the geometry against the paper size"""
+        """Check the geometry against the paper size."""
         if not (
             "l" in self.geometry
             and "x" in self.geometry
@@ -159,7 +159,7 @@ class Options(GObject.Object):
         return False
 
     def flatbed_selected(self, get_value):
-        """Returns whether the flatbed is selected"""
+        """Returns whether the flatbed is selected."""
         source = None
         if self.source is not None:
             with contextlib.suppress(AttributeError):
@@ -185,7 +185,7 @@ class Options(GObject.Object):
 
 
 def within_tolerance(option, current_value, new_value, tolerance=0):
-    """Helper function, returning whether new_value is within the tolerance of current_value"""
+    """Helper function, returning whether new_value is within the tolerance of current_value."""
     if isinstance(option.constraint, tuple):
         return bool(
             abs(new_value - current_value) <= option.constraint[2] / 2 + tolerance

@@ -1,4 +1,4 @@
-"""subclass Gtk.Dialog to add some boilerplate"""
+"""subclass Gtk.Dialog to add some boilerplate."""
 
 import re
 
@@ -16,7 +16,7 @@ from gi.repository import (  # noqa: E402
 
 
 class Dialog(Gtk.Dialog):
-    """subclass Gtk.Dialog to add some boilerplate"""
+    """subclass Gtk.Dialog to add some boilerplate."""
 
     hide_on_delete = GObject.Property(
         type=bool,
@@ -29,7 +29,7 @@ class Dialog(Gtk.Dialog):
     )
 
     def do_delete_event(self, _event):
-        """Delete event"""
+        """Delete event."""
         if self.hide_on_delete:
             self.hide()
             return Gdk.EVENT_STOP  # ensures that the window is not destroyed
@@ -38,7 +38,7 @@ class Dialog(Gtk.Dialog):
         return Gdk.EVENT_PROPAGATE
 
     def do_key_press_event(self, event):
-        """Key press event"""
+        """Key press event."""
         if event.keyval == Gdk.KEY_Escape:
             if self.hide_on_delete:
                 self.hide()
@@ -54,7 +54,7 @@ class Dialog(Gtk.Dialog):
         self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
 
     def add_page_range(self):
-        """Add a frame and radio buttons to content area"""
+        """Add a frame and radio buttons to content area."""
         frame = Gtk.Frame(label=_("Page Range"))
         self.get_content_area().pack_start(frame, False, False, 0)
         prng = PageRange()
@@ -67,7 +67,7 @@ class Dialog(Gtk.Dialog):
         frame.add(prng)
 
     def add_actions(self, button_list):
-        """Add buttons and link up their actions"""
+        """Add buttons and link up their actions."""
         responses = [Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL]
         buttons, callbacks = [], {}
         for button in button_list:
@@ -130,13 +130,13 @@ class MultipleMessage(Dialog):
         self.add_actions([("gtk-close", close_callback)])
 
     def on_toggled(self, _data=None):
-        """Callback for checkbutton toggle"""
+        """Callback for checkbutton toggle."""
         state = self.cbn.get_active()
         for cbn in self._list_checkbuttons():
             cbn.set_active(state)
 
     def add_row(self, row):
-        """Add a row with a new message"""
+        """Add a row with a new message."""
         self.grid.insert_row(self.grid_rows)
         if "page" in row:
             self.grid.attach(Gtk.Label(label=str(row["page"])), 0, self.grid_rows, 1, 1)
@@ -193,7 +193,7 @@ class MultipleMessage(Dialog):
             self.cbn.set_inconsistent(True)
 
     def add_message(self, row):
-        """Possibly split messages or explain them"""
+        """Possibly split messages or explain them."""
         if row["text"] is None:
             row["text"] = ""
         text = munge_message(row["text"])
@@ -210,7 +210,7 @@ class MultipleMessage(Dialog):
             self.add_row(row)
 
     def store_responses(self, response, responses):
-        """Store response in responses"""
+        """Store response in responses."""
         for raw_text in self.list_messages_to_ignore(response):
             text = filter_message(raw_text)
             responses[text] = {}
@@ -227,7 +227,7 @@ class MultipleMessage(Dialog):
         return cbs
 
     def list_messages_to_ignore(self, response):
-        """Return messages that can be ignored"""
+        """Return messages that can be ignored."""
         messages = []
         for row in range(1, self.grid_rows):
             cbn = self.grid.get_child_at(COL_CHECKBUTTON, row)
@@ -252,7 +252,7 @@ class MultipleMessage(Dialog):
 
 
 def response_stored(text, responses):
-    """Helper function to return whether there is a response stored for the message"""
+    """Helper function to return whether there is a response stored for the message."""
     return bool(responses) and text in responses and "response" in responses[text]
 
 
@@ -323,4 +323,4 @@ def filter_message(message):
 
 
 def close_callback():
-    """Close callback"""
+    """Close callback."""

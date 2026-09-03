@@ -1,4 +1,4 @@
-"""test scan dialog"""
+"""test scan dialog."""
 
 from types import SimpleNamespace
 from unittest.mock import ANY, MagicMock
@@ -12,7 +12,7 @@ from scanner.profile import Profile
 
 
 def test_1(sane_scan_dialog):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     assert isinstance(dialog, SaneScanDialog), "Created SaneScanDialog"
     assert dialog.device == "", "device"
@@ -76,7 +76,7 @@ def test_1(sane_scan_dialog):
 
 
 def test_2(sane_scan_dialog, mainloop_with_timeout):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     callbacks = 0
     loop = mainloop_with_timeout()
@@ -148,7 +148,7 @@ def test_2(sane_scan_dialog, mainloop_with_timeout):
 
 
 def test_3(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     loop = mainloop_with_timeout()
@@ -192,7 +192,7 @@ def test_3(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
 
 def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     dialog._add_profile(
@@ -280,7 +280,7 @@ def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
 
 def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     loop = mainloop_with_timeout()
@@ -311,7 +311,7 @@ def test_5(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
 
 def test_6(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
@@ -346,7 +346,7 @@ def test_6(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
 
 def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
@@ -403,7 +403,7 @@ def test_7(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
 
 
 def test_8(sane_scan_dialog, mainloop_with_timeout):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     loop = mainloop_with_timeout()
     signal = None
@@ -476,7 +476,7 @@ def test_8(sane_scan_dialog, mainloop_with_timeout):
 
 
 def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
-    """Test error handling of scan dialog with sane backend"""
+    """Test error handling of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     callbacks = 0
     loop = mainloop_with_timeout()
@@ -513,7 +513,7 @@ def test_error_handling(sane_scan_dialog, mainloop_with_timeout):
 
 
 def test_profile_unset(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     loop = mainloop_with_timeout()
@@ -556,7 +556,7 @@ def test_profile_unset(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
 
 
 def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
@@ -627,7 +627,7 @@ def test_large_paper(sane_scan_dialog, set_device_wait_reload, mainloop_with_tim
 def test_change_current_scan_option_signal(
     sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Test basic functionality of scan dialog with sane backend"""
+    """Test basic functionality of scan dialog with sane backend."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
     callbacks = 0
@@ -850,7 +850,7 @@ def test_scan_reverse_pages(
 
 
 def test_empty_device_list(mocker, sane_scan_dialog, mainloop_with_timeout):
-    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     asserts = 0
 
     def mocked_do_get_devices(_cls, _request):
@@ -877,7 +877,7 @@ def test_empty_device_list(mocker, sane_scan_dialog, mainloop_with_timeout):
 
 
 def test_integer_spinbutton(sane_scan_dialog, set_device_wait_reload):
-    """Test that integer spinbuttons pass integer values"""
+    """Test that integer spinbuttons pass integer values."""
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
 
@@ -906,7 +906,7 @@ def test_integer_spinbutton(sane_scan_dialog, set_device_wait_reload):
 
 
 def test_sane_scan_dialog_errors(mocker, sane_scan_dialog, mainloop_with_timeout):
-    """Test error handling in scan_options"""
+    """Test error handling in scan_options."""
     dialog = sane_scan_dialog
     loop = mainloop_with_timeout()
     callbacks = 0
@@ -968,7 +968,7 @@ def test_sane_scan_dialog_errors(mocker, sane_scan_dialog, mainloop_with_timeout
 
 
 def test_multiple_values_option(mocker, sane_scan_dialog):
-    """Test option with multiple values (list) to cover line 221"""
+    """Test option with multiple values (list) to cover line 221."""
     dialog = sane_scan_dialog
 
     # Use real Options object
@@ -1025,7 +1025,7 @@ def test_multiple_values_option(mocker, sane_scan_dialog):
 
 
 def test_switch_and_button_widgets(mocker, sane_scan_dialog):
-    """Test switch and button widgets"""
+    """Test switch and button widgets."""
     dialog = sane_scan_dialog
 
     # Patch d_sane to just return the input
@@ -1085,7 +1085,7 @@ def test_switch_and_button_widgets(mocker, sane_scan_dialog):
 
 
 def test_entry_widget_activate(mocker, sane_scan_dialog):
-    """Test entry widget activate to cover lines 328-330"""
+    """Test entry widget activate to cover lines 328-330."""
     dialog = sane_scan_dialog
 
     # Patch d_sane to just return the input
@@ -1128,7 +1128,7 @@ def test_entry_widget_activate(mocker, sane_scan_dialog):
 
 
 def test_set_option_clamping(sane_scan_dialog):
-    """Test set_option clamping to cover lines 391 and 393"""
+    """Test set_option clamping to cover lines 391 and 393."""
     dialog = sane_scan_dialog
 
     # Mock an option with a tuple constraint
@@ -1171,7 +1171,7 @@ def test_set_option_clamping(sane_scan_dialog):
 
 
 def test_scan_errors_and_clamping(mocker, sane_scan_dialog):
-    """Test scan errors and clamping of num_pages to max_pages"""
+    """Test scan errors and clamping of num_pages to max_pages."""
     dialog = sane_scan_dialog
     callbacks = 0
 
@@ -1226,7 +1226,7 @@ def test_scan_errors_and_clamping(mocker, sane_scan_dialog):
 
 
 def test_get_options_error(mocker, sane_scan_dialog):
-    """Test error handling in get_options"""
+    """Test error handling in get_options."""
     dialog = sane_scan_dialog
     callbacks = 0
 

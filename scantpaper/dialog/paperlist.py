@@ -1,4 +1,4 @@
-"""A list of paper sizes"""
+"""A list of paper sizes."""
 
 import re
 
@@ -7,7 +7,7 @@ from simplelist import SimpleList
 
 
 class PaperList(SimpleList):
-    """A list of paper sizes"""
+    """A list of paper sizes."""
 
     def __init__(self, formats):
         """Initialise PaperList."""
@@ -40,7 +40,7 @@ class PaperList(SimpleList):
         self.get_column(0).set_sort_column_id(0)
 
     def do_add_clicked(self, _widget):
-        """Add button callback"""
+        """Add button callback."""
         rows = self.get_selected_indices()
         if not rows and len(self.data) > 0:
             rows = [0]
@@ -61,7 +61,7 @@ class PaperList(SimpleList):
         self.data.insert(rows[0] + 1, line)
 
     def do_remove_clicked(self):
-        """Remove button callback"""
+        """Remove button callback."""
         rows = self.get_selected_indices()
         if len(rows) == len(self.data):
             raise IndexError(_("Cannot delete all paper sizes"))
@@ -70,7 +70,7 @@ class PaperList(SimpleList):
             del self.data[rows.pop(0)]
 
     def do_paper_sizes_row_changed(self, _model, path, _iter):
-        """Setup the callback to check that no two Names are the same"""
+        """Setup the callback to check that no two Names are the same."""
         path = int(path.to_string())
         for index, row in enumerate(self.data):
             if index != path and self.data[path][0] == row[0]:
@@ -94,7 +94,7 @@ class PaperList(SimpleList):
                 return
 
     def do_remove_paper(self, _widget, window):
-        """Remove paper button callback"""
+        """Remove paper button callback."""
         if self.data:
             self.do_remove_clicked()
         else:

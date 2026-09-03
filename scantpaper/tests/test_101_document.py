@@ -1,4 +1,4 @@
-"""Tests for document.py"""
+"""Tests for document.py."""
 
 import datetime
 import pathlib
@@ -44,17 +44,17 @@ from gi.repository import (  # noqa: E402
 
 
 def get_page_index_all_callback(_uuid, _process, _message):
-    """Callback for get_page_index"""
+    """Callback for get_page_index."""
     assert True, "error in all"
 
 
 def get_page_index_selected_callback(_uuid, _process, _message):
-    """Callback for get_page_index"""
+    """Callback for get_page_index."""
     assert True, "error in selected"
 
 
 def test_basics(temp_db):
-    """Test basics"""
+    """Test basics."""
     slist = Document(db=temp_db.name)
 
     selected = slist.get_page_index("all", get_page_index_all_callback)
@@ -90,7 +90,7 @@ def test_basics(temp_db):
 
 
 def test_indexing(temp_db):
-    """Test indexing"""
+    """Test indexing."""
     slist = Document(db=temp_db.name)
     slist.data = [[1, None, None], [6, None, None], [7, None, None], [8, None, None]]
     slist.renumber()
@@ -142,7 +142,7 @@ def test_indexing(temp_db):
 
 
 def test_file_dates(temp_txt):
-    """Test file dates"""
+    """Test file dates."""
     options = defaultdict(
         None,
         {
@@ -170,7 +170,7 @@ def test_file_dates(temp_txt):
 
 
 def test_helpers():
-    """Test helpers"""
+    """Test helpers."""
     proc = exec_command([sys.executable, "-c", 'print("a" * 65537)'])
     assert len(proc.stdout) == 65538, "exec_command returns more than 65536 bytes"
 
@@ -500,14 +500,14 @@ def test_helpers():
 
 
 def test_bbox2markup():
-    """Test _bbox2markup()"""
+    """Test _bbox2markup()."""
     assert _bbox2markup(300, 300, 500, [0, 0, 452, 57]) == pytest.approx(
         [0.0, 486.32, 108.48, 486.32, 0.0, 500.0, 108.48, 500.0], abs=0.01
     ), "converted bbox to markup coords"
 
 
 def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
-    """Tests for DocThread"""
+    """Tests for DocThread."""
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
         thread = DocThread(db=temp_db.name)
         clean_up_files([tif.name])
@@ -576,7 +576,7 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
 
 @pytest.mark.skipif(shutil.which("cjb2") is None, reason="requires cjb2")
 def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm):
-    """Tests for djvu DocThread"""
+    """Tests for djvu DocThread."""
     thread = DocThread(db=temp_db.name)
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_pbm.name], check=True)
     subprocess.run(["cjb2", temp_pbm.name, temp_cjb2.name], check=True)
@@ -595,7 +595,7 @@ def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm):
 
 
 def test_db(temp_db):
-    """Test database access"""
+    """Test database access."""
     thread = DocThread(db=temp_db.name)
 
     with pytest.raises(StopIteration):
@@ -675,7 +675,7 @@ def test_db(temp_db):
 
 
 def test_undo_redo_snapshot_page_numbers(temp_db):
-    """Undo and redo snapshots carry 1-based page numbers"""
+    """Undo and redo snapshots carry 1-based page numbers."""
     thread = DocThread(db=temp_db.name)
 
     # spoof the write thread check
@@ -695,7 +695,7 @@ def test_undo_redo_snapshot_page_numbers(temp_db):
 
 
 def test_do_quit_closes_database_connection(temp_db):
-    """Test that do_quit closes the worker thread's database connection"""
+    """Test that do_quit closes the worker thread's database connection."""
     thread = DocThread(db=temp_db.name)
     tid = threading.get_native_id()
     thread._con[tid] = thread._con.get(tid) or sqlite3.connect(temp_db.name)
@@ -708,7 +708,7 @@ def test_do_quit_closes_database_connection(temp_db):
 
 
 def test_reorder_pages(temp_db):
-    """Reorder pages via do_reorder_pages"""
+    """Reorder pages via do_reorder_pages."""
     thread = DocThread(db=temp_db.name)
 
     # spoof the write thread check
@@ -743,7 +743,7 @@ def test_reorder_pages(temp_db):
 
 
 def test_reorder_pages_block(temp_db):
-    """Reorder a block of pages preserving relative order"""
+    """Reorder a block of pages preserving relative order."""
     thread = DocThread(db=temp_db.name)
 
     # spoof the write thread check
@@ -766,7 +766,7 @@ def test_reorder_pages_block(temp_db):
 
 
 def test_reorder_pages_consecutive_numbering(temp_db):
-    """Reorder keeps page numbers consecutive"""
+    """Reorder keeps page numbers consecutive."""
     thread = DocThread(db=temp_db.name)
 
     # spoof the write thread check
@@ -793,7 +793,7 @@ def test_reorder_pages_consecutive_numbering(temp_db):
 
 
 def test_reorder_pages_unknown_id(temp_db):
-    """Reorder with an id no longer present returns the current order unchanged"""
+    """Reorder with an id no longer present returns the current order unchanged."""
     thread = DocThread(db=temp_db.name)
 
     # spoof the write thread check
@@ -818,7 +818,7 @@ def test_reorder_pages_unknown_id(temp_db):
 
 
 def test_document(rose_tif):
-    """Tests for Document()"""
+    """Tests for Document()."""
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
         ran_callback = False
@@ -893,7 +893,7 @@ def test_document(rose_tif):
 
 
 def test_delete_all_pages_undo_redo(rose_tif):
-    """Tests for Document.delete_all_pages() with undo/redo"""
+    """Tests for Document.delete_all_pages() with undo/redo."""
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
         ran_callback = False
@@ -931,7 +931,7 @@ def test_delete_all_pages_undo_redo(rose_tif):
 
 
 def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
-    """Issue #74 regression: undo after New File must not resurrect old pages"""
+    """Issue #74 regression: undo after New File must not resurrect old pages."""
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
         ran_callback = False
@@ -971,7 +971,7 @@ def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
 
 
 def test_import_files_encrypted():
-    """Test import_files with encryption"""
+    """Test import_files with encryption."""
     with patch("basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value._dir = "/tmp"
         doc = Document()
@@ -1013,7 +1013,7 @@ def test_import_files_encrypted():
 
 
 def test_import_files_multiple_errors():
-    """Test import_files with multiple files and errors"""
+    """Test import_files with multiple files and errors."""
     with patch("basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value._dir = "/tmp"
         doc = Document()
@@ -1066,7 +1066,7 @@ def test_import_files_multiple_errors():
 
 
 def test_post_process_chain():
-    """Test post process chain"""
+    """Test post process chain."""
     with patch("basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value._dir = "/tmp"
         doc = Document()
@@ -1160,7 +1160,7 @@ def test_post_process_chain():
 
 
 def test_split_page():
-    """Test split_page"""
+    """Test split_page."""
     with patch("basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value._dir = "/tmp"
         doc = Document()
@@ -1181,7 +1181,7 @@ def test_split_page():
 
 
 def test_get_selected_properties(temp_db):
-    """Test get_selected_properties with multiple pages"""
+    """Test get_selected_properties with multiple pages."""
     slist = Document(db=temp_db.name)
 
     # spoof the write thread check

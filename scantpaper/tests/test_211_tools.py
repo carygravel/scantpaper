@@ -1,4 +1,4 @@
-"""Test Document tools"""
+"""Test Document tools."""
 
 import re
 import subprocess
@@ -18,7 +18,7 @@ gi.require_version("Gtk", "3.0")
 def test_rotate(
     rose_jpg, temp_db, import_in_mainloop, set_saved_in_mainloop, get_page_sync
 ):
-    """Test rotating"""
+    """Test rotating."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
@@ -50,7 +50,7 @@ def test_rotate(
 
 
 def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
-    """Test analyse"""
+    """Test analyse."""
     subprocess.run(
         [config.CONVERT_COMMAND, "-size", "10x10", "xc:white", "white.pgm"], check=True
     )
@@ -75,7 +75,7 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_syn
 
 
 def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
-    """Test analyse"""
+    """Test analyse."""
     subprocess.run([config.CONVERT_COMMAND, "xc:black", "black.pgm"], check=True)
 
     slist = Document(db=temp_db.name)
@@ -105,7 +105,7 @@ def test_threshold(
     rose_jpg,
     get_page_sync,
 ):
-    """Test threshold"""
+    """Test threshold."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
@@ -162,7 +162,7 @@ def test_negate(
     expected_mean,
     get_page_sync,
 ):
-    """Test negate"""
+    """Test negate."""
     image = str(tmp_path / f"white.{suffix}")
     im = Image.new(mode, [1, 1], color=white)
     im.save(image)
@@ -216,7 +216,7 @@ def test_unsharp_mask(
     rose_jpg,
     get_page_sync,
 ):
-    """Test unsharp mask"""
+    """Test unsharp mask."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
@@ -276,7 +276,7 @@ def test_crop(
     temp_gif,
     get_page_sync,
 ):
-    """Test brightness contrast"""
+    """Test brightness contrast."""
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
 
     slist = Document(db=temp_db.name)
@@ -358,7 +358,7 @@ def test_split(
     temp_gif,
     get_page_sync,
 ):
-    """Test split"""
+    """Test split."""
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
 
     slist = Document(db=temp_db.name)
@@ -462,7 +462,7 @@ def test_brightness_contrast(
     rose_jpg,
     get_page_sync,
 ):
-    """Test brightness contrast"""
+    """Test brightness contrast."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
     set_saved_in_mainloop(slist, 1, True)
@@ -504,7 +504,7 @@ def test_brightness_contrast(
 
 
 def test_race_condition_rotate_save(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
-    """Test that saving a page while it's being rotated doesn't cause an error"""
+    """Test that saving a page while it's being rotated doesn't cause an error."""
     slist = Document(db=temp_db.name)
 
     # Import a page
@@ -533,7 +533,7 @@ def test_race_condition_rotate_save(rose_pnm, temp_db, temp_pdf, import_in_mainl
 
 
 def test_race_condition_rotate_rotate(rose_pnm, temp_db, import_in_mainloop):
-    """Test rotating the same page twice in a row before the first rotate finishes"""
+    """Test rotating the same page twice in a row before the first rotate finishes."""
     slist = Document(db=temp_db.name)
 
     # Import a page

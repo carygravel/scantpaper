@@ -1,4 +1,4 @@
-"""test scan dialog"""
+"""test scan dialog."""
 
 from scanner.profile import Profile
 
@@ -10,7 +10,7 @@ def test_inexact(
     mainloop_with_timeout,
     inexact_scan_mocks,
 ):
-    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     inexact_scan_mocks.patch_all(mocker)
 
     dlg = sane_scan_dialog

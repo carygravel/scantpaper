@@ -1,22 +1,22 @@
-"""test pagerange widget"""
+"""test pagerange widget."""
 
 from pagerange import PageRange
 
 
 class SignalCatch:
-    """catch signal"""
+    """catch signal."""
 
     def __init__(self):
         """Initialise SignalCatch."""
         self.signal_emitted = False
 
     def catch_signal(self, _widget, _data):
-        """Catch signal"""
+        """Catch signal."""
         self.signal_emitted = True
 
 
 def test_1():
-    """Test pagerange widget"""
+    """Test pagerange widget."""
     prg = PageRange()
     assert isinstance(prg, PageRange), "Created PageRange widget"
     assert prg.active == "selected", "selected"
@@ -30,7 +30,7 @@ def test_1():
 
 
 def test_signal():
-    """Test that changed signal is emitted"""
+    """Test that changed signal is emitted."""
     prg = PageRange()
     catcher = SignalCatch()
     prg.connect("changed", catcher.catch_signal)

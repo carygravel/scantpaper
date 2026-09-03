@@ -1,4 +1,4 @@
-"""test scanner option profiles"""
+"""test scanner option profiles."""
 
 import copy
 import unittest.mock
@@ -9,7 +9,7 @@ from scanner.profile import Profile, _synonyms
 
 
 def test_synonyms():
-    """Test synonyms"""
+    """Test synonyms."""
     assert _synonyms("page-height") == [
         "page-height",
         "pageheight",
@@ -38,7 +38,7 @@ def test_synonyms():
 
 
 def test_profile_basic():
-    """Test basic Profile functionality"""
+    """Test basic Profile functionality."""
     profile = Profile()
     assert isinstance(profile, Profile)
     profile.add_backend_option("y", "297")
@@ -55,7 +55,7 @@ def test_profile_basic():
 
 
 def test_frontend_options():
-    """Test frontend options"""
+    """Test frontend options."""
     profile = Profile()
     profile.add_frontend_option("num_pages", 0)
     assert profile.get() == {
@@ -77,7 +77,7 @@ def test_frontend_options():
 
 
 def test_profile_init_data():
-    """Test Profile initialization from data"""
+    """Test Profile initialization from data."""
     profile = Profile(frontend={"num_pages": 1}, backend=[("br-x", "297")])
     assert profile.get() == {
         "backend": [("br-x", "297")],
@@ -106,7 +106,7 @@ def test_profile_init_data():
 
 
 def test_map_from_cli():
-    """Test map_from_cli"""
+    """Test map_from_cli."""
     profile = Profile(backend=[("l", 1), ("y", 50), ("x", 50), ("t", 2)])
     assert profile.get() == {
         "backend": [("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)],
@@ -120,7 +120,7 @@ def test_map_from_cli():
 
 
 def test_backend_option_iteration():
-    """Test each_backend_option"""
+    """Test each_backend_option."""
     profile = Profile(backend=[("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)])
     itr = profile.each_backend_option()
     assert next(itr) == 0, "basic functionality each_backend_option"
@@ -142,7 +142,7 @@ def test_backend_option_iteration():
 
 
 def test_remove_backend_option():
-    """Test removal of backend options"""
+    """Test removal of backend options."""
     profile = Profile(backend=[("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)])
     profile.remove_backend_option_by_name("tl-x")
     assert profile.get() == {
@@ -166,7 +166,7 @@ def test_remove_backend_option():
 
 
 def test_profile_magic_methods():
-    """Test magic methods"""
+    """Test magic methods."""
     p1 = Profile(frontend={"num_pages": 5})
     p2 = copy.copy(p1)
     assert p1 == p2
@@ -182,7 +182,7 @@ def test_profile_magic_methods():
 
 
 def test_add_backend_option_logic():
-    """Test add_backend_option logic and errors"""
+    """Test add_backend_option logic and errors."""
     p1 = Profile()
     # add_backend_option oldval logic
     p1.add_backend_option("opt1", 10, oldval=10)
@@ -196,7 +196,7 @@ def test_add_backend_option_logic():
 
 
 def test_add_frontend_option_errors():
-    """Test add_frontend_option errors"""
+    """Test add_frontend_option errors."""
     p1 = Profile()
     with pytest.raises(ValueError, match="Error: no option name"):
         p1.add_frontend_option(None, 1)
@@ -205,7 +205,7 @@ def test_add_frontend_option_errors():
 
 
 def test_map_to_cli():
-    """Test map_to_cli"""
+    """Test map_to_cli."""
     p4 = Profile(
         backend=[("tl-x", 1), ("tl-y", 2), ("br-x", 11), ("br-y", 12), ("other", 5)]
     )
@@ -236,7 +236,7 @@ def test_map_to_cli():
 
 
 def test_map_to_cli_variants():
-    """Test map_to_cli boolean and None options"""
+    """Test map_to_cli boolean and None options."""
     p6 = Profile(backend=[("bool-opt", True)])
     options = unittest.mock.Mock()
     options.by_name.return_value = {"type": enums.TYPE_BOOL}

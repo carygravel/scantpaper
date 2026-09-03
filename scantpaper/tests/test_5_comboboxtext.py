@@ -1,10 +1,10 @@
-"""test ComboBoxText widget"""
+"""test ComboBoxText widget."""
 
 from comboboxtext import ComboBoxText
 
 
 def test_1():
-    """Test ComboBoxText widget"""
+    """Test ComboBoxText widget."""
     cbt = ComboBoxText()
     assert isinstance(cbt, ComboBoxText), "Created ComboBoxText widget"
 

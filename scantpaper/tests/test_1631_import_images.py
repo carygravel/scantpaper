@@ -1,4 +1,4 @@
-"""Test importing PPM"""
+"""Test importing PPM."""
 
 import os
 import subprocess
@@ -10,7 +10,7 @@ from loop_helpers import safe_mainloop
 
 
 def test_import_ppm(temp_db, temp_ppm, get_page_sync):
-    """Test importing PPM"""
+    """Test importing PPM."""
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
 
     slist = Document(db=temp_db.name)
@@ -28,7 +28,7 @@ def test_import_ppm(temp_db, temp_ppm, get_page_sync):
 
 
 def test_import_truncated_ppm(temp_db, temp_pnm, get_page_sync):
-    """Test importing a truncated PPM still gives a full-size page"""
+    """Test importing a truncated PPM still gives a full-size page."""
     # build a cropped (i.e. too little data compared with header) pnm
     # to test padding code
     with subprocess.Popen(
@@ -58,7 +58,7 @@ def test_import_truncated_ppm(temp_db, temp_pnm, get_page_sync):
 
 
 def test_import_corrupt_png(temp_png, temp_db):
-    """Test importing PNG"""
+    """Test importing PNG."""
     slist = Document(db=temp_db.name)
 
     mlp = safe_mainloop(2000)

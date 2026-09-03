@@ -1,4 +1,4 @@
-"""Test process chain"""
+"""Test process chain."""
 
 import re
 import shutil
@@ -17,7 +17,7 @@ from unpaper import Unpaper
     reason="requires unpaper and tesseract",
 )
 def test_process_chain(temp_db, temp_pnm, get_page_sync):
-    """Test process chain"""
+    """Test process chain."""
     unpaper = Unpaper()
     subprocess.run(
         [
@@ -85,7 +85,7 @@ def test_process_chain(temp_db, temp_pnm, get_page_sync):
     reason="requires unpaper and tesseract",
 )
 def test_process_chain2(temp_db, temp_pnm, get_page_sync):
-    """Test process chain"""
+    """Test process chain."""
     subprocess.run(
         [
             config.CONVERT_COMMAND,
@@ -122,7 +122,7 @@ def test_process_chain2(temp_db, temp_pnm, get_page_sync):
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
 def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync):
-    """Test tesseract in process chain using ImageMagick-generated image"""
+    """Test tesseract in process chain using ImageMagick-generated image."""
     slist = Document(db=temp_db.name)
 
     asserts = 0
@@ -159,7 +159,7 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
 def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm):
-    """Test error handling in process chain"""
+    """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
 
     asserts = 0
@@ -194,7 +194,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm):
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
 def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm):
-    """Test error handling in process chain"""
+    """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
     mlp = safe_mainloop(5000)
     error_callback = MagicMock()
@@ -216,7 +216,7 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm):
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
 def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm):
-    """Test error handling in process chain"""
+    """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
 
     asserts = 0

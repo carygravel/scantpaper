@@ -1,4 +1,4 @@
-"""Class of data and methods for handling page objects"""
+"""Class of data and methods for handling page objects."""
 
 import io
 import json
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 
 class Page:
-    """Class of data and methods for handling page objects"""
+    """Class of data and methods for handling page objects."""
 
     width = None
     height = None
@@ -111,14 +111,14 @@ class Page:
         return self._to_jpeg_bytes()
 
     def _to_png_bytes(self):
-        """Return the image encoded as PNG bytes"""
+        """Return the image encoded as PNG bytes."""
         img_byte_arr = io.BytesIO()
         image = self.image_object
         image.save(img_byte_arr, format="PNG")
         return img_byte_arr.getvalue()
 
     def _to_jpeg_bytes(self):
-        """Return the image encoded as JPEG bytes at the storage quality"""
+        """Return the image encoded as JPEG bytes at the storage quality."""
         img_byte_arr = io.BytesIO()
         image = self.image_object
         if image.mode in ("I", "F", "P"):
@@ -128,7 +128,7 @@ class Page:
 
     @classmethod
     def from_bytes(cls, blob, **kwargs):
-        """Create a page from bytes"""
+        """Create a page from bytes."""
         page = Page(image_object=Image.open(io.BytesIO(blob)))
         page._stored_bytes = blob
         page.get_size()
@@ -147,36 +147,36 @@ class Page:
         return page
 
     def import_hocr(self, hocr):
-        """Import hocr"""
+        """Import hocr."""
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
         json_text = bboxtree.json()
         self.text_layer = None if json_text == "[]" else json_text
 
     def export_hocr(self):
-        """Export hocr"""
+        """Export hocr."""
         return Bboxtree(self.text_layer).to_hocr()
 
     def import_djvu_txt(self, djvu):
-        """Import djvu text"""
+        """Import djvu text."""
         tree = Bboxtree()
         tree.from_djvu_txt(djvu)
         self.text_layer = tree.json()
 
     def export_djvu_txt(self):
-        """Export djvu text"""
+        """Export djvu text."""
         if self.text_layer is None:
             return None
         return Bboxtree(self.text_layer).to_djvu_txt()
 
     def export_text(self):
-        """Export simple text"""
+        """Export simple text."""
         if self.text_layer is None:
             return ""
         return Bboxtree(self.text_layer).to_text()
 
     def import_pdftotext(self, html):
-        """Import text layer from PDF"""
+        """Import text layer from PDF."""
         tree = Bboxtree()
         res = self.get_resolution()
         tree.from_pdftotext(html, (res[0], res[1]), self.get_size())
@@ -185,26 +185,26 @@ class Page:
         self.text_layer = None if json_text == "[]" else json_text
 
     def import_annotations(self, hocr):
-        """Import annotation layer from hocr"""
+        """Import annotation layer from hocr."""
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
         self.annotations = bboxtree.json()
 
     def import_djvu_ann(self, ann):
-        """Import annotation layer from djvu"""
+        """Import annotation layer from djvu."""
         imagew, imageh = self.get_size()
         tree = Bboxtree()
         tree.from_djvu_ann(ann, imagew, imageh)
         self.annotations = tree.json()
 
     def export_djvu_ann(self):
-        """Export annotation for djvu"""
+        """Export annotation for djvu."""
         if self.annotations is None:
             return None
         return Bboxtree(self.annotations).to_djvu_ann()
 
     def get_size(self):
-        """Get the image size"""
+        """Get the image size."""
         if self.width is None or self.height is None:
             self.width = self.image_object.width
             self.height = self.image_object.height
@@ -212,7 +212,7 @@ class Page:
         return self.width, self.height
 
     def get_resolution(self, paper_sizes=None):
-        """Get the resolution"""
+        """Get the resolution."""
         if isinstance(self.resolution, (int, float)) or (
             isinstance(self.resolution, tuple) and self.resolution[0] is not None
         ):
@@ -293,7 +293,7 @@ class Page:
         return matching
 
     def get_pixbuf(self):
-        """Return a pixbuf of the image"""
+        """Return a pixbuf of the image."""
         if self.image_object is None:
             logger.warning("Cannot get pixbuf from None")
             return None
@@ -312,7 +312,7 @@ class Page:
         return pixbuf
 
     def get_pixbuf_at_scale(self, max_width, max_height):
-        """Logic taken from at_scale_size_prepared_cb() in
+        """Logic taken from at_scale_size_prepared_cb() in.
 
         https://gitlab.gnome.org/GNOME/gdk-pixbuf/blob/2.40.0/gdk-pixbuf/gdk-pixbuf-io.c
 
@@ -350,13 +350,13 @@ class Page:
         return pixbuf
 
     def get_depth(self):
-        """Return image depth based on mode provided by PIL"""
+        """Return image depth based on mode provided by PIL."""
         if self._depth is None:
             self._depth = MODE2DEPTH[self.image_object.mode]
         return self._depth
 
     def _equalize_resolution(self):
-        """c44 and cjb2 do not support different resolutions in the x and y directions, so resample"""
+        """c44 and cjb2 do not support different resolutions in the x and y directions, so resample."""
         xresolution, yresolution, units = self.get_resolution()
         width, height = self.width, self.height
         if xresolution != yresolution:
@@ -370,7 +370,7 @@ class Page:
         return xresolution, self.image_object
 
     def write_image_for_pdf(self, filename, options):
-        """Write the image as a file suitable for embedding in a PDF"""
+        """Write the image as a file suitable for embedding in a PDF."""
         image = self.image_object
         opts = {}
         if options and options.get("options"):
@@ -469,7 +469,7 @@ class Page:
                 subprocess.run(cmd, check=True)
 
     def _add_ann_to_djvu(self, djvu, dirname):
-        """FIXME - refactor this together with _add_txt_to_djvu"""
+        """FIXME - refactor this together with _add_txt_to_djvu."""
         if self.annotations is not None:
             try:
                 ann = self.export_djvu_ann()

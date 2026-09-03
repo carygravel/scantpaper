@@ -1,4 +1,4 @@
-"""test TextLayerControls widget"""
+"""test TextLayerControls widget."""
 
 import pathlib
 from unittest.mock import MagicMock
@@ -15,7 +15,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 def test_text_layer_sort_combo_box(mocker):
-    """Test the text layer sort combo box"""
+    """Test the text layer sort combo box."""
     mocker.patch("app_window.ApplicationWindow._populate_main_window")
     mocker.patch("app_window.ApplicationWindow._create_temp_directory")
     mocker.patch("config.read_config").return_value = {
@@ -56,7 +56,7 @@ def test_text_layer_sort_combo_box(mocker):
 
 
 def test_text_layer_add_and_ok_buttons(mocker):
-    """Test that the text layer add and ok buttons call _take_snapshot"""
+    """Test that the text layer add and ok buttons call _take_snapshot."""
     mocker.patch("app_window.ApplicationWindow._populate_main_window")
     mocker.patch("app_window.ApplicationWindow._create_temp_directory")
     mocker.patch("config.read_config").return_value = {
@@ -138,7 +138,7 @@ def test_text_layer_add_and_ok_buttons(mocker):
 
 
 def test_edit_ocr_text_updates_selection(mocker):
-    """Test _edit_ocr_text"""
+    """Test _edit_ocr_text."""
     mocker.patch("app_window.ApplicationWindow._populate_main_window")
     mocker.patch("app_window.ApplicationWindow._create_temp_directory")
     mocker.patch("config.read_config").return_value = {
@@ -185,7 +185,7 @@ def test_edit_ocr_text_updates_selection(mocker):
 
 
 def test_text_layer_control_signals():
-    """Test that buttons emit the correct signals"""
+    """Test that buttons emit the correct signals."""
     tlc = TextLayerControls()
 
     # Helper to track signals
@@ -238,7 +238,7 @@ def test_text_layer_control_signals():
 
 
 def test_text_layer_control_sort():
-    """Test sort combo box"""
+    """Test sort combo box."""
     tlc = TextLayerControls()
 
     def get_child_by_tooltip(tooltip):
@@ -264,7 +264,7 @@ def test_text_layer_control_sort():
 
 
 def test_text_layer_control_cancel():
-    """Test cancel button existence"""
+    """Test cancel button existence."""
     tlc = TextLayerControls()
 
     found = False

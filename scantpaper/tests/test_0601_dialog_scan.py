@@ -1,4 +1,4 @@
-"""test scan dialog"""
+"""test scan dialog."""
 
 import pathlib
 import tempfile
@@ -23,7 +23,7 @@ from gi.repository import (  # noqa: E402
 
 
 def test_basics():
-    """Test basic functionality of scan dialog"""
+    """Test basic functionality of scan dialog."""
     window = Gtk.Window()
 
     dialog = Scan(
@@ -60,7 +60,7 @@ def test_basics():
 
 
 def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
-    """Test interaction of scan dialog and document"""
+    """Test interaction of scan dialog and document."""
     window = Gtk.Window()
 
     dialog = Scan(
@@ -118,7 +118,7 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
 
 
 def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
-    """First test with test backend"""
+    """First test with test backend."""
     dialog = sane_scan_dialog
     dialog.paper_sizes = {
         "new": {
@@ -191,7 +191,7 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
 
 
 def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
-    """Splitting test_1 up into chunks"""
+    """Splitting test_1 up into chunks."""
     options = dialog.available_scan_options
 
     dialog.allow_batch_flatbed = True
@@ -254,7 +254,7 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 
 
 def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
-    """Splitting test_1 up into chunks"""
+    """Splitting test_1 up into chunks."""
     loop = mainloop_with_timeout()
 
     changed_scan_option_cb4 = Mock()
@@ -345,11 +345,11 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 def test_scan_threads(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     asserts = 0
 
     def mocked_do_open_device(self, request):
-        """Open device"""
+        """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -431,11 +431,11 @@ def test_scan_threads(
 def test_source_without_val(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     asserts = 0
 
     def mocked_do_open_device(self, request):
-        """Open device"""
+        """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -517,11 +517,11 @@ def test_source_without_val(
 def test_no_source(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     asserts = 0
 
     def mocked_do_open_device(self, request):
-        """Open device"""
+        """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -586,10 +586,10 @@ def test_no_source(
 def test_officejet_4620(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
 
     def mocked_do_open_device(self, request):
-        """Open device"""
+        """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -681,7 +681,7 @@ def test_infinite_reloads(
     mainloop_with_timeout,
     infinite_reloads_scan_mocks,
 ):
-    """Test more of scan dialog by mocking do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(_self, _request):

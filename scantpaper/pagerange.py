@@ -1,4 +1,4 @@
-"""pagerange widget"""
+"""pagerange widget."""
 
 from typing import ClassVar
 
@@ -20,7 +20,7 @@ from gi.repository import (  # noqa: E402
 
 
 class PageRange(Gtk.Box):
-    """pagerange widget"""
+    """pagerange widget."""
 
     __gsignals__: ClassVar[dict] = {
         "changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
@@ -67,11 +67,11 @@ class PageRange(Gtk.Box):
         self.widget_list.append(self)
 
     def get_active(self):
-        """Return active button"""
+        """Return active button."""
         return self.active
 
     def set_active(self, active):
-        """Set active button"""
+        """Set active button."""
         if self.active == active:
             return
         for widget in self.widget_list:

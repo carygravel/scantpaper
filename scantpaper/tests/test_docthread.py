@@ -1,4 +1,4 @@
-"""Tests for DocThread"""
+"""Tests for DocThread."""
 
 import pathlib
 import sqlite3
@@ -17,7 +17,7 @@ from PIL import Image
 
 
 def test_do_tesseract_path_fallback(mocker):
-    """Test do_tesseract when path is ./"""
+    """Test do_tesseract when path is ./."""
     # Mock DocThread to avoid real DB connection if possible, but here we just
     # spoof _write_tid.
     # Using a memory database for simplicity in this test
@@ -66,7 +66,7 @@ def test_do_tesseract_path_fallback(mocker):
 
 
 def test_do_tesseract_path_fallback_suse(mocker):
-    """Test do_tesseract when path is ./ and tessdata found via SUSE flat layout"""
+    """Test do_tesseract when path is ./ and tessdata found via SUSE flat layout."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -101,7 +101,7 @@ def test_do_tesseract_path_fallback_suse(mocker):
 
 
 def test_do_tesseract_in_memory_pixels(mocker):
-    """Test do_tesseract feeds page pixels to tesseract in memory"""
+    """Test do_tesseract feeds page pixels to tesseract in memory."""
     thread = DocThread(db=":memory:")
 
     mocker.patch(
@@ -137,7 +137,7 @@ def test_do_tesseract_in_memory_pixels(mocker):
 
 
 def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
-    """Test do_tesseract when path is ./ and no system tessdata found"""
+    """Test do_tesseract when path is ./ and no system tessdata found."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
@@ -182,7 +182,7 @@ def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
 
 
 def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
-    """Test do_tesseract when path is ./ and tessdata found via symlink"""
+    """Test do_tesseract when path is ./ and tessdata found via symlink."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
@@ -233,7 +233,7 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
 
 
 def test_calculate_crop_tuples(mocker):
-    """Test _calculate_crop_tuples"""
+    """Test _calculate_crop_tuples."""
     mock_image = mocker.Mock()
     mock_image.width = 100
     mock_image.height = 200
@@ -258,7 +258,7 @@ def test_calculate_crop_tuples(mocker):
 
 
 def test_get_thumb(mocker):
-    """Test get_thumb"""
+    """Test get_thumb."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -276,7 +276,7 @@ def test_get_thumb(mocker):
 
 
 def test_get_text(mocker):
-    """Test get_text"""
+    """Test get_text."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -293,7 +293,7 @@ def test_get_text(mocker):
 
 
 def test_open_session_file(mocker):
-    """Test open session file"""
+    """Test open session file."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -322,7 +322,7 @@ def test_open_session_file(mocker):
 
 
 def test_open_session_file_invalid_app_id(mocker):
-    """Test open session file with invalid application id"""
+    """Test open session file with invalid application id."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -339,7 +339,7 @@ def test_open_session_file_invalid_app_id(mocker):
 
 
 def test_open_session_file_invalid_app_id0(mocker):
-    """Test open session file with invalid application id"""
+    """Test open session file with invalid application id."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -356,7 +356,7 @@ def test_open_session_file_invalid_app_id0(mocker):
 
 
 def test_do_set_saved(mocker):
-    """Test do_set_saved"""
+    """Test do_set_saved."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -403,7 +403,7 @@ def test_do_set_saved(mocker):
 
 
 def test_do_set_text(mocker):
-    """Test do_set_text"""
+    """Test do_set_text."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -424,7 +424,7 @@ def test_do_set_text(mocker):
 
 
 def test_parse_bboxtree(mocker):
-    """Test parse_bboxtree"""
+    """Test parse_bboxtree."""
     thread = DocThread(db=":memory:")
     mock_send = mocker.patch.object(thread, "send")
     thread.parse_bboxtree("json")
@@ -432,7 +432,7 @@ def test_parse_bboxtree(mocker):
 
 
 def test_do_parse_bboxtree():
-    """Test do_parse_bboxtree"""
+    """Test do_parse_bboxtree."""
     thread = DocThread(db=":memory:")
     hocr = """
     [
@@ -448,7 +448,7 @@ def test_do_parse_bboxtree():
 
 
 def test_do_set_annotations(mocker):
-    """Test do_set_annotations"""
+    """Test do_set_annotations."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -468,7 +468,7 @@ def test_do_set_annotations(mocker):
 
 
 def test_do_set_resolution(mocker):
-    """Test do_set_resolution"""
+    """Test do_set_resolution."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -488,7 +488,7 @@ def test_do_set_resolution(mocker):
 
 
 def test_do_set_mean_std_dev(mocker):
-    """Test do_set_mean_std_dev"""
+    """Test do_set_mean_std_dev."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -508,7 +508,7 @@ def test_do_set_mean_std_dev(mocker):
 
 
 def test_do_delete_pages_ids(mocker):
-    """Test do_delete_pages with page_ids"""
+    """Test do_delete_pages with page_ids."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -534,7 +534,7 @@ def test_do_delete_pages_ids(mocker):
 
 
 def test_run_unpaper_cmd_rtl(mocker):
-    """Test _run_unpaper_cmd with rtl direction"""
+    """Test _run_unpaper_cmd with rtl direction."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -566,7 +566,7 @@ def test_run_unpaper_cmd_rtl(mocker):
 
 
 def test_run_unpaper_cmd_rtl_error(mocker):
-    """Test _run_unpaper_cmd error handling"""
+    """Test _run_unpaper_cmd error handling."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -629,7 +629,7 @@ def test_set_text_calls_send(mocker):
 
 
 def test_check_cancelled():
-    """Test check_cancelled"""
+    """Test check_cancelled."""
     thread = DocThread(db=":memory:")
     thread.cancel = False
     # should not raise
@@ -641,7 +641,7 @@ def test_check_cancelled():
 
 
 def test_do_analyse_empty_image(mocker):
-    """Test do_analyse with an empty image"""
+    """Test do_analyse with an empty image."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -665,7 +665,7 @@ def test_do_analyse_empty_image(mocker):
 
 
 def test_do_threshold_colour(mocker):
-    """Test do_threshold preserves colour content on white"""
+    """Test do_threshold preserves colour content on white."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -700,7 +700,7 @@ def test_do_threshold_colour(mocker):
 
 
 def test_do_threshold_percent(mocker):
-    """Test do_threshold value is a percentage of the range"""
+    """Test do_threshold value is a percentage of the range."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -742,7 +742,7 @@ def test_do_threshold_percent(mocker):
 
 
 def test_executemany_no_params(mocker):
-    """Test _executemany when params is None to cover line 111"""
+    """Test _executemany when params is None to cover line 111."""
     thread = DocThread(db=":memory:")
     tid = threading.get_native_id()
 
@@ -759,7 +759,7 @@ def test_executemany_no_params(mocker):
 
 
 def test_open_newer_version(mocker):
-    """Test open session file with newer version"""
+    """Test open session file with newer version."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -786,7 +786,7 @@ def test_open_newer_version(mocker):
 
 
 def test_insert_image_not_found(mocker):
-    """Test _insert_image with non-existent if_different_from"""
+    """Test _insert_image with non-existent if_different_from."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -801,7 +801,7 @@ def test_insert_image_not_found(mocker):
 
 
 def test_reuse_image_thumb_not_found(mocker):
-    """Test _reuse_image_thumb with an unknown image id"""
+    """Test _reuse_image_thumb with an unknown image id."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -813,7 +813,7 @@ def test_reuse_image_thumb_not_found(mocker):
 
 
 def test_add_page_insert_after_not_found(mocker):
-    """Test add_page with a non-existent insert_after page"""
+    """Test add_page with a non-existent insert_after page."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -830,7 +830,7 @@ def test_add_page_insert_after_not_found(mocker):
 
 
 def test_do_delete_pages_row_ids(mocker):
-    """Test do_delete_pages with row_ids"""
+    """Test do_delete_pages with row_ids."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -852,7 +852,7 @@ def test_do_delete_pages_row_ids(mocker):
 
 
 def test_do_delete_pages_no_args(mocker):
-    """Test do_delete_pages with no args"""
+    """Test do_delete_pages with no args."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -866,7 +866,7 @@ def test_do_delete_pages_no_args(mocker):
 
 
 def test_get_page_errors(mocker):
-    """Test get_page error conditions"""
+    """Test get_page error conditions."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -883,7 +883,7 @@ def test_get_page_errors(mocker):
 
 
 def test_do_tesseract_no_lang(mocker):
-    """Test do_tesseract with no language"""
+    """Test do_tesseract with no language."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -898,7 +898,7 @@ def test_do_tesseract_no_lang(mocker):
 
 
 def test_do_unpaper_ioerror(mocker):
-    """Test do_unpaper handling IOError"""
+    """Test do_unpaper handling IOError."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
 
@@ -921,7 +921,7 @@ def test_do_unpaper_ioerror(mocker):
 
 
 def test_pages_saved_after_replace(temp_db, mocker):
-    """Test pages_saved after replace_page and do_set_saved with initial_page_id"""
+    """Test pages_saved after replace_page and do_set_saved with initial_page_id."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
@@ -950,7 +950,7 @@ def test_pages_saved_after_replace(temp_db, mocker):
 
 
 def test_replace_page_reuse_image(temp_db, mocker):
-    """Test replace_page with reuse_image=True keeps the stored image"""
+    """Test replace_page with reuse_image=True keeps the stored image."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
@@ -979,7 +979,7 @@ def test_replace_page_reuse_image(temp_db, mocker):
 
 
 def test_replace_page_default_inserts_image(temp_db, mocker):
-    """Test replace_page default reuse_image=False calls _insert_image"""
+    """Test replace_page default reuse_image=False calls _insert_image."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
@@ -997,7 +997,7 @@ def test_replace_page_default_inserts_image(temp_db, mocker):
 
 
 def test_ocr_undo_redo(temp_db, mocker):
-    """Test OCR text layer changes are undoable and redoable, image preserved"""
+    """Test OCR text layer changes are undoable and redoable, image preserved."""
     hocr = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -1057,7 +1057,7 @@ def test_ocr_undo_redo(temp_db, mocker):
 
 
 def test_issue_74_ghost_page_mechanism(temp_db):
-    """Issue #74: a clear that bypasses the thread leaves ghosts in the undo chain"""
+    """Issue #74: a clear that bypasses the thread leaves ghosts in the undo chain."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
@@ -1084,7 +1084,7 @@ def test_issue_74_ghost_page_mechanism(temp_db):
 
 
 def test_undo_after_delete_all_has_no_ghost(temp_db):
-    """Issue #74 regression: clearing all pages via the thread keeps undo coherent"""
+    """Issue #74 regression: clearing all pages via the thread keeps undo coherent."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
@@ -1109,7 +1109,7 @@ def test_undo_after_delete_all_has_no_ghost(temp_db):
 
 
 def test_open_migration_v1_to_v2(temp_db):
-    """Test migration from version 1 to 2"""
+    """Test migration from version 1 to 2."""
     db_path = temp_db.name
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -1150,7 +1150,7 @@ def test_open_migration_v1_to_v2(temp_db):
 
 
 def test_pixbuf_to_bytes():
-    """Test _pixbuf_to_bytes"""
+    """Test _pixbuf_to_bytes."""
     thread = DocThread(db=":memory:")
     assert thread._pixbuf_to_bytes(None) == b"", (
         "Expected None pixbuf to return empty bytes"
@@ -1205,7 +1205,7 @@ def test_init_timeout_logging(tmp_path, mocker, caplog):
 
 
 def test_close(mocker):
-    """Test closing the db"""
+    """Test closing the db."""
     thread = DocThread(db=":memory:")
     tid = threading.get_native_id()
     con = mocker.Mock()
@@ -1216,7 +1216,7 @@ def test_close(mocker):
 
 
 def test_save_as(temp_db, mocker):
-    """Test saving the db"""
+    """Test saving the db."""
     thread = DocThread(db=":memory:")
     execute = mocker.patch.object(thread, "_execute")
     thread.save_as(temp_db.name)
@@ -1224,7 +1224,7 @@ def test_save_as(temp_db, mocker):
 
 
 def test_init_no_dir_db():
-    """Test __init__ falls back to temp dir when no dir or db given"""
+    """Test __init__ falls back to temp dir when no dir or db given."""
     thread = DocThread()
     assert thread._dir is not None
     assert thread._db is not None
@@ -1232,7 +1232,7 @@ def test_init_no_dir_db():
 
 
 def test_do_open(mocker):
-    """Test do_open calls open with the given path"""
+    """Test do_open calls open with the given path."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
     mock_open = mocker.patch.object(thread, "open")
@@ -1243,7 +1243,7 @@ def test_do_open(mocker):
 
 
 def test_add_page_insert_at_start(mocker):
-    """Test add_page with INSERT_AT_START position"""
+    """Test add_page with INSERT_AT_START position."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
     thread._con[threading.get_native_id()] = mocker.Mock()
@@ -1262,7 +1262,7 @@ def test_add_page_insert_at_start(mocker):
 
 
 def test_page_number_table_error(mocker):
-    """Test page_number_table error callback"""
+    """Test page_number_table error callback."""
     thread = DocThread(db=":memory:")
     mock_send = mocker.patch.object(thread, "send")
 
@@ -1278,7 +1278,7 @@ def test_page_number_table_error(mocker):
 
 
 def test_do_import_page_insert_after(mocker):
-    """Test do_import_page with insert_after set"""
+    """Test do_import_page with insert_after set."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
     mock_page_cls = mocker.patch("docthread.Page")
@@ -1294,13 +1294,13 @@ def test_do_import_page_insert_after(mocker):
 
 
 def test_close_tid_not_in_con():
-    """Test close when tid is not in _con"""
+    """Test close when tid is not in _con."""
     thread = DocThread(db=":memory:")
     thread.close()
 
 
 def test_insert_page_no_resolution(mocker):
-    """Test _insert_page when page.resolution is falsy"""
+    """Test _insert_page when page.resolution is falsy."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
     mock_execute = mocker.patch.object(thread, "_execute")
@@ -1321,7 +1321,7 @@ def test_insert_page_no_resolution(mocker):
 
 
 def test_do_rotate_not_90(mocker):
-    """Test do_rotate with angle not in (-90, 90)"""
+    """Test do_rotate with angle not in (-90, 90)."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
     mocker.patch.object(thread, "check_cancelled")

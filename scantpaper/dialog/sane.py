@@ -1,4 +1,4 @@
-"""Scan dialog for SANE backend"""
+"""Scan dialog for SANE backend."""
 
 import logging
 import weakref
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class SaneScanDialog(Scan):
-    """Scan dialog for SANE backend"""
+    """Scan dialog for SANE backend."""
 
     cycle_sane_handle = GObject.Property(
         type=bool,
@@ -45,13 +45,13 @@ class SaneScanDialog(Scan):
         self._option_info = {}
 
     def get_devices(self):
-        """Run Sane.get_devices()"""
+        """Run Sane.get_devices()."""
         self.cursor = "wait"
         pbar = None
         hboxd = self.hboxd
 
         def started_callback(_data):
-            """Set up ProgressBar"""
+            """Set up ProgressBar."""
             nonlocal pbar
             pbar = Gtk.ProgressBar()
             pbar.set_show_text(True)
@@ -87,7 +87,7 @@ class SaneScanDialog(Scan):
         )
 
     def scan_options(self, device=None):
-        """Retrieve device-dependent scan options"""
+        """Retrieve device-dependent scan options."""
         if device is None:
             device = self.device
 
@@ -529,6 +529,6 @@ class SaneScanDialog(Scan):
         )
 
     def cancel_scan(self, _widget):
-        """Cancel any running or queued scan processes"""
+        """Cancel any running or queued scan processes."""
         self.thread.cancel()
         logger.info("Cancelled scan")

@@ -1,4 +1,4 @@
-"""The page controls for the Scan dialog"""
+"""The page controls for the Scan dialog."""
 
 from typing import ClassVar
 
@@ -15,7 +15,7 @@ MAX_INCREMENT = 99
 
 
 class PageControls(Dialog):
-    """The page controls for the Scan dialog"""
+    """The page controls for the Scan dialog."""
 
     __gsignals__: ClassVar[dict] = {
         "changed-num-pages": (GObject.SignalFlags.RUN_FIRST, None, (int,)),
@@ -60,7 +60,7 @@ class PageControls(Dialog):
         blurb="Number of pages to be scanned",
     )
     def num_pages(self):
-        """Getter for num_pages attribute"""
+        """Getter for num_pages attribute."""
         return self._num_pages
 
     @num_pages.setter
@@ -90,7 +90,7 @@ class PageControls(Dialog):
         blurb="Page number of first page to be scanned",
     )
     def page_number_start(self):
-        """Getter for page_number_start attribute"""
+        """Getter for page_number_start attribute."""
         return self._page_number_start
 
     @page_number_start.setter
@@ -107,7 +107,7 @@ class PageControls(Dialog):
         blurb="Amount to increment page number when scanning multiple pages",
     )
     def page_number_increment(self):
-        """Getter for page_number_increment attribute"""
+        """Getter for page_number_increment attribute."""
         return self._page_number_increment
 
     @page_number_increment.setter
@@ -122,7 +122,7 @@ class PageControls(Dialog):
         type=str, default="single", nick="Sided", blurb="Either single or double"
     )
     def sided(self):
-        """Getter for sided attribute"""
+        """Getter for sided attribute."""
         return self._sided
 
     @sided.setter
@@ -143,7 +143,7 @@ class PageControls(Dialog):
         type=object, nick="Side to scan", blurb="Either facing or reverse"
     )
     def side_to_scan(self):
-        """Getter for side_to_scan attribute"""
+        """Getter for side_to_scan attribute."""
         return self._side_to_scan
 
     @side_to_scan.setter
@@ -163,7 +163,7 @@ class PageControls(Dialog):
         type=object, nick="Document", blurb="Document object for new scans"
     )
     def document(self):
-        """Getter for document attribute"""
+        """Getter for document attribute."""
         return self._document
 
     @document.setter
@@ -375,7 +375,7 @@ class PageControls(Dialog):
             spin_buttonn.set_value(value)
 
     def _do_num_pages_changed(self, spin_buttonn, bscannum):
-        """Callback on changing number of pages"""
+        """Callback on changing number of pages."""
         self.num_pages = spin_buttonn.get_value()
         bscannum.set_active(True)  # Set the radiobutton active
 
@@ -393,13 +393,13 @@ class PageControls(Dialog):
             self.num_pages = 0
 
     def _reset_batch(self):
-        """Start tracking a new facing batch for the reverse pass"""
+        """Start tracking a new facing batch for the reverse pass."""
         self._batch_start = None
         self._batch_n = 0
         self.max_pages = 0
 
     def _fix_batch(self):
-        """Freeze the current facing batch as the limit for the reverse pass"""
+        """Freeze the current facing batch as the limit for the reverse pass."""
         self.max_pages = self._batch_n
         if self._batch_n > 0 and (
             self.num_pages == 0 or self.num_pages > self._batch_n
@@ -418,7 +418,7 @@ class PageControls(Dialog):
 
 
 def spinbutton_in_hbox(vbox, label, vmin, vmax, step):
-    """Pack a label and a spinbutton in an hbox"""
+    """Pack a label and a spinbutton in an hbox."""
     hbox = Gtk.Box()
     vbox.pack_start(hbox, False, False, 0)
     hbox.pack_start(Gtk.Label(label=label), False, False, 0)

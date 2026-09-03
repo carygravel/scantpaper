@@ -1,4 +1,4 @@
-"""Test writing TIFF"""
+"""Test writing TIFF."""
 
 import pathlib
 import subprocess
@@ -12,7 +12,7 @@ from PIL import Image
 
 
 def test_save_tiff(rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop):
-    """Test writing TIFF"""
+    """Test writing TIFF."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -38,7 +38,7 @@ def test_save_tiff(rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop):
 
 
 def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop):
-    """Test cancel saving a TIFF"""
+    """Test cancel saving a TIFF."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -76,7 +76,7 @@ def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainl
 
 
 def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
-    """Test writing TIFF and triggering an error"""
+    """Test writing TIFF and triggering an error."""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
         asserts = 0
@@ -87,7 +87,7 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_callback1(_page, _process, _message):
-            """No write access"""
+            """No write access."""
             assert True, "caught error injected before save_tiff"
             nonlocal asserts
             asserts += 1
@@ -120,7 +120,7 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
 
 
 def test_save_tiff_with_alpha(temp_png, temp_db, temp_tif, import_in_mainloop):
-    """Test writing TIFF with alpha layer"""
+    """Test writing TIFF with alpha layer."""
     subprocess.run(
         [
             config.CONVERT_COMMAND,
@@ -161,7 +161,7 @@ def test_save_tiff_with_alpha(temp_png, temp_db, temp_tif, import_in_mainloop):
 
 
 def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop):
-    """Test writing TIFF and postscript"""
+    """Test writing TIFF and postscript."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm, rose_pnm])
@@ -192,7 +192,7 @@ def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainlo
 
 
 def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop):
-    """Test writing TIFF with group 4 compression"""
+    """Test writing TIFF with group 4 compression."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])
     mlp = safe_mainloop(2000)

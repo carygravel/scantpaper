@@ -1,4 +1,4 @@
-"""test scan dialog"""
+"""test scan dialog."""
 
 import logging
 

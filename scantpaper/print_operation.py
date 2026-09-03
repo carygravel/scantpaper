@@ -1,4 +1,4 @@
-"""print dialog"""
+"""print dialog."""
 
 import gi
 
@@ -10,7 +10,7 @@ from gi.repository import (  # noqa: E402
 
 
 class PrintOperation(Gtk.PrintOperation):
-    """print dialog"""
+    """print dialog."""
 
     def __init__(self, *_args, **kwargs):
         """Initialise PrintOperation."""
@@ -24,7 +24,7 @@ class PrintOperation(Gtk.PrintOperation):
         self.connect("draw-page", self.draw_page_callback)
 
     def begin_print_callback(self, _self, _context):
-        """Begin print"""
+        """Begin print."""
         settings = self.get_print_settings()
         pages = settings.get_print_pages()
         self.page_list = []
@@ -44,7 +44,7 @@ class PrintOperation(Gtk.PrintOperation):
         self.set_n_pages(len(self.page_list))
 
     def draw_page_callback(self, _self, context, page_number):
-        """Draw page"""
+        """Draw page."""
         if self.page_list is not None:
             page_number = self.page_list[page_number]
         page = self.slist.thread.get_page(id=self.slist.data[page_number][2])

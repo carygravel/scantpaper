@@ -1,4 +1,4 @@
-"""Test saving a djvu"""
+"""Test saving a djvu."""
 
 import codecs
 import datetime
@@ -20,7 +20,7 @@ from PIL import Image
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
-    """Test saving a djvu"""
+    """Test saving a djvu."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -50,7 +50,7 @@ def test_save_djvu_text_layer(
     temp_djvu,
     temp_txt,
 ):
-    """Test saving a djvu with text layer"""
+    """Test saving a djvu with text layer."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -92,7 +92,7 @@ def test_save_djvu_with_hocr(
     temp_djvu,
     get_page_sync,
 ):
-    """Test saving a djvu with text layer from HOCR"""
+    """Test saving a djvu with text layer from HOCR."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -152,7 +152,7 @@ def test_cancel_save_djvu(
     set_text_in_mainloop,
     temp_djvu,
 ):
-    """Test cancel saving a DjVu"""
+    """Test cancel saving a DjVu."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -204,7 +204,7 @@ def test_cancel_save_djvu(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
-    """Test saving a djvu and triggering an error"""
+    """Test saving a djvu and triggering an error."""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
         asserts = 0
@@ -215,7 +215,7 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
         def error_callback1(_page, _process, _message):
-            """No write access"""
+            """No write access."""
             assert True, "caught error injected before save_djvu"
             nonlocal asserts
             asserts += 1
@@ -257,7 +257,7 @@ def test_save_djvu_with_float_resolution(
     import_in_mainloop,
     set_resolution_in_mainloop,
 ):
-    """Test saving a djvu with resolution as float"""
+    """Test saving a djvu with resolution as float."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])
     set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
@@ -281,7 +281,7 @@ def test_save_djvu_with_float_resolution(
 def test_save_djvu_different_resolutions(
     temp_png, temp_db, temp_djvu, import_in_mainloop
 ):
-    """Test saving a djvu with different resolutions"""
+    """Test saving a djvu with different resolutions."""
     subprocess.run(
         [config.CONVERT_COMMAND, "rose:", "-density", "100x200", temp_png.name],
         check=True,
@@ -309,7 +309,7 @@ def test_save_djvu_different_resolutions(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
-    """Test saving a djvu with metadata"""
+    """Test saving a djvu with metadata."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])
@@ -346,7 +346,7 @@ def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloo
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_with_old_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
-    """Test saving a djvu with old metadata"""
+    """Test saving a djvu with old metadata."""
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [rose_pnm])

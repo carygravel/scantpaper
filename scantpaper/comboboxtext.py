@@ -1,4 +1,4 @@
-"""a ComboBoxText widget with an index"""
+"""a ComboBoxText widget with an index."""
 
 import gi
 
@@ -10,7 +10,7 @@ from gi.repository import (  # noqa: E402
 
 
 class ComboBoxText(Gtk.ComboBoxText):
-    """a ComboBoxText widget with an index"""
+    """a ComboBoxText widget with an index."""
 
     index_column = GObject.Property(
         type=int,
@@ -58,7 +58,7 @@ class ComboBoxText(Gtk.ComboBoxText):
         return self.data[i][self.index_column]
 
     def get_row_by_text(self, text):
-        """Get row number with $text"""
+        """Get row number with $text."""
         model = self.get_model()
         if model is not None and text is not None:
             col = self.index_column
@@ -68,20 +68,20 @@ class ComboBoxText(Gtk.ComboBoxText):
         return -1
 
     def set_active_by_text(self, text):
-        """Set row by the item text"""
+        """Set row by the item text."""
         index = self.get_row_by_text(text)
         if index > -1 and text is not None:
             self.set_active(index)
 
     def get_num_rows(self):
-        """Return number of rows"""
+        """Return number of rows."""
         model = self.get_model()
         if model is None:
             return 0
         return len(model)
 
     def remove_item_by_text(self, text):
-        """Remove row by the item text"""
+        """Remove row by the item text."""
         if text is not None:
             i = self.get_row_by_text(text)
             if i > -1:

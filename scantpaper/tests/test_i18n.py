@@ -1,4 +1,4 @@
-"""Tests for i18n helpers"""
+"""Tests for i18n helpers."""
 
 import gettext
 import importlib

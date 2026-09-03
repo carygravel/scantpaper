@@ -1,4 +1,4 @@
-"""Provide _() function for translations"""
+"""Provide _() function for translations."""
 
 import gettext
 import logging
@@ -36,7 +36,7 @@ if TRANSLATE is None:
 
 
 def log_i18n_status():
-    """Log the buffered messages"""
+    """Log the buffered messages."""
     for level, msg, *args in _log_buffer:
         getattr(logger, level)(msg, *args)
     _log_buffer.clear()

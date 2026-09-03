@@ -1,4 +1,4 @@
-"""tests for SimpleList"""
+"""tests for SimpleList."""
 
 import gi
 import pytest
@@ -9,7 +9,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 def test_basic():
-    """Basic functionality tests for SimpleList"""
+    """Basic functionality tests for SimpleList."""
     slist = SimpleList(col1="text")
     assert isinstance(slist, SimpleList), "Created simplelist"
     assert isinstance(slist.data, list), "simplelist data is a list"
@@ -74,7 +74,7 @@ def test_basic():
 
 
 def test_iterators():
-    """Test iterators in SimpleList"""
+    """Test iterators in SimpleList."""
     slist = SimpleList(col1="text")
     slist.data = [["new data"]]
     flag = False
@@ -89,7 +89,7 @@ def test_iterators():
 
 
 def test_error():
-    """Test error handling in SimpleList"""
+    """Test error handling in SimpleList."""
     with pytest.raises(TypeError):
         SimpleList()
 
@@ -143,7 +143,7 @@ def test_error():
 
 
 def test_renderer():
-    """Test renderer in SimpleList"""
+    """Test renderer in SimpleList."""
     window = Gtk.Window()
     slist = SimpleList(col="scalar")
     slist.data.append(["row1"])
@@ -153,7 +153,7 @@ def test_renderer():
 
 
 def test_signals():
-    """Test signals in SimpleList"""
+    """Test signals in SimpleList."""
     slist = SimpleList(col1="text", col2="bool")
     slist.data.append(["row1", True])
 
@@ -173,13 +173,13 @@ def test_signals():
 
 
 def test_pixbuf():
-    """Test pixbuf column"""
+    """Test pixbuf column."""
     slist = SimpleList(col="pixbuf")
     assert isinstance(slist, SimpleList), "Created simplelist"
 
 
 def test_shared_renderer_isolation():
-    """Test that modifying one SimpleList does not affect another"""
+    """Test that modifying one SimpleList does not affect another."""
     slist1 = SimpleList(col1="text")
     slist1.set_column_editable(0, True)
 
@@ -190,7 +190,7 @@ def test_shared_renderer_isolation():
 
 
 def test_edited_types():
-    """Test edited signal with different column types"""
+    """Test edited signal with different column types."""
     slist = SimpleList(col1="int", col2="double")
     slist.data.append([1, 1.1])
 

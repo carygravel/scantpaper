@@ -1,4 +1,4 @@
-"""provide methods around session files"""
+"""provide methods around session files."""
 
 import fcntl
 import inspect
@@ -32,10 +32,10 @@ logger = logging.getLogger(__name__)
 
 
 class SessionMixins:
-    """provide methods around session files"""
+    """provide methods around session files."""
 
     def _create_temp_directory(self):
-        """Create a temporary directory for the session"""
+        """Create a temporary directory for the session."""
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
             self.session = tempfile.TemporaryDirectory(prefix="scantpaper-")
@@ -65,7 +65,7 @@ class SessionMixins:
             self.settings["TMPDIR"] = tmpdir
 
     def _create_lockfile(self, session=None):
-        """Create a lockfile in the session directory"""
+        """Create a lockfile in the session directory."""
         if session is None:
             session = self.session.name
         # SIM115: cross-scope file handle used intentionally
@@ -75,7 +75,7 @@ class SessionMixins:
         return lockfd
 
     def _find_crashed_sessions(self):
-        """Look for crashed sessions"""
+        """Look for crashed sessions."""
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
             tmpdir = tempfile.gettempdir()
@@ -123,7 +123,7 @@ class SessionMixins:
                 self._open_session(crashed[selected[0]])
 
     def _check_dependencies(self):
-        """Check for presence of various packages"""
+        """Check for presence of various packages."""
         self._dependencies["tesseract"] = tesserocr.tesseract_version()
         self._dependencies["tesserocr"] = tesserocr.__version__
         if self._dependencies["tesseract"]:
@@ -227,7 +227,7 @@ class SessionMixins:
             GLib.idle_add(prompt_reverse_sides)
 
     def _display_callback(self, response):
-        """Find the page from the input uuid and display it"""
+        """Find the page from the input uuid and display it."""
         if response.info and "row" in response.info:
             uuid = response.info["row"][2]
             i = self.slist.find_page_by_uuid(uuid)
@@ -237,7 +237,7 @@ class SessionMixins:
                 self._display_image(self.slist.data[i][2])
 
     def _display_image(self, pageid):
-        """Display the image in the view"""
+        """Display the image in the view."""
         # Find the index for this pageid to get the thumbnail
         i = self.slist.find_page_by_uuid(pageid)
         if i is None:
@@ -301,7 +301,7 @@ class SessionMixins:
         )
 
     def _error_callback(self, response):
-        """Handle errors"""
+        """Handle errors."""
         args = response.request.args
         process = response.request.process
         stage = response.type.name.lower()
@@ -346,7 +346,7 @@ class SessionMixins:
         self.post_process_progress.hide()
 
     def _ask_question(self, **kwargs):
-        """Helper function to display a message dialog, wait for a response, and return it"""
+        """Helper function to display a message dialog, wait for a response, and return it."""
         # replace any numbers with metacharacters to compare to filter
         text = filter_message(kwargs["text"])
         if response_stored(text, self.settings["message"]):
@@ -567,7 +567,7 @@ class SessionMixins:
         self._edit_annotation(self.t_canvas.get_current_bbox())
 
     def _edit_mode_callback(self, action, parameter):
-        """Show/hide the edit tools"""
+        """Show/hide the edit tools."""
         action.set_state(parameter)
         if parameter.get_string() == "text":
             self._ocr_text_hbox.show()
@@ -577,7 +577,7 @@ class SessionMixins:
         self._ann_hbox.show()
 
     def _edit_ocr_text(self, bbox, _target=None):
-        """Edit OCR text"""
+        """Edit OCR text."""
         if bbox is None:
             logger.debug("edit_ocr_text did not return a bbox")
             return
@@ -593,7 +593,7 @@ class SessionMixins:
             self.t_canvas.set_index_by_bbox(bbox)
 
     def _edit_annotation(self, bbox, _target=None):
-        """Edit annotation"""
+        """Edit annotation."""
         self._current_ann_bbox = bbox
         self._ann_hbox._textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
@@ -605,7 +605,7 @@ class SessionMixins:
             self.a_canvas.set_index_by_bbox(bbox)
 
     def _create_txt_canvas(self, page, finished_callback=None):
-        """Create the text canvas"""
+        """Create the text canvas."""
 
         def on_parsed(result):
             self.t_canvas.set_text(
@@ -628,7 +628,7 @@ class SessionMixins:
                 finished_callback()
 
     def _create_ann_canvas(self, page, finished_callback=None):
-        """Create the annotation canvas"""
+        """Create the annotation canvas."""
 
         def on_parsed(result):
             self.a_canvas.set_text(
@@ -659,15 +659,15 @@ class SessionMixins:
         self.view.zoom_to_fit()
 
     def zoom_in(self, _action, _param):
-        """Zooms in the current view"""
+        """Zooms in the current view."""
         self.view.zoom_in()
 
     def zoom_out(self, _action, _param):
-        """Zooms out the current view"""
+        """Zooms out the current view."""
         self.view.zoom_out()
 
     def _on_zoom_100(self, _widget):
-        """Zooms the current page to 100%"""
+        """Zooms the current page to 100%."""
         self.zoom_100(None, None)
 
     def _on_zoom_to_fit(self, _widget):

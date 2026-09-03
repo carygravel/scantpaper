@@ -1,4 +1,4 @@
-"""Data and methods for profiles of scan options"""
+"""Data and methods for profiles of scan options."""
 
 import uuid
 from copy import deepcopy
@@ -87,16 +87,16 @@ class Profile(GObject.Object):
         self.uuid = str(uuid.uuid1())
 
     def get_backend_option_by_index(self, i):
-        """get_backend_option_by_index"""
+        """get_backend_option_by_index."""
         return self.backend[i]
 
     def remove_backend_option_by_index(self, i):
-        """remove_backend_option_by_index"""
+        """remove_backend_option_by_index."""
         del self.backend[i]
         self.uuid = str(uuid.uuid1())
 
     def remove_backend_option_by_name(self, name):
-        """remove_backend_option_by_name"""
+        """remove_backend_option_by_name."""
         i = None
         for i in self.each_backend_option():
             key, _val = self.get_backend_option_by_index(i)
@@ -109,18 +109,18 @@ class Profile(GObject.Object):
         self.uuid = str(uuid.uuid1())
 
     def each_backend_option(self, backwards=False):
-        """An iterator for backend options"""
+        """An iterator for backend options."""
         i = len(self.backend) - 1 if backwards else 0
         while -1 < i < len(self.backend):
             yield i
             i = i - 1 if backwards else i + 1
 
     def num_backend_options(self):
-        """num_backend_options"""
+        """num_backend_options."""
         return len(self.backend)
 
     def add_frontend_option(self, name, val):
-        """add_frontend_option"""
+        """add_frontend_option."""
         if name is None or name == "":
             msg = "Error: no option name"
             raise ValueError(msg)
@@ -129,24 +129,24 @@ class Profile(GObject.Object):
         self.uuid = str(uuid.uuid1())
 
     def each_frontend_option(self):
-        """An iterator for frontend options"""
+        """An iterator for frontend options."""
         yield from self.frontend.keys()
 
     def get_frontend_option(self, name):
-        """get_frontend_option"""
+        """get_frontend_option."""
         return self.frontend[name]
 
     def remove_frontend_option(self, name):
-        """remove_frontend_option"""
+        """remove_frontend_option."""
         if name in self.frontend:
             del self.frontend[name]
 
     def get(self):
-        """Return a dict of frontend and backend options"""
+        """Return a dict of frontend and backend options."""
         return {"frontend": self.frontend, "backend": self.backend}
 
     def map_from_cli(self):
-        """Map scanimage and scanadf (CLI) geometry options to the backend geometry names"""
+        """Map scanimage and scanadf (CLI) geometry options to the backend geometry names."""
         new = Profile()
         for i in self.each_backend_option():
             name, val = self.get_backend_option_by_index(i)
@@ -177,7 +177,7 @@ class Profile(GObject.Object):
         self.backend = deepcopy(new.backend)
 
     def map_to_cli(self, options):
-        """Map backend geometry options to the scanimage and scanadf (CLI) geometry names"""
+        """Map backend geometry options to the scanimage and scanadf (CLI) geometry names."""
         new = Profile()
         for i in self.each_backend_option():
             name, val = self.get_backend_option_by_index(i)
@@ -216,7 +216,7 @@ class Profile(GObject.Object):
         return new
 
     def get_option_by_name(self, name):
-        """Extract a option value from a profile"""
+        """Extract a option value from a profile."""
         for i in self.each_backend_option():
             key, val = self.get_backend_option_by_index(i)
             if key == name:

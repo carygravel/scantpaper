@@ -1,4 +1,4 @@
-"""Coverage tests for SessionMixins"""
+"""Coverage tests for SessionMixins."""
 
 import logging
 import pathlib
@@ -17,11 +17,11 @@ from gi.repository import Gtk  # noqa: E402
 
 @pytest.fixture
 def mock_session_window(mocker):
-    """Fixture to provide a configured MockWindow"""
+    """Fixture to provide a configured MockWindow."""
     mock_app = mocker.Mock()
 
     class MockWindow(Gtk.Window, SessionMixins):
-        """Test class to hold mixin"""
+        """Test class to hold mixin."""
 
         slist = None
         settings: ClassVar[dict] = {}
@@ -68,7 +68,7 @@ def mock_session_window(mocker):
         _pack_viewer_tools = mocker.Mock()
 
         def get_application(self, *_args, **_kwargs):
-            """Mock"""
+            """Mock."""
             return mock_app
 
     # Instantiate
@@ -102,7 +102,7 @@ def mock_session_window(mocker):
 
 
 def test_create_temp_directory_success(mocker, mock_session_window):
-    """Test _create_temp_directory success"""
+    """Test _create_temp_directory success."""
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/found")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mocker.patch("session_mixins.fcntl.lockf")
@@ -122,7 +122,7 @@ def test_create_temp_directory_success(mocker, mock_session_window):
 
 
 def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
-    """Test _create_temp_directory when get_tmp_dir returns None"""
+    """Test _create_temp_directory when get_tmp_dir returns None."""
     mocker.patch("session_mixins.get_tmp_dir", return_value=None)
     mocker.patch("session_mixins.fcntl.lockf")
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
@@ -136,7 +136,7 @@ def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
 
 
 def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
-    """Test _create_temp_directory when get_tmp_dir returns EMPTY"""
+    """Test _create_temp_directory when get_tmp_dir returns EMPTY."""
     mocker.patch("session_mixins.get_tmp_dir", return_value=EMPTY)
     mocker.patch("session_mixins.fcntl.lockf")
     mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
@@ -150,7 +150,7 @@ def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
 
 
 def test_create_temp_directory_fallback(mocker, mock_session_window):
-    """Test _create_temp_directory fallback when preferred dir fails"""
+    """Test _create_temp_directory fallback when preferred dir fails."""
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/bad")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mocker.patch("session_mixins.fcntl.lockf")
@@ -176,7 +176,7 @@ def test_create_temp_directory_fallback(mocker, mock_session_window):
 
 
 def test_create_temp_directory_non_existent_tmpdir(mocker, mock_session_window):
-    """Test _create_temp_directory when tmpdir does not exist"""
+    """Test _create_temp_directory when tmpdir does not exist."""
     mocker.patch("session_mixins.get_tmp_dir", return_value="/tmp/new")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
     mock_mkdir = mocker.patch.object(pathlib.Path, "mkdir")
@@ -190,7 +190,7 @@ def test_create_temp_directory_non_existent_tmpdir(mocker, mock_session_window):
 
 
 def test_check_dependencies(mocker, mock_session_window):
-    """Test _check_dependencies"""
+    """Test _check_dependencies."""
     mocker.patch("tesserocr.tesseract_version", return_value="4.0")
     mocker.patch("tesserocr.__version__", return_value="2.5")
 
@@ -213,7 +213,7 @@ def test_check_dependencies(mocker, mock_session_window):
 
 
 def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window):
-    """Test _check_dependencies with GraphicsMagick fallback"""
+    """Test _check_dependencies with GraphicsMagick fallback."""
     mocker.patch("tesserocr.tesseract_version", return_value=None)
     mocker.patch("tesserocr.__version__", return_value="2.5")
     mocker.patch("session_mixins.Unpaper")
@@ -234,7 +234,7 @@ def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window)
 
 
 def test_zoom_methods(mock_session_window):
-    """Test zoom methods"""
+    """Test zoom methods."""
     mock_session_window.zoom_100(None, None)
     mock_session_window.view.set_zoom.assert_called_with(1.0)
 
@@ -249,7 +249,7 @@ def test_zoom_methods(mock_session_window):
 
 
 def test_find_crashed_sessions_default_tmpdir_none(mocker, mock_session_window):
-    """Test _find_crashed_sessions when get_tmp_dir returns None"""
+    """Test _find_crashed_sessions when get_tmp_dir returns None."""
     mocker.patch.object(pathlib.Path, "glob", return_value=[])
     mocker.patch("session_mixins.get_tmp_dir", return_value=None)
     mock_gettempdir = mocker.patch(
@@ -262,7 +262,7 @@ def test_find_crashed_sessions_default_tmpdir_none(mocker, mock_session_window):
 
 
 def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window):
-    """Test _find_crashed_sessions when get_tmp_dir returns EMPTY"""
+    """Test _find_crashed_sessions when get_tmp_dir returns EMPTY."""
     mocker.patch.object(pathlib.Path, "glob", return_value=[])
     mocker.patch("session_mixins.get_tmp_dir", return_value=EMPTY)
     mock_gettempdir = mocker.patch(
@@ -275,7 +275,7 @@ def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window)
 
 
 def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
-    """Test _find_crashed_sessions with currently running sessions (locked)"""
+    """Test _find_crashed_sessions with currently running sessions (locked)."""
     mocker.patch.object(
         pathlib.Path, "glob", return_value=["/tmp/scantpaper-other.sdb"]
     )
@@ -292,7 +292,7 @@ def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
 
 
 def test_find_crashed_sessions_skips_current(mocker, mock_session_window):
-    """Test _find_crashed_sessions skips the current running session"""
+    """Test _find_crashed_sessions skips the current running session."""
     mocker.patch.object(
         pathlib.Path, "glob", return_value=["/tmp/scantpaper-running.sdb"]
     )
@@ -309,7 +309,7 @@ def test_find_crashed_sessions_skips_current(mocker, mock_session_window):
 
 
 def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
-    """Test _find_crashed_sessions with a recoverable session"""
+    """Test _find_crashed_sessions with a recoverable session."""
     mocker.patch.object(
         pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed.sdb"]
     )
@@ -337,7 +337,7 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
 
 
 def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window):
-    """Test _find_crashed_sessions with a recoverable session but no selection"""
+    """Test _find_crashed_sessions with a recoverable session but no selection."""
     mocker.patch.object(pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed"])
     mock_session_window.session = mocker.Mock()
     mock_session_window.session.name = "/tmp/scantpaper-running"
@@ -356,7 +356,7 @@ def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window
 
 
 def test_finished_process_callback(mocker, mock_session_window):
-    """Test _finished_process_callback"""
+    """Test _finished_process_callback."""
     mock_session_window._scan_progress = mocker.Mock()
 
     # Simple case
@@ -393,7 +393,7 @@ def test_finished_process_callback(mocker, mock_session_window):
 
 
 def test_display_callback(mocker, mock_session_window):
-    """Test _display_callback"""
+    """Test _display_callback."""
     mock_response = mocker.Mock()
     mock_response.info = {"row": [None, None, "uuid-123"]}
 
@@ -412,7 +412,7 @@ def test_display_callback(mocker, mock_session_window):
 
 
 def test_display_image(mocker, mock_session_window):
-    """Test _display_image"""
+    """Test _display_image."""
     mock_page = mocker.Mock()
     mock_page.get_pixbuf.return_value = "pixbuf"
     mock_page.get_resolution.return_value = (300, 300, "in")
@@ -489,7 +489,7 @@ def test_display_image(mocker, mock_session_window):
 
 
 def test_display_image_error(caplog, mocker, mock_session_window):
-    """Test _display_image error callback"""
+    """Test _display_image error callback."""
     mock_session_window.slist.find_page_by_uuid.return_value = 0
     mock_session_window.slist.data = [["page_num", None, "page_id"]]
 
@@ -513,7 +513,7 @@ def test_display_image_error(caplog, mocker, mock_session_window):
 
 
 def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
-    """Test _display_image shows only the thumbnail while import suppresses full-res"""
+    """Test _display_image shows only the thumbnail while import suppresses full-res."""
     mock_session_window.slist.find_page_by_uuid.return_value = 0
     mock_thumbnail = mocker.Mock()
     mock_session_window.slist.data = [["page_num", mock_thumbnail, "page_id"]]
@@ -531,7 +531,7 @@ def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
 
 
 def test_display_image_not_suppressed_sends(mock_session_window):
-    """Test a _display_image call sends get_page when not suppressed"""
+    """Test a _display_image call sends get_page when not suppressed."""
     mock_session_window.slist.find_page_by_uuid.return_value = 0
     mock_session_window.slist.data = [["page_num", None, "page_id"]]
     mock_session_window._suppress_full_display = False
@@ -548,7 +548,7 @@ def test_display_image_not_suppressed_sends(mock_session_window):
 
 
 def test_error_callback(mocker, mock_session_window):
-    """Test _error_callback"""
+    """Test _error_callback."""
     mock_response = mocker.Mock()
     mock_response.request.args = [{"page": "uuid-123"}]
     mock_response.request.process = "process_name"
@@ -577,7 +577,7 @@ def test_error_callback(mocker, mock_session_window):
 
 
 def test_ask_question(mocker, mock_session_window):
-    """Test _ask_question"""
+    """Test _ask_question."""
     mocker.patch("session_mixins.filter_message", return_value="filtered_text")
     mocker.patch("session_mixins.response_stored", return_value=False)
 
@@ -623,7 +623,7 @@ def test_ask_question(mocker, mock_session_window):
 
 
 def test_ask_question_with_default_response(mocker, mock_session_window):
-    """Test _ask_question with default-response"""
+    """Test _ask_question with default-response."""
     mocker.patch("session_mixins.filter_message", return_value="filtered_text")
     mocker.patch("session_mixins.response_stored", return_value=False)
 
@@ -644,7 +644,7 @@ def test_ask_question_with_default_response(mocker, mock_session_window):
 
 
 def test_ocr_text_operations(mocker, mock_session_window):
-    """Test OCR text operations: add, copy, delete"""
+    """Test OCR text operations: add, copy, delete."""
     mock_session_window.slist.thread._take_snapshot = mocker.Mock()
     mock_session_window._ocr_text_hbox = mocker.Mock()
     mock_session_window._ocr_text_hbox._textbuffer.get_text.return_value = "new text"
@@ -697,7 +697,7 @@ def test_ocr_text_operations(mocker, mock_session_window):
 
 
 def test_annotation_operations(mocker, mock_session_window):
-    """Test annotation operations: ok, new, delete"""
+    """Test annotation operations: ok, new, delete."""
     mock_session_window._ann_hbox = mocker.Mock()
     mock_session_window._ann_hbox._textbuffer.get_text.return_value = "ann text"
     mock_session_window._current_page = mocker.Mock()
@@ -721,7 +721,7 @@ def test_annotation_operations(mocker, mock_session_window):
 
 
 def test_add_text_view_layers(mocker, mock_session_window):
-    """Test _add_text_view_layers"""
+    """Test _add_text_view_layers."""
     mocker.patch("session_mixins.TextLayerControls")
     mock_edit_hbox = mocker.Mock()
     mock_session_window.builder.get_object.return_value = mock_edit_hbox
@@ -734,7 +734,7 @@ def test_add_text_view_layers(mocker, mock_session_window):
 
 
 def test_edit_mode_callback(mocker, mock_session_window):
-    """Test _edit_mode_callback"""
+    """Test _edit_mode_callback."""
     mock_action = mocker.Mock()
     mock_param = mocker.Mock()
 
@@ -755,7 +755,7 @@ def test_edit_mode_callback(mocker, mock_session_window):
 
 
 def test_edit_ocr_text(mocker, mock_session_window):
-    """Test _edit_ocr_text"""
+    """Test _edit_ocr_text."""
     mock_bbox = mocker.Mock()
     mock_bbox.text = "some text"
     mock_bbox.bbox = "bbox_rect"
@@ -777,7 +777,7 @@ def test_edit_ocr_text(mocker, mock_session_window):
 
 
 def test_edit_annotation(mocker, mock_session_window):
-    """Test _edit_annotation"""
+    """Test _edit_annotation."""
     mock_bbox = mocker.Mock()
     mock_bbox.text = "some text"
     mock_bbox.bbox = "bbox_rect"
@@ -793,7 +793,7 @@ def test_edit_annotation(mocker, mock_session_window):
 
 
 def test_tool_actions(mock_session_window):
-    """Test tool action callbacks"""
+    """Test tool action callbacks."""
     mock_session_window._on_zoom_100(None)
     mock_session_window._on_zoom_to_fit(None)
     mock_session_window._on_zoom_in(None)
@@ -821,7 +821,7 @@ def test_tool_actions(mock_session_window):
 
 
 def test_create_txt_ann_canvas(mocker, mock_session_window):
-    """Test _create_txt_canvas and _create_ann_canvas"""
+    """Test _create_txt_canvas and _create_ann_canvas."""
 
     def sync_parse(_json_string, finished_callback=None):
         mock_result = mocker.Mock()
@@ -849,7 +849,7 @@ def test_create_txt_ann_canvas(mocker, mock_session_window):
 
 
 def test_create_txt_ann_canvas_no_layer(mocker, mock_session_window):
-    """Test _create_txt_canvas and _create_ann_canvas with no layers"""
+    """Test _create_txt_canvas and _create_ann_canvas with no layers."""
     mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
     mock_page = mocker.Mock()
     mock_page.text_layer = None
@@ -867,7 +867,7 @@ def test_create_txt_ann_canvas_no_layer(mocker, mock_session_window):
 
 
 def test_ann_text_new_no_layer(mocker, mock_session_window):
-    """Test _ann_text_new with no existing text layer and empty text"""
+    """Test _ann_text_new with no existing text layer and empty text."""
     mock_session_window._ann_hbox = mocker.Mock()
     # Line 643 coverage: text is EMPTY
     mock_session_window._ann_hbox._textbuffer.get_text.return_value = EMPTY
@@ -915,7 +915,7 @@ def test_ann_text_new_no_layer(mocker, mock_session_window):
 
 
 def test_ocr_text_add_no_layer(mocker, mock_session_window):
-    """Test _ocr_text_add with no existing text layer and empty text"""
+    """Test _ocr_text_add with no existing text layer and empty text."""
     mock_session_window._ocr_text_hbox = mocker.Mock()
     # Line 587 coverage: text is EMPTY
     mock_session_window._ocr_text_hbox._textbuffer.get_text.return_value = EMPTY
@@ -960,7 +960,7 @@ def test_ocr_text_add_no_layer(mocker, mock_session_window):
 
 
 class MockApp(SessionMixins):
-    """mock application class for testing SessionMixins methods"""
+    """mock application class for testing SessionMixins methods."""
 
     def __init__(self):
         """Initialise MockApp."""
@@ -1042,7 +1042,7 @@ def test_error_callback_with_missing_page_key(caplog):
 
 
 def test_error_callback_with_trace(mocker, mock_session_window):
-    """Test _error_callback with a stack trace"""
+    """Test _error_callback with a stack trace."""
     mock_response = mocker.Mock()
     mock_response.request.args = [{}]
     mock_response.request.process = "process_name"

@@ -1,4 +1,4 @@
-"""Test user-defined tools"""
+"""Test user-defined tools."""
 
 import re
 import subprocess
@@ -11,7 +11,7 @@ from loop_helpers import safe_mainloop
 def test_udt(
     temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, get_page_sync
 ):
-    """Test user-defined tools"""
+    """Test user-defined tools."""
     paper_sizes = {
         "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
@@ -63,7 +63,7 @@ def test_udt(
 
 
 def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
-    """Test user-defined tools"""
+    """Test user-defined tools."""
     subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)
@@ -90,7 +90,7 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
 
 
 def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page_sync):
-    """Test user-defined tools"""
+    """Test user-defined tools."""
     paper_sizes = {
         "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
@@ -139,7 +139,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page
 def test_udt_resolution(
     temp_pnm, temp_db, import_in_mainloop, set_resolution_in_mainloop, get_page_sync
 ):
-    """Test user-defined tools"""
+    """Test user-defined tools."""
     subprocess.run(
         [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
         check=True,
@@ -167,7 +167,7 @@ def test_udt_resolution(
 
 
 def test_udt_error(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
-    """Test user-defined tools"""
+    """Test user-defined tools."""
     subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
 
     slist = Document(db=temp_db.name)

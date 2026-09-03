@@ -1,4 +1,4 @@
-"""Classes and methods for reading and writing the bounding box trees from HOCR files"""
+"""Classes and methods for reading and writing the bounding box trees from HOCR files."""
 
 import codecs
 import html
@@ -25,12 +25,12 @@ HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
 
 
 def unescape_utf8(text):
-    """Convert escaped utf8, e.g. F\303\274\303\237\342\200\224 -> Füß—"""
+    """Convert escaped utf8, e.g. F\303\274\303\237\342\200\224 -> Füß—."""
     return codecs.escape_decode(text)[0].decode("utf-8")
 
 
 def flatten_tree(oldbox, newtree):
-    """Refactor a nested tree into a list"""
+    """Refactor a nested tree into a list."""
     # clone bbox without children
     newbox = dict(oldbox.items())
     newbox.pop("contents", None)
@@ -38,7 +38,7 @@ def flatten_tree(oldbox, newtree):
 
 
 class Bboxtree:
-    """Read and write the bounding box trees from HOCR files"""
+    """Read and write the bounding box trees from HOCR files."""
 
     def __init__(self, json_string=None):
         """Initialise Bboxtree."""
@@ -47,7 +47,7 @@ class Bboxtree:
             self.bbox_tree = json.loads(json_string, strict=False)
 
     def valid(self):
-        """Return whether the bboxes are valid"""
+        """Return whether the bboxes are valid."""
         for bbox in self.each_bbox():
             _x_1, _y_1, x_2, y_2 = bbox["bbox"]
             if bbox["type"] == "page" and (x_2 == 0 or y_2 == 0):
@@ -55,11 +55,11 @@ class Bboxtree:
         return True
 
     def json(self):
-        """seríalise the bboxtree object as JSON"""
+        """seríalise the bboxtree object as JSON."""
         return json.dumps(self.bbox_tree)
 
     def from_hocr(self, hocr):
-        """Write bboxtree to HOCR string"""
+        """Write bboxtree to HOCR string."""
         if (hocr is None) or not re.search(
             r"<body>[\s\S]*<\/body>", hocr, re.MULTILINE | re.DOTALL | re.VERBOSE
         ):
@@ -71,7 +71,7 @@ class Bboxtree:
             self._walk_bboxes(box_tree[0])
 
     def from_text(self, text, width, height):
-        """Create bboxtree from string"""
+        """Create bboxtree from string."""
         self.bbox_tree.append(
             {
                 "type": "page",
@@ -90,7 +90,7 @@ class Bboxtree:
         yield from self.bbox_tree
 
     def to_djvu_txt(self):
-        """Write bboxtree to string for djvu text"""
+        """Write bboxtree to string for djvu text."""
         string = ""
         prev_depth, height = None, None
         bbox_list = list(
@@ -147,7 +147,7 @@ class Bboxtree:
         return string
 
     def to_djvu_ann(self):
-        """Write bboxtree as string for djvu annotation layer"""
+        """Write bboxtree as string for djvu annotation layer."""
         string = ""
         height = None
         for bbox in self.each_bbox():
@@ -164,7 +164,7 @@ class Bboxtree:
         return string
 
     def from_djvu_ann(self, djvuann, imagew, imageh):
-        """Create bboxtree from djvu annotation layer"""
+        """Create bboxtree from djvu annotation layer."""
         self.bbox_tree.append(
             {
                 "type": "page",
@@ -209,7 +209,7 @@ class Bboxtree:
                 raise ValueError(msg)
 
     def to_text(self):
-        """Escape backslashes and inverted commas, return as plain text"""
+        """Escape backslashes and inverted commas, return as plain text."""
         string = ""
         for bbox in self.each_bbox():
             if string != "" and bbox["type"] == "para":
@@ -224,7 +224,7 @@ class Bboxtree:
         )
 
     def from_djvu_txt(self, djvutext):
-        """Create bboxtree from djvu text layer"""
+        """Create bboxtree from djvu text layer."""
         height = None
         depth = 0
         for line in re.split(r"\n", djvutext):
@@ -264,7 +264,7 @@ class Bboxtree:
                 raise ValueError(msg)
 
     def from_pdftotext(self, text, resolution, image_size):
-        """Create bboxtree from PDF text layer"""
+        """Create bboxtree from PDF text layer."""
         if not re.search(
             r"<body>[\s\S]*<\/body>", text, re.MULTILINE | re.DOTALL | re.VERBOSE
         ):
@@ -275,7 +275,7 @@ class Bboxtree:
             self._walk_bboxes(box_tree[0])
 
     def to_hocr(self):
-        """Write the bboxtree as an HOCR string"""
+        """Write the bboxtree as an HOCR string."""
         string = HOCR_HEADER + "\n"
         prev_depth, tags = -1, []
         for bbox in self.each_bbox():
@@ -295,7 +295,7 @@ class Bboxtree:
         return string
 
     def crop(self, left, top, width, height):
-        """Crop bboxtree"""
+        """Crop bboxtree."""
         i = 0
         while i < len(self.bbox_tree):
             bbox = self.bbox_tree[i]
@@ -315,7 +315,7 @@ class Bboxtree:
         return self
 
     def _walk_bboxes(self, bbox, depth=0):
-        """Walk the tree, executing the callback on each bounding box"""
+        """Walk the tree, executing the callback on each bounding box."""
         bbox["depth"] = depth
         depth += 1
         flatten_tree(bbox, self.bbox_tree)
@@ -326,7 +326,7 @@ class Bboxtree:
 
 
 class HOCRParser(HTMLParser):
-    """parser for HOCR string"""
+    """parser for HOCR string."""
 
     def __init__(self, *args, **kwargs):
         """Initialise HOCRParser."""
@@ -494,7 +494,7 @@ def _escape_text(txt):
 
 
 class PDFTextParser(HTMLParser):
-    """parser for HTML string for PDF text layer"""
+    """parser for HTML string for PDF text layer."""
 
     def __init__(self, resolution, image_size, *args, **kwargs):
         """Initialise PDFTextParser."""
@@ -564,7 +564,7 @@ def _pdftotext2boxes(text, resolution, image_size):
 
 
 def scale(value, resolution):
-    """Convert the given value from mm to pixels"""
+    """Convert the given value from mm to pixels."""
     return int(value * resolution // POINTS_PER_INCH + HALF)
 
 

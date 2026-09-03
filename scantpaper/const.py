@@ -1,4 +1,4 @@
-"""Constants that are used in multiple places"""
+"""Constants that are used in multiple places."""
 
 import importlib.metadata
 import sys
@@ -18,7 +18,7 @@ LOCAL_DOCS_URI = f"/usr/share/doc/C/{PROG_NAME}/documentation.html"
 
 
 def get_version():
-    """Get version from pyproject.toml"""
+    """Get version from pyproject.toml."""
     tomlfile_path = Path(__file__).parent.parent / "pyproject.toml"
     if tomlfile_path.is_file():
         return tomllib.loads(tomlfile_path.read_text())["project"]["version"]

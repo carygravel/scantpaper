@@ -1,4 +1,4 @@
-"""test scan dialog"""
+"""test scan dialog."""
 
 from types import SimpleNamespace
 
@@ -10,7 +10,7 @@ from tests.scan_mocks import build_scan_options
 
 
 def mocked_do_get_devices(_cls, _request):
-    """mocked_do_get_devices"""
+    """mocked_do_get_devices."""
     devices = [("mock_name", "", "", "")]
     return [
         SimpleNamespace(name=x[0], vendor=x[1], model=x[1], label=x[1]) for x in devices
@@ -18,7 +18,7 @@ def mocked_do_get_devices(_cls, _request):
 
 
 def trigger_get_devices(dlg, mainloop_with_timeout):
-    """Trigger get_devices to cover mocked_do_get_devices"""
+    """Trigger get_devices to cover mocked_do_get_devices."""
     loop = mainloop_with_timeout()
 
     def reloaded_devices_cb(_arg1, _arg2):
@@ -37,7 +37,7 @@ def test_infinite_reloads(
     mainloop_with_timeout,
     infinite_reloads_scan_mocks,
 ):
-    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
@@ -82,7 +82,7 @@ def test_changed_profile(
     mainloop_with_timeout,
     infinite_reloads_scan_mocks,
 ):
-    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
@@ -127,11 +127,11 @@ def test_changed_profile(
 def test_source_default(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
-        """Open device"""
+        """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
         self.device = device_name
@@ -191,7 +191,7 @@ def test_source_default(
 
 
 def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
-    """Check options are reset before applying a profile"""
+    """Check options are reset before applying a profile."""
     dlg = sane_scan_dialog
     dlg._add_profile("my profile", Profile(backend=[("resolution", 100)]))
     loop = mainloop_with_timeout()
@@ -238,11 +238,11 @@ def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
 def test_button_press(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()"""
+    """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
-        """Open device"""
+        """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -269,7 +269,7 @@ def test_button_press(
     )
 
     def mocked_do_get_options(_self, _request):
-        """mocked_do_get_options"""
+        """mocked_do_get_options."""
         nonlocal raw_options
         return raw_options
 
@@ -348,7 +348,7 @@ def test_get_invalid_option(
     mocker.patch("dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices)
 
     def mocked_do_open_device(self, request):
-        """Open device"""
+        """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -376,7 +376,7 @@ def test_get_invalid_option(
     )
 
     def mocked_do_get_options(_self, _request):
-        """mocked_do_get_options"""
+        """mocked_do_get_options."""
         nonlocal raw_options
         return raw_options
 

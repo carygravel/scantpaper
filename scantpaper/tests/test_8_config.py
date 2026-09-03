@@ -1,4 +1,4 @@
-"""test config helper functions"""
+"""test config helper functions."""
 
 import pathlib
 import tempfile
@@ -21,7 +21,7 @@ _LOCAL_TZ = datetime.now().astimezone().tzinfo
 
 
 class MockedDateTime(datetime):
-    """mock now"""
+    """mock now."""
 
     @classmethod
     def now(cls, tz=None):
@@ -30,7 +30,7 @@ class MockedDateTime(datetime):
 
 
 def test_config():
-    """Test config helper functions"""
+    """Test config helper functions."""
     rc = "test"
 
     #########################
@@ -118,7 +118,7 @@ def test_config():
 
 
 def test_config_string_conversion():
-    """Test that old integer-based settings are converted to strings"""
+    """Test that old integer-based settings are converted to strings."""
     rc = "test_string_conversion"
 
     config = """{
@@ -140,7 +140,7 @@ def test_config_string_conversion():
 
 
 def test_config2(mocker):
-    """Test config helper functions"""
+    """Test config helper functions."""
     rc = "test"
 
     #########################
@@ -272,7 +272,7 @@ def test_config2(mocker):
 
 
 def test_threshold_tool_migration():
-    """Test migration of threshold tool to the ink-strength scale"""
+    """Test migration of threshold tool to the ink-strength scale."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "config"
 
@@ -296,7 +296,7 @@ def test_threshold_tool_migration():
 
 
 def test_threshold_tool_default():
-    """Test that the default threshold tool value is 20"""
+    """Test that the default threshold tool value is 20."""
     assert DEFAULTS["threshold tool"] == 20
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "config"
@@ -306,7 +306,7 @@ def test_threshold_tool_default():
 
 
 def test_get_convert_command(mocker):
-    """Test _get_convert_command"""
+    """Test _get_convert_command."""
     mock_which = mocker.patch("config.shutil.which")
 
     # Test when 'magick' is available
@@ -319,7 +319,7 @@ def test_get_convert_command(mocker):
 
 
 def test_read_non_existent_config():
-    """Test reading a config file that doesn't exist"""
+    """Test reading a config file that doesn't exist."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "non_existent_config"
         output = read_config(rc)

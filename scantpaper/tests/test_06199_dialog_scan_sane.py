@@ -1,4 +1,4 @@
-"""test scan dialog"""
+"""test scan dialog."""
 
 import logging
 from types import SimpleNamespace
@@ -16,7 +16,7 @@ def test_scan_resolution(
     set_option_in_mainloop,
     sane_scan_mocks,
 ):
-    """Test the resolution options passed with the new-scan signal"""
+    """Test the resolution options passed with the new-scan signal."""
     sane_scan_mocks.patch_all(mocker)
     dialog = sane_scan_dialog
     callbacks = 0
@@ -86,7 +86,7 @@ def test_scan_source_adf(
     set_option_in_mainloop,
     sane_scan_mocks,
 ):
-    """Test setting source to ADF triggers reload options"""
+    """Test setting source to ADF triggers reload options."""
     sane_scan_mocks.patch_all(mocker)
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "mock_name")
@@ -98,6 +98,6 @@ def test_scan_source_adf(
 
 
 def test_scan_page_no_device(sane_scan_mocks):
-    """Test scanning without device raises ValueError"""
+    """Test scanning without device raises ValueError."""
     with pytest.raises(ValueError, match="must open device before starting scan"):
         sane_scan_mocks.mocked_do_scan_page(SimpleNamespace(device_handle=None), None)

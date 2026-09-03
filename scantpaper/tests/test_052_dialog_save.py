@@ -1,4 +1,4 @@
-"""test dialog.save"""
+"""test dialog.save."""
 
 from datetime import date, datetime, timedelta
 
@@ -13,7 +13,7 @@ _LOCAL_TZ = datetime.now().astimezone().tzinfo
 
 
 class MockedDateTime(datetime):
-    """mock now"""
+    """mock now."""
 
     @classmethod
     def now(cls, tz=None):
@@ -22,7 +22,7 @@ class MockedDateTime(datetime):
 
 
 def test_basic(mocker):
-    """Basic tests"""
+    """Basic tests."""
     mocker.patch("dialog.save.datetime.datetime", MockedDateTime)
     dialog = Save(
         title="title",
@@ -102,7 +102,7 @@ def test_basic(mocker):
 
 
 def test_datetime():
-    """Test datetime"""
+    """Test datetime."""
     dialog = Save(
         transient_for=Gtk.Window(),
         include_time=True,
@@ -115,7 +115,7 @@ def test_datetime():
 
 
 def test_now(mocker):
-    """Test not setting datetime"""
+    """Test not setting datetime."""
     now = datetime(2018, 1, 1, 0, 0, 0, tzinfo=_LOCAL_TZ)
     mocker.patch("dialog.save.datetime.datetime", MockedDateTime)
     dialog = Save(
@@ -127,7 +127,7 @@ def test_now(mocker):
 
 
 def test_image_type_selection(mocker):
-    """Test image type selection updates UI"""
+    """Test image type selection updates UI."""
     dialog = Save(
         transient_for=Gtk.Window(),
         image_types=["djvu", "tif", "ps", "pdf"],
@@ -139,7 +139,7 @@ def test_image_type_selection(mocker):
     dialog.add_image_type()
 
     def find_combobox(container):
-        """Find the image type combobox by searching children"""
+        """Find the image type combobox by searching children."""
         cb = None
         for child in container.get_children():
             if not isinstance(child, Gtk.Box) or child == dialog._meta_box_widget:
@@ -180,7 +180,7 @@ def test_image_type_selection(mocker):
 
 
 def test_pdf_options(mocker):
-    """Test PDF specific options"""
+    """Test PDF specific options."""
     dialog = Save(
         transient_for=Gtk.Window(),
         can_encrypt_pdf=True,
@@ -250,7 +250,7 @@ def test_pdf_options(mocker):
 
 
 def test_date_entry_validation(mocker):
-    """Test date entry validation"""
+    """Test date entry validation."""
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window())
     entry = dialog._meta_datetime_widget
@@ -282,7 +282,7 @@ def test_date_entry_validation(mocker):
 
 
 def test_edit_date_button(mocker):
-    """Test _clicked_edit_date_button"""
+    """Test _clicked_edit_date_button."""
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(
         transient_for=Gtk.Window(),
@@ -294,7 +294,7 @@ def test_edit_date_button(mocker):
     original_dialog = Dialog
 
     class CapturedDialog(original_dialog):
-        """capture dialog instances"""
+        """capture dialog instances."""
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -309,14 +309,14 @@ def test_edit_date_button(mocker):
     original_button = Gtk.Button
 
     class CapturedCalendar(original_calendar):
-        """capture calendar instances"""
+        """capture calendar instances."""
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             captured_calendar.append(self)
 
     class CapturedButton(original_button):
-        """capture button instances"""
+        """capture button instances."""
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -360,7 +360,7 @@ def test_edit_date_button(mocker):
 
 
 def test_image_type_changed_branches(mocker):
-    """Test branches in _image_type_changed_callback"""
+    """Test branches in _image_type_changed_callback."""
     dialog = Save(transient_for=Gtk.Window())
     dialog.resize = mocker.Mock()
 
@@ -403,7 +403,7 @@ def test_image_type_changed_branches(mocker):
 
 
 def test_datetime_focus_out(mocker):
-    """Test _datetime_focus_out_callback"""
+    """Test _datetime_focus_out_callback."""
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window(), select_datetime=True)
 
@@ -420,7 +420,7 @@ def test_datetime_focus_out(mocker):
 
 
 def test_datetime_setter(mocker):
-    """Test meta_datetime setter updates widget"""
+    """Test meta_datetime setter updates widget."""
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window(), include_time=True)
     # DTZ001 — naive so isoformat() omits tz suffix, matching the expected widget text
@@ -430,7 +430,7 @@ def test_datetime_setter(mocker):
 
 
 def test_tiff_compression_selection(mocker):
-    """Test tiff compression selection updates UI"""
+    """Test tiff compression selection updates UI."""
     dialog = Save(
         transient_for=Gtk.Window(),
         image_types=["tif"],
@@ -440,7 +440,7 @@ def test_tiff_compression_selection(mocker):
     dialog.add_image_type()
 
     def find_widget_by_label(container, label_text, widget_type):
-        """Find a widget by its sibling label text"""
+        """Find a widget by its sibling label text."""
         widget = None
         for child in container.get_children():
             grand_children = child.get_children()
@@ -460,7 +460,7 @@ def test_tiff_compression_selection(mocker):
     assert combobtc is not None, "Could not find Compression ComboBox"
 
     def find_box_containing_label(container, label_text):
-        """Find a Box that contains a Label with the given text"""
+        """Find a Box that contains a Label with the given text."""
         box = None
         for child in container.get_children():
             if any(
@@ -487,7 +487,7 @@ def test_tiff_compression_selection(mocker):
 
 
 def test_other_save_dialog_callbacks():
-    """Test other callbacks in Save dialog"""
+    """Test other callbacks in Save dialog."""
     dialog = Save(
         transient_for=Gtk.Window(),
         image_types=["pdf", "ps"],
@@ -497,7 +497,7 @@ def test_other_save_dialog_callbacks():
     content_area = dialog.get_content_area()
 
     def find_widget_by_label(container, label_text, widget_type):
-        """Find a widget by its sibling label text"""
+        """Find a widget by its sibling label text."""
         widget = None
         for child in container.get_children():
             grand_children = child.get_children()
@@ -578,7 +578,7 @@ def test_other_save_dialog_callbacks():
 
 
 def test_date_entry_inc_dec(mocker):
-    """Test + and - keys in date entry"""
+    """Test + and - keys in date entry."""
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window())
     entry = dialog._meta_datetime_widget
@@ -597,7 +597,7 @@ def test_date_entry_inc_dec(mocker):
 
 
 def test_date_entry_cursor_position(mocker):
-    """Test cursor position update in date entry"""
+    """Test cursor position update in date entry."""
     mocker.patch("dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a))
     dialog = Save(transient_for=Gtk.Window())
     entry = dialog._meta_datetime_widget

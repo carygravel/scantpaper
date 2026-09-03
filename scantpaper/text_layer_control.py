@@ -1,4 +1,4 @@
-"""provide controls for editing the text layer"""
+"""provide controls for editing the text layer."""
 
 import logging
 from typing import ClassVar
@@ -26,7 +26,7 @@ INDEX = [
 
 
 class TextLayerControls(Gtk.Box):
-    """provide controls for editing the text layer"""
+    """provide controls for editing the text layer."""
 
     __gsignals__: ClassVar[dict] = {
         "text-changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),

@@ -1,4 +1,4 @@
-"""A thread backed by internal queues for simple messaging"""
+"""A thread backed by internal queues for simple messaging."""
 
 import contextlib
 import logging
@@ -36,7 +36,7 @@ CALLBACKS = ["queued", "started", "running", "data", "finished", "cancelled", "e
 
 
 class Request:
-    """Attributes and methods around requests"""
+    """Attributes and methods around requests."""
 
     def __init__(
         self, process_name, process_args, return_queue, *args, notify_cb=None, **kwargs
@@ -50,7 +50,7 @@ class Request:
         self._notify_cb = notify_cb
 
     def put(self, info, rtype=ResponseType.FINISHED, status=None):
-        """Put a response on the return queue"""
+        """Put a response on the return queue."""
         if self.return_queue is not None:
             self.return_queue.put(
                 Response(
@@ -67,32 +67,32 @@ class Request:
             self._notify_cb()
 
     def queued(self, info=None, status=None):
-        """Queued notification"""
+        """Queued notification."""
         self.put(info, ResponseType.QUEUED, status)
 
     def started(self, info=None, status=None):
-        """Started notification"""
+        """Started notification."""
         self.put(info, ResponseType.STARTED, status)
 
     def finished(self, info=None, status=None):
-        """Finished notification"""
+        """Finished notification."""
         self.put(info, ResponseType.FINISHED, status)
 
     def error(self, info=None, status=None):
-        """Error notification"""
+        """Error notification."""
         self.put(info, ResponseType.ERROR, status)
 
     def cancelled(self, info=None, status=None):
-        """Cancelled notification"""
+        """Cancelled notification."""
         self.put(info, ResponseType.CANCELLED, status)
 
     def data(self, info, status=None):
-        """Pass data back to main thread"""
+        """Pass data back to main thread."""
         self.put(info, ResponseType.DATA, status)
 
 
 class BaseThread(threading.Thread):
-    """A thread backed by internal queues for simple messaging"""
+    """A thread backed by internal queues for simple messaging."""
 
     # Every live thread, so tests can quit any that are not explicitly stopped.
     LiveThreads = weakref.WeakSet()
@@ -124,7 +124,7 @@ class BaseThread(threading.Thread):
 
     @staticmethod
     def _cleanup_thread(requests_queue):
-        """Cleanup function that does not hold a reference to self"""
+        """Cleanup function that does not hold a reference to self."""
         try:
             # We don't need a response queue for finalization
             request = Request("quit", [], None)
@@ -136,7 +136,7 @@ class BaseThread(threading.Thread):
             pass
 
     def _release_sources(self):
-        """Schedule removal of GLib sources and pipe FDs on the main thread"""
+        """Schedule removal of GLib sources and pipe FDs on the main thread."""
 
         def _cleanup():
             GLib.source_remove(self._io_watch_id)
@@ -150,12 +150,12 @@ class BaseThread(threading.Thread):
         GLib.idle_add(_cleanup)
 
     def _notify(self):
-        """Wake up the GLib main loop to process responses"""
+        """Wake up the GLib main loop to process responses."""
         with contextlib.suppress(OSError):
             os.write(self._notify_w, b"\x01")
 
     def _on_readable(self, _fd, _condition):
-        """Called when the notification pipe is readable"""
+        """Called when the notification pipe is readable."""
         try:
             while True:
                 os.read(self._notify_r, 1024)
@@ -165,17 +165,17 @@ class BaseThread(threading.Thread):
         return GLib.SOURCE_CONTINUE
 
     def _tick(self):
-        """Periodic tick for running callbacks (progress reporting)"""
+        """Periodic tick for running callbacks (progress reporting)."""
         self._execute_callbacks_for_stage("running", None)
         return GLib.SOURCE_CONTINUE
 
     def quit(self):
-        """Quit the thread"""
+        """Quit the thread."""
         return self.send("quit")
 
     @classmethod
     def quit_all_live_threads(cls):
-        """Send a quit request to every live thread (used for test teardown)"""
+        """Send a quit request to every live thread (used for test teardown)."""
         for thread in list(cls.LiveThreads):
             if thread.is_alive():
                 try:
@@ -184,11 +184,11 @@ class BaseThread(threading.Thread):
                     logger.exception("Error quitting thread %s", thread)
 
     def input_handler(self, request):
-        """Dummy input handler to be overridden as required"""
+        """Dummy input handler to be overridden as required."""
         return request.args
 
     def do_quit(self, _request):
-        """Quit function does nothing"""
+        """Quit function does nothing."""
 
     def register_callback(self, name, when, reference_cb):
         """Register a callback with a name and trigger timing."""
@@ -217,7 +217,7 @@ class BaseThread(threading.Thread):
         *args,
         **kwargs,
     ):
-        """Puts the process and args as a `Request` on the requests queue"""
+        """Puts the process and args as a `Request` on the requests queue."""
         request = Request(process, args, self.responses, notify_cb=self._notify)
         callbacks = {"started": False}
         for callback in CALLBACKS:
@@ -242,7 +242,7 @@ class BaseThread(threading.Thread):
         return request.uuid
 
     def run(self):
-        """Override the run() method of threading. Not called directly here"""
+        """Override the run() method of threading. Not called directly here."""
         while True:
             request = self.requests.get()
             request.started()
@@ -256,7 +256,7 @@ class BaseThread(threading.Thread):
         self._release_sources()
 
     def handler_wrapper(self, request, handler):
-        """Separate the handler wrapper logic so that it can be overriden by subclasses"""
+        """Separate the handler wrapper logic so that it can be overriden by subclasses."""
         try:
             request.finished(handler(request))
             if request.process == "quit":
@@ -276,10 +276,10 @@ class BaseThread(threading.Thread):
         return True
 
     def _request_completed(self, _request):
-        """Hook called when a request's handler has finished or failed"""
+        """Hook called when a request's handler has finished or failed."""
 
     def drain_cancelled_requests(self):
-        """Emit a CANCELLED response for every request still queued and unstarted"""
+        """Emit a CANCELLED response for every request still queued and unstarted."""
         drained = []
         while True:
             try:
@@ -290,7 +290,7 @@ class BaseThread(threading.Thread):
             request.cancelled()
 
     def monitor(self):
-        """Monitor the thread, triggering one response callback"""
+        """Monitor the thread, triggering one response callback."""
         self._execute_callbacks_for_stage("running", None)
         if not self.responses.empty():
             self._monitor_response()
@@ -298,7 +298,7 @@ class BaseThread(threading.Thread):
         return GLib.SOURCE_CONTINUE
 
     def _drain_one(self):
-        """Process one response from the queue, scheduling the next if needed"""
+        """Process one response from the queue, scheduling the next if needed."""
         self._execute_callbacks_for_stage("running", None)
         if not self.responses.empty():
             self._monitor_response()

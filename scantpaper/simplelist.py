@@ -1,4 +1,4 @@
-"""A simple interface to Gtk's complex MVC list widget"""
+"""A simple interface to Gtk's complex MVC list widget."""
 
 from warnings import warn
 
@@ -13,7 +13,7 @@ from gi.repository import (  # noqa: E402
 
 
 def scalar_cell_renderer(_tree_column, cell, model, itr, i):
-    """Custom cell renderer gtype scalar"""
+    """Custom cell renderer gtype scalar."""
     info = model.get(itr, i)
     cell.text = "" if info is None else info
 
@@ -40,7 +40,7 @@ column_types = {
 
 
 class SimpleList(Gtk.TreeView):
-    """A simple interface to Gtk's complex MVC list widget"""
+    """A simple interface to Gtk's complex MVC list widget."""
 
     def __init__(self, **columns):
         """Create a SimpleList from keyword arguments mapping column names to types."""
@@ -133,24 +133,24 @@ class SimpleList(Gtk.TreeView):
 
     @property
     def data(self):
-        """Getter for data property"""
+        """Getter for data property."""
         return TiedList(self.get_model())
 
     @data.setter
     def data(self, new_data):
-        """Setter for data property"""
+        """Setter for data property."""
         self.get_model().clear()
         self.data.extend(new_data)
 
     def do_toggled(self, renderer, row):
-        """Callback for toggled signal of boolean cell"""
+        """Callback for toggled signal of boolean cell."""
         col = renderer.column
         model = self.get_model()
         itr = model.iter_nth_child(None, int(row))
         model[itr][col] = not model[itr][col]
 
     def do_text_cell_edited(self, renderer, text_path, new_text, col_type):
-        """Callback for edited signal of text cell"""
+        """Callback for edited signal of text cell."""
         path = Gtk.TreePath.new_from_string(text_path)
         model = self.get_model()
         if col_type is int:
@@ -160,7 +160,7 @@ class SimpleList(Gtk.TreeView):
         model[model.get_iter(path)][renderer.column] = new_text
 
     def set_column_editable(self, index, editable):
-        """Set whether a column can be edited"""
+        """Set whether a column can be edited."""
         column = self.get_column(index)
         if column is None:
             msg = f"invalid column index {index}"
@@ -169,7 +169,7 @@ class SimpleList(Gtk.TreeView):
         return cell_renderer[0].set_property("editable", editable)
 
     def get_column_editable(self, index):
-        """Return whether a column can be edited"""
+        """Return whether a column can be edited."""
         column = self.get_column(index)
         if column is None:
             msg = f"invalid column index {index}"
@@ -178,7 +178,7 @@ class SimpleList(Gtk.TreeView):
         return cell_renderer[0].get_property("editable")
 
     def get_selected_indices(self):
-        """Get selected indices"""
+        """Get selected indices."""
         selection = self.get_selection()
 
         # warning: this assumes that the TreeModel is actually a ListStore.
@@ -190,7 +190,7 @@ class SimpleList(Gtk.TreeView):
         return [x.get_indices()[0] for x in indices]
 
     def _modify_selection(self, indices, func):
-        """Helper function for select/unselect()"""
+        """Helper function for select/unselect()."""
         selection = self.get_selection()
         if (
             isinstance(indices, list)
@@ -212,15 +212,15 @@ class SimpleList(Gtk.TreeView):
             func(itr)
 
     def select(self, indices):
-        """Select indices"""
+        """Select indices."""
         self._modify_selection(indices, "select_iter")
 
     def unselect(self, indices):
-        """Unselect indices"""
+        """Unselect indices."""
         self._modify_selection(indices, "unselect_iter")
 
     def get_row_data_from_path(self, path):
-        """Get row for given path
+        """Get row for given path.
 
         path.get_depth() always 1 for SimpleList
         depth = path.get_depth()
@@ -232,12 +232,12 @@ class SimpleList(Gtk.TreeView):
 
     @classmethod
     def add_column_type(cls, **kwargs):
-        """Add column type"""
+        """Add column type."""
         column_types.update(kwargs)
 
     @classmethod
     def get_column_types(cls):
-        """Return column types"""
+        """Return column types."""
         return column_types
 
 

@@ -1,4 +1,4 @@
-"""subclass dialog for save options"""
+"""subclass dialog for save options."""
 
 import datetime
 import re
@@ -83,14 +83,14 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 class Save(Dialog):
-    """subclass dialog for save options"""
+    """subclass dialog for save options."""
 
     _meta_datetime = None
     _meta_datetime_widget = None
 
     @GObject.Property(type=object)
     def meta_datetime(self):
-        """Datetime object for document date"""
+        """Datetime object for document date."""
         if self.meta_now_widget.get_active():
             return datetime.datetime.now(_LOCAL_TZ)
         if (
@@ -108,7 +108,7 @@ class Save(Dialog):
         return self._meta_datetime
 
     def _resolve_meta_datetime(self, parsed):
-        """Resolve parsed text against the existing metadata datetime"""
+        """Resolve parsed text against the existing metadata datetime."""
         existing = self._meta_datetime
         result = parsed if self.include_time else parsed.date()
         if existing is not None:
@@ -143,7 +143,7 @@ class Save(Dialog):
 
     @GObject.Property(type=bool, default=False)
     def include_time(self):
-        """Whether to allow the time, as well as the date, to be entered"""
+        """Whether to allow the time, as well as the date, to be entered."""
         return self._include_time
 
     @include_time.setter
@@ -158,7 +158,7 @@ class Save(Dialog):
 
     @GObject.Property(type=str, default="")
     def meta_title(self):
-        """Title metadata"""
+        """Title metadata."""
         if self._meta_title_widget is None:
             return self._meta_title
         return self._meta_title_widget.get_text()
@@ -172,7 +172,7 @@ class Save(Dialog):
 
     @GObject.Property(type=object)
     def meta_title_suggestions(self):
-        """Array of title metadata suggestions, used by entry completion widget"""
+        """Array of title metadata suggestions, used by entry completion widget."""
         if self._meta_title_widget is None:
             return self._meta_title_suggestions
         return self._meta_title_widget.get_suggestions()
@@ -189,7 +189,7 @@ class Save(Dialog):
 
     @GObject.Property(type=str, default="")
     def meta_author(self):
-        """Author metadata"""
+        """Author metadata."""
         if self._meta_author_widget is None:
             return self._meta_author
         return self._meta_author_widget.get_text()
@@ -203,7 +203,7 @@ class Save(Dialog):
 
     @GObject.Property(type=object)
     def meta_author_suggestions(self):
-        """Array of author metadata suggestions, used by entry completion widget"""
+        """Array of author metadata suggestions, used by entry completion widget."""
         if self._meta_author_widget is None:
             return self._meta_author_suggestions
         return self._meta_author_widget.get_suggestions()
@@ -220,7 +220,7 @@ class Save(Dialog):
 
     @GObject.Property(type=str, default="")
     def meta_subject(self):
-        """Subject metadata"""
+        """Subject metadata."""
         if self._meta_subject_widget is None:
             return self._meta_subject
         return self._meta_subject_widget.get_text()
@@ -234,7 +234,7 @@ class Save(Dialog):
 
     @GObject.Property(type=object)
     def meta_subject_suggestions(self):
-        """Array of subject metadata suggestions, used by entry completion widget"""
+        """Array of subject metadata suggestions, used by entry completion widget."""
         if self._meta_subject_widget is None:
             return self._meta_subject_suggestions
         return self._meta_subject_widget.get_suggestions()
@@ -251,7 +251,7 @@ class Save(Dialog):
 
     @GObject.Property(type=str, default="")
     def meta_keywords(self):
-        """Keyword metadata"""
+        """Keyword metadata."""
         if self._meta_keywords_widget is None:
             return self._meta_keywords
         return self._meta_keywords_widget.get_text()
@@ -265,7 +265,7 @@ class Save(Dialog):
 
     @GObject.Property(type=object)
     def meta_keywords_suggestions(self):
-        """Array of keyword metadata suggestions, used by entry completion widget"""
+        """Array of keyword metadata suggestions, used by entry completion widget."""
         if self._meta_keywords_widget is None:
             return self._meta_keywords_suggestions
         return self._meta_keywords_widget.get_suggestions()
@@ -563,7 +563,7 @@ class Save(Dialog):
                 self._meta_datetime_widget.set_max_length(ENTRY_WIDTH_DATE)
 
     def add_image_type(self):
-        """Add image type dropdown"""
+        """Add image type dropdown."""
         vbox = self.get_content_area()
 
         # Image type ComboBox
@@ -709,7 +709,7 @@ class Save(Dialog):
             hboxpq.hide()
 
     def add_quality_spinbutton(self, vbox):
-        """Set up quality spinbutton here so that it can be shown or hidden by callback"""
+        """Set up quality spinbutton here so that it can be shown or hidden by callback."""
         hbox = Gtk.Box()
         vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("JPEG Quality"))
@@ -720,7 +720,7 @@ class Save(Dialog):
         return hbox, spinbutton
 
     def add_pdf_options(self):
-        """Add pdf options"""
+        """Add pdf options."""
         # pack everything in one vbox to be able to show/hide them all at once
         vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox = self.get_content_area()
@@ -828,7 +828,7 @@ class Save(Dialog):
         passwin.show_all()
 
     def update_config_dict(self, config):
-        """Update config based from instance metadata"""
+        """Update config based from instance metadata."""
         for name in ["author", "title", "subject", "keywords"]:
             value = getattr(self, f"meta_{name}")
             config[name] = value
@@ -846,12 +846,12 @@ class Save(Dialog):
             config["datetime offset"] = doc_datetime - datetime.datetime.now(_LOCAL_TZ)
 
     def update_from_import_metadata(self, metadata):
-        """Update instance from imported metadata"""
+        """Update instance from imported metadata."""
         for name in ["author", "title", "subject", "keywords", "datetime"]:
             if name in metadata:
                 setattr(self, f"meta_{name}", metadata[name])
 
 
 def filter_table(table, types):
-    """Filter table list by types"""
+    """Filter table list by types."""
     return [row for row in table if row[0] in types]

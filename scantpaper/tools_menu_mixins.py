@@ -1,4 +1,4 @@
-"""provide methods called from tools menu"""
+"""provide methods called from tools menu."""
 
 import datetime
 import logging
@@ -37,31 +37,31 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 class ToolsMenuMixins:
-    """provide methods called from tools menu"""
+    """provide methods called from tools menu."""
 
     def rotate_90(self, _action, _param):
-        """Rotates the selected pages by 90 degrees"""
+        """Rotates the selected pages by 90 degrees."""
         self._rotate(
             -_90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
     def rotate_180(self, _action, _param):
-        """Rotates the selected pages by 180 degrees"""
+        """Rotates the selected pages by 180 degrees."""
         self._rotate(
             _180_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
     def rotate_270(self, _action, _param):
-        """Rotates the selected pages by 270 degrees"""
+        """Rotates the selected pages by 270 degrees."""
         self._rotate(
             _90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
     def _rotate(self, angle, pagelist):
-        """Rotate selected images"""
+        """Rotate selected images."""
         for page in pagelist:
             self.slist.rotate(
                 angle=angle,
@@ -75,7 +75,7 @@ class ToolsMenuMixins:
             )
 
     def threshold(self, _action, _param):
-        """Display page selector and on apply threshold accordingly"""
+        """Display page selector and on apply threshold accordingly."""
         windowt = Dialog(
             transient_for=self,
             title=_("Threshold"),
@@ -136,7 +136,7 @@ class ToolsMenuMixins:
         windowt.show_all()
 
     def brightness_contrast(self, _action, _param):
-        """Display page selector and on apply brightness & contrast accordingly"""
+        """Display page selector and on apply brightness & contrast accordingly."""
         windowt = Dialog(
             transient_for=self,
             title=_("Brightness / Contrast"),
@@ -204,7 +204,7 @@ class ToolsMenuMixins:
         windowt.show_all()
 
     def negate(self, _action, _param):
-        """Display page selector and on apply negate accordingly"""
+        """Display page selector and on apply negate accordingly."""
         windowt = Dialog(
             transient_for=self,
             title=_("Negate"),
@@ -241,7 +241,7 @@ class ToolsMenuMixins:
         windowt.show_all()
 
     def unsharp(self, _action, _param):
-        """Display page selector and on apply unsharp accordingly"""
+        """Display page selector and on apply unsharp accordingly."""
         windowum = Dialog(
             transient_for=self,
             title=_("Unsharp mask"),
@@ -342,7 +342,7 @@ class ToolsMenuMixins:
         windowum.show_all()
 
     def crop_dialog(self, _action, _param):
-        """Display page selector and on apply crop accordingly"""
+        """Display page selector and on apply crop accordingly."""
         if self._windowc is not None:
             self._windowc.present()
             return
@@ -412,7 +412,7 @@ class ToolsMenuMixins:
             )
 
     def split_dialog(self, _action, _param):
-        """Display page selector and on apply crop accordingly"""
+        """Display page selector and on apply crop accordingly."""
         windowsp = Dialog(
             transient_for=self,
             title=_("Split"),
@@ -590,7 +590,7 @@ class ToolsMenuMixins:
         self._windowu.show_all()
 
     def ocr_dialog(self, _action, _parma):
-        """Run OCR on current page and display result"""
+        """Run OCR on current page and display result."""
         if self._windowo is not None:
             self._windowo.present()
             return
@@ -630,7 +630,7 @@ class ToolsMenuMixins:
         self._windowo.show_all()
 
     def _run_ocr(self, engine, tesslang, threshold_flag, threshold):
-        """Run OCR on a set of pages"""
+        """Run OCR on a set of pages."""
         if engine == "tesseract":
             self.settings["ocr language"] = tesslang
 
@@ -825,7 +825,7 @@ class ToolsMenuMixins:
         self._windowe.show_all()
 
     def about(self, _action, _param):
-        """Display about dialog"""
+        """Display about dialog."""
         about = Gtk.AboutDialog()
 
         about.set_program_name(GLib.get_application_name())

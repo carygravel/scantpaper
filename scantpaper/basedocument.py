@@ -1,4 +1,4 @@
-"""Base document methods"""
+"""Base document methods."""
 
 import logging
 import os
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseDocument(SimpleList):
-    """a Document is a simple list of pages, backed by SQLite"""
+    """a Document is a simple list of pages, backed by SQLite."""
 
     jobs_completed = 0
     jobs_total = 0
@@ -92,7 +92,7 @@ class BaseDocument(SimpleList):
         self.connect("drag-end", _weak_callback(self, "_on_drag_end"))
 
         def drag_drop_callback(tree, context, _x, _y, when):
-            """Callback for dropped signal"""
+            """Callback for dropped signal."""
             targets = tree.drag_dest_get_target_list()
             target = tree.drag_dest_find_target(context, targets)
             if target:
@@ -153,11 +153,11 @@ class BaseDocument(SimpleList):
         self.thread.send("set_selection", self.get_selected_indices())
 
     def set_paper_sizes(self, paper_sizes=None):
-        """Set the paper sizes in the manager and worker threads"""
+        """Set the paper sizes in the manager and worker threads."""
         self.thread.send("set_paper_sizes", paper_sizes)
 
     def cancel(self, cancel_callback, process_callback=None):
-        """Kill all running processes"""
+        """Kill all running processes."""
         with self.thread.lock:
             # Empty the response queue first so the cancelled notifications
             # queued below are not swallowed by the drain
@@ -202,7 +202,7 @@ class BaseDocument(SimpleList):
         self.thread.send("cancel", finished_callback=cancel_callback)
 
     def create_pidfile(self, options):
-        """Create file in which to store the PID"""
+        """Create file in which to store the PID."""
         options = defaultdict(None, options)
         try:
             # SIM115: the pidfile handle escapes to the thread's running_pids
@@ -225,7 +225,7 @@ class BaseDocument(SimpleList):
         return pidfile
 
     def data_callback(self, response, options, post_process=None):
-        """Add a page from a worker response, then log any errors"""
+        """Add a page from a worker response, then log any errors."""
         info = response.info
         if info and "type" in info and info["type"] == "page":
             self.add_page(*info["row"], **info)
@@ -235,7 +235,7 @@ class BaseDocument(SimpleList):
             options["logger_callback"](response)
 
     def find_page_by_uuid(self, uid):
-        """Return page index given uuid"""
+        """Return page index given uuid."""
         if uid is None:
             logger.error("find_page_by_uuid() called with None")
             return None
@@ -254,7 +254,7 @@ class BaseDocument(SimpleList):
         return i
 
     def add_page(self, number, thumb, page_id, **kwargs):
-        """Add a new page to the document"""
+        """Add a new page to the document."""
         ref = kwargs.get("insert-after", kwargs.get("replace"))
         i = None
         if ref is not None:
@@ -315,18 +315,18 @@ class BaseDocument(SimpleList):
         return new_index
 
     def _renumber_after_add(self, i, number):
-        """Renumber after adding a page, unless it is an in-order append"""
+        """Renumber after adding a page, unless it is an in-order append."""
         if i is not None or number != len(self.data):
             self.renumber()
 
     def cut_selection(self, **kwargs):
-        """Cut the selection"""
+        """Cut the selection."""
         data = self.copy_selection()
         self.delete_selection_extra(**kwargs)
         return data
 
     def copy_selection(self):
-        """Copy the selection"""
+        """Copy the selection."""
         selection = self.get_selected_indices()
         logger.debug("copy_selection %s", selection)
         if selection == []:
@@ -339,7 +339,7 @@ class BaseDocument(SimpleList):
         return data
 
     def paste_selection(self, **kwargs):
-        """Paste the selection"""
+        """Paste the selection."""
         # Block row-changed signal so that the list can be updated before the sort
         # takes over.
         if self.row_changed_signal is not None:
@@ -405,7 +405,7 @@ class BaseDocument(SimpleList):
             )
 
     def delete_selection(self, _self=None, context=None, **kwargs):
-        """Delete the selected pages"""
+        """Delete the selected pages."""
         # A drag-and-drop reorder triggers drag-data-delete after the drop;
         # suppress that deletion so the reorder is not followed by a delete.
         # NOTE: the flag is deliberately NOT cleared here. drag-data-delete can
@@ -451,7 +451,7 @@ class BaseDocument(SimpleList):
         )
 
     def delete_all_pages(self, **kwargs):
-        """Delete all pages"""
+        """Delete all pages."""
 
         def _data_callback(response):
             info = response.info
@@ -484,7 +484,7 @@ class BaseDocument(SimpleList):
         )
 
     def _reorder_data(self, page_ids, new_pages):
-        """Reorder self.data to match the worker's new ordering after a drag"""
+        """Reorder self.data to match the worker's new ordering after a drag."""
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
@@ -504,7 +504,7 @@ class BaseDocument(SimpleList):
         self.select([i for i, row in enumerate(self.data) if row[2] in moved])
 
     def reorder_pages(self, page_ids, dest, how):
-        """Reorder the given pages to the given position by drag-and-drop"""
+        """Reorder the given pages to the given position by drag-and-drop."""
 
         def _data_callback(response):
             info = response.info
@@ -530,11 +530,11 @@ class BaseDocument(SimpleList):
         )
 
     def _on_drag_end(self, _widget, _context):
-        """Clear any leftover reorder suppression once the drag is over"""
+        """Clear any leftover reorder suppression once the drag is over."""
         self._suppress_delete = False
 
     def delete_selection_extra(self, **kwargs):
-        """Wrapper for delete_selection()"""
+        """Wrapper for delete_selection()."""
         page = self.get_selected_indices()
         npages = len(page)
         ids = (str(self.data[x][2]) for x in page)
@@ -575,12 +575,12 @@ class BaseDocument(SimpleList):
             self.get_selection().handler_unblock(self.selection_changed_signal)
 
     def save_session(self, filename):
-        """Copy session db to a file"""
+        """Copy session db to a file."""
         self.thread.save_as(filename)
         logger.info("Saved document as %s", filename)
 
     def open_session(self, **kwargs):
-        """Open session file"""
+        """Open session file."""
         if "db" not in kwargs:
             if kwargs["error_callback"]:
                 kwargs["error_callback"](
@@ -635,7 +635,7 @@ class BaseDocument(SimpleList):
         )
 
     def renumber(self):
-        """Renumber pages so that page numbers are consecutive 1..n"""
+        """Renumber pages so that page numbers are consecutive 1..n."""
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
@@ -646,7 +646,7 @@ class BaseDocument(SimpleList):
             self.get_model().handler_unblock(self.row_changed_signal)
 
     def get_page_index(self, page_range, error_callback):
-        """Return array index of pages depending on which radiobutton is active"""
+        """Return array index of pages depending on which radiobutton is active."""
         index = []
         if page_range == "all":
             if self.data:
@@ -659,7 +659,7 @@ class BaseDocument(SimpleList):
         return index
 
     def _note_callbacks(self, kwargs):
-        """Create the mark_saved callback if necessary"""
+        """Create the mark_saved callback if necessary."""
         # File in which to store the process ID so that it can be killed if necessary
         kwargs["pidfile"] = self.create_pidfile(kwargs)
         kwargs["dir"] = self.dir
@@ -711,7 +711,7 @@ for method_name_ in [
 
 
 def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
-    """Callback to receive DnD data"""
+    """Callback to receive DnD data."""
     # This callback is fired twice, seemingly once for the drop flag,
     # and once for the copy flag,
     # or possible once for the new data and once for the old data.
