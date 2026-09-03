@@ -95,14 +95,13 @@ ignore = [
     "PLR2004", # magic values: ubiquitous GUI widget constants
     "S",       # bandit: dominated by `assert` (S101) in tests
     "E501",    # line length: tracked by black's own width
-    "COM812",  # trailing commas: black handles style
+    "COM812",  # trailing commas: incompatible with some D* rules
     "CPY001",  # copyright headers: not required by this project
     "INP001",  # implicit namespace package: project uses explicit packages
     "TD",      # TODO metadata requirements: not adopted as a convention
     "T201",    # print: legitimate in scripts
     "FIX002",  # TODO without issue ref: plain `# TODO:` notes are the project convention
     "C901",    # complex functions: legacy code is deeply nested; refactoring is deferred
-    "PLR0912", # too many branches: legacy functions are branch-heavy
     "PLR0913", # too many arguments: existing APIs take many params (scan/request dicts)
     "PLR0915", # too many statements: long legacy methods
     "PLR0917", # too many positional arguments: existing call sites pass many args

@@ -262,72 +262,74 @@ class SaveThread(Importhread):
             # Embed text layer using ocrmypdf (also applies PDF/A metadata such
             # as the title), so it runs even when no page has a text layer.
             embed_ok = self._embed_text_layer(outdir, filename, request)
+            self._finalize_pdf(filename, options, request, embed_ok, metadata)
 
-            # When embed fell back (embed_ok is False) the output PDF may be
-            # malformed - pikepdf-dependent operations would fail too, so skip
-            # them and hand the user a usable (but textless) PDF.
-            if embed_ok:
-                # Metadata fixup is cosmetic - if it fails, deliver an
-                # unbranded but otherwise usable PDF rather than failing
-                # the save.
-                try:
-                    _fix_pdf_metadata(filename, "title" not in metadata)
-                except Exception as err:  # noqa: BLE001
-                    # BLE001 — metadata fixup can fail for arbitrary reasons
-                    # (e.g. RuntimeError during PDF metadata access); it is
-                    # cosmetic, so any failure degrades gracefully to an
-                    # unbranded but usable PDF, and no narrower set is
-                    # catchable without changing that behavior.
-                    logger.warning(
-                        "Could not fix PDF metadata (%s): %s - "
-                        "saving without creator branding",
-                        err.__class__.__name__,
-                        err,
-                    )
+            self.do_set_saved(
+                Request("set_saved", (options["list_of_pages"], True), self.responses)
+            )
 
-                _append_pdf(filename, options, request)
+    def _finalize_pdf(self, filename, options, request, embed_ok, metadata):
+        """Apply metadata, encryption, PS conversion, and post-save hooks."""
+        # When embed fell back (embed_ok is False) the output PDF may be
+        # malformed - pikepdf-dependent operations would fail too, so skip
+        # them and hand the user a usable (but textless) PDF.
+        if embed_ok:
+            # Metadata fixup is cosmetic - if it fails, deliver an
+            # unbranded but otherwise usable PDF rather than failing
+            # the save.
+            try:
+                _fix_pdf_metadata(filename, "title" not in metadata)
+            except Exception as err:  # noqa: BLE001
+                # BLE001 — metadata fixup can fail for arbitrary reasons
+                # (e.g. RuntimeError during PDF metadata access); it is
+                # cosmetic, so any failure degrades gracefully to an
+                # unbranded but usable PDF, and no narrower set is
+                # catchable without changing that behavior.
+                logger.warning(
+                    "Could not fix PDF metadata (%s): %s - "
+                    "saving without creator branding",
+                    err.__class__.__name__,
+                    err,
+                )
 
-                if (
-                    options.get("options")
-                    and options["options"].get("user-password")
-                    and _encrypt_pdf(filename, options, request)
-                ):
+            _append_pdf(filename, options, request)
+
+            if (
+                options.get("options")
+                and options["options"].get("user-password")
+                and _encrypt_pdf(filename, options, request)
+            ):
+                return
+
+            _set_timestamp(options)
+            if options.get("options") and options["options"].get("ps"):
+                request.data(_("Converting to PS"))
+                proc = exec_command(
+                    [
+                        options["options"]["pstool"],
+                        filename,
+                        options["options"]["ps"],
+                    ],
+                    options["pidfile"],
+                )
+                if proc.returncode or proc.stderr:
+                    logger.info(proc.stderr)
+                    request.error(_("Error converting PDF to PS: %s") % (proc.stderr))
                     return
 
-                _set_timestamp(options)
-                if options.get("options") and options["options"].get("ps"):
-                    request.data(_("Converting to PS"))
-                    proc = exec_command(
-                        [
-                            options["options"]["pstool"],
-                            filename,
-                            options["options"]["ps"],
-                        ],
-                        options["pidfile"],
-                    )
-                    if proc.returncode or proc.stderr:
-                        logger.info(proc.stderr)
-                        request.error(
-                            _("Error converting PDF to PS: %s") % (proc.stderr)
-                        )
-                        return
+                _post_save_hook(
+                    options["options"]["ps"],
+                    options["options"],
+                    pidfile=options.get("pidfile"),
+                )
 
-                    _post_save_hook(
-                        options["options"]["ps"],
-                        options["options"],
-                        pidfile=options.get("pidfile"),
-                    )
-
-                else:
-                    _post_save_hook(
-                        filename, options.get("options"), pidfile=options.get("pidfile")
-                    )
             else:
                 _post_save_hook(
                     filename, options.get("options"), pidfile=options.get("pidfile")
                 )
-            self.do_set_saved(
-                Request("set_saved", (options["list_of_pages"], True), self.responses)
+        else:
+            _post_save_hook(
+                filename, options.get("options"), pidfile=options.get("pidfile")
             )
 
     def save_djvu(self, **kwargs):

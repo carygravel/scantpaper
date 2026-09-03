@@ -171,6 +171,14 @@ def read_config(filename):
             )
             pathlib.Path(filename).rename(f"{filename}.old")
 
+    _deserialise_and_migrate(config)
+
+    logger.debug(config)
+    return config
+
+
+def _deserialise_and_migrate(config):
+    """Deserialise stored values and apply legacy migrations in place."""
     if "user_defined_tools" in config and not isinstance(
         config["user_defined_tools"], list
     ):
@@ -210,21 +218,27 @@ def read_config(filename):
         )
         config["selection"] = selection
 
-    # remove old int values - these are now strings
+    _remove_legacy_int_tools(config)
+    _migrate_threshold_tool(config)
+
+
+def _remove_legacy_int_tools(config):
+    """Remove old int tool values - these are now strings."""
     for k in "image_control_tool", "viewer_tools":
         if k in config and isinstance(config[k], int):
             del config[k]
 
-    # migrate the threshold tool value from the pre-colour-aware scale. The old
-    # slider was a raw 0-255 cutoff despite its 0-100 range; 100 - v preserves
-    # the cut-off the user intended on the new ink-strength scale.
+
+def _migrate_threshold_tool(config):
+    """Migrate the threshold tool value from the pre-colour-aware scale.
+
+    The old slider was a raw 0-255 cutoff despite its 0-100 range; 100 - v
+    preserves the cut-off the user intended on the new ink-strength scale.
+    """
     if "threshold tool" in config and (
         _version_tuple(config.get("version")) < THRESHOLD_MIGRATION_VERSION
     ):
         config["threshold tool"] = 100 - config["threshold tool"]
-
-    logger.debug(config)
-    return config
 
 
 def add_defaults(config):

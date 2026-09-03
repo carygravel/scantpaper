@@ -19,6 +19,60 @@ from gi.repository import Gtk  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
+def _apply_device_blacklist(device_list, settings, widget):
+    """Remove blacklisted device names from the list in place."""
+    if "device blacklist" not in settings or settings["device blacklist"] in [None, ""]:
+        return
+    initial_len = len(device_list)
+    i = 0
+    while i < len(device_list):
+        if re.search(
+            device_list[i].name,
+            settings["device blacklist"],
+            re.MULTILINE | re.DOTALL | re.VERBOSE,
+        ):
+            logger.info("Blacklisting device %s", device_list[i].name)
+            del device_list[i]
+        else:
+            i += 1
+
+    if len(device_list) < initial_len:
+        widget.device_list = device_list
+
+
+def _confirm_libusb_caching(parent, device_list, settings):
+    """Return whether the cached device list should be stored.
+
+    Warn when libusb devices are present and let the user choose; a decline
+    disables caching.
+    """
+    if not any("libusb" in d.name for d in device_list):
+        return True
+    dialog = Gtk.MessageDialog(
+        parent=parent,
+        destroy_with_parent=True,
+        modal=True,
+        message_type="question",
+        buttons=Gtk.ButtonsType.OK,
+    )
+    dialog.set_title(_("Really cache libusb device names?"))
+    area = dialog.get_message_area()
+    label = Gtk.Label(
+        label=_(
+            "Caching device list with libusb devices included is not recommended as they can change between reboots."
+        )
+        + _("Are you sure you want to do this?")
+    )
+    area.add(label)
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    if response == Gtk.ResponseType.OK:
+        return True
+    settings["cache-device-list"] = False
+    return False
+
+
 class ScanMenuItemMixins:
     """provide methods called from scan menu item."""
 
@@ -270,60 +324,12 @@ class ScanMenuItemMixins:
         logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
         if len(device_list):
             # Apply the device blacklist
-            if "device blacklist" in self.settings and self.settings[
-                "device blacklist"
-            ] not in [
-                None,
-                "",
-            ]:
-                initial_len = len(device_list)
-                i = 0
-                while i < len(device_list):
-                    if re.search(
-                        device_list[i].name,
-                        self.settings["device blacklist"],
-                        re.MULTILINE | re.DOTALL | re.VERBOSE,
-                    ):
-                        logger.info("Blacklisting device %s", device_list[i].name)
-                        del device_list[i]
-                    else:
-                        i += 1
+            _apply_device_blacklist(device_list, self.settings, widget)
 
-                if len(device_list) < initial_len:
-                    widget.device_list = device_list
-
-            if self.settings["cache-device-list"]:
-                libusb = False
-                for d in device_list:
-                    if "libusb" in d.name:
-                        libusb = True
-                        break
-                if libusb:
-                    dialog = Gtk.MessageDialog(
-                        parent=self,
-                        destroy_with_parent=True,
-                        modal=True,
-                        message_type="question",
-                        buttons=Gtk.ButtonsType.OK,
-                    )
-                    dialog.set_title(_("Really cache libusb device names?"))
-                    area = dialog.get_message_area()
-                    label = Gtk.Label(
-                        label=_(
-                            "Caching device list with libusb devices included is not recommended as they can change between reboots."
-                        )
-                        + _("Are you sure you want to do this?")
-                    )
-                    area.add(label)
-                    dialog.show_all()
-                    response = dialog.run()
-                    dialog.destroy()
-                    if response == Gtk.ResponseType.OK:
-                        libusb = False
-                    else:
-                        self.settings["cache-device-list"] = False
-                if not libusb:
-                    self.settings["device list"] = device_list
+            if self.settings["cache-device-list"] and _confirm_libusb_caching(
+                self, device_list, self.settings
+            ):
+                self.settings["device list"] = device_list
 
             # Only set default device if it hasn't been specified on the command line
             # and it is in the the device list

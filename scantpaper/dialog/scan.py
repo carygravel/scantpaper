@@ -40,6 +40,48 @@ def _resolution_value(thread, name):
         return 0
 
 
+def _dedupe_unique_names(device_list):
+    """Delete duplicate device names from the list in place."""
+    seen = {}
+    i = 0
+    while i < len(device_list):
+        name = device_list[i].name
+        seen[name] = seen.get(name, 0) + 1
+        if seen[name] > 1:
+            del device_list[i]
+        else:
+            i += 1
+
+
+def _label_duplicate_models(device_list):
+    """Set each device's model and label, disambiguating duplicate models."""
+    seen = {}
+    for dev in device_list:
+        if not hasattr(dev, "model") or dev.model in [None, ""]:
+            dev.model = dev.name
+        seen[dev.model] = seen.get(dev.model, 0) + 1
+
+    for dev in device_list:
+        if hasattr(dev, "vendor") and dev.vendor not in [None, ""]:
+            dev.label = f"{dev.vendor} {dev.model}"
+        else:
+            dev.label = dev.model
+
+        if seen[dev.model] > 1:
+            dev.label += f" on {dev.name}"
+
+
+def _coerce_option_value(opt, val):
+    """Force the value's type to match the option type from a pre-v3 config."""
+    if opt.type == enums.TYPE_INT:
+        return int(val)
+    if opt.type == enums.TYPE_FIXED:
+        return float(val)
+    if opt.type == enums.TYPE_BOOL:
+        return bool(val)
+    return val
+
+
 class Scan(PageControls):
     """Scan dialog."""
 
@@ -519,36 +561,8 @@ class Scan(PageControls):
 
     def set_device_list(self, device_list):
         """Fill the combobox with the list of devices."""
-        # Note any duplicate device names and delete if necessary
-        seen = {}
-        i = 0
-        while i < len(device_list):
-            if device_list[i].name not in seen:
-                seen[device_list[i].name] = 0
-            seen[device_list[i].name] += 1
-            if seen[device_list[i].name] > 1:
-                del device_list[i]
-
-            else:
-                i += 1
-
-        # Note any duplicate model names and add the device if necessary
-        seen = {}
-        for dev in device_list:
-            if not hasattr(dev, "model") or dev.model in [None, ""]:
-                dev.model = dev.name
-            if dev.model not in seen:
-                seen[dev.model] = 0
-            seen[dev.model] += 1
-
-        for dev in device_list:
-            if hasattr(dev, "vendor") and dev.vendor not in [None, ""]:
-                dev.label = f"{dev.vendor} {dev.model}"
-            else:
-                dev.label = dev.model
-
-            if seen[dev.model] > 1:
-                dev.label += f" on {dev.name}"
+        _dedupe_unique_names(device_list)
+        _label_duplicate_models(device_list)
 
         self.combobd.handler_block(self.combobd_changed_signal)
 
@@ -1205,12 +1219,7 @@ class Scan(PageControls):
 
             # if we have a profile from a pre-v3 gscan2pdf config, the types
             # are likely wrong, so force the conversion
-            if opt.type == enums.TYPE_INT:
-                val = int(val)
-            elif opt.type == enums.TYPE_FIXED:
-                val = float(val)
-            elif opt.type == enums.TYPE_BOOL:
-                val = bool(val)
+            val = _coerce_option_value(opt, val)
 
             # Don't try to set invalid option
             if isinstance(opt.constraint, list) and val not in opt.constraint:
