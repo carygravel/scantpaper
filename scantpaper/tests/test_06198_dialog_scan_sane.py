@@ -14,8 +14,9 @@ def test_reloads_in_profile(
     mainloop_with_timeout,
     sane_scan_mocks,
 ):
-    """Given a profile of scan options that trigger multiple reloads, check
-    the changed-profile signal is only emitted once
+    """Given a profile of scan options that trigger multiple reloads.
+
+    Check the changed-profile signal is only emitted once.
     """
     sane_scan_mocks.patch_all(mocker)
     dialog = sane_scan_dialog

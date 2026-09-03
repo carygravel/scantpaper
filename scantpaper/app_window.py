@@ -275,9 +275,7 @@ class ApplicationWindow(
         )
 
     def _pre_flight(self):
-        """Initialise variables, read configuration, logs system information,
-        and initialise various components
-        """
+        """Initialise variables, read configuration, and initialise components."""
         if self.settings["cwd"] is None:
             self.settings["cwd"] = str(pathlib.Path.cwd())
         self.settings["version"] = VERSION

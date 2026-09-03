@@ -248,9 +248,7 @@ class DocThread(SaveThread):
             self._action_id = row[0]
 
     def _migrate_page_order_schema(self):
-        """Detect a legacy page_order schema with a page_number column and
-        rebuild it without the column
-        """
+        """Detect and rebuild a legacy page_order schema with a page_number column."""
         self._execute("PRAGMA table_info(page_order)")
         columns = [row[1] for row in self._fetchall()]
         if "page_number" not in columns:

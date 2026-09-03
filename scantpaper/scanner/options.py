@@ -23,9 +23,10 @@ class Option(NamedTuple):
 
 
 class Options(GObject.Object):
-    """object to manipulate scan options.
+    """Object to manipulate scan options.
+
     Have to subclass Glib::Object to be able to name it as an object in
-    Glib.ParamSpec object in Scantpaper.Dialog.Scan
+    Glib.ParamSpec object in Scantpaper.Dialog.Scan.
     """
 
     def __init__(self, options):
@@ -125,9 +126,10 @@ class Options(GObject.Object):
         )
 
     def can_duplex(self):
-        """Returns TRUE if the current options support duplex, even if not currently
-        selected. Alternatively expressed, return FALSE if the scanner is not capable
-        of duplex scanner, or if the capability is inactive.
+        """Return whether the current options support duplex, even if not currently selected.
+
+        Alternatively expressed, return False if the scanner is not capable
+        of duplex scanning, or if the capability is inactive.
         """
         for option in self.array:
             if not enums.CAP_INACTIVE & option.cap:

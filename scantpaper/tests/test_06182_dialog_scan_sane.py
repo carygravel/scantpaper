@@ -98,6 +98,7 @@ def test_cancel_scan(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     """Cancel the scan immediately after starting it and test that:
+
     a. the new-scan signal is not emitted.
     b. we can successfully scan afterwards.
     """
@@ -239,8 +240,9 @@ def test_unsetting_profile(
     set_paper_in_mainloop,
     mainloop_with_timeout,
 ):
-    """Having applied geometry settings via a paper size, if a profile is set
-    that changes the geometry, ensure the paper size is unset
+    """Apply geometry settings via a paper size, then change geometry via a profile.
+
+    Ensure the paper size is unset.
     """
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
@@ -321,8 +323,10 @@ def test_restore_options_after_cycle(
     set_option_in_mainloop,
     mainloop_with_timeout,
 ):
-    """Check that with the cycle-sane-handle option activated, after scanning,
-    the open-device process has fired, and then that options are still the same
+    """Check that with the cycle-sane-handle option activated.
+
+    After scanning, the open-device process has fired, and the options are
+    still the same.
     """
     dialog = sane_scan_dialog
     dialog.cycle_sane_handle = True
@@ -433,10 +437,11 @@ def test_defaults(
     sane_scan_dialog,
     mainloop_with_timeout,
 ):
-    """Scan options are set to defaults before applying profile. Check
-    that this doesn't happen immediately after initially opening the device.
-    Ensure num_pages defaults to all with Source = Automatic Document Feeder
-    in the default scan options
+    """Scan options are set to defaults before applying a profile.
+
+    Check that this doesn't happen immediately after initially opening the
+    device. Ensure num_pages defaults to all with Source = Automatic Document
+    Feeder in the default scan options.
     """
     dialog = sane_scan_dialog
     callbacks = 0
@@ -546,9 +551,7 @@ def test_hiding_geometry(
 def test_combobox_on_reload(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """Check the scan options in a combobox are updated if necessary, if
-    values are changed by a reload
-    """
+    """Check that scan options in a combobox are updated if values change by a reload."""
     raw_options = build_scan_options(
         [
             "source-flatbed-adf-duplex",

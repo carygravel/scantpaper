@@ -409,8 +409,9 @@ def test_meta_datetime_reads_from_widget_immediately():
 
 
 def test_meta_datetime_preserves_time_when_not_included():
-    """Test that if include_time is False, we still preserve the original time
-    if the date part hasn't changed in the widget.
+    """Test that if include_time is False, we still preserve the original time.
+
+    This applies when the date part hasn't changed in the widget.
     """
     # DTZ001 — naive so isoformat() omits tz suffix, matching the expected widget text
     initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)  # noqa: DTZ001
@@ -433,8 +434,9 @@ def test_meta_datetime_preserves_time_when_not_included():
 
 
 def test_meta_datetime_preserves_datetime_when_not_changed():
-    """Test that if include_time is True, we return the original datetime
-    if the widget text hasn't changed.
+    """Test that if include_time is True, we return the original datetime.
+
+    This applies if the widget text hasn't changed.
     """
     # DTZ001 — naive so isoformat() omits tz suffix, matching the expected widget text
     initial_datetime = dt.datetime(2026, 5, 8, 12, 34, 56)  # noqa: DTZ001
@@ -456,8 +458,9 @@ def test_meta_datetime_preserves_datetime_when_not_changed():
 
 
 def test_meta_datetime_returns_date_when_initial_was_date():
-    """Test that if the initial _meta_datetime was a date object,
-    it returns a date object (covers lines 115-116).
+    """Test that if the initial _meta_datetime was a date object.
+
+    It returns a date object (covers lines 115-116).
     """
     initial_date = dt.date(2026, 5, 8)
     dialog = Save(

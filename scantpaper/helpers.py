@@ -78,9 +78,7 @@ def exec_command_run(
     shell=False,
     **kwargs,
 ):
-    """Run a command like subprocess.run() but record the spawn pid in the
-    pidfile so that cancellation can kill the child process group
-    """
+    """Run a command like subprocess.run() but record the spawn pid for cancellation."""
     kwargs = dict(kwargs)
     if pidfile is not None:
         kwargs["start_new_session"] = True
@@ -247,9 +245,7 @@ def slurp(file):
 
 
 def recursive_slurp(files):
-    """Recursively processes a list of files and directories, logging the contents
-    of each file.
-    """
+    """Recursively process files and directories, logging the contents of each file."""
     for file in files:
         if pathlib.Path(file).is_dir():
             recursive_slurp(pathlib.Path(file).glob("*"))

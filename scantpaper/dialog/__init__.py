@@ -96,9 +96,7 @@ TYPES = {
 
 
 class MultipleMessage(Dialog):
-    """subclass of Dialog to display messages and allow the user to automatically
-    respond or ignore them
-    """
+    """Subclass of Dialog to display messages and let the user respond or ignore."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -257,9 +255,7 @@ def response_stored(text, responses):
 
 
 def munge_message(messages):
-    """Has to be carried out separately to filter_message in order to show the user
-    any addresses, error numbers, etc.
-    """
+    """Separate from filter_message to show addresses, error numbers, etc."""
     out = []
     regex = re.findall(
         r"""^(
@@ -307,9 +303,10 @@ def munge_message(messages):
 
 
 def filter_message(message):
-    """External tools sometimes throws warning messages including a number,
-    e.g. hex address. As the number is very rarely the same, although the message
-    itself is, filter out the number from the message
+    """External tools sometimes throw warning messages including a number.
+
+    E.g. hex address. As the number is very rarely the same, although the message
+    itself is, filter out the number from the message.
     """
     message = message.rstrip()
 

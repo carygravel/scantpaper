@@ -375,9 +375,10 @@ class SaneScanDialog(Scan):
         self.emit("changed-scan-option", option.name, val, uuid)
 
     def set_option(self, option, value, uuid=None):
-        """Update the sane option in the thread
+        """Update the sane option in the thread.
+
         If necessary, reload the options,
-        and walking the options tree, update the widgets
+        and walking the options tree, update the widgets.
         """
         if option is None:
             return

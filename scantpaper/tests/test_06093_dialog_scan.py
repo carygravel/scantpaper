@@ -88,9 +88,10 @@ def test_infinite_reloads_due_to_tolerance(
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
     def mocked_do_set_option(self, _request):
-        """An Epson ET-4750 was triggering a reload on setting br-x and -y,
-        and the reloaded values were outside the tolerance.
-        Ensure that the reload limit is not hit
+        """An Epson ET-4750 was triggering a reload on setting br-x and -y.
+
+        The reloaded values were outside the tolerance. Ensure that the reload
+        limit is not hit.
         """
         key, value = _request.args
         for opt in raw_options:
@@ -237,8 +238,9 @@ def test_infinite_reloads_due_to_inexact(
     inexact_scan_mocks.patch_open_get(mocker)
 
     def mocked_do_set_option(self, _request):
-        """An EPSON DS-1660W was setting tl-y=0.99 instead of 1, but not
-        setting SANE_INFO_INEXACT, which was hitting the
+        """An EPSON DS-1660W was setting tl-y=0.99 instead of 1.
+
+        This was not setting SANE_INFO_INEXACT, which was hitting the
         reload-recursion-limit.
         """
         key, value = _request.args

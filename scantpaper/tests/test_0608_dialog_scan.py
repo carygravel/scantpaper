@@ -42,8 +42,10 @@ def test_infinite_reloads(
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(self, _request):
-        """Force a reload for every option to trigger an infinite reload loop and test
-        that the reload-recursion-limit is respected.
+        """Force a reload for every option.
+
+        Trigger an infinite reload loop and test that the reload-recursion-limit
+        is respected.
         """
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
@@ -85,8 +87,9 @@ def test_changed_profile(
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(self, _request):
-        """The changed-profile signal was being emitted too early, resulting in
-        the profile dropdown being set to None
+        """The changed-profile signal was being emitted too early.
+
+        This resulted in the profile dropdown being set to None.
         """
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
@@ -137,8 +140,9 @@ def test_source_default(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(_self, _request):
-        """An Acer flatbed scanner using a snapscan backend had no default for the source
-        option, and as it only had one possibility, which was never set, the source
+        """An Acer flatbed scanner using a snapscan backend had no source default.
+
+        As the source only had one possibility, which was never set, the source
         option never had a value. Check that the number of pages frame is ghosted.
         """
         return [
@@ -272,8 +276,9 @@ def test_button_press(
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
 
     def mocked_do_set_option(self, _request):
-        """Reload clear-calibration button pressed to test that this doesn't trigger an
-        infinite reload loop.
+        """Reload clear-calibration button pressed.
+
+        Test that this doesn't trigger an infinite reload loop.
         """
         key, value = _request.args
         for opt in raw_options:
@@ -332,6 +337,7 @@ def test_get_invalid_option(
     mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
     """Test getting an invalid option (gscan2pdf bug #313).
+
     scanimage was segfaulting when retrieving the options from a Brother
     ADS-2800W via --help. xsane and simplescan worked.
 

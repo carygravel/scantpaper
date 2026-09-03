@@ -147,9 +147,7 @@ class SaneThread(BaseThread):
             event.set()
 
     def do_set_option(self, request):
-        """Until sane.__setattr__() returns the INFO, put its functionality
-        here to return it ourselves
-        """
+        """Reimplement sane.__setattr__() to return INFO until it does so natively."""
         key, value = request.args
         key = key.replace("-", "_")
         dic = self.device_handle.__dict__

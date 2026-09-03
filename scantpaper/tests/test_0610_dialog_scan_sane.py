@@ -655,11 +655,12 @@ def test_change_current_scan_option_signal(
 def test_option_dependency(
     sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """There are some backends where the paper-width and -height options are
-    only valid when the ADF is active. Therefore, changing the paper size
-    when the flatbed is active tries to set these options, causing an
-    "invalid argument" error, which is normally not possible, as the
-    option is ghosted.
+    """Some backends only validate paper-width/-height when the ADF is active.
+
+    Changing the paper size when the flatbed is active tries to set these
+    options, causing an "invalid argument" error, which is normally not
+    possible, as the option is ghosted.
+
     Test this by setting up a profile with "bool-soft-select-soft-detect"
     and then a valid option. Check that:
     a. no error message is produced
@@ -695,8 +696,9 @@ def test_option_dependency(
 
 
 def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
-    """Setting a profile means setting a series of options; setting the
-    first, waiting for it to finish, setting the second, and so on. If one
+    """Setting a profile means setting a series of options.
+
+    Set the first, wait for it to finish, set the second, and so on. If one
     of the settings is already applied, and therefore does not fire a
     signal, then there is a danger that the rest of the profile is not
     set.
@@ -745,11 +747,10 @@ def test_option_chains(sane_scan_dialog, set_device_wait_reload, mainloop_with_t
 
 
 def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout):
-    """The test backend conveniently gives us
-    Source = Automatic Document Feeder,
-    which returns SANE_STATUS_NO_DOCS after the 10th scan.
-    Test that we catch this.
-    this should also unblock num-page to allow-batch-flatbed.
+    """The test backend conveniently gives us Source = Automatic Document Feeder.
+
+    This returns SANE_STATUS_NO_DOCS after the 10th scan. Test that we catch
+    this. This should also unblock num-page to allow-batch-flatbed.
     """
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")
@@ -790,11 +791,10 @@ def test_scan_pages(sane_scan_dialog, set_device_wait_reload, mainloop_with_time
 def test_scan_reverse_pages(
     sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
 ):
-    """The test backend conveniently gives us
-    Source = Automatic Document Feeder,
-    which returns SANE_STATUS_NO_DOCS after the 10th scan.
-    Test that the reverse pass interleaves the back pages after the front
-    pages in reverse order.
+    """The test backend conveniently gives us Source = Automatic Document Feeder.
+
+    This returns SANE_STATUS_NO_DOCS after the 10th scan. Test that the reverse
+    pass interleaves the back pages after the front pages in reverse order.
     """
     dialog = sane_scan_dialog
     set_device_wait_reload(dialog, "test:0")

@@ -73,6 +73,7 @@ class Progress(Gtk.Box):
 
             def cancel_process(_widget):
                 """Pass the signal back to:
+
                 1. be able to cancel it when the process has finished
                 2. flag that the progress bar has been set up
                 and avoid the race condition where the callback is

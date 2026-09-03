@@ -552,8 +552,10 @@ def test_profile_not_cleared_during_profile_setting(mocker):
 
 
 def test_profile_not_cleared_by_late_paper_option(mocker):
-    """Test that a late-arriving paper profile option (non-None uuid) after
-    setting_profile is cleared does NOT clear the named profile.
+    """Test that a late-arriving paper profile option does NOT clear the profile.
+
+    A late-arriving paper profile option (non-None uuid) after setting_profile
+    is cleared should not clear the named profile.
 
     On startup, after a named profile is applied, the setting_profile list is
     cleared by the callback in set_profile.  However, paper geometry options
@@ -667,8 +669,7 @@ def test_profile_cleared_when_user_changes_paper(mocker):
 
 
 def test_profile_not_cleared_when_paper_changed_during_profile_apply(mocker):
-    """Test that profile is NOT cleared when paper is changed during named
-    profile application.
+    """Test that profile is NOT cleared when paper is changed during profile application.
 
     When a named profile is being applied, setting_profile is non-empty
     during the frontend option setting. The _set_paper method should NOT
@@ -797,9 +798,10 @@ def test_get_paper_by_geometry(mocker):
 
 
 def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout):
-    """Reproduces the issue where a race condition leaves the dialog in a broken state
-    (non-empty setting_current_scan_options and 'wait' cursor), which causes
-    infinite loops or hangs in the application.
+    """Reproduces a race condition that leaves the dialog in a broken state.
+
+    The broken state (non-empty setting_current_scan_options and 'wait' cursor)
+    causes infinite loops or hangs in the application.
     """
     dialog = sane_scan_dialog
     loop = mainloop_with_timeout()

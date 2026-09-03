@@ -1158,8 +1158,9 @@ def test_pixbuf_to_bytes():
 
 
 def test_init_race_condition(tmp_path, monkeypatch):
-    """Test that DocThread.__init__ correctly waits for the 'create' request
-    to finish, even if it takes longer than the old 2-second timeout.
+    """Test that DocThread.__init__ correctly waits for the 'create' request.
+
+    This applies even if it takes longer than the old 2-second timeout.
     """
     db_path = tmp_path / "test_race.db"
 

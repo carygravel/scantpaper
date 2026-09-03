@@ -81,9 +81,10 @@ class Bboxtree:
         )
 
     def each_bbox(self):
-        """An iterator for parsing bboxes
-        iterator returns bbox
-        for bbox in self.each_bbox(): ...
+        """An iterator for parsing bboxes.
+
+        Iterator returns bbox.
+        Example: ``for bbox in self.each_bbox(): ...``
         """
         yield from self.bbox_tree
 

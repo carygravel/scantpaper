@@ -179,9 +179,7 @@ def inexact_scan_mocks(request):
         return raw_options
 
     def mocked_do_set_option(self, _request):
-        """A fujitsu:fi-4220C2dj was ignoring paper change requests because setting
-        initial geometry set INFO_INEXACT
-        """
+        """Reproduce fi-4220C2dj ignoring paper changes due to INFO_INEXACT."""
         key, value = _request.args
         for opt in raw_options:
             if opt.name == key:

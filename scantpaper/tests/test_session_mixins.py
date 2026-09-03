@@ -979,8 +979,10 @@ class MockApp(SessionMixins):
 
 
 def test_error_callback_with_corrupted_args(caplog):
-    """Test that _error_callback does not crash when request args are corrupted
-    (e.g., page UUID replaced by an object, or key missing) and correctly logs.
+    """Test that _error_callback does not crash on corrupted request args.
+
+    E.g. page UUID replaced by an object, or key missing. It should log
+    correctly.
     """
     app = MockApp()
 
@@ -1009,8 +1011,9 @@ def test_error_callback_with_corrupted_args(caplog):
 
 
 def test_error_callback_with_missing_page_key(caplog):
-    """Test that _error_callback does not crash when 'page' key is missing from
-    args and correctly logs.
+    """Test that _error_callback does not crash when the 'page' key is missing.
+
+    It should log correctly.
     """
     app = MockApp()
 

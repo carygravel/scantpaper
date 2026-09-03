@@ -100,9 +100,7 @@ class Page:
         )
 
     def to_stored_bytes(self):
-        """Return the image as bytes for storing as a blob in SQLite, choosing
-        a compact format that can be embedded in a PDF without re-encoding
-        """
+        """Return the image as bytes for SQLite, choosing a compact PDF-compatible format."""
         if self.image_object.format in ("JPEG", "PNG") and self._stored_bytes:
             return self._stored_bytes
         if self.image_object.mode == "1":
@@ -273,9 +271,7 @@ class Page:
         return self.resolution
 
     def matching_paper_sizes(self, paper_sizes):
-        """Given paper width and height (mm), and hash of paper sizes,
-        returns hash of matching resolutions (pixels per inch)
-        """
+        """Given paper dimensions (mm) and paper sizes, return matching resolutions (ppi)."""
         matching = {}
         if paper_sizes is None:
             return matching
@@ -316,9 +312,10 @@ class Page:
 
     def get_pixbuf_at_scale(self, max_width, max_height):
         """Logic taken from at_scale_size_prepared_cb() in
+
         https://gitlab.gnome.org/GNOME/gdk-pixbuf/blob/2.40.0/gdk-pixbuf/gdk-pixbuf-io.c
 
-        Returns the pixbuf scaled to fit in the given box
+        Returns the pixbuf scaled to fit in the given box.
         """
         if self.image_object is None:
             logger.warning("Cannot get pixbuf from None")

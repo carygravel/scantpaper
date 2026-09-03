@@ -64,6 +64,7 @@ def available_scan_options():
 
 def test_edit_profile_dialog(mocker, available_scan_options):
     """Tests that the edit profile dialog is created with the correct buttons.
+
     This covers changes from commit ff79698.
     """
     parent = TestScan(
@@ -85,6 +86,7 @@ def test_edit_profile_dialog(mocker, available_scan_options):
 
 def test_save_profile_overwrite_dialog(mocker):
     """Tests that the save profile overwrite dialog is created with the correct buttons.
+
     This covers changes from commit 1bd730e.
     """
     parent = MagicMock(spec=Gtk.Window)

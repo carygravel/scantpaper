@@ -138,8 +138,10 @@ class TestScanDialog:
     """Test Scan dialog edge cases"""
 
     def test_value_for_active_option(self):
-        """Testing _value_for_active_option: only refresh a widget when the
-        driver has reported a value (not None) for an option that is active
+        """Test _value_for_active_option.
+
+        Only refresh a widget when the driver has reported a value (not None)
+        for an option that is active.
         """
         opt_active = MockOption("opt", enums.TYPE_BOOL, cap=0)
         opt_inactive = MockOption("opt", enums.TYPE_BOOL, cap=enums.CAP_INACTIVE)

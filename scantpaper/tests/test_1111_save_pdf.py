@@ -848,9 +848,10 @@ def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainlo
 def test_import_pdf_without_text_and_resave(
     rose_png, temp_db, import_in_mainloop, clean_up_files
 ):
-    """Regression test for bug where importing a PDF without a text layer
-    and then re-saving it as a PDF would fail with:
-    'HocrTransform' object has no attribute 'width'
+    """Regression test for importing a PDF without a text layer.
+
+    Re-saving it as a PDF would fail with: 'HocrTransform' object has no
+    attribute 'width'.
     """
     # Create a PDF from a TIFF (no text layer)
     with (
@@ -885,9 +886,10 @@ def test_import_pdf_without_text_and_resave(
 
 
 def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
-    """Regression test for issue #43: opening a PDF created from a transparent
-    image must import a single page, not an extra page for the alpha mask.
-    The imported page must be the image composited over a white background.
+    """Regression test for issue #43: opening a transparent-image PDF.
+
+    Import a single page, not an extra page for the alpha mask. The imported
+    page must be the image composited over a white background.
     """
     image = Image.new("LA", (100, 50), (255, 0))
     image.putpixel((5, 5), (0, 255))
@@ -925,9 +927,10 @@ def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
 
 
 def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
-    """Regression test for bug where saving a PDF with text_layer set to '[]'
-    (empty JSON array, as produced by tesseract when no text is found)
-    would fail with: 'HocrTransform' object has no attribute 'width'
+    """Regression test for saving a PDF with text_layer set to '[]'.
+
+    An empty JSON array, as produced by tesseract when no text is found,
+    would fail with: 'HocrTransform' object has no attribute 'width'.
     """
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()

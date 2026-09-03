@@ -358,9 +358,10 @@ def test_scan_threads(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(self, _request):
-        """Options with opt.type == SANE_TYPE_GROUP don't necessarily then have
-        opt.name defined, which was triggering an error
-        when reloading the options. Override enough to test for this.
+        """Options with opt.type == SANE_TYPE_GROUP don't necessarily have opt.name defined.
+
+        This was triggering an error when reloading the options. Override enough
+        to test for this.
         """
         nonlocal asserts
         asserts += 1
@@ -443,9 +444,10 @@ def test_source_without_val(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(self, _request):
-        """A Canon Lide 220 was producing scanimage output without a val for source,
-        producing the error: Use of uninitialized value in pattern match (m//)
-        when loading the options. Override enough to test for this.
+        """A Canon Lide 220 was producing scanimage output without a val for source.
+
+        This produced the error: Use of uninitialized value in pattern match
+        (m//) when loading the options. Override enough to test for this.
         """
         nonlocal asserts
         asserts += 1
@@ -528,9 +530,10 @@ def test_no_source(
     mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
 
     def mocked_do_get_options(self, _request):
-        """A Samsung CLX-4190 has a doc-source options instead of source, meaning that
-        the property allow-batch-flatbed had to be enabled to scan more than one
-        page from the ADF. Override enough to test for this.
+        """A Samsung CLX-4190 has a doc-source option instead of source.
+
+        The property allow-batch-flatbed had to be enabled to scan more than
+        one page from the ADF. Override enough to test for this.
         """
         self.device_handle.doc_source = "Auto"
         return [
@@ -613,10 +616,11 @@ def test_officejet_4620(
     )
 
     def mocked_do_get_options(_self, _request):
-        """An Officejet_4620_series was resetting the resolution and geometry when
-        changing from ADF to Flatbed. Ensure that valid parts of the current profile
-        are still active (updating if necessary) after changing an option that forces
-        a reload.
+        """An Officejet_4620_series was resetting the resolution and geometry.
+
+        When changing from ADF to Flatbed, ensure that valid parts of the
+        current profile are still active (updating if necessary) after changing
+        an option that forces a reload.
         """
         nonlocal raw_options
         return raw_options
@@ -681,8 +685,10 @@ def test_infinite_reloads(
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(_self, _request):
-        """Force a reload for every option to trigger an infinite reload loop and test
-        that the reload-recursion-limit is respected.
+        """Force a reload for every option.
+
+        Trigger an infinite reload loop and test that the reload-recursion-limit
+        is respected.
         """
         return enums.INFO_RELOAD_OPTIONS
 

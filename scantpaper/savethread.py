@@ -820,9 +820,7 @@ def _encrypt_pdf(filename, options, request):
 
 
 def px2pt(pixels, resolution):
-    """Helper function to return length in points given a number of pixels
-    and the resolution
-    """
+    """Convert pixels to points given the resolution."""
     return pixels / resolution * POINTS_PER_INCH
 
 
@@ -846,8 +844,9 @@ def _bbox2markup(xresolution, yresolution, height, bbox):
 # https://py-pdf.github.io/fpdf2/Annotations.html
 def _add_annotations_to_pdf(page, gs_page):
     """Box is the same size as the page. We don't know the text position.
+
     Start at the top of the page (PDF coordinate system starts
-    at the bottom left of the page)
+    at the bottom left of the page).
     """
     xresolution, yresolution, _units = gs_page.get_resolution()
     height = px2pt(gs_page.height, yresolution)

@@ -408,9 +408,9 @@ class Bbox:
         return string
 
     def get_stack_index_by_position(self, bbox):
-        """Given a parent bbox and a new box, return the index
-        where the new box should be inserted in the stack of children.
-        Using binary search
+        """Given a parent bbox and a new box, return the stack insertion index.
+
+        Using binary search.
         """
         children = self.get_children()
         lo = 0

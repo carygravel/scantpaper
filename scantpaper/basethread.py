@@ -187,9 +187,7 @@ class BaseThread(threading.Thread):
         """Quit function does nothing"""
 
     def register_callback(self, name, when, reference_cb):
-        """Register a callback, giving it a name, and defining whether it
-        should be triggered before or after the reference callback
-        """
+        """Register a callback with a name and trigger timing."""
         if when not in ["before", "after"]:
             msg = "when can only be 'before' or 'after'"
             raise ValueError(msg)
@@ -304,9 +302,7 @@ class BaseThread(threading.Thread):
         return GLib.SOURCE_REMOVE
 
     def _execute_callbacks_for_stage(self, stage, result):
-        """Helper method to run the callbacks associated with each stage
-        (started, running, finished)
-        """
+        """Run the callbacks associated with each stage."""
         if stage == "running":
             for uid, callbacks in self.callbacks.items():
                 if callbacks["started"]:

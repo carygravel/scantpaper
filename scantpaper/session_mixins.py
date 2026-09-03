@@ -335,9 +335,10 @@ class SessionMixins:
         )
 
         def show_message_dialog_wrapper():
-            """Wrap show_message_dialog() in GLib.idle_add() to allow the thread to
-            return immediately in order to allow it to work on subsequent pages
-            despite errors on previous ones
+            """Wrap show_message_dialog() in GLib.idle_add() to let the thread continue.
+
+            This allows the thread to return immediately and keep working on
+            subsequent pages despite errors on previous ones.
             """
             self._show_message_dialog(**kwargs)
 

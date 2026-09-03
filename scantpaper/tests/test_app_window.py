@@ -401,9 +401,10 @@ def test_change_image_tool_cb(app_window, mocker):
 
 
 def test_change_image_tool_no_reentrant_loop(app_window, mocker):
-    """GtkCheckMenuItem.set_active() calls gtk_menu_item_activate(),
-    re-activating the action with the old item's target.  Verify this doesn't
-    cause a loop.
+    """GtkCheckMenuItem.set_active() calls gtk_menu_item_activate().
+
+    This re-activates the action with the old item's target. Verify this
+    doesn't cause a loop.
     """
     app_window.view = MagicMock()
     mocker.patch("app_window.Dragger")

@@ -41,9 +41,7 @@ class ComboBoxText(Gtk.ComboBoxText):
             self.data = data
 
     def set_active_index(self, index):
-        """Set the current active item of a combobox
-        based on the index column of the array
-        """
+        """Set the active item by index column."""
         if index is None:
             return
         col = self.index_column
@@ -52,9 +50,7 @@ class ComboBoxText(Gtk.ComboBoxText):
                 self.set_active(i)
 
     def get_active_index(self):
-        """Get the current active item of a combobox
-        based on the index column of the array
-        """
+        """Get the active item by index column."""
         i = self.get_active()
         if i == -1:
             return None

@@ -84,9 +84,7 @@ class FileMenuMixins:
     """provide methods called from file menu"""
 
     def _chdir_cwd(self):
-        """Change directory to self.settings['cwd'],
-        falling back to HOME if it doesn't exist
-        """
+        """Change directory to settings['cwd'], falling back to HOME if it doesn't exist."""
         try:
             os.chdir(self.settings["cwd"])
         except FileNotFoundError:

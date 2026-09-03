@@ -42,9 +42,7 @@ class Document(BaseDocument):
     """More methods"""
 
     def import_files(self, **options):
-        """To avoid race condtions importing multiple files,
-        run get_file_info on all files first before checking for errors and importing
-        """
+        """Avoid race conditions by running get_file_info on all files before importing."""
         info = []
         options["passwords"] = []
         for i in range(len(options["paths"])):
@@ -300,9 +298,7 @@ class Document(BaseDocument):
         self.thread.import_page(**import_scan_kwargs)
 
     def split_page(self, **kwargs):
-        """Split the given page either vertically or horizontally, creating an
-        additional page
-        """
+        """Split a page vertically or horizontally, creating an additional page."""
         kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.split_page(**kwargs)
 

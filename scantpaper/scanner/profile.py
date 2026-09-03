@@ -8,9 +8,7 @@ from gi.repository import GObject
 
 
 class Profile(GObject.Object):
-    """Have to subclass Glib.Object to be able to name it as an object in
-    Glib.ParamSpec object in Scantpaper.Dialog.Scan
-    """
+    """Subclass Glib.Object for use in Glib.ParamSpec in Scantpaper.Dialog.Scan."""
 
     frontend = None
     backend = None
@@ -62,9 +60,7 @@ class Profile(GObject.Object):
     __hash__ = None
 
     def add_backend_option(self, name, val, oldval=None):
-        """The oldval option is a hack to allow us not to apply geometry options
-        if setting paper as part of a profile
-        """
+        """Skip geometry options when setting paper as part of a profile."""
         if name is None or name == "":
             msg = "Error: no option name"
             raise ValueError(msg)

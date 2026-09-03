@@ -699,9 +699,7 @@ class Scan(PageControls):
         return None
 
     def _update_options(self, new_options):
-        """If setting an option triggers a reload, the widgets must be updated to reflect
-        the new options
-        """
+        """Update widgets to reflect new options when a reload is triggered."""
         logger.debug("Sane.get_option_descriptor() returned: %s", new_options)
         loops = self.num_reloads
         loops += 1
@@ -864,9 +862,7 @@ class Scan(PageControls):
             self.combobp.set_active_by_text(paper)
 
     def _set_paper(self, paper):
-        """Treat a paper size as a profile, so build up the required profile of
-        geometry settings and apply it
-        """
+        """Treat a paper size as a profile: build and apply the required geometry settings."""
         if not self.setting_profile:
             self.profile = None
         if paper is None:
@@ -1092,9 +1088,7 @@ class Scan(PageControls):
         return slist.data[position - 1][2]
 
     def _uuid_before_position(self, position):
-        """Return the page id to insert after so that a new page lands at the
-        given 1-based position, or None to append
-        """
+        """Return the page id to insert after for a 1-based position, or None to append."""
         if position is None or position < 1:
             return None
         if position == 1:
