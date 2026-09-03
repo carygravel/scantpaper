@@ -242,7 +242,7 @@ class BaseThread(threading.Thread):
         return request.uuid
 
     def run(self):
-        """Override the run() method of threading. Not called directly here."""
+        """Override the threading run method. Not called directly here."""
         while True:
             request = self.requests.get()
             request.started()

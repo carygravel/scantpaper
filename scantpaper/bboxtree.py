@@ -25,7 +25,7 @@ HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
 
 
 def unescape_utf8(text):
-    """Convert escaped utf8, e.g. F\303\274\303\237\342\200\224 -> Füß—."""
+    r"""Convert escaped utf8, e.g. F\303\274\303\237\342\200\224 -> Füß—."""
     return codecs.escape_decode(text)[0].decode("utf-8")
 
 

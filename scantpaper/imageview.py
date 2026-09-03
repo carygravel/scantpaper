@@ -28,19 +28,19 @@ class Tool:
         self.dnd_start = {"x": None, "y": None}
 
     def view(self):
-        """Provide the base view() method."""
+        """Provide the base view accessor."""
         return self._view
 
     def button_pressed(self, _event):
-        """Provide the base button_pressed() method."""
+        """Provide the base button-pressed handler."""
         return False
 
     def button_released(self, _event):
-        """Provide the base button_released() method."""
+        """Provide the base button-released handler."""
         return False
 
     def motion(self, _event):
-        """Provide the base motion() method."""
+        """Provide the base motion handler."""
 
     def cursor_at_point(self, ptx, pty):
         """Return the name of the cursor at the specified coords."""
@@ -51,15 +51,15 @@ class Tool:
         return None
 
     def cursor_type_at_point(self, _x, _y) -> str | None:
-        """Provide the base cursor_type_at_point() method."""
+        """Provide the base cursor-type-at-point accessor."""
         return None
 
     def connect(self, *args):
-        """Provide the base connect() method."""
+        """Provide the base connection accessor."""
         return self.view().connect(*args)
 
     def disconnect(self, *args):
-        """Provide the base disconnect() method."""
+        """Provide the base disconnection accessor."""
         return self.view().disconnect(*args)
 
 

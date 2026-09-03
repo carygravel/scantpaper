@@ -89,7 +89,6 @@ exclude = ["openspec/**"]
 # a blacklist to be ratcheted down as violations are fixed.
 select = ["ALL"]
 ignore = [
-    "D",       # docstrings: too many existing violations to be actionable yet
     "ANN",     # type annotations: would require typing the whole codebase
     "SLF001",  # private member access: legitimately used across dialog/GTK code
     "FBT",     # boolean positional args: existing API surface is too large
