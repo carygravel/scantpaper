@@ -1065,6 +1065,18 @@ def test_import_files_multiple_errors():
         assert "multipage file" in args[2]
 
 
+def _make_page_callback_side_effect():
+    """Return a side_effect that fires updated_page_callback with a dummy page response."""
+
+    def side_effect(**kwargs):
+        callback = kwargs["updated_page_callback"]
+        response = MagicMock()
+        response.info = {"type": "page", "row": [1, None, "uuid1"]}
+        callback(response)
+
+    return side_effect
+
+
 def test_post_process_chain():
     """Test post process chain."""
     with patch("basedocument.DocThread") as mockdocthread:
@@ -1081,7 +1093,6 @@ def test_post_process_chain():
         doc.ocr_pages = MagicMock()
 
         # 1. Rotate
-        # Setup import_scan to trigger callback
         def import_page_side_effect(**kwargs):
             data_callback = kwargs["data_callback"]
             response = MagicMock()
@@ -1089,15 +1100,7 @@ def test_post_process_chain():
             data_callback(response)
 
         doc.thread.import_page.side_effect = import_page_side_effect
-
-        # Setup rotate to trigger updated_page_callback
-        def rotate_side_effect(**kwargs):
-            callback = kwargs["updated_page_callback"]
-            response = MagicMock()
-            response.info = {"type": "page", "row": [1, None, "uuid1"]}
-            callback(response)
-
-        doc.rotate.side_effect = rotate_side_effect
+        doc.rotate.side_effect = _make_page_callback_side_effect()
 
         doc.import_scan(resolution=300, rotate=90, finished_callback=MagicMock())
 
@@ -1106,18 +1109,10 @@ def test_post_process_chain():
 
         # 2. Unpaper
         doc.rotate.reset_mock()
-        # Setup unpaper mock object
         mock_unpaper_obj = MagicMock()
         mock_unpaper_obj.get_cmdline.return_value = "unpaper_cmd"
         mock_unpaper_obj.get_option.return_value = "direction"
-
-        def unpaper_side_effect(**kwargs):
-            callback = kwargs["updated_page_callback"]
-            response = MagicMock()
-            response.info = {"type": "page", "row": [1, None, "uuid1"]}
-            callback(response)
-
-        doc.unpaper.side_effect = unpaper_side_effect
+        doc.unpaper.side_effect = _make_page_callback_side_effect()
 
         doc.import_scan(
             resolution=300, unpaper=mock_unpaper_obj, finished_callback=MagicMock()
@@ -1126,14 +1121,7 @@ def test_post_process_chain():
 
         # 3. UDT
         doc.unpaper.reset_mock()
-
-        def udt_side_effect(**kwargs):
-            callback = kwargs["updated_page_callback"]
-            response = MagicMock()
-            response.info = {"type": "page", "row": [1, None, "uuid1"]}
-            callback(response)
-
-        doc.user_defined.side_effect = udt_side_effect
+        doc.user_defined.side_effect = _make_page_callback_side_effect()
 
         doc.import_scan(resolution=300, udt="command", finished_callback=MagicMock())
         assert doc.user_defined.called

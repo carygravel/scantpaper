@@ -48,16 +48,13 @@ class TextLayerControls(Gtk.Box):
         textview = Gtk.TextView()
         textview.set_tooltip_text(_("Text layer"))
         self._textbuffer = textview.get_buffer()
-        fbutton = Gtk.Button()
-        fbutton.set_image(Gtk.Image.new_from_icon_name("go-first", Gtk.IconSize.BUTTON))
-        fbutton.set_tooltip_text(_("Go to least confident text"))
-        fbutton.connect("clicked", lambda _: self.emit("go-to-first"))
-        pbutton = Gtk.Button()
-        pbutton.set_image(
-            Gtk.Image.new_from_icon_name("go-previous", Gtk.IconSize.BUTTON)
+
+        fbutton = self._make_icon_button(
+            "go-first", _("Go to least confident text"), "go-to-first"
         )
-        pbutton.set_tooltip_text(_("Go to previous text"))
-        pbutton.connect("clicked", lambda _: self.emit("go-to-previous"))
+        pbutton = self._make_icon_button(
+            "go-previous", _("Go to previous text"), "go-to-previous"
+        )
         sort_cmbx = ComboBoxText(data=INDEX)
         sort_cmbx.set_tooltip_text(_("Select sort method for OCR boxes"))
         sort_cmbx.connect(
@@ -65,30 +62,25 @@ class TextLayerControls(Gtk.Box):
             lambda _: self.emit("sort-changed", INDEX[sort_cmbx.get_active()][0]),
         )
         sort_cmbx.set_active(0)
-        nbutton = Gtk.Button()
-        nbutton.set_image(Gtk.Image.new_from_icon_name("go-next", Gtk.IconSize.BUTTON))
-        nbutton.set_tooltip_text(_("Go to next text"))
-        nbutton.connect("clicked", lambda _: self.emit("go-to-next"))
-        lbutton = Gtk.Button()
-        lbutton.set_image(Gtk.Image.new_from_icon_name("go-last", Gtk.IconSize.BUTTON))
-        lbutton.set_tooltip_text(_("Go to most confident text"))
-        lbutton.connect("clicked", lambda _: self.emit("go-to-last"))
-        obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
-        obutton.set_tooltip_text(_("Accept corrections"))
-        obutton.connect("clicked", lambda _: self.emit("ok-clicked"))
-        cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
-        cbutton.set_tooltip_text(_("Cancel corrections"))
-        cbutton.connect("clicked", lambda _: self.hide())
-        ubutton = Gtk.Button.new_with_mnemonic(label=_("_Copy"))
-        ubutton.set_tooltip_text(_("Duplicate text"))
-        ubutton.connect("clicked", lambda _: self.emit("copy-clicked"))
-        abutton = Gtk.Button()
-        abutton.set_image(Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
-        abutton.set_tooltip_text(_("Add text"))
-        abutton.connect("clicked", lambda _: self.emit("add-clicked"))
-        dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
-        dbutton.set_tooltip_text(_("Delete text"))
-        dbutton.connect("clicked", lambda _: self.emit("delete-clicked"))
+        nbutton = self._make_icon_button("go-next", _("Go to next text"), "go-to-next")
+        lbutton = self._make_icon_button(
+            "go-last", _("Go to most confident text"), "go-to-last"
+        )
+        abutton = self._make_icon_button("list-add", _("Add text"), "add-clicked")
+
+        obutton = self._make_mnemonic_button(
+            _("_OK"), _("Accept corrections"), "ok-clicked"
+        )
+        cbutton = self._make_mnemonic_button(
+            _("_Cancel"), _("Cancel corrections"), close=True
+        )
+        ubutton = self._make_mnemonic_button(
+            _("_Copy"), _("Duplicate text"), "copy-clicked"
+        )
+        dbutton = self._make_mnemonic_button(
+            _("_Delete"), _("Delete text"), "delete-clicked"
+        )
+
         self.pack_start(fbutton, False, False, 0)
         self.pack_start(pbutton, False, False, 0)
         self.pack_start(sort_cmbx, False, False, 0)
@@ -100,3 +92,21 @@ class TextLayerControls(Gtk.Box):
         self.pack_end(obutton, False, False, 0)
         self.pack_end(ubutton, False, False, 0)
         self.pack_end(abutton, False, False, 0)
+
+    def _make_icon_button(self, icon, tooltip, signal):
+        """Build an icon button that emits the given signal."""
+        button = Gtk.Button()
+        button.set_image(Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.BUTTON))
+        button.set_tooltip_text(tooltip)
+        button.connect("clicked", lambda _: self.emit(signal))
+        return button
+
+    def _make_mnemonic_button(self, label, tooltip, signal=None, close=False):
+        """Build a mnemonic button that emits the given signal or closes."""
+        button = Gtk.Button.new_with_mnemonic(label=label)
+        button.set_tooltip_text(tooltip)
+        if close:
+            button.connect("clicked", lambda _: self.hide())
+        else:
+            button.connect("clicked", lambda _: self.emit(signal))
+        return button

@@ -68,6 +68,95 @@ class MockCanvas(Gtk.DrawingArea):
         """Mock sort_by_position."""
 
 
+def _make_create_temp_func(session_dir):
+    """Return a mock _create_temp_directory side-effect using session_dir."""
+
+    def mock_create_temp_func(self):
+        self.session = MagicMock()
+        self.session.name = str(session_dir)
+        self._lockfd = MagicMock()
+        self._dependencies = {
+            "imagemagick": True,
+            "libtiff": True,
+            "djvu": True,
+            "xdg": True,
+            "unpaper": True,
+            "tesseract": True,
+            "qpdf": True,
+            "ocr": True,
+        }
+
+    return mock_create_temp_func
+
+
+def _setup_app_window_mocks(mocker, tmp_path):
+    """Apply common mocks needed for ApplicationWindow tests.
+
+    Returns (mock_selector, mock_dragger, mock_selector_dragger).
+    """
+    mocker.patch("app_window.Document")
+    mocker.patch("app_window.Unpaper")
+    mocker.patch("app_window.ImageView", MockImageView)
+    mocker.patch("app_window.Canvas", MockCanvas)
+    mocker.patch("app_window.Progress")
+    mocker.patch("app_window.sane.init")
+    mocker.patch("app_window.recursive_slurp")
+
+    mock_selector = mocker.patch("app_window.Selector")
+    mock_dragger = mocker.patch("app_window.Dragger")
+    mock_selector_dragger = mocker.patch("app_window.SelectorDragger")
+
+    mocker.patch("app_window.Gtk.HPaned.pack1")
+    mocker.patch("app_window.Gtk.HPaned.pack2")
+    mocker.patch("app_window.Gtk.VPaned.pack1")
+    mocker.patch("app_window.Gtk.VPaned.pack2")
+    mocker.patch("app_window.Gtk.Notebook.append_page")
+    mocker.patch("app_window.Gtk.Container.remove")
+    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
+
+    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
+
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=_make_create_temp_func(session_dir),
+        autospec=True,
+    )
+    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
+    mocker.patch.object(ApplicationWindow, "add", autospec=True)
+    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+
+    mock_mm = mocker.patch("app_window.MultipleMessage")
+    mock_mm.return_value.grid_rows = 1
+    mock_mm.return_value.get_size.return_value = (400, 300)
+
+    return mock_selector, mock_dragger, mock_selector_dragger
+
+
+def _create_test_app(test_fn):
+    """Create a Gtk.Application, run test_fn(application, win), and clean up."""
+    app = Gtk.Application()
+    app.set_menubar = MagicMock()
+    app.iconpath = "/tmp"
+    app.args = MagicMock(import_files=None, import_all=None)
+    win = None
+    try:
+        with patch.object(Gtk.Application, "register", autospec=True):
+            app.register(None)
+            win = ApplicationWindow(application=app)
+            test_fn(app, win)
+    finally:
+        if win:
+            win.destroy()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        app.quit()
+
+
 @pytest.fixture
 def mock_builder(mocker):
     """Mock Gtk.Builder."""
@@ -1073,58 +1162,11 @@ def test_pre_flight_linux(mocker):
 
 
 @pytest.mark.usefixtures("mock_builder")
-def test_pre_flight_cwd_none(mocker, mock_config):
+def test_pre_flight_cwd_none(mocker, mock_config, tmp_path):
     """Test that cwd is set to os.getcwd() if it is None."""
     mock_config.read_config.return_value["cwd"] = None
 
-    # Mock MultipleMessage to prevent blocking dialogs
-    mock_mm = mocker.patch("app_window.MultipleMessage")
-    mock_mm.return_value.grid_rows = 1
-    mock_mm.return_value.get_size.return_value = (400, 300)
-
-    mocker.patch("app_window.Document")
-    mocker.patch("app_window.Unpaper")
-    mocker.patch("app_window.ImageView", MockImageView)
-    mocker.patch("app_window.Canvas", MockCanvas)
-    mocker.patch("app_window.Progress")
-    mocker.patch("app_window.sane.init")
-    mocker.patch("app_window.recursive_slurp")
-    mocker.patch("app_window.Selector")
-    mocker.patch("app_window.Dragger")
-    mocker.patch("app_window.SelectorDragger")
-    mocker.patch("app_window.Gtk.HPaned.pack1")
-    mocker.patch("app_window.Gtk.VPaned.pack1")
-    mocker.patch("app_window.Gtk.VPaned.pack2")
-    mocker.patch("app_window.Gtk.Container.remove")
-    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
-
-    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
-
-    def mock_create_temp_func(self):
-        self.session = MagicMock()
-        self.session.name = "/tmp/session"
-        self._lockfd = MagicMock()
-        self._dependencies = {
-            "imagemagick": True,
-            "libtiff": True,
-            "djvu": True,
-            "xdg": True,
-            "unpaper": True,
-            "tesseract": True,
-            "qpdf": True,
-            "ocr": True,
-        }
-
-    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
-    mocker.patch.object(
-        ApplicationWindow,
-        "_create_temp_directory",
-        side_effect=mock_create_temp_func,
-        autospec=True,
-    )
-    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
-    mocker.patch.object(ApplicationWindow, "add", autospec=True)
-    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
+    _setup_app_window_mocks(mocker, tmp_path)
 
     app = Gtk.Application()
     app.set_menubar = MagicMock()
@@ -1150,59 +1192,7 @@ def test_pre_flight_cwd_none(mocker, mock_config):
 @pytest.mark.usefixtures("mock_builder", "mock_config")
 def test_populate_main_window_cwd_missing(mocker, tmp_path):
     """Test that cwd is set to os.getcwd() if it is missing in _populate_main_window."""
-    mocker.patch("app_window.Document")
-    mocker.patch("app_window.Unpaper")
-    mocker.patch("app_window.ImageView", MockImageView)
-    mocker.patch("app_window.Canvas", MockCanvas)
-    mocker.patch("app_window.Progress")
-    mocker.patch("app_window.sane.init")
-    mocker.patch("app_window.recursive_slurp")
-    mocker.patch("app_window.Selector")
-    mocker.patch("app_window.Dragger")
-    mocker.patch("app_window.SelectorDragger")
-    mocker.patch("app_window.Gtk.HPaned.pack1")
-    mocker.patch("app_window.Gtk.HPaned.pack2")
-    mocker.patch("app_window.Gtk.VPaned.pack1")
-    mocker.patch("app_window.Gtk.VPaned.pack2")
-    mocker.patch("app_window.Gtk.Notebook.append_page")
-    mocker.patch("app_window.Gtk.Container.remove")
-    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
-
-    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
-
-    session_dir = tmp_path / "session"
-    session_dir.mkdir()
-
-    def mock_create_temp_func(self):
-        self.session = MagicMock()
-        self.session.name = str(session_dir)
-        self._lockfd = MagicMock()
-        self._dependencies = {
-            "imagemagick": True,
-            "libtiff": True,
-            "djvu": True,
-            "xdg": True,
-            "unpaper": True,
-            "tesseract": True,
-            "qpdf": True,
-            "ocr": True,
-        }
-
-    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
-    mocker.patch.object(
-        ApplicationWindow,
-        "_create_temp_directory",
-        side_effect=mock_create_temp_func,
-        autospec=True,
-    )
-    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
-    mocker.patch.object(ApplicationWindow, "add", autospec=True)
-    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
-
-    # Mock MultipleMessage to prevent blocking dialogs
-    mock_mm = mocker.patch("app_window.MultipleMessage")
-    mock_mm.return_value.grid_rows = 1
-    mock_mm.return_value.get_size.return_value = (400, 300)
+    _setup_app_window_mocks(mocker, tmp_path)
 
     # Patch _pre_flight to delete 'cwd' from settings after it runs
     original_pre_flight = ApplicationWindow._pre_flight
@@ -1241,59 +1231,7 @@ def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
     """Test that scan_dialog and _import_files are called during init if configured."""
     mock_config.read_config.return_value["auto-open-scan-dialog"] = True
 
-    mocker.patch("app_window.Document")
-    mocker.patch("app_window.Unpaper")
-    mocker.patch("app_window.ImageView", MockImageView)
-    mocker.patch("app_window.Canvas", MockCanvas)
-    mocker.patch("app_window.Progress")
-    mocker.patch("app_window.sane.init")
-    mocker.patch("app_window.recursive_slurp")
-    mocker.patch("app_window.Selector")
-    mocker.patch("app_window.Dragger")
-    mocker.patch("app_window.SelectorDragger")
-    mocker.patch("app_window.Gtk.HPaned.pack1")
-    mocker.patch("app_window.Gtk.HPaned.pack2")
-    mocker.patch("app_window.Gtk.VPaned.pack1")
-    mocker.patch("app_window.Gtk.VPaned.pack2")
-    mocker.patch("app_window.Gtk.Notebook.append_page")
-    mocker.patch("app_window.Gtk.Container.remove")
-    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
-
-    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
-
-    session_dir = tmp_path / "session"
-    session_dir.mkdir()
-
-    def mock_create_temp_func(self):
-        self.session = MagicMock()
-        self.session.name = str(session_dir)
-        self._lockfd = MagicMock()
-        self._dependencies = {
-            "imagemagick": True,
-            "libtiff": True,
-            "djvu": True,
-            "xdg": True,
-            "unpaper": True,
-            "tesseract": True,
-            "qpdf": True,
-            "ocr": True,
-        }
-
-    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
-    mocker.patch.object(
-        ApplicationWindow,
-        "_create_temp_directory",
-        side_effect=mock_create_temp_func,
-        autospec=True,
-    )
-    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
-    mocker.patch.object(ApplicationWindow, "add", autospec=True)
-    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
-
-    # Mock MultipleMessage to prevent blocking dialogs
-    mock_mm = mocker.patch("app_window.MultipleMessage")
-    mock_mm.return_value.grid_rows = 1
-    mock_mm.return_value.get_size.return_value = (400, 300)
+    _setup_app_window_mocks(mocker, tmp_path)
 
     # Mock the methods we want to check
     mock_scan_dialog = mocker.patch.object(ApplicationWindow, "scan_dialog")
@@ -1327,114 +1265,24 @@ def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
 @pytest.mark.usefixtures("mock_builder")
 def test_populate_panes_tool_selection(mocker, mock_config, tmp_path):
     """Test _populate_panes with different image_control_tool settings."""
-    mocker.patch("app_window.Document")
-    mocker.patch("app_window.Unpaper")
-    # Don't mock ImageView, we need it to verify set_tool calls, or at least mock it enough
-    # Actually, MockImageView is already a mock, we can use it.
-    mocker.patch("app_window.ImageView", MockImageView)
-    mocker.patch("app_window.Canvas", MockCanvas)
-    mocker.patch("app_window.Progress")
-    mocker.patch("app_window.sane.init")
-    mocker.patch("app_window.recursive_slurp")
-
-    mock_selector = mocker.patch("app_window.Selector")
-    mock_dragger = mocker.patch("app_window.Dragger")
-    mock_selector_dragger = mocker.patch("app_window.SelectorDragger")
-
-    mocker.patch("app_window.Gtk.HPaned.pack1")
-    mocker.patch("app_window.Gtk.HPaned.pack2")
-    mocker.patch("app_window.Gtk.VPaned.pack1")
-    mocker.patch("app_window.Gtk.VPaned.pack2")
-    mocker.patch("app_window.Gtk.Notebook.append_page")
-    mocker.patch("app_window.Gtk.Container.remove")
-
-    mocker.patch("app_window.shutil.disk_usage").return_value.free = 1000 * 1024 * 1024
-
-    session_dir = tmp_path / "session"
-    session_dir.mkdir()
-
-    def mock_create_temp_func(self):
-        self.session = MagicMock()
-        self.session.name = str(session_dir)
-        self._lockfd = MagicMock()
-        self._dependencies = {
-            "imagemagick": True,
-            "libtiff": True,
-            "djvu": True,
-            "xdg": True,
-            "unpaper": True,
-            "tesseract": True,
-            "qpdf": True,
-            "ocr": True,
-        }
-
-    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
-    mocker.patch.object(
-        ApplicationWindow,
-        "_create_temp_directory",
-        side_effect=mock_create_temp_func,
-        autospec=True,
+    mock_selector, mock_dragger, mock_selector_dragger = _setup_app_window_mocks(
+        mocker, tmp_path
     )
-    mocker.patch.object(ApplicationWindow, "set_icon_from_file", autospec=True)
-    mocker.patch.object(ApplicationWindow, "add", autospec=True)
-    mocker.patch.object(ApplicationWindow, "show_all", autospec=True)
-    mocker.patch("app_window.SessionMixins._find_crashed_sessions")
 
-    # Mock MultipleMessage to prevent blocking dialogs
-    mock_mm = mocker.patch("app_window.MultipleMessage")
-    mock_mm.return_value.grid_rows = 1
-    mock_mm.return_value.get_size.return_value = (400, 300)
-
-    app = Gtk.Application()
-    app.set_menubar = MagicMock()
-    app.iconpath = "/tmp"
-    app.args = MagicMock(import_files=None, import_all=None)
-    win = None
+    def assert_dragger(_app, _win):
+        mock_dragger.assert_called()
+        mock_dragger.reset_mock()
+        mock_selector.reset_mock()
+        mock_selector_dragger.reset_mock()
 
     # Test with "dragger"
     mock_config.read_config.return_value["image_control_tool"] = "dragger"
-
-    try:
-        # on some systems, creating the ApplicationWindow fails if the
-        # application is not first registered.
-        with patch.object(Gtk.Application, "register", autospec=True):
-            app.register(None)
-            win = ApplicationWindow(application=app)
-            mock_dragger.assert_called()
-            # Reset mocks for next test
-            mock_dragger.reset_mock()
-            mock_selector.reset_mock()
-            mock_selector_dragger.reset_mock()
-    finally:
-        if win:
-            win.destroy()
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        app.quit()
+    _create_test_app(assert_dragger)
 
     # Test with "selectordragger" (or any other value that falls into 'else')
     mock_config.read_config.return_value["image_control_tool"] = "selectordragger"
 
-    # We need a new app instance or at least re-register handling if we were
-    # stricter but reusing 'app' is fine for this mocked context usually.
-    # However, Gtk.Application might complain if we re-use it for a new window
-    # if not careful with registration. Let's just create a new one to be safe
-    # and clean.
-    app = Gtk.Application()
-    app.set_menubar = MagicMock()
-    app.iconpath = "/tmp"
-    app.args = MagicMock(import_files=None, import_all=None)
+    def assert_selector_dragger(_app, _win):
+        mock_selector_dragger.assert_called()
 
-    try:
-        # on some systems, creating the ApplicationWindow fails if the
-        # application is not first registered.
-        with patch.object(Gtk.Application, "register", autospec=True):
-            app.register(None)
-            win = ApplicationWindow(application=app)
-            mock_selector_dragger.assert_called()
-    finally:
-        if win:
-            win.destroy()
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        app.quit()
+    _create_test_app(assert_selector_dragger)

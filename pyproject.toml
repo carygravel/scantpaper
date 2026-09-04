@@ -89,6 +89,8 @@ exclude = ["openspec/**"]
 # a blacklist to be ratcheted down as violations are fixed.
 select = ["ALL"]
 ignore = [
+    "D203",    # incompatible with `no-blank-line-before-class` (D211)
+    "D213",    # incompatible with `multi-line-summary-first-line` (D212)
     "ANN",     # type annotations: would require typing the whole codebase
     "SLF001",  # private member access: legitimately used across dialog/GTK code
     "FBT",     # boolean positional args: existing API surface is too large
@@ -103,7 +105,6 @@ ignore = [
     "FIX002",  # TODO without issue ref: plain `# TODO:` notes are the project convention
     "C901",    # complex functions: legacy code is deeply nested; refactoring is deferred
     "PLR0913", # too many arguments: existing APIs take many params (scan/request dicts)
-    "PLR0915", # too many statements: long legacy methods
     "PLR0917", # too many positional arguments: existing call sites pass many args
 ]
 

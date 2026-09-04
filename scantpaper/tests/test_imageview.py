@@ -277,6 +277,41 @@ def test_selector_tool(datadir):
         assert selection.height >= 7, "get_selection height"
 
 
+def get_pixel(pxb, p_x, p_y):
+    """Return the RGB values of the pixel at (p_x, p_y)."""
+    pixels = pxb.get_pixels()
+    offset = p_y * pxb.get_rowstride() + p_x * pxb.get_n_channels()
+    return list(pixels[offset : offset + 3])
+
+
+def _find_pixel(pxb, p_x, p_y, step, continue_cond, predicate):
+    """Scan pixels on row p_y from p_x by step while continue_cond(p_x) holds.
+
+    Returns (found, end_x, last_pixel).
+    """
+    last = None
+    while continue_cond(p_x):
+        last = get_pixel(pxb, p_x, p_y)
+        if predicate(last):
+            return True, p_x, last
+        p_x += step
+    return False, p_x, last
+
+
+def test_find_pixel_reaches_boundary():
+    """Test that _find_pixel returns not-found at the scan boundary."""
+    pb = MagicMock()
+    pb.get_pixels.return_value = b"\x01\x02\x03\x04\x05\x06"
+    pb.get_rowstride.return_value = 3
+    pb.get_n_channels.return_value = 3
+
+    found, end_x, last = _find_pixel(pb, 0, 0, 1, lambda x: x < 2, lambda p: p == [])
+
+    assert found is False
+    assert end_x == 2
+    assert last == [4, 5, 6]
+
+
 def test_filter(datadir):
     """Test interpolation (filters)."""
     window = Gtk.Window()
@@ -301,32 +336,19 @@ def test_filter(datadir):
     GLib.timeout_add(1000, grab_window)
     Gtk.main()
 
-    def get_pixel(pxb, p_x, p_y):
-        pixels = pxb.get_pixels()
-        offset = p_y * pxb.get_rowstride() + p_x * pxb.get_n_channels()
-        return list(pixels[offset : offset + 3])
-
     p_x = int(var["pb"].get_width() / 2)
     p_y = int(var["pb"].get_height() / 2)
     assert get_pixel(var["pb"], p_x, p_y) == [255, 0, 0], "middle pixel should be red"
 
-    found = False
-    while p_x > 0:
-        if get_pixel(var["pb"], p_x, p_y) != [255, 0, 0]:
-            found = True
-            break
-        p_x -= 1
+    found, blurred_x, _ = _find_pixel(
+        var["pb"], p_x, p_y, -1, lambda x: x > 0, lambda p: p != [255, 0, 0]
+    )
     assert found, "there is non-red outside"
 
-    blurred_x = p_x
-    found = False
-    while p_x > 0:
-        if get_pixel(var["pb"], p_x, p_y) == [0, 0, 255]:
-            found = True
-            break
-        p_x -= 1
+    found, fullblue_x, _ = _find_pixel(
+        var["pb"], blurred_x, p_y, -1, lambda x: x > 0, lambda p: p == [0, 0, 255]
+    )
     assert found, "there is blue outside"
-    fullblue_x = p_x
     assert fullblue_x < blurred_x, "blue outside red"
 
     view.set_interpolation(cairo.FILTER_NEAREST)
@@ -339,13 +361,14 @@ def test_filter(datadir):
         255,
     ], "blue pixel should still be blue"
 
-    found = False
-    while p_x <= blurred_x:
-        pixel = get_pixel(var["pb"], p_x, p_y)
-        if pixel != [0, 0, 255]:
-            found = True
-            break
-        p_x += 1
+    found, p_x, pixel = _find_pixel(
+        var["pb"],
+        fullblue_x,
+        p_y,
+        1,
+        lambda x: x <= blurred_x,
+        lambda p: p != [0, 0, 255],
+    )
 
     assert found, "there is non-blue inside"
     assert pixel == [255, 0, 0], "red pixel should be immediatelly near blue one"

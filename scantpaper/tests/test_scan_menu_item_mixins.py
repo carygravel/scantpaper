@@ -684,3 +684,23 @@ def test_changed_device_list_callback_cache_libusb_cancel(mocker, mock_scan_wind
     mock_dialog_cls.assert_called_once()
     assert mock_scan_window.settings["device list"] == []
     assert mock_scan_window.settings["cache-device-list"] is False
+
+
+def test_changed_device_list_callback_cache_no_libusb(mocker, mock_scan_window):
+    """Test _changed_device_list_callback caches a non-libusb device list.
+
+    No confirmation dialog is shown, so the list is stored as-is.
+    """
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_widget = mocker.Mock()
+    device1 = mocker.Mock()
+    device1.name = "epkowa:device:001"
+    device_list = [device1]
+
+    mock_dialog_cls = mocker.patch("scan_menu_item_mixins.Gtk.MessageDialog")
+
+    mock_scan_window._changed_device_list_callback(mock_widget, device_list)
+
+    mock_dialog_cls.assert_not_called()
+    assert mock_scan_window.settings["device list"] == device_list
+    assert mock_scan_window.settings["cache-device-list"] is True

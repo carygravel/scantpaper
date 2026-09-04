@@ -94,6 +94,25 @@ class CancelRaisesDevice(FakeBrscan5Device):
         raise DeviceError(msg)
 
 
+class MockDevice:
+    """Custom mock device class to avoid MagicMock hasattr issues and ensure structure."""
+
+    def __init__(self):
+        """Initialize mock device with options and dev mock."""
+        self.opt = {}
+        self.dev = MagicMock()
+        # Initial setup for first reload test
+        # We need __load_option_dict for hasattr check
+        self.__dict__["__load_option_dict"] = MagicMock()
+        # And _SaneThread__load_option_dict because SaneThread mangles the call
+        self.__dict__["_SaneThread__load_option_dict"] = self.__dict__[
+            "__load_option_dict"
+        ]
+
+    def close(self):
+        """Mock close method."""
+
+
 def test_error_handling():
     """Test frontend/image_sane.py."""
     thread = SaneThread()
@@ -140,6 +159,13 @@ def test_2():
     assert asserts == 1, "checked all expected responses #2"
 
 
+def _check_scan_response(response, *labels):
+    """Assert a scan_page response contains an image of non-zero size."""
+    assert isinstance(response.info, PIL.Image.Image), labels[0]
+    assert response.info.size[0] > 0, labels[1]
+    assert response.info.size[1] > 0, labels[2]
+
+
 def test_3():
     """Test frontend/image_sane.py #3."""
     thread = SaneThread()
@@ -164,11 +190,12 @@ def test_3():
 
     def scan_page_finished_callback(response):
         nonlocal asserts
-        assert isinstance(response.info, PIL.Image.Image), (
-            "scan_page finished_callback returned image"
+        _check_scan_response(
+            response,
+            "scan_page finished_callback returned image",
+            "scan_page finished_callback image width",
+            "scan_page finished_callback image height",
         )
-        assert response.info.size[0] > 0, "scan_page finished_callback image width"
-        assert response.info.size[1] > 0, "scan_page finished_callback image height"
         asserts += 1
         mlp.quit()
 
@@ -387,65 +414,47 @@ def test_5_edge_cases_part_2():
     mlp.run()
 
 
+def _make_test_options():
+    """Return a dict of mock SANE options for test_6."""
+    opt_group = SimpleNamespace(
+        name="group-option",
+        type=enums.TYPE_GROUP,
+        cap=enums.CAP_SOFT_SELECT,
+        index=1,
+    )
+    opt_unsettable = SimpleNamespace(
+        name="unsettable-option",
+        type=enums.TYPE_BOOL,
+        cap=enums.CAP_SOFT_DETECT,  # Not SOFT_SELECT (1)
+        index=2,
+    )
+    opt_reload = SimpleNamespace(
+        name="reload-option",
+        type=enums.TYPE_BOOL,
+        cap=enums.CAP_SOFT_SELECT,
+        index=3,
+    )
+    return {
+        "group_option": opt_group,
+        "unsettable_option": opt_unsettable,
+        "reload_option": opt_reload,
+    }
+
+
+def _set_option_side_effect(index, _value):
+    """Side effect for mock SANE set_option that triggers a reload."""
+    del index
+    return enums.INFO_RELOAD_OPTIONS
+
+
 def test_6_mock_device():
     """Test with mocked device for specific edge cases."""
-
-    class MockDevice:
-        """Custom mock device class to avoid MagicMock hasattr issues and ensure structure."""
-
-        def __init__(self):
-            """Initialize mock device with options and dev mock."""
-            self.opt = {}
-            self.dev = MagicMock()
-            # Initial setup for first reload test
-            # We need __load_option_dict for hasattr check
-            self.__dict__["__load_option_dict"] = MagicMock()
-            # And _SaneThread__load_option_dict because SaneThread mangles the call
-            self.__dict__["_SaneThread__load_option_dict"] = self.__dict__[
-                "__load_option_dict"
-            ]
-
-        def close(self):
-            """Mock close method."""
-
     with patch("sane.open") as mock_open:
         mock_dev_instance = MockDevice()
         mock_open.return_value = mock_dev_instance
+        mock_dev_instance.opt = _make_test_options()
 
-        # Setup options
-        opt_group = SimpleNamespace(
-            name="group-option",
-            type=enums.TYPE_GROUP,
-            cap=enums.CAP_SOFT_SELECT,
-            index=1,
-        )
-
-        opt_unsettable = SimpleNamespace(
-            name="unsettable-option",
-            type=enums.TYPE_BOOL,
-            cap=enums.CAP_SOFT_DETECT,  # Not SOFT_SELECT (1)
-            index=2,
-        )
-
-        opt_reload = SimpleNamespace(
-            name="reload-option",
-            type=enums.TYPE_BOOL,
-            cap=enums.CAP_SOFT_SELECT,
-            index=3,
-        )
-
-        mock_dev_instance.opt = {
-            "group_option": opt_group,
-            "unsettable_option": opt_unsettable,
-            "reload_option": opt_reload,
-        }
-
-        # Setup set_option return values on the inner 'dev' mock
-        def set_option_side_effect(index, _value):
-            del index
-            return enums.INFO_RELOAD_OPTIONS
-
-        mock_dev_instance.dev.set_option.side_effect = set_option_side_effect
+        mock_dev_instance.dev.set_option.side_effect = _set_option_side_effect
 
         thread = SaneThread()
         thread.start()
@@ -498,7 +507,7 @@ def test_6_mock_device():
 
         # Reset for next part
         mock_dev_instance.dev.set_option.reset_mock()
-        mock_dev_instance.dev.set_option.side_effect = set_option_side_effect
+        mock_dev_instance.dev.set_option.side_effect = _set_option_side_effect
 
         # 4. Test Reload Option with _SaneDev__load_option_dict (Line 117-118)
         # Remove __load_option_dict and aliases

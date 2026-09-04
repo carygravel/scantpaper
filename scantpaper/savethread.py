@@ -171,7 +171,6 @@ class SaveThread(Importhread):
         with tempfile.TemporaryDirectory(dir=options.get("dir")) as tempdir:
             outdir = pathlib.Path(tempdir)
             filename = options["path"]
-            temp_pdf = None
             if _need_temp_pdf(options.get("options")):
                 # SIM115 — cross-scope file handle used intentionally
                 temp_pdf = tempfile.NamedTemporaryFile(  # noqa: SIM115
@@ -183,66 +182,8 @@ class SaveThread(Importhread):
             if "metadata" in options and "ps" not in options:
                 metadata = prepare_output_metadata("PDF", options["metadata"])
 
-            list_of_pages = []
-            with pathlib.Path(outdir / "origin.pdf").open(
-                "wb", buffering=0
-            ) as fhd:  # turn off buffering
-                filenames = []
-                resolutions = []
-                opts = {}
-                if options.get("options"):
-                    opts = options["options"]
-                estimated_size = 0
-                for i, page_id in enumerate(options["list_of_pages"], start=1):
-                    page = self.get_page(id=page_id)
-                    list_of_pages.append(page)
-                    request.data(i / (len(options["list_of_pages"]) + 1))
-                    request.data(
-                        _("Writing page %i of %i")
-                        % (
-                            i,
-                            len(options["list_of_pages"]),
-                        )
-                    )
+            list_of_pages = self._assemble_pdf(outdir, options, request, metadata)
 
-                    # store the filename and not the tempfile object to avoid potentially
-                    # holding many open filehandles
-                    with tempfile.NamedTemporaryFile(
-                        dir=options.get("dir"), suffix=".png", delete=False
-                    ) as tmp:
-                        page.write_image_for_pdf(tmp.name, options)
-                        filenames.append(tmp.name)
-                        estimated_size += _estimate_page_pdf_size(
-                            page.image_object, tmp.name, opts
-                        )
-                    xres, yres, _units = page.get_resolution(self.paper_sizes)
-                    resolutions.append((xres, yres))
-
-                if estimated_size >= _2GIB:
-                    for fname in filenames:
-                        pathlib.Path(fname).unlink()
-                    raise RuntimeError(
-                        _(
-                            "The estimated PDF size (%.1f GiB) exceeds 2 GiB."
-                            "  Please save fewer pages."
-                        )
-                        % (estimated_size / (1024 * 1024 * 1024),)
-                    )
-                index = 0
-
-                def layout_fun(imgwidthpx, imgheightpx, _ndpi):
-                    nonlocal index
-                    xres, yres = resolutions[index]
-                    index += 1
-                    pagewidth = imgwidthpdf = img2pdf.px_to_pt(imgwidthpx, xres)
-                    pageheight = imgheightpdf = img2pdf.px_to_pt(imgheightpx, yres)
-                    return pagewidth, pageheight, imgwidthpdf, imgheightpdf
-
-                metadata["layout_fun"] = layout_fun
-                request.data(_("Writing PDF"))
-                fhd.write(img2pdf.convert(filenames, **metadata))
-                for fname in filenames:
-                    pathlib.Path(fname).unlink()
             for pagenr, page in enumerate(list_of_pages):
                 if page.text_layer and page.text_layer != "[]":
                     with (
@@ -267,6 +208,70 @@ class SaveThread(Importhread):
             self.do_set_saved(
                 Request("set_saved", (options["list_of_pages"], True), self.responses)
             )
+
+    def _assemble_pdf(self, outdir, options, request, metadata):
+        """Convert each page to an image, write origin.pdf, and return the pages."""
+        list_of_pages = []
+        with pathlib.Path(outdir / "origin.pdf").open(
+            "wb", buffering=0
+        ) as fhd:  # turn off buffering
+            filenames = []
+            resolutions = []
+            opts = {}
+            if options.get("options"):
+                opts = options["options"]
+            estimated_size = 0
+            for i, page_id in enumerate(options["list_of_pages"], start=1):
+                page = self.get_page(id=page_id)
+                list_of_pages.append(page)
+                request.data(i / (len(options["list_of_pages"]) + 1))
+                request.data(
+                    _("Writing page %i of %i")
+                    % (
+                        i,
+                        len(options["list_of_pages"]),
+                    )
+                )
+
+                # store the filename and not the tempfile object to avoid potentially
+                # holding many open filehandles
+                with tempfile.NamedTemporaryFile(
+                    dir=options.get("dir"), suffix=".png", delete=False
+                ) as tmp:
+                    page.write_image_for_pdf(tmp.name, options)
+                    filenames.append(tmp.name)
+                    estimated_size += _estimate_page_pdf_size(
+                        page.image_object, tmp.name, opts
+                    )
+                xres, yres, _units = page.get_resolution(self.paper_sizes)
+                resolutions.append((xres, yres))
+
+            if estimated_size >= _2GIB:
+                for fname in filenames:
+                    pathlib.Path(fname).unlink()
+                raise RuntimeError(
+                    _(
+                        "The estimated PDF size (%.1f GiB) exceeds 2 GiB."
+                        "  Please save fewer pages."
+                    )
+                    % (estimated_size / (1024 * 1024 * 1024),)
+                )
+            index = 0
+
+            def layout_fun(imgwidthpx, imgheightpx, _ndpi):
+                nonlocal index
+                xres, yres = resolutions[index]
+                index += 1
+                pagewidth = imgwidthpdf = img2pdf.px_to_pt(imgwidthpx, xres)
+                pageheight = imgheightpdf = img2pdf.px_to_pt(imgheightpx, yres)
+                return pagewidth, pageheight, imgwidthpdf, imgheightpdf
+
+            metadata["layout_fun"] = layout_fun
+            request.data(_("Writing PDF"))
+            fhd.write(img2pdf.convert(filenames, **metadata))
+            for fname in filenames:
+                pathlib.Path(fname).unlink()
+        return list_of_pages
 
     def _finalize_pdf(self, filename, options, request, embed_ok, metadata):
         """Apply metadata, encryption, PS conversion, and post-save hooks."""

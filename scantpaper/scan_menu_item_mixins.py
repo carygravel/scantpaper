@@ -111,54 +111,7 @@ class ScanMenuItemMixins:
             kwargs["default_height"] = self.settings["scan_window_height"]
         self._windows = SaneScanDialog(**kwargs)
 
-        # Can't set the device when creating the window,
-        # as the list does not exist then
-        self._windows.connect("changed-device-list", self._changed_device_list_callback)
-
-        # Update default device
-        self._windows.connect("changed-device", self._changed_device_callback)
-        signal = None
-
-        def started_progress_callback(_widget, message):
-            logger.debug("'started-process' emitted with message: %s", message)
-            self._scan_progress.set_fraction(0)
-            self._scan_progress.set_text(message)
-            self._scan_progress.show()
-            nonlocal signal
-            signal = self._scan_progress.connect("clicked", self._windows.cancel_scan)
-
-        self._windows.connect("started-process", started_progress_callback)
-        self._windows.connect("changed-progress", self._changed_progress_callback)
-        self._windows.connect("finished-process", self._finished_process_callback)
-
-        def do_process_error(_widget, process, msg):
-            self._process_error_callback(_widget, process, msg, signal)
-
-        self._windows.connect("process-error", do_process_error)
-        self._windows.connect("changed-profile", self._changed_profile_callback)
-        self._windows.connect("added-profile", self._added_profile_callback)
-
-        def removed_profile_callback(_widget, profile):
-            del self.settings["profile"][profile]
-
-        self._windows.connect("removed-profile", removed_profile_callback)
-
-        def changed_current_scan_options_callback(_widget, profile, _uuid):
-            """Update the default profile when the scan options change."""
-            self.settings["default-scan-options"] = profile.get()
-
-        self._windows.connect(
-            "changed-current-scan-options", changed_current_scan_options_callback
-        )
-
-        def changed_paper_sizes_callback(_widget, formats):
-            self.settings["Paper"] = formats
-
-        self._windows.connect("changed-paper-sizes", changed_paper_sizes_callback)
-        self._windows.connect("new-scan", self._new_scan_callback)
-        self._windows.connect(
-            "changed-scan-option", self._update_postprocessing_options_callback
-        )
+        self._connect_scan_dialog_signals(self._windows)
         self.add_postprocessing_options(self._windows)
         if not hidden:
             self._windows.show_all()
@@ -177,6 +130,57 @@ class ScanMenuItemMixins:
             self._windows.device_list = self.settings["device list"]
         else:
             self._windows.get_devices()
+
+    def _connect_scan_dialog_signals(self, window):
+        """Wire up all the SaneScanDialog signals."""
+        # Can't set the device when creating the window,
+        # as the list does not exist then
+        window.connect("changed-device-list", self._changed_device_list_callback)
+
+        # Update default device
+        window.connect("changed-device", self._changed_device_callback)
+        signal = None
+
+        def started_progress_callback(_widget, message):
+            logger.debug("'started-process' emitted with message: %s", message)
+            self._scan_progress.set_fraction(0)
+            self._scan_progress.set_text(message)
+            self._scan_progress.show()
+            nonlocal signal
+            signal = self._scan_progress.connect("clicked", self._windows.cancel_scan)
+
+        window.connect("started-process", started_progress_callback)
+        window.connect("changed-progress", self._changed_progress_callback)
+        window.connect("finished-process", self._finished_process_callback)
+
+        def do_process_error(_widget, process, msg):
+            self._process_error_callback(_widget, process, msg, signal)
+
+        window.connect("process-error", do_process_error)
+        window.connect("changed-profile", self._changed_profile_callback)
+        window.connect("added-profile", self._added_profile_callback)
+
+        def removed_profile_callback(_widget, profile):
+            del self.settings["profile"][profile]
+
+        window.connect("removed-profile", removed_profile_callback)
+
+        def changed_current_scan_options_callback(_widget, profile, _uuid):
+            """Update the default profile when the scan options change."""
+            self.settings["default-scan-options"] = profile.get()
+
+        window.connect(
+            "changed-current-scan-options", changed_current_scan_options_callback
+        )
+
+        def changed_paper_sizes_callback(_widget, formats):
+            self.settings["Paper"] = formats
+
+        window.connect("changed-paper-sizes", changed_paper_sizes_callback)
+        window.connect("new-scan", self._new_scan_callback)
+        window.connect(
+            "changed-scan-option", self._update_postprocessing_options_callback
+        )
 
     def add_postprocessing_options(self, widget):
         """Add post-processing options to the dialog window."""

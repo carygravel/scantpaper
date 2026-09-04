@@ -559,12 +559,6 @@ def test_combobox_on_reload(
         ]
     )
 
-    def mocked_do_open_device(self, request):
-        """Open device."""
-        device_name = request.args[0]
-        self.device = device_name
-        request.data(f"opened device '{self.device_name}'")
-
     def mocked_do_get_options(self, _request):
         """mocked_do_get_options."""
         self.device_handle = SimpleNamespace(
@@ -585,7 +579,13 @@ def test_combobox_on_reload(
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 
-    mocker.patch("dialog.sane.SaneThread.do_open_device", mocked_do_open_device)
+    mocker.patch(
+        "dialog.sane.SaneThread.do_open_device",
+        lambda self, request: (
+            setattr(self, "device", request.args[0]),
+            request.data(f"opened device '{self.device_name}'"),
+        ),
+    )
     mocker.patch("dialog.sane.SaneThread.do_get_options", mocked_do_get_options)
     mocker.patch("dialog.sane.SaneThread.do_set_option", mocked_do_set_option)
     dialog = sane_scan_dialog
