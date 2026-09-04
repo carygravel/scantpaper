@@ -2,14 +2,14 @@
 # Copyright (c) 2007 Rosetta Contributors and Canonical Ltd 2007
 # This file is distributed under the same license as the scantpaper package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2007.
-# batman <albano_battistella@hotmail.com>, 2019.
+# batman <albano_battistella@hotmail.com>, 2019,2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2021-11-20 16:14+0100\n"
 "PO-Revision-Date: 2021-12-18 09:28+0000\n"
-"Last-Translator: Silvio Brera <Unknown>\n"
+"Last-Translator: Albano Battistella <albanobattistella@gmail.com>\n"
 "Language-Team: albano battistella Zorin Team\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,7 +24,7 @@ msgstr "Livello testo"
 
 #: bin/scantpaper:495
 msgid "Go to least confident text"
-msgstr ""
+msgstr "Vai al testo con minore affidabilità"
 
 #: bin/scantpaper:502
 msgid "Go to previous text"
@@ -32,11 +32,11 @@ msgstr "Vai al testo precedente"
 
 #: bin/scantpaper:509
 msgid "Sort by confidence"
-msgstr ""
+msgstr "Ordina per affidabilità"
 
 #: bin/scantpaper:510
 msgid "Sort OCR text boxes by confidence."
-msgstr ""
+msgstr "Ordina i riquadri di testo OCR in base all'affidabilità."
 
 #: bin/scantpaper:513
 msgid "Sort by position"
@@ -56,7 +56,7 @@ msgstr "Vai al testo successivo"
 
 #: bin/scantpaper:543
 msgid "Go to most confident text"
-msgstr ""
+msgstr "Vai al testo con maggiore affidabilità"
 
 #: bin/scantpaper:550 bin/gscan2pdf:661
 msgid "Accept corrections"
@@ -76,7 +76,7 @@ msgstr "Aggiungi testo"
 
 #: bin/scantpaper:595
 msgid "my-new-word"
-msgstr ""
+msgstr "la-mia-nuova-parola"
 
 #: bin/scantpaper:630
 msgid "Delete text"
@@ -92,7 +92,7 @@ msgstr "Aggiungi un'annotazione"
 
 #: bin/scantpaper:691
 msgid "my-new-annotation"
-msgstr ""
+msgstr "la-mia-nuova-annotazione"
 
 #: bin/scantpaper:727
 msgid "Delete annotation"
@@ -113,15 +113,15 @@ msgstr "Impossibile leggere il file: %s"
 
 #: bin/scantpaper:1152
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr ""
+msgstr "GraphicsMagick è utilizzato in modalità compatibilità con ImageMagick."
 
 #: bin/scantpaper:1155
 msgid "Whilst this might work, it is not currently supported."
-msgstr ""
+msgstr "Sebbene possa funzionare, questa modalità non è attualmente supportata."
 
 #: bin/scantpaper:1157
 msgid "Please switch to ImageMagick in case of problems."
-msgstr ""
+msgstr "In caso di problemi, si prega di passare a ImageMagick."
 
 #: bin/scantpaper:1194
 msgid ""
@@ -500,7 +500,7 @@ msgstr "_Dividi"
 
 #: bin/scantpaper:1490
 msgid "Split pages horizontally or vertically"
-msgstr ""
+msgstr "Dividi le pagine in orizzontale o in verticale"
 
 #: bin/scantpaper:1494
 msgid "_OCR"
@@ -532,23 +532,23 @@ msgstr "Infom_azioni"
 
 #: bin/scantpaper:1516
 msgid "_Pan"
-msgstr ""
+msgstr "_Panoramica"
 
 #: bin/scantpaper:1517
 msgid "Use the pan tool"
-msgstr ""
+msgstr "Usa lo strumento panoramica"
 
 #: bin/scantpaper:1522
 msgid "Use the rectangular selection tool"
-msgstr ""
+msgstr "Usa lo strumento di selezione rettangolare"
 
 #: bin/scantpaper:1526
 msgid "_Select & pan"
-msgstr ""
+msgstr "_Seleziona e panoramica"
 
 #: bin/scantpaper:1527
 msgid "Use the combined select and pan tool"
-msgstr ""
+msgstr "Usa lo strumento combinato di selezione e panoramica"
 
 #: bin/scantpaper:1532
 msgid "_Tabbed"
@@ -560,35 +560,35 @@ msgstr "Disponi i visualizzatori di immagini e OCR nelle schede"
 
 #: bin/scantpaper:1536
 msgid "_Split horizontally"
-msgstr ""
+msgstr "_Dividi in orizzontale"
 
 #: bin/scantpaper:1538
 msgid "Arrange image and OCR viewers in horizontally split screen"
-msgstr ""
+msgstr "Disponi i visualizzatori di immagini e OCR in uno schermo diviso in orizzontale"
 
 #: bin/scantpaper:1542
 msgid "_Split vertically"
-msgstr ""
+msgstr "_Dividi in verticale"
 
 #: bin/scantpaper:1543
 msgid "Arrange image and OCR viewers in vertically split screen"
-msgstr ""
+msgstr "Disponi i visualizzatori di immagini e OCR in uno schermo diviso in verticale"
 
 #: bin/scantpaper:1550
 msgid "Edit text layer"
-msgstr ""
+msgstr "Modifica livello testo"
 
 #: bin/scantpaper:1551
 msgid "Show editing tools for text layer"
-msgstr ""
+msgstr "Mostra gli strumenti di modifica per il livello testo"
 
 #: bin/scantpaper:1556
 msgid "Edit annotations"
-msgstr ""
+msgstr "Modifica annotazioni"
 
 #: bin/scantpaper:1558
 msgid "Show editing tools for annotations"
-msgstr ""
+msgstr "Mostra gli strumenti di modifica per le annotazioni"
 
 #: bin/scantpaper:1763
 msgid "Save image and Save as PDF both require imagemagick\n"
@@ -610,6 +610,8 @@ msgstr "Inviare come allegato PDF di una email richiede xdg-email\n"
 msgid ""
 "The rotating, crop, unsharp, split and unpaper tools require perlmagick\n"
 msgstr ""
+"Gli strumenti di rotazione, ritaglio, nitidezza, divisione e unpaper "
+"richiedono perlmagick\n"
 
 #: bin/scantpaper:1816
 msgid "unpaper missing\n"
@@ -617,7 +619,7 @@ msgstr "unpaper non è disponibile\n"
 
 #: bin/scantpaper:1828
 msgid "OCR requires gocr, tesseract, or cuneiform\n"
-msgstr ""
+msgstr "L'OCR richiede gocr, tesseract o cuneiform\n"
 
 #: bin/scantpaper:1845
 msgid "PDF encryption requires pdftk\n"
@@ -641,15 +643,15 @@ msgstr "Sessioni bloccate"
 
 #: bin/scantpaper:2172
 msgid "The following list of sessions cannot be restored."
-msgstr ""
+msgstr "Il seguente elenco di sessioni non può essere ripristinato."
 
 #: bin/scantpaper:2174
 msgid "Please retrieve any images you require from them."
-msgstr ""
+msgstr "Si prega di recuperare da esse le immagini necessarie."
 
 #: bin/scantpaper:2176
 msgid "Selected sessions will be deleted."
-msgstr ""
+msgstr "Le sessioni selezionate saranno eliminate."
 
 #: bin/scantpaper:2178 bin/gscan2pdf:2215 lib/Gscan2pdf/Dialog/Save.pm:553
 msgid "Session"
@@ -804,15 +806,15 @@ msgstr "Acquisisci il documento"
 
 #: bin/scantpaper:4201
 msgid "Error opening the last device used."
-msgstr ""
+msgstr "Errore nell'apertura dell'ultimo dispositivo utilizzato."
 
 #: bin/scantpaper:4204
 msgid "There was an error opening the last device used."
-msgstr ""
+msgstr "Si è verificato un errore nell'apertura dell'ultimo dispositivo utilizzato."
 
 #: bin/scantpaper:4207
 msgid "Whoops! I forgot to turn it on. Try again now."
-msgstr ""
+msgstr "Ops! Ho dimenticato di accenderlo. Riprova ora."
 
 #: bin/scantpaper:4210 lib/Gscan2pdf/Dialog/Scan.pm:638
 msgid "Rescan for devices"
@@ -820,15 +822,15 @@ msgstr "Rileva i dispositivi"
 
 #: bin/scantpaper:4213
 msgid "Restart scantpaper."
-msgstr ""
+msgstr "Riavvia scantpaper."
 
 #: bin/scantpaper:4216
 msgid "Just ignore the error. I don't need the scanner yet."
-msgstr ""
+msgstr "Ignora l'errore. Non ho ancora bisogno dello scanner."
 
 #: bin/scantpaper:4219 bin/gscan2pdf:7016
 msgid "Cache device list"
-msgstr ""
+msgstr "Includi nella cache l'elenco dei dispositivi"
 
 #: bin/scantpaper:4223 bin/gscan2pdf:7589
 #: lib/Gscan2pdf/Dialog/MultipleMessage.pm:56
@@ -939,7 +941,7 @@ msgstr ""
 
 #: bin/scantpaper:4565
 msgid "Postprocessing"
-msgstr ""
+msgstr "Post-elaborazione"
 
 #: bin/scantpaper:4579
 msgid "Clean up images"
@@ -1071,31 +1073,31 @@ msgstr "Altezza del ritaglio"
 
 #: bin/scantpaper:5867
 msgid "Split"
-msgstr ""
+msgstr "Dividi"
 
 #: bin/scantpaper:5877
 msgid "Direction"
-msgstr ""
+msgstr "Direzione"
 
 #: bin/scantpaper:5881
 msgid "Vertically"
-msgstr ""
+msgstr "In verticale"
 
 #: bin/scantpaper:5882
 msgid "Split the page vertically into left and right pages."
-msgstr ""
+msgstr "Dividi la pagina in verticale in pagine sinistra e destra."
 
 #: bin/scantpaper:5885
 msgid "Horizontally"
-msgstr ""
+msgstr "In orizzontale"
 
 #: bin/scantpaper:5886
 msgid "Split the page horizontally into top and bottom pages."
-msgstr ""
+msgstr "Dividi la pagina in orizzontale in pagine superiore e inferiore."
 
 #: bin/scantpaper:5910
 msgid "Position"
-msgstr ""
+msgstr "Posizione"
 
 #: bin/scantpaper:6026
 msgid "User-defined tools"
@@ -1165,11 +1167,11 @@ msgstr "Regex invalido. Prova senza caratteri speciali come \"*\""
 
 #: bin/scantpaper:6876
 msgid "Changes will only take effect after restarting scantpaper."
-msgstr ""
+msgstr "Le modifiche avranno effetto solo dopo il riavvio di scantpaper."
 
 #: bin/scantpaper:6879
 msgid "Restart scantpaper now?"
-msgstr ""
+msgstr "Riavviare scantpaper adesso?"
 
 #: bin/scantpaper:6899
 msgid "Open scanner at program start"
@@ -1243,16 +1245,21 @@ msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
+"Se non impostato, il passaggio a uno scanner in piano forzerà il numero "
+"di pagine a 1 e la modalità a facciata singola."
 
 #: bin/scantpaper:6974
 msgid "Ignore duplex capabilities of scanner"
-msgstr ""
+msgstr "Ignora le funzionalità fronte/retro dello scanner"
 
 #: bin/scantpaper:6977
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 msgstr ""
+"Se impostato, qualsiasi funzionalità fronte/retro verrà ignorata e saranno "
+"mostrati i widget per le pagine pari/dispari per consentire l'interfogliatura "
+"manuale."
 
 #: bin/scantpaper:6986
 msgid "Force new scan job between pages"
@@ -1283,11 +1290,15 @@ msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper does "
 "not first search for available devices."
 msgstr ""
+"Se questa opzione è abilitata, l'apertura dello scanner è più rapida, poiché "
+"scantpaper non esegue prima una ricerca dei dispositivi disponibili."
 
 #: bin/scantpaper:7022
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
+"Questo è efficace solo se i nomi dei dispositivi non cambiano tra una "
+"sessione e l'altra."
 
 #: bin/scantpaper:7031
 msgid "Scan command prefix"
@@ -1362,11 +1373,17 @@ msgid ""
 "%Ds\tsubject\n"
 "%Dt\ttitle\n"
 "\n"
+"#: bin/scantpaper:XXXX
+msgid ""
 "All document date codes use strftime codes with a leading D, e.g.:\n"
 "%DY\tdocument year\n"
 "%Dm\tdocument month\n"
 "%Dd\tdocument day\n"
 msgstr ""
+"Tutti i codici di data del documento usano i codici strftime preceduti da una D, ad es.:\n"
+"%DY\tanno del documento\n"
+"%Dm\tmese del documento\n"
+"%Dd\tgiorno del documento\n"
 
 #: bin/scantpaper:7208
 msgid "Replace whitespace in filenames with underscores"
@@ -1853,27 +1870,27 @@ msgstr "Lascia decidere a scantpaper il tipo di compressione da usare."
 
 #: lib/Gscan2pdf/Dialog/Save.pm:807
 msgid "Flate"
-msgstr ""
+msgstr "Flate"
 
 #: lib/Gscan2pdf/Dialog/Save.pm:807
 msgid "Compress output with flate encoding."
-msgstr ""
+msgstr "Comprime l'output con la codifica Flate."
 
 #: lib/Gscan2pdf/Dialog/Save.pm:808
 msgid "Compress output with JPEG (DCT) encoding."
-msgstr ""
+msgstr "Comprime l'output con la codifica JPEG (DCT)."
 
 #: lib/Gscan2pdf/Dialog/Save.pm:844
 msgid "Position of OCR output"
-msgstr ""
+msgstr "Posizione dell'output OCR"
 
 #: lib/Gscan2pdf/Dialog/Save.pm:847
 msgid "Behind"
-msgstr ""
+msgstr "Dietro"
 
 #: lib/Gscan2pdf/Dialog/Save.pm:847
 msgid "Put OCR output behind image."
-msgstr ""
+msgstr "Posiziona l'output OCR dietro l'immagine."
 
 #: lib/Gscan2pdf/Dialog/Save.pm:849 lib/Gscan2pdf/Unpaper.pm:164
 #: lib/Gscan2pdf/Unpaper.pm:193
@@ -1882,7 +1899,7 @@ msgstr "Destra"
 
 #: lib/Gscan2pdf/Dialog/Save.pm:850
 msgid "Put OCR output to the right of the image."
-msgstr ""
+msgstr "Posiziona l'output OCR a destra dell'immagine."
 
 #: lib/Gscan2pdf/Dialog/Save.pm:865
 msgid "Encrypt PDF"
@@ -2004,11 +2021,11 @@ msgstr "Modifica profilo di scansione \"% s\""
 
 #: lib/Gscan2pdf/Dialog/Scan.pm:799
 msgid "Backend options"
-msgstr ""
+msgstr "Opzioni di backend"
 
 #: lib/Gscan2pdf/Dialog/Scan.pm:800
 msgid "Frontend options"
-msgstr ""
+msgstr "Opzioni di frontend"
 
 #: lib/Gscan2pdf/Dialog/Scan.pm:982 lib/Gscan2pdf/Dialog/Scan.pm:1150
 #: lib/Gscan2pdf/Dialog/Scan.pm:1325 lib/Gscan2pdf/Dialog/Scan.pm:1338
@@ -2023,7 +2040,7 @@ msgstr "Errore: dispositivo sconosciuto:% s"
 
 #: lib/Gscan2pdf/Dialog/Scan.pm:1244
 msgid "pel"
-msgstr ""
+msgstr "pix"
 
 #: lib/Gscan2pdf/Dialog/Scan.pm:1247
 msgid "bit"
@@ -2043,7 +2060,7 @@ msgstr "%"
 
 #: lib/Gscan2pdf/Dialog/Scan.pm:1259
 msgid "μs"
-msgstr ""
+msgstr "μs"
 
 #: lib/Gscan2pdf/Dialog/Scan.pm:1321
 msgid "Paper size"
@@ -2174,7 +2191,7 @@ msgstr ""
 
 #: lib/Gscan2pdf/Document.pm:421
 msgid "Error: importing a multipage file at the same time as another file."
-msgstr ""
+msgstr "Errore: importazione di un file multipagina contemporaneamente a un altro file."
 
 #: lib/Gscan2pdf/Document.pm:753
 msgid "Unable to load image"
@@ -2205,7 +2222,7 @@ msgstr "Errore durante l'importazione del file a lunghezza zero% s."
 
 #: lib/Gscan2pdf/Document.pm:2843
 msgid "Please install djvulibre-bin in order to open DjVu files."
-msgstr ""
+msgstr "Installare djvulibre-bin per poter aprire i file DjVu."
 
 #: lib/Gscan2pdf/Document.pm:2875
 msgid "Unknown DjVu file structure. Please contact the author."
@@ -2261,7 +2278,7 @@ msgstr "Errore durante la creazione di PDF% s:% s"
 #: lib/Gscan2pdf/Document.pm:3459
 #, perl-format
 msgid "Unable to find font '%s'. Defaulting to core font."
-msgstr ""
+msgstr "Impossibile trovare il carattere '%s'. Ripristino del carattere predefinito."
 
 #: lib/Gscan2pdf/Document.pm:3483
 #, perl-format
@@ -2325,12 +2342,12 @@ msgstr "Errore nella compressione dell'immagine: %s"
 #: lib/Gscan2pdf/Document.pm:3937
 #, perl-format
 msgid "Core font '%s' cannot encode character '%s', and no TTF font defined."
-msgstr ""
+msgstr "Il carattere di sistema '%s' non può codificare il carattere '%s' e non è definito alcun carattere TTF."
 
 #: lib/Gscan2pdf/Document.pm:3951
 #, perl-format
 msgid "Neither '%s' nor '%s' can encode character '%s' in '%s'"
-msgstr ""
+msgstr "Né '%s' né '%s' possono codificare il carattere '%s' in '%s'"
 
 #: lib/Gscan2pdf/Document.pm:4097
 #, perl-format
@@ -2374,7 +2391,7 @@ msgstr "Errore nell'aggiungere lo strato di testo a DjVu"
 
 #: lib/Gscan2pdf/Document.pm:4319
 msgid "Error adding annotations to DjVu"
-msgstr ""
+msgstr "Errore durante l'aggiunta di annotazioni a DjVu"
 
 #: lib/Gscan2pdf/Document.pm:4365
 msgid "Error adding metadata to DjVu"
@@ -2459,17 +2476,19 @@ msgstr "Selezionati"
 #: lib/Gscan2pdf/Tesseract.pm:160
 #, perl-format
 msgid "You are using locale '%s'."
-msgstr ""
+msgstr "Si sta utilizzando la localizzazione '%s'."
 
 #: lib/Gscan2pdf/Tesseract.pm:142
 msgid ""
 "scantpaper does not currently know which tesseract language package would be "
 "necessary for that locale."
 msgstr ""
+"scantpaper al momento non conosce quale pacchetto di lingua di tesseract "
+"sia necessario per tale localizzazione."
 
 #: lib/Gscan2pdf/Tesseract.pm:145
 msgid "Please contact the developers to add support for that locale."
-msgstr ""
+msgstr "Contattare gli sviluppatori per aggiungere il supporto a tale localizzazione."
 
 #: lib/Gscan2pdf/Tesseract.pm:156
 #, perl-format
@@ -2477,15 +2496,17 @@ msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
 msgstr ""
+"Installare il pacchetto tesseract 'tesseract-ocr-%s' e riavviare scantpaper "
+"per eseguire l'OCR per %s con tesseract."
 
 #: lib/Gscan2pdf/Tesseract.pm:161
 #, perl-format
 msgid "There is no tesseract package for %s"
-msgstr ""
+msgstr "Non esiste un pacchetto tesseract per %s"
 
 #: lib/Gscan2pdf/Tesseract.pm:163
 msgid "If this is in error, please contact the scantpaper developers."
-msgstr ""
+msgstr "Se si tratta di un errore, contattare gli sviluppatori di scantpaper."
 
 #: lib/Gscan2pdf/Unpaper.pm:46
 msgid "Layout"
