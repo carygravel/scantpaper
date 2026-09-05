@@ -115,7 +115,7 @@ def test_save_pdf(mock_thread_instance, mock_page_instance):
         assert mock_hocr_to_ocr_pdf.called
         assert mock_page_instance.write_image_for_pdf.called
         assert mock_post_save_hook.called
-        mock_fix_metadata.assert_called_once_with("/tmp/output.pdf", True)
+        mock_fix_metadata.assert_called_once_with("/tmp/output.pdf", remove_title=True)
 
 
 def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
@@ -183,7 +183,7 @@ def test_save_pdf_with_title_keeps_title(mock_thread_instance, mock_page_instanc
     ):
         mock_thread_instance.do_save_pdf(request)
 
-        mock_fix_metadata.assert_called_once_with("/tmp/output.pdf", False)
+        mock_fix_metadata.assert_called_once_with("/tmp/output.pdf", remove_title=False)
 
 
 def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):

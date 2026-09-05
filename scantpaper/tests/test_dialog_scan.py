@@ -460,7 +460,7 @@ def test_available_scan_options_flatbed_selected(mocker):
 
     # Verify
     assert dialog.num_pages == 1
-    mock_set_sensitive.assert_called_with(False)
+    mock_set_sensitive.assert_called_with(sensitive=False)
 
 
 def test_available_scan_options_flatbed_not_selected(mocker):
@@ -477,7 +477,7 @@ def test_available_scan_options_flatbed_not_selected(mocker):
     dialog.available_scan_options = mock_options
 
     # Verify
-    mock_set_sensitive.assert_called_with(True)
+    mock_set_sensitive.assert_called_with(sensitive=True)
 
 
 def test_init_with_profiles():
@@ -1026,8 +1026,8 @@ def test_update_widget_value_types(mocker):
     widget_bool.signal = "toggled"
     dialog.option_widgets["bool_opt"] = widget_bool
 
-    dialog._update_widget_value(opt_bool, True)
-    widget_bool.set_active.assert_called_with(True)
+    dialog._update_widget_value(opt_bool, val=True)
+    widget_bool.set_active.assert_called_with(is_active=True)
 
     # 2. SpinButton (INT/FIXED)
     opt_spin = mocker.Mock()
@@ -1053,7 +1053,7 @@ def test_update_widget_value_types(mocker):
     dialog.option_widgets["combo_opt"] = widget_combo
 
     dialog._update_widget_value(opt_combo, "B")
-    widget_combo.set_active.assert_called_with(1)
+    widget_combo.set_active.assert_called_with(index_=1)
 
     # 4. Entry (String)
     opt_entry = mocker.Mock()
@@ -1075,8 +1075,8 @@ def test_get_label_for_option():
     hbox = Gtk.Box()
     label = Gtk.Label(label="My Option")
     widget = Gtk.Entry()
-    hbox.pack_start(label, False, False, 0)
-    hbox.pack_start(widget, False, False, 0)
+    hbox.pack_start(label, expand=False, fill=False, padding=0)
+    hbox.pack_start(widget, expand=False, fill=False, padding=0)
 
     dialog.option_widgets["my_opt"] = widget
     assert dialog._get_label_for_option("my_opt") == "My Option"
@@ -1175,7 +1175,7 @@ def test_get_label_for_option_none():
     hbox = Gtk.Box()
     # No Gtk.Label child
     widget = Gtk.Entry()
-    hbox.pack_start(widget, False, False, 0)
+    hbox.pack_start(widget, expand=False, fill=False, padding=0)
 
     dialog.option_widgets["my_opt"] = widget
     assert dialog._get_label_for_option("my_opt") is None

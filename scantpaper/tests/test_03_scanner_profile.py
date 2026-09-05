@@ -133,7 +133,7 @@ def test_backend_option_iteration():
     with pytest.raises(StopIteration):
         next(itr)
 
-    itr = profile.each_backend_option(True)
+    itr = profile.each_backend_option(backwards=True)
     assert next(itr) == 3, "basic functionality each_backend_option reverse"
     for _ in range(1, 4):
         next(itr)

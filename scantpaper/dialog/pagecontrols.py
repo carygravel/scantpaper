@@ -179,7 +179,9 @@ class PageControls(Dialog):
         # Notebook to collate options
         self.notebook = Gtk.Notebook()
         self.notebook.set_scrollable(True)
-        self.get_content_area().pack_end(self.notebook, True, True, 0)
+        self.get_content_area().pack_end(
+            self.notebook, expand=True, fill=True, padding=0
+        )
 
         # Notebook page 1
         scwin = Gtk.ScrolledWindow()
@@ -196,7 +198,9 @@ class PageControls(Dialog):
 
         # Frame for # pages
         self.framen = Gtk.Frame(label=_("# Pages"))
-        self._notebook_pages[0].pack_start(self.framen, False, False, 0)
+        self._notebook_pages[0].pack_start(
+            self.framen, expand=False, fill=False, padding=0
+        )
         vboxn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxn.set_border_width(border_width)
         self.framen.add(vboxn)
@@ -206,20 +210,20 @@ class PageControls(Dialog):
         # All button
         bscanall = Gtk.RadioButton.new_with_label_from_widget(None, _("All"))
         bscanall.set_tooltip_text(_("Scan all pages"))
-        vboxn.pack_start(bscanall, True, True, 0)
+        vboxn.pack_start(bscanall, expand=True, fill=True, padding=0)
         bscanall.connect("clicked", self._do_clicked_scan_all, bscanall)
 
         # Entry button
         hboxn = Gtk.Box()
-        vboxn.pack_start(hboxn, True, True, 0)
+        vboxn.pack_start(hboxn, expand=True, fill=True, padding=0)
         self._bscannum = Gtk.RadioButton.new_with_label_from_widget(bscanall, "#:")
         self._bscannum.set_tooltip_text(_("Set number of pages to scan"))
-        hboxn.pack_start(self._bscannum, False, False, 0)
+        hboxn.pack_start(self._bscannum, expand=False, fill=False, padding=0)
 
         # Number of pages
         spin_buttonn = Gtk.SpinButton.new_with_range(1, MAX_PAGES, 1)
         spin_buttonn.set_tooltip_text(_("Set number of pages to scan"))
-        hboxn.pack_end(spin_buttonn, False, False, 0)
+        hboxn.pack_end(spin_buttonn, expand=False, fill=False, padding=0)
         self._bscannum.connect("clicked", self._do_clicked_scan_number, spin_buttonn)
         self.connect(
             "changed-num-pages",
@@ -235,15 +239,17 @@ class PageControls(Dialog):
         # vbox for duplex/simplex page numbering in order to be able to show/hide
         # them together.
         self._vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self._notebook_pages[0].pack_start(self._vboxx, False, False, 0)
+        self._notebook_pages[0].pack_start(
+            self._vboxx, expand=False, fill=False, padding=0
+        )
 
         # Switch between basic and extended modes
         hbox = Gtk.Box()
         label = Gtk.Label(label=_("Extended page numbering"))
-        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
         self.checkx = Gtk.Switch()
-        hbox.pack_end(self.checkx, False, False, 0)
-        self._vboxx.pack_start(hbox, False, False, 0)
+        hbox.pack_end(self.checkx, expand=False, fill=False, padding=0)
+        self._vboxx.pack_start(hbox, expand=False, fill=False, padding=0)
 
         self._create_extended_mode(spin_buttonn, self._bscannum)
 
@@ -251,7 +257,7 @@ class PageControls(Dialog):
 
         # Frame for extended mode
         self.framex = Gtk.Frame(label=_("Page number"))
-        self._vboxx.pack_start(self.framex, False, False, 0)
+        self._vboxx.pack_start(self.framex, expand=False, fill=False, padding=0)
         vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         border_width = (
             self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
@@ -296,7 +302,7 @@ class PageControls(Dialog):
 
         # Frame for standard mode
         self.frames = Gtk.Frame(label=_("Source document"))
-        self._vboxx.pack_start(self.frames, False, False, 0)
+        self._vboxx.pack_start(self.frames, expand=False, fill=False, padding=0)
         vboxs = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxs.set_border_width(border_width)
         self.frames.add(vboxs)
@@ -306,7 +312,7 @@ class PageControls(Dialog):
             None, _("Single sided")
         )
         self.buttons.set_tooltip_text(_("Source document is single-sided"))
-        vboxs.pack_start(self.buttons, True, True, 0)
+        vboxs.pack_start(self.buttons, expand=True, fill=True, padding=0)
         self.buttons.connect("clicked", self._do_buttons_clicked)
 
         # Double sided button
@@ -314,13 +320,13 @@ class PageControls(Dialog):
             self.buttons, _("Double sided")
         )
         self.buttond.set_tooltip_text(_("Source document is double-sided"))
-        vboxs.pack_start(self.buttond, False, False, 0)
+        vboxs.pack_start(self.buttond, expand=False, fill=False, padding=0)
 
         # Facing/reverse page button
         hboxs = Gtk.Box()
-        vboxs.pack_start(hboxs, True, True, 0)
+        vboxs.pack_start(hboxs, expand=True, fill=True, padding=0)
         labels = Gtk.Label(label=_("Side to scan"))
-        hboxs.pack_start(labels, False, False, 0)
+        hboxs.pack_start(labels, expand=False, fill=False, padding=0)
         self.combobs = ComboBoxText()
         for text in (_("Facing"), _("Reverse")):
             self.combobs.append_text(text)
@@ -334,7 +340,7 @@ class PageControls(Dialog):
         # Have to do this here because setting the facing combobox switches it
         self.buttons.set_active(True)
         self.num_pages = 1
-        hboxs.pack_end(self.combobs, False, False, 0)
+        hboxs.pack_end(self.combobs, expand=False, fill=False, padding=0)
 
         # Have to put the extended pagenumber checkbox here
         # to reference simple controls
@@ -420,10 +426,10 @@ class PageControls(Dialog):
 def spinbutton_in_hbox(vbox, label, vmin, vmax, step):
     """Pack a label and a spinbutton in an hbox."""
     hbox = Gtk.Box()
-    vbox.pack_start(hbox, False, False, 0)
-    hbox.pack_start(Gtk.Label(label=label), False, False, 0)
+    vbox.pack_start(hbox, expand=False, fill=False, padding=0)
+    hbox.pack_start(Gtk.Label(label=label), expand=False, fill=False, padding=0)
     spin_button = Gtk.SpinButton.new_with_range(vmin, vmax, step)
-    hbox.pack_end(spin_button, False, False, 0)
+    hbox.pack_end(spin_button, expand=False, fill=False, padding=0)
     return spin_button
 
 

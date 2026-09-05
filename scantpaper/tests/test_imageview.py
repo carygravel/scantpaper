@@ -53,7 +53,7 @@ def test_basics(rose_png):
             assert offset_y == 12, "emitted offset-changed signal y"
 
     signal = view.connect("offset-changed", on_offset_changed)
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), True)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
 
     if view.get_scale_factor() <= 1:
         viewport = view.get_viewport()
@@ -87,7 +87,7 @@ def test_basics(rose_png):
 def test_selection(rose_png):
     """Basic tests for imageview."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), True)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
 
     def on_selection_changed(_widget, selection):
         view.disconnect(signal)
@@ -132,15 +132,15 @@ def test_selection(rose_png):
 def test_viewport(rose_png):
     """Basic tests for imageview."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), True)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
     view.set_resolution_ratio(2)
     assert view.get_resolution_ratio() == 2, "get/set_resolution_ratio()"
 
     # A TypeError is raised when set_pixbuf() is called with something that is not a pixbuf.
     with pytest.raises(TypeError):
-        view.set_pixbuf("Hi mom!", True)
+        view.set_pixbuf("Hi mom!", zoom_to_fit=True)
 
-    view.set_pixbuf(None, True)
+    view.set_pixbuf(None, zoom_to_fit=True)
     assert view.get_pixbuf() is None, "correctly cleared pixbuf"
     viewport = view.get_viewport()
     assert viewport.x == 0, "correctly cleared viewport x"
@@ -148,7 +148,7 @@ def test_viewport(rose_png):
     assert viewport.width == 1, "correctly cleared viewport width"
     assert viewport.height == 1, "correctly cleared viewport height"
 
-    view.set_pixbuf(None, False)
+    view.set_pixbuf(None, zoom_to_fit=False)
     assert view.get_pixbuf() is None, "correctly cleared pixbuf #2"
 
 
@@ -172,7 +172,7 @@ def test_transparency(datadir):
     view = ImageView()
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
-        True,
+        zoom_to_fit=True,
     )
     window.add(view)
     window.show_all()
@@ -229,7 +229,9 @@ def test_zoom(datadir):
     view = ImageView()
     window.add(view)
     window.show_all()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(f"{datadir}bigpic.svg"), True)
+    view.set_pixbuf(
+        GdkPixbuf.Pixbuf.new_from_file(f"{datadir}bigpic.svg"), zoom_to_fit=True
+    )
     scale = view.get_scale_factor()
     assert view.get_zoom() == pytest.approx(0.2 * scale, 0.0001), "shrunk"
     view.set_zoom(1)
@@ -237,12 +239,12 @@ def test_zoom(datadir):
     # the transp-green picture is 100x100 which is less than 200.
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
-        False,
+        zoom_to_fit=False,
     )
     assert view.get_zoom() == 1, "picture fully visible"
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
-        True,
+        zoom_to_fit=True,
     )
     assert view.get_zoom() == 2 * scale, "zoomed"
 
@@ -256,7 +258,7 @@ def test_selector_tool(datadir):
     view.set_tool(Selector(view))
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
-        True,
+        zoom_to_fit=True,
     )
     window.show_all()
     window.hide()
@@ -317,7 +319,9 @@ def test_filter(datadir):
     window = Gtk.Window()
     window.set_size_request(300, 200)
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(f"{datadir}2color.svg"), True)
+    view.set_pixbuf(
+        GdkPixbuf.Pixbuf.new_from_file(f"{datadir}2color.svg"), zoom_to_fit=True
+    )
     window.add(view)
     window.show_all()
     view.set_zoom(15)
@@ -409,7 +413,7 @@ def test_tool_base_methods():
 def test_dragger_edge_cases(rose_png, mock_view):
     """Test Dragger tool edge cases."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     dragger = Dragger(view)
     view.set_tool(dragger)
 
@@ -440,7 +444,7 @@ def test_dragger_edge_cases(rose_png, mock_view):
 def test_selector_edge_cases(rose_png, mock_view):
     """Test Selector tool edge cases."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     selector = Selector(view)
     view.set_tool(selector)
 
@@ -464,7 +468,7 @@ def test_selector_edge_cases(rose_png, mock_view):
 def test_selector_dragger_tool(rose_png, mock_view):
     """Test SelectorDragger tool."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     tool = SelectorDragger(view)
     view.set_tool(tool)
 
@@ -494,7 +498,7 @@ def test_selector_dragger_tool(rose_png, mock_view):
 def test_imageview_more_basics(rose_png):
     """Test more ImageView methods."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
 
     # zoom methods
     view.set_zoom(2.0)
@@ -525,7 +529,7 @@ def test_imageview_more_basics(rose_png):
 def test_imageview_events(rose_png, mock_view):
     """Test ImageView event handlers."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
 
     # button events (mostly covered via tools, but call direct)
     event = MockEvent(button=1, x=10, y=10)
@@ -542,7 +546,7 @@ def test_imageview_events(rose_png, mock_view):
     view.do_scroll_event(event)
 
     # configure event
-    view.setzoom_is_fit(True)
+    view.setzoom_is_fit(zoom_to_fit=True)
     view.do_configure_event(None)
 
 
@@ -552,8 +556,9 @@ def test_imageview_draw(rose_png):
     # Use a pixbuf with alpha to hit line 518
     pixbuf = GdkPixbuf.Pixbuf.new_from_file(rose_png)
     # Ensure it has alpha
-    pixbuf_alpha = pixbuf.add_alpha(True, 0, 0, 0)
-    view.set_pixbuf(pixbuf_alpha, False)
+    # GdkPixbuf.Pixbuf.add_alpha() takes position-only args; PyGObject rejects keywords
+    pixbuf_alpha = pixbuf.add_alpha(True, 0, 0, 0)  # noqa: FBT003
+    view.set_pixbuf(pixbuf_alpha, zoom_to_fit=False)
 
     # draw with selection
     selection = Gdk.Rectangle()
@@ -572,7 +577,7 @@ def test_imageview_draw(rose_png):
 def test_imageview_coordinate_conversions(rose_png):
     """Test ImageView coordinate conversion methods."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     view.set_zoom(1.0)
     view.set_offset(0, 0)
 
@@ -590,7 +595,7 @@ def test_imageview_coordinate_conversions(rose_png):
 def test_imageview_zoom_to_selection(rose_png):
     """Test zoom_to_selection."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     selection = Gdk.Rectangle()
     selection.x, selection.y, selection.width, selection.height = 5, 5, 5, 5
     view.set_selection(selection)
@@ -600,7 +605,7 @@ def test_imageview_zoom_to_selection(rose_png):
 def test_selector_drag_edges(rose_png, mock_view):
     """Test Selector edge dragging logic."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     view.set_zoom(1.0)
     view.set_offset(0, 0)
     selector = Selector(view)
@@ -653,7 +658,7 @@ def test_selector_drag_edges(rose_png, mock_view):
 def test_dragger_dnd_start(rose_png, mock_view):
     """Test Dragger DND start logic."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     dragger = Dragger(view)
     view.set_tool(dragger)
 
@@ -676,7 +681,7 @@ def test_dragger_dnd_start(rose_png, mock_view):
 def test_imageview_clamping(rose_png):
     """Test ImageView offset clamping."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     # Mock get_allocation
     alloc = Gdk.Rectangle()
     alloc.x, alloc.y, alloc.width, alloc.height = 0, 0, 100, 100
@@ -709,7 +714,7 @@ def test_zoom_clamping():
 def test_selector_flip_edges(rose_png, mock_view):
     """Test Selector edge flipping when dragging."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     selector = Selector(view)
     view.set_tool(selector)
 
@@ -743,7 +748,7 @@ def test_imageview_no_pixbuf_offset():
 def test_update_cursor_none(mock_view, rose_png):
     """Test update_cursor when cursor_at_point returns None."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     view.get_tool().cursor_at_point = MagicMock(return_value=None)
     view.update_cursor(10, 10)
     # Should not crash and not call win.set_cursor
@@ -753,7 +758,7 @@ def test_update_cursor_none(mock_view, rose_png):
 def test_selector_update_selection_direct(rose_png):
     """Test Selector._update_selection directly to hit mid/mid branch."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     # Ensure it has an allocation for coordinate conversion if needed,
     # though here we use scale factor 1.
     selector = Selector(view)
@@ -778,7 +783,7 @@ def test_selector_update_selection_direct(rose_png):
 def test_selector_update_selection_edge_branches(rose_png):
     """Test Selector._update_selection edge branches."""
     view = ImageView()
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
 
     # Set an initial selection
     initial_sel = Gdk.Rectangle()
@@ -825,7 +830,7 @@ def test_selector_update_selection_edge_branches(rose_png):
 def test_selector_cursor_dragging_branches(rose_png, mock_view):
     """Test Selector.cursor_type_at_point dragging branches."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     selector = Selector(view)
     view.set_tool(selector)
 
@@ -872,7 +877,7 @@ def test_selector_cursor_dragging_branches(rose_png, mock_view):
 def test_dragger_coverage(rose_png, mock_view):
     """Cover specific lines in Dragger.motion."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     dragger = Dragger(view)
     view.set_tool(dragger)
 
@@ -904,7 +909,7 @@ def test_dragger_coverage(rose_png, mock_view):
 def test_update_dragged_edge_coverage(rose_png, mock_view):
     """Cover _update_dragged_edge branches."""
     view = mock_view
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     selector = Selector(view)
 
     # direction="x" -> h_edge, direction="y" -> v_edge
@@ -940,7 +945,7 @@ def test_imageview_coverage_complex(rose_png, mock_view):
     view = ImageView()
 
     # 1. Line 518: do_draw return True if w <= 0 or h <= 0
-    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     # Selection with 0 width
     selection = Gdk.Rectangle()
     selection.x, selection.y, selection.width, selection.height = 10, 10, 0, 10
@@ -963,7 +968,7 @@ def test_imageview_coverage_complex(rose_png, mock_view):
     assert view.to_image_coords(10, 10) == (None, None)
 
     # 4. Line 668: setzoom_is_fit with limit
-    view.setzoom_is_fit(True, limit=5.0)
+    view.setzoom_is_fit(zoom_to_fit=True, limit=5.0)
     assert view.zoom_to_fit_limit == 5.0
 
     # 5. Line 756: set_tool raise ValueError
@@ -977,7 +982,7 @@ def test_imageview_coverage_complex(rose_png, mock_view):
     # 7. Line 836: _clamp_direction offset < allocation - pixbuf_size
     # Use a fresh view to ensure clean state
     view7 = ImageView()
-    view7.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), False)
+    view7.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     view7.set_zoom(1.0)
 
     # Mock allocation to be small (e.g., 10x10) so image is larger
@@ -1011,7 +1016,13 @@ def test_selection_drawing_coordinates():
     """Test selection rubberband is drawn at widget coordinates with zoom applied."""
     view = ImageView()
 
-    pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 100, 100)
+    pixbuf = GdkPixbuf.Pixbuf.new(
+        GdkPixbuf.Colorspace.RGB,
+        has_alpha=False,
+        bits_per_sample=8,
+        width=100,
+        height=100,
+    )
     view.set_pixbuf(pixbuf)
 
     # ratio=0.5 makes to_widget_coords non-identity without any clamping.

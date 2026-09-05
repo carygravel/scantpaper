@@ -747,7 +747,7 @@ def test_test_backend_options(
 
     dlg.signal = dlg.connect("changed-scan-option", changed_scan_option_cb)
     options = dlg.available_scan_options
-    dlg.set_option(options.by_name("hand-scanner"), True)
+    dlg.set_option(options.by_name("hand-scanner"), value=True)
 
     loop.run()
 

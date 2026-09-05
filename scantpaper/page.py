@@ -343,7 +343,7 @@ class Page:
             image.save(filename.name)
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                    filename.name, width, height, False
+                    filename.name, width, height, preserve_aspect_ratio=False
                 )
             except (GLib.Error, TypeError) as exc:
                 logger.warning("Caught error getting pixbuf: %s", exc)

@@ -605,7 +605,7 @@ class ImageView(Gtk.DrawingArea):
         self.set_interacting(True)
         self._arm_scroll_timeout()
         zoom = None
-        self.setzoom_is_fit(False)
+        self.setzoom_is_fit(zoom_to_fit=False)
         if event.direction == Gdk.ScrollDirection.UP:
             zoom = self.get_zoom() * self.zoom_step
         else:
@@ -652,7 +652,7 @@ class ImageView(Gtk.DrawingArea):
         self._interacting = False
         self._scroll_timeout = None
 
-    def set_pixbuf(self, pixbuf, zoom_to_fit=False):
+    def set_pixbuf(self, pixbuf, *, zoom_to_fit=False):
         """Set pixbuf, optionally zooming to fit."""
         self.pixbuf = pixbuf
         self._cached_surface = None
@@ -695,7 +695,7 @@ class ImageView(Gtk.DrawingArea):
 
     def set_zoom(self, zoom):
         """Set the zoom via the public API, disabling zoom-to-fit."""
-        self.setzoom_is_fit(False)
+        self.setzoom_is_fit(zoom_to_fit=False)
         self._set_zoom_no_center(zoom)
 
     def _set_zoom(self, zoom):
@@ -782,17 +782,17 @@ class ImageView(Gtk.DrawingArea):
 
     def zoom_in(self):
         """Zoom in one step."""
-        self.setzoom_is_fit(False)
+        self.setzoom_is_fit(zoom_to_fit=False)
         self._set_zoom_no_center(self.get_zoom() * self.zoom_step)
 
     def zoom_out(self):
         """Zoom out one step."""
-        self.setzoom_is_fit(False)
+        self.setzoom_is_fit(zoom_to_fit=False)
         self._set_zoom_no_center(self.get_zoom() / self.zoom_step)
 
     def zoom_to_fit(self):
         """Set zoom-to-fit property True."""
-        self.setzoom_is_fit(True)
+        self.setzoom_is_fit(zoom_to_fit=True)
 
     def set_fitting(self, value):
         """Set zoom-to-fit property."""

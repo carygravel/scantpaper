@@ -171,7 +171,7 @@ def _parse_arguments():
     logger.info("Startup LC_NUMERIC %s", locale.setlocale(locale.LC_NUMERIC))
 
     # Catch and log Python warnings
-    logging.captureWarnings(True)
+    logging.captureWarnings(enable=True)
 
     # Suppress Warning: g_value_get_int: assertion 'G_VALUE_HOLDS_INT (value)' failed
     # from dialog.save.Save._meta_datetime_widget.set_text()

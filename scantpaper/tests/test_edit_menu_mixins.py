@@ -79,7 +79,7 @@ def mock_edit_window(mocker):
 def test_undo(mock_edit_window):
     """Test undo."""
     mock_edit_window.undo(None, None)
-    mock_edit_window._actions["undo"].set_enabled.assert_called_with(False)
+    mock_edit_window._actions["undo"].set_enabled.assert_called_with(enabled=False)
     mock_edit_window.slist.undo.assert_called_once()
     call_kwargs = mock_edit_window.slist.undo.call_args[1]
     assert "finished_callback" in call_kwargs
@@ -91,7 +91,7 @@ def test_undo(mock_edit_window):
 def test_unundo(mock_edit_window):
     """Test unundo."""
     mock_edit_window.unundo(None, None)
-    mock_edit_window._actions["redo"].set_enabled.assert_called_with(False)
+    mock_edit_window._actions["redo"].set_enabled.assert_called_with(enabled=False)
     mock_edit_window.slist.unundo.assert_called_once()
     call_kwargs = mock_edit_window.slist.unundo.call_args[1]
     assert "finished_callback" in call_kwargs
@@ -271,7 +271,9 @@ def test_select_blank(mock_edit_window):
     mock_edit_window.select_blank(None, None)
 
     # Assert that analyse was called with the correct arguments
-    mock_edit_window.analyse.assert_called_once_with(True, False)
+    mock_edit_window.analyse.assert_called_once_with(
+        select_blank=True, select_dark=False
+    )
 
 
 def test_select_odd(mock_edit_window):
@@ -307,7 +309,9 @@ def test_select_dark(mock_edit_window):
     mock_edit_window.select_dark(None, None)
 
     # Assert that analyse was called with the correct arguments
-    mock_edit_window.analyse.assert_called_once_with(False, True)
+    mock_edit_window.analyse.assert_called_once_with(
+        select_blank=False, select_dark=True
+    )
 
 
 def test_properties_dialog(mocker, mock_edit_window):
@@ -542,7 +546,7 @@ def test_analyse(mock_edit_window):
     mock_edit_window.slist.data = [[0, 0, page1], [1, 0, page2]]
 
     # Test analyse with select_blank=True
-    mock_edit_window.analyse(True, False)
+    mock_edit_window.analyse(select_blank=True, select_dark=False)
 
     mock_edit_window.slist.analyse.assert_called_once()
     call_kwargs = mock_edit_window.slist.analyse.call_args[1]
@@ -562,7 +566,7 @@ def test_analyse(mock_edit_window):
     mock_edit_window.post_process_progress.finish.reset_mock()
 
     # Test analyse with select_dark=True
-    mock_edit_window.analyse(False, True)
+    mock_edit_window.analyse(select_blank=False, select_dark=True)
 
     # Retrieve the new call arguments
     call_kwargs = mock_edit_window.slist.analyse.call_args[1]
@@ -587,7 +591,7 @@ def test_analyse_cached(mock_edit_window):
     mock_edit_window.select_blank_pages = MagicMock()
     mock_edit_window.select_dark_pages = MagicMock()
 
-    mock_edit_window.analyse(True, True)
+    mock_edit_window.analyse(select_blank=True, select_dark=True)
     mock_edit_window.slist.analyse.assert_not_called()
     mock_edit_window.select_blank_pages.assert_called_once()
     mock_edit_window.select_dark_pages.assert_called_once()
@@ -652,7 +656,7 @@ def test_update_list_user_defined_tools_enables_scan_udt_with_tools(mock_edit_wi
 
     mock_edit_window._update_list_user_defined_tools([mock_combobox])
 
-    mock_hbox.set_sensitive.assert_called_once_with(True)
+    mock_hbox.set_sensitive.assert_called_once_with(sensitive=True)
     mock_button.set_active.assert_not_called()
 
 
@@ -673,5 +677,5 @@ def test_update_list_user_defined_tools_disables_scan_udt_without_tools(
 
     mock_edit_window._update_list_user_defined_tools([mock_combobox])
 
-    mock_hbox.set_sensitive.assert_called_once_with(False)
-    mock_button.set_active.assert_called_once_with(False)
+    mock_hbox.set_sensitive.assert_called_once_with(sensitive=False)
+    mock_button.set_active.assert_called_once_with(is_active=False)

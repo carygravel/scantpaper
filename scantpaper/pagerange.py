@@ -56,7 +56,7 @@ class PageRange(Gtk.Box):
                 group, buttons[nick]
             )
             self.button[nick].connect("toggled", on_toggled_event, nick)
-            vbox.pack_start(self.button[nick], True, True, 0)
+            vbox.pack_start(self.button[nick], expand=True, fill=True, padding=0)
             if not group:
                 group = self.button["all"]
 

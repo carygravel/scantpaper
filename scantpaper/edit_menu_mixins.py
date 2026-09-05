@@ -24,7 +24,7 @@ class EditMenuMixins:
     def undo(self, _action, _param):
         """Restore previous snapshot."""
         logger.info("Undoing")
-        self._actions["undo"].set_enabled(False)
+        self._actions["undo"].set_enabled(enabled=False)
         self.slist.undo(
             finished_callback=self._update_uimanager,
             error_callback=self._error_callback,
@@ -33,7 +33,7 @@ class EditMenuMixins:
     def unundo(self, _action, _param):
         """Restore next snapshot."""
         logger.info("Redoing")
-        self._actions["redo"].set_enabled(False)
+        self._actions["redo"].set_enabled(enabled=False)
         self.slist.unundo(
             finished_callback=self._update_uimanager,
             error_callback=self._error_callback,
@@ -52,23 +52,23 @@ class EditMenuMixins:
         )
         vbox = self._windowp.get_content_area()
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, True, True, 0)
+        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=d_sane("X Resolution"))
-        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
         xspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
         xspinbutton.set_digits(1)
-        hbox.pack_start(xspinbutton, True, True, 0)
+        hbox.pack_start(xspinbutton, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=_("dpi"))
-        hbox.pack_end(label, False, False, 0)
+        hbox.pack_end(label, expand=False, fill=False, padding=0)
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, True, True, 0)
+        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=d_sane("Y Resolution"))
-        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
         yspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
         yspinbutton.set_digits(1)
-        hbox.pack_start(yspinbutton, True, True, 0)
+        hbox.pack_start(yspinbutton, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=_("dpi"))
-        hbox.pack_end(label, False, False, 0)
+        hbox.pack_end(label, expand=False, fill=False, padding=0)
         xresolution, yresolution = self.slist.get_selected_properties()
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
@@ -200,7 +200,7 @@ class EditMenuMixins:
 
     def select_blank(self, _action, _param):
         """Analyse and select blank pages."""
-        self.analyse(True, False)
+        self.analyse(select_blank=True, select_dark=False)
 
     def _select_odd(self, _action, _param):
         """Select odd-numbered pages."""
@@ -233,7 +233,7 @@ class EditMenuMixins:
 
     def select_dark(self, _action, _param):
         """Analyse and select dark pages."""
-        self.analyse(False, True)
+        self.analyse(select_blank=False, select_dark=True)
 
     def select_dark_pages(self):
         """Select dark pages."""
@@ -378,7 +378,7 @@ class EditMenuMixins:
 
         if self._scan_udt_hbox is not None and self._scan_udt_button is not None:
             if self.settings["user_defined_tools"]:
-                self._scan_udt_hbox.set_sensitive(True)
+                self._scan_udt_hbox.set_sensitive(sensitive=True)
             else:
-                self._scan_udt_hbox.set_sensitive(False)
-                self._scan_udt_button.set_active(False)
+                self._scan_udt_hbox.set_sensitive(sensitive=False)
+                self._scan_udt_button.set_active(is_active=False)

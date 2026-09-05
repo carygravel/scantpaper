@@ -179,18 +179,18 @@ class FileMenuMixins:
         )
         vbox = dialog.get_content_area()
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, True, True, 0)
+        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=_("First page to extract"))
-        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
         spinbuttonf = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
-        hbox.pack_end(spinbuttonf, False, False, 0)
+        hbox.pack_end(spinbuttonf, expand=False, fill=False, padding=0)
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, True, True, 0)
+        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=_("Last page to extract"))
-        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
         spinbuttonl = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
         spinbuttonl.set_value(info["pages"])
-        hbox.pack_end(spinbuttonl, False, False, 0)
+        hbox.pack_end(spinbuttonl, expand=False, fill=False, padding=0)
         dialog.show_all()
         response = dialog.run()
         dialog.destroy()
@@ -214,7 +214,7 @@ class FileMenuMixins:
         entry = Gtk.Entry()
         entry.set_visibility(False)
         entry.set_invisible_char(ASTERISK)
-        vbox.pack_end(entry, False, False, 0)
+        vbox.pack_end(entry, expand=False, fill=False, padding=0)
         dialog.show_all()
         response = dialog.run()
         text = entry.get_text()
@@ -240,7 +240,7 @@ class FileMenuMixins:
                 dialog.update_from_import_metadata(metadata)
         config.update_config_from_imported_metadata(self.settings, metadata)
 
-    def _import_files(self, filenames, all_pages=False):
+    def _import_files(self, filenames, *, all_pages=False):
         """Import given files."""
         # During a bulk import only show thumbnails; the final page is loaded
         # full-res once the import finishes (see _import_files_finished_callback).
@@ -357,7 +357,7 @@ class FileMenuMixins:
             )
         )
         vbox = self._windowi.get_content_area()
-        vbox.pack_start(pshbutton, False, True, 0)
+        vbox.pack_start(pshbutton, expand=False, fill=True, padding=0)
         self._update_post_save_hooks()
         # Wrap combobox in a scrolled window to avoid the dialog becoming
         # excessively wide for users with long tool names.
@@ -365,7 +365,7 @@ class FileMenuMixins:
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
         sw.set_propagate_natural_width(False)
         sw.add(self._windowi.comboboxpsh)
-        vbox.pack_start(sw, False, True, 0)
+        vbox.pack_start(sw, expand=False, fill=True, padding=0)
         pshbutton.connect(
             "toggled",
             lambda _action: self._windowi.comboboxpsh.set_sensitive(
@@ -377,7 +377,7 @@ class FileMenuMixins:
         kbutton = Gtk.CheckButton(label=_("Close dialog on save"))
         kbutton.set_tooltip_text(_("Close dialog on save"))
         kbutton.set_active(self.settings["close_dialog_on_save"])
-        vbox.pack_start(kbutton, False, True, 0)
+        vbox.pack_start(kbutton, expand=False, fill=True, padding=0)
 
         self._windowi.add_actions(
             [

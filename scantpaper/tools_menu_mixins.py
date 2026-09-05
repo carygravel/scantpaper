@@ -87,11 +87,11 @@ class ToolsMenuMixins:
         # SpinButton for threshold
         hboxt = Gtk.Box()
         vbox = windowt.get_content_area()
-        vbox.pack_start(hboxt, False, True, 0)
+        vbox.pack_start(hboxt, expand=False, fill=True, padding=0)
         label = Gtk.Label(label=_("Ink strength"))
-        hboxt.pack_start(label, False, True, 0)
+        hboxt.pack_start(label, expand=False, fill=True, padding=0)
         labelp = Gtk.Label(label=PERCENT)
-        hboxt.pack_end(labelp, False, True, 0)
+        hboxt.pack_end(labelp, expand=False, fill=True, padding=0)
         spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
         spinbutton.set_value(self.settings["threshold tool"])
         spinbutton.set_tooltip_text(
@@ -101,7 +101,7 @@ class ToolsMenuMixins:
                 "stronger marks."
             )
         )
-        hboxt.pack_end(spinbutton, False, True, 0)
+        hboxt.pack_end(spinbutton, expand=False, fill=True, padding=0)
 
         def threshold_apply_callback():
             self.settings["threshold tool"] = spinbutton.get_value()
@@ -149,25 +149,25 @@ class ToolsMenuMixins:
         # SpinButton for brightness
         hbox = Gtk.Box()
         vbox = windowt.get_content_area()
-        vbox.pack_start(hbox, False, True, 0)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
         label = Gtk.Label(label=_("Brightness"))
-        hbox.pack_start(label, False, True, 0)
+        hbox.pack_start(label, expand=False, fill=True, padding=0)
         label = Gtk.Label(label=PERCENT)
-        hbox.pack_end(label, False, True, 0)
+        hbox.pack_end(label, expand=False, fill=True, padding=0)
         spinbuttonb = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
         spinbuttonb.set_value(self.settings["brightness tool"])
-        hbox.pack_end(spinbuttonb, False, True, 0)
+        hbox.pack_end(spinbuttonb, expand=False, fill=True, padding=0)
 
         # SpinButton for contrast
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, False, True, 0)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
         label = Gtk.Label(label=_("Contrast"))
-        hbox.pack_start(label, False, True, 0)
+        hbox.pack_start(label, expand=False, fill=True, padding=0)
         label = Gtk.Label(label=PERCENT)
-        hbox.pack_end(label, False, True, 0)
+        hbox.pack_end(label, expand=False, fill=True, padding=0)
         spinbuttonc = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
         spinbuttonc.set_value(self.settings["contrast tool"])
-        hbox.pack_end(spinbuttonc, False, True, 0)
+        hbox.pack_end(spinbuttonc, expand=False, fill=True, padding=0)
 
         def brightness_contrast_callback():
             self.settings["brightness tool"] = spinbuttonb.get_value()
@@ -282,23 +282,23 @@ class ToolsMenuMixins:
         # grid for layout
         grid = Gtk.Grid()
         vbox = windowum.get_content_area()
-        vbox.pack_start(grid, True, True, 0)
+        vbox.pack_start(grid, expand=True, fill=True, padding=0)
         for i, row in enumerate(layout):
             col = 0
             hbox = Gtk.Box()
             label = Gtk.Label(label=row[col])
             grid.attach(hbox, col, i, 1, 1)
             col += 1
-            hbox.pack_start(label, False, True, 0)
+            hbox.pack_start(label, expand=False, fill=True, padding=0)
             hbox = Gtk.Box()
-            hbox.pack_end(row[col], True, True, 0)
+            hbox.pack_end(row[col], expand=True, fill=True, padding=0)
             grid.attach(hbox, col, i, 1, 1)
             col += 1
             if len(row) > col and row[col] is not None:
                 hbox = Gtk.Box()
                 grid.attach(hbox, col, i, 1, 1)
                 label = Gtk.Label(label=row[col])
-                hbox.pack_start(label, False, True, 0)
+                hbox.pack_start(label, expand=False, fill=True, padding=0)
 
             col += 1
             if len(row) > col and row[col] is not None:
@@ -423,9 +423,9 @@ class ToolsMenuMixins:
         windowsp.add_page_range()
         hbox = Gtk.Box()
         vbox = windowsp.get_content_area()
-        vbox.pack_start(hbox, False, False, 0)
+        vbox.pack_start(hbox, expand=False, fill=False, padding=0)
         label = Gtk.Label(label=_("Direction"))
-        hbox.pack_start(label, False, True, 0)
+        hbox.pack_start(label, expand=False, fill=True, padding=0)
         direction = [
             [
                 "v",
@@ -453,14 +453,14 @@ class ToolsMenuMixins:
 
         combob.connect("changed", changed_split_direction)
         combob.set_active_index("v")
-        hbox.pack_end(combob, False, True, 0)
+        hbox.pack_end(combob, expand=False, fill=True, padding=0)
 
         # SpinButton for position
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, False, True, 0)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
         label = Gtk.Label(label=_("Position"))
-        hbox.pack_start(label, False, True, 0)
-        hbox.pack_end(sb_pos, False, True, 0)
+        hbox.pack_start(label, expand=False, fill=True, padding=0)
+        hbox.pack_end(sb_pos, expand=False, fill=True, padding=0)
         sb_pos.connect(
             "value-changed",
             lambda _: self._update_view_position(
@@ -614,7 +614,7 @@ class ToolsMenuMixins:
             threshold_value=self.settings["threshold tool"],
         )
         vbox = self._windowo.get_content_area()
-        vbox.pack_start(ocr_controls, False, True, 0)
+        vbox.pack_start(ocr_controls, expand=False, fill=True, padding=0)
 
         def ocr_apply_callback():
             self._run_ocr(
@@ -677,9 +677,9 @@ class ToolsMenuMixins:
         windowudt.add_page_range()
         hbox = Gtk.Box()
         vbox = windowudt.get_content_area()
-        vbox.pack_start(hbox, False, False, 0)
+        vbox.pack_start(hbox, expand=False, fill=False, padding=0)
         label = Gtk.Label(label=_("Selected tool"))
-        hbox.pack_start(label, False, True, 0)
+        hbox.pack_start(label, expand=False, fill=True, padding=0)
         self._pref_udt_cmbx = self._add_udt_combobox(hbox)
 
         def udt_apply_callback():

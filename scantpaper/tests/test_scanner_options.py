@@ -135,9 +135,9 @@ def test_within_tolerance():
     assert not within_tolerance(options.by_name("resolution"), 50, 51.1), (
         "SANE_CONSTRAINT_RANGE negative"
     )
-    assert not within_tolerance(options.by_name("hand-scanner"), False, 1), (
-        "SANE_TYPE_BOOL negative"
-    )
+    assert not within_tolerance(
+        options.by_name("hand-scanner"), current_value=False, new_value=1
+    ), "SANE_TYPE_BOOL negative"
     assert within_tolerance(options.by_name("int"), 20, 20), "SANE_TYPE_INT positive"
     assert not within_tolerance(options.by_name("int"), 20, 21), (
         "SANE_TYPE_INT negative"

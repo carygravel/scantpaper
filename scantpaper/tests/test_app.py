@@ -249,7 +249,7 @@ def test_application_do_startup(mocker):
 def test_pyinstaller_path(mocker):
     """Test that base_dir is set correctly when running as a PyInstaller bundle."""
     # Mock sys.frozen and sys._MEIPASS
-    mocker.patch.object(sys, "frozen", True, create=True)
+    mocker.patch.object(sys, "frozen", new=True, create=True)
     mocker.patch.object(sys, "_MEIPASS", "/fake/meipass", create=True)
 
     # Mock gi.require_version to avoid errors

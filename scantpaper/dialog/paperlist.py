@@ -35,7 +35,7 @@ class PaperList(SimpleList):
         # Set everything to be editable except the units
         columns = self.get_columns()
         for col in range(len(columns) - 1):
-            self.set_column_editable(col, True)
+            self.set_column_editable(col, editable=True)
 
         self.get_column(0).set_sort_column_id(0)
 

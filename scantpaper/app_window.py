@@ -380,9 +380,9 @@ class ApplicationWindow(
         phbox = self.builder.get_object("progress_hbox")
         phbox.show()
         self._scan_progress = Progress()
-        phbox.pack_start(self._scan_progress, True, True, 0)
+        phbox.pack_start(self._scan_progress, expand=True, fill=True, padding=0)
         self.post_process_progress = Progress()
-        phbox.pack_start(self.post_process_progress, True, True, 0)
+        phbox.pack_start(self.post_process_progress, expand=True, fill=True, padding=0)
         # Child widgets are already shown in Progress.__init__, container starts hidden
         self.post_process_progress.cancel_callback = self._cancel_post_process
 
@@ -392,7 +392,7 @@ class ApplicationWindow(
 
         # Open scan dialog in background
         if self.settings["auto-open-scan-dialog"]:
-            self.scan_dialog(None, None, True)
+            self.scan_dialog(None, None, hidden=True)
 
         self._find_crashed_sessions()
 
@@ -401,7 +401,7 @@ class ApplicationWindow(
         if args.import_files is not None:
             self._import_files(args.import_files)
         if args.import_all is not None:
-            self._import_files(args.import_all, True)
+            self._import_files(args.import_all, all_pages=True)
 
     def _cancel_post_process(self):
         """Cancel all queued and running post-process jobs."""
@@ -425,7 +425,7 @@ class ApplicationWindow(
         # (Debian #507032)
         # controls in pack1/2 don't seem to be available via UI XML in Gtk4
         self._hpaned.remove(scwin_thumbs)
-        self._hpaned.pack1(scwin_thumbs, False)
+        self._hpaned.pack1(scwin_thumbs, resize=False)
 
         # If dragged below the bottom of the window, scroll it.
         self.slist.connect("drag-motion", drag_motion_callback)
@@ -438,10 +438,10 @@ class ApplicationWindow(
         # Notebook, split panes for detail view and OCR output
         # controls in pack1/2 don't seem to be available via UI XML in Gtk4
         self._vpaned.remove(self._vnotebook)
-        self._vpaned.pack1(self._vnotebook, True)
+        self._vpaned.pack1(self._vnotebook, resize=True)
         edit_hbox = self.builder.get_object("edit_hbox")
         self._vpaned.remove(edit_hbox)
-        self._vpaned.pack2(edit_hbox, False)
+        self._vpaned.pack2(edit_hbox, resize=False)
         self._hpanei.show()
         self._vpanei.show()
 
@@ -580,20 +580,20 @@ class ApplicationWindow(
             self._vnotebook.append_page(
                 self.a_canvas, Gtk.Label(label=_("Annotations"))
             )
-            self._vpaned.pack1(self._vnotebook, True, True)
+            self._vpaned.pack1(self._vnotebook, resize=True, shrink=True)
             self._vnotebook.show_all()
         elif self.settings["viewer_tools"] == "horizontal":
-            self._hpanei.pack1(self.view, True, True)
-            self._hpanei.pack2(self.t_canvas, True, True)
+            self._hpanei.pack1(self.view, resize=True, shrink=True)
+            self._hpanei.pack2(self.t_canvas, resize=True, shrink=True)
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
-            self._vpaned.pack1(self._hpanei, True, True)
+            self._vpaned.pack1(self._hpanei, resize=True, shrink=True)
         else:  # vertical
-            self._vpanei.pack1(self.view, True, True)
-            self._vpanei.pack2(self.t_canvas, True, True)
+            self._vpanei.pack1(self.view, resize=True, shrink=True)
+            self._vpanei.pack2(self.t_canvas, resize=True, shrink=True)
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
-            self._vpaned.pack1(self._vpanei, True, True)
+            self._vpaned.pack1(self._vpanei, resize=True, shrink=True)
 
     def _handle_clicks(self, widget, event):
         if event.button == 3:  # RIGHT_MOUSE_BUTTON
@@ -696,7 +696,13 @@ class ApplicationWindow(
         if selection:
             i = selection.pop(0)
             path = Gtk.TreePath.new_from_indices([i])
-            self.slist.scroll_to_cell(path, self.slist.get_column(0), True, HALF, HALF)
+            self.slist.scroll_to_cell(
+                path,
+                self.slist.get_column(0),
+                use_align=True,
+                row_align=HALF,
+                col_align=HALF,
+            )
             sel = self.view.get_selection()
             with contextlib.suppress(ValueError):
                 # if a page is deleted this is still fired, so ignore it
@@ -914,7 +920,7 @@ class ApplicationWindow(
             if response == "reopen":
                 self.scan_dialog(None, None)
             elif response == "rescan":
-                self.scan_dialog(None, None, False, True)
+                self.scan_dialog(None, None, hidden=False, scan=True)
             elif response == "restart":
                 self._restart()
 

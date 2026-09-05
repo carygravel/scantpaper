@@ -753,7 +753,7 @@ def test_process_error_rescan(app_window, mocker):
     mocker.patch("app_window.Gtk.CheckButton.new_with_label")
 
     app_window._process_error_callback(None, "open_device", "Device busy", None)
-    app_window.scan_dialog.assert_called_with(None, None, False, True)
+    app_window.scan_dialog.assert_called_with(None, None, hidden=False, scan=True)
 
 
 def test_process_error_ignore(app_window, mocker):
@@ -919,8 +919,8 @@ def test_process_error_callback(app_window, mocker):
     mock_radio2.get_active.return_value = True
     app_window.scan_dialog.reset_mock()
     app_window._process_error_callback(None, "open_device", "Device busy", None)
-    # response should be "rescan", scan_dialog(None, None, False, True)
-    app_window.scan_dialog.assert_called_with(None, None, False, True)
+    # response should be "rescan", scan_dialog(None, None, hidden=False, scan=True)
+    app_window.scan_dialog.assert_called_with(None, None, hidden=False, scan=True)
 
     # open_device error - show dialog and select restart
     mock_radio2.get_active.return_value = False
@@ -1042,14 +1042,22 @@ def test_pack_viewer_tools(app_window):
     # Horizontal
     app_window.settings["viewer_tools"] = "horizontal"
     app_window._pack_viewer_tools()
-    app_window._hpanei.pack1.assert_called_with(app_window.view, True, True)
-    app_window._hpanei.pack2.assert_called_with(app_window.t_canvas, True, True)
+    app_window._hpanei.pack1.assert_called_with(
+        app_window.view, resize=True, shrink=True
+    )
+    app_window._hpanei.pack2.assert_called_with(
+        app_window.t_canvas, resize=True, shrink=True
+    )
 
     # Vertical
     app_window.settings["viewer_tools"] = "vertical"
     app_window._pack_viewer_tools()
-    app_window._vpanei.pack1.assert_called_with(app_window.view, True, True)
-    app_window._vpanei.pack2.assert_called_with(app_window.t_canvas, True, True)
+    app_window._vpanei.pack1.assert_called_with(
+        app_window.view, resize=True, shrink=True
+    )
+    app_window._vpanei.pack2.assert_called_with(
+        app_window.t_canvas, resize=True, shrink=True
+    )
 
 
 def test_show_message_dialog(app_window, mocker):
@@ -1251,9 +1259,9 @@ def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
         with patch.object(Gtk.Application, "register", autospec=True):
             app.register(None)
             win = ApplicationWindow(application=app)
-            mock_scan_dialog.assert_called_once_with(None, None, True)
+            mock_scan_dialog.assert_called_once_with(None, None, hidden=True)
             assert mock_import_files.call_count == 2
-            mock_import_files.assert_any_call(["file2.pdf"], True)
+            mock_import_files.assert_any_call(["file2.pdf"], all_pages=True)
     finally:
         if win:
             win.destroy()

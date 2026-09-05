@@ -336,7 +336,7 @@ class Unpaper:
 
         # Notebook to collate options
         notebook = Gtk.Notebook()
-        vbox.pack_start(notebook, True, True, 0)
+        vbox.pack_start(notebook, expand=True, fill=True, padding=0)
 
         vbox1 = self._add_notebook_page_1(vbox, options)
         notebook.append_page(vbox1, Gtk.Label(label=_("Deskew")))
@@ -372,11 +372,11 @@ class Unpaper:
 
     def _add_combobox(self, vbox, hashref, option):
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, True, True, 0)
+        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=hashref[option]["string"])
-        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
         widget = Gtk.ComboBoxText()
-        hbox.pack_end(widget, False, False, 0)
+        hbox.pack_end(widget, expand=False, fill=False, padding=0)
 
         # Add text and tooltips
         tooltip = []
@@ -395,12 +395,12 @@ class Unpaper:
     def _add_checkbutton(self, vbox, hashref, option):
         widget = Gtk.CheckButton(label=hashref[option]["string"])
         widget.set_tooltip_text(hashref[option]["tooltip"])
-        vbox.pack_start(widget, True, True, 0)
+        vbox.pack_start(widget, expand=True, fill=True, padding=0)
         return widget
 
     def _add_checkbuttongroup(self, vbox, hashref, option):
         widget = Gtk.Frame(label=hashref[option]["string"])
-        vbox.pack_start(widget, True, True, 0)
+        vbox.pack_start(widget, expand=True, fill=True, padding=0)
         vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxf.set_border_width(vbox.get_border_width())
         widget.add(vboxf)
@@ -412,13 +412,13 @@ class Unpaper:
     def _add_spinbutton(self, vbox, hashref, option):
         default = self.default
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, True, True, 0)
+        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=hashref[option]["string"])
-        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
         widget = Gtk.SpinButton.new_with_range(
             hashref[option]["min"], hashref[option]["max"], hashref[option]["step"]
         )
-        hbox.pack_end(widget, False, False, 0)
+        hbox.pack_end(widget, expand=False, fill=False, padding=0)
         widget.set_tooltip_text(hashref[option]["tooltip"])
         if option in default:
             widget.set_value(default[option])
@@ -426,7 +426,7 @@ class Unpaper:
 
     def _add_spinbuttongroup(self, vbox, hashref, option):
         widget = Gtk.Frame(label=hashref[option]["string"])
-        vbox.pack_start(widget, True, True, 0)
+        vbox.pack_start(widget, expand=True, fill=True, padding=0)
         vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vboxf.set_border_width(vbox.get_border_width())
         widget.add(vboxf)

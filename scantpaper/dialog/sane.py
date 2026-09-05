@@ -57,7 +57,7 @@ class SaneScanDialog(Scan):
             pbar.set_show_text(True)
             pbar.set_pulse_step(self.progress_pulse_step)
             pbar.set_text(_("Fetching list of devices"))
-            hboxd.pack_start(pbar, True, True, 0)
+            hboxd.pack_start(pbar, expand=True, fill=True, padding=0)
             hboxd.hide()
             hboxd.show()
             pbar.show()
@@ -105,7 +105,7 @@ class SaneScanDialog(Scan):
             self.emit("started-process", _("Opening device"))
 
             # Ghost the scan button whilst options being updated
-            self.set_response_sensitive(Gtk.ResponseType.OK, False)
+            self.set_response_sensitive(Gtk.ResponseType.OK, setting=False)
 
         def running_callback(_data):
             self.emit("changed-progress", None, None)
@@ -211,11 +211,11 @@ class SaneScanDialog(Scan):
             # so that it can be put before first geometry option
             if hboxp is None and _geometry_option(opt):
                 hboxp = Gtk.Box()
-                vbox.pack_start(hboxp, False, False, 0)
+                vbox.pack_start(hboxp, expand=False, fill=False, padding=0)
 
             # HBox for option
             hbox = Gtk.Box()
-            vbox.pack_start(hbox, False, True, 0)
+            vbox.pack_start(hbox, expand=False, fill=True, padding=0)
             if opt.cap & enums.CAP_INACTIVE or not opt.cap & enums.CAP_SOFT_SELECT:
                 hbox.set_sensitive(False)
 
@@ -232,7 +232,7 @@ class SaneScanDialog(Scan):
         for i in range(2, self.notebook.get_n_pages()):
             self.notebook.get_nth_page(i).show_all()
 
-        self.set_response_sensitive(Gtk.ResponseType.OK, True)
+        self.set_response_sensitive(Gtk.ResponseType.OK, setting=True)
 
     def _create_widget_switch(self, opt, val):
         widget = Gtk.Switch()
@@ -242,7 +242,7 @@ class SaneScanDialog(Scan):
         def activate_switch_cb(_widget, _arg2):
             self.num_reloads = 0  # num-reloads is read-only
             value = widget.get_active()
-            self.set_option(opt, value)
+            self.set_option(opt, value=value)
 
         widget.signal = widget.connect("notify::active", activate_switch_cb)
         return widget
@@ -252,7 +252,7 @@ class SaneScanDialog(Scan):
 
         def clicked_button_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
-            self.set_option(opt, None)
+            self.set_option(opt, value=None)
 
         widget.signal = widget.connect("clicked", clicked_button_cb)
         return widget
@@ -283,7 +283,7 @@ class SaneScanDialog(Scan):
             value = widget.get_value()
             if opt.type == enums.TYPE_INT:
                 value = int(value)
-            self.set_option(opt, value)
+            self.set_option(opt, value=value)
 
         widget.signal = widget.connect("value-changed", value_changed_spinbutton_cb)
         return widget
@@ -308,7 +308,7 @@ class SaneScanDialog(Scan):
             # tested by 06197_Dialog_Scan_Image_Sane
             options = self.available_scan_options
             updated_opt = options.by_name(opt.name)
-            self.set_option(updated_opt, updated_opt.constraint[i])
+            self.set_option(updated_opt, value=updated_opt.constraint[i])
 
         widget.signal = widget.connect("changed", changed_combobox_cb)
         return widget
@@ -324,7 +324,7 @@ class SaneScanDialog(Scan):
         def activate_entry_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
             value = widget.get_text()
-            self.set_option(opt, value)
+            self.set_option(opt, value=value)
 
         widget.signal = widget.connect("activate", activate_entry_cb)
         return widget
@@ -338,7 +338,7 @@ class SaneScanDialog(Scan):
                 text = opt.name
 
             label = Gtk.Label(label=d_sane(text))
-            hbox.pack_start(label, False, False, 0)
+            hbox.pack_start(label, expand=False, fill=False, padding=0)
 
         widget = None
         if opt.type == enums.TYPE_BOOL:

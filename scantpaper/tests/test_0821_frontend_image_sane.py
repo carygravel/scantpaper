@@ -28,7 +28,7 @@ class FakeBrscan5Device:
     backend's buffer. Flatbed mode refills the glass on every ``start()``.
     """
 
-    def __init__(self, frames=None, refill=False):
+    def __init__(self, frames=None, *, refill=False):
         """Initialise FeederEmptyError."""
         self.buffered = list(frames) if frames is not None else []
         self.refill = refill
@@ -57,7 +57,7 @@ class FakeBrscan5Device:
         """Report scan parameters with a small but positive line count."""
         return ("color", 1, (100, 10), 8, 30)
 
-    def snap(self, no_cancel=False, progress=None):
+    def snap(self, *, no_cancel=False, progress=None):
         """Read the next buffered frame, optionally blocking to emulate a transfer."""
         del progress
         self.snap_no_cancel.append(no_cancel)
@@ -279,7 +279,9 @@ def test_4():
 
     mlp = safe_mainloop(2000)
     thread.set_option(
-        "enable-test-options", True, finished_callback=lambda _response: mlp.quit()
+        "enable-test-options",
+        value=True,
+        finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
 
@@ -347,7 +349,7 @@ def test_5_edge_cases_part_1():
         asserts += 1
         mlp.quit()
 
-    thread.set_option("three-pass", True, error_callback=error_callback_inactive)
+    thread.set_option("three-pass", value=True, error_callback=error_callback_inactive)
     mlp.run()
     assert asserts == 3, "checked inactive option"
 
@@ -394,7 +396,7 @@ def test_5_edge_cases_part_2():
         mlp.quit()
 
     thread.set_option(
-        "enable-test-options", True, finished_callback=finished_callback_enable
+        "enable-test-options", value=True, finished_callback=finished_callback_enable
     )
     mlp.run()
     assert asserts == 3, "enabled test options"
@@ -491,7 +493,9 @@ def test_6_mock_device():
             asserts += 1
             mlp.quit()
 
-        thread.set_option("unsettable-option", True, error_callback=error_cb_unsettable)
+        thread.set_option(
+            "unsettable-option", value=True, error_callback=error_cb_unsettable
+        )
         mlp.run()
 
         # 3. Test Reload Option with __load_option_dict (Line 116)
@@ -500,7 +504,9 @@ def test_6_mock_device():
             asserts += 1
             mlp.quit()
 
-        thread.set_option("reload-option", True, finished_callback=finished_cb_reload)
+        thread.set_option(
+            "reload-option", value=True, finished_callback=finished_cb_reload
+        )
         mlp.run()
 
         mock_dev_instance.__dict__["__load_option_dict"].assert_called_once()
@@ -516,7 +522,9 @@ def test_6_mock_device():
 
         mock_dev_instance.__dict__["_SaneDev__load_option_dict"] = MagicMock()
 
-        thread.set_option("reload-option", False, finished_callback=finished_cb_reload)
+        thread.set_option(
+            "reload-option", value=False, finished_callback=finished_cb_reload
+        )
         mlp.run()
 
         mock_dev_instance.__dict__["_SaneDev__load_option_dict"].assert_called_once()

@@ -461,7 +461,8 @@ def test_drag_data_received_callback_path_to_string():
         )
 
         # Assert that Gtk.drag_finish was called
-        mock_drag_finish.assert_called_once_with(context, True, False, time)
+        # Gtk.drag_finish() takes position-only args; PyGObject rejects keywords
+        mock_drag_finish.assert_called_once_with(context, True, False, time)  # noqa: FBT003
 
 
 def test_reorder_data_moves_pages():

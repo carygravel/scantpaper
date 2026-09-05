@@ -81,17 +81,17 @@ class TextLayerControls(Gtk.Box):
             _("_Delete"), _("Delete text"), "delete-clicked"
         )
 
-        self.pack_start(fbutton, False, False, 0)
-        self.pack_start(pbutton, False, False, 0)
-        self.pack_start(sort_cmbx, False, False, 0)
-        self.pack_start(nbutton, False, False, 0)
-        self.pack_start(lbutton, False, False, 0)
-        self.pack_start(textview, True, True, 0)
-        self.pack_end(dbutton, False, False, 0)
-        self.pack_end(cbutton, False, False, 0)
-        self.pack_end(obutton, False, False, 0)
-        self.pack_end(ubutton, False, False, 0)
-        self.pack_end(abutton, False, False, 0)
+        self.pack_start(fbutton, expand=False, fill=False, padding=0)
+        self.pack_start(pbutton, expand=False, fill=False, padding=0)
+        self.pack_start(sort_cmbx, expand=False, fill=False, padding=0)
+        self.pack_start(nbutton, expand=False, fill=False, padding=0)
+        self.pack_start(lbutton, expand=False, fill=False, padding=0)
+        self.pack_start(textview, expand=True, fill=True, padding=0)
+        self.pack_end(dbutton, expand=False, fill=False, padding=0)
+        self.pack_end(cbutton, expand=False, fill=False, padding=0)
+        self.pack_end(obutton, expand=False, fill=False, padding=0)
+        self.pack_end(ubutton, expand=False, fill=False, padding=0)
+        self.pack_end(abutton, expand=False, fill=False, padding=0)
 
     def _make_icon_button(self, icon, tooltip, signal):
         """Build an icon button that emits the given signal."""
@@ -101,7 +101,7 @@ class TextLayerControls(Gtk.Box):
         button.connect("clicked", lambda _: self.emit(signal))
         return button
 
-    def _make_mnemonic_button(self, label, tooltip, signal=None, close=False):
+    def _make_mnemonic_button(self, label, tooltip, signal=None, *, close=False):
         """Build a mnemonic button that emits the given signal or closes."""
         button = Gtk.Button.new_with_mnemonic(label=label)
         button.set_tooltip_text(tooltip)

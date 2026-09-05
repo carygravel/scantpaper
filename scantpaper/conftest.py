@@ -287,7 +287,7 @@ def import_in_mainloop():
 def set_saved_in_mainloop():
     """set_saved in a blocking mainloop."""
 
-    def anonymous(slist, page_id, saved=True):
+    def anonymous(slist, page_id, *, saved=True):
         mlp = safe_mainloop()
         slist.thread.send(
             "set_saved", page_id, saved, finished_callback=lambda _response: mlp.quit()

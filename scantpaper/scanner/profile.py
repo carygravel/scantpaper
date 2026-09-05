@@ -75,7 +75,7 @@ class Profile(GObject.Object):
 
         # Note any duplicate options, keeping only the last entry.
         seen = {}
-        for i in self.each_backend_option(True):
+        for i in self.each_backend_option(backwards=True):
             nam, _value = self.get_backend_option_by_index(i)
             synonyms = _synonyms(nam)
             for key in synonyms:
@@ -108,7 +108,7 @@ class Profile(GObject.Object):
 
         self.uuid = str(uuid.uuid1())
 
-    def each_backend_option(self, backwards=False):
+    def each_backend_option(self, *, backwards=False):
         """Iterate over backend options."""
         i = len(self.backend) - 1 if backwards else 0
         while -1 < i < len(self.backend):

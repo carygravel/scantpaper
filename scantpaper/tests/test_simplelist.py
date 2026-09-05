@@ -108,7 +108,7 @@ def test_error():
         slist.get_column_editable(1)
 
     with pytest.raises(ValueError, match="invalid column index"):
-        slist.set_column_editable(1, True)
+        slist.set_column_editable(1, editable=True)
 
     with pytest.raises(IndexError):
         slist.data.pop()
@@ -158,7 +158,7 @@ def test_signals():
     slist.data.append(["row1", True])
 
     assert not slist.get_column_editable(0), "get_column_editable"
-    slist.set_column_editable(0, True)
+    slist.set_column_editable(0, editable=True)
     assert slist.get_column_editable(0), "set_column_editable"
 
     column = slist.get_column(0)
@@ -181,7 +181,7 @@ def test_pixbuf():
 def test_shared_renderer_isolation():
     """Test that modifying one SimpleList does not affect another."""
     slist1 = SimpleList(col1="text")
-    slist1.set_column_editable(0, True)
+    slist1.set_column_editable(0, editable=True)
 
     slist2 = SimpleList(col1="text")
     assert not slist2.get_column_editable(0), (
@@ -194,8 +194,8 @@ def test_edited_types():
     slist = SimpleList(col1="int", col2="double")
     slist.data.append([1, 1.1])
 
-    slist.set_column_editable(0, True)
-    slist.set_column_editable(1, True)
+    slist.set_column_editable(0, editable=True)
+    slist.set_column_editable(1, editable=True)
 
     column0 = slist.get_column(0)
     cell_renderer0 = column0.get_cells()[0]

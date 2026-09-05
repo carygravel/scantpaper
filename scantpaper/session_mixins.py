@@ -247,7 +247,7 @@ class SessionMixins:
         # Immediate: show the thumbnail pixbuf from self.data[i][1]
         thumbnail_pixbuf = self.slist.data[i][1]
         if thumbnail_pixbuf is not None:
-            self.view.set_pixbuf(thumbnail_pixbuf, True)
+            self.view.set_pixbuf(thumbnail_pixbuf, zoom_to_fit=True)
 
         # Deferred: send "get_page" async with callback for full-res. During a
         # bulk import this is suppressed (thumbnails only) and a single
@@ -257,7 +257,7 @@ class SessionMixins:
 
         def on_page_loaded(response):
             self._current_page = response.info
-            self.view.set_pixbuf(self._current_page.get_pixbuf(), True)
+            self.view.set_pixbuf(self._current_page.get_pixbuf(), zoom_to_fit=True)
             xresolution, yresolution, _units = self._current_page.get_resolution()
             self.view.set_resolution_ratio(xresolution / yresolution)
 
@@ -398,7 +398,7 @@ class SessionMixins:
         # split panes for detail view/text layer canvas and text layer dialog
         self._ocr_text_hbox = TextLayerControls()
         edit_hbox = self.builder.get_object("edit_hbox")
-        edit_hbox.pack_start(self._ocr_text_hbox, True, True, 0)
+        edit_hbox.pack_start(self._ocr_text_hbox, expand=True, fill=True, padding=0)
         self._ocr_text_hbox.connect(
             "go-to-first", lambda _: self._edit_ocr_text(self.t_canvas.get_first_bbox())
         )
@@ -420,7 +420,7 @@ class SessionMixins:
 
         # split panes for detail view/text layer canvas and text layer dialog
         self._ann_hbox = TextLayerControls()
-        edit_hbox.pack_start(self._ann_hbox, True, True, 0)
+        edit_hbox.pack_start(self._ann_hbox, expand=True, fill=True, padding=0)
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
         self._ann_hbox._textbuffer = ann_textview.get_buffer()
@@ -439,11 +439,11 @@ class SessionMixins:
         ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
         ann_dbutton.set_tooltip_text(_("Delete annotation"))
         ann_dbutton.connect("clicked", self._ann_text_delete)
-        self._ann_hbox.pack_start(ann_textview, False, False, 0)
-        self._ann_hbox.pack_end(ann_dbutton, False, False, 0)
-        self._ann_hbox.pack_end(ann_cbutton, False, False, 0)
-        self._ann_hbox.pack_end(ann_obutton, False, False, 0)
-        self._ann_hbox.pack_end(ann_abutton, False, False, 0)
+        self._ann_hbox.pack_start(ann_textview, expand=False, fill=False, padding=0)
+        self._ann_hbox.pack_end(ann_dbutton, expand=False, fill=False, padding=0)
+        self._ann_hbox.pack_end(ann_cbutton, expand=False, fill=False, padding=0)
+        self._ann_hbox.pack_end(ann_obutton, expand=False, fill=False, padding=0)
+        self._ann_hbox.pack_end(ann_abutton, expand=False, fill=False, padding=0)
         self._pack_viewer_tools()
 
     def _ocr_text_button_clicked(self, _widget):
@@ -451,7 +451,7 @@ class SessionMixins:
         text = self._ocr_text_hbox._textbuffer.get_text(
             self._ocr_text_hbox._textbuffer.get_start_iter(),
             self._ocr_text_hbox._textbuffer.get_end_iter(),
-            False,
+            include_hidden_chars=False,
         )
         self._current_ocr_bbox.update_box(text, self.view.get_selection())
         hocr = self.t_canvas.hocr()
@@ -465,7 +465,7 @@ class SessionMixins:
             text=self._ocr_text_hbox._textbuffer.get_text(
                 self._ocr_text_hbox._textbuffer.get_start_iter(),
                 self._ocr_text_hbox._textbuffer.get_end_iter(),
-                False,
+                include_hidden_chars=False,
             ),
             bbox=self.view.get_selection(),
         )
@@ -478,7 +478,7 @@ class SessionMixins:
         text = self._ocr_text_hbox._textbuffer.get_text(
             self._ocr_text_hbox._textbuffer.get_start_iter(),
             self._ocr_text_hbox._textbuffer.get_end_iter(),
-            False,
+            include_hidden_chars=False,
         )
         if text is None or text == EMPTY:
             text = _("my-new-word")
@@ -520,7 +520,7 @@ class SessionMixins:
         text = self._ann_hbox._textbuffer.get_text(
             self._ann_hbox._textbuffer.get_start_iter(),
             self._ann_hbox._textbuffer.get_end_iter(),
-            False,
+            include_hidden_chars=False,
         )
         logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
         self._current_ann_bbox.update_box(text, self.view.get_selection())
@@ -531,7 +531,7 @@ class SessionMixins:
         text = self._ann_hbox._textbuffer.get_text(
             self._ann_hbox._textbuffer.get_start_iter(),
             self._ann_hbox._textbuffer.get_end_iter(),
-            False,
+            include_hidden_chars=False,
         )
         if text is None or text == EMPTY:
             text = _("my-new-annotation")
@@ -586,7 +586,7 @@ class SessionMixins:
         self._ocr_text_hbox._textbuffer.set_text(bbox.text)
         self._ocr_text_hbox.show_all()
         self.view.set_selection(bbox.bbox)
-        self.view.setzoom_is_fit(False)
+        self.view.setzoom_is_fit(zoom_to_fit=False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
 
         if bbox:
@@ -598,7 +598,7 @@ class SessionMixins:
         self._ann_hbox._textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
         self.view.set_selection(bbox.bbox)
-        self.view.setzoom_is_fit(False)
+        self.view.setzoom_is_fit(zoom_to_fit=False)
         self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
 
         if bbox:

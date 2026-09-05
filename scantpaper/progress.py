@@ -32,11 +32,11 @@ class Progress(Gtk.Box):
         self._pbar = Gtk.ProgressBar()
         self._pbar.set_show_text(True)
         self._pbar.set_hexpand(True)
-        self.pack_start(self._pbar, True, True, 0)
+        self.pack_start(self._pbar, expand=True, fill=True, padding=0)
         self._pbar.show()
         self._button = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         self._button.connect("clicked", self._on_button_clicked)
-        self.pack_end(self._button, False, False, 0)
+        self.pack_end(self._button, expand=False, fill=False, padding=0)
         self._button.show()
 
     def _on_button_clicked(self, _button):

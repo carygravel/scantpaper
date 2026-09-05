@@ -420,7 +420,7 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
         return position, thumb, page_id
 
-    def replace_page(self, page, initial_page_id, reuse_image=False):
+    def replace_page(self, page, initial_page_id, *, reuse_image=False):
         """Replace a page in the database, keeping its position."""
         self._check_write_tid()
         self._take_snapshot()

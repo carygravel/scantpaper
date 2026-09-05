@@ -265,7 +265,7 @@ class SaneThread(BaseThread):
             raise result
         return result
 
-    def scan_page(self, cancel_between_pages=False, **kwargs):
+    def scan_page(self, *, cancel_between_pages=False, **kwargs):
         """Scan page."""
         return self.send("scan_page", cancel_between_pages, **kwargs)
 
@@ -309,7 +309,7 @@ class SaneThread(BaseThread):
         if kwargs["finished_callback"] is not None:
             kwargs["finished_callback"](response)
 
-    def scan_pages(self, cancel_between_pages=False, **kwargs):
+    def scan_pages(self, *, cancel_between_pages=False, **kwargs):
         """Scan pages."""
         self.num_pages_scanned = 0
         self.num_pages = kwargs["num_pages"]

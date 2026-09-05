@@ -76,7 +76,7 @@ def _confirm_libusb_caching(parent, device_list, settings):
 class ScanMenuItemMixins:
     """provide methods called from scan menu item."""
 
-    def scan_dialog(self, _action, _param, hidden=False, scan=False):
+    def scan_dialog(self, _action, _param, *, hidden=False, scan=False):
         """Scan."""
         if self._windows:
             self._windows.show_all()
@@ -196,7 +196,7 @@ class ScanMenuItemMixins:
             rotate_facing=self.settings["rotate facing"],
             rotate_reverse=self.settings["rotate reverse"],
         )
-        vboxp.pack_start(self._rotate_controls, False, False, 0)
+        vboxp.pack_start(self._rotate_controls, expand=False, fill=False, padding=0)
 
         # CheckButton for unpaper
         ubutton = self._add_postprocessing_unpaper(vboxp)
@@ -211,7 +211,7 @@ class ScanMenuItemMixins:
             threshold=self.settings["threshold-before-ocr"],
             threshold_value=self.settings["threshold tool"],
         )
-        vboxp.pack_start(ocr_controls, False, False, 0)
+        vboxp.pack_start(ocr_controls, expand=False, fill=False, padding=0)
 
         def clicked_scan_button_cb(_w):
             self.settings["rotate facing"] = self._rotate_controls.rotate_facing
@@ -247,19 +247,19 @@ class ScanMenuItemMixins:
 
     def _add_postprocessing_unpaper(self, vboxp):
         hboxu = Gtk.Box()
-        vboxp.pack_start(hboxu, False, False, 0)
+        vboxp.pack_start(hboxu, expand=False, fill=False, padding=0)
         ubutton = Gtk.CheckButton(label=_("Clean up images"))
         ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
-        hboxu.pack_start(ubutton, True, True, 0)
+        hboxu.pack_start(ubutton, expand=True, fill=True, padding=0)
         if not self._dependencies["unpaper"]:
-            ubutton.set_sensitive(False)
-            ubutton.set_active(False)
+            ubutton.set_sensitive(sensitive=False)
+            ubutton.set_active(is_active=False)
         elif self.settings["unpaper on scan"]:
-            ubutton.set_active(True)
+            ubutton.set_active(is_active=True)
 
         button = Gtk.Button(label=_("Options"))
         button.set_tooltip_text(_("Set unpaper options"))
-        hboxu.pack_end(button, True, True, 0)
+        hboxu.pack_end(button, expand=True, fill=True, padding=0)
         button.connect("clicked", self._show_unpaper_options)
         return ubutton
 
@@ -285,18 +285,18 @@ class ScanMenuItemMixins:
     def _add_postprocessing_udt(self, vboxp):
         """Add a user-defined tool (UDT) post-processing option to the given VBox."""
         hboxudt = Gtk.Box()
-        vboxp.pack_start(hboxudt, False, False, 0)
+        vboxp.pack_start(hboxudt, expand=False, fill=False, padding=0)
         self._scan_udt_hbox = hboxudt
         udtbutton = Gtk.CheckButton(label=_("Process with user-defined tool"))
         udtbutton.set_tooltip_text(_("Process scanned images with user-defined tool"))
         self._scan_udt_button = udtbutton
-        hboxudt.pack_start(udtbutton, True, True, 0)
+        hboxudt.pack_start(udtbutton, expand=True, fill=True, padding=0)
         if not self.settings["user_defined_tools"]:
-            hboxudt.set_sensitive(False)
-            udtbutton.set_active(False)
+            hboxudt.set_sensitive(sensitive=False)
+            udtbutton.set_active(is_active=False)
 
         elif self.settings["udt_on_scan"]:
-            udtbutton.set_active(True)
+            udtbutton.set_active(is_active=True)
 
         return udtbutton, self._add_udt_combobox(hboxudt)
 
@@ -306,7 +306,7 @@ class ScanMenuItemMixins:
 
         combobox = ComboBoxText(data=toolarray)
         combobox.set_active_index(self.settings["current_udt"])
-        hbox.pack_start(combobox, True, True, 0)
+        hbox.pack_start(combobox, expand=True, fill=True, padding=0)
         return combobox
 
     def _changed_device_callback(self, widget, device):

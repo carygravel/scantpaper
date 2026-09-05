@@ -443,7 +443,9 @@ def test_display_image(mocker, mock_session_window):
     mock_session_window._display_image("page_id")
 
     # Thumbnail should be set immediately
-    mock_session_window.view.set_pixbuf.assert_called_with(mock_thumbnail, True)
+    mock_session_window.view.set_pixbuf.assert_called_with(
+        mock_thumbnail, zoom_to_fit=True
+    )
 
     # Simulate async response by calling the finished callback
     mock_response = mocker.Mock()
@@ -451,7 +453,7 @@ def test_display_image(mocker, mock_session_window):
     captured_callbacks["finished_callback"](mock_response)
 
     # Now the full-res pixbuf should be set
-    mock_session_window.view.set_pixbuf.assert_called_with("pixbuf", True)
+    mock_session_window.view.set_pixbuf.assert_called_with("pixbuf", zoom_to_fit=True)
     mock_session_window.view.set_resolution_ratio.assert_called_with(1.0)
     assert mock_session_window._windowc.page_width == 1000
     assert mock_session_window._windowc.page_height == 2000
@@ -526,7 +528,9 @@ def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
     mock_session_window._suppress_full_display = True
     mock_session_window._display_image("page_id")
 
-    mock_session_window.view.set_pixbuf.assert_called_with(mock_thumbnail, True)
+    mock_session_window.view.set_pixbuf.assert_called_with(
+        mock_thumbnail, zoom_to_fit=True
+    )
     assert not sent_requests, "no get_page while import is in progress"
 
 

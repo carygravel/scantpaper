@@ -389,7 +389,7 @@ def test_progress_update_none():
     """Test that update returns early on falsy response."""
     progress = Progress()
     progress.update(None)
-    progress.update(False)
+    progress.update(response=False)
 
 
 def test_progress_child_widgets_shown_after_init():

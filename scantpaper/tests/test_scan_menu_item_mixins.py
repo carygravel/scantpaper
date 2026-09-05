@@ -335,8 +335,8 @@ def test_add_postprocessing_unpaper_disabled(mocker, mock_scan_window):
 
     mock_scan_window._add_postprocessing_unpaper(mock_vbox)
 
-    mock_btn.set_sensitive.assert_called_with(False)
-    mock_btn.set_active.assert_called_with(False)
+    mock_btn.set_sensitive.assert_called_with(sensitive=False)
+    mock_btn.set_active.assert_called_with(is_active=False)
 
 
 def test_add_postprocessing_unpaper_enabled_active(mocker, mock_scan_window):
@@ -349,7 +349,7 @@ def test_add_postprocessing_unpaper_enabled_active(mocker, mock_scan_window):
 
     mock_scan_window._add_postprocessing_unpaper(mock_vbox)
 
-    mock_btn.set_active.assert_called_with(True)
+    mock_btn.set_active.assert_called_with(is_active=True)
 
 
 def test_add_postprocessing_udt_enabled(mocker, mock_scan_window):
@@ -362,7 +362,7 @@ def test_add_postprocessing_udt_enabled(mocker, mock_scan_window):
 
     mock_scan_window._add_postprocessing_udt(mock_vbox)
 
-    mock_btn.set_active.assert_called_with(True)
+    mock_btn.set_active.assert_called_with(is_active=True)
 
 
 def test_add_postprocessing_udt_disabled(mocker, mock_scan_window):
@@ -376,8 +376,8 @@ def test_add_postprocessing_udt_disabled(mocker, mock_scan_window):
 
     mock_scan_window._add_postprocessing_udt(mock_vbox)
 
-    mock_hbox.set_sensitive.assert_called_with(False)
-    mock_btn.set_active.assert_called_with(False)
+    mock_hbox.set_sensitive.assert_called_with(sensitive=False)
+    mock_btn.set_active.assert_called_with(is_active=False)
 
 
 def test_changed_device_callback(mock_scan_window):

@@ -306,13 +306,13 @@ class TestOCRControls:
         mock_hbox = MagicMock()
         controls.on_toggled_active(MagicMock(get_active=lambda: True), mock_hbox)
         assert controls.active
-        mock_hbox.set_sensitive.assert_called_with(True)
+        mock_hbox.set_sensitive.assert_called_with(sensitive=True)
 
         # on_toggled_threshold
         mock_spin = MagicMock()
         controls.on_toggled_threshold(MagicMock(get_active=lambda: True), mock_spin)
         assert controls.threshold
-        mock_spin.set_sensitive.assert_called_with(True)
+        mock_spin.set_sensitive.assert_called_with(sensitive=True)
 
         # on_threshold_changed
         controls.on_threshold_changed(None, 75)

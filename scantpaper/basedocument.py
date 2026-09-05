@@ -104,7 +104,7 @@ class BaseDocument(SimpleList):
         self.connect("drag-drop", drag_drop_callback)
 
         # Set the page number to be editable
-        self.set_column_editable(0, True)
+        self.set_column_editable(0, editable=True)
         self.row_changed_signal = self.get_model().connect(
             "row-changed", _weak_callback(self, "_on_row_changed")
         )
@@ -722,7 +722,8 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
     # https://stackoverflow.com/questions/48469655/drop-file-in-python-gui-gtk
     if hasattr(tree, "drops") and time in tree.drops:
         tree.drops = {}
-        Gtk.drag_finish(context, True, False, time)
+        # Gdk.drag_finish() takes position-only args; PyGObject rejects keywords
+        Gtk.drag_finish(context, True, False, time)  # noqa: FBT003
         return
 
     if not hasattr(tree, "drops"):
@@ -733,7 +734,8 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
         uris = data.get_uris()
 
         tree.import_files(paths=uris)
-        Gtk.drag_finish(context, True, False, time)
+        # Gdk.drag_finish() takes position-only args; PyGObject rejects keywords
+        Gtk.drag_finish(context, True, False, time)  # noqa: FBT003
 
     elif info == ID_PAGE:
         rows = tree.get_selected_indices()
@@ -758,7 +760,8 @@ def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
 
         page_ids = [tree.data[i][2] for i in rows]
         tree.reorder_pages(page_ids, dest, how)
-        Gtk.drag_finish(context, True, False, time)
+        # Gdk.drag_finish() takes position-only args; PyGObject rejects keywords
+        Gtk.drag_finish(context, True, False, time)  # noqa: FBT003
 
     else:
         context.abort()

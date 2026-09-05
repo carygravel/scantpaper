@@ -900,9 +900,9 @@ def test_integer_spinbutton(sane_scan_dialog, set_device_wait_reload):
     widget.set_value(51.0)
 
     dialog.set_option.assert_called_once()
-    args, _kwargs = dialog.set_option.call_args
+    args, kwargs = dialog.set_option.call_args
     assert args[0].name == opt.name
-    assert isinstance(args[1], int)
+    assert isinstance(kwargs["value"], int)
 
 
 def test_sane_scan_dialog_errors(mocker, sane_scan_dialog, mainloop_with_timeout):
@@ -1077,11 +1077,11 @@ def test_switch_and_button_widgets(mocker, sane_scan_dialog):
 
     # Trigger switch (Line 246-248)
     switch_widget.set_active(True)
-    dialog.set_option.assert_called_with(bool_opt, True)
+    dialog.set_option.assert_called_with(bool_opt, value=True)
 
     # Trigger button (Line 257-258)
     button_widget.clicked()
-    dialog.set_option.assert_called_with(button_opt, None)
+    dialog.set_option.assert_called_with(button_opt, value=None)
 
 
 def test_entry_widget_activate(mocker, sane_scan_dialog):
@@ -1124,7 +1124,7 @@ def test_entry_widget_activate(mocker, sane_scan_dialog):
     # Trigger activate (Line 328-330)
     entry_widget.set_text("new value")
     entry_widget.emit("activate")
-    dialog.set_option.assert_called_with(entry_opt, "new value")
+    dialog.set_option.assert_called_with(entry_opt, value="new value")
 
 
 def test_set_option_clamping(sane_scan_dialog):

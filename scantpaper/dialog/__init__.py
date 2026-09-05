@@ -56,7 +56,7 @@ class Dialog(Gtk.Dialog):
     def add_page_range(self):
         """Add a frame and radio buttons to content area."""
         frame = Gtk.Frame(label=_("Page Range"))
-        self.get_content_area().pack_start(frame, False, False, 0)
+        self.get_content_area().pack_start(frame, expand=False, fill=False, padding=0)
         prng = PageRange()
         prng.set_active(self.page_range)
 
@@ -105,7 +105,7 @@ class MultipleMessage(Dialog):
 
         # to ensure dialog can't grow too big if we have too many messages
         scwin = Gtk.ScrolledWindow()
-        self.get_content_area().pack_start(scwin, True, True, 0)
+        self.get_content_area().pack_start(scwin, expand=True, fill=True, padding=0)
         self.grid = Gtk.Grid()
         self.grid_rows = 0
         self.stored_responses = {}
@@ -244,7 +244,9 @@ class MultipleMessage(Dialog):
                     buffer = self.grid.get_child_at(COL_MESSAGE, row).get_buffer()
                     messages.append(
                         buffer.get_text(
-                            buffer.get_start_iter(), buffer.get_end_iter(), True
+                            buffer.get_start_iter(),
+                            buffer.get_end_iter(),
+                            include_hidden_chars=True,
                         )
                     )
 

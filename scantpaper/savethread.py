@@ -64,6 +64,7 @@ class SaveThreadProgressBar(ProgressBar):
         total: int | None,
         desc: str | None,
         unit: str | None,
+        *,
         disable: bool = False,
     ):
         """Initialise the progress bar with request, total, and description."""
@@ -101,11 +102,13 @@ class SaveThreadProgressBar(ProgressBar):
 def get_progressbar_class():
     """Ocrmypdf plugin hook to provide custom progress bar class."""
 
-    def create_progress_bar(total, desc, unit, disable=False, **kwargs):
+    def create_progress_bar(total, desc, unit, *, disable=False, **kwargs):
         """Accept all ocrmypdf progress bar parameters and return a progress bar."""
         del kwargs
         request_instance = _current_request_for_progress[0]
-        return SaveThreadProgressBar(request_instance, total, desc, unit, disable)
+        return SaveThreadProgressBar(
+            request_instance, total, desc, unit, disable=disable
+        )
 
     return create_progress_bar
 
@@ -283,7 +286,7 @@ class SaveThread(Importhread):
             # unbranded but otherwise usable PDF rather than failing
             # the save.
             try:
-                _fix_pdf_metadata(filename, "title" not in metadata)
+                _fix_pdf_metadata(filename, remove_title="title" not in metadata)
             except Exception as err:  # noqa: BLE001
                 # BLE001 — metadata fixup can fail for arbitrary reasons
                 # (e.g. RuntimeError during PDF metadata access); it is

@@ -149,10 +149,10 @@ class TestScanDialog:
         """
         opt_active = MockOption("opt", enums.TYPE_BOOL, cap=0)
         opt_inactive = MockOption("opt", enums.TYPE_BOOL, cap=enums.CAP_INACTIVE)
-        assert _value_for_active_option(True, opt_active)
-        assert _value_for_active_option(False, opt_active)
+        assert _value_for_active_option(value=True, opt=opt_active)
+        assert _value_for_active_option(value=False, opt=opt_active)
         assert not _value_for_active_option(None, opt_active)
-        assert not _value_for_active_option(False, opt_inactive)
+        assert not _value_for_active_option(value=False, opt=opt_inactive)
 
     def test_do_profile_changed(self):
         """Test _do_profile_changed."""
@@ -298,7 +298,7 @@ class TestScanDialog:
 
         # _value_for_active_option(False, opt) -> True, so set_active(False) is called
         scan._update_single_option(opt)
-        widget.set_active.assert_called_with(False)
+        widget.set_active.assert_called_with(is_active=False)
 
     def test_update_single_option_entry(self):
         """Test updating a single string option in an Entry widget."""
@@ -452,8 +452,8 @@ class TestScanDialog:
         widget.get_active.return_value = False
         widget.signal = "signal"
         scan.option_widgets = {"bool": widget}
-        scan._update_widget_value(opt, True)
-        widget.set_active.assert_called_with(True)
+        scan._update_widget_value(opt, val=True)
+        widget.set_active.assert_called_with(is_active=True)
 
         # SpinButton
         opt = MockOption("int", enums.TYPE_INT)
@@ -471,7 +471,7 @@ class TestScanDialog:
         widget.signal = "signal"
         scan.option_widgets = {"combo": widget}
         scan._update_widget_value(opt, "b")
-        widget.set_active.assert_called_with(1)
+        widget.set_active.assert_called_with(index_=1)
 
     def test_get_xy_resolution_missing(self):
         """Test getting XY resolution when options are missing."""
@@ -522,7 +522,7 @@ class TestScanDialog:
         hbox = unittest.mock.Mock()
         hboxp = unittest.mock.Mock()
         scan._pack_widget(widget, (scan._available_scan_options, opt, hbox, hboxp))
-        hbox.pack_end.assert_called_with(widget, True, True, 0)
+        hbox.pack_end.assert_called_with(widget, expand=True, fill=True, padding=0)
 
     def test_update_widget_value_entry_empty(self):
         """Test _update_widget_value with Gtk.Entry and empty value."""
@@ -549,14 +549,14 @@ class TestScanDialog:
 
         # Test True
         scan.allow_batch_flatbed = True
-        scan.framen.set_sensitive.assert_called_with(True)
+        scan.framen.set_sensitive.assert_called_with(sensitive=True)
 
         # Test False with flatbed selected
         scan.framen.set_sensitive.reset_mock()
         scan.available_scan_options = unittest.mock.Mock()
         scan.available_scan_options.flatbed_selected.return_value = True
         scan.allow_batch_flatbed = False
-        scan.framen.set_sensitive.assert_called_with(False)
+        scan.framen.set_sensitive.assert_called_with(sensitive=False)
         assert scan.num_pages == 1
 
     def test_allow_batch_flatbed_before_framen(self):

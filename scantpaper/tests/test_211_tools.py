@@ -21,7 +21,7 @@ def test_rotate(
     """Test rotating."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
-    set_saved_in_mainloop(slist, 1, True)
+    set_saved_in_mainloop(slist, 1, saved=True)
     assert slist.data[0][1].get_height() == 65, "thumbnail height before rotation"
     assert slist.data[0][1].get_width() == 100, "thumbnail width before rotation"
 
@@ -108,7 +108,7 @@ def test_threshold(
     """Test threshold."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
-    set_saved_in_mainloop(slist, 1, True)
+    set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
         1,
@@ -170,7 +170,7 @@ def test_negate(
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [image])
-    set_saved_in_mainloop(slist, 1, True)
+    set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
         1,
@@ -219,7 +219,7 @@ def test_unsharp_mask(
     """Test unsharp mask."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
-    set_saved_in_mainloop(slist, 1, True)
+    set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
         1,
@@ -287,7 +287,7 @@ def test_crop(
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
-    set_saved_in_mainloop(slist, 1, True)
+    set_saved_in_mainloop(slist, 1, saved=True)
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -369,7 +369,7 @@ def test_split(
     assert page.width == 70, "width before crop"
     assert page.height == 46, "height before crop"
 
-    set_saved_in_mainloop(slist, 1, True)
+    set_saved_in_mainloop(slist, 1, saved=True)
     hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -465,7 +465,7 @@ def test_brightness_contrast(
     """Test brightness contrast."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
-    set_saved_in_mainloop(slist, 1, True)
+    set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
         1,
