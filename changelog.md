@@ -1,4 +1,4 @@
-## 3.0.17 (unreleased)
+## 3.0.17 (2026-09-05)
 
 * Fix 0-based page numbering after undo
 * Render with high-quality interpolation at all zoom levels. A faster filter is
@@ -13,6 +13,7 @@
   no longer duplicates it through the database (image blobs are left untouched);
   the pages are moved in place as a single undoable step, so dragging a page
   across a large scan is several times faster.
+* Update to Italian translation (thanks to Albano Battistella)
 
 
 ## 3.0.16 (2026-08-22)
