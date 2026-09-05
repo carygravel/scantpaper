@@ -1373,8 +1373,6 @@ msgid ""
 "%Ds\tsubject\n"
 "%Dt\ttitle\n"
 "\n"
-"#: bin/scantpaper:XXXX
-msgid ""
 "All document date codes use strftime codes with a leading D, e.g.:\n"
 "%DY\tdocument year\n"
 "%Dm\tdocument month\n"
