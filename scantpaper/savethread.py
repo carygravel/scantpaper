@@ -70,7 +70,7 @@ class SaveThreadProgressBar(ProgressBar):
         """Initialise the progress bar with request, total, and description."""
         self.request = request
         self.total = total or 1
-        self.desc = desc or "Processing PDF"
+        self.desc = desc or _("Processing PDF")
         self.unit = unit
         self.current = 0
         self.disable = disable
@@ -87,7 +87,7 @@ class SaveThreadProgressBar(ProgressBar):
 
         if self.request:
             self.request.data(min(1.0, self.current / self.total))
-            self.request.data(_(self.desc))
+            self.request.data(self.desc)
 
     def __enter__(self):
         """Enter the context manager."""
