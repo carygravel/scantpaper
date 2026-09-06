@@ -53,7 +53,7 @@ It is the Python rewrite (v3) of the popular
 
 Install scantpaper and its dependencies (see [Download, Installation & Removal](#download-installation--removal)), then:
 
-1. Start the application with `scantpaper` (or `python3 scantpaper/app.py` from a source checkout).
+1. Start the application with `scantpaper` (or `python3 -m scantpaper.app` from a source checkout, with `PYTHONPATH=src` set).
    Add `--debug|info|warn|error|fatal` to enable logging at the required level.
 2. Scan one or several pages with **File → Scan**.
 3. Select the pages and create a PDF with **File → Save**.
@@ -311,7 +311,7 @@ by the OCR toolchain used, e.g.
 To diagnose errors, start scantpaper from the command line with logging enabled:
 
 ```sh
-python3 scantpaper/app.py --debug
+PYTHONPATH=src python3 -m scantpaper.app --debug
 ```
 
 ---
@@ -467,7 +467,7 @@ After installing the [dependencies](#dependencies) listed above:
 ```sh
 tar xvfz scantpaper-x.x.x.tar.gz
 cd scantpaper-x.x.x
-python3 scantpaper/app.py
+PYTHONPATH=src python3 -m scantpaper.app
 ```
 
 #### From the repository
@@ -478,7 +478,7 @@ After installing the [dependencies](#dependencies) listed above:
 ```sh
 git clone https://github.com/carygravel/scantpaper.git
 cd scantpaper
-python3 scantpaper/app.py
+PYTHONPATH=src python3 -m scantpaper.app
 ```
 
 In either of the above two cases, just delete the source directory to remove it.
@@ -518,14 +518,14 @@ scantpaper is partly translated into several languages. Contribute via
 To test updated `.po` files:
 
 ```sh
-python3 dev/compile_mo.py --src po --out locale --domain scantpaper
-python3 scantpaper/app.py --log=log --locale=locale
+python3 dev/compile_mo.py --src po --out src/scantpaper/locale --domain scantpaper
+PYTHONPATH=src python3 -m scantpaper.app --log=log --locale=locale
 ```
 
 Set locale variables as needed (e.g., for Russian):
 
 ```sh
-LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 python3 scantpaper/app.py --log=log --locale=locale
+LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 PYTHONPATH=src python3 -m scantpaper.app --log=log --locale=locale
 ```
 
 ---

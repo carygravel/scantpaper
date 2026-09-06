@@ -17,13 +17,22 @@ the GTK+ toolkit for its user interface.
 *   **Overall Architecture:** Monolithic Desktop Application. It is a standalone
     GUI application, not a client-server or web application.
 *   **Directory Structure:**
-    *   `scantpaper/`: Contains the primary Python source code for the application.
-    *   `scantpaper/dialog/`: Contains UI dialog components.
-    *   `dev/`: Contains development-related scripts (e.g., `generate_pot.py` for
-        translations).
-    *   `tests/`: Contains all unit and integration tests, managed by pytest.
-*   **Main Entrypoint:** `scantpaper/app.py`. When installed, the package
-    provides a `gui_scripts` entrypoint via `pyproject.toml`.
+    *   `src/scantpaper/`: Contains the primary Python source code for the
+        application.
+    *   `src/scantpaper/dialog/`: Contains UI dialog components.
+    *   `src/scantpaper/scanner/`: Contains SANE scanner interface code.
+    *   `src/scantpaper/frontend/`: Contains the scanner frontend
+        implementations (e.g. SANE).
+    *   `src/scantpaper/tests/`: Contains all unit and integration tests,
+        managed by pytest.
+    *   `dev/`: Contains development-related scripts (e.g., `generate_pot.py`
+        for translations). This folder is not a Python package.
+*   **Main Entrypoint:** `src/scantpaper/app.py`, invoked as
+    `PYTHONPATH=src python3 -m scantpaper.app` from a source checkout. When
+    installed, the package provides a `gui_scripts` entrypoint via
+    `pyproject.toml`.
+*   **Imports:** first-party modules are imported with a `scantpaper.`
+    absolute prefix (e.g. `from scantpaper.const import VERSION`).
 *   **Key Dependencies:** `ocrmypdf`, `img2pdf`, `pikepdf`, `python-sane`,
     `PyGObject`, `pycairo`, `tesserocr`, `python-iso639`. All listed in
     `pyproject.toml`.
@@ -148,8 +157,8 @@ Please ensure that all commits have meaningful messages:
 
 ## Testing
 
-Scantpaper uses `pytest` for testing. The tests are located in the `tests/`
-directory. To run the tests, use the following command:
+Scantpaper uses `pytest` for testing. The tests are located in the
+`src/scantpaper/tests/` directory. To run the tests, use the following command:
 
 ```bash
 pytest

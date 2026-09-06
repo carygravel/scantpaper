@@ -1,0 +1,878 @@
+"""Threading model for the Document class."""
+
+import datetime
+import json
+import logging
+import os
+import pathlib
+import re
+import shutil
+import tempfile
+from collections import defaultdict
+
+import img2pdf
+import ocrmypdf
+import pikepdf
+from ocrmypdf import hookimpl
+from ocrmypdf.pluginspec import ProgressBar
+from PIL import Image
+
+from scantpaper.basethread import Request
+from scantpaper.bboxtree import Bboxtree
+from scantpaper.const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
+from scantpaper.helpers import exec_command, exec_command_run
+from scantpaper.i18n import _
+from scantpaper.importthread import Importhread, _note_callbacks
+from scantpaper.page import Page
+
+logger = logging.getLogger(__name__)
+
+img2pdf.default_dpi = 72.0
+
+# PDFs larger than 2 GiB hit 32-bit file-offset limits in img2pdf's
+# linearizing engine, Ghostscript's PDF/A conversion, and pikepdf's
+# xref-stream linearization, producing truncated or corrupt output.
+_2GIB = 2 * 1024 * 1024 * 1024
+
+# Bytes per pixel used to estimate PDF size from the source image mode.
+_PIXEL_BPP = {
+    "1": 0.125,
+    "L": 1,
+    "LA": 2,
+    "P": 3,
+    "RGB": 3,
+    "RGBA": 4,
+    "CMYK": 4,
+    "I": 4,
+}
+
+LEFT = 0
+TOP = 1
+RIGHT = 2
+BOTTOM = 3
+
+# Global variable to hold the current thread instance for progress reporting
+# This is a list to make it mutable from within nested functions
+_current_request_for_progress = [None]
+
+
+class SaveThreadProgressBar(ProgressBar):
+    """Custom progress bar for ocrmypdf that updates SaveThread progress."""
+
+    def __init__(
+        self,
+        request,
+        total: int | None,
+        desc: str | None,
+        unit: str | None,
+        *,
+        disable: bool = False,
+    ):
+        """Initialise the progress bar with request, total, and description."""
+        self.request = request
+        self.total = total or 1
+        self.desc = desc or _("Processing PDF")
+        self.unit = unit
+        self.current = 0
+        self.disable = disable
+
+    def update(self, n=1, completed=None) -> None:
+        """Update progress."""
+        if self.disable:
+            return
+
+        if completed is not None:
+            self.current = completed
+        else:
+            self.current += n
+
+        if self.request:
+            self.request.data(min(1.0, self.current / self.total))
+            self.request.data(self.desc)
+
+    def __enter__(self):
+        """Enter the context manager."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+        """Exit the context manager."""
+        return False
+
+
+@hookimpl
+def get_progressbar_class():
+    """Ocrmypdf plugin hook to provide custom progress bar class."""
+
+    def create_progress_bar(total, desc, unit, *, disable=False, **kwargs):
+        """Accept all ocrmypdf progress bar parameters and return a progress bar."""
+        del kwargs
+        request_instance = _current_request_for_progress[0]
+        return SaveThreadProgressBar(
+            request_instance, total, desc, unit, disable=disable
+        )
+
+    return create_progress_bar
+
+
+class SaveThread(Importhread):
+    """subclass basethread for document."""
+
+    def save_pdf(self, **kwargs):
+        """Save pdf."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("save_pdf", kwargs, **callbacks)
+
+    def _embed_text_layer(self, outdir, filename, request):
+        """Embed the text layer into the PDF using ocrmypdf."""
+        request.data(_("Embedding text layer"))
+
+        # Set up progress tracking via plugin
+        _current_request_for_progress[0] = request
+
+        # Call ocrmypdf with our custom progress plugin
+        # The savethread module provides get_progressbar_class hook
+        try:
+            ocrmypdf.api._hocr_to_ocr_pdf(
+                outdir,
+                filename,
+                optimize=0,
+                plugins=["scantpaper.savethread"],
+            )
+        except Exception as err:  # noqa: BLE001
+            # BLE001 — ocrmypdf may fail for many reasons beyond "pikepdf
+            # cannot parse the PDF produced by img2pdf" (bare exceptions with
+            # an empty str() observed in practice).  Any failure here falls
+            # back to copying the still-valid origin.pdf rather than failing
+            # the entire save; no narrower set can be caught without losing
+            # the graceful fallback, so we catch broadly and wrap.
+            # ocrmypdf may fail if pikepdf cannot parse the PDF produced by
+            # img2pdf (InputFileError wraps PdfError).  The raw origin.pdf is
+            # still valid, so fall back to copying it rather than failing the
+            # entire save.  The text layer and PDF/A title metadata will be
+            # absent but the PDF remains usable.  Return False so the caller
+            # can skip subsequent pikepdf operations that would also fail on
+            # the malformed PDF.
+            msg = str(err) or err.__class__.__name__
+            logger.warning(
+                "Could not embed text layer (%s): %s - "
+                "saving without embedded text layer",
+                err.__class__.__name__,
+                msg,
+            )
+            shutil.copyfile(outdir / "origin.pdf", filename)
+            return False
+        finally:
+            request.data(1.0)
+            _current_request_for_progress[0] = None
+
+        return True
+
+    def do_save_pdf(self, request):
+        """Save PDF in thread."""
+        options = defaultdict(None, request.args[0])
+
+        request.data(_("Setting up PDF"))
+        with tempfile.TemporaryDirectory(dir=options.get("dir")) as tempdir:
+            outdir = pathlib.Path(tempdir)
+            filename = options["path"]
+            if _need_temp_pdf(options.get("options")):
+                # SIM115 — cross-scope file handle used intentionally
+                temp_pdf = tempfile.NamedTemporaryFile(  # noqa: SIM115
+                    dir=options.get("dir"), suffix=".pdf"
+                )
+                filename = temp_pdf.name
+
+            metadata = {}
+            if "metadata" in options and "ps" not in options:
+                metadata = prepare_output_metadata("PDF", options["metadata"])
+
+            list_of_pages = self._assemble_pdf(outdir, options, request, metadata)
+
+            for pagenr, page in enumerate(list_of_pages):
+                if page.text_layer and page.text_layer != "[]":
+                    with (
+                        pathlib.Path(outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr").open(
+                            "w", encoding="utf-8"
+                        ) as hocr_fh,
+                        pathlib.Path(outdir / f"{pagenr + 1:-06}_hocr.json").open(
+                            "w", encoding="utf-8"
+                        ) as json_fh,
+                    ):
+                        hocr_fh.write(page.export_hocr())
+                        json_fh.write(
+                            json.dumps({"pageno": pagenr, "orientation_correction": 0})
+                        )
+                self.check_cancelled()
+
+            # Embed text layer using ocrmypdf (also applies PDF/A metadata such
+            # as the title), so it runs even when no page has a text layer.
+            embed_ok = self._embed_text_layer(outdir, filename, request)
+            self._finalize_pdf(filename, options, request, embed_ok, metadata)
+
+            self.do_set_saved(
+                Request("set_saved", (options["list_of_pages"], True), self.responses)
+            )
+
+    def _assemble_pdf(self, outdir, options, request, metadata):
+        """Convert each page to an image, write origin.pdf, and return the pages."""
+        list_of_pages = []
+        with pathlib.Path(outdir / "origin.pdf").open(
+            "wb", buffering=0
+        ) as fhd:  # turn off buffering
+            filenames = []
+            resolutions = []
+            opts = {}
+            if options.get("options"):
+                opts = options["options"]
+            estimated_size = 0
+            for i, page_id in enumerate(options["list_of_pages"], start=1):
+                page = self.get_page(id=page_id)
+                list_of_pages.append(page)
+                request.data(i / (len(options["list_of_pages"]) + 1))
+                request.data(
+                    _("Writing page %i of %i")
+                    % (
+                        i,
+                        len(options["list_of_pages"]),
+                    )
+                )
+
+                # store the filename and not the tempfile object to avoid potentially
+                # holding many open filehandles
+                with tempfile.NamedTemporaryFile(
+                    dir=options.get("dir"), suffix=".png", delete=False
+                ) as tmp:
+                    page.write_image_for_pdf(tmp.name, options)
+                    filenames.append(tmp.name)
+                    estimated_size += _estimate_page_pdf_size(
+                        page.image_object, tmp.name, opts
+                    )
+                xres, yres, _units = page.get_resolution(self.paper_sizes)
+                resolutions.append((xres, yres))
+
+            if estimated_size >= _2GIB:
+                for fname in filenames:
+                    pathlib.Path(fname).unlink()
+                raise RuntimeError(
+                    _(
+                        "The estimated PDF size (%.1f GiB) exceeds 2 GiB."
+                        "  Please save fewer pages."
+                    )
+                    % (estimated_size / (1024 * 1024 * 1024),)
+                )
+            index = 0
+
+            def layout_fun(imgwidthpx, imgheightpx, _ndpi):
+                nonlocal index
+                xres, yres = resolutions[index]
+                index += 1
+                pagewidth = imgwidthpdf = img2pdf.px_to_pt(imgwidthpx, xres)
+                pageheight = imgheightpdf = img2pdf.px_to_pt(imgheightpx, yres)
+                return pagewidth, pageheight, imgwidthpdf, imgheightpdf
+
+            metadata["layout_fun"] = layout_fun
+            request.data(_("Writing PDF"))
+            fhd.write(img2pdf.convert(filenames, **metadata))
+            for fname in filenames:
+                pathlib.Path(fname).unlink()
+        return list_of_pages
+
+    def _finalize_pdf(self, filename, options, request, embed_ok, metadata):
+        """Apply metadata, encryption, PS conversion, and post-save hooks."""
+        # When embed fell back (embed_ok is False) the output PDF may be
+        # malformed - pikepdf-dependent operations would fail too, so skip
+        # them and hand the user a usable (but textless) PDF.
+        if embed_ok:
+            # Metadata fixup is cosmetic - if it fails, deliver an
+            # unbranded but otherwise usable PDF rather than failing
+            # the save.
+            try:
+                _fix_pdf_metadata(filename, remove_title="title" not in metadata)
+            except Exception as err:  # noqa: BLE001
+                # BLE001 — metadata fixup can fail for arbitrary reasons
+                # (e.g. RuntimeError during PDF metadata access); it is
+                # cosmetic, so any failure degrades gracefully to an
+                # unbranded but usable PDF, and no narrower set is
+                # catchable without changing that behavior.
+                logger.warning(
+                    "Could not fix PDF metadata (%s): %s - "
+                    "saving without creator branding",
+                    err.__class__.__name__,
+                    err,
+                )
+
+            _append_pdf(filename, options, request)
+
+            if (
+                options.get("options")
+                and options["options"].get("user-password")
+                and _encrypt_pdf(filename, options, request)
+            ):
+                return
+
+            _set_timestamp(options)
+            if options.get("options") and options["options"].get("ps"):
+                request.data(_("Converting to PS"))
+                proc = exec_command(
+                    [
+                        options["options"]["pstool"],
+                        filename,
+                        options["options"]["ps"],
+                    ],
+                    options["pidfile"],
+                )
+                if proc.returncode or proc.stderr:
+                    logger.info(proc.stderr)
+                    request.error(_("Error converting PDF to PS: %s") % (proc.stderr))
+                    return
+
+                _post_save_hook(
+                    options["options"]["ps"],
+                    options["options"],
+                    pidfile=options.get("pidfile"),
+                )
+
+            else:
+                _post_save_hook(
+                    filename, options.get("options"), pidfile=options.get("pidfile")
+                )
+        else:
+            _post_save_hook(
+                filename, options.get("options"), pidfile=options.get("pidfile")
+            )
+
+    def save_djvu(self, **kwargs):
+        """Save DjvU."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("save_djvu", kwargs, **callbacks)
+
+    def do_save_djvu(self, request):
+        """Save DjvU in thread."""
+        args = request.args[0]
+        filelist = []
+        for i, page_id in enumerate(args["list_of_pages"], start=1):
+            page = self.get_page(id=page_id)
+            request.data(i / (len(args["list_of_pages"]) + 1))
+            request.data(
+                _("Writing page %i of %i")
+                % (
+                    i,
+                    len(args["list_of_pages"]),
+                )
+            )
+            with tempfile.NamedTemporaryFile(
+                dir=args.get("dir"), suffix=".djvu", delete=False
+            ) as djvu:
+                page.write_image_for_djvu(djvu.name, args)
+                filelist.append(djvu.name)
+
+        request.data(1.0)
+        request.data(_("Merging DjVu"))
+        proc = exec_command(["djvm", "-c", args["path"], *filelist], args["pidfile"])
+        for filename in filelist:
+            pathlib.Path(filename).unlink()
+        self.check_cancelled()
+        if proc.returncode:
+            logger.error("Error merging DjVu: %s", proc.stderr)
+            request.error(_("Error merging DjVu: %s") % (proc.stderr,))
+
+        self._add_metadata_to_djvu(args)
+        _set_timestamp(args)
+        _post_save_hook(args["path"], args.get("options"), pidfile=args.get("pidfile"))
+        self.do_set_saved(
+            Request("set_saved", (args["list_of_pages"], True), self.responses)
+        )
+
+    def _add_metadata_to_djvu(self, options):
+        if "metadata" in options and options["metadata"] is not None:
+            metadata = prepare_output_metadata("DjVu", options["metadata"])
+
+            # Write djvusedmetafile
+            with tempfile.NamedTemporaryFile(
+                mode="wt", dir=options.get("dir"), suffix=".txt"
+            ) as fhd:
+                fhd.write("(metadata\n")
+
+                # Write the metadata
+                for key, raw_val in metadata.items():
+                    if raw_val is not None:
+                        # backslash-escape any double quotes and bashslashes
+                        val = re.sub(
+                            r"\\",
+                            r"\\\\",
+                            raw_val,
+                            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                        )
+                        val = re.sub(
+                            r"\"",
+                            r"\\\"",
+                            val,
+                            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                        )
+                        fhd.write(f'{key} "{val}"\n')
+
+                fhd.write(")\n")
+                fhd.flush()
+
+                # Write djvusedmetafile
+                cmd = [
+                    "djvused",
+                    "-e",
+                    f'"set-meta" {fhd.name}',
+                    options["path"],
+                    "-s",
+                ]
+                exec_command_run(cmd, options.get("pidfile"), check=True)
+                self.check_cancelled()
+
+    def save_tiff(self, **kwargs):
+        """Save TIFF."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("save_tiff", kwargs, **callbacks)
+
+    def do_save_tiff(self, request):
+        """Save TIFF in thread."""
+        options = request.args[0]
+
+        filelist = []
+        for i, page_id in enumerate(options["list_of_pages"]):
+            page = self.get_page(id=page_id)
+            request.data(i / (len(options["list_of_pages"]) + 1))
+            with tempfile.NamedTemporaryFile(
+                dir=options.get("dir"), suffix=".tif", delete=False
+            ) as out:
+                page.write_image_for_tiff(out.name, options)
+                self.check_cancelled()
+                filelist.append(out.name)
+
+        compression = []
+        if "compression" in options["options"]:
+            compression = ["-c", options["options"]["compression"]]
+            if options["options"]["compression"] == "jpeg":
+                compression[1] += f":{options['options']['quality']}"
+                compression.append(["-r", "16"])
+
+        # Create the tiff
+        request.data(1.0)
+        cmd = ["tiffcp", *compression, *filelist, options["path"]]
+        exec_command_run(cmd, options.get("pidfile"), check=True)
+        for filename in filelist:
+            pathlib.Path(filename).unlink()
+        self.check_cancelled()
+
+        if "ps" in options["options"] and options["options"]["ps"] is not None:
+            # MacOS requires the input TIFF to be last argument
+            cmd = ["tiff2ps", "-3", "-O", options["options"]["ps"], options["path"]]
+            proc = exec_command(cmd, options["pidfile"])
+            if proc.returncode or proc.stderr:
+                logger.info(proc.stderr)
+                request.error(_("Error converting TIFF to PS: %s") % (proc.stderr))
+                return
+
+            _post_save_hook(
+                options["options"]["ps"],
+                options["options"],
+                pidfile=options.get("pidfile"),
+            )
+
+        else:
+            _post_save_hook(
+                options["path"], options["options"], pidfile=options.get("pidfile")
+            )
+        self.do_set_saved(
+            Request("set_saved", (options["list_of_pages"], True), self.responses)
+        )
+
+    def save_image(self, **kwargs):
+        """Save pages as image files."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("save_image", kwargs, **callbacks)
+
+    def do_save_image(self, request):
+        """Save pages as image files in thread."""
+        options = defaultdict(None, request.args[0])
+
+        for i, page_id in enumerate(options["list_of_pages"], start=1):
+            page = self.get_page(id=page_id)
+            if len(options["list_of_pages"]) > 1:
+                filename = options["path"] % (i)
+            else:
+                filename = options["path"]
+            page.image_object.save(filename)
+            self.check_cancelled()
+
+            _post_save_hook(
+                filename, options.get("options"), pidfile=options.get("pidfile")
+            )
+        self.do_set_saved(
+            Request("set_saved", (options["list_of_pages"], True), self.responses)
+        )
+
+    def save_text(self, **kwargs):
+        """Save text file."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("save_text", kwargs, **callbacks)
+
+    def do_save_text(self, request):
+        """Save text file in thread."""
+        options = defaultdict(None, request.args[0])
+
+        string = ""
+        for page_id in options["list_of_pages"]:
+            page = self.get_page(id=page_id)
+            string += page.export_text()
+            self.check_cancelled()
+
+        with pathlib.Path(options["path"]).open("w", encoding="utf-8") as fhd:
+            fhd.write(string)
+
+        if "options" not in options:
+            options["options"] = None
+        _post_save_hook(
+            options["path"], options["options"], pidfile=options.get("pidfile")
+        )
+
+    def save_hocr(self, **kwargs):
+        """Save hocr file."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("save_hocr", kwargs, **callbacks)
+
+    def do_save_hocr(self, request):
+        """Save hocr file in thread."""
+        options = defaultdict(None, request.args[0])
+
+        with pathlib.Path(options["path"]).open("w", encoding="utf-8") as fhd:
+            written_header = False
+            for page_id in options["list_of_pages"]:
+                page = self.get_page(id=page_id)
+                hocr = page.export_hocr()
+                regex = re.search(
+                    r"([\s\S]*<body>)([\s\S]*)<\/body>",
+                    hocr,
+                    re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
+                if hocr is not None and regex:
+                    header = regex.group(1)
+                    hocr_page = regex.group(2)
+                    if not written_header:
+                        fhd.write(header)
+                        written_header = True
+
+                    fhd.write(hocr_page)
+                    self.check_cancelled()
+
+            if written_header:
+                fhd.write("</body>\n</html>\n")
+
+        if "options" not in options:
+            options["options"] = None
+        _post_save_hook(
+            options["path"], options["options"], pidfile=options.get("pidfile")
+        )
+
+    def do_set_paper_sizes(self, request):
+        """Set paper sizes in thread."""
+        paper_sizes = request.args[0]
+        self.paper_sizes = paper_sizes
+
+    def user_defined(self, **kwargs):
+        """Run user defined command on page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("user_defined", kwargs, **callbacks)
+
+    def do_user_defined(self, request):
+        """Run user defined command on page in thread."""
+        options = request.args[0]
+        try:
+            with (
+                tempfile.NamedTemporaryFile(
+                    dir=options.get("dir"), suffix=".png"
+                ) as infile,
+                tempfile.NamedTemporaryFile(
+                    dir=options.get("dir"), suffix=".png"
+                ) as out,
+            ):
+                page = self.get_page(id=options["page"])
+                page.image_object.save(infile.name)
+                command = options["command"]
+                if re.search("%o", command):
+                    command = re.sub(
+                        r"%o",
+                        out.name,
+                        command,
+                        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    )
+                    command = re.sub(
+                        r"%i",
+                        infile.name,
+                        command,
+                        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    )
+
+                else:
+                    if not shutil.copy2(infile.name, out.name):
+                        request.error(_("Error copying page"))
+                        return
+
+                    command = re.sub(
+                        r"%i",
+                        out.name,
+                        command,
+                        flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                    )
+
+                command = re.sub(
+                    r"%r",
+                    rf"{page.resolution[0]}",
+                    command,
+                    flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+                )
+                sbp = exec_command_run(
+                    command,
+                    options.get("pidfile"),
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                    shell=True,
+                )
+                self.check_cancelled()
+                logger.info("stdout: %s", sbp.stdout)
+                logger.info("stderr: %s", sbp.stderr)
+
+                # don't return in here, just in case we can ignore the error -
+                # e.g. theming errors from gimp
+                if sbp.stderr != "":
+                    request.data({"type": "message", "info": sbp.stderr})
+
+                # Get file type
+                image = Image.open(out.name)
+                # Force PIL to load the data before the file is deleted.
+                # The upgrade to gdk-pixbuf 2.44.5+dfsg-3/4 without this threw
+                # "contains no data", caused by a race condition where PIL attempted
+                # to lazy-load data from a deleted temporary file.
+                image.load()
+
+                # assume the resolution hasn't changed
+                new = Page(
+                    image_object=image,
+                    dir=options.get("dir"),
+                    format=image.format,
+                    resolution=page.resolution,
+                    text_layer=page.text_layer,
+                )
+                row = self.replace_page(new, page.id)
+                request.data(
+                    {
+                        "type": "page",
+                        "row": row,
+                        "replace": page.id,
+                    }
+                )
+
+        except (OSError, PermissionError) as err:
+            logger.exception("Error creating file in %s", options.get("dir"))
+            request.error(
+                f"Error creating file in {options.get('dir')}: {err}.",
+            )
+
+
+def _need_temp_pdf(options):
+    return options and (
+        "prepend" in options
+        or "append" in options
+        or "ps" in options
+        or ("user-password" in options and options["user-password"] != "")
+    )
+
+
+def _estimate_page_pdf_size(image, temp_filename, opts):
+    """Estimate a page's contribution to the output PDF size in bytes."""
+    if (
+        image.format == "JPEG"
+        and not opts.get("downsample")
+        and not (opts.get("compression") and opts["compression"][0] == "g")
+    ):
+        # JPEG is stored verbatim, so the written file size is the size it
+        # will take in the PDF.
+        return pathlib.Path(temp_filename).stat().st_size
+    # Other formats are stored uncompressed, so estimate from the pixel data.
+    bpp = _PIXEL_BPP.get(image.mode, 4)
+    return int(image.width * image.height * bpp)
+
+
+def _fix_pdf_metadata(path, remove_title):
+    """Brand scantpaper as the PDF creator and remove any placeholder title."""
+    creator = f"scantpaper v{VERSION}"
+    with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        existing_creator = str(pdf.docinfo.get("/Creator", "")).strip()
+        if existing_creator:
+            creator = f"{creator} / {existing_creator}"
+        with pdf.open_metadata(
+            set_pikepdf_as_editor=False, update_docinfo=False
+        ) as metadata:
+            if remove_title:
+                metadata.pop("dc:title", None)
+            metadata["xmp:CreatorTool"] = creator
+        if remove_title and "/Title" in pdf.docinfo:
+            del pdf.docinfo["/Title"]
+        pdf.docinfo["/Creator"] = creator
+        pdf.save(path, preserve_pdfa=True, linearize=True)
+
+
+def prepare_output_metadata(ftype, metadata):
+    """Format metadata for PDF or DjVu."""
+    out = {}
+    if metadata and ftype in ["PDF", "DjVu"]:
+        if ftype == "PDF":
+            out["creationdate"] = metadata["datetime"]
+        else:
+            out["creationdate"] = metadata["datetime"].isoformat()
+        out["moddate"] = out["creationdate"]
+        out["creator"] = f"scantpaper v{VERSION}"
+        if ftype == "DjVu":
+            out["producer"] = "djvulibre"
+        for key in ["author", "title", "subject", "keywords"]:
+            if key in metadata and metadata[key] != "":
+                out[key] = metadata[key]
+
+    return out
+
+
+def _append_pdf(filename, options, request):
+    if options is None or "options" not in options or options["options"] is None:
+        return None
+    if "prepend" in options["options"]:
+        file1 = filename
+        file2 = options["options"]["prepend"] + ".bak"
+        bak = file2
+        out = options["options"]["prepend"]
+        message = _("Error prepending PDF: %s")
+        logger.info("Prepending PDF")
+
+    elif "append" in options["options"]:
+        file2 = filename
+        file1 = options["options"]["append"] + ".bak"
+        bak = file1
+        out = options["options"]["append"]
+        message = _("Error appending PDF: %s")
+        logger.info("Appending PDF")
+
+    else:
+        return None
+
+    try:
+        pathlib.Path(out).rename(bak)
+    except ValueError:
+        request.error(_("Error creating backup of PDF"))
+        return None
+
+    proc = exec_command(["pdfunite", file1, file2, out], options["pidfile"])
+    if proc.returncode:
+        logger.info(proc.stderr)
+        request.error(message % (proc.stderr))
+    return proc.returncode
+
+
+def _set_timestamp(options):
+    if (
+        not options.get("options")
+        or options["options"].get("set_timestamp") is None
+        or options["options"].get("ps")
+    ):
+        return
+
+    metadata = options["metadata"]
+    adatetime = metadata["datetime"]
+
+    # Ensure adatetime is timezone-aware
+    if adatetime.tzinfo is None:
+        adatetime = adatetime.replace(tzinfo=datetime.timezone.utc)
+
+    epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+    adatetime = (adatetime - epoch).total_seconds()
+    if adatetime < 0:
+        msg = "Unable to set file timestamp for dates prior to 1970"
+        raise ValueError(msg)
+    os.utime(options["path"], (adatetime, adatetime))
+
+
+def _post_save_hook(filename, options, pidfile=None):
+    if options is not None and "post_save_hook" in options:
+        args = options["post_save_hook"].split(" ")
+        for i, arg in enumerate(args):
+            args[i] = re.sub(
+                "%i", filename, arg, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
+        logger.info(args)
+        exec_command_run(args, pidfile, check=True)
+
+
+def _encrypt_pdf(filename, options, request):
+    cmd = ["qpdf"]
+    if "user-password" in options["options"]:
+        cmd += [
+            "--encrypt",
+            f"--owner-password={options['options']['user-password']}",
+            f"--user-password={options['options']['user-password']}",
+            "--bits=256",
+            "--allow-insecure",
+            "--",
+        ]
+    cmd += [filename, options["path"]]
+
+    spo = exec_command_run(
+        cmd,
+        options.get("pidfile"),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    if spo.returncode != 0:
+        logger.info(spo.stderr)
+        request.error(_("Error encrypting PDF: %s") % (spo.stderr))
+    return spo.returncode
+
+
+def px2pt(pixels, resolution):
+    """Convert pixels to points given the resolution."""
+    return pixels / resolution * POINTS_PER_INCH
+
+
+def _bbox2markup(xresolution, yresolution, height, bbox):
+    for i in (0, 2):
+        bbox[i] = px2pt(bbox[i], xresolution)
+        bbox[i + 1] = height - px2pt(bbox[i + 1], yresolution)
+
+    return [
+        bbox[LEFT],
+        bbox[BOTTOM],
+        bbox[RIGHT],
+        bbox[BOTTOM],
+        bbox[LEFT],
+        bbox[TOP],
+        bbox[RIGHT],
+        bbox[TOP],
+    ]
+
+
+# https://py-pdf.github.io/fpdf2/Annotations.html
+def _add_annotations_to_pdf(page, gs_page):
+    """Box is the same size as the page. We don't know the text position.
+
+    Start at the top of the page (PDF coordinate system starts
+    at the bottom left of the page).
+    """
+    xresolution, yresolution, _units = gs_page.get_resolution()
+    height = px2pt(gs_page.height, yresolution)
+    for box in Bboxtree(gs_page.annotations).each_bbox():
+        if box["type"] != "page" and "text" in box and box["text"] != "":
+            rgb = [int(ANNOTATION_COLOR[i * 2 : i * 2 + 2], 16) / 255 for i in range(3)]
+
+            annot = page.annotation()
+            annot.markup(
+                box["text"],
+                _bbox2markup(xresolution, yresolution, height, box["bbox"]),
+                "Highlight",
+                color=rgb,
+                opacity=0.5,
+            )

@@ -1,0 +1,383 @@
+"""Test saving a djvu."""
+
+import codecs
+import datetime
+import pathlib
+import re
+import shutil
+import subprocess
+import tempfile
+from unittest.mock import MagicMock
+
+import pytest
+from PIL import Image
+
+from scantpaper import config
+from scantpaper.document import Document
+from scantpaper.loop_helpers import safe_mainloop
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
+    """Test saving a djvu."""
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    assert pathlib.Path(temp_djvu.name).stat().st_size > 0, (
+        "DjVu created with expected size"
+    )
+    assert slist.thread.pages_saved(), "pages tagged as saved"
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu_text_layer(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    rose_pnm,
+    temp_db,
+    temp_djvu,
+    temp_txt,
+):
+    """Test saving a djvu with text layer."""
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    set_text_in_mainloop(
+        slist,
+        1,
+        '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
+        '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
+        '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
+    )
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        options={
+            "post_save_hook": "djvutxt %i " + temp_txt.name,
+        },
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    with pathlib.Path(temp_txt.name).open(encoding="utf-8") as f:
+        capture = f.read()
+    assert len(capture) > 0, "ran post-save hook"
+    assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu_with_hocr(
+    import_in_mainloop,
+    set_text_in_mainloop,
+    set_annotations_in_mainloop,
+    rose_pnm,
+    temp_db,
+    temp_djvu,
+    get_page_sync,
+):
+    """Test saving a djvu with text layer from HOCR."""
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    hocr = """<!DOCTYPE html
+ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
+ http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta content="ocr_line ocr_page" name="ocr-capabilities"/>
+  <meta content="en" name="ocr-langs"/>
+  <meta content="Latn" name="ocr-scripts"/>
+  <meta content="" name="ocr-microformats"/>
+  <title>OCR Output</title>
+ </head>
+ <body>
+  <div class="ocr_page" title="bbox 0 0 70 46>
+   <p class="ocr_par">
+    <span class="ocr_line" title="bbox 10 10 60 11">The quick — brown fox·</span>
+   </p>
+  </div>
+ </body>
+</html>
+"""
+    page = get_page_sync(slist.thread, id=1)
+    page.import_hocr(hocr)
+    set_text_in_mainloop(slist, 1, page.text_layer)
+    page.import_annotations(hocr)
+    set_annotations_in_mainloop(slist, 1, page.annotations)
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    capture = subprocess.check_output(["djvutxt", temp_djvu.name], text=True)
+    assert re.search(r"The quick — brown fox", capture), "DjVu with expected text"
+
+    capture = subprocess.check_output(
+        ["djvused", temp_djvu.name, "-e", "select 1; print-ant"]
+    )
+    assert re.search(
+        r"The quick — brown fox", codecs.escape_decode(capture)[0].decode("utf-8")
+    ), "DjVu with expected annotation"
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_cancel_save_djvu(
+    rose_pnm,
+    temp_db,
+    temp_jpg,
+    import_in_mainloop,
+    set_text_in_mainloop,
+    temp_djvu,
+):
+    """Test cancel saving a DjVu."""
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    set_text_in_mainloop(
+        slist,
+        1,
+        '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
+        '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
+        '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
+        '{"bbox": [1, 14, 77, 48], "type": "word", "text": "The quick brown fox", "depth": 3}]',
+    )
+
+    finished_callback = MagicMock()
+    mlp = safe_mainloop(2000)
+    called = False
+
+    def cancelled_callback(_response):
+        nonlocal called
+        called = True
+        mlp.quit()
+
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=finished_callback,
+    )
+    slist.cancel(cancelled_callback)
+    mlp.run()
+    finished_callback.assert_not_called()
+
+    assert called, "Cancelled callback"
+
+    slist.save_image(
+        path=temp_jpg.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    img = Image.open(temp_jpg.name)
+    assert img.format == "JPEG", (
+        "can create a valid JPG after cancelling save PDF process"
+    )
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
+    """Test saving a djvu and triggering an error."""
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
+        slist = Document(dir=dirname)
+        asserts = 0
+
+        import_in_mainloop(slist, [rose_pnm])
+
+        # inject error before save_djvu
+        pathlib.Path(dirname).chmod(0o500)  # no write access
+
+        def error_callback1(_page, _process, _message):
+            """No write access."""
+            assert True, "caught error injected before save_djvu"
+            nonlocal asserts
+            asserts += 1
+            mlp.quit()
+
+        mlp = safe_mainloop(2000)
+        slist.save_djvu(
+            path=temp_djvu.name,
+            list_of_pages=[slist.data[0][2]],
+            error_callback=error_callback1,
+        )
+        mlp.run()
+
+        def error_callback2(_page, _process, _message):
+            assert True, "save_djvu caught error injected in queue"
+            pathlib.Path(dirname).chmod(0o700)  # allow write access
+            nonlocal asserts
+            asserts += 1
+            mlp.quit()
+
+        mlp = safe_mainloop(2000)
+        slist.save_djvu(
+            path=temp_djvu.name,
+            list_of_pages=[slist.data[0][2]],
+            error_callback=error_callback2,
+        )
+        mlp.run()
+
+        assert asserts == 2, "ran all callbacks"
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu_with_float_resolution(
+    rose_png,
+    temp_db,
+    temp_djvu,
+    import_in_mainloop,
+    set_resolution_in_mainloop,
+):
+    """Test saving a djvu with resolution as float."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_png])
+    set_resolution_in_mainloop(slist, 1, 299.72, 299.72)
+
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    assert pathlib.Path(temp_djvu.name).stat().st_size > 0, (
+        "DjVu created with expected size"
+    )
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu_different_resolutions(
+    temp_png, temp_db, temp_djvu, import_in_mainloop
+):
+    """Test saving a djvu with different resolutions."""
+    subprocess.run(
+        [config.CONVERT_COMMAND, "rose:", "-density", "100x200", temp_png.name],
+        check=True,
+    )
+
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [temp_png.name])
+
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    capture = subprocess.check_output(["djvudump", temp_djvu.name], text=True)
+    assert re.search(r"DjVu 140x46, v24, 200 dpi, gamma=2.2", capture), (
+        "created djvu with expect size and resolution"
+    )
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
+    """Test saving a djvu with metadata."""
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    metadata = {
+        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "title": "metadata title",
+    }
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        metadata=metadata,
+        options={"set_timestamp": True},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    info = subprocess.check_output(
+        ["djvused", temp_djvu.name, "-e", "print-meta"], text=True
+    )
+    assert re.search(r"metadata title", info) is not None, "metadata title in DjVu"
+    assert re.search(r"2016-02-10", info) is not None, "metadata ModDate in DjVu"
+
+    stb = pathlib.Path(temp_djvu.name).stat()
+    assert datetime.datetime.fromtimestamp(
+        stb.st_mtime, tz=datetime.timezone.utc
+    ) == datetime.datetime(2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc), (
+        "timestamp"
+    )
+
+
+@pytest.mark.skipif(
+    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
+)
+def test_save_djvu_with_old_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
+    """Test saving a djvu with old metadata."""
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [rose_pnm])
+
+    called = False
+
+    def error_callback(_result):
+        nonlocal called
+        called = True
+        mlp.quit()
+
+    metadata = {
+        "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "title": "metadata title",
+    }
+    slist.save_djvu(
+        path=temp_djvu.name,
+        list_of_pages=[slist.data[0][2]],
+        metadata=metadata,
+        options={"set_timestamp": True},
+        finished_callback=lambda _response: mlp.quit(),
+        error_callback=error_callback,
+    )
+    mlp = safe_mainloop(2000)
+    mlp.run()
+
+    assert called, "caught errors setting timestamp"
+
+    info = subprocess.check_output(
+        ["djvused", temp_djvu.name, "-e", "print-meta"], text=True
+    )
+    assert re.search(r"metadata title", info) is not None, "metadata title in DjVu"
+    assert re.search(r"1966-02-10", info) is not None, "metadata ModDate in DjVu"

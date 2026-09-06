@@ -1,0 +1,297 @@
+"""Test preferences dialog."""
+
+from unittest.mock import MagicMock, patch
+
+import gi
+import pytest
+
+from scantpaper.config import DEFAULTS
+from scantpaper.dialog.preferences import PreferencesDialog
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk  # noqa: E402
+
+
+@patch("scantpaper.dialog.preferences.shutil.which")
+def test_preferences_dialog(mock_which):
+    """Test preferences dialog."""
+    mock_which.return_value = "/usr/bin/gimp"
+
+    with pytest.raises(KeyError):
+        PreferencesDialog()
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    dialog = PreferencesDialog(settings=settings)
+    assert dialog is not None
+
+    del dialog.settings["TMPDIR"]
+    dialog._apply_callback()
+    assert dialog.settings["TMPDIR"] == "/tmp", "updated settings"
+
+
+def test_preferences_blacklist_setting():
+    """Test that the device blacklist is set correctly in the preferences dialog."""
+    # Mock settings with a device blacklist
+    settings = DEFAULTS.copy()
+    settings["device blacklist"] = "scanner1|scanner2"
+    settings["TMPDIR"] = "/tmp"
+
+    # Create the PreferencesDialog with the mocked settings
+    dialog = PreferencesDialog(settings=settings)
+
+    # Assert that the blacklist entry is set correctly
+    assert dialog._blacklist.get_text() == "scanner1|scanner2"
+
+
+@patch("scantpaper.dialog.preferences.Gtk.FileChooserDialog")
+@patch("scantpaper.dialog.preferences.get_tmp_dir")
+def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
+    """Test the _choose_temp_dir method."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+
+    # Create the PreferencesDialog with the mocked settings
+    dialog = PreferencesDialog(settings=settings)
+
+    # Mock the FileChooserDialog behavior
+    mock_file_chooser = MagicMock()
+    mock_file_chooser.run.return_value = Gtk.ResponseType.OK
+    mock_file_chooser.get_filename.return_value = "/new/tmp"
+    mock_file_chooser_dialog.return_value = mock_file_chooser
+
+    # Mock the get_tmp_dir function
+    mock_get_tmp_dir.return_value = "/new/tmp/scantpaper-xxxx"
+
+    # Call the _choose_temp_dir method
+    dialog._choose_temp_dir(None)
+
+    # Assert that the FileChooserDialog was created and run
+    mock_file_chooser_dialog.assert_called_once_with(
+        title="Select temporary directory",
+        parent=dialog,
+        action=Gtk.FileChooserAction.SELECT_FOLDER,
+    )
+    mock_file_chooser.run.assert_called_once()
+    mock_file_chooser.get_filename.assert_called_once()
+    mock_file_chooser.destroy.assert_called_once()
+
+    # Assert that get_tmp_dir was called with the correct arguments
+    mock_get_tmp_dir.assert_called_once_with("/new/tmp", r"scantpaper-\w\w\w\w")
+
+    # Assert that the TMPDIR setting was updated
+    assert dialog._tmpentry.get_text() == "/new/tmp/scantpaper-xxxx"
+
+
+def test_clicked_add_udt():
+    """Test the _clicked_add_udt method."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = []
+
+    # Create the PreferencesDialog with the mocked settings
+    dialog = PreferencesDialog(settings=settings)
+
+    # Create a mock button to pass as the argument
+    mock_button = Gtk.Button()
+
+    # Call the _clicked_add_udt method with the mock button
+    dialog._clicked_add_udt(mock_button)
+
+    # Verify that a new entry was added to the user-defined tools box
+    children = dialog._vboxt.get_children()
+    assert len(children) > 0, "No children were added to the user-defined tools box"
+
+    # Verify that the last child is a horizontal box containing the new entry
+    last_child = children[-1]
+    assert isinstance(last_child, Gtk.Box), "Last child is not a Gtk.Box"
+    entry_found = any(
+        isinstance(widget, Gtk.Entry) for widget in last_child.get_children()
+    )
+    assert entry_found, "No Gtk.Entry found in the last child box"
+
+
+def test_delete_udt():
+    """Test the delete_udt callback."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = []
+
+    # Create the PreferencesDialog with the mocked settings
+    dialog = PreferencesDialog(settings=settings)
+
+    # Initially, there's only the "Add" button
+    children = dialog._vboxt.get_children()
+    assert len(children) == 1, "Only 'Add' button should be present"
+    add_button = children[0]
+
+    # Add a user-defined tool
+    dialog._clicked_add_udt(add_button)
+
+    # Now there should be 2 children: the hbox for the tool and the "Add" button
+    children = dialog._vboxt.get_children()
+    assert len(children) == 2, "Should have 2 children: hbox and 'Add' button"
+
+    hbox = children[0]
+    assert isinstance(hbox, Gtk.Box), "The first child should be a Gtk.Box"
+
+    # Find the delete button in the hbox
+    delete_button = None
+    for child in hbox.get_children():
+        if isinstance(child, Gtk.Button) and child.get_label() == "_Delete":
+            delete_button = child
+            break
+
+    assert delete_button is not None, "Delete button not found"
+
+    # Simulate clicking the delete button
+    delete_button.clicked()
+
+    # Verify that the hbox was destroyed
+    assert hbox not in dialog._vboxt.get_children(), (
+        "User defined tool hbox was not destroyed"
+    )
+    assert len(dialog._vboxt.get_children()) == 1, "Only 'Add' button should remain"
+
+
+@patch("scantpaper.dialog.preferences.shutil.which")
+@patch("scantpaper.dialog.preferences.Gtk.MessageDialog")
+def test_apply_callback_shows_error_for_nonexistent_tool(
+    mock_message_dialog, mock_which
+):
+    """Test that an error dialog is shown when a user-defined tool is not found."""
+    mock_which.return_value = None
+    mock_dialog = MagicMock()
+    mock_message_dialog.return_value = mock_dialog
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = ["nonexistent_tool %i %o"]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    mock_message_dialog.assert_called_once()
+    _args, kwargs = mock_message_dialog.call_args
+    text = kwargs.get("text", "")
+    assert "nonexistent_tool" in text, (
+        f"Error message should mention the tool name, got: {text}"
+    )
+
+    assert dialog.get_visible(), "Dialog should remain visible when validation fails"
+
+    assert dialog.settings["user_defined_tools"] == ["nonexistent_tool %i %o"], (
+        "Settings should remain unchanged when validation fails"
+    )
+
+
+@patch("scantpaper.dialog.preferences.shutil.which")
+@patch("scantpaper.dialog.preferences.Gtk.MessageDialog")
+def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
+    """Test that all invalid tools are reported in the error dialog."""
+    mock_which.return_value = None
+    mock_dialog = MagicMock()
+    mock_message_dialog.return_value = mock_dialog
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = [
+        "bad1 %i",
+        "bad2 %i %o",
+    ]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    mock_message_dialog.assert_called_once()
+    _args, kwargs = mock_message_dialog.call_args
+    text = kwargs.get("text", "")
+    assert "bad1" in text, f"Error message should mention both tool names, got: {text}"
+    assert "bad2" in text, f"Error message should mention both tool names, got: {text}"
+
+
+@patch("scantpaper.dialog.preferences.shutil.which")
+def test_apply_callback_allows_valid_tool(mock_which):
+    """Test that a valid executable is saved without error."""
+    mock_which.return_value = "/usr/bin/convert"
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = ["convert %i -negate %o"]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    assert "convert %i -negate %o" in dialog.settings["user_defined_tools"], (
+        "Valid tool should be saved"
+    )
+
+
+@pytest.mark.parametrize(
+    ("allow_batch_flatbed", "expected_sensitive"),
+    [(True, True), (False, False)],
+)
+def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitive):
+    """The cancel-between-pages checkbox tracks allow-batch-flatbed sensitivity."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["allow-batch-flatbed"] = allow_batch_flatbed
+
+    dialog = PreferencesDialog(settings=settings)
+
+    cancel_cb = dialog._cb_cancel_btw_pages
+    assert cancel_cb.get_sensitive() is expected_sensitive, (
+        "cancel-between-pages sensitivity should mirror allow-batch-flatbed"
+    )
+
+
+def test_cancel_between_pages_sensitivity_toggles():
+    """Toggling allow-batch-flatbed updates the cancel-between-pages sensitivity."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["allow-batch-flatbed"] = False
+
+    dialog = PreferencesDialog(settings=settings)
+    cancel_cb = dialog._cb_cancel_btw_pages
+    batch_cb = dialog._cb_batch_flatbed
+    assert not cancel_cb.get_sensitive()
+
+    batch_cb.set_active(True)
+    assert cancel_cb.get_sensitive(), (
+        "enabling allow-batch-flatbed should enable the cancel checkbox"
+    )
+
+    batch_cb.set_active(False)
+    assert not cancel_cb.get_sensitive(), (
+        "disabling allow-batch-flatbed should disable the cancel checkbox"
+    )
+
+
+@patch("scantpaper.dialog.preferences.Gtk.MessageDialog")
+def test_apply_callback_shows_error_for_empty_tool(mock_message_dialog):
+    """Test that an error dialog is shown when a user-defined tool is empty or whitespace-only."""
+    mock_dialog = MagicMock()
+    mock_message_dialog.return_value = mock_dialog
+    mock_dialog.run.return_value = Gtk.ResponseType.OK
+
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = ["   ", ""]
+
+    dialog = PreferencesDialog(settings=settings)
+    dialog._apply_callback()
+
+    mock_message_dialog.assert_called_once()
+    _args, kwargs = mock_message_dialog.call_args
+    text = kwargs.get("text", "")
+    assert "could not be found" in text, (
+        f"Error message should mention that tools could not be found, got: {text}"
+    )
+
+    assert dialog.get_visible(), "Dialog should remain visible when validation fails"
+
+    assert dialog.settings["user_defined_tools"] == [
+        "   ",
+        "",
+    ], "Settings should remain unchanged when validation fails"

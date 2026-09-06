@@ -1,9 +1,9 @@
 """Compile .po files into .mo files.
 
 Usage:
-  python3 compile_mo.py # compiles po/*.po into locale/<lang>/LC_MESSAGES/<domain>.mo
-  python3 compile_mo.py --src po --out locale
-  python3 compile_mo.py --src po --out locale --domain scantpaper
+  python3 compile_mo.py # compiles po/*.po into src/scantpaper/locale/<lang>/LC_MESSAGES/<domain>.mo
+  python3 compile_mo.py --src po --out src/scantpaper/locale
+  python3 compile_mo.py --src po --out src/scantpaper/locale --domain scantpaper
 """
 
 import argparse
@@ -41,7 +41,9 @@ def main():
         "--src", default="po", help="Source dir containing .po files (default: po)"
     )
     p.add_argument(
-        "--out", default="locale", help="Output locale dir (default: locale)"
+        "--out",
+        default="src/scantpaper/locale",
+        help="Output locale dir (default: src/scantpaper/locale)",
     )
     p.add_argument(
         "--domain",

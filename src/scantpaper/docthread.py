@@ -1,0 +1,1624 @@
+"""Threading model for the Document class."""
+
+import datetime
+import json
+import logging
+import pathlib
+import re
+import shutil
+import sqlite3
+import subprocess
+import tempfile
+import threading
+from pathlib import Path
+
+import gi
+import tesserocr
+from PIL import ImageChops, ImageEnhance, ImageFilter, ImageOps, ImageStat
+
+from scantpaper.bboxtree import Bboxtree
+from scantpaper.const import APPLICATION_ID, THUMBNAIL, USER_VERSION
+from scantpaper.helpers import exec_command_run
+from scantpaper.i18n import _
+from scantpaper.importthread import _note_callbacks
+from scantpaper.page import Page
+from scantpaper.savethread import SaveThread
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import (  # noqa: E402
+    GdkPixbuf,
+    GLib,
+)
+
+logger = logging.getLogger(__name__)
+
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
+# Sentinel used as the insert-after target to place a page at the very start of
+# the document (before position 1), where no existing page precedes it.
+INSERT_AT_START = "<start>"
+
+
+def _loggerise(variables):
+    logger_vars = None
+    if variables:
+        tuple_flag = False
+        if isinstance(variables, tuple):
+            tuple_flag = True
+        logger_vars = list(variables)
+        for i, item in enumerate(logger_vars):
+            if isinstance(item, (bytes, bytearray)):
+                logger_vars[i] = "binary data"
+            elif isinstance(item, (tuple, list)):
+                logger_vars[i] = _loggerise(logger_vars[i])
+        if tuple_flag:
+            logger_vars = tuple(logger_vars)
+    return logger_vars
+
+
+class DocThread(SaveThread):
+    """subclass basethread for document."""
+
+    heightt = THUMBNAIL
+    widtht = THUMBNAIL
+    _action_id = 0
+    _db = None
+    _dir = None
+
+    def __init__(self, *args, **kwargs):
+        """Initialise DocThread."""
+        for key in ["dir", "db"]:
+            if key in kwargs:
+                setattr(self, "_" + key, kwargs.pop(key))
+        super().__init__(*args, **kwargs)
+        if self._db:
+            self._db = pathlib.Path(self._db)
+        if self._dir:
+            self._dir = pathlib.Path(self._dir)
+        elif self._db:
+            self._dir = self._db.parent
+        else:
+            self._dir = pathlib.Path(tempfile.gettempdir())
+        if self._db is None:
+            self._db = self._dir / "document.sdb"
+
+        self.db_files = [
+            self._db,
+            self._dir / pathlib.Path(self._db.name + "-wal"),
+            self._dir / pathlib.Path(self._db.name + "-shm"),
+        ]
+        self._con = {}
+        self._cur = {}
+        self._write_tid = None
+        self.start()
+        mlp = GLib.MainLoop()
+        success = False
+        timed_out = False
+
+        def on_finished(_):
+            nonlocal success
+            success = True
+            mlp.quit()
+
+        def on_timeout():
+            nonlocal timed_out
+            timed_out = True
+            mlp.quit()
+            return GLib.SOURCE_REMOVE
+
+        timeout_id = GLib.timeout_add(10000, on_timeout)  # to prevent it hanging
+        self.send(
+            "create",
+            self._db,
+            finished_callback=on_finished,
+            error_callback=lambda _x: mlp.quit(),
+        )
+        mlp.run()
+        if not timed_out:
+            GLib.source_remove(timeout_id)
+        if not success:
+            logger.error("Failed to initialize DocThread for %s", self._db)
+
+    def _connect(self):
+        tid = threading.get_native_id()
+        if tid not in self._con:
+            logger.debug("Connecting to database %s in thread %s", self._db, tid)
+            self._con[tid] = sqlite3.connect(self._db)
+            self._con[tid].isolation_level = "IMMEDIATE"
+            self._cur[tid] = self._con[tid].cursor()
+
+    def _execute(self, query, params=None):
+        """Execute a query on the database."""
+        self._connect()
+        tid = threading.get_native_id()
+        logger.debug("_execute(%s, %s) in tid %s", query, _loggerise(params), tid)
+        if params is None:
+            self._cur[tid].execute(query)
+        else:
+            self._cur[tid].execute(query, params)
+
+    def _executemany(self, query, params=None):
+        """Execute a query on the database."""
+        self._connect()
+        tid = threading.get_native_id()
+        logger.debug("_executemany(%s, %s) in tid %s", query, _loggerise(params), tid)
+        if params is None:
+            self._cur[tid].executemany(query)
+        else:
+            self._cur[tid].executemany(query, params)
+
+    def _fetchone(self):
+        """Fetch one row from the database."""
+        tid = threading.get_native_id()
+        result = self._cur[tid].fetchone()
+        logger.debug("_fetchone() in tid %s returned %s", tid, _loggerise(result))
+        return result
+
+    def _fetchall(self):
+        """Fetch one row from the database."""
+        tid = threading.get_native_id()
+        result = self._cur[tid].fetchall()
+        logger.debug("fetchall() in tid %s returned %s", tid, _loggerise(result))
+        return result
+
+    def _check_write_tid(self):
+        tid = threading.get_native_id()
+        if self._write_tid:
+            if self._write_tid != tid:
+                msg = (
+                    f"Attempted to write to database with tid {tid}, but the "
+                    f"database was created with tid {self._write_tid}"
+                )
+                raise RuntimeError(msg)
+        else:
+            self._write_tid = tid
+
+    def do_create(self, request):
+        """Open a saved database."""
+        self._check_write_tid()
+        self._db = request.args[0]
+        if pathlib.Path(self._db).exists() and Path(self._db).stat().st_size:
+            logger.warning(
+                "Database %s already exists, not creating it again", self._db
+            )
+            self.open(self._db)
+            return
+        self._execute("PRAGMA journal_mode=WAL")
+        self._execute(f"PRAGMA application_id={APPLICATION_ID}")
+        self._execute(f"PRAGMA user_version={USER_VERSION}")
+        self._execute("""CREATE TABLE image(
+                id INTEGER PRIMARY KEY,
+                image BLOB,
+                thumb BLOB)""")
+        self._execute("""CREATE TABLE page(
+                id INTEGER PRIMARY KEY,
+                image_id INTEGER NOT NULL,
+                x_res FLOAT,
+                y_res FLOAT,
+                std_dev TEXT,
+                mean TEXT,
+                saved BOOL,
+                text TEXT,
+                annotations TEXT,
+                FOREIGN KEY (image_id) REFERENCES image(id))""")
+        self._execute("""CREATE TABLE page_order(
+                action_id INTEGER NOT NULL,
+                row_id INTEGER NOT NULL,
+                page_id INTEGER NOT NULL,
+                initial_page_id INTEGER NOT NULL,
+                FOREIGN KEY (page_id) REFERENCES page(id),
+                PRIMARY KEY (action_id, row_id))""")
+        self._execute("""CREATE TABLE selection(
+                action_id INTEGER PRIMARY KEY,
+                row_ids TEXT NOT NULL)""")
+
+    def open(self, db):
+        """Open a saved database."""
+        self._db = db
+        self._connect()
+        self._execute("PRAGMA application_id")
+        application_id = self._fetchone()
+        if (
+            application_id
+            and application_id[0] is not None
+            and application_id[0] != APPLICATION_ID
+        ):
+            msg = (
+                f"{self._db} is not a scantpaper session file "
+                f"(application_id={application_id[0]})"
+            )
+            raise TypeError(msg)
+        self._execute("PRAGMA user_version")
+        user_version = self._fetchone()
+        if user_version:
+            if user_version[0] > USER_VERSION:
+                logger.warning(
+                    "%s was created by a newer version of scantpaper.", self._db
+                )
+            elif user_version[0] == 1:
+                # migration from 1 to 2
+                self._execute(
+                    "ALTER TABLE page_order ADD COLUMN initial_page_id INTEGER"
+                )
+                self._execute("UPDATE page_order SET initial_page_id = page_id")
+                self._execute(f"PRAGMA user_version = {USER_VERSION}")
+                self._con[threading.get_native_id()].commit()
+        self._migrate_page_order_schema()
+        self._execute("SELECT MAX(action_id) FROM page_order")
+        row = self._fetchone()
+        if row:
+            self._action_id = row[0]
+
+    def _migrate_page_order_schema(self):
+        """Detect and rebuild a legacy page_order schema with a page_number column."""
+        self._execute("PRAGMA table_info(page_order)")
+        columns = [row[1] for row in self._fetchall()]
+        if "page_number" not in columns:
+            return
+        logger.info("Migrating legacy page_order schema (dropping page_number)")
+        self._execute("""CREATE TABLE page_order_new(
+                action_id INTEGER NOT NULL,
+                row_id INTEGER NOT NULL,
+                page_id INTEGER NOT NULL,
+                initial_page_id INTEGER NOT NULL,
+                FOREIGN KEY (page_id) REFERENCES page(id),
+                PRIMARY KEY (action_id, row_id))""")
+        self._execute(
+            """INSERT INTO page_order_new (action_id, row_id, page_id, initial_page_id)
+               SELECT action_id, row_id, page_id, initial_page_id FROM page_order"""
+        )
+        self._execute("DROP TABLE page_order")
+        self._execute("ALTER TABLE page_order_new RENAME TO page_order")
+        self._con[threading.get_native_id()].commit()
+
+    def do_open(self, request):
+        """Open a saved database on the worker thread."""
+        self.open(request.args[0])
+
+    def close(self):
+        """Close the current database."""
+        tid = threading.get_native_id()
+        if tid in self._con:
+            self._con[tid].close()
+            del self._con[tid]
+
+    def do_quit(self, _request):
+        """Close the worker thread's database connection before stopping."""
+        self.close()
+        super().do_quit(_request)
+
+    def save_as(self, db_name):
+        """Save the current database to a new file."""
+        self._execute(f"VACUUM INTO '{db_name}'")
+
+    def _insert_image(self, page, if_different_from=None):
+        """Insert an image to the database."""
+        self._check_write_tid()
+        bytes_image = page.to_stored_bytes()
+        insert = True
+        if if_different_from is not None:
+            self._execute(
+                "SELECT image, thumb FROM image WHERE id = ?",
+                (if_different_from,),
+            )
+            row = self._fetchone()
+            if not row:
+                msg = f"Image id {if_different_from} not found"
+                raise ValueError(msg)
+            if row[0] == bytes_image:
+                insert = False
+                thumb = self._bytes_to_pixbuf(row[1])
+        if insert:
+            thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
+            self._execute(
+                "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
+                (
+                    bytes_image,
+                    self._pixbuf_to_bytes(thumb),
+                ),
+            )
+            return self._cur[threading.get_native_id()].lastrowid, thumb
+        return if_different_from, thumb
+
+    def _reuse_image_thumb(self, image_id):
+        """Return the thumbnail pixbuf of the stored image with the given id."""
+        self._check_write_tid()
+        self._execute("SELECT thumb FROM image WHERE id = ?", (image_id,))
+        row = self._fetchone()
+        if row is None:
+            msg = f"Image id {image_id} not found"
+            raise ValueError(msg)
+        return self._bytes_to_pixbuf(row[0])
+
+    def _insert_page(self, page, image_id):
+        """Insert a page to the database."""
+        self._check_write_tid()
+        x_res, y_res = None, None
+        if page.resolution:
+            x_res, y_res = page.resolution[0], page.resolution[1]
+        self._execute(
+            """INSERT INTO page (
+                id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                image_id,
+                x_res,
+                y_res,
+                None if page.mean is None else json.dumps(page.mean),
+                None if page.std_dev is None else json.dumps(page.std_dev),
+                page.saved,
+                page.text_layer,
+                page.annotations,
+            ),
+        )
+        tid = threading.get_native_id()
+        self._con[tid].commit()
+        return self._cur[tid].lastrowid
+
+    def _shift_row_ids(self, start_row_id, shift):
+        """Shift the row_ids of all rows at or after start_row_id by the given amount."""
+        self._execute(
+            """SELECT row_id, initial_page_id FROM page_order
+               WHERE action_id = ? AND row_id >= ? ORDER BY row_id DESC""",
+            (self._action_id, start_row_id),
+        )
+        for row_id, initial_page_id in self._fetchall():
+            self._execute(
+                "UPDATE page_order SET row_id = ? WHERE initial_page_id = ? AND action_id = ?",
+                (row_id + shift, initial_page_id, self._action_id),
+            )
+
+    def _insert_page_order_after(self, initial_page_id, page_id):
+        """Insert a page_order row immediately after the row with the given initial_page_id."""
+        self._execute(
+            "SELECT row_id FROM page_order WHERE initial_page_id = ? AND action_id = ?",
+            (initial_page_id, self._action_id),
+        )
+        row = self._fetchone()
+        if row is None:
+            msg = f"Page {initial_page_id} does not exist"
+            raise ValueError(msg)
+        position = row[0] + 1
+        self._shift_row_ids(position, 1)
+        self._execute(
+            """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?)""",
+            (self._action_id, position, page_id, page_id),
+        )
+        return position
+
+    def add_page(self, page, insert_after=None):
+        """Add a page to the database, appending it or inserting it after the given page."""
+        self._check_write_tid()
+        self._take_snapshot()
+
+        image_id, thumb = self._insert_image(page)
+        page_id = self._insert_page(page, image_id)
+        if insert_after == INSERT_AT_START:
+            position = 1
+            self._shift_row_ids(1, 1)
+            self._execute(
+                """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+                   VALUES (?, ?, ?, ?)""",
+                (self._action_id, position, page_id, page_id),
+            )
+        elif insert_after is None:
+            self._execute(
+                "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
+                (self._action_id,),
+            )
+            max_row_id = self._fetchone()[0]
+            if max_row_id is None:
+                max_row_id = -1
+            position = max_row_id + 1
+            self._execute(
+                """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+                   VALUES (?, ?, ?, ?)""",
+                (self._action_id, position, page_id, page_id),
+            )
+        else:
+            position = self._insert_page_order_after(insert_after, page_id)
+        self._con[threading.get_native_id()].commit()
+        return position, thumb, page_id
+
+    def replace_page(self, page, initial_page_id, *, reuse_image=False):
+        """Replace a page in the database, keeping its position."""
+        self._check_write_tid()
+        self._take_snapshot()
+
+        if reuse_image:
+            image_id = page.image_id
+            thumb = self._reuse_image_thumb(image_id)
+        else:
+            image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
+        page_id = self._insert_page(page, image_id)
+        self._execute(
+            """UPDATE page_order SET page_id = ?
+               WHERE initial_page_id = ? AND action_id = ?""",
+            (
+                page_id,
+                initial_page_id,
+                self._action_id,
+            ),
+        )
+        self._execute(
+            "SELECT row_id FROM page_order WHERE initial_page_id = ? AND action_id = ?",
+            (initial_page_id, self._action_id),
+        )
+        position = self._fetchone()[0]
+        self._con[threading.get_native_id()].commit()
+        return position, thumb, initial_page_id
+
+    # TODO: Commit a95296e93b392b35285d00bc633a9aa94c76995c fixed a bug
+    # seemingly deleting extra pages. Please write a test which passes after
+    # this commit, but fails before it.
+    def do_delete_pages(self, request):
+        """Delete a page from the database."""
+        self._check_write_tid()
+        self._take_snapshot()
+        kwargs = request.args[0]
+
+        row_ids = kwargs.get("row_ids", [])
+        page_ids = kwargs.get("page_ids", [])
+
+        if not row_ids and not page_ids:
+            msg = "Specify either row_id or page_id"
+            raise ValueError(msg)
+
+        if row_ids:
+            self._execute(
+                f"""DELETE FROM page_order
+                    WHERE row_id IN ({", ".join(["?"] * len(row_ids))}) AND action_id = ?""",
+                (*row_ids, self._action_id),
+            )
+
+        if page_ids:
+            self._execute(
+                f"""DELETE FROM page_order
+                    WHERE initial_page_id IN ({", ".join(["?"] * len(page_ids))})
+                        AND action_id = ?""",
+                (*page_ids, self._action_id),
+            )
+
+        # renumber remaining rows
+        self._execute(
+            """SELECT row_id, initial_page_id, action_id FROM page_order
+               WHERE action_id = ? ORDER BY row_id""",
+            (self._action_id,),
+        )
+        page_order = self._fetchall()
+        for i, page in enumerate(page_order):
+            page_order[i] = [i, page[1], self._action_id]
+        self._executemany(
+            "UPDATE page_order SET row_id = ? WHERE initial_page_id = ? AND action_id = ?",
+            page_order,
+        )
+        self._con[threading.get_native_id()].commit()
+
+        request.data(
+            {
+                "type": "page",
+                "remove": row_ids,
+            }
+        )
+
+    def do_page_number_table(self, _request):
+        """Get data for page number/thumb table on the worker thread."""
+        self._execute(
+            """SELECT row_id, thumb, initial_page_id
+               FROM page_order, page, image
+               WHERE page_id = page.id AND image_id = image.id AND action_id = ?
+               ORDER BY row_id""",
+            (self._action_id,),
+        )
+        return [
+            [row[0], self._bytes_to_pixbuf(row[1]), row[2]] for row in self._fetchall()
+        ]
+
+    def page_number_table(self) -> list | None:
+        """Wrap do_page_number_table via send() synchronously."""
+        result = [[]]
+        mlp = GLib.MainLoop()
+
+        def on_finished(response):
+            result[0] = response.info
+            mlp.quit()
+
+        def on_error(_response):
+            result[0] = None
+            mlp.quit()
+
+        self.send(
+            "page_number_table",
+            finished_callback=on_finished,
+            error_callback=on_error,
+        )
+        mlp.run()
+        return result[0]
+
+    def get_page(self, **kwargs):
+        """Get a page from the database."""
+        if "id" in kwargs:
+            self._execute(
+                """SELECT
+                    image, x_res, y_res, mean, std_dev, text, annotations, initial_page_id, image.id
+                   FROM page, page_order, image
+                   WHERE page.id = page_id
+                    AND image_id = image.id
+                    AND initial_page_id = ?
+                    AND action_id = ?""",
+                (kwargs["id"], self._action_id),
+            )
+        else:
+            msg = "Please specify the page id"
+            raise ValueError(msg)
+        row = self._fetchone()
+        if row is None:
+            msg = f"Page id {kwargs['id']} not found"
+            raise ValueError(msg)
+        return Page.from_bytes(
+            row[0],
+            id=kwargs["id"],
+            resolution=(row[1], row[2], "PixelsPerInch"),
+            mean=None if row[3] is None else json.loads(row[3], strict=False),
+            std_dev=None if row[4] is None else json.loads(row[4], strict=False),
+            text_layer=row[5],
+            annotations=row[6],
+            image_id=row[8],
+        )
+
+    def do_get_page(self, request):
+        """Get a page from the database on the worker thread."""
+        kwargs = request.args[0]
+        return self.get_page(**kwargs)
+
+    def do_clone_pages(self, request):
+        """Clone pages in the database."""
+        self._check_write_tid()
+        self._take_snapshot()
+        kwargs = request.args[0]
+        page_ids = kwargs["page_ids"]
+        dest = kwargs["dest"]
+        self._execute(
+            f"""SELECT image_id, x_res, y_res, mean, std_dev, saved, text, annotations FROM page
+                WHERE id IN (
+                    SELECT page_id FROM page_order po1
+                    WHERE initial_page_id IN ({", ".join(["?"] * len(page_ids))})
+                    AND action_id = (
+                        SELECT MAX(action_id) FROM page_order po2
+                        WHERE po2.initial_page_id = po1.initial_page_id
+                        AND po2.action_id <= ?
+                    )
+                )""",
+            (*page_ids, self._action_id),
+        )
+        pages = self._fetchall()
+        image_ids = [page[0] for page in pages]
+        self._execute(
+            f"SELECT image, thumb FROM image WHERE id IN ({', '.join(['?'] * len(image_ids))})",
+            (*image_ids,),
+        )
+        images = self._fetchall()
+        self._executemany(
+            "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
+            images,
+        )
+        tid = threading.get_native_id()
+        self._execute("SELECT last_insert_rowid()")
+        first_image_id = self._fetchone()[0] - len(pages) + 1
+        for i, _page in enumerate(pages):
+            pages[i] = list(pages[i])
+            pages[i][0] = first_image_id + i  # new image id
+        self._executemany(
+            """INSERT INTO page (
+                id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            pages,
+        )
+        self._execute("SELECT last_insert_rowid()")
+        first_page_id = self._fetchone()[0] - len(pages) + 1
+        self._execute(
+            "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
+            (self._action_id,),
+        )
+        max_row_id = self._fetchone()[0]
+
+        # if we are not adding the cloned pages to the end, shift the rows after dest
+        if dest <= max_row_id:
+            self._shift_row_ids(dest, len(pages))
+
+        new_pages = [
+            (
+                self._action_id,
+                dest + i,
+                first_page_id + i,
+                first_page_id + i,
+            )
+            for i in range(len(pages))
+        ]
+        self._executemany(
+            """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?)""",
+            new_pages,
+        )
+        self._con[tid].commit()
+
+        self._execute(
+            f"""SELECT row_id, thumb, initial_page_id
+                          FROM page_order, page, image
+                          WHERE action_id = ?
+                           AND page_id = page.id
+                           AND image_id = image.id
+                           AND page_id IN ({", ".join(["?"] * len(new_pages))})""",
+            (self._action_id, *[row[2] for row in new_pages]),
+        )
+        rows = []
+        for record in self._fetchall():
+            row = list(record)
+            row[1] = self._bytes_to_pixbuf(row[1])
+            rows.append(row)
+        request.data({"type": "page", "new_pages": rows})
+        return [dest + i for i in range(len(pages))]
+
+    def do_reorder_pages(self, request):
+        """Reorder pages in the database."""
+        self._check_write_tid()
+        kwargs = request.args[0]
+        page_ids = kwargs["page_ids"]
+        dest = kwargs["dest"]
+        self._execute(
+            """SELECT initial_page_id FROM page_order
+               WHERE action_id = ? ORDER BY row_id""",
+            (self._action_id,),
+        )
+        current = [row[0] for row in self._fetchall()]
+        moved = [pid for pid in page_ids if pid in current]
+        # The frontend may still hold an id that is already gone from the
+        # database (e.g. a page deleted by an earlier interrupted drag). In
+        # that case there is nothing to reorder: return the current order
+        # unchanged instead of building an invalid "IN ()" query.
+        if not moved:
+            places = ", ".join(["?"] * len(current))
+            self._execute(
+                f"""SELECT row_id, thumb, initial_page_id
+                    FROM page_order, page, image
+                    WHERE action_id = ?
+                     AND page_id = page.id AND image_id = image.id
+                     AND initial_page_id IN ({places})
+                    ORDER BY row_id""",
+                (self._action_id, *current),
+            )
+            rows = []
+            for record in self._fetchall():
+                row = list(record)
+                row[1] = self._bytes_to_pixbuf(row[1])
+                rows.append(row)
+            request.data({"type": "page", "new_pages": rows})
+            return [row[0] for row in rows]
+        self._take_snapshot()
+        moved_set = set(moved)
+        remaining = [pid for pid in current if pid not in moved_set]
+        remaining[dest:dest] = moved
+        # In-place row_id updates can transiently collide on the
+        # (action_id, row_id) UNIQUE constraint. Shift all row ids beyond the
+        # final range first, then write the final permutation.
+        offset = len(remaining)
+        self._execute(
+            "UPDATE page_order SET row_id = row_id + ? WHERE action_id = ?",
+            (offset, self._action_id),
+        )
+        self._executemany(
+            """UPDATE page_order SET row_id = ?
+               WHERE initial_page_id = ? AND action_id = ?""",
+            [(i, pid, self._action_id) for i, pid in enumerate(remaining)],
+        )
+        self._con[threading.get_native_id()].commit()
+
+        placeholders = ", ".join(["?"] * len(moved))
+        self._execute(
+            f"""SELECT row_id, thumb, initial_page_id
+                FROM page_order, page, image
+                WHERE action_id = ?
+                 AND page_id = page.id AND image_id = image.id
+                 AND initial_page_id IN ({placeholders})
+                ORDER BY row_id""",
+            (self._action_id, *moved),
+        )
+        rows = []
+        for record in self._fetchall():
+            row = list(record)
+            row[1] = self._bytes_to_pixbuf(row[1])
+            rows.append(row)
+        request.data({"type": "page", "new_pages": rows})
+        return [row[0] for row in rows]
+
+    def _take_snapshot(self):
+        """Take a snapshot of the current state of the document."""
+        self._check_write_tid()
+
+        # in case the user has undone one or more actions, before taking a
+        # snapshot, remove the redo steps
+        self._execute("DELETE FROM page_order WHERE action_id > ?", (self._action_id,))
+        self._execute("DELETE FROM selection WHERE action_id > ?", (self._action_id,))
+
+        # copy page ids and order to buffer
+        self._execute(
+            """SELECT row_id, page_id, initial_page_id
+                FROM page_order
+                WHERE action_id = ?""",
+            (self._action_id,),
+        )
+        snapshot = self._fetchall()
+
+        # Copy selection to buffer
+        self._execute(
+            "SELECT row_ids FROM selection WHERE action_id = ?",
+            (self._action_id,),
+        )
+        selection_row = self._fetchone()
+        row_ids = selection_row[0] if selection_row else "[]"
+
+        self._action_id += 1
+        snapshot = [(self._action_id, *row) for row in snapshot]
+        self._executemany(
+            """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
+               VALUES (?, ?, ?, ?)""",
+            snapshot,
+        )
+
+        # Insert selection for new action_id
+        self._execute(
+            "INSERT INTO selection (action_id, row_ids) VALUES (?, ?)",
+            (self._action_id, row_ids),
+        )
+
+        # TODO: implement set number_undo_steps depending on available disk space
+        # TODO: after deleting from selection, page_order, also delete rows in
+        # page & image that are no longer referenced.
+        # delete those outside the undo limit
+        self._con[threading.get_native_id()].commit()
+
+    def _get_snapshot(self):
+        """Fetch the snapshot of the document with the given action id."""
+        self._execute(
+            """SELECT row_id, thumb, initial_page_id
+                FROM page_order, page, image
+                WHERE action_id = ? AND page_id = page.id AND image_id = image.id
+                ORDER BY row_id""",
+            (self._action_id,),
+        )
+
+        rows = []
+        for record in self._fetchall():
+            row = list(record)
+            row[0] += 1  # page numbers shown to the user are 1-based
+            row[1] = self._bytes_to_pixbuf(row[1])
+            rows.append(row)
+        return rows
+
+    def _pixbuf_to_bytes(self, pixbuf):
+        """Given a pixbuf, return the equivalent bytes, in order to store them as a blob."""
+        if pixbuf is None:
+            return b""
+        _success, buffer = pixbuf.save_to_bufferv("png", [], [])
+        return buffer
+
+    def _bytes_to_pixbuf(self, blob):
+        """Given a stream of bytes, return the equivalent pixbuf."""
+        with tempfile.NamedTemporaryFile(dir=self._dir, suffix=".png") as temp:
+            temp.write(blob)
+            temp.flush()
+            return GdkPixbuf.Pixbuf.new_from_file(temp.name)
+
+    def can_undo(self):
+        """Check whether undo is possible."""
+        self._execute("SELECT min(action_id) FROM page_order")
+        min_page = self._fetchone()[0]
+        self._execute("SELECT min(action_id) FROM selection")
+        min_sel = self._fetchone()[0]
+        ids = [x for x in [min_page, min_sel] if x is not None]
+        min_action_id = min(ids) if ids else None
+        return min_action_id is not None and min_action_id <= self._action_id
+
+    def can_redo(self):
+        """Check whether redo is possible."""
+        self._execute("SELECT max(action_id) FROM page_order")
+        max_page = self._fetchone()[0]
+        self._execute("SELECT max(action_id) FROM selection")
+        max_sel = self._fetchone()[0]
+        ids = [x for x in [max_page, max_sel] if x is not None]
+        max_action_id = max(ids) if ids else None
+        return max_action_id is not None and max_action_id > self._action_id
+
+    def do_undo(self, _request):
+        """Undo handler — decrements action_id, returns snapshot and selection."""
+        if not self.can_undo():
+            msg = "No more undo steps possible"
+            raise StopIteration(msg)
+
+        self._action_id -= 1
+        return {
+            "snapshot": self._get_snapshot(),
+            "selection": self.get_selection(),
+        }
+
+    def do_redo(self, _request):
+        """Redo handler — increments action_id, returns snapshot and selection."""
+        if not self.can_redo():
+            msg = "No more redo steps possible"
+            raise StopIteration(msg)
+
+        self._action_id += 1
+        return {
+            "snapshot": self._get_snapshot(),
+            "selection": self.get_selection(),
+        }
+
+    def get_selection(self):
+        """Get the selected row ids for the current action_id."""
+        self._execute(
+            "SELECT row_ids FROM selection WHERE action_id = ?",
+            (self._action_id,),
+        )
+        row_ids = self._fetchone()
+        return json.loads(row_ids[0]) if row_ids else []
+
+    def do_set_selection(self, request):
+        """Set the selected row ids for the current action_id."""
+        self._check_write_tid()
+        row_ids = json.dumps(request.args[0])
+        self._execute(
+            """INSERT INTO selection (action_id, row_ids) VALUES (?, ?)
+                ON CONFLICT(action_id) DO UPDATE SET row_ids = ?""",
+            (self._action_id, row_ids, row_ids),
+        )
+        self._con[threading.get_native_id()].commit()
+
+    def do_set_saved(self, request):
+        """Mark given page as saved."""
+        self._check_write_tid()
+        if len(request.args) > 1:
+            page_id, saved = request.args
+        else:
+            page_id = request.args[0]
+            saved = True
+        if not isinstance(page_id, list):
+            page_id = [page_id]
+        self._execute(
+            f"""UPDATE page SET saved = ? WHERE id IN (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id IN ({", ".join(["?"] * len(page_id))})
+                AND action_id = ?
+            )""",
+            (
+                saved,
+                *page_id,
+                self._action_id,
+            ),
+        )
+        self._con[threading.get_native_id()].commit()
+
+    def pages_saved(self):
+        """Check that all pages have been saved."""
+        self._execute(
+            """SELECT COUNT(id)
+                FROM page_order, page
+                WHERE saved = 0 and page_id = id AND action_id = ?""",
+            (self._action_id,),
+        )
+        return self._fetchone()[0] == 0
+
+    def get_thumb(self, page_id):
+        """Get the thumbnail for the given page_id."""
+        self._execute(
+            """SELECT thumb FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
+        return self._bytes_to_pixbuf(self._fetchone()[0])
+
+    def get_text(self, page_id):
+        """Get the text layer for the given page."""
+        self._execute(
+            """SELECT text FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
+        return self._fetchone()[0]
+
+    def parse_bboxtree(self, json_string, **kwargs):
+        """Parse bboxtree in thread."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("parse_bboxtree", json_string, **callbacks)
+
+    def do_parse_bboxtree(self, request):
+        """Parse bboxtree in thread."""
+        json_string = request.args[0]
+        tree = Bboxtree(json_string)
+        bboxes = list(tree.each_bbox())
+        words = []
+        for i, box in enumerate(bboxes):
+            if box.get("type") == "word" and len(box.get("text", "")) > 0:
+                words.append((i, box.get("confidence", 100)))
+
+        # Sort by confidence
+        words.sort(key=lambda x: x[1])
+
+        return {
+            "bboxes": bboxes,
+            "sorted_word_indices": [x[0] for x in words],
+        }
+
+    def set_text(self, page_id, text, **kwargs):
+        """Set the text layer for the given page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("set_text", page_id, text, **callbacks)
+
+    def do_set_text(self, request):
+        """Set the text layer for the given page."""
+        self._take_snapshot()
+        self._check_write_tid()
+        page_id, text = request.args
+        self._execute(
+            """UPDATE page SET text = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+            (
+                text,
+                page_id,
+                self._action_id,
+            ),
+        )
+        self._con[threading.get_native_id()].commit()
+
+    def get_annotations(self, page_id):
+        """Get the annotations layer for the given page."""
+        self._execute(
+            """SELECT annotations FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
+        return self._fetchone()[0]
+
+    def do_set_annotations(self, request):
+        """Set the annotations layer for the given page."""
+        self._check_write_tid()
+        page_id, annotations = request.args
+        self._execute(
+            """UPDATE page SET annotations = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+            (
+                annotations,
+                page_id,
+                self._action_id,
+            ),
+        )
+        self._con[threading.get_native_id()].commit()
+
+    def get_resolution(self, page_id):
+        """Get the resolution for the given page."""
+        self._execute(
+            """SELECT x_res, y_res FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
+        return self._fetchone()
+
+    def do_set_resolution(self, request):
+        """Set the resolution for the given page."""
+        self._check_write_tid()
+        page_id, x_res, y_res = request.args
+        self._execute(
+            """UPDATE page SET x_res = ?, y_res = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+            (
+                x_res,
+                y_res,
+                page_id,
+                self._action_id,
+            ),
+        )
+        self._con[threading.get_native_id()].commit()
+
+    def get_mean_std_dev(self, page_id):
+        """Get the mean and std_dev for the given page."""
+        self._execute(
+            """SELECT mean, std_dev FROM page, page_order
+                WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
+            (page_id, self._action_id),
+        )
+        mean, std_dev = self._fetchone()
+        mean = json.loads(mean, strict=False)
+        std_dev = json.loads(std_dev, strict=False)
+        return mean, std_dev
+
+    def do_set_mean_std_dev(self, request):
+        """Set the mean and std_dev for the given page."""
+        self._check_write_tid()
+        page_id, mean, std_dev = request.args
+        self._execute(
+            """UPDATE page SET mean = ?, std_dev = ? WHERE id = (
+                SELECT page_id FROM page_order
+                WHERE initial_page_id = ? AND action_id = ?
+            )""",
+            (
+                json.dumps(mean),
+                json.dumps(std_dev),
+                page_id,
+                self._action_id,
+            ),
+        )
+        self._con[threading.get_native_id()].commit()
+
+    def rotate(self, **kwargs):
+        """Rotate page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("rotate", kwargs, **callbacks)
+
+    def do_rotate(self, request):
+        """Rotate page in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+        logger.info("Rotating %s by %s degrees", page.id, options["angle"])
+        page.image_object = page.image_object.rotate(options["angle"], expand=True)
+        self.check_cancelled()
+
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.saved = False
+        if options["angle"] in (-90, 90):
+            page.width, page.height = page.height, page.width
+            page.resolution = (
+                page.resolution[1],
+                page.resolution[0],
+                page.resolution[2],
+            )
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id),
+                "replace": page.id,
+            }
+        )
+
+    def analyse(self, **kwargs):
+        """Analyse page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("analyse", kwargs, **callbacks)
+
+    def do_analyse(self, request):
+        """Analyse page in thread."""
+        options = request.args[0]
+        list_of_pages = options["list_of_pages"]
+
+        i = 1
+        total = len(list_of_pages)
+        for page_id in list_of_pages:
+            page = self.get_page(id=page_id)
+            self.progress = (i - 1) / total
+            self.message = _("Analysing page %i of %i") % (i, total)
+            i += 1
+            self.check_cancelled()
+
+            stat = ImageStat.Stat(page.image_object)
+            # ImageStat seems to have a bug here. Working around it.
+            if stat.count == [0]:
+                page.mean = [0.0]
+                page.std_dev = [0.0]
+            else:
+                page.mean = stat.mean
+                page.std_dev = stat.stddev
+            logger.info("std dev: %s mean: %s", page.std_dev, page.mean)
+            self.check_cancelled()
+
+            # TODO add any other useful image analysis here e.g. is the page mis-oriented?
+            #  detect mis-orientation possible algorithm:
+            #   blur or low-pass filter the image (so words look like ovals)
+            #   look at few vertical narrow slices of the image and get the Standard Deviation
+            #   if most of the Std Dev are high, then it might be portrait
+            page.analyse_time = datetime.datetime.now(_LOCAL_TZ)
+            request.data(
+                {
+                    "type": "page",
+                    "row": self.replace_page(page, page.id),
+                    "replace": page.id,
+                }
+            )
+
+    def threshold(self, **kwargs):
+        """Threshold page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("threshold", kwargs, **callbacks)
+
+    def do_threshold(self, request):
+        """Threshold page in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+        self.check_cancelled()
+
+        threshold = options["threshold"]
+        logger.info("Threshold %s with %s", page.id, threshold)
+
+        # A pixel is ink when it differs from white in any channel by more than
+        # the threshold, i.e. when min(R,G,B) falls below the cutoff.
+        cutoff = round(255 * (100 - threshold) / 100)
+        red, green, blue = page.image_object.convert("RGB").split()
+        min_channel = ImageChops.darker(ImageChops.darker(red, green), blue)
+        page.image_object = min_channel.point(
+            lambda p: 0 if p < cutoff else 255
+        ).convert("1")
+        self.check_cancelled()
+
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.saved = False
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id),
+                "replace": page.id,
+            }
+        )
+
+    def brightness_contrast(self, **kwargs):
+        """Adjust brightness and contrast."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("brightness_contrast", kwargs, **callbacks)
+
+    def do_brightness_contrast(self, request):
+        """Adjust brightness and contrast in thread."""
+        options = request.args[0]
+        brightness, contrast = options["brightness"], options["contrast"]
+        page = self.get_page(id=options["page"])
+        logger.info(
+            "Enhance %s with brightness %s, contrast %s",
+            page.id,
+            brightness,
+            contrast,
+        )
+        self.check_cancelled()
+
+        page.image_object = ImageEnhance.Brightness(page.image_object).enhance(
+            brightness
+        )
+        page.image_object = ImageEnhance.Contrast(page.image_object).enhance(contrast)
+        self.check_cancelled()
+
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.saved = False
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id),
+                "replace": page.id,
+            }
+        )
+
+    def negate(self, **kwargs):
+        """Negate page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("negate", kwargs, **callbacks)
+
+    def do_negate(self, request):
+        """Negate page in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+
+        logger.info("Invert %s", page.id)
+        if page.image_object.mode in ("P", "RGBA"):
+            page.image_object = page.image_object.convert("RGB")
+        page.image_object = ImageOps.invert(page.image_object)
+        self.check_cancelled()
+
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.saved = False
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id),
+                "replace": page.id,
+            }
+        )
+
+    def unsharp(self, **kwargs):
+        """Run unsharp mask."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("unsharp", kwargs, **callbacks)
+
+    def do_unsharp(self, request):
+        """Run unsharp mask in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+        radius = options["radius"]
+        percent = options["percent"]
+        threshold = options["threshold"]
+
+        logger.info(
+            "Unsharp mask %s radius %s percent %s threshold %s",
+            page.id,
+            radius,
+            percent,
+            threshold,
+        )
+        page.image_object = page.image_object.filter(
+            ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=threshold)
+        )
+        self.check_cancelled()
+
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.saved = False
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id),
+                "replace": page.id,
+            }
+        )
+
+    def crop(self, **kwargs):
+        """Crop page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("crop", kwargs, **callbacks)
+
+    def do_crop(self, request):
+        """Crop page in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+        left = options["x"]
+        top = options["y"]
+        width = options["w"]
+        height = options["h"]
+
+        logger.info("Crop %s x %s y %s w %s h %s", page.id, left, top, width, height)
+
+        page.image_object = page.image_object.crop(
+            (left, top, left + width, top + height)
+        )
+        self.check_cancelled()
+
+        page.width = page.image_object.width
+        page.height = page.image_object.height
+
+        if page.text_layer is not None:
+            bboxtree = Bboxtree(page.text_layer)
+            page.text_layer = bboxtree.crop(left, top, width, height).json()
+
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.saved = False
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id),
+                "replace": page.id,
+            }
+        )
+
+    def split_page(self, **kwargs):
+        """Split page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("split_page", kwargs, **callbacks)
+
+    def do_split_page(self, request):
+        """Split page in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+        image = page.image_object
+        image2 = image.copy()
+
+        logger.info(
+            "Splitting in direction %s @ %s -> %s + %s",
+            options["direction"],
+            options["position"],
+            page.id,
+            page.id,
+        )
+        # split the image
+        boxes = _calculate_crop_tuples(options, image)
+        page.image_object = image.crop(boxes[0])
+        image2 = image2.crop(boxes[1])
+        self.check_cancelled()
+
+        # Write them
+        page.width = page.image_object.width
+        page.height = page.image_object.height
+        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+
+        # split doesn't change the resolution, so we can safely copy it
+        new2 = Page(
+            image_object=image2,
+            dir=options.get("dir"),
+            delete=True,
+            resolution=page.resolution,
+            dirty_time=page.dirty_time,
+        )
+        if page.text_layer:
+            bboxtree = Bboxtree(page.text_layer)
+            bboxtree2 = Bboxtree(page.text_layer)
+            page.text_layer = bboxtree.crop(*boxes[0]).json()
+            new2.text_layer = bboxtree2.crop(*boxes[2]).json()
+
+        # have to insert the extra page first, because after the replacing the
+        # input page, it won't exist any more.
+        request.data(
+            {
+                "type": "page",
+                "row": self.add_page(new2, insert_after=page.id),
+                "insert-after": page.id,
+            }
+        )
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id),
+                "replace": page.id,
+            }
+        )
+
+    def tesseract(self, **kwargs):
+        """Run tesseract."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("tesseract", kwargs, **callbacks)
+
+    def do_tesseract(self, request):
+        """Run tesseract in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+        if options["language"] is None:
+            raise ValueError(_("No tesseract language specified"))
+        self.check_cancelled()
+
+        # path argument required for systems where tessdata non-standard or not hardcoded;
+        # otherwise current directory is searched for tesseract files
+        path, _languages = tesserocr.get_languages()
+        if path == "./":
+            # some systems allow multiple tessdata dirs, e.g. parallel v4 & v5
+            paths = sorted(
+                str(p)
+                for p in pathlib.Path("/usr/share/tesseract-ocr").glob("*/tessdata")
+            )
+
+            # SUSE flat layout, Fedora/RHEL
+            if len(paths) == 0:
+                for candidate in [
+                    "/usr/share/tesseract-ocr/tessdata",
+                    "/usr/share/tessdata",
+                ]:
+                    if Path(candidate).is_dir():
+                        paths = [candidate]
+                        break
+
+            # maybe we can guess the path if we have a symlink, e.g. homebrew
+            if len(paths) == 0:
+                tesseract_exe = shutil.which("tesseract")
+                if tesseract_exe is not None:
+                    tess_path = Path(tesseract_exe)
+                    if tess_path.is_symlink():
+                        tessdata = (
+                            tess_path.resolve() / "../../share/tessdata"
+                        ).resolve()
+                        if tessdata.exists():
+                            paths = [str(tessdata)]
+
+            if len(paths) == 0:
+                request.error(_("tessdata directory not found"))
+                return
+            path = paths[0]
+        with tesserocr.PyTessBaseAPI(lang=options["language"], path=path) as api:
+            api.SetVariable("tessedit_create_hocr", "T")
+            api.SetVariable("hocr_font_info", "T")
+            image = page.image_object.convert("L")
+            api.SetImageBytes(
+                image.tobytes(), image.width, image.height, 1, image.width
+            )
+            api.Recognize()
+            # GetHOCRText returns only the body fragment, so wrap it in a
+            # full document for import_hocr to parse.
+            hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+ </head>
+ <body>
+{api.GetHOCRText(0)}
+ </body>
+</html>
+"""
+
+            page.import_hocr(hocr)
+            page.ocr_flag = True
+            page.ocr_time = datetime.datetime.now(_LOCAL_TZ)
+        self.check_cancelled()
+
+        request.data(
+            {
+                "type": "page",
+                "row": self.replace_page(page, page.id, reuse_image=True),
+                "replace": page.id,
+            }
+        )
+
+    def unpaper(self, **kwargs):
+        """Run unpaper."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("unpaper", kwargs, **callbacks)
+
+    def _run_unpaper_cmd(self, request):
+        options = request.args[0]
+        # SIM115: cross-scope file handle used intentionally
+        out = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            dir=options.get("dir"), suffix=".pnm"
+        )
+        out2 = None
+        options["options"]["command"][-2] = out.name
+
+        index = options["options"]["command"].index("--output-pages")
+        if options["options"]["command"][index + 1] == "2":
+            # SIM115: cross-scope file handle used intentionally
+            out2 = tempfile.NamedTemporaryFile(  # noqa: SIM115
+                dir=options.get("dir"), suffix=".pnm"
+            )
+            options["options"]["command"][-1] = out2.name
+        else:
+            del options["options"]["command"][-1]
+
+        spo = exec_command_run(
+            options["options"]["command"],
+            options.get("pidfile"),
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logger.info(spo.stdout)
+        if spo.stderr:
+            logger.error(spo.stderr)
+            request.data(spo.stderr)
+            if not Path(out.name).stat().st_size:
+                raise subprocess.CalledProcessError(
+                    spo.returncode, options["options"]["command"]
+                )
+
+        self.check_cancelled()
+        spo.stdout = re.sub(
+            r"Processing[ ]sheet.*[.]pnm\n",
+            r"",
+            spo.stdout,
+            count=1,
+            flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+        )
+        if spo.stdout:
+            logger.warning(spo.stdout)
+            request.data(spo.stdout)
+            if not Path(out.name).stat().st_size:
+                raise subprocess.CalledProcessError(
+                    spo.returncode, options["options"]["command"]
+                )
+
+        if (
+            options["options"]["command"][index + 1] == "2"
+            and options["options"].get("direction") == "rtl"
+        ):
+            out, out2 = out2, out
+        return out, out2
+
+    def do_unpaper(self, request):
+        """Run unpaper in thread."""
+        options = request.args[0]
+        page = self.get_page(id=options["page"])
+        try:
+            image = page.image_object
+            depth = page.get_depth()
+
+            suffix = ".pbm"
+            if depth > 1:
+                suffix = ".pnm"
+
+            # Temporary filename for new file
+            with tempfile.NamedTemporaryFile(
+                dir=options.get("dir"), suffix=suffix
+            ) as infile:
+                logger.debug(
+                    "Writing %s -> %s for unpaper",
+                    page.id,
+                    infile.name,
+                )
+                image.save(infile.name)
+                options["options"]["command"][-3] = infile.name
+                out, out2 = self._run_unpaper_cmd(request)
+
+                # unpaper doesn't change the resolution, so we can safely copy it
+                new = Page(
+                    filename=out.name,
+                    dir=options.get("dir"),
+                    delete=True,
+                    format="Portable anymap",
+                    resolution=page.resolution,
+                    dirty_time=datetime.datetime.now(_LOCAL_TZ),
+                )
+
+                # have to send the 2nd page 1st, as the page_id for the 1st will
+                # cease to exist after replacing it
+                if out2:
+                    new2 = Page(
+                        filename=out2.name,
+                        dir=options.get("dir"),
+                        delete=True,
+                        format="Portable anymap",
+                        resolution=page.resolution,
+                        dirty_time=datetime.datetime.now(_LOCAL_TZ),
+                    )
+                    request.data(
+                        {
+                            "type": "page",
+                            "row": self.add_page(new2, insert_after=page.id),
+                            "insert-after": page.id,
+                        }
+                    )
+                request.data(
+                    {
+                        "type": "page",
+                        "row": self.replace_page(new, page.id),
+                        "replace": page.id,
+                    }
+                )
+
+        except (OSError, PermissionError) as err:
+            logger.exception("Error creating file in %s", options["dir"])
+            request.error(f"Error creating file in {options['dir']}: {err}.")
+
+    def import_page(self, **kwargs):
+        """Import page from file or object."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("import_page", kwargs, **callbacks)
+
+    def do_import_page(self, request):
+        """Import page from file or object."""
+        kwargs = request.args[0]
+        insert_after = kwargs.pop("insert_after", None)
+        page = Page(**kwargs)
+        xresolution, yresolution, units = page.get_resolution()
+        row = self.add_page(page, insert_after=insert_after)
+        page_id = row[2]
+        logger.info(
+            "Added page id %s at page %s with resolution %s,%s,%s",
+            page_id,
+            row[0],
+            xresolution,
+            yresolution,
+            units,
+        )
+        data = {
+            "type": "page",
+            "row": row,
+        }
+        if insert_after is not None:
+            data["insert-after"] = insert_after
+        request.data(data)
+
+
+def _calculate_crop_tuples(options, image):
+    if options["direction"] == "v":
+        width = options["position"]
+        height = image.height
+        right = width
+        bottom = 0
+        width2 = image.width - width
+        height2 = height
+    else:
+        width = image.width
+        height = options["position"]
+        right = 0
+        bottom = height
+        width2 = width
+        height2 = image.height - height
+
+    return (
+        (0, 0, width, height),
+        (right, bottom, right + width2, bottom + height2),
+        (right, bottom, width2, height2),
+    )

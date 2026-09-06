@@ -35,8 +35,8 @@ classifiers = [
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-# This could be removed if we moved to a src-based layout
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["scantpaper*"]
 exclude = ["scantpaper.tests"]
 
@@ -45,6 +45,7 @@ scantpaper = ["app.ui", "icons/**/*"]
 
 [tool.pytest.ini_options]
 addopts = "--timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=99"
+pythonpath = ["src"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
@@ -99,7 +100,6 @@ ignore = [
     "E501",    # line length: tracked by black's own width
     "COM812",  # trailing commas: incompatible with some D* rules
     "CPY001",  # copyright headers: not required by this project
-    "INP001",  # implicit namespace package: project uses explicit packages
     "TD",      # TODO metadata requirements: not adopted as a convention
     "T201",    # print: legitimate in scripts
     "FIX002",  # TODO without issue ref: plain `# TODO:` notes are the project convention
@@ -112,4 +112,7 @@ ignore = [
 # Whitespace rules rewrite blank-line indentation inside the hOCR string
 # literals this test compares byte-for-byte against saved output; fixing
 # them corrupts the expected fixtures.
-"scantpaper/tests/test_151_save_text.py" = ["W291", "W293"]
+"src/scantpaper/tests/test_151_save_text.py" = ["W291", "W293"]
+# dev/ is a scripts folder, not a Python package, so its scripts live in an
+# implicit namespace directory; the package itself is under src/.
+"dev/**" = ["INP001"]

@@ -1,0 +1,1180 @@
+"""Tests for savethread.py."""
+
+import datetime
+from unittest.mock import MagicMock, mock_open, patch
+
+import pikepdf
+import pytest
+
+from scantpaper.basethread import Request
+from scantpaper.i18n import _
+from scantpaper.page import Page
+from scantpaper.savethread import (
+    _2GIB,
+    SaveThread,
+    SaveThreadProgressBar,
+    _add_annotations_to_pdf,
+    _append_pdf,
+    _current_request_for_progress,
+    _encrypt_pdf,
+    _fix_pdf_metadata,
+    _post_save_hook,
+    _set_timestamp,
+    get_progressbar_class,
+    prepare_output_metadata,
+)
+
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
+
+class MockSaveThread(SaveThread):
+    """Mock subclass of SaveThread for testing."""
+
+    def __init__(self):
+        """Initialise MockSaveThread."""
+        super().__init__()
+        self.responses = MagicMock()
+        self.paper_sizes = {}
+        self.cancel = False
+        self._write_tid = None
+        self.progress = 0
+        self.message = ""
+        self.mock_pages = {}
+
+    def get_page(self, page_id=None, **kwargs):
+        """Mock get_page."""
+        del page_id
+        return self.mock_pages[kwargs.get("id")]
+
+    def do_set_saved(self, request):
+        """Mock do_set_saved."""
+
+    def replace_page(self, _page, _initial_page_id):
+        """Mock replace_page."""
+        return [1, None, "uuid"]
+
+
+@pytest.fixture
+def mock_thread_instance():
+    """Fixture for MockSaveThread."""
+    return MockSaveThread()
+
+
+@pytest.fixture
+def mock_page_instance():
+    """Fixture for mocked Page."""
+    page = MagicMock(spec=Page)
+    page.id = 1
+    page.uuid = "uuid1"
+    page.resolution = (300, 300, "PixelsPerInch")
+    page.get_resolution.return_value = (300, 300, "PixelsPerInch")
+    page.text_layer = None
+    page.annotations = None
+    page.write_image_for_pdf = MagicMock()
+    page.write_image_for_djvu = MagicMock()
+    page.write_image_for_tiff = MagicMock()
+    page.export_text.return_value = "Page Text"
+    page.export_hocr.return_value = (
+        "<html><body><div class='ocr_page'>HOCR</div></body></html>"
+    )
+    page.image_object = MagicMock()
+    return page
+
+
+def test_save_pdf(mock_thread_instance, mock_page_instance):
+    """Test save_pdf method."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory") as mock_tempdir,
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch(
+            "scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"
+        ) as mock_img2pdf,
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch(
+            "scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+        ) as mock_hocr_to_ocr_pdf,
+        patch("scantpaper.savethread._fix_pdf_metadata") as mock_fix_metadata,
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook") as mock_post_save_hook,
+        patch("scantpaper.savethread.pathlib.Path") as mock_path,
+    ):
+        mock_tempdir.return_value.__enter__.return_value = "/tmp/tempdir"
+        mock_path.return_value.__truediv__.return_value = "/tmp/tempdir/file"
+
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_img2pdf.called
+        assert mock_hocr_to_ocr_pdf.called
+        assert mock_page_instance.write_image_for_pdf.called
+        assert mock_post_save_hook.called
+        mock_fix_metadata.assert_called_once_with("/tmp/output.pdf", remove_title=True)
+
+
+def test_save_pdf_with_hocr(mock_thread_instance, mock_page_instance):
+    """Test save_pdf method with HOCR."""
+    mock_page_instance.text_layer = "some text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch(
+            "scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+        ) as mock_hocr_to_ocr_pdf,
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path"),
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+        # Verify HOCR was exported/written
+        assert mock_page_instance.export_hocr.called
+        mock_hocr_to_ocr_pdf.assert_called()
+
+
+def test_save_pdf_with_title_keeps_title(mock_thread_instance, mock_page_instance):
+    """Test save_pdf brands metadata but does not strip a provided title."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {
+            "datetime": datetime.datetime.now(_LOCAL_TZ),
+            "title": "My Title",
+        },
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path"),
+        patch("scantpaper.savethread._fix_pdf_metadata") as mock_fix_metadata,
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+        mock_fix_metadata.assert_called_once_with("/tmp/output.pdf", remove_title=False)
+
+
+def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
+    """Test ocrmypdf failure falls back to saving without text layer."""
+    mock_page_instance.text_layer = "some text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    class _EmptyError(Exception):
+        """exception with empty str() like ocrmypdf errors."""
+
+        def __str__(self):
+            return ""
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch(
+            "scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf",
+            side_effect=_EmptyError(),
+        ),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._fix_pdf_metadata") as mock_fix_metadata,
+        patch("scantpaper.savethread._append_pdf") as mock_append,
+        patch("scantpaper.savethread._post_save_hook") as mock_post_save,
+        patch("scantpaper.savethread.pathlib.Path"),
+        patch("scantpaper.savethread.shutil.copyfile") as mock_copyfile,
+        patch("scantpaper.savethread.logger.warning") as mock_warning,
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+        # Should fall back to copying origin.pdf without error
+        mock_copyfile.assert_called_once()
+        mock_warning.assert_called_once()
+        assert "_EmptyError" in mock_warning.call_args[0][1]
+
+        # Subsequent pikepdf operations must be skipped on fallback
+        mock_fix_metadata.assert_not_called()
+        mock_append.assert_not_called()
+        mock_post_save.assert_called_once()
+
+
+def test_save_pdf_metadata_fixup_failure_is_non_fatal(
+    mock_thread_instance, mock_page_instance
+):
+    """Test a metadata fixup failure warns but does not fail the save."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch(
+            "scantpaper.savethread._fix_pdf_metadata",
+            side_effect=RuntimeError("no branding"),
+        ),
+        patch("scantpaper.savethread._post_save_hook") as mock_post_save,
+        patch("scantpaper.savethread.pathlib.Path"),
+        patch("scantpaper.savethread.logger.warning") as mock_warning,
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+        mock_warning.assert_called_once()
+        assert "Could not fix PDF metadata" in str(mock_warning.call_args)
+        mock_post_save.assert_called_once()
+
+
+def test_save_pdf_rejects_oversized_output(mock_thread_instance, mock_page_instance):
+    """Test save_pdf rejects output exceeding 2 GiB with RuntimeError."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory") as mock_tempdir,
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path") as mock_path,
+        patch(
+            "scantpaper.savethread._estimate_page_pdf_size",
+            return_value=_2GIB + 1,
+        ),
+    ):
+        mock_tempdir.return_value.__enter__.return_value = "/tmp/tempdir"
+
+        with pytest.raises(RuntimeError, match="2\\.0 GiB"):
+            mock_thread_instance.do_save_pdf(request)
+
+        # Temp files must be cleaned up before the error is raised
+        assert mock_path.return_value.unlink.called
+
+
+def test_save_djvu(mock_thread_instance, mock_page_instance):
+    """Test save_djvu method."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.djvu",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_djvu", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("scantpaper.savethread.exec_command") as mock_exec,
+        patch("scantpaper.savethread.pathlib.Path.unlink"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+    ):
+        mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
+        mock_exec.return_value.returncode = 0
+
+        mock_thread_instance.do_save_djvu(request)
+
+        assert mock_page_instance.write_image_for_djvu.called
+        # Check djvm call
+        args, _ = mock_exec.call_args
+        assert args[0][0] == "djvm"
+
+        # Check metadata call
+        assert mock_run.called
+        assert "djvused" in mock_run.call_args[0][0]
+
+
+def test_save_djvu_failure(mock_thread_instance, mock_page_instance):
+    """Test save_djvu method with merging failure."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.djvu",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_djvu", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("scantpaper.savethread.exec_command") as mock_exec,
+        patch("scantpaper.savethread.pathlib.Path.unlink"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.exec_command_run"),
+    ):
+        mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.djvu"
+        mock_exec.return_value.returncode = 1
+
+        mock_thread_instance.do_save_djvu(request)
+
+        assert mock_thread_instance.responses.put.called
+        # Verify the error message was sent
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+
+
+def test_save_tiff(mock_thread_instance, mock_page_instance):
+    """Test save_tiff method."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.tif",
+        "list_of_pages": [1],
+        "options": {"compression": "jpeg", "quality": 75},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_tiff", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+        patch("scantpaper.savethread.pathlib.Path.unlink"),
+        patch("scantpaper.savethread._post_save_hook"),
+    ):
+        mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.tif"
+
+        mock_thread_instance.do_save_tiff(request)
+
+        assert mock_page_instance.write_image_for_tiff.called
+        assert mock_run.called
+        assert "tiffcp" in mock_run.call_args[0][0]
+        assert "-c" in mock_run.call_args[0][0]
+        assert "jpeg:75" in mock_run.call_args[0][0]
+
+
+def test_save_tiff_ps(mock_thread_instance, mock_page_instance):
+    """Test save_tiff method to PS."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.tif",
+        "list_of_pages": [1],
+        "options": {"ps": "/tmp/output.ps"},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_tiff", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.exec_command_run"),
+        patch("scantpaper.savethread.exec_command") as mock_exec,
+        patch("scantpaper.savethread.pathlib.Path.unlink"),
+        patch("scantpaper.savethread._post_save_hook"),
+    ):
+        mock_exec.return_value.returncode = 0
+        mock_exec.return_value.stderr = ""
+
+        mock_thread_instance.do_save_tiff(request)
+
+        assert mock_exec.called
+        assert "tiff2ps" in mock_exec.call_args[0][0]
+
+
+def test_save_tiff_ps_failure(mock_thread_instance, mock_page_instance):
+    """Test save_tiff method to PS with failure."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.tif",
+        "list_of_pages": [1],
+        "options": {"ps": "/tmp/output.ps"},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_tiff", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.exec_command_run"),
+        patch("scantpaper.savethread.exec_command") as mock_exec,
+        patch("scantpaper.savethread.pathlib.Path.unlink"),
+        patch("scantpaper.savethread._post_save_hook"),
+    ):
+        mock_exec.return_value.returncode = 1
+        mock_exec.return_value.stderr = "Error converting"
+
+        mock_thread_instance.do_save_tiff(request)
+
+        assert mock_exec.called
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+
+
+def test_save_image(mock_thread_instance, mock_page_instance):
+    """Test save_image method."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.png",
+        "list_of_pages": [1],
+        "options": {},
+    }
+    request = Request("save_image", (options,), mock_thread_instance.responses)
+
+    with patch("scantpaper.savethread._post_save_hook") as mock_hook:
+        mock_thread_instance.do_save_image(request)
+        assert mock_page_instance.image_object.save.called
+        mock_hook.assert_called_with("/tmp/output.png", {}, pidfile=None)
+
+
+def test_save_image_multiple(mock_thread_instance, mock_page_instance):
+    """Test save_image method with multiple pages."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    mock_thread_instance.mock_pages[2] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output-%d.png",
+        "list_of_pages": [1, 2],
+        "options": {},
+    }
+    request = Request("save_image", (options,), mock_thread_instance.responses)
+
+    with patch("scantpaper.savethread._post_save_hook") as mock_hook:
+        mock_thread_instance.do_save_image(request)
+        assert mock_page_instance.image_object.save.call_count == 2
+        mock_hook.assert_any_call("/tmp/output-1.png", {}, pidfile=None)
+        mock_hook.assert_any_call("/tmp/output-2.png", {}, pidfile=None)
+
+
+def test_save_text(mock_thread_instance, mock_page_instance):
+    """Test save_text method."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {"path": "/tmp/output.txt", "list_of_pages": [1]}
+    request = Request("save_text", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.pathlib.Path.open", mock_open()) as mock_file,
+        patch("scantpaper.savethread._post_save_hook"),
+    ):
+        mock_thread_instance.do_save_text(request)
+
+        assert mock_page_instance.export_text.called
+        mock_file().write.assert_called_with("Page Text")
+
+
+def test_save_hocr(mock_thread_instance, mock_page_instance):
+    """Test save_hocr method."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {"path": "/tmp/output.hocr", "list_of_pages": [1], "options": {}}
+    request = Request("save_hocr", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.pathlib.Path.open", mock_open()) as mock_file,
+        patch("scantpaper.savethread._post_save_hook"),
+    ):
+        mock_thread_instance.do_save_hocr(request)
+
+        assert mock_page_instance.export_hocr.called
+        mock_file().write.assert_called()
+
+
+def test_user_defined(mock_thread_instance, mock_page_instance):
+    """Test user_defined method."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "page": 1,
+        "dir": "/tmp",
+        "command": "echo %i %o %r",
+        "uuid": "uuid",
+        "page_uuid": "page_uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+        patch("scantpaper.savethread.Image.open"),
+        patch("scantpaper.savethread.Page"),
+    ):
+        # Mock the context manager return values directly
+        mock_infile = MagicMock()
+        mock_infile.name = "infile"
+        mock_outfile = MagicMock()
+        mock_outfile.name = "outfile"
+
+        mock_temp.return_value.__enter__.side_effect = [
+            mock_infile,
+            mock_outfile,
+        ]
+
+        mock_run.return_value.stdout = "stdout"
+        mock_run.return_value.stderr = ""
+
+        mock_thread_instance.do_user_defined(request)
+
+        assert mock_page_instance.image_object.save.called
+        assert mock_run.called
+        assert mock_thread_instance.responses.put.called
+
+
+def test_user_defined_copy_failure(mock_thread_instance, mock_page_instance):
+    """Test user_defined method with copy failure."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "page": 1,
+        "dir": "/tmp",
+        "command": "echo %i",  # No %o here
+        "uuid": "uuid",
+        "page_uuid": "page_uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile") as mock_temp,
+        patch("scantpaper.savethread.shutil.copy2", return_value=None) as mock_copy,
+    ):
+        mock_infile = MagicMock()
+        mock_infile.name = "infile"
+        mock_outfile = MagicMock()
+        mock_outfile.name = "outfile"
+
+        mock_temp.return_value.__enter__.side_effect = [
+            mock_infile,
+            mock_outfile,
+        ]
+
+        mock_thread_instance.do_user_defined(request)
+
+        assert mock_copy.called
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+
+
+def test_user_defined_exception(mock_thread_instance, mock_page_instance):
+    """Test user_defined method with PermissionError."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "page": 1,
+        "dir": "/tmp",
+        "command": "echo %i %o",
+        "uuid": "uuid",
+        "page_uuid": "page_uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with patch(
+        "scantpaper.savethread.tempfile.NamedTemporaryFile",
+        side_effect=PermissionError("Permission denied"),
+    ):
+        mock_thread_instance.do_user_defined(request)
+
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+        assert "Permission denied" in args[0].info
+
+
+def test_set_timestamp():
+    """Test _set_timestamp function."""
+    options = {
+        "path": "/tmp/file",
+        "metadata": {
+            "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=_LOCAL_TZ),
+        },
+        "options": {"set_timestamp": True},
+    }
+
+    with patch("scantpaper.savethread.os.utime") as mock_utime:
+        _set_timestamp(options)
+        assert mock_utime.called
+
+
+def test_set_timestamp_naive_converts_to_utc():
+    """Test _set_timestamp converts a naive datetime to a UTC-aware one."""
+    options = {
+        "path": "/tmp/file",
+        # Intentionally naive to exercise the tzinfo-is-None branch in _set_timestamp
+        "metadata": {
+            "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0),  # noqa: DTZ001
+        },
+        "options": {"set_timestamp": True},
+    }
+
+    with patch("scantpaper.savethread.os.utime") as mock_utime:
+        _set_timestamp(options)
+    mock_utime.assert_called_once()
+    args, _ = mock_utime.call_args
+    assert isinstance(args[1][0], float), "epoch timestamp is a float"
+
+
+@pytest.mark.parametrize("remove_title", [True, False], ids=["remove", "keep"])
+def test_fix_pdf_metadata_removes_title(temp_pdf, remove_title):
+    """Test _fix_pdf_metadata removes the docinfo /Title when remove_title is set."""
+    with pikepdf.Pdf.new() as pdf:
+        if remove_title:
+            pdf.docinfo["/Title"] = "placeholder"
+        pdf.add_blank_page(page_size=(200, 200))
+        pdf.save(temp_pdf.name)
+
+    _fix_pdf_metadata(temp_pdf.name, remove_title=remove_title)
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        if remove_title:
+            assert "/Title" not in pdf.docinfo, "placeholder title removed from docinfo"
+        assert "/Creator" in pdf.docinfo, "creator set on PDF"
+
+
+def test_post_save_hook():
+    """Test _post_save_hook function."""
+    with patch("scantpaper.savethread.exec_command_run") as mock_run:
+        _post_save_hook("/tmp/file", {"post_save_hook": "echo %i"})
+        assert mock_run.called
+        assert "echo" in mock_run.call_args[0][0]
+        assert "/tmp/file" in mock_run.call_args[0][0]
+
+
+def test_encrypt_pdf():
+    """Test _encrypt_pdf function."""
+    request = MagicMock()
+    with patch("scantpaper.savethread.exec_command_run") as mock_run:
+        mock_run.return_value.returncode = 0
+        options = {"path": "/tmp/output.pdf", "options": {"user-password": "password"}}
+        ret = _encrypt_pdf("/tmp/input.pdf", options, request)
+        assert ret == 0
+        assert mock_run.called
+        cmd = mock_run.call_args[0][0]
+        assert "qpdf" in cmd
+        assert "--user-password=password" in cmd
+
+
+def test_encrypt_pdf_failure():
+    """Test _encrypt_pdf function when qpdf fails."""
+    request = MagicMock()
+    options = {"path": "/tmp/output.pdf", "options": {"user-password": "password"}}
+    mock_spo = MagicMock()
+    mock_spo.returncode = 1
+    mock_spo.stderr = "qpdf error"
+    with patch("scantpaper.savethread.exec_command_run", return_value=mock_spo):
+        ret = _encrypt_pdf("/tmp/input.pdf", options, request)
+        assert ret == 1
+        assert request.error.called
+        args, _ = request.error.call_args
+        assert "qpdf error" in args[0]
+
+
+def test_prepare_output_metadata():
+    """Test prepare_output_metadata function."""
+    metadata = {
+        "datetime": datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=_LOCAL_TZ),
+        "author": "Author",
+        "title": "Title",
+    }
+    out = prepare_output_metadata("PDF", metadata)
+    assert out["author"] == "Author"
+    assert out["creationdate"] == metadata["datetime"]
+    assert out["creator"].startswith("scantpaper v")
+
+
+def test_save_pdf_prepend(mock_thread_instance, mock_page_instance):
+    """Test save_pdf method with prepend."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {"prepend": "/tmp/existing.pdf"},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf"),
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread.os.rename"),
+        patch("scantpaper.savethread.exec_command") as mock_exec,
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path") as mock_path,
+    ):
+        mock_exec.return_value.returncode = 0
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_path.return_value.rename.called
+        assert mock_exec.called
+        assert "pdfunite" in mock_exec.call_args[0][0]
+
+
+def test_add_annotations_to_pdf():
+    """Test _add_annotations_to_pdf function."""
+    mock_pdf_page = MagicMock()
+    mock_gs_page = MagicMock()
+    mock_gs_page.get_resolution.return_value = (300, 300, "units")
+    mock_gs_page.height = 1000
+    mock_gs_page.annotations = {
+        "bbox": [[0, 0, 100, 100]],
+        "children": [{"type": "text", "text": "foo", "bbox": [10, 10, 50, 50]}],
+    }
+
+    with (
+        patch("scantpaper.savethread.Bboxtree") as mock_bboxtree,
+        patch("scantpaper.savethread.px2pt", side_effect=lambda x, _y: x),
+    ):
+        mock_bboxtree.return_value.each_bbox.return_value = [
+            {"type": "highlight", "text": "foo", "bbox": [10, 10, 50, 50]}
+        ]
+
+        _add_annotations_to_pdf(mock_pdf_page, mock_gs_page)
+
+        assert mock_pdf_page.annotation.called
+
+
+def test_save_pdf_with_password(mock_thread_instance, mock_page_instance):
+    """Test save_pdf method with password protection."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {"user-password": "password"},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path"),
+        patch("scantpaper.savethread._encrypt_pdf", return_value=0) as mock_encrypt,
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_encrypt.called
+
+
+def test_save_pdf_with_password_failure(mock_thread_instance, mock_page_instance):
+    """Test save_pdf method with password protection failure."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {"user-password": "password"},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp") as mock_timestamp,
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path"),
+        patch("scantpaper.savethread._encrypt_pdf", return_value=1) as mock_encrypt,
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_encrypt.called
+        assert not mock_timestamp.called
+
+
+def test_save_pdf_ps_failure(mock_thread_instance, mock_page_instance):
+    """Test save_pdf method with PS conversion failure."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {"ps": "/tmp/output.ps", "pstool": "pdf2ps"},
+        "pidfile": "pidfile",
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch("scantpaper.savethread.ocrmypdf.api._pdf_to_hocr"),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path"),
+        patch("scantpaper.savethread.exec_command") as mock_exec,
+    ):
+        # Simulate failure
+        mock_exec.return_value.returncode = 1
+        mock_exec.return_value.stderr = "Error converting"
+
+        mock_thread_instance.do_save_pdf(request)
+
+        assert mock_exec.called
+        assert mock_thread_instance.responses.put.called
+
+
+def test_append_pdf_rename_failure():
+    """Test _append_pdf function when Path.rename raises ValueError."""
+    request = MagicMock()
+    options = {"options": {"prepend": "/tmp/prepend.pdf"}, "pidfile": "pidfile"}
+    with patch(
+        "scantpaper.savethread.pathlib.Path.rename",
+        side_effect=ValueError("Rename error"),
+    ):
+        ret = _append_pdf("/tmp/temp.pdf", options, request)
+        assert ret is None
+        assert request.error.called
+
+
+def test_append_pdf_pdfunite_failure():
+    """Test _append_pdf function when pdfunite fails."""
+    request = MagicMock()
+    options = {"options": {"prepend": "/tmp/prepend.pdf"}, "pidfile": "pidfile"}
+    mock_proc = MagicMock()
+    mock_proc.returncode = 1
+    mock_proc.stderr = "pdfunite error"
+    with (
+        patch("scantpaper.savethread.pathlib.Path.rename"),
+        patch("scantpaper.savethread.exec_command", return_value=mock_proc),
+    ):
+        ret = _append_pdf("/tmp/temp.pdf", options, request)
+        assert ret == 1
+        assert request.error.called
+
+
+def test_savethread_progressbar_basic():
+    """Test SaveThreadProgressBar basic functionality."""
+    mock_request = MagicMock()
+    mock_request.data = MagicMock()
+    progressbar = SaveThreadProgressBar(
+        request=mock_request, total=10, desc="Test operation", unit="page"
+    )
+
+    assert progressbar.current == 0
+    assert progressbar.total == 10
+    assert progressbar.desc == "Test operation"
+
+    # Test update with increment
+    progressbar.update(n=5)
+    assert progressbar.current == 5
+    mock_request.data.assert_called_with("Test operation")
+
+    # Test update with completed value
+    progressbar.update(completed=8)
+    assert progressbar.current == 8
+    mock_request.data.assert_called_with("Test operation")
+
+
+def test_savethread_progressbar_context_manager():
+    """Test SaveThreadProgressBar as context manager."""
+    mock_request = MagicMock()
+
+    with SaveThreadProgressBar(
+        request=mock_request, total=5, desc="Context test", unit="item"
+    ) as pbar:
+        assert pbar is not None
+        pbar.update(n=2)
+        assert pbar.current == 2
+
+
+def test_savethread_progressbar_disabled():
+    """Test SaveThreadProgressBar when disabled."""
+    mock_request = MagicMock()
+    mock_request.data = MagicMock()
+    progressbar = SaveThreadProgressBar(
+        request=mock_request,
+        total=10,
+        desc="Disabled test",
+        unit="page",
+        disable=True,
+    )
+
+    progressbar.update(n=5)
+    # Should not update thread when disabled
+    mock_request.data.assert_not_called()
+
+
+def test_savethread_progressbar_no_thread():
+    """Test SaveThreadProgressBar when thread_instance is None."""
+    progressbar = SaveThreadProgressBar(
+        request=None, total=10, desc="No thread test", unit="page"
+    )
+
+    # Should not raise error
+    progressbar.update(n=5)
+    assert progressbar.current == 5
+
+
+def test_get_progressbar_class_hook():
+    """Test get_progressbar_class hook implementation."""
+    mock_request = MagicMock()
+    mock_request.data = MagicMock()
+
+    # Set the current request
+    _current_request_for_progress[0] = mock_request
+
+    try:
+        # Get the progress bar class factory
+        factory = get_progressbar_class()
+        assert callable(factory)
+
+        # Create a progress bar using the factory
+        pbar = factory(total=20, desc="Hook test", unit="page", disable=False)
+        assert isinstance(pbar, SaveThreadProgressBar)
+        assert pbar.request == mock_request
+        assert pbar.total == 20
+
+        # Test that it updates the thread
+        pbar.update(n=10)
+        mock_request.data.assert_called_with("Hook test")
+
+    finally:
+        _current_request_for_progress[0] = None
+
+
+def test_save_pdf_with_progress_hooks(mock_thread_instance, mock_page_instance):
+    """Test that ocrmypdf progress hooks are used during PDF save."""
+    mock_page_instance.text_layer = "text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch(
+            "scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"
+        ) as mock_hocr_to_ocr_pdf,
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path") as mock_path,
+    ):
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+        # Verify that _hocr_to_ocr_pdf was called
+        assert mock_hocr_to_ocr_pdf.called
+
+        # Check that the request instance was set for progress reporting
+        # (it should be None after the operation completes)
+        assert _current_request_for_progress[0] is None
+
+
+def test_save_pdf_progress_updates_during_ocr(mock_thread_instance, mock_page_instance):
+    """Test that progress is updated during OCR embedding."""
+    mock_page_instance.text_layer = "text layer"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+    request.data = MagicMock()
+
+    progress_values = []
+    message_values = []
+
+    def track_progress(*args, **kwargs):
+        """Capture progress values during the call."""
+        del args, kwargs
+        progress_values.append(mock_thread_instance.progress)
+        message_values.append(mock_thread_instance.message)
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"),
+        patch(
+            "scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf",
+            side_effect=track_progress,
+        ),
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path") as mock_path,
+    ):
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+        # Verify progress was updated during the operation
+        request.data.assert_called_with(1.0)
+
+
+def test_save_pdf_per_page_progress(mock_thread_instance, mock_page_instance):
+    """Test that per-page progress is reported during the image-write loop."""
+    mock_page_instance.text_layer = "text layer data"
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+    request.data = MagicMock()
+
+    events = []
+
+    def record_data(*_args, **_kwargs):
+        """Record each request.data call."""
+        events.append(("data", _args[0]))
+
+    def convert(*_args, **_kwargs):
+        """Record when img2pdf.convert runs."""
+        events.append(("convert", None))
+        return b"pdf_data"
+
+    request.data.side_effect = record_data
+
+    with (
+        patch("scantpaper.savethread.tempfile.TemporaryDirectory"),
+        patch("scantpaper.savethread.tempfile.NamedTemporaryFile"),
+        patch("scantpaper.savethread.open", mock_open()),
+        patch("scantpaper.savethread.img2pdf.convert", side_effect=convert),
+        patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"),
+        patch("scantpaper.savethread._fix_pdf_metadata"),
+        patch("scantpaper.savethread.os.remove"),
+        patch("scantpaper.savethread._set_timestamp"),
+        patch("scantpaper.savethread._post_save_hook"),
+        patch("scantpaper.savethread.pathlib.Path") as mock_path,
+    ):
+        mock_path.return_value.glob.return_value = []
+
+        mock_thread_instance.do_save_pdf(request)
+
+    assert 1 / 2 in [
+        value for kind, value in events if kind == "data" and isinstance(value, float)
+    ], "per-page fraction reported during the image-write loop"
+
+    convert_index = next(i for i, event in enumerate(events) if event[0] == "convert")
+    writing_page_indices = [
+        i
+        for i, event in enumerate(events)
+        if event[0] == "data"
+        and isinstance(event[1], str)
+        and event[1].startswith(_("Writing page"))
+    ]
+    assert writing_page_indices, "per-page message reported"
+    assert max(writing_page_indices) < convert_index, (
+        "per-page message reported before img2pdf.convert"
+    )
+
+    writing_pdf_indices = [
+        i
+        for i, event in enumerate(events)
+        if event[0] == "data" and event[1] == _("Writing PDF")
+    ]
+    assert writing_pdf_indices, '"Writing PDF" message reported'
+    assert writing_pdf_indices[0] < convert_index, (
+        '"Writing PDF" message reported before img2pdf.convert'
+    )

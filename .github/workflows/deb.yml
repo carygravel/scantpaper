@@ -164,13 +164,13 @@ jobs:
            The full text of the CC0-1.0 licence is available on Debian systems in
            /usr/share/common-licenses/CC0-1.0
 
-          Files: scantpaper/icons/hicolor/scalable/apps/scan.svg
+          Files: src/scantpaper/icons/hicolor/scalable/apps/scan.svg
           Copyright: 2007 Frédéric Bellaiche
           License: GPL
            The full text of the GPL is available on Debian systems in
            /usr/share/common-licenses/GPL
 
-          Files: scantpaper/icons/hicolor/scalable/apps/pdf.svg
+          Files: src/scantpaper/icons/hicolor/scalable/apps/pdf.svg
           Copyright: 2004 David Vignoni
           License: LGPL-2.1
            The full text of the GPL is available on Debian systems in
@@ -214,7 +214,7 @@ jobs:
           	cp -a debian/locale/. debian/scantpaper/usr/share/locale/
 
           override_dh_installman:
-          	help2man --no-info --name='a GUI to produce PDFs or DjVus from scanned documents' --version-string=$(DEB_VERSION_UPSTREAM) --output=$(CURDIR)/debian/scantpaper.1 'python3 scantpaper/app.py'
+          	help2man --no-info --name='a GUI to produce PDFs or DjVus from scanned documents' --version-string=$(DEB_VERSION_UPSTREAM) --output=$(CURDIR)/debian/scantpaper.1 'PYTHONPATH=src python3 -m scantpaper.app'
           	sed -i -e 's/APP.PY/SCANTPAPER/' -e 's/app.py/scantpaper/' $(CURDIR)/debian/scantpaper.1
           	dh_installman
 
@@ -227,7 +227,7 @@ jobs:
 
           cat > REPO/debian/scantpaper.install <<'EOF'
           debian/documentation.html usr/share/doc/scantpaper/
-          scantpaper/icons/* usr/share/icons/
+          src/scantpaper/icons/* usr/share/icons/
           org.scantpaper.desktop usr/share/applications
           org.scantpaper.desktop.metainfo.xml usr/share/metainfo
           EOF

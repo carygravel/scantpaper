@@ -1,0 +1,116 @@
+"""Test tesseract helper functions."""
+
+import re
+import shutil
+import subprocess
+
+import pytest
+
+from scantpaper import config
+from scantpaper.document import Document
+from scantpaper.helpers import Proc
+from scantpaper.loop_helpers import safe_mainloop
+from scantpaper.tesseract import (
+    _iso639_1to3,
+    get_tesseract_codes,
+    languages,
+    locale_installed,
+)
+
+
+def test_tesseract_code_conversions():
+    """Test tesseract helper functions."""
+    assert languages(["eng", "deu", "chi-sim-vert"]) == {
+        "chi-sim-vert": "Chinese - Simplified (vertical)",
+        "eng": "English",
+        "deu": "German",
+    }, "test languages()"
+    assert _iso639_1to3("en") == "eng", "_iso639_1to3 en"
+    assert _iso639_1to3("C") == "eng", "_iso639_1to3 C"
+    assert _iso639_1to3("c") == "eng", "_iso639_1to3 c (lowercase)"
+    assert _iso639_1to3("zh") == "chi-sim", "_iso639_1to3 zh"
+    assert locale_installed("en_GB", ["eng"]) == "", "language installed"
+    assert re.search(r"install", locale_installed("de_DE", ["eng"])), (
+        "language installable"
+    )
+    assert re.search(r"developers", locale_installed("kw_KW", ["eng"])), (
+        "language not installable"
+    )
+    assert re.search(r"necessary", locale_installed("zz_ZZ", ["eng"])), (
+        "language unknown"
+    )
+    # Test C.UTF-8 locale - should map to en_US like C does
+    assert locale_installed("C.UTF-8", ["eng"]) == "", (
+        "C.UTF-8 locale should map to eng"
+    )
+    # Test uppercase C locale still works
+    assert locale_installed("C", ["eng"]) == "", "C locale should map to eng"
+
+
+@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+def test_get_tesseract_codes():
+    """Test get_tesseract_codes()."""
+    assert isinstance(get_tesseract_codes(), list), "get_tesseract_codes() returns list"
+
+
+def test_get_tesseract_codes_mocked(mocker):
+    """Test get_tesseract_codes() with mocked exec_command."""
+    mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
+
+    # Case 1: stdout is None (tesseract not found)
+    mock_exec.return_value = Proc(-1, None, "not found")
+    assert get_tesseract_codes() == []
+
+    # Case 2: stdout with header and trailing newline
+    mock_exec.return_value = Proc(
+        0, "List of available languages (3):\neng\ndeu\nosd\n", ""
+    )
+    assert get_tesseract_codes() == ["eng", "deu", "osd"]
+
+    # Case 3: stdout without header, without trailing newline
+    mock_exec.return_value = Proc(0, "eng\ndeu", "")
+    assert get_tesseract_codes() == ["eng", "deu"]
+
+
+def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_sync):
+    """Test importing PDF."""
+    args = [
+        config.CONVERT_COMMAND,
+        "-density",
+        "300",
+        "label:The quick brown fox",
+        "-alpha",
+        "Off",
+        "-depth",
+        "1",
+        "-colorspace",
+        "Gray",
+        "-family",
+        "DejaVu Sans",
+        "-pointsize",
+        "12",
+        temp_png.name,
+    ]
+    subprocess.run(args, check=True)
+
+    slist = Document(db=temp_db.name)
+
+    import_in_mainloop(slist, [temp_png.name])
+
+    image_id_before = get_page_sync(slist.thread, id=1).image_id
+
+    mlp = safe_mainloop(10000)
+    slist.tesseract(
+        page=slist.data[0][2],
+        language="eng",
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    page = get_page_sync(slist.thread, id=1)
+    assert page.image_id == image_id_before, "OCR does not change the stored image"
+    hocr = page.export_hocr()
+    assert re.search(r"T[hn]e", hocr), 'Tesseract returned "The"'
+    assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
+    assert re.search(r"brown", hocr), 'Tesseract returned "brown"'
+    assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'

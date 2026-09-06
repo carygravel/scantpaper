@@ -2,27 +2,25 @@
 
 import datetime
 import subprocess
-import sys
 from contextlib import chdir
 from pathlib import Path
 
-root = Path(__file__).resolve().parents[1] / "scantpaper"
-sys.path.insert(0, str(root))
-from const import (  # noqa: E402
+pkg_dir = Path(__file__).resolve().parents[1] / "src" / "scantpaper"
+from scantpaper.const import (  # noqa: E402
     AUTHOR,
     VERSION,
 )
-from const import (  # noqa: E402
+from scantpaper.const import (  # noqa: E402
     AUTHOR_EMAIL as EMAIL,
 )
-from const import (  # noqa: E402
+from scantpaper.const import (  # noqa: E402
     PROG_NAME as NAME,
 )
 
 
 def main():
     """Run the application entry point."""
-    with chdir(root):
+    with chdir(pkg_dir):
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))
         for x in ui_sources:
             subprocess.run(["intltool-extract", "--type=gettext/glade", x], check=True)
