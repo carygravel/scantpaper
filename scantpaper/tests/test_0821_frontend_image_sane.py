@@ -821,11 +821,12 @@ def test_feeder_empty_ends_batch_cleanly(mocker):
 
     assert pages == [1], "the available page was imported"
     error.assert_not_called()
-    assert fake.cancel_calls >= 1, "session terminated when the feeder ran dry"
 
     mlp = safe_mainloop(2000)
     thread.send("quit", finished_callback=quit_mlp)
     mlp.run()
+
+    assert fake.cancel_calls == 1, "session terminated when the feeder ran dry"
 
 
 def test_cancel_raises_on_device_terminates_cleanly(mocker):
@@ -865,8 +866,9 @@ def test_cancel_raises_on_device_terminates_cleanly(mocker):
     assert cancel_sent[0], "the user cancel was issued"
     new_page.assert_not_called()
     error.assert_not_called()
-    assert fake.cancel_calls >= 2, "direct and queued device cancels both attempted"
 
     mlp = safe_mainloop(2000)
     thread.send("quit", finished_callback=quit_mlp)
     mlp.run()
+
+    assert fake.cancel_calls == 2, "direct and queued device cancels both attempted"
