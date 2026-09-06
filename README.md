@@ -140,6 +140,9 @@ pages; the session is always cancelled at the end of the batch.
   scanned pages, the original bytes for imported JPEG/PNG files, lossless PNG
   for bilevel or transparent pages), and PDF saves embed stored JPEG images
   directly instead of re-encoding them.
+- **Thumbnails:** Page thumbnails are generated with a decimate-then-LANCZOS
+  downscale for a sharp preview in the thumbnail panel without slowing down
+  bulk imports.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.
 

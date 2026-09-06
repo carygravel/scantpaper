@@ -27,6 +27,9 @@ from gi.repository import (  # noqa: E402
 )
 
 PAGE_TOLERANCE = 0.02
+# Modes for which PIL's C Image.reduce is unsupported (bilevel, palette,
+# 16-bit integer). These fall back to a direct resize.
+_REDUCE_UNSUPPORTED = {"1", "P", "I;16", "I;16B", "I;16L", "I;12"}
 MODE2DEPTH = {
     "1": 1,
     "L": 8,
@@ -339,8 +342,17 @@ class Page:
                 image = image.convert("L")
             width = max(1, int(width))
             height = max(1, int(height))
+            # Downscale with a cheap box-decimation to roughly twice the target,
+            # then a high-quality LANCZOS resize to the exact size, so the
+            # expensive pass runs on a small intermediate image. Small source
+            # images are still resized to fill the box (existing behaviour).
             if image.size != (width, height):
-                image = image.resize((width, height), resample=Image.Resampling.BOX)
+                target_max = max(width, height)
+                factor = max(1, max(image.size) // (2 * target_max))
+                factor = min(factor, image.width, image.height)
+                if factor > 1 and image.mode not in _REDUCE_UNSUPPORTED:
+                    image = image.reduce(factor)
+                image = image.resize((width, height), resample=Image.Resampling.LANCZOS)
             image.save(filename.name)
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(

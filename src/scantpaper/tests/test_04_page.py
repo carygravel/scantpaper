@@ -463,6 +463,44 @@ def test_get_pixbuf_at_scale_downscales_before_save(mocker):
     assert saved_sizes == [(100, 100)], "image downscaled before save"
 
 
+def test_get_pixbuf_at_scale_uses_decimate_then_lanczos(mocker):
+    """Thumbnails are produced via Image.reduce then a LANCZOS resize."""
+    reduce_spy = mocker.spy(Image.Image, "reduce")
+    resize_spy = mocker.spy(Image.Image, "resize")
+    page = Page(image_object=Image.new("RGB", (1000, 1000)))
+    pixbuf = page.get_pixbuf_at_scale(100, 100)
+    assert pixbuf is not None, "get_pixbuf_at_scale()"
+    assert reduce_spy.called, "expected an Image.reduce decimation step"
+    assert resize_spy.called, "expected a final resize step"
+    for _call in resize_spy.call_args_list:
+        kwargs = _call.kwargs
+        assert kwargs.get("resample") == Image.Resampling.LANCZOS, (
+            "resize must use LANCZOS resampling"
+        )
+    assert pixbuf.get_width() == 100, "downscaled pixbuf width"
+    assert pixbuf.get_height() == 100, "downscaled pixbuf height"
+
+
+def test_get_pixbuf_at_scale_respects_resolution_ratio():
+    """Non-uniform x/y resolution produces an aspect-correct thumbnail."""
+    page = Page(image_object=Image.new("RGB", (2000, 1000)))
+    page.resolution = (300, 150, "PixelsPerInch")
+    pixbuf = page.get_pixbuf_at_scale(100, 100)
+    assert pixbuf is not None, "get_pixbuf_at_scale()"
+    # xresolution / yresolution = 2, so width is halved: 1000x1000 -> 100x100
+    assert pixbuf.get_width() == 100, "resolution-adjusted width"
+    assert pixbuf.get_height() == 100, "resolution-adjusted height"
+
+
+def test_get_pixbuf_at_scale_upscales_small_image_to_fill_box():
+    """A source image smaller than the thumbnail box is resized to fill it."""
+    page = Page(image_object=Image.new("RGB", (70, 46)))
+    pixbuf = page.get_pixbuf_at_scale(100, 100)
+    assert pixbuf is not None, "get_pixbuf_at_scale()"
+    assert pixbuf.get_width() == 100, "resized to fill box width"
+    assert pixbuf.get_height() == 65, "resized to fill box height"
+
+
 def test_write_image_for_pdf_passthrough():
     """Stored JPEG bytes are written to the PDF without re-encoding."""
     buf = io.BytesIO()
