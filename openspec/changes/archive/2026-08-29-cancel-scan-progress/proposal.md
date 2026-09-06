@@ -2,7 +2,17 @@
 
 ## Why
 
-The scan progress bar's Cancel button is connected — `cancel_scan` → `SaneThread.cancel()` (`scan_menu_item_mixins.py:74`) — but it cannot stop an in-flight page transfer. `SaneThread.cancel()` drains the request queue and then queues a `"cancel"` request, which the single worker thread can only process *after* its blocking `snap()` returns. On real hardware the current page runs to completion and is added to the document, violating the existing `sane-page-acquisition` requirement that a user cancel terminate the session promptly without importing the partial page. Yesterday's cancel-progress-jobs change explicitly scoped SANE cancellation out as a non-goal under the assumption that it was "already implemented via the device handle"; that assumption is wrong for a transfer already in progress.
+The scan progress bar's Cancel button is connected — `cancel_scan` →
+`SaneThread.cancel()` (`scan_menu_item_mixins.py:74`) — but it cannot stop an
+in-flight page transfer. `SaneThread.cancel()` drains the request queue and then
+queues a `"cancel"` request, which the single worker thread can only process
+*after* its blocking `snap()` returns. On real hardware the current page runs to
+completion and is added to the document, violating the existing
+`sane-page-acquisition` requirement that a user cancel terminate the session
+promptly without importing the partial page. Yesterday's cancel-progress-jobs
+change explicitly scoped SANE cancellation out as a non-goal under the
+assumption that it was "already implemented via the device handle"; that
+assumption is wrong for a transfer already in progress.
 
 The adjacent W0511 FIXME at `test_0821_frontend_image_sane.py:249` points at a second, related gap: `ResponseType.CANCELLED` is declared (`basethread.py:30`) but never emitted, so queued jobs dropped by a cancel are orphaned — no `finished`, no `cancelled`, no `error`, and their callback entries leak in `self.callbacks`.
 

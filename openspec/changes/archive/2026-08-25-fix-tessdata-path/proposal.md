@@ -1,6 +1,12 @@
 ## Why
 
-Tesseract OCR fails on openSUSE because the tessdata path resolution has two bugs: the fallback search misses SUSE's directory layout, and a missing `return` after `request.error()` allows execution to fall through to the tesseract C library with an invalid path. This is a known SUSE packaging issue (https://forums.opensuse.org/t/tesseract-ocr-wrong-data-directory/164659) where the `tesseract-ocr` binary expects data in `/usr/share/tesseract-ocr/tessdata/` but the traineddata packages install to `/usr/share/tessdata/`.
+Tesseract OCR fails on openSUSE because the tessdata path resolution has two
+bugs: the fallback search misses SUSE's directory layout, and a missing
+`return` after `request.error()` allows execution to fall through to the
+tesseract C library with an invalid path. This is a known SUSE packaging issue
+(https://forums.opensuse.org/t/tesseract-ocr-wrong-data-directory/164659) where
+the `tesseract-ocr` binary expects data in `/usr/share/tesseract-ocr/tessdata/`
+but the traineddata packages install to `/usr/share/tessdata/`.
 
 ## What Changes
 
