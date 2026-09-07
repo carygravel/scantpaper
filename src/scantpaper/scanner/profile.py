@@ -177,6 +177,23 @@ class Profile(GObject.Object):
                 new.add_backend_option(name, val)
         self.backend = deepcopy(new.backend)
 
+    def _subtract_offset(self, val, name_from, name_to):
+        """Subtract the geometry origin from a width or height value."""
+        offset = self.get_option_by_name(name_from)
+        if offset is None:
+            offset = self.get_option_by_name(name_to)
+        if offset is not None:
+            val -= offset
+        return val
+
+    def _add_cli_option(self, options, new, name, val):
+        if options is not None:
+            opt = options.by_name(name)
+            if "type" in opt and opt["type"] == enums.TYPE_BOOL:
+                val = "yes" if val else "no"
+
+        new.add_backend_option(name, val)
+
     def map_to_cli(self, options):
         """Map backend geometry options to the scanimage and scanadf (CLI) geometry names."""
         new = Profile()
@@ -189,28 +206,13 @@ class Profile(GObject.Object):
                 new.add_backend_option("t", val)
 
             elif name == "br-x":
-                _l = self.get_option_by_name("l")
-                if _l is None:
-                    _l = self.get_option_by_name("tl-x")
-                if _l is not None:
-                    val -= _l
-                new.add_backend_option("x", val)
+                new.add_backend_option("x", self._subtract_offset(val, "l", "tl-x"))
 
             elif name == "br-y":
-                _t = self.get_option_by_name("t")
-                if _t is None:
-                    _t = self.get_option_by_name("tl-y")
-                if _t is not None:
-                    val -= _t
-                new.add_backend_option("y", val)
+                new.add_backend_option("y", self._subtract_offset(val, "t", "tl-y"))
 
             else:
-                if options is not None:
-                    opt = options.by_name(name)
-                    if "type" in opt and opt["type"] == enums.TYPE_BOOL:
-                        val = "yes" if val else "no"
-
-                new.add_backend_option(name, val)
+                self._add_cli_option(options, new, name, val)
 
         new.frontend = deepcopy(self.frontend)
 

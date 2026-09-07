@@ -71,17 +71,7 @@ class DocThread(SaveThread):
             if key in kwargs:
                 setattr(self, "_" + key, kwargs.pop(key))
         super().__init__(*args, **kwargs)
-        if self._db:
-            self._db = pathlib.Path(self._db)
-        if self._dir:
-            self._dir = pathlib.Path(self._dir)
-        elif self._db:
-            self._dir = self._db.parent
-        else:
-            self._dir = pathlib.Path(tempfile.gettempdir())
-        if self._db is None:
-            self._db = self._dir / "document.sdb"
-
+        self._dir, self._db = self._set_paths(self._dir, self._db)
         self.db_files = [
             self._db,
             self._dir / pathlib.Path(self._db.name + "-wal"),
@@ -91,6 +81,25 @@ class DocThread(SaveThread):
         self._cur = {}
         self._write_tid = None
         self.start()
+        if not self._wait_for_database_init():
+            logger.error("Failed to initialize DocThread for %s", self._db)
+
+    def _set_paths(self, directory, db):
+        """Resolve the database and working directory paths."""
+        if db:
+            db = pathlib.Path(db)
+        if directory:
+            directory = pathlib.Path(directory)
+        elif db:
+            directory = db.parent
+        else:
+            directory = pathlib.Path(tempfile.gettempdir())
+        if db is None:
+            db = directory / "document.sdb"
+        return directory, db
+
+    def _wait_for_database_init(self):
+        """Wait for the database to be created, unless a timeout occurs."""
         mlp = GLib.MainLoop()
         success = False
         timed_out = False
@@ -116,8 +125,7 @@ class DocThread(SaveThread):
         mlp.run()
         if not timed_out:
             GLib.source_remove(timeout_id)
-        if not success:
-            logger.error("Failed to initialize DocThread for %s", self._db)
+        return success
 
     def _connect(self):
         tid = threading.get_native_id()
@@ -1362,6 +1370,33 @@ class DocThread(SaveThread):
         callbacks = _note_callbacks(kwargs)
         return self.send("tesseract", kwargs, **callbacks)
 
+    def _find_tessdata_path(self):
+        """Guess the tessdata path if the default is not in use."""
+        paths = sorted(
+            str(p) for p in pathlib.Path("/usr/share/tesseract-ocr").glob("*/tessdata")
+        )
+
+        # SUSE flat layout, Fedora/RHEL
+        if len(paths) == 0:
+            for candidate in [
+                "/usr/share/tesseract-ocr/tessdata",
+                "/usr/share/tessdata",
+            ]:
+                if Path(candidate).is_dir():
+                    paths = [candidate]
+                    break
+
+        # maybe we can guess the path if we have a symlink, e.g. homebrew
+        if len(paths) == 0:
+            tesseract_exe = shutil.which("tesseract")
+            if tesseract_exe is not None:
+                tess_path = Path(tesseract_exe)
+                if tess_path.is_symlink():
+                    tessdata = (tess_path.resolve() / "../../share/tessdata").resolve()
+                    if tessdata.exists():
+                        paths = [str(tessdata)]
+        return paths
+
     def do_tesseract(self, request):
         """Run tesseract in thread."""
         options = request.args[0]
@@ -1374,34 +1409,7 @@ class DocThread(SaveThread):
         # otherwise current directory is searched for tesseract files
         path, _languages = tesserocr.get_languages()
         if path == "./":
-            # some systems allow multiple tessdata dirs, e.g. parallel v4 & v5
-            paths = sorted(
-                str(p)
-                for p in pathlib.Path("/usr/share/tesseract-ocr").glob("*/tessdata")
-            )
-
-            # SUSE flat layout, Fedora/RHEL
-            if len(paths) == 0:
-                for candidate in [
-                    "/usr/share/tesseract-ocr/tessdata",
-                    "/usr/share/tessdata",
-                ]:
-                    if Path(candidate).is_dir():
-                        paths = [candidate]
-                        break
-
-            # maybe we can guess the path if we have a symlink, e.g. homebrew
-            if len(paths) == 0:
-                tesseract_exe = shutil.which("tesseract")
-                if tesseract_exe is not None:
-                    tess_path = Path(tesseract_exe)
-                    if tess_path.is_symlink():
-                        tessdata = (
-                            tess_path.resolve() / "../../share/tessdata"
-                        ).resolve()
-                        if tessdata.exists():
-                            paths = [str(tessdata)]
-
+            paths = self._find_tessdata_path()
             if len(paths) == 0:
                 request.error(_("tessdata directory not found"))
                 return

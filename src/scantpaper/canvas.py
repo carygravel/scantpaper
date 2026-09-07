@@ -980,27 +980,10 @@ class Canvas(Gtk.DrawingArea):
             transformation = kwargs["transformation"]
         elif isinstance(parent, Bbox):
             transformation = [parent.textangle, parent.bbox.x, parent.bbox.y]
+        else:
+            transformation = [0, 0, 0]
 
-        options2 = {
-            "canvas": self,
-            "parent": parent,
-            "bbox": kwargs["bbox"],
-            "transformation": transformation,
-            "text": kwargs["text"],
-        }
-
-        for key in ["baseline", "confidence", "id", "text", "textangle", "type"]:
-            if key in kwargs:
-                options2[key] = kwargs[key]
-
-        if "textangle" not in options2:
-            options2["textangle"] = 0
-        if "type" not in options2:
-            options2["type"] = "word"
-        if "confidence" not in options2 and options2["type"] == "word":
-            options2["confidence"] = _100_PERCENT
-
-        options2["edit_callback"] = kwargs.get("edit_callback")
+        options2 = self._bbox_kwargs(kwargs, parent, transformation)
 
         bbox = Bbox(**options2)
         if self.position_index is None:
@@ -1011,6 +994,30 @@ class Canvas(Gtk.DrawingArea):
 
         self.queue_draw()
         return bbox
+
+    def _bbox_kwargs(self, kwargs, parent, transformation):
+        """Build the option dict for a new Bbox from the add_box kwargs."""
+        options = {
+            "canvas": self,
+            "parent": parent,
+            "bbox": kwargs["bbox"],
+            "transformation": transformation,
+            "text": kwargs["text"],
+        }
+
+        for key in ["baseline", "confidence", "id", "text", "textangle", "type"]:
+            if key in kwargs:
+                options[key] = kwargs[key]
+
+        if "textangle" not in options:
+            options["textangle"] = 0
+        if "type" not in options:
+            options["type"] = "word"
+        if "confidence" not in options and options["type"] == "word":
+            options["confidence"] = _100_PERCENT
+
+        options["edit_callback"] = kwargs.get("edit_callback")
+        return options
 
     def _boxed_text(self, options):
         """Draw text on the canvas with a box around it."""

@@ -3,6 +3,7 @@
 import datetime
 import logging
 import re
+from functools import partial
 
 import gi
 
@@ -481,39 +482,18 @@ class ToolsMenuMixins:
             "selection-changed", changed_split_position_selection
         )
 
-        def split_apply_callback():
-            self.settings["split-direction"] = direction[combob.get_active()][0]
-            self.settings["split-position"] = sb_pos.get_value()
-            self.settings["Page range"] = windowsp.page_range
-            pagelist = self.slist.get_page_index(
-                self.settings["Page range"], self._error_callback
-            )
-            if not pagelist:
-                return
-            for i in pagelist:
-
-                def split_finished_callback(response):
-                    self.post_process_progress.finish(response)
-
-                self.slist.split_page(
-                    direction=self.settings["split-direction"],
-                    position=self.settings["split-position"],
-                    page=self.slist.data[i][2],
-                    queued_callback=self.post_process_progress.queued,
-                    started_callback=self.post_process_progress.update,
-                    running_callback=self.post_process_progress.update,
-                    finished_callback=split_finished_callback,
-                    error_callback=self._error_callback,
-                    display_callback=self._display_callback,
-                )
-
         def split_cancel_callback():
             self.view.disconnect(self.view.position_changed_signal)
             windowsp.destroy()
 
         windowsp.add_actions(
             [
-                ("gtk-apply", split_apply_callback),
+                (
+                    "gtk-apply",
+                    partial(
+                        self._split_apply_callback, windowsp, combob, sb_pos, direction
+                    ),
+                ),
                 (
                     "gtk-cancel",
                     split_cancel_callback,
@@ -521,6 +501,32 @@ class ToolsMenuMixins:
             ]
         )
         windowsp.show_all()
+
+    def _split_apply_callback(self, windowsp, combob, sb_pos, direction):
+        """Apply the split to the selected pages."""
+        self.settings["split-direction"] = direction[combob.get_active()][0]
+        self.settings["split-position"] = sb_pos.get_value()
+        self.settings["Page range"] = windowsp.page_range
+        pagelist = self.slist.get_page_index(
+            self.settings["Page range"], self._error_callback
+        )
+        if not pagelist:
+            return
+        for i in pagelist:
+            self.slist.split_page(
+                direction=self.settings["split-direction"],
+                position=self.settings["split-position"],
+                page=self.slist.data[i][2],
+                queued_callback=self.post_process_progress.queued,
+                started_callback=self.post_process_progress.update,
+                running_callback=self.post_process_progress.update,
+                finished_callback=self._split_finished_callback,
+                error_callback=self._error_callback,
+                display_callback=self._display_callback,
+            )
+
+    def _split_finished_callback(self, response):
+        self.post_process_progress.finish(response)
 
     def _update_view_position(self, direction, position, width, height):
         """Update the view's selection rectangle based on the given direction and dimensions."""

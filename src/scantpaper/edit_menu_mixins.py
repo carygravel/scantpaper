@@ -361,11 +361,14 @@ class EditMenuMixins:
             if response == Gtk.ResponseType.OK:
                 self._restart()
 
+    def _clear_combobox(self, combobox):
+        if combobox is not None:
+            while combobox.get_num_rows() > 0:
+                combobox.remove(0)
+
     def _update_list_user_defined_tools(self, combobox_array):
         for combobox in combobox_array:
-            if combobox is not None:
-                while combobox.get_num_rows() > 0:
-                    combobox.remove(0)
+            self._clear_combobox(combobox)
 
         for tool in self.settings["user_defined_tools"]:
             for combobox in combobox_array:
@@ -377,6 +380,9 @@ class EditMenuMixins:
             if combobox is not None:
                 combobox.set_active_by_text(self.settings["current_udt"])
 
+        self._set_scan_udt_sensitivity()
+
+    def _set_scan_udt_sensitivity(self):
         if self._scan_udt_hbox is not None and self._scan_udt_button is not None:
             if self.settings["user_defined_tools"]:
                 self._scan_udt_hbox.set_sensitive(sensitive=True)

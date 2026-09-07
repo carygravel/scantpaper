@@ -584,28 +584,11 @@ class Scan(PageControls):
         options, opt, hbox, hboxp = data
         if widget is not None:
             # Add label for units
-            if opt.unit != enums.UNIT_NONE:
-                text = None
-                if opt.unit == enums.UNIT_PIXEL:
-                    text = _("pel")
-
-                elif opt.unit == enums.UNIT_BIT:
-                    text = _("bit")
-
-                elif opt.unit == enums.UNIT_MM:
-                    text = _("mm")
-
-                elif opt.unit == enums.UNIT_DPI:
-                    text = _("ppi")
-
-                elif opt.unit == enums.UNIT_PERCENT:
-                    text = _("%")
-
-                elif opt.unit == enums.UNIT_MICROSECOND:
-                    text = _("μs")
-
-                label = Gtk.Label(label=text)
-                hbox.pack_end(label, expand=False, fill=False, padding=0)
+            unit_text = self._unit_text(opt.unit)
+            if unit_text is not None:
+                hbox.pack_end(
+                    Gtk.Label(label=unit_text), expand=False, fill=False, padding=0
+                )
 
             self.option_widgets[opt.name] = widget
             if opt.type == enums.TYPE_BUTTON:
@@ -625,11 +608,21 @@ class Scan(PageControls):
         else:
             logger.warning("Unknown type %s", opt.type)
 
-    def _create_paper_widget(self, options, hboxp):
-        """Create the paper widget."""
-        # Only define the paper size once the rest of the geometry widgets
-        # have been created
-        if (
+    def _unit_text(self, unit):
+        """Return the translated label for the given unit."""
+        labels = {
+            enums.UNIT_PIXEL: _("pel"),
+            enums.UNIT_BIT: _("bit"),
+            enums.UNIT_MM: _("mm"),
+            enums.UNIT_DPI: _("ppi"),
+            enums.UNIT_PERCENT: _("%"),
+            enums.UNIT_MICROSECOND: _("μs"),
+        }
+        return labels.get(unit)
+
+    def _can_create_paper_widget(self, options, hboxp):
+        """Return True once the geometry widgets are ready for the paper list."""
+        return (
             all(key in self._geometry_boxes for key in ["br-x", "br-y", "tl-x", "tl-y"])
             and all(
                 (options.by_name(key) is None or key in self._geometry_boxes)
@@ -637,54 +630,58 @@ class Scan(PageControls):
             )
             and (not hasattr(self, "combobp") or self.combobp is None)
             and hboxp is not None
-        ):
-            # Paper list
-            label = Gtk.Label(label=_("Paper size"))
-            hboxp.pack_start(label, expand=False, fill=False, padding=0)
-            self.combobp = ComboBoxText()
-            self.combobp.append_text(_("Manual"))
-            self.combobp.append_text(_("Edit"))
-            self.combobp.set_tooltip_text(_("Selects or edits the paper size"))
-            hboxp.pack_end(self.combobp, expand=False, fill=False, padding=0)
-            self.combobp.set_active(0)
+        )
 
-            def do_paper_size_changed(_arg):
-                combobp_active_text = self.combobp.get_active_text()
-                if not combobp_active_text:
-                    return
-                if combobp_active_text == _("Edit"):
-                    self._edit_paper()
-                elif combobp_active_text == _("Manual"):
-                    for option in (
-                        "tl-x",
-                        "tl-y",
-                        "br-x",
-                        "br-y",
-                        "page-height",
-                        "page-width",
-                    ):
-                        if option in self._geometry_boxes:
-                            self._geometry_boxes[option].show_all()
+    def _create_paper_widget(self, options, hboxp):
+        """Create the paper widget."""
+        # Only define the paper size once the rest of the geometry widgets
+        # have been created
+        if not self._can_create_paper_widget(options, hboxp):
+            return
 
-                    self.paper = None
-                else:
-                    self.paper = combobp_active_text
+        # Paper list
+        label = Gtk.Label(label=_("Paper size"))
+        hboxp.pack_start(label, expand=False, fill=False, padding=0)
+        self.combobp = ComboBoxText()
+        self.combobp.append_text(_("Manual"))
+        self.combobp.append_text(_("Edit"))
+        self.combobp.set_tooltip_text(_("Selects or edits the paper size"))
+        hboxp.pack_end(self.combobp, expand=False, fill=False, padding=0)
+        self.combobp.set_active(0)
+        self.combobp.connect("changed", self._do_paper_size_changed)
 
-            self.combobp.connect("changed", do_paper_size_changed)
+        # If the geometry is changed and we are not setting a profile,
+        # unset the paper size,
+        for option in ("tl-x", "tl-y", "br-x", "br-y", "page-height", "page-width"):
+            if option in self.option_widgets:
+                widget = self.option_widgets[option]
+                widget.connect("changed", self._do_paper_dimension_changed)
 
-            # If the geometry is changed and we are not setting a profile,
-            # unset the paper size,
-            for option in ("tl-x", "tl-y", "br-x", "br-y", "page-height", "page-width"):
-                if option in self.option_widgets:
-                    widget = self.option_widgets[option]
+    def _do_paper_size_changed(self, _arg):
+        combobp_active_text = self.combobp.get_active_text()
+        if not combobp_active_text:
+            return
+        if combobp_active_text == _("Edit"):
+            self._edit_paper()
+        elif combobp_active_text == _("Manual"):
+            for option in (
+                "tl-x",
+                "tl-y",
+                "br-x",
+                "br-y",
+                "page-height",
+                "page-width",
+            ):
+                if option in self._geometry_boxes:
+                    self._geometry_boxes[option].show_all()
 
-                    def do_paper_dimension_changed(_data):
-                        if not (
-                            self.setting_current_scan_options or self.paper is None
-                        ):
-                            self.paper = None
+            self.paper = None
+        else:
+            self.paper = combobp_active_text
 
-                    widget.connect("changed", do_paper_dimension_changed)
+    def _do_paper_dimension_changed(self, _data):
+        if not (self.setting_current_scan_options or self.paper is None):
+            self.paper = None
 
     def _hide_geometry(self, _options):
         """Hide geometry options."""
@@ -775,38 +772,43 @@ class Scan(PageControls):
         if opt.type != enums.TYPE_BUTTON:
             value = self.thread.get_option_value(opt.name)
 
-        # Switch
         if opt.type == enums.TYPE_BOOL:
-            if _value_for_active_option(value, opt):
-                widget.set_active(is_active=value)
-
+            self._set_switch_widget(widget, value, opt)
         elif isinstance(opt.constraint, tuple):
-            step, page = widget.get_increments()
-            step = 1
-            if opt.constraint[2] > 0:
-                step = opt.constraint[2]
-
-            widget.set_range(opt.constraint[0], opt.constraint[1])
-            widget.set_increments(step, page)
-            if _value_for_active_option(value, opt):
-                widget.set_value(value)
-
+            self._set_spinbutton_widget(widget, value, opt)
         elif isinstance(opt.constraint, list):
-            widget.get_model().clear()
-            index = 0
-            for i, entry in enumerate(opt.constraint):
-                widget.append_text(d_sane(str(entry)))
-                if entry == value:
-                    index = i
+            self._set_combobox_widget(widget, value, opt)
+        elif opt.constraint is None and opt.type != enums.TYPE_BUTTON:
+            self._set_entry_widget(widget, value, opt)
 
-            if index is not None:
-                widget.set_active(index_=index)
+    def _set_switch_widget(self, widget, value, opt):
+        if _value_for_active_option(value, opt):
+            widget.set_active(is_active=value)
 
-        elif (
-            opt.constraint is None
-            and opt.type != enums.TYPE_BUTTON
-            and _value_for_active_option(value, opt)
-        ):  # entry
+    def _set_spinbutton_widget(self, widget, value, opt):
+        step, page = widget.get_increments()
+        step = 1
+        if opt.constraint[2] > 0:
+            step = opt.constraint[2]
+
+        widget.set_range(opt.constraint[0], opt.constraint[1])
+        widget.set_increments(step, page)
+        if _value_for_active_option(value, opt):
+            widget.set_value(value)
+
+    def _set_combobox_widget(self, widget, value, opt):
+        widget.get_model().clear()
+        index = 0
+        for i, entry in enumerate(opt.constraint):
+            widget.append_text(d_sane(str(entry)))
+            if entry == value:
+                index = i
+
+        if index is not None:
+            widget.set_active(index_=index)
+
+    def _set_entry_widget(self, widget, value, opt):
+        if _value_for_active_option(value, opt):
             widget.set_text(str(value))
 
     def _update_option(self, opt, new_opt):
@@ -1206,146 +1208,156 @@ class Scan(PageControls):
         self._set_option_profile(clone, profile.each_backend_option())
 
     def _set_option_profile(self, profile, itr):
-
         self.cursor = "wait"
         try:
-            i = next(itr)
-            name, val = profile.get_backend_option_by_index(i)
-            options = self.available_scan_options
-            opt = options.by_name(name)
-            if opt is None or opt.cap & enums.CAP_INACTIVE:
-                logger.warning("Ignoring inactive option '%s'.", name)
-                self._set_option_profile(profile, itr)
-                return
-
-            # if we have a profile from a pre-v3 gscan2pdf config, the types
-            # are likely wrong, so force the conversion
-            val = _coerce_option_value(opt, val)
-
-            # Don't try to set invalid option
-            if isinstance(opt.constraint, list) and val not in opt.constraint:
-                logger.warning(
-                    "Ignoring invalid argument '%s' for option '%s'.", val, name
-                )
-                self._set_option_profile(profile, itr)
-                return
-
-            # Ignore option if info from previous set_option() reported SANE_INFO_INEXACT
-            if (
-                opt.name in self._option_info
-                and self._option_info[opt.name] & enums.INFO_INEXACT
-            ):
-                logger.warning(
-                    "Skip setting option '%s' to '%s', as previous call"
-                    " set SANE_INFO_INEXACT",
-                    name,
-                    val,
-                )
-                self._set_option_profile(profile, itr)
-                return
-
-            # Avoid a race condition where device_handle is None after a reload
-            # Tested by test_race_condition_device_switching and
-            # test_infinite_loop_reproduction
-            if self.thread.device_handle is None:
-                logger.warning("Device handle is None. Skipping option '%s'.", name)
-
-                # Cleanup logic similar to StopIteration block
-                if not self.setting_profile:
-                    self.profile = None
-
-                if self.setting_current_scan_options:
-                    self.setting_current_scan_options.pop()
-                self.emit(
-                    "changed-current-scan-options",
-                    self.current_scan_options,
-                    profile.uuid,
-                )
-                self.cursor = "default"
-                return
-
-            # Ignore option if value already within tolerance
-            curval = self.thread.get_option_value(opt.name)
-            if within_tolerance(opt, curval, val, OPTION_TOLERANCE):
-                logger.info(
-                    "No need to set option '%s': already within tolerance.", name
-                )
-                self._set_option_profile(profile, itr)
-                return
-
-            logger.debug(
-                "Setting option '%s'%s",
-                name,
-                (
-                    ""
-                    if opt.type == enums.TYPE_BUTTON
-                    else f" from '{curval}' to '{val}'."
-                ),
-            )
-            signal = None
-
-            def do_changed_scan_option(_widget, _optname, _optval, uuid):
-
-                # With multiple reloads, this can get called several times,
-                # so only react to signal from the correct profile
-                if uuid == profile.uuid:
-                    self.disconnect(signal)
-                    self._set_option_profile(profile, itr)
-
-            signal = self.connect("changed-scan-option", do_changed_scan_option)
-
-            self.set_option(opt, val, profile.uuid)
-
+            name, val, opt = self._next_backend_option(profile, itr)
         except StopIteration:
-            # Having set all backend options, set the frontend options
-            # Set paper formats first to make sure that any paper required is
-            # available
-            self._set_paper_sizes(self.paper_sizes)
-            for key in profile.each_frontend_option():
-                setattr(self, key, profile.get_frontend_option(key))
+            self._finalize_profile(profile)
+            return
 
-            if self.setting_current_scan_options:
-                self.setting_current_scan_options.pop()
-            self.emit(
-                "changed-current-scan-options",
-                self.current_scan_options,
-                profile.uuid,
+        if opt is None or opt.cap & enums.CAP_INACTIVE:
+            logger.warning("Ignoring inactive option '%s'.", name)
+            self._set_option_profile(profile, itr)
+            return
+
+        # if we have a profile from a pre-v3 gscan2pdf config, the types
+        # are likely wrong, so force the conversion
+        val = _coerce_option_value(opt, val)
+
+        if self._skip_backend_option(opt, name, val):
+            self._set_option_profile(profile, itr)
+            return
+
+        # Avoid a race condition where device_handle is None after a reload
+        # Tested by test_race_condition_device_switching and
+        # test_infinite_loop_reproduction
+        if self.thread.device_handle is None:
+            logger.warning("Device handle is None. Skipping option '%s'.", name)
+
+            # Cleanup logic similar to StopIteration block
+            if not self.setting_profile:
+                self.profile = None
+            self._complete_profile_setting(profile)
+            return
+
+        # Ignore option if value already within tolerance
+        curval = self.thread.get_option_value(opt.name)
+        if within_tolerance(opt, curval, val, OPTION_TOLERANCE):
+            logger.info("No need to set option '%s': already within tolerance.", name)
+            self._set_option_profile(profile, itr)
+            return
+
+        logger.debug(
+            "Setting option '%s'%s", name, _option_value_message(opt, curval, val)
+        )
+        self._set_option_with_hook(profile, itr, opt, val)
+
+    def _next_backend_option(self, profile, itr):
+        """Return the next backend option from the profile iterator."""
+        i = next(itr)
+        name, val = profile.get_backend_option_by_index(i)
+        options = self.available_scan_options
+        opt = options.by_name(name)
+        return name, val, opt
+
+    def _skip_backend_option(self, opt, name, val):
+        """Return True if the option should not be applied."""
+        # Don't try to set invalid option
+        if isinstance(opt.constraint, list) and val not in opt.constraint:
+            logger.warning("Ignoring invalid argument '%s' for option '%s'.", val, name)
+            return True
+
+        # Ignore option if info from previous set_option() reported SANE_INFO_INEXACT
+        if (
+            opt.name in self._option_info
+            and self._option_info[opt.name] & enums.INFO_INEXACT
+        ):
+            logger.warning(
+                "Skip setting option '%s' to '%s', as previous call"
+                " set SANE_INFO_INEXACT",
+                name,
+                val,
             )
-            self.cursor = "default"
+            return True
+        return False
+
+    def _set_option_with_hook(self, profile, itr, opt, val):
+        """Set the option, continuing with the profile once the backend confirms it."""
+        signal = None
+
+        def do_changed_scan_option(_widget, _optname, _optval, uuid):
+            # With multiple reloads, this can get called several times,
+            # so only react to signal from the correct profile
+            if uuid == profile.uuid:
+                self.disconnect(signal)
+                self._set_option_profile(profile, itr)
+
+        signal = self.connect("changed-scan-option", do_changed_scan_option)
+        self.set_option(opt, val, profile.uuid)
+
+    def _complete_profile_setting(self, profile):
+        """Mark the current scan options as set for the given profile."""
+        if self.setting_current_scan_options:
+            self.setting_current_scan_options.pop()
+        self.emit(
+            "changed-current-scan-options", self.current_scan_options, profile.uuid
+        )
+        self.cursor = "default"
+
+    def _finalize_profile(self, profile):
+        # Having set all backend options, set the frontend options
+        # Set paper formats first to make sure that any paper required is
+        # available
+        self._set_paper_sizes(self.paper_sizes)
+        for key in profile.each_frontend_option():
+            setattr(self, key, profile.get_frontend_option(key))
+        self._complete_profile_setting(profile)
 
     def _update_widget_value(self, opt, val):
         """Update widget with value."""
-        if opt.name in self.option_widgets:
-            widget = self.option_widgets[opt.name]
-            logger.debug(
-                "Setting widget '%s'%s",
-                opt.name,
-                "" if opt.type == enums.TYPE_BUTTON else f" to '{val}'.",
-            )
-            blocked = widget.signal is not None and widget.handler_is_connected(
-                widget.signal
-            )
-            if blocked:
-                widget.handler_block(widget.signal)
-            if isinstance(widget, (Gtk.CheckButton, Gtk.Switch)):
-                if widget.get_active() != val:
-                    widget.set_active(is_active=val)
-            elif isinstance(widget, Gtk.SpinButton):
-                if widget.get_value() != val:
-                    widget.set_value(val)
-            elif isinstance(widget, Gtk.ComboBox):
-                if opt.constraint[widget.get_active()] != val:
-                    index = opt.constraint.index(val)
-                    if index > NO_INDEX:
-                        widget.set_active(index_=index)
-            elif isinstance(widget, Gtk.Entry) and widget.get_text() != val:
-                widget.set_text(val)
-
-            if blocked:
-                widget.handler_unblock(widget.signal)
-
-        else:
+        if opt.name not in self.option_widgets:
             logger.warning("Widget for option '%s' undefined.", opt.name)
+            return
+        widget = self.option_widgets[opt.name]
+        logger.debug(
+            "Setting widget '%s'%s",
+            opt.name,
+            "" if opt.type == enums.TYPE_BUTTON else f" to '{val}'.",
+        )
+        blocked = widget.signal is not None and widget.handler_is_connected(
+            widget.signal
+        )
+        if blocked:
+            widget.handler_block(widget.signal)
+        if isinstance(widget, (Gtk.CheckButton, Gtk.Switch)):
+            self._set_checkbutton_active(widget, val)
+        elif isinstance(widget, Gtk.SpinButton):
+            self._set_spinbutton_value(widget, val)
+        elif isinstance(widget, Gtk.ComboBox):
+            self._set_combobox_value(widget, opt, val)
+        elif isinstance(widget, Gtk.Entry):
+            self._set_entry_value(widget, val)
+
+        if blocked:
+            widget.handler_unblock(widget.signal)
+
+    def _set_checkbutton_active(self, widget, val):
+        if widget.get_active() != val:
+            widget.set_active(is_active=val)
+
+    def _set_spinbutton_value(self, widget, val):
+        if widget.get_value() != val:
+            widget.set_value(val)
+
+    def _set_combobox_value(self, widget, opt, val):
+        if opt.constraint[widget.get_active()] != val:
+            index = opt.constraint.index(val)
+            if index > NO_INDEX:
+                widget.set_active(index_=index)
+
+    def _set_entry_value(self, widget, val):
+        if widget.get_text() != val:
+            widget.set_text(val)
 
     def _get_xy_resolution(self):
         """Return x and y values for resolution."""
@@ -1429,6 +1441,13 @@ def _geometry_option(opt):
 def _value_for_active_option(value, opt):
     """Return if the value is defined and the option is active."""
     return value is not None and not opt.cap & enums.CAP_INACTIVE
+
+
+def _option_value_message(opt, curval, val):
+    """Return the value description for the change log message."""
+    if opt.type == enums.TYPE_BUTTON:
+        return ""
+    return f" from '{curval}' to '{val}'."
 
 
 def _save_profile_callback(_widget, parent):

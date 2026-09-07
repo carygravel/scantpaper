@@ -448,22 +448,6 @@ def test_tiff_compression_selection(mocker):
     dialog.resize = mocker.Mock()
     dialog.add_image_type()
 
-    def find_widget_by_label(container, label_text, widget_type):
-        """Find a widget by its sibling label text."""
-        widget = None
-        for child in container.get_children():
-            grand_children = child.get_children()
-            has_label = any(
-                isinstance(gc, Gtk.Label) and gc.get_text() == label_text
-                for gc in grand_children
-            )
-            if has_label:
-                for gc in grand_children:
-                    if isinstance(gc, widget_type):
-                        widget = gc
-                        break
-        return widget
-
     content_area = dialog.get_content_area()
     combobtc = find_widget_by_label(content_area, "Compression", Gtk.ComboBox)
     assert combobtc is not None, "Could not find Compression ComboBox"
@@ -495,6 +479,52 @@ def test_tiff_compression_selection(mocker):
     dialog.resize.assert_called()
 
 
+def find_widget_by_label(container, label_text, widget_type):
+    """Find a widget by its sibling label text."""
+    widget = None
+    for child in container.get_children():
+        grand_children = child.get_children()
+        has_label = any(
+            isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+            for gc in grand_children
+        )
+        if has_label:
+            for gc in grand_children:
+                if isinstance(gc, widget_type):
+                    widget = gc
+                    break
+    return widget
+
+
+def find_checkbutton(container, label_text):
+    """Find a checkbutton by its label text."""
+    for child in container.get_children():
+        if isinstance(child, Gtk.CheckButton) and child.get_label() == label_text:
+            return child
+        if isinstance(child, Gtk.Box):
+            res = find_checkbutton(child, label_text)
+            if res:
+                return res
+    return None
+
+
+def find_all_spinbuttons_near_label(container, label_text):
+    """Find all spinbuttons that share a box with a label."""
+    found = []
+    for child in container.get_children():
+        if isinstance(child, Gtk.Box):
+            grand_children = child.get_children()
+            if any(
+                isinstance(gc, Gtk.Label) and gc.get_text() == label_text
+                for gc in grand_children
+            ):
+                found.extend(
+                    gc for gc in grand_children if isinstance(gc, Gtk.SpinButton)
+                )
+            found.extend(find_all_spinbuttons_near_label(child, label_text))
+    return found
+
+
 def test_other_save_dialog_callbacks():
     """Test other callbacks in Save dialog."""
     dialog = Save(
@@ -505,22 +535,6 @@ def test_other_save_dialog_callbacks():
     dialog.add_image_type()
     content_area = dialog.get_content_area()
 
-    def find_widget_by_label(container, label_text, widget_type):
-        """Find a widget by its sibling label text."""
-        widget = None
-        for child in container.get_children():
-            grand_children = child.get_children()
-            has_label = any(
-                isinstance(gc, Gtk.Label) and gc.get_text() == label_text
-                for gc in grand_children
-            )
-            if has_label:
-                for gc in grand_children:
-                    if isinstance(gc, widget_type):
-                        widget = gc
-                        break
-        return widget
-
     # Test ps_backend_changed_callback
     combops = find_widget_by_label(content_area, "Postscript backend", Gtk.ComboBox)
     assert combops is not None
@@ -528,33 +542,8 @@ def test_other_save_dialog_callbacks():
     assert dialog.ps_backend == "pdf2ps"
 
     # Test downsample callbacks
-    def find_checkbutton(container, label_text):
-        for child in container.get_children():
-            if isinstance(child, Gtk.CheckButton) and child.get_label() == label_text:
-                return child
-            if isinstance(child, Gtk.Box):
-                res = find_checkbutton(child, label_text)
-                if res:
-                    return res
-        return None
-
     downsample_btn = find_checkbutton(content_area, "Downsample to")
     assert downsample_btn is not None
-
-    def find_all_spinbuttons_near_label(container, label_text):
-        found = []
-        for child in container.get_children():
-            if isinstance(child, Gtk.Box):
-                grand_children = child.get_children()
-                if any(
-                    isinstance(gc, Gtk.Label) and gc.get_text() == label_text
-                    for gc in grand_children
-                ):
-                    found.extend(
-                        gc for gc in grand_children if isinstance(gc, Gtk.SpinButton)
-                    )
-                found.extend(find_all_spinbuttons_near_label(child, label_text))
-        return found
 
     downsample_spins = find_all_spinbuttons_near_label(content_area, "PPI")
     assert len(downsample_spins) > 0

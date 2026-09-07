@@ -97,13 +97,12 @@ ignore = [
     "SLF001",  # private member access: legitimately used across dialog/GTK code
     "PLR2004", # magic values: ubiquitous GUI widget constants
     "S",       # bandit: dominated by `assert` (S101) in tests
-    "E501",    # line length: tracked by black's own width
+    "E501",    # line length: formatted by ruff
     "COM812",  # trailing commas: incompatible with some D* rules
     "CPY001",  # copyright headers: not required by this project
     "TD",      # TODO metadata requirements: not adopted as a convention
     "T201",    # print: legitimate in scripts
     "FIX002",  # TODO without issue ref: plain `# TODO:` notes are the project convention
-    "C901",    # complex functions: legacy code is deeply nested; refactoring is deferred
     "PLR0913", # too many arguments: existing APIs take many params (scan/request dicts)
     "PLR0917", # too many positional arguments: existing call sites pass many args
 ]

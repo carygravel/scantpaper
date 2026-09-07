@@ -770,6 +770,28 @@ class TestScanDialog:
         scan._add_current_scan_options.assert_called()
 
 
+def find_button_with_icon(container, icon_name):
+    """Find a button with the given icon name."""
+    children = container.get_children()
+    for child in children:
+        if isinstance(child, Gtk.Button):
+            image = child.get_image()
+            if isinstance(image, Gtk.Image):
+                # In GTK3 get_icon_name might return None if set from stock or otherwise.
+                # The code uses Gtk.Image.new_from_icon_name("list-remove", ...)
+                storage_type = image.get_storage_type()
+                if (
+                    storage_type == Gtk.ImageType.ICON_NAME
+                    and image.get_icon_name()[0] == icon_name
+                ):
+                    return child
+        if isinstance(child, Gtk.Container):
+            found = find_button_with_icon(child, icon_name)
+            if found:
+                return found
+    return None
+
+
 def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
     """Reproduce AttributeError: 'Dialog' object has no attribute 'parent'."""
 
@@ -890,26 +912,6 @@ def test_reproduce_bug(mocker, sane_scan_dialog, set_device_wait_reload):
     assert edit_window is not None
 
     # Find the remove button
-    def find_button_with_icon(container, icon_name):
-        children = container.get_children()
-        for child in children:
-            if isinstance(child, Gtk.Button):
-                image = child.get_image()
-                if isinstance(image, Gtk.Image):
-                    # In GTK3 get_icon_name might return None if set from stock or otherwise.
-                    # The code uses Gtk.Image.new_from_icon_name("list-remove", ...)
-                    storage_type = image.get_storage_type()
-                    if (
-                        storage_type == Gtk.ImageType.ICON_NAME
-                        and image.get_icon_name()[0] == icon_name
-                    ):
-                        return child
-            if isinstance(child, Gtk.Container):
-                found = find_button_with_icon(child, icon_name)
-                if found:
-                    return found
-        return None
-
     rbutton = find_button_with_icon(edit_window, "list-remove")
     assert rbutton is not None
 

@@ -346,43 +346,8 @@ class BaseDocument(SimpleList):
         if self.row_changed_signal is not None:
             self.get_model().handler_block(self.row_changed_signal)
 
-        def _post_paste_logic(dest):
-            # Renumber the newly pasted rows positionally
-            self.renumber()
-            self.get_model().emit(
-                "row-changed", Gtk.TreePath(), self.get_model().get_iter_first()
-            )
-
-            # Select the new pages
-            if kwargs.get("select_new_pages"):
-                selection = list(range(dest, dest + len(kwargs["data"])))
-
-                self.get_selection().unselect_all()
-                self.select(selection)
-
-            if self.row_changed_signal is not None:
-                self.get_model().handler_unblock(self.row_changed_signal)
-
-            logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
-            if "finished_callback" in kwargs:
-                kwargs["finished_callback"]()
-
-        dest = None
         if kwargs.get("dest") is None:
-            dest = len(self.data)
-
-            def _data_callback(response):
-                logger.debug("extend _data_callback(%s)", response)
-                info = response.info
-                if info and "type" in info and info["type"] == "page":
-                    self.data.extend(info["new_pages"])
-                    _post_paste_logic(dest)
-
-            self.thread.send(
-                "clone_pages",
-                {"page_ids": [row[2] for row in kwargs["data"]], "dest": dest},
-                data_callback=_data_callback,
-            )
+            self._send_clone_pages(kwargs, len(self.data), "extend")
         else:
             dest = int(kwargs["dest"])
             if kwargs["how"] in (
@@ -390,20 +355,50 @@ class BaseDocument(SimpleList):
                 Gtk.TreeViewDropPosition.INTO_OR_AFTER,
             ):
                 dest += 1
+            self._send_clone_pages(kwargs, dest, "insert")
 
-            def _data_callback(response):
-                logger.debug("insert _data_callback(%s)", response)
-                info = response.info
-                if info and "type" in info and info["type"] == "page":
-                    for row in info["new_pages"]:
+    def _send_clone_pages(self, kwargs, dest, action):
+        """Clone pages into this document, extending or inserting."""
+
+        def _data_callback(response):
+            logger.debug("%s _data_callback(%s)", action, response)
+            info = response.info
+            if info and "type" in info and info["type"] == "page":
+                new_pages = info["new_pages"]
+                if action == "extend":
+                    self.data.extend(new_pages)
+                else:
+                    for row in new_pages:
                         self.data.insert(dest, row)
-                    _post_paste_logic(dest)
+                self._post_paste_logic(dest, kwargs)
 
-            self.thread.send(
-                "clone_pages",
-                {"page_ids": [row[2] for row in kwargs["data"]], "dest": dest},
-                data_callback=_data_callback,
-            )
+        self.thread.send(
+            "clone_pages",
+            {"page_ids": [row[2] for row in kwargs["data"]], "dest": dest},
+            data_callback=_data_callback,
+        )
+
+    def _post_paste_logic(self, dest, kwargs):
+        """Renumber, select and finalise the page list after a paste."""
+        # Renumber the newly pasted rows positionally
+        self.renumber()
+        self.get_model().emit(
+            "row-changed", Gtk.TreePath(), self.get_model().get_iter_first()
+        )
+
+        # Select the new pages
+        if kwargs.get("select_new_pages"):
+            selection = list(range(dest, dest + len(kwargs["data"])))
+
+            self.get_selection().unselect_all()
+            self.select(selection)
+
+        if self.row_changed_signal is not None:
+            self.get_model().handler_unblock(self.row_changed_signal)
+
+        logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
+        if "finished_callback" in kwargs:
+            kwargs["finished_callback"]()
 
     def delete_selection(self, _self=None, context=None, **kwargs):
         """Delete the selected pages."""
@@ -614,8 +609,7 @@ class BaseDocument(SimpleList):
             )
 
         def on_table(response):
-            if self.row_changed_signal is not None:
-                self.get_model().handler_unblock(self.row_changed_signal)
+            self._unblock_row_changed()
             self.data = response.info
             self.renumber()
             logger.info("Opened document %s", db)
@@ -623,8 +617,7 @@ class BaseDocument(SimpleList):
             self.select(0)
 
         def on_error(response):
-            if self.row_changed_signal is not None:
-                self.get_model().handler_unblock(self.row_changed_signal)
+            self._unblock_row_changed()
             if error_callback:
                 error_callback(None, "Open file", response.status)
 
@@ -634,6 +627,11 @@ class BaseDocument(SimpleList):
             finished_callback=on_open,
             error_callback=on_error,
         )
+
+    def _unblock_row_changed(self):
+        """Re-enable the row-changed signal if it was blocked."""
+        if self.row_changed_signal is not None:
+            self.get_model().handler_unblock(self.row_changed_signal)
 
     def renumber(self):
         """Renumber pages so that page numbers are consecutive 1..n."""

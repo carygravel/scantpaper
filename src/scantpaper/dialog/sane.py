@@ -100,63 +100,62 @@ class SaneScanDialog(Scan):
         self.option_widgets = {}
         self._option_info = {}
 
+        self.thread.open_device(
+            device_name=self.device,
+            started_callback=self._device_opening_started,
+            running_callback=self._running_callback,
+            finished_callback=self._device_opened,
+            error_callback=self._device_open_error,
+        )
+
+    def _running_callback(self, _data):
+        self.emit("changed-progress", None, None)
+
+    def _device_opening_started(self, _data):
+        self.cursor = "wait"
+        self.emit("started-process", _("Opening device"))
+
+        # Ghost the scan button whilst options being updated
+        self.set_response_sensitive(Gtk.ResponseType.OK, setting=False)
+
+    def _device_opened(self, _data):
+        self.emit("finished-process", "open_device")
+        self._request_scan_options()
+
+    def _device_open_error(self, response):
+        self.emit(
+            "process-error",
+            "open_device",
+            _("Error opening device: ") + response.status,
+        )
+        self.cursor = "default"
+
+    def _request_scan_options(self):
         def started_callback(_data):
-            self.cursor = "wait"
-            self.emit("started-process", _("Opening device"))
+            self.emit("started-process", _("Retrieving options"))
 
-            # Ghost the scan button whilst options being updated
-            self.set_response_sensitive(Gtk.ResponseType.OK, setting=False)
+        def finished_callback(response):
+            options = Options(response.info)
+            self._initialise_options(options)
+            self.emit("finished-process", "find_scan_options")
 
-        def running_callback(_data):
-            self.emit("changed-progress", None, None)
-
-        def finished_callback(_data):
-            self.emit("finished-process", "open_device")
-
-            def started_callback(_data):
-                self.emit("started-process", _("Retrieving options"))
-
-            def running_callback(_data):
-                self.emit("changed-progress", None, None)
-
-            def finished_callback(response):
-                options = Options(response.info)
-                self._initialise_options(options)
-                self.emit("finished-process", "find_scan_options")
-
-                # This fires the reloaded-scan-options signal,
-                # so don't set this until we have finished
-                self.available_scan_options = options
-                self._set_paper_sizes(self.paper_sizes)
-                self.cursor = "default"
-
-            def error_callback(response):
-                self.emit(
-                    "process-error",
-                    "find_scan_options",
-                    _("Error retrieving scanner options: ") + response.status,
-                )
-                self.cursor = "default"
-
-            self.thread.get_options(
-                started_callback=started_callback,
-                running_callback=running_callback,
-                finished_callback=finished_callback,
-                error_callback=error_callback,
-            )
+            # This fires the reloaded-scan-options signal,
+            # so don't set this until we have finished
+            self.available_scan_options = options
+            self._set_paper_sizes(self.paper_sizes)
+            self.cursor = "default"
 
         def error_callback(response):
             self.emit(
                 "process-error",
-                "open_device",
-                _("Error opening device: ") + response.status,
+                "find_scan_options",
+                _("Error retrieving scanner options: ") + response.status,
             )
             self.cursor = "default"
 
-        self.thread.open_device(
-            device_name=self.device,
+        self.thread.get_options(
             started_callback=started_callback,
-            running_callback=running_callback,
+            running_callback=self._running_callback,
             finished_callback=finished_callback,
             error_callback=error_callback,
         )
@@ -173,66 +172,70 @@ class SaneScanDialog(Scan):
         self.combobp = None  # So we don't carry over from one device to another
         for i in range(1, num_dev_options):
             opt = options.by_index(i)
-
-            # Notebook page for group
-            if opt.type == enums.TYPE_GROUP or vbox is None:
-                vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                # vbox.set_border_width( self.get_style_context().get_property(
-                #                                                 'content-area-border') )
-                text = (
-                    d_sane(opt.title)
-                    if (
-                        opt.type == enums.TYPE_GROUP
-                        # A brother scanner used an empty string as a group title,
-                        # which then results in a tab with no title, which is
-                        # confusing and can be missed, so set to the default.
-                        and opt.title != EMPTY
-                    )
-                    else _("Scan Options")
-                )
-                scwin = Gtk.ScrolledWindow()
-                self.notebook.append_page(scwin, Gtk.Label(label=text))
-                scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-                scwin.add(vbox)
-                if opt.type == enums.TYPE_GROUP:
-                    continue
-
-            if not opt.cap & enums.CAP_SOFT_DETECT:
-                continue
-
-            # Widget
-            widget = None
-            try:
-                val = self.thread.get_option_value(opt.name)
-            except (KeyError, AttributeError):
-                val = None
-
-            # Define HBox for paper size here
-            # so that it can be put before first geometry option
-            if hboxp is None and _geometry_option(opt):
-                hboxp = Gtk.Box()
-                vbox.pack_start(hboxp, expand=False, fill=False, padding=0)
-
-            # HBox for option
-            hbox = Gtk.Box()
-            vbox.pack_start(hbox, expand=False, fill=True, padding=0)
-            if opt.cap & enums.CAP_INACTIVE or not opt.cap & enums.CAP_SOFT_SELECT:
-                hbox.set_sensitive(False)
-
-            if isinstance(val, list):  # $opt->{max_values} > 1
-                widget = Gtk.Button(label=d_sane(opt.title))
-            else:
-                widget = self._create_widget(opt, val, hbox)
-                if widget is None:
-                    continue
-
-            self._pack_widget(widget, [options, opt, hbox, hboxp])
+            vbox, hboxp = self._initialise_option(vbox, hboxp, options, opt)
 
         # Show new pages
         for i in range(2, self.notebook.get_n_pages()):
             self.notebook.get_nth_page(i).show_all()
 
         self.set_response_sensitive(Gtk.ResponseType.OK, setting=True)
+
+    def _new_group_page(self, opt):
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        text = (
+            d_sane(opt.title)
+            if (
+                opt.type == enums.TYPE_GROUP
+                # A brother scanner used an empty string as a group title,
+                # which then results in a tab with no title, which is
+                # confusing and can be missed, so set to the default.
+                and opt.title != EMPTY
+            )
+            else _("Scan Options")
+        )
+        scwin = Gtk.ScrolledWindow()
+        self.notebook.append_page(scwin, Gtk.Label(label=text))
+        scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scwin.add(vbox)
+        return vbox
+
+    def _initialise_option(self, vbox, hboxp, options, opt):
+        # Notebook page for group
+        if opt.type == enums.TYPE_GROUP or vbox is None:
+            vbox = self._new_group_page(opt)
+            if opt.type == enums.TYPE_GROUP:
+                return vbox, hboxp
+
+        if not opt.cap & enums.CAP_SOFT_DETECT:
+            return vbox, hboxp
+
+        # Widget
+        try:
+            val = self.thread.get_option_value(opt.name)
+        except (KeyError, AttributeError):
+            val = None
+
+        # Define HBox for paper size here
+        # so that it can be put before first geometry option
+        if hboxp is None and _geometry_option(opt):
+            hboxp = Gtk.Box()
+            vbox.pack_start(hboxp, expand=False, fill=False, padding=0)
+
+        # HBox for option
+        hbox = Gtk.Box()
+        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
+        if opt.cap & enums.CAP_INACTIVE or not opt.cap & enums.CAP_SOFT_SELECT:
+            hbox.set_sensitive(False)
+
+        if isinstance(val, list):  # $opt->{max_values} > 1
+            widget = Gtk.Button(label=d_sane(opt.title))
+        else:
+            widget = self._create_widget(opt, val, hbox)
+            if widget is None:
+                return vbox, hboxp
+
+        self._pack_widget(widget, [options, opt, hbox, hboxp])
+        return vbox, hboxp
 
     def _create_widget_switch(self, opt, val):
         widget = Gtk.Switch()
@@ -384,12 +387,7 @@ class SaneScanDialog(Scan):
         if option is None:
             return
 
-        # ensure value is within max-min range of constraint
-        if isinstance(option.constraint, tuple):
-            if value < option.constraint[0]:
-                value = option.constraint[0]
-            elif value > option.constraint[1]:
-                value = option.constraint[1]
+        value = self._clamp_option_value(option, value)
 
         def started_callback(_data):
             self.emit("started-process", _("Setting option %s") % (option.name))
@@ -403,31 +401,7 @@ class SaneScanDialog(Scan):
 
             self._option_info[option.name] = response.info
             if response.info & enums.INFO_RELOAD_OPTIONS:
-
-                def started_callback(_data):
-                    self.emit("started-process", _("Retrieving options"))
-
-                def running_callback(_data):
-                    self.emit("changed-progress", None, None)
-
-                def finished_callback(data):
-                    self._update_options(Options(data.info))
-                    self._post_set_option_hook(option, value, uuid)
-
-                def error_callback(response):
-                    self.emit(
-                        "process-error",
-                        "find_scan_options",
-                        _("Error retrieving scanner options: ") + response.status,
-                    )
-
-                self.thread.get_options(
-                    started_callback=started_callback,
-                    running_callback=running_callback,
-                    finished_callback=finished_callback,
-                    error_callback=error_callback,
-                )
-
+                self._reload_options_after_set(option, value, uuid)
             else:
                 self._post_set_option_hook(option, value, uuid)
 
@@ -441,6 +415,40 @@ class SaneScanDialog(Scan):
         self.thread.set_option(
             name=option.name,
             value=value,
+            started_callback=started_callback,
+            running_callback=running_callback,
+            finished_callback=finished_callback,
+            error_callback=error_callback,
+        )
+
+    def _clamp_option_value(self, option, value):
+        """Ensure value is within max-min range of constraint."""
+        if isinstance(option.constraint, tuple):
+            if value < option.constraint[0]:
+                value = option.constraint[0]
+            elif value > option.constraint[1]:
+                value = option.constraint[1]
+        return value
+
+    def _reload_options_after_set(self, option, value, uuid):
+        def started_callback(_data):
+            self.emit("started-process", _("Retrieving options"))
+
+        def running_callback(_data):
+            self.emit("changed-progress", None, None)
+
+        def finished_callback(data):
+            self._update_options(Options(data.info))
+            self._post_set_option_hook(option, value, uuid)
+
+        def error_callback(response):
+            self.emit(
+                "process-error",
+                "find_scan_options",
+                _("Error retrieving scanner options: ") + response.status,
+            )
+
+        self.thread.get_options(
             started_callback=started_callback,
             running_callback=running_callback,
             finished_callback=finished_callback,
@@ -466,37 +474,11 @@ class SaneScanDialog(Scan):
         i = 1
 
         def started_callback(_data):
-            nonlocal i
-            nonlocal num_pages
-
             logger.info("Scanning %s pages", num_pages)
             self.emit("started-process", make_progress_string(i, num_pages))
 
-        def running_callback(_progress):
-            p = getattr(self.thread, "scan_page_progress", None)
-            if p is not None and p > 0:
-                self.emit("changed-progress", p, None)
-            else:
-                self.emit("changed-progress", None, None)
-
-        def finished_callback(_response):
-            self.emit("finished-process", "scan_pages")
-            self.cursor = "default"
-            if self.cycle_sane_handle:
-                current = self.current_scan_options
-                signal = None
-
-                def reloaded_scan_options_cb(_widget):
-                    self.disconnect(signal)
-                    self.set_current_scan_options(current)
-
-                signal = self.connect("reloaded-scan-options", reloaded_scan_options_cb)
-                self.scan_options(self.device)
-
         def new_page_callback(image_ob):
             nonlocal i
-            nonlocal xresolution
-            nonlocal yresolution
             insert_after, side = self._insert_target(i)
             self.emit(
                 "new-scan", image_ob, insert_after, side, xresolution, yresolution
@@ -508,10 +490,6 @@ class SaneScanDialog(Scan):
                 make_progress_string(i, num_pages),
             )
 
-        def error_callback(response):
-            self.emit("process-error", "scan_pages", response.status)
-            self.cursor = "default"
-
         self.thread.scan_pages(
             dir=self.dir,
             num_pages=num_pages,
@@ -522,11 +500,29 @@ class SaneScanDialog(Scan):
                 )
             ),
             started_callback=started_callback,
-            running_callback=running_callback,
-            finished_callback=finished_callback,
+            running_callback=self._running_callback,
+            finished_callback=self._scan_finished_callback,
             new_page_callback=new_page_callback,
-            error_callback=error_callback,
+            error_callback=self._scan_error_callback,
         )
+
+    def _scan_finished_callback(self, _response):
+        self.emit("finished-process", "scan_pages")
+        self.cursor = "default"
+        if self.cycle_sane_handle:
+            current = self.current_scan_options
+            signal = None
+
+            def reloaded_scan_options_cb(_widget):
+                self.disconnect(signal)
+                self.set_current_scan_options(current)
+
+            signal = self.connect("reloaded-scan-options", reloaded_scan_options_cb)
+            self.scan_options(self.device)
+
+    def _scan_error_callback(self, response):
+        self.emit("process-error", "scan_pages", response.status)
+        self.cursor = "default"
 
     def cancel_scan(self, _widget):
         """Cancel any running or queued scan processes."""

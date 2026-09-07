@@ -520,12 +520,37 @@ class FileMenuMixins:
             return []
         return [self.slist.data[i][2] for i in pagelist]
 
+    def _normalize_filetype_suffix(self, filetype):
+        if re.search(r"pdf", filetype, re.IGNORECASE):
+            return "pdf"
+        return filetype
+
+    def _save_with_filetype(self, filetype, filename, uuids):
+        """Save the selected pages according to the file type."""
+        if re.search(r"pdf", filetype, re.IGNORECASE):
+            self._save_pdf(filename, uuids, filetype)
+
+        elif filetype == "ps":
+            if self.settings["ps_backend"] == "libtiff":
+                # SIM115: cross-scope file handle used intentionally
+                tif = tempfile.TemporaryFile(  # noqa: SIM115
+                    dir=self.session, suffix=".tif"
+                )
+                self._save_tif(tif.filename(), uuids, filename)
+            else:
+                self._save_pdf(filename, uuids, "ps")
+
+        elif filetype == "session":
+            self.slist.save_session(filename)
+
+        elif filetype in ["djvu", "tif", "txt", "hocr"]:
+            method = getattr(self, f"_save_{filetype}")
+            method(filename, uuids)
+
     def _file_chooser_response_callback(self, dialog, response, data):
         """Handle file chooser dialog response."""
         filetype, uuids = data
-        suffix = filetype
-        if re.search(r"pdf", suffix, re.IGNORECASE):
-            suffix = "pdf"
+        suffix = self._normalize_filetype_suffix(filetype)
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
             logger.debug("FileChooserDialog returned %s", filename)
@@ -539,25 +564,7 @@ class FileMenuMixins:
 
             # Update cwd
             self.settings["cwd"] = str(pathlib.Path(filename).parent)
-            if re.search(r"pdf", filetype, re.IGNORECASE):
-                self._save_pdf(filename, uuids, filetype)
-
-            elif filetype == "ps":
-                if self.settings["ps_backend"] == "libtiff":
-                    # SIM115: cross-scope file handle used intentionally
-                    tif = tempfile.TemporaryFile(  # noqa: SIM115
-                        dir=self.session, suffix=".tif"
-                    )
-                    self._save_tif(tif.filename(), uuids, filename)
-                else:
-                    self._save_pdf(filename, uuids, "ps")
-
-            elif filetype == "session":
-                self.slist.save_session(filename)
-
-            elif filetype in ["djvu", "tif", "txt", "hocr"]:
-                method = getattr(self, f"_save_{filetype}")
-                method(filename, uuids)
+            self._save_with_filetype(filetype, filename, uuids)
 
             if self._windowi is not None and self.settings["close_dialog_on_save"]:
                 self._windowi.hide()
@@ -793,55 +800,14 @@ class FileMenuMixins:
             # cd back to tempdir
             os.chdir(self.session.name)
             if len(uuids) > 1:
-                w = len(uuids)
-                for i in range(1, len(uuids) + 1):
-                    current_filename = (
-                        f"{filename}_%0{w}d.{self.settings['image type']}" % (i)
-                    )
-                    if pathlib.Path(current_filename).is_file():
-                        text = _("This operation would overwrite %s") % (
-                            current_filename
-                        )
-                        self._show_message_dialog(
-                            parent=file_chooser,
-                            message_type="error",
-                            buttons=Gtk.ButtonsType.CLOSE,
-                            text=text,
-                        )
-                        file_chooser.destroy()
-                        return
-
-                filename = f"${filename}_%0${w}d.{self.settings['image type']}"
-
+                filename = self._multi_image_filename(file_chooser, uuids, filename)
             else:
-                if not re.search(
-                    rf"[.]{self.settings['image type']}$",
-                    filename,
-                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-                ):
-                    filename = f"{filename}.{self.settings['image type']}"
-                    if file_exists(file_chooser, filename):
-                        return
-
-                if not self._file_writable(file_chooser, filename):
-                    return
+                filename = self._single_image_filename(file_chooser, filename)
+            if filename is None:
+                return
 
             # Create the image
             logger.debug("Started saving %s", filename)
-
-            def save_image_finished_callback(response):
-                filename = response.request.args[0]["path"]
-                self.post_process_progress.finish(response)
-                self.slist.thread.send("set_saved", uuids)
-                if self.settings.get("view files toggle"):
-                    w = len(uuids)
-                    if w > 1:
-                        for i in range(1, w + 1):
-                            launch_default_for_file(filename % (i))
-                    else:
-                        launch_default_for_file(filename)
-
-                logger.debug("Finished saving %s", filename)
 
             self.slist.save_image(
                 path=filename,
@@ -849,13 +815,62 @@ class FileMenuMixins:
                 queued_callback=self.post_process_progress.queued,
                 started_callback=self.post_process_progress.update,
                 running_callback=self.post_process_progress.update,
-                finished_callback=save_image_finished_callback,
+                finished_callback=lambda response: self._save_image_finished_callback(
+                    response, uuids
+                ),
                 error_callback=self._error_callback,
             )
             if self._windowi is not None:
                 self._windowi.hide()
 
         file_chooser.destroy()
+
+    def _multi_image_filename(self, file_chooser, uuids, filename):
+        """Return the numbered template filename, or None if it would overwrite."""
+        w = len(uuids)
+        for i in range(1, w + 1):
+            current_filename = f"{filename}_%0{w}d.{self.settings['image type']}" % (i)
+            if pathlib.Path(current_filename).is_file():
+                text = _("This operation would overwrite %s") % (current_filename)
+                self._show_message_dialog(
+                    parent=file_chooser,
+                    message_type="error",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    text=text,
+                )
+                file_chooser.destroy()
+                return None
+
+        return f"${filename}_%0${w}d.{self.settings['image type']}"
+
+    def _single_image_filename(self, file_chooser, filename):
+        """Return the single image filename, or None if not writable."""
+        if not re.search(
+            rf"[.]{self.settings['image type']}$",
+            filename,
+            re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+        ):
+            filename = f"{filename}.{self.settings['image type']}"
+            if file_exists(file_chooser, filename):
+                return None
+
+        if not self._file_writable(file_chooser, filename):
+            return None
+        return filename
+
+    def _save_image_finished_callback(self, response, uuids):
+        filename = response.request.args[0]["path"]
+        self.post_process_progress.finish(response)
+        self.slist.thread.send("set_saved", uuids)
+        if self.settings.get("view files toggle"):
+            w = len(uuids)
+            if w > 1:
+                for i in range(1, w + 1):
+                    launch_default_for_file(filename % (i))
+            else:
+                launch_default_for_file(filename)
+
+        logger.debug("Finished saving %s", filename)
 
     def _update_post_save_hooks(self):
         """Update the post-save hooks."""

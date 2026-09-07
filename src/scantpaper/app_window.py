@@ -492,27 +492,46 @@ class ApplicationWindow(
             GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
 
-    def _create_toolbar(self):
+    def _missing_packages_message(self):
+        """Return the warning message for packages needed by the tools."""
+        msg = EMPTY
+        missing = [
+            ("imagemagick", _("Save image and Save as PDF both require imagemagick")),
+            ("libtiff", _("Save image requires libtiff")),
+            ("djvu", _("Save as DjVu requires djvulibre-bin")),
+            ("xdg", _("Email as PDF requires xdg-email")),
+            ("unpaper", _("unpaper missing")),
+        ]
+        for dependency, message in missing:
+            if not self._dependencies[dependency]:
+                msg += message + "\n"
 
+        self._dependencies["ocr"] = self._dependencies["tesseract"]
+        if not self._dependencies["ocr"]:
+            msg += _("OCR requires tesseract") + "\n"
+
+        if self._dependencies["tesseract"]:
+            lc_messages = locale.setlocale(locale.LC_MESSAGES)
+            lang_msg = locale_installed(lc_messages, get_tesseract_codes())
+            if lang_msg == "":
+                logger.info(
+                    "Using GUI language %s, for which a tesseract language package is present",
+                    lc_messages,
+                )
+            else:
+                logger.warning(lang_msg)
+                msg += lang_msg
+
+        if not self._dependencies["qpdf"]:
+            msg += _("PDF encryption requires qpdf") + "\n"
+
+        return msg
+
+    def _create_toolbar(self):
         # Check for presence of various packages
         self._check_dependencies()
 
-        # Ghost save image item if imagemagick not available
-        msg = EMPTY
-        if not self._dependencies["imagemagick"]:
-            msg += _("Save image and Save as PDF both require imagemagick") + "\n"
-
-        # Ghost save image item if libtiff not available
-        if not self._dependencies["libtiff"]:
-            msg += _("Save image requires libtiff") + "\n"
-
-        # Ghost djvu item if cjb2 not available
-        if not self._dependencies["djvu"]:
-            msg += _("Save as DjVu requires djvulibre-bin") + "\n"
-
-        # Ghost email item if xdg-email not available
-        if not self._dependencies["xdg"]:
-            msg += _("Email as PDF requires xdg-email") + "\n"
+        msg = self._missing_packages_message()
 
         # Undo/redo, save & tools start off ghosted anyway-
         for action in [
@@ -533,28 +552,6 @@ class ApplicationWindow(
             "user-defined",
         ]:
             self._actions[action].set_enabled(False)
-
-        if not self._dependencies["unpaper"]:
-            msg += _("unpaper missing") + "\n"
-
-        self._dependencies["ocr"] = self._dependencies["tesseract"]
-        if not self._dependencies["ocr"]:
-            msg += _("OCR requires tesseract") + "\n"
-
-        if self._dependencies["tesseract"]:
-            lc_messages = locale.setlocale(locale.LC_MESSAGES)
-            lang_msg = locale_installed(lc_messages, get_tesseract_codes())
-            if lang_msg == "":
-                logger.info(
-                    "Using GUI language %s, for which a tesseract language package is present",
-                    lc_messages,
-                )
-            else:
-                logger.warning(lang_msg)
-                msg += lang_msg
-
-        if not self._dependencies["qpdf"]:
-            msg += _("PDF encryption requires qpdf") + "\n"
 
         # Put up warning if needed
         if msg != EMPTY:
@@ -773,6 +770,19 @@ class ApplicationWindow(
         if not self._dependencies["ocr"]:
             self._actions["ocr"].set_enabled(False)
 
+        self._update_send_save_actions()
+
+        self._actions["paste"].set_enabled(bool(self.slist.clipboard))
+
+        # Un/ghost Undo/redo
+        self._actions["undo"].set_enabled(self.slist.thread.can_undo())
+        self._actions["redo"].set_enabled(self.slist.thread.can_redo())
+
+        # Check free space in session directory
+        self._check_disk_space()
+
+    def _update_send_save_actions(self):
+        """Enable or disable email/print/save depending on page selection."""
         if len(self.slist.data) > 0:
             if self._dependencies["xdg"]:
                 self._actions["email"].set_enabled(True)
@@ -789,13 +799,8 @@ class ApplicationWindow(
             self._actions["print"].set_enabled(False)
             self._actions["save"].set_enabled(False)
 
-        self._actions["paste"].set_enabled(bool(self.slist.clipboard))
-
-        # Un/ghost Undo/redo
-        self._actions["undo"].set_enabled(self.slist.thread.can_undo())
-        self._actions["redo"].set_enabled(self.slist.thread.can_redo())
-
-        # Check free space in session directory
+    def _check_disk_space(self):
+        """Warn if free space in the session directory is running low."""
         df = shutil.disk_usage(self.session.name)
         if df:
             df = df.free / 1024 / 1024
@@ -851,81 +856,7 @@ class ApplicationWindow(
         if process == "open_device" and re.search(
             r"(Invalid[ ]argument|Device[ ]busy|Error[ ]during[ ]device[ ]I/O)", msg
         ):
-            error_name = "error opening device"
-            response = None
-            if (
-                error_name in self.settings["message"]
-                and self.settings["message"][error_name]["response"] == "ignore"
-            ):
-                response = self.settings["message"][error_name]["response"]
-            else:
-                dialog = Gtk.MessageDialog(
-                    parent=self,
-                    destroy_with_parent=True,
-                    modal=True,
-                    message_type="question",
-                    buttons=Gtk.ButtonsType.OK,
-                )
-                dialog.set_title(_("Error opening the last device used."))
-                area = dialog.get_message_area()
-                label = Gtk.Label(
-                    label=_("There was an error opening the last device used.")
-                )
-                area.add(label)
-                radio1 = Gtk.RadioButton.new_with_label(
-                    None, label=_("Whoops! I forgot to turn it on. Try again now.")
-                )
-                area.add(radio1)
-                area.add(
-                    Gtk.RadioButton.new_with_label_from_widget(
-                        radio1, label=_("Rescan for devices")
-                    )
-                )
-                radio3 = Gtk.RadioButton.new_with_label_from_widget(
-                    radio1, label=_("Restart scantpaper.")
-                )
-                area.add(radio3)
-                radio4 = Gtk.RadioButton.new_with_label_from_widget(
-                    radio1,
-                    label=_("Just ignore the error. I don't need the scanner yet."),
-                )
-                area.add(radio4)
-                cb_cache_device_list = Gtk.CheckButton.new_with_label(
-                    _("Cache device list")
-                )
-                cb_cache_device_list.set_active(self.settings["cache-device-list"])
-                area.add(cb_cache_device_list)
-                cb = Gtk.CheckButton.new_with_label(
-                    label=_("Don't show this message again")
-                )
-                area.add(cb)
-                dialog.show_all()
-                response = dialog.run()
-                dialog.destroy()
-                if response != Gtk.ResponseType.OK or radio4.get_active():
-                    response = "ignore"
-                elif radio1.get_active():
-                    response = "reopen"
-                elif radio3.get_active():
-                    response = "restart"
-                else:
-                    response = "rescan"
-                if cb.get_active():
-                    self.settings["message"][error_name]["response"] = response
-
-            # The modal dialog runs a nested main loop, so the progress bar may
-            # have been re-shown by running callbacks. Ensure it stays hidden
-            # regardless of the option chosen.
-            self._scan_progress.hide()
-            self._windows = None  # force scan dialog to be rebuilt
-            if response == "reopen":
-                self.scan_dialog(None, None)
-            elif response == "rescan":
-                self.scan_dialog(None, None, hidden=False, scan=True)
-            elif response == "restart":
-                self._restart()
-
-            # for ignore, we do nothing
+            self._handle_device_open_error()
             return
 
         self._show_message_dialog(
@@ -937,3 +868,80 @@ class ApplicationWindow(
             text=msg,
             store_response=True,
         )
+
+    def _handle_device_open_error(self):
+        """Handle an error opening the last device used."""
+        error_name = "error opening device"
+        response = None
+        if (
+            error_name in self.settings["message"]
+            and self.settings["message"][error_name]["response"] == "ignore"
+        ):
+            response = self.settings["message"][error_name]["response"]
+        else:
+            response = self._ask_device_open_error(error_name)
+
+        # The modal dialog runs a nested main loop, so the progress bar may
+        # have been re-shown by running callbacks. Ensure it stays hidden
+        # regardless of the option chosen.
+        self._scan_progress.hide()
+        self._windows = None  # force scan dialog to be rebuilt
+        if response == "reopen":
+            self.scan_dialog(None, None)
+        elif response == "rescan":
+            self.scan_dialog(None, None, hidden=False, scan=True)
+        elif response == "restart":
+            self._restart()
+
+        # for ignore, we do nothing
+
+    def _ask_device_open_error(self, error_name):
+        """Ask how to proceed after an open-device error; return the response."""
+        dialog = Gtk.MessageDialog(
+            parent=self,
+            destroy_with_parent=True,
+            modal=True,
+            message_type="question",
+            buttons=Gtk.ButtonsType.OK,
+        )
+        dialog.set_title(_("Error opening the last device used."))
+        area = dialog.get_message_area()
+        label = Gtk.Label(label=_("There was an error opening the last device used."))
+        area.add(label)
+        radio1 = Gtk.RadioButton.new_with_label(
+            None, label=_("Whoops! I forgot to turn it on. Try again now.")
+        )
+        area.add(radio1)
+        area.add(
+            Gtk.RadioButton.new_with_label_from_widget(
+                radio1, label=_("Rescan for devices")
+            )
+        )
+        radio3 = Gtk.RadioButton.new_with_label_from_widget(
+            radio1, label=_("Restart scantpaper.")
+        )
+        area.add(radio3)
+        radio4 = Gtk.RadioButton.new_with_label_from_widget(
+            radio1,
+            label=_("Just ignore the error. I don't need the scanner yet."),
+        )
+        area.add(radio4)
+        cb_cache_device_list = Gtk.CheckButton.new_with_label(_("Cache device list"))
+        cb_cache_device_list.set_active(self.settings["cache-device-list"])
+        area.add(cb_cache_device_list)
+        cb = Gtk.CheckButton.new_with_label(label=_("Don't show this message again"))
+        area.add(cb)
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+        if response != Gtk.ResponseType.OK or radio4.get_active():
+            response = "ignore"
+        elif radio1.get_active():
+            response = "reopen"
+        elif radio3.get_active():
+            response = "restart"
+        else:
+            response = "rescan"
+        if cb.get_active():
+            self.settings["message"][error_name]["response"] = response
+        return response

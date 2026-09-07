@@ -103,21 +103,11 @@ class Bboxtree:
                     string += ")"
 
             prev_depth = bbox["depth"]
-            bbox_type = bbox["type"]
-
-            # deal with unsupported types, e.g. header
-            if not re.search(
-                r"^(?:page|column|para|line|word)$",
-                bbox_type,
-                re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                regex = re.search(
-                    r"([A-Za-z]+)", bbox["id"], re.MULTILINE | re.DOTALL | re.VERBOSE
-                )
-                bbox_type = regex.group(1) if regex else "line"
+            bbox_type = self._resolve_bbox_type(bbox)
 
             if bbox_type == "page":
                 height = bbox["bbox"][-1]
+
             x_1, y_1, x_2, y_2 = bbox["bbox"]
             if bbox["depth"] != 0:
                 string += "\n"
@@ -130,9 +120,7 @@ class Bboxtree:
             )
 
             # Only include text if the box does not have children
-            if "text" in bbox and (
-                i == len(bbox_list) - 1 or bbox_list[i + 1]["depth"] <= bbox["depth"]
-            ):
+            if self._bbox_is_leaf(bbox_list, i):
                 string += (
                     " " + DOUBLE_QUOTES + _escape_text(bbox["text"]) + DOUBLE_QUOTES
                 )
@@ -145,6 +133,29 @@ class Bboxtree:
         if string != "":
             string += "\n"
         return string
+
+    def _resolve_bbox_type(self, bbox):
+        """Return the djVu type for the given bbox, mapping unknown types."""
+        bbox_type = bbox["type"]
+
+        # deal with unsupported types, e.g. header
+        if not re.search(
+            r"^(?:page|column|para|line|word)$",
+            bbox_type,
+            re.MULTILINE | re.DOTALL | re.VERBOSE,
+        ):
+            regex = re.search(
+                r"([A-Za-z]+)", bbox["id"], re.MULTILINE | re.DOTALL | re.VERBOSE
+            )
+            bbox_type = regex.group(1) if regex else "line"
+        return bbox_type
+
+    def _bbox_is_leaf(self, bbox_list, i):
+        """Return True if the bbox at index i has no children."""
+        bbox = bbox_list[i]
+        return "text" in bbox and (
+            i == len(bbox_list) - 1 or bbox_list[i + 1]["depth"] <= bbox["depth"]
+        )
 
     def to_djvu_ann(self):
         """Write bboxtree as string for djvu annotation layer."""
@@ -339,35 +350,7 @@ class HOCRParser(HTMLParser):
         """Handle starttag."""
         token = dict(attrs)
         if "class" in token and "title" in token:
-            self._parse_title(token["title"])
-            self._parse_class(token["class"])
-
-            # pick up previous pointer to add style
-            if "type" not in self.data:
-                self.data = self.stack[-1]
-
-            if "type" not in self.data:
-                return
-
-            # put information xocr_word information in parent ocr_word
-            if self.data["type"] == "word" and self.stack[-1]["type"] == "word":
-                for key in self.data:
-                    if key not in self.stack[-1]:
-                        self.stack[-1][key] = self.data[key]
-
-                # pick up previous pointer to add any later text
-                self.data = self.stack[-1]
-
-            else:
-                if "id" in token:
-                    self.data["id"] = token["id"]
-
-                # if we have previous data, add the new data to the
-                # contents of the previous data point
-                if self.stack and self.data != self.stack[-1] and "bbox" in self.data:
-                    if "contents" not in self.stack[-1]:
-                        self.stack[-1]["contents"] = []
-                    self.stack[-1]["contents"].append(self.data)
+            self._process_token(token)
 
         # pick up previous pointer
         # so that unknown tags don't break the chain
@@ -378,6 +361,42 @@ class HOCRParser(HTMLParser):
 
         # put the new data point on the stack
         self.stack.append(self.data)
+
+    def _process_token(self, token):
+        """Process a token carrying hOCR class and title attributes."""
+        self._parse_title(token["title"])
+        self._parse_class(token["class"])
+
+        # pick up previous pointer to add style
+        if "type" not in self.data:
+            self.data = self.stack[-1]
+
+        if "type" not in self.data:
+            return
+
+        # put information xocr_word information in parent ocr_word
+        if self.data["type"] == "word" and self.stack[-1]["type"] == "word":
+            for key in self.data:
+                if key not in self.stack[-1]:
+                    self.stack[-1][key] = self.data[key]
+
+            # pick up previous pointer to add any later text
+            self.data = self.stack[-1]
+
+        else:
+            self._migrate_to_parent(token)
+
+    def _migrate_to_parent(self, token):
+        """Adopt the current data point into the previous one's contents."""
+        if "id" in token:
+            self.data["id"] = token["id"]
+
+        # if we have previous data, add the new data to the
+        # contents of the previous data point
+        if self.stack and self.data != self.stack[-1] and "bbox" in self.data:
+            if "contents" not in self.stack[-1]:
+                self.stack[-1]["contents"] = []
+            self.stack[-1]["contents"].append(self.data)
 
     def _parse_style(self, tag):
         if self.data and tag in ["strong", "em"]:
@@ -579,6 +598,13 @@ def _bbox_to_hocr(bbox, prev_depth, tags):
     if prev_depth > -1 and not (string and string[-1] == "\n"):
         string += "\n"
 
+    open_tag, tag = _hocr_open_tag(bbox)
+    string += open_tag
+    tags.append(tag)
+    return string, bbox["depth"]
+
+
+def _hocr_open_tag(bbox):
     x_1, y_1, x_2, y_2 = bbox["bbox"]
     bbox_type = "ocr_" + bbox["type"]
     tag = "span"
@@ -593,7 +619,7 @@ def _bbox_to_hocr(bbox, prev_depth, tags):
     elif bbox["type"] == "word":
         bbox_type = "ocrx_word"
 
-    string += " " * (2 + bbox["depth"]) + f"<{tag} class='{bbox_type}'"
+    string = " " * (2 + bbox["depth"]) + f"<{tag} class='{bbox_type}'"
     if "id" in bbox:
         string += f" id='{bbox['id']}'"
     string += f" title='bbox {x_1} {y_1} {x_2} {y_2}"
@@ -608,8 +634,7 @@ def _bbox_to_hocr(bbox, prev_depth, tags):
 
     string += "'>"
     string += _text2hocr(bbox)
-    tags.append(tag)
-    return string, bbox["depth"]
+    return string, tag
 
 
 def _text2hocr(bbox):
