@@ -1,3 +1,8 @@
+## 3.0.18 (unreleased)
+
+* Generate thumbnails with high-quality resampling
+
+
 ## 3.0.17 (2026-09-05)
 
 * Fix 0-based page numbering after undo

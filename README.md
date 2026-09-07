@@ -142,7 +142,8 @@ pages; the session is always cancelled at the end of the batch.
   directly instead of re-encoding them.
 - **Thumbnails:** Page thumbnails are generated with a decimate-then-LANCZOS
   downscale for a sharp preview in the thumbnail panel without slowing down
-  bulk imports.
+  bulk imports, and bilevel or palette pages (common in scanned/OCR PDFs) are
+  anti-aliased so their previews stay legible.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.
 

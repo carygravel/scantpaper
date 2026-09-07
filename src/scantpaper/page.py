@@ -27,9 +27,9 @@ from gi.repository import (  # noqa: E402
 )
 
 PAGE_TOLERANCE = 0.02
-# Modes for which PIL's C Image.reduce is unsupported (bilevel, palette,
-# 16-bit integer). These fall back to a direct resize.
-_REDUCE_UNSUPPORTED = {"1", "P", "I;16", "I;16B", "I;16L", "I;12"}
+# 16-bit integer modes for which PIL's C Image.reduce is unsupported.
+# These fall back to a direct resize.
+_REDUCE_UNSUPPORTED = {"I;16", "I;16B", "I;16L", "I;12"}
 MODE2DEPTH = {
     "1": 1,
     "L": 8,
@@ -338,8 +338,14 @@ class Page:
             # to lazy-load data from a deleted temporary file.
             self.image_object.load()
             image = self.image_object
-            if image.mode == "I":
+            # Normalise modes that would otherwise lose anti-aliasing through
+            # PIL's resize (bilevel, palette) or that reduce cannot handle
+            # (16-bit integer images). Only the thumbnail is affected, never
+            # the stored page image.
+            if image.mode in ("I", "1"):
                 image = image.convert("L")
+            elif image.mode == "P":
+                image = image.convert("RGB")
             width = max(1, int(width))
             height = max(1, int(height))
             # Downscale with a cheap box-decimation to roughly twice the target,

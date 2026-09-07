@@ -501,6 +501,46 @@ def test_get_pixbuf_at_scale_upscales_small_image_to_fill_box():
     assert pixbuf.get_height() == 65, "resized to fill box height"
 
 
+def test_get_pixbuf_at_scale_antialiases_bilevel_source(mocker):
+    """A bilevel source yields an anti-aliased thumbnail, not a 2-tone one."""
+    page = Page(image_object=Image.new("1", (1000, 1000), 1))
+    page.image_object.paste(0, (100, 100, 900, 900))
+    saved = []
+    original_save = Image.Image.save
+
+    def spy_save(self, fp, *args, **kwargs):
+        saved.append(self)
+        return original_save(self, fp, *args, **kwargs)
+
+    mocker.patch.object(Image.Image, "save", spy_save)
+    page.get_pixbuf_at_scale(100, 100)
+    assert saved, "thumbnail image saved"
+    levels = len([c for c in saved[0].histogram() if c])
+    assert levels > 2, "bilevel thumbnail must be anti-aliased, got 2 tones"
+
+
+def test_get_pixbuf_at_scale_antialiases_palette_source(mocker):
+    """A palette source yields an anti-aliased thumbnail at the box size."""
+    page = Page(image_object=Image.new("P", (1000, 1000), 255))
+    page.image_object.putpalette([i for i in range(256) for _ in range(3)])
+    page.image_object.paste(0, (100, 100, 900, 900))
+    saved = []
+    original_save = Image.Image.save
+
+    def spy_save(self, fp, *args, **kwargs):
+        saved.append(self)
+        return original_save(self, fp, *args, **kwargs)
+
+    mocker.patch.object(Image.Image, "save", spy_save)
+    pixbuf = page.get_pixbuf_at_scale(100, 100)
+    assert pixbuf is not None, "get_pixbuf_at_scale()"
+    assert pixbuf.get_width() == 100, "thumbnail box width"
+    assert pixbuf.get_height() == 100, "thumbnail box height"
+    im = saved[0].convert("L")
+    levels = len([c for c in im.histogram() if c])
+    assert levels > 2, "palette thumbnail must be anti-aliased"
+
+
 def test_write_image_for_pdf_passthrough():
     """Stored JPEG bytes are written to the PDF without re-encoding."""
     buf = io.BytesIO()
