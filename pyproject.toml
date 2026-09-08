@@ -53,6 +53,7 @@ filterwarnings = [
     "ignore:GLib.unix_signal_add_full is deprecated:DeprecationWarning",
     "ignore:'asyncio.AbstractEventLoopPolicy' is deprecated:DeprecationWarning",
     "ignore:'asyncio.get_event_loop_policy' is deprecated:DeprecationWarning",
+    "ignore:.*found in sys.modules after import of package.*:RuntimeWarning",
 ]
 
 [project.optional-dependencies]
