@@ -230,6 +230,10 @@ class FileMenuMixins:
         # Resume full-resolution loading and show the final imported page.
         self._suppress_full_display = False
         indices = self.slist.get_selected_indices()
+        logger.debug(
+            "DISPLAY import finished: _suppress_full_display=False selected_indices=%s",
+            indices,
+        )
         if indices:
             self._display_image(self.slist.data[indices[0]][2])
 

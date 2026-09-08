@@ -239,6 +239,11 @@ class SessionMixins:
 
     def _display_image(self, pageid):
         """Display the image in the view."""
+        logger.debug(
+            "DISPLAY _display_image page=%s suppress_full_display=%s",
+            pageid,
+            getattr(self, "_suppress_full_display", False),
+        )
         # Find the index for this pageid to get the thumbnail
         i = self.slist.find_page_by_uuid(pageid)
         if i is None:
@@ -248,12 +253,28 @@ class SessionMixins:
         # Immediate: show the thumbnail pixbuf from self.data[i][1]
         thumbnail_pixbuf = self.slist.data[i][1]
         if thumbnail_pixbuf is not None:
+            if hasattr(thumbnail_pixbuf, "get_width"):
+                logger.debug(
+                    "DISPLAY set thumbnail pixbuf for page %s: %sx%s",
+                    pageid,
+                    thumbnail_pixbuf.get_width(),
+                    thumbnail_pixbuf.get_height(),
+                )
+            else:
+                logger.debug(
+                    "DISPLAY set thumbnail pixbuf for page %s: %r",
+                    pageid,
+                    thumbnail_pixbuf,
+                )
             self.view.set_pixbuf(thumbnail_pixbuf, zoom_to_fit=True)
 
         # Deferred: send "get_page" async with callback for full-res. During a
         # bulk import this is suppressed (thumbnails only) and a single
         # full-resolution load is triggered when the import finishes.
         if getattr(self, "_suppress_full_display", False):
+            logger.debug(
+                "DISPLAY _display_image page=%s SUPPRESSED (full display off)", pageid
+            )
             return
 
         def on_page_error(response):
@@ -269,7 +290,18 @@ class SessionMixins:
     def _on_page_loaded(self, response):
         """Display a fully loaded page."""
         self._current_page = response.info
-        self.view.set_pixbuf(self._current_page.get_pixbuf(), zoom_to_fit=True)
+        pixbuf = self._current_page.get_pixbuf()
+        if pixbuf is None:
+            logger.error("DISPLAY _on_page_loaded: get_pixbuf() returned None")
+        elif hasattr(pixbuf, "get_width"):
+            logger.debug(
+                "DISPLAY _on_page_loaded set full-res pixbuf: %sx%s",
+                pixbuf.get_width(),
+                pixbuf.get_height(),
+            )
+        else:
+            logger.debug("DISPLAY _on_page_loaded set full-res pixbuf: %r", pixbuf)
+        self.view.set_pixbuf(pixbuf, zoom_to_fit=True)
         xresolution, yresolution, _units = self._current_page.get_resolution()
         self.view.set_resolution_ratio(xresolution / yresolution)
 
