@@ -131,7 +131,7 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         if tid not in self._con:
             logger.debug("Connecting to database %s in thread %s", self._db, tid)
-            self._con[tid] = sqlite3.connect(self._db)
+            self._con[tid] = sqlite3.connect(self._db, check_same_thread=False)
             self._con[tid].isolation_level = "IMMEDIATE"
             self._cur[tid] = self._con[tid].cursor()
 
@@ -284,14 +284,14 @@ class DocThread(SaveThread):
         self.open(request.args[0])
 
     def close(self):
-        """Close the current database."""
-        tid = threading.get_native_id()
-        if tid in self._con:
-            self._con[tid].close()
-            del self._con[tid]
+        """Close all database connections."""
+        for con in self._con.values():
+            con.close()
+        self._con.clear()
+        self._cur.clear()
 
     def do_quit(self, _request):
-        """Close the worker thread's database connection before stopping."""
+        """Close the database connections before stopping."""
         self.close()
         super().do_quit(_request)
 

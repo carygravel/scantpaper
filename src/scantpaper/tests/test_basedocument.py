@@ -171,7 +171,7 @@ def test_save_open_session():
     slist.add_page(1, None, 101)
 
     # Create a dummy document.db
-    db_path = slist.dir.name + ".sdb"
+    db_path = str(slist.dir) + ".sdb"
     with pathlib.Path(db_path).open("w", encoding="utf-8") as f:
         f.write("dummy db")
 
@@ -209,7 +209,7 @@ def test_save_open_session():
             pathlib.Path(tmp_name).unlink()
         if pathlib.Path(db_path).exists():
             pathlib.Path(db_path).unlink()
-        open_session_db = slist2.dir.name + ".sdb"
+        open_session_db = str(slist2.dir) + ".sdb"
         if pathlib.Path(open_session_db).exists():
             pathlib.Path(open_session_db).unlink()
         shutil.rmtree(temp_dir)
@@ -1132,4 +1132,5 @@ def test_open_session_error_callback():
     GLib.timeout_add(100, mlp.quit)
     mlp.run()
     assert errors == ["open failed"]
+    pathlib.Path(str(slist.dir) + ".sdb").unlink(missing_ok=True)
     shutil.rmtree(temp_dir)

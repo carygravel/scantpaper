@@ -587,7 +587,7 @@ class BaseDocument(SimpleList):
         db = pathlib.Path(kwargs["db"])
         self.thread.close()
         try:
-            shutil.copy(db, self.dir.name + ".sdb")
+            shutil.copy(db, str(self.dir) + ".sdb")
         except OSError:
             if kwargs["error_callback"]:
                 kwargs["error_callback"](
