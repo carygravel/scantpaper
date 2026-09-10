@@ -1,5 +1,6 @@
 """Image viewer widget that can zoom, pan, select."""
 
+import logging
 from typing import ClassVar
 
 import cairo
@@ -14,6 +15,8 @@ from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class Tool:
@@ -510,6 +513,25 @@ class ImageView(Gtk.DrawingArea):
         style = self.get_style_context()
         pixbuf = self.get_pixbuf()
         ratio = self.get_resolution_ratio()
+        if pixbuf is None or not hasattr(pixbuf, "get_width"):
+            logger.debug(
+                "DISPLAY do_draw pixbuf=%r zoom=%s fit=%s alloc=%sx%s",
+                pixbuf,
+                self.get_zoom(),
+                self.zoom_is_fit,
+                allocation.width,
+                allocation.height,
+            )
+        else:
+            logger.debug(
+                "DISPLAY do_draw pixbuf=%sx%s zoom=%s fit=%s alloc=%sx%s",
+                pixbuf.get_width(),
+                pixbuf.get_height(),
+                self.get_zoom(),
+                self.zoom_is_fit,
+                allocation.width,
+                allocation.height,
+            )
         style.add_class("imageview")
         style.save()
         style.add_class(Gtk.STYLE_CLASS_BACKGROUND)
@@ -550,7 +572,13 @@ class ImageView(Gtk.DrawingArea):
         context.translate(offset.x, offset.y)
         surface = self._get_or_create_surface(pixbuf)
         context.set_source_surface(surface, 0, 0)
-        context.get_source().set_filter(self._get_adaptive_filter())
+        ifilter = self._get_adaptive_filter()
+        logger.debug(
+            "DISPLAY do_draw rendering filter=%s interacting=%s",
+            ifilter,
+            self.get_interacting(),
+        )
+        context.get_source().set_filter(ifilter)
         context.paint()
         context.restore()
 
@@ -654,6 +682,15 @@ class ImageView(Gtk.DrawingArea):
 
     def set_pixbuf(self, pixbuf, *, zoom_to_fit=False):
         """Set pixbuf, optionally zooming to fit."""
+        if pixbuf is None or not hasattr(pixbuf, "get_width"):
+            logger.debug("DISPLAY set_pixbuf %r zoom_to_fit=%s", pixbuf, zoom_to_fit)
+        else:
+            logger.debug(
+                "DISPLAY set_pixbuf %sx%s zoom_to_fit=%s",
+                pixbuf.get_width(),
+                pixbuf.get_height(),
+                zoom_to_fit,
+            )
         self.pixbuf = pixbuf
         self._cached_surface = None
         self._cached_pixbuf_id = id(pixbuf) if pixbuf else None
@@ -770,6 +807,16 @@ class ImageView(Gtk.DrawingArea):
             min(sc_factor_w, sc_factor_h) * additional_factor * self.get_scale_factor(),
             (box.x + box.width / 2) / ratio,
             box.y + box.height / 2,
+        )
+        logger.debug(
+            "DISPLAY zoom_to_box box=%sx%s alloc=%sx%s ratio=%s limit=%s -> zoom=%s",
+            box.width,
+            box.height,
+            allocation.width,
+            allocation.height,
+            ratio,
+            limit,
+            self.get_zoom(),
         )
 
     def zoom_to_selection(self, context_factor):

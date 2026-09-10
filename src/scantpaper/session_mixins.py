@@ -303,6 +303,22 @@ class SessionMixins:
             logger.debug("DISPLAY _on_page_loaded set full-res pixbuf: %r", pixbuf)
         self.view.set_pixbuf(pixbuf, zoom_to_fit=True)
         xresolution, yresolution, _units = self._current_page.get_resolution()
+        if xresolution is None or yresolution is None or yresolution == 0:
+            logger.error(
+                "DISPLAY _on_page_loaded bad resolution for page %s: %s, %s, %s",
+                self._current_page.uuid,
+                xresolution,
+                yresolution,
+                _units,
+            )
+        else:
+            logger.debug(
+                "DISPLAY _on_page_loaded resolution %s,%s ratio=%s",
+                xresolution,
+                yresolution,
+                xresolution / yresolution,
+            )
+        # TODO: this is slightly wasteful, Hide this behind a guard
         self.view.set_resolution_ratio(xresolution / yresolution)
 
         # Get image dimensions to constrain selector spinbuttons on crop dialog

@@ -15,6 +15,7 @@ import ocrmypdf
 import sane  # To get SANE_* enums
 
 from scantpaper import config
+from scantpaper import page as page_mod
 from scantpaper.canvas import Canvas
 from scantpaper.const import (
     DRAGGER_TOOL,
@@ -282,6 +283,11 @@ class ApplicationWindow(
             self.settings["cwd"] = str(pathlib.Path.cwd())
         self.settings["version"] = VERSION
 
+        logger.info(
+            "DISPLAY build info: scantpaper %s at %s",
+            VERSION,
+            pathlib.Path(page_mod.__file__).resolve().parent,
+        )
         logger.info("Operating system: %s", sys.platform)
         if sys.platform == "linux":
             recursive_slurp(pathlib.Path("/etc").glob("*-release"))
@@ -687,12 +693,14 @@ class ApplicationWindow(
 
     def _page_selection_changed_callback(self, _selection):
         selection = self.slist.get_selected_indices()
+        logger.debug("DISPLAY page selection changed: %s", selection)
 
         # Display the new image
         # When editing the page number, there is a race condition where the page
         # can be undefined
         if selection:
             i = selection.pop(0)
+            logger.debug("DISPLAY page selection changed -> display page %s", i)
             path = Gtk.TreePath.new_from_indices([i])
             self.slist.scroll_to_cell(
                 path,
