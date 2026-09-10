@@ -1,6 +1,11 @@
 ## 3.0.18 (unreleased)
 
 * Generate thumbnails with high-quality resampling
+* Rescue intact settings from an unreadable configuration file instead of
+  resetting everything to defaults, keep the original as a backup at
+  `~/.config/scantpaperrc.old`, and tell the user what was kept. Wrongly typed
+  values are corrected when possible, and the broken file is never silently
+  overwritten.
 
 
 ## 3.0.17 (2026-09-05)

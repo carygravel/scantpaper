@@ -940,7 +940,11 @@ class FileMenuMixins:
             self._windows.thread.quit()
 
         # Write config file
-        config.write_config(self._configfile, self.settings)
+        if not (
+            getattr(self, "_config_load_warnings", None)
+            and not getattr(self, "_config_warnings_acknowledged", True)
+        ):
+            config.write_config(self._configfile, self.settings)
         logger.info("Killing document thread(s)")
         self.slist.thread.quit()
         logger.debug("Quitting")

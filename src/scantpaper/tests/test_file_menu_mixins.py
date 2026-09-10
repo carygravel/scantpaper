@@ -354,6 +354,46 @@ class TestFileMenuMixins:
         mock_config.write_config.assert_called_with(app._configfile, app.settings)
         mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
 
+    @unittest.mock.patch("scantpaper.file_menu_mixins.os")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.config")
+    def test_can_quit_skips_write_on_unacknowledged_rescued_load(
+        self, mock_config, mock_fcntl, mock_os, mocker, app
+    ):
+        """A rescued load that has not been acknowledged is never written over."""
+        app._pages_saved = unittest.mock.Mock(return_value=True)
+        mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
+        mocker.patch.object(pathlib.Path, "unlink", autospec=True)
+        mocker.patch.object(pathlib.Path, "rmdir", autospec=True)
+        app._config_load_warnings = ["settings were rescued"]
+        app._config_warnings_acknowledged = False
+
+        assert app._can_quit()
+
+        mock_config.write_config.assert_not_called()
+        mock_os.chdir.assert_called_with(app.settings["cwd"])
+        mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
+
+    @unittest.mock.patch("scantpaper.file_menu_mixins.os")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.config")
+    def test_can_quit_writes_once_warnings_acknowledged(
+        self, mock_config, mock_fcntl, mock_os, mocker, app
+    ):
+        """Once the user has seen the load warnings, the write proceeds."""
+        app._pages_saved = unittest.mock.Mock(return_value=True)
+        mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
+        mocker.patch.object(pathlib.Path, "unlink", autospec=True)
+        mocker.patch.object(pathlib.Path, "rmdir", autospec=True)
+        app._config_load_warnings = ["settings were rescued"]
+        app._config_warnings_acknowledged = True
+
+        assert app._can_quit()
+
+        mock_config.write_config.assert_called_with(app._configfile, app.settings)
+        mock_os.chdir.assert_called_with(app.settings["cwd"])
+        mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
+
     def test_pages_saved_true(self, app):
         """Test _pages_saved returns True if pages are saved."""
         app.slist.thread.pages_saved.return_value = True

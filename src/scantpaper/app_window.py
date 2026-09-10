@@ -340,6 +340,10 @@ class ApplicationWindow(
         ):
             shutil.copy(old_configfile, self._configfile)
         self.settings = config.read_config(self._configfile)
+        self._config_load_warnings = list(
+            getattr(self.settings, "load_warnings", None) or ()
+        )
+        self._config_warnings_acknowledged = not self._config_load_warnings
         config.add_defaults(self.settings)
         config.remove_invalid_paper(self.settings["Paper"])
 
@@ -382,6 +386,8 @@ class ApplicationWindow(
         self._unpaper = Unpaper(self.settings["unpaper options"])
         self._update_uimanager()
         self.show_all()
+
+        self._notify_config_load_warnings()
 
         # Progress bars below window
         phbox = self.builder.get_object("progress_hbox")
@@ -826,6 +832,18 @@ class ApplicationWindow(
                     buttons=Gtk.ButtonsType.CLOSE,
                     text=text,
                 )
+
+    def _notify_config_load_warnings(self):
+        """Inform the user that settings could not be read in full."""
+        if not self._config_load_warnings or self._config_warnings_acknowledged:
+            return
+        self._config_warnings_acknowledged = True
+        self._show_message_dialog(
+            parent=self,
+            message_type="info",
+            buttons=Gtk.ButtonsType.CLOSE,
+            text="\n".join(self._config_load_warnings),
+        )
 
     def _show_message_dialog(self, **kwargs):
         """Display a message dialog with the given options."""

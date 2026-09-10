@@ -9,6 +9,11 @@ from gi.repository import Gdk
 
 from scantpaper.config import (
     DEFAULTS,
+    _coerce_bool,
+    _coerce_float,
+    _coerce_int,
+    _coerce_str,
+    _coerce_to_type,
     _get_convert_command,
     add_defaults,
     read_config,
@@ -44,6 +49,7 @@ def test_config():
     example = {"version": "1.3.3"}
     output = read_config(rc)
     assert output == example, "Read JSON"
+    assert output.load_warnings == [], "clean load reports no warnings"
 
     #########################
 
@@ -329,4 +335,149 @@ def test_read_non_existent_config():
         )
         assert pathlib.Path(rc).exists(), (
             "read_config should create the file if it doesn't exist"
+        )
+        assert output.load_warnings == [], "no warnings for a missing file"
+
+
+def test_rescue_config_from_unparseable_file():
+    """An unparseable file rescues intact settings and keeps a backup."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            "{\n"
+            '  "rotate facing": 90,\n'
+            '  "rotate reverse": 270,\n'
+            '  "rotate facing": 180,\n'
+            "  junk,\n"
+            '  "not-a-settings-key": true,\n'
+            '  "thumb panel": 100\n'
+            "}\n",
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+
+        assert output["rotate facing"] == 90, "first intact key rescued"
+        assert output["rotate reverse"] == 270, "intact key rescued"
+        assert output["thumb panel"] == 100, "keys after the junk line rescued"
+        assert not rc.exists(), "broken file was renamed"
+        assert pathlib.Path(f"{rc}.old").exists(), "backup kept"
+        assert output.load_warnings, "a warning is reported"
+        assert "rotate facing" in output.load_warnings[0], (
+            "warning lists the rescued keys"
+        )
+
+
+def test_coerce_helpers():
+    """The lossless coercion helpers cover every scalar type branch."""
+    assert _coerce_bool(value=True) is True
+    assert _coerce_bool(1) is True
+    assert _coerce_bool(0) is False
+    assert _coerce_bool("TRUE") is True
+    assert _coerce_bool("0") is False
+    assert _coerce_bool(2) is None
+
+    assert _coerce_int(value=True) == 1
+    assert _coerce_int(90.0) == 90
+    assert _coerce_int(90.5) is None
+    assert _coerce_int("7") == 7
+    assert _coerce_int([1]) is None
+
+    assert _coerce_float("0.05") == 0.05
+    assert _coerce_float([1]) is None
+
+    assert _coerce_str("x") == "x"
+    assert _coerce_str(35) == "35"
+    assert _coerce_str(0.5) == "0.5"
+    assert _coerce_str(value=True) == "True"
+    assert _coerce_str([1]) is None
+
+    assert _coerce_to_type("5", int) == 5
+    assert _coerce_to_type("0.05", float) == 0.05
+    assert _coerce_to_type("none", str) == "none"
+    assert _coerce_to_type("1", bool) is True
+    assert _coerce_to_type(0, bool) is False
+    assert _coerce_to_type(1, timedelta) is None, "unknown target type"
+
+
+def test_wrong_typed_structural_settings_preserved():
+    """Non-deserialisable structural values are kept raw with a warning."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            "{"
+            '"device list": "broken", "profile": "broken", '
+            '"datetime offset": "broken", "selection": "broken"}',
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+
+        assert output["device list"] == "broken"
+        assert output["profile"] == "broken"
+        assert output["datetime offset"] == "broken"
+        assert output["selection"] == "broken"
+        assert output.load_warnings, "wrong types record warnings"
+
+
+def test_threshold_tool_wrong_type_not_migrated():
+    """A non-integer threshold tool is left for normalisation, not migrated."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"version": "3.0.15", "threshold tool": "80"}')
+        output = read_config(rc)
+        assert output["threshold tool"] == 80, "string coerced but not migrated"
+
+
+def test_normalise_wrong_typed_scalar_settings():
+    """Wrongly typed scalars are coerced; unusable values are kept with a warning."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            '{"rotate facing": "270", "thumb panel": "garbage"}',
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+
+        assert output["rotate facing"] == 270, "lossless coercion applied"
+        assert output["thumb panel"] == "garbage", "unusable value kept raw"
+        messages = output.load_warnings
+        assert any("rotate facing" in message for message in messages), (
+            "coercion records a warning"
+        )
+        assert any("thumb panel" in message for message in messages), (
+            "raw value records a warning"
+        )
+
+
+def test_write_config_is_copied_and_never_writes_old():
+    """write_config serialises on a copy and never writes to *.old."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        settings = {
+            "device list": [
+                SimpleNamespace(
+                    name="name", vendor="vendor", model="model", label="label"
+                )
+            ],
+            "datetime offset": timedelta(seconds=60),
+            "version": "1.7.3",
+        }
+
+        write_config(rc, settings)
+
+        assert isinstance(settings["device list"][0], SimpleNamespace), (
+            "caller's device list left deserialised"
+        )
+        assert isinstance(settings["datetime offset"], timedelta), (
+            "caller's datetime offset left deserialised"
+        )
+        assert not pathlib.Path(f"{rc}.old").exists(), "never writes to *.old"
+
+        output = read_config(rc)
+        assert output["version"] == "1.7.3", "written file is still readable"
+        assert output["device list"][0].name == "name", "device list round-trips"
+        assert output["datetime offset"] == timedelta(seconds=60), (
+            "datetime offset round-trips"
         )

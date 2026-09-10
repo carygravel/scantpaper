@@ -94,6 +94,7 @@ COL_CHECKBUTTON = 4
 TYPES = {
     "error": _("Error"),
     "warning": _("Warning"),
+    "info": _("Info"),
 }
 
 

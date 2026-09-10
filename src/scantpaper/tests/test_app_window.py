@@ -10,6 +10,7 @@ import gi
 import pytest
 
 from scantpaper.app_window import ApplicationWindow, drag_motion_callback, view_html
+from scantpaper.config import ConfigDict
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -386,6 +387,41 @@ def test_read_config_migration(app_window, mocker):
     app_window._read_config()
 
     mock_copy.assert_called_once()
+
+
+def test_read_config_stashes_load_warnings(app_window, mocker):
+    """Load warnings are stashed on the window until the user is informed."""
+    mock_settings = ConfigDict(Paper={})
+    mock_settings.load_warnings = ["settings were rescued"]
+    mocker.patch("scantpaper.app_window.config.read_config", return_value=mock_settings)
+    mocker.patch("scantpaper.app_window.config.add_defaults")
+    mocker.patch("scantpaper.app_window.config.remove_invalid_paper")
+    mocker.patch("scantpaper.app_window.config.remove_invalid_paper")
+    mocker.patch("scantpaper.app_window.os.environ", {"HOME": "/home/user"})
+    mocker.patch.object(pathlib.Path, "exists", autospec=True, return_value=True)
+
+    app_window._read_config()
+
+    assert app_window._config_load_warnings == ["settings were rescued"]
+    assert not app_window._config_warnings_acknowledged
+
+
+def test_notify_config_load_warnings(app_window):
+    """Config load warnings are shown to the user and marked acknowledged."""
+    app_window._config_load_warnings = ["something was rescued"]
+    app_window._config_warnings_acknowledged = False
+    app_window._show_message_dialog = MagicMock()
+
+    app_window._notify_config_load_warnings()
+
+    app_window._show_message_dialog.assert_called_once()
+    _args, kwargs = app_window._show_message_dialog.call_args
+    assert "rescued" in kwargs["text"]
+    assert kwargs["message_type"] == "info"
+    assert app_window._config_warnings_acknowledged, "user marked as informed"
+
+    app_window._notify_config_load_warnings()
+    app_window._show_message_dialog.assert_called_once()
 
 
 def test_read_config_restore_window(mocker):

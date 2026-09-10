@@ -324,6 +324,14 @@ PYTHONPATH=src python3 -m scantpaper.app --debug
 
 scantpaper creates a config file at `~/.config/scantpaperrc`. The directory can be changed by setting `$XDG_CONFIG_HOME`. Preferences are usually set via **Edit → Preferences**.
 
+If the config file cannot be read as JSON (for example after a partial write
+or a hand edit), scantpaper rescues as many recognised settings as it can and
+resets the rest to their defaults. The unreadable original is kept as a backup
+at `~/.config/scantpaperrc.old`, and the start-up message tells you which
+settings were kept. Wrongly typed values (e.g. a string where a number is
+expected) are corrected when possible. The original file is never silently
+overwritten: saving on exit waits until the message has been acknowledged.
+
 ### Sessions
 
 All session data (pages, edits, OCR, annotations) is stored in an SQLite
