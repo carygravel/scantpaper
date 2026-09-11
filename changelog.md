@@ -1,4 +1,4 @@
-## 3.0.18 (unreleased)
+## 3.0.18 (2026-09-11)
 
 * Generate thumbnails with high-quality resampling
 * Rescue intact settings from an unreadable configuration file instead of
