@@ -9,6 +9,9 @@
 * Fix the scan dialog crashing on startup for profiles written by gscan2pdf
   2.x that contain scanner options but no frontend options. Such profiles are
   now loaded with empty frontend options instead of aborting the application.
+* Fix a startup error when crashed-session files are found in the temporary
+  directory: the restore dialog could not be built because the file paths
+  were passed to the list as native paths instead of strings.
 
 
 ## 3.0.17 (2026-09-05)

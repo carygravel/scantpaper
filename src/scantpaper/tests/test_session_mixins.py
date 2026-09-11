@@ -356,6 +356,33 @@ def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window
     mock_session_window._open_session.assert_not_called()
 
 
+def test_find_crashed_sessions_with_path_objects(mocker, mock_session_window):
+    """Real Path results from glob never reach the str-typed SimpleList.
+
+    Regression test for a startup TypeError where a pathlib.Path value from
+    Path.glob was appended unchanged to a str-typed SimpleList column.
+    """
+    mocker.patch.object(
+        pathlib.Path,
+        "glob",
+        return_value=[pathlib.Path("/tmp/scantpaper-crashed.sdb")],
+    )
+    mock_session_window.session = mocker.Mock()
+    mock_session_window.session.name = "/tmp/scantpaper-running"
+    mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp")
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
+    mock_session_window._create_lockfile = mocker.Mock()
+
+    mock_dialog_cls = mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mock_dialog = mock_dialog_cls.return_value
+    mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
+
+    mock_session_window._open_session = mocker.Mock()
+
+    mock_session_window._find_crashed_sessions()
+    mock_session_window._open_session.assert_not_called()
+
+
 def test_finished_process_callback(mocker, mock_session_window):
     """Test _finished_process_callback."""
     mock_session_window._scan_progress = mocker.Mock()

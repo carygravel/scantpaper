@@ -91,11 +91,11 @@ class SessionMixins:
             if session == self.session.name:
                 continue
             if not Path(session).is_dir():
-                crashed.append(db)
+                crashed.append(str(db))
                 continue
             try:
                 self._create_lockfile(session)
-                crashed.append(db)
+                crashed.append(str(db))
             except OSError as e:
                 logger.warning("Error opening lockfile %s", str(e))
 
