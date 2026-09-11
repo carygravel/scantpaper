@@ -17,11 +17,9 @@ class Profile(GObject.Object):
     def __init__(self, frontend=None, backend=None, uid=None):
         """Initialise the profile with deep-copied frontend and backend dicts."""
         super().__init__()
-        if isinstance(frontend, dict):
-            if "frontend" in frontend:
-                backend = frontend["backend"]
-            if "frontend" in frontend:
-                frontend = frontend["frontend"]
+        if isinstance(frontend, dict) and "frontend" in frontend:
+            backend = frontend.get("backend", [])
+            frontend = frontend["frontend"]
 
         if frontend is None:
             self.frontend = {}

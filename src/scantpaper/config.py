@@ -329,11 +329,7 @@ def _deserialise_and_migrate(config):
     ):
         config["device list"] = [SimpleNamespace(**x) for x in config["device list"]]
 
-    # remove undefined profiles
-    if isinstance(config.get("profile"), dict):
-        for profile in list(config["profile"].keys()):
-            if not config["profile"][profile]:
-                del config["profile"][profile]
+    _normalise_profiles(config)
 
     # deserialise timedelta
     if (
@@ -360,6 +356,28 @@ def _deserialise_and_migrate(config):
 
     _remove_legacy_int_tools(config)
     _migrate_threshold_tool(config)
+
+
+def _normalise_profiles(config):
+    """Remove undefined profiles and normalise legacy pre-v3 ones.
+
+    Profiles written by gscan2pdf 2.x may be backend-only with no frontend
+    key; give them both keys so downstream consumers never key-error.
+    """
+    profiles = config.get("profile")
+    if not isinstance(profiles, dict):
+        return
+
+    # remove undefined profiles
+    for name in list(profiles.keys()):
+        if not profiles[name]:
+            del profiles[name]
+
+    # normalise legacy pre-v3 profiles that lack a frontend key
+    for profile in profiles.values():
+        if isinstance(profile, dict):
+            profile.setdefault("frontend", {})
+            profile.setdefault("backend", [])
 
 
 def _remove_legacy_int_tools(config):

@@ -419,8 +419,8 @@ class Scan(PageControls):
             self._add_profile(
                 profile,
                 Profile(
-                    frontend=profiles[profile]["frontend"],
-                    backend=profiles[profile]["backend"],
+                    frontend=profiles[profile].get("frontend", {}),
+                    backend=profiles[profile].get("backend", []),
                 ),
             )
         self.combobsp_changed_signal = self.combobsp.connect(

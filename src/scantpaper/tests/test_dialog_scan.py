@@ -502,6 +502,21 @@ def test_init_with_profiles():
     assert found
 
 
+def test_init_with_legacy_profile():
+    """Test __init__ tolerates a legacy profile with no frontend key."""
+    profiles = {"LegacyProfile": {"backend": [("mode", "Color")]}}
+    dialog = SaneScanDialog(
+        title="title", transient_for=Gtk.Window(), profiles=profiles
+    )
+
+    assert "LegacyProfile" in dialog.profiles
+    assert isinstance(dialog.profiles["LegacyProfile"], Profile)
+    assert dialog.profiles["LegacyProfile"].backend == [("mode", "Color")], (
+        "backend options are preserved"
+    )
+    assert dialog.profiles["LegacyProfile"].frontend == {}, "frontend is empty"
+
+
 def test_profile_setter_updates_combobox(mocker):
     """Test that setting profile property updates the combobox."""
     dialog = Scan(title="title", transient_for=Gtk.Window())

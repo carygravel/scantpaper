@@ -124,6 +124,42 @@ def test_config():
     assert output == example, "remove undefined profiles"
 
 
+def test_legacy_profile_gains_frontend_key():
+    """Legacy pre-v3 profiles missing a frontend key are normalised on load."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            '{"profile": {"default": {"backend": [{"resolution": 300}]}}}',
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+        profile = output["profile"]["default"]
+        assert "frontend" in profile, "legacy profile gains a frontend key"
+        assert "backend" in profile, "legacy profile keeps its backend key"
+        assert profile["frontend"] == {}, "frontend defaults to empty dict"
+        assert profile["backend"] == [{"resolution": 300}], (
+            "backend options are unchanged"
+        )
+
+
+def test_well_formed_profile_unaffected_by_migration():
+    """A profile with both keys is left unchanged by the migration."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            '{"profile": {"default": '
+            '{"frontend": {"num_pages": 1}, "backend": [{"mode": "Color"}]}}}',
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+        assert output["profile"]["default"] == {
+            "frontend": {"num_pages": 1},
+            "backend": [{"mode": "Color"}],
+        }, "well-formed profile is untouched"
+
+
 def test_config_string_conversion():
     """Test that old integer-based settings are converted to strings."""
     rc = "test_string_conversion"

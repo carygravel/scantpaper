@@ -106,6 +106,13 @@ def test_profile_init_data():
     assert p1.frontend["num_pages"] == 5
 
 
+def test_profile_init_combined_dict_missing_backend():
+    """Profile from a combined dict with only a frontend key uses empty backend."""
+    profile = Profile({"frontend": {"num_pages": 3}})
+    assert profile.frontend == {"num_pages": 3}, "frontend extracted"
+    assert profile.backend == [], "backend defaults to empty list"
+
+
 def test_map_from_cli():
     """Test map_from_cli."""
     profile = Profile(backend=[("l", 1), ("y", 50), ("x", 50), ("t", 2)])

@@ -6,6 +6,9 @@
   `~/.config/scantpaperrc.old`, and tell the user what was kept. Wrongly typed
   values are corrected when possible, and the broken file is never silently
   overwritten.
+* Fix the scan dialog crashing on startup for profiles written by gscan2pdf
+  2.x that contain scanner options but no frontend options. Such profiles are
+  now loaded with empty frontend options instead of aborting the application.
 
 
 ## 3.0.17 (2026-09-05)
