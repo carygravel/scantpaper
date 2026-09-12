@@ -30,6 +30,7 @@ before the rescued settings are used.
   defaulted
 - **THEN** the user is shown a message that the settings file could not be read
   in full, which settings were kept, and that a backup was made
+- **AND** the notification is also written to the log
 
 ### Requirement: Do not silently overwrite an unrescued config file
 
@@ -51,15 +52,29 @@ backup file.
 
 When the config file parses but contains a value of an unexpected type for a
 recognised key (e.g. a string where an integer is expected), the system SHALL
-normalise the value to a usable form when one exists, otherwise preserve the raw
-setting for inspection rather than silently replacing it with the default.
+normalise the value to a usable form when one exists, otherwise preserve the
+raw setting for inspection rather than silently replacing it with the default.
+
+A lossless conversion SHALL be written to the log and SHALL NOT be shown to the
+user in the message dialog. Only a value that cannot be made usable SHALL
+produce a user-visible warning; that warning SHALL also be written to the log.
 
 #### Scenario: String value where an integer is expected
 
 - **WHEN** the config contains `"rotate facing": "270"` (a string instead of an
   integer)
 - **THEN** the rotation setting is still applied as 270 degrees
-- **AND** the application does not silently fall back to the default of 0
+- **AND** the conversion is written to the log
+- **AND** no message dialog is shown for the conversion
+
+#### Scenario: Unusable value kept raw and flagged
+
+- **WHEN** the config contains a value that cannot be normalised to its
+  expected type (e.g. `"thumb panel": "garbage"`)
+- **THEN** the raw value is kept
+- **AND** the user is shown a message that the value could not be used and was
+  left unchanged
+- **AND** the warning is also written to the log
 
 ### Requirement: Valid config files load and round-trip unchanged
 

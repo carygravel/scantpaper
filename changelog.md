@@ -1,3 +1,10 @@
+## 3.0.19 (unreleased)
+
+* Log automatic corrections of wrongly typed configuration values instead of
+  showing them in the start-up message; only values that cannot be corrected
+  are reported to the user.
+
+
 ## 3.0.18 (2026-09-11)
 
 * Generate thumbnails with high-quality resampling

@@ -242,8 +242,8 @@ def _normalise_types(config):
     """Coerce wrongly typed known settings to their default's type.
 
     Keys whose default is None are skipped, as are values that already match
-    the default's type. A value that cannot be coerced is kept as it is,
-    with a warning.
+    the default's type. A value that cannot be coerced is kept as it is.
+    Successful conversions are logged; failed ones warn the user.
     """
     for key, default in DEFAULTS.items():
         if key not in config or default is None:
@@ -253,18 +253,19 @@ def _normalise_types(config):
         value = config[key]
         coerced = _coerce_to_type(value, type(default))
         if coerced is None:
-            config.load_warnings.append(
-                _(
-                    "The setting %s is %r and cannot be used as %s, so it has "
-                    "been left unchanged."
-                )
-                % (key, value, type(default).__name__)
-            )
+            message = _(
+                "The setting %s is %r and cannot be used as %s, so it has "
+                "been left unchanged."
+            ) % (key, value, type(default).__name__)
+            config.load_warnings.append(message)
+            logger.warning(message)
         else:
             config[key] = coerced
-            config.load_warnings.append(
-                _("The setting %s is %r and has been converted to %r.")
-                % (key, value, coerced)
+            logger.info(
+                "The setting %s is %r and has been converted to %r.",
+                key,
+                value,
+                coerced,
             )
 
 
@@ -288,24 +289,20 @@ def read_config(filename):
             pathlib.Path(filename).rename(backup)
             config = _salvage_config(configstr)
             if config:
-                config.load_warnings.append(
-                    _(
-                        "The settings file %s could not be read in full. The "
-                        "following settings were restored: %s. The rest were "
-                        "reset to their defaults. A backup of the original "
-                        "file has been saved as %s."
-                    )
-                    % (filename, ", ".join(sorted(config)), backup)
-                )
+                message = _(
+                    "The settings file %s could not be read in full. The "
+                    "following settings were restored: %s. The rest were "
+                    "reset to their defaults. A backup of the original "
+                    "file has been saved as %s."
+                ) % (filename, ", ".join(sorted(config)), backup)
             else:
-                config.load_warnings.append(
-                    _(
-                        "The settings file %s could not be read, so all "
-                        "settings have been reset to their defaults. A backup "
-                        "of the original file has been saved as %s."
-                    )
-                    % (filename, backup)
-                )
+                message = _(
+                    "The settings file %s could not be read, so all "
+                    "settings have been reset to their defaults. A backup "
+                    "of the original file has been saved as %s."
+                ) % (filename, backup)
+            config.load_warnings.append(message)
+            logger.warning(message)
 
     _deserialise_and_migrate(config)
     _normalise_types(config)

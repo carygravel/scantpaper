@@ -1,5 +1,6 @@
 """test config helper functions."""
 
+import logging
 import pathlib
 import tempfile
 from datetime import datetime, timedelta
@@ -375,7 +376,7 @@ def test_read_non_existent_config():
         assert output.load_warnings == [], "no warnings for a missing file"
 
 
-def test_rescue_config_from_unparseable_file():
+def test_rescue_config_from_unparseable_file(caplog):
     """An unparseable file rescues intact settings and keeps a backup."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -391,7 +392,8 @@ def test_rescue_config_from_unparseable_file():
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        with caplog.at_level(logging.WARNING):
+            output = read_config(rc)
 
         assert output["rotate facing"] == 90, "first intact key rescued"
         assert output["rotate reverse"] == 270, "intact key rescued"
@@ -402,6 +404,11 @@ def test_rescue_config_from_unparseable_file():
         assert "rotate facing" in output.load_warnings[0], (
             "warning lists the rescued keys"
         )
+        assert any(
+            "could not be read" in record.message
+            for record in caplog.records
+            if record.levelno == logging.WARNING
+        ), "rescue notice is logged at WARNING"
 
 
 def test_coerce_helpers():
@@ -465,8 +472,8 @@ def test_threshold_tool_wrong_type_not_migrated():
         assert output["threshold tool"] == 80, "string coerced but not migrated"
 
 
-def test_normalise_wrong_typed_scalar_settings():
-    """Wrongly typed scalars are coerced; unusable values are kept with a warning."""
+def test_normalise_wrong_typed_scalar_settings(caplog):
+    """Lossless conversions are logged; unusable values warn the user."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
         rc.write_text(
@@ -474,17 +481,27 @@ def test_normalise_wrong_typed_scalar_settings():
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        with caplog.at_level(logging.INFO):
+            output = read_config(rc)
 
         assert output["rotate facing"] == 270, "lossless coercion applied"
         assert output["thumb panel"] == "garbage", "unusable value kept raw"
-        messages = output.load_warnings
-        assert any("rotate facing" in message for message in messages), (
-            "coercion records a warning"
+        assert not any(
+            "rotate facing" in message for message in output.load_warnings
+        ), "lossless conversion is not a user warning"
+        assert any("thumb panel" in message for message in output.load_warnings), (
+            "unusable value keeps its user warning"
         )
-        assert any("thumb panel" in message for message in messages), (
-            "raw value records a warning"
-        )
+        assert any(
+            "converted to 270" in record.message
+            for record in caplog.records
+            if record.levelno == logging.INFO
+        ), "conversion is logged at INFO"
+        assert any(
+            "thumb panel" in record.message
+            for record in caplog.records
+            if record.levelno == logging.WARNING
+        ), "unusable value is logged at WARNING"
 
 
 def test_write_config_is_copied_and_never_writes_old():

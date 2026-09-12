@@ -329,8 +329,10 @@ or a hand edit), scantpaper rescues as many recognised settings as it can and
 resets the rest to their defaults. The unreadable original is kept as a backup
 at `~/.config/scantpaperrc.old`, and the start-up message tells you which
 settings were kept. Wrongly typed values (e.g. a string where a number is
-expected) are corrected when possible. The original file is never silently
-overwritten: saving on exit waits until the message has been acknowledged.
+expected) are corrected when possible; each correction is written to the log
+rather than shown in the start-up message. Only values that cannot be corrected
+are reported. The original file is never silently overwritten: saving on exit
+waits until the message has been acknowledged.
 
 ### Sessions
 
