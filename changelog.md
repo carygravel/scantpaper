@@ -4,6 +4,9 @@
   showing them in the start-up message; only values that cannot be corrected
   are reported to the user.
 * Fix PDF encryption to also work with Ubuntu Jammy's (22.04) qpdf 10
+* Fix scan options saved by gscan2pdf 2.x (with no frontend list) being
+  silently ignored at startup and then wiped from the config file. The stored
+  options are now applied to the scan dialog and kept on save.
 
 
 ## 3.0.18 (2026-09-11)

@@ -113,6 +113,19 @@ def test_profile_init_combined_dict_missing_backend():
     assert profile.backend == [], "backend defaults to empty list"
 
 
+def test_profile_round_trip_legacy_default_scan_options():
+    """A normalised legacy default-scan-options value round-trips via Profile."""
+    scan_options = {
+        "frontend": {},
+        "backend": [{"mode": "Binary"}, {"resolution": 600}],
+    }
+    profile = Profile(scan_options)
+    assert profile.get() == {
+        "frontend": {},
+        "backend": [("mode", "Binary"), ("resolution", 600)],
+    }, "legacy default scan options decode to tuples on load"
+
+
 def test_map_from_cli():
     """Test map_from_cli."""
     profile = Profile(backend=[("l", 1), ("y", 50), ("x", 50), ("t", 2)])

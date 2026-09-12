@@ -327,6 +327,7 @@ def _deserialise_and_migrate(config):
         config["device list"] = [SimpleNamespace(**x) for x in config["device list"]]
 
     _normalise_profiles(config)
+    _normalise_scan_options(config.get("default-scan-options"))
 
     # deserialise timedelta
     if (
@@ -355,6 +356,27 @@ def _deserialise_and_migrate(config):
     _migrate_threshold_tool(config)
 
 
+def _normalise_scan_options(value):
+    """Normalise one scan-options dict to the canonical profile shape.
+
+    gscan2pdf 2.x wrote scan options without a frontend key, and a misparsed
+    serialisation of such options can leave the backend list trapped inside
+    frontend with an empty outer backend; repair both shapes so downstream
+    consumers see {"frontend": ..., "backend": [...]}.
+    """
+    if not isinstance(value, dict):
+        return
+    frontend = value.get("frontend")
+    if (
+        isinstance(frontend, dict)
+        and "backend" in frontend
+        and not value.get("backend")
+    ):
+        value["backend"] = frontend.pop("backend")
+    value.setdefault("frontend", {})
+    value.setdefault("backend", [])
+
+
 def _normalise_profiles(config):
     """Remove undefined profiles and normalise legacy pre-v3 ones.
 
@@ -372,9 +394,7 @@ def _normalise_profiles(config):
 
     # normalise legacy pre-v3 profiles that lack a frontend key
     for profile in profiles.values():
-        if isinstance(profile, dict):
-            profile.setdefault("frontend", {})
-            profile.setdefault("backend", [])
+        _normalise_scan_options(profile)
 
 
 def _remove_legacy_int_tools(config):

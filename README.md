@@ -334,6 +334,10 @@ rather than shown in the start-up message. Only values that cannot be corrected
 are reported. The original file is never silently overwritten: saving on exit
 waits until the message has been acknowledged.
 
+Scan options saved in the configuration file by gscan2pdf 2.x (whose
+`default-scan-options` block has no `frontend` list) are recognised and applied
+to the scan dialog on startup, and are kept when the file is written back.
+
 ### Sessions
 
 All session data (pages, edits, OCR, annotations) is stored in an SQLite

@@ -161,6 +161,71 @@ def test_well_formed_profile_unaffected_by_migration():
         }, "well-formed profile is untouched"
 
 
+def test_legacy_default_scan_options_gain_frontend_key():
+    """Legacy default scan options missing a frontend key are normalised."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            '{"default-scan-options": '
+            '{"backend": [{"mode": "Binary"}, {"resolution": 600}]}}',
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+        scan_options = output["default-scan-options"]
+        assert "frontend" in scan_options, "legacy scan options gain a frontend key"
+        assert "backend" in scan_options, "legacy scan options keep their backend key"
+        assert scan_options["frontend"] == {}, "frontend defaults to empty dict"
+        assert scan_options["backend"] == [
+            {"mode": "Binary"},
+            {"resolution": 600},
+        ], "backend options are unchanged"
+
+
+def test_corrupted_default_scan_options_repaired():
+    """A misparsed legacy default-scan-options serialisation is repaired."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            '{"default-scan-options": '
+            '{"frontend": {"backend": [{"mode": "Binary"}]}, "backend": []}}',
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+        assert output["default-scan-options"] == {
+            "frontend": {},
+            "backend": [{"mode": "Binary"}],
+        }, "trapped backend options are hoisted into the outer backend"
+
+
+def test_well_formed_default_scan_options_unaffected():
+    """A default-scan-options block with both keys is left unchanged."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            '{"default-scan-options": '
+            '{"frontend": {"num_pages": 1}, "backend": [{"mode": "Color"}]}}',
+            encoding="utf-8",
+        )
+
+        output = read_config(rc)
+        assert output["default-scan-options"] == {
+            "frontend": {"num_pages": 1},
+            "backend": [{"mode": "Color"}],
+        }, "well-formed default scan options are untouched"
+
+
+def test_non_dict_default_scan_options_ignored():
+    """A non-dict default-scan-options value is left unchanged."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"default-scan-options": "broken"}', encoding="utf-8")
+
+        output = read_config(rc)
+        assert output["default-scan-options"] == "broken"
+
+
 def test_config_string_conversion():
     """Test that old integer-based settings are converted to strings."""
     rc = "test_string_conversion"
