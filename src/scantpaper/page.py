@@ -485,7 +485,9 @@ class Page:
                     "-s",
                 ]
                 logger.info(cmd)
-                subprocess.run(cmd, check=True)
+                subprocess.run(  # noqa: S603 - trusted internal binary + NamedTemporaryFile path; shell=False
+                    cmd, check=True, shell=False
+                )
 
     def _add_ann_to_djvu(self, djvu, dirname):
         """FIXME - refactor this together with _add_txt_to_djvu."""
@@ -512,7 +514,9 @@ class Page:
                     "-s",
                 ]
                 logger.info(cmd)
-                subprocess.run(cmd, check=True)
+                subprocess.run(  # noqa: S603 - trusted internal binary + NamedTemporaryFile path; shell=False
+                    cmd, check=True, shell=False
+                )
 
     def write_image_for_tiff(self, filename, options):
         """Save the image as a TIFF file."""
@@ -545,7 +549,9 @@ class Page:
                 *depth,
                 filename,
             ]
-            subprocess.run(cmd, check=True)
+            subprocess.run(  # noqa: S603 - trusted ImageMagick binary + generated paths; shell=False
+                cmd, check=True, shell=False
+            )
 
 
 def _prepare_scale(image_width, image_height, res_ratio, max_width, max_height):

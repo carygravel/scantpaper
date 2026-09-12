@@ -476,7 +476,7 @@ class DocThread(SaveThread):
         if row_ids:
             self._execute(
                 f"""DELETE FROM page_order
-                    WHERE row_id IN ({", ".join(["?"] * len(row_ids))}) AND action_id = ?""",
+                    WHERE row_id IN ({", ".join(["?"] * len(row_ids))}) AND action_id = ?""",  # noqa: S608 - placeholder count only; values are bound below
                 (*row_ids, self._action_id),
             )
 
@@ -484,7 +484,7 @@ class DocThread(SaveThread):
             self._execute(
                 f"""DELETE FROM page_order
                     WHERE initial_page_id IN ({", ".join(["?"] * len(page_ids))})
-                        AND action_id = ?""",
+                        AND action_id = ?""",  # noqa: S608 - placeholder count only; values are bound below
                 (*page_ids, self._action_id),
             )
 
@@ -597,13 +597,13 @@ class DocThread(SaveThread):
                         WHERE po2.initial_page_id = po1.initial_page_id
                         AND po2.action_id <= ?
                     )
-                )""",
+                )""",  # noqa: S608 - placeholder count only; values are bound below
             (*page_ids, self._action_id),
         )
         pages = self._fetchall()
         image_ids = [page[0] for page in pages]
         self._execute(
-            f"SELECT image, thumb FROM image WHERE id IN ({', '.join(['?'] * len(image_ids))})",
+            f"SELECT image, thumb FROM image WHERE id IN ({', '.join(['?'] * len(image_ids))})",  # noqa: S608 - placeholder count only; values are bound below
             (*image_ids,),
         )
         images = self._fetchall()
@@ -657,7 +657,7 @@ class DocThread(SaveThread):
                           WHERE action_id = ?
                            AND page_id = page.id
                            AND image_id = image.id
-                           AND page_id IN ({", ".join(["?"] * len(new_pages))})""",
+                           AND page_id IN ({", ".join(["?"] * len(new_pages))})""",  # noqa: S608 - placeholder count only; values are bound below
             (self._action_id, *[row[2] for row in new_pages]),
         )
         rows = []
@@ -693,7 +693,7 @@ class DocThread(SaveThread):
                     WHERE action_id = ?
                      AND page_id = page.id AND image_id = image.id
                      AND initial_page_id IN ({places})
-                    ORDER BY row_id""",
+                    ORDER BY row_id""",  # noqa: S608 - placeholder count only; values are bound below
                 (self._action_id, *current),
             )
             rows = []
@@ -729,7 +729,7 @@ class DocThread(SaveThread):
                 WHERE action_id = ?
                  AND page_id = page.id AND image_id = image.id
                  AND initial_page_id IN ({placeholders})
-                ORDER BY row_id""",
+                ORDER BY row_id""",  # noqa: S608 - placeholder count only; values are bound below
             (self._action_id, *moved),
         )
         rows = []
@@ -897,7 +897,7 @@ class DocThread(SaveThread):
                 SELECT page_id FROM page_order
                 WHERE initial_page_id IN ({", ".join(["?"] * len(page_id))})
                 AND action_id = ?
-            )""",
+            )""",  # noqa: S608 - placeholder count only; values are bound below
             (
                 saved,
                 *page_id,

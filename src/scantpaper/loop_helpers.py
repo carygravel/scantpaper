@@ -22,11 +22,13 @@ class _MainLoopWrapper:
         if self._quit_before_run:
             return
         self._loop.run()
-        assert not self._timed_out, (
-            "Safety timeout fired - the operation under test did not complete "
-            "within the allowed time. If this test is expected to be slow, "
-            "increase SAFETY_TIMEOUT in loop_helpers.py."
-        )
+        if self._timed_out:
+            msg = (
+                "Safety timeout fired - the operation under test did not "
+                "complete within the allowed time. If this test is expected "
+                "to be slow, increase SAFETY_TIMEOUT in loop_helpers.py."
+            )
+            raise TimeoutError(msg)
 
     def quit(self, *_args):
         """Quit the wrapped main loop, recording a pre-run quit."""

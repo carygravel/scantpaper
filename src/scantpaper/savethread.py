@@ -627,7 +627,7 @@ class SaveThread(Importhread):
                     command,
                     flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                 )
-                sbp = exec_command_run(
+                sbp = exec_command_run(  # noqa: S604 - shell=True is deliberate: the command template is user-authored
                     command,
                     options.get("pidfile"),
                     capture_output=True,

@@ -957,7 +957,9 @@ class FileMenuMixins:
     def _restart(self):
         """Restart the application."""
         self._can_quit()
-        os.execv(sys.executable, ["python", *sys.argv])
+        os.execv(  # noqa: S606 - execv replaces this process; no shell is involved
+            sys.executable, ["python", *sys.argv]
+        )
 
     def _pages_saved(self, message):
         """Check that all pages have been saved."""

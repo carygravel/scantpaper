@@ -2,6 +2,7 @@
 
 import contextlib
 import logging
+import os
 import pathlib
 import subprocess
 import tempfile
@@ -680,7 +681,8 @@ def _create_qbfox_image():
 @pytest.fixture(scope="session")
 def rose_pnm():
     """Return a session-scoped pnm file with a rose image."""
-    path = tempfile.mktemp(suffix=".pnm")
+    fd, path = tempfile.mkstemp(suffix=".pnm")
+    os.close(fd)
     _create_rose_image().save(path, "PPM")
     yield path
     pathlib.Path(path).unlink()
@@ -689,7 +691,8 @@ def rose_pnm():
 @pytest.fixture(scope="session")
 def rose_png():
     """Return a session-scoped png file with a rose image."""
-    path = tempfile.mktemp(suffix=".png")
+    fd, path = tempfile.mkstemp(suffix=".png")
+    os.close(fd)
     _create_rose_image().save(path, "PNG")
     yield path
     pathlib.Path(path).unlink()
@@ -698,7 +701,8 @@ def rose_png():
 @pytest.fixture(scope="session")
 def rose_jpg():
     """Return a session-scoped jpg file with a rose image."""
-    path = tempfile.mktemp(suffix=".jpg")
+    fd, path = tempfile.mkstemp(suffix=".jpg")
+    os.close(fd)
     _create_rose_image().save(path, "JPEG")
     yield path
     pathlib.Path(path).unlink()
@@ -707,7 +711,8 @@ def rose_jpg():
 @pytest.fixture(scope="session")
 def rose_tif():
     """Return a session-scoped tif file with a rose image."""
-    path = tempfile.mktemp(suffix=".tif")
+    fd, path = tempfile.mkstemp(suffix=".tif")
+    os.close(fd)
     _create_rose_image().save(path, "TIFF")
     yield path
     pathlib.Path(path).unlink()
@@ -716,7 +721,8 @@ def rose_tif():
 @pytest.fixture(scope="session")
 def rotated_qbfox_pnm():
     """Return a session-scoped image with quick brown fox text."""
-    path = tempfile.mktemp(suffix=".pnm")
+    fd, path = tempfile.mkstemp(suffix=".pnm")
+    os.close(fd)
     _create_qbfox_image().save(path)
     yield path
     pathlib.Path(path).unlink()
@@ -725,7 +731,7 @@ def rotated_qbfox_pnm():
 @pytest.fixture
 def rotated_qbfox_pnm_im(temp_pnm):
     """Return an ImageMagick-generated image with quick brown fox text."""
-    subprocess.run(
+    subprocess.run(  # noqa: S603 - test-controlled ImageMagick args; explicit shell=False
         [
             config.CONVERT_COMMAND,
             "-density",
@@ -746,6 +752,7 @@ def rotated_qbfox_pnm_im(temp_pnm):
             temp_pnm.name,
         ],
         check=True,
+        shell=False,
     )
     return temp_pnm
 

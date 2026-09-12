@@ -49,8 +49,9 @@ def exec_command(cmd, pidfile=None):
         # without taking down the process group of the whole application.
         kwargs["start_new_session"] = True
     try:
-        with subprocess.Popen(
+        with subprocess.Popen(  # noqa: S603 - cmd from internal call sites; explicit shell=False
             cmd,
+            shell=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -87,7 +88,9 @@ def exec_command_run(
         kwargs["stderr"] = subprocess.PIPE
     kwargs["text"] = text
     try:
-        with subprocess.Popen(cmd, shell=shell, **kwargs) as proc:
+        with subprocess.Popen(  # noqa: S603 - shell forwarded deliberately; defaults to False
+            cmd, shell=shell, **kwargs
+        ) as proc:
             if pidfile is not None:
                 pidfile.write(str(proc.pid))
                 pidfile.flush()

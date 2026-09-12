@@ -129,7 +129,7 @@ class BaseThread(threading.Thread):
             # We don't need a response queue for finalization
             request = Request("quit", [], None)
             requests_queue.put(request)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             # S110, BLE001 — swallowed intentionally: during interpreter shutdown
             # the queue may be closed/None, logging is unreliable there, and
             # requests_queue.put() can raise arbitrary errors, so we ignore them.
