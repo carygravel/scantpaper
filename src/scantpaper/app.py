@@ -124,7 +124,13 @@ def _parse_arguments():
         args.log = str(pathlib.Path(args.log).resolve())
         if args.log_level is None:
             args.log_level = logging.DEBUG
-        logging.basicConfig(filename=args.log, filemode="w", level=args.log_level)
+        logging.basicConfig(
+            filename=args.log,
+            filemode="w",
+            level=args.log_level,
+            format="%(asctime)s.%(msecs)03d %(levelname)s:%(name)s:%(message)s",
+            datefmt="%H:%M:%S",
+        )
 
         def compress_log():
             try:

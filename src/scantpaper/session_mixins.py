@@ -266,7 +266,7 @@ class SessionMixins:
                     pageid,
                     thumbnail_pixbuf,
                 )
-            self.view.set_pixbuf(thumbnail_pixbuf, zoom_to_fit=True)
+            self.view.set_pixbuf(thumbnail_pixbuf, zoom_to_fit=True, page=pageid)
 
         # Deferred: send "get_page" async with callback for full-res. During a
         # bulk import this is suppressed (thumbnails only) and a single
@@ -295,13 +295,18 @@ class SessionMixins:
             logger.error("DISPLAY _on_page_loaded: get_pixbuf() returned None")
         elif hasattr(pixbuf, "get_width"):
             logger.debug(
-                "DISPLAY _on_page_loaded set full-res pixbuf: %sx%s",
+                "DISPLAY _on_page_loaded set full-res pixbuf page=%s: %sx%s",
+                self._current_page.uuid,
                 pixbuf.get_width(),
                 pixbuf.get_height(),
             )
         else:
-            logger.debug("DISPLAY _on_page_loaded set full-res pixbuf: %r", pixbuf)
-        self.view.set_pixbuf(pixbuf, zoom_to_fit=True)
+            logger.debug(
+                "DISPLAY _on_page_loaded set full-res pixbuf page=%s: %r",
+                self._current_page.uuid,
+                pixbuf,
+            )
+        self.view.set_pixbuf(pixbuf, zoom_to_fit=True, page=self._current_page.uuid)
         xresolution, yresolution, _units = self._current_page.get_resolution()
         if xresolution is None or yresolution is None or yresolution == 0:
             logger.error(

@@ -1,6 +1,9 @@
 """Image viewer widget that can zoom, pan, select."""
 
 import logging
+import os
+import pathlib
+import time
 from typing import ClassVar
 
 import cairo
@@ -679,18 +682,30 @@ class ImageView(Gtk.DrawingArea):
         self._offset = None
         self._interacting = False
         self._scroll_timeout = None
+        self._dump_page = None
 
-    def set_pixbuf(self, pixbuf, *, zoom_to_fit=False):
-        """Set pixbuf, optionally zooming to fit."""
+    def set_pixbuf(self, pixbuf, *, zoom_to_fit=False, page=None):
+        """Set pixbuf, optionally zooming to fit.
+
+        ``page`` is a diagnostic-only identifier (e.g. the page uuid) recorded
+        so that on-screen frame dumps can be correlated with a specific page.
+        """
         if pixbuf is None or not hasattr(pixbuf, "get_width"):
-            logger.debug("DISPLAY set_pixbuf %r zoom_to_fit=%s", pixbuf, zoom_to_fit)
+            logger.debug(
+                "DISPLAY set_pixbuf %r zoom_to_fit=%s page=%s",
+                pixbuf,
+                zoom_to_fit,
+                page,
+            )
         else:
             logger.debug(
-                "DISPLAY set_pixbuf %sx%s zoom_to_fit=%s",
+                "DISPLAY set_pixbuf %sx%s zoom_to_fit=%s page=%s",
                 pixbuf.get_width(),
                 pixbuf.get_height(),
                 zoom_to_fit,
+                page,
             )
+        self._dump_page = page
         self.pixbuf = pixbuf
         self._cached_surface = None
         self._cached_pixbuf_id = id(pixbuf) if pixbuf else None
@@ -698,6 +713,39 @@ class ImageView(Gtk.DrawingArea):
         if not zoom_to_fit:
             self.set_offset(0, 0)
         self.queue_draw()
+        if (
+            __debug__
+            and os.environ.get("SCANTPAPER_DUMP_FRAMES")
+            and pixbuf is not None
+        ):
+            self._schedule_frame_dump()
+
+    def _schedule_frame_dump(self):
+        """Capture what is actually on screen after the next-redraw settles."""
+
+        def dump_frame():
+            try:
+                toplevel = self.get_toplevel()
+                gdkwin = toplevel.get_window() if toplevel is not None else None
+                if gdkwin is not None:
+                    frame = Gdk.pixbuf_get_from_window(
+                        gdkwin, 0, 0, *gdkwin.get_width(), *gdkwin.get_height()
+                    )
+                    if frame is not None:
+                        out = os.environ.get("SCANTPAPER_DUMP_FRAMES")
+                        marker = "_".join(str(self._dump_page).split())[:40]
+                        path = (
+                            pathlib.Path(out)
+                            / f"frame-{marker or 'none'}-{time.monotonic_ns()}.png"
+                        )
+                        frame.savev(str(path), "png", [], [])
+                        logger.debug("DISPLAY frame dump saved to %s", path)
+            except Exception:
+                logger.exception("DISPLAY frame dump failed")
+            return False
+
+        if os.environ.get("SCANTPAPER_DUMP_FRAMES"):
+            GLib.timeout_add(500, dump_frame)
 
     def get_pixbuf(self):
         """Return current pixbuf."""
