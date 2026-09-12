@@ -810,11 +810,17 @@ def _post_save_hook(filename, options, pidfile=None):
 def _encrypt_pdf(filename, options, request):
     cmd = ["qpdf"]
     if "user-password" in options["options"]:
+        # qpdf < 11 only accepts the positional --encrypt form
+        # (user-password owner-password key-length); the
+        # --owner-password/--user-password/--bits option style was added
+        # in qpdf 11. Ubuntu 22.04 (jammy) ships qpdf 10 and is supported
+        # until its EOL in June 2027; switch back to the option form once
+        # jammy is no longer supported.
         cmd += [
             "--encrypt",
-            f"--owner-password={options['options']['user-password']}",
-            f"--user-password={options['options']['user-password']}",
-            "--bits=256",
+            options["options"]["user-password"],
+            options["options"]["user-password"],
+            "256",
             "--allow-insecure",
             "--",
         ]

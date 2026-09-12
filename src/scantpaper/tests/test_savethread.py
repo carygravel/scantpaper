@@ -709,7 +709,14 @@ def test_encrypt_pdf():
         assert mock_run.called
         cmd = mock_run.call_args[0][0]
         assert "qpdf" in cmd
-        assert "--user-password=password" in cmd
+        assert cmd[:6] == [
+            "qpdf",
+            "--encrypt",
+            "password",
+            "password",
+            "256",
+            "--allow-insecure",
+        ]
 
 
 def test_encrypt_pdf_failure():

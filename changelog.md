@@ -3,6 +3,7 @@
 * Log automatic corrections of wrongly typed configuration values instead of
   showing them in the start-up message; only values that cannot be corrected
   are reported to the user.
+* Fix PDF encryption to also work with Ubuntu Jammy's (22.04) qpdf 10
 
 
 ## 3.0.18 (2026-09-11)

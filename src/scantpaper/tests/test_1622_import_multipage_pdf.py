@@ -233,9 +233,12 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
         [
             "qpdf",
             "--encrypt",
-            "--owner-password=s3cr3t",
-            "--user-password=s3cr3t",
-            "--bits=256",
+            # Same positional form as savethread._encrypt_pdf: qpdf < 11
+            # requires it. Switch to --owner-password/--user-password/--bits
+            # when jammy (qpdf 10, EOL June 2027) is dropped.
+            "s3cr3t",
+            "s3cr3t",
+            "256",
             "--allow-insecure",
             "--",
             temp_pdf.name,
