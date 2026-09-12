@@ -25,7 +25,7 @@ jobs:
     if: needs.check-launchpad.outputs.launchpad_accessible == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           path: "REPO"
 
@@ -260,13 +260,13 @@ jobs:
 
       - name: Upload packages
         run: ls -l
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
           path: ${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_*
 
       - name: Release packages
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: github.ref_type == 'tag'
         with:
           files: |

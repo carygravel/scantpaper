@@ -23,7 +23,7 @@ jobs:
     needs: check-launchpad
     if: needs.check-launchpad.outputs.launchpad_accessible == 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install dependencies
         run: |
           sudo add-apt-repository ppa:jeffreyratcliffe/ppa
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -96,7 +96,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Define variables
         run: |
           (
@@ -127,13 +127,13 @@ jobs:
         run: ruff format --check .
       - name: Build wheel
         run: python3 -m build --wheel
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
           path: dist/${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
 
       - name: Release packages
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: github.ref_type == 'tag'
         with:
           files: dist/${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
