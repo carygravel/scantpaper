@@ -3,7 +3,7 @@
 import gi
 import pytest
 
-from scantpaper.simplelist import SimpleList
+from scantpaper.simplelist import SimpleList, float_g_cell_renderer
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -209,3 +209,63 @@ def test_edited_types():
     cell_renderer1.emit("edited", "0", "2.2")
     assert slist.data[0][1] == 2.2
     assert isinstance(slist.data[0][1], float)
+
+
+def test_edited_double_fractional():
+    """Editing a double cell accepts fractional text."""
+    slist = SimpleList(col1="double")
+    slist.data.append([210])
+    slist.set_column_editable(0, editable=True)
+    column0 = slist.get_column(0)
+    cell_renderer0 = column0.get_cells()[0]
+    cell_renderer0.emit("edited", "0", "115.2")
+    assert slist.data[0][0] == 115.2
+    assert isinstance(slist.data[0][0], float)
+
+
+def test_edited_double_rejects_invalid():
+    """Editing a double cell with non-numeric text keeps the old value."""
+    slist = SimpleList(col1="double")
+    slist.data.append([210])
+    slist.set_column_editable(0, editable=True)
+    column0 = slist.get_column(0)
+    cell_renderer0 = column0.get_cells()[0]
+    cell_renderer0.emit("edited", "0", "abc")
+    assert slist.data[0][0] == 210
+
+
+def test_mm_display_without_trailing_decimal():
+    """An mm cell renders whole numbers without a trailing decimal."""
+    slist = SimpleList(col="mm")
+    slist.data.append([210.0])
+    slist.data.append([115.2])
+    model = slist.get_model()
+    cell = Gtk.CellRendererText()
+    itr1 = model.iter_nth_child(None, 0)
+    itr2 = model.iter_nth_child(None, 1)
+    float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr1, 0)
+    assert cell.text == "210", "whole numbers render without trailing .0"
+    float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr2, 0)
+    assert cell.text == "115.2", "fractional values keep their decimal part"
+
+
+def test_mm_cell_edited():
+    """An mm cell parses edits like a double and keeps invalid values."""
+    slist = SimpleList(col1="mm")
+    slist.data.append([210.0])
+    slist.set_column_editable(0, editable=True)
+    column0 = slist.get_column(0)
+    cell_renderer0 = column0.get_cells()[0]
+    cell_renderer0.emit("edited", "0", "115.2")
+    assert slist.data[0][0] == 115.2
+    assert isinstance(slist.data[0][0], float)
+    cell_renderer0.emit("edited", "0", "abc")
+    assert slist.data[0][0] == 115.2
+
+
+def test_connect_edited_non_text_renderer_is_noop():
+    """do_connect_text_edited ignores non-text renderers."""
+    slist = SimpleList(col1="text")
+    pixbuf_renderer = Gtk.CellRendererPixbuf()
+    slist.do_connect_text_edited(pixbuf_renderer, int, 0)
+    assert not hasattr(pixbuf_renderer, "column"), "no column set for non-text"

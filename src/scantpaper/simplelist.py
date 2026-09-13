@@ -19,6 +19,16 @@ def scalar_cell_renderer(_tree_column, cell, model, itr, i):
     cell.text = "" if info is None else info
 
 
+def float_g_cell_renderer(_tree_column, cell, model, itr, i):
+    """Provide a custom cell renderer gtype float without a trailing decimal.
+
+    Whole numbers such as 210.0 are displayed as 210, while fractional
+    values such as 115.2 keep their decimal part.
+    """
+    info = model[itr][i]
+    cell.text = "" if info is None else f"{info:g}"
+
+
 column_types = {
     "hstring": {"type": str, "attr": "hidden"},
     "hint": {"type": int, "attr": "hidden"},
@@ -26,6 +36,11 @@ column_types = {
     "markup": {"type": str, "renderer": Gtk.CellRendererText, "attr": "markup"},
     "int": {"type": int, "renderer": Gtk.CellRendererText, "attr": "text"},
     "double": {"type": float, "renderer": Gtk.CellRendererText, "attr": "text"},
+    "mm": {
+        "type": float,
+        "renderer": Gtk.CellRendererText,
+        "attr": float_g_cell_renderer,
+    },
     "bool": {"type": bool, "renderer": Gtk.CellRendererToggle, "attr": "active"},
     "scalar": {
         "type": object,
@@ -94,6 +109,7 @@ class SimpleList(Gtk.TreeView):
                     col["attr"],
                     i,
                 )
+                self.do_connect_text_edited(col["renderer"], col["type"], i)
                 i += 1
 
             elif col["attr"] == "hidden":  # skip hidden column
@@ -119,14 +135,19 @@ class SimpleList(Gtk.TreeView):
                     # attach a decent 'edited' callback to any
                     # columns using a text renderer.  we do NOT
                     # turn on editing by default.
-                    row = column.get_cells()
-                    col["renderer"].connect(
-                        "edited",
-                        _weak_callback(self, "do_text_cell_edited"),
-                        col["type"],
-                    )
-                    col["renderer"].column = i
+                    self.do_connect_text_edited(col["renderer"], col["type"], i)
                     i += 1
+
+    def do_connect_text_edited(self, renderer, col_type, i):
+        """Connect the 'edited' signal of a text cell renderer."""
+        if not isinstance(renderer, Gtk.CellRendererText):
+            return
+        renderer.connect(
+            "edited",
+            _weak_callback(self, "do_text_cell_edited"),
+            col_type,
+        )
+        renderer.column = i
 
     def __iter__(self, *args, **kwargs):
         """Iterate over the rows of the list model."""

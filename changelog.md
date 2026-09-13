@@ -14,6 +14,10 @@
   couples options (e.g. page size and scan area). Such an option is now set
   at most twice and then dropped for that apply, so the scan proceeds with
   the options the driver accepts.
+* Keep sub-millimetre precision (e.g. 115.2 mm instead of 115 mm) when
+  defining custom paper sizes in the scan dialog. Fractional dimensions are
+  now accepted and preserved, while whole-millimetre sizes are still shown
+  without a trailing `.0`.
 
 
 ## 3.0.18 (2026-09-11)

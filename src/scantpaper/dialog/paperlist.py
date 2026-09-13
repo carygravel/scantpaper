@@ -13,10 +13,10 @@ class PaperList(SimpleList):
         """Initialise PaperList."""
         columns = {
             _("Name"): "text",
-            _("Width"): "int",
-            _("Height"): "int",
-            _("Left"): "int",
-            _("Top"): "int",
+            _("Width"): "mm",
+            _("Height"): "mm",
+            _("Left"): "mm",
+            _("Top"): "mm",
             _("Units"): "text",
         }
         super().__init__(**columns)
