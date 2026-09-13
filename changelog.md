@@ -7,6 +7,8 @@
 * Fix scan options saved by gscan2pdf 2.x (with no frontend list) being
   silently ignored at startup and then wiped from the config file. The stored
   options are now applied to the scan dialog and kept on save.
+* Fix startup warning about a legacy `null` image type from gscan2pdf 2.x
+  configs by migrating it to the default `pdf`.
 
 
 ## 3.0.18 (2026-09-11)

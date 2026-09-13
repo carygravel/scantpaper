@@ -326,6 +326,7 @@ def _deserialise_and_migrate(config):
     ):
         config["device list"] = [SimpleNamespace(**x) for x in config["device list"]]
 
+    _migrate_null_image_type(config)
     _normalise_profiles(config)
     _normalise_scan_options(config.get("default-scan-options"))
 
@@ -402,6 +403,21 @@ def _remove_legacy_int_tools(config):
     for k in "image_control_tool", "viewer_tools":
         if k in config and isinstance(config[k], int):
             del config[k]
+
+
+def _migrate_null_image_type(config):
+    """Migrate a legacy null image type to the application default.
+
+    gscan2pdf 2.x wrote the document type as JSON ``null`` until it was first
+    set. Treating it as an unusable str would warn on every startup and re-emit
+    ``null`` on the next write; migrate it to the default instead.
+    """
+    if "image type" in config and config["image type"] is None:
+        config["image type"] = DEFAULTS["image type"]
+        logger.info(
+            "The setting image type is null and has been migrated to %r.",
+            config["image type"],
+        )
 
 
 def _migrate_threshold_tool(config):

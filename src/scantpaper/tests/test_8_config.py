@@ -1,5 +1,6 @@
 """test config helper functions."""
 
+import json
 import logging
 import pathlib
 import tempfile
@@ -599,3 +600,51 @@ def test_write_config_is_copied_and_never_writes_old():
         assert output["datetime offset"] == timedelta(seconds=60), (
             "datetime offset round-trips"
         )
+
+
+def test_legacy_null_image_type_migrated_to_default():
+    """A legacy null image type is migrated to the application default."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"image type": null}', encoding="utf-8")
+
+        output = read_config(rc)
+
+        assert output["image type"] == DEFAULTS["image type"], (
+            "null image type is migrated to the default"
+        )
+        assert not output.load_warnings, "no warning is raised for the migrated value"
+
+
+def test_null_image_type_round_trips_as_default():
+    """The migrated value is written back as the default, not null."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"image type": null}', encoding="utf-8")
+
+        output = read_config(rc)
+        write_config(rc, output)
+        persisted = json.loads(slurp(rc))
+
+        assert persisted["image type"] == "pdf", "migrated value is stored, not null"
+
+
+def test_null_image_type_migration_logged_at_info(caplog):
+    """The migration is logged at INFO with no warning for the migrated value."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"image type": null}', encoding="utf-8")
+
+        with caplog.at_level(logging.INFO):
+            read_config(rc)
+
+        info_messages = [r.message for r in caplog.records if r.levelno == logging.INFO]
+        assert any(
+            "image type" in message and "migrated" in message
+            for message in info_messages
+        ), "migration is logged at INFO"
+        assert not any(
+            "image type" in r.message
+            for r in caplog.records
+            if r.levelno == logging.WARNING
+        ), "no warning is logged for the migrated image type"
