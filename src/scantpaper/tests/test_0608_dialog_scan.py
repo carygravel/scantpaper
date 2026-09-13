@@ -8,6 +8,80 @@ from scantpaper.scanner.profile import Profile
 from scantpaper.tests.scan_mocks import build_scan_options
 
 
+def setup_coupled_scan_options(
+    mocker, dlg, set_device_wait_reload, mainloop_with_timeout
+):
+    """Patch the SaneThread to alias scan-area and quick-format."""
+    mocker.patch(
+        "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
+    )
+
+    def mocked_do_open_device(self, request):
+        """Open device."""
+        device_name = request.args[0]
+        self.device_handle = SimpleNamespace(
+            resolution=75,
+            scan_area="Maximum",
+            quick_format="Maximum",
+        )
+        self.device = device_name
+        request.data(f"opened device '{self.device_name}'")
+
+    mocker.patch(
+        "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
+    )
+
+    raw_options = build_scan_options(
+        ["resolution-100-200-300-600", "scan-area-maximum-a4"]
+    )
+    raw_options.append(
+        Option(
+            index=len(raw_options),
+            name="quick-format",
+            title="Quick format",
+            desc="Quick format",
+            type=enums.TYPE_STRING,
+            unit=0,
+            size=1,
+            cap=5,
+            constraint=["Maximum", "A4", "A5 Landscape"],
+        )
+    )
+
+    def mocked_do_get_options(_self, _request):
+        """mocked_do_get_options."""
+        nonlocal raw_options
+        return raw_options
+
+    mocker.patch(
+        "scantpaper.dialog.sane.SaneThread.do_get_options", mocked_do_get_options
+    )
+
+    def mocked_do_set_option(self, _request):
+        """Revert the other media option when one is set (epkowa GT-20000)."""
+        key, value = _request.args
+        info = 0
+        if key == "scan-area":
+            self.device_handle.scan_area = value
+            self.device_handle.quick_format = value
+            info = enums.INFO_RELOAD_OPTIONS
+        elif key == "quick-format":
+            self.device_handle.quick_format = value
+            self.device_handle.scan_area = value
+            info = enums.INFO_RELOAD_OPTIONS
+        else:
+            setattr(self.device_handle, key.replace("-", "_"), value)
+        return info
+
+    mocker.patch(
+        "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option
+    )
+
+    trigger_get_devices(dlg, mainloop_with_timeout)
+    set_device_wait_reload(dlg, "mock_name")
+    return dlg
+
+
 def mocked_do_get_devices(_cls, _request):
     """mocked_do_get_devices."""
     devices = [("mock_name", "", "", "")]
@@ -76,6 +150,155 @@ def test_infinite_reloads(
 
     loop.run()
     assert dlg.num_reloads < 6, "finished reload loops without recursion limit"
+    assert dlg.current_scan_options.get_option_by_name("resolution") == 100, (
+        "profile option converged without being dropped"
+    )
+    assert dlg.current_scan_options.get_option_by_name("source") == "Flatbed", (
+        "second profile option converged without being dropped"
+    )
+
+
+def test_coupled_scan_options_drop_reverted(
+    mocker,
+    sane_scan_dialog,
+    set_device_wait_reload,
+    mainloop_with_timeout,
+):
+    """Coupled media options give up per-option instead of hitting the limit.
+
+    Reproduces the epkowa GT-20000 case from the log files: scan-area and
+    quick-format are aliased in the backend, so setting one reverts the
+    other. The apply must drop the reverted option after K re-applies, keep
+    the healthy options, and finish without the reload-recursion-limit error.
+    """
+    dlg = setup_coupled_scan_options(
+        mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+    )
+    loop = mainloop_with_timeout()
+
+    def settled_with_drop():
+        return (
+            not dlg.setting_current_scan_options
+            and dlg.current_scan_options.get_option_by_name("scan-area") is None
+            and dlg.current_scan_options.get_option_by_name("quick-format") is not None
+        )
+
+    def changed_current_scan_options_cb(_widget, _profile, _uuid):
+        if settled_with_drop():
+            dlg.disconnect(signal)
+            loop.quit()
+
+    signal = dlg.connect(
+        "changed-current-scan-options", changed_current_scan_options_cb
+    )
+    dlg.set_current_scan_options(
+        Profile(
+            backend=[
+                ("resolution", 100),
+                ("scan-area", "A5 Landscape"),
+                ("quick-format", "A4"),
+            ]
+        )
+    )
+
+    loop.run()
+
+    assert dlg.current_scan_options.get_option_by_name("scan-area") is None, (
+        "reverted option dropped"
+    )
+    assert dlg.current_scan_options.get_option_by_name("quick-format") == "A4", (
+        "non-reverted option kept"
+    )
+    assert dlg.current_scan_options.get_option_by_name("resolution") == 100, (
+        "healthy option still applied"
+    )
+    assert dlg._reverted_option_counts["scan-area"] == 2, "set at most K=2 times"
+    assert [n for n, _v in dlg.current_scan_options.get()["backend"]] == [
+        "resolution",
+        "quick-format",
+    ], "dropped option is not persisted in current scan options"
+    assert dlg.num_reloads < dlg.reload_recursion_limit, "no recursion limit hit"
+
+
+def test_apply_after_drop_starts_fresh(
+    mocker,
+    sane_scan_dialog,
+    set_device_wait_reload,
+    mainloop_with_timeout,
+):
+    """A second apply is not harmed by a previous one that dropped an option."""
+    dlg = setup_coupled_scan_options(
+        mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
+    )
+
+    def apply_profile(profile, condition):
+        loop = mainloop_with_timeout()
+        signal = None
+
+        def changed_current_scan_options_cb(_widget, _profile, _uuid):
+            if condition():
+                dlg.disconnect(signal)
+                loop.quit()
+
+        signal = dlg.connect(
+            "changed-current-scan-options", changed_current_scan_options_cb
+        )
+        dlg.set_current_scan_options(profile)
+        loop.run()
+
+    apply_profile(
+        Profile(
+            backend=[
+                ("resolution", 100),
+                ("scan-area", "A5 Landscape"),
+                ("quick-format", "A4"),
+            ]
+        ),
+        lambda: (
+            not dlg.setting_current_scan_options
+            and dlg.current_scan_options.get_option_by_name("scan-area") is None
+        ),
+    )
+    assert dlg.current_scan_options.get_option_by_name("scan-area") is None, (
+        "first apply dropped the reverted option"
+    )
+
+    apply_profile(
+        Profile(backend=[("scan-area", "A4")]),
+        lambda: (
+            not dlg.setting_current_scan_options
+            and dlg.current_scan_options.get_option_by_name("scan-area") == "A4"
+        ),
+    )
+    assert dlg.current_scan_options.get_option_by_name("scan-area") == "A4", (
+        "second apply was not affected by the earlier drop"
+    )
+    assert dlg._reverted_option_counts["scan-area"] == 1, (
+        "counters reset at the start of each apply"
+    )
+
+
+def test_linear_reload_backstop(
+    mocker,
+    sane_scan_dialog,
+    set_device_wait_reload,
+    mainloop_with_timeout,
+    infinite_reloads_scan_mocks,
+):
+    """The reload budget is linear in the option count, not triangular."""
+    mocker.patch(
+        "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
+    )
+    infinite_reloads_scan_mocks.patch_open_and_get(mocker)
+    dlg = sane_scan_dialog
+    trigger_get_devices(dlg, mainloop_with_timeout)
+    set_device_wait_reload(dlg, "mock_name")
+
+    num = dlg.available_scan_options.num_options()
+    assert dlg.reload_recursion_limit == 3 * num, "linear reload budget"
+    assert dlg.reload_recursion_limit < num * (num + 1) // 2, (
+        "smaller than the old triangular budget"
+    )
 
 
 def test_changed_profile(

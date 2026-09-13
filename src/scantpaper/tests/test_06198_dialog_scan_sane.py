@@ -52,18 +52,14 @@ def test_reloads_in_profile(
 
     def changed_profile_cb(_widget, profile):
         assert profile == "my profile", "changed-profile"
-        assert dialog.current_scan_options == Profile(
-            backend=[
-                ("scan-area", "A4"),
-                ("br-y", 297.0),
-                ("y-resolution", 150),
-                ("source", "Automatic Document Feeder"),
-                ("x-resolution", 150),
-                ("brightness", 10),
-                ("br-x", 210.0),
-                ("contrast", 10),
-            ],
-        ), "profile with multiple reloads"
+        assert dict(dialog.current_scan_options.get()["backend"]) == {
+            "y-resolution": 150,
+            "source": "Automatic Document Feeder",
+            "x-resolution": 150,
+            "brightness": 10,
+            "scan-area": "A4",
+            "contrast": 10,
+        }, "profile with multiple reloads; reverted br-x and br-y are dropped"
         loop.quit()
         nonlocal callbacks
         callbacks += 1

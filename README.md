@@ -131,7 +131,11 @@ pages; the session is always cancelled at the end of the batch.
 
 - **Scan:** Options for device, page count, source document, side to scan, and
   device-dependent options (page size, mode, resolution, batch-scan, etc.).
-  Optionally OCR each page on scan.
+  Optionally OCR each page on scan. When applying a scan-options profile, the
+  scanner driver may revert an option (some drivers couple or alias options,
+  e.g. page size and scan area); such an option is then set at most twice and
+  dropped for the rest of that apply, so the scan still proceeds instead of
+  ending in a reload-recursion error.
 - **Save:** Save selected/all pages in multiple formats. Supports metadata. The
   Title, Author, Subject, and Keywords fields offer autocompletion, suggesting
   values from imported documents and values you have entered before. When saving

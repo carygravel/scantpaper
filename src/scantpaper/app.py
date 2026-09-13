@@ -6,6 +6,7 @@
 # various improvements from StackOverflow
 # add type hints and turn on type checks in tox.ini
 # migrate to Gtk4
+# + scan profile viewer/editor
 # remaining FIXMEs and TODOs
 
 import argparse

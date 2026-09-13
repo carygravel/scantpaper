@@ -9,6 +9,11 @@
   options are now applied to the scan dialog and kept on save.
 * Fix startup warning about a legacy `null` image type from gscan2pdf 2.x
   configs by migrating it to the default `pdf`.
+* Fix applying a scan-options profile getting stuck in a reload loop and
+  ending in a reload-recursion error when the scanner driver reverts or
+  couples options (e.g. page size and scan area). Such an option is now set
+  at most twice and then dropped for that apply, so the scan proceeds with
+  the options the driver accepts.
 
 
 ## 3.0.18 (2026-09-11)

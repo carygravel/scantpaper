@@ -27,6 +27,7 @@ CANVAS_BORDER = 10
 CANVAS_POINT_SIZE = 10
 CANVAS_MIN_WIDTH = 1
 NO_INDEX = -1
+MAX_REVERTED_OPTION_COUNT = 2
 
 logger = logging.getLogger(__name__)
 
@@ -350,9 +351,12 @@ class Scan(PageControls):
         self._flatbed_or_duplex_callback()
 
         # reload-recursion-limit is read-only
-        # Triangular number n + n-1 + n-2 + ... + 1 = n*(n+1)/2
+        # Each option is set at most MAX_REVERTED_OPTION_COUNT times during
+        # an apply, and each set costs at most one reload, so total reloads
+        # are bounded linearly with the option count (3 per option allows one
+        # extra for the initial fetch and paper/geometry side effects).
         num = newval.num_options()
-        self.reload_recursion_limit = num * (num + 1) // 2
+        self.reload_recursion_limit = 3 * num
         self.emit("reloaded-scan-options")
 
     @GObject.Property(type=object, nick="Cursor", blurb="name of current cursor")
@@ -400,6 +404,7 @@ class Scan(PageControls):
         self.option_widgets = {}
         self._geometry_boxes = {}
         self._option_info = {}
+        self._reverted_option_counts = {}
 
         self.connect("show", self.show)
         self._add_device_combobox()
@@ -724,10 +729,11 @@ class Scan(PageControls):
                 "process-error",
                 "update_options",
                 _(
-                    "Reload recursion limit (%d) exceeded. Please file a bug, "
-                    "attaching a log file reproducing the problem."
+                    "Reload recursion limit (%d) exceeded: %d reloads for %d "
+                    "scan options. Please file a bug, attaching a log file "
+                    "reproducing the problem."
                 )
-                % (limit),
+                % (limit, self.num_reloads, self.available_scan_options.num_options()),
             )
             return
 
@@ -935,6 +941,7 @@ class Scan(PageControls):
         # forget the previous option info calls, as these are only interesting
         # *whilst* setting a profile, and now we are starting from scratch
         self._option_info = {}
+        self._reverted_option_counts = {}
         if not paper_profile.num_backend_options():
             self._hide_geometry(options)
             self._paper = paper
@@ -1170,6 +1177,7 @@ class Scan(PageControls):
         # forget the previous option info calls, as these are only interesting
         # *whilst* setting a profile, and now we are starting from scratch
         self._option_info = {}
+        self._reverted_option_counts = {}
 
         # If we have no options set, no need to reset to defaults
         if self.current_scan_options.num_backend_options() == 0:
@@ -1247,10 +1255,39 @@ class Scan(PageControls):
             self._set_option_profile(profile, itr)
             return
 
+        # Give up on options the backend keeps reverting: set each option
+        # at most MAX_REVERTED_OPTION_COUNT times per top-level apply, then
+        # drop it from current_scan_options so later reloads and saved
+        # defaults no longer carry it.
+        if self._reverted_option_exhausted(name):
+            logger.warning(
+                "Option '%s' reverted %d times, so it has been dropped from the"
+                " current scan options.",
+                name,
+                self._reverted_option_counts[name],
+            )
+            if self.current_scan_options.get_option_by_name(name) is not None:
+                self.current_scan_options.remove_backend_option_by_name(name)
+            self._set_option_profile(profile, itr)
+            return
+
         logger.debug(
             "Setting option '%s'%s", name, _option_value_message(opt, curval, val)
         )
         self._set_option_with_hook(profile, itr, opt, val)
+
+    def _reverted_option_exhausted(self, name):
+        """Return whether the option may no longer be re-applied.
+
+        Counts how often the option has been set during this top-level apply;
+        once it reaches MAX_REVERTED_OPTION_COUNT, further sets are refused.
+        """
+        if self._reverted_option_counts.get(name, 0) >= MAX_REVERTED_OPTION_COUNT:
+            return True
+        self._reverted_option_counts[name] = (
+            self._reverted_option_counts.get(name, 0) + 1
+        )
+        return False
 
     def _next_backend_option(self, profile, itr):
         """Return the next backend option from the profile iterator."""

@@ -244,6 +244,7 @@ class SaneScanDialog(Scan):
 
         def activate_switch_cb(_widget, _arg2):
             self.num_reloads = 0  # num-reloads is read-only
+            self._reverted_option_counts.pop(opt.name, None)
             value = widget.get_active()
             self.set_option(opt, value=value)
 
@@ -255,6 +256,7 @@ class SaneScanDialog(Scan):
 
         def clicked_button_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
+            self._reverted_option_counts.pop(opt.name, None)
             self.set_option(opt, value=None)
 
         widget.signal = widget.connect("clicked", clicked_button_cb)
@@ -283,6 +285,7 @@ class SaneScanDialog(Scan):
 
         def value_changed_spinbutton_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
+            self._reverted_option_counts.pop(opt.name, None)
             value = widget.get_value()
             if opt.type == enums.TYPE_INT:
                 value = int(value)
@@ -305,6 +308,7 @@ class SaneScanDialog(Scan):
 
         def changed_combobox_cb(_arg):
             self.num_reloads = 0  # num-reloads is read-only
+            self._reverted_option_counts.pop(opt.name, None)
             i = widget.get_active()
 
             # refetch options in case they have changed.
@@ -326,6 +330,7 @@ class SaneScanDialog(Scan):
 
         def activate_entry_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
+            self._reverted_option_counts.pop(opt.name, None)
             value = widget.get_text()
             self.set_option(opt, value=value)
 

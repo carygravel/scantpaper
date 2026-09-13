@@ -707,10 +707,10 @@ def test_infinite_reloads(
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
     def mocked_do_set_option(_self, _request):
-        """Force a reload for every option.
+        """Never store the value, so the backend reverts every option.
 
-        Trigger an infinite reload loop and test that the reload-recursion-limit
-        is respected.
+        Trigger an infinite reload loop and test that the apply gives up
+        per-option instead of hitting the reload-recursion-limit.
         """
         return enums.INFO_RELOAD_OPTIONS
 
@@ -736,4 +736,12 @@ def test_infinite_reloads(
     )
 
     loop.run()
-    assert dlg.num_reloads > 6, "broke out of reload infinite loop"
+    assert dlg.num_reloads < dlg.reload_recursion_limit, (
+        "broke out of the reload loop without hitting the recursion limit"
+    )
+    assert dlg.current_scan_options.get_option_by_name("resolution") is None, (
+        "reverted resolution dropped"
+    )
+    assert dlg.current_scan_options.get_option_by_name("source") is None, (
+        "reverted source dropped"
+    )
