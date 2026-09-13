@@ -6,9 +6,8 @@ from typing import NamedTuple
 
 from gi.repository import GObject
 
+from scantpaper.const import EMPTY
 from scantpaper.frontend import enums
-
-EMPTY = ""
 
 
 class Option(NamedTuple):

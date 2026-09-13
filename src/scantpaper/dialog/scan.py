@@ -28,6 +28,8 @@ CANVAS_POINT_SIZE = 10
 CANVAS_MIN_WIDTH = 1
 NO_INDEX = -1
 MAX_REVERTED_OPTION_COUNT = 2
+MULTI_VALUE_OPTION_SIZE = 2
+FIXED_PAPER_SIZES = 2
 
 logger = logging.getLogger(__name__)
 
@@ -853,7 +855,7 @@ class Scan(PageControls):
         )
 
         # TODO: test options with multiple values in more detail
-        if opt.size < 2:
+        if opt.size < MULTI_VALUE_OPTION_SIZE:
             self._update_single_option(opt)
 
         if blocked:
@@ -865,7 +867,7 @@ class Scan(PageControls):
         if self.combobp is not None:
             # Remove all formats, leaving Manual and Edit
             num = self.combobp.get_num_rows()
-            while num > 2:
+            while num > FIXED_PAPER_SIZES:
                 num -= 1
                 self.combobp.remove(0)
             self.ignored_paper_sizes = []

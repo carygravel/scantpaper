@@ -6,6 +6,7 @@ import re
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
+from scantpaper.const import _LOCAL_TZ, MAX_DPI
 from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
 from scantpaper.i18n import _
@@ -17,7 +18,6 @@ from gi.repository import (  # noqa: E402
     Gtk,
 )
 
-MAX_DPI = 2400
 ENTRY_WIDTH_DATE = 10
 ENTRY_WIDTH_DATETIME = 19
 IMAGE_TYPES = [
@@ -78,8 +78,6 @@ TIFF_COMPRESSION_ALGS = [
     ("g4", _("G4"), _("Compress output with CCITT Group 4 encoding.")),
     ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
-
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 class Save(Dialog):

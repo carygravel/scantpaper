@@ -5,6 +5,7 @@ import json
 import gi
 import pytest
 
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.dialog.paperlist import PaperList
 
 gi.require_version("Gtk", "3.0")
@@ -15,7 +16,7 @@ def test_paperlist():
     """Test PaperList class."""
     with pytest.raises(TypeError):
         PaperList()
-    plist = PaperList({"A4": {"x": 210, "y": 297, "l": 0, "t": 0}})
+    plist = PaperList({"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}})
     assert plist is not None
 
     plist.do_add_clicked(None)
@@ -82,20 +83,20 @@ def test_fractional_dimensions_preserved():
 
 def test_integer_whole_mm_roundtrip():
     """Integer-defined whole-millimetre sizes stay numerically equal."""
-    plist = PaperList({"A4": {"x": 210, "y": 297, "l": 0, "t": 0}})
-    assert plist.data[0][1] == 210, "width numerically equal"
-    assert plist.data[0][2] == 297, "height numerically equal"
+    plist = PaperList({"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}})
+    assert plist.data[0][1] == A4_WIDTH_MM, "width numerically equal"
+    assert plist.data[0][2] == A4_HEIGHT_MM, "height numerically equal"
 
 
 def test_apply_roundtrip_json_identical():
     """Apply-style round-trip writes floats kept numerically identical in JSON."""
-    plist = PaperList({"A4": {"x": 210, "y": 297, "l": 0, "t": 0}})
+    plist = PaperList({"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}})
     formats = {}
     for row in plist.data:
         formats[row[0]] = {
             side: row[j] for j, side in enumerate(["x", "y", "l", "t"], start=1)
         }
     roundtrip = json.loads(json.dumps(formats))
-    assert roundtrip["A4"]["x"] == 210, "width preserved in JSON"
+    assert roundtrip["A4"]["x"] == A4_WIDTH_MM, "width preserved in JSON"
     assert isinstance(roundtrip["A4"]["x"], float), "stored as float"
-    assert roundtrip["A4"]["y"] == 297, "height preserved in JSON"
+    assert roundtrip["A4"]["y"] == A4_HEIGHT_MM, "height preserved in JSON"

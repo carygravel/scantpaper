@@ -12,6 +12,7 @@ from scantpaper.const import (
     _90_DEGREES,
     _100_PERCENT,
     _180_DEGREES,
+    _LOCAL_TZ,
     PERCENT,
     SELECTOR_TOOL,
     SELECTORDRAGGER_TOOL,
@@ -34,8 +35,6 @@ from gi.repository import (  # noqa: E402
 )
 
 logger = logging.getLogger(__name__)
-
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 class ToolsMenuMixins:

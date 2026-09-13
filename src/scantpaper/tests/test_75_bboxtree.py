@@ -3,6 +3,7 @@
 import pytest
 
 from scantpaper.bboxtree import HOCR_HEADER, VERSION, Bboxtree
+from scantpaper.const import POINTS_PER_INCH
 
 
 def test_1():
@@ -817,7 +818,7 @@ def test_from_pdftotext():
         },
     ]
     tree = Bboxtree()
-    tree.from_pdftotext(pdftext, (72, 72), (59, 465))
+    tree.from_pdftotext(pdftext, (POINTS_PER_INCH, POINTS_PER_INCH), (59, 465))
     assert tree.bbox_tree == expected, "from_pdftotext() basic functionality"
 
     #########################
@@ -901,7 +902,7 @@ def test_from_pdftotext():
 </html>
 """
     tree = Bboxtree()
-    tree.from_pdftotext(pdftext, (72, 72), (59, 465))
+    tree.from_pdftotext(pdftext, (POINTS_PER_INCH, POINTS_PER_INCH), (59, 465))
     assert tree.bbox_tree == [], "from_pdftotext() no body"
 
     pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -916,7 +917,7 @@ def test_from_pdftotext():
 </html>
 """
     tree = Bboxtree()
-    tree.from_pdftotext(pdftext, (72, 72), (59, 465))
+    tree.from_pdftotext(pdftext, (POINTS_PER_INCH, POINTS_PER_INCH), (59, 465))
     assert tree.bbox_tree == [], "from_pdftotext() no boxes"
 
     pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -937,7 +938,7 @@ def test_from_pdftotext():
 """
     expected = []
     tree = Bboxtree()
-    tree.from_pdftotext(pdftext, (72, 72), (59, 465))
+    tree.from_pdftotext(pdftext, (POINTS_PER_INCH, POINTS_PER_INCH), (59, 465))
     assert tree.bbox_tree == expected, "from_pdftotext() invalid page"
 
 

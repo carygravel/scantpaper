@@ -13,7 +13,7 @@ import gi
 
 from scantpaper import config
 from scantpaper.comboboxtext import ComboBoxText
-from scantpaper.const import ASTERISK, EMPTY, EMPTY_LIST
+from scantpaper.const import _LOCAL_TZ, ASTERISK, EMPTY, EMPTY_LIST
 from scantpaper.dialog.save import Save as SaveDialog
 from scantpaper.helpers import collate_metadata, expand_metadata_pattern
 from scantpaper.i18n import _
@@ -28,8 +28,6 @@ from gi.repository import (  # noqa: E402
 )
 
 logger = logging.getLogger(__name__)
-
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 def add_filter(file_chooser, name, file_extensions):

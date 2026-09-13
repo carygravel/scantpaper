@@ -18,6 +18,7 @@ from PIL import Image
 
 from scantpaper import config
 from scantpaper.basethread import Request
+from scantpaper.const import POINTS_PER_INCH
 from scantpaper.docthread import DocThread
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
@@ -62,7 +63,7 @@ def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
                 dir=tdir,
                 delete=True,
                 format="Portable anymap",
-                resolution=(72, 72, "PixelsPerInch"),
+                resolution=(POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch"),
                 width=70,
                 height=46,
             ),
@@ -942,7 +943,7 @@ def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
                 dir=tdir,
                 delete=True,
                 format="Portable anymap",
-                resolution=(72, 72, "PixelsPerInch"),
+                resolution=(POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch"),
                 width=70,
                 height=46,
                 text_layer="[]",

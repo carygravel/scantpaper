@@ -606,7 +606,7 @@ class ApplicationWindow(
             self._vpaned.pack1(self._vpanei, resize=True, shrink=True)
 
     def _handle_clicks(self, widget, event):
-        if event.button == 3:  # RIGHT_MOUSE_BUTTON
+        if event.button == Gdk.BUTTON_SECONDARY:
             if isinstance(widget, ImageView):  # main image
                 self.detail_popup.show_all()
                 self.detail_popup.popup_at_pointer(event)

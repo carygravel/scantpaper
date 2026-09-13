@@ -7,6 +7,7 @@ from types import SimpleNamespace
 import gi
 from gi.repository import GObject, Gtk
 
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.dialog.scan import (
     POINTS_PER_INCH,
     Scan,
@@ -755,7 +756,7 @@ class TestScanDialog:
         """Test _set_paper with geometry options."""
         scan = MockScan()
         scan.combobp.get_num_rows.return_value = 0
-        scan.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+        scan.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}}
 
         options = unittest.mock.Mock()
         opt = MockOption("page-height", enums.TYPE_INT)

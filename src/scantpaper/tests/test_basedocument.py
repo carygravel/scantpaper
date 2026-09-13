@@ -13,6 +13,7 @@ import gi
 import pytest
 
 from scantpaper.basedocument import ID_PAGE, ID_URI, drag_data_received_callback
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.docthread import INSERT_AT_START
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
@@ -619,7 +620,7 @@ def test_copy_selection_empty():
 def test_set_paper_sizes(mock_thread):
     """Test set_paper_sizes."""
     slist = Document()
-    sizes = {"A4": (210, 297)}
+    sizes = {"A4": (A4_WIDTH_MM, A4_HEIGHT_MM)}
     slist.set_paper_sizes(sizes)
 
     mock_thread.send.assert_called_with("set_paper_sizes", sizes)

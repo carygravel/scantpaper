@@ -27,6 +27,7 @@ from gi.repository import (  # noqa: E402
 )
 
 PAGE_TOLERANCE = 0.02
+JFIF_UNIT_CENTIMETER = 2
 # 16-bit integer modes for which PIL's C Image.reduce is unsupported.
 # These fall back to a direct resize.
 _REDUCE_UNSUPPORTED = {"I;16", "I;16B", "I;16L", "I;12"}
@@ -264,7 +265,7 @@ class Page:
 
         if (
             "jfif_unit" in self.image_object.info
-            and self.image_object.info["jfif_unit"] == 2
+            and self.image_object.info["jfif_unit"] == JFIF_UNIT_CENTIMETER
         ):
             units = "PixelsPerCentimeter"
             xresolution *= CM_PER_INCH

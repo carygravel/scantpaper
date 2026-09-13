@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import gi
 import pytest
 
+from scantpaper.const import POINTS_PER_INCH
 from scantpaper.dialog.pagecontrols import (
     PageControls,
     _extended_pagenumber_checkbox_callback,
@@ -103,7 +104,7 @@ def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
         loop1 = mainloop_with_timeout()
         slist.import_scan(
             filename=rose_pnm,
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=tempdir,
             finished_callback=lambda _response: loop1.quit(),
         )

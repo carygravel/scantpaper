@@ -23,6 +23,8 @@ image_format = {
     "pbm": "Portable bitmap format (black and white)",
 }
 
+PDFIMAGES_LIST_COLUMNS = 14
+
 
 class CancelledError(RuntimeError):
     """Raised when a job is cancelled."""
@@ -584,7 +586,7 @@ def _parse_pdfimages_list(out):
     entries = []
     for line in out.splitlines():
         tokens = line.split()
-        if len(tokens) < 14:
+        if len(tokens) < PDFIMAGES_LIST_COLUMNS:
             continue
         try:
             page = int(tokens[0])

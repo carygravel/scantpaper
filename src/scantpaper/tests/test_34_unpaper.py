@@ -8,6 +8,7 @@ import pytest
 from PIL import Image, ImageDraw
 
 from scantpaper import config
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, POINTS_PER_INCH
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.unpaper import Unpaper
@@ -164,7 +165,7 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
     """Test unpaper."""
     unpaper = Unpaper()
     paper_sizes = {
-        "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
+        "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
     }
@@ -231,7 +232,7 @@ def test_unpaper2(
     """Test unpaper."""
     unpaper = Unpaper()
     paper_sizes = {
-        "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
+        "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
     }
@@ -263,7 +264,9 @@ def test_unpaper2(
     import_in_mainloop(slist, [temp_pnm.name])
 
     page = get_page_sync(slist.thread, id=1)
-    assert page.resolution[0] == 72, "non-standard size pnm imports with 72 PPI"
+    assert page.resolution[0] == POINTS_PER_INCH, (
+        "non-standard size pnm imports with 72 PPI"
+    )
 
     set_resolution_in_mainloop(slist, 1, 300, 300)
     page = get_page_sync(slist.thread, id=1)
@@ -357,7 +360,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
     import_in_mainloop(slist, [temp_pnm.name])
 
     page = get_page_sync(slist.thread, id=1)
-    assert page.resolution[0] == 72, "Resolution of imported image"
+    assert page.resolution[0] == POINTS_PER_INCH, "Resolution of imported image"
 
     asserts = 0
 
@@ -378,9 +381,9 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
 
     assert asserts == 2, "all callbacks run"
     page = get_page_sync(slist.thread, id=1)
-    assert page.resolution[0] == 72, "Resolution of 1st page"
+    assert page.resolution[0] == POINTS_PER_INCH, "Resolution of 1st page"
     page = get_page_sync(slist.thread, id=2)
-    assert page.resolution[0] == 72, "Resolution of 2nd page"
+    assert page.resolution[0] == POINTS_PER_INCH, "Resolution of 2nd page"
 
     #########################
 

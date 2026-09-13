@@ -10,7 +10,13 @@ from gi.repository import GdkPixbuf
 from PIL import Image
 
 from scantpaper import config
-from scantpaper.const import VERSION
+from scantpaper.const import (
+    A4_HEIGHT_MM,
+    A4_WIDTH_MM,
+    MM_PER_INCH,
+    POINTS_PER_INCH,
+    VERSION,
+)
 from scantpaper.helpers import Proc
 from scantpaper.page import Page, _prepare_scale
 
@@ -28,10 +34,16 @@ def test_1(temp_pnm, temp_jpg):
 
         # Create test image
         subprocess.run(
-            [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
+            [
+                config.CONVERT_COMMAND,
+                "-size",
+                f"{A4_WIDTH_MM}x{A4_HEIGHT_MM}",
+                "xc:white",
+                temp_pnm.name,
+            ],
             check=True,
         )
-        image_object = Image.new("RGB", (210, 297))
+        image_object = Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM))
 
         #########################
 
@@ -57,20 +69,24 @@ def test_1(temp_pnm, temp_jpg):
         }
 
         page = Page(image_object=image_object, dir=dirname)
-        assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, (
+        assert page.matching_paper_sizes(paper_sizes) == {"A4": MM_PER_INCH}, (
             "from image object"
         )
 
         page = Page(filename=temp_pnm.name, dir=dirname)
-        assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic portrait"
+        assert page.matching_paper_sizes(paper_sizes) == {"A4": MM_PER_INCH}, (
+            "basic portrait"
+        )
         page = Page(filename=temp_pnm.name, dir=dirname)
-        assert page.matching_paper_sizes(paper_sizes) == {"A4": 25.4}, "basic landscape"
+        assert page.matching_paper_sizes(paper_sizes) == {"A4": MM_PER_INCH}, (
+            "basic landscape"
+        )
 
         #########################
 
         assert page.get_resolution(paper_sizes) == (
-            25.4,
-            25.4,
+            MM_PER_INCH,
+            MM_PER_INCH,
             "PixelsPerInch",
         ), "resolution"
 
@@ -157,7 +173,13 @@ def test_1(temp_pnm, temp_jpg):
 def test_2(temp_pnm):
     """Tests for Page class."""
     subprocess.run(
-        [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
+        [
+            config.CONVERT_COMMAND,
+            "-size",
+            f"{A4_WIDTH_MM}x{A4_HEIGHT_MM}",
+            "xc:white",
+            temp_pnm.name,
+        ],
         check=True,
     )
 
@@ -185,7 +207,11 @@ def test_2(temp_pnm):
             filename=temp_pnm.name,
             dir=dirname,
         )
-        assert page.get_resolution() == (72, 72, "PixelsPerInch"), "default to 72"
+        assert page.get_resolution() == (
+            POINTS_PER_INCH,
+            POINTS_PER_INCH,
+            "PixelsPerInch",
+        ), "default to 72"
 
         #########################
 
@@ -329,7 +355,7 @@ def test_get_pixbuf_error(mocker):
     mocker.patch(
         "scantpaper.page.GdkPixbuf.Pixbuf.new_from_file_at_scale", side_effect=TypeError
     )
-    page = Page(image_object=Image.new("RGB", (210, 297)))
+    page = Page(image_object=Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)))
     assert page.get_pixbuf() is None, "TypeError from Pixbuf.new_from_file not caught"
     assert page.get_pixbuf_at_scale(1, 1) is None, (
         "TypeError from Pixbuf.new_from_file_at_scale not caught"
@@ -342,7 +368,7 @@ def test_write_image_for_djvu():
         tempfile.TemporaryDirectory() as dirname,
         tempfile.NamedTemporaryFile(suffix=".pbm") as filename,
     ):
-        page = Page(image_object=Image.new("1", (210, 297)))
+        page = Page(image_object=Image.new("1", (A4_WIDTH_MM, A4_HEIGHT_MM)))
         page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
         assert pathlib.Path(filename.name).is_file(), (
             "write_image_for_djvu() creates a file"
@@ -355,7 +381,7 @@ def test_write_image_for_tiff():
         tempfile.TemporaryDirectory() as dirname,
         tempfile.NamedTemporaryFile(suffix=".tif") as filename,
     ):
-        page = Page(image_object=Image.new("RGB", (210, 297)))
+        page = Page(image_object=Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)))
         page.resolution = (300, 300, "PixelsPerInch")
         page.write_image_for_tiff(
             filename.name, {"dir": dirname, "options": {"compression": "jpeg"}}
@@ -375,7 +401,7 @@ def test_write_image_for_djvu_error(mocker):
         mock_exec.return_value = Proc(
             returncode=1, stdout="", stderr="compression error"
         )
-        page = Page(image_object=Image.new("1", (210, 297)))
+        page = Page(image_object=Image.new("1", (A4_WIDTH_MM, A4_HEIGHT_MM)))
         # This should log an error but not raise an exception
         page.write_image_for_djvu(filename.name, {"dir": dirname, "pidfile": None})
         mock_exec.assert_called_once()
@@ -397,14 +423,16 @@ def test_import_hocr_empty():
 </html>
 """
     with tempfile.TemporaryDirectory() as dirname:
-        page = Page(image_object=Image.new("RGB", (210, 297)), dir=dirname)
+        page = Page(
+            image_object=Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)), dir=dirname
+        )
         page.import_hocr(empty_hocr)
         assert page.text_layer is None, "empty hOCR should set text_layer to None"
 
 
 def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif):
     """continuous-tone TIFF pages are stored as JPEG."""
-    Image.new("L", (210, 297), 128).save(temp_tif.name)
+    Image.new("L", (A4_WIDTH_MM, A4_HEIGHT_MM), 128).save(temp_tif.name)
     page = Page(filename=temp_tif.name)
     stored = page.to_stored_bytes()
     assert Image.open(io.BytesIO(stored)).format == "JPEG"
@@ -412,7 +440,7 @@ def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif):
 
 def test_to_stored_bytes_bilevel_is_png(temp_tif):
     """1-bit pages are stored losslessly as PNG."""
-    Image.new("1", (210, 297), 0).save(temp_tif.name)
+    Image.new("1", (A4_WIDTH_MM, A4_HEIGHT_MM), 0).save(temp_tif.name)
     page = Page(filename=temp_tif.name)
     stored = page.to_stored_bytes()
     assert Image.open(io.BytesIO(stored)).format == "PNG"
@@ -420,7 +448,7 @@ def test_to_stored_bytes_bilevel_is_png(temp_tif):
 
 def test_to_stored_bytes_rgba_is_png():
     """Images with an alpha channel are stored losslessly."""
-    page = Page(image_object=Image.new("RGBA", (210, 297)))
+    page = Page(image_object=Image.new("RGBA", (A4_WIDTH_MM, A4_HEIGHT_MM)))
     stored = page.to_stored_bytes()
     image = Image.open(io.BytesIO(stored))
     assert image.format == "PNG"
@@ -429,7 +457,7 @@ def test_to_stored_bytes_rgba_is_png():
 
 def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
     """Importing a JPEG file stores the original bytes."""
-    Image.new("RGB", (210, 297)).save(temp_jpg.name, format="JPEG")
+    Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(temp_jpg.name, format="JPEG")
     with pathlib.Path(temp_jpg.name).open("rb") as fhd:
         original = fhd.read()
     page = Page(filename=temp_jpg.name)
@@ -438,7 +466,7 @@ def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
 
 def test_to_stored_bytes_png_file_passthrough(temp_png):
     """Importing a PNG file stores the original bytes."""
-    Image.new("RGB", (210, 297)).save(temp_png.name, format="PNG")
+    Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(temp_png.name, format="PNG")
     with pathlib.Path(temp_png.name).open("rb") as fhd:
         original = fhd.read()
     page = Page(filename=temp_png.name)
@@ -544,10 +572,10 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(mocker):
 def test_write_image_for_pdf_passthrough():
     """Stored JPEG bytes are written to the PDF without re-encoding."""
     buf = io.BytesIO()
-    Image.new("RGB", (210, 297)).save(buf, format="JPEG", quality=92)
+    Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
     stored = buf.getvalue()
     page = Page.from_bytes(stored)
-    page.resolution = (72, 72, "PixelsPerInch")
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
     with tempfile.NamedTemporaryFile(suffix=".png") as filename:
         page.write_image_for_pdf(filename.name, None)
         with pathlib.Path(filename.name).open("rb") as fhd:
@@ -557,10 +585,10 @@ def test_write_image_for_pdf_passthrough():
 def test_write_image_for_pdf_reenocodes_with_options():
     """Downsampling or compression forces a re-encode."""
     buf = io.BytesIO()
-    Image.new("RGB", (210, 297)).save(buf, format="JPEG", quality=92)
+    Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
     stored = buf.getvalue()
     page = Page.from_bytes(stored)
-    page.resolution = (72, 72, "PixelsPerInch")
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
     with tempfile.NamedTemporaryFile(suffix=".png") as filename:
         options = {"options": {"downsample": True, "downsample dpi": 36}}
         page.write_image_for_pdf(filename.name, options)
@@ -579,10 +607,10 @@ def test_write_image_for_pdf_reenocodes_with_options():
 
 def test_from_bytes_png_blob_readable():
     """PNG blobs from sessions before this change remain readable."""
-    img = Image.new("RGB", (210, 297))
+    img = Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     page = Page.from_bytes(buf.getvalue(), id=1)
     assert page.image_object.format == "PNG", "stored format detected"
-    assert page.get_size() == (210, 297), "page size read from blob"
+    assert page.get_size() == (A4_WIDTH_MM, A4_HEIGHT_MM), "page size read from blob"
     assert isinstance(page.get_pixbuf(), GdkPixbuf.Pixbuf), "PNG blob displays"

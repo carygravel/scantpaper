@@ -7,6 +7,7 @@ from unittest.mock import Mock
 
 import gi
 
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, POINTS_PER_INCH
 from scantpaper.dialog.scan import Scan
 from scantpaper.document import Document
 from scantpaper.frontend import enums
@@ -76,7 +77,7 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
     with tempfile.TemporaryDirectory() as tempdir:
         options = {
             "filename": rose_pnm,
-            "resolution": (72, 72, "PixelsPerInch"),
+            "resolution": (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch"),
             "dir": tempdir,
         }
         slist.import_scan(**options)
@@ -676,7 +677,7 @@ def test_officejet_4620(
     dlg = sane_scan_dialog
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_sizes = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
+    dlg.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "t": 0, "l": 0}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)
@@ -721,7 +722,7 @@ def test_infinite_reloads(
     dlg = sane_scan_dialog
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_sizes = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
+    dlg.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "t": 0, "l": 0}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)

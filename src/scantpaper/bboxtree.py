@@ -6,12 +6,13 @@ import json
 import re
 from html.parser import HTMLParser
 
-from scantpaper.const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
+from scantpaper.const import ANNOTATION_COLOR, HALF, POINTS_PER_INCH, VERSION
 
 DOUBLE_QUOTES = '"'
 BBOX_REGEX = r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)"
 HILITE_REGEX = r"[(]hilite\s+[#][A-Fa-f\d]{6}[)]\s+[(]xor[)]"
-HALF = 0.5
+MIN_BASELINE_COEFFICIENTS = 2
+CLASS_NAME_PARTS = 2
 HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -446,7 +447,7 @@ class HOCRParser(HTMLParser):
                     values[i] = int(value)
 
             # make sure we at least have 2 coefficients
-            if len(values) < 2:
+            if len(values) < MIN_BASELINE_COEFFICIENTS:
                 values.insert(0, 0)
             data["baseline"] = values
 
@@ -454,7 +455,7 @@ class HOCRParser(HTMLParser):
 
     def _parse_class(self, class_name):
         class_name = re.split("_", class_name)
-        if len(class_name) == 2:
+        if len(class_name) == CLASS_NAME_PARTS:
             class_name[1] = (
                 class_name[1].replace("carea", "column").replace("par", "para")
             )

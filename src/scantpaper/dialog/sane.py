@@ -5,14 +5,15 @@ import weakref
 
 from gi.repository import GObject, Gtk
 
+from scantpaper.const import EMPTY
 from scantpaper.dialog.scan import Scan, _geometry_option, make_progress_string
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
 from scantpaper.i18n import _, d_sane
 from scantpaper.scanner.options import Options
 
-EMPTY = ""
 LAST_PAGE = -1
+FIRST_OPTIONS_PAGE = 2
 logger = logging.getLogger(__name__)
 
 
@@ -92,7 +93,7 @@ class SaneScanDialog(Scan):
             device = self.device
 
         # Remove any existing pages
-        while self.notebook.get_n_pages() > 2:
+        while self.notebook.get_n_pages() > FIRST_OPTIONS_PAGE:
             self.notebook.remove_page(LAST_PAGE)
 
         # Remove lookups to geometry boxes and option widgets

@@ -25,6 +25,7 @@ from scantpaper.canvas import (
     rgb2hsv,
     string2rgb,
 )
+from scantpaper.const import POINTS_PER_INCH
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
@@ -167,7 +168,7 @@ def test_canvas_basics(rose_pnm):
         page = Page(
             filename=rose_pnm,
             format="Portable anymap",
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=dirname,
         )
         page.import_hocr(
@@ -228,7 +229,7 @@ def test_canvas_basics2(rose_pnm):
         page = Page(
             filename=rose_pnm,
             format="Portable anymap",
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=dirname,
         )
         page.import_hocr(
@@ -415,7 +416,7 @@ def test_hocr(rose_pnm):
         page = Page(
             filename=rose_pnm,
             format="Portable anymap",
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=dirname,
         )
 
@@ -520,7 +521,7 @@ def test_bbox_text_placement(rose_pnm):
         page = Page(
             filename=rose_pnm,
             format="Portable anymap",
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=dirname,
         )
         page.import_hocr(
@@ -1260,7 +1261,7 @@ def test_canvas_set_text_full(rose_pnm):
         page = Page(
             filename=rose_pnm,
             format="Portable anymap",
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=dirname,
         )
         page.text_layer = json.dumps(
@@ -1886,7 +1887,7 @@ def test_canvas_no_stack_overflow(rose_pnm):
         page = Page(
             filename=rose_pnm,
             format="Portable anymap",
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=dirname,
         )
 
@@ -2400,7 +2401,7 @@ def test_canvas_set_text_finished_with_rebuild_edge(mocker, rose_pnm):
         page = Page(
             filename=rose_pnm,
             format="Portable anymap",
-            resolution=72,
+            resolution=POINTS_PER_INCH,
             dir=dirname,
         )
         page.text_layer = json.dumps(

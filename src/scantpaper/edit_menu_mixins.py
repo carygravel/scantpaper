@@ -6,7 +6,7 @@ import re
 
 import gi
 
-from scantpaper.const import MAX_DPI
+from scantpaper.const import _LOCAL_TZ, MAX_DPI
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.preferences import PreferencesDialog
 from scantpaper.i18n import _, d_sane
@@ -15,8 +15,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
 logger = logging.getLogger(__name__)
-
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 class EditMenuMixins:

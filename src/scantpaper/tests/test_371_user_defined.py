@@ -4,6 +4,7 @@ import re
 import subprocess
 
 from scantpaper import config
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, MM_PER_INCH
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
@@ -13,7 +14,7 @@ def test_udt(
 ):
     """Test user-defined tools."""
     paper_sizes = {
-        "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
+        "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
     }
@@ -29,7 +30,7 @@ def test_udt(
     import_in_mainloop(slist, [temp_pnm.name])
 
     page = get_page_sync(slist.thread, id=1)
-    assert page.resolution[0] == 25.4, "Resolution of imported image"
+    assert page.resolution[0] == MM_PER_INCH, "Resolution of imported image"
 
     set_text_in_mainloop(
         slist,
@@ -56,7 +57,7 @@ def test_udt(
 
     page = get_page_sync(slist.thread, id=1)
     assert page.mean == [0.0], "User-defined with %i and %o"
-    assert page.resolution[0] == 25.4, "Resolution of converted image"
+    assert page.resolution[0] == MM_PER_INCH, "Resolution of converted image"
     assert re.search("ACCOUNT", page.text_layer), "OCR output still there"
     assert not page.saved, "modification removed saved tag"
     assert not slist.thread.pages_saved(), "modification removed saved tag"
@@ -92,7 +93,7 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
 def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page_sync):
     """Test user-defined tools."""
     paper_sizes = {
-        "A4": {"x": 210, "y": 297, "l": 0, "t": 0},
+        "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
     }
@@ -108,7 +109,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page
     import_in_mainloop(slist, [temp_pnm.name])
 
     page = get_page_sync(slist.thread, id=1)
-    assert page.resolution[0] == 25.4, "Resolution of imported image"
+    assert page.resolution[0] == MM_PER_INCH, "Resolution of imported image"
 
     mlp = safe_mainloop(5000)
     slist.user_defined(
@@ -119,7 +120,7 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page
     mlp.run()
 
     page = get_page_sync(slist.thread, id=1)
-    assert page.resolution[0] == 25.4, "Resolution of image after udt"
+    assert page.resolution[0] == MM_PER_INCH, "Resolution of image after udt"
 
     mlp = safe_mainloop(5000)
     slist.save_pdf(

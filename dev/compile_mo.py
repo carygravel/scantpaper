@@ -12,6 +12,8 @@ from pathlib import Path
 
 import polib
 
+DOMAIN_LANG_PARTS = 2
+
 
 def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
     """Try to infer language and domain from filename.
@@ -25,7 +27,7 @@ def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
         # Try domain-lang.po -> split last '-' occurrence
         base = name[:-3]  # strip .po
         parts = base.rsplit("-", 1)
-        if len(parts) == 2 and parts[1]:
+        if len(parts) == DOMAIN_LANG_PARTS and parts[1]:
             domain, lang = parts[0], parts[1]
             return domain if given_domain is None else given_domain, lang
     # fallback: name without extension is lang

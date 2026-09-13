@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option
 from scantpaper.scanner.profile import Profile
@@ -134,7 +135,7 @@ def test_infinite_reloads(
     trigger_get_devices(dlg, mainloop_with_timeout)
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
-    dlg.paper_sizes = {"A4": {"x": 210, "y": 297, "t": 0, "l": 0}}
+    dlg.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "t": 0, "l": 0}}
 
     def changed_paper_cb(_arg1, _arg2):
         dlg.disconnect(dlg.signal)

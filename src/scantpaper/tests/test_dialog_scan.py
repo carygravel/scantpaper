@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import gi
 
+from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.dialog.scan import Scan, _build_profile_table
 from scantpaper.frontend import enums
@@ -142,7 +143,7 @@ def test_device_dropdown_changed(mocker):
 def test_edit_paper_apply(mocker):
     """Test _edit_paper and applying changes."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
-    dialog.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+    dialog.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}}
 
     # Mock PaperList
     mock_paperlist_cls = mocker.patch("scantpaper.dialog.scan.PaperList")
@@ -703,7 +704,7 @@ def test_profile_not_cleared_when_paper_changed_during_profile_apply(mocker):
     dialog.setting_profile = [profile.uuid]
 
     # Mock paper setter's dependencies to avoid actual SANE interaction
-    dialog.paper_sizes = {"A4": {"x": 210, "y": 297, "l": 0, "t": 0}}
+    dialog.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}}
     dialog.ignored_paper_sizes = []
     dialog.thread = mocker.Mock()
     dialog.thread.device_handle = mocker.Mock()
@@ -799,7 +800,7 @@ def test_get_paper_by_geometry(mocker):
     assert dialog._get_paper_by_geometry() is None
 
     # Setup for matching tests
-    dialog.paper_sizes = {"A4": {"l": 0, "t": 0, "x": 210, "y": 297}}
+    dialog.paper_sizes = {"A4": {"l": 0, "t": 0, "x": A4_WIDTH_MM, "y": A4_HEIGHT_MM}}
     dialog.thread = mocker.Mock()
     mock_options = mocker.Mock()
     dialog.available_scan_options = mock_options

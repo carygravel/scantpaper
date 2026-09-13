@@ -78,7 +78,7 @@ class Dragger(Tool):
     def button_pressed(self, event):
         """React to button-press events from the view."""
         # Don't block context menu
-        if event.button == 3:
+        if event.button == Gdk.BUTTON_SECONDARY:
             return False
 
         self.drag_start = {"x": event.x, "y": event.y}
@@ -140,10 +140,11 @@ class Dragger(Tool):
 
 
 def _approximately(v_a, v_b):
-    return abs(v_a - v_b) < 0.01
+    return abs(v_a - v_b) < EPSILON
 
 
 CURSOR_PIXELS = 5
+EPSILON = 0.01
 
 
 cursorhash = {
@@ -184,7 +185,7 @@ class Selector(Tool):
     def button_pressed(self, event):
         """React to button-press events from the view."""
         # Don't block context menu
-        if event.button == 3:
+        if event.button == Gdk.BUTTON_SECONDARY:
             return False
 
         self.drag_start = {"x": None, "y": None}
@@ -352,7 +353,7 @@ class SelectorDragger(Tool):
         # left mouse button
         if event.button == 1:
             self._tool = self._selector
-        elif event.button == 2:  # middle mouse button
+        elif event.button == Gdk.BUTTON_MIDDLE:
             self._tool = self._dragger
         else:
             return False

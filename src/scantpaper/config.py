@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 import gi
 
-from scantpaper.const import SELECTORDRAGGER_TOOL
+from scantpaper.const import _LOCAL_TZ, SELECTORDRAGGER_TOOL
 from scantpaper.helpers import slurp
 from scantpaper.i18n import _
 
@@ -139,12 +139,12 @@ def _get_convert_command():
 CONVERT_COMMAND = _get_convert_command()
 logger = logging.getLogger(__name__)
 
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 # Release version that introduced the colour-aware threshold. Configs written
 # by older versions have their "threshold tool" value migrated to the new
 # ink-strength scale (v -> 100 - v). Keep in sync with the release version.
 THRESHOLD_MIGRATION_VERSION = (3, 0, 16)
+TIMEDELTA_FIELDS = 4
 
 
 def _version_tuple(version):
@@ -333,7 +333,7 @@ def _deserialise_and_migrate(config):
     # deserialise timedelta
     if (
         isinstance(config.get("datetime offset"), list)
-        and len(config["datetime offset"]) == 4
+        and len(config["datetime offset"]) == TIMEDELTA_FIELDS
     ):
         config["datetime offset"] = datetime.timedelta(
             days=config["datetime offset"][0],

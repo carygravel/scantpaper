@@ -17,7 +17,7 @@ import tesserocr
 from PIL import ImageChops, ImageEnhance, ImageFilter, ImageOps, ImageStat
 
 from scantpaper.bboxtree import Bboxtree
-from scantpaper.const import APPLICATION_ID, THUMBNAIL, USER_VERSION
+from scantpaper.const import _LOCAL_TZ, APPLICATION_ID, THUMBNAIL, USER_VERSION
 from scantpaper.helpers import exec_command_run
 from scantpaper.i18n import _
 from scantpaper.importthread import _note_callbacks
@@ -32,7 +32,6 @@ from gi.repository import (  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 # Sentinel used as the insert-after target to place a page at the very start of
 # the document (before position 1), where no existing page precedes it.

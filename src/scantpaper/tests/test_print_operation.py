@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import gi
 import pytest
 
+from scantpaper.const import POINTS_PER_INCH
 from scantpaper.print_operation import PrintOperation
 
 gi.require_version("Gtk", "3.0")
@@ -19,17 +20,17 @@ def mock_slist():
     page1 = MagicMock()
     page1.get_pixbuf.return_value.get_width.return_value = 100
     page1.get_pixbuf.return_value.get_height.return_value = 100
-    page1.resolution = (72, 72, "pixels")
+    page1.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "pixels")
 
     page2 = MagicMock()
     page2.get_pixbuf.return_value.get_width.return_value = 100
     page2.get_pixbuf.return_value.get_height.return_value = 100
-    page2.resolution = (72, 72, "pixels")
+    page2.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "pixels")
 
     page3 = MagicMock()
     page3.get_pixbuf.return_value.get_width.return_value = 100
     page3.get_pixbuf.return_value.get_height.return_value = 100
-    page3.resolution = (72, 72, "pixels")
+    page3.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "pixels")
 
     # store numeric ids in data, and mock slist.thread.get_page to return
     # the corresponding page object when called with that id

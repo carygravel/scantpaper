@@ -91,6 +91,7 @@ class Dialog(Gtk.Dialog):
 
 COL_MESSAGE = 3
 COL_CHECKBUTTON = 4
+MIN_ROWS_FOR_CHECKBOX = 2
 TYPES = {
     "error": _("Error"),
     "warning": _("Warning"),
@@ -174,7 +175,7 @@ class MultipleMessage(Dialog):
 
             self._checkbutton_consistency()
 
-        if self.grid_rows > 2:
+        if self.grid_rows > MIN_ROWS_FOR_CHECKBOX:
             self.cbl.set_label(_("Don't show these messages again"))
 
     def _checkbutton_consistency(self, _widget=None):

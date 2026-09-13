@@ -1,5 +1,6 @@
 """Constants that are used in multiple places."""
 
+import datetime
 import importlib.metadata
 import sys
 from pathlib import Path
@@ -31,6 +32,7 @@ ASTERISK = "*"
 DOT = "."
 EMPTY = ""
 EMPTY_LIST = -1
+NOT_FOUND = -1
 HALF = 0.5
 PERCENT = "%"
 SPACE = " "
@@ -44,6 +46,9 @@ MM_PER_INCH = CM_PER_INCH * MM_PER_CM
 POINTS_PER_INCH = 72
 MAX_DPI = 2400
 
+A4_WIDTH_MM = 210
+A4_HEIGHT_MM = 297
+
 DRAGGER_TOOL = "dragger"
 SELECTOR_TOOL = "selector"
 SELECTORDRAGGER_TOOL = "selectordragger"
@@ -52,6 +57,8 @@ _90_DEGREES = 90
 _180_DEGREES = 180
 _270_DEGREES = 270
 _100_PERCENT = 100
+
+_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 HELP_WINDOW_WIDTH = 800
 HELP_WINDOW_HEIGHT = 600

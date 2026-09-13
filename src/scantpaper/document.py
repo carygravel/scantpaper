@@ -10,22 +10,16 @@ from functools import partial
 
 from scantpaper.basedocument import BaseDocument
 from scantpaper.bboxtree import unescape_utf8
+from scantpaper.const import EMPTY
 from scantpaper.i18n import _
 
 logger = logging.getLogger(__name__)
 
-EMPTY = ""
-SPACE = " "
-PERCENT = "%"
 STRING_FORMAT = 8
-THUMBNAIL = 100  # pixels
-_100PERCENT = 100
 YEAR = 5
 BOX_TOLERANCE = 5
-BITS_PER_BYTE = 8
 ALL_PENDING_ZOMBIE_PROCESSES = -1
 INFINITE = -1
-NOT_FOUND = -1
 SIGNAL_MASK = 127
 MONTHS_PER_YEAR = 12
 DAYS_PER_MONTH = 31

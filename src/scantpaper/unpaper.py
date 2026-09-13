@@ -13,6 +13,8 @@ from gi.repository import Gtk  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
+OUTPAGES_DUPLEX = 2
+
 
 class Unpaper:
     """GUI for unpaper."""
@@ -330,7 +332,9 @@ class Unpaper:
         combobw = self.add_widget(vbox, options, "direction")
 
         def outpages_changed_cb(_widget):
-            combobw.get_parent().set_sensitive(outpages.get_value_as_int() == 2)
+            combobw.get_parent().set_sensitive(
+                outpages.get_value_as_int() == OUTPAGES_DUPLEX
+            )
 
         outpages.connect("value-changed", outpages_changed_cb)
         combobw.get_parent().set_sensitive(False)

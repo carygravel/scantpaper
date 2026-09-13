@@ -9,6 +9,8 @@ from typing import ClassVar
 
 import gi
 
+from scantpaper.const import _100_PERCENT, EMPTY, EMPTY_LIST, NOT_FOUND, SPACE
+
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("Pango", "1.0")
@@ -28,7 +30,6 @@ COLOR_TOLERANCE = 0.00001
 _60_DEGREES = 60
 MIN_ZOOM = 0.001
 MAX_ZOOM = 15
-EMPTY_LIST = -1
 MAX_CONFIDENCE_DEFAULT = 95
 MIN_CONFIDENCE_DEFAULT = 50
 FULLPAGE_OCR_SCALE = 0.8
@@ -36,11 +37,7 @@ COLOR_GREEN = 2
 COLOR_CYAN = 3
 COLOR_BLUE = 4
 COLOR_YELLOW = 6
-NOT_FOUND = -1
-_100_PERCENT = 100
 _360_DEGREES = 360
-EMPTY = ""
-SPACE = " "
 BATCH_SIZE = 100
 HOCR_HEADER = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -1092,7 +1089,7 @@ class Canvas(Gtk.DrawingArea):
         self.set_offset(offset_x, offset_y)
 
     def _button_pressed(self, _widget, event):
-        if event.button == 2:
+        if event.button == Gdk.BUTTON_MIDDLE:
             _screen, x, y = self._device.get_position()
             self._drag_start = {"x": x, "y": y}
             self._dragging = True
@@ -1113,7 +1110,7 @@ class Canvas(Gtk.DrawingArea):
                 pass
 
     def _button_released(self, _widget, event):
-        if event.button == 2:
+        if event.button == Gdk.BUTTON_MIDDLE:
             self._dragging = False
             win = self.get_window()
             win.set_cursor(None)

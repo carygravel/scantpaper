@@ -29,6 +29,8 @@ from gi.repository import (  # noqa: E402
 
 Image.MAX_IMAGE_PIXELS = None
 
+WHITE = 255
+
 logger = logging.getLogger(__name__)
 
 
@@ -652,10 +654,10 @@ def _create_qbfox_image():
     pixels = list(_get_data())
     print(
         f"[conftest] _create_qbfox_image: pixel min={min(pixels)} max={max(pixels)} "
-        f"non_white={sum(1 for p in pixels if p != 255)}",
+        f"non_white={sum(1 for p in pixels if p != WHITE)}",
         flush=True,
     )
-    mask = canvas.point(lambda x: 0 if x == 255 else 255)
+    mask = canvas.point(lambda x: 0 if x == WHITE else WHITE)
     bbox = mask.getbbox()
     print(f"[conftest] _create_qbfox_image: text_bbox={bbox}", flush=True)
     if bbox:
