@@ -18,6 +18,9 @@
   defining custom paper sizes in the scan dialog. Fractional dimensions are
   now accepted and preserved, while whole-millimetre sizes are still shown
   without a trailing `.0`.
+* Fix the paper-sizes editor showing the Width, Height, Left and Top values
+  blank: the dimension cells now display their measurements again (e.g. 210,
+  297, 115.2).
 
 
 ## 3.0.18 (2026-09-11)

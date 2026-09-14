@@ -15,8 +15,8 @@ from gi.repository import (  # noqa: E402
 
 def scalar_cell_renderer(_tree_column, cell, model, itr, i):
     """Provide a custom cell renderer gtype scalar."""
-    info = model.get(itr, i)
-    cell.text = "" if info is None else info
+    info = model[itr][i]
+    cell.set_property("text", "" if info is None else info)
 
 
 def float_g_cell_renderer(_tree_column, cell, model, itr, i):
@@ -26,7 +26,7 @@ def float_g_cell_renderer(_tree_column, cell, model, itr, i):
     values such as 115.2 keep their decimal part.
     """
     info = model[itr][i]
-    cell.text = "" if info is None else f"{info:g}"
+    cell.set_property("text", "" if info is None else f"{info:g}")
 
 
 column_types = {

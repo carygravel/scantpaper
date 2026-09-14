@@ -62,3 +62,10 @@ decimal part.
 
 - **WHEN** the paper-sizes dialog lists a size of 115.2 by 174 mm
 - **THEN** the width cell displays 115.2
+
+#### Scenario: Dimension values are visibly rendered
+
+- **WHEN** the paper-sizes dialog is opened with any defined paper sizes
+- **THEN** every width, height, left and top cell is painted with its
+  numeric value
+- **AND** no dimension cell is left empty or blank

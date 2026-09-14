@@ -3,7 +3,11 @@
 import gi
 import pytest
 
-from scantpaper.simplelist import SimpleList, float_g_cell_renderer
+from scantpaper.simplelist import (
+    SimpleList,
+    float_g_cell_renderer,
+    scalar_cell_renderer,
+)
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -244,9 +248,13 @@ def test_mm_display_without_trailing_decimal():
     itr1 = model.iter_nth_child(None, 0)
     itr2 = model.iter_nth_child(None, 1)
     float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr1, 0)
-    assert cell.text == "210", "whole numbers render without trailing .0"
+    assert cell.get_property("text") == "210", (
+        "whole numbers render without trailing .0"
+    )
     float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr2, 0)
-    assert cell.text == "115.2", "fractional values keep their decimal part"
+    assert cell.get_property("text") == "115.2", (
+        "fractional values keep their decimal part"
+    )
 
 
 def test_mm_cell_edited():
@@ -261,6 +269,20 @@ def test_mm_cell_edited():
     assert isinstance(slist.data[0][0], float)
     cell_renderer0.emit("edited", "0", "abc")
     assert slist.data[0][0] == 115.2
+
+
+def test_scalar_renderer_sets_gobject_text_property():
+    """scalar_cell_renderer sets the GObject text property GTK paints."""
+    slist = SimpleList(col="scalar")
+    slist.data.append(["row1"])
+    model = slist.get_model()
+    cell = Gtk.CellRendererText()
+    itr = model.iter_nth_child(None, 0)
+    scalar_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr, 0)
+    assert cell.get_property("text") == "row1", "GObject text property set"
+    slist.data[0][0] = None
+    scalar_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr, 0)
+    assert cell.get_property("text") == "", "None renders as empty text"
 
 
 def test_connect_edited_non_text_renderer_is_noop():
