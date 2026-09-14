@@ -29,6 +29,10 @@
   defaults display with the locale separator at full driver precision, and
   typed comma values are sent to the backend as canonical numbers. Applying
   a scan profile written with a decimal comma no longer crashes.
+* Fix the Postprocessing rotate controls always defaulting to 90° in the scan
+  dialog, ignoring the "rotate facing" and "rotate reverse" values stored in
+  the configuration file (e.g. 270°). The configured angles are now honoured
+  when the dialog opens.
 
 
 ## 3.0.18 (2026-09-11)

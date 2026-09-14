@@ -134,8 +134,9 @@ class RotateControls(Gtk.Box):
         self.can_duplex = can_duplex
 
         # In case it isn't set elsewhere
-        self._side1.side_cmbx.set_active_index("both")
-        self._side1.angle_cmbx.set_active_index(90)
+        if self.rotate_facing == 0 and self.rotate_reverse == 0:
+            self._side1.side_cmbx.set_active_index("both")
+            self._side1.angle_cmbx.set_active_index(90)
 
         # Sync GUI with properties set during instantiation
         self._update_gui()

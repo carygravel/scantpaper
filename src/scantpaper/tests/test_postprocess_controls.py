@@ -119,6 +119,14 @@ class TestRotateControls:
         assert controls.can_duplex is False
         assert not controls._side1.side_cmbx.get_visible()
 
+    def test_init_preserves_loaded_rotation(self):
+        """Loaded config values (e.g. 270) must not be clobbered by defaults."""
+        controls = RotateControls(rotate_facing=270, rotate_reverse=270)
+        assert controls.rotate_facing == 270
+        assert controls.rotate_reverse == 270
+        assert controls._side1.side_cmbx.get_active_index() == "both"
+        assert controls._side1.angle_cmbx.get_active_index() == 270
+
     def test_rotate_facing_property(self, rotate_controls):
         """Test rotate_facing property."""
         rotate_controls.rotate_facing = 90
