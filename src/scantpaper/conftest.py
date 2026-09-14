@@ -1,6 +1,7 @@
 """Some helper functions to reduce boilerplate."""
 
 import contextlib
+import locale
 import logging
 import os
 import pathlib
@@ -17,6 +18,7 @@ from scantpaper.basethread import BaseThread
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import decode_info
+from scantpaper.helpers import decimal_separator
 from scantpaper.loop_helpers import _MainLoopWrapper, safe_mainloop
 from scantpaper.tests.scan_mocks import build_scan_options
 
@@ -44,6 +46,26 @@ def quit_lingering_threads():
     """Quit any BaseThread still alive after a test, releasing its resources."""
     yield
     BaseThread.quit_all_live_threads()
+
+
+@pytest.fixture
+def comma_locale(monkeypatch):
+    """Force the configured locale to a decimal-comma locale and reset the separator cache.
+
+    Skips when the de_DE.utf8 locale is not installed on the system.
+    """
+    try:
+        saved = locale.setlocale(locale.LC_NUMERIC)
+        locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
+        locale.setlocale(locale.LC_NUMERIC, saved)
+    except locale.Error:
+        pytest.skip("de_DE.utf8 locale not available")
+
+    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
+    monkeypatch.setenv("LANG", "de_DE.utf8")
+    decimal_separator.cache_clear()
+    yield decimal_separator()
+    decimal_separator.cache_clear()
 
 
 @pytest.fixture

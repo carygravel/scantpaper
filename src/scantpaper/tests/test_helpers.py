@@ -2,6 +2,7 @@
 
 import datetime
 import gc
+import locale
 import pathlib
 import subprocess
 from io import BytesIO
@@ -16,6 +17,7 @@ from scantpaper.helpers import (
     _program_version,
     _weak_callback,
     collate_metadata,
+    decimal_separator,
     exec_command,
     exec_command_run,
     expand_metadata_pattern,
@@ -27,6 +29,52 @@ from scantpaper.helpers import (
 )
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+
+
+def has_numeric_locale(name):
+    """Check if the given locale is available on the system."""
+    try:
+        saved = locale.setlocale(locale.LC_NUMERIC)
+        locale.setlocale(locale.LC_NUMERIC, name)
+        locale.setlocale(locale.LC_NUMERIC, saved)
+    except locale.Error:
+        return False
+    return True
+
+
+_HAS_DE_DE = has_numeric_locale("de_DE.utf8")
+
+
+def test_decimal_separator_default():
+    """decimal_separator returns the configured separator and keeps LC_NUMERIC."""
+    saved = locale.setlocale(locale.LC_NUMERIC)
+    sep = decimal_separator()
+    assert sep in (".", ","), "a separator is reported"
+    assert locale.setlocale(locale.LC_NUMERIC) == saved, "state is restored"
+    decimal_separator.cache_clear()
+
+
+@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+def test_decimal_separator_comma_locale(monkeypatch):
+    """decimal_separator returns ',' when the configured locale uses a comma."""
+    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
+    monkeypatch.setenv("LANG", "de_DE.utf8")
+    decimal_separator.cache_clear()
+    assert decimal_separator() == ","
+    decimal_separator.cache_clear()
+
+
+@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+def test_decimal_separator_robust_to_lc_numeric_flip(monkeypatch):
+    """The separator survives other code flipping LC_NUMERIC to 'C'."""
+    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
+    monkeypatch.setenv("LANG", "de_DE.utf8")
+    decimal_separator.cache_clear()
+    saved = locale.setlocale(locale.LC_NUMERIC, "C")
+    assert decimal_separator() == ","
+    assert locale.setlocale(locale.LC_NUMERIC) == "C", "ambient state preserved"
+    locale.setlocale(locale.LC_NUMERIC, saved)
+    decimal_separator.cache_clear()
 
 
 class MockObj:

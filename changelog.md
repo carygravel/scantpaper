@@ -21,6 +21,9 @@
 * Fix the paper-sizes editor showing the Width, Height, Left and Top values
   blank: the dimension cells now display their measurements again (e.g. 210,
   297, 115.2).
+* Show and accept the locale's decimal separator (e.g. 115,2 in a German
+  locale) when entering fractional paper dimensions; a period still works
+  too.
 
 
 ## 3.0.18 (2026-09-11)

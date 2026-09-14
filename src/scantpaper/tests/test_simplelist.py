@@ -291,3 +291,66 @@ def test_connect_edited_non_text_renderer_is_noop():
     pixbuf_renderer = Gtk.CellRendererPixbuf()
     slist.do_connect_text_edited(pixbuf_renderer, int, 0)
     assert not hasattr(pixbuf_renderer, "column"), "no column set for non-text"
+
+
+def test_edited_double_accepts_comma_locale(comma_locale):
+    """A double cell accepts the locale decimal separator, storing a float."""
+    assert comma_locale == ","
+    slist = SimpleList(col1="double")
+    slist.data.append([210.0])
+    slist.set_column_editable(0, editable=True)
+    column0 = slist.get_column(0)
+    cell_renderer0 = column0.get_cells()[0]
+    cell_renderer0.emit("edited", "0", "115,2")
+    assert slist.data[0][0] == 115.2
+    assert isinstance(slist.data[0][0], float)
+
+
+def test_edited_double_period_still_works_in_comma_locale(comma_locale):
+    """A period still parses in a comma locale."""
+    assert comma_locale == ","
+    slist = SimpleList(col1="double")
+    slist.data.append([210.0])
+    slist.set_column_editable(0, editable=True)
+    column0 = slist.get_column(0)
+    cell_renderer0 = column0.get_cells()[0]
+    cell_renderer0.emit("edited", "0", "115.2")
+    assert slist.data[0][0] == 115.2
+
+
+def test_edited_double_rejects_invalid_in_comma_locale(comma_locale):
+    """Invalid input is still rejected in a comma locale."""
+    assert comma_locale == ","
+    slist = SimpleList(col1="double")
+    slist.data.append([210.0])
+    slist.set_column_editable(0, editable=True)
+    column0 = slist.get_column(0)
+    cell_renderer0 = column0.get_cells()[0]
+    cell_renderer0.emit("edited", "0", "abc")
+    assert slist.data[0][0] == 210.0
+    cell_renderer0.emit("edited", "0", "1,2.3")
+    assert slist.data[0][0] == 210.0
+
+
+def test_mm_display_with_comma_locale(comma_locale):
+    """An mm cell renders fractional values with the locale's separator."""
+    assert comma_locale == ","
+    slist = SimpleList(col="mm")
+    slist.data.append([115.2])
+    model = slist.get_model()
+    cell = Gtk.CellRendererText()
+    itr = model.iter_nth_child(None, 0)
+    float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr, 0)
+    assert cell.get_property("text") == "115,2"
+
+
+def test_mm_display_whole_with_comma_locale(comma_locale):
+    """An mm cell still renders whole numbers without decimals in a comma locale."""
+    assert comma_locale == ","
+    slist = SimpleList(col="mm")
+    slist.data.append([210.0])
+    model = slist.get_model()
+    cell = Gtk.CellRendererText()
+    itr = model.iter_nth_child(None, 0)
+    float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr, 0)
+    assert cell.get_property("text") == "210"

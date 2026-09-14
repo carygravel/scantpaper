@@ -1,12 +1,14 @@
 """Various helper functions."""
 
 import datetime
+import locale
 import logging
 import pathlib
 import re
 import subprocess
 import weakref
 from dataclasses import dataclass
+from functools import lru_cache
 
 from scantpaper.dialog import MultipleMessage
 from scantpaper.i18n import _
@@ -16,6 +18,21 @@ logger = logging.getLogger(__name__)
 PROCESS_FAILED = -1
 SETTING = {}
 _MESSAGE_DIALOG = {"dialog": None}
+
+
+@lru_cache
+def decimal_separator():
+    """Return the decimal separator of the configured locale.
+
+    The separator is read from the environment rather than the ambient
+    LC_NUMERIC, because other code temporarily flips LC_NUMERIC to "C".
+    The previous LC_NUMERIC state is restored before returning.
+    """
+    previous = locale.setlocale(locale.LC_NUMERIC, None)
+    locale.setlocale(locale.LC_NUMERIC, "")
+    sep = locale.localeconv()["decimal_point"]
+    locale.setlocale(locale.LC_NUMERIC, previous)
+    return sep
 
 
 def _weak_callback(obj, method_name):
