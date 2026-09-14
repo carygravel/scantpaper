@@ -15,7 +15,12 @@ from scantpaper.dialog.pagecontrols import MAX_PAGES, PageControls
 from scantpaper.dialog.paperlist import PaperList
 from scantpaper.docthread import INSERT_AT_START
 from scantpaper.frontend import enums
-from scantpaper.helpers import _weak_callback, show_message_dialog
+from scantpaper.helpers import (
+    _weak_callback,
+    format_number_precise,
+    parse_number,
+    show_message_dialog,
+)
 from scantpaper.i18n import _, d_sane
 from scantpaper.scanner.options import Options, within_tolerance
 from scantpaper.scanner.profile import Profile
@@ -76,8 +81,12 @@ def _label_duplicate_models(device_list):
 def _coerce_option_value(opt, val):
     """Force the value's type to match the option type from a pre-v3 config."""
     if opt.type == enums.TYPE_INT:
+        if isinstance(val, str):
+            return parse_number(val, int)
         return int(val)
     if opt.type == enums.TYPE_FIXED:
+        if isinstance(val, str):
+            return parse_number(val)
         return float(val)
     if opt.type == enums.TYPE_BOOL:
         return bool(val)
@@ -808,7 +817,10 @@ class Scan(PageControls):
         widget.get_model().clear()
         index = 0
         for i, entry in enumerate(opt.constraint):
-            widget.append_text(d_sane(str(entry)))
+            if isinstance(entry, (int, float)):
+                widget.append_text(format_number_precise(entry))
+            else:
+                widget.append_text(d_sane(str(entry)))
             if entry == value:
                 index = i
 
@@ -817,7 +829,10 @@ class Scan(PageControls):
 
     def _set_entry_widget(self, widget, value, opt):
         if _value_for_active_option(value, opt):
-            widget.set_text(str(value))
+            if opt.type in (enums.TYPE_INT, enums.TYPE_FIXED):
+                widget.set_text(format_number_precise(value))
+            else:
+                widget.set_text(str(value))
 
     def _update_option(self, opt, new_opt):
 

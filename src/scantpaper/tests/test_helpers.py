@@ -21,7 +21,10 @@ from scantpaper.helpers import (
     exec_command,
     exec_command_run,
     expand_metadata_pattern,
+    format_number,
+    format_number_precise,
     get_tmp_dir,
+    parse_number,
     program_version,
     recursive_slurp,
     show_message_dialog,
@@ -74,6 +77,67 @@ def test_decimal_separator_robust_to_lc_numeric_flip(monkeypatch):
     assert decimal_separator() == ","
     assert locale.setlocale(locale.LC_NUMERIC) == "C", "ambient state preserved"
     locale.setlocale(locale.LC_NUMERIC, saved)
+    decimal_separator.cache_clear()
+
+
+def test_format_number_default_locale():
+    """format_number uses dots in a dot locale and trims whole numbers."""
+    assert format_number(115.2) == "115.2"
+    assert format_number(210.0) == "210"
+    assert format_number(150) == "150"
+    decimal_separator.cache_clear()
+
+
+@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+def test_format_number_comma_locale(monkeypatch):
+    """format_number uses the comma in a comma locale."""
+    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
+    monkeypatch.setenv("LANG", "de_DE.utf8")
+    decimal_separator.cache_clear()
+    assert format_number(115.2) == "115,2"
+    assert format_number(210.0) == "210"
+    decimal_separator.cache_clear()
+
+
+def test_parse_number_default_locale():
+    """parse_number accepts dots in a dot locale and rejects junk."""
+    assert parse_number("115.2") == 115.2
+    assert parse_number("150", int) == 150
+    with pytest.raises(ValueError, match="could not convert"):
+        parse_number("abc")
+    decimal_separator.cache_clear()
+
+
+@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+def test_parse_number_comma_locale(monkeypatch):
+    """parse_number accepts the comma in a comma locale, and dots too."""
+    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
+    monkeypatch.setenv("LANG", "de_DE.utf8")
+    decimal_separator.cache_clear()
+    assert parse_number("115,2") == 115.2
+    assert parse_number("115.2") == 115.2
+    assert parse_number("150", int) == 150
+    with pytest.raises(ValueError, match="could not convert"):
+        parse_number("1,2.3")
+    decimal_separator.cache_clear()
+
+
+def test_format_number_precise_default_locale():
+    """format_number_precise keeps full precision and a dot separator."""
+    assert format_number_precise(1.07818603515625) == "1.07818603515625"
+    assert format_number_precise(150) == "150"
+    assert format_number_precise(115.2) == "115.2"
+    decimal_separator.cache_clear()
+
+
+@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+def test_format_number_precise_comma_locale(monkeypatch):
+    """format_number_precise localizes the separator without trimming."""
+    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
+    monkeypatch.setenv("LANG", "de_DE.utf8")
+    decimal_separator.cache_clear()
+    assert format_number_precise(1.07818603515625) == "1,07818603515625"
+    assert format_number_precise(115.2) == "115,2"
     decimal_separator.cache_clear()
 
 

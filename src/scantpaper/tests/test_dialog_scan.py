@@ -9,8 +9,9 @@ import gi
 
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.dialog.sane import SaneScanDialog
-from scantpaper.dialog.scan import Scan, _build_profile_table
+from scantpaper.dialog.scan import Scan, _build_profile_table, _coerce_option_value
 from scantpaper.frontend import enums
+from scantpaper.scanner.options import Option
 from scantpaper.scanner.profile import Profile
 
 gi.require_version("Gtk", "3.0")
@@ -1198,3 +1199,38 @@ def test_get_label_for_option_none():
 
     dialog.option_widgets["my_opt"] = widget
     assert dialog._get_label_for_option("my_opt") is None
+
+
+def test_coerce_option_value_fixed_string_comma_locale(comma_locale):
+    """A pre-v3 FIXED value written with a decimal comma is coerced."""
+    assert comma_locale == ","
+    opt = Option(
+        0, "test", "Test", "desc", enums.TYPE_FIXED, enums.UNIT_NONE, 0, 0, None
+    )
+    assert _coerce_option_value(opt, "115,2") == 115.2
+    assert _coerce_option_value(opt, 115.2) == 115.2
+
+
+def test_coerce_option_value_fixed_string_dot_locale(dot_locale):
+    """A pre-v3 FIXED value written with a period is coerced in a dot locale."""
+    assert dot_locale == "."
+    opt = Option(
+        0, "test", "Test", "desc", enums.TYPE_FIXED, enums.UNIT_NONE, 0, 0, None
+    )
+    assert _coerce_option_value(opt, "115.2") == 115.2
+
+
+def test_coerce_option_value_int_string(dot_locale):
+    """A pre-v3 INT value string is coerced to an int."""
+    assert dot_locale == "."
+    opt = Option(0, "test", "Test", "desc", enums.TYPE_INT, enums.UNIT_NONE, 0, 0, None)
+    assert _coerce_option_value(opt, "150") == 150
+    assert _coerce_option_value(opt, 150) == 150
+
+
+def test_coerce_option_value_string_passthrough():
+    """Non-numeric option types keep their value unchanged."""
+    opt = Option(
+        0, "test", "Test", "desc", enums.TYPE_STRING, enums.UNIT_NONE, 0, 0, None
+    )
+    assert _coerce_option_value(opt, "hello") == "hello"

@@ -9,6 +9,7 @@ from scantpaper.const import EMPTY
 from scantpaper.dialog.scan import Scan, _geometry_option, make_progress_string
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
+from scantpaper.helpers import format_number_precise, parse_number
 from scantpaper.i18n import _, d_sane
 from scantpaper.scanner.options import Options
 
@@ -299,7 +300,10 @@ class SaneScanDialog(Scan):
         widget = Gtk.ComboBoxText()
         index = 0
         for i, constraint in enumerate(opt.constraint):
-            widget.append_text(str(d_sane(constraint)))
+            if isinstance(constraint, (int, float)):
+                widget.append_text(format_number_precise(constraint))
+            else:
+                widget.append_text(str(d_sane(constraint)))
             if val is not None and constraint == val:
                 index = i
 
@@ -327,12 +331,21 @@ class SaneScanDialog(Scan):
         # Set the default
 
         if val is not None and not opt.cap & enums.CAP_INACTIVE:
-            widget.set_text(str(val))
+            if opt.type in (enums.TYPE_INT, enums.TYPE_FIXED):
+                widget.set_text(format_number_precise(val))
+            else:
+                widget.set_text(str(val))
 
         def activate_entry_cb(_widget):
             self.num_reloads = 0  # num-reloads is read-only
             self._reverted_option_counts.pop(opt.name, None)
-            value = widget.get_text()
+            text = widget.get_text()
+            if opt.type == enums.TYPE_FIXED:
+                value = parse_number(text)
+            elif opt.type == enums.TYPE_INT:
+                value = parse_number(text, int)
+            else:
+                value = text
             self.set_option(opt, value=value)
 
         widget.signal = widget.connect("activate", activate_entry_cb)

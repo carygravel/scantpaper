@@ -4,7 +4,7 @@ from warnings import warn
 
 import gi
 
-from scantpaper.helpers import _weak_callback, decimal_separator
+from scantpaper.helpers import _weak_callback, format_number, parse_number
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -29,11 +29,7 @@ def float_g_cell_renderer(_tree_column, cell, model, itr, i):
     if info is None:
         cell.set_property("text", "")
         return
-    text = f"{info:g}"
-    sep = decimal_separator()
-    if sep not in (".", ""):
-        text = text.replace(".", sep)
-    cell.set_property("text", text)
+    cell.set_property("text", format_number(info))
 
 
 column_types = {
@@ -185,10 +181,7 @@ class SimpleList(Gtk.TreeView):
         if col_type is int:
             new_text = int(new_text)
         elif col_type is float:
-            sep = decimal_separator()
-            if sep not in (".", ""):
-                new_text = new_text.replace(sep, ".", 1)
-            new_text = float(new_text)
+            new_text = parse_number(new_text)
         model[model.get_iter(path)][renderer.column] = new_text
 
     def set_column_editable(self, index, editable):

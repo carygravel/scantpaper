@@ -69,6 +69,16 @@ def comma_locale(monkeypatch):
 
 
 @pytest.fixture
+def dot_locale(monkeypatch):
+    """Force the configured locale to a period decimal separator and reset the separator cache."""
+    monkeypatch.setenv("LC_ALL", "C")
+    monkeypatch.setenv("LANG", "C")
+    decimal_separator.cache_clear()
+    yield decimal_separator()
+    decimal_separator.cache_clear()
+
+
+@pytest.fixture
 def sane_scan_dialog():
     """Return a SaneScanDialog instance."""
     dialog = SaneScanDialog(

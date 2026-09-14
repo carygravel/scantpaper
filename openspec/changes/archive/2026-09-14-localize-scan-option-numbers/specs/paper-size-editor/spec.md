@@ -1,33 +1,6 @@
-# paper-size-editor
+Capability: paper-size-editor
 
-## Purpose
-
-Enables users to define and edit custom paper sizes with sub-millimetre
-precision, so the saved dimensions match what they entered at scan
-resolutions where one mm spans many pixels.
-
-## Requirements
-
-### Requirement: Fractional paper dimensions are preserved
-
-The paper-sizes editor SHALL preserve fractional millimetre dimensions
-(with at least one digit after the decimal point) for every dimension cell
-(width, height, left, top) from load through edit and save, without
-truncation or rounding.
-
-#### Scenario: Existing fractional size round-trips unchanged
-
-- **WHEN** a paper size is defined with a fractional dimension such as
-  115.2 mm in the configuration and the paper-sizes dialog is opened and
-  applied
-- **THEN** the saved configuration still contains 115.2 for that dimension
-
-#### Scenario: Whole-millimetre sizes remain exact
-
-- **WHEN** a paper size is defined with whole-millimetre dimensions
-  (for example the default sizes)
-- **THEN** opening and applying the paper-sizes dialog leaves those
-  dimensions numerically unchanged
+## MODIFIED Requirements
 
 ### Requirement: Fractional input is accepted in every dimension cell
 

@@ -35,6 +35,41 @@ def decimal_separator():
     return sep
 
 
+def format_number(number):
+    """Format a number with the locale's decimal separator.
+
+    Whole numbers keep no decimal part (210 not 210.0), while fractional
+    values use the locale's separator (115,2 in a comma locale). Fractional
+    precision follows Python's :g formatting.
+    """
+    text = f"{number:g}"
+    sep = decimal_separator()
+    if sep not in (".", ""):
+        text = text.replace(".", sep)
+    return text
+
+
+def format_number_precise(number):
+    """Format a number with the locale separator, keeping full precision.
+
+    Scan-option values must round-trip unchanged (e.g. 1.07818603515625), so
+    the text keeps str()'s precision and only the separator is localized.
+    """
+    text = str(number)
+    sep = decimal_separator()
+    if sep not in (".", ""):
+        text = text.replace(".", sep)
+    return text
+
+
+def parse_number(text, number_type=float):
+    """Parse user-entered text into a number, accepting the locale's separator."""
+    sep = decimal_separator()
+    if sep not in (".", ""):
+        text = text.replace(sep, ".", 1)
+    return number_type(text)
+
+
 def _weak_callback(obj, method_name):
     """Create a weak callback."""
     ref = weakref.ref(obj)

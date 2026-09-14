@@ -1135,6 +1135,109 @@ def test_entry_widget_activate(mocker, sane_scan_dialog):
     dialog.set_option.assert_called_with(entry_opt, value="new value")
 
 
+def _combo_option():
+    """Return a list-constrained numeric option for the combobox tests."""
+    group_opt = Option(
+        0, "group", "Group", "desc", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None
+    )
+    combo_opt = Option(
+        1,
+        "test-combo",
+        "Test Combo",
+        "desc",
+        enums.TYPE_FIXED,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        [150, 300, 215.9],
+    )
+    return group_opt, combo_opt
+
+
+def _entry_option():
+    """Return a free-text numeric option for the entry tests."""
+    group_opt = Option(
+        0, "group", "Group", "desc", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None
+    )
+    entry_opt = Option(
+        1,
+        "test-entry",
+        "Test Entry",
+        "desc",
+        enums.TYPE_FIXED,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        None,
+    )
+    return group_opt, entry_opt
+
+
+def _combo_items(dialog):
+    """Return the displayed item texts of the test-combo combobox."""
+    widget = dialog.option_widgets["test-combo"]
+    assert isinstance(widget, Gtk.ComboBoxText)
+    model = widget.get_model()
+    return [model[i][0] for i in range(len(model))]
+
+
+def test_combobox_items_comma_locale(mocker, sane_scan_dialog, comma_locale):
+    """Numeric combobox items use the locale decimal separator."""
+    assert comma_locale == ","
+    dialog = sane_scan_dialog
+    mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
+    group_opt, combo_opt = _combo_option()
+    dialog.thread.device_handle = MagicMock()
+    dialog.thread.device_handle.test_combo = 150
+    dialog._initialise_options(Options([group_opt, combo_opt]))
+    assert _combo_items(dialog) == ["150", "300", "215,9"]
+
+
+def test_combobox_items_dot_locale(mocker, sane_scan_dialog, dot_locale):
+    """Numeric combobox items use a period in a dot locale."""
+    assert dot_locale == "."
+    dialog = sane_scan_dialog
+    mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
+    group_opt, combo_opt = _combo_option()
+    dialog.thread.device_handle = MagicMock()
+    dialog.thread.device_handle.test_combo = 150
+    dialog._initialise_options(Options([group_opt, combo_opt]))
+    assert _combo_items(dialog) == ["150", "300", "215.9"]
+
+
+def test_entry_display_comma_locale(mocker, sane_scan_dialog, comma_locale):
+    """A free-text numeric entry shows its default with the locale separator."""
+    assert comma_locale == ","
+    dialog = sane_scan_dialog
+    mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
+    group_opt, entry_opt = _entry_option()
+    dialog.thread.device_handle = MagicMock()
+    dialog.thread.device_handle.test_entry = 115.2
+    dialog._initialise_options(Options([group_opt, entry_opt]))
+    widget = dialog.option_widgets["test-entry"]
+    assert isinstance(widget, Gtk.Entry)
+    assert widget.get_text() == "115,2"
+
+
+def test_entry_activate_comma_locale(mocker, sane_scan_dialog, comma_locale):
+    """Activating a numeric entry sends a canonical float for comma input."""
+    assert comma_locale == ","
+    dialog = sane_scan_dialog
+    mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
+    group_opt, entry_opt = _entry_option()
+    dialog.thread.device_handle = MagicMock()
+    dialog.thread.device_handle.test_entry = 115.2
+    dialog._initialise_options(Options([group_opt, entry_opt]))
+    widget = dialog.option_widgets["test-entry"]
+    dialog.set_option = MagicMock()
+    widget.set_text("115,5")
+    widget.emit("activate")
+    dialog.set_option.assert_called_with(entry_opt, value=115.5)
+    widget.set_text("115.5")
+    widget.emit("activate")
+    dialog.set_option.assert_called_with(entry_opt, value=115.5)
+
+
 def test_set_option_clamping(sane_scan_dialog):
     """Test set_option clamping to cover lines 391 and 393."""
     dialog = sane_scan_dialog

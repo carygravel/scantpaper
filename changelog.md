@@ -24,6 +24,11 @@
 * Show and accept the locale's decimal separator (e.g. 115,2 in a German
   locale) when entering fractional paper dimensions; a period still works
   too.
+* Show and accept the locale's decimal separator for numeric scan-option
+  values too: list/combobox items (e.g. resolutions) and free-text entry
+  defaults display with the locale separator at full driver precision, and
+  typed comma values are sent to the backend as canonical numbers. Applying
+  a scan profile written with a decimal comma no longer crashes.
 
 
 ## 3.0.18 (2026-09-11)
