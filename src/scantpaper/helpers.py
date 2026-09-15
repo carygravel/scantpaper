@@ -121,7 +121,7 @@ def exec_command(cmd, pidfile=None):
     return Proc(returncode, stdout_data, stderr_data)
 
 
-def exec_command_run(
+def exec_command_run(  # noqa: PLR0913 - mirrors subprocess.run()'s surface; keyword-only after cmd/pidfile
     cmd,
     pidfile=None,
     *,

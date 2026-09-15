@@ -709,7 +709,9 @@ for method_name_ in [
     setattr(BaseDocument, method_name_, _modify_method_generator(method_name_))
 
 
-def drag_data_received_callback(tree, context, xpos, ypos, data, info, time):
+def drag_data_received_callback(  # noqa: PLR0913, PLR0917 - GTK DnD callback signature fixed by the toolkit
+    tree, context, xpos, ypos, data, info, time
+):
     """Handle DnD data reception."""
     # This callback is fired twice, seemingly once for the drop flag,
     # and once for the copy flag,
